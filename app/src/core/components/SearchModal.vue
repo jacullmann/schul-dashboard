@@ -526,208 +526,207 @@ function handleSelect(index: number) {
 </script>
 
 <template>
-  <div @keydown.capture="onKeydown">
-    <BaseCommandPalette
-      v-model="query"
-      :item-count="paletteProps.itemCount"
-      :placeholder="paletteProps.placeholder"
-      :title="paletteProps.title"
-      :id-prefix="paletteProps.prefix"
-      @select="handleSelect"
-      @cancel="$emit('cancel')"
-    >
-      <template #default="{ selectedIndex, setSelectedIndex }">
-        <!-- GROUP MODE -->
-        <template v-if="mode === 'group'">
-          <div
-            class="px-4 py-1.5 flex items-center gap-2 text-xs text-on-ghost-muted font-semibold uppercase tracking-wider mb-1"
+  <BaseCommandPalette
+    v-model="query"
+    :item-count="paletteProps.itemCount"
+    :placeholder="paletteProps.placeholder"
+    :title="paletteProps.title"
+    :id-prefix="paletteProps.prefix"
+    @select="handleSelect"
+    @cancel="$emit('cancel')"
+    @keydown.capture="onKeydown"
+  >
+    <template #default="{ selectedIndex, setSelectedIndex }">
+      <!-- GROUP MODE -->
+      <template v-if="mode === 'group'">
+        <div
+          class="px-4 py-1.5 flex items-center gap-2 text-xs text-on-ghost-muted font-semibold uppercase tracking-wider mb-1"
+        >
+          <button
+            @click="setMode('default')"
+            class="hover:text-on-ghost transition-colors inline-flex items-center"
+            aria-label="Zurück"
           >
-            <button
-              @click="setMode('default')"
-              class="hover:text-on-ghost transition-colors inline-flex items-center"
-              aria-label="Zurück"
+            <ArrowLeft :size="14" class="mr-1" />
+            {{ t('global.back', 'Back') }}
+          </button>
+          <span class="opacity-50">/</span>
+          <span>{{ t('search.items.switchGroup') }}</span>
+        </div>
+        <template v-if="filteredGroups.length">
+          <BaseCommandPaletteItem
+            v-for="(group, index) in filteredGroups"
+            :key="group.id"
+            :id="'group-result-' + index"
+            :active="selectedIndex === index"
+            :label="group.name"
+            :avatar-text="group.name.charAt(0).toUpperCase()"
+            @click="onSwitchGroup(group.id)"
+            @mouseenter="setSelectedIndex(index)"
+          >
+            <NotificationDot
+              v-if="group.hasUnreadContent && group.id !== activeGroupId"
+            />
+            <ArrowUpRight
+              v-if="selectedIndex === index"
+              :size="14"
+              class="shrink-0 text-on-ghost-subtle"
+            />
+          </BaseCommandPaletteItem>
+        </template>
+      </template>
+
+      <!-- THEME MODE -->
+      <template v-else-if="mode === 'theme'">
+        <div
+          class="px-4 py-1.5 flex items-center gap-2 text-xs text-on-ghost-muted font-semibold uppercase tracking-wider mb-1"
+        >
+          <button
+            @click="setMode('default')"
+            class="hover:text-on-ghost transition-colors inline-flex items-center"
+            aria-label="Zurück"
+          >
+            <ArrowLeft :size="14" class="mr-1" />
+            {{ t('global.back', 'Back') }}
+          </button>
+          <span class="opacity-50">/</span>
+          <span>{{ t('account.menu.theme.title') }}</span>
+        </div>
+        <template v-if="filteredThemes.length">
+          <BaseCommandPaletteItem
+            v-for="(opt, index) in filteredThemes"
+            :key="opt.id"
+            :id="'theme-result-' + index"
+            :active="selectedIndex === index"
+            :label="opt.label"
+            :icon="opt.icon"
+            @click="onSwitchTheme(opt.id)"
+            @mouseenter="setSelectedIndex(index)"
+          >
+            <Check
+              v-if="currentTheme === opt.id"
+              :size="16"
+              class="shrink-0 text-on-ghost"
+            />
+          </BaseCommandPaletteItem>
+        </template>
+      </template>
+
+      <!-- LANGUAGE MODE -->
+      <template v-else-if="mode === 'language'">
+        <div
+          class="px-4 py-1.5 flex items-center gap-2 text-xs text-on-ghost-muted font-semibold uppercase tracking-wider mb-1"
+        >
+          <button
+            @click="setMode('default')"
+            class="hover:text-on-ghost transition-colors inline-flex items-center"
+            aria-label="Zurück"
+          >
+            <ArrowLeft :size="14" class="mr-1" />
+            {{ t('global.back', 'Back') }}
+          </button>
+          <span class="opacity-50">/</span>
+          <span>{{ t('account.menu.language.title') }}</span>
+        </div>
+        <template v-if="filteredLanguages.length">
+          <BaseCommandPaletteItem
+            v-for="(opt, index) in filteredLanguages"
+            :key="opt.id"
+            :id="'language-result-' + index"
+            :active="selectedIndex === index"
+            :label="opt.label"
+            :icon="opt.icon"
+            @click="onSwitchLanguage(opt.id)"
+            @mouseenter="setSelectedIndex(index)"
+          >
+            <Check
+              v-if="currentLanguage === opt.id"
+              :size="16"
+              class="shrink-0 text-on-ghost"
+            />
+          </BaseCommandPaletteItem>
+        </template>
+      </template>
+
+      <!-- DEFAULT MODE -->
+      <template v-else>
+        <!-- Pages section -->
+        <template v-if="defaultPageResults.length">
+          <div class="px-4 py-1.5">
+            <span
+              class="text-xs text-on-ghost-muted font-semibold uppercase tracking-wider"
             >
-              <ArrowLeft :size="14" class="mr-1" />
-              {{ t('global.back', 'Back') }}
-            </button>
-            <span class="opacity-50">/</span>
-            <span>{{ t('search.items.switchGroup') }}</span>
+              {{ t('search.modal.categoryPages') }}
+            </span>
           </div>
-          <template v-if="filteredGroups.length">
-            <BaseCommandPaletteItem
-              v-for="(group, index) in filteredGroups"
-              :key="group.id"
-              :id="'group-result-' + index"
-              :active="selectedIndex === index"
-              :label="group.name"
-              :avatar-text="group.name.charAt(0).toUpperCase()"
-              @click="onSwitchGroup(group.id)"
-              @mouseenter="setSelectedIndex(index)"
-            >
-              <NotificationDot
-                v-if="group.hasUnreadContent && group.id !== activeGroupId"
-              />
-              <ArrowUpRight
-                v-if="selectedIndex === index"
-                :size="14"
-                class="shrink-0 text-on-ghost-subtle"
-              />
-            </BaseCommandPaletteItem>
-          </template>
+          <BaseCommandPaletteItem
+            v-for="item in defaultPageResults"
+            :key="item.id"
+            :id="'search-result-' + globalIndex(item)"
+            :active="selectedIndex === globalIndex(item)"
+            :label="item.label"
+            :description="item.description"
+            :icon="item.icon"
+            @click="item.action()"
+            @mouseenter="setSelectedIndex(globalIndex(item))"
+          >
+            <ArrowUpRight
+              v-if="selectedIndex === globalIndex(item)"
+              :size="14"
+              class="shrink-0 text-on-ghost-subtle"
+            />
+          </BaseCommandPaletteItem>
         </template>
 
-        <!-- THEME MODE -->
-        <template v-else-if="mode === 'theme'">
+        <!-- Actions section -->
+        <template v-if="defaultActionResults.length">
           <div
-            class="px-4 py-1.5 flex items-center gap-2 text-xs text-on-ghost-muted font-semibold uppercase tracking-wider mb-1"
+            class="px-4 py-1.5"
+            :class="defaultPageResults.length ? 'mt-2' : ''"
           >
-            <button
-              @click="setMode('default')"
-              class="hover:text-on-ghost transition-colors inline-flex items-center"
-              aria-label="Zurück"
+            <span
+              class="text-xs text-on-ghost-muted font-semibold uppercase tracking-wider"
             >
-              <ArrowLeft :size="14" class="mr-1" />
-              {{ t('global.back', 'Back') }}
-            </button>
-            <span class="opacity-50">/</span>
-            <span>{{ t('account.menu.theme.title') }}</span>
+              {{ t('search.modal.categoryActions') }}
+            </span>
           </div>
-          <template v-if="filteredThemes.length">
-            <BaseCommandPaletteItem
-              v-for="(opt, index) in filteredThemes"
-              :key="opt.id"
-              :id="'theme-result-' + index"
-              :active="selectedIndex === index"
-              :label="opt.label"
-              :icon="opt.icon"
-              @click="onSwitchTheme(opt.id)"
-              @mouseenter="setSelectedIndex(index)"
-            >
-              <Check
-                v-if="currentTheme === opt.id"
-                :size="16"
-                class="shrink-0 text-on-ghost"
-              />
-            </BaseCommandPaletteItem>
-          </template>
-        </template>
-
-        <!-- LANGUAGE MODE -->
-        <template v-else-if="mode === 'language'">
-          <div
-            class="px-4 py-1.5 flex items-center gap-2 text-xs text-on-ghost-muted font-semibold uppercase tracking-wider mb-1"
+          <BaseCommandPaletteItem
+            v-for="item in defaultActionResults"
+            :key="item.id"
+            :id="'search-result-' + globalIndex(item)"
+            :active="selectedIndex === globalIndex(item)"
+            :label="item.label"
+            :description="item.description"
+            :icon="item.icon"
+            @click="item.action()"
+            @mouseenter="setSelectedIndex(globalIndex(item))"
           >
-            <button
-              @click="setMode('default')"
-              class="hover:text-on-ghost transition-colors inline-flex items-center"
-              aria-label="Zurück"
-            >
-              <ArrowLeft :size="14" class="mr-1" />
-              {{ t('global.back', 'Back') }}
-            </button>
-            <span class="opacity-50">/</span>
-            <span>{{ t('account.menu.language.title') }}</span>
-          </div>
-          <template v-if="filteredLanguages.length">
-            <BaseCommandPaletteItem
-              v-for="(opt, index) in filteredLanguages"
-              :key="opt.id"
-              :id="'language-result-' + index"
-              :active="selectedIndex === index"
-              :label="opt.label"
-              :icon="opt.icon"
-              @click="onSwitchLanguage(opt.id)"
-              @mouseenter="setSelectedIndex(index)"
-            >
-              <Check
-                v-if="currentLanguage === opt.id"
-                :size="16"
-                class="shrink-0 text-on-ghost"
+            <span class="flex items-center gap-2 shrink-0">
+              <BaseKbdGroup
+                v-if="item.shortcut && selectedIndex === globalIndex(item)"
+                :keys="item.shortcut"
               />
-            </BaseCommandPaletteItem>
-          </template>
-        </template>
-
-        <!-- DEFAULT MODE -->
-        <template v-else>
-          <!-- Pages section -->
-          <template v-if="defaultPageResults.length">
-            <div class="px-4 py-1.5">
-              <span
-                class="text-xs text-on-ghost-muted font-semibold uppercase tracking-wider"
-              >
-                {{ t('search.modal.categoryPages') }}
-              </span>
-            </div>
-            <BaseCommandPaletteItem
-              v-for="item in defaultPageResults"
-              :key="item.id"
-              :id="'search-result-' + globalIndex(item)"
-              :active="selectedIndex === globalIndex(item)"
-              :label="item.label"
-              :description="item.description"
-              :icon="item.icon"
-              @click="item.action()"
-              @mouseenter="setSelectedIndex(globalIndex(item))"
-            >
-              <ArrowUpRight
+              <ChevronRight
                 v-if="selectedIndex === globalIndex(item)"
                 :size="14"
-                class="shrink-0 text-on-ghost-subtle"
+                class="text-on-ghost-subtle"
               />
-            </BaseCommandPaletteItem>
-          </template>
-
-          <!-- Actions section -->
-          <template v-if="defaultActionResults.length">
-            <div
-              class="px-4 py-1.5"
-              :class="defaultPageResults.length ? 'mt-2' : ''"
-            >
-              <span
-                class="text-xs text-on-ghost-muted font-semibold uppercase tracking-wider"
-              >
-                {{ t('search.modal.categoryActions') }}
-              </span>
-            </div>
-            <BaseCommandPaletteItem
-              v-for="item in defaultActionResults"
-              :key="item.id"
-              :id="'search-result-' + globalIndex(item)"
-              :active="selectedIndex === globalIndex(item)"
-              :label="item.label"
-              :description="item.description"
-              :icon="item.icon"
-              @click="item.action()"
-              @mouseenter="setSelectedIndex(globalIndex(item))"
-            >
-              <span class="flex items-center gap-2 shrink-0">
-                <BaseKbdGroup
-                  v-if="item.shortcut && selectedIndex === globalIndex(item)"
-                  :keys="item.shortcut"
-                />
-                <ChevronRight
-                  v-if="selectedIndex === globalIndex(item)"
-                  :size="14"
-                  class="text-on-ghost-subtle"
-                />
-              </span>
-            </BaseCommandPaletteItem>
-          </template>
+            </span>
+          </BaseCommandPaletteItem>
         </template>
-
-        <!-- Empty state -->
-        <div
-          v-if="paletteProps.itemCount === 0"
-          class="px-4 py-10 flex flex-col items-center gap-2 text-center"
-        >
-          <Search :size="28" class="text-on-ghost-subtle mb-1" />
-          <p class="text-sm text-on-ghost-muted m-0">
-            {{ t('global.search.noResults') }}
-            <strong class="text-on-ghost">„{{ query }}"</strong>
-          </p>
-        </div>
       </template>
-    </BaseCommandPalette>
-  </div>
+
+      <!-- Empty state -->
+      <div
+        v-if="paletteProps.itemCount === 0"
+        class="px-4 py-10 flex flex-col items-center gap-2 text-center"
+      >
+        <Search :size="28" class="text-on-ghost-subtle mb-1" />
+        <p class="text-sm text-on-ghost-muted m-0">
+          {{ t('global.search.noResults') }}
+          <strong class="text-on-ghost">„{{ query }}"</strong>
+        </p>
+      </div>
+    </template>
+  </BaseCommandPalette>
 </template>

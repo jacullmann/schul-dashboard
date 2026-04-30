@@ -142,7 +142,6 @@ async function skip() {
 
 <template>
   <BaseModal
-    v-if="visible"
     @cancel="$emit('cancel')"
     :error="error"
     :submit="save"
