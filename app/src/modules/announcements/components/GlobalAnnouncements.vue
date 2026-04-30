@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, watch } from 'vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useAnnouncements } from '@/modules/announcements/composables/useAnnouncements';
-import { EllipsisVertical } from '@lucide/vue';
+import { Ellipsis } from '@lucide/vue';
 
 const { activeGroupId } = useAppAuth();
 
@@ -91,36 +91,58 @@ onMounted(async () => {
   </BaseModal>
 
   <div
-    class="sticky top-[var(--header-height)] z-[100]"
-    v-if="announcements.length"
+    class="sticky top-[var(--header-height)] z-[100] grid transition-[grid-template-rows,opacity] duration-500 ease-out"
+    :class="
+      announcements.length
+        ? 'grid-rows-[1fr] opacity-100'
+        : 'grid-rows-[0fr] opacity-0 pointer-events-none'
+    "
   >
-    <div
-      class="p-1 text-on-ghost text-sm flex items-center justify-center shadow-menu border-b cursor-pointer"
-      :class="[colorFor(currentAnnouncement.color).replace('is-', 'bg-'), currentAnnouncement.color === 'danger' ? 'border-danger-highlight' : 'border-surface-border']"
-      @click="nextAnnouncement"
-    >
-      <span class="whitespace-normal mx-2 flex-1 text-center" :class="currentAnnouncement.color === 'danger' ? 'text-on-danger' : 'text-on-ghost'">{{
-        currentAnnouncement.content
-      }}</span>
-
-      <span
-        class="text-xs flex-shrink-0"
-        :class="currentAnnouncement.color === 'danger' ? 'text-on-danger-muted' : 'text-on-ghost-muted'"
-        v-if="announcements.length > 1"
+    <div class="overflow-hidden min-h-0">
+      <div
+        class="p-0 text-on-ghost text-sm flex items-center justify-center shadow-menu border-b cursor-pointer"
+        :class="[
+          colorFor(currentAnnouncement.color).replace('is-', 'bg-'),
+          currentAnnouncement.color === 'danger'
+            ? 'border-danger-highlight'
+            : 'border-surface-border',
+        ]"
+        @click="nextAnnouncement"
       >
-        ({{ currentIndex + 1 }}/{{ announcements.length }})
-      </span>
+        <span
+          class="whitespace-normal mx-3 my-1 flex-1 text-center"
+          :class="
+            currentAnnouncement.color === 'danger'
+              ? 'text-on-danger'
+              : 'text-on-ghost'
+          "
+          >{{ currentAnnouncement.content }}</span
+        >
 
-      <BaseTooltip content="More" placement="bottom">
-        <BaseButton
-          @click.stop="toggleMenu"
-          variant="ghost"
-          :on="currentAnnouncement.color === 'danger' ? 'danger' : 'ghost'"
-          size="sm"
-          :icon="EllipsisVertical"
-          :touch="false"
-        />
-      </BaseTooltip>
+        <span
+          class="text-xs mr-1 flex-shrink-0"
+          :class="
+            currentAnnouncement.color === 'danger'
+              ? 'text-on-danger-muted'
+              : 'text-on-ghost-muted'
+          "
+          v-if="announcements.length > 1"
+        >
+          {{ currentIndex + 1 }}/{{ announcements.length }}
+        </span>
+
+        <BaseTooltip content="More" placement="bottom">
+          <BaseButton
+            @click.stop="toggleMenu"
+            variant="ghost"
+            :on="currentAnnouncement.color === 'danger' ? 'danger' : 'ghost'"
+            size="sm"
+            :icon="Ellipsis"
+            :touch="false"
+            class="mr-1"
+          />
+        </BaseTooltip>
+      </div>
     </div>
   </div>
 </template>
