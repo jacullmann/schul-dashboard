@@ -817,7 +817,7 @@ function formatDuration(ms?: number): string {
               @keydown.enter.exact.prevent="send"
               rows="1"
               placeholder="Ask Natural Intelligence"
-              class="w-full py-2 px-3 leading-6 bg-transparent rounded-none border-none outline-none shadow-none text-on-ghost text-base placeholder:text-on-ghost-subtle resize-none overflow-y-auto max-h-60 block box-border m-0 custom-scrollbar"
+              class="w-full py-2 px-3 bg-transparent rounded-none border-none outline-none shadow-none text-on-ghost text-base/6 placeholder:text-on-ghost-subtle resize-none overflow-y-auto max-h-60 block box-border m-0 custom-scrollbar"
             ></textarea>
 
             <BaseRow justify="between">

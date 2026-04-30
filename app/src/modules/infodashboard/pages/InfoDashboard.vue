@@ -147,11 +147,11 @@ const getSliderStyle = (current: number, max: number) => {
                 t('info.dashboard.categories.' + processedArticles[0]!.topic)
               }}</span>
               <h1
-                class="text-[3rem] leading-[1] m-0 font-extrabold font-display"
+                class="text-[3rem]/none m-0 font-extrabold font-display"
               >
                 {{ t(processedArticles[0]!.titleKey) }}
               </h1>
-              <p class="text-[1.25rem] text-on-ghost-muted leading-[1.6] my-4">
+              <p class="text-[1.25rem]/[1.6] text-on-ghost-muted my-4">
                 {{ t(processedArticles[0]!.excerptKey) }}
               </p>
               <div class="text-base text-on-ghost-muted">
@@ -217,7 +217,7 @@ const getSliderStyle = (current: number, max: number) => {
                 t('info.dashboard.categories.' + activeArticle.topic)
               }}</span>
               <h1
-                class="text-[2.5rem] leading-[1] my-2 font-extrabold font-display"
+                class="text-[2.5rem]/none my-2 font-extrabold font-display"
               >
                 {{ t(activeArticle.titleKey) }}
               </h1>
@@ -229,7 +229,7 @@ const getSliderStyle = (current: number, max: number) => {
                 am
                 {{ formatDate(activeArticle.date) }}
               </div>
-              <p class="text-[1.25rem] text-on-ghost-muted mt-4 leading-[1.5]">
+              <p class="text-[1.25rem]/relaxed text-on-ghost-muted mt-4">
                 {{ t(activeArticle.excerptKey) }}
               </p>
             </header>
@@ -241,7 +241,7 @@ const getSliderStyle = (current: number, max: number) => {
                 t('info.dashboard.categories.' + activeArticle.topic)
               }}</span>
               <h1
-                class="text-[2.5rem] leading-[1] my-2 font-extrabold font-display"
+                class="text-[2.5rem]/none my-2 font-extrabold font-display"
               >
                 {{ t(activeArticle.titleKey) }}
               </h1>
@@ -268,7 +268,7 @@ const getSliderStyle = (current: number, max: number) => {
             </div>
 
             <div
-              class="text-[1.25rem] leading-[1.6] text-on-ghost font-serif [&_p]:mb-6 [&_h2]:text-[1.8rem] [&_h2]:mt-10 [&_h2]:mb-4 [&_h2]:text-on-ghost [&_blockquote]:border-l-4 [&_blockquote]:border-canvas-border [&_blockquote]:my-8 [&_blockquote]:pl-6 [&_blockquote]:italic [&_blockquote]:text-[1.5rem] [&_img]:w-full [&_img]:h-auto [&_img]:my-8 [&_img]:block [&_video]:w-full [&_video]:h-auto [&_video]:my-8 [&_video]:block [&_strong]:text-on-ghost [&_strong]:font-bold"
+              class="text-[1.25rem]/[1.6] text-on-ghost font-serif [&_p]:mb-6 [&_h2]:text-[1.8rem] [&_h2]:mt-10 [&_h2]:mb-4 [&_h2]:text-on-ghost [&_blockquote]:border-l-4 [&_blockquote]:border-canvas-border [&_blockquote]:my-8 [&_blockquote]:pl-6 [&_blockquote]:italic [&_blockquote]:text-[1.5rem] [&_img]:w-full [&_img]:h-auto [&_img]:my-8 [&_img]:block [&_video]:w-full [&_video]:h-auto [&_video]:my-8 [&_video]:block [&_strong]:text-on-ghost [&_strong]:font-bold"
               v-html="
                 activeArticle.contentKey
                   ? renderMarkdown(activeArticle.contentKey)

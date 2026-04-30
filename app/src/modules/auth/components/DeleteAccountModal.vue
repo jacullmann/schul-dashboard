@@ -41,7 +41,7 @@ const { understoodChecked, submitting, errorMsg, successMsg, confirmDelete } =
         </div>
         <br />
         <div
-          class="text-sm text-on-ghost leading-[1.5]"
+          class="text-sm/relaxed text-on-ghost"
           v-html="t('account.menu.deleteAccount.warnBox.text')"
         />
       </div>

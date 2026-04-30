@@ -88,7 +88,7 @@ onMounted(() => {
               placeholder="Search Wikipedia..."
               autocomplete="off"
               spellcheck="false"
-              class="flex-1 w-full p-0 leading-4 rounded-none bg-transparent border-none outline-none shadow-none text-on-ghost text-base placeholder:text-on-ghost-subtle"
+              class="flex-1 w-full p-0 rounded-none bg-transparent border-none outline-none shadow-none text-on-ghost text-base/4 placeholder:text-on-ghost-subtle"
             />
             <BaseButton
               type="button"
@@ -164,7 +164,7 @@ onMounted(() => {
 
                 <div v-else class="article-content">
                   <h1
-                    class="text-2xl font-bold mb-6 text-on-ghost px-2 border-l-4 border-primary leading-tight"
+                    class="text-2xl/tight font-bold mb-6 text-on-ghost px-2 border-l-4 border-primary"
                   >
                     {{ articleTitle }}
                   </h1>

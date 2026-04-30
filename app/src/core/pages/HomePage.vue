@@ -123,7 +123,7 @@ onMounted(() => {
             >
           </h2>
           <p
-            class="text-base text-on-ghost-muted m-0 leading-relaxed animate-fade-up"
+            class="text-base/relaxed text-on-ghost-muted m-0 animate-fade-up"
           >
             {{
               userGroups.length

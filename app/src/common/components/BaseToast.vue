@@ -31,7 +31,7 @@ const ICON_COLORS: Record<string, string> = {
         <div
           v-for="toast in toasts"
           :key="toast.id"
-          class="relative flex items-start gap-2 p-1 rounded-full text-base leading-none overflow-hidden pointer-events-auto shadow-menu"
+          class="relative flex items-start gap-2 p-1 rounded-full text-base/none overflow-hidden pointer-events-auto shadow-menu"
           role="alert"
           :class="ICON_COLORS[toast.type]"
           :aria-atomic="true"
@@ -53,7 +53,7 @@ const ICON_COLORS: Record<string, string> = {
                 ? 'action'
                 : toast.type === 'error'
                   ? 'danger'
-                  : 'surface'
+                  : 'ghost'
             "
             @click="dismiss(toast.id)"
           />

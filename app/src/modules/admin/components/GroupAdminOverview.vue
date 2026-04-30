@@ -17,7 +17,7 @@ const emit = defineEmits<{
       <div
         class="bg-surface border border-surface-border shadow-input rounded-xl p-4.5 flex flex-col gap-1"
       >
-        <span class="text-[1.5rem] font-bold leading-4">{{
+        <span class="text-[1.5rem]/4 font-bold">{{
           stats?.itemCount ?? '–'
         }}</span>
         <span class="text-sm text-on-ghost-muted">Aktive Einträge</span>
@@ -25,7 +25,7 @@ const emit = defineEmits<{
       <div
         class="bg-surface border border-surface-border shadow-input rounded-xl p-4.5 flex flex-col gap-1"
       >
-        <span class="text-[1.5rem] font-bold leading-4">{{
+        <span class="text-[1.5rem]/4 font-bold">{{
           stats?.memberCount ?? '–'
         }}</span>
         <span class="text-sm text-on-ghost-muted">Mitglieder</span>
@@ -33,7 +33,7 @@ const emit = defineEmits<{
       <div
         class="bg-surface border border-surface-border shadow-input rounded-xl p-4.5 flex flex-col gap-1"
       >
-        <span class="text-[1.5rem] font-bold leading-4">{{
+        <span class="text-[1.5rem]/4 font-bold">{{
           stats?.subsCount ?? '–'
         }}</span>
         <span class="text-sm text-on-ghost-muted">Stundenplanänderungen</span>
@@ -44,7 +44,7 @@ const emit = defineEmits<{
           'border-[rgba(245,158,11,0.3)]': (stats?.oldItemsCount ?? 0) > 0,
         }"
       >
-        <span class="text-[1.5rem] font-bold leading-4">{{
+        <span class="text-[1.5rem]/4 font-bold">{{
           stats?.oldItemsCount ?? '–'
         }}</span>
         <span class="text-sm text-on-ghost-muted"

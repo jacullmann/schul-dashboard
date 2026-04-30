@@ -65,7 +65,7 @@ defineExpose({
         ></span>
         <span
           v-if="$slots.description"
-          class="text-xs leading-4 text-on-ghost-muted font-normal"
+          class="text-xs/4 text-on-ghost-muted font-normal"
           ><slot name="description"></slot
         ></span>
       </span>

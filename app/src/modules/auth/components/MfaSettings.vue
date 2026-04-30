@@ -252,7 +252,7 @@ onUnmounted(() => {
         </span>
       </div>
     </div>
-    <p class="text-sm text-on-ghost-muted leading-[1.5] m-0 font-sans">
+    <p class="text-sm/relaxed text-on-ghost-muted m-0 font-sans">
       Die Zwei-Faktor-Authentifizierung bietet zusätzlichen Schutz für dein
       Konto. Du benötigst dafür eine beliebige 2FA-App, wie bspw. Google
       Authenticator.
@@ -304,7 +304,7 @@ onUnmounted(() => {
       <!-- Step 1 -->
       <div v-if="setupStep === 1" class="flex flex-col gap-4">
         <p
-          class="text-sm text-on-ghost-muted leading-[1.5] m-0 text-center font-sans"
+          class="text-sm/relaxed text-on-ghost-muted m-0 text-center font-sans"
         >
           Bitte scanne den QR-Code mit deiner Authenticator-App (z.B. Google
           Authenticator).
@@ -360,7 +360,7 @@ onUnmounted(() => {
       <!-- Step 2 -->
       <div v-if="setupStep === 2" class="flex flex-col gap-4">
         <p
-          class="text-sm text-on-ghost-muted leading-[1.5] m-0 text-center font-sans"
+          class="text-sm/relaxed text-on-ghost-muted m-0 text-center font-sans"
         >
           Gib den 6-stelligen Code aus deiner Authenticator-App ein, um die
           Einrichtung abzuschließen.
@@ -421,7 +421,7 @@ onUnmounted(() => {
         class="flex gap-3 p-3 px-4 bg-danger-hover border border-danger rounded-lg text-danger"
       >
         <AlertTriangle :size="20" class="flex-shrink-0 mt-0.5" />
-        <p class="m-0 text-sm leading-[1.4]">
+        <p class="m-0 text-sm/[1.4]">
           Indem du fortfährst verringerst du die Sicherheit deines Kontos. Um
           die Deaktivierung abzuschließen, must du noch ein letztes Mal den
           korrekten Code eingeben

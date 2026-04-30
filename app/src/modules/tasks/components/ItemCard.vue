@@ -217,7 +217,7 @@ function onDrop(e: DragEvent) {
             <slot name="title">
               <h3
                 v-if="title"
-                class="!text-lg overflow-hidden text-ellipsis whitespace-nowrap !leading-6 !-my-[3px]"
+                class="text-lg/6! overflow-hidden text-ellipsis whitespace-nowrap -my-[3px]!"
                 :title="title"
               >
                 {{ title }}

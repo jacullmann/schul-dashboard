@@ -34,7 +34,7 @@ defineEmits<{
     </span>
 
     <span class="flex-1 min-w-0">
-      <span class="block text-sm font-medium text-on-ghost leading-tight">{{
+      <span class="block text-sm/tight font-medium text-on-ghost">{{
         label
       }}</span>
       <span

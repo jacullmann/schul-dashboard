@@ -154,7 +154,7 @@ onBeforeUnmount(() => {
           :style="tooltipStyle"
         >
           <div
-            class="px-2 py-1.5 bg-action text-on-action text-xs leading-4 font-medium rounded-md shadow-lg whitespace-nowrap"
+            class="px-2 py-1.5 bg-action text-on-action text-xs/4 font-medium rounded-md shadow-lg whitespace-nowrap"
             style="transform: var(--translate-base)"
           >
             {{ content }}

@@ -196,7 +196,7 @@ async function confirmDeleteGroup() {
     <!-- Danger Zone: Delete Group -->
     <div v-if="isOwner">
       <h3 class="text-danger">Danger Zone</h3>
-      <p class="text-base text-on-ghost-muted m-0 mb-5 leading-[1.5]">
+      <p class="text-base/relaxed text-on-ghost-muted m-0 mb-5">
         Das Löschen der Gruppe ist endgültig und kann nicht rückgängig gemacht
         werden. Alle damit verbundenen Daten (Aufgaben, Klausuren, Ankündigungen
         etc.) werden für alle Benutzer gelöscht.

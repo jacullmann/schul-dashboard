@@ -27,7 +27,7 @@ const slots = defineSlots<{
     >
       <span
         v-if="error"
-        class="text-danger text-sm font-sans leading-[1.4] m-0"
+        class="text-danger text-sm/[1.4] font-sans m-0"
         role="alert"
         aria-live="polite"
       >

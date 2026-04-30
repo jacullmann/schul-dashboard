@@ -156,7 +156,7 @@ async function leaveGroup(group: any) {
       >
         <div>
           <h2>Groups Management</h2>
-          <p class="text-base text-on-ghost-muted m-0 leading-relaxed">
+          <p class="text-base/relaxed text-on-ghost-muted m-0">
             Manage your groups, leave or set a default group.
           </p>
         </div>

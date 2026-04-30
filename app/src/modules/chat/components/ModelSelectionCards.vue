@@ -41,7 +41,7 @@ const options = [
         {{ option.label }}
       </h3>
       <div
-        class="text-sm leading-4"
+        class="text-sm/4"
         :class="
           modelValue === option.value
             ? 'text-on-action-muted'
