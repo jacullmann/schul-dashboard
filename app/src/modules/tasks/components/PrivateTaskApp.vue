@@ -15,6 +15,7 @@ import { VueDraggableNext as draggable } from 'vue-draggable-next';
 import ItemCard from '@/modules/tasks/components/ItemCard.vue';
 import { usePrivateTaskForm } from '@/core/composables/usePrivateTaskForm';
 import { onUnmounted } from 'vue';
+import BaseSkeleton from '@/common/components/BaseSkeleton.vue';
 
 const { t } = useI18n();
 
@@ -126,7 +127,7 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
 
 <template>
   <div class="private-task-app-integrated">
-    <div class="private-task-header">
+    <div class="private-task-header animate-fade-up">
       <div class="flex gap-2 items-center text-on-ghost mb-4">
         <Lock class="text-on-ghost" :size="24" />
         <h2 class="m-0 text-2xl/6">
@@ -145,10 +146,22 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
     </div>
 
     <div v-if="user" class="private-task-list">
-      <div v-if="loading" class="flex flex-col items-center gap-3 p-8">
-        <BaseSpinner on="ghost" size="24px" />
-        <div class="text-on-ghost-muted">
-          {{ t('school.private.loading') }}
+      <div v-if="loading" class="flex flex-col gap-8 pt-4">
+        <div
+          v-for="n in 10"
+          class="animate-fade-up"
+          :style="{
+            animationDelay: `${(n + 2) * 0.05}s`,
+            animationFillMode: 'both',
+          }"
+        >
+          <BaseSkeleton width="60" height="20px" class="mb-3" />
+          <BaseSkeleton width="full" height="16px" class="mb-2" />
+          <BaseSkeleton
+            width="[70%]"
+            height="16px"
+            class="hidden md:flex mb-2"
+          />
         </div>
       </div>
 

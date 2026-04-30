@@ -16,7 +16,7 @@ const { user } = storeToRefs(userStore);
 
 <template>
   <div class="card">
-    <PageHeader>
+    <PageHeader class="animate-fade-up">
       {{ t('school.private.title') }}
       <template #action>
         <BaseButton
