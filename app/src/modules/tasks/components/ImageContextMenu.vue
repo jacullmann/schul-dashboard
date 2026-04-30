@@ -6,11 +6,13 @@ import {
   useEventListener,
   useElementBounding,
   useWindowSize,
+  onClickOutside,
 } from '@vueuse/core';
 
 const { t } = useI18n();
 
 const props = defineProps<{
+  visible?: boolean;
   x: number;
   y: number;
   canDelete: boolean;
@@ -34,16 +36,34 @@ const styleObject = computed(() => {
     Math.max(padding, props.y),
     winH.value - menuH.value - padding,
   );
-  return {
+  
+  const style: Record<string, string> = {
     top: `${y}px`,
     left: `${x}px`,
-    // Stay hidden until bounding data is available to avoid initial flash at wrong position
-    opacity: menuW.value > 0 ? '1' : '0',
   };
+
+  // Stay hidden until bounding data is available to avoid initial flash at wrong position.
+  // Once measured, omit opacity so CSS transition classes can control it during leave.
+  if (menuW.value === 0) {
+    style.opacity = '0';
+  }
+
+  return style;
 });
 
 useEventListener(window, 'keydown', (e: KeyboardEvent) => {
-  if (e.key === 'Escape') emit('cancel');
+  if (props.visible && e.key === 'Escape') emit('cancel');
+});
+
+useEventListener(window, 'contextmenu', (e: MouseEvent) => {
+  // If we right-click outside the menu, close this menu
+  if (menuRef.value && !menuRef.value.contains(e.target as Node)) {
+    emit('cancel');
+  }
+});
+
+onClickOutside(menuRef, () => {
+  emit('cancel');
 });
 </script>
 
@@ -52,22 +72,20 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
     ref="menuRef"
     class="fixed z-[10001] min-w-[180px]"
     :style="styleObject"
-    @click.stop
   >
     <BaseMenu class="min-w-[180px]">
       <BaseMenuButton :icon="Upload" @click="emit('upload')">
         {{ t('school.tasks.items.menu.uploadImages') }}
       </BaseMenuButton>
 
-      <BaseMenuButton v-if="canDelete" variant="danger" :icon="Trash2" @click="emit('delete')">
+      <BaseMenuButton
+        v-if="canDelete"
+        variant="danger"
+        :icon="Trash2"
+        @click="emit('delete')"
+      >
         {{ t('global.buttons.delete') }}
       </BaseMenuButton>
     </BaseMenu>
   </div>
-
-  <div
-    class="fixed inset-0 z-[10000] cursor-default"
-    @click="emit('cancel')"
-    @contextmenu.prevent="emit('cancel')"
-  ></div>
 </template>

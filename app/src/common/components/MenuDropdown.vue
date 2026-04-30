@@ -60,20 +60,22 @@ onClickOutside(wrapperRef, () => {
       </span>
     </BaseMenuButton>
 
-    <BaseMenu v-if="isOpen" class="top-full min-w-full max-h-80 mt-1">
-      <BaseMenuButton
-        v-for="option in options"
-        :key="option.value"
-        class="disabled:opacity-50 disabled:hover:bg-transparent disabled:cursor-not-allowed"
-        :icon="option.icon"
-        @click="selectOption(option.value)"
-        type="button"
-        :disabled="disabled"
-        :isSelect="true"
-        :active="modelValue === option.value"
-      >
-        {{ option.label }}
-      </BaseMenuButton>
-    </BaseMenu>
+    <Transition name="fade-dropdown">
+      <BaseMenu v-if="isOpen" class="top-full min-w-full max-h-80 mt-1">
+        <BaseMenuButton
+          v-for="option in options"
+          :key="option.value"
+          class="disabled:opacity-50 disabled:hover:bg-transparent disabled:cursor-not-allowed"
+          :icon="option.icon"
+          @click="selectOption(option.value)"
+          type="button"
+          :disabled="disabled"
+          :isSelect="true"
+          :active="modelValue === option.value"
+        >
+          {{ option.label }}
+        </BaseMenuButton>
+      </BaseMenu>
+    </Transition>
   </div>
 </template>

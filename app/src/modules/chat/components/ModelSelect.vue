@@ -139,23 +139,25 @@ onClickOutside(
     </BaseButton>
 
     <Teleport to="body">
-      <BaseMenu
-        v-if="isOpen"
-        ref="floatingRef"
-        :style="floatingStyles"
-        class="max-h-80 z-[9999] min-w-68!"
-      >
-        <BaseMenuButton
-          v-for="option in options"
-          :key="option.value"
-          @click="selectOption(option.value)"
-          :isSelect="true"
-          :active="modelValue === option.value"
+      <Transition name="fade-dropdown">
+        <BaseMenu
+          v-if="isOpen"
+          ref="floatingRef"
+          :style="floatingStyles"
+          class="max-h-80 z-[9999] min-w-68!"
         >
-          {{ option.label }}
-          <template #description>{{ option.description }}</template>
-        </BaseMenuButton>
-      </BaseMenu>
+          <BaseMenuButton
+            v-for="option in options"
+            :key="option.value"
+            @click="selectOption(option.value)"
+            :isSelect="true"
+            :active="modelValue === option.value"
+          >
+            {{ option.label }}
+            <template #description>{{ option.description }}</template>
+          </BaseMenuButton>
+        </BaseMenu>
+      </Transition>
     </Teleport>
   </div>
 </template>

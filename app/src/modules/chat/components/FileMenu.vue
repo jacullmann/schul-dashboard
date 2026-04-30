@@ -61,16 +61,18 @@ useEventListener(document, 'keydown', (e) => {
     </BaseTooltip>
 
     <Teleport to="body">
-      <BaseMenu
-        v-if="isOpen"
-        ref="menuRef"
-        :style="menuStyles"
-        class="min-w-56!"
-      >
-        <BaseMenuButton :icon="Brush" @click="(drawImage, close())">
-          Draw Image
-        </BaseMenuButton>
-      </BaseMenu>
+      <Transition name="fade-dropdown">
+        <BaseMenu
+          v-if="isOpen"
+          ref="menuRef"
+          :style="menuStyles"
+          class="min-w-56!"
+        >
+          <BaseMenuButton :icon="Brush" @click="(drawImage, close())">
+            Draw Image
+          </BaseMenuButton>
+        </BaseMenu>
+      </Transition>
     </Teleport>
   </div>
 </template>

@@ -55,62 +55,64 @@ const {
       :title="'Account menu'"
     />
 
-    <BaseMenu
-      v-if="open"
-      class="fixed pointer-events-auto z-[var(--z-modal)] max-[480px]:justify-center max-[480px]:flex max-[480px]:flex-col origin-top-left max-[480px]:origin-top min-w-[320px] max-[480px]:w-full"
-      :style="popupStyle"
-      @click.stop
-      role="menu"
-      aria-label="Account menu"
-      :ref="(el: any) => (popupInner = el?.$el)"
-    >
-      <div class="flex px-2 py-1">
-        <div
-          class="font-semibold text-sm text-on-ghost overflow-hidden text-ellipsis whitespace-nowrap flex-1"
-          :title="email"
-        >
-          {{ email }}
-        </div>
-      </div>
-
-      <BaseMenuDivider />
-
-      <ThemeMenuDropdown />
-
-      <LocaleMenuDropdown />
-
-      <BaseMenuButton
-        ref="firstMenuBtnRef"
-        :icon="LucideGraduationCap"
-        @click="openSetup"
+    <Transition name="fade-scale">
+      <BaseMenu
+        v-if="open"
+        class="fixed pointer-events-auto z-[var(--z-modal)] max-[480px]:justify-center max-[480px]:flex max-[480px]:flex-col origin-top-left max-[480px]:origin-top min-w-[320px] max-[480px]:w-full"
+        :style="popupStyle"
+        @click.stop
+        role="menu"
+        aria-label="Account menu"
+        :ref="(el: any) => (popupInner = el?.$el)"
       >
-        {{ t('account.menu.courses.title') }}
-      </BaseMenuButton>
+        <div class="flex px-2 py-1">
+          <div
+            class="font-semibold text-sm text-on-ghost overflow-hidden text-ellipsis whitespace-nowrap flex-1"
+            :title="email"
+          >
+            {{ email }}
+          </div>
+        </div>
 
-      <PersonalizationDropdown
-        v-model="personalizationSetting"
-        @change="onPersonalizationChange"
-      />
+        <BaseMenuDivider />
 
-      <BaseMenuDivider />
+        <ThemeMenuDropdown />
 
-      <BaseMenuButton :icon="Shield" @click="openSecurity">
-        {{ t('account.menu.security.title') }}
-      </BaseMenuButton>
+        <LocaleMenuDropdown />
 
-      <BaseMenuButton :icon="LucideKeyRound" @click="openChangePassword">
-        {{ t('account.menu.changePassword.title') }}
-      </BaseMenuButton>
+        <BaseMenuButton
+          ref="firstMenuBtnRef"
+          :icon="LucideGraduationCap"
+          @click="openSetup"
+        >
+          {{ t('account.menu.courses.title') }}
+        </BaseMenuButton>
 
-      <BaseMenuButton :icon="LogOut" @click="handleLogout">
-        {{ t('account.menu.logout') }}
-      </BaseMenuButton>
+        <PersonalizationDropdown
+          v-model="personalizationSetting"
+          @change="onPersonalizationChange"
+        />
 
-      <BaseMenuDivider />
+        <BaseMenuDivider />
 
-      <BaseMenuButton :icon="Trash2" variant="danger" @click="startDelete">
-        {{ t('account.menu.deleteAccount.title') }}
-      </BaseMenuButton>
-    </BaseMenu>
+        <BaseMenuButton :icon="Shield" @click="openSecurity">
+          {{ t('account.menu.security.title') }}
+        </BaseMenuButton>
+
+        <BaseMenuButton :icon="LucideKeyRound" @click="openChangePassword">
+          {{ t('account.menu.changePassword.title') }}
+        </BaseMenuButton>
+
+        <BaseMenuButton :icon="LogOut" @click="handleLogout">
+          {{ t('account.menu.logout') }}
+        </BaseMenuButton>
+
+        <BaseMenuDivider />
+
+        <BaseMenuButton :icon="Trash2" variant="danger" @click="startDelete">
+          {{ t('account.menu.deleteAccount.title') }}
+        </BaseMenuButton>
+      </BaseMenu>
+    </Transition>
   </div>
 </template>

@@ -89,6 +89,12 @@ export function useHwImages(
   async function triggerImageDelete() {
     if (!imageMenu.image || !imageMenu.item || deletingImage.value) return;
 
+    // Store references before closing
+    const targetImage = imageMenu.image;
+    const targetItem = imageMenu.item;
+    
+    closeImageMenu();
+
     const isConfirmed = await modalStore.confirm({
       title: 'Dieses Bild löschen?',
       content: 'Wenn du dieses Bild löschst, wird es unwiderruflich entfernt.',
@@ -98,18 +104,13 @@ export function useHwImages(
 
     if (!isConfirmed) return;
 
-    imageMenu.visible = false;
     deletingImage.value = true;
     try {
-      await imageUpload.removeImg(imageMenu.image, imageMenu.item.id);
-      await refreshItem(imageMenu.item.id, (newData) => {
-        if (imageMenu.item?.id === newData.id) {
-          imageMenu.item = newData;
-        }
+      await imageUpload.removeImg(targetImage, targetItem.id);
+      await refreshItem(targetItem.id, (newData) => {
+        // Since we closed the menu, we don't need to update imageMenu.item
       });
       useToast().success('Bild gelöscht.', 3000);
-      imageMenu.image = null;
-      imageMenu.item = null;
     } catch {
       useToast().error('Fehler beim Löschen des Bildes.', 4000);
     } finally {

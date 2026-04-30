@@ -210,7 +210,10 @@ async function leaveGroup(group: any) {
           v-for="(group, index) in userGroups"
           :key="group.id"
           class="group flex items-center w-full gap-2 p-3 sm:px-3.5 sm:py-3 rounded-xl bg-surface border border-surface-border shadow-input cursor-pointer text-left transition-hover hover:bg-surface-highlight disabled:opacity-50 [.active]:bg-action [.active]:border-action [.active]:hover:bg-action-hover animate-fade-up"
-          :style="{ animationDelay: `${index * 0.075}s`, animationFillMode: 'both' }"
+          :style="{
+            animationDelay: `${index * 0.075}s`,
+            animationFillMode: 'both',
+          }"
           :class="{ active: group.id === activeGroupId }"
           @click="navigateToGroup(group.id)"
           :disabled="navigatingGroupId === group.id"
@@ -249,25 +252,27 @@ async function leaveGroup(group: any) {
             :icon="MoreHorizontal"
           />
 
-          <BaseMenu
-            v-if="openMenuId === group.id"
-            class="right-0 mt-6"
-            @click.stop
-          >
-            <BaseMenuButton
-              v-if="group.id !== defaultGroupId"
-              :icon="Star"
-              @click="setDefaultGroup(group.id)"
+          <Transition name="fade-dropdown">
+            <BaseMenu
+              v-if="openMenuId === group.id"
+              class="right-0 mt-6"
+              @click.stop
             >
-              Make default
-            </BaseMenuButton>
+              <BaseMenuButton
+                v-if="group.id !== defaultGroupId"
+                :icon="Star"
+                @click="setDefaultGroup(group.id)"
+              >
+                Make default
+              </BaseMenuButton>
 
-            <BaseMenuDivider v-if="group.id !== defaultGroupId" />
+              <BaseMenuDivider v-if="group.id !== defaultGroupId" />
 
-            <BaseMenuButton :icon="LogOut" @click="leaveGroup(group)">
-              Leave
-            </BaseMenuButton>
-          </BaseMenu>
+              <BaseMenuButton :icon="LogOut" @click="leaveGroup(group)">
+                Leave
+              </BaseMenuButton>
+            </BaseMenu>
+          </Transition>
         </button>
       </div>
     </section>

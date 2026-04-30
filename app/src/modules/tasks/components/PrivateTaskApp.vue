@@ -182,7 +182,10 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
             :key="privateTask.id"
             class="animate-fade-up"
             :class="{ 'z-50': openMenuId === privateTask.id }"
-            :style="{ animationDelay: `${index * 0.075}s`, animationFillMode: 'both' }"
+            :style="{
+              animationDelay: `${index * 0.075}s`,
+              animationFillMode: 'both',
+            }"
             :is-collapsed="privateTask.completed"
             :title="privateTask.title"
             @dblclick="user ? togglePrivateTaskCompletion(privateTask) : null"
@@ -196,70 +199,72 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
             </template>
 
             <template #menu>
-              <BaseMenu
-                v-if="openMenuId === privateTask.id"
-                class="right-0 mt-6"
-                @click.stop
-              >
-                <BaseMenuButton
-                  :icon="Pencil"
-                  @click="
-                    openEditPrivateTaskForm(privateTask);
-                    openMenuId = null;
-                  "
+              <Transition name="fade-dropdown">
+                <BaseMenu
+                  v-if="openMenuId === privateTask.id"
+                  class="right-0 mt-6"
+                  @click.stop
                 >
-                  {{ t('global.buttons.edit') }}
-                </BaseMenuButton>
+                  <BaseMenuButton
+                    :icon="Pencil"
+                    @click="
+                      openEditPrivateTaskForm(privateTask);
+                      openMenuId = null;
+                    "
+                  >
+                    {{ t('global.buttons.edit') }}
+                  </BaseMenuButton>
 
-                <BaseMenuButton
-                  :icon="Copy"
-                  @click="
-                    duplicatePrivateTask(privateTask);
-                    openMenuId = null;
-                  "
-                >
-                  {{ t('global.buttons.duplicate') }}
-                </BaseMenuButton>
+                  <BaseMenuButton
+                    :icon="Copy"
+                    @click="
+                      duplicatePrivateTask(privateTask);
+                      openMenuId = null;
+                    "
+                  >
+                    {{ t('global.buttons.duplicate') }}
+                  </BaseMenuButton>
 
-                <BaseMenuDivider />
+                  <BaseMenuDivider />
 
-                <BaseMenuButton
-                  v-if="index > 0"
-                  :icon="ChevronUp"
-                  @click="
-                    moveItemUp(index);
-                    openMenuId = null;
-                  "
-                >
-                  {{ t('school.private.menu.up') }}
-                </BaseMenuButton>
+                  <BaseMenuButton
+                    v-if="index > 0"
+                    :icon="ChevronUp"
+                    @click="
+                      moveItemUp(index);
+                      openMenuId = null;
+                    "
+                  >
+                    {{ t('school.private.menu.up') }}
+                  </BaseMenuButton>
 
-                <BaseMenuButton
-                  v-if="index < displayPrivateTasks.length - 1"
-                  :icon="ChevronDown"
-                  @click="
-                    moveItemDown(index);
-                    openMenuId = null;
-                  "
-                >
-                  {{ t('school.private.menu.down') }}
-                </BaseMenuButton>
+                  <BaseMenuButton
+                    v-if="index < displayPrivateTasks.length - 1"
+                    :icon="ChevronDown"
+                    @click="
+                      moveItemDown(index);
+                      openMenuId = null;
+                    "
+                  >
+                    {{ t('school.private.menu.down') }}
+                  </BaseMenuButton>
 
-                <BaseMenuDivider
-                  v-if="index > 0 || index < displayPrivateTasks.length - 1"
-                />
+                  <BaseMenuDivider
+                    v-if="index > 0 || index < displayPrivateTasks.length - 1"
+                  />
 
-                <BaseMenuButton
-                  :icon="Trash2"
-                  variant="danger"
-                  @click="
-                    deletePrivateTask(privateTask.id);
-                    openMenuId = null;
-                  "
-                >
-                  {{ t('global.buttons.delete') }}
-                </BaseMenuButton>
-              </BaseMenu>
+                  <BaseMenuButton
+                    :icon="Trash2"
+                    variant="danger"
+                    @click="
+                      deletePrivateTask(privateTask.id);
+                      openMenuId = null;
+                    "
+                  >
+                    {{ t('global.buttons.delete') }}
+                  </BaseMenuButton>
+                </BaseMenu>
+              </Transition>
             </template>
 
             <template #body v-if="privateTask.description">
