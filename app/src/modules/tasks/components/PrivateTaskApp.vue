@@ -181,6 +181,7 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
             v-for="(privateTask, index) in displayPrivateTasks"
             :key="privateTask.id"
             class="animate-fade-up"
+            :class="{ 'z-50': openMenuId === privateTask.id }"
             :style="{ animationDelay: `${index * 0.075}s`, animationFillMode: 'both' }"
             :is-collapsed="privateTask.completed"
             :title="privateTask.title"

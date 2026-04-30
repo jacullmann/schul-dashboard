@@ -229,6 +229,7 @@ async function handleArchiveFromMenu(item: HwItem) {
         :key="item.id"
         :id="'item-' + item.id"
         class="animate-fade-up"
+        :class="{ 'z-50': openMenuId === item.id }"
         :style="{ animationDelay: `${index * 0.075}s`, animationFillMode: 'both' }"
         :is-collapsed="isChecked(item.id)"
         :highlighted="highlightedItemId === item.id"
