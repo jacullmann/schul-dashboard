@@ -30,6 +30,9 @@ const daysGridWrapperRef = ref<HTMLElement | null>(null);
 
 const { width: windowWidth } = useWindowSize();
 
+const animationStartTime = ref(Date.now());
+const elapsedLoadTime = ref(0);
+
 const syncRowHeights = () => {
   if (windowWidth.value >= 501) {
     if (timeColWrapperRef.value) {
@@ -59,7 +62,10 @@ const scrollToDefaultDay = () => {
 useResizeObserver(daysGridWrapperRef, syncRowHeights);
 
 watch(loadingLessons, (newVal) => {
-  if (!newVal) {
+  if (newVal) {
+    animationStartTime.value = Date.now();
+  } else {
+    elapsedLoadTime.value = (Date.now() - animationStartTime.value) / 1000;
     setTimeout(() => {
       syncRowHeights();
       scrollToDefaultDay();
@@ -69,6 +75,7 @@ watch(loadingLessons, (newVal) => {
 
 onMounted(() => {
   if (!loadingLessons.value) {
+    elapsedLoadTime.value = (Date.now() - animationStartTime.value) / 1000;
     setTimeout(() => {
       syncRowHeights();
       scrollToDefaultDay();
@@ -157,6 +164,7 @@ const skeletonCells = computed(() => {
               :is-active="key === activeOrNextGroupKey"
               :is-current-day="group[0]?.day === currentDay"
               :day-index="days.indexOf(group[0]?.day)"
+              :elapsed-load-time="elapsedLoadTime"
               :get-display-name="getDisplayName"
               :get-group-style="getGroupStyle"
             />

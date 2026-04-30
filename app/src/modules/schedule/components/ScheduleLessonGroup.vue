@@ -9,6 +9,7 @@ defineProps<{
   isClickable?: boolean;
   selectedLessonId?: string;
   dayIndex?: number;
+  elapsedLoadTime?: number;
   getDisplayName: (l: any) => string;
   getGroupStyle: (g: any[]) => any;
 }>();
@@ -29,7 +30,7 @@ defineEmits<{
     ]"
     :style="[
       getGroupStyle(group),
-      { animationDelay: `${((dayIndex ?? 0) + 1 + (group[0]?.slot ?? 0)) * 0.05}s`, animationFillMode: 'both' }
+      { animationDelay: `${((dayIndex ?? 0) + 1 + (group[0]?.slot ?? 0)) * 0.05 - (elapsedLoadTime ?? 0)}s`, animationFillMode: 'both' }
     ]"
   >
     <ScheduleLessonItem
