@@ -230,9 +230,11 @@ function onDrop(e: DragEvent) {
             @after-enter="onAfterEnter"
             @leave="onLeave"
           >
-            <BaseRow v-show="!isCollapsed" v-if="$slots.badges" class="mt-1">
-              <slot name="badges"></slot>
-            </BaseRow>
+            <div v-show="!isCollapsed" v-if="$slots.badges" class="overflow-hidden">
+              <BaseRow class="mt-1">
+                <slot name="badges"></slot>
+              </BaseRow>
+            </div>
           </transition>
         </div>
 
@@ -256,15 +258,17 @@ function onDrop(e: DragEvent) {
       <transition @enter="onEnter" @after-enter="onAfterEnter" @leave="onLeave">
         <div
           v-show="!isCollapsed && ($slots.body || $slots['content-after'])"
-          class="mx-2 mb-1 opacity-100 overflow-hidden"
+          class="opacity-100 overflow-hidden"
         >
-          <div
-            v-if="$slots.body"
-            class="text-on-ghost break-words [overflow-wrap:anywhere] hyphens-auto whitespace-pre-wrap select-text cursor-text"
-          >
-            <slot name="body"></slot>
+          <div class="mx-2 mb-1">
+            <div
+              v-if="$slots.body"
+              class="text-on-ghost break-words [overflow-wrap:anywhere] hyphens-auto whitespace-pre-wrap select-text cursor-text"
+            >
+              <slot name="body"></slot>
+            </div>
+            <slot name="content-after"></slot>
           </div>
-          <slot name="content-after"></slot>
         </div>
       </transition>
     </div>
