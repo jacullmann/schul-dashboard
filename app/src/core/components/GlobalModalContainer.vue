@@ -148,25 +148,29 @@ async function onAuthSuccess() {
 <template>
   <!-- OAuth: account-linking modal (shown after ?auth=link-required) -->
   <Teleport to="body">
-    <GoogleLinkModal
-      v-if="showLinkModal"
-      @linked="onAuthSuccess"
-      @cancel="closeLinkModal"
-    />
+    <Transition name="fade-scale">
+      <GoogleLinkModal
+        v-if="showLinkModal"
+        @linked="onAuthSuccess"
+        @cancel="closeLinkModal"
+      />
+    </Transition>
   </Teleport>
 
   <!-- OAuth: MFA overlay (shown after ?auth=mfa-pending) -->
   <Teleport to="body">
-    <MfaVerifyModal
-      v-if="showMfaModal"
-      @verified="
-        () => {
-          closeMfaModal();
-          onAuthSuccess();
-        }
-      "
-      @cancelled="closeMfaModal"
-    />
+    <Transition name="fade-scale">
+      <MfaVerifyModal
+        v-if="showMfaModal"
+        @verified="
+          () => {
+            closeMfaModal();
+            onAuthSuccess();
+          }
+        "
+        @cancelled="closeMfaModal"
+      />
+    </Transition>
   </Teleport>
 
   <!-- OAuth: error banner (shown after ?auth=error) -->
@@ -186,54 +190,64 @@ async function onAuthSuccess() {
   </Teleport>
 
   <Teleport to="body">
-    <BaseDialog
-      v-if="confirmOpen"
-      :title="confirmOptions.title"
-      :submit-text="confirmOptions.submitText ?? 'Confirm'"
-      :danger="confirmOptions.danger"
-      @confirm="modalStore.resolveConfirm(true)"
-      @cancel="modalStore.resolveConfirm(false)"
-    >
-      {{ confirmOptions.content }}
-    </BaseDialog>
+    <Transition name="fade-scale">
+      <BaseDialog
+        v-if="confirmOpen"
+        :title="confirmOptions.title"
+        :submit-text="confirmOptions.submitText ?? 'Confirm'"
+        :danger="confirmOptions.danger"
+        @confirm="modalStore.resolveConfirm(true)"
+        @cancel="modalStore.resolveConfirm(false)"
+      >
+        {{ confirmOptions.content }}
+      </BaseDialog>
+    </Transition>
   </Teleport>
 
   <!-- Global search modal (Ctrl/Cmd+K or sidebar button) -->
   <Teleport to="body">
-    <SearchModal v-if="searchOpen" @cancel="modalStore.closeSearch()" />
+    <Transition name="fade-scale">
+      <SearchModal v-if="searchOpen" @cancel="modalStore.closeSearch()" />
+    </Transition>
   </Teleport>
 
   <!-- Global item form (N key, + button, or search create action) -->
   <Teleport to="body">
-    <ItemForm
-      v-if="itemFormOpen"
-      :key="itemFormKey"
-      :initial-type="itemFormInitialType"
-      :initial="itemToEdit"
-      @cancel="modalStore.closeItemForm()"
-      @success="onItemFormSuccess"
-    />
+    <Transition name="fade-scale">
+      <ItemForm
+        v-if="itemFormOpen"
+        :key="itemFormKey"
+        :initial-type="itemFormInitialType"
+        :initial="itemToEdit"
+        @cancel="modalStore.closeItemForm()"
+        @success="onItemFormSuccess"
+      />
+    </Transition>
   </Teleport>
 
   <!-- Global private task form -->
   <Teleport to="body">
-    <PrivateTaskForm
-      v-if="privateTaskFormOpen"
-      :key="privateTaskFormKey"
-      :initial="privateTaskToEdit || undefined"
-      @cancel="modalStore.closePrivateTaskForm()"
-      @success="onPrivateTaskFormSuccess"
-    />
+    <Transition name="fade-scale">
+      <PrivateTaskForm
+        v-if="privateTaskFormOpen"
+        :key="privateTaskFormKey"
+        :initial="privateTaskToEdit || undefined"
+        @cancel="modalStore.closePrivateTaskForm()"
+        @success="onPrivateTaskFormSuccess"
+      />
+    </Transition>
   </Teleport>
 
   <!-- Global announcement form (admin only, Alt+A) -->
   <Teleport to="body">
-    <AnnouncementForm
-      v-if="announcementFormOpen"
-      :key="announcementFormKey"
-      @cancel="modalStore.closeAnnouncementForm()"
-      @success="onAnnouncementFormSuccess"
-    />
+    <Transition name="fade-scale">
+      <AnnouncementForm
+        v-if="announcementFormOpen"
+        :key="announcementFormKey"
+        @cancel="modalStore.closeAnnouncementForm()"
+        @success="onAnnouncementFormSuccess"
+      />
+    </Transition>
   </Teleport>
 
   <!-- Global image viewer -->
@@ -248,48 +262,60 @@ async function onAuthSuccess() {
 
   <!-- Account modals -->
   <Teleport to="body">
-    <ChangePasswordModal
-      v-if="showChangePassword"
-      @cancel="modalStore.showChangePassword = false"
-      @success="onPasswordChanged"
-    />
+    <Transition name="fade-scale">
+      <ChangePasswordModal
+        v-if="showChangePassword"
+        @cancel="modalStore.showChangePassword = false"
+        @success="onPasswordChanged"
+      />
+    </Transition>
 
-    <SecurityModal
-      v-if="showSecurity"
-      :initial-mfa-enabled="user?.mfaEnabled"
-      @cancel="modalStore.showSecurity = false"
-      @mfa-changed="onMfaChanged"
-    />
+    <Transition name="fade-scale">
+      <SecurityModal
+        v-if="showSecurity"
+        :initial-mfa-enabled="user?.mfaEnabled"
+        @cancel="modalStore.showSecurity = false"
+        @mfa-changed="onMfaChanged"
+      />
+    </Transition>
 
-    <DeleteAccountModal
-      v-if="showDeleteAccount"
-      :email="user?.email || ''"
-      @cancel="modalStore.showDeleteAccount = false"
-      @deleted="onAccountDeleted"
-      @error="onAccountDeleteError"
-    />
+    <Transition name="fade-scale">
+      <DeleteAccountModal
+        v-if="showDeleteAccount"
+        :email="user?.email || ''"
+        @cancel="modalStore.showDeleteAccount = false"
+        @deleted="onAccountDeleted"
+        @error="onAccountDeleteError"
+      />
+    </Transition>
 
-    <CompleteSetup
-      v-if="showSetup && user"
-      :visible="showSetup"
-      :is-setup="!user.doneSetup"
-      :initial-data="{
-        courses: user.courses || [],
-      }"
-      @cancel="modalStore.showSetup = false"
-      @success="modalStore.showSetup = false"
-      @update:user="onSetupSuccess"
-    />
+    <Transition name="fade-scale">
+      <CompleteSetup
+        v-if="showSetup && user"
+        :visible="showSetup"
+        :is-setup="!user.doneSetup"
+        :initial-data="{
+          courses: user.courses || [],
+        }"
+        @cancel="modalStore.showSetup = false"
+        @success="modalStore.showSetup = false"
+        @update:user="onSetupSuccess"
+      />
+    </Transition>
 
-    <CreateGroupModal
-      v-if="createGroupOpen"
-      @cancel="modalStore.closeCreateGroup()"
-    />
+    <Transition name="fade-scale">
+      <CreateGroupModal
+        v-if="createGroupOpen"
+        @cancel="modalStore.closeCreateGroup()"
+      />
+    </Transition>
 
-    <JoinGroupModal
-      v-if="joinGroupOpen"
-      @cancel="modalStore.closeJoinGroup()"
-    />
+    <Transition name="fade-scale">
+      <JoinGroupModal
+        v-if="joinGroupOpen"
+        @cancel="modalStore.closeJoinGroup()"
+      />
+    </Transition>
   </Teleport>
 </template>
 
