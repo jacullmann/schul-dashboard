@@ -18,14 +18,12 @@ const props = withDefaults(
     disabled?: boolean;
     form?: boolean;
     on?: 'ghost' | 'action';
-    size?: 'md' | 'lg';
     classes?: string;
   }>(),
   {
     disabled: false,
     form: true,
     on: 'ghost',
-    size: 'md',
   },
 );
 
@@ -56,14 +54,21 @@ const toggleMenu = async () => {
       await nextTick();
 
       if (floatingRef.value) {
-        const selectedElement = floatingRef.value.querySelector(
-          '.active',
+        // floatingRef.value is a Vue component instance, so we need to access its $el
+        const menuEl = (floatingRef.value as any).$el as HTMLElement;
+
+        // BaseMenuButton uses aria-checked="true" for the active state
+        const selectedElement = menuEl?.querySelector(
+          '[aria-checked="true"]',
         ) as HTMLElement | null;
 
         if (selectedElement) {
-          selectedElement.scrollIntoView({
-            block: 'nearest',
-            behavior: 'auto',
+          // Use requestAnimationFrame to ensure the DOM is fully rendered before scrolling
+          requestAnimationFrame(() => {
+            selectedElement.scrollIntoView({
+              block: 'nearest',
+              behavior: 'auto',
+            });
           });
         }
       }
@@ -104,7 +109,6 @@ onClickOutside(
       :aria-expanded="isOpen"
       :variant="form ? 'input' : 'ghost'"
       :on="props.on"
-      :size="props.size"
       :icon="ChevronDown"
       iconPlacement="trailing"
       :iconClasses="
