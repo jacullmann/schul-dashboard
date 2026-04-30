@@ -15,7 +15,12 @@ withDefaults(
 
 <template>
   <div class="flex flex-col gap-9 p-3">
-    <div v-for="n in count" :key="n">
+    <div 
+      v-for="n in count" 
+      :key="n"
+      class="animate-fade-up"
+      :style="{ animationDelay: `${(n + 2) * 0.05}s`, animationFillMode: 'both' }"
+    >
       <BaseSkeleton width="60" height="20px" class="mb-3" />
 
       <BaseSkeleton width="40" height="16px" class="mb-3" />

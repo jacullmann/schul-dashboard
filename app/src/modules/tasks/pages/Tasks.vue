@@ -23,7 +23,7 @@ import InfoModal from '@/common/components/InfoModal.vue';
 import ItemInfoModal from '@/modules/tasks/components/ItemInfoModal.vue';
 import { useI18n } from 'vue-i18n';
 import { useWindowSize } from '@vueuse/core';
-import { computed, ref, watch } from 'vue';
+import { computed, ref, watch, onMounted } from 'vue';
 import type { HwItem } from '@/modules/tasks/composables/useTasks';
 
 const showInfoItem = ref<HwItem | null>(null);
@@ -130,6 +130,23 @@ const {
 const { openItemForm } = useItemForm();
 const { openImageViewer } = useImageViewer();
 
+const animationStartTime = ref(Date.now());
+const elapsedLoadTime = ref(0);
+
+watch(loading, (newVal) => {
+  if (newVal) {
+    animationStartTime.value = Date.now();
+  } else {
+    elapsedLoadTime.value = (Date.now() - animationStartTime.value) / 1000;
+  }
+});
+
+onMounted(() => {
+  if (!loading.value) {
+    elapsedLoadTime.value = (Date.now() - animationStartTime.value) / 1000;
+  }
+});
+
 function openImageViewerForItem(item: HwItem, index: number) {
   openImageViewerLocal(item, index);
   openImageViewer(item.images, index);
@@ -176,52 +193,58 @@ async function handleArchiveFromMenu(item: HwItem) {
 
 <template>
   <div class="card">
-    <PageHeader>
-      {{ t('school.tasks.title') }}
-      <template #info>
-        <InfoModal
-          :tooltip="t('school.tasks.infopop.tooltip')"
-          :title="t('school.tasks.title')"
-        >
-          <h3>{{ t('school.tasks.infopop.description') }}</h3>
-          <template
-            v-for="(section, index) in tm('school.tasks.infopop.sections')"
-            :key="index"
+    <div class="animate-fade-up" style="animation-delay: 0s; animation-fill-mode: both;">
+      <PageHeader>
+        {{ t('school.tasks.title') }}
+        <template #info>
+          <InfoModal
+            :tooltip="t('school.tasks.infopop.tooltip')"
+            :title="t('school.tasks.title')"
           >
-            <h3 v-html="section.title"></h3>
-            <p v-html="section.text"></p>
-          </template>
-        </InfoModal>
-      </template>
-    </PageHeader>
+            <h3>{{ t('school.tasks.infopop.description') }}</h3>
+            <template
+              v-for="(section, index) in tm('school.tasks.infopop.sections')"
+              :key="index"
+            >
+              <h3 v-html="section.title"></h3>
+              <p v-html="section.text"></p>
+            </template>
+          </InfoModal>
+        </template>
+      </PageHeader>
+    </div>
 
-    <BaseTabs
-      :items="tabItems"
-      :active-id="tab"
-      class="mb-4"
-      @change="(id) => goTab(id as any)"
-    />
-
-    <BaseRow>
-      <BaseSelect
-        v-model="subjectFilter"
-        :options="subjectOptions"
-        :form="false"
-        class="max-w-36"
+    <div class="animate-fade-up" style="animation-delay: 0.05s; animation-fill-mode: both;">
+      <BaseTabs
+        :items="tabItems"
+        :active-id="tab"
+        class="mb-4"
+        @change="(id) => goTab(id as any)"
       />
+    </div>
 
-      <ArchiveSwitch v-model="showOldEntries" />
-
-      <BaseTooltip content="New Entry" placement="bottom">
-        <BaseButton
-          variant="action"
-          :aria-label="t('school.tasks.itemForm.newEntry')"
-          @click="openItemForm()"
-          :icon="Plus"
-          icon-classes="size-6"
+    <div class="animate-fade-up" style="animation-delay: 0.1s; animation-fill-mode: both;">
+      <BaseRow>
+        <BaseSelect
+          v-model="subjectFilter"
+          :options="subjectOptions"
+          :form="false"
+          class="max-w-36"
         />
-      </BaseTooltip>
-    </BaseRow>
+
+        <ArchiveSwitch v-model="showOldEntries" />
+
+        <BaseTooltip content="New Entry" placement="bottom">
+          <BaseButton
+            variant="action"
+            :aria-label="t('school.tasks.itemForm.newEntry')"
+            @click="openItemForm()"
+            :icon="Plus"
+            icon-classes="size-6"
+          />
+        </BaseTooltip>
+      </BaseRow>
+    </div>
 
     <div class="flex flex-col gap-3 mt-4">
       <ItemSkeleton v-if="loading && initialLoad" :count="5" :image-count="2" />
@@ -234,7 +257,7 @@ async function handleArchiveFromMenu(item: HwItem) {
         class="animate-fade-up"
         :class="{ 'z-50': openMenuId === item.id || leavingMenuIds.has(item.id) }"
         :style="{
-          animationDelay: `${index * 0.075}s`,
+          animationDelay: `${(index + 3) * 0.05 - elapsedLoadTime}s`,
           animationFillMode: 'both',
         }"
         :is-collapsed="isChecked(item.id)"
@@ -550,6 +573,8 @@ async function handleArchiveFromMenu(item: HwItem) {
 
       <BaseEmptyState
         v-if="!loading && !limitedItems.length"
+        class="animate-fade-up"
+        :style="{ animationDelay: `${3 * 0.05 - elapsedLoadTime}s`, animationFillMode: 'both' }"
         :primary-action="openItemForm"
         :secondary-action="resetFilters"
       >
