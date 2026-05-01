@@ -1,7 +1,13 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, inject, computed } from 'vue';
 import { Check, ChevronRight } from '@lucide/vue';
 import type { Component } from 'vue';
+import { useWindowSize } from '@vueuse/core';
+import { MENU_SHEET_KEY } from '@/common/composables/useMenuContext';
+
+const sheetCtx = inject(MENU_SHEET_KEY, undefined);
+const { width: vw } = useWindowSize();
+const isMobile = computed(() => vw.value < 768 && !!sheetCtx);
 
 withDefaults(
   defineProps<{
@@ -33,13 +39,15 @@ defineExpose({
   <button
     ref="buttonEl"
     type="button"
-    class="group flex justify-between items-center w-full text-left border-0 pr-3 py-2 min-h-9 gap-4 rounded-lg cursor-pointer text-sm transition-hover user-select-none"
+    class="group flex justify-between items-center w-full text-left border-0 py-2 gap-4 cursor-pointer transition-hover user-select-none"
     :class="[
       variant === 'danger'
         ? 'text-danger hover:bg-danger-hover'
         : 'text-on-ghost hover:bg-ghost-hover',
-      icon ? 'pl-2.5' : 'pl-3',
+      isMobile ?
+      icon ? 'pl-4' : 'pl-4.5' : icon ? 'pl-2.5' : 'pl-3',
       { 'font-semibold': active },
+      isMobile ? 'rounded-xl pr-4 min-h-12' : 'rounded-lg pr-3 min-h-9',
     ]"
     :style="
       forceHover
@@ -56,20 +64,19 @@ defineExpose({
   >
     <span
       class="flex items-center"
-      :class="$slots.description ? 'gap-3' : 'gap-2'"
+      :class="isMobile || $slots.description ? 'gap-3' : 'gap-2'"
     >
       <component
         :is="icon"
         v-if="icon"
-        :size="$slots.description ? 20 : 18"
+        :size="isMobile ? 20 : ($slots.description ? 20 : 18)"
         class="shrink-0"
       />
       <span class="flex flex-col">
         <span
-          class="text-sm"
           :class="[
             active && !$slots.description ? 'font-bold' : 'font-medium',
-            $slots.description ? 'leading-5' : 'leading-4',
+            isMobile ? 'text-sm/6' : $slots.description ? 'text-sm/5' : 'text-sm/4',
           ]"
           ><slot></slot
         ></span>

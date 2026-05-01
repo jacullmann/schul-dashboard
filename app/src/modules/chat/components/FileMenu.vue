@@ -40,7 +40,7 @@ onClickOutside(
   () => {
     close();
   },
-  { ignore: [menuRef] },
+  { ignore: [computed(() => (menuRef.value as any)?.menuEl)] },
 );
 
 useEventListener(document, 'keydown', (e) => {
@@ -61,18 +61,17 @@ useEventListener(document, 'keydown', (e) => {
     </BaseTooltip>
 
     <Teleport to="body">
-      <Transition name="fade-dropdown">
-        <BaseMenu
-          v-if="isOpen"
-          ref="menuRef"
-          :style="menuStyles"
-          class="min-w-56!"
-        >
-          <BaseMenuButton :icon="Brush" @click="(drawImage, close())">
-            Draw Image
-          </BaseMenuButton>
-        </BaseMenu>
-      </Transition>
+      <BaseMenu
+        :open="isOpen"
+        @close="close"
+        ref="menuRef"
+        :style="menuStyles"
+        class="min-w-56!"
+      >
+        <BaseMenuButton :icon="Brush" @click="(drawImage, close())">
+          Draw Image
+        </BaseMenuButton>
+      </BaseMenu>
     </Teleport>
   </div>
 </template>

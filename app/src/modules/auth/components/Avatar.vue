@@ -26,7 +26,7 @@ const avatarColor = computed(() => {
     class="inline-flex items-center border-none bg-transparent cursor-pointer"
   >
     <div
-      class="size-8 max-[480px]:size-[26px] rounded-full flex items-center justify-center font-semibold text-white text-base max-[480px]:text-sm select-none"
+      class="size-8 rounded-full flex items-center justify-center font-semibold text-white text-base select-none"
       :style="{ backgroundColor: avatarColor }"
     >
       {{ avatarLetter }}

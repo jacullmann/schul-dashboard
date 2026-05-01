@@ -121,8 +121,11 @@ onUnmounted(() => {
           />
         </button>
 
-        <Transition name="fade-dropdown">
-          <BaseMenu v-if="groupMenuOpen" class="top-full mt-1 left-0">
+          <BaseMenu
+            :open="groupMenuOpen"
+            @close="groupMenuOpen = false"
+            class="top-full mt-1 left-0"
+          >
             <BaseMenuButton
               v-for="g in userGroups"
               :key="g.id"
@@ -149,7 +152,6 @@ onUnmounted(() => {
               New group
             </BaseMenuButton>
           </BaseMenu>
-        </Transition>
       </div>
     </div>
   </header>

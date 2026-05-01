@@ -212,9 +212,9 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
             </template>
 
             <template #menu>
-              <Transition name="fade-dropdown">
                 <BaseMenu
-                  v-if="openMenuId === privateTask.id"
+                  :open="openMenuId === privateTask.id"
+                  @close="openMenuId = null"
                   class="right-0 mt-6"
                   @click.stop
                 >
@@ -277,7 +277,6 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
                     {{ t('global.buttons.delete') }}
                   </BaseMenuButton>
                 </BaseMenu>
-              </Transition>
             </template>
 
             <template #body v-if="privateTask.description">

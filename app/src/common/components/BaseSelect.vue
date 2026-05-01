@@ -54,8 +54,8 @@ const toggleMenu = async () => {
       await nextTick();
 
       if (floatingRef.value) {
-        // floatingRef.value is a Vue component instance, so we need to access its $el
-        const menuEl = (floatingRef.value as any).$el as HTMLElement;
+        // floatingRef.value is a Vue component instance, so we need to access its exposed menuEl
+        const menuEl = (floatingRef.value as any).menuEl as HTMLElement;
 
         // BaseMenuButton uses aria-checked="true" for the active state
         const selectedElement = menuEl?.querySelector(
@@ -86,7 +86,7 @@ onClickOutside(
   () => {
     isOpen.value = false;
   },
-  { ignore: [floatingRef] },
+  { ignore: [computed(() => (floatingRef.value as any)?.menuEl)] },
 );
 </script>
 
@@ -126,25 +126,24 @@ onClickOutside(
     </BaseButton>
 
     <Teleport to="body">
-      <Transition name="fade-dropdown">
-        <BaseMenu
-          v-if="isOpen"
-          ref="floatingRef"
-          :style="floatingStyles"
-          class="max-h-80 z-[9999]"
+      <BaseMenu
+        :open="isOpen"
+        @close="isOpen = false"
+        ref="floatingRef"
+        :style="floatingStyles"
+        class="max-h-80 z-[9999]"
+      >
+        <BaseMenuButton
+          v-for="option in options"
+          :key="option.value"
+          @click="selectOption(option.value)"
+          type="button"
+          :isSelect="true"
+          :active="modelValue === option.value"
         >
-          <BaseMenuButton
-            v-for="option in options"
-            :key="option.value"
-            @click="selectOption(option.value)"
-            type="button"
-            :isSelect="true"
-            :active="modelValue === option.value"
-          >
-            {{ option.label }}
-          </BaseMenuButton>
-        </BaseMenu>
-      </Transition>
+          {{ option.label }}
+        </BaseMenuButton>
+      </BaseMenu>
     </Teleport>
   </div>
 </template>

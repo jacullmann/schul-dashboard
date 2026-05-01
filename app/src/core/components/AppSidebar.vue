@@ -253,7 +253,7 @@ onUnmounted(() => {
 
     <div class="flex flex-col w-full gap-1">
       <div
-        class="flex w-full transition-all duration-200 justify-start ml-0.5 max-[480px]:ml-1.25"
+        class="flex w-full transition-all duration-200 justify-start ml-0.5"
       >
         <AccountMenu
           v-if="user"
@@ -261,6 +261,7 @@ onUnmounted(() => {
           :user-data="user"
           @logout="logout"
           @personalization-changed="onPersonalizationChanged"
+          @click="collapseIfMobile"
         />
       </div>
     </div>

@@ -5,7 +5,7 @@ const activeTrigger = ref<HTMLElement | null>(null);
 </script>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount } from 'vue';
+import { computed, onBeforeUnmount, inject } from 'vue';
 import {
   useElementBounding,
   useWindowSize,
@@ -14,6 +14,7 @@ import {
 import BaseMenuButton from '@/common/components/BaseMenuButton.vue';
 import BaseMenu from '@/common/components/BaseMenu.vue';
 import type { Component } from 'vue';
+import { MENU_SHEET_KEY } from '@/common/composables/useMenuContext';
 
 const props = defineProps<{
   label?: string;
@@ -24,6 +25,23 @@ const props = defineProps<{
 const triggerRef = ref<HTMLElement | null>(null);
 const menuRef = ref<HTMLElement | null>(null);
 
+// ── Mobile drill-down context ───────────────────────────────
+const sheetCtx = inject(MENU_SHEET_KEY, undefined);
+const { width: vw, height: vh } = useWindowSize();
+const isMobile = computed(() => vw.value < 768 && !!sheetCtx);
+
+const submenuId = `sub-${Math.random().toString(36).slice(2, 9)}`;
+const isMobileActive = computed(
+  () => sheetCtx?.activeViewId.value === submenuId,
+);
+
+function drillDown() {
+  if (!props.disabled) {
+    sheetCtx?.pushView(submenuId, props.label ?? '');
+  }
+}
+
+// ── Desktop hover/focus logic (unchanged) ───────────────────
 const isOpen = computed(() => activeTrigger.value === triggerRef.value);
 
 function onMouseEnter() {
@@ -76,7 +94,6 @@ const {
   right: btnRight,
 } = useElementBounding(triggerRef);
 const { width: popupW, height: popupH } = useElementBounding(menuRef);
-const { width: vw, height: vh } = useWindowSize();
 
 const popupStyle = computed(() => {
   if (!isOpen.value) return {};
@@ -103,30 +120,47 @@ const popupStyle = computed(() => {
 </script>
 
 <template>
-  <div class="relative" @mouseenter="onMouseEnter" @focusin="onMouseEnter">
+  <div
+    class="relative"
+    @mouseenter="!isMobile && onMouseEnter()"
+    @focusin="!isMobile && onMouseEnter()"
+  >
     <div ref="triggerRef">
       <BaseMenuButton
         :icon="icon"
         :isSubmenu="true"
         :disabled="disabled"
-        :force-hover="isOpen"
+        :force-hover="isOpen && !isMobile"
         type="button"
         aria-haspopup="true"
-        :aria-expanded="isOpen"
+        :aria-expanded="isMobile ? isMobileActive : isOpen"
+        @click="isMobile ? drillDown() : undefined"
       >
         <slot name="label">{{ label }}</slot>
       </BaseMenuButton>
     </div>
 
-    <Transition name="fade-dropdown-side">
-      <BaseMenu
-        v-if="isOpen"
-        :style="popupStyle"
-        :ref="(el: any) => (menuRef = el?.$el)"
-        class="z-[1100]"
-      >
+    <!-- Desktop: side panel (unchanged) -->
+    <template v-if="!isMobile">
+        <BaseMenu
+          :open="isOpen"
+          desktopTransition="fade-dropdown-side"
+          :style="popupStyle"
+          :ref="(el: any) => (menuRef = el?.menuEl)"
+          class="z-[1100]"
+        >
+          <slot></slot>
+        </BaseMenu>
+    </template>
+
+    <!-- Mobile: teleport content into parent BaseMenu's submenu area -->
+    <Teleport
+      v-else-if="sheetCtx?.submenuTarget.value"
+      :to="sheetCtx.submenuTarget.value"
+    >
+      <div v-show="isMobileActive">
         <slot></slot>
-      </BaseMenu>
-    </Transition>
+      </div>
+    </Teleport>
   </div>
 </template>

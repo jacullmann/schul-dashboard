@@ -256,9 +256,9 @@ async function leaveGroup(group: any) {
             :icon="MoreHorizontal"
           />
 
-          <Transition name="fade-dropdown">
             <BaseMenu
-              v-if="openMenuId === group.id"
+              :open="openMenuId === group.id"
+              @close="openMenuId = null"
               class="right-0 mt-6"
               @click.stop
             >
@@ -276,7 +276,6 @@ async function leaveGroup(group: any) {
                 Leave
               </BaseMenuButton>
             </BaseMenu>
-          </Transition>
         </button>
       </div>
     </section>

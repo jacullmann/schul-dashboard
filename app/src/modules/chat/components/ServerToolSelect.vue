@@ -53,7 +53,7 @@ onClickOutside(
   () => {
     close();
   },
-  { ignore: [menuRef] },
+  { ignore: [computed(() => (menuRef.value as any)?.menuEl)] },
 );
 
 useEventListener(document, 'keydown', (e) => {
@@ -64,7 +64,7 @@ useEventListener(document, 'keydown', (e) => {
 <template>
   <div class="relative inline-block" ref="triggerRef">
     <BaseButton
-      v-if="windowWidth > 480"
+      v-if="windowWidth >= 768"
       :icon="Settings2"
       @click="toggle"
       :class="{ 'bg-surface-hover! text-on-ghost!': isOpen }"
@@ -85,13 +85,13 @@ useEventListener(document, 'keydown', (e) => {
     </BaseTooltip>
 
     <Teleport to="body">
-      <Transition name="fade-dropdown">
-        <BaseMenu
-          v-if="isOpen"
-          ref="menuRef"
-          :style="menuStyles"
-          class="min-w-56!"
-        >
+      <BaseMenu
+        :open="isOpen"
+        @close="close"
+        ref="menuRef"
+        :style="menuStyles"
+        class="min-w-56!"
+      >
           <BaseMenuButton
             :icon="Globe"
             @click="((webSearch = !webSearch), close())"
@@ -124,7 +124,6 @@ useEventListener(document, 'keydown', (e) => {
             <template #description>Show your chain of thought</template>
           </BaseMenuButton>
         </BaseMenu>
-      </Transition>
     </Teleport>
   </div>
 </template>

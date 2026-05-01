@@ -68,20 +68,24 @@ onClickOutside(menuRef, () => {
 </script>
 
 <template>
-  <div ref="menuRef" class="fixed z-[10001] min-w-[180px]" :style="styleObject">
-    <BaseMenu class="min-w-[180px]">
-      <BaseMenuButton :icon="Upload" @click="emit('upload')">
-        {{ t('school.tasks.items.menu.uploadImages') }}
-      </BaseMenuButton>
+  <BaseMenu
+    :open="visible"
+    @close="emit('cancel')"
+    :ref="(el: any) => (menuRef = el?.menuEl)"
+    class="fixed! z-[10001]! min-w-[180px]"
+    :style="styleObject"
+  >
+    <BaseMenuButton :icon="Upload" @click="emit('upload')">
+      {{ t('school.tasks.items.menu.uploadImages') }}
+    </BaseMenuButton>
 
-      <BaseMenuButton
-        v-if="canDelete"
-        variant="danger"
-        :icon="Trash2"
-        @click="emit('delete')"
-      >
-        {{ t('global.buttons.delete') }}
-      </BaseMenuButton>
-    </BaseMenu>
-  </div>
+    <BaseMenuButton
+      v-if="canDelete"
+      variant="danger"
+      :icon="Trash2"
+      @click="emit('delete')"
+    >
+      {{ t('global.buttons.delete') }}
+    </BaseMenuButton>
+  </BaseMenu>
 </template>

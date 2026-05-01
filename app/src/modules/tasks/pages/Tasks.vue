@@ -330,14 +330,9 @@ async function handleArchiveFromMenu(item: HwItem) {
         </template>
 
         <template #menu>
-          <Transition
-            name="fade-dropdown"
-            @before-leave="() => leavingMenuIds.add(item.id)"
-            @after-leave="() => leavingMenuIds.delete(item.id)"
-            @leave-cancelled="() => leavingMenuIds.delete(item.id)"
-          >
             <BaseMenu
-              v-if="openMenuId === item.id"
+              :open="openMenuId === item.id"
+              @close="openMenuId = null"
               class="right-0 mt-6"
               @click.stop
             >
@@ -416,7 +411,6 @@ async function handleArchiveFromMenu(item: HwItem) {
                 {{ t('global.buttons.delete') }}
               </BaseMenuButton>
             </BaseMenu>
-          </Transition>
         </template>
 
         <template #body v-if="item.description.length">
@@ -622,11 +616,10 @@ async function handleArchiveFromMenu(item: HwItem) {
       </div>
     </div>
 
-    <Transition name="fade-dropdown">
-      <ImageContextMenu
-        v-if="imageMenu.visible"
-        :x="imageMenu.x"
-        :y="imageMenu.y"
+    <ImageContextMenu
+      :visible="imageMenu.visible"
+      :x="imageMenu.x"
+      :y="imageMenu.y"
         :can-delete="
           imageMenu.image && imageMenu.item
             ? canDeleteImage(
@@ -639,7 +632,6 @@ async function handleArchiveFromMenu(item: HwItem) {
         @delete="triggerImageDelete"
         @cancel="closeImageMenu"
       />
-    </Transition>
 
     <ReportModal
       :show="showReportConfirm"
