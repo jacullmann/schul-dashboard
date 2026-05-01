@@ -81,7 +81,7 @@ const { width: vw, height: vh } = useWindowSize();
 const popupStyle = computed(() => {
   if (!isOpen.value) return {};
 
-  let left = btnRight.value + 4;
+  let left = btnRight.value;
   let top = btnTop.value;
 
   if (left + (popupW.value || 180) > vw.value - 8) {

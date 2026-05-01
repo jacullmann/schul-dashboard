@@ -41,77 +41,82 @@ watch(
 </script>
 
 <template>
-  <BaseModal
-    v-if="show"
-    @cancel="emit('cancel')"
-    :submit="() => emit('confirm', category)"
-    :loading="loading"
-    :danger="true"
-    :requirement="!(category === 'falschinfo' && !reason?.trim())"
-  >
-    <template #title> Diesen Eintrag melden? </template>
+  <Transition name="fade-scale">
+    <BaseModal
+      v-if="show"
+      @cancel="emit('cancel')"
+      :submit="() => emit('confirm', category)"
+      :loading="loading"
+      :danger="true"
+      :requirement="!(category === 'falschinfo' && !reason?.trim())"
+    >
+      <template #title> Diesen Eintrag melden? </template>
 
-    <template #title-infopop>
-      <InfoModal tooltip="Melden Info" title="Infos zum Melden von Einträgen">
-        <h3 class="text-xl font-display font-bold mb-2">Falschinformationen</h3>
-        <p class="text-on-ghost-muted text-base mb-4">
-          Die Informationen, welche in dem Eintrag genannt werden, oder die
-          hochgeladenen Bilder enthalten falsche oder irreführende Inhalte?
-          Solchen Einträgen können Anmerkungen mit Korrekturen beigefügt werden,
-          jedoch musst du beschreiben, was nicht stimmt und/oder wie die
-          richtigen Informationen lauten. Versuche dich dabei bitte möglichst
-          kurz und verständlich zu fassen. Deine Nachricht wird, sobald sie
-          geprüft wurde, dem gemeldeten Eintrag angehängt.
-        </p>
-        <h3 class="text-xl font-display font-bold mb-2">
-          Unangebrachte/Illegale Inhalte
-        </h3>
-        <p class="text-on-ghost-muted text-base mb-4">
-          Einträge und hochgeladene Bilder, die gegen unsere Nutzungsbedingungen
-          oder geltendes Recht verstoßen, werden umgehend entfernt. Falls
-          genaueres Wissen über den Hintergrund einer Aussage/eines Bildes nötig
-          ist, beschreibe es bitte möglichst genau, sodass wir etwas unternehmen
-          können. Wenn der Verstoß offensichtlich ist, kannst du uns trotzdem
-          helfen, indem du beschreibst, was nicht stimmt, aber wir untersuchen
-          immer den ganzen Artikel, auch wenn du keinen konkreten Grund nennst.
-        </p>
-      </InfoModal>
-    </template>
+      <template #title-infopop>
+        <InfoModal tooltip="Melden Info" title="Infos zum Melden von Einträgen">
+          <h3 class="text-xl font-display font-bold mb-2">
+            Falschinformationen
+          </h3>
+          <p class="text-on-ghost-muted text-base mb-4">
+            Die Informationen, welche in dem Eintrag genannt werden, oder die
+            hochgeladenen Bilder enthalten falsche oder irreführende Inhalte?
+            Solchen Einträgen können Anmerkungen mit Korrekturen beigefügt
+            werden, jedoch musst du beschreiben, was nicht stimmt und/oder wie
+            die richtigen Informationen lauten. Versuche dich dabei bitte
+            möglichst kurz und verständlich zu fassen. Deine Nachricht wird,
+            sobald sie geprüft wurde, dem gemeldeten Eintrag angehängt.
+          </p>
+          <h3 class="text-xl font-display font-bold mb-2">
+            Unangebrachte/Illegale Inhalte
+          </h3>
+          <p class="text-on-ghost-muted text-base mb-4">
+            Einträge und hochgeladene Bilder, die gegen unsere
+            Nutzungsbedingungen oder geltendes Recht verstoßen, werden umgehend
+            entfernt. Falls genaueres Wissen über den Hintergrund einer
+            Aussage/eines Bildes nötig ist, beschreibe es bitte möglichst genau,
+            sodass wir etwas unternehmen können. Wenn der Verstoß offensichtlich
+            ist, kannst du uns trotzdem helfen, indem du beschreibst, was nicht
+            stimmt, aber wir untersuchen immer den ganzen Artikel, auch wenn du
+            keinen konkreten Grund nennst.
+          </p>
+        </InfoModal>
+      </template>
 
-    <template #content>
-      <BaseFormGroup id="reportReason">
-        <BaseLabel for="reportReason">Wähle den Grund aus:</BaseLabel>
-        <BaseTabs
-          id="reportReason"
-          :items="tabItems"
-          :active-id="category"
-          @change="handleTabChange"
-        />
-      </BaseFormGroup>
+      <template #content>
+        <BaseFormGroup id="reportReason">
+          <BaseLabel for="reportReason">Wähle den Grund aus:</BaseLabel>
+          <BaseTabs
+            id="reportReason"
+            :items="tabItems"
+            :active-id="category"
+            @change="handleTabChange"
+          />
+        </BaseFormGroup>
 
-      <BaseFormGroup id="reportDescription">
-        <BaseLabel for="reportDescription">
-          {{
-            category === 'falschinfo'
-              ? 'Begründung (erforderlich)'
-              : 'Was genau ist das Problem? (optional)'
-          }}
-        </BaseLabel>
-        <BaseInput
-          as="textarea"
-          id="reportDescription"
-          class="w-full min-h-[120px] resize-vertical"
-          :model-value="reason"
-          @update:model-value="$emit('update:reason', $event)"
-          :placeholder="
-            category === 'falschinfo' ? 'Begründung...' : 'Beschreibung...'
-          "
-          :required="category === 'falschinfo'"
-          :maxlength="MAX_LENGTH"
-        ></BaseInput>
-      </BaseFormGroup>
-    </template>
+        <BaseFormGroup id="reportDescription">
+          <BaseLabel for="reportDescription">
+            {{
+              category === 'falschinfo'
+                ? 'Begründung (erforderlich)'
+                : 'Was genau ist das Problem? (optional)'
+            }}
+          </BaseLabel>
+          <BaseInput
+            as="textarea"
+            id="reportDescription"
+            class="w-full min-h-[120px] resize-vertical"
+            :model-value="reason"
+            @update:model-value="$emit('update:reason', $event)"
+            :placeholder="
+              category === 'falschinfo' ? 'Begründung...' : 'Beschreibung...'
+            "
+            :required="category === 'falschinfo'"
+            :maxlength="MAX_LENGTH"
+          ></BaseInput>
+        </BaseFormGroup>
+      </template>
 
-    <template #action-text>Eintrag melden</template>
-  </BaseModal>
+      <template #action-text>Eintrag melden</template>
+    </BaseModal>
+  </Transition>
 </template>

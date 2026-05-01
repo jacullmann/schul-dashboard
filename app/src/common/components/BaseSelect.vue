@@ -91,8 +91,9 @@ onClickOutside(
 </script>
 
 <template>
-  <div class="relative" ref="wrapperRef">
+  <div class="relative">
     <BaseButton
+      ref="wrapperRef"
       @click="toggleMenu"
       :disabled="disabled"
       class="outline-none"

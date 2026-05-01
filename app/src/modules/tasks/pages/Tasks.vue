@@ -650,18 +650,19 @@ async function handleArchiveFromMenu(item: HwItem) {
       @cancel="cancelReport"
     />
 
-    <ItemInfoModal
-      v-if="showInfoItem"
-      :show="!!showInfoItem"
-      :item="showInfoItem"
-      :is-mod-or-admin="
-        user?.role === 'superadmin' ||
-        user?.tenantRole === 'admin' ||
-        user?.tenantRole === 'moderator'
-      "
-      :is-super-admin="user?.role === 'superadmin'"
-      @cancel="showInfoItem = null"
-    />
+    <Transition name="fade-scale">
+      <ItemInfoModal
+        v-if="showInfoItem"
+        :item="showInfoItem"
+        :is-mod-or-admin="
+          user?.role === 'superadmin' ||
+          user?.tenantRole === 'admin' ||
+          user?.tenantRole === 'moderator'
+        "
+        :is-super-admin="user?.role === 'superadmin'"
+        @cancel="showInfoItem = null"
+      />
+    </Transition>
   </div>
 </template>
 

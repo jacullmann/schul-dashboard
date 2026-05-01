@@ -4,7 +4,6 @@ import { computed } from 'vue';
 import type { HwItem } from '@/modules/tasks/types';
 
 const props = defineProps<{
-  show: boolean;
   item: HwItem;
   isModOrAdmin: boolean;
   isSuperAdmin?: boolean;
@@ -36,7 +35,7 @@ const showUpdated = computed(() => {
 </script>
 
 <template>
-  <BaseModal v-if="show" @cancel="$emit('cancel')">
+  <BaseModal @cancel="$emit('cancel')">
     <template #title>
       {{ t('school.tasks.items.menu.infoModal.title') }}
     </template>
