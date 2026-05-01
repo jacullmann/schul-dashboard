@@ -13,7 +13,6 @@ import {
   Lock,
   UsersRound,
   SlidersHorizontal,
-  Brain,
   Gamepad,
   Newspaper,
   Crop,
@@ -164,14 +163,6 @@ const defaultResults = computed<SearchResult[]>(() => [
     action: () =>
       withGroup(() => navigate(`/groups/${activeGroupId.value}/admin`)),
     condition: isAnyGroupAdmin.value,
-  },
-  {
-    id: 'brain',
-    label: t('search.items.brainTests'),
-    description: t('search.descriptions.brainTests'),
-    category: 'page',
-    icon: Brain,
-    action: () => navigate('/brain'),
   },
   {
     id: 'games',

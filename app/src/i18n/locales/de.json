@@ -392,8 +392,6 @@
   },
   "navigation": {
     "auth": "Authentifizierung",
-    "brainLibrary": "Gehirntraining",
-    "brainTest": "Gehirntest",
     "gameDetail": "Spiel",
     "games": "Spiel Übersicht",
     "groupAdmin": "Gruppen-Verwaltung",
@@ -609,7 +607,6 @@
   "search": {
     "descriptions": {
       "admin": "Administrator Einstellungen",
-      "brainTests": "Kognitive Tests und Übungen",
       "changeLanguage": "Die Sprache der App ändern",
       "changePassword": "Dein Kontopasswort aktualisieren",
       "changeTheme": "Das Design der App anpassen",
@@ -632,7 +629,6 @@
       "toggleSidebar": "Seitenleiste ein- oder ausklappen"
     },
     "items": {
-      "brainTests": "Gehirntests",
       "createEntry": "Neuen Eintrag erstellen",
       "createGroup": "Gruppe erstellen",
       "createPrivateEntry": "Neuen privaten Eintrag erstellen",

@@ -152,18 +152,6 @@ const routes = [
           import('@/modules/infodashboard/pages/InfoDashboard.vue'),
         meta: { title: 'info.dashboard.title', fullWidth: true },
       },
-      {
-        path: 'brain',
-        name: 'brain-library',
-        component: () => import('@/modules/brain/pages/BrainLibrary.vue'),
-        meta: { title: 'navigation.brainLibrary' },
-      },
-      {
-        path: 'brain/:testId',
-        name: 'brain-test',
-        component: () => import('@/modules/brain/pages/BrainTest.vue'),
-        meta: { title: 'navigation.brainTest' },
-      },
     ],
   },
 
@@ -276,8 +264,7 @@ router.beforeEach(async (to, from, next) => {
     to.path === '/forgot-password' ||
     to.path.startsWith('/verify') ||
     // Minigames
-    to.path.startsWith('/natural-intelligence') ||
-    to.path.startsWith('/brain');
+    to.path.startsWith('/natural-intelligence');
 
   // ── Unauthenticated users → login page (internal) ────────────────────────────────
   if (!isPublicRoute && !isLoggedIn.value) {
