@@ -125,7 +125,10 @@ onMounted(() => {
         v-for="(subject, index) in subjects"
         :key="subject.id"
         class="flex items-center justify-between p-3 bg-surface border border-surface-border shadow-input rounded-lg gap-3 animate-fade-up"
-        :style="{ animationDelay: `${index * 0.075}s`, animationFillMode: 'both' }"
+        :style="{
+          animationDelay: `${index * 0.075}s`,
+          animationFillMode: 'both',
+        }"
         :class="{ 'opacity-60': !subject.isActive }"
       >
         <!-- Display mode -->

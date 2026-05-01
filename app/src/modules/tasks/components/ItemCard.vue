@@ -230,7 +230,11 @@ function onDrop(e: DragEvent) {
             @after-enter="onAfterEnter"
             @leave="onLeave"
           >
-            <div v-show="!isCollapsed" v-if="$slots.badges" class="overflow-hidden">
+            <div
+              v-show="!isCollapsed"
+              v-if="$slots.badges"
+              class="overflow-hidden"
+            >
               <BaseRow class="mt-1">
                 <slot name="badges"></slot>
               </BaseRow>

@@ -7,9 +7,9 @@ import {
   LucideKeyRound,
   Shield,
 } from '@lucide/vue';
-import PersonalizationDropdown from '@/modules/auth/components/PersonalizationDropdown.vue';
-import ThemeMenuDropdown from '@/common/components/ThemeMenuDropdown.vue';
-import LocaleMenuDropdown from '@/common/components/LocaleMenuDropdown.vue';
+import PersonalizationSubmenu from '@/modules/auth/components/PersonalizationSubmenu.vue';
+import ThemeSubmenu from '@/modules/auth/components/ThemeSubmenu.vue';
+import LocaleSubmenu from '@/modules/auth/components/LocaleSubmenu.vue';
 import Avatar from '@/modules/auth/components/Avatar.vue';
 import { useI18n } from 'vue-i18n';
 import { useAccountMenu } from '@/modules/auth/composables/useAccountMenu';
@@ -76,9 +76,9 @@ const {
 
         <BaseMenuDivider />
 
-        <ThemeMenuDropdown />
+        <ThemeSubmenu />
 
-        <LocaleMenuDropdown />
+        <LocaleSubmenu />
 
         <BaseMenuButton
           ref="firstMenuBtnRef"
@@ -88,7 +88,7 @@ const {
           {{ t('account.menu.courses.title') }}
         </BaseMenuButton>
 
-        <PersonalizationDropdown
+        <PersonalizationSubmenu
           v-model="personalizationSetting"
           @change="onPersonalizationChange"
         />

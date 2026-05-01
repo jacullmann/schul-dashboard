@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { Check, ChevronDown } from '@lucide/vue';
+import { Check, ChevronRight } from '@lucide/vue';
 import type { Component } from 'vue';
 
 withDefaults(
@@ -8,7 +8,8 @@ withDefaults(
     active?: boolean;
     isSelect?: boolean;
     isToggle?: boolean;
-    isDropdown?: boolean;
+    isSubmenu?: boolean;
+    forceHover?: boolean;
     variant?: 'default' | 'danger';
     icon?: Component;
   }>(),
@@ -16,7 +17,8 @@ withDefaults(
     variant: 'default',
     isSelect: false,
     isToggle: false,
-    isDropdown: false,
+    isSubmenu: false,
+    forceHover: false,
   },
 );
 
@@ -31,7 +33,7 @@ defineExpose({
   <button
     ref="buttonEl"
     type="button"
-    class="flex justify-between items-center w-full text-left bg-transparent border-0 pr-3 py-2 min-h-9 gap-4 rounded-lg cursor-pointer text-sm transition-hover user-select-none"
+    class="group flex justify-between items-center w-full text-left border-0 pr-3 py-2 min-h-9 gap-4 rounded-lg cursor-pointer text-sm transition-hover user-select-none"
     :class="[
       variant === 'danger'
         ? 'text-danger hover:bg-danger-hover'
@@ -39,6 +41,16 @@ defineExpose({
       icon ? 'pl-2.5' : 'pl-3',
       { 'font-semibold': active },
     ]"
+    :style="
+      forceHover
+        ? {
+            backgroundColor:
+              variant === 'danger'
+                ? 'var(--color-danger-hover)'
+                : 'var(--color-ghost-hover)',
+          }
+        : {}
+    "
     :role="isSelect ? 'menuitemradio' : 'menuitem'"
     :aria-checked="isSelect ? active : undefined"
   >
@@ -56,9 +68,7 @@ defineExpose({
         <span
           class="text-sm"
           :class="[
-            active && !$slots.description && !isDropdown
-              ? 'font-bold'
-              : 'font-medium',
+            active && !$slots.description ? 'font-bold' : 'font-medium',
             $slots.description ? 'leading-5' : 'leading-4',
           ]"
           ><slot></slot
@@ -71,11 +81,15 @@ defineExpose({
       </span>
     </span>
 
-    <ChevronDown
-      v-if="isDropdown"
+    <ChevronRight
+      v-if="isSubmenu"
       :size="18"
-      class="ml-auto shrink-0 transition duration-200 ease-in-out"
-      :class="{ 'rotate-180': active }"
+      class="ml-auto shrink-0 transition-hover"
+      :class="
+        forceHover
+          ? 'text-on-ghost '
+          : 'text-on-ghost-muted group-hover:text-on-ghost'
+      "
     />
 
     <span v-if="isSelect" aria-hidden="true">

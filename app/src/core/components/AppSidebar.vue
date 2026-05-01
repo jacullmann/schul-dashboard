@@ -236,7 +236,9 @@ onUnmounted(() => {
 
       <BaseMenuDivider />
 
-      <div class="flex flex-col gap-0 w-full overflow-y-auto flex-1 list-fade custom-scrollbar">
+      <div
+        class="flex flex-col gap-0 w-full overflow-y-auto flex-1 list-fade custom-scrollbar"
+      >
         <SidebarButton
           v-for="(group, index) in userGroups"
           :key="index"

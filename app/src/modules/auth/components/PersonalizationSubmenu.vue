@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { Filter, FilterX } from '@lucide/vue';
-import MenuDropdown from '@/common/components/MenuDropdown.vue';
+import BaseMenuSelect from '@/common/components/BaseMenuSelect.vue';
 import hw from '@/api/hwApi';
 import { useI18n } from 'vue-i18n';
 import { useToast } from '@/common/composables/useToast';
@@ -62,7 +62,7 @@ async function setPersonalization(value: boolean) {
 </script>
 
 <template>
-  <MenuDropdown
+  <BaseMenuSelect
     v-model="dropdownValue"
     :options="options"
     :prefix="t('account.menu.personalization') + ':'"

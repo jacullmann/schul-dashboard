@@ -132,7 +132,10 @@ function confirmRemove() {
         v-for="(member, index) in members"
         :key="member.userId"
         class="flex items-center justify-between p-2 px-3 bg-surface border border-surface-border shadow-input rounded-lg gap-3 sm:flex-col sm:items-start sm:gap-2 animate-fade-up"
-        :style="{ animationDelay: `${index * 0.075}s`, animationFillMode: 'both' }"
+        :style="{
+          animationDelay: `${index * 0.075}s`,
+          animationFillMode: 'both',
+        }"
       >
         <div class="flex items-center gap-2.5 min-w-0">
           <span
@@ -205,7 +208,10 @@ function confirmRemove() {
         v-for="(user, index) in bannedUsers"
         :key="user.userId"
         class="flex items-center justify-between p-2 px-3 bg-surface border border-surface-border shadow-input rounded-lg gap-3 animate-fade-up"
-        :style="{ animationDelay: `${index * 0.075}s`, animationFillMode: 'both' }"
+        :style="{
+          animationDelay: `${index * 0.075}s`,
+          animationFillMode: 'both',
+        }"
       >
         <div class="flex items-center gap-2.5 min-w-0">
           <span

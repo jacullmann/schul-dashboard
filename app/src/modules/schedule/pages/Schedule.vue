@@ -137,7 +137,10 @@ const skeletonCells = computed(() => {
               'bg-surface-hover border-surface-hover-border':
                 day === currentDay,
             }"
-            :style="{ animationDelay: `${(index + 1) * 0.05}s`, animationFillMode: 'both' }"
+            :style="{
+              animationDelay: `${(index + 1) * 0.05}s`,
+              animationFillMode: 'both',
+            }"
           >
             <span class="block">{{ formatDayName(day) }}</span>
             <!--span class="block text-[0.75rem] font-normal text-on-ghost-muted mt-0.5">{{

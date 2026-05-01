@@ -427,9 +427,7 @@ onMounted(() => {
           as="textarea"
           rows="4"
           v-model="description"
-          :aria-describedby="
-            descriptionError ? 'description-error' : undefined
-          "
+          :aria-describedby="descriptionError ? 'description-error' : undefined"
         ></BaseInput>
       </BaseFormGroup>
 
@@ -476,7 +474,10 @@ onMounted(() => {
             </div>
           </div>
 
-          <BaseTooltip :content="t('school.tasks.items.menu.uploadImages')" placement="right">
+          <BaseTooltip
+            :content="t('school.tasks.items.menu.uploadImages')"
+            placement="right"
+          >
             <BaseButton
               type="button"
               @click="uploadImage(!!initial)"

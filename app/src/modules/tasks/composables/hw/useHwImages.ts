@@ -92,7 +92,7 @@ export function useHwImages(
     // Store references before closing
     const targetImage = imageMenu.image;
     const targetItem = imageMenu.item;
-    
+
     closeImageMenu();
 
     const isConfirmed = await modalStore.confirm({

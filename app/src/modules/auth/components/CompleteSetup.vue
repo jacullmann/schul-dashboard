@@ -163,10 +163,7 @@ async function skip() {
         }}
       </p>
 
-      <div
-        v-if="subjectStore.loading"
-        class="text-sm text-on-ghost-muted mb-6"
-      >
+      <div v-if="subjectStore.loading" class="text-sm text-on-ghost-muted mb-6">
         Loading...
       </div>
       <div v-else class="flex flex-col gap-5">

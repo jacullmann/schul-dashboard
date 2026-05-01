@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { usePreferences } from '@/common/composables/usePreferences';
+import { usePreferences } from '@/common/composables/usePreferences.ts';
 import { Sun, Moon, SunMoon } from '@lucide/vue';
-import MenuDropdown, {
+import BaseMenuSelect, {
   type MenuOption,
-} from '@/common/components/MenuDropdown.vue';
+} from '@/common/components/BaseMenuSelect.vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
@@ -23,7 +23,7 @@ function updateTheme(mode: string) {
 </script>
 
 <template>
-  <MenuDropdown
+  <BaseMenuSelect
     :model-value="currentTheme"
     :options="themeOptions"
     :prefix="t('global.theme.theme') + ':'"

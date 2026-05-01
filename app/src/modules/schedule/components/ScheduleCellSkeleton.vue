@@ -18,7 +18,7 @@ defineProps<{
       gridColumn: 'var(--col-desktop)',
       gridRow: `${row + 1} / span 1`,
       animationDelay: `${(col + row) * 0.05}s`,
-      animationFillMode: 'both'
+      animationFillMode: 'both',
     }"
   >
     <BaseSkeleton

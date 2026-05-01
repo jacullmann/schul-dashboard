@@ -36,7 +36,7 @@ const styleObject = computed(() => {
     Math.max(padding, props.y),
     winH.value - menuH.value - padding,
   );
-  
+
   const style: Record<string, string> = {
     top: `${y}px`,
     left: `${x}px`,
@@ -68,11 +68,7 @@ onClickOutside(menuRef, () => {
 </script>
 
 <template>
-  <div
-    ref="menuRef"
-    class="fixed z-[10001] min-w-[180px]"
-    :style="styleObject"
-  >
+  <div ref="menuRef" class="fixed z-[10001] min-w-[180px]" :style="styleObject">
     <BaseMenu class="min-w-[180px]">
       <BaseMenuButton :icon="Upload" @click="emit('upload')">
         {{ t('school.tasks.items.menu.uploadImages') }}

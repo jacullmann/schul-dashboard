@@ -126,9 +126,7 @@ onMounted(() => {
       </transition>
 
       <div class="pt-4 border-t border-canvas-border">
-        <p
-          class="text-xs/relaxed text-on-ghost-muted text-center m-0"
-        >
+        <p class="text-xs/relaxed text-on-ghost-muted text-center m-0">
           {{ t('account.mfa.verify.support.text') }}
           <br />
           <a

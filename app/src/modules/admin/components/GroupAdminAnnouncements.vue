@@ -56,7 +56,10 @@ function formatDate(iso: string) {
         v-for="(ann, index) in announcements"
         :key="ann.id"
         class="p-3.5 px-4 rounded-[10px] bg-surface border-l-[3px] animate-fade-up"
-        :style="{ animationDelay: `${index * 0.075}s`, animationFillMode: 'both' }"
+        :style="{
+          animationDelay: `${index * 0.075}s`,
+          animationFillMode: 'both',
+        }"
         :class="[
           ann.color === 'info'
             ? 'border-action'

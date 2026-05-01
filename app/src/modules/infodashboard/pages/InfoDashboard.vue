@@ -146,9 +146,7 @@ const getSliderStyle = (current: number, max: number) => {
               <span class="text-base text-on-ghost mb-1.5">{{
                 t('info.dashboard.categories.' + processedArticles[0]!.topic)
               }}</span>
-              <h1
-                class="text-[3rem]/none m-0 font-extrabold font-display"
-              >
+              <h1 class="text-[3rem]/none m-0 font-extrabold font-display">
                 {{ t(processedArticles[0]!.titleKey) }}
               </h1>
               <p class="text-[1.25rem]/[1.6] text-on-ghost-muted my-4">
@@ -216,9 +214,7 @@ const getSliderStyle = (current: number, max: number) => {
               <span class="text-base text-on-ghost mb-1.5">{{
                 t('info.dashboard.categories.' + activeArticle.topic)
               }}</span>
-              <h1
-                class="text-[2.5rem]/none my-2 font-extrabold font-display"
-              >
+              <h1 class="text-[2.5rem]/none my-2 font-extrabold font-display">
                 {{ t(activeArticle.titleKey) }}
               </h1>
               <div class="text-[0.9rem] text-on-ghost-muted mt-4">
@@ -240,9 +236,7 @@ const getSliderStyle = (current: number, max: number) => {
               <span class="text-base text-on-ghost mb-1.5">{{
                 t('info.dashboard.categories.' + activeArticle.topic)
               }}</span>
-              <h1
-                class="text-[2.5rem]/none my-2 font-extrabold font-display"
-              >
+              <h1 class="text-[2.5rem]/none my-2 font-extrabold font-display">
                 {{ t(activeArticle.titleKey) }}
               </h1>
               <div class="text-[0.9rem] text-on-ghost-muted mt-4">

@@ -30,7 +30,10 @@ defineEmits<{
     ]"
     :style="[
       getGroupStyle(group),
-      { animationDelay: `${((dayIndex ?? 0) + 1 + (group[0]?.slot ?? 0)) * 0.05 - (elapsedLoadTime ?? 0)}s`, animationFillMode: 'both' }
+      {
+        animationDelay: `${((dayIndex ?? 0) + 1 + (group[0]?.slot ?? 0)) * 0.05 - (elapsedLoadTime ?? 0)}s`,
+        animationFillMode: 'both',
+      },
     ]"
   >
     <ScheduleLessonItem

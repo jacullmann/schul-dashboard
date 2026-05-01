@@ -22,7 +22,11 @@ const { t } = useI18n();
       v-for="ts in timeSlots"
       :key="ts.slot"
       class="flex flex-col justify-center items-center bg-transparent text-sm text-on-ghost-muted whitespace-nowrap max-[500px]:static min-[501px]:[grid-column:1] animate-fade-up"
-      :style="{ gridRow: ts.slot + 1, animationDelay: `${ts.slot * 0.05}s`, animationFillMode: 'both' }"
+      :style="{
+        gridRow: ts.slot + 1,
+        animationDelay: `${ts.slot * 0.05}s`,
+        animationFillMode: 'both',
+      }"
     >
       <span class="font-bold text-lg text-on-ghost">{{ ts.slot }}</span>
       <span class="text-xs">{{ ts.time }}</span>

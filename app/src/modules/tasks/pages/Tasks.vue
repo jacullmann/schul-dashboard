@@ -193,7 +193,10 @@ async function handleArchiveFromMenu(item: HwItem) {
 
 <template>
   <div class="card">
-    <div class="animate-fade-up" style="animation-delay: 0s; animation-fill-mode: both;">
+    <div
+      class="animate-fade-up"
+      style="animation-delay: 0s; animation-fill-mode: both"
+    >
       <PageHeader>
         {{ t('school.tasks.title') }}
         <template #info>
@@ -214,7 +217,10 @@ async function handleArchiveFromMenu(item: HwItem) {
       </PageHeader>
     </div>
 
-    <div class="animate-fade-up" style="animation-delay: 0.05s; animation-fill-mode: both;">
+    <div
+      class="animate-fade-up"
+      style="animation-delay: 0.05s; animation-fill-mode: both"
+    >
       <BaseTabs
         :items="tabItems"
         :active-id="tab"
@@ -223,7 +229,10 @@ async function handleArchiveFromMenu(item: HwItem) {
       />
     </div>
 
-    <div class="animate-fade-up" style="animation-delay: 0.1s; animation-fill-mode: both;">
+    <div
+      class="animate-fade-up"
+      style="animation-delay: 0.1s; animation-fill-mode: both"
+    >
       <BaseRow>
         <BaseSelect
           v-model="subjectFilter"
@@ -255,7 +264,9 @@ async function handleArchiveFromMenu(item: HwItem) {
         :key="item.id"
         :id="'item-' + item.id"
         class="animate-fade-up"
-        :class="{ 'z-50': openMenuId === item.id || leavingMenuIds.has(item.id) }"
+        :class="{
+          'z-50': openMenuId === item.id || leavingMenuIds.has(item.id),
+        }"
         :style="{
           animationDelay: `${(index + 3) * 0.05 - elapsedLoadTime}s`,
           animationFillMode: 'both',
@@ -319,7 +330,7 @@ async function handleArchiveFromMenu(item: HwItem) {
         </template>
 
         <template #menu>
-          <Transition 
+          <Transition
             name="fade-dropdown"
             @before-leave="() => leavingMenuIds.add(item.id)"
             @after-leave="() => leavingMenuIds.delete(item.id)"
@@ -574,7 +585,10 @@ async function handleArchiveFromMenu(item: HwItem) {
       <BaseEmptyState
         v-if="!loading && !limitedItems.length"
         class="animate-fade-up"
-        :style="{ animationDelay: `${3 * 0.05 - elapsedLoadTime}s`, animationFillMode: 'both' }"
+        :style="{
+          animationDelay: `${3 * 0.05 - elapsedLoadTime}s`,
+          animationFillMode: 'both',
+        }"
         :primary-action="openItemForm"
         :secondary-action="resetFilters"
       >

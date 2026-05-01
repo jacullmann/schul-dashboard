@@ -219,7 +219,8 @@ export function useHwActions(
   async function deleteItem(id: string) {
     const isConfirmed = await modalStore.confirm({
       title: 'Diesen Eintrag löschen?',
-      content: 'Wenn du diesen Eintrag löschst, werden dieser und alle dazugehörigen Bilder unwiderruflich gelöscht.',
+      content:
+        'Wenn du diesen Eintrag löschst, werden dieser und alle dazugehörigen Bilder unwiderruflich gelöscht.',
       submitText: 'Eintrag löschen',
       danger: true,
     });

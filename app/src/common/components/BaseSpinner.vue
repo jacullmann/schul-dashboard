@@ -25,7 +25,9 @@ const activeColor = computed(() => {
 
 const sizeNum = computed(() => parseFloat(props.size || '16'));
 const strokeNum = computed(() => parseFloat(props.borderThickness || '2'));
-const radius = computed(() => Math.max(1, (sizeNum.value - strokeNum.value) / 2));
+const radius = computed(() =>
+  Math.max(1, (sizeNum.value - strokeNum.value) / 2),
+);
 const center = computed(() => sizeNum.value / 2);
 </script>
 
