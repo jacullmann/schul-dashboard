@@ -25,7 +25,7 @@ useAppShortcuts();
       <main class="full-c flex-1">
         <div
           :class="{ container: !$route.meta.fullWidth }"
-          class="main-content"
+          class="w-full"
           key="content"
         >
           <router-view v-slot="{ Component }">
@@ -36,9 +36,3 @@ useAppShortcuts();
     </div>
   </div>
 </template>
-
-<style scoped>
-.main-content {
-  width: 100%;
-}
-</style>

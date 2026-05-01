@@ -111,17 +111,21 @@ onUnmounted(() => {
 <template>
   <div class="full">
     <div
-      class="progress-container"
+      class="fixed top-0 left-0 right-0 h-[3px] w-full bg-transparent z-9999 pointer-events-none transition-all duration-200 ease-in-out"
       v-if="loading"
       :style="{ opacity: opacity }"
     >
-      <div class="progress-bar" :style="{ width: progress + '%' }">
-        <div class="peg"></div>
-      </div>
+      <div
+        class="progress-bar h-full relative transition-[width] duration-200 ease-out"
+        :style="{ width: progress + '%' }"
+      ></div>
     </div>
 
     <template v-if="!isAuthReady">
-      <div key="loading" class="auth-loading-screen">
+      <div
+        key="loading"
+        class="fixed inset-0 flex items-center justify-center bg-canvas z-[var(--z-auth-loading)]"
+      >
         <BaseSpinner on="ghost" size="40px" />
       </div>
     </template>
@@ -138,56 +142,7 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-.auth-loading-screen {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-canvas);
-  z-index: var(--z-auth-loading);
-}
-
-.progress-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  width: 100%;
-  background: transparent;
-  z-index: 9999;
-  pointer-events: none;
-  transition: all 0.2s ease;
-}
-
 .progress-bar {
-  height: 100%;
   background: var(--background-image-bismuth);
-  transition: width 200ms ease-out;
-  position: relative;
-}
-
-.peg {
-  display: block;
-  position: absolute;
-  right: 0;
-  width: 100px;
-  height: 100%;
-  box-shadow:
-    0 0 10px var(--color-bismuth-purple),
-    0 0 5px var(--color-bismuth-purple);
-  opacity: 1;
-  transform: rotate(3deg) translate(0px, -4px);
-}
-
-@keyframes peg-pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.7;
-  }
 }
 </style>
