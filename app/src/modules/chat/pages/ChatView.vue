@@ -805,7 +805,7 @@ function formatDuration(ms?: number): string {
 
         <form @submit.prevent="send" novalidate class="relative w-full z-20">
           <div
-            class="p-3 rounded-4xl flex flex-col gap-2 bg-surface border border-surface-border w-full shadow-sm"
+            class="p-3 rounded-3xl flex flex-col gap-2 bg-surface border border-surface-border w-full shadow-sm"
           >
             <textarea
               id="user-input"
