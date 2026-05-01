@@ -150,7 +150,7 @@ async function leaveGroup(group: any) {
 
 <template>
   <div class="p-4 md:p-0">
-    <section class="mb-8">
+    <section class="mb-8 animate-fade-up">
       <div
         class="flex justify-between items-start gap-4 sm:gap-6 max-sm:flex-col"
       >
@@ -183,7 +183,11 @@ async function leaveGroup(group: any) {
       </div>
     </section>
 
-    <section v-if="userGroups.length > 0" class="mb-9">
+    <section
+      v-if="userGroups.length > 0"
+      class="mb-9 animate-fade-up"
+      style="animation-delay: 0.05s; animation-fill-mode: both"
+    >
       <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
         <div class="flex items-center gap-2.5">
           <h2 class="text-2xl font-bold text-on-ghost m-0">
@@ -211,7 +215,7 @@ async function leaveGroup(group: any) {
           :key="group.id"
           class="group flex items-center w-full gap-2 p-3 sm:px-3.5 sm:py-3 rounded-xl bg-surface border border-surface-border shadow-input cursor-pointer text-left transition-hover hover:bg-surface-highlight disabled:opacity-50 [.active]:bg-action [.active]:border-action [.active]:hover:bg-action-hover animate-fade-up"
           :style="{
-            animationDelay: `${index * 0.075}s`,
+            animationDelay: `${(index + 2) * 0.075}s`,
             animationFillMode: 'both',
           }"
           :class="{ active: group.id === activeGroupId }"
@@ -278,7 +282,11 @@ async function leaveGroup(group: any) {
     </section>
 
     <!-- Empty State -->
-    <section v-if="userGroups.length === 0 && !loading">
+    <section
+      v-if="userGroups.length === 0 && !loading"
+      class="animate-fade-up"
+      style="animation-delay: 0.1s; animation-fill-mode: both"
+    >
       <BaseEmptyState
         :icon="UsersRound"
         :primary-action="() => modalStore.openJoinGroup()"

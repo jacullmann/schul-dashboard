@@ -25,13 +25,24 @@ const goBack = () => {
 <template>
   <div class="card not-found-container">
     <div class="not-found-content">
-      <div class="error-code">404</div>
-      <h1 class="error-title">Page not found</h1>
-      <p class="error-description">
+      <div class="error-code animate-fade-up">404</div>
+      <h1
+        class="error-title animate-fade-up"
+        style="animation-delay: 0.05s; animation-fill-mode: both"
+      >
+        Page not found
+      </h1>
+      <p
+        class="error-description animate-fade-up"
+        style="animation-delay: 0.1s; animation-fill-mode: both"
+      >
         The page you're looking for doesn't exist or isn't available.
       </p>
 
-      <div class="navigation-section">
+      <div
+        class="navigation-section animate-fade-up"
+        style="animation-delay: 0.15s; animation-fill-mode: both"
+      >
         <div class="nav-grid">
           <router-link to="/home" class="nav-card">
             <div class="nav-icon">
@@ -81,7 +92,10 @@ const goBack = () => {
         </div>
       </div>
 
-      <div class="action-section">
+      <div
+        class="action-section animate-fade-up"
+        style="animation-delay: 0.2s; animation-fill-mode: both"
+      >
         <BaseButton @click="goBack" variant="ghost" :icon="ArrowLeft">
           Go back
         </BaseButton>

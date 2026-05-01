@@ -27,21 +27,26 @@ const filteredGames = computed(() => {
 
 <template>
   <div class="card rlc">
-    <div>
+    <div class="animate-fade-up">
       <h2 class="mt-0 flex items-center gap-2">Spiele</h2>
     </div>
     <div
-      class="flex flex-col items-center justify-center content-center overflow-hidden p-5"
+      class="flex flex-col items-center justify-center content-center overflow-hidden p-5 animate-fade-up"
+      style="animation-delay: 0.05s; animation-fill-mode: both"
     >
       <div class="w-full max-w-[380px] mb-[30px] left-0">
         <BaseInput id="search-input" v-model="searchTag" placeholder="Suchen" />
       </div>
       <div class="grid gap-5 grid-cols-[repeat(auto-fill,minmax(320px,1fr))]">
         <router-link
-          v-for="game in filteredGames"
+          v-for="(game, index) in filteredGames"
           :key="game.id"
           :to="`/games/${game.id}`"
-          class="no-underline color-inherit"
+          class="no-underline color-inherit animate-fade-up"
+          :style="{
+            animationDelay: `${(index + 2) * 0.05}s`,
+            animationFillMode: 'both',
+          }"
         >
           <div
             class="bg-canvas rounded-lg overflow-hidden h-full flex flex-col border border-canvas-border m-[35px] sm:m-0"

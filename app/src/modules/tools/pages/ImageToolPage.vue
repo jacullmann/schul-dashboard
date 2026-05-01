@@ -62,6 +62,8 @@ let startMouseX = 0;
 let startMouseY = 0;
 let boxStart = { x: 0, y: 0, w: 0, h: 0 };
 
+const handleDirs = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'] as const;
+
 // --- File Handling ---
 const triggerUpload = () => fileInputRef.value?.click();
 
@@ -320,21 +322,20 @@ const updateImageSource = (newSrc: string) => {
 <template>
   <div class="card">
     <div class="container">
-      <h2 style="margin-bottom: 16px">Bildbearbeitung</h2>
+      <h2 class="mb-4 animate-[fade-up_0.5s_ease-out]">Bildbearbeitung</h2>
 
       <div
-        class="upload-area"
-        :class="{ dragging: isDraggingFile }"
+        class="border-2 border-dashed border-canvas-border rounded-md p-4 text-center cursor-pointer transition-all duration-200 mb-8 animate-[fade-up_0.5s_ease-out_both] delay-[0.05s]"
+        :class="{ 'border-surface-border': isDraggingFile }"
         @click="triggerUpload"
         @dragover.prevent="isDraggingFile = true"
         @dragleave.prevent="isDraggingFile = false"
         @drop.prevent="handleDrop"
       >
-        <p style="margin-top: 0">
+        <p class="mt-0">
           <strong>Klicken zum Hochladen</strong> oder Drag & Drop
         </p>
-        <span
-          style="font-size: var(--text-sm); color: var(--color-on-ghost-muted)"
+        <span class="text-sm text-on-ghost-muted"
           >JPG, PNG, WEBP, AVIF, GIF, BMP</span
         >
         <input
@@ -346,8 +347,11 @@ const updateImageSource = (newSrc: string) => {
         />
       </div>
 
-      <div class="controls" :class="{ active: hasImage }">
-        <div class="control-group">
+      <div
+        class="grid grid-cols-2 gap-4 opacity-50 pointer-events-none animate-[fade-up_0.5s_ease-out_both] delay-[0.1s]"
+        :class="{ '!opacity-100 !pointer-events-auto': hasImage }"
+      >
+        <div class="flex flex-col">
           <BaseLabel for="image-format-select">Ausgabeformat</BaseLabel>
           <BaseSelect
             id="image-format-select"
@@ -359,7 +363,7 @@ const updateImageSource = (newSrc: string) => {
             ]"
           />
         </div>
-        <div class="control-group">
+        <div class="flex flex-col">
           <BaseLabel for="image-quality-range"
             >Qualität: {{ settings.quality }} %</BaseLabel
           >
@@ -371,7 +375,7 @@ const updateImageSource = (newSrc: string) => {
             v-model.number="settings.quality"
           />
         </div>
-        <div class="control-group">
+        <div class="flex flex-col">
           <BaseLabel for="image-width-input">Breite (px)</BaseLabel>
           <BaseInput
             id="image-width-input"
@@ -380,7 +384,7 @@ const updateImageSource = (newSrc: string) => {
             :placeholder="imageMeta.naturalWidth.toString()"
           />
         </div>
-        <div class="control-group">
+        <div class="flex flex-col">
           <BaseLabel for="image-height-input">Höhe (px)</BaseLabel>
           <BaseInput
             id="image-height-input"
@@ -391,24 +395,29 @@ const updateImageSource = (newSrc: string) => {
         </div>
       </div>
 
-      <BaseRow justify="end" class="mt-8" v-if="hasImage">
+      <BaseRow
+        justify="end"
+        class="mt-8 animate-[fade-up_0.5s_ease-out_both] delay-[0.15s]"
+        v-if="hasImage"
+      >
         <BaseButton @click="openEditor" variant="ghost">Bearbeiten</BaseButton>
         <BaseButton @click="convertAndDownload" variant="action"
           >Konvertieren</BaseButton
         >
       </BaseRow>
 
-      <div class="preview-container" v-show="hasImage">
-        <div
-          style="
-            margin-bottom: 8px;
-            font-size: var(--text-sm);
-            color: var(--color-on-ghost-muted);
-          "
-        >
+      <div
+        class="mt-4 text-center animate-[fade-up_0.5s_ease-out_both] delay-[0.2s]"
+        v-show="hasImage"
+      >
+        <div class="mb-2 text-sm text-on-ghost-muted">
           Größe: {{ imageMeta.naturalWidth }} x {{ imageMeta.naturalHeight }}
         </div>
-        <img :src="currentImageSrc" alt="Preview" class="preview-img" />
+        <img
+          :src="currentImageSrc"
+          alt="Preview"
+          class="max-w-full rounded-xl"
+        />
       </div>
     </div>
 
@@ -416,118 +425,96 @@ const updateImageSource = (newSrc: string) => {
       <template #title>Bildbearbeitung</template>
 
       <template #content>
-        <div class="editor-toolbar">
-          <BaseButton
-            style="flex: 0; padding: 10px"
-            @click="rotateImage(-90)"
-            variant="ghost"
-            :icon="RotateCcw"
-          />
-          <BaseButton
-            style="flex: 0; padding: 10px"
-            @click="rotateImage(90)"
-            variant="ghost"
-            :icon="RotateCw"
-          />
+        <div class="flex gap-2 mb-4 flex-wrap">
+          <BaseTooltip content="Rotate left" placement="top">
+            <BaseButton
+              class="flex-[0] p-[10px]"
+              @click="rotateImage(-90)"
+              variant="ghost"
+              :icon="RotateCcw"
+            />
+          </BaseTooltip>
+          <BaseTooltip content="Rotate right" placement="top">
+            <BaseButton
+              class="flex-[0] p-[10px]"
+              @click="rotateImage(90)"
+              variant="ghost"
+              :icon="RotateCw"
+            />
+          </BaseTooltip>
 
-          <div class="editor-input-group">
-            <label
-              for="editor-crop-x-input"
-              style="width: 16px; margin-bottom: 0"
-              >X:</label
-            >
+          <BaseFormGroup id="editor-crop-x-input">
+            <BaseLabel for="editor-crop-x-input">X:</BaseLabel>
             <BaseInput
               id="editor-crop-x-input"
               type="number"
               v-model.number="crop.x"
               @input="updateCropFromInput"
             />
-          </div>
-          <div class="editor-input-group">
-            <label
-              for="editor-crop-y-input"
-              style="width: 16px; margin-bottom: 0"
-              >Y:</label
-            >
+          </BaseFormGroup>
+          <BaseFormGroup id="editor-crop-y-input">
+            <BaseLabel for="editor-crop-y-input">Y:</BaseLabel>
             <BaseInput
               id="editor-crop-y-input"
               type="number"
               v-model.number="crop.y"
               @input="updateCropFromInput"
             />
-          </div>
-          <div class="editor-input-group">
-            <label
-              for="editor-crop-w-input"
-              style="width: 16px; margin-bottom: 0"
-              >W:</label
-            >
+          </BaseFormGroup>
+          <BaseFormGroup id="editor-crop-w-input">
+            <BaseLabel for="editor-crop-w-input">W:</BaseLabel>
             <BaseInput
               id="editor-crop-w-input"
               type="number"
               v-model.number="crop.w"
               @input="updateCropFromInput"
             />
-          </div>
-          <div class="editor-input-group">
-            <label
-              for="editor-crop-h-input"
-              style="width: 16px; margin-bottom: 0"
-              >H:</label
-            >
+          </BaseFormGroup>
+          <BaseFormGroup id="editor-crop-h-input">
+            <BaseLabel for="editor-crop-h-input">H:</BaseLabel>
             <BaseInput
               id="editor-crop-h-input"
               type="number"
               v-model.number="crop.h"
               @input="updateCropFromInput"
             />
-          </div>
+          </BaseFormGroup>
         </div>
 
-        <div class="crop-workspace" ref="workspaceRef">
+        <div
+          class="flex-1 relative bg-canvas overflow-hidden flex justify-center items-center mb-4"
+          ref="workspaceRef"
+        >
           <img
             ref="editorImageRef"
             :src="currentImageSrc"
-            class="editor-image-element"
+            class="max-w-full max-h-full block pointer-events-none"
           />
 
           <div
-            class="crop-box"
+            class="absolute border-2 border-on-ghost-muted shadow-[0_0_0_9999px_color-mix(in_oklab,var(--color-canvas),transparent_40%)] cursor-move"
             v-show="isCropInitialized"
             :style="cropBoxStyle"
             @mousedown.prevent="startDrag($event, false)"
           >
             <div
-              class="resize-handle handle-nw"
-              @mousedown.stop.prevent="startDrag($event, 'nw')"
-            ></div>
-            <div
-              class="resize-handle handle-n"
-              @mousedown.stop.prevent="startDrag($event, 'n')"
-            ></div>
-            <div
-              class="resize-handle handle-ne"
-              @mousedown.stop.prevent="startDrag($event, 'ne')"
-            ></div>
-            <div
-              class="resize-handle handle-e"
-              @mousedown.stop.prevent="startDrag($event, 'e')"
-            ></div>
-            <div
-              class="resize-handle handle-se"
-              @mousedown.stop.prevent="startDrag($event, 'se')"
-            ></div>
-            <div
-              class="resize-handle handle-s"
-              @mousedown.stop.prevent="startDrag($event, 's')"
-            ></div>
-            <div
-              class="resize-handle handle-sw"
-              @mousedown.stop.prevent="startDrag($event, 'sw')"
-            ></div>
-            <div
-              class="resize-handle handle-w"
-              @mousedown.stop.prevent="startDrag($event, 'w')"
+              v-for="dir in handleDirs"
+              :key="dir"
+              class="size-3 bg-action rounded-full absolute z-10"
+              :class="[
+                `cursor-${dir}-resize`,
+                dir.includes('n')
+                  ? '-top-[7px]'
+                  : dir.includes('s')
+                    ? '-bottom-[7px]'
+                    : 'top-1/2 -translate-y-1/2',
+                dir.includes('w')
+                  ? '-left-[7px]'
+                  : dir.includes('e')
+                    ? '-right-[7px]'
+                    : 'left-1/2 -translate-x-1/2',
+              ]"
+              @mousedown.stop.prevent="startDrag($event, dir)"
             ></div>
           </div>
         </div>
@@ -537,170 +524,3 @@ const updateImageSource = (newSrc: string) => {
     </BaseModal>
   </div>
 </template>
-
-<style scoped>
-/* Page Wrapper acts as the 'body' from the original HTML */
-.page-wrapper {
-  display: flex;
-  /*justify-content: center;
-  align-items: center;
-  min-height: 100vh;*/
-  margin: 0;
-  --overlay: rgba(0, 0, 0, 0.7);
-}
-
-/* Upload Area */
-.upload-area {
-  border: 2px dashed var(--color-canvas-border);
-  border-radius: var(--radius-md);
-  padding: 16px;
-  text-align: center;
-  cursor: pointer;
-  transition: 0.2s;
-  margin-bottom: 2rem;
-}
-.upload-area:hover,
-.upload-area.dragging {
-  border-color: var(--color-surface-border);
-}
-
-/* Controls Grid */
-.controls {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  opacity: 0.5;
-  pointer-events: none;
-}
-.controls.active {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.control-group {
-  display: flex;
-  flex-direction: column;
-}
-
-label {
-  font-size: var(--text-sm);
-  margin-bottom: 6px;
-}
-
-.hidden {
-  display: none;
-}
-
-/* Preview Area */
-.preview-container {
-  margin-top: 1rem;
-  text-align: center;
-}
-.preview-img {
-  max-width: 100%;
-  border-radius: var(--radius-md);
-}
-
-.editor-toolbar {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-}
-.editor-input-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: var(--text-sm);
-}
-
-/* Canvas Container for Cropping */
-.crop-workspace {
-  flex: 1;
-  position: relative;
-  background: var(--color-canvas);
-  overflow: hidden;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.editor-image-element {
-  max-width: 100%;
-  max-height: 100%;
-  display: block;
-  pointer-events: none; /* Let clicks pass to crop box */
-}
-
-/* The Visual Crop Box */
-.crop-box {
-  position: absolute;
-  border: 2px solid var(--color-on-ghost-muted);
-  box-shadow: 0 0 0 9999px
-    color-mix(in oklab, var(--color-canvas), transparent 40%); /* Dimming effect */
-  cursor: move;
-}
-
-/* Resize Handle */
-.resize-handle {
-  width: 8px;
-  height: 8px;
-  background: var(--color-action);
-  position: absolute;
-  z-index: 10;
-}
-
-.handle-nw {
-  top: -5px;
-  left: -5px;
-  cursor: nw-resize;
-}
-.handle-n {
-  top: -5px;
-  left: 50%;
-  transform: translateX(-50%);
-  cursor: n-resize;
-}
-.handle-ne {
-  top: -5px;
-  right: -5px;
-  cursor: ne-resize;
-}
-
-.handle-e {
-  top: 50%;
-  right: -5px;
-  transform: translateY(-50%);
-  cursor: e-resize;
-}
-.handle-w {
-  top: 50%;
-  left: -5px;
-  transform: translateY(-50%);
-  cursor: w-resize;
-}
-
-.handle-se {
-  bottom: -5px;
-  right: -5px;
-  cursor: se-resize;
-}
-.handle-s {
-  bottom: -5px;
-  left: 50%;
-  transform: translateX(-50%);
-  cursor: s-resize;
-}
-.handle-sw {
-  bottom: -5px;
-  left: -5px;
-  cursor: sw-resize;
-}
-
-@media (max-width: 500px) {
-  .controls {
-    grid-template-columns: 1fr;
-  }
-}
-</style>

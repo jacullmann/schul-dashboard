@@ -43,7 +43,7 @@ const { understoodChecked, submitting, errorMsg, successMsg, confirmDelete } =
         <div
           class="text-sm/relaxed text-on-ghost"
           v-html="t('account.menu.deleteAccount.warnBox.text')"
-        />
+        ></div>
       </div>
 
       <BaseCheckbox v-model="understoodChecked">

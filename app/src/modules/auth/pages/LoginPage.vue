@@ -114,7 +114,14 @@ onMounted(() => {
             </BaseLink>
           </div>
 
-          <transition name="fade">
+          <Transition
+            enter-active-class="transition-opacity duration-200 ease-out"
+            enter-from-class="opacity-0"
+            enter-to-class="opacity-100"
+            leave-active-class="transition-opacity duration-200 ease-in"
+            leave-from-class="opacity-100"
+            leave-to-class="opacity-0"
+          >
             <div
               v-if="message"
               class="text-sm p-3 rounded-md"
@@ -126,7 +133,7 @@ onMounted(() => {
             >
               {{ message }}
             </div>
-          </transition>
+          </Transition>
         </template>
 
         <template #action-text>
@@ -169,15 +176,3 @@ onMounted(() => {
     </div>
   </div>
 </template>
-
-<style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-</style>

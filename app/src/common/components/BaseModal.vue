@@ -14,11 +14,13 @@ const props = withDefaults(
     danger?: boolean;
     error?: string;
     loading?: boolean;
+    requirement?: boolean;
   }>(),
   {
     danger: false,
     error: '',
     loading: false,
+    requirement: true,
   },
 );
 
@@ -64,6 +66,7 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
       :error="error"
       :danger="danger"
       :loading="loading"
+      :requirement="requirement"
     >
       <template v-for="(_, name) in $slots" #[name]="slotProps">
         <slot :name="name" v-bind="slotProps || {}"></slot>
