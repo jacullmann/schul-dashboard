@@ -222,8 +222,8 @@ export function useHwActions(
     if (navigator.share) {
       try {
         await navigator.share({
-          title: item.title,
-          text: `Schau dir diesen Eintrag an: ${item.title}`,
+          title: 'schul-dashboard',
+          text: item.title,
           url: shareUrl,
         });
       } catch (err) {
