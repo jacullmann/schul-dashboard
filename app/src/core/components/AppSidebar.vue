@@ -135,7 +135,7 @@ onUnmounted(() => {
   </transition>
 
   <aside
-    class="sidebar transition-all duration-200 ease-[cubic-bezier(0.4, 0, 0.2, 1)] flex flex-col justify-between shrink-0 overflow-hidden h-screen p-3 bg-surface border-r border-surface-border z-(--z-modal)"
+    class="sidebar transition-all duration-200 ease-[cubic-bezier(0.4, 0, 0.2, 1)] flex flex-col justify-between shrink-0 overflow-hidden h-dvh p-3 bg-surface border-r border-surface-border z-(--z-modal)"
     :class="[
       'md:sticky md:top-0',
       isExpanded ? 'md:w-64' : 'md:w-[61px]',
