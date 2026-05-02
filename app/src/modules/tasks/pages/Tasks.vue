@@ -41,9 +41,6 @@ const tabItems = computed(() => [
 // Local-only dismissed items tracking for immediate UI removal before refresh
 const dismissedItems = ref(new Set<string>());
 
-// Keep z-index elevated during menu leave transition
-const leavingMenuIds = ref(new Set<string>());
-
 async function handleSwipe(item: HwItem) {
   dismissedItems.value.add(item.id);
   const cutoffIso = new Date().toISOString();
@@ -264,9 +261,6 @@ async function handleArchiveFromMenu(item: HwItem) {
         :key="item.id"
         :id="'item-' + item.id"
         class="animate-fade-up"
-        :class="{
-          'z-50': openMenuId === item.id || leavingMenuIds.has(item.id),
-        }"
         :style="{
           animationDelay: `${(index + 3) * 0.05 - elapsedLoadTime}s`,
           animationFillMode: 'both',
@@ -333,7 +327,7 @@ async function handleArchiveFromMenu(item: HwItem) {
             <BaseMenu
               :open="openMenuId === item.id"
               @close="openMenuId = null"
-              class="right-0 mt-6"
+              class="right-0 mt-6 z-[10000]!"
               @click.stop
             >
               <BaseMenuButton

@@ -194,9 +194,8 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
             v-for="(privateTask, index) in displayPrivateTasks"
             :key="privateTask.id"
             class="animate-fade-up"
-            :class="{ 'z-50': openMenuId === privateTask.id }"
             :style="{
-              animationDelay: `${index * 0.075}s`,
+              animationDelay: `${(index + 3) * 0.05}s`,
               animationFillMode: 'both',
             }"
             :is-collapsed="privateTask.completed"
@@ -215,7 +214,7 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
                 <BaseMenu
                   :open="openMenuId === privateTask.id"
                   @close="openMenuId = null"
-                  class="right-0 mt-6"
+                  class="right-0 mt-6 z-[10000]!"
                   @click.stop
                 >
                   <BaseMenuButton

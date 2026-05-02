@@ -154,7 +154,7 @@ function onDrop(e: DragEvent) {
     :class="
       swipeable && (isSwiping || isDismissing || swipeOffset > 0)
         ? 'overflow-x-clip overflow-y-visible rounded-xl z-10'
-        : ''
+        : 'z-20 focus-within:z-30 hover:z-30 has-[[role=menu]]:z-50'
     "
   >
     <!-- Background — only rendered + visible while swiping -->

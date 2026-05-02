@@ -494,6 +494,10 @@ p {
     transform: scale(0.95);
   }
 
+  .fade-dropdown-enter-active,
+  .fade-dropdown-leave-active {
+    z-index: 10000;
+  }
   .fade-dropdown-enter-active {
     transition:
       transform 250ms cubic-bezier(0.16, 1, 0.3, 1),
@@ -512,6 +516,10 @@ p {
     opacity: 0;
   }
 
+  .fade-dropdown-side-enter-active,
+  .fade-dropdown-side-leave-active {
+    z-index: 10000;
+  }
   .fade-dropdown-side-enter-active {
     transition:
       transform 250ms cubic-bezier(0.16, 1, 0.3, 1),
