@@ -14,13 +14,17 @@ withDefaults(
   },
 );
 
+const emit = defineEmits<{
+  (e: 'after-leave'): void;
+}>();
+
 const menuEl = ref<HTMLElement | null>(null);
 
 defineExpose({ menuEl });
 </script>
 
 <template>
-  <Transition :name="desktopTransition">
+  <Transition :name="desktopTransition" @after-leave="emit('after-leave')">
     <div
       v-if="open"
       ref="menuEl"

@@ -58,6 +58,7 @@ export function useTasks() {
 
   // Pinned
   const pinnedItems = ref(new Set<string>());
+  const dismissedItems = ref(new Set<string>());
 
   // List
   const {
@@ -121,6 +122,19 @@ export function useTasks() {
     activeGroupId,
     (msg) => useToast().success(msg),
   );
+
+  async function archiveItem(item: HwItem) {
+    dismissedItems.value.add(item.id);
+    const cutoffIso = new Date().toISOString();
+    const success = await toggleVisibility(
+      item,
+      showOldEntries.value,
+      cutoffIso,
+    );
+    if (!success) {
+      dismissedItems.value.delete(item.id);
+    }
+  }
 
   // Forms
   const {
@@ -202,15 +216,32 @@ export function useTasks() {
     });
   }
 
-  function onMenuAction(
-    action: 'images' | 'edit' | 'delete' | 'report',
+  async function onMenuAction(
+    action:
+      | 'images'
+      | 'edit'
+      | 'delete'
+      | 'report'
+      | 'pin'
+      | 'archive'
+      | 'share',
     item: HwItem,
   ) {
     openMenuId.value = null;
+
+    if (action === 'archive') {
+      // Delay to allow the menu closing animation (150ms) to finish
+      // before the item is removed from the list (dismissedItems).
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      return archiveItem(item);
+    }
+
     if (action === 'images') return triggerImageUpload(item);
     if (action === 'edit') return editItem(item);
     if (action === 'delete') return deleteItem(item.id, items);
     if (action === 'report') return reportItem(item);
+    if (action === 'pin') return togglePin(item);
+    if (action === 'share') return shareItem(item);
   }
 
   function reload() {
@@ -228,6 +259,10 @@ export function useTasks() {
   }
 
   // --- Watchers ---
+
+  watch([showOldEntries, tab, subjectFilter], () => {
+    dismissedItems.value.clear();
+  });
 
   watch(
     () => route.params.type,
@@ -368,9 +403,11 @@ export function useTasks() {
     isArchived,
     isKept,
     toggleVisibility,
+    archiveItem,
     pinnedItems,
     archivedItems,
     keptItems,
+    dismissedItems,
     makeThumb,
     isRevealed,
     revealImages,

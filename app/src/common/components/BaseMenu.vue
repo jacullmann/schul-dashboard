@@ -23,6 +23,7 @@ const props = withDefaults(
 const emit = defineEmits<{
   (e: 'cancel'): void;
   (e: 'close'): void;
+  (e: 'after-leave'): void;
 }>();
 
 const { width: vw } = useWindowSize();
@@ -195,6 +196,7 @@ defineExpose({ menuEl: desktopMenuEl, startClose });
     role="menu"
     aria-orientation="vertical"
     tabindex="-1"
+    @after-leave="emit('after-leave')"
   >
     <slot></slot>
   </BaseMenuCard>
@@ -207,6 +209,7 @@ defineExpose({ menuEl: desktopMenuEl, startClose });
     aria-orientation="vertical"
     tabindex="-1"
     @cancel="startClose"
+    @after-leave="emit('after-leave')"
   >
     <div
       class="transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden"

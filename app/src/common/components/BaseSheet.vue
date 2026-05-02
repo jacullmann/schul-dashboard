@@ -14,6 +14,7 @@ const props = withDefaults(
 
 const emit = defineEmits<{
   (e: 'cancel'): void;
+  (e: 'after-leave'): void;
 }>();
 
 const sheetEl = ref<HTMLElement | null>(null);
@@ -220,6 +221,7 @@ defineExpose({ sheetEl });
           ? ''
           : 'animate-[sheet-down_150ms_cubic-bezier(0.32,0,0.67,1)_forwards]'
       "
+      @after-leave="emit('after-leave')"
     >
       <div
         v-if="open"

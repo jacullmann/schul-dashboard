@@ -38,16 +38,8 @@ const tabItems = computed(() => [
   { id: 'exam', label: t('school.tasks.tabs.exams') },
 ]);
 
-// Local-only dismissed items tracking for immediate UI removal before refresh
-const dismissedItems = ref(new Set<string>());
-
 async function handleSwipe(item: HwItem) {
-  dismissedItems.value.add(item.id);
-  const cutoffIso = new Date().toISOString();
-  const success = await toggleVisibility(item, showOldEntries.value, cutoffIso);
-  if (!success) {
-    dismissedItems.value.delete(item.id);
-  }
+  await archiveItem(item);
 }
 
 const visibleItems = computed(() => {
@@ -55,10 +47,6 @@ const visibleItems = computed(() => {
     // Hide item quickly if dismissed this session
     if (dismissedItems.value.has(item.id)) return false;
 
-    // In old entries: skip conditionally if we want custom UI hiding...?
-    // Oh wait, if we are in old entries, un-archiving the item should just hide it too
-    // until the page reloads (it magically becomes unarchived and potentially a "new" entry if its date qualifies).
-    // So the dismissedItems.has(item.id) check works perfectly for BOTH directions!
     return true;
   });
 });
@@ -88,6 +76,8 @@ const {
   showLess,
   toggleMenu,
   onMenuAction,
+  archiveItem,
+  dismissedItems,
   canEdit,
   canDelete,
   canDeleteImage,
@@ -103,7 +93,6 @@ const {
   toggleCheck,
   isPinned,
   togglePin,
-  toggleVisibility,
   makeThumb,
   isRevealed,
   revealImages,
@@ -115,7 +104,6 @@ const {
   triggerImageDrop,
   triggerImageDelete,
   openImageViewer: openImageViewerLocal,
-  shareItem,
   highlightedItemId,
   handleImageContextMenu,
   subjectOptions,
@@ -149,10 +137,6 @@ function openImageViewerForItem(item: HwItem, index: number) {
   openImageViewer(item.images, index);
 }
 
-watch([showOldEntries, tab, subjectFilter], () => {
-  dismissedItems.value.clear();
-});
-
 function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
   if (!user.value) return;
   const target = event.target as HTMLElement;
@@ -175,16 +159,6 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
   }
 
   toggleCheck(item);
-}
-
-async function handleArchiveFromMenu(item: HwItem) {
-  openMenuId.value = null;
-  dismissedItems.value.add(item.id);
-  const cutoffIso = new Date().toISOString();
-  const success = await toggleVisibility(item, showOldEntries.value, cutoffIso);
-  if (!success) {
-    dismissedItems.value.delete(item.id);
-  }
 }
 </script>
 
@@ -349,7 +323,7 @@ async function handleArchiveFromMenu(item: HwItem) {
             <BaseMenuDivider />
 
             <BaseMenuButton
-              @click="togglePin(item)"
+              @click="onMenuAction('pin', item)"
               :icon="Pin"
               :iconClasses="isPinned(item.id) ? 'fill-current' : ''"
             >
@@ -361,7 +335,7 @@ async function handleArchiveFromMenu(item: HwItem) {
             </BaseMenuButton>
 
             <BaseMenuButton
-              @click="handleArchiveFromMenu(item)"
+              @click="onMenuAction('archive', item)"
               :icon="showOldEntries ? ArchiveRestore : Archive"
             >
               {{
@@ -373,7 +347,7 @@ async function handleArchiveFromMenu(item: HwItem) {
 
             <BaseMenuDivider />
 
-            <BaseMenuButton @click="shareItem(item)" :icon="Send">
+            <BaseMenuButton @click="onMenuAction('share', item)" :icon="Send">
               {{ t('school.tasks.items.menu.share') }}
             </BaseMenuButton>
 
