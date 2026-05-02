@@ -147,15 +147,11 @@ async function onAuthSuccess() {
 
 <template>
   <!-- OAuth: account-linking modal (shown after ?auth=link-required) -->
-  <Teleport to="body">
-    <Transition name="fade-scale">
-      <GoogleLinkModal
-        v-if="showLinkModal"
-        @linked="onAuthSuccess"
-        @cancel="closeLinkModal"
-      />
-    </Transition>
-  </Teleport>
+  <GoogleLinkModal
+    :open="showLinkModal"
+    @linked="onAuthSuccess"
+    @cancel="closeLinkModal"
+  />
 
   <!-- OAuth: MFA overlay (shown after ?auth=mfa-pending) -->
   <Teleport to="body">
@@ -189,20 +185,16 @@ async function onAuthSuccess() {
     </Transition>
   </Teleport>
 
-  <Teleport to="body">
-    <Transition name="fade-scale">
-      <BaseDialog
-        v-if="confirmOpen"
-        :title="confirmOptions.title"
-        :submit-text="confirmOptions.submitText ?? 'Confirm'"
-        :danger="confirmOptions.danger"
-        @confirm="modalStore.resolveConfirm(true)"
-        @cancel="modalStore.resolveConfirm(false)"
-      >
-        {{ confirmOptions.content }}
-      </BaseDialog>
-    </Transition>
-  </Teleport>
+  <BaseDialog
+    :open="confirmOpen"
+    :title="confirmOptions.title"
+    :submit-text="confirmOptions.submitText ?? 'Confirm'"
+    :danger="confirmOptions.danger"
+    @confirm="modalStore.resolveConfirm(true)"
+    @cancel="modalStore.resolveConfirm(false)"
+  >
+    {{ confirmOptions.content }}
+  </BaseDialog>
 
   <!-- Global search modal (Ctrl/Cmd+K or sidebar button) -->
   <Teleport to="body">
@@ -212,111 +204,79 @@ async function onAuthSuccess() {
   </Teleport>
 
   <!-- Global item form (N key, + button, or search create action) -->
-  <Teleport to="body">
-    <Transition name="fade-scale">
-      <ItemForm
-        v-if="itemFormOpen"
-        :key="itemFormKey"
-        :initial-type="itemFormInitialType"
-        :initial="itemToEdit"
-        @cancel="modalStore.closeItemForm()"
-        @success="onItemFormSuccess"
-      />
-    </Transition>
-  </Teleport>
+  <ItemForm
+    :open="itemFormOpen"
+    :key="itemFormKey"
+    :initial-type="itemFormInitialType"
+    :initial="itemToEdit"
+    @cancel="modalStore.closeItemForm()"
+    @success="onItemFormSuccess"
+  />
 
   <!-- Global private task form -->
-  <Teleport to="body">
-    <Transition name="fade-scale">
-      <PrivateTaskForm
-        v-if="privateTaskFormOpen"
-        :key="privateTaskFormKey"
-        :initial="privateTaskToEdit || undefined"
-        @cancel="modalStore.closePrivateTaskForm()"
-        @success="onPrivateTaskFormSuccess"
-      />
-    </Transition>
-  </Teleport>
+  <PrivateTaskForm
+    :open="privateTaskFormOpen"
+    :key="privateTaskFormKey"
+    :initial="privateTaskToEdit || undefined"
+    @cancel="modalStore.closePrivateTaskForm()"
+    @success="onPrivateTaskFormSuccess"
+  />
 
   <!-- Global announcement form (admin only, Alt+A) -->
-  <Teleport to="body">
-    <Transition name="fade-scale">
-      <AnnouncementForm
-        v-if="announcementFormOpen"
-        :key="announcementFormKey"
-        @cancel="modalStore.closeAnnouncementForm()"
-        @success="onAnnouncementFormSuccess"
-      />
-    </Transition>
-  </Teleport>
+  <AnnouncementForm
+    :open="announcementFormOpen"
+    :key="announcementFormKey"
+    @cancel="modalStore.closeAnnouncementForm()"
+    @success="onAnnouncementFormSuccess"
+  />
 
   <!-- Global image viewer -->
-  <Teleport to="body">
-    <ImageViewer
-      :visible="imageViewerOpen"
-      :images="imageViewerImages"
-      :initial-index="imageViewerInitialIndex"
-      @cancel="modalStore.closeImageViewer()"
-    />
-  </Teleport>
+  <ImageViewer
+    :visible="imageViewerOpen"
+    :images="imageViewerImages"
+    :initial-index="imageViewerInitialIndex"
+    @cancel="modalStore.closeImageViewer()"
+  />
 
   <!-- Account modals -->
-  <Teleport to="body">
-    <Transition name="fade-scale">
-      <ChangePasswordModal
-        v-if="showChangePassword"
-        @cancel="modalStore.showChangePassword = false"
-        @success="onPasswordChanged"
-      />
-    </Transition>
+  <ChangePasswordModal
+    :open="showChangePassword"
+    @cancel="modalStore.showChangePassword = false"
+    @success="onPasswordChanged"
+  />
 
-    <Transition name="fade-scale">
-      <SecurityModal
-        v-if="showSecurity"
-        :initial-mfa-enabled="user?.mfaEnabled"
-        @cancel="modalStore.showSecurity = false"
-        @mfa-changed="onMfaChanged"
-      />
-    </Transition>
+  <SecurityModal
+    :open="showSecurity"
+    :initial-mfa-enabled="user?.mfaEnabled"
+    @cancel="modalStore.showSecurity = false"
+    @mfa-changed="onMfaChanged"
+  />
 
-    <Transition name="fade-scale">
-      <DeleteAccountModal
-        v-if="showDeleteAccount"
-        :email="user?.email || ''"
-        @cancel="modalStore.showDeleteAccount = false"
-        @deleted="onAccountDeleted"
-        @error="onAccountDeleteError"
-      />
-    </Transition>
+  <DeleteAccountModal
+    :open="showDeleteAccount"
+    :email="user?.email || ''"
+    @cancel="modalStore.showDeleteAccount = false"
+    @deleted="onAccountDeleted"
+    @error="onAccountDeleteError"
+  />
 
-    <Transition name="fade-scale">
-      <CompleteSetup
-        v-if="showSetup && user"
-        :visible="showSetup"
-        :is-setup="!user.doneSetup"
-        :initial-data="{
-          courses: user.courses || [],
-        }"
-        @cancel="modalStore.showSetup = false"
-        @success="modalStore.showSetup = false"
-        @update:user="onSetupSuccess"
-      />
-    </Transition>
+  <CompleteSetup
+    :open="showSetup"
+    :is-setup="!user.doneSetup"
+    :initial-data="{
+      courses: user.courses || [],
+    }"
+    @cancel="modalStore.showSetup = false"
+    @success="modalStore.showSetup = false"
+    @update:user="onSetupSuccess"
+  />
 
-    <Transition name="fade-scale">
-      <CreateGroupModal
-        v-if="createGroupOpen"
-        @cancel="modalStore.closeCreateGroup()"
-      />
-    </Transition>
+  <CreateGroupModal
+    :open="createGroupOpen"
+    @cancel="modalStore.closeCreateGroup()"
+  />
 
-    <Transition name="fade-scale">
-      <JoinGroupModal
-        v-if="joinGroupOpen"
-        @cancel="modalStore.closeJoinGroup()"
-      />
-    </Transition>
-  </Teleport>
+  <JoinGroupModal :open="joinGroupOpen" @cancel="modalStore.closeJoinGroup()" />
 </template>
 
 <style scoped>

@@ -6,6 +6,7 @@ const { t } = useI18n();
 
 const props = defineProps<{
   email: string;
+  open: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -20,6 +21,7 @@ const { understoodChecked, submitting, errorMsg, successMsg, confirmDelete } =
 
 <template>
   <BaseModal
+    :open="open"
     @cancel="$emit('cancel')"
     :submit="confirmDelete"
     :loading="submitting"

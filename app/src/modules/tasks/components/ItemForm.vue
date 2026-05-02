@@ -18,6 +18,7 @@ const props = defineProps<{
   /** Pre-selected entry type when creating; ignored when editing. */
   initialType?: Exclude<ItemType, 'all'>;
   initial?: HwItem | null;
+  open: boolean;
 }>();
 const emit = defineEmits<{ (e: 'cancel'): void; (e: 'success'): void }>();
 
@@ -319,6 +320,7 @@ onMounted(() => {
 
 <template>
   <BaseModal
+    :open="open"
     @cancel="emit('cancel')"
     :submit="submit"
     :error="submitError"

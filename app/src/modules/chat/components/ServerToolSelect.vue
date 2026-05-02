@@ -92,38 +92,38 @@ useEventListener(document, 'keydown', (e) => {
         :style="menuStyles"
         class="min-w-56!"
       >
-          <BaseMenuButton
-            :icon="Globe"
-            @click="((webSearch = !webSearch), close())"
+        <BaseMenuButton
+          :icon="Globe"
+          @click="((webSearch = !webSearch), close())"
+        >
+          Web search
+          <template #description
+            >Search Wikipedia for additional information</template
           >
-            Web search
-            <template #description
-              >Search Wikipedia for additional information</template
-            >
-          </BaseMenuButton>
-          <BaseMenuButton
-            :icon="Image"
-            @click="((createImage = !createImage), close())"
-          >
-            Create Image
-            <template #description>Draw a picture</template>
-          </BaseMenuButton>
-          <BaseMenuButton
-            :icon="Terminal"
-            @click="((terminal = !terminal), close())"
-          >
-            Terminal
-            <template #description>Perform basic commands</template>
-          </BaseMenuButton>
-          <!-- TODO: Choose Icon: CalendarFold or Coffee -->
-          <BaseMenuButton
-            :icon="Lightbulb"
-            @click="((reasoning = !reasoning), close())"
-          >
-            Give Reasoning
-            <template #description>Show your chain of thought</template>
-          </BaseMenuButton>
-        </BaseMenu>
+        </BaseMenuButton>
+        <BaseMenuButton
+          :icon="Image"
+          @click="((createImage = !createImage), close())"
+        >
+          Create Image
+          <template #description>Draw a picture</template>
+        </BaseMenuButton>
+        <BaseMenuButton
+          :icon="Terminal"
+          @click="((terminal = !terminal), close())"
+        >
+          Terminal
+          <template #description>Perform basic commands</template>
+        </BaseMenuButton>
+        <!-- TODO: Choose Icon: CalendarFold or Coffee -->
+        <BaseMenuButton
+          :icon="Lightbulb"
+          @click="((reasoning = !reasoning), close())"
+        >
+          Give Reasoning
+          <template #description>Show your chain of thought</template>
+        </BaseMenuButton>
+      </BaseMenu>
     </Teleport>
   </div>
 </template>

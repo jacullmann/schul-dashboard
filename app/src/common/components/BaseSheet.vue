@@ -9,11 +9,11 @@ const props = withDefaults(
   }>(),
   {
     open: true,
-  }
+  },
 );
 
 const emit = defineEmits<{
-  (e: 'close'): void;
+  (e: 'cancel'): void;
 }>();
 
 const sheetEl = ref<HTMLElement | null>(null);
@@ -146,7 +146,7 @@ function onTouchEnd() {
     }
 
     setTimeout(() => {
-      emit('close');
+      emit('cancel');
       setTimeout(() => {
         isDraggingDismiss.value = false;
         if (sheetEl.value) {
@@ -190,7 +190,7 @@ function onBackdropClick() {
     dragHandled = false;
     return;
   }
-  emit('close');
+  emit('cancel');
 }
 
 defineExpose({ sheetEl });

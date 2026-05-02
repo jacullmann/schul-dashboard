@@ -40,10 +40,6 @@ import { useMfa } from '@/modules/auth/composables/useMfa';
 import { useUserStore } from '@/stores/userStore';
 import { usePreferences } from '@/common/composables/usePreferences';
 import hw from '@/api/hwApi';
-import BaseCommandPalette from '@/common/components/BaseCommandPalette.vue';
-import BaseCommandPaletteItem from '@/common/components/BaseCommandPaletteItem.vue';
-import BaseKbdGroup from '@/common/components/BaseKbdGroup.vue';
-import NotificationDot from '@/common/components/NotificationDot.vue';
 import { useGroupAction } from '@/core/composables/useGroupAction';
 
 const emit = defineEmits<{ (e: 'cancel'): void }>();

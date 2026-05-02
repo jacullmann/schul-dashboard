@@ -7,6 +7,7 @@ import { useMfa } from '@/modules/auth/composables/useMfa';
 
 const props = defineProps<{
   initialMfaEnabled?: boolean;
+  open: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -41,7 +42,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <BaseModal @cancel="emit('cancel')">
+  <BaseModal :open="open" @cancel="emit('cancel')">
     <template #title> Sicherheit </template>
 
     <template #content>

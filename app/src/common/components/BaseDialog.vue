@@ -5,6 +5,7 @@ withDefaults(
     submitText: string;
     loading?: boolean;
     danger?: boolean;
+    open: boolean;
   }>(),
   {
     loading: false,
@@ -16,6 +17,8 @@ withDefaults(
 
 <template>
   <BaseModal
+    :open="open"
+    :sheet="true"
     :submit="() => $emit('confirm')"
     :loading="loading"
     :danger="danger"

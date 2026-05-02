@@ -75,7 +75,8 @@ const filteredGames = computed(() => {
                   :key="tag"
                   class="text-on-ghost-muted text-sm font-medium"
                 >
-                  {{ tag }}{{ tag === game.tags[game.tags.length - 1] ? '' : ', ' }}
+                  {{ tag
+                  }}{{ tag === game.tags[game.tags.length - 1] ? '' : ', ' }}
                 </span>
               </div>
             </div>

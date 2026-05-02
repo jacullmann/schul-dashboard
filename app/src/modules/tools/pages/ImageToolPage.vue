@@ -421,7 +421,7 @@ const updateImageSource = (newSrc: string) => {
       </div>
     </div>
 
-    <BaseModal v-if="isEditorOpen" @cancel="closeEditor" :submit="applyEdits">
+    <BaseModal :open="isEditorOpen" @cancel="closeEditor" :submit="applyEdits">
       <template #title>Bildbearbeitung</template>
 
       <template #content>

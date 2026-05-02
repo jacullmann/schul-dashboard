@@ -11,7 +11,7 @@ withDefaults(
   {
     open: true,
     desktopTransition: 'fade-dropdown',
-  }
+  },
 );
 
 const menuEl = ref<HTMLElement | null>(null);

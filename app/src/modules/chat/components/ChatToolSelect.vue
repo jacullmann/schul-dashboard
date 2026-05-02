@@ -94,50 +94,50 @@ useEventListener(document, 'keydown', (e) => {
         :style="menuStyles"
         class="min-w-56!"
       >
-          <BaseMenuButton
-            :icon="Globe"
-            isSelect
-            :active="webSearch"
-            @click="((webSearch = !webSearch), close())"
+        <BaseMenuButton
+          :icon="Globe"
+          isSelect
+          :active="webSearch"
+          @click="((webSearch = !webSearch), close())"
+        >
+          Web search
+          <template #description
+            >Search the Internet for additional information</template
           >
-            Web search
-            <template #description
-              >Search the Internet for additional information</template
-            >
-          </BaseMenuButton>
-          <BaseMenuButton
-            :icon="Image"
-            isSelect
-            :active="createImage"
-            @click="((createImage = !createImage), close())"
+        </BaseMenuButton>
+        <BaseMenuButton
+          :icon="Image"
+          isSelect
+          :active="createImage"
+          @click="((createImage = !createImage), close())"
+        >
+          Create Image
+          <template #description>Design anything you can imagine</template>
+        </BaseMenuButton>
+        <BaseMenuButton
+          :icon="Brain"
+          isSelect
+          :active="ponder"
+          @click="((ponder = !ponder), close())"
+        >
+          Ponder
+          <template #description
+            >Think longer for more profound answers</template
           >
-            Create Image
-            <template #description>Design anything you can imagine</template>
-          </BaseMenuButton>
-          <BaseMenuButton
-            :icon="Brain"
-            isSelect
-            :active="ponder"
-            @click="((ponder = !ponder), close())"
+        </BaseMenuButton>
+        <!-- TODO: Choose Icon: CalendarFold or Coffee -->
+        <BaseMenuButton
+          :icon="CalendarFold"
+          isSelect
+          :active="answerLeisurely"
+          @click="((answerLeisurely = !answerLeisurely), close())"
+        >
+          Answer leisurely
+          <template #description
+            >Queue your requests, if you aren't in a hurry</template
           >
-            Ponder
-            <template #description
-              >Think longer for more profound answers</template
-            >
-          </BaseMenuButton>
-          <!-- TODO: Choose Icon: CalendarFold or Coffee -->
-          <BaseMenuButton
-            :icon="CalendarFold"
-            isSelect
-            :active="answerLeisurely"
-            @click="((answerLeisurely = !answerLeisurely), close())"
-          >
-            Answer leisurely
-            <template #description
-              >Queue your requests, if you aren't in a hurry</template
-            >
-          </BaseMenuButton>
-        </BaseMenu>
+        </BaseMenuButton>
+      </BaseMenu>
     </Teleport>
   </div>
 </template>

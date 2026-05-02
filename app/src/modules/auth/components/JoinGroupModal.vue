@@ -5,6 +5,10 @@ import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useUserStore } from '@/stores/userStore';
 import { useModalStore } from '@/stores/modalStore';
 
+defineProps<{
+  open: boolean;
+}>();
+
 const emit = defineEmits<{
   (e: 'cancel'): void;
 }>();
@@ -68,6 +72,7 @@ async function submit() {
 
 <template>
   <BaseModal
+    :open="open"
     @cancel="$emit('cancel')"
     :submit="submit"
     :loading="submitting"

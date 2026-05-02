@@ -113,7 +113,7 @@ const popupStyle = computed(() => {
   // For submenus, we typically align them exactly next to the trigger button.
   // If there's not enough room below the trigger to fit the submenu,
   // we align its bottom with the trigger's bottom so it expands upwards.
-  
+
   const estimatedH = popupH.value || 150;
   const spaceBelow = vh.value - btnTop.value;
 

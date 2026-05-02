@@ -3,6 +3,10 @@ import { ref } from 'vue';
 import GoogleIcon from '@/modules/auth/components/GoogleIcon.vue';
 import { useOAuth } from '@/modules/auth/composables/useOAuth';
 
+defineProps<{
+  open: boolean;
+}>();
+
 const emit = defineEmits<{
   (e: 'linked'): void;
   (e: 'cancel'): void;
@@ -37,6 +41,7 @@ function cancel() {
 
 <template>
   <BaseModal
+    :open="open"
     @cancel="cancel"
     :submit="submit"
     :loading="submitting"

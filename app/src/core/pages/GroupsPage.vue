@@ -256,26 +256,26 @@ async function leaveGroup(group: any) {
             :icon="MoreHorizontal"
           />
 
-            <BaseMenu
-              :open="openMenuId === group.id"
-              @close="openMenuId = null"
-              class="right-0 mt-6"
-              @click.stop
+          <BaseMenu
+            :open="openMenuId === group.id"
+            @close="openMenuId = null"
+            class="right-0 mt-6"
+            @click.stop
+          >
+            <BaseMenuButton
+              v-if="group.id !== defaultGroupId"
+              :icon="Star"
+              @click="setDefaultGroup(group.id)"
             >
-              <BaseMenuButton
-                v-if="group.id !== defaultGroupId"
-                :icon="Star"
-                @click="setDefaultGroup(group.id)"
-              >
-                Make default
-              </BaseMenuButton>
+              Make default
+            </BaseMenuButton>
 
-              <BaseMenuDivider v-if="group.id !== defaultGroupId" />
+            <BaseMenuDivider v-if="group.id !== defaultGroupId" />
 
-              <BaseMenuButton :icon="LogOut" @click="leaveGroup(group)">
-                Leave
-              </BaseMenuButton>
-            </BaseMenu>
+            <BaseMenuButton :icon="LogOut" @click="leaveGroup(group)">
+              Leave
+            </BaseMenuButton>
+          </BaseMenu>
         </button>
       </div>
     </section>

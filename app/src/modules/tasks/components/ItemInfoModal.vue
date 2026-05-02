@@ -4,6 +4,7 @@ import { computed } from 'vue';
 import type { HwItem } from '@/modules/tasks/types';
 
 const props = defineProps<{
+  open: boolean;
   item: HwItem;
   isModOrAdmin: boolean;
   isSuperAdmin?: boolean;
@@ -35,14 +36,14 @@ const showUpdated = computed(() => {
 </script>
 
 <template>
-  <BaseModal @cancel="$emit('cancel')">
+  <BaseModal :open="open" :sheet="true" @cancel="$emit('cancel')">
     <template #title>
       {{ t('school.tasks.items.menu.infoModal.title') }}
     </template>
 
     <template #content>
       <dl class="flex flex-col gap-4">
-        <div class="flex flex-col gap-2">
+        <div class="flex flex-col gap-1">
           <dt class="text-sm text-on-ghost-muted font-medium">
             {{ t('school.tasks.items.menu.infoModal.createdAt') }}
           </dt>
@@ -51,7 +52,7 @@ const showUpdated = computed(() => {
           </dd>
         </div>
 
-        <div class="flex flex-col gap-2">
+        <div class="flex flex-col gap-1">
           <dt class="text-sm text-on-ghost-muted font-medium">
             {{ t('school.tasks.items.menu.infoModal.updatedAt') }}
           </dt>
@@ -63,7 +64,7 @@ const showUpdated = computed(() => {
           </dd>
         </div>
 
-        <div v-if="isModOrAdmin" class="flex flex-col gap-2">
+        <div v-if="isModOrAdmin" class="flex flex-col gap-1">
           <dt class="text-sm text-on-ghost-muted font-medium">
             {{ t('school.tasks.items.menu.infoModal.createdBy') }}
           </dt>

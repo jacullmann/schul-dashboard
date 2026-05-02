@@ -272,8 +272,9 @@ async function handleArchiveFromMenu(item: HwItem) {
         :swipe-action="showOldEntries ? 'keep' : 'archive'"
         @swiped="handleSwipe(item)"
         @dblclick="handleItemDoubleClick(item, $event)"
+        @contextmenu.prevent.stop="openMenuId = item.id"
         @menu-click="toggleMenu(item.id)"
-        @files-dropped="(files) => triggerImageDrop(item, files)"
+        @files-dropped="(files: File[]) => triggerImageDrop(item, files)"
       >
         <template #checkbox>
           <BaseCheckbox
@@ -324,87 +325,87 @@ async function handleArchiveFromMenu(item: HwItem) {
         </template>
 
         <template #menu>
-            <BaseMenu
-              :open="openMenuId === item.id"
-              @close="openMenuId = null"
-              class="right-0 mt-6 z-[10000]!"
-              @click.stop
+          <BaseMenu
+            :open="openMenuId === item.id"
+            @close="openMenuId = null"
+            class="right-0 mt-6 z-[10000]!"
+            @click.stop
+          >
+            <BaseMenuButton
+              @click="onMenuAction('images', item)"
+              :icon="Upload"
             >
-              <BaseMenuButton
-                @click="onMenuAction('images', item)"
-                :icon="Upload"
-              >
-                {{ t('school.tasks.items.menu.uploadImages') }}
-              </BaseMenuButton>
+              {{ t('school.tasks.items.menu.uploadImages') }}
+            </BaseMenuButton>
 
-              <BaseMenuButton
-                v-if="canEdit(item.createdBy)"
-                @click="onMenuAction('edit', item)"
-                :icon="Pencil"
-              >
-                {{ t('global.buttons.edit') }}
-              </BaseMenuButton>
+            <BaseMenuButton
+              v-if="canEdit(item.createdBy)"
+              @click="onMenuAction('edit', item)"
+              :icon="Pencil"
+            >
+              {{ t('global.buttons.edit') }}
+            </BaseMenuButton>
 
-              <BaseMenuDivider />
+            <BaseMenuDivider />
 
-              <BaseMenuButton
-                @click="togglePin(item)"
-                :icon="Pin"
-                :iconClasses="isPinned(item.id) ? 'fill-current' : ''"
-              >
-                {{
-                  isPinned(item.id)
-                    ? t('school.tasks.items.menu.unpin')
-                    : t('school.tasks.items.menu.pin')
-                }}
-              </BaseMenuButton>
+            <BaseMenuButton
+              @click="togglePin(item)"
+              :icon="Pin"
+              :iconClasses="isPinned(item.id) ? 'fill-current' : ''"
+            >
+              {{
+                isPinned(item.id)
+                  ? t('school.tasks.items.menu.unpin')
+                  : t('school.tasks.items.menu.pin')
+              }}
+            </BaseMenuButton>
 
-              <BaseMenuButton
-                @click="handleArchiveFromMenu(item)"
-                :icon="showOldEntries ? ArchiveRestore : Archive"
-              >
-                {{
-                  showOldEntries
-                    ? t('school.tasks.items.menu.unarchive')
-                    : t('school.tasks.items.menu.archive')
-                }}
-              </BaseMenuButton>
+            <BaseMenuButton
+              @click="handleArchiveFromMenu(item)"
+              :icon="showOldEntries ? ArchiveRestore : Archive"
+            >
+              {{
+                showOldEntries
+                  ? t('school.tasks.items.menu.unarchive')
+                  : t('school.tasks.items.menu.archive')
+              }}
+            </BaseMenuButton>
 
-              <BaseMenuDivider />
+            <BaseMenuDivider />
 
-              <BaseMenuButton @click="shareItem(item)" :icon="Send">
-                {{ t('school.tasks.items.menu.share') }}
-              </BaseMenuButton>
+            <BaseMenuButton @click="shareItem(item)" :icon="Send">
+              {{ t('school.tasks.items.menu.share') }}
+            </BaseMenuButton>
 
-              <BaseMenuButton
-                @click="
-                  openMenuId = null;
-                  showInfoItem = item;
-                "
-                :icon="Info"
-              >
-                {{ t('school.tasks.items.menu.info') }}
-              </BaseMenuButton>
+            <BaseMenuButton
+              @click="
+                openMenuId = null;
+                showInfoItem = item;
+              "
+              :icon="Info"
+            >
+              {{ t('school.tasks.items.menu.info') }}
+            </BaseMenuButton>
 
-              <BaseMenuDivider />
+            <BaseMenuDivider />
 
-              <BaseMenuButton
-                title="Melden"
-                @click="onMenuAction('report', item)"
-                :icon="Flag"
-              >
-                {{ t('school.tasks.items.menu.report.name') }}
-              </BaseMenuButton>
+            <BaseMenuButton
+              title="Melden"
+              @click="onMenuAction('report', item)"
+              :icon="Flag"
+            >
+              {{ t('school.tasks.items.menu.report.name') }}
+            </BaseMenuButton>
 
-              <BaseMenuButton
-                variant="danger"
-                v-if="canDelete(item.createdBy)"
-                @click="onMenuAction('delete', item)"
-                :icon="Trash2"
-              >
-                {{ t('global.buttons.delete') }}
-              </BaseMenuButton>
-            </BaseMenu>
+            <BaseMenuButton
+              variant="danger"
+              v-if="canDelete(item.createdBy)"
+              @click="onMenuAction('delete', item)"
+              :icon="Trash2"
+            >
+              {{ t('global.buttons.delete') }}
+            </BaseMenuButton>
+          </BaseMenu>
         </template>
 
         <template #body v-if="item.description.length">
@@ -614,21 +615,18 @@ async function handleArchiveFromMenu(item: HwItem) {
       :visible="imageMenu.visible"
       :x="imageMenu.x"
       :y="imageMenu.y"
-        :can-delete="
-          imageMenu.image && imageMenu.item
-            ? canDeleteImage(
-                imageMenu.item.createdBy,
-                imageMenu.image.createdBy,
-              )
-            : false
-        "
-        @upload="triggerImageUpload"
-        @delete="triggerImageDelete"
-        @cancel="closeImageMenu"
-      />
+      :can-delete="
+        imageMenu.image && imageMenu.item
+          ? canDeleteImage(imageMenu.item.createdBy, imageMenu.image.createdBy)
+          : false
+      "
+      @upload="triggerImageUpload"
+      @delete="triggerImageDelete"
+      @cancel="closeImageMenu"
+    />
 
     <ReportModal
-      :show="showReportConfirm"
+      :open="showReportConfirm"
       message=""
       :show-reason-input="true"
       v-model:reason="reportReason"
@@ -636,19 +634,17 @@ async function handleArchiveFromMenu(item: HwItem) {
       @cancel="cancelReport"
     />
 
-    <Transition name="fade-scale">
-      <ItemInfoModal
-        v-if="showInfoItem"
-        :item="showInfoItem"
-        :is-mod-or-admin="
-          user?.role === 'superadmin' ||
-          user?.tenantRole === 'admin' ||
-          user?.tenantRole === 'moderator'
-        "
-        :is-super-admin="user?.role === 'superadmin'"
-        @cancel="showInfoItem = null"
-      />
-    </Transition>
+    <ItemInfoModal
+      :open="!!showInfoItem"
+      :item="showInfoItem"
+      :is-mod-or-admin="
+        user?.role === 'superadmin' ||
+        user?.tenantRole === 'admin' ||
+        user?.tenantRole === 'moderator'
+      "
+      :is-super-admin="user?.role === 'superadmin'"
+      @cancel="showInfoItem = null"
+    />
   </div>
 </template>
 

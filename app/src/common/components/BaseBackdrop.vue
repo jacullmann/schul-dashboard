@@ -2,12 +2,12 @@
 withDefaults(
   defineProps<{
     blurSize?: 'sm' | 'md' | 'lg';
-    opacity?: 'light' | 'heavy' ;
+    opacity?: 'light' | 'heavy';
   }>(),
   {
     blurSize: 'md',
     opacity: 'heavy',
-  }
+  },
 );
 
 const emit = defineEmits<{ (e: 'cancel'): void }>();
@@ -19,8 +19,8 @@ const blurClass = {
 };
 
 const opacityClass = {
-  'light': 'bg-black/25',
-  'heavy': 'bg-black/40',
+  light: 'bg-black/25',
+  heavy: 'bg-black/40',
 };
 </script>
 

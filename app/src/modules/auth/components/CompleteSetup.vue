@@ -20,9 +20,9 @@ const getCourseLabel = (courseName: string): string => {
 };
 
 const props = defineProps<{
-  visible: boolean; // Steuert die Anzeige der Komponente
+  open: boolean;
   initialData: { courses: { subjectId: string; courseId: string }[] };
-  isSetup: boolean; // true, wenn es das initiale Setup ist (doneSetup=false)
+  isSetup: boolean;
 }>();
 
 // update:user emittiert die aktualisierten User-Daten zurück zum Parent
@@ -142,6 +142,7 @@ async function skip() {
 
 <template>
   <BaseModal
+    :open="open"
     @cancel="$emit('cancel')"
     :error="error"
     :submit="save"

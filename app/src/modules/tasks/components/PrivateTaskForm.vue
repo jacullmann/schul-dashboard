@@ -4,10 +4,13 @@ import hw from '@/api/hwApi';
 import type { PrivateTask } from '@/modules/tasks/types';
 import BaseFormGroup from '@/common/components/BaseFormGroup.vue';
 
-const props = defineProps<{ initial?: PrivateTask }>();
+const props = defineProps<{
+  initial?: PrivateTask;
+  open: boolean;
+}>();
 const emit = defineEmits<{
   (e: 'cancel'): void;
-  (e: 'success', data: PrivateTask): void;
+  (e: 'success', task: PrivateTask): void;
 }>();
 
 const title = ref(props.initial?.title || '');
@@ -75,7 +78,12 @@ async function submit() {
 </script>
 
 <template>
-  <BaseModal @cancel="$emit('cancel')" :loading="submitting" :submit="submit">
+  <BaseModal
+    :open="open"
+    @cancel="$emit('cancel')"
+    :loading="submitting"
+    :submit="submit"
+  >
     <template #title>
       {{ initial ? 'Edit Private Entry' : 'New Private Entry' }}
     </template>

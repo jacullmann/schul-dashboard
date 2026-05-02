@@ -24,17 +24,15 @@ const closeModal = () => (isModalOpen.value = false);
   </div>
 
   <Teleport to="body">
-    <Transition name="fade-scale">
-      <BaseModal v-if="isModalOpen" @cancel="closeModal">
-        <template #title>
-          <template v-if="props.title">{{ props.title }}</template>
-        </template>
-        <template #content>
-          <div class="leading-[1.6]">
-            <slot></slot>
-          </div>
-        </template>
-      </BaseModal>
-    </Transition>
+    <BaseModal :open="isModalOpen" :sheet="true" @cancel="closeModal">
+      <template #title>
+        <template v-if="props.title">{{ props.title }}</template>
+      </template>
+      <template #content>
+        <div class="leading-[1.6]">
+          <slot></slot>
+        </div>
+      </template>
+    </BaseModal>
   </Teleport>
 </template>

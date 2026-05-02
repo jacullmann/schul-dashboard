@@ -66,31 +66,29 @@ onMounted(async () => {
 </script>
 
 <template>
-  <Transition name="fade-scale">
-    <BaseModal v-if="showMenu" @cancel="showMenu = false">
-      <template #title> Alle Ankündigungen </template>
+  <BaseModal :open="showMenu" @cancel="showMenu = false">
+    <template #title> Alle Ankündigungen </template>
 
-      <template #content>
-        <div class="max-h-[60vh] overflow-y-auto flex flex-col">
-          <BaseButton
-            v-for="(ann, index) in announcements"
-            :key="ann.id"
-            @click="selectAnnouncement(index)"
-            :active="index === currentIndex"
-            :class="index === currentIndex ? 'bg-surface!' : ''"
-            class="w-full"
-            :touch="false"
-          >
-            <div
-              class="w-2 h-2 rounded-full flex-shrink-0"
-              :class="colorFor(ann.color).replace('is-', 'bg-')"
-            ></div>
-            <span class="truncate">{{ ann.content }}</span>
-          </BaseButton>
-        </div>
-      </template>
-    </BaseModal>
-  </Transition>
+    <template #content>
+      <div class="max-h-[60vh] overflow-y-auto flex flex-col">
+        <BaseButton
+          v-for="(ann, index) in announcements"
+          :key="ann.id"
+          @click="selectAnnouncement(index)"
+          :active="index === currentIndex"
+          :class="index === currentIndex ? 'bg-surface!' : ''"
+          class="w-full"
+          :touch="false"
+        >
+          <div
+            class="w-2 h-2 rounded-full flex-shrink-0"
+            :class="colorFor(ann.color).replace('is-', 'bg-')"
+          ></div>
+          <span class="truncate">{{ ann.content }}</span>
+        </BaseButton>
+      </div>
+    </template>
+  </BaseModal>
 
   <div
     class="sticky top-[var(--header-height)] z-[100] grid transition-[grid-template-rows,opacity] duration-500 ease-out"

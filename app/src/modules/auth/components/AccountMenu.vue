@@ -77,7 +77,7 @@ const {
       class="fixed pointer-events-auto z-[var(--z-modal)] origin-top-left min-w-[320px]"
       :style="popupStyle"
       @click.stop
-      @close="cancel"
+      @cancel="cancel"
       role="menu"
       aria-label="Account menu"
       :ref="

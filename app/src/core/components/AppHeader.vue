@@ -121,37 +121,37 @@ onUnmounted(() => {
           />
         </button>
 
-          <BaseMenu
-            :open="groupMenuOpen"
-            @close="groupMenuOpen = false"
-            class="top-full mt-1 left-0"
+        <BaseMenu
+          :open="groupMenuOpen"
+          @close="groupMenuOpen = false"
+          class="top-full mt-1 left-0"
+        >
+          <BaseMenuButton
+            v-for="g in userGroups"
+            :key="g.id"
+            :isSelect="true"
+            :active="g.id === activeGroupId"
+            @click="onSwitchGroup(g.id)"
           >
-            <BaseMenuButton
-              v-for="g in userGroups"
-              :key="g.id"
-              :isSelect="true"
-              :active="g.id === activeGroupId"
-              @click="onSwitchGroup(g.id)"
-            >
-              <span>{{ g.name }}</span>
-              <NotificationDot
-                v-if="g.hasUnreadContent && g.id !== activeGroupId"
-                class="ml-2"
-              />
-            </BaseMenuButton>
+            <span>{{ g.name }}</span>
+            <NotificationDot
+              v-if="g.hasUnreadContent && g.id !== activeGroupId"
+              class="ml-2"
+            />
+          </BaseMenuButton>
 
-            <BaseMenuDivider />
+          <BaseMenuDivider />
 
-            <BaseMenuButton
-              @click="
-                groupMenuOpen = false;
-                router.push('/home');
-              "
-              :icon="Plus"
-            >
-              New group
-            </BaseMenuButton>
-          </BaseMenu>
+          <BaseMenuButton
+            @click="
+              groupMenuOpen = false;
+              router.push('/home');
+            "
+            :icon="Plus"
+          >
+            New group
+          </BaseMenuButton>
+        </BaseMenu>
       </div>
     </div>
   </header>

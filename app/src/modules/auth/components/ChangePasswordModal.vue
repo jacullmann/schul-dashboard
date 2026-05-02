@@ -5,6 +5,10 @@ import { useChangePassword } from '@/modules/auth/composables/useChangePassword'
 
 const { t } = useI18n();
 
+defineProps<{
+  open: boolean;
+}>();
+
 const emit = defineEmits<{
   (e: 'cancel'): void;
   (e: 'success'): void;
@@ -31,6 +35,7 @@ onMounted(() => {
 
 <template>
   <BaseModal
+    :open="open"
     @cancel="$emit('cancel')"
     :submit="submit"
     :error="isError ? message : undefined"

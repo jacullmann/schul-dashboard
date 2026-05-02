@@ -21,7 +21,7 @@ const props = withDefaults(
 );
 
 const emit = defineEmits<{
-  (e: 'close'): void;
+  (e: 'cancel'): void;
 }>();
 
 const { width: vw } = useWindowSize();
@@ -105,7 +105,7 @@ const desktopMenuEl = computed(() => desktopMenuCardRef.value?.menuEl || null);
 const sheetEl = computed(() => sheetComponentRef.value?.sheetEl || null);
 
 function startClose() {
-  emit('close');
+  emit('cancel');
 }
 
 // ── Keyboard Navigation (Arrow Keys) ────────────────────────
@@ -204,7 +204,7 @@ defineExpose({ menuEl: desktopMenuEl, startClose });
     role="menu"
     aria-orientation="vertical"
     tabindex="-1"
-    @close="startClose"
+    @cancel="startClose"
   >
     <div
       class="transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden"

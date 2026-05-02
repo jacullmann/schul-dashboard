@@ -44,8 +44,7 @@ defineExpose({
       variant === 'danger'
         ? 'text-danger hover:bg-danger-hover'
         : 'text-on-ghost hover:bg-ghost-hover',
-      isMobile ?
-      icon ? 'pl-4' : 'pl-4.5' : icon ? 'pl-2.5' : 'pl-3',
+      isMobile ? (icon ? 'pl-4' : 'pl-4.5') : icon ? 'pl-2.5' : 'pl-3',
       { 'font-semibold': active },
       isMobile ? 'rounded-xl pr-4 min-h-12' : 'rounded-lg pr-3 min-h-9',
     ]"
@@ -69,14 +68,18 @@ defineExpose({
       <component
         :is="icon"
         v-if="icon"
-        :size="isMobile ? 20 : ($slots.description ? 20 : 18)"
+        :size="isMobile ? 20 : $slots.description ? 20 : 18"
         class="shrink-0"
       />
       <span class="flex flex-col">
         <span
           :class="[
             active && !$slots.description ? 'font-bold' : 'font-medium',
-            isMobile ? 'text-sm/6' : $slots.description ? 'text-sm/5' : 'text-sm/4',
+            isMobile
+              ? 'text-sm/6'
+              : $slots.description
+                ? 'text-sm/5'
+                : 'text-sm/4',
           ]"
           ><slot></slot
         ></span>

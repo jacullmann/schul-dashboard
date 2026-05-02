@@ -5,6 +5,10 @@ import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 
+defineProps<{
+  open: boolean;
+}>();
+
 const emit = defineEmits<{
   (e: 'cancel'): void;
   (e: 'success'): void;
@@ -59,7 +63,12 @@ async function submit() {
 </script>
 
 <template>
-  <BaseModal @cancel="$emit('cancel')" :submit="submit" :loading="submitting">
+  <BaseModal
+    :open="open"
+    @cancel="$emit('cancel')"
+    :submit="submit"
+    :loading="submitting"
+  >
     <template #title> Neue Ankündigung </template>
 
     <template #content>
