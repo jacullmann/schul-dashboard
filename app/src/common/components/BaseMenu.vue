@@ -161,7 +161,11 @@ function onTouchMove(e: TouchEvent) {
 function onTouchEnd() {
   if (!isDragging || !sheetEl.value) return;
   isDragging = false;
-  dragHandled = true;
+  
+  const wasDrag = Math.abs(currentDragY) > 5;
+  if (wasDrag) {
+    dragHandled = true;
+  }
 
   const elapsed = Date.now() - dragStartTime;
   const velocity = currentDragY / elapsed;
@@ -171,12 +175,12 @@ function onTouchEnd() {
 
   if (shouldDismiss) {
     isDraggingDismiss.value = true;
-    sheetEl.value.style.transition = 'transform 250ms cubic-bezier(0.32,0,0.67,1)';
+    sheetEl.value.style.transition = 'transform 150ms cubic-bezier(0.32,0,0.67,1)';
     sheetEl.value.style.transform = 'translateY(100%)';
     
     const backdropEl = getBackdropEl();
     if (backdropEl) {
-      backdropEl.style.transition = 'opacity 250ms ease';
+      backdropEl.style.transition = 'opacity 150ms ease';
       backdropEl.style.opacity = '0';
     }
 
@@ -196,12 +200,12 @@ function onTouchEnd() {
       }, 300);
     }, 150);
   } else {
-    sheetEl.value.style.transition = 'transform 300ms cubic-bezier(0.16,1,0.3,1)';
+    sheetEl.value.style.transition = 'transform 200ms cubic-bezier(0.16,1,0.3,1)';
     sheetEl.value.style.transform = 'translateY(0)';
     
     const backdropEl = getBackdropEl();
     if (backdropEl) {
-      backdropEl.style.transition = 'opacity 300ms ease';
+      backdropEl.style.transition = 'opacity 200ms ease';
       backdropEl.style.opacity = '1';
     }
     
@@ -215,7 +219,7 @@ function onTouchEnd() {
         backdropEl.style.opacity = '';
         backdropEl.style.transition = '';
       }
-    }, 320);
+    }, 220);
   }
 }
 
