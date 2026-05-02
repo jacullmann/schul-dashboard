@@ -1,4 +1,4 @@
-import { ref, computed, nextTick, type Ref } from 'vue';
+import { ref, computed, nextTick, type Ref, type CSSProperties } from 'vue';
 import {
   useEventListener,
   useElementBounding,
@@ -35,7 +35,6 @@ export function useAccountMenu(
   const {
     left: btnLeft,
     top: btnTop,
-    right: btnRight,
     bottom: btnBottom,
   } = useElementBounding(refs.root);
   const { width: popupW, height: popupH } = useElementBounding(refs.popupInner);
@@ -43,28 +42,41 @@ export function useAccountMenu(
 
   const isMobile = computed(() => vw.value < 768);
 
-  const popupStyle = computed<Record<string, string>>(() => {
+  const popupStyle = computed<CSSProperties>(() => {
     if (!open.value) return {};
 
     // Mobile: BaseMenu handles its own bottom-sheet positioning
     if (isMobile.value) return {};
 
     let left = btnLeft.value;
-    let top = btnBottom.value + 8;
+    const width = Math.min(300, popupW.value || 300);
 
-    if (left + popupW.value > vw.value - 8) {
-      left = Math.max(8, vw.value - popupW.value - 8);
-    }
-    if (top + popupH.value > vh.value - 8) {
-      top = Math.max(8, btnTop.value - popupH.value - 8);
+    if (left + width > vw.value - 8) {
+      left = Math.max(8, vw.value - width - 8);
     }
 
-    return {
-      position: 'fixed',
-      left: `${Math.round(left)}px`,
-      top: `${Math.round(top)}px`,
-      width: `${Math.min(300, popupW.value || 300)}px`,
-    };
+    const spaceBelow = vh.value - btnBottom.value;
+    const estimatedH = popupH.value || 350; // Account menu is tall
+
+    if (spaceBelow < estimatedH) {
+      // Not enough space below, place above the button.
+      // We use `bottom` instead of `top` so the browser naturally grows it upwards without JS snapbacks.
+      return {
+        position: 'fixed',
+        left: `${Math.round(left)}px`,
+        bottom: `${Math.round(vh.value - btnTop.value + 8)}px`,
+        width: `${width}px`,
+        transformOrigin: 'bottom left',
+      };
+    } else {
+      return {
+        position: 'fixed',
+        left: `${Math.round(left)}px`,
+        top: `${Math.round(btnBottom.value + 8)}px`,
+        width: `${width}px`,
+        transformOrigin: 'top left',
+      };
+    }
   });
 
   // Instant close — used on desktop and for internal state teardown
@@ -109,14 +121,28 @@ export function useAccountMenu(
     closeAnimated();
   }
 
-  async function toggle() {
+  async function toggle(e?: Event) {
     if (open.value) {
       // Closing — animate on mobile
       closeAnimated();
     } else {
       open.value = true;
-      await nextTick();
-      refs.firstMenuBtnRef.value?.focus();
+      if (
+        e &&
+        (e.type === 'keydown' ||
+          (e as KeyboardEvent).key === 'Enter' ||
+          (e as KeyboardEvent).key === ' ')
+      ) {
+        await nextTick();
+        refs.firstMenuBtnRef.value?.focus();
+      } else if (
+        e?.type === 'click' &&
+        (e as PointerEvent).pointerType === ''
+      ) {
+        // Fallback for some weird focus behavior with Enter translating to a click event
+        await nextTick();
+        refs.firstMenuBtnRef.value?.focus();
+      }
     }
   }
 

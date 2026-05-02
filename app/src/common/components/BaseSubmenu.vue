@@ -42,7 +42,10 @@ function drillDown() {
 }
 
 // ── Desktop hover/focus logic (unchanged) ───────────────────
-const isOpen = computed(() => activeTrigger.value === triggerRef.value);
+const isOpen = computed(
+  () =>
+    activeTrigger.value !== null && activeTrigger.value === triggerRef.value,
+);
 
 function onMouseEnter() {
   if (!props.disabled) {
@@ -92,6 +95,7 @@ const {
   left: btnLeft,
   top: btnTop,
   right: btnRight,
+  bottom: btnBottom,
 } = useElementBounding(triggerRef);
 const { width: popupW, height: popupH } = useElementBounding(menuRef);
 
@@ -101,13 +105,27 @@ const popupStyle = computed(() => {
   let left = btnRight.value;
   let top = btnTop.value;
 
-  if (left + (popupW.value || 180) > vw.value - 8) {
-    left = btnLeft.value - (popupW.value || 180) - 4;
+  const width = popupW.value || 180;
+  if (left + width > vw.value - 4) {
+    left = btnLeft.value - width;
   }
 
-  const estimatedH = popupH.value || 250;
-  if (top + estimatedH > vh.value - 8) {
-    top = Math.max(8, vh.value - estimatedH - 8);
+  // For submenus, we typically align them exactly next to the trigger button.
+  // If there's not enough room below the trigger to fit the submenu,
+  // we align its bottom with the trigger's bottom so it expands upwards.
+  
+  const estimatedH = popupH.value || 150;
+  const spaceBelow = vh.value - btnTop.value;
+
+  if (spaceBelow < estimatedH) {
+    // Anchor to the bottom of the button
+    return {
+      position: 'fixed',
+      left: `${Math.round(left)}px`,
+      bottom: `${Math.round(vh.value - btnBottom.value)}px`,
+      minWidth: '180px',
+      transformOrigin: 'bottom left',
+    };
   }
 
   return {
@@ -115,6 +133,7 @@ const popupStyle = computed(() => {
     left: `${Math.round(left)}px`,
     top: `${Math.round(top)}px`,
     minWidth: '180px',
+    transformOrigin: 'top left',
   };
 });
 </script>
@@ -142,15 +161,15 @@ const popupStyle = computed(() => {
 
     <!-- Desktop: side panel (unchanged) -->
     <template v-if="!isMobile">
-        <BaseMenu
-          :open="isOpen"
-          desktopTransition="fade-dropdown-side"
-          :style="popupStyle"
-          :ref="(el: any) => (menuRef = el?.menuEl)"
-          class="z-[1100]"
-        >
-          <slot></slot>
-        </BaseMenu>
+      <BaseMenu
+        :open="isOpen"
+        desktopTransition="fade-dropdown-side"
+        :style="popupStyle"
+        :ref="(el: any) => (menuRef = el?.menuEl)"
+        class="z-[1100]"
+      >
+        <slot></slot>
+      </BaseMenu>
     </template>
 
     <!-- Mobile: teleport content into parent BaseMenu's submenu area -->

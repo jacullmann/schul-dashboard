@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, provide, watch } from 'vue';
+import { computed, ref, provide, watch, nextTick } from 'vue';
 import { useWindowSize } from '@vueuse/core';
 import { ChevronLeft } from '@lucide/vue';
 import { MENU_SHEET_KEY } from '@/common/composables/useMenuContext';
@@ -50,12 +50,133 @@ function popView() {
 
 provide(MENU_SHEET_KEY, { activeViewId, pushView, popView, submenuTarget });
 
+const menuHeight = ref<number | 'auto'>('auto');
+const rootViewEl = ref<HTMLElement | null>(null);
+const subViewEl = ref<HTMLElement | null>(null);
+
+watch(activeViewId, async (newId, oldId) => {
+  if (!isMobile.value) return;
+  if (newId === oldId || !props.open) return;
+
+  const container = rootViewEl.value?.parentElement;
+  if (!container || !rootViewEl.value || !subViewEl.value) return;
+
+  const startHeight = container.getBoundingClientRect().height;
+  menuHeight.value = startHeight;
+
+  // Force reflow
+  container.offsetHeight;
+
+  await nextTick();
+
+  requestAnimationFrame(() => {
+    const targetEl = newId === 'root' ? rootViewEl.value : subViewEl.value;
+    if (targetEl) {
+      const targetHeight = targetEl.getBoundingClientRect().height;
+      menuHeight.value = targetHeight;
+
+      setTimeout(() => {
+        if (menuHeight.value === targetHeight) {
+          menuHeight.value = 'auto';
+        }
+      }, 350);
+    }
+  });
+});
+
+watch(
+  () => props.open,
+  (newOpen) => {
+    if (!isMobile.value) return;
+    if (!newOpen) {
+      setTimeout(() => {
+        viewStack.value = [{ id: 'root', label: '' }];
+        menuHeight.value = 'auto';
+      }, 300);
+    }
+  },
+);
+
 // ── Expose desktop element + close trigger for consumers ─────
 const desktopMenuEl = ref<HTMLElement | null>(null);
 
 function startClose() {
   emit('close');
 }
+
+// ── Keyboard Navigation (Arrow Keys) ────────────────────────
+function handleKeydown(e: KeyboardEvent) {
+  if (!props.open) return;
+
+  const target = e.target as HTMLElement;
+  const isMenuInteraction =
+    (desktopMenuEl.value && desktopMenuEl.value.contains(target)) ||
+    (sheetEl.value && sheetEl.value.contains(target));
+
+  if (!isMenuInteraction) return;
+
+  const menuContainer = isMobile.value ? sheetEl.value : desktopMenuEl.value;
+  if (!menuContainer) return;
+
+  const focusableSelectors =
+    'button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+
+  const allFocusableElements = Array.from(
+    menuContainer.querySelectorAll<HTMLElement>(focusableSelectors),
+  );
+
+  // Exclude elements that are hidden (e.g. out-of-view submenus)
+  const focusableElements = allFocusableElements.filter((el) => {
+    // Only consider elements that have layout space
+    if (el.offsetWidth === 0 || el.offsetHeight === 0) return false;
+
+    // Specifically on mobile, ensure we don't grab focusable items inside a hidden root/sub view
+    if (isMobile.value) {
+      const inRootView = rootViewEl.value?.contains(el);
+      const inSubView = subViewEl.value?.contains(el);
+      if (activeViewId.value === 'root' && inSubView) return false;
+      if (activeViewId.value !== 'root' && inRootView) return false;
+    }
+    return true;
+  });
+
+  if (focusableElements.length === 0) return;
+
+  const currentIndex = focusableElements.indexOf(target);
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    const nextIndex =
+      currentIndex === -1 || currentIndex === focusableElements.length - 1
+        ? 0
+        : currentIndex + 1;
+    focusableElements[nextIndex].focus();
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    const nextIndex =
+      currentIndex === -1 || currentIndex === 0
+        ? focusableElements.length - 1
+        : currentIndex - 1;
+    focusableElements[nextIndex].focus();
+  }
+}
+
+watch(
+  () => props.open,
+  (newVal) => {
+    if (newVal) {
+      document.addEventListener('keydown', handleKeydown);
+    } else {
+      document.removeEventListener('keydown', handleKeydown);
+    }
+  },
+  { immediate: true },
+);
+
+import { onBeforeUnmount } from 'vue';
+onBeforeUnmount(() => {
+  document.removeEventListener('keydown', handleKeydown);
+});
 
 defineExpose({ menuEl: desktopMenuEl, startClose });
 
@@ -100,7 +221,7 @@ function onTouchStart(e: TouchEvent) {
   const target = e.target as HTMLElement;
   isDragFromHandle = !!target.closest('[data-drag-handle]');
   const isInsideSheet = sheetEl.value.contains(target);
-  
+
   // If inside sheet, not on handle, and we are scrolled down, let the native scroll handle it
   if (isInsideSheet && !isDragFromHandle && sheetEl.value.scrollTop > 0) return;
 
@@ -118,12 +239,16 @@ function onTouchStart(e: TouchEvent) {
 function onTouchMove(e: TouchEvent) {
   if (!isDragging || !sheetEl.value) return;
   const touch = e.touches[0];
-  
+
   const deltaX = touch.clientX - dragStartX;
   const deltaY = touch.clientY - dragStartY;
 
   // Determine if it's a horizontal swipe on the first move
-  if (currentDragY === 0 && Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 5) {
+  if (
+    currentDragY === 0 &&
+    Math.abs(deltaX) > Math.abs(deltaY) &&
+    Math.abs(deltaX) > 5
+  ) {
     isHorizontalDrag = true;
     isDragging = false;
     return;
@@ -141,7 +266,7 @@ function onTouchMove(e: TouchEvent) {
     sheetEl.value.style.transition = 'none';
     return;
   }
-  
+
   if (deltaY > 0 && e.cancelable) {
     e.preventDefault();
   }
@@ -161,7 +286,7 @@ function onTouchMove(e: TouchEvent) {
 function onTouchEnd() {
   if (!isDragging || !sheetEl.value) return;
   isDragging = false;
-  
+
   const wasDrag = Math.abs(currentDragY) > 5;
   if (wasDrag) {
     dragHandled = true;
@@ -175,9 +300,10 @@ function onTouchEnd() {
 
   if (shouldDismiss) {
     isDraggingDismiss.value = true;
-    sheetEl.value.style.transition = 'transform 150ms cubic-bezier(0.32,0,0.67,1)';
+    sheetEl.value.style.transition =
+      'transform 150ms cubic-bezier(0.32,0,0.67,1)';
     sheetEl.value.style.transform = 'translateY(100%)';
-    
+
     const backdropEl = getBackdropEl();
     if (backdropEl) {
       backdropEl.style.transition = 'opacity 150ms ease';
@@ -200,15 +326,16 @@ function onTouchEnd() {
       }, 300);
     }, 150);
   } else {
-    sheetEl.value.style.transition = 'transform 200ms cubic-bezier(0.22,1,0.36,1)';
+    sheetEl.value.style.transition =
+      'transform 200ms cubic-bezier(0.22,1,0.36,1)';
     sheetEl.value.style.transform = 'translateY(0)';
-    
+
     const backdropEl = getBackdropEl();
     if (backdropEl) {
       backdropEl.style.transition = 'opacity 200ms ease';
       backdropEl.style.opacity = '1';
     }
-    
+
     setTimeout(() => {
       dragHandled = false;
       if (sheetEl.value) {
@@ -293,25 +420,56 @@ function onBackdropClick() {
           />
         </div>
 
-        <BaseButton
-          v-if="!isAtRoot"
-          variant="ghost"
-          on="ghost"
-          @click="popView"
-          :icon="ChevronLeft"
-          class="ml-1"
-          >{{ t('global.buttons.back') }}</BaseButton
+        <div
+          class="transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden"
+          :class="
+            !isAtRoot
+              ? 'max-h-[44px] opacity-100 pointer-events-auto mt-1'
+              : 'max-h-0 opacity-0 pointer-events-none mt-0'
+          "
         >
-
-        <div v-show="activeViewId === 'root'" class="p-1">
-          <slot></slot>
+          <BaseButton
+            variant="ghost"
+            on="ghost"
+            @click="popView"
+            :icon="ChevronLeft"
+            class="ml-1 w-fit"
+            >{{ t('global.buttons.back') }}</BaseButton
+          >
         </div>
 
         <div
-          v-show="activeViewId !== 'root'"
-          ref="submenuTarget"
-          class="p-1"
-        ></div>
+          class="relative overflow-hidden transition-[height] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] will-change-[height]"
+          :style="{
+            height: menuHeight === 'auto' ? 'auto' : `${menuHeight}px`,
+          }"
+        >
+          <div
+            class="w-full transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
+            :class="
+              activeViewId === 'root'
+                ? 'relative translate-x-0 opacity-100 pointer-events-auto'
+                : 'absolute top-0 left-0 -translate-x-8 opacity-0 pointer-events-none'
+            "
+            ref="rootViewEl"
+          >
+            <div class="p-1">
+              <slot></slot>
+            </div>
+          </div>
+
+          <div
+            class="w-full transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
+            :class="
+              activeViewId !== 'root'
+                ? 'relative translate-x-0 opacity-100 pointer-events-auto'
+                : 'absolute top-0 left-0 translate-x-8 opacity-0 pointer-events-none'
+            "
+            ref="subViewEl"
+          >
+            <div ref="submenuTarget" class="p-1"></div>
+          </div>
+        </div>
       </div>
     </Transition>
   </Teleport>

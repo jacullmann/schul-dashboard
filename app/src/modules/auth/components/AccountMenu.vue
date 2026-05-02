@@ -61,6 +61,8 @@ const {
     <Avatar
       :email="email"
       @click="toggle"
+      @keydown.enter="toggle"
+      @keydown.space.prevent="toggle"
       :aria-expanded="open"
       :title="'Account menu'"
     />
