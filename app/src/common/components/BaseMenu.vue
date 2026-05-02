@@ -200,7 +200,7 @@ function onTouchEnd() {
       }, 300);
     }, 150);
   } else {
-    sheetEl.value.style.transition = 'transform 200ms cubic-bezier(0.16,1,0.3,1)';
+    sheetEl.value.style.transition = 'transform 200ms cubic-bezier(0.22,1,0.36,1)';
     sheetEl.value.style.transform = 'translateY(0)';
     
     const backdropEl = getBackdropEl();
@@ -274,7 +274,7 @@ function onBackdropClick() {
       <div
         v-if="open"
         ref="sheetEl"
-        class="fixed bottom-0 left-0 right-0 z-[var(--z-tooltip)] bg-surface border-t border-surface-border rounded-t-2xl shadow-menu max-h-[85vh] overflow-y-auto overscroll-contain"
+        class="fixed bottom-0 left-0 right-0 z-[var(--z-tooltip)] bg-surface border-t border-surface-border rounded-t-2xl shadow-menu max-h-[85dvh] overflow-y-auto overscroll-contain"
         role="menu"
         aria-orientation="vertical"
         tabindex="-1"
