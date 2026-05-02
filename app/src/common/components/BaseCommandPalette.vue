@@ -115,11 +115,11 @@ function setSelectedIndex(idx: number) {
           spellcheck="false"
           class="flex-1 w-full p-0 rounded-none bg-transparent border-none outline-none shadow-none text-on-ghost text-base/4 placeholder:text-on-ghost-subtle"
         />
-        <BaseKbd class="hidden sm:inline-flex">Esc</BaseKbd>
+        <BaseKbd class="hidden! sm:inline-flex!">Esc</BaseKbd>
       </div>
 
       <!-- Results -->
-      <div class="max-h-105 overflow-y-auto py-2 custom-scrollbar">
+      <div class="max-h-105 overflow-y-auto">
         <slot
           :selected-index="selectedIndex"
           :set-selected-index="setSelectedIndex"
@@ -128,7 +128,7 @@ function setSelectedIndex(idx: number) {
 
       <!-- Footer hint -->
       <div
-        class="px-4 py-2.5 border-t border-surface-border flex items-center gap-4 text-xs text-on-ghost-muted"
+        class="hidden sm:flex px-4 py-2.5 border-t border-surface-border items-center gap-4 text-xs text-on-ghost-muted"
       >
         <BaseRow>
           <BaseKbd>↑</BaseKbd>

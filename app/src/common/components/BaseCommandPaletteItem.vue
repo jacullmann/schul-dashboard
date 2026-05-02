@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import { useWindowSize } from '@vueuse/core';
+
+const { width: windowWidth } = useWindowSize();
+
 defineProps<{
   active?: boolean;
   label: string;
@@ -17,10 +21,8 @@ defineEmits<{
 <template>
   <button
     :id="id"
-    class="command-palette-item w-full flex items-center gap-3 px-4 py-2.5 cursor-pointer border-none text-left transition-colors"
-    :class="
-      active ? 'bg-surface-hover' : 'bg-transparent hover:bg-surface-highlight'
-    "
+    class="w-full flex items-center gap-3 px-4 py-2.5 cursor-pointer border-none text-left transition-colors"
+    :class="windowWidth > 640 ? active ? 'bg-ghost-hover' : 'bg-transparent hover:bg-surface-highlight' : 'bg-transparent hover:bg-ghost-hover'"
     @click="$emit('click')"
     @mouseenter="$emit('mouseenter')"
   >
