@@ -22,6 +22,7 @@ const props = withDefaults(
 
 const emit = defineEmits<{
   (e: 'cancel'): void;
+  (e: 'close'): void;
 }>();
 
 const { width: vw } = useWindowSize();
@@ -106,6 +107,7 @@ const sheetEl = computed(() => sheetComponentRef.value?.sheetEl || null);
 
 function startClose() {
   emit('cancel');
+  emit('close');
 }
 
 // ── Keyboard Navigation (Arrow Keys) ────────────────────────
