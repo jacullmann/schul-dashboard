@@ -26,18 +26,24 @@ const filteredGames = computed(() => {
 </script>
 
 <template>
-  <div class="card rlc">
+  <div class="card">
     <div class="animate-fade-up">
-      <h2 class="mt-0 flex items-center gap-2">Spiele</h2>
+      <PageHeader class="mt-0 flex items-center gap-2">Spiele</PageHeader>
     </div>
     <div
-      class="flex flex-col items-center justify-center content-center overflow-hidden p-5 animate-fade-up"
+      class="flex flex-col items-center justify-center content-center overflow-hidden animate-fade-up"
       style="animation-delay: 0.05s; animation-fill-mode: both"
     >
-      <div class="w-full max-w-[380px] mb-[30px] left-0">
-        <BaseInput id="search-input" v-model="searchTag" placeholder="Suchen" />
-      </div>
-      <div class="grid gap-5 grid-cols-[repeat(auto-fill,minmax(320px,1fr))]">
+      <BaseInput
+        id="search-input"
+        class="mt-2 mb-16 mx-auto max-w-100"
+        v-model="searchTag"
+        placeholder="Suchen"
+      />
+
+      <div
+        class="grid w-full gap-4 grid-cols-[repeat(auto-fill,minmax(320px,1fr))]"
+      >
         <router-link
           v-for="(game, index) in filteredGames"
           :key="game.id"
@@ -49,28 +55,28 @@ const filteredGames = computed(() => {
           }"
         >
           <div
-            class="bg-canvas rounded-lg overflow-hidden h-full flex flex-col border border-canvas-border m-[35px] sm:m-0"
+            class="bg-surface rounded-xl overflow-hidden h-full flex flex-col border border-surface-border"
           >
             <img
               :src="game.previewImage"
               :alt="`Vorschau von ${game.name}`"
               class="w-full h-[200px] object-cover"
             />
-            <div class="p-4 flex-grow flex flex-col">
-              <h3 class="text-on-ghost mt-0 mb-2 text-[1.5em]">
+            <div class="px-4 py-3 flex-grow flex flex-col">
+              <h3>
                 {{ game.name }}
               </h3>
-              <p class="text-on-ghost-muted text-[0.9em] mb-4 flex-grow">
+              <p class="mt-1! mb-2! flex-grow">
                 {{ game.description }}
               </p>
-              <div class="mt-2.5">
-                <div
+              <div>
+                <span
                   v-for="tag in game.tags"
                   :key="tag"
-                  class="mr-1.5 text-[0.85em] p-1 px-2 rounded"
+                  class="text-on-ghost-muted text-sm font-medium"
                 >
-                  {{ tag }}
-                </div>
+                  {{ tag }}{{ tag === game.tags[game.tags.length - 1] ? '' : ', ' }}
+                </span>
               </div>
             </div>
           </div>

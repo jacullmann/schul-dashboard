@@ -136,6 +136,7 @@ onBeforeUnmount(() => {
     @mouseleave="hide"
     @focusin="show"
     @focusout="hide"
+    @click="immediateHide"
   >
     <slot></slot>
 

@@ -3,6 +3,7 @@ import { ref, watch, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { getGameById } from '@/modules/games/composables/GameData';
 import type { Game } from '@/modules/games/types';
+import { ChevronLeft } from '@lucide/vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -42,26 +43,14 @@ watch(
     </div>
 
     <div v-else class="p-5">
-      <router-link
-        to="/games"
-        class="inline-flex items-center gap-2 mb-5 text-on-ghost-muted transition-colors hover:text-on-ghost"
+      <BaseButton
+        variant="ghost"
+        on="ghost"
+        :icon="ChevronLeft"
+        @click="router.push('/games')"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path d="M19 12H5" />
-          <path d="m12 19-7-7 7-7" />
-        </svg>
         Zurück zur Spiele-Übersicht
-      </router-link>
+      </BaseButton>
 
       <div class="p-[30px] rounded-xl">
         <h1 class="mt-0 mb-2.5 text-on-ghost text-[2em]">{{ game.name }}</h1>

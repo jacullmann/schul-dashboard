@@ -9,7 +9,7 @@ export const games: Game[] = [
     component: defineAsyncComponent(() => import('../pages/TicTacToe.vue')),
     tags: ['Strategie', '2-Spieler'],
     previewImage:
-      'https://de.freepik.com/vektoren-kostenlos/haende-die-bleistifte-halten-um-tic-tac-toe-zu-spielen-leute-die-kreuze-und-nullen-im-einfachen-spiel-fuer-flache-vektorillustration-der-kinder-zeichnen-strategiekonzept-fuer-banner-website-design-oder-landing-webseite_27572532.htm#fromView=search&page=1&position=3&uuid=e6af000a-ae53-41a6-af38-9e50d8f66cd3&query=tik+tak+to',
+      'https://images.unsplash.com/photo-1668901382969-8c73e450a1f5?q=80&w=1160&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
   },
   {
     id: 'russisch-roulette',
@@ -20,7 +20,7 @@ export const games: Game[] = [
     ),
     tags: ['Strategie', 'Kein Glückspiel', 'Klassiker', 'Russisch'],
     previewImage:
-      'https://de.freepik.com/vektoren-kostenlos/vektor-realistische-kasino-roulette-rad-draufsicht-lokalisiert-auf-gruenem-pokertisch_11062552.htm#fromView=search&page=1&position=2&uuid=05fcfc04-f997-48e9-8031-923f917d68b0&query=russian+roulette',
+      'https://images.unsplash.com/photo-1594078807666-6af57bc52363?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
   },
   {
     id: 'rock-paper-scissors',
@@ -31,7 +31,7 @@ export const games: Game[] = [
     ),
     tags: ['Klassiker', 'Duell', 'Solo'],
     previewImage:
-      'https://de.freepik.com/vektoren-kostenlos/stein-papier-schere-banner_21002766.htm#fromView=search&page=1&position=1&uuid=86425b36-17a5-4ff8-b5d3-c968cadaf645&query=rock+paper+scissors',
+      'https://images.unsplash.com/photo-1605126511476-3284bef5af50?q=80&w=872&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
   },
   {
     id: 'cyber-snare',
@@ -39,7 +39,8 @@ export const games: Game[] = [
     description: 'Draw energy tethers to trap viruses in a neon CRT world.',
     component: defineAsyncComponent(() => import('../pages/CyberSnare.vue')),
     tags: ['Action', 'Arcade', 'Solo'],
-    previewImage: '',
+    previewImage:
+      'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
   },
   {
     id: 'memory-game',
@@ -58,7 +59,7 @@ export const games: Game[] = [
     component: defineAsyncComponent(() => import('../pages/SnakeGame.vue')),
     tags: ['Arcade', 'Klassiker', 'Action'],
     previewImage:
-      'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60',
+      'https://images.unsplash.com/photo-1472645977521-95bbf4f0a748?q=80&w=774&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
   },
   {
     id: 'whack-a-mole',
@@ -67,7 +68,7 @@ export const games: Game[] = [
     component: defineAsyncComponent(() => import('../pages/WhackAMole.vue')),
     tags: ['Reaktion', 'Spaß', 'Solo'],
     previewImage:
-      'https://images.unsplash.com/photo-1456926631375-92c8ce872def?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60',
+      'https://images.unsplash.com/photo-1651559316159-69315814fe1c?q=80&w=1450&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
   },
 ];
 
