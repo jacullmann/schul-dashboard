@@ -106,7 +106,7 @@ const popupStyle = computed(() => {
   let top = btnTop.value;
 
   const width = popupW.value || 180;
-  if (left + width > vw.value - 4) {
+  if (left + width > vw.value) {
     left = btnLeft.value - width;
   }
 
