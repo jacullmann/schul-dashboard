@@ -1,13 +1,9 @@
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue';
+import { ref, watch } from 'vue';
 import BaseTabs from '@/common/components/BaseTabs.vue';
 import InfoModal from '@/common/components/InfoModal.vue';
 
 const MAX_LENGTH = 5000;
-
-const reasonLength = computed(() => {
-  return props.reason?.length || 0;
-});
 
 const props = defineProps<{
   open: boolean;

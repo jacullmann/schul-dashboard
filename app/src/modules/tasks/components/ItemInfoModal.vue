@@ -5,7 +5,7 @@ import type { HwItem } from '@/modules/tasks/types';
 
 const props = defineProps<{
   open: boolean;
-  item: HwItem;
+  item: HwItem | null;
   isModOrAdmin: boolean;
   isSuperAdmin?: boolean;
 }>();
@@ -26,7 +26,7 @@ function formatDate(iso: string | undefined): string {
 }
 
 const showUpdated = computed(() => {
-  if (!props.item.createdAt || !props.item.updatedAt) return false;
+  if (!props.item?.createdAt || !props.item?.updatedAt) return false;
   const diff = Math.abs(
     new Date(props.item.updatedAt).getTime() -
       new Date(props.item.createdAt).getTime(),
@@ -48,7 +48,7 @@ const showUpdated = computed(() => {
             {{ t('school.tasks.items.menu.infoModal.createdAt') }}
           </dt>
           <dd class="m-0 text-base text-on-ghost font-medium">
-            {{ formatDate(item.createdAt) }}
+            {{ formatDate(item?.createdAt) }}
           </dd>
         </div>
 
@@ -57,7 +57,7 @@ const showUpdated = computed(() => {
             {{ t('school.tasks.items.menu.infoModal.updatedAt') }}
           </dt>
           <dd class="m-0 text-base text-on-ghost font-medium">
-            <span v-if="showUpdated">{{ formatDate(item.updatedAt) }}</span>
+            <span v-if="showUpdated">{{ formatDate(item?.updatedAt) }}</span>
             <span v-else class="text-on-ghost-muted">{{
               t('school.tasks.items.menu.infoModal.notEdited')
             }}</span>
@@ -69,12 +69,12 @@ const showUpdated = computed(() => {
             {{ t('school.tasks.items.menu.infoModal.createdBy') }}
           </dt>
           <dd class="m-0 text-base text-on-ghost font-medium">
-            {{ item.createdByName || 'Unbekannt' }}
+            {{ item?.createdByName || 'Unbekannt' }}
             <span
-              v-if="isSuperAdmin && item.createdByEmail"
+              v-if="isSuperAdmin && item?.createdByEmail"
               class="text-on-ghost-muted text-sm ml-0.5"
             >
-              ({{ item.createdByEmail }})
+              ({{ item?.createdByEmail }})
             </span>
           </dd>
         </div>

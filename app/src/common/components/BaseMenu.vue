@@ -100,8 +100,8 @@ watch(
 );
 
 // ── Expose desktop element + close trigger for consumers ─────
-const desktopMenuCardRef = ref<any>(null);
-const sheetComponentRef = ref<any>(null);
+const desktopMenuCardRef = ref<{ menuEl: HTMLElement | null } | null>(null);
+const sheetComponentRef = ref<{ sheetEl: HTMLElement | null } | null>(null);
 
 const desktopMenuEl = computed(() => desktopMenuCardRef.value?.menuEl || null);
 const sheetEl = computed(() => sheetComponentRef.value?.sheetEl || null);
