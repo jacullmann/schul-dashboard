@@ -129,13 +129,13 @@ onUnmounted(() => {
   >
     <div
       v-if="isExpanded"
-      class="md:hidden fixed inset-0 bg-black/50 z-(--z-modal-overlay)"
+      class="md:hidden fixed inset-0 bg-black/25 backdrop-blur-sm z-9999"
       @click="isExpanded = false"
     ></div>
   </transition>
 
   <aside
-    class="sidebar transition-all duration-200 ease-[cubic-bezier(0.4, 0, 0.2, 1)] flex flex-col justify-between shrink-0 overflow-hidden h-dvh p-3 bg-surface border-r border-surface-border z-(--z-modal)"
+    class="sidebar transition-all duration-200 ease-[cubic-bezier(0.4, 0, 0.2, 1)] flex flex-col justify-between shrink-0 overflow-hidden h-dvh p-3 bg-surface border-r border-surface-border z-100000"
     :class="[
       'md:sticky md:top-0',
       isExpanded ? 'md:w-64' : 'md:w-[61px]',
@@ -252,9 +252,7 @@ onUnmounted(() => {
     </div>
 
     <div class="flex flex-col w-full gap-1">
-      <div
-        class="flex w-full transition-all duration-200 justify-start ml-0.5"
-      >
+      <div class="flex w-full transition-all duration-200 justify-start ml-0.5">
         <AccountMenu
           v-if="user"
           :email="user.email"
