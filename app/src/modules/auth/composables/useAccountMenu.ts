@@ -89,8 +89,6 @@ export function useAccountMenu(
   function closeAnimated() {
     if (isMobile.value && refs.baseMenu.value) {
       refs.baseMenu.value.startClose();
-      // cancel() will be called via the @close event emitted by BaseMenu
-      // after the animation completes — do NOT call it here too.
     } else {
       cancel();
     }

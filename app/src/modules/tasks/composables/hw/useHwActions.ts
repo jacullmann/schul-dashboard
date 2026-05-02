@@ -216,7 +216,7 @@ export function useHwActions(
     );
   }
 
-  async function deleteItem(id: string) {
+  async function deleteItem(id: string, items: Ref<HwItem[]>) {
     const isConfirmed = await modalStore.confirm({
       title: 'Diesen Eintrag löschen?',
       content:
@@ -230,6 +230,7 @@ export function useHwActions(
     deletingEntry.value = true;
     try {
       await hw.delete(`/api/items/${id}`);
+      items.value = items.value.filter((item) => item.id !== id);
       handleSuccessAction('Eintrag gelöscht.');
     } catch (e: unknown) {
       const err = e as { response?: { data?: { error?: string } } };

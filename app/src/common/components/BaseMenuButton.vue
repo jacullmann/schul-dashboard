@@ -18,6 +18,7 @@ withDefaults(
     forceHover?: boolean;
     variant?: 'default' | 'danger';
     icon?: Component;
+    iconClasses?: string;
   }>(),
   {
     variant: 'default',
@@ -68,8 +69,9 @@ defineExpose({
       <component
         :is="icon"
         v-if="icon"
-        :size="isMobile ? 20 : $slots.description ? 20 : 18"
+        :size="isMobile || $slots.description ? 20 : 18"
         class="shrink-0"
+        :class="iconClasses"
       />
       <span class="flex flex-col">
         <span

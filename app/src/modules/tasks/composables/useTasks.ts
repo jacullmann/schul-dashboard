@@ -209,7 +209,7 @@ export function useTasks() {
     openMenuId.value = null;
     if (action === 'images') return triggerImageUpload(item);
     if (action === 'edit') return editItem(item);
-    if (action === 'delete') return deleteItem(item.id);
+    if (action === 'delete') return deleteItem(item.id, items);
     if (action === 'report') return reportItem(item);
   }
 
