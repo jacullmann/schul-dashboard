@@ -100,9 +100,11 @@ onClickOutside(
       :class="[
         form
           ? 'transition-focus ' +
-            (isOpen ? 'border-focus shadow-focus-ring' : '')
+            (isOpen ? 'border-focus! shadow-focus-ring!' : '')
           : isOpen
-            ? `bg-${on}-hover! text-on-${on}!`
+            ? props.on === 'ghost'
+              ? 'bg-ghost-hover! text-on-ghost!'
+              : 'bg-action-hover! text-on-action!'
             : '',
         classes,
       ]"
