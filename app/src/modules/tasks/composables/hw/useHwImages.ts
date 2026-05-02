@@ -1,19 +1,10 @@
 import { ref, reactive } from 'vue';
-import type { Ref } from 'vue';
 import type { HwItem, ImageItem } from '@/modules/tasks/types';
 import { useModalStore } from '@/stores/modalStore';
 import { useToast } from '@/common/composables/useToast';
+import type { HwContext } from './types';
 
-export function useHwImages(
-  user: Ref<Record<string, unknown> | null>,
-  imageUpload: ReturnType<
-    typeof import('@/modules/tasks/composables/useImageUpload').useImageUpload
-  >,
-  refreshItem: (
-    itemId: string,
-    onUpdate?: (item: HwItem) => void,
-  ) => Promise<void>,
-) {
+export function useHwImages(ctx: HwContext, imageUpload: any) {
   const showImageViewer = ref(false);
   const viewerImages = ref<HwItem['images']>([]);
   const viewerStartIndex = ref(0);
@@ -53,7 +44,7 @@ export function useHwImages(
   }
 
   function openImageMenu(event: MouseEvent, item: HwItem, img: ImageItem) {
-    if (!user.value) return;
+    if (!ctx.user.value) return;
     imageMenu.item = item;
     imageMenu.image = img;
     imageMenu.x = event.clientX;
@@ -89,7 +80,6 @@ export function useHwImages(
   async function triggerImageDelete() {
     if (!imageMenu.image || !imageMenu.item || deletingImage.value) return;
 
-    // Store references before closing
     const targetImage = imageMenu.image;
     const targetItem = imageMenu.item;
 
@@ -107,9 +97,7 @@ export function useHwImages(
     deletingImage.value = true;
     try {
       await imageUpload.removeImg(targetImage, targetItem.id);
-      await refreshItem(targetItem.id, (newData) => {
-        // Since we closed the menu, we don't need to update imageMenu.item
-      });
+      await ctx.refreshItem(targetItem.id);
       useToast().success('Bild gelöscht.', 3000);
     } catch {
       useToast().error('Fehler beim Löschen des Bildes.', 4000);

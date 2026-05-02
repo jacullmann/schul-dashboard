@@ -1,20 +1,14 @@
 import { onUnmounted, ref } from 'vue';
-import type { Ref } from 'vue';
 import type { HwItem, ItemType } from '@/modules/tasks/types';
 import hw from '@/api/hwApi';
 import { useToast } from '@/common/composables/useToast';
 import { useItemForm } from '@/core/composables/useItemForm';
+import type { HwContext } from './types';
 
-export function useHwForms(
-  user: Ref<Record<string, unknown> | null>,
-  items: Ref<HwItem[]>,
-  reloadList: () => void,
-) {
+export function useHwForms(ctx: HwContext) {
   const { openItemForm, openEditForm, onFormSuccess } = useItemForm();
 
-  // Register reloadList to run whenever the global ItemForm emits success.
-  // Unregister on unmount so a dismounted Tasks page doesn't trigger stale reloads.
-  const unregister = onFormSuccess(reloadList);
+  const unregister = onFormSuccess(() => ctx.reloadList());
   onUnmounted(unregister);
 
   const editingNoteForId = ref<string | null>(null);
@@ -34,7 +28,7 @@ export function useHwForms(
   }
 
   function canEditNote() {
-    return user.value?.role === 'superadmin';
+    return ctx.user.value?.role === 'superadmin';
   }
 
   function startEditNote(item: HwItem) {
@@ -56,16 +50,15 @@ export function useHwForms(
         editorNote: noteEditContent.value,
       });
 
-      const item = items.value.find((i) => i.id === itemId);
+      const item = ctx.items.value.find((i) => i.id === itemId);
       if (item) item.editorNote = noteEditContent.value;
 
       useToast().success('Anmerkung gespeichert.');
       editingNoteForId.value = null;
       noteEditContent.value = '';
-    } catch (e: unknown) {
-      const err = e as { response?: { data?: { error?: string } } };
+    } catch (e: any) {
       useToast().error(
-        err.response?.data?.error || 'Fehler beim Speichern der Anmerkung.',
+        e.response?.data?.error || 'Fehler beim Speichern der Anmerkung.',
       );
     } finally {
       savingNote.value = false;

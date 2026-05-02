@@ -1,5 +1,4 @@
-import { onMounted, watch, computed, ref } from 'vue';
-import { useEventListener } from '@vueuse/core';
+import { ref, computed, watch, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
@@ -12,6 +11,7 @@ import { formatSubjectDisplay } from '@/utils/subject-formatter';
 import type { HwItem, ItemType } from '@/modules/tasks/types';
 import { isValidType } from '@/modules/tasks/types';
 
+import type { HwContext } from './hw/types';
 import { useHwUi } from './hw/useHwUi';
 import { useHwList } from './hw/useHwList';
 import { useHwForms } from './hw/useHwForms';
@@ -30,149 +30,85 @@ export function useTasks() {
   const { user } = storeToRefs(userStore);
   const { t, te } = useI18n();
 
-  // Core states
   const tab = ref<ItemType>(
     isValidType(route.params.type) ? route.params.type : 'all',
   );
   const showOldEntries = ref(false);
   const subjectFilter = ref('');
   const showPersonalized = computed(() => user.value?.personalized ?? false);
-
   const activeGroupId = computed(
     () => (route.params.groupId as string) || null,
   );
 
-  // UI states
-  const {
-    openMenuId,
-    highlightedItemId,
-    expandedDescriptions,
-    revealedImages,
-    isExpanded,
-    toggleDescription,
-    toggleMenu,
-    onDocumentClick,
-    isRevealed,
-    revealImages,
-  } = useHwUi();
+  const items = ref<HwItem[]>([]);
+  const loadingList = ref(true);
+  const checksLoading = ref(true);
+  const pinsLoading = ref(true);
+  const initialLoad = ref(true);
+  const visibleCount = ref(5);
 
-  // Pinned
+  const checkedItems = ref(new Set<string>());
   const pinnedItems = ref(new Set<string>());
+  const archivedItems = ref(new Set<string>());
+  const keptItems = ref(new Set<string>());
   const dismissedItems = ref(new Set<string>());
 
-  // List
-  const {
-    items,
-    loading: listLoading,
-    checksLoading,
-    initialLoad: hwInitialLoad,
-    visibleCount,
-    checkedItems,
-    archivedItems,
-    keptItems,
-    filteredItems,
-    limitedItems,
-    setVisibleCount,
-    showMore,
-    showLess,
-    loadCheckedForMe,
-    loadVisibilityForMe,
-    reloadList,
-    refreshItem,
-    checkAndScrollToItem,
-  } = useHwList(
+  const expandedDescriptions = ref(new Set<string>());
+  const revealedImages = ref(new Set<string>());
+  const openMenuId = ref<string | null>(null);
+  const highlightedItemId = ref<string | null>(null);
+
+  const loading = computed(
+    () => loadingList.value || checksLoading.value || pinsLoading.value,
+  );
+
+  const ctx: HwContext = {
     user,
     tab,
     showOldEntries,
     subjectFilter,
-    pinnedItems,
+    activeGroupId,
     showPersonalized,
-    expandedDescriptions,
-    revealedImages,
-    highlightedItemId,
-  );
-
-  // Actions
-  const {
-    showReportConfirm,
-    reportReason,
+    items,
+    loading: loadingList,
+    checksLoading,
     pinsLoading,
-    loadPinnedForMe,
-    isChecked,
-    isPinned,
-    isArchived,
-    isKept,
-    toggleCheck,
-    togglePin,
-    toggleVisibility,
-    canEdit,
-    canDelete,
-    canDeleteImage,
-    deleteItem,
-    reportItem,
-    doReport,
-    cancelReport,
-    shareItem,
-  } = useHwActions(
-    user,
+    initialLoad,
+    visibleCount,
     checkedItems,
     pinnedItems,
     archivedItems,
     keptItems,
-    activeGroupId,
-    (msg) => useToast().success(msg),
-  );
+    dismissedItems,
+    expandedDescriptions,
+    revealedImages,
+    openMenuId,
+    highlightedItemId,
+    reloadList: async () => {},
+    refreshItem: async () => {},
+  };
+
+  const ui = useHwUi(ctx);
+  const list = useHwList(ctx);
+  const actions = useHwActions(ctx, (msg) => useToast().success(msg));
+
+  ctx.reloadList = list.reloadList;
+  ctx.refreshItem = list.refreshItem;
+
+  const forms = useHwForms(ctx);
+  const images = useHwImages(ctx, imageUpload);
 
   async function archiveItem(item: HwItem) {
     dismissedItems.value.add(item.id);
-    const cutoffIso = new Date().toISOString();
-    const success = await toggleVisibility(
+    const success = await actions.toggleVisibility(
       item,
       showOldEntries.value,
-      cutoffIso,
+      new Date().toISOString(),
     );
-    if (!success) {
-      dismissedItems.value.delete(item.id);
-    }
+    if (!success) dismissedItems.value.delete(item.id);
   }
 
-  // Forms
-  const {
-    editingNoteForId,
-    noteEditContent,
-    savingNote,
-    onItemFormError,
-    editItem,
-    openCreateFormByType,
-    canEditNote,
-    startEditNote,
-    cancelEditNote,
-    saveNote,
-  } = useHwForms(user, items, () => reloadList());
-
-  // Images
-  const {
-    showImageViewer,
-    viewerImages,
-    viewerStartIndex,
-    imageMenu,
-    currentUploadItemId,
-    openImageViewer,
-    closeImageViewer,
-    handleImageContextMenu,
-    openImageMenu,
-    closeImageMenu,
-    triggerImageUpload,
-    triggerImageDrop,
-    triggerImageDelete,
-    makeThumb,
-  } = useHwImages(user, imageUpload, refreshItem);
-
   const subjects = computed(() => subjectStore.availableSubjectKeys);
-
-  const loading = computed(
-    () => listLoading.value || checksLoading.value || pinsLoading.value,
-  );
   const hasLoadedOnce = ref(false);
 
   watch(
@@ -183,13 +119,12 @@ export function useTasks() {
     { immediate: true },
   );
 
-  const initialLoad = computed(
-    () => !hasLoadedOnce.value || hwInitialLoad.value,
+  const finalInitialLoad = computed(
+    () => !hasLoadedOnce.value || initialLoad.value,
   );
 
-  const getSubjectName = (subject: string) => {
-    return formatSubjectDisplay(subject, t, te);
-  };
+  const getSubjectName = (subject: string) =>
+    formatSubjectDisplay(subject, t, te);
 
   const getTypeLabel = (type: string) => {
     if (type === 'homework') return t('school.tasks.types.homework');
@@ -198,16 +133,13 @@ export function useTasks() {
     return type;
   };
 
-  const subjectOptions = computed(() => {
-    const defaultOption = { label: t('school.tasks.allsubjects'), value: '' };
-
-    const dynamicOptions = subjectStore.availableSubjectKeys.map((s) => ({
+  const subjectOptions = computed(() => [
+    { label: t('school.tasks.allsubjects'), value: '' },
+    ...subjectStore.availableSubjectKeys.map((s) => ({
       label: getSubjectName(s),
       value: s,
-    }));
-
-    return [defaultOption, ...dynamicOptions];
-  });
+    })),
+  ]);
 
   function goTab(t_type: ItemType) {
     router.push({
@@ -216,36 +148,22 @@ export function useTasks() {
     });
   }
 
-  async function onMenuAction(
-    action:
-      | 'images'
-      | 'edit'
-      | 'delete'
-      | 'report'
-      | 'pin'
-      | 'archive'
-      | 'share',
-    item: HwItem,
-  ) {
+  async function onMenuAction(action: string, item: HwItem) {
     openMenuId.value = null;
-
     if (action === 'archive') {
-      // Delay to allow the menu closing animation (150ms) to finish
-      // before the item is removed from the list (dismissedItems).
       await new Promise((resolve) => setTimeout(resolve, 200));
       return archiveItem(item);
     }
-
-    if (action === 'images') return triggerImageUpload(item);
-    if (action === 'edit') return editItem(item);
-    if (action === 'delete') return deleteItem(item.id, items);
-    if (action === 'report') return reportItem(item);
-    if (action === 'pin') return togglePin(item);
-    if (action === 'share') return shareItem(item);
+    if (action === 'images') return images.triggerImageUpload(item);
+    if (action === 'edit') return forms.editItem(item);
+    if (action === 'delete') return actions.deleteItem(item.id);
+    if (action === 'report') return actions.reportItem(item);
+    if (action === 'pin') return actions.togglePin(item);
+    if (action === 'share') return actions.shareItem(item);
   }
 
   function reload() {
-    return reloadList(route.params.itemId as string, () => {
+    return list.reloadList(route.params.itemId as string, () => {
       showOldEntries.value = true;
     });
   }
@@ -253,12 +171,8 @@ export function useTasks() {
   function resetFilters() {
     subjectFilter.value = '';
     showOldEntries.value = false;
-    if (tab.value !== 'all') {
-      goTab('all');
-    }
+    if (tab.value !== 'all') goTab('all');
   }
-
-  // --- Watchers ---
 
   watch([showOldEntries, tab, subjectFilter], () => {
     dismissedItems.value.clear();
@@ -276,7 +190,7 @@ export function useTasks() {
     () => route.params.itemId,
     async (newId) => {
       if (newId)
-        await checkAndScrollToItem(newId as string, () => {
+        await list.checkAndScrollToItem(newId as string, () => {
           showOldEntries.value = true;
         });
     },
@@ -308,23 +222,19 @@ export function useTasks() {
 
   watch([subjectFilter, tab, items], () => {
     if (!route.params.itemId) {
-      setVisibleCount(Math.min(5, filteredItems.value.length || 5));
+      list.setVisibleCount(Math.min(5, list.filteredItems.value.length || 5));
     }
   });
 
   watch(imageUpload.uploading, async (val, oldVal) => {
-    if (oldVal && !val && currentUploadItemId.value) {
+    if (oldVal && !val && images.currentUploadItemId.value) {
       if (imageUpload.uploadSuccess.value) {
-        await refreshItem(currentUploadItemId.value);
-      }
-
-      if (imageUpload.uploadError.value) {
-        useToast().error(imageUpload.uploadError.value);
-      } else if (imageUpload.uploadSuccess.value) {
+        await list.refreshItem(images.currentUploadItemId.value);
         useToast().success(t('school.tasks.itemForm.successUpload'));
+      } else if (imageUpload.uploadError.value) {
+        useToast().error(imageUpload.uploadError.value);
       }
-
-      currentUploadItemId.value = null;
+      images.currentUploadItemId.value = null;
     }
   });
 
@@ -333,9 +243,9 @@ export function useTasks() {
     async (newUser, oldUser) => {
       if (newUser && !oldUser) {
         await Promise.all([
-          loadCheckedForMe(),
-          loadPinnedForMe(),
-          loadVisibilityForMe(),
+          list.loadCheckedForMe(),
+          actions.loadPinnedForMe(),
+          list.loadVisibilityForMe(),
         ]);
         reload();
       }
@@ -350,17 +260,13 @@ export function useTasks() {
     { deep: true },
   );
 
-  // --- Lifecycle ---
-
-  useEventListener(document, 'click', onDocumentClick);
-
   onMounted(async () => {
     await subjectStore.loadSubjects();
     await Promise.all([
       reload(),
-      loadCheckedForMe(),
-      loadPinnedForMe(),
-      loadVisibilityForMe(),
+      list.loadCheckedForMe(),
+      actions.loadPinnedForMe(),
+      list.loadVisibilityForMe(),
     ]);
   });
 
@@ -372,64 +278,64 @@ export function useTasks() {
     showPersonalized,
     showOldEntries,
     visibleCount,
-    limitedItems,
-    filteredItems,
-    showReportConfirm,
-    reportReason,
+    limitedItems: list.limitedItems,
+    filteredItems: list.filteredItems,
+    showReportConfirm: actions.showReportConfirm,
+    reportReason: actions.reportReason,
     tab,
     openMenuId,
-    isExpanded,
-    toggleDescription,
-    showMore,
-    showLess,
-    toggleMenu,
+    isExpanded: ui.isExpanded,
+    toggleDescription: ui.toggleDescription,
+    showMore: list.showMore,
+    showLess: list.showLess,
+    toggleMenu: ui.toggleMenu,
     onMenuAction,
-    onItemFormError,
-    canEdit,
-    canDelete,
-    canDeleteImage,
-    canEditNote,
-    editingNoteForId,
-    noteEditContent,
-    savingNote,
-    startEditNote,
-    cancelEditNote,
-    saveNote,
+    onItemFormError: forms.onItemFormError,
+    canEdit: actions.canEdit,
+    canDelete: actions.canDelete,
+    canDeleteImage: actions.canDeleteImage,
+    canEditNote: forms.canEditNote,
+    editingNoteForId: forms.editingNoteForId,
+    noteEditContent: forms.noteEditContent,
+    savingNote: forms.savingNote,
+    startEditNote: forms.startEditNote,
+    cancelEditNote: forms.cancelEditNote,
+    saveNote: forms.saveNote,
     goTab,
-    isChecked,
-    toggleCheck,
-    isPinned,
-    togglePin,
-    isArchived,
-    isKept,
-    toggleVisibility,
+    isChecked: actions.isChecked,
+    toggleCheck: actions.toggleCheck,
+    isPinned: actions.isPinned,
+    togglePin: actions.togglePin,
+    isArchived: actions.isArchived,
+    isKept: actions.isKept,
+    toggleVisibility: actions.toggleVisibility,
     archiveItem,
     pinnedItems,
     archivedItems,
     keptItems,
     dismissedItems,
-    makeThumb,
-    isRevealed,
-    revealImages,
+    makeThumb: images.makeThumb,
+    isRevealed: ui.isRevealed,
+    revealImages: ui.revealImages,
     onSetupSuccess: () => modalStore.openSetup(),
-    doReport,
-    cancelReport,
-    openCreateFormByType,
-    initialLoad,
-    imageMenu,
-    openImageMenu,
-    closeImageMenu,
-    triggerImageUpload,
-    triggerImageDrop,
-    triggerImageDelete,
-    showImageViewer,
-    viewerImages,
-    viewerStartIndex,
-    openImageViewer,
-    closeImageViewer,
-    shareItem,
+    doReport: actions.doReport,
+    cancelReport: actions.cancelReport,
+    openCreateFormByType: forms.openCreateFormByType,
+    initialLoad: finalInitialLoad,
+    imageMenu: images.imageMenu,
+    openImageMenu: images.openImageMenu,
+    closeImageMenu: images.closeImageMenu,
+    triggerImageUpload: images.triggerImageUpload,
+    triggerImageDrop: images.triggerImageDrop,
+    triggerImageDelete: images.triggerImageDelete,
+    showImageViewer: images.showImageViewer,
+    viewerImages: images.viewerImages,
+    viewerStartIndex: images.viewerStartIndex,
+    openImageViewer: images.openImageViewer,
+    closeImageViewer: images.closeImageViewer,
+    shareItem: actions.shareItem,
     highlightedItemId,
-    handleImageContextMenu,
+    handleImageContextMenu: images.handleImageContextMenu,
     subjectOptions,
     getSubjectName,
     getTypeLabel,

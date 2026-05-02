@@ -19,208 +19,168 @@ export function usePrivateTasks() {
   const loading = ref(false);
   const openMenuId = ref<string | null>(null);
 
-  const sortDisplayList = (data: PrivateTask[]): PrivateTask[] => {
-    return [...data].sort((a, b) => {
+  const sortDisplayList = (data: PrivateTask[]) =>
+    [...data].sort((a, b) => {
       const posA = a.position || null;
       const posB = b.position || null;
-
-      // Both have fractional-index positions: compare lexicographically
-      if (posA && posB) {
-        if (posA < posB) return -1;
-        if (posA > posB) return 1;
-        return 0;
-      }
-
-      // One has a position, the other doesn't: positioned items come first
+      if (posA && posB) return posA < posB ? -1 : posA > posB ? 1 : 0;
       if (posA && !posB) return -1;
       if (!posA && posB) return 1;
-
-      // Neither has a position: fall back to incomplete-first, then newest-first
       if (a.completed !== b.completed) return a.completed ? 1 : -1;
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
+
+  const syncState = () => {
+    displayPrivateTasks.value = sortDisplayList(privateTasks.value);
   };
 
-  function addPrivateTask(privateTask: PrivateTask) {
-    privateTasks.value.unshift(privateTask);
-    displayPrivateTasks.value = sortDisplayList(privateTasks.value);
-  }
+  const addPrivateTask = (task: PrivateTask) => {
+    privateTasks.value.unshift(task);
+    syncState();
+  };
 
-  function updatePrivateTask(updatedPrivateTask: PrivateTask) {
-    const index = privateTasks.value.findIndex(
-      (t) => t.id === updatedPrivateTask.id,
-    );
-    if (index !== -1) {
-      const currentPrivateTask = privateTasks.value[index]!;
-      privateTasks.value[index] = {
-        ...currentPrivateTask,
-        ...updatedPrivateTask,
-      };
-      displayPrivateTasks.value = sortDisplayList(privateTasks.value);
+  const updatePrivateTask = (task: PrivateTask) => {
+    const idx = privateTasks.value.findIndex((t) => t.id === task.id);
+    if (idx !== -1) {
+      const current = privateTasks.value[idx];
+      if (current) {
+        privateTasks.value[idx] = { ...current, ...task };
+        syncState();
+      }
     }
-  }
+  };
 
-  function toggleMenu(id: string) {
+  const toggleMenu = (id: string) => {
     openMenuId.value = openMenuId.value === id ? null : id;
-  }
+  };
 
   const closeMenu = () => {
     openMenuId.value = null;
   };
 
-  async function loadPrivateTasks() {
+  useEventListener(document, 'click', closeMenu);
+
+  const loadPrivateTasks = async () => {
     if (!user.value) return;
     loading.value = true;
     try {
       const { data } = await hw.get('/api/todos');
       privateTasks.value = data;
-      displayPrivateTasks.value = sortDisplayList(data);
-    } catch (error) {
+      syncState();
+    } catch {
       useToast().error(t('school.private.errorLoad'));
     } finally {
       loading.value = false;
     }
-  }
+  };
 
-  // Intentionally not updating displayPrivateTasks here to avoid entries jumping around visually.
-  async function togglePrivateTaskCompletion(privateTask: PrivateTask) {
-    const previousState = privateTask.completed;
-    privateTask.completed = !privateTask.completed;
+  const togglePrivateTaskCompletion = async (task: PrivateTask) => {
+    const previous = task.completed;
+    task.completed = !task.completed;
     try {
-      const { data } = await hw.patch(`/api/todos/${privateTask.id}/toggle`);
-      privateTask.updatedAt = data.updatedAt;
-
-      // Update the original privateTask array as well to ensure synchronization
-      const index = privateTasks.value.findIndex(
-        (t) => t.id === privateTask.id,
-      );
-      if (index !== -1) {
-        const currentPrivateTask = privateTasks.value[index]!;
-        privateTasks.value[index] = {
-          ...currentPrivateTask,
-          completed: privateTask.completed,
-          updatedAt: privateTask.updatedAt,
-        };
-      }
-    } catch (error: unknown) {
-      privateTask.completed = previousState;
-      const err = error as { response?: { data?: { error?: string } } };
-      useToast().error(err.response?.data?.error || t('global.errors.update'));
+      const { data } = await hw.patch(`/api/todos/${task.id}/toggle`);
+      updatePrivateTask({ ...task, updatedAt: data.updatedAt });
+    } catch (e: any) {
+      task.completed = previous;
+      useToast().error(e.response?.data?.error || t('global.errors.update'));
     }
-  }
+  };
 
-  async function duplicatePrivateTask(privateTask: PrivateTask) {
+  const duplicatePrivateTask = async (task: PrivateTask) => {
     loading.value = true;
-
-    // We exclude id, createdAt, and updatedAt so the backend creates a fresh entry
-    const duplicateData = {
-      title: privateTask.title, // Optional: adds "(Copy)" to title
-      description: privateTask.description,
-      completed: false, // Duplicates start as incomplete even if the original is completed
-    };
-
     try {
-      const { data } = await hw.post('/api/todos', duplicateData);
+      const { data } = await hw.post('/api/todos', {
+        title: task.title,
+        description: task.description,
+        completed: false,
+      });
       addPrivateTask(data);
       useToast().success(t('school.private.successDuplicate'));
-    } catch (error: unknown) {
-      const err = error as { response?: { data?: { error?: string } } };
+    } catch (e: any) {
       useToast().error(
-        err.response?.data?.error || t('school.private.errorDuplicate'),
+        e.response?.data?.error || t('school.private.errorDuplicate'),
       );
     } finally {
       loading.value = false;
     }
-  }
+  };
 
-  async function deletePrivateTask(id: string) {
-    const isConfirmed = await modalStore.confirm({
-      title: t('school.tasks.items.menu.delete.title'),
-      content: t('school.private.deleteConfirm'),
-      submitText: t('global.buttons.delete'),
-      danger: true,
-    });
+  const deletePrivateTask = async (id: string) => {
+    if (
+      !(await modalStore.confirm({
+        title: t('school.tasks.items.menu.delete.title'),
+        content: t('school.private.deleteConfirm'),
+        submitText: t('global.buttons.delete'),
+        danger: true,
+      }))
+    )
+      return;
 
-    if (!isConfirmed) return;
-    const privateTaskIndex = privateTasks.value.findIndex((t) => t.id === id);
-    if (privateTaskIndex === -1) return;
-    const deletedPrivateTask = privateTasks.value[privateTaskIndex]!;
-    privateTasks.value.splice(privateTaskIndex, 1);
+    const idx = privateTasks.value.findIndex((t) => t.id === id);
+    if (idx === -1) return;
+
+    const backup = privateTasks.value[idx];
+    if (!backup) return;
+
+    privateTasks.value.splice(idx, 1);
+    syncState();
+
     try {
       await hw.delete(`/api/todos/${id}`);
-      displayPrivateTasks.value = sortDisplayList(privateTasks.value);
       useToast().success(t('school.private.successDelete'));
-    } catch (error: unknown) {
-      privateTasks.value.splice(privateTaskIndex, 0, deletedPrivateTask);
-      const err = error as { response?: { data?: { error?: string } } };
-      useToast().error(err.response?.data?.error || t('global.errors.delete'));
+    } catch (e: any) {
+      privateTasks.value.splice(idx, 0, backup);
+      syncState();
+      useToast().error(e.response?.data?.error || t('global.errors.delete'));
     }
-  }
+  };
 
-  async function reorderPrivateTask(
-    privateTaskId: string,
+  const reorderPrivateTask = async (
+    id: string,
     prevPosition: string | null,
     nextPosition: string | null,
-  ) {
-    const privateTaskIndex = privateTasks.value.findIndex(
-      (t) => t.id === privateTaskId,
-    );
-    if (privateTaskIndex === -1) return;
+  ) => {
+    const idx = privateTasks.value.findIndex((t) => t.id === id);
+    if (idx === -1) return;
 
-    // Optimistic UI update: apply a temporary position so the item visually
-    // moves immediately without waiting for the server.
-    // Moving up:   prevPosition=null (or real), nextPosition=item above → use nextPos prepended
-    // Moving down: prevPosition=item below, nextPosition=null (last slot) → use prevPos appended
-    const privateTask = privateTasks.value[privateTaskIndex]!;
-    if (prevPosition) {
-      privateTask.position = prevPosition + 'z'; // sits after prevPosition lexicographically
-    } else if (nextPosition) {
-      privateTask.position = nextPosition + '0'; // sits before nextPosition
-    }
+    const task = privateTasks.value[idx];
+    if (!task) return;
 
-    displayPrivateTasks.value = sortDisplayList(privateTasks.value);
+    if (prevPosition) task.position = prevPosition + 'z';
+    else if (nextPosition) task.position = nextPosition + '0';
+
+    syncState();
 
     try {
-      const { data } = await hw.patch(`/api/todos/${privateTaskId}/reorder`, {
+      const { data } = await hw.patch(`/api/todos/${id}/reorder`, {
         prevPosition,
         nextPosition,
       });
-      const updatedIndex = privateTasks.value.findIndex(
-        (t) => t.id === privateTaskId,
-      );
-      if (updatedIndex !== -1) {
-        const currentPrivateTask = privateTasks.value[updatedIndex]!;
-        privateTasks.value[updatedIndex] = {
-          ...currentPrivateTask,
-          position: data.position,
-          updatedAt: data.updatedAt,
-        };
-        displayPrivateTasks.value = sortDisplayList(privateTasks.value);
-      }
-    } catch (error: unknown) {
-      loadPrivateTasks(); // Reload on error to restore consistent state
-      const err = error as { response?: { data?: { error?: string } } };
-      useToast().error(err.response?.data?.error || t('global.errors.update'));
+      updatePrivateTask({
+        ...task,
+        position: data.position,
+        updatedAt: data.updatedAt,
+      });
+    } catch (e: any) {
+      void loadPrivateTasks();
+      useToast().error(e.response?.data?.error || t('global.errors.update'));
     }
-  }
+  };
 
-  useEventListener(document, 'click', closeMenu);
-
-  // Set up event listeners and watchers
   onMounted(() => {
     if (user.value) {
-      loadPrivateTasks();
+      void loadPrivateTasks();
     }
   });
 
   watch(
     user,
-    (newUser) => {
-      if (newUser) {
-        loadPrivateTasks();
+    (u) => {
+      if (u) {
+        void loadPrivateTasks();
       } else {
         privateTasks.value = [];
-        displayPrivateTasks.value = [];
+        syncState();
       }
     },
     { immediate: true },

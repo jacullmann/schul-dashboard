@@ -1,42 +1,46 @@
-import { ref, computed, nextTick } from 'vue';
-import type { Ref } from 'vue';
-import type { HwItem, ItemType } from '@/modules/tasks/types';
-import { getSubjectKey } from '@/types/subjects';
+import { computed, nextTick } from 'vue';
+import type { HwContext } from './types';
 import hw from '@/api/hwApi';
 import { useSubjectStore } from '@/stores/subjectStore';
+import { getSubjectKey } from '@/types/subjects';
 
-export function useHwList(
-  user: Ref<Record<string, unknown> | null>,
-  tab: Ref<ItemType>,
-  showOldEntries: Ref<boolean>,
-  subjectFilter: Ref<string>,
-  pinnedItems: Ref<Set<string>>,
-  showPersonalized: Ref<boolean>,
-  expandedDescriptions: Ref<Set<string>>,
-  revealedImages: Ref<Set<string>>,
-  highlightedItemId: Ref<string | null>,
-) {
+export function useHwList(ctx: HwContext) {
   const subjectStore = useSubjectStore();
-  const items = ref<HwItem[]>([]);
-  const loading = ref(true);
-  const initialLoad = ref(true);
-  const visibleCount = ref(5);
-  const checkedItems = ref(new Set<string>());
-  const archivedItems = ref(new Set<string>());
-  const keptItems = ref(new Set<string>());
-  const checksLoading = ref(true);
+
+  const userSubjects = computed(() => {
+    const subjects = new Set<string>();
+    if (
+      !ctx.showPersonalized.value ||
+      !ctx.user.value?.doneSetup ||
+      !Array.isArray(ctx.user.value.courses)
+    )
+      return subjects;
+
+    ctx.user.value.courses.forEach((c: any) => {
+      const subject = subjectStore.subjects.find((s) => s.id === c.subjectId);
+      if (!subject) return;
+      const course = subject.courses?.find((csc) => csc.id === c.courseId);
+      if (course) {
+        subjects.add(`${subject.name} - ${course.name}`);
+        if (subject.category === 'extra' && subject.courses?.length === 1) {
+          subjects.add(subject.name);
+        }
+      }
+    });
+    return subjects;
+  });
 
   const filteredItems = computed(() => {
-    const pins = pinnedItems.value;
-    const pinnedList: HwItem[] = [];
-    const unpinnedList: HwItem[] = [];
+    const pins = ctx.pinnedItems.value;
+    const pinnedList: typeof ctx.items.value = [];
+    const unpinnedList: typeof ctx.items.value = [];
 
-    for (const item of items.value) {
+    for (const item of ctx.items.value) {
       (pins.has(item.id) ? pinnedList : unpinnedList).push(item);
     }
 
     let list = unpinnedList;
-    const filter = subjectFilter.value;
+    const filter = ctx.subjectFilter.value;
 
     if (filter) {
       const parentCategories = ['enrichment', 'wpu1', 'wpu2'];
@@ -61,29 +65,9 @@ export function useHwList(
           );
     }
 
-    if (
-      showPersonalized.value &&
-      user.value?.doneSetup &&
-      Array.isArray(user.value.courses)
-    ) {
-      const userSubjects = new Set<string>();
-
-      user.value.courses.forEach((c: any) => {
-        const subject = subjectStore.subjects.find((s) => s.id === c.subjectId);
-        if (!subject) return;
-        const course = subject.courses?.find((csc) => csc.id === c.courseId);
-        if (course) {
-          userSubjects.add(`${subject.name} - ${course.name}`);
-          if (subject.category === 'extra' && subject.courses?.length === 1) {
-            userSubjects.add(subject.name);
-          }
-        }
-      });
-
+    if (ctx.showPersonalized.value && userSubjects.value.size > 0) {
       list = list.filter((item) => {
         const subjectLower = item.subject.toLowerCase();
-        // Check if the item's subject starts with a category that implies a course matching.
-        // We can do a simpler check: if this item is for a subject that has sub-courses (like WPU), check if user has it.
         const subjectName = subjectLower.split(' - ')[0]?.trim();
         const categoryMatch = subjectStore.subjects.find(
           (s) => s.name.toLowerCase() === subjectName,
@@ -95,7 +79,7 @@ export function useHwList(
           categoryMatch.courses &&
           categoryMatch.courses.length > 0
         ) {
-          return userSubjects.has(item.subject);
+          return userSubjects.value.has(item.subject);
         }
         return true;
       });
@@ -105,53 +89,54 @@ export function useHwList(
   });
 
   const limitedItems = computed(() =>
-    filteredItems.value.slice(0, visibleCount.value),
+    filteredItems.value.slice(0, ctx.visibleCount.value),
   );
 
   function setVisibleCount(count: number) {
-    visibleCount.value = count;
+    ctx.visibleCount.value = count;
   }
 
   function showMore() {
-    visibleCount.value = Math.min(
-      visibleCount.value + 5,
+    ctx.visibleCount.value = Math.min(
+      ctx.visibleCount.value + 5,
       filteredItems.value.length,
     );
   }
+
   function showLess() {
-    visibleCount.value = Math.max(5, visibleCount.value - 5);
+    ctx.visibleCount.value = Math.max(5, ctx.visibleCount.value - 5);
   }
 
   async function loadCheckedForMe() {
-    checksLoading.value = true;
-    if (!user.value) {
-      checkedItems.value = new Set();
-      checksLoading.value = false;
+    ctx.checksLoading.value = true;
+    if (!ctx.user.value) {
+      ctx.checkedItems.value = new Set();
+      ctx.checksLoading.value = false;
       return;
     }
     try {
       const { data } = await hw.get('/api/user/checks');
-      checkedItems.value = new Set(data.itemIds || []);
+      ctx.checkedItems.value = new Set(data.itemIds || []);
     } catch {
-      checkedItems.value = new Set();
+      ctx.checkedItems.value = new Set();
     } finally {
-      checksLoading.value = false;
+      ctx.checksLoading.value = false;
     }
   }
 
   async function loadVisibilityForMe() {
-    if (!user.value) {
-      archivedItems.value = new Set();
-      keptItems.value = new Set();
+    if (!ctx.user.value) {
+      ctx.archivedItems.value = new Set();
+      ctx.keptItems.value = new Set();
       return;
     }
     try {
       const { data } = await hw.get('/api/user/visibility');
-      archivedItems.value = new Set(data.archived || []);
-      keptItems.value = new Set(data.kept || []);
+      ctx.archivedItems.value = new Set(data.archived || []);
+      ctx.keptItems.value = new Set(data.kept || []);
     } catch {
-      archivedItems.value = new Set();
-      keptItems.value = new Set();
+      ctx.archivedItems.value = new Set();
+      ctx.keptItems.value = new Set();
     }
   }
 
@@ -160,14 +145,14 @@ export function useHwList(
     forceOldEntries: () => void,
   ) {
     if (!targetId) {
-      highlightedItemId.value = null;
+      ctx.highlightedItemId.value = null;
       return;
     }
 
-    const existsInRaw = items.value.some((i) => i.id === targetId);
+    const existsInRaw = ctx.items.value.some((i) => i.id === targetId);
 
     if (!existsInRaw) {
-      if (!showOldEntries.value) {
+      if (!ctx.showOldEntries.value) {
         forceOldEntries();
         return;
       }
@@ -176,18 +161,18 @@ export function useHwList(
 
     let index = filteredItems.value.findIndex((i) => i.id === targetId);
 
-    if (index === -1 && subjectFilter.value) {
-      subjectFilter.value = '';
+    if (index === -1 && ctx.subjectFilter.value) {
+      ctx.subjectFilter.value = '';
       await nextTick();
       index = filteredItems.value.findIndex((i) => i.id === targetId);
     }
 
     if (index === -1) return;
 
-    highlightedItemId.value = targetId;
+    ctx.highlightedItemId.value = targetId;
 
-    if (index >= visibleCount.value) {
-      visibleCount.value = index + 5;
+    if (index >= ctx.visibleCount.value) {
+      ctx.visibleCount.value = index + 5;
       await nextTick();
     }
 
@@ -199,32 +184,32 @@ export function useHwList(
     routeParamsItemId?: string,
     forceOldEntries?: () => void,
   ) {
-    if ((tab.value as string) === 'PRIVATE') {
-      loading.value = false;
-      items.value = [];
-      expandedDescriptions.value = new Set();
-      revealedImages.value = new Set();
-      visibleCount.value = 5;
+    if ((ctx.tab.value as string) === 'PRIVATE') {
+      ctx.loading.value = false;
+      ctx.items.value = [];
+      ctx.expandedDescriptions.value = new Set();
+      ctx.revealedImages.value = new Set();
+      ctx.visibleCount.value = 5;
       return;
     }
 
-    loading.value = true;
-    const params: Record<string, string> = { type: tab.value };
-    if (showOldEntries.value) params.filter = 'old';
+    ctx.loading.value = true;
+    const params: Record<string, string> = { type: ctx.tab.value };
+    if (ctx.showOldEntries.value) params.filter = 'old';
 
     try {
       const { data } = await hw.get('/api/items', { params });
-      items.value = data;
-      expandedDescriptions.value = new Set();
-      revealedImages.value = new Set();
+      ctx.items.value = data;
+      ctx.expandedDescriptions.value = new Set();
+      ctx.revealedImages.value = new Set();
     } catch (e) {
       console.error('Failed to load items:', e);
     } finally {
-      loading.value = false;
-      initialLoad.value = false;
+      ctx.loading.value = false;
+      ctx.initialLoad.value = false;
 
       if (!routeParamsItemId) {
-        visibleCount.value = Math.min(5, filteredItems.value.length || 5);
+        ctx.visibleCount.value = Math.min(5, filteredItems.value.length || 5);
       }
 
       if (routeParamsItemId && forceOldEntries) {
@@ -233,15 +218,12 @@ export function useHwList(
     }
   }
 
-  async function refreshItem(
-    itemId: string,
-    onUpdate?: (item: HwItem) => void,
-  ) {
+  async function refreshItem(itemId: string, onUpdate?: (item: any) => void) {
     try {
       const { data } = await hw.get(`/api/items/${itemId}`);
-      const index = items.value.findIndex((i) => i.id === itemId);
+      const index = ctx.items.value.findIndex((i) => i.id === itemId);
       if (index !== -1) {
-        items.value[index] = data;
+        ctx.items.value[index] = data;
       }
       if (onUpdate) onUpdate(data);
     } catch (e) {
@@ -250,14 +232,6 @@ export function useHwList(
   }
 
   return {
-    items,
-    loading,
-    checksLoading,
-    initialLoad,
-    visibleCount,
-    checkedItems,
-    archivedItems,
-    keptItems,
     filteredItems,
     limitedItems,
     setVisibleCount,

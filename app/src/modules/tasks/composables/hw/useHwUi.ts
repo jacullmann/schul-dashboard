@@ -1,42 +1,36 @@
-import { ref } from 'vue';
+import { useEventListener } from '@vueuse/core';
+import type { HwContext } from './types';
 
-export function useHwUi() {
-  const openMenuId = ref<string | null>(null);
-  const highlightedItemId = ref<string | null>(null);
-  const expandedDescriptions = ref<Set<string>>(new Set());
-  const revealedImages = ref<Set<string>>(new Set());
-
+export function useHwUi(ctx: HwContext) {
   function isExpanded(id: string) {
-    return expandedDescriptions.value.has(id);
+    return ctx.expandedDescriptions.value.has(id);
   }
 
   function toggleDescription(id: string) {
-    if (expandedDescriptions.value.has(id))
-      expandedDescriptions.value.delete(id);
-    else expandedDescriptions.value.add(id);
+    if (ctx.expandedDescriptions.value.has(id))
+      ctx.expandedDescriptions.value.delete(id);
+    else ctx.expandedDescriptions.value.add(id);
   }
 
   function toggleMenu(id: string) {
-    openMenuId.value = openMenuId.value === id ? null : id;
+    ctx.openMenuId.value = ctx.openMenuId.value === id ? null : id;
   }
 
   function onDocumentClick() {
-    if (openMenuId.value) openMenuId.value = null;
+    if (ctx.openMenuId.value) ctx.openMenuId.value = null;
   }
 
   function isRevealed(itemId: string) {
-    return revealedImages.value.has(itemId);
+    return ctx.revealedImages.value.has(itemId);
   }
 
   function revealImages(itemId: string) {
-    revealedImages.value.add(itemId);
+    ctx.revealedImages.value.add(itemId);
   }
 
+  useEventListener(document, 'click', onDocumentClick);
+
   return {
-    openMenuId,
-    highlightedItemId,
-    expandedDescriptions,
-    revealedImages,
     isExpanded,
     toggleDescription,
     toggleMenu,

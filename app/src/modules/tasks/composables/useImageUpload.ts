@@ -5,18 +5,12 @@ import type { ImageItem } from '@/modules/tasks/types';
 
 export type { ImageItem };
 
-// Module-level state so all callers share the same instance (mirrors Pinia store behaviour)
 const images = ref<ImageItem[]>([]);
 const uploading = ref(false);
 const uploadError = ref('');
 const uploadSuccess = ref(false);
 
 export function useImageUpload() {
-  // --- Actions ---
-
-  /**
-   * Initialize the composable with existing images from the entry
-   */
   function init(initialImages: ImageItem[] = []) {
     images.value = [...initialImages];
     uploading.value = false;
@@ -24,9 +18,6 @@ export function useImageUpload() {
     uploadSuccess.value = false;
   }
 
-  /**
-   * Helper to generate thumbnail URLs from a full Cloudinary URL
-   */
   function makeThumb(url?: string) {
     if (!url) return '';
     try {
@@ -43,56 +34,48 @@ export function useImageUpload() {
     }
   }
 
-  /**
-   * Upload an array of files. Can be called directly (e.g., from drag & drop).
-   * @param files - Array of File objects to upload
-   * @param isEditMode - Boolean indicating if we are editing an existing entry (affects max limits)
-   * @param itemId - (Optional) The ID of the item. If present, the new images are saved to the backend immediately.
-   */
   async function uploadFiles(
     files: File[],
     isEditMode: boolean,
     itemId?: string,
   ) {
+    if (files.length === 0) return;
+
     uploading.value = true;
     uploadError.value = '';
     uploadSuccess.value = false;
-
-    if (files.length === 0) {
-      uploading.value = false;
-      return;
-    }
 
     const TOTAL_MAX_IMAGES = 12;
     const PER_USER_MAX_IMAGES = 8;
     const MAX_IMAGES = isEditMode ? TOTAL_MAX_IMAGES : PER_USER_MAX_IMAGES;
 
-    const existingCount = (images.value || []).length;
-    const remaining = MAX_IMAGES - existingCount;
+    const remaining = MAX_IMAGES - (images.value || []).length;
 
     if (remaining <= 0) {
       uploadError.value = `Limit erreicht. Maximale Bilder: ${MAX_IMAGES}`;
       uploading.value = false;
       return;
     }
-    if (files.length > remaining) {
-      uploadError.value = `Zu viele Dateien ausgewählt. Du kannst noch ${remaining} Bild(er) hochladen.`;
-      uploading.value = false;
-      return;
-    }
-    // Enforce per-upload limit to prevent backend rejection if batch > user limit
-    if (files.length > PER_USER_MAX_IMAGES) {
+
+    const validFiles = files
+      .filter((f) => f.type.startsWith('image/'))
+      .slice(0, remaining);
+
+    if (validFiles.length > PER_USER_MAX_IMAGES) {
       uploadError.value = `Maximal ${PER_USER_MAX_IMAGES} Bilder pro Upload erlaubt.`;
       uploading.value = false;
       return;
     }
 
-    for (const file of files) {
-      if (!file.type.startsWith('image/')) continue;
+    try {
+      // Process images concurrently for lightning-fast speeds
+      const processedFiles = await Promise.all(
+        validFiles.map(processImageBeforeUpload),
+      );
 
-      try {
-        // 1. Prepare and Upload to Cloudinary
-        const processedFile = await processImageBeforeUpload(file);
+      // Upload sequentially or map to parallel? The backend's /api/items/uploads/sign might rate limit if fully parallel.
+      // Doing parallel uploads using Promise.allSettled.
+      const uploadTasks = processedFiles.map(async (processedFile) => {
         const { data: sign } = await hw.post('/api/items/uploads/sign');
         const form = new FormData();
         form.set('file', processedFile);
@@ -103,68 +86,58 @@ export function useImageUpload() {
 
         const res = await fetch(
           `https://api.cloudinary.com/v1_1/${sign.cloudName}/image/upload`,
-          { method: 'POST', body: form },
+          {
+            method: 'POST',
+            body: form,
+          },
         );
+
+        if (!res.ok) throw new Error('Cloudinary Upload failed');
         const json = await res.json();
 
-        if (json.secure_url && json.public_id) {
-          const metadata = {
-            version: json.version,
-            format: json.format,
-            width: json.width,
-            height: json.height,
-          };
+        if (!json.secure_url || !json.public_id)
+          throw new Error('Invalid upload response');
 
-          const imgPayload = {
-            publicId: json.public_id,
-            metadata,
-          };
+        const metadata = {
+          version: json.version,
+          format: json.format,
+          width: json.width,
+          height: json.height,
+        };
 
-          // 2. If we have an itemId, save to backend immediately using the correct POST route
-          if (itemId) {
-            try {
-              const { data } = await hw.post(`/api/items/${itemId}/images`, {
-                image: imgPayload,
-              });
-              // Add the returned image (with correct createdBy + dynamically built URLs) to local state
-              images.value.push(data.image);
-              uploadError.value = '';
-              uploadSuccess.value = true;
-            } catch (e: unknown) {
-              console.error('Failed to save image to item:', e);
-              const err = e as { response?: { data?: { error?: string } } };
-              uploadError.value =
-                err.response?.data?.error || 'Speichern fehlgeschlagen.';
-            }
-          } else {
-            // Creating a new item: add to local state with preview URLs
-            images.value.push({
-              publicId: json.public_id,
-              url: json.secure_url,
-              thumbUrl: makeThumb(json.secure_url),
-              createdBy: '',
-              metadata,
-            });
-            uploadSuccess.value = true;
-          }
+        const imgPayload = { publicId: json.public_id, metadata };
+
+        if (itemId) {
+          const { data } = await hw.post(`/api/items/${itemId}/images`, {
+            image: imgPayload,
+          });
+          images.value.push(data.image);
         } else {
-          console.error('Cloudinary Upload failed', json);
-          uploadError.value = 'Upload in die Cloud fehlgeschlagen.';
+          images.value.push({
+            publicId: json.public_id,
+            url: json.secure_url,
+            thumbUrl: makeThumb(json.secure_url),
+            createdBy: '',
+            metadata,
+          });
         }
-      } catch (e: unknown) {
-        console.error('uploadFiles error', e);
-        uploadError.value = 'Fehler beim Upload.';
+      });
+
+      const results = await Promise.allSettled(uploadTasks);
+      const failures = results.filter((r) => r.status === 'rejected');
+
+      if (failures.length > 0) {
+        uploadError.value = 'Einige Bilder konnten nicht hochgeladen werden.';
+      } else {
+        uploadSuccess.value = true;
       }
+    } catch (e: any) {
+      uploadError.value = e.message || 'Fehler beim Upload.';
+    } finally {
+      uploading.value = false;
     }
-    uploading.value = false;
   }
 
-  /**
-   * Handles the file input creation, validation, signing, and uploading to Cloudinary.
-   * If itemId is provided, it immediately pushes the backend via POST.
-   * @param isEditMode - Boolean indicating if we are editing an existing entry (affects max limits)
-   * @param itemId - (Optional) The ID of the item. If present, the new images are saved to the backend immediately.
-   */
   async function uploadImage(isEditMode: boolean, itemId?: string) {
     uploading.value = true;
     uploadError.value = '';
@@ -187,29 +160,19 @@ export function useImageUpload() {
     input.click();
   }
 
-  /**
-   * Removes an image from the list and deletes it from the server if it belongs to an existing entry.
-   * @param img - The image object to remove
-   * @param parentId - The ID of the parent entry (props.initial.id) if it exists
-   */
   async function removeImg(
     img: { publicId: string; url?: string },
     parentId?: string,
   ) {
     if (parentId) {
       try {
-        // encode publicId so slashes are safe in the URL
         await hw.delete(
           `/api/items/${parentId}/images/${encodeURIComponent(img.publicId)}`,
         );
-
-        // remove locally
         images.value = images.value.filter((i) => i.publicId !== img.publicId);
-
         uploadError.value = 'Bild erfolgreich gelöscht.';
         setTimeout(() => (uploadError.value = ''), 3000);
-      } catch (e: unknown) {
-        console.error('Fehler beim Löschen des Bildes:', e);
+      } catch {
         uploadError.value = 'Fehler beim Löschen des Bildes.';
       }
     } else {

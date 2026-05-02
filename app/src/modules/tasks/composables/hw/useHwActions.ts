@@ -1,17 +1,11 @@
 import { ref } from 'vue';
-import type { Ref } from 'vue';
 import { useModalStore } from '@/stores/modalStore';
 import type { HwItem } from '@/modules/tasks/types';
 import hw from '@/api/hwApi';
-import { useToast } from '@/common/composables/useToast';
+import type { HwContext } from './types';
 
 export function useHwActions(
-  user: Ref<Record<string, unknown> | null>,
-  checkedItems: Ref<Set<string>>,
-  pinnedItems: Ref<Set<string>>,
-  archivedItems: Ref<Set<string>>,
-  keptItems: Ref<Set<string>>,
-  activeGroupId: Ref<string | null>,
+  ctx: HwContext,
   handleSuccessAction: (msg: string) => void,
 ) {
   const modalStore = useModalStore();
@@ -20,69 +14,59 @@ export function useHwActions(
   const showReportConfirm = ref(false);
   const reportReason = ref('');
   const reportTarget = ref<HwItem | null>(null);
-  const pinsLoading = ref(true);
+
+  const getConfig = () =>
+    ctx.activeGroupId.value
+      ? { headers: { 'x-tenant-id': ctx.activeGroupId.value } }
+      : {};
 
   async function loadPinnedForMe() {
-    pinsLoading.value = true;
-    if (!user.value) {
-      pinnedItems.value = new Set();
-      pinsLoading.value = false;
+    ctx.pinsLoading.value = true;
+    if (!ctx.user.value) {
+      ctx.pinnedItems.value = new Set();
+      ctx.pinsLoading.value = false;
       return;
     }
     try {
       const { data } = await hw.get('/api/user/pins');
-      pinnedItems.value = new Set(data.itemIds || []);
+      ctx.pinnedItems.value = new Set(data.itemIds || []);
     } catch {
-      pinnedItems.value = new Set();
+      ctx.pinnedItems.value = new Set();
     } finally {
-      pinsLoading.value = false;
+      ctx.pinsLoading.value = false;
     }
   }
 
   function isChecked(itemId: string) {
-    return checkedItems.value.has(itemId);
+    return ctx.checkedItems.value.has(itemId);
   }
   function isPinned(itemId: string) {
-    return pinnedItems.value.has(itemId);
+    return ctx.pinnedItems.value.has(itemId);
+  }
+  function isArchived(itemId: string) {
+    return ctx.archivedItems.value.has(itemId);
+  }
+  function isKept(itemId: string) {
+    return ctx.keptItems.value.has(itemId);
   }
 
   async function toggleCheck(item: HwItem) {
-    if (!user.value) return;
+    if (!ctx.user.value) return;
     const id = item.id;
     const wasChecked = isChecked(id);
 
-    // Optimistic update
-    if (wasChecked) {
-      checkedItems.value.delete(id);
-    } else {
-      checkedItems.value.add(id);
-    }
+    if (wasChecked) ctx.checkedItems.value.delete(id);
+    else ctx.checkedItems.value.add(id);
 
     try {
-      const config = activeGroupId.value
-        ? { headers: { 'x-tenant-id': activeGroupId.value } }
-        : {};
-      if (wasChecked) {
-        await hw.delete(`/api/user/items/${id}/check`, config);
-      } else {
-        await hw.post(`/api/user/items/${id}/check`, {}, config);
-      }
+      if (wasChecked)
+        await hw.delete(`/api/user/items/${id}/check`, getConfig());
+      else await hw.post(`/api/user/items/${id}/check`, {}, getConfig());
     } catch {
-      // Revert on failure
-      if (wasChecked) {
-        checkedItems.value.add(id);
-      } else {
-        checkedItems.value.delete(id);
-      }
-      useToast().error('Fehler beim Setzen des Status.', 4000);
+      if (wasChecked) ctx.checkedItems.value.add(id);
+      else ctx.checkedItems.value.delete(id);
+      handleSuccessAction('Fehler beim Setzen des Status.'); // fallback msg
     }
-  }
-
-  function isArchived(itemId: string) {
-    return archivedItems.value.has(itemId);
-  }
-  function isKept(itemId: string) {
-    return keptItems.value.has(itemId);
   }
 
   async function toggleVisibility(
@@ -94,105 +78,61 @@ export function useHwActions(
     let newStatus: 'archived' | 'kept' | null = null;
     const originalArchived = isArchived(id);
     const originalKept = isKept(id);
-
     const isNaturallyOld = item.dueDate < cutoffIso;
 
-    if (isOldEntriesView) {
-      // We are in the archive.
-      // If it's naturally old, swiping keeps it.
-      // If it's forced old (archived), swiping removes the archived status.
-      if (isNaturallyOld) {
-        newStatus = 'kept';
-      } else {
-        newStatus = null; // Remove forced archive
-      }
-    } else {
-      // We are in the active view.
-      // If it's naturally active, swiping archives it.
-      // If it's forced active (kept), swiping removes the kept status.
-      if (!isNaturallyOld) {
-        newStatus = 'archived';
-      } else {
-        newStatus = null; // Remove forced keep
-      }
-    }
+    if (isOldEntriesView) newStatus = isNaturallyOld ? 'kept' : null;
+    else newStatus = !isNaturallyOld ? 'archived' : null;
 
-    // Optimistic UI
-    archivedItems.value.delete(id);
-    keptItems.value.delete(id);
-    if (newStatus === 'archived') archivedItems.value.add(id);
-    if (newStatus === 'kept') keptItems.value.add(id);
+    ctx.archivedItems.value.delete(id);
+    ctx.keptItems.value.delete(id);
+    if (newStatus === 'archived') ctx.archivedItems.value.add(id);
+    if (newStatus === 'kept') ctx.keptItems.value.add(id);
 
-    if (!user.value) return true; // local only
+    if (!ctx.user.value) return true;
 
     try {
-      const config = activeGroupId.value
-        ? { headers: { 'x-tenant-id': activeGroupId.value } }
-        : {};
-      if (newStatus === null) {
-        await hw.delete(`/api/user/items/${id}/visibility`, config);
-      } else {
+      if (newStatus === null)
+        await hw.delete(`/api/user/items/${id}/visibility`, getConfig());
+      else
         await hw.post(
           `/api/user/items/${id}/visibility`,
           { status: newStatus },
-          config,
+          getConfig(),
         );
-      }
       return true;
     } catch {
-      // Revert
-      archivedItems.value.delete(id);
-      keptItems.value.delete(id);
-      if (originalArchived) archivedItems.value.add(id);
-      if (originalKept) keptItems.value.add(id);
-      useToast().error('Fehler bei der Statusänderung.', 4000);
+      ctx.archivedItems.value.delete(id);
+      ctx.keptItems.value.delete(id);
+      if (originalArchived) ctx.archivedItems.value.add(id);
+      if (originalKept) ctx.keptItems.value.add(id);
       return false;
     }
   }
 
   async function togglePin(item: HwItem) {
-    if (!user.value) return;
+    if (!ctx.user.value) return;
     const id = item.id;
     const wasPinned = isPinned(id);
 
-    // Optimistic update
-    const newPins = new Set(pinnedItems.value);
-    if (wasPinned) {
-      newPins.delete(id);
-    } else {
-      newPins.add(id);
-    }
-    pinnedItems.value = newPins;
+    if (wasPinned) ctx.pinnedItems.value.delete(id);
+    else ctx.pinnedItems.value.add(id);
 
     try {
-      const config = activeGroupId.value
-        ? { headers: { 'x-tenant-id': activeGroupId.value } }
-        : {};
-      if (wasPinned) {
-        await hw.delete(`/api/user/items/${id}/pin`, config);
-      } else {
-        await hw.post(`/api/user/items/${id}/pin`, {}, config);
-      }
+      if (wasPinned) await hw.delete(`/api/user/items/${id}/pin`, getConfig());
+      else await hw.post(`/api/user/items/${id}/pin`, {}, getConfig());
     } catch {
-      // Revert on failure
-      const revertedPins = new Set(pinnedItems.value);
-      if (wasPinned) {
-        revertedPins.add(id);
-      } else {
-        revertedPins.delete(id);
-      }
-      pinnedItems.value = revertedPins;
-      useToast().error('Fehler beim Setzen des Status.', 4000);
+      if (wasPinned) ctx.pinnedItems.value.add(id);
+      else ctx.pinnedItems.value.delete(id);
     }
   }
 
   function canEdit(createdBy: string) {
-    return user.value?.id === createdBy;
+    return ctx.user.value?.id === createdBy;
   }
 
   function canDelete(createdBy: string) {
-    if (!user.value) return false;
-    const u = user.value as any;
+    if (!ctx.user.value) return false;
+    const u = ctx.user.value as any;
     return (
       u.role === 'superadmin' ||
       u.tenantRole === 'admin' ||
@@ -205,8 +145,8 @@ export function useHwActions(
     itemCreatedBy: string | undefined,
     imageCreatedBy: string | undefined,
   ) {
-    if (!user.value) return false;
-    const u = user.value as any;
+    if (!ctx.user.value) return false;
+    const u = ctx.user.value as any;
     return (
       u.role === 'superadmin' ||
       u.tenantRole === 'admin' ||
@@ -216,7 +156,7 @@ export function useHwActions(
     );
   }
 
-  async function deleteItem(id: string, items: Ref<HwItem[]>) {
+  async function deleteItem(id: string) {
     const isConfirmed = await modalStore.confirm({
       title: 'Diesen Eintrag löschen?',
       content:
@@ -230,11 +170,10 @@ export function useHwActions(
     deletingEntry.value = true;
     try {
       await hw.delete(`/api/items/${id}`);
-      items.value = items.value.filter((item) => item.id !== id);
+      ctx.items.value = ctx.items.value.filter((item) => item.id !== id);
       handleSuccessAction('Eintrag gelöscht.');
-    } catch (e: unknown) {
-      const err = e as { response?: { data?: { error?: string } } };
-      useToast().error(err.response?.data?.error || 'Fehler beim Löschen.');
+    } catch (e: any) {
+      handleSuccessAction(e.response?.data?.error || 'Fehler beim Löschen.');
     } finally {
       deletingEntry.value = false;
     }
@@ -251,7 +190,7 @@ export function useHwActions(
     const item = reportTarget.value;
     const reason = reportReason.value;
     cancelReport();
-    useToast().info('Melde...', 10000);
+    handleSuccessAction('Melde...');
 
     try {
       await hw.post('/api/items/reports', {
@@ -260,12 +199,10 @@ export function useHwActions(
         category,
         reason,
       });
-      useToast().success('Eintrag gemeldet.', 7000);
-    } catch (e: unknown) {
-      const err = e as { response?: { data?: { error?: string } } };
-      useToast().error(
-        'Fehler beim Melden: ' + (err.response?.data?.error || ''),
-        { duration: 7000 },
+      handleSuccessAction('Eintrag gemeldet.');
+    } catch (e: any) {
+      handleSuccessAction(
+        'Fehler beim Melden: ' + (e.response?.data?.error || ''),
       );
     }
   }
@@ -290,14 +227,14 @@ export function useHwActions(
           url: shareUrl,
         });
       } catch (err) {
-        console.error('Teilen abgebrochen oder fehlgeschlagen:', err);
+        console.error('Teilen abgebrochen:', err);
       }
     } else {
       try {
         await navigator.clipboard.writeText(shareUrl);
-        useToast().success('Link in die Zwischenablage kopiert!', 3000);
+        handleSuccessAction('Link in die Zwischenablage kopiert!');
       } catch {
-        useToast().error('Teilen fehlgeschlagen.', 3000);
+        handleSuccessAction('Teilen fehlgeschlagen.');
       }
     }
   }
@@ -307,7 +244,6 @@ export function useHwActions(
     showReportConfirm,
     reportReason,
     reportTarget,
-    pinsLoading,
     loadPinnedForMe,
     isChecked,
     isPinned,

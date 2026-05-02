@@ -2,9 +2,7 @@ import { ref, watch, type Ref } from 'vue';
 import { usePointerSwipe, useElementBounding } from '@vueuse/core';
 
 export interface SwipeToDismissOptions {
-  /** Fraction of element width needed to trigger dismiss (0–1). Default: 0.35 */
   threshold?: number;
-  /** Called after the card slides off-screen and the height collapse should begin */
   onSlideOut: () => void;
 }
 
@@ -15,9 +13,7 @@ export function useSwipeToDismiss(
   const threshold = options.threshold ?? 0.35;
 
   const swipeOffset = ref(0);
-  // true while finger is dragging horizontally
   const isSwiping = ref(false);
-  // true while the card is flying off to the right
   const isDismissing = ref(false);
 
   let gestureLockedHorizontal = false;
@@ -36,8 +32,6 @@ export function useSwipeToDismiss(
     onSwipe() {
       if (isDismissing.value) return;
 
-      // usePointerSwipe: distanceX is positive when swiping LEFT.
-      // We want positive = right swipe.
       const dx = -distanceX.value;
       const dy = Math.abs(distanceY.value);
 
@@ -54,7 +48,6 @@ export function useSwipeToDismiss(
         return;
       }
 
-      // Only right swipe
       swipeOffset.value = Math.max(0, dx);
     },
     onSwipeEnd() {
@@ -67,7 +60,6 @@ export function useSwipeToDismiss(
         isDismissing.value = true;
         swipeOffset.value = elementWidth.value + 20;
 
-        // After the slide-out CSS transition ends, trigger the height collapse
         const el = target.value;
         if (!el) {
           options.onSlideOut();
@@ -81,7 +73,6 @@ export function useSwipeToDismiss(
         };
         el.addEventListener('transitionend', onTransitionEnd);
 
-        // Fallback in case transitionend doesn't fire
         setTimeout(() => {
           el.removeEventListener('transitionend', onTransitionEnd);
           options.onSlideOut();
