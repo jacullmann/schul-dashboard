@@ -250,7 +250,7 @@ export class GroupService {
             .in('tenant_id', tenantIds),
           sb
             .from('user_tenant_state')
-            .select('tenant_id, last_schedule_visit_at')
+            .select('tenant_id, last_schedule_visit_at, last_group_visit_at')
             .eq('user_id', userId)
             .in('tenant_id', tenantIds),
         ]);
@@ -279,6 +279,13 @@ export class GroupService {
           ]),
         );
 
+        const lastGroupVisitMap = new Map<string, string>(
+          (userStates || []).map((s: any) => [
+            s.tenant_id as string,
+            (s.last_group_visit_at as string) ?? EPOCH_ISO,
+          ]),
+        );
+
         for (const g of groups) {
           const hasUnreadAnn = (allAnnouncements || []).some(
             (a: any) => a.tenant_id === g.id && !readIds.has(a.id as string),
@@ -290,6 +297,12 @@ export class GroupService {
           );
           g.hasUnreadContent = hasUnreadAnn || hasNewSubs;
         }
+
+        groups.sort((a, b) => {
+          const aVisit = new Date(lastGroupVisitMap.get(a.id) ?? EPOCH_ISO).getTime();
+          const bVisit = new Date(lastGroupVisitMap.get(b.id) ?? EPOCH_ISO).getTime();
+          return bVisit - aVisit;
+        });
       }
 
       let activeGroup: (typeof groups)[number] | null =

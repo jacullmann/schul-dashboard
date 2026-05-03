@@ -110,7 +110,7 @@ onMounted(() => {
 <template>
   <div class="p-4 md:p-0">
     <!-- Welcome Banner -->
-    <section class="mb-8">
+    <section class="mb-4 md:mb-8">
       <div class="flex justify-between items-start gap-4">
         <div>
           <h2 class="animate-fade-up">
@@ -131,32 +131,34 @@ onMounted(() => {
         </div>
 
         <!-- Regular User: Join/Create Group -->
-        <div class="relative flex gap-2 shrink-0" v-if="userGroups.length > 0">
-          <BaseTooltip content="Add group" placement="bottom">
-            <BaseButton
-              @click="addGroup = true"
-              variant="action"
-              :icon="Plus"
-              class="animate-fade-up"
-            />
-          </BaseTooltip>
-          <BaseMenu
-            :open="addGroup"
-            @close="addGroup = false"
-            @cancel="addGroup = false"
-            class="right-0 top-full mt-2 min-w-[200px]"
-            ><BaseMenuButton
-              :icon="UserRoundPlus"
-              @click="(modalStore.openCreateGroup(), (addGroup = false))"
-              >{{ t('groups.home.joinGroup') }}</BaseMenuButton
-            >
-            <BaseMenuButton
-              :icon="Plus"
-              @click="(modalStore.openJoinGroup(), (addGroup = false))"
-              >{{ t('groups.home.createGroup') }}</BaseMenuButton
-            >
-          </BaseMenu>
-        </div>
+        <BaseTooltip
+          v-if="userGroups.length > 0"
+          content="Add group"
+          placement="bottom"
+        >
+          <BaseButton
+            @click="addGroup = true"
+            variant="action"
+            :icon="Plus"
+            class="animate-fade-up"
+          />
+        </BaseTooltip>
+        <BaseMenu
+          :open="addGroup"
+          @close="addGroup = false"
+          @cancel="addGroup = false"
+          class="right-0 top-full mt-2 min-w-[200px]"
+          ><BaseMenuButton
+            :icon="UserRoundPlus"
+            @click="(modalStore.openCreateGroup(), (addGroup = false))"
+            >{{ t('groups.home.joinGroup') }}</BaseMenuButton
+          >
+          <BaseMenuButton
+            :icon="Plus"
+            @click="(modalStore.openJoinGroup(), (addGroup = false))"
+            >{{ t('groups.home.createGroup') }}</BaseMenuButton
+          >
+        </BaseMenu>
       </div>
     </section>
 
@@ -167,7 +169,7 @@ onMounted(() => {
           {{ t('groups.home.yourGroups') }}
         </h2>
         <span
-          class="text-on-ghost-muted bg-surface rounded-full text-sm font-semibold px-2.5 py-0.5 animate-fade-up"
+          class="text-on-ghost-muted bg-ghost-hover rounded-full text-sm font-semibold px-2.5 py-0.5 animate-fade-up"
           >{{ userGroups.length }}</span
         >
       </div>
