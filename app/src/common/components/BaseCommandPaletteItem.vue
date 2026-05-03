@@ -27,7 +27,7 @@ defineEmits<{
         ? active
           ? 'bg-ghost-hover'
           : 'bg-transparent hover:bg-surface-highlight'
-        : 'bg-transparent hover:bg-ghost-hover'
+        : active ? 'bg-ghost-hover' : 'bg-transparent'
     "
     @click="$emit('click')"
     @mouseenter="$emit('mouseenter')"

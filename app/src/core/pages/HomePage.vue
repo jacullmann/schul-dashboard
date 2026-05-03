@@ -131,34 +131,32 @@ onMounted(() => {
         </div>
 
         <!-- Regular User: Join/Create Group -->
-        <BaseTooltip
-          v-if="userGroups.length > 0"
-          content="Add group"
-          placement="bottom"
-        >
-          <BaseButton
-            @click="addGroup = true"
-            variant="action"
-            :icon="Plus"
-            class="animate-fade-up"
-          />
-        </BaseTooltip>
-        <BaseMenu
-          :open="addGroup"
-          @close="addGroup = false"
-          @cancel="addGroup = false"
-          class="right-0 top-full mt-2 min-w-[200px]"
-          ><BaseMenuButton
-            :icon="UserRoundPlus"
-            @click="(modalStore.openCreateGroup(), (addGroup = false))"
-            >{{ t('groups.home.joinGroup') }}</BaseMenuButton
-          >
-          <BaseMenuButton
-            :icon="Plus"
-            @click="(modalStore.openJoinGroup(), (addGroup = false))"
-            >{{ t('groups.home.createGroup') }}</BaseMenuButton
-          >
-        </BaseMenu>
+        <div class="relative" v-if="userGroups.length > 0">
+          <BaseTooltip content="Add group" placement="bottom">
+            <BaseButton
+              @click="addGroup = true"
+              variant="action"
+              :icon="Plus"
+              class="animate-fade-up"
+            />
+          </BaseTooltip>
+          <BaseMenu
+            :open="addGroup"
+            @close="addGroup = false"
+            @cancel="addGroup = false"
+            class="right-0 top-full mt-2 min-w-[200px]"
+            ><BaseMenuButton
+              :icon="UserRoundPlus"
+              @click="(modalStore.openCreateGroup(), (addGroup = false))"
+              >{{ t('groups.home.joinGroup') }}</BaseMenuButton
+            >
+            <BaseMenuButton
+              :icon="Plus"
+              @click="(modalStore.openJoinGroup(), (addGroup = false))"
+              >{{ t('groups.home.createGroup') }}</BaseMenuButton
+            >
+          </BaseMenu>
+        </div>
       </div>
     </section>
 
