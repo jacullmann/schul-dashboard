@@ -155,7 +155,7 @@ async function onAuthSuccess() {
 
   <!-- OAuth: MFA overlay (shown after ?auth=mfa-pending) -->
   <Teleport to="body">
-    <Transition name="fade-scale">
+    <Transition name="fade-scale" appear>
       <MfaVerifyModal
         v-if="showMfaModal"
         @verified="
@@ -171,7 +171,7 @@ async function onAuthSuccess() {
 
   <!-- OAuth: error banner (shown after ?auth=error) -->
   <Teleport to="body">
-    <Transition name="fade-down">
+    <Transition name="fade-down" appear>
       <div v-if="oauthError" class="oauth-error-banner" role="alert">
         <span>{{ oauthError }}</span>
         <button
@@ -198,7 +198,7 @@ async function onAuthSuccess() {
 
   <!-- Global search modal (Ctrl/Cmd+K or sidebar button) -->
   <Teleport to="body">
-    <Transition name="fade-scale">
+    <Transition name="fade-scale" appear>
       <SearchModal v-if="searchOpen" @cancel="modalStore.closeSearch()" />
     </Transition>
   </Teleport>

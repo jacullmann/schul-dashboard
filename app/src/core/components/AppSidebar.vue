@@ -129,13 +129,13 @@ onUnmounted(() => {
   >
     <div
       v-if="isExpanded"
-      class="md:hidden fixed inset-0 bg-black/25 backdrop-blur-sm z-9999"
+      class="md:hidden fixed inset-0 bg-black/25 backdrop-blur-sm z-9997"
       @click="isExpanded = false"
     ></div>
   </transition>
 
   <aside
-    class="sidebar transition-all duration-200 ease-[cubic-bezier(0.4, 0, 0.2, 1)] flex flex-col justify-between shrink-0 overflow-hidden h-dvh p-3 bg-surface border-r border-surface-border z-10001"
+    class="sidebar transition-all duration-200 ease-[cubic-bezier(0.4, 0, 0.2, 1)] flex flex-col justify-between shrink-0 overflow-hidden h-dvh p-3 bg-surface border-r border-surface-border z-9998"
     :class="[
       'md:sticky md:top-0',
       isExpanded ? 'md:w-64' : 'md:w-[61px]',

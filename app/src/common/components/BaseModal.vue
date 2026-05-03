@@ -44,7 +44,7 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
 
 <template>
   <Teleport to="body">
-    <Transition name="fade-scale">
+    <Transition name="fade-scale" appear>
       <BaseModalCard
         v-if="open && (windowWidth > 768 || !sheet)"
         @cancel="handleCancel"

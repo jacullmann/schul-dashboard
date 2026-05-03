@@ -200,6 +200,7 @@ defineExpose({ sheetEl });
 <template>
   <Teleport to="body">
     <Transition
+      appear
       enter-active-class="animate-[fade-in_200ms_ease]"
       :leave-active-class="
         isDraggingDismiss ? '' : 'animate-[fade-out_280ms_ease_forwards]'
@@ -215,6 +216,7 @@ defineExpose({ sheetEl });
     </Transition>
 
     <Transition
+      appear
       enter-active-class="animate-[sheet-up_400ms_cubic-bezier(0.22,1,0.36,1)]"
       :leave-active-class="
         isDraggingDismiss

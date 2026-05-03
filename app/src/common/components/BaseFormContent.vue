@@ -18,6 +18,7 @@ const slots = defineSlots<{
     <slot></slot>
 
     <transition
+      appear
       enter-active-class="transition duration-150 ease-out"
       enter-from-class="opacity-0 -translate-y-1"
       enter-to-class="opacity-100 translate-y-0"
