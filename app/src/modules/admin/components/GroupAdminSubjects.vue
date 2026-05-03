@@ -125,7 +125,7 @@ onMounted(() => {
       <div
         v-for="(subject, index) in subjects"
         :key="subject.id"
-        class="flex items-center justify-between p-3 bg-surface border border-surface-border shadow-input rounded-lg gap-3 animate-fade-up"
+        class="flex items-center justify-between p-1 bg-surface border border-surface-border shadow-input rounded-xl gap-2 animate-fade-up"
         :style="{
           animationDelay: `${index * 0.075}s`,
           animationFillMode: 'both',
@@ -134,36 +134,29 @@ onMounted(() => {
       >
         <!-- Display mode -->
         <template v-if="editingId !== subject.id">
-          <div class="flex items-center gap-2 min-w-0">
-            <span
-              class="font-semibold text-base whitespace-nowrap overflow-hidden text-ellipsis"
-              >{{ subjectLabel(subject) }}</span
-            >
-            <span
-              class="text-[0.7rem] font-semibold uppercase tracking-[0.04em] flex-shrink-0"
-              :class="
-                subject.isActive ? 'text-on-ghost' : 'text-on-ghost-muted'
-              "
-            >
-              {{ subject.isActive ? 'Aktiv' : 'Inaktiv' }}
-            </span>
-          </div>
-          <BaseRow v-if="isAdmin" class="sm:w-full">
+          <span
+            class="font-medium text-base whitespace-nowrap overflow-hidden text-ellipsis ml-2"
+            >{{ subjectLabel(subject) }}</span
+          >
+          <BaseRow v-if="isAdmin" justify="end" class="flex-1">
             <BaseCheckbox
-              class="mx-2"
+              class="m-2"
               :model-value="subject.isActive"
               @change="handleToggleActive(subject, $event)"
             />
-            <BaseTooltip content="Umbenennen">
+            <BaseTooltip content="Umbenennen" placement="bottom">
               <BaseButton
                 variant="ghost"
+                size="sm"
                 @click="startRename(subject)"
                 :icon="Pencil"
+                g
               />
             </BaseTooltip>
-            <BaseTooltip content="Löschen">
+            <BaseTooltip content="Löschen" placement="bottom">
               <BaseButton
                 variant="ghost"
+                size="sm"
                 @click="deleteSubject(subject.id)"
                 :icon="Trash2"
               />

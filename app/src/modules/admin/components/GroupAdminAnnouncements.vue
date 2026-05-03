@@ -55,34 +55,35 @@ function formatDate(iso: string) {
       <div
         v-for="(ann, index) in announcements"
         :key="ann.id"
-        class="p-3.5 px-4 rounded-[10px] bg-surface border-l-[3px] animate-fade-up"
+        class="flex justify-between gap-2 p-1 rounded-xl bg-surface border border-surface-border border-l-[3px] animate-fade-up"
         :style="{
           animationDelay: `${index * 0.075}s`,
           animationFillMode: 'both',
         }"
         :class="[
           ann.color === 'info'
-            ? 'border-action'
+            ? 'border-l-action'
             : ann.color === 'warn'
-              ? 'border-warn'
+              ? 'border-l-warn'
               : ann.color === 'danger'
-                ? 'border-danger'
-                : 'border-canvas-border',
+                ? 'border-l-danger'
+                : 'border-l-canvas-border',
         ]"
       >
-        <div class="text-base/relaxed mb-2">{{ ann.content }}</div>
-        <div class="flex justify-between items-center">
-          <span class="text-sm text-on-ghost-muted">{{
+        <div class="flex flex-col ml-3 my-1">
+          <div class="text-base/relaxed text-on-ghost mb-2">{{ ann.content }}</div>
+          <span class="text-sm/relaxed text-on-ghost-muted">{{
             formatDate(ann.createdAt)
           }}</span>
-          <BaseTooltip :content="t('global.buttons.delete')" placement="bottom">
-            <BaseButton
-              variant="ghost"
-              @click="emit('delete', ann.id)"
-              :icon="Trash2"
-            />
-          </BaseTooltip>
         </div>
+        <BaseTooltip :content="t('global.buttons.delete')" placement="bottom">
+          <BaseButton
+            variant="ghost"
+            size="sm"
+            @click="emit('delete', ann.id)"
+            :icon="Trash2"
+          />
+        </BaseTooltip>
       </div>
     </div>
   </div>
