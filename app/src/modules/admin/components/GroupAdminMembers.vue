@@ -114,10 +114,7 @@ function confirmRemove() {
       </template>
     </PageHeader>
 
-    <div
-      v-if="loading && members.length === 0"
-      class="flex justify-center p-8"
-    >
+    <div v-if="loading && members.length === 0" class="flex justify-center p-8">
       <BaseSpinner />
     </div>
     <div
@@ -131,7 +128,7 @@ function confirmRemove() {
       <div
         v-for="(member, index) in members"
         :key="member.userId"
-        class="flex items-center justify-between p-2 px-3 bg-surface border border-surface-border shadow-input rounded-lg gap-3 sm:flex-col sm:items-start sm:gap-2 animate-fade-up"
+        class="flex items-center justify-between p-2 px-3 bg-surface border border-surface-border shadow-input rounded-xl gap-3 animate-fade-up"
         :style="{
           animationDelay: `${index * 0.075}s`,
           animationFillMode: 'both',
@@ -153,27 +150,7 @@ function confirmRemove() {
             {{ roleLabel(member.role) }}
           </span>
         </div>
-        <div class="flex items-center gap-2 flex-shrink-0 sm:w-full">
-          <BaseSelect
-            :modelValue="member.role"
-            @update:modelValue="(val: string) => onRoleChange(member, val)"
-            :disabled="member.role === 'admin' && !canDemoteAdmin"
-            :form="false"
-            classes="min-w-48"
-            :options="[
-              { label: 'Mitglied', value: 'user' },
-              { label: 'Moderator', value: 'moderator' },
-              { label: 'Admin', value: 'admin' },
-            ]"
-          />
-          <BaseTooltip content="Aus Gruppe entfernen" placement="bottom">
-            <BaseButton
-              variant="ghost"
-              @click="openRemoveModal(member.userId, member.generatedName)"
-              :disabled="member.role === 'admin'"
-              :icon="UserRoundMinus"
-            />
-          </BaseTooltip>
+        <div class="flex items-center gap-2 flex-shrink-0">
           <BaseTooltip
             v-if="isOwner && member.role === 'admin'"
             content="Eigentümerschaft übertragen"
@@ -185,6 +162,27 @@ function confirmRemove() {
               :icon="Crown"
             />
           </BaseTooltip>
+          <BaseTooltip content="Aus Gruppe entfernen" placement="bottom">
+            <BaseButton
+              variant="ghost"
+              @click="openRemoveModal(member.userId, member.generatedName)"
+              :disabled="member.role === 'admin'"
+              :icon="UserRoundMinus"
+            />
+          </BaseTooltip>
+
+          <BaseSelect
+            :modelValue="member.role"
+            @update:modelValue="(val: string) => onRoleChange(member, val)"
+            :disabled="member.role === 'admin' && !canDemoteAdmin"
+            :form="false"
+            classes="w-48!"
+            :options="[
+              { label: 'Mitglied', value: 'user' },
+              { label: 'Moderator', value: 'moderator' },
+              { label: 'Admin', value: 'admin' },
+            ]"
+          />
         </div>
       </div>
     </div>
@@ -207,7 +205,7 @@ function confirmRemove() {
       <div
         v-for="(user, index) in bannedUsers"
         :key="user.userId"
-        class="flex items-center justify-between p-2 px-3 bg-surface border border-surface-border shadow-input rounded-lg gap-3 animate-fade-up"
+        class="flex items-center justify-between p-2 px-3 bg-surface border border-surface-border shadow-input rounded-xl gap-3 animate-fade-up"
         :style="{
           animationDelay: `${index * 0.075}s`,
           animationFillMode: 'both',
