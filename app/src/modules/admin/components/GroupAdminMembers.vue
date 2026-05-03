@@ -233,7 +233,7 @@ function confirmRemove() {
     </div>
 
     <BaseModal
-      v-if="removeModal.isOpen"
+      :open="removeModal.isOpen"
       @cancel="closeRemoveModal"
       :danger="true"
       :submit="confirmRemove"
