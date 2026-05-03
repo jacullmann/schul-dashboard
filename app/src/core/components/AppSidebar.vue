@@ -8,6 +8,7 @@ import {
   CalendarDays,
   UsersRound,
   SlidersHorizontal,
+  Crown,
   Lock,
   Search,
 } from '@lucide/vue';
@@ -223,6 +224,15 @@ onUnmounted(() => {
           @click="
             withGroup(() => handleNavigation(`/groups/${activeGroupId}/admin`))
           "
+        />
+
+        <SidebarButton
+          v-if="isSuperadmin"
+          label="Superadmin"
+          :expanded="isExpanded"
+          :active="$route.path.startsWith('/admin')"
+          :icon="Crown"
+          @click="withGroup(() => handleNavigation('/admin'))"
         />
 
         <SidebarButton
