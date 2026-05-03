@@ -118,7 +118,7 @@ const getSliderStyle = (current: number, max: number) => {
         </div>
       </div>
 
-      <transition name="fade" mode="out-in">
+      <Transition name="fade" mode="out-in">
         <div v-if="currentView === 'home'" class="view-home">
           <section
             class="grid grid-cols-1 gap-4 mb-16 cursor-pointer"
@@ -285,7 +285,7 @@ const getSliderStyle = (current: number, max: number) => {
             </div>
           </div>
         </div>
-      </transition>
+      </Transition>
     </main>
   </div>
 </template>

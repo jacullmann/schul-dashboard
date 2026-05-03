@@ -24,7 +24,7 @@ const errorId = computed(() => `${props.id}-error`);
       <slot></slot>
     </div>
 
-    <transition
+    <Transition
       appear
       enter-active-class="transition duration-150 ease-out"
       enter-from-class="opacity-0 -translate-y-1"
@@ -42,6 +42,6 @@ const errorId = computed(() => `${props.id}-error`);
       >
         {{ error }}
       </span>
-    </transition>
+    </Transition>
   </div>
 </template>

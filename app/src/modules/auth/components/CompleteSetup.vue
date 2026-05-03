@@ -164,8 +164,8 @@ async function skip() {
         }}
       </p>
 
-      <div v-if="subjectStore.loading" class="text-sm text-on-ghost-muted mb-6">
-        Loading...
+      <div v-if="subjectStore.loading" class="flex justify-center mb-6">
+        <BaseSpinner />
       </div>
       <div v-else class="flex flex-col gap-5">
         <!-- Electives -->

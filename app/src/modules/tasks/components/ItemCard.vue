@@ -225,7 +225,7 @@ function onDrop(e: DragEvent) {
             </slot>
           </div>
 
-          <transition
+          <Transition
             @enter="onEnter"
             @after-enter="onAfterEnter"
             @leave="onLeave"
@@ -239,7 +239,7 @@ function onDrop(e: DragEvent) {
                 <slot name="badges"></slot>
               </BaseRow>
             </div>
-          </transition>
+          </Transition>
         </div>
 
         <slot name="actions-pre"></slot>
@@ -259,7 +259,7 @@ function onDrop(e: DragEvent) {
         <slot name="menu"></slot>
       </div>
 
-      <transition @enter="onEnter" @after-enter="onAfterEnter" @leave="onLeave">
+      <Transition @enter="onEnter" @after-enter="onAfterEnter" @leave="onLeave">
         <div
           v-show="!isCollapsed && ($slots.body || $slots['content-after'])"
           class="opacity-100 overflow-hidden"
@@ -274,7 +274,7 @@ function onDrop(e: DragEvent) {
             <slot name="content-after"></slot>
           </div>
         </div>
-      </transition>
+      </Transition>
     </div>
   </div>
 </template>

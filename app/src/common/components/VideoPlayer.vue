@@ -55,7 +55,7 @@ const {
     @mousemove="handleMouseMove"
     @mouseleave="handleMouseLeave"
   >
-    <transition name="fade">
+    <Transition name="fade">
       <div
         v-if="isFastForwarding"
         class="absolute top-[5%] left-1/2 -translate-x-1/2 bg-[rgba(0,0,0,0.6)] border border-[rgba(65,65,65,0.6)] px-4 py-2 rounded-full flex items-center gap-2 text-white pointer-events-none z-20"
@@ -71,7 +71,7 @@ const {
           aria-hidden="true"
         />
       </div>
-    </transition>
+    </Transition>
 
     <video
       ref="videoRef"

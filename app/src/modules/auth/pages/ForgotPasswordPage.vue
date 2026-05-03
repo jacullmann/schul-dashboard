@@ -240,7 +240,7 @@ async function handleNext() {
           />
         </div>
       </div>
-      <transition name="fade">
+      <Transition name="fade">
         <div
           v-if="message"
           class="text-sm p-3 rounded-md mt-4"
@@ -252,7 +252,7 @@ async function handleNext() {
         >
           {{ message }}
         </div>
-      </transition>
+      </Transition>
       <template #actions>
         <BaseButton type="button" variant="ghost" @click="goBackToLogin">
           {{ t('global.buttons.cancel') }}

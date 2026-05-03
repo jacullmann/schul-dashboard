@@ -119,7 +119,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <transition
+  <Transition
     enter-active-class="transition-opacity duration-200"
     enter-from-class="opacity-0"
     enter-to-class="opacity-100"
@@ -132,7 +132,7 @@ onUnmounted(() => {
       class="md:hidden fixed inset-0 bg-black/25 backdrop-blur-sm z-9997"
       @click="isExpanded = false"
     ></div>
-  </transition>
+  </Transition>
 
   <aside
     class="sidebar transition-all duration-200 ease-[cubic-bezier(0.4, 0, 0.2, 1)] flex flex-col justify-between shrink-0 overflow-hidden h-dvh p-3 bg-surface border-r border-surface-border z-9998"

@@ -116,9 +116,9 @@ function confirmRemove() {
 
     <div
       v-if="loading && members.length === 0"
-      class="text-center p-8 text-on-ghost-muted text-base"
+      class="flex justify-center p-8"
     >
-      Lädt...
+      <BaseSpinner />
     </div>
     <div
       v-else-if="members.length === 0"
@@ -193,9 +193,9 @@ function confirmRemove() {
 
     <div
       v-if="loadingBanned && (!bannedUsers || bannedUsers.length === 0)"
-      class="text-center p-8 text-on-ghost-muted text-base"
+      class="flex justify-center p-8"
     >
-      Loading...
+      <BaseSpinner />
     </div>
     <div
       v-else-if="!bannedUsers || bannedUsers.length === 0"

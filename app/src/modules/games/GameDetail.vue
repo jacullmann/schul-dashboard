@@ -39,7 +39,7 @@ watch(
 <template>
   <div class="card">
     <div v-if="!game">
-      <h3 class="text-center">Spiel wird geladen...</h3>
+      <BaseSpinner />
     </div>
 
     <div v-else class="p-5">

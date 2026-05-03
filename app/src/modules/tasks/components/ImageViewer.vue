@@ -92,7 +92,7 @@ watch(
 </script>
 
 <template>
-  <transition name="fade">
+  <Transition name="fade">
     <BaseBackdrop
       v-if="visible"
       class="z-[100002]"
@@ -117,7 +117,7 @@ watch(
         />
       </div>
 
-      <transition name="fade-controls">
+      <Transition name="fade-controls">
         <div v-show="controlsVisible" class="fixed inset-0 pointer-events-none">
           <button
             class="absolute top-4 right-4 pointer-events-auto bg-[rgba(0,0,0,0.6)] border-none text-white cursor-pointer p-2 rounded-full flex items-center justify-center transition-colors hover:bg-[rgba(0,0,0,0.4)] backdrop-blur-[4px]"
@@ -149,9 +149,9 @@ watch(
             {{ currentIndex + 1 }} / {{ images.length }}
           </div>
         </div>
-      </transition>
+      </Transition>
     </BaseBackdrop>
-  </transition>
+  </Transition>
 </template>
 
 <style>

@@ -17,7 +17,7 @@ const slots = defineSlots<{
   <div class="flex flex-col gap-4">
     <slot></slot>
 
-    <transition
+    <Transition
       appear
       enter-active-class="transition duration-150 ease-out"
       enter-from-class="opacity-0 -translate-y-1"
@@ -34,6 +34,6 @@ const slots = defineSlots<{
       >
         {{ error }}
       </span>
-    </transition>
+    </Transition>
   </div>
 </template>

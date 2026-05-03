@@ -159,7 +159,6 @@ onMounted(() => {
                   class="p-8 text-center text-on-ghost-subtle"
                 >
                   <BaseSpinner on="ghost" size="24" />
-                  <p>Loading article...</p>
                 </div>
 
                 <div v-else class="article-content">

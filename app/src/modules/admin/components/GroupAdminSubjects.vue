@@ -97,10 +97,11 @@ onMounted(() => {
         <BaseButton
           @click="handleCreate"
           :disabled="!newSubjectName.trim() || saving"
+          :loading="saving"
           variant="action"
           :icon="Plus"
         >
-          {{ saving ? 'Erstellt...' : 'Hinzufügen' }}
+          Hinzufügen
         </BaseButton>
       </div>
     </div>
@@ -108,9 +109,9 @@ onMounted(() => {
     <!-- Loading / Empty -->
     <div
       v-if="loading && subjects.length === 0"
-      class="text-center p-8 text-on-ghost-muted text-base"
+      class="flex justify-center p-8"
     >
-      Lädt...
+      <BaseSpinner />
     </div>
     <div
       v-else-if="subjects.length === 0"

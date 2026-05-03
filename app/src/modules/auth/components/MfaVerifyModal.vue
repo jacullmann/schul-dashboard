@@ -105,7 +105,7 @@ onMounted(() => {
         />
       </div>
 
-      <transition name="fade">
+      <Transition name="fade">
         <div
           v-if="error"
           class="flex items-center justify-center gap-2 text-danger text-sm"
@@ -113,9 +113,9 @@ onMounted(() => {
           <AlertCircle :size="16" />
           {{ error }}
         </div>
-      </transition>
+      </Transition>
 
-      <transition name="fade">
+      <Transition name="fade">
         <div
           v-if="attemptsRemaining !== null && attemptsRemaining <= 3"
           class="flex items-center justify-center gap-2 text-danger text-sm"
@@ -123,7 +123,7 @@ onMounted(() => {
           <AlertTriangle :size="16" />
           {{ t('account.mfa.verify.attemptsRemaining', attemptsRemaining) }}
         </div>
-      </transition>
+      </Transition>
 
       <div class="pt-4 border-t border-canvas-border">
         <p class="text-xs/relaxed text-on-ghost-muted text-center m-0">

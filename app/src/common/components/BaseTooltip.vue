@@ -141,7 +141,7 @@ onBeforeUnmount(() => {
     <slot></slot>
 
     <Teleport to="body">
-      <transition
+      <Transition
         :enter-active-class="transitionClasses.enter"
         :enter-from-class="transitionClasses.from"
         :enter-to-class="transitionClasses.to"
@@ -168,7 +168,7 @@ onBeforeUnmount(() => {
             />
           </div>
         </div>
-      </transition>
+      </Transition>
     </Teleport>
   </div>
 </template>
