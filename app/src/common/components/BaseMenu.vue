@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, provide, watch, nextTick, onBeforeUnmount } from 'vue';
-import { useWindowSize } from '@vueuse/core';
+import { useWindowSize, onClickOutside } from '@vueuse/core';
 import { ChevronLeft } from '@lucide/vue';
 import { MENU_SHEET_KEY } from '@/common/composables/useMenuContext';
 import { useI18n } from 'vue-i18n';
@@ -28,6 +28,25 @@ const emit = defineEmits<{
 
 const { width: vw } = useWindowSize();
 const isMobile = computed(() => vw.value < 768);
+
+// ── Expose desktop element + close trigger for consumers ─────
+const desktopMenuCardRef = ref<{ menuEl: HTMLElement | null } | null>(null);
+const sheetComponentRef = ref<{ sheetEl: HTMLElement | null } | null>(null);
+
+const desktopMenuEl = computed(() => desktopMenuCardRef.value?.menuEl || null);
+const sheetEl = computed(() => sheetComponentRef.value?.sheetEl || null);
+
+function startClose() {
+  emit('cancel');
+  emit('close');
+}
+
+// ── Click Outside (Desktop only) ─────────────────────────────
+onClickOutside(desktopMenuEl, () => {
+  if (props.open && !isMobile.value) {
+    startClose();
+  }
+});
 
 // ── Drill-down view stack (mobile only) ─────────────────────
 interface StackEntry {
@@ -99,21 +118,15 @@ watch(
   },
 );
 
-// ── Expose desktop element + close trigger for consumers ─────
-const desktopMenuCardRef = ref<{ menuEl: HTMLElement | null } | null>(null);
-const sheetComponentRef = ref<{ sheetEl: HTMLElement | null } | null>(null);
-
-const desktopMenuEl = computed(() => desktopMenuCardRef.value?.menuEl || null);
-const sheetEl = computed(() => sheetComponentRef.value?.sheetEl || null);
-
-function startClose() {
-  emit('cancel');
-  emit('close');
-}
-
-// ── Keyboard Navigation (Arrow Keys) ────────────────────────
+// ── Keyboard Navigation ─────────────────────────────────────
 function handleKeydown(e: KeyboardEvent) {
   if (!props.open) return;
+
+  // Escape key always closes the menu if it's open
+  if (e.key === 'Escape') {
+    startClose();
+    return;
+  }
 
   const target = e.target as HTMLElement;
   const isMenuInteraction =

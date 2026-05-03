@@ -25,6 +25,7 @@ const { user } = storeToRefs(userStore);
 const { activeGroupId, userGroups, switchActiveGroup } = useAppAuth();
 
 const loading = ref(false);
+const addGroup = ref(false);
 const navigatingGroupId = ref<string | null>(null);
 const allGroups = ref<
   Array<{ id: string; name: string; memberCount: number; created_at: string }>
@@ -110,9 +111,7 @@ onMounted(() => {
   <div class="p-4 md:p-0">
     <!-- Welcome Banner -->
     <section class="mb-8">
-      <div
-        class="flex justify-between items-start gap-4 sm:gap-6 max-sm:flex-col"
-      >
+      <div class="flex justify-between items-start gap-4">
         <div>
           <h2 class="animate-fade-up">
             {{ t(greeting) }}<span v-if="user">, </span
@@ -132,26 +131,31 @@ onMounted(() => {
         </div>
 
         <!-- Regular User: Join/Create Group -->
-        <div
-          class="flex gap-2 shrink-0 max-sm:w-full max-sm:flex-wrap [&>.btn]:max-sm:flex-1 [&>.btn]:max-sm:justify-center [&>.btn]:max-sm:min-w-0"
-          v-if="userGroups.length > 0"
-        >
-          <BaseButton
-            @click="modalStore.openJoinGroup()"
-            variant="action"
-            :icon="UserRoundPlus"
-            class="animate-fade-up"
-          >
-            <span>{{ t('groups.home.joinGroup') }}</span>
-          </BaseButton>
-          <BaseButton
-            @click="modalStore.openCreateGroup()"
-            variant="ghost"
-            :icon="Plus"
-            class="animate-fade-up"
-          >
-            <span>{{ t('groups.home.createGroup') }}</span>
-          </BaseButton>
+        <div class="relative flex gap-2 shrink-0" v-if="userGroups.length > 0">
+          <BaseTooltip content="Add group" placement="bottom">
+            <BaseButton
+              @click="addGroup = true"
+              variant="action"
+              :icon="Plus"
+              class="animate-fade-up"
+            />
+          </BaseTooltip>
+          <BaseMenu
+            :open="addGroup"
+            @close="addGroup = false"
+            @cancel="addGroup = false"
+            class="right-0 top-full mt-2 min-w-[200px]"
+            ><BaseMenuButton
+              :icon="UserRoundPlus"
+              @click="(modalStore.openCreateGroup(), (addGroup = false))"
+              >{{ t('groups.home.joinGroup') }}</BaseMenuButton
+            >
+            <BaseMenuButton
+              :icon="Plus"
+              @click="(modalStore.openJoinGroup(), (addGroup = false))"
+              >{{ t('groups.home.createGroup') }}</BaseMenuButton
+            >
+          </BaseMenu>
         </div>
       </div>
     </section>

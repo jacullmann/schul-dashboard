@@ -9,7 +9,7 @@ defineProps<{
 </script>
 
 <template>
-  <div class="px-6 py-12 text-center flex flex-col items-center">
+  <div class="py-12 text-center flex flex-col items-center">
     <component
       :is="icon"
       v-if="icon"
