@@ -102,12 +102,15 @@ const { width: popupW, height: popupH } = useElementBounding(menuRef);
 const popupStyle = computed(() => {
   if (!isOpen.value) return {};
 
-  let left = btnRight.value;
+  // Offset the submenu card so it doesn't overlap the trigger button.
+  // The 5px offset accounts for the BaseMenuCard's padding (p-1 = 4px) and border (1px).
+  const SUBMENU_X_OFFSET = 5;
+  let left = btnRight.value + SUBMENU_X_OFFSET;
   let top = btnTop.value;
 
   const width = popupW.value || 180;
   if (left + width > vw.value) {
-    left = btnLeft.value - width;
+    left = btnLeft.value - width - SUBMENU_X_OFFSET;
   }
 
   // For submenus, we typically align them exactly next to the trigger button.
