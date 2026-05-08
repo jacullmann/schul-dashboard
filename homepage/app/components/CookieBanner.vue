@@ -33,14 +33,7 @@ onMounted(() => {
           Privacy Policy
         </NuxtLink>
       </p>
-      <button
-        type="button"
-        class="self-end px-3.5 py-1.5 rounded-lg border border-surface-border text-footnote font-medium text-on-ghost-muted transition-colors hover:border-surface-hover-border hover:text-on-ghost"
-        @click="dismiss"
-      >
-        Got it
-      </button>
+      <BaseButton variant="action" class="self-end" @click="dismiss"> Got it </BaseButton>
     </div>
   </div>
 </template>
-

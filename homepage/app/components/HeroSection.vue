@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { ArrowRight } from '@lucide/vue';
-
 const { t } = useI18n();
 const config = useRuntimeConfig();
 </script>
@@ -23,20 +21,22 @@ const config = useRuntimeConfig();
             {{ t('sections.hero.description') }}
           </p>
 
-          <div class="flex flex-col sm:flex-row gap-3">
-            <a
+          <BaseRow class="flex flex-col sm:flex-row">
+            <BaseButton
               :href="config.public.appUrl || 'https://app.schul-dashboard.com'"
-              class="px-3 py-1.5 rounded-lg bg-action text-white font-medium inline-flex items-center justify-center gap-2 group"
+              target="_self"
+              variant="action"
             >
               {{ t('sections.hero.cta_primary') }}
-            </a>
-            <a
+            </BaseButton>
+            <BaseButton
               :href="config.public.appUrl || 'https://app.schul-dashboard.com'"
-              class="px-3 py-1.5 rounded-lg border border-surface-border text-on-ghost font-medium inline-flex items-center justify-center"
+              target="_self"
+              variant="ghost"
             >
               {{ t('sections.hero.cta_secondary') }}
-            </a>
-          </div>
+            </BaseButton>
+          </BaseRow>
 
           <p class="text-footnote text-on-ghost-subtle mt-6">
             {{ t('sections.hero.social_proof') }}
@@ -46,4 +46,3 @@ const config = useRuntimeConfig();
     </div>
   </section>
 </template>
-

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowRight, CheckCircle } from '@lucide/vue';
+import { ArrowRight } from '@lucide/vue';
 
 const { t } = useI18n();
 const config = useRuntimeConfig();
@@ -39,17 +39,15 @@ const highlights = [
             </li>
           </ul>
         </div>
-        <a
+        <BaseButton
+          variant="action"
           :href="config.public.appUrl || 'https://app.schul-dashboard.com'"
-          class="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-action text-on-action font-semibold transition-all hover:bg-action-hover group"
+          target="_self"
+          :icon="ArrowRight"
+          icon-placement="trailing"
         >
           {{ t('sections.product.cta') }}
-          <ArrowRight
-            :size="16"
-            class="transition-transform group-hover:translate-x-0.5"
-            aria-hidden="true"
-          />
-        </a>
+        </BaseButton>
       </div>
     </div>
   </section>

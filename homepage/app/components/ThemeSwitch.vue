@@ -11,29 +11,20 @@ function setTheme(theme: string) {
 <template>
   <div class="flex flex-col gap-2">
     <p class="text-btn font-semibold text-on-ghost m-0">{{ $t('common.theme') }}</p>
-    <div class="flex gap-1.5" role="group" :aria-label="$t('common.theme')">
-      <button
+    <BaseRow role="group" :aria-label="$t('common.theme')">
+      <BaseButton
         v-for="{ value, icon, label } in [
           { value: 'light', icon: Sun, label: $t('common.light') },
           { value: 'dark', icon: Moon, label: $t('common.dark') },
           { value: 'system', icon: Monitor, label: $t('common.system') },
         ]"
         :key="value"
-        type="button"
         :title="label"
         :aria-pressed="colorMode.preference === value"
-        class="p-2 rounded-lg border transition-colors"
-        :class="
-          colorMode.preference === value
-            ? 'bg-surface-hover border-surface-hover-border text-on-ghost'
-            : 'bg-surface border-surface-border text-on-ghost-muted hover:text-on-ghost hover:border-surface-hover-border'
-        "
+        :class="colorMode.preference === value ? 'bg-surface-hover! text-on-ghost!' : ''"
+        :icon="icon"
         @click="setTheme(value)"
-      >
-        <component :is="icon" :size="16" aria-hidden="true" />
-        <span class="sr-only">{{ label }}</span>
-      </button>
-    </div>
+      />
+    </BaseRow>
   </div>
 </template>
-

@@ -47,20 +47,22 @@ function closeMobileMenu() {
         </div>
       </div>
 
-      <div class="hidden lg:flex items-center gap-3">
-        <a
+      <BaseRow class="hidden lg:flex">
+        <BaseButton
+          variant="ghost"
           :href="config.public.loginUrl || 'https://app.schul-dashboard.com'"
-          class="text-sm text-on-ghost-muted font-medium transition-colors hover:text-on-ghost"
+          target="_self"
         >
           {{ t('common.login') }}
-        </a>
-        <a
+        </BaseButton>
+        <BaseButton
+          variant="action"
           :href="config.public.appUrl || 'https://app.schul-dashboard.com'"
-          class="px-4 py-2 rounded-lg bg-action text-on-action text-sm font-semibold no-underline transition-all hover:bg-action-hover inline-flex items-center"
+          target="_self"
         >
           {{ t('common.getStarted') }}
-        </a>
-      </div>
+        </BaseButton>
+      </BaseRow>
 
       <button
         type="button"

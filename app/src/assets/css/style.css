@@ -646,7 +646,7 @@ p {
     background: var(--color-surface);
     color: var(--color-on-ghost);
     border: 1px solid var(--color-surface-border);
-    font-size: var(--text-btn);
+    font-size: var(--text-base);
     line-height: 1rem;
     outline: none;
     box-shadow: var(--shadow-input);

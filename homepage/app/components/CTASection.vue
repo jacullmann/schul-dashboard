@@ -17,25 +17,23 @@ const config = useRuntimeConfig();
         <p class="text-lg text-on-ghost-muted mb-8 leading-[1.6]">
           {{ t('sections.cta.description') }}
         </p>
-        <div class="flex flex-col sm:flex-row gap-3 justify-center">
-          <a
+        <BaseRow justify="center" class="flex flex-col sm:flex-row">
+          <BaseButton
+            variant="action"
+            :icon="ArrowRight"
+            icon-placement="trailing"
             :href="config.public.appUrl || 'https://app.schul-dashboard.com'"
-            class="px-8 py-3.5 rounded-lg bg-action text-on-action font-semibold transition-all hover:bg-action-hover inline-flex items-center justify-center gap-2 group"
+            target="_self"
           >
             {{ t('sections.cta.primary_cta') }}
-            <ArrowRight
-              :size="16"
-              class="transition-transform group-hover:translate-x-0.5"
-              aria-hidden="true"
-            />
-          </a>
-          <a
+          </BaseButton>
+          <BaseButton
+            variant="ghost"
             href="mailto:contact@schul-dashboard.com"
-            class="px-8 py-3.5 rounded-lg border border-surface-border text-on-ghost font-semibold transition-all hover:border-surface-hover-border hover:bg-surface-highlight inline-flex items-center justify-center"
           >
             {{ t('sections.cta.secondary_cta') }}
-          </a>
-        </div>
+          </BaseButton>
+        </BaseRow>
       </div>
     </div>
   </section>

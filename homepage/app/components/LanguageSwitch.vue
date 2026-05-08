@@ -10,23 +10,17 @@ function setLocale(code: string) {
 <template>
   <div class="flex flex-col gap-2">
     <p class="text-btn font-semibold text-on-ghost m-0">{{ $t('common.language') }}</p>
-    <div class="flex gap-1.5" role="group" :aria-label="$t('common.language')">
-      <button
+    <BaseRow role="group" :aria-label="$t('common.language')">
+      <BaseButton
         v-for="loc in locales"
         :key="loc.code"
-        type="button"
+        variant="ghost"
         :aria-current="locale === loc.code ? 'true' : undefined"
-        class="px-3 py-1.5 rounded-lg border text-footnote font-medium transition-colors"
-        :class="
-          locale === loc.code
-            ? 'bg-surface-hover border-surface-hover-border text-on-ghost'
-            : 'bg-surface border-surface-border text-on-ghost-muted hover:text-on-ghost hover:border-surface-hover-border'
-        "
+        :class="locale === loc.code ? 'bg-surface-hover! text-on-ghost!' : ''"
         @click="setLocale(loc.code)"
       >
         {{ loc.name }}
-      </button>
-    </div>
+      </BaseButton>
+    </BaseRow>
   </div>
 </template>
-
