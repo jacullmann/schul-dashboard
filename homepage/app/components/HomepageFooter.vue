@@ -13,82 +13,58 @@ const localePath = useLocalePath();
         <div class="flex flex-col gap-3">
           <NuxtLink
             :to="localePath('index')"
-            class="inline-flex items-center gap-2 no-underline w-fit group"
+            class="inline-flex items-center gap-2 w-fit group"
             aria-label="schul-dashboard home"
           >
             <img src="/favicon.svg" alt="" class="w-7 h-7" />
             <span
-              class="font-bold text-on-ghost font-display text-sm group-hover:opacity-80 transition-opacity"
+              class="font-bold text-on-ghost font-display text-xl group-hover:underline underline-offset-2 decoration-1.5 decoration-skip-ink transition-opacity"
             >
               schul-dashboard
             </span>
           </NuxtLink>
-          <p class="text-footnote text-on-ghost-muted leading-[1.6] max-w-[200px] m-0">
+          <p class="text-xs text-on-ghost-muted leading-[1.6] max-w-[200px] m-0">
             {{ t('footer.tagline') }}
           </p>
         </div>
 
         <!-- Navigation -->
         <div class="flex flex-col gap-3">
-          <p class="text-btn font-semibold text-on-ghost m-0">
+          <p class="text-sm font-semibold text-on-ghost m-0">
             {{ t('footer.navigation.title') }}
           </p>
           <nav class="flex flex-col gap-2" aria-label="Footer navigation">
-            <NuxtLink
-              :to="localePath('index')"
-              class="text-footnote text-on-ghost-muted no-underline transition-colors hover:text-on-ghost"
-            >
+            <BaseLink :to="localePath('index')">
               {{ t('footer.navigation.home') }}
-            </NuxtLink>
-            <NuxtLink
-              :to="localePath('features')"
-              class="text-footnote text-on-ghost-muted no-underline transition-colors hover:text-on-ghost"
-            >
+            </BaseLink>
+            <BaseLink :to="localePath('features')">
               {{ t('footer.navigation.features') }}
-            </NuxtLink>
-            <NuxtLink
-              :to="localePath('product')"
-              class="text-footnote text-on-ghost-muted no-underline transition-colors hover:text-on-ghost"
-            >
+            </BaseLink>
+            <BaseLink :to="localePath('product')">
               {{ t('footer.navigation.product') }}
-            </NuxtLink>
-            <NuxtLink
-              :to="localePath('about')"
-              class="text-footnote text-on-ghost-muted no-underline transition-colors hover:text-on-ghost"
-            >
+            </BaseLink>
+            <BaseLink :to="localePath('about')">
               {{ t('footer.navigation.about') }}
-            </NuxtLink>
-            <NuxtLink
-              :to="localePath('contact')"
-              class="text-footnote text-on-ghost-muted no-underline transition-colors hover:text-on-ghost"
-            >
+            </BaseLink>
+            <BaseLink :to="localePath('contact')">
               {{ t('footer.navigation.contact') }}
-            </NuxtLink>
+            </BaseLink>
           </nav>
         </div>
 
         <!-- Legal -->
         <div class="flex flex-col gap-3">
-          <p class="text-btn font-semibold text-on-ghost m-0">{{ t('footer.legal.title') }}</p>
+          <p class="text-sm font-semibold text-on-ghost m-0">{{ t('footer.legal.title') }}</p>
           <nav class="flex flex-col gap-2" aria-label="Legal navigation">
-            <NuxtLink
-              :to="localePath('legal-imprint')"
-              class="text-footnote text-on-ghost-muted no-underline transition-colors hover:text-on-ghost"
-            >
+            <BaseLink :to="localePath('legal-imprint')">
               {{ t('footer.legal.imprint') }}
-            </NuxtLink>
-            <NuxtLink
-              :to="localePath('legal-privacy-policy')"
-              class="text-footnote text-on-ghost-muted no-underline transition-colors hover:text-on-ghost"
-            >
+            </BaseLink>
+            <BaseLink :to="localePath('legal-privacy-policy')">
               {{ t('footer.legal.privacy') }}
-            </NuxtLink>
-            <NuxtLink
-              :to="localePath('legal-terms')"
-              class="text-footnote text-on-ghost-muted no-underline transition-colors hover:text-on-ghost"
-            >
+            </BaseLink>
+            <BaseLink :to="localePath('legal-terms')">
               {{ t('footer.legal.terms') }}
-            </NuxtLink>
+            </BaseLink>
           </nav>
         </div>
 
@@ -102,14 +78,14 @@ const localePath = useLocalePath();
       <div
         class="border-t border-surface-border pt-8 flex flex-col md:flex-row items-center justify-between gap-4"
       >
-        <p class="text-footnote text-on-ghost-muted m-0">
+        <p class="text-xs text-on-ghost-muted m-0">
           &copy; {{ new Date().getFullYear() }} schul-dashboard. {{ t('footer.rights') }}
         </p>
         <a
           href="https://stats.uptimerobot.com/m8tUrWG3Zz"
           target="_blank"
           rel="noopener noreferrer"
-          class="inline-flex items-center gap-1.5 text-footnote text-on-ghost-muted no-underline hover:text-on-ghost transition-colors"
+          class="inline-flex items-center gap-1.5 text-xs text-on-ghost-muted no-underline hover:text-on-ghost transition-colors"
         >
           {{ t('footer.status') }}
           <ExternalLink :size="12" aria-hidden="true" />
@@ -118,4 +94,3 @@ const localePath = useLocalePath();
     </div>
   </footer>
 </template>
-

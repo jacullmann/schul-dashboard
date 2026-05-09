@@ -95,7 +95,7 @@ watch(
   <Transition name="fade">
     <BaseBackdrop
       v-if="visible"
-      class="z-[100002]"
+      class="z-[100002] p-4"
       @mousemove="onActivity"
       @cancel="cancel"
       @touchstart="onActivity"

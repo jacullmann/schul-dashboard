@@ -311,10 +311,6 @@ label {
   font-family: var(--font-sans), sans-serif;
 }
 
-a {
-  text-decoration: none;
-}
-
 h1,
 h2,
 h3,

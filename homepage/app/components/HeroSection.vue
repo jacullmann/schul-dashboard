@@ -38,7 +38,7 @@ const config = useRuntimeConfig();
             </BaseButton>
           </BaseRow>
 
-          <p class="text-footnote text-on-ghost-subtle mt-6">
+          <p class="text-xs text-on-ghost-subtle mt-6">
             {{ t('sections.hero.social_proof') }}
           </p>
         </div>

@@ -9,7 +9,7 @@ function setLocale(code: string) {
 
 <template>
   <div class="flex flex-col gap-2">
-    <p class="text-btn font-semibold text-on-ghost m-0">{{ $t('common.language') }}</p>
+    <p class="text-sm font-semibold text-on-ghost m-0">{{ $t('common.language') }}</p>
     <BaseRow role="group" :aria-label="$t('common.language')">
       <BaseButton
         v-for="loc in locales"

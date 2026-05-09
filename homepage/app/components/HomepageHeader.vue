@@ -35,15 +35,9 @@ function closeMobileMenu() {
         </NuxtLink>
 
         <div class="hidden lg:flex items-center gap-6">
-          <NuxtLink
-            v-for="link in navLinks"
-            :key="link.route"
-            :to="localePath(link.route)"
-            class="text-sm text-on-ghost-muted font-medium no-underline transition-colors hover:text-on-ghost"
-            active-class="text-on-ghost"
-          >
+          <BaseLink v-for="link in navLinks" :key="link.route" :to="localePath(link.route)">
             {{ t(link.labelKey) }}
-          </NuxtLink>
+          </BaseLink>
         </div>
       </div>
 
@@ -64,41 +58,42 @@ function closeMobileMenu() {
         </BaseButton>
       </BaseRow>
 
-      <button
-        type="button"
-        class="lg:hidden p-2 rounded-lg border border-surface-border text-on-ghost-muted hover:text-on-ghost hover:bg-surface-highlight transition-colors"
+      <BaseButton
+        variant="ghost"
+        class="lg:hidden"
         :aria-expanded="mobileMenuOpen"
+        :icon="mobileMenuOpen ? X : Menu"
         @click="mobileMenuOpen = !mobileMenuOpen"
       >
-        <component :is="mobileMenuOpen ? X : Menu" :size="20" aria-hidden="true" />
-      </button>
+      </BaseButton>
     </nav>
 
     <Transition name="slide-down">
       <div v-if="mobileMenuOpen" class="lg:hidden border-t border-surface-border bg-canvas">
         <div class="max-w-[1300px] w-full mx-auto px-4 py-3 flex flex-col gap-1">
-          <NuxtLink
+          <BaseLink
             v-for="link in navLinks"
             :key="link.route"
             :to="localePath(link.route)"
-            class="px-3 py-2.5 rounded-lg text-on-ghost text-sm font-medium no-underline transition-colors hover:bg-surface-highlight"
             @click="closeMobileMenu"
           >
             {{ t(link.labelKey) }}
-          </NuxtLink>
+          </BaseLink>
           <div class="border-t border-surface-border my-2" />
-          <a
+          <BaseButton
             :href="config.public.loginUrl || 'https://app.schul-dashboard.com'"
-            class="px-3 py-2.5 rounded-lg text-on-ghost-muted text-sm font-medium transition-colors hover:bg-surface-highlight"
+            variant="ghost"
+            class="w-full"
           >
             {{ t('common.login') }}
-          </a>
-          <a
+          </BaseButton>
+          <BaseButton
             :href="config.public.appUrl || 'https://app.schul-dashboard.com'"
-            class="px-3 py-2.5 rounded-lg bg-action text-on-action text-sm font-semibold transition-all hover:bg-action-hover text-center"
+            variant="action"
+            class="w-full"
           >
             {{ t('common.getStarted') }}
-          </a>
+          </BaseButton>
         </div>
       </div>
     </Transition>

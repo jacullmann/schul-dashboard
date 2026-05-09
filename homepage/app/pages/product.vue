@@ -28,7 +28,7 @@ const allFeatures = [
     <section class="w-full py-20 md:py-14 border-b border-surface-border">
       <div class="max-w-[1300px] w-full mx-auto px-4 lg:px-6 text-center">
         <div
-          class="inline-block px-3.5 py-1 rounded-full bg-surface border border-surface-border text-footnote font-semibold text-on-ghost-muted uppercase tracking-wider mb-5"
+          class="inline-block px-3.5 py-1 rounded-full bg-surface border border-surface-border text-xs font-semibold text-on-ghost-muted uppercase tracking-wider mb-5"
         >
           {{ t('pages.product.badge') }}
         </div>
@@ -40,12 +40,12 @@ const allFeatures = [
         <p class="text-lg text-on-ghost-muted leading-[1.65] mb-8">
           {{ t('pages.product.description') }}
         </p>
-        <a
+        <BaseButton
+          variant="action"
           :href="config.public.appUrl || 'https://app.schul-dashboard.com'"
-          class="inline-flex items-center gap-2 px-7 py-3.5 rounded-lg bg-action text-on-action font-semibold transition-all hover:bg-action-hover group"
         >
           {{ t('pages.product.cta') }}
-        </a>
+        </BaseButton>
       </div>
     </section>
 
@@ -66,20 +66,19 @@ const allFeatures = [
           <div
             v-for="key in allFeatures"
             :key="key"
-            class="flex items-start gap-3 p-5 rounded-xl bg-surface border border-surface-border"
+            class="flex px-4 py-2 rounded-xl bg-surface border border-surface-border text-on-ghost text-base/[1.6]"
           >
-            •
-            <span class="text-on-ghost-muted text-sm leading-[1.6]">{{ t(key) }}</span>
+            • <span class="ml-2">{{ t(key) }}</span>
           </div>
         </div>
       </div>
     </section>
 
-    <section class="w-full py-14 md:py-10 bg-surface border-y border-surface-border">
+    <section class="w-full py-14 md:py-10">
       <div class="max-w-[1300px] w-full mx-auto px-4 lg:px-6 text-center">
-        <p class="text-footnote font-semibold text-on-ghost-muted uppercase tracking-wider mb-2">
+        <div class="text-2xl font-semibold text-on-ghost-muted uppercase tracking-wider mb-2">
           {{ t('pages.product.price_label') }}
-        </p>
+        </div>
         <div
           class="text-[clamp(4rem,10vw,7rem)] font-bold font-display text-on-ghost leading-none mb-3"
         >
@@ -94,4 +93,3 @@ const allFeatures = [
     <CTASection />
   </div>
 </template>
-

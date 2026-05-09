@@ -10,7 +10,7 @@ function setTheme(theme: string) {
 
 <template>
   <div class="flex flex-col gap-2">
-    <p class="text-btn font-semibold text-on-ghost m-0">{{ $t('common.theme') }}</p>
+    <p class="text-sm font-semibold text-on-ghost m-0">{{ $t('common.theme') }}</p>
     <BaseRow role="group" :aria-label="$t('common.theme')">
       <BaseButton
         v-for="{ value, icon, label } in [

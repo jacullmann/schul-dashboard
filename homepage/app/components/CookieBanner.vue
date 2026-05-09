@@ -2,6 +2,7 @@
 const visible = ref(false);
 const COOKIE_KEY = 'cookie_notice_dismissed';
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 180;
+const localePath = useLocalePath();
 
 function dismiss() {
   document.cookie = `${COOKIE_KEY}=1; max-age=${COOKIE_MAX_AGE}; path=/; SameSite=Lax`;
@@ -24,14 +25,9 @@ onMounted(() => {
     <div
       class="flex flex-col gap-3 px-4 py-3.5 rounded-xl border border-surface-border bg-canvas shadow-menu"
     >
-      <p class="text-footnote text-on-ghost-muted leading-[1.6] m-0">
+      <p class="text-xs text-on-ghost-muted leading-[1.6] m-0">
         We use only essential cookies to keep the site running.
-        <NuxtLink
-          to="/legal/privacy-policy"
-          class="text-on-ghost underline hover:no-underline transition-colors"
-        >
-          Privacy Policy
-        </NuxtLink>
+        <BaseLink :to="localePath('legal-privacy-policy')"> Privacy Policy </BaseLink>
       </p>
       <BaseButton variant="action" class="self-end" @click="dismiss"> Got it </BaseButton>
     </div>
