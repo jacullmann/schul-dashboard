@@ -1,18 +1,12 @@
 <script setup lang="ts">
-const visible = ref(false);
-const COOKIE_KEY = 'cookie_notice_dismissed';
-const COOKIE_MAX_AGE = 60 * 60 * 24 * 180;
 const localePath = useLocalePath();
 
-function dismiss() {
-  document.cookie = `${COOKIE_KEY}=1; max-age=${COOKIE_MAX_AGE}; path=/; SameSite=Lax`;
-  visible.value = false;
-}
+const dismissed = useCookie<boolean>('cookie_notice_dismissed', { maxAge: 60*60*24*180 });
+const visible = computed(() => !dismissed.value);
 
-onMounted(() => {
-  const dismissed = document.cookie.split(';').some((c) => c.trim().startsWith(`${COOKIE_KEY}=`));
-  if (!dismissed) visible.value = true;
-});
+function dismiss() {
+  dismissed.value = true;
+}
 </script>
 
 <template>
