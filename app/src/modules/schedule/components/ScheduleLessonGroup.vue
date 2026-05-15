@@ -21,10 +21,13 @@ defineEmits<{
 
 <template>
   <div
-    class="bg-surface rounded-md border border-surface-border flex flex-col overflow-hidden z-[2] transition-colors duration-300 shadow-input animate-fade-up"
+    class="group bg-surface rounded-md max-[500px]:rounded-lg border border-surface-border flex flex-col overflow-hidden z-[2] transition-colors duration-300 shadow-input animate-fade-up"
     :class="[
-      isActive ? 'highlight-active bg-action !border-on-ghost' : '',
-      isCurrentDay && !isActive ? 'current-day bg-graphite border-steel' : '',
+      isActive
+        ? 'highlight-active bg-action! border-action!'
+        : isCurrentDay
+          ? 'current-day min-[501px]:bg-graphite! min-[501px]:border-steel!'
+          : '',
       'min-[501px]:[grid-column:var(--col-desktop)]',
       'max-[500px]:![grid-column:var(--col-mobile)] max-[500px]:[scroll-snap-align:start] max-[500px]:[scroll-margin-left:0]',
     ]"

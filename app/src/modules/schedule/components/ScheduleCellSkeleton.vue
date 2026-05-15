@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import BaseSkeleton from '@/common/components/BaseSkeleton.vue';
+import { useWindowSize } from '@vueuse/core';
+
+const { width: windowWidth } = useWindowSize();
 
 defineProps<{
   /** Column index (1–5) so the skeleton is placed in the correct day column. */
@@ -24,8 +27,8 @@ defineProps<{
     <BaseSkeleton
       width="full"
       height="full"
-      radius="md"
-      class="h-full min-h-[35px]"
+      :radius="windowWidth < 501 ? 'lg' : 'md'"
+      class="h-full min-h-[58px] min-[501px]:min-h-[54px]"
     />
   </div>
 </template>

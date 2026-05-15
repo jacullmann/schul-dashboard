@@ -132,11 +132,12 @@ const skeletonCells = computed(() => {
           <div
             v-for="(day, index) in days"
             :key="day"
-            class="day-header bg-surface text-on-ghost p-2 border border-surface-border text-center font-bold rounded-md text-base shadow-input min-w-[150px] min-[501px]:[grid-row:1] max-[500px]:snap-start max-[500px]:scroll-ml-0 animate-fade-up"
-            :class="{
-              'bg-surface-hover border-surface-hover-border':
-                day === currentDay,
-            }"
+            class="day-header bg-surface border border-surface-border text-on-ghost p-2 text-center font-bold rounded-md max-[500px]:rounded-lg text-base shadow-input min-w-[150px] min-[501px]:[grid-row:1] max-[500px]:snap-start max-[500px]:scroll-ml-0 animate-fade-up"
+            :class="
+              day === currentDay
+                ? 'min-[501px]:bg-graphite! min-[501px]:border-steel!'
+                : ''
+            "
             :style="{
               animationDelay: `${(index + 1) * 0.05}s`,
               animationFillMode: 'both',

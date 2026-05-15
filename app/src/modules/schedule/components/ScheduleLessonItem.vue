@@ -18,10 +18,10 @@ const { t } = useI18n();
 
 <template>
   <div
-    class="shrink-0 flex flex-col justify-center px-2 py-1"
+    class="shrink-0 flex flex-col justify-center max-[500px]:px-2.5 max-[500px]:py-1.5 px-2 py-1"
     :class="[
       hasBorder
-        ? 'border-b border-surface-border group-[.current-day]:border-surface-hover-border group-[.highlight-active]:border-on-ghost-muted'
+        ? 'border-b border-surface-border min-[501px]:group-[.current-day]:border-surface-hover-border! group-[.highlight-active]:border-on-ghost-muted!'
         : '',
       isClickable
         ? 'cursor-pointer transition-colors duration-150 hover:bg-surface-hover'
@@ -32,17 +32,17 @@ const { t } = useI18n();
   >
     <div v-if="lesson.cancelled">
       <div
-        class="font-bold text-base text-on-ghost whitespace-nowrap overflow-hidden text-ellipsis line-through text-on-ghost-muted group-[.highlight-active]:text-on-action/70"
+        class="font-bold text-base text-on-ghost whitespace-nowrap overflow-hidden text-ellipsis line-through text-on-ghost-muted group-[.highlight-active]:text-on-action-muted!"
       >
         {{ getDisplayName(lesson) }}
       </div>
       <div
-        class="text-danger font-bold text-base group-[.highlight-active]:text-danger"
+        class="text-danger font-bold text-base group-[.highlight-active]:text-danger!"
       >
         {{ t('school.tables.schedule.cancelled') }}
       </div>
       <div
-        class="flex justify-between text-sm text-on-ghost-muted mt-0.5 group-[.highlight-active]:text-surface-hover"
+        class="flex justify-between text-sm text-on-ghost-muted mt-0.5 group-[.highlight-active]:text-surface-hover!"
       >
         <span class="line-through">{{ lesson.room }}</span>
       </div>
@@ -50,7 +50,7 @@ const { t } = useI18n();
 
     <div v-else>
       <div
-        class="font-bold text-base whitespace-nowrap overflow-hidden text-ellipsis group-[.highlight-active]:text-on-action"
+        class="font-bold text-base whitespace-nowrap overflow-hidden text-ellipsis group-[.highlight-active]:text-on-action!"
         :class="isSelected ? 'text-on-action' : 'text-on-ghost'"
       >
         <template
@@ -60,13 +60,13 @@ const { t } = useI18n();
           "
         >
           <span
-            class="line-through text-on-ghost-muted mr-1 font-normal group-[.highlight-active]:text-surface-hover-border"
+            class="line-through text-on-ghost-muted mr-1 font-normal group-[.highlight-active]:text-surface-hover-border!"
             :class="isSelected && 'text-surface-hover-border'"
           >
             {{ getDisplayName(lesson._original) }}
           </span>
           <span
-            class="font-bold text-on-ghost group-[.highlight-active]:text-on-action"
+            class="font-bold text-on-ghost group-[.highlight-active]:text-on-action!"
             :class="isSelected && 'text-on-action'"
           >
             {{ getDisplayName(lesson) }}
@@ -78,7 +78,7 @@ const { t } = useI18n();
       </div>
 
       <div
-        class="flex justify-between text-sm mt-0.5 group-[.highlight-active]:text-surface-hover"
+        class="flex justify-between text-sm mt-0.5 group-[.highlight-active]:text-surface-hover!"
         :class="isSelected ? 'text-surface-hover' : 'text-on-ghost-muted'"
       >
         <span class="inline-flex gap-1 items-center">
@@ -86,13 +86,13 @@ const { t } = useI18n();
             v-if="lesson._original && lesson.room !== lesson._original.room"
           >
             <span
-              class="line-through text-on-ghost-muted mr-1 font-normal group-[.highlight-active]:text-surface-hover-border"
+              class="line-through text-on-ghost-muted mr-1 font-normal group-[.highlight-active]:text-surface-hover-border!"
               :class="isSelected && 'text-surface-hover-border'"
             >
               {{ lesson._original.room }}
             </span>
             <span
-              class="font-bold text-on-ghost group-[.highlight-active]:text-on-action"
+              class="font-bold text-on-ghost group-[.highlight-active]:text-on-action!"
               :class="isSelected && 'text-on-action'"
             >
               {{ lesson.room }}
