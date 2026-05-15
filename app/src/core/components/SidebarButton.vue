@@ -43,9 +43,11 @@ withDefaults(
 
       <span
         v-if="label"
-        class="transition-[max-width,opacity,margin-left] duration-200 ease-[cubic-bezier(0.4, 0, 0.2, 1)] transition-hover text-sm/5 font-medium whitespace-nowrap overflow-hidden"
+        class="transition-[max-width,opacity,margin-left] transition-hover text-sm/5 font-medium whitespace-nowrap overflow-hidden"
         :class="[
-          expanded ? 'max-w-40 opacity-100 ml-3' : 'max-w-0 opacity-0 ml-0',
+          expanded 
+            ? 'max-w-40 opacity-100 ml-3 duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)]' 
+            : 'max-w-0 opacity-0 ml-0 duration-150 ease-[cubic-bezier(0.32,0,0.67,1)]',
           !icon ? 'ml-1!' : '',
           active
             ? 'text-on-ghost!'
@@ -56,8 +58,8 @@ withDefaults(
       </span>
       <NotificationDot
         v-if="unread"
-        class="transition-[max-width,opacity,margin-left] duration-200 ease-[cubic-bezier(0.4, 0, 0.2, 1)]"
-        :class="expanded ? 'opacity-100 ml-2' : 'max-w-0 opacity-0 ml-0'"
+        class="transition-[max-width,opacity,margin-left]"
+        :class="expanded ? 'opacity-100 ml-2 duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)]' : 'max-w-0 opacity-0 ml-0 duration-150 ease-[cubic-bezier(0.32,0,0.67,1)]'"
       />
     </button>
   </BaseTooltip>

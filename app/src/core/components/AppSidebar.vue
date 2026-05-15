@@ -121,10 +121,11 @@ onUnmounted(() => {
 
 <template>
   <Transition
-    enter-active-class="transition-opacity duration-200"
+    appear
+    enter-active-class="transition-opacity duration-200 ease-out"
     enter-from-class="opacity-0"
     enter-to-class="opacity-100"
-    leave-active-class="transition-opacity duration-200"
+    leave-active-class="transition-opacity duration-[280ms] ease-in"
     leave-from-class="opacity-100"
     leave-to-class="opacity-0"
   >
@@ -136,13 +137,17 @@ onUnmounted(() => {
   </Transition>
 
   <aside
-    class="sidebar transition-all duration-200 ease-[cubic-bezier(0.4, 0, 0.2, 1)] flex flex-col justify-between shrink-0 overflow-hidden h-dvh p-3 bg-surface border-r border-surface-border z-9998"
+    class="sidebar flex flex-col justify-between shrink-0 overflow-hidden h-dvh p-3 bg-surface border-r border-surface-border z-9998"
     :class="[
-      'md:sticky md:top-0',
-      isExpanded ? 'md:w-64' : 'md:w-[61px]',
+      'md:sticky md:top-0 md:transition-[width]',
+      isExpanded 
+        ? 'md:w-64 md:duration-[400ms] md:ease-[cubic-bezier(0.22,1,0.36,1)]' 
+        : 'md:w-[61px] md:duration-150 md:ease-[cubic-bezier(0.32,0,0.67,1)]',
 
-      'max-md:fixed max-md:top-0 max-md:left-0 max-md:w-64 max-md:shadow-xl',
-      isExpanded ? 'max-md:translate-x-0' : 'max-md:-translate-x-full',
+      'max-md:fixed max-md:top-0 max-md:left-0 max-md:w-64 max-md:shadow-xl max-md:transition-transform',
+      isExpanded 
+        ? 'max-md:translate-x-0 max-md:duration-[400ms] max-md:ease-[cubic-bezier(0.22,1,0.36,1)]' 
+        : 'max-md:-translate-x-full max-md:duration-150 max-md:ease-[cubic-bezier(0.32,0,0.67,1)]',
     ]"
   >
     <div class="flex flex-col gap-4 w-full flex-1 min-h-0">
