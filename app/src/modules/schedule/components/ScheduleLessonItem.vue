@@ -78,7 +78,7 @@ const { t } = useI18n();
       </div>
 
       <div
-        class="flex justify-between text-sm mt-0.5 group-[.highlight-active]:text-surface-hover!"
+        class="flex justify-between text-sm mt-0.5 group-[.highlight-active]:text-on-action-muted!"
         :class="isSelected ? 'text-surface-hover' : 'text-on-ghost-muted'"
       >
         <span class="inline-flex gap-1 items-center">

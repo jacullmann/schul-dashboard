@@ -116,7 +116,7 @@ const skeletonCells = computed(() => {
 
       <div
         ref="scrollContainerRef"
-        class="max-[500px]:block max-[500px]:relative max-[500px]:overflow-x-auto max-[500px]:overflow-y-hidden max-[500px]:snap-x max-[500px]:snap-mandatory max-[500px]:flex-1 max-[500px]:overscroll-x-none max-[500px]:h-full [&::-webkit-scrollbar]:hidden min-[501px]:contents"
+        class="max-[500px]:rounded-lg max-[500px]:block max-[500px]:relative max-[500px]:overflow-x-auto max-[500px]:overflow-y-hidden max-[500px]:snap-x max-[500px]:snap-mandatory max-[500px]:flex-1 max-[500px]:overscroll-x-none max-[500px]:h-full [&::-webkit-scrollbar]:hidden min-[501px]:contents"
       >
         <div
           ref="daysGridWrapperRef"
