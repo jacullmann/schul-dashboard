@@ -29,7 +29,7 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
     ThrottlerModule.forRoot([
       {
         ttl: 60000,
-        limit: 400,
+        limit: 350,
       },
     ]),
     // AppConfigModule is @Global() — AppConfig is available in all modules.
