@@ -17,10 +17,16 @@ import type { UserData } from '@/stores/userStore';
 
 const { t } = useI18n();
 
-const props = defineProps<{
-  email: string;
-  userData: UserData | null;
-}>();
+const props = withDefaults(
+  defineProps<{
+    email: string;
+    userData: UserData | null;
+    expanded?: boolean;
+  }>(),
+  {
+    expanded: true,
+  },
+);
 
 const emit = defineEmits<{
   (e: 'logout'): void;
@@ -57,15 +63,32 @@ const {
 </script>
 
 <template>
-  <div class="relative flex h-8" ref="root">
-    <Avatar
-      :email="email"
-      @click="toggle"
-      @keydown.enter="toggle"
-      @keydown.space.prevent="toggle"
-      :aria-expanded="open"
-      :title="'Account menu'"
-    />
+  <div class="relative flex" ref="root">
+    <div class="relative flex items-center cursor-pointer touch-target" @click="toggle">
+      <Avatar
+        :email="email"
+        @keydown.enter="toggle"
+        @keydown.space.prevent="toggle"
+        :aria-expanded="open"
+        title="Account menu"
+      />
+
+      <div
+        class="flex flex-col transition-[max-width,opacity,margin-left]"
+        :class="
+          expanded
+            ? 'max-w-44 opacity-100 ml-2 duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)]'
+            : 'max-w-0 opacity-0 ml-0 duration-150 ease-[cubic-bezier(0.32,0,0.67,1)]'
+        "
+      >
+        <span
+          class="text-sm font-medium text-on-ghost"
+          :class="expanded ? 'truncate' : ''"
+          >{{ email }}</span
+        >
+        <span class="text-xs font-normal text-on-ghost-muted">Admin</span>
+      </div>
+    </div>
 
     <!--
       No <Transition> wrapper here on mobile — BaseMenu owns its own

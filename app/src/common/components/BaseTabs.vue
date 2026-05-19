@@ -124,7 +124,7 @@ useResizeObserver(navBarRef, () => {
               if (el) itemRefs[index] = el as HTMLElement;
             }
           "
-          class="relative bg-transparent min-h-10 min-w-10 touch-target items-center flex border-0 cursor-pointer px-6 py-2 text-sm/4 font-medium text-on-ghost-muted whitespace-nowrap shrink-0 transition-hover hover:text-on-ghost"
+          class="relative bg-transparent min-h-9 min-w-9 touch-target items-center flex border-0 cursor-pointer px-5 py-2 text-sm/4 font-medium text-on-ghost-muted whitespace-nowrap shrink-0 transition-hover hover:text-on-ghost"
         >
           <input
             type="radio"
@@ -139,7 +139,7 @@ useResizeObserver(navBarRef, () => {
       </div>
 
       <div
-        class="absolute top-0 left-0 bottom-0 bg-action rounded-full min-h-10 min-w-10 touch-target z-2 overflow-hidden pointer-events-none transition-all duration-300 ease-[cubic-bezier(0.075,0.82,0.165,1)]"
+        class="absolute top-0 left-0 bottom-0 bg-action rounded-full min-h-9 min-w-9 touch-target z-2 overflow-hidden pointer-events-none transition-all duration-300 ease-[cubic-bezier(0.075,0.82,0.165,1)]"
         :style="pillStyle"
         aria-hidden="true"
       >
@@ -150,7 +150,7 @@ useResizeObserver(navBarRef, () => {
           <span
             v-for="item in items"
             :key="`fg-${item.id}`"
-            class="bg-transparent border-0 cursor-pointer px-6 py-2 text-sm/4 font-medium rounded-full text-on-action whitespace-nowrap shrink-0 transition-hover"
+            class="bg-transparent border-0 cursor-pointer px-5 py-2 text-sm/4 font-medium rounded-full text-on-action whitespace-nowrap shrink-0 transition-hover"
           >
             {{ item.label }}
           </span>

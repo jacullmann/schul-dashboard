@@ -302,7 +302,7 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
           <BaseMenu
             :open="openMenuId === item.id"
             @close="openMenuId = null"
-            class="right-0 mt-6 z-[10000]!"
+            class="right-0 mt-8 z-[10000]!"
             @click.stop
           >
             <BaseMenuButton

@@ -252,7 +252,7 @@ onUnmounted(() => {
       <BaseMenuDivider />
 
       <div
-        class="flex flex-col gap-0 w-full overflow-y-auto flex-1 list-fade custom-scrollbar"
+        class="flex flex-col gap-0 w-full overflow-y-auto overflow-x-hidden flex-1 list-fade custom-scrollbar"
       >
         <SidebarButton
           v-for="(group, index) in userGroups"
@@ -272,6 +272,7 @@ onUnmounted(() => {
           v-if="user"
           :email="user.email"
           :user-data="user"
+          :expanded="isExpanded"
           @logout="logout"
           @personalization-changed="onPersonalizationChanged"
           @click="collapseIfMobile"

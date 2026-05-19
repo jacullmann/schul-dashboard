@@ -215,7 +215,7 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
               <BaseMenu
                 :open="openMenuId === privateTask.id"
                 @close="openMenuId = null"
-                class="right-0 mt-6 z-[10000]!"
+                class="right-0 86 z-[10000]!"
                 @click.stop
               >
                 <BaseMenuButton

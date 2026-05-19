@@ -22,14 +22,10 @@ const avatarColor = computed(() => {
 </script>
 
 <template>
-  <div
-    class="inline-flex items-center border-none bg-transparent cursor-pointer"
-  >
     <div
       class="size-8 rounded-full flex items-center justify-center font-semibold text-white text-base select-none"
       :style="{ backgroundColor: avatarColor }"
     >
       {{ avatarLetter }}
     </div>
-  </div>
 </template>
