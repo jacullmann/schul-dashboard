@@ -48,9 +48,9 @@ const activeTab = computed({
     <div class="adm-body">
       <!-- ── Sidebar ──────────────────────────────────────────────────────── -->
       <aside
-        class="p-3 w-56 shrink-0 bg-surface border-r border-surface-border overflow-y-auto"
+        class="adm-sidebar p-3.5 w-full md:w-60 shrink-0 bg-surface border-b md:border-b-0 md:border-r border-surface-border overflow-x-auto md:overflow-y-auto flex md:flex-col gap-3.5 scrollbar-hide"
       >
-        <nav class="flex flex-col">
+        <nav class="flex flex-row md:flex-col w-full">
           <SidebarButton
             v-for="item in navItems"
             :key="item.id"
@@ -124,25 +124,6 @@ const activeTab = computed({
   flex-shrink: 0;
 }
 
-.adm-back {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
-  color: var(--color-on-ghost-muted);
-  transition:
-    background 0.15s,
-    color 0.15s;
-  flex-shrink: 0;
-}
-
-.adm-back:hover {
-  background: var(--color-surface-hover);
-  color: var(--color-on-ghost);
-}
-
 .adm-header-titles {
   display: flex;
   align-items: baseline;
@@ -174,44 +155,6 @@ const activeTab = computed({
 }
 
 /* ─── Sidebar ───────────────────────────────────────────────────────────────── */
-.adm-nav-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 9px 12px;
-  border-radius: 8px;
-  background: transparent;
-  border: none;
-  color: var(--color-on-ghost-muted);
-  font-size: var(--text-base);
-  font-weight: 500;
-  cursor: pointer;
-  transition:
-    background 0.12s,
-    color 0.12s;
-  text-align: left;
-  width: 100%;
-}
-
-.adm-nav-item:hover {
-  background: var(--color-surface-hover);
-  color: var(--color-on-ghost);
-}
-
-.adm-nav-item.active {
-  background: var(--color-surface-highlight);
-  color: var(--color-on-ghost);
-  font-weight: 600;
-}
-
-.adm-nav-icon {
-  flex-shrink: 0;
-}
-
-.adm-nav-label {
-  flex: 1;
-}
-
 .adm-nav-badge {
   font-size: 0.7rem;
   font-weight: 600;
@@ -247,22 +190,6 @@ const activeTab = computed({
     padding: 8px;
     overflow-x: auto;
     overflow-y: visible;
-  }
-
-  .adm-nav {
-    flex-direction: row;
-    gap: 4px;
-  }
-
-  .adm-nav-item {
-    white-space: nowrap;
-    padding: 8px 12px;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-
-  .adm-nav-label {
-    display: none;
   }
 
   .adm-nav-badge {
