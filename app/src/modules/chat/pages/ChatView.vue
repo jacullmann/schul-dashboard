@@ -556,7 +556,7 @@ function formatDuration(ms?: number): string {
             >
               <div
                 v-if="isMessageStepsExpanded(message.id)"
-                class="flex flex-col gap-1 py-1 pl-4 border-l-[1.5px] border-canvas-border ml-6"
+                class="flex flex-col gap-1 py-1 pl-4 border-l-[1.5px] border-canvas-border ml-5.5"
               >
                 <div
                   v-for="(step, idx) in message.steps"
@@ -710,7 +710,7 @@ function formatDuration(ms?: number): string {
               >
                 <div
                   v-if="isStepHistoryExpanded"
-                  class="flex flex-col gap-1 py-1 pl-4 border-l-[1.5px] border-canvas-border ml-6"
+                  class="flex flex-col gap-1 py-1 pl-4 border-l-[1.5px] border-canvas-border ml-5.5"
                 >
                   <div
                     v-for="(step, idx) in liveSteps"

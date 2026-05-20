@@ -108,11 +108,11 @@ const paddingClasses = computed(() => {
 
   const iconWithLabel = props.icon && hasLabel.value && !props.loading;
   if (iconWithLabel) {
-    return props.iconPlacement === 'leading' ? 'pl-4 pr-6' : 'pl-6 pr-4';
+    return props.iconPlacement === 'leading' ? 'pl-3 pr-5' : 'pl-5 pr-3';
   }
 
   if (props.icon || props.loading) return 'px-2';
-  return 'px-6';
+  return 'px-5';
 });
 
 defineExpose({

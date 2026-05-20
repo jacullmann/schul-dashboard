@@ -123,6 +123,12 @@ onClickOutside(
       aria-haspopup="true"
       :aria-expanded="isOpen"
       variant="ghost"
+      :icon="ChevronDown"
+      icon-placement="trailing"
+      :icon-classes="
+        'ml-auto shrink-0 transition duration-200 ease-in-out' +
+        (isOpen ? ' rotate-180' : '')
+      "
     >
       <span class="truncate">
         {{
@@ -130,12 +136,6 @@ onClickOutside(
           t('global.selection.placeholder')
         }}
       </span>
-
-      <ChevronDown
-        :size="20"
-        class="ml-auto shrink-0 transition duration-200 ease-in-out"
-        :class="{ 'rotate-180': isOpen }"
-      />
     </BaseButton>
 
     <Teleport to="body">
