@@ -82,8 +82,7 @@ const {
         "
       >
         <span
-          class="text-sm font-medium text-on-ghost"
-          :class="expanded ? 'truncate' : ''"
+          class="text-sm font-medium text-on-ghost truncate"
           >{{ email }}</span
         >
         <span class="text-xs font-normal text-on-ghost-muted">Admin</span>

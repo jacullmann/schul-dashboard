@@ -26,6 +26,7 @@ import SidebarButton from '@/core/components/SidebarButton.vue';
 import { useI18n } from 'vue-i18n';
 import { useGroupAction } from '@/core/composables/useGroupAction';
 import { computed } from 'vue';
+import { getAvatarData } from '@/modules/auth/utils/avatar';
 
 const { t } = useI18n();
 const { resetMfaState } = useMfa();
@@ -261,6 +262,9 @@ onUnmounted(() => {
           :expanded="isExpanded"
           :active="activeGroupId === group.id"
           :unread="group.hasUnreadContent"
+          :avatar-url="group.avatarUrl"
+          :avatar-letter="getAvatarData(group.name).letter"
+          :avatar-color="getAvatarData(group.name).color"
           @click="handleGroupClick(group.id)"
         />
       </div>

@@ -18,6 +18,7 @@ import {
 import hw from '@/api/hwApi';
 import { useI18n } from 'vue-i18n';
 import type { UnitOption } from '@/common/components/BaseSelect.vue';
+import { getAvatarData } from '@/modules/auth/utils/avatar';
 
 const { t } = useI18n();
 
@@ -222,13 +223,18 @@ async function leaveGroup(group: any) {
           @click="navigateToGroup(group.id)"
           :disabled="navigatingGroupId === group.id"
         >
+          <!-- Group Avatar (Square Cutout) -->
           <span
-            class="text-on-ghost-muted group-[.active]:text-on-action flex items-center justify-center size-9 sm:size-10 shrink-0 transition-hover group-hover:text-on-ghost"
+            class="flex items-center justify-center size-9 sm:size-10 shrink-0 border border-white/5 shadow-inner select-none transition-all duration-150 rounded-xl overflow-hidden text-sm font-bold text-white"
+            :style="!group.avatarUrl ? { backgroundColor: getAvatarData(group.name).color } : {}"
           >
-            <component
-              :is="group.id === activeGroupId ? FolderOpen : Folder"
-              :size="24"
+            <img
+              v-if="group.avatarUrl"
+              :src="group.avatarUrl"
+              alt="Group Profile"
+              class="w-full h-full object-cover"
             />
+            <span v-else>{{ getAvatarData(group.name).letter }}</span>
           </span>
           <span class="flex flex-col flex-1 gap-0.5">
             <div class="flex items-center gap-1.5 overflow-hidden">

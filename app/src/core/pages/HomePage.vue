@@ -15,6 +15,7 @@ import {
 } from '@lucide/vue';
 import hw from '@/api/hwApi';
 import { useI18n } from 'vue-i18n';
+import { getAvatarData } from '@/modules/auth/utils/avatar';
 
 const { t } = useI18n();
 
@@ -108,9 +109,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="p-4 md:p-0">
+  <div class="sm:p-4 md:p-0">
     <!-- Welcome Banner -->
-    <section class="mb-4 md:mb-8">
+    <section class="max-sm:pt-4 max-sm:px-4 mb-4 md:mb-8">
       <div class="flex justify-between items-start gap-4">
         <div>
           <h2 class="animate-fade-up">
@@ -162,7 +163,7 @@ onMounted(() => {
 
     <!-- Regular User: My Groups -->
     <section v-if="userGroups.length > 0" class="mb-9">
-      <div class="flex items-center gap-2.5 mb-4">
+      <div class="flex items-center gap-2.5 mb-4 max-sm:px-4">
         <h2 class="text-2xl font-bold text-on-ghost m-0 animate-fade-up">
           {{ t('groups.home.yourGroups') }}
         </h2>
@@ -171,11 +172,11 @@ onMounted(() => {
           >{{ userGroups.length }}</span
         >
       </div>
-      <div class="flex flex-col gap-2">
+      <div class="flex flex-col sm:gap-2">
         <button
           v-for="(group, index) in userGroups"
           :key="group.id"
-          class="group flex items-center w-full gap-2 p-3 sm:px-3.5 sm:py-3 rounded-xl bg-surface border border-surface-border shadow-input cursor-pointer text-left transition-hover hover:bg-surface-highlight disabled:opacity-50 [.active]:bg-action [.active]:border-action [.active]:hover:bg-action-hover animate-fade-up"
+          class="group flex items-center w-full gap-2 py-3 px-4 sm:px-3.5 sm:py-3 sm:rounded-xl bg-transparent sm:bg-surface sm:border border-surface-border shadow-input cursor-pointer text-left transition-hover hover:bg-ghost-hover sm:hover:bg-surface-highlight disabled:opacity-50 [.active]:bg-action [.active]:border-action [.active]:hover:bg-action-hover animate-fade-up"
           :style="{
             animationDelay: `${index * 0.075}s`,
             animationFillMode: 'both',
@@ -185,12 +186,16 @@ onMounted(() => {
           :disabled="navigatingGroupId === group.id"
         >
           <span
-            class="text-on-ghost-muted group-[.active]:text-on-action flex items-center justify-center size-9 sm:size-10 shrink-0 transition-hover group-hover:text-on-ghost"
+            class="flex items-center justify-center size-9 sm:size-10 shrink-0 select-none transition-all duration-150 rounded-full overflow-hidden text-base font-semibold text-white"
+            :style="!group.avatarUrl ? { backgroundColor: getAvatarData(group.name).color } : {}"
           >
-            <component
-              :is="group.id === activeGroupId ? FolderOpen : Folder"
-              :size="24"
+            <img
+              v-if="group.avatarUrl"
+              :src="group.avatarUrl"
+              alt="Group Profile"
+              class="w-full h-full object-cover"
             />
+            <span v-else>{{ getAvatarData(group.name).letter }}</span>
           </span>
           <span class="flex flex-col flex-1 gap-0.5">
             <span class="flex items-center gap-1.5 overflow-hidden">
@@ -199,7 +204,7 @@ onMounted(() => {
               >
                 {{ group.name }}
               </span>
-              <NotificationDot v-if="group.hasUnreadContent" />
+              <NotificationDot v-if="group.hasUnreadContent" class="max-sm:hidden" />
             </span>
             <span
               class="text-xs font-semibold uppercase tracking-wider"
@@ -211,8 +216,10 @@ onMounted(() => {
 
           <ChevronRight
             :size="16"
-            class="transition duration-150 ease-in-out opacity-0 group-hover:translate-x-0.5 group-hover:opacity-100 text-on-ghost-muted group-[.active]:text-on-action-muted"
+            class="hidden sm:block transition duration-150 ease-in-out opacity-0 group-hover:translate-x-0.5 group-hover:opacity-100 text-on-ghost-muted group-[.active]:text-on-action-muted"
           />
+
+          <NotificationDot v-if="group.hasUnreadContent" class="sm:hidden" />
         </button>
       </div>
     </section>

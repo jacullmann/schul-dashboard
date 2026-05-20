@@ -31,10 +31,7 @@ withDefaults(
         'bg-surface-hover! text-on-ghost!': active && (icon || expanded),
       }"
     >
-      <span
-        v-if="icon"
-        class="shrink-0"
-      >
+      <span v-if="icon" class="shrink-0">
         <component
           :is="icon"
           :size="20"
