@@ -3,7 +3,7 @@ import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useGroupAdmin } from '@/modules/admin/composables/useGroupAdmin';
-import { Pencil, Camera } from '@lucide/vue';
+import { Pencil, Camera, Trash2, Upload } from '@lucide/vue';
 import { useModalStore } from '@/stores/modalStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { getAvatarData } from '@/modules/auth/utils/avatar';
@@ -35,12 +35,33 @@ const router = useRouter();
 
 // Avatar/Cropper state
 const fileInputRef = ref<HTMLInputElement | null>(null);
+const cameraInputRef = ref<HTMLInputElement | null>(null);
 const cropperOpen = ref(false);
 const selectedImageSrc = ref('');
 const savingAvatar = ref(false);
 const avatarError = ref('');
+const isMenuOpen = ref(false);
 
 const avatarData = computed(() => getAvatarData(props.groupName));
+
+function toggleMenu() {
+  isMenuOpen.value = !isMenuOpen.value;
+}
+
+function triggerUploadAndClose() {
+  isMenuOpen.value = false;
+  triggerAvatarUpload();
+}
+
+function triggerCameraCaptureAndClose() {
+  isMenuOpen.value = false;
+  cameraInputRef.value?.click();
+}
+
+function deleteAvatarAndClose() {
+  isMenuOpen.value = false;
+  deleteAvatar();
+}
 
 function triggerAvatarUpload() {
   fileInputRef.value?.click();
@@ -93,7 +114,7 @@ async function onCropConfirmed(blob: Blob) {
       {
         method: 'POST',
         body: form,
-      }
+      },
     );
 
     if (!res.ok) throw new Error('Cloudinary Upload fehlgeschlagen');
@@ -103,7 +124,8 @@ async function onCropConfirmed(blob: Blob) {
     // 4. Save Cloudinary secure URL to DB
     await saveGroupAvatar(json.secure_url);
   } catch (err: any) {
-    avatarError.value = err.message || 'Fehler beim Hochladen des Profilbildes.';
+    avatarError.value =
+      err.message || 'Fehler beim Hochladen des Profilbildes.';
   } finally {
     savingAvatar.value = false;
   }
@@ -112,7 +134,8 @@ async function onCropConfirmed(blob: Blob) {
 async function deleteAvatar() {
   const isConfirmed = await modalStore.confirm({
     title: 'Gruppenbild löschen',
-    content: 'Sind Sie sicher, dass Sie das Gruppen-Profilbild löschen möchten?',
+    content:
+      'Sind Sie sicher, dass Sie das Gruppen-Profilbild löschen möchten?',
     submitText: t('global.buttons.delete') || 'Löschen',
     danger: true,
   });
@@ -192,15 +215,17 @@ async function confirmDeleteGroup() {
       <p class="m-0">Nur Administratoren können die Einstellungen ändern.</p>
     </div>
 
-    <!-- Gruppenbild settings -->
+    <!-- Erscheinungsbild settings -->
     <div>
-      <PageHeader>Gruppenbild</PageHeader>
+      <PageHeader>Erscheinungsbild</PageHeader>
       <div class="flex flex-col sm:flex-row items-center gap-6 mt-4">
         <!-- Avatar Preview Circle -->
         <div class="relative flex-shrink-0">
           <div
             class="relative size-24 rounded-full overflow-hidden bg-zinc-900/40 flex items-center justify-center select-none"
-            :style="!activeGroupAvatarUrl ? { backgroundColor: avatarData.color } : {}"
+            :style="
+              !activeGroupAvatarUrl ? { backgroundColor: avatarData.color } : {}
+            "
           >
             <img
               v-if="activeGroupAvatarUrl"
@@ -208,52 +233,122 @@ async function confirmDeleteGroup() {
               alt="Gruppenbild"
               class="w-full h-full object-cover"
             />
-            <span v-else class="text-3xl font-bold text-white">{{ avatarData.letter }}</span>
-
-            <!-- Admin Hover Overlay -->
-            <button
-              v-if="isAdmin"
-              class="absolute inset-0 bg-black/60 opacity-0 hover:opacity-100 transition-opacity duration-200 flex flex-col items-center justify-center text-white cursor-pointer border-none p-0"
-              @click="triggerAvatarUpload"
-              :disabled="savingAvatar"
-            >
-              <Camera class="w-5 h-5 mb-1" />
-              <span class="text-[9px] uppercase font-bold tracking-wider">Ändern</span>
-            </button>
+            <span v-else class="text-3xl font-bold text-white">{{
+              avatarData.letter
+            }}</span>
           </div>
+
+          <!-- Edit Icon Trigger for Menu (Admin only) -->
+          <BaseButton
+            v-if="isAdmin"
+            variant="action"
+            :icon="Pencil"
+            size="sm"
+            class="absolute! bottom-0 right-0"
+            @click.stop="toggleMenu"
+            :disabled="savingAvatar"
+          />
 
           <!-- Upload / Crop progress indicator -->
           <div
             v-if="savingAvatar"
-            class="absolute inset-0 bg-zinc-950/70 rounded-full flex items-center justify-center"
+            class="absolute inset-0 bg-zinc-950/70 rounded-full flex items-center justify-center z-20"
           >
             <BaseSpinner />
           </div>
-        </div>
 
-        <div class="flex-1 flex flex-col gap-2 text-center sm:text-left">
-          <div v-if="isAdmin" class="flex flex-wrap gap-2 justify-center sm:justify-start">
-            <BaseButton
-              variant="ghost"
-              @click="triggerAvatarUpload"
+          <!-- BaseMenu (Options: Upload, Capture, Delete) -->
+          <BaseMenu
+            v-if="isAdmin"
+            :open="isMenuOpen"
+            @close="isMenuOpen = false"
+            class="left-0 mt-2 z-30 min-w-[180px]"
+            @click.stop
+          >
+            <BaseMenuButton
+              @click="triggerUploadAndClose"
+              :icon="Upload"
               :disabled="savingAvatar"
             >
               Bild hochladen
-            </BaseButton>
-            <BaseButton
+            </BaseMenuButton>
+            <BaseMenuButton
+              @click="triggerCameraCaptureAndClose"
+              :icon="Camera"
+              :disabled="savingAvatar"
+            >
+              Bild aufnehmen
+            </BaseMenuButton>
+            <BaseMenuButton
               v-if="activeGroupAvatarUrl"
-              variant="ghost"
-              class="text-danger hover:bg-danger/10"
-              @click="deleteAvatar"
+              variant="danger"
+              @click="deleteAvatarAndClose"
+              :icon="Trash2"
               :disabled="savingAvatar"
             >
               Bild löschen
-            </BaseButton>
+            </BaseMenuButton>
+          </BaseMenu>
+        </div>
+
+        <!-- Name display & edit -->
+        <div class="flex-1 w-full flex flex-col">
+          <BaseLabel for="group-name">Name</BaseLabel>
+          <div v-if="!editingGroupName" class="flex items-center gap-2 h-6">
+            <span class="font-semibold text-xl">{{ groupName }}</span>
+            <BaseTooltip :content="t('global.buttons.edit')">
+              <BaseButton
+                v-if="isAdmin"
+                class="w-8 h-8 p-0"
+                @click="emit('start-edit')"
+                variant="ghost"
+                :icon="Pencil"
+              />
+            </BaseTooltip>
           </div>
-          <p class="text-xs text-on-ghost-muted m-0">
-            Laden Sie ein Bild hoch. Das Bild wird kreisförmig zugeschnitten und als Profilbild Ihrer Gruppe angezeigt.
-          </p>
-          <span v-if="avatarError" class="text-xs text-danger font-medium">{{ avatarError }}</span>
+
+          <template v-else>
+            <div
+              class="flex flex-col items-stretch sm:items-center gap-2 w-full max-w-[400px]"
+            >
+              <BaseInput
+                id="group-name"
+                class="flex-1"
+                :value="newGroupName"
+                @input="
+                  emit(
+                    'update:newGroupName',
+                    ($event.target as HTMLInputElement).value,
+                  )
+                "
+                placeholder="Neuer Gruppenname"
+                @keyup.enter="emit('save-edit')"
+                :disabled="!isAdmin"
+              />
+              <BaseRow justify="end" class="w-full mt-2">
+                <BaseButton @click="emit('cancel-edit')" variant="ghost">{{
+                  t('global.buttons.cancel')
+                }}</BaseButton>
+                <BaseButton
+                  @click="emit('save-edit')"
+                  :disabled="
+                    savingGroupName || !newGroupName.trim() || !isAdmin
+                  "
+                  variant="action"
+                >
+                  {{
+                    savingGroupName ? 'Speichert...' : t('global.buttons.save')
+                  }}
+                </BaseButton>
+              </BaseRow>
+            </div>
+          </template>
+
+          <span
+            v-if="avatarError"
+            class="text-xs text-danger font-medium mt-1"
+            >{{ avatarError }}</span
+          >
         </div>
       </div>
 
@@ -265,59 +360,21 @@ async function confirmDeleteGroup() {
         @change="onFileSelected"
       />
 
+      <input
+        type="file"
+        ref="cameraInputRef"
+        accept="image/*"
+        capture="user"
+        class="hidden"
+        @change="onFileSelected"
+      />
+
       <GroupAvatarCropper
         :open="cropperOpen"
         :image-src="selectedImageSrc"
         @cancel="cropperOpen = false"
         @confirm="onCropConfirmed"
       />
-    </div>
-
-    <!-- Name settings -->
-    <div>
-      <PageHeader>Gruppenname</PageHeader>
-      <BaseLabel for="group-name">Name</BaseLabel>
-      <div v-if="!editingGroupName" class="flex items-center gap-3">
-        <span class="font-semibold text-base">{{ groupName }}</span>
-        <BaseTooltip :content="t('global.buttons.edit')">
-          <BaseButton
-            v-if="isAdmin"
-            class="w-8 h-8 p-0"
-            @click="emit('start-edit')"
-            variant="ghost"
-            :icon="Pencil"
-          />
-        </BaseTooltip>
-      </div>
-
-      <template v-else>
-        <BaseInput
-          id="group-name"
-          class="flex-1 max-w-[300px] sm:max-w-none"
-          :value="newGroupName"
-          @input="
-            emit(
-              'update:newGroupName',
-              ($event.target as HTMLInputElement).value,
-            )
-          "
-          placeholder="Neuer Gruppenname"
-          @keyup.enter="emit('save-edit')"
-          :disabled="!isAdmin"
-        />
-        <BaseRow justify="end" class="w-full mt-2">
-          <BaseButton @click="emit('cancel-edit')" variant="ghost">{{
-            t('global.buttons.cancel')
-          }}</BaseButton>
-          <BaseButton
-            @click="emit('save-edit')"
-            :disabled="savingGroupName || !newGroupName.trim() || !isAdmin"
-            variant="action"
-          >
-            {{ savingGroupName ? 'Speichert...' : t('global.buttons.save') }}
-          </BaseButton>
-        </BaseRow>
-      </template>
     </div>
 
     <!-- Password settings -->

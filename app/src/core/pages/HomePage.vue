@@ -176,7 +176,7 @@ onMounted(() => {
         <button
           v-for="(group, index) in userGroups"
           :key="group.id"
-          class="group flex items-center w-full gap-2 py-3 px-4 sm:px-3.5 sm:py-3 sm:rounded-xl bg-transparent sm:bg-surface sm:border border-surface-border shadow-input cursor-pointer text-left transition-hover hover:bg-ghost-hover sm:hover:bg-surface-highlight disabled:opacity-50 [.active]:bg-action [.active]:border-action [.active]:hover:bg-action-hover animate-fade-up"
+          class="group flex items-center w-full gap-2 py-3 px-4 sm:px-3.5 sm:py-3 sm:rounded-xl bg-transparent sm:bg-surface sm:border border-surface-border sm:shadow-input cursor-pointer text-left transition-hover hover:bg-ghost-hover sm:hover:bg-surface-highlight disabled:opacity-50 [.active]:bg-surface-hover sm:[.active]:bg-action sm:[.active]:border-action sm:[.active]:hover:bg-action-hover animate-fade-up"
           :style="{
             animationDelay: `${index * 0.075}s`,
             animationFillMode: 'both',
@@ -200,7 +200,7 @@ onMounted(() => {
           <span class="flex flex-col flex-1 gap-0.5">
             <span class="flex items-center gap-1.5 overflow-hidden">
               <span
-                class="font-semibold text-base text-on-ghost group-[.active]:text-on-action truncate"
+                class="font-semibold text-base text-on-ghost sm:group-[.active]:text-on-action truncate"
               >
                 {{ group.name }}
               </span>
@@ -216,7 +216,7 @@ onMounted(() => {
 
           <ChevronRight
             :size="16"
-            class="hidden sm:block transition duration-150 ease-in-out opacity-0 group-hover:translate-x-0.5 group-hover:opacity-100 text-on-ghost-muted group-[.active]:text-on-action-muted"
+            class="hidden sm:block transition duration-150 ease-in-out opacity-0 group-hover:translate-x-0.5 group-hover:opacity-100 text-on-ghost-muted sm:group-[.active]:text-on-action-muted"
           />
 
           <NotificationDot v-if="group.hasUnreadContent" class="sm:hidden" />
