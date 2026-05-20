@@ -337,6 +337,23 @@ export function useGroupAdmin() {
     }
   }
 
+  async function saveGroupAvatar(avatarUrl: string | null) {
+    try {
+      await hw.patch('/api/group-admin/settings', {
+        avatarUrl: avatarUrl ? avatarUrl.trim() : null,
+      });
+      showMessage(avatarUrl ? 'Group-Bild aktualisiert' : 'Group-Bild gelöscht');
+      await checkAuthStatus();
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: { error?: string } } };
+      showMessage(
+        err.response?.data?.error || 'Fehler beim Speichern des Gruppenbildes',
+        true,
+      );
+      throw e;
+    }
+  }
+
   async function updateGroupPassword(oldPassword: string, newPassword: string) {
     try {
       await hw.patch('/api/group-admin/password', { oldPassword, newPassword });
@@ -466,6 +483,7 @@ export function useGroupAdmin() {
     startEditGroupName,
     cancelEditGroupName,
     saveGroupName,
+    saveGroupAvatar,
     updateGroupPassword,
     deleteGroup,
     transferOwnership,

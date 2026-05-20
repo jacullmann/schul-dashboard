@@ -117,7 +117,12 @@ export class GroupAdminController {
     @CurrentUserId() userId: string,
     @Body() body: RenameGroupDto,
   ) {
-    return this.groupAdminService.renameGroup(tenantId, userId, body.name);
+    return this.groupAdminService.renameGroup(
+      tenantId,
+      userId,
+      body.name,
+      body.avatarUrl,
+    );
   }
 
   @TenantRoles('admin')

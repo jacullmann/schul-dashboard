@@ -21,6 +21,10 @@ export class RenameGroupDto {
   @IsString()
   @Length(1, 100)
   name?: string;
+
+  @IsOptional()
+  @IsString()
+  avatarUrl?: string;
 }
 
 export class ScheduleConfigDto {

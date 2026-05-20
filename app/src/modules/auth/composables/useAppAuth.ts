@@ -11,6 +11,7 @@ const isAuthReady = ref(false);
 const groupName = ref<string | null>(null);
 const activeGroupId = ref<string | null>(null);
 const activeGroupOwnerId = ref<string | null>(null);
+const activeGroupAvatarUrl = ref<string | null>(null);
 type UserGroup = {
   id: string;
   name: string;
@@ -19,6 +20,7 @@ type UserGroup = {
   ownerId?: string;
   hasUnreadContent?: boolean;
   scheduleConfig?: Record<string, any>;
+  avatarUrl?: string;
 };
 
 const userGroups = ref<UserGroup[]>([]);
@@ -48,6 +50,7 @@ function clearAuthState(): void {
   groupName.value = null;
   activeGroupId.value = null;
   activeGroupOwnerId.value = null;
+  activeGroupAvatarUrl.value = null;
   userGroups.value = [];
   statusPromise = null;
   try {
@@ -59,7 +62,7 @@ function clearAuthState(): void {
 
 function applyStatusData(data: {
   authenticated: boolean;
-  group?: { id: string; name: string; ownerId?: string } | null;
+  group?: { id: string; name: string; ownerId?: string; avatarUrl?: string } | null;
   groups?: UserGroup[];
 }): void {
   isLoggedIn.value = data.authenticated;
@@ -67,6 +70,7 @@ function applyStatusData(data: {
   groupName.value = data.group?.name ?? null;
   activeGroupId.value = data.group?.id ?? null;
   activeGroupOwnerId.value = data.group?.ownerId ?? null;
+  activeGroupAvatarUrl.value = data.group?.avatarUrl ?? null;
   userGroups.value = data.groups ?? [];
 }
 
@@ -254,6 +258,7 @@ export function useAppAuth() {
     groupName,
     activeGroupId,
     activeGroupOwnerId,
+    activeGroupAvatarUrl,
     activeScheduleConfig,
     userGroups,
     initAuth,

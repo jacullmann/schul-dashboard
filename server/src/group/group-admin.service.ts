@@ -281,35 +281,64 @@ export class GroupAdminService {
     return { ok: true, message: 'Ownership transferred successfully.' };
   }
 
-  async renameGroup(tenantId: string, userId: string, name?: string) {
-    if (!name) return { ok: true };
-
+  async renameGroup(
+    tenantId: string,
+    userId: string,
+    name?: string,
+    avatarUrl?: string,
+  ) {
     const sb = this.supabaseService.getClient();
-    const { data: existing } = (await sb
-      .from('groups')
-      .select('id')
-      .eq('name', name)
-      .maybeSingle()) as { data: Record<string, any> | null };
+    const updateData: Record<string, any> = {};
 
-    if (existing && existing.id !== tenantId) {
-      throw new BadRequestException('This group name is already taken.');
+    if (name && name.trim()) {
+      const trimmedName = name.trim();
+      const { data: existing } = (await sb
+        .from('groups')
+        .select('id')
+        .eq('name', trimmedName)
+        .maybeSingle()) as { data: Record<string, any> | null };
+
+      if (existing && existing.id !== tenantId) {
+        throw new BadRequestException('This group name is already taken.');
+      }
+      updateData.name = trimmedName;
     }
 
-    const { error: groupRenameError } = await sb
+    if (avatarUrl !== undefined) {
+      updateData.avatar_url =
+        avatarUrl && avatarUrl.trim() ? avatarUrl.trim() : null;
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return { ok: true };
+    }
+
+    const { error: groupUpdateError } = await sb
       .from('groups')
-      .update({ name: name.trim() })
+      .update(updateData)
       .eq('id', tenantId);
-    if (groupRenameError)
-      throw new InternalServerErrorException('Failed to save group');
-    const { error: activityRenameError } = await sb
-      .from('user_activity')
-      .insert({
+
+    if (groupUpdateError) {
+      throw new InternalServerErrorException('Failed to update group settings');
+    }
+
+    if (updateData.name) {
+      await sb.from('user_activity').insert({
         user_id: userId,
         type: 'group-admin:rename-group',
-        meta: { tenantId, newName: name.trim() },
+        meta: { tenantId, newName: updateData.name },
       });
-    if (activityRenameError)
-      throw new InternalServerErrorException('Failed to save user activity');
+    }
+
+    if (avatarUrl !== undefined) {
+      await sb.from('user_activity').insert({
+        user_id: userId,
+        type: updateData.avatar_url
+          ? 'group-admin:update-avatar'
+          : 'group-admin:delete-avatar',
+        meta: { tenantId, avatarUrl: updateData.avatar_url },
+      });
+    }
 
     return { ok: true };
   }

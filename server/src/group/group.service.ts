@@ -210,7 +210,7 @@ export class GroupService {
       const { data: userRoles } = await sb
         .from('user_roles')
         .select(
-          'tenant_id, groups(id, name, owner_id, schedule_config), roles(name)',
+          'tenant_id, groups(id, name, owner_id, schedule_config, avatar_url), roles(name)',
         )
         .eq('user_id', userId)
         .not('tenant_id', 'is', null);
@@ -225,6 +225,7 @@ export class GroupService {
           generatedName: generateUserName(userId, ur.groups.id),
           hasUnreadContent: false,
           scheduleConfig: ur.groups.schedule_config,
+          avatarUrl: ur.groups.avatar_url as string,
         }));
 
       // Determine unread status per-user:
@@ -312,7 +313,7 @@ export class GroupService {
       if (!activeGroup && activeGroupId && globalRole === 'superadmin') {
         const { data: adminGroup } = await sb
           .from('groups')
-          .select('id, name, owner_id, schedule_config')
+          .select('id, name, owner_id, schedule_config, avatar_url')
           .eq('id', activeGroupId)
           .maybeSingle();
 
@@ -325,6 +326,7 @@ export class GroupService {
             generatedName: generateUserName(userId, adminGroup.id as string),
             hasUnreadContent: false,
             scheduleConfig: adminGroup.schedule_config,
+            avatarUrl: adminGroup.avatar_url as string,
           };
         }
       }
@@ -336,6 +338,7 @@ export class GroupService {
               id: activeGroup.id,
               name: activeGroup.name,
               ownerId: activeGroup.ownerId,
+              avatarUrl: activeGroup.avatarUrl,
             }
           : null,
         groups,
