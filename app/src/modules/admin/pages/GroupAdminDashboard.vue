@@ -5,6 +5,7 @@ import {
   CalendarDays,
   Megaphone,
   UsersRound,
+  UserRoundKey,
   BookOpen,
   Settings,
 } from '@lucide/vue';
@@ -15,6 +16,7 @@ import AdminLayout, { type AdminNavItem } from '@/layouts/AdminLayout.vue';
 
 import GroupAdminOverview from '@/modules/admin/components/GroupAdminOverview.vue';
 import GroupAdminMembers from '@/modules/admin/components/GroupAdminMembers.vue';
+import GroupAdminPermissions from '@/modules/admin/components/GroupAdminPermissions.vue';
 import GroupAdminSchedule from '@/modules/admin/components/GroupAdminSchedule.vue';
 import GroupAdminAnnouncements from '@/modules/admin/components/GroupAdminAnnouncements.vue';
 import GroupAdminSubjects from '@/modules/admin/components/GroupAdminSubjects.vue';
@@ -71,6 +73,7 @@ const navItems: AdminNavItem[] = [
   { id: 'schedule', label: 'Schedule', icon: markRaw(CalendarDays) },
   { id: 'announcements', label: 'Announcements', icon: markRaw(Megaphone) },
   { id: 'subjects', label: 'Subjects', icon: markRaw(BookOpen) },
+  { id: 'permissions', label: 'Permissions', icon: markRaw(UserRoundKey) },
   { id: 'settings', label: 'Settings', icon: markRaw(Settings) },
 ];
 </script>
@@ -126,6 +129,11 @@ const navItems: AdminNavItem[] = [
     />
 
     <GroupAdminSubjects v-if="activeTab === 'subjects'" :is-admin="isAdmin" />
+
+    <GroupAdminPermissions
+      v-if="activeTab === 'permissions'"
+      :is-admin="isAdmin"
+    />
 
     <GroupAdminSettings
       v-if="activeTab === 'settings'"

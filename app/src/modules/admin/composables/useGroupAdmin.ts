@@ -342,7 +342,9 @@ export function useGroupAdmin() {
       await hw.patch('/api/group-admin/settings', {
         avatarUrl: avatarUrl ? avatarUrl.trim() : null,
       });
-      showMessage(avatarUrl ? 'Group-Bild aktualisiert' : 'Group-Bild gelöscht');
+      showMessage(
+        avatarUrl ? 'Group-Bild aktualisiert' : 'Group-Bild gelöscht',
+      );
       await checkAuthStatus();
     } catch (e: unknown) {
       const err = e as { response?: { data?: { error?: string } } };

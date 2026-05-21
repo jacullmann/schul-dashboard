@@ -44,7 +44,7 @@ function updateTimers() {
       clearTimeout(toast.timerId);
       toast.timerId = undefined;
       if (toast.lastStartTime) {
-        toast.remainingTime -= (now - toast.lastStartTime);
+        toast.remainingTime -= now - toast.lastStartTime;
         toast.lastStartTime = undefined;
       }
     }

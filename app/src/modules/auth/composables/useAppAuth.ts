@@ -62,7 +62,12 @@ function clearAuthState(): void {
 
 function applyStatusData(data: {
   authenticated: boolean;
-  group?: { id: string; name: string; ownerId?: string; avatarUrl?: string } | null;
+  group?: {
+    id: string;
+    name: string;
+    ownerId?: string;
+    avatarUrl?: string;
+  } | null;
   groups?: UserGroup[];
 }): void {
   isLoggedIn.value = data.authenticated;

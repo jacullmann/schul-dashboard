@@ -159,311 +159,312 @@ function handleSaveSub() {
 <template>
   <div class="animate-fade-up">
     <PageHeader>
-      Stundenplanänderungen
-
+      Stundenplan
       <template #info>
         <InfoModal
-          tooltip="Übersicht des Stundenplanänderungsmenüs"
-          title="Stundenplanänderungen"
+          tooltip="Übersicht der Stundenplaneinstellungen"
+          title="Stundenplaneinstellungen"
         >
-          <h3>Trage Änderungen Live und anschaulich ein</h3>
-
-          <h3>Stunden auswählen</h3>
-          <p>
-            Klicke in der Stundenplanansicht die Stunden an, die du ändern
-            möchtest.
-          </p>
-
-          <h3>Änderungen eintragen</h3>
-          <p>
-            Schreibe in die passenden Textfelder die neuen Daten. Falls ein Wert
-            gleichbleiben soll, kannst du das Feld freilassen. Mit den
-            entsprechenden Checkboxen kannst du auch markieren ob Stunden
-            ausfallen oder Stunden ganz verbergen.
-          </p>
+          <h3>
+            Konfiguriere die globalen Einstellungen für den Stundenplan (Zeiten,
+            Pausen).
+          </h3>
         </InfoModal>
-      </template>
-
-      <template #action>
-        <BaseTooltip content="Aktualisieren">
-          <BaseButton
-            @click="emit('refresh')"
-            :disabled="loadingSubs"
-            variant="ghost"
-            :icon="RefreshCw"
-          />
-        </BaseTooltip>
       </template>
     </PageHeader>
 
-    <!-- Create Form -->
-    <h3 v-if="!selectedLesson" class="text-on-ghost-muted mb-6">
-      Bitte wählen Sie eine Stunde aus dem Stundenplan.
-    </h3>
+    <div class="grid grid-cols-2 gap-4 mb-4 sm:grid-cols-1">
+      <div>
+        <BaseLabel for="config-start">Startzeit</BaseLabel>
+        <BaseInput
+          id="config-start"
+          type="time"
+          v-model="configForm.startTime"
+          :disabled="!isAdmin"
+        />
+      </div>
+      <div>
+        <BaseLabel for="config-slots">Anzahl Stunden (Pro Tag)</BaseLabel>
+        <BaseInput
+          id="config-slots"
+          type="number"
+          min="1"
+          max="15"
+          v-model.number="configForm.totalSlots"
+          :disabled="!isAdmin"
+        />
+      </div>
+      <div>
+        <BaseLabel for="config-duration">Stundenlänge (Minuten)</BaseLabel>
+        <BaseInput
+          id="config-duration"
+          type="number"
+          min="10"
+          max="120"
+          v-model.number="configForm.lessonDurationMins"
+          :disabled="!isAdmin"
+        />
+      </div>
+    </div>
 
-    <div v-if="selectedLesson">
-      <h3 class="mt-0 mb-2 text-lg">Ausgewählte Stunde</h3>
-      <p class="m-0 mb-4 text-on-ghost-muted text-base">
-        Ersetzt: <strong>{{ getDisplayName(selectedLesson) }}</strong> (Stunde:
-        {{ selectedLesson.slot }}, Letzte Stunde:
-        {{ selectedLesson.slot + selectedLesson.duration - 1 }}, Raum:
-        {{ selectedLesson.room || '-' }}, Tag: {{ selectedLesson.day }})
-      </p>
-
-      <div class="grid grid-cols-2 gap-3 mb-4 sm:grid-cols-1">
-        <input type="hidden" v-model="subForm.lessonId" />
-        <div class="form-field">
-          <BaseLabel for="sub-subject">Neues Fach</BaseLabel>
-          <BaseInput
-            id="sub-subject"
-            v-model="subForm.subject"
-            placeholder="Deutsch"
-          />
-        </div>
-        <div class="form-field">
-          <BaseLabel for="sub-room">Neuer Raum</BaseLabel>
-          <BaseInput id="sub-room" v-model="subForm.room" placeholder="A101" />
-        </div>
-        <div class="form-field">
-          <BaseLabel for="sub-slot">Neue Stunde</BaseLabel>
-          <BaseInput
-            id="sub-slot"
-            v-model.number="subForm.slot"
-            type="number"
-            placeholder="4"
-          />
-        </div>
-        <div class="form-field">
-          <BaseLabel for="sub-duration">Neue Dauer</BaseLabel>
-          <BaseInput
-            id="sub-duration"
-            v-model.number="subForm.duration"
-            type="number"
-            min="1"
-            placeholder="2"
-          />
-        </div>
-        <div class="form-field">
-          <BaseLabel for="sub-day">Neuer Tag (1 = Mo, 5 = Fr)</BaseLabel>
-          <BaseInput
-            id="sub-day"
-            v-model.number="subForm.day"
-            type="number"
-            min="1"
-            max="5"
-            placeholder="2"
-          />
-        </div>
+    <div class="mt-6 mb-4">
+      <div class="flex items-center justify-between mb-3">
+        <h3>Pausen</h3>
+        <BaseButton
+          v-if="isAdmin"
+          variant="ghost"
+          @click="addBreak"
+          :icon="Plus"
+        >
+          Pause hinzufügen
+        </BaseButton>
       </div>
 
-      <div class="flex gap-6 mt-4 mb-6">
-        <BaseCheckbox v-model="subForm.cancelled">
-          <span>Ausfall</span>
-        </BaseCheckbox>
-        <BaseCheckbox v-model="subForm.hide">
-          <span>Verstecken</span>
-        </BaseCheckbox>
-      </div>
-
-      <BaseButton
-        @click="handleSaveSub"
-        :disabled="savingSub || !subForm.lessonId"
-        variant="action"
-      >
-        {{ savingSub ? 'Speichert...' : 'Speichern' }}
-      </BaseButton>
-    </div>
-
-    <h3 class="p-5 pb-0 text-lg">Stunde auswählen</h3>
-    <div
-      v-if="loadingLessons"
-      class="text-center p-8 text-on-ghost-muted text-base"
-    >
-      Lade Stundenplan...
-    </div>
-    <AdminSchedule
-      v-else
-      :lessons="lessons"
-      :selectedLessonId="subForm.lessonId"
-      @select-lesson="onLessonSelected"
-      class="p-5"
-    />
-
-    <!-- Existing Subs -->
-    <div
-      v-if="subs.length === 0 && !loadingSubs"
-      class="text-center p-8 text-on-ghost-muted text-base"
-    >
-      Keine Substitutions vorhanden.
-    </div>
-    <div v-else class="flex flex-col gap-1.5">
       <div
-        v-for="sub in subs"
-        :key="sub.id"
-        class="flex items-center justify-between p-2 px-3.5 bg-surface border border-surface-border shadow-input rounded-[10px] gap-2"
+        v-if="configForm.breaks.length === 0"
+        class="text-center p-4 text-on-ghost-muted text-base"
       >
-        <div class="flex items-center gap-2 flex-wrap min-w-0">
-          <span
-            v-if="sub.subject"
-            class="text-[0.7rem] font-semibold px-2 py-0.5 rounded bg-surface-hover text-on-ghost"
-            >{{ sub.subject }}</span
-          >
-          <span
-            v-else
-            class="text-[0.7rem] font-semibold px-2 py-0.5 rounded bg-surface-hover text-on-ghost"
-            >Unbekannt</span
-          >
-          <span class="text-sm text-on-ghost-muted" v-if="sub.slot"
-            >Stunde: {{ sub.slot }}</span
-          >
-          <span class="text-sm text-on-ghost-muted" v-if="sub.day"
-            >Tag: {{ sub.day }}</span
-          >
-          <span
-            v-if="sub.cancelled"
-            class="text-[0.7rem] font-semibold px-2 py-0.5 rounded bg-[rgba(239,68,68,0.15)] text-[#ef4444]"
-            >Ausfall</span
-          >
-          <span
-            v-if="sub.hide"
-            class="text-[0.7rem] font-semibold px-2 py-0.5 rounded bg-surface-hover text-on-ghost-muted"
-            >Versteckt</span
-          >
-          <span v-if="sub.room" class="text-sm text-on-ghost-muted"
-            >Raum: {{ sub.room }}</span
-          >
-        </div>
-        <BaseTooltip :content="t('global.buttons.delete')" placement="bottom">
+        Keine Pausen konfiguriert.
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <div
+          v-for="brk in sortedBreaks"
+          :key="brk.id"
+          class="flex gap-2 items-end"
+        >
+          <div class="form-field flex-1 m-0">
+            <BaseLabel :for="`break-slot-${brk.id}`">Nach Stunde</BaseLabel>
+            <BaseInput
+              :id="`break-slot-${brk.id}`"
+              type="number"
+              min="1"
+              :max="configForm.totalSlots"
+              v-model.number="brk.slot"
+              :disabled="!isAdmin"
+            />
+          </div>
+          <div class="form-field flex-1 m-0">
+            <BaseLabel :for="`break-dur-${brk.id}`">Dauer (Minuten)</BaseLabel>
+            <BaseInput
+              :id="`break-dur-${brk.id}`"
+              type="number"
+              min="1"
+              v-model.number="brk.duration"
+              :disabled="!isAdmin"
+            />
+          </div>
           <BaseButton
-            @click="emit('delete-sub', sub.id)"
+            v-if="isAdmin"
             variant="ghost"
+            class="text-danger mb-1"
+            @click="removeBreak(brk.id)"
             :icon="Trash2"
           />
-        </BaseTooltip>
+        </div>
       </div>
+    </div>
+
+    <div v-if="isAdmin" class="mt-6">
+      <BaseButton
+        @click="handleSaveConfig"
+        :disabled="savingScheduleConfig"
+        variant="action"
+      >
+        {{ savingScheduleConfig ? 'Speichert...' : 'Einstellungen speichern' }}
+      </BaseButton>
     </div>
 
     <!-- Config section -->
     <div class="mt-8 border-t border-surface-border pt-6">
       <PageHeader>
-        Stundenplaneinstellungen
+        Stundenplanänderungen
+
         <template #info>
           <InfoModal
-            tooltip="Übersicht der Stundenplaneinstellungen"
-            title="Stundenplaneinstellungen"
+            tooltip="Übersicht des Stundenplanänderungsmenüs"
+            title="Stundenplanänderungen"
           >
-            <h3>
-              Konfiguriere die globalen Einstellungen für den Stundenplan
-              (Zeiten, Pausen).
-            </h3>
+            <h3>Trage Änderungen Live und anschaulich ein</h3>
+
+            <h3>Stunden auswählen</h3>
+            <p>
+              Klicke in der Stundenplanansicht die Stunden an, die du ändern
+              möchtest.
+            </p>
+
+            <h3>Änderungen eintragen</h3>
+            <p>
+              Schreibe in die passenden Textfelder die neuen Daten. Falls ein
+              Wert gleichbleiben soll, kannst du das Feld freilassen. Mit den
+              entsprechenden Checkboxen kannst du auch markieren ob Stunden
+              ausfallen oder Stunden ganz verbergen.
+            </p>
           </InfoModal>
+        </template>
+
+        <template #action>
+          <BaseTooltip content="Aktualisieren">
+            <BaseButton
+              @click="emit('refresh')"
+              :disabled="loadingSubs"
+              variant="ghost"
+              :icon="RefreshCw"
+            />
+          </BaseTooltip>
         </template>
       </PageHeader>
 
-      <div class="grid grid-cols-2 gap-4 mb-4 sm:grid-cols-1">
-        <div>
-          <BaseLabel for="config-start">Startzeit</BaseLabel>
-          <BaseInput
-            id="config-start"
-            type="time"
-            v-model="configForm.startTime"
-            :disabled="!isAdmin"
-          />
-        </div>
-        <div>
-          <BaseLabel for="config-slots">Anzahl Stunden (Pro Tag)</BaseLabel>
-          <BaseInput
-            id="config-slots"
-            type="number"
-            min="1"
-            max="15"
-            v-model.number="configForm.totalSlots"
-            :disabled="!isAdmin"
-          />
-        </div>
-        <div>
-          <BaseLabel for="config-duration">Stundenlänge (Minuten)</BaseLabel>
-          <BaseInput
-            id="config-duration"
-            type="number"
-            min="10"
-            max="120"
-            v-model.number="configForm.lessonDurationMins"
-            :disabled="!isAdmin"
-          />
-        </div>
-      </div>
+      <!-- Create Form -->
+      <h3 v-if="!selectedLesson" class="text-on-ghost-muted mb-6">
+        Bitte wählen Sie eine Stunde aus dem Stundenplan.
+      </h3>
 
-      <div class="mt-6 mb-4">
-        <div class="flex items-center justify-between mb-3">
-          <h3>Pausen</h3>
-          <BaseButton
-            v-if="isAdmin"
-            variant="ghost"
-            @click="addBreak"
-            :icon="Plus"
-          >
-            Pause hinzufügen
-          </BaseButton>
-        </div>
+      <div v-if="selectedLesson">
+        <h3 class="mt-0 mb-2 text-lg">Ausgewählte Stunde</h3>
+        <p class="m-0 mb-4 text-on-ghost-muted text-base">
+          Ersetzt:
+          <strong>{{ getDisplayName(selectedLesson) }}</strong> (Stunde:
+          {{ selectedLesson.slot }}, Letzte Stunde:
+          {{ selectedLesson.slot + selectedLesson.duration - 1 }}, Raum:
+          {{ selectedLesson.room || '-' }}, Tag: {{ selectedLesson.day }})
+        </p>
 
-        <div
-          v-if="configForm.breaks.length === 0"
-          class="text-center p-4 text-on-ghost-muted text-base"
-        >
-          Keine Pausen konfiguriert.
-        </div>
-
-        <div class="flex flex-col gap-2">
-          <div
-            v-for="brk in sortedBreaks"
-            :key="brk.id"
-            class="flex gap-2 items-end"
-          >
-            <div class="form-field flex-1 m-0">
-              <BaseLabel :for="`break-slot-${brk.id}`">Nach Stunde</BaseLabel>
-              <BaseInput
-                :id="`break-slot-${brk.id}`"
-                type="number"
-                min="1"
-                :max="configForm.totalSlots"
-                v-model.number="brk.slot"
-                :disabled="!isAdmin"
-              />
-            </div>
-            <div class="form-field flex-1 m-0">
-              <BaseLabel :for="`break-dur-${brk.id}`"
-                >Dauer (Minuten)</BaseLabel
-              >
-              <BaseInput
-                :id="`break-dur-${brk.id}`"
-                type="number"
-                min="1"
-                v-model.number="brk.duration"
-                :disabled="!isAdmin"
-              />
-            </div>
-            <BaseButton
-              v-if="isAdmin"
-              variant="ghost"
-              class="text-danger mb-1"
-              @click="removeBreak(brk.id)"
-              :icon="Trash2"
+        <div class="grid grid-cols-2 gap-3 mb-4 sm:grid-cols-1">
+          <input type="hidden" v-model="subForm.lessonId" />
+          <div class="form-field">
+            <BaseLabel for="sub-subject">Neues Fach</BaseLabel>
+            <BaseInput
+              id="sub-subject"
+              v-model="subForm.subject"
+              placeholder="Deutsch"
+            />
+          </div>
+          <div class="form-field">
+            <BaseLabel for="sub-room">Neuer Raum</BaseLabel>
+            <BaseInput
+              id="sub-room"
+              v-model="subForm.room"
+              placeholder="A101"
+            />
+          </div>
+          <div class="form-field">
+            <BaseLabel for="sub-slot">Neue Stunde</BaseLabel>
+            <BaseInput
+              id="sub-slot"
+              v-model.number="subForm.slot"
+              type="number"
+              placeholder="4"
+            />
+          </div>
+          <div class="form-field">
+            <BaseLabel for="sub-duration">Neue Dauer</BaseLabel>
+            <BaseInput
+              id="sub-duration"
+              v-model.number="subForm.duration"
+              type="number"
+              min="1"
+              placeholder="2"
+            />
+          </div>
+          <div class="form-field">
+            <BaseLabel for="sub-day">Neuer Tag (1 = Mo, 5 = Fr)</BaseLabel>
+            <BaseInput
+              id="sub-day"
+              v-model.number="subForm.day"
+              type="number"
+              min="1"
+              max="5"
+              placeholder="2"
             />
           </div>
         </div>
-      </div>
 
-      <div v-if="isAdmin" class="mt-6">
+        <div class="flex gap-6 mt-4 mb-6">
+          <BaseCheckbox v-model="subForm.cancelled">
+            <span>Ausfall</span>
+          </BaseCheckbox>
+          <BaseCheckbox v-model="subForm.hide">
+            <span>Verstecken</span>
+          </BaseCheckbox>
+        </div>
+
         <BaseButton
-          @click="handleSaveConfig"
-          :disabled="savingScheduleConfig"
+          @click="handleSaveSub"
+          :disabled="savingSub || !subForm.lessonId"
           variant="action"
         >
-          {{
-            savingScheduleConfig ? 'Speichert...' : 'Einstellungen speichern'
-          }}
+          {{ savingSub ? 'Speichert...' : 'Speichern' }}
         </BaseButton>
+      </div>
+
+      <h3 class="p-5 pb-0 text-lg">Stunde auswählen</h3>
+      <div
+        v-if="loadingLessons"
+        class="text-center p-8 text-on-ghost-muted text-base"
+      >
+        Lade Stundenplan...
+      </div>
+      <AdminSchedule
+        v-else
+        :lessons="lessons"
+        :selectedLessonId="subForm.lessonId"
+        @select-lesson="onLessonSelected"
+        class="p-5"
+      />
+
+      <!-- Existing Subs -->
+      <div
+        v-if="subs.length === 0 && !loadingSubs"
+        class="text-center p-8 text-on-ghost-muted text-base"
+      >
+        Keine Substitutions vorhanden.
+      </div>
+      <div v-else class="flex flex-col gap-1.5">
+        <div
+          v-for="sub in subs"
+          :key="sub.id"
+          class="flex items-center justify-between p-2 px-3.5 bg-surface border border-surface-border shadow-input rounded-[10px] gap-2"
+        >
+          <div class="flex items-center gap-2 flex-wrap min-w-0">
+            <span
+              v-if="sub.subject"
+              class="text-[0.7rem] font-semibold px-2 py-0.5 rounded bg-surface-hover text-on-ghost"
+              >{{ sub.subject }}</span
+            >
+            <span
+              v-else
+              class="text-[0.7rem] font-semibold px-2 py-0.5 rounded bg-surface-hover text-on-ghost"
+              >Unbekannt</span
+            >
+            <span class="text-sm text-on-ghost-muted" v-if="sub.slot"
+              >Stunde: {{ sub.slot }}</span
+            >
+            <span class="text-sm text-on-ghost-muted" v-if="sub.day"
+              >Tag: {{ sub.day }}</span
+            >
+            <span
+              v-if="sub.cancelled"
+              class="text-[0.7rem] font-semibold px-2 py-0.5 rounded bg-[rgba(239,68,68,0.15)] text-[#ef4444]"
+              >Ausfall</span
+            >
+            <span
+              v-if="sub.hide"
+              class="text-[0.7rem] font-semibold px-2 py-0.5 rounded bg-surface-hover text-on-ghost-muted"
+              >Versteckt</span
+            >
+            <span v-if="sub.room" class="text-sm text-on-ghost-muted"
+              >Raum: {{ sub.room }}</span
+            >
+          </div>
+          <BaseTooltip :content="t('global.buttons.delete')" placement="bottom">
+            <BaseButton
+              @click="emit('delete-sub', sub.id)"
+              variant="ghost"
+              :icon="Trash2"
+            />
+          </BaseTooltip>
+        </div>
       </div>
     </div>
   </div>
