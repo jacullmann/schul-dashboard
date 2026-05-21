@@ -114,6 +114,7 @@ const routes = [
               title: 'navigation.groupAdmin',
               requiresGroupAdmin: true,
               groupContext: true,
+              fullWidth: true,
             },
           },
         ],
