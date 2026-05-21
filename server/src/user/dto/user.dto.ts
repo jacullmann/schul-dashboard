@@ -44,8 +44,4 @@ export class UpdatePreferencesDto {
 
   @IsOptional()
   personalized?: string | boolean;
-
-  @IsOptional()
-  @IsUUID('all', { message: 'Invalid format for default group ID.' })
-  defaultGroupId?: string;
 }

@@ -683,24 +683,14 @@ export class AuthService {
 
     const { data: user } = await sb
       .from('users')
-      .select('preferences, user_roles(roles(name), tenant_id)')
+      .select('user_roles(roles(name), tenant_id)')
       .eq('id', userId)
       .single();
 
     const userRoles = (user?.user_roles ?? []) as any[];
-    const prefs = (user?.preferences as Record<string, any>) || {};
-    const defaultGroupId = prefs.defaultGroupId;
 
-    let activeGroupId = null;
-    if (
-      defaultGroupId &&
-      userRoles.some((ur) => ur.tenant_id === defaultGroupId)
-    ) {
-      activeGroupId = defaultGroupId;
-    } else {
-      const firstGroup = userRoles.find((ur) => ur.tenant_id);
-      activeGroupId = firstGroup?.tenant_id || null;
-    }
+    const firstGroup = userRoles.find((ur) => ur.tenant_id);
+    const activeGroupId = firstGroup?.tenant_id || null;
 
     const globalRole =
       userRoles.find((ur) => !ur.tenant_id)?.roles?.name || 'user';

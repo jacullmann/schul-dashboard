@@ -13,11 +13,9 @@ import {
   UsersRound,
   LogOut,
   MoreHorizontal,
-  Star,
 } from '@lucide/vue';
 import hw from '@/api/hwApi';
 import { useI18n } from 'vue-i18n';
-import type { UnitOption } from '@/common/components/BaseSelect.vue';
 import { getAvatarData } from '@/modules/auth/utils/avatar';
 
 const { t } = useI18n();
@@ -51,21 +49,6 @@ const handleEscape = (e: KeyboardEvent) => {
 };
 
 const isSuperadmin = computed(() => user.value?.role === 'superadmin');
-const defaultGroupId = computed({
-  get: () => user.value?.preferences?.defaultGroupId || '',
-  set: (val: string) => {
-    if (val && val !== user.value?.preferences?.defaultGroupId) {
-      setDefaultGroup(val);
-    }
-  },
-});
-
-const groupOptions = computed<UnitOption[]>(() =>
-  userGroups.value.map((group) => ({
-    label: group.name,
-    value: group.id,
-  })),
-);
 
 const roleColors: Record<string, string> = {
   admin: 'text-[#6366f1]',
@@ -105,20 +88,6 @@ async function navigateToGroup(groupId: string) {
   }
 }
 
-async function setDefaultGroup(groupId: string) {
-  loading.value = true;
-  try {
-    await hw.patch('/api/user/preferences', { defaultGroupId: groupId });
-    if (user.value) {
-      if (!user.value.preferences) user.value.preferences = {};
-      user.value.preferences.defaultGroupId = groupId;
-    }
-  } catch (err) {
-    console.error('Failed to set default group:', err);
-  } finally {
-    loading.value = false;
-  }
-}
 
 async function leaveGroup(group: any) {
   const isConfirmed = await modalStore.confirm({
@@ -199,15 +168,6 @@ async function leaveGroup(group: any) {
             >{{ userGroups.length }}</span
           >
         </div>
-
-        <div>
-          <BaseLabel for="defaultGroup">Default Group</BaseLabel>
-          <BaseSelect
-            id="defaultGroup"
-            v-model="defaultGroupId"
-            :options="groupOptions"
-          />
-        </div>
       </div>
 
       <div class="flex flex-col gap-2">
@@ -273,16 +233,6 @@ async function leaveGroup(group: any) {
             class="right-0 mt-6"
             @click.stop
           >
-            <BaseMenuButton
-              v-if="group.id !== defaultGroupId"
-              :icon="Star"
-              @click="setDefaultGroup(group.id)"
-            >
-              Make default
-            </BaseMenuButton>
-
-            <BaseMenuDivider v-if="group.id !== defaultGroupId" />
-
             <BaseMenuButton :icon="LogOut" @click="leaveGroup(group)">
               Leave
             </BaseMenuButton>

@@ -300,8 +300,12 @@ export class GroupService {
         }
 
         groups.sort((a, b) => {
-          const aVisit = new Date(lastGroupVisitMap.get(a.id) ?? EPOCH_ISO).getTime();
-          const bVisit = new Date(lastGroupVisitMap.get(b.id) ?? EPOCH_ISO).getTime();
+          const aVisit = new Date(
+            lastGroupVisitMap.get(a.id) ?? EPOCH_ISO,
+          ).getTime();
+          const bVisit = new Date(
+            lastGroupVisitMap.get(b.id) ?? EPOCH_ISO,
+          ).getTime();
           return bVisit - aVisit;
         });
       }

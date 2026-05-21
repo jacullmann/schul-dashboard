@@ -8,7 +8,6 @@ defineProps<{
   label: string;
   description?: string;
   icon?: any;
-  avatarText?: string;
   id?: string;
 }>();
 
@@ -34,12 +33,11 @@ defineEmits<{
     @mouseenter="$emit('mouseenter')"
   >
     <span
-      v-if="icon || avatarText"
+      v-if="icon || $slots.icon"
       class="shrink-0 flex items-center justify-center w-8 h-8 text-on-ghost-muted"
-      :class="{ 'rounded-full bg-surface-hover': avatarText }"
     >
       <component v-if="icon" :is="icon" :size="20" />
-      <span v-else-if="avatarText">{{ avatarText }}</span>
+      <slot v-else name="icon"></slot>
     </span>
 
     <span class="flex-1 min-w-0">

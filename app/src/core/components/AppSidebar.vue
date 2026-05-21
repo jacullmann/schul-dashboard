@@ -3,6 +3,7 @@ import { useUserStore } from '@/stores/userStore';
 import {
   PanelLeft,
   CirclePlus,
+  Megaphone,
   House,
   ListTodo,
   CalendarDays,
@@ -15,6 +16,7 @@ import {
 import AccountMenu from '@/modules/auth/components/AccountMenu.vue';
 import { useSearchModal } from '@/core/composables/useSearchModal';
 import { useItemForm } from '@/core/composables/useItemForm';
+import { useAnnouncementForm } from '@/core/composables/useAnnouncementForm';
 import { useModalStore } from '@/stores/modalStore';
 import { storeToRefs } from 'pinia';
 import hw from '@/api/hwApi';
@@ -41,6 +43,7 @@ const modalStore = useModalStore();
 const { sidebarExpanded: isExpanded } = storeToRefs(modalStore);
 const { openSearch } = useSearchModal();
 const { openItemForm } = useItemForm();
+const { openAnnouncementForm } = useAnnouncementForm();
 const { withGroup } = useGroupAction();
 
 const isAnyGroupAdmin = computed(() => {
@@ -90,10 +93,17 @@ function handleSearch() {
   collapseIfMobile();
 }
 
-function handleCreate() {
+function handleEntry() {
   collapseIfMobile();
   withGroup(() => {
     openItemForm();
+  });
+}
+
+function handleAnnouncement() {
+  collapseIfMobile();
+  withGroup(() => {
+    openAnnouncementForm();
   });
 }
 
@@ -165,12 +175,22 @@ onUnmounted(() => {
 
       <div class="flex flex-col gap-0 w-full">
         <SidebarButton
-          :label="t('sidebar.create')"
+          :label="t('sidebar.entry')"
           :shortcut="['alt', 'n']"
           :expanded="isExpanded"
           :icon="CirclePlus"
           :page="false"
-          @click="handleCreate"
+          @click="handleEntry"
+        />
+
+        <SidebarButton
+          v-if="isAnyGroupAdmin"
+          :label="t('sidebar.announcement')"
+          :shortcut="['alt', 'n']"
+          :expanded="isExpanded"
+          :icon="Megaphone"
+          :page="false"
+          @click="handleAnnouncement"
         />
 
         <SidebarButton

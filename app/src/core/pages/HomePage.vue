@@ -216,7 +216,11 @@ onMounted(() => {
             class="hidden md:block transition duration-150 ease-in-out opacity-0 group-hover:translate-x-0.5 group-hover:opacity-100 text-on-ghost-muted md:group-[.active]:text-on-action-muted"
           />
 
-          <NotificationDot v-if="group.hasUnreadContent" class="md:hidden" />
+          <NotificationDot
+            v-if="group.hasUnreadContent"
+            class="md:hidden"
+            :size="3"
+          />
         </button>
       </div>
     </section>

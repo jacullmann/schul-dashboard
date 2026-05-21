@@ -648,7 +648,8 @@
   "sidebar": {
     "admin": "Admin Settings",
     "collapse": "Collapse",
-    "create": "New Entry",
+    "entry": "New Entry",
+    "announcement": "New Announcement",
     "expand": "Expand",
     "groups": "Groups",
     "home": "Home",

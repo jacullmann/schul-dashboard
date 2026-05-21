@@ -650,7 +650,8 @@
   "sidebar": {
     "admin": "Admineinstellungen",
     "collapse": "Einklappen",
-    "create": "Neuer Eintrag",
+    "entry": "Neuer Eintrag",
+    "announcement": "Neue Ankündigung",
     "expand": "Erweitern",
     "groups": "Gruppen",
     "home": "Start",

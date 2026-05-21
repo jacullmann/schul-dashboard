@@ -41,6 +41,7 @@ import { useUserStore } from '@/stores/userStore';
 import { usePreferences } from '@/common/composables/usePreferences';
 import hw from '@/api/hwApi';
 import { useGroupAction } from '@/core/composables/useGroupAction';
+import Avatar from '@/modules/auth/components/Avatar.vue';
 
 const emit = defineEmits<{ (e: 'cancel'): void }>();
 
@@ -551,12 +552,13 @@ function handleSelect(index: number) {
             @click="onSwitchGroup(group.id)"
             @mouseenter="setSelectedIndex(index)"
           >
-            <NotificationDot
-              v-if="group.hasUnreadContent && group.id !== activeGroupId"
-            />
+            <template #icon>
+              <Avatar :name="group.name" :picture="group.avatarUrl" :unread="group.hasUnreadContent" :size="8" />
+            </template>
+
             <ArrowUpRight
               v-if="selectedIndex === index"
-              :size="14"
+              :size="16"
               class="shrink-0 text-on-ghost-subtle"
             />
           </BaseCommandPaletteItem>
