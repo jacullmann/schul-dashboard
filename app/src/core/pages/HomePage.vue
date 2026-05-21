@@ -172,7 +172,7 @@ onMounted(() => {
         <button
           v-for="(group, index) in userGroups"
           :key="group.id"
-          v-ripple
+          v-wave
           class="relative group flex items-center w-full gap-2 py-3 px-6 md:px-3.5 md:py-3 md:rounded-xl bg-transparent md:bg-surface md:border border-surface-border md:shadow-input cursor-pointer text-left transition-hover hover:bg-ghost-hover md:hover:bg-surface-highlight disabled:opacity-50 md:[.active]:bg-action md:[.active]:border-action md:[.active]:hover:bg-action-hover animate-fade-up"
           :style="{
             animationDelay: `${index * 0.075}s`,

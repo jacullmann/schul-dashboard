@@ -11,12 +11,6 @@ declare module '*.vue' {
   export default component;
 }
 
-declare module 'vue' {
-  interface ComponentCustomDirectives {
-    vRipple: typeof import('@/common/directives/vRipple').vRipple;
-  }
-}
-
 declare global {
   interface Window {
     __removeInitialLoadingScreen?: () => void;

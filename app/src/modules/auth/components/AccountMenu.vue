@@ -66,7 +66,7 @@ const {
   <div class="relative flex w-full" ref="root">
     <button
       type="button"
-      v-ripple
+      v-wave
       class="relative flex items-center p-1 rounded-full w-full bg-transparent hover:bg-ghost-hover transition-hover cursor-pointer text-left touch-target"
       @click="toggle"
     >

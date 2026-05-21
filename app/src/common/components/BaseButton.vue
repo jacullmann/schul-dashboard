@@ -17,6 +17,7 @@ export interface Props {
   loading?: boolean;
   disabled?: boolean;
   touch?: boolean;
+  ripple?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -33,6 +34,7 @@ const props = withDefaults(defineProps<Props>(), {
   loading: false,
   disabled: false,
   touch: true,
+  ripple: true,
 });
 
 const buttonEl = ref<HTMLButtonElement | null>(null);
@@ -68,7 +70,7 @@ defineExpose({
 <template>
   <button
     ref="buttonEl"
-    v-ripple
+    v-wave="ripple && !(disabled || loading)"
     :type="type"
     :disabled="disabled || loading"
     :class="[

@@ -40,7 +40,7 @@ defineExpose({
   <button
     ref="buttonEl"
     type="button"
-    v-ripple
+    v-wave
     class="group flex justify-between items-center w-full text-left border-0 py-2 gap-4 cursor-pointer transition-hover user-select-none"
     :class="[
       variant === 'danger'

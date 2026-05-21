@@ -5,7 +5,7 @@ import '@/assets/css/style.css';
 import router from '@/router';
 import { useTheme } from '@/common/composables/useTheme';
 import i18n from '@/i18n';
-import { vRipple } from '@/common/directives/vRipple';
+import VWave from 'v-wave'
 
 const { initializeTheme } = useTheme();
 initializeTheme();
@@ -14,7 +14,11 @@ const app = createApp(App);
 app.use(createPinia());
 app.use(router);
 app.use(i18n);
-app.directive('ripple', vRipple);
+app.use(VWave, {
+  color: 'currentColor',
+  initialOpacity: 0.2,
+  duration: 0.4,
+});
 app.config.errorHandler = (err, instance, info) => {
   //if (import.meta.env.DEV) {
   console.error('Vue Error:', err);
