@@ -144,12 +144,12 @@ onMounted(() => {
             class="right-0 top-full mt-2 min-w-[200px]"
             ><BaseMenuButton
               :icon="UserRoundPlus"
-              @click="(modalStore.openCreateGroup(), (addGroup = false))"
+              @click="(modalStore.openJoinGroup(), (addGroup = false))"
               >{{ t('groups.home.joinGroup') }}</BaseMenuButton
             >
             <BaseMenuButton
               :icon="Plus"
-              @click="(modalStore.openJoinGroup(), (addGroup = false))"
+              @click="(modalStore.openCreateGroup(), (addGroup = false))"
               >{{ t('groups.home.createGroup') }}</BaseMenuButton
             >
           </BaseMenu>
