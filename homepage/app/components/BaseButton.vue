@@ -54,9 +54,7 @@ const componentTag = computed(() => (isLink.value ? 'a' : 'button'));
 const linkAttrs = computed(() => ({
   href: isInactive.value ? undefined : props.href,
   target: props.target,
-  rel:
-      props.rel ??
-      (props.target === '_blank' ? 'noopener noreferrer' : undefined),
+  rel: props.rel ?? (props.target === '_blank' ? 'noopener noreferrer' : undefined),
   role: isInactive.value ? 'link' : undefined,
   tabindex: isInactive.value ? -1 : undefined,
 }));
@@ -66,16 +64,13 @@ const buttonAttrs = computed(() => ({
   disabled: isInactive.value,
 }));
 
-const tagAttrs = computed(() =>
-    isLink.value ? linkAttrs.value : buttonAttrs.value,
-);
+const tagAttrs = computed(() => (isLink.value ? linkAttrs.value : buttonAttrs.value));
 
 const variantClasses = computed(() => {
   const onMap: Record<NonNullable<Props['on']>, string> = {
     ghost: 'text-on-ghost-muted hover:bg-ghost-hover hover:text-on-ghost',
     action: 'text-on-action-muted hover:bg-action-hover hover:text-on-action',
-    danger:
-        'text-on-danger-muted hover:bg-danger-highlight hover:text-on-danger',
+    danger: 'text-on-danger-muted hover:bg-danger-highlight hover:text-on-danger',
   };
 
   const variantMap: Record<NonNullable<Props['variant']>, string> = {
@@ -98,9 +93,7 @@ const layoutClasses = computed(() => {
   return 'font-medium w-fit';
 });
 
-const sizeClasses = computed(() =>
-    props.size === 'sm' ? '' : 'min-h-10 min-w-10',
-);
+const sizeClasses = computed(() => (props.size === 'sm' ? '' : 'min-h-10 min-w-10'));
 
 const paddingClasses = computed(() => {
   if (props.size === 'sm') return 'px-2';
@@ -123,12 +116,12 @@ defineExpose({
 
 <template>
   <component
-      :is="componentTag"
-      ref="buttonEl"
-      v-bind="tagAttrs"
-      :aria-busy="loading || undefined"
-      :aria-disabled="isInactive || undefined"
-      :class="[
+    :is="componentTag"
+    ref="buttonEl"
+    v-bind="tagAttrs"
+    :aria-busy="loading || undefined"
+    :aria-disabled="isInactive || undefined"
+    :class="[
       variantClasses,
       layoutClasses,
       sizeClasses,
@@ -136,42 +129,32 @@ defineExpose({
       touch && 'touch-target',
       isInactive && isLink && 'pointer-events-none',
     ]"
-      class="relative inline-flex items-center justify-center gap-2 py-2 rounded-full text-sm/4 cursor-pointer select-none whitespace-nowrap transition-hover disabled:opacity-50 disabled:cursor-not-allowed"
+    class="relative inline-flex items-center justify-center gap-2 py-2 rounded-full text-sm/4 cursor-pointer select-none whitespace-nowrap transition-hover disabled:opacity-50 disabled:cursor-not-allowed"
   >
-    <BaseSpinner
-        v-if="loading"
-        :on="variant"
-        :size="size === 'sm' ? '18' : '20'"
-    />
+    <BaseSpinner v-if="loading" :on="variant" :size="size === 'sm' ? '18' : '20'" />
 
     <template v-else-if="!chip">
       <component
-          :is="icon"
-          v-if="icon && iconPlacement === 'leading'"
-          :size="iconSize"
-          :fill="fill ? 'currentColor' : 'none'"
-          :class="iconClasses"
-          aria-hidden="true"
+        :is="icon"
+        v-if="icon && iconPlacement === 'leading'"
+        :size="iconSize"
+        :fill="fill ? 'currentColor' : 'none'"
+        :class="iconClasses"
+        aria-hidden="true"
       />
       <slot />
       <component
-          :is="icon"
-          v-if="icon && iconPlacement === 'trailing'"
-          :size="iconSize"
-          :fill="fill ? 'currentColor' : 'none'"
-          :class="iconClasses"
-          aria-hidden="true"
+        :is="icon"
+        v-if="icon && iconPlacement === 'trailing'"
+        :size="iconSize"
+        :fill="fill ? 'currentColor' : 'none'"
+        :class="iconClasses"
+        aria-hidden="true"
       />
     </template>
 
     <template v-else>
-      <component
-          :is="icon"
-          v-if="icon"
-          :size="iconSize"
-          :class="iconClasses"
-          aria-hidden="true"
-      />
+      <component :is="icon" v-if="icon" :size="iconSize" :class="iconClasses" aria-hidden="true" />
       <slot />
       <X :size="iconSize" aria-hidden="true" />
     </template>

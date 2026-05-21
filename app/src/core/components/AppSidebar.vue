@@ -268,6 +268,7 @@ onUnmounted(() => {
         <button
           v-for="(group, index) in userGroups"
           :key="index"
+          v-ripple
           :class="activeGroupId === group.id ? 'active' : ''"
           @click="handleGroupClick(group.id)"
           class="group relative gap-0 items-center flex p-1 text-on-ghost-muted hover:text-on-ghost rounded-full bg-transparent hover:bg-surface-hover transition-hover cursor-pointer outline-none w-full touch-target-x-full"

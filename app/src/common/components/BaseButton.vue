@@ -68,6 +68,7 @@ defineExpose({
 <template>
   <button
     ref="buttonEl"
+    v-ripple
     :type="type"
     :disabled="disabled || loading"
     :class="[

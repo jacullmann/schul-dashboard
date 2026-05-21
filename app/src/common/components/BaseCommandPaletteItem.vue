@@ -21,6 +21,7 @@ defineEmits<{
 <template>
   <button
     :id="id"
+    v-ripple
     class="w-full flex items-center gap-3 px-4 py-2.5 cursor-pointer border-none text-left transition-colors"
     :class="
       windowWidth > 640
