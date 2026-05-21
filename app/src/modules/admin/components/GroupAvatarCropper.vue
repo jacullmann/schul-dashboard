@@ -210,8 +210,7 @@ function applyCrop() {
               cy="160"
               r="112"
               stroke="rgba(255, 255, 255, 0.45)"
-              stroke-width="1.5"
-              stroke-dasharray="4 4"
+              stroke-width="1"
             />
           </svg>
         </div>

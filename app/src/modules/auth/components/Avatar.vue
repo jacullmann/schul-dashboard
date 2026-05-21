@@ -32,7 +32,7 @@ const avatarStyle = computed(() => {
     <img
       v-if="picture"
       :src="picture"
-      alt="Group Picture"
+      alt="Profile Picture"
       class="w-full h-full object-cover rounded-full"
     />
 

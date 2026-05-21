@@ -71,7 +71,6 @@ const {
     >
       <Avatar
         :name="email"
-        picture="/mock-images/math_homework.png"
         @keydown.enter="toggle"
         @keydown.space.prevent="toggle"
         :aria-expanded="open"
