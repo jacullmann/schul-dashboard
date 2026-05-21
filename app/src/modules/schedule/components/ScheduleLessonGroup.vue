@@ -26,7 +26,7 @@ defineEmits<{
       isActive
         ? 'highlight-active bg-action! border-action!'
         : isCurrentDay
-          ? 'current-day min-[501px]:bg-graphite! min-[501px]:border-steel!'
+          ? 'current-day min-[501px]:bg-surface-border! min-[501px]:border-surface-hover-border!'
           : '',
       'min-[501px]:[grid-column:var(--col-desktop)]',
       'max-[500px]:![grid-column:var(--col-mobile)] max-[500px]:[scroll-snap-align:start] max-[500px]:[scroll-margin-left:0]',
