@@ -150,7 +150,7 @@ async function leaveGroup(group: any) {
 </script>
 
 <template>
-  <div class="p-4 md:p-0">
+  <div class="p-4">
     <section class="mb-8 animate-fade-up">
       <div
         class="flex justify-between items-start gap-4 sm:gap-6 max-sm:flex-col"
@@ -226,7 +226,11 @@ async function leaveGroup(group: any) {
           <!-- Group Avatar (Square Cutout) -->
           <span
             class="flex items-center justify-center size-9 sm:size-10 shrink-0 border border-white/5 shadow-inner select-none transition-all duration-150 rounded-xl overflow-hidden text-sm font-bold text-white"
-            :style="!group.avatarUrl ? { backgroundColor: getAvatarData(group.name).color } : {}"
+            :style="
+              !group.avatarUrl
+                ? { backgroundColor: getAvatarData(group.name).color }
+                : {}
+            "
           >
             <img
               v-if="group.avatarUrl"

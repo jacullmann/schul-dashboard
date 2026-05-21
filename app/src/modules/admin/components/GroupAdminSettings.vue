@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useGroupAdmin } from '@/modules/admin/composables/useGroupAdmin';
 import { Pencil, Camera, Trash2, Upload } from '@lucide/vue';
 import { useModalStore } from '@/stores/modalStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
-import { getAvatarData } from '@/modules/auth/utils/avatar';
 import hw from '@/api/hwApi';
 import GroupAvatarCropper from './GroupAvatarCropper.vue';
+import Avatar from '@/modules/auth/components/Avatar.vue';
 
 const modalStore = useModalStore();
 const { t } = useI18n();
@@ -41,8 +41,6 @@ const selectedImageSrc = ref('');
 const savingAvatar = ref(false);
 const avatarError = ref('');
 const isMenuOpen = ref(false);
-
-const avatarData = computed(() => getAvatarData(props.groupName));
 
 function toggleMenu() {
   isMenuOpen.value = !isMenuOpen.value;
@@ -221,22 +219,11 @@ async function confirmDeleteGroup() {
       <div class="flex flex-col sm:flex-row items-center gap-6 mt-4">
         <!-- Avatar Preview Circle -->
         <div class="relative flex-shrink-0">
-          <div
-            class="relative size-24 rounded-full overflow-hidden bg-zinc-900/40 flex items-center justify-center select-none"
-            :style="
-              !activeGroupAvatarUrl ? { backgroundColor: avatarData.color } : {}
-            "
-          >
-            <img
-              v-if="activeGroupAvatarUrl"
-              :src="activeGroupAvatarUrl"
-              alt="Gruppenbild"
-              class="w-full h-full object-cover"
-            />
-            <span v-else class="text-3xl font-bold text-white">{{
-              avatarData.letter
-            }}</span>
-          </div>
+          <Avatar
+            :name="groupName"
+            :picture="activeGroupAvatarUrl"
+            :size="24"
+          />
 
           <!-- Edit Icon Trigger for Menu (Admin only) -->
           <BaseButton
@@ -272,6 +259,7 @@ async function confirmDeleteGroup() {
             >
               Bild hochladen
             </BaseMenuButton>
+
             <BaseMenuButton
               @click="triggerCameraCaptureAndClose"
               :icon="Camera"
@@ -279,6 +267,9 @@ async function confirmDeleteGroup() {
             >
               Bild aufnehmen
             </BaseMenuButton>
+
+            <BaseMenuDivider v-if="activeGroupAvatarUrl" />
+
             <BaseMenuButton
               v-if="activeGroupAvatarUrl"
               variant="danger"

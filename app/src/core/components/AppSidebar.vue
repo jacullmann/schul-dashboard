@@ -26,7 +26,7 @@ import SidebarButton from '@/core/components/SidebarButton.vue';
 import { useI18n } from 'vue-i18n';
 import { useGroupAction } from '@/core/composables/useGroupAction';
 import { computed } from 'vue';
-import { getAvatarData } from '@/modules/auth/utils/avatar';
+import Avatar from '@/modules/auth/components/Avatar.vue';
 
 const { t } = useI18n();
 const { resetMfaState } = useMfa();
@@ -138,16 +138,16 @@ onUnmounted(() => {
   </Transition>
 
   <aside
-    class="sidebar flex flex-col justify-between shrink-0 overflow-hidden h-dvh p-3 bg-surface border-r border-surface-border z-9998"
+    class="sidebar flex flex-col justify-between shrink-0 overflow-hidden h-dvh p-2.5 bg-surface border-r border-surface-border z-9998"
     :class="[
       'md:sticky md:top-0 md:transition-[width]',
-      isExpanded 
-        ? 'md:w-64 md:duration-[400ms] md:ease-[cubic-bezier(0.22,1,0.36,1)]' 
+      isExpanded
+        ? 'md:w-64 md:duration-[400ms] md:ease-[cubic-bezier(0.22,1,0.36,1)]'
         : 'md:w-[61px] md:duration-150 md:ease-[cubic-bezier(0.32,0,0.67,1)]',
 
       'max-md:fixed max-md:top-0 max-md:left-0 max-md:w-64 max-md:shadow-xl max-md:transition-transform',
-      isExpanded 
-        ? 'max-md:translate-x-0 max-md:duration-[400ms] max-md:ease-[cubic-bezier(0.22,1,0.36,1)]' 
+      isExpanded
+        ? 'max-md:translate-x-0 max-md:duration-[400ms] max-md:ease-[cubic-bezier(0.22,1,0.36,1)]'
         : 'max-md:-translate-x-full max-md:duration-150 max-md:ease-[cubic-bezier(0.32,0,0.67,1)]',
     ]"
   >
@@ -158,6 +158,7 @@ onUnmounted(() => {
           :shortcut="['ctrl', 'shift', 'd']"
           :expanded="isExpanded"
           :icon="PanelLeft"
+          :page="false"
           @click="toggleExpanded"
         />
       </div>
@@ -168,6 +169,7 @@ onUnmounted(() => {
           :shortcut="['alt', 'n']"
           :expanded="isExpanded"
           :icon="CirclePlus"
+          :page="false"
           @click="handleCreate"
         />
 
@@ -176,6 +178,7 @@ onUnmounted(() => {
           :shortcut="['ctrl', 'k']"
           :expanded="isExpanded"
           :icon="Search"
+          :page="false"
           @click="handleSearch"
         />
       </div>
@@ -186,6 +189,7 @@ onUnmounted(() => {
           :expanded="isExpanded"
           :active="$route.path.startsWith('/home')"
           :icon="House"
+          :page="true"
           @click="handleNavigation('/home')"
         />
 
@@ -194,6 +198,7 @@ onUnmounted(() => {
           :expanded="isExpanded"
           :active="$route.path.startsWith(`/groups/${activeGroupId}/items`)"
           :icon="ListTodo"
+          :page="true"
           @click="
             withGroup(() =>
               handleNavigation(`/groups/${activeGroupId}/items/all`),
@@ -206,6 +211,7 @@ onUnmounted(() => {
           :expanded="isExpanded"
           :active="$route.path.startsWith(`/groups/${activeGroupId}/schedule`)"
           :icon="CalendarDays"
+          :page="true"
           @click="
             withGroup(() =>
               handleNavigation(`/groups/${activeGroupId}/schedule`),
@@ -218,6 +224,7 @@ onUnmounted(() => {
           :expanded="isExpanded"
           :active="$route.path === '/groups'"
           :icon="UsersRound"
+          :page="true"
           @click="handleNavigation('/groups')"
         />
 
@@ -227,6 +234,7 @@ onUnmounted(() => {
           :expanded="isExpanded"
           :active="$route.path.startsWith(`/groups/${activeGroupId}/admin`)"
           :icon="SlidersHorizontal"
+          :page="true"
           @click="
             withGroup(() => handleNavigation(`/groups/${activeGroupId}/admin`))
           "
@@ -238,6 +246,7 @@ onUnmounted(() => {
           :expanded="isExpanded"
           :active="$route.path.startsWith('/admin')"
           :icon="Crown"
+          :page="true"
           @click="withGroup(() => handleNavigation('/admin'))"
         />
 
@@ -246,6 +255,7 @@ onUnmounted(() => {
           :expanded="isExpanded"
           :active="$route.path.startsWith('/todos')"
           :icon="Lock"
+          :page="true"
           @click="handleNavigation('/todos')"
         />
       </div>
@@ -253,36 +263,47 @@ onUnmounted(() => {
       <BaseMenuDivider />
 
       <div
-        class="flex flex-col gap-0 w-full overflow-y-auto overflow-x-hidden flex-1 list-fade custom-scrollbar"
+        class="flex flex-col gap-2 -mx-2.5 px-2.5 overflow-y-auto overflow-x-hidden flex-1 list-fade"
       >
-        <SidebarButton
+        <button
           v-for="(group, index) in userGroups"
           :key="index"
-          :label="group.name"
-          :expanded="isExpanded"
-          :active="activeGroupId === group.id"
-          :unread="group.hasUnreadContent"
-          :avatar-url="group.avatarUrl"
-          :avatar-letter="getAvatarData(group.name).letter"
-          :avatar-color="getAvatarData(group.name).color"
+          :class="activeGroupId === group.id ? 'active' : ''"
           @click="handleGroupClick(group.id)"
-        />
+          class="group relative gap-0 items-center flex p-1 text-on-ghost-muted hover:text-on-ghost rounded-full bg-transparent hover:bg-surface-hover transition-hover cursor-pointer outline-none w-full touch-target-x-full"
+        >
+          <span
+            class="absolute transition-[max-height,width,top,opacity] duration-200 -left-2.5 group-[.active]:top-0 group-hover:top-[25%] top-[45%] bottom-0 w-0.5 opacity-0 group-[.active]:w-1 group-hover:w-1 group-[.active]:opacity-100 group-hover:opacity-100 group-[.active]:max-h-full group-hover:max-h-[50%] max-h-[10%] bg-action rounded-r-full"
+          ></span>
+          <Avatar
+            :name="group.name"
+            :picture="group.avatarUrl"
+            :size="8"
+            :unread="group.hasUnreadContent"
+          />
+          <span
+            class="transition-[max-width,opacity,margin-left] transition-hover text-sm/5 font-medium whitespace-nowrap overflow-hidden"
+            :class="
+              isExpanded
+                ? 'max-w-40 opacity-100 ml-2 duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)]'
+                : 'max-w-0 opacity-0 ml-0 duration-150 ease-[cubic-bezier(0.32,0,0.67,1)]'
+            "
+          >
+            {{ group.name }}
+          </span>
+        </button>
       </div>
     </div>
 
-    <div class="flex flex-col w-full gap-1">
-      <div class="flex w-full transition-all duration-200 justify-start ml-0.5">
-        <AccountMenu
-          v-if="user"
-          :email="user.email"
-          :user-data="user"
-          :expanded="isExpanded"
-          @logout="logout"
-          @personalization-changed="onPersonalizationChanged"
-          @click="collapseIfMobile"
-        />
-      </div>
-    </div>
+    <AccountMenu
+      v-if="user"
+      :email="user.email"
+      :user-data="user"
+      :expanded="isExpanded"
+      @logout="logout"
+      @personalization-changed="onPersonalizationChanged"
+      @click="collapseIfMobile"
+    />
   </aside>
 </template>
 

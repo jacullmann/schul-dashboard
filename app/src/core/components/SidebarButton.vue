@@ -10,6 +10,7 @@ withDefaults(
     icon?: Component;
     label?: string;
     shortcut?: string[];
+    page?: boolean;
     expanded?: boolean;
     active?: boolean;
     unread?: boolean;
@@ -18,6 +19,7 @@ withDefaults(
     expanded: true,
     active: false,
     unread: false,
+    page: true,
   },
 );
 </script>
@@ -26,18 +28,17 @@ withDefaults(
   <BaseTooltip :content="label" :shortcut="shortcut" :disabled="!label">
     <button
       v-bind="$attrs"
-      class="group relative gap-0 items-center flex px-3 py-2.5 md:p-2! min-h-9 min-w-9 text-on-ghost rounded-full bg-transparent hover:bg-surface-hover transition-hover cursor-pointer outline-none w-full touch-target-x"
+      class="group relative gap-0 items-center flex px-3 py-2.5 md:p-2.5! min-h-10 min-w-10 text-on-ghost-muted hover:text-on-ghost rounded-full bg-transparent hover:bg-ghost-hover transition-hover cursor-pointer outline-none w-full touch-target-x-full"
       :class="{
-        'bg-surface-hover! text-on-ghost!': active && (icon || expanded),
+        'text-on-ghost! active': active && (icon || expanded),
       }"
     >
+      <span
+        v-if="page"
+        class="absolute transition-[max-height,width,top,opacity] duration-200 -left-2.5 group-[.active]:top-0 group-hover:top-[25%] top-[45%] bottom-0 w-0.5 opacity-0 group-[.active]:w-1 group-hover:w-1 group-[.active]:opacity-100 group-hover:opacity-100 group-[.active]:max-h-full group-hover:max-h-[50%] max-h-[10%] bg-action rounded-r-full"
+      ></span>
       <span v-if="icon" class="shrink-0">
-        <component
-          :is="icon"
-          :size="20"
-          class="transition-all duration-150"
-          :class="active ? 'stroke-3' : ''"
-        />
+        <component :is="icon" :size="20" />
       </span>
 
       <span
@@ -48,9 +49,6 @@ withDefaults(
             ? 'max-w-40 opacity-100 ml-3 duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)]'
             : 'max-w-0 opacity-0 ml-0 duration-150 ease-[cubic-bezier(0.32,0,0.67,1)]',
           !icon ? 'ml-1!' : '',
-          active
-            ? 'text-on-ghost!'
-            : 'text-on-ghost-muted group-hover:text-on-ghost',
         ]"
       >
         {{ label }}
@@ -68,3 +66,18 @@ withDefaults(
     </button>
   </BaseTooltip>
 </template>
+
+<style scoped>
+.touch-target-x-full {
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    min-width: calc(100% + 24px);
+  }
+}
+</style>

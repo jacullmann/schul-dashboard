@@ -8,7 +8,7 @@ import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import AppLogo from '@/common/components/AppLogo.vue';
 import { Menu, ChevronDown, Plus } from '@lucide/vue';
 import { useModalStore } from '@/stores/modalStore';
-import { getAvatarData } from '@/modules/auth/utils/avatar';
+import Avatar from '@/modules/auth/components/Avatar.vue';
 
 const userStore = useUserStore();
 const {
@@ -20,10 +20,6 @@ const {
 } = useAppAuth();
 const router = useRouter();
 const route = useRoute();
-
-const activeGroupAvatarData = computed(() =>
-  getAvatarData(groupName.value || ''),
-);
 
 const modalStore = useModalStore();
 const { sidebarExpanded: isExpanded } = storeToRefs(modalStore);
@@ -124,24 +120,7 @@ onUnmounted(() => {
           title="Change group"
         >
           <!-- Current Group Avatar -->
-          <span
-            class="flex-shrink-0 flex items-center justify-center size-8 rounded-full overflow-hidden text-base font-semibold text-white select-none"
-            :style="
-              !activeGroupAvatarUrl
-                ? { backgroundColor: activeGroupAvatarData.color }
-                : {}
-            "
-          >
-            <img
-              v-if="activeGroupAvatarUrl"
-              :src="activeGroupAvatarUrl"
-              alt="Group avatar"
-              class="w-full h-full object-cover"
-            />
-            <template v-else>
-              {{ activeGroupAvatarData.letter }}
-            </template>
-          </span>
+          <Avatar :name="groupName" :picture="activeGroupAvatarUrl" :size="8" />
 
           <span class="logo-text">{{ groupName }}</span>
           <ChevronDown

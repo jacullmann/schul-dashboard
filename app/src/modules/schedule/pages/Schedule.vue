@@ -96,7 +96,7 @@ const skeletonCells = computed(() => {
 </script>
 
 <template>
-  <div class="p-4 md:p-0 overflow-x-auto overflow-y-clip">
+  <div class="p-4 overflow-x-auto overflow-y-clip">
     <div class="animate-fade-up">
       <ScheduleHeader
         :loading="!!(loadingSubs || loadingLessons)"

@@ -63,17 +63,22 @@ const {
 </script>
 
 <template>
-  <div class="relative flex" ref="root">
-    <div class="relative flex items-center cursor-pointer touch-target" @click="toggle">
+  <div class="relative flex w-full" ref="root">
+    <button
+      type="button"
+      class="relative flex items-center p-1 rounded-full w-full bg-transparent hover:bg-ghost-hover transition-hover cursor-pointer text-left touch-target"
+      @click="toggle"
+    >
       <Avatar
-        :email="email"
+        :name="email"
+        picture="/mock-images/math_homework.png"
         @keydown.enter="toggle"
         @keydown.space.prevent="toggle"
         :aria-expanded="open"
         title="Account menu"
       />
 
-      <div
+      <span
         class="flex flex-col transition-[max-width,opacity,margin-left]"
         :class="
           expanded
@@ -81,19 +86,13 @@ const {
             : 'max-w-0 opacity-0 ml-0 duration-150 ease-[cubic-bezier(0.32,0,0.67,1)]'
         "
       >
-        <span
-          class="text-sm font-medium text-on-ghost truncate"
-          >{{ email }}</span
-        >
-        <span class="text-xs font-normal text-on-ghost-muted">Admin</span>
-      </div>
-    </div>
+        <span class="text-sm font-medium text-on-ghost truncate">{{
+          email
+        }}</span>
+        <!--span class="text-xs font-normal text-on-ghost-muted"></span-->
+      </span>
+    </button>
 
-    <!--
-      No <Transition> wrapper here on mobile — BaseMenu owns its own
-      enter/exit animations (sheet-up / sheet-down) via CSS @keyframes.
-      On desktop the dropdown appears instantly (same as before the rewrite).
-    -->
     <BaseMenu
       :open="open"
       class="fixed pointer-events-auto z-[var(--z-modal)] origin-top-left min-w-[320px]"

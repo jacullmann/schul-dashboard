@@ -1,31 +1,47 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { getAvatarData } from '@/modules/auth/utils/avatar';
+import GeneratedAvatar from '@/modules/auth/components/GeneratedAvatar.vue';
 
-const props = defineProps<{
-  email?: string;
-  letter?: string;
-  color?: string;
-}>();
+const props = withDefaults(
+  defineProps<{
+    name?: string;
+    picture?: string;
+    size?: number;
+    unread?: boolean;
+  }>(),
+  {
+    size: 8,
+    unread: false,
+  },
+);
 
-const avatarLetter = computed(() => {
-  if (props.letter) return props.letter;
-  if (props.email) return getAvatarData(props.email).letter;
-  return '?';
-});
-
-const avatarColor = computed(() => {
-  if (props.color) return props.color;
-  if (props.email) return getAvatarData(props.email).color;
-  return '#777'; // Fallback
+const avatarStyle = computed(() => {
+  const px = props.size * 4;
+  return {
+    width: `${px}px`,
+    height: `${px}px`,
+  };
 });
 </script>
 
 <template>
-    <div
-      class="size-8 rounded-full flex items-center justify-center font-semibold text-white text-base select-none"
-      :style="{ backgroundColor: avatarColor }"
-    >
-      {{ avatarLetter }}
-    </div>
+  <div
+    class="flex relative items-center justify-center overflow-hidden shrink-0"
+    :style="avatarStyle"
+  >
+    <img
+      v-if="picture"
+      :src="picture"
+      alt="Group Picture"
+      class="w-full h-full object-cover rounded-full"
+    />
+
+    <GeneratedAvatar v-else :name="name" :size="size" />
+
+    <NotificationDot
+      v-if="unread"
+      class="absolute top-0 right-0"
+      :size="size / 4"
+    />
+  </div>
 </template>
