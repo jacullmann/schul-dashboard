@@ -18,9 +18,11 @@ import InfoModal from '@/common/components/InfoModal.vue';
     </PageHeader>
 
     <div class="flex flex-col gap-4">
+      <h3>Gruppeneinstellungen</h3>
+
       <BaseRow justify="between" class="flex-nowrap!">
-        <div class="text-base text-on-ghost hyphens-auto">
-          Stundenplanänderungen hinzufügen und löschen
+        <div class="text-base text-on-ghost">
+          Gruppenbild und -name bearbeiten
         </div>
 
         <BaseSelect
@@ -28,22 +30,6 @@ import InfoModal from '@/common/components/InfoModal.vue';
           modelValue="moderator"
           :options="[
             { label: 'Alle', value: 'user' },
-            { label: 'Moderatoren', value: 'moderator' },
-            { label: 'Admins', value: 'admin' },
-          ]"
-          classes="w-38!"
-        />
-      </BaseRow>
-
-      <BaseRow justify="between" class="flex-nowrap!">
-        <div class="text-base text-on-ghost">
-          Mitglieder entfernen und bannen bzw. entbannen
-        </div>
-
-        <BaseSelect
-          :form="false"
-          modelValue="moderator"
-          :options="[
             { label: 'Moderatoren', value: 'moderator' },
             { label: 'Admins', value: 'admin' },
           ]"
@@ -79,6 +65,91 @@ import InfoModal from '@/common/components/InfoModal.vue';
         />
       </BaseRow>
 
+      <h3>Aufgaben</h3>
+
+      <BaseRow justify="between" class="flex-nowrap!">
+        <div class="text-base text-on-ghost">Neue Einträge erstellen</div>
+
+        <BaseSelect
+          :form="false"
+          modelValue="user"
+          :options="[
+            { label: 'Alle', value: 'user' },
+            { label: 'Moderatoren', value: 'moderator' },
+            { label: 'Admins', value: 'admin' },
+          ]"
+          classes="w-38!"
+        />
+      </BaseRow>
+
+      <BaseRow justify="between" class="flex-nowrap!">
+        <div class="text-base text-on-ghost">Bilder hochladen</div>
+
+        <BaseSelect
+          :form="false"
+          modelValue="user"
+          :options="[
+            { label: 'Alle', value: 'user' },
+            { label: 'Moderatoren', value: 'moderator' },
+            { label: 'Admins', value: 'admin' },
+          ]"
+          classes="w-38!"
+        />
+      </BaseRow>
+
+      <BaseRow justify="between" class="flex-nowrap!">
+        <div class="text-base text-on-ghost">
+          Anmerkungen hinzufügen, bearbeiten und löschen
+        </div>
+
+        <BaseSelect
+          :form="false"
+          modelValue="moderator"
+          :options="[
+            { label: 'Alle', value: 'user' },
+            { label: 'Moderatoren', value: 'moderator' },
+            { label: 'Admins', value: 'admin' },
+          ]"
+          classes="w-38!"
+        />
+      </BaseRow>
+
+      <h3>Chat</h3>
+
+      <BaseRow justify="between" class="flex-nowrap!">
+        <div class="text-base text-on-ghost">Nachrichten senden</div>
+
+        <BaseSelect
+          :form="false"
+          modelValue="user"
+          :options="[
+            { label: 'Alle', value: 'user' },
+            { label: 'Moderatoren', value: 'moderator' },
+            { label: 'Admins', value: 'admin' },
+          ]"
+          classes="w-38!"
+        />
+      </BaseRow>
+
+      <h3>Informationen</h3>
+
+      <BaseRow justify="between" class="flex-nowrap!">
+        <div class="text-base text-on-ghost hyphens-auto">
+          Stundenplanänderungen hinzufügen und löschen
+        </div>
+
+        <BaseSelect
+          :form="false"
+          modelValue="moderator"
+          :options="[
+            { label: 'Alle', value: 'user' },
+            { label: 'Moderatoren', value: 'moderator' },
+            { label: 'Admins', value: 'admin' },
+          ]"
+          classes="w-38!"
+        />
+      </BaseRow>
+
       <BaseRow justify="between" class="flex-nowrap!">
         <div class="text-base text-on-ghost">
           Ankündigungen hinzufügen und löschen
@@ -95,16 +166,17 @@ import InfoModal from '@/common/components/InfoModal.vue';
         />
       </BaseRow>
 
+      <h3>Moderation</h3>
+
       <BaseRow justify="between" class="flex-nowrap!">
         <div class="text-base text-on-ghost">
-          Gruppenbild und -name bearbeiten
+          Mitglieder entfernen und bannen bzw. entbannen
         </div>
 
         <BaseSelect
           :form="false"
           modelValue="moderator"
           :options="[
-            { label: 'Alle', value: 'user' },
             { label: 'Moderatoren', value: 'moderator' },
             { label: 'Admins', value: 'admin' },
           ]"
@@ -114,63 +186,13 @@ import InfoModal from '@/common/components/InfoModal.vue';
 
       <BaseRow justify="between" class="flex-nowrap!">
         <div class="text-base text-on-ghost">
-          Einträge erstellen
-        </div>
-
-        <BaseSelect
-          :form="false"
-          modelValue="user"
-          :options="[
-            { label: 'Alle', value: 'user' },
-            { label: 'Moderatoren', value: 'moderator' },
-            { label: 'Admins', value: 'admin' },
-          ]"
-          classes="w-38!"
-        />
-      </BaseRow>
-
-      <BaseRow justify="between" class="flex-nowrap!">
-        <div class="text-base text-on-ghost">
-          Bilder zu Einträgen hochladen
-        </div>
-
-        <BaseSelect
-          :form="false"
-          modelValue="user"
-          :options="[
-            { label: 'Alle', value: 'user' },
-            { label: 'Moderatoren', value: 'moderator' },
-            { label: 'Admins', value: 'admin' },
-          ]"
-          classes="w-38!"
-        />
-      </BaseRow>
-
-      <BaseRow justify="between" class="flex-nowrap!">
-        <div class="text-base text-on-ghost">
-          Anmerkungen an Einträge anhängen
+          Einträge, Bilder und Nachrichten von Nutzern löschen
         </div>
 
         <BaseSelect
           :form="false"
           modelValue="moderator"
           :options="[
-            { label: 'Alle', value: 'user' },
-            { label: 'Moderatoren', value: 'moderator' },
-            { label: 'Admins', value: 'admin' },
-          ]"
-          classes="w-38!"
-        />
-      </BaseRow>
-
-      <BaseRow justify="between" class="flex-nowrap!">
-        <div class="text-base text-on-ghost">Nachrichten senden</div>
-
-        <BaseSelect
-          :form="false"
-          modelValue="user"
-          :options="[
-            { label: 'Alle', value: 'user' },
             { label: 'Moderatoren', value: 'moderator' },
             { label: 'Admins', value: 'admin' },
           ]"
