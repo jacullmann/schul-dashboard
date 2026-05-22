@@ -12,7 +12,6 @@ export function usePreferences() {
   const currentLanguage = computed(() => i18n.global.locale.value);
 
   async function setPreference(key: 'theme' | 'language', value: string) {
-    // Optimistic UI Update
     if (key === 'theme') {
       applyTheme(value as ThemeMode);
     } else if (key === 'language') {
@@ -21,10 +20,8 @@ export function usePreferences() {
       document.documentElement.setAttribute('lang', value);
     }
 
-    // Only send to backend if user is logged in
     if (userStore.isLoggedIn) {
       try {
-        // Background async request, not awaiting so UI doesn't block
         hw.patch('/api/user/preferences', { [key]: value }).catch((err) => {
           console.error(`Failed to sync preference ${key} to backend`, err);
         });

@@ -24,45 +24,34 @@ export function useGroupAdmin() {
   const groupId = computed(() => route.params.groupId as string);
   const groupName = computed(() => authGroupName.value || 'Group');
 
-  // UI State
   const activeTab = ref('overview');
 
-  // Stats
   const stats = ref<GroupStats | null>(null);
   const loadingStats = ref(false);
 
-  // Members
   const members = ref<GroupMember[]>([]);
   const loadingMembers = ref(false);
 
-  // Banned Users
   const bannedUsers = ref<
     { userId: string; generatedName: string; bannedAt: string }[]
   >([]);
   const loadingBannedUsers = ref(false);
 
-  // Schedule substitutions
   const subs = ref<ScheduleSubstitution[]>([]);
   const loadingSubs = ref(false);
   const savingSub = ref(false);
 
-  // Schedule
   const lessons = ref<Lesson[]>([]);
   const loadingLessons = ref(false);
 
-  // Announcements
   const announcements = ref<AdminAnnouncement[]>([]);
   const creatingAnn = ref(false);
 
-  // Cleanup
   const cleaningUp = ref(false);
 
-  // Group settings
   const editingGroupName = ref(false);
   const newGroupName = ref('');
   const savingGroupName = ref(false);
-
-  // ─── Helpers ────────────────────────────────────────
 
   function showMessage(msg: string, isError = false) {
     if (isError) {
@@ -82,8 +71,6 @@ export function useGroupAdmin() {
     });
   }
 
-  // ─── Stats ──────────────────────────────────────────
-
   async function loadStats() {
     loadingStats.value = true;
     try {
@@ -95,8 +82,6 @@ export function useGroupAdmin() {
       loadingStats.value = false;
     }
   }
-
-  // ─── Members ────────────────────────────────────────
 
   async function loadMembers() {
     loadingMembers.value = true;
@@ -138,8 +123,6 @@ export function useGroupAdmin() {
     }
   }
 
-  // ─── Banned Users ───────────────────────────────────
-
   async function loadBannedUsers() {
     loadingBannedUsers.value = true;
     try {
@@ -161,8 +144,6 @@ export function useGroupAdmin() {
       showMessage('Failed to revert ban', true);
     }
   }
-
-  // ─── Schedule Substitutions ─────────────────────────
 
   async function loadSchedule() {
     loadingLessons.value = true;
@@ -235,14 +216,11 @@ export function useGroupAdmin() {
     }
   }
 
-  // ─── Announcements ──────────────────────────────────
-
   async function loadAnnouncements() {
     try {
       const { data } = await hw.get('/api/schedule/announcements');
       announcements.value = data;
     } catch {
-      /* ignore */
     }
   }
 
@@ -281,8 +259,6 @@ export function useGroupAdmin() {
     }
   }
 
-  // ─── Cleanup ────────────────────────────────────────
-
   async function cleanupOldItems() {
     const isConfirmed = await modalStore.confirm({
       title: 'Cleanup old items?',
@@ -303,8 +279,6 @@ export function useGroupAdmin() {
       cleaningUp.value = false;
     }
   }
-
-  // ─── Group Settings ─────────────────────────────────
 
   function startEditGroupName() {
     newGroupName.value = groupName.value || '';
@@ -418,8 +392,6 @@ export function useGroupAdmin() {
     }
   }
 
-  // ─── Init ───────────────────────────────────────────
-
   onMounted(() => {
     void loadStats();
     void loadMembers();
@@ -434,25 +406,21 @@ export function useGroupAdmin() {
     groupName,
     activeTab,
 
-    // Stats
     stats,
     loadingStats,
     loadStats,
 
-    // Members
     members,
     loadingMembers,
     loadMembers,
     changeRole,
     removeMember,
 
-    // Banned Users
     bannedUsers,
     loadingBannedUsers,
     loadBannedUsers,
     revertBan,
 
-    // Subs
     subs,
     loadingSubs,
     savingSub,
@@ -462,23 +430,19 @@ export function useGroupAdmin() {
     updateScheduleConfig,
     deleteSub,
 
-    // Schedule
     lessons,
     loadingLessons,
     loadSchedule,
 
-    // Announcements
     announcements,
     creatingAnn,
     loadAnnouncements,
     createAnnouncement,
     deleteAnnouncement,
 
-    // Cleanup
     cleaningUp,
     cleanupOldItems,
 
-    // Settings
     editingGroupName,
     newGroupName,
     savingGroupName,
@@ -490,7 +454,6 @@ export function useGroupAdmin() {
     deleteGroup,
     transferOwnership,
 
-    // Helpers
     showMessage,
     formatDate,
   };

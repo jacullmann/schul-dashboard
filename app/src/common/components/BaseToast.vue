@@ -120,7 +120,6 @@ const hitBoxHeight = computed(() => {
         @mouseenter="onMouseEnter"
         @mouseleave="onMouseLeave"
       >
-        <!-- Invisible hit box to maintain hover state seamlessly across gaps -->
         <div 
           class="absolute top-0 left-0 w-full transition-all duration-400 ease-out-expo" 
           :style="{ height: hitBoxHeight + 'px', pointerEvents: toasts.length > 0 ? 'auto' : 'none' }"
@@ -162,8 +161,6 @@ const hitBoxHeight = computed(() => {
               @click="dismiss(toast.id)"
               style="pointer-events: auto;"
             />
-
-            <!-- Overlay to create solid mist fading effect -->
             <div 
               class="absolute inset-0 pointer-events-none transition-opacity duration-400 ease-out-expo bg-steel"
               :style="{ opacity: isHovered ? 0 : Math.min(1, (toasts.length - 1 - index) * 0.2) }"

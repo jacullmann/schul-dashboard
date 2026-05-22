@@ -1,14 +1,4 @@
 <script setup lang="ts">
-/**
- * GlobalModalContainer
- *
- * Single place in the component tree that owns all globally-managed modals.
- * It reads state from the modal store and renders each modal via a dedicated
- * <Teleport to="body"> so they escape any overflow/stacking constraints.
- *
- * Business logic (logout, callbacks, etc.) lives here rather than in App.vue
- * so App.vue can stay purely focused on app-lifecycle concerns.
- */
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useToast } from '@/common/composables/useToast';
@@ -38,8 +28,6 @@ const { t } = useI18n();
 const router = useRouter();
 const toast = useToast();
 
-// Store instances — actions are called directly on the store object;
-// only reactive state properties are extracted via storeToRefs.
 const modalStore = useModalStore();
 const userStore = useUserStore();
 const { user } = storeToRefs(userStore);
@@ -54,8 +42,6 @@ const {
   clearOAuthError,
 } = useOAuth();
 
-// State refs (storeToRefs preserves reactivity for template bindings).
-// Note: actions cannot be extracted via storeToRefs — use modalStore.action() directly.
 const {
   searchOpen,
   itemFormOpen,
@@ -80,7 +66,6 @@ const {
   confirmOptions,
 } = storeToRefs(modalStore);
 
-// ── Item form callbacks ────────────────────────────────────────────────────
 
 function onItemFormSuccess() {
   toast.success(t('school.tasks.itemForm.successEdit'));
@@ -100,7 +85,6 @@ function onAnnouncementFormSuccess() {
   modalStore.notifyAnnouncementFormSuccess();
 }
 
-// ── Account modal callbacks ────────────────────────────────────────────────
 
 function onPasswordChanged() {
   toast.success('Passwort erfolgreich geändert!');
@@ -146,14 +130,12 @@ async function onAuthSuccess() {
 </script>
 
 <template>
-  <!-- OAuth: account-linking modal (shown after ?auth=link-required) -->
   <GoogleLinkModal
     :open="showLinkModal"
     @linked="onAuthSuccess"
     @cancel="closeLinkModal"
   />
 
-  <!-- OAuth: MFA overlay (shown after ?auth=mfa-pending) -->
   <Teleport to="body">
     <Transition name="fade-scale" appear>
       <MfaVerifyModal
@@ -169,7 +151,6 @@ async function onAuthSuccess() {
     </Transition>
   </Teleport>
 
-  <!-- OAuth: error banner (shown after ?auth=error) -->
   <Teleport to="body">
     <Transition name="fade-down" appear>
       <div v-if="oauthError" class="oauth-error-banner" role="alert">
@@ -195,15 +176,12 @@ async function onAuthSuccess() {
   >
     {{ confirmOptions.content }}
   </BaseDialog>
-
-  <!-- Global search modal (Ctrl/Cmd+K or sidebar button) -->
   <Teleport to="body">
     <Transition name="fade-scale" appear>
       <SearchModal v-if="searchOpen" @cancel="modalStore.closeSearch()" />
     </Transition>
   </Teleport>
 
-  <!-- Global item form (N key, + button, or search create action) -->
   <ItemForm
     :open="itemFormOpen"
     :key="itemFormKey"
@@ -213,7 +191,6 @@ async function onAuthSuccess() {
     @success="onItemFormSuccess"
   />
 
-  <!-- Global private task form -->
   <PrivateTaskForm
     :open="privateTaskFormOpen"
     :key="privateTaskFormKey"
@@ -222,7 +199,6 @@ async function onAuthSuccess() {
     @success="onPrivateTaskFormSuccess"
   />
 
-  <!-- Global announcement form (admin only, Alt+A) -->
   <AnnouncementForm
     :open="announcementFormOpen"
     :key="announcementFormKey"
@@ -230,7 +206,6 @@ async function onAuthSuccess() {
     @success="onAnnouncementFormSuccess"
   />
 
-  <!-- Global image viewer -->
   <ImageViewer
     :visible="imageViewerOpen"
     :images="imageViewerImages"
@@ -238,7 +213,6 @@ async function onAuthSuccess() {
     @cancel="modalStore.closeImageViewer()"
   />
 
-  <!-- Account modals -->
   <ChangePasswordModal
     :open="showChangePassword"
     @cancel="modalStore.showChangePassword = false"

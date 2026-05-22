@@ -22,7 +22,6 @@ function getInitialLocale(): SupportedLocale {
     console.warn('Could not access localStorage:', error);
   }
 
-  // English as Fallback
   try {
     localStorage.setItem(LOCALE_KEY, 'en');
   } catch {}

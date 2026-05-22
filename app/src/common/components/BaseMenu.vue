@@ -29,7 +29,6 @@ const emit = defineEmits<{
 const { width: vw } = useWindowSize();
 const isMobile = computed(() => vw.value < 768);
 
-// ── Expose desktop element + close trigger for consumers ─────
 const desktopMenuCardRef = ref<{ menuEl: HTMLElement | null } | null>(null);
 const sheetComponentRef = ref<{ sheetEl: HTMLElement | null } | null>(null);
 
@@ -41,14 +40,12 @@ function startClose() {
   emit('close');
 }
 
-// ── Click Outside (Desktop only) ─────────────────────────────
 onClickOutside(desktopMenuEl, () => {
   if (props.open && !isMobile.value) {
     startClose();
   }
 });
 
-// ── Drill-down view stack (mobile only) ─────────────────────
 interface StackEntry {
   id: string;
   label: string;
@@ -85,7 +82,6 @@ watch(activeViewId, async (newId, oldId) => {
   const startHeight = container.getBoundingClientRect().height;
   menuHeight.value = startHeight;
 
-  // Force reflow
   container.offsetHeight;
 
   await nextTick();
@@ -118,11 +114,9 @@ watch(
   },
 );
 
-// ── Keyboard Navigation ─────────────────────────────────────
 function handleKeydown(e: KeyboardEvent) {
   if (!props.open) return;
 
-  // Escape key always closes the menu if it's open
   if (e.key === 'Escape') {
     startClose();
     return;
@@ -145,12 +139,9 @@ function handleKeydown(e: KeyboardEvent) {
     menuContainer.querySelectorAll<HTMLElement>(focusableSelectors),
   );
 
-  // Exclude elements that are hidden (e.g. out-of-view submenus)
   const focusableElements = allFocusableElements.filter((el) => {
-    // Only consider elements that have layout space
     if (el.offsetWidth === 0 || el.offsetHeight === 0) return false;
 
-    // Specifically on mobile, ensure we don't grab focusable items inside a hidden root/sub view
     if (isMobile.value) {
       const inRootView = rootViewEl.value?.contains(el);
       const inSubView = subViewEl.value?.contains(el);

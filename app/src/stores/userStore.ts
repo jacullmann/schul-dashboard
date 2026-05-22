@@ -22,8 +22,6 @@ export const useUserStore = defineStore('user', () => {
   const initialized = ref(false);
   const hasShownSetup = ref(false);
 
-  // We defer accessing usePreferences here to avoid circular dependency loops during initialization
-  // by using it directly inside fetchUser
 
   const isLoggedIn = computed(() => user.value !== null);
   const role = computed(() => user.value?.role);
@@ -62,7 +60,7 @@ export const useUserStore = defineStore('user', () => {
             preferences: data.preferences,
           };
 
-          // Sync preferences if any exist
+
           if (data.preferences) {
             const { syncFromBackend } = usePreferences();
             syncFromBackend(data.preferences);

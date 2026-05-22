@@ -36,7 +36,6 @@ const emit = defineEmits<{
 const root = ref<HTMLElement | null>(null);
 const popupInner = ref<HTMLElement | null>(null);
 const firstMenuBtnRef = ref<{ focus: () => void } | null>(null);
-// Ref to BaseMenu component — gives us access to startClose() for animated dismiss
 const baseMenuRef = ref<{
   startClose: () => void;
   menuEl: HTMLElement | null;
@@ -89,7 +88,6 @@ const {
         <span class="text-sm font-medium text-on-ghost truncate">{{
           email
         }}</span>
-        <!--span class="text-xs font-normal text-on-ghost-muted"></span-->
       </span>
     </button>
 

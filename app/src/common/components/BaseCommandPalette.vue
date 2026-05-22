@@ -101,7 +101,7 @@ function setSelectedIndex(idx: number) {
       "
       @keydown="handleKeydown"
     >
-      <!-- Search input -->
+
       <div class="flex items-center gap-3 p-4 border-b border-surface-border">
         <Search :size="20" class="text-on-ghost-subtle shrink-0" />
         <input
@@ -118,7 +118,6 @@ function setSelectedIndex(idx: number) {
         <BaseKbd class="hidden! sm:inline-flex!">Esc</BaseKbd>
       </div>
 
-      <!-- Results -->
       <div class="max-h-105 overflow-y-auto">
         <slot
           :selected-index="selectedIndex"
@@ -126,7 +125,6 @@ function setSelectedIndex(idx: number) {
         ></slot>
       </div>
 
-      <!-- Footer hint -->
       <div
         class="hidden sm:flex px-4 py-2.5 border-t border-surface-border items-center gap-4 text-xs text-on-ghost-muted"
       >

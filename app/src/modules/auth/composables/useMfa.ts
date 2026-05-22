@@ -2,17 +2,11 @@ import { ref, computed } from 'vue';
 import hw from '@/api/hwApi';
 import type { MfaSetupResponse, MfaStatusResponse } from '@/modules/auth/types';
 
-// Dies ist kein kritisches Problem,
-// aber für zukünftige Wartbarkeit sollte eine Single Source of Truth etabliert werden.
-// Der userStore sollte die autoritative Quelle sein,
-// und useMfa sollte für API-Operationen zuständig sein.
-
 const mfaEnabled = ref(false);
 const mfaLoading = ref(false);
 const mfaError = ref<string | null>(null);
 
 export function useMfa() {
-  // status fetchen
   async function fetchMfaStatus(): Promise<boolean> {
     mfaLoading.value = true;
     mfaError.value = null;
@@ -31,7 +25,6 @@ export function useMfa() {
     }
   }
 
-  // setup starten
   async function startMfaSetup(): Promise<MfaSetupResponse | null> {
     mfaLoading.value = true;
     mfaError.value = null;
@@ -49,7 +42,6 @@ export function useMfa() {
     }
   }
 
-  // mfa aktivieren
   async function activateMfa(
     code: string,
   ): Promise<{ ok: boolean; error?: string }> {
@@ -71,7 +63,6 @@ export function useMfa() {
     }
   }
 
-  // mfa deaktivieren
   async function deactivateMfa(
     code: string,
   ): Promise<{ ok: boolean; error?: string }> {
@@ -93,7 +84,6 @@ export function useMfa() {
     }
   }
 
-  // mfa bei login verifizieren
   async function verifyMfaLogin(
     code: string,
   ): Promise<{ ok: boolean; error?: string }> {
@@ -102,8 +92,6 @@ export function useMfa() {
 
     try {
       await hw.post('/api/auth/mfa/verify', { code });
-      // The backend sets the new CSRF token via Set-Cookie on the response;
-      // the Axios interceptor will read it automatically on the next request.
       return { ok: true };
     } catch (err: unknown) {
       const e = err as { response?: { data?: { error?: string } } };
@@ -116,16 +104,13 @@ export function useMfa() {
     }
   }
 
-  // mfa login abbrechen
   async function cancelMfaLogin(): Promise<void> {
     try {
       await hw.post('/api/auth/mfa/cancel');
     } catch {
-      // Fehler ignorieren
     }
   }
 
-  // mfa status bei logout zurücksetzen
   function resetMfaState(): void {
     mfaEnabled.value = false;
     mfaError.value = null;

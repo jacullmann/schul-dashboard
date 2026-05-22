@@ -20,12 +20,6 @@ function getColorIndexFromEmail(email: string): number {
   return charCode % AVATAR_COLORS.length;
 }
 
-/**
- * Returns a letter and background color derived from an email address.
- *
- * @param email - The email address to generate data from.
- * @returns An object containing `letter` and `color`.
- */
 export function getAvatarData(email: string) {
   const letter =
     email && email.length > 0 ? email.charAt(0).toUpperCase() : '?';

@@ -1,5 +1,3 @@
-// --- Announcements Module Types ---
-
 export interface Announcement {
   id: string;
   content: string;

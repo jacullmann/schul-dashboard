@@ -1,7 +1,6 @@
 <script setup lang="ts">
 interface Props {
   title?: string;
-  /* Custom classes for the content container (useful for overriding default gap) */
   contentClass?: string;
 }
 

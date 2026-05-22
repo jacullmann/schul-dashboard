@@ -89,7 +89,6 @@ const activeTabLabel = computed(() => {
   return item ? item.label : '';
 });
 
-// Set activeTab to empty to show the list first, just like phone settings
 activeTab.value = '';
 
 function selectTab(id: string) {
@@ -102,35 +101,11 @@ function goBack() {
   activeTab.value = '';
 }
 
-const itemStyles: Record<string, { bg: string }> = {
-  overview: {
-    bg: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 dark:bg-blue-500/20',
-  },
-  members: {
-    bg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 dark:bg-emerald-500/20',
-  },
-  schedule: {
-    bg: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 dark:bg-amber-500/20',
-  },
-  announcements: {
-    bg: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 dark:bg-purple-500/20',
-  },
-  subjects: {
-    bg: 'bg-sky-500/10 text-sky-600 dark:text-sky-400 dark:bg-sky-500/20',
-  },
-  permissions: {
-    bg: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 dark:bg-rose-500/20',
-  },
-  settings: {
-    bg: 'bg-slate-500/10 text-slate-600 dark:text-slate-400 dark:bg-slate-500/20',
-  },
-};
 </script>
 
 <template>
   <div class="phone-settings-container">
     <Transition :name="transitionName">
-      <!-- ── MASTER PANE (Tabs List) ── -->
       <div v-if="!activeTab" class="settings-pane master-pane" key="master">
         <header class="settings-header">
           <div class="header-content">
@@ -161,7 +136,6 @@ const itemStyles: Record<string, { bg: string }> = {
         </div>
       </div>
 
-      <!-- ── DETAIL PANE (Active Tab Content) ── -->
       <div v-else class="settings-pane detail-pane" :key="activeTab">
         <header class="detail-header">
           <div
@@ -274,7 +248,6 @@ const itemStyles: Record<string, { bg: string }> = {
   overflow: hidden;
 }
 
-/* Master Pane Header */
 .settings-header {
   padding: 32px 24px 20px;
   background: var(--color-canvas);
@@ -301,14 +274,6 @@ const itemStyles: Record<string, { bg: string }> = {
   color: var(--color-on-ghost-muted);
   margin-top: 6px;
 }
-
-/* Settings List */
-.settings-list-wrapper {
-  flex: 1;
-  overflow-y: auto;
-  padding: 28px 24px;
-}
-
 .settings-group {
   max-width: 800px;
   margin: 0 auto;
@@ -318,16 +283,6 @@ const itemStyles: Record<string, { bg: string }> = {
   flex-direction: column;
 }
 
-.badge {
-  font-size: 0.8rem;
-  font-weight: 700;
-  background: var(--color-ghost-hover);
-  color: var(--color-on-ghost-muted);
-  padding: 2px 10px;
-  border-radius: var(--radius-full);
-}
-
-/* Detail Pane Header */
 .detail-header {
   height: 68px;
   padding: 0 24px;
@@ -338,7 +293,6 @@ const itemStyles: Record<string, { bg: string }> = {
   flex-shrink: 0;
 }
 
-/* Detail Content Area */
 .detail-content {
   flex: 1;
   overflow-y: auto;
@@ -352,9 +306,6 @@ const itemStyles: Record<string, { bg: string }> = {
   width: 100%;
 }
 
-/* ─── TRANSITIONS ─── */
-
-/* Forward (Master -> Detail) */
 .slide-forward-enter-active,
 .slide-forward-leave-active {
   transition:
@@ -382,7 +333,6 @@ const itemStyles: Record<string, { bg: string }> = {
   z-index: 1;
 }
 
-/* Backward (Detail -> Master) */
 .slide-backward-enter-active,
 .slide-backward-leave-active {
   transition:

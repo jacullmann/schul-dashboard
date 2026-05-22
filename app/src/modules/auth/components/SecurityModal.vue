@@ -54,7 +54,6 @@ onMounted(async () => {
         />
       </div>
 
-      <!-- Tab Content -->
       <div v-if="activeTab === 'mfa'" class="flex flex-col gap-4">
         <MfaSettings :mfa-enabled="mfaEnabled" @mfa-changed="onMfaChanged" />
       </div>

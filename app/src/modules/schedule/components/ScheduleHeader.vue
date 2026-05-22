@@ -41,8 +41,4 @@ const { t, tm } = useI18n();
       </InfoModal>
     </template>
   </PageHeader>
-
-  <!-- <div v-else-if="isPersonalized" class="inline-flex items-center px-2 py-1 bg-surface border border-surface-border rounded-md text-base text-on-ghost shadow-input">
-    {{ t('school.tables.schedule.personalized') }}
-  </div> -->
 </template>

@@ -14,8 +14,6 @@ export function useAccountMenu(
     root: Ref<HTMLElement | null>;
     popupInner: Ref<HTMLElement | null>;
     firstMenuBtnRef: Ref<{ focus: () => void } | null>;
-    // Ref to the BaseMenu component instance — used to call startClose()
-    // for an animated dismiss on mobile instead of instant v-if unmount
     baseMenu: Ref<{ startClose: () => void } | null>;
   },
 ) {
@@ -45,7 +43,6 @@ export function useAccountMenu(
   const popupStyle = computed<CSSProperties>(() => {
     if (!open.value) return {};
 
-    // Mobile: BaseMenu handles its own bottom-sheet positioning
     if (isMobile.value) return {};
 
     let left = btnLeft.value;
@@ -56,11 +53,9 @@ export function useAccountMenu(
     }
 
     const spaceBelow = vh.value - btnBottom.value;
-    const estimatedH = popupH.value || 350; // Account menu is tall
+    const estimatedH = popupH.value || 350;
 
     if (spaceBelow < estimatedH) {
-      // Not enough space below, place above the button.
-      // We use `bottom` instead of `top` so the browser naturally grows it upwards without JS snapbacks.
       return {
         position: 'fixed',
         left: `${Math.round(left)}px`,
@@ -79,13 +74,10 @@ export function useAccountMenu(
     }
   });
 
-  // Instant close — used on desktop and for internal state teardown
   function cancel() {
     open.value = false;
   }
 
-  // Animated close — plays the slide-down animation then calls cancel().
-  // On desktop there is no animation so falls back to cancel() directly.
   function closeAnimated() {
     if (isMobile.value && refs.baseMenu.value) {
       refs.baseMenu.value.startClose();
@@ -121,7 +113,6 @@ export function useAccountMenu(
 
   async function toggle(e?: Event) {
     if (open.value) {
-      // Closing — animate on mobile
       closeAnimated();
     } else {
       open.value = true;
@@ -137,24 +128,16 @@ export function useAccountMenu(
         e?.type === 'click' &&
         (e as PointerEvent).pointerType === ''
       ) {
-        // Fallback for some weird focus behavior with Enter translating to a click event
         await nextTick();
         refs.firstMenuBtnRef.value?.focus();
       }
     }
   }
 
-  // Click-outside on desktop only. On mobile the backdrop's click handler
-  // calls startClose() inside BaseMenu — we must not also call cancel() here.
-  // Guard by: (1) isMobile, and (2) target is inside the teleported sheet DOM,
-  // which lives at <body> and is never inside refs.root.
   useEventListener(document, 'pointerdown', (e: PointerEvent) => {
     if (!open.value) return;
     const target = e.target as Node;
-    // Always ignore clicks inside the trigger root
     if (refs.root.value?.contains(target)) return;
-    // On mobile, the teleported backdrop/sheet is also "outside" refs.root —
-    // ignore those too so the backdrop's own click handler can run startClose().
     if (isMobile.value) return;
     cancel();
   });

@@ -79,7 +79,6 @@ async function logout() {
 
 function collapseIfMobile() {
   if (window.innerWidth < 768) {
-    // 768px is Tailwind's 'md' breakpoint
     modalStore.setSidebarExpanded(false);
   }
 }

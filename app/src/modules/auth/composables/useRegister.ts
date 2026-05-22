@@ -115,7 +115,6 @@ export function useRegister(onRegistered: () => void) {
   }
 
   return {
-    // State
     email,
     password,
     passwordConfirm,
@@ -126,7 +125,6 @@ export function useRegister(onRegistered: () => void) {
     emailInputRef,
     errors,
 
-    // Methods
     clearFieldError,
     submit,
   };

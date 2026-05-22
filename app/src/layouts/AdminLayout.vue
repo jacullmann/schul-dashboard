@@ -29,7 +29,6 @@ const activeTab = computed({
 
 <template>
   <div class="adm-layout">
-    <!-- ── Header ─────────────────────────────────────────────────────────── -->
     <header class="adm-header">
       <div class="adm-header-inner">
         <div class="adm-header-left">
@@ -38,7 +37,6 @@ const activeTab = computed({
             <span v-if="subtitle" class="adm-subtitle">{{ subtitle }}</span>
           </div>
         </div>
-        <!-- Slot for optional header-right content (e.g. action buttons). -->
         <div class="adm-header-right">
           <slot name="header-right" />
         </div>
@@ -46,7 +44,6 @@ const activeTab = computed({
     </header>
 
     <div class="adm-body">
-      <!-- ── Sidebar ──────────────────────────────────────────────────────── -->
       <aside
         class="adm-sidebar p-3.5 w-full md:w-60 shrink-0 bg-surface border-b md:border-b-0 md:border-r border-surface-border overflow-x-auto md:overflow-y-auto flex md:flex-col gap-3.5 scrollbar-hide"
       >
@@ -70,7 +67,6 @@ const activeTab = computed({
         </nav>
       </aside>
 
-      <!-- ── Main content ─────────────────────────────────────────────────── -->
       <main class="adm-main">
         <slot />
       </main>
@@ -79,7 +75,6 @@ const activeTab = computed({
 </template>
 
 <style scoped>
-/* ─── Layout ────────────────────────────────────────────────────────────────── */
 .adm-layout {
   display: flex;
   flex-direction: column;
@@ -88,7 +83,6 @@ const activeTab = computed({
   color: var(--color-on-ghost);
 }
 
-/* ─── Header ────────────────────────────────────────────────────────────────── */
 .adm-header {
   height: 56px;
   border-bottom: 1px solid var(--color-canvas-border);
@@ -147,14 +141,12 @@ const activeTab = computed({
   white-space: nowrap;
 }
 
-/* ─── Body ──────────────────────────────────────────────────────────────────── */
 .adm-body {
   display: flex;
   flex: 1;
   min-height: 0;
 }
 
-/* ─── Sidebar ───────────────────────────────────────────────────────────────── */
 .adm-nav-badge {
   font-size: 0.7rem;
   font-weight: 600;
@@ -169,7 +161,6 @@ const activeTab = computed({
   color: var(--color-danger);
 }
 
-/* ─── Main content ──────────────────────────────────────────────────────────── */
 .adm-main {
   flex: 1;
   padding: 28px 32px 64px;
@@ -177,7 +168,6 @@ const activeTab = computed({
   min-width: 0;
 }
 
-/* ─── Responsive ────────────────────────────────────────────────────────────── */
 @media (max-width: 900px) {
   .adm-body {
     flex-direction: column;

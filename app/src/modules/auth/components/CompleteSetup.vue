@@ -25,7 +25,6 @@ const props = defineProps<{
   isSetup: boolean;
 }>();
 
-// update:user emittiert die aktualisierten User-Daten zurück zum Parent
 const emit = defineEmits(['cancel', 'success', 'update:user']);
 
 const submitting = ref(false);
@@ -34,7 +33,6 @@ const error = ref('');
 
 const selections = reactive<Record<string, string>>({});
 
-// Watcher, um formData zu aktualisieren, wenn sich initialData ändert (z.B. beim manuellen Öffnen)
 watch(
   () => props.initialData,
   (newVal) => {
@@ -55,14 +53,12 @@ watch(
 
 onMounted(() => {
   subjectStore.loadSubjects().then(() => {
-    // re-init selections fully once loaded
     for (const subject of subjectStore.electiveSubjects) {
       if (!selections[subject.id]) selections[subject.id] = '';
     }
     for (const subject of subjectStore.extraSubjects) {
       if (!selections[subject.id]) selections[subject.id] = 'NONE';
     }
-    // overlay initial data
     if (props.initialData?.courses) {
       props.initialData.courses.forEach((c) => {
         selections[c.subjectId] = c.courseId;
@@ -83,9 +79,7 @@ const getOptionsForSubject = (subjectId: string, isExtra: boolean) => {
   return opts;
 };
 
-// Prüfung, ob alle Felder ausgewählt sind (nur für das initiale Setup relevant)
 const isValid = computed(() => {
-  // Beim Speichern MUSS jedes Elective ausgewählt sein
   for (const subject of subjectStore.electiveSubjects) {
     if (!selections[subject.id]) return false;
   }
@@ -99,7 +93,6 @@ async function submitData(dataToSend: {
   try {
     const { data } = await hw.patch('/api/user/setup', dataToSend);
 
-    // Die aktualisierten User-Daten an den Parent schicken
     emit('update:user', data.user);
     emit('success');
     emit('cancel');
@@ -112,8 +105,6 @@ async function submitData(dataToSend: {
     skipping.value = false;
   }
 }
-
-// Hier soll die aktuelle Auswahl gesendet werden
 async function save() {
   if (props.isSetup && !isValid.value) {
     error.value = 'Bitte alle Pflichtkurse auswählen.';
@@ -133,7 +124,6 @@ async function save() {
   await submitData({ courses: validCourses });
 }
 
-// Hier soll gesendet werden für alle drei sachen null
 async function skip() {
   skipping.value = true;
   await submitData({ courses: [] });
@@ -168,7 +158,6 @@ async function skip() {
         <BaseSpinner />
       </div>
       <div v-else class="flex flex-col gap-5">
-        <!-- Electives -->
         <BaseFormGroup
           v-for="subject in subjectStore.electiveSubjects"
           :key="subject.id"
@@ -185,7 +174,6 @@ async function skip() {
           />
         </BaseFormGroup>
 
-        <!-- Extras -->
         <BaseFormGroup
           v-for="subject in subjectStore.extraSubjects"
           :key="subject.id"

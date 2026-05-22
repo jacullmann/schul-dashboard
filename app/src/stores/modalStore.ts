@@ -4,13 +4,6 @@ import type { HwItem, PrivateTask } from '@/modules/tasks/types';
 import type { ItemType } from '@/modules/tasks/types';
 import type { ImageItem } from '@/modules/tasks/types';
 
-// ---------------------------------------------------------------------------
-// Modal Store — single source of truth for all globally-managed modal state.
-// Consumers should access this store via the thin composable wrappers
-// (useGlobalAuthModal, useSearchModal, useItemForm, useAccountModals) rather
-// than importing the store directly in most cases.
-// ---------------------------------------------------------------------------
-
 export interface ConfirmOptions {
   title: string;
   content: string;
@@ -19,7 +12,6 @@ export interface ConfirmOptions {
 }
 
 export const useModalStore = defineStore('modals', () => {
-  // ── Search modal ──────────────────────────────────────────────────────────
   const searchOpen = ref(false);
   const searchMode = ref<'default' | 'group' | 'theme' | 'language'>('default');
 
@@ -40,7 +32,6 @@ export const useModalStore = defineStore('modals', () => {
     }
   }
 
-  // ── Group Modals ──────────────────────────────────────────────────────────
   const createGroupOpen = ref(false);
   const joinGroupOpen = ref(false);
 
@@ -58,13 +49,11 @@ export const useModalStore = defineStore('modals', () => {
     joinGroupOpen.value = false;
   }
 
-  // ── Item form ─────────────────────────────────────────────────────────────
   const itemFormOpen = ref(false);
   const itemFormKey = ref(0);
   const itemToEdit = ref<HwItem | null>(null);
   const itemFormInitialType = ref<Exclude<ItemType, 'all'>>('homework');
 
-  /** Registry of success callbacks (e.g. page-level reload hooks). */
   const _itemFormSuccessCallbacks = new Set<() => void>();
 
   function openItemForm(type: Exclude<ItemType, 'all'> = 'homework') {
@@ -95,12 +84,10 @@ export const useModalStore = defineStore('modals', () => {
     return () => _itemFormSuccessCallbacks.delete(cb);
   }
 
-  // ── Private task form ──────────────────────────────────────────────────────
   const privateTaskFormOpen = ref(false);
   const privateTaskFormKey = ref(0);
   const privateTaskToEdit = ref<PrivateTask | null>(null);
 
-  /** Registry of success callbacks (e.g. page-level update hooks). */
   const _privateTaskFormSuccessCallbacks = new Set<
     (task: PrivateTask) => void
   >();
@@ -133,11 +120,11 @@ export const useModalStore = defineStore('modals', () => {
     return () => _privateTaskFormSuccessCallbacks.delete(cb);
   }
 
-  // ── Announcement form ───────────────────────────────────────────────────────
+
   const announcementFormOpen = ref(false);
   const announcementFormKey = ref(0);
 
-  /** Registry of success callbacks (e.g. page-level reload hooks). */
+
   const _announcementFormSuccessCallbacks = new Set<() => void>();
 
   function openAnnouncementForm() {
@@ -159,7 +146,7 @@ export const useModalStore = defineStore('modals', () => {
     return () => _announcementFormSuccessCallbacks.delete(cb);
   }
 
-  // ── Image viewer ──────────────────────────────────────────────────
+
   const imageViewerOpen = ref(false);
   const imageViewerImages = ref<ImageItem[]>([]);
   const imageViewerInitialIndex = ref(0);
@@ -172,14 +159,14 @@ export const useModalStore = defineStore('modals', () => {
 
   function closeImageViewer() {
     imageViewerOpen.value = false;
-    // Delay clearing so the fade-out transition can finish
+
     setTimeout(() => {
       imageViewerImages.value = [];
       imageViewerInitialIndex.value = 0;
     }, 300);
   }
 
-  // ── Account modals ────────────────────────────────────────────────────────
+
   const showChangePassword = ref(false);
   const showSecurity = ref(false);
   const showSetup = ref(false);
@@ -198,7 +185,7 @@ export const useModalStore = defineStore('modals', () => {
     showDeleteAccount.value = true;
   }
 
-  // ── Global Confirm Dialog ─────────────────────────────────────────────────
+
   const confirmOpen = ref(false);
   const confirmOptions = ref<ConfirmOptions>({
     title: '',
@@ -207,7 +194,7 @@ export const useModalStore = defineStore('modals', () => {
     danger: false,
   });
 
-  // We don't need this to be reactive, just a reference in the closure
+
   let confirmResolve: ((value: boolean) => void) | null = null;
 
   function confirm(options: ConfirmOptions): Promise<boolean> {
@@ -232,7 +219,7 @@ export const useModalStore = defineStore('modals', () => {
     }
   }
 
-  // ── Sidebar ───────────────────────────────────────────────────────────────
+
   const sidebarExpanded = ref(false);
 
   function toggleSidebar() {
@@ -251,14 +238,14 @@ export const useModalStore = defineStore('modals', () => {
   }
 
   return {
-    // Search modal
+
     searchOpen,
     searchMode,
     openSearch,
     closeSearch,
     toggleSearch,
 
-    // Group Modals
+
     createGroupOpen,
     joinGroupOpen,
     openCreateGroup,
@@ -266,7 +253,7 @@ export const useModalStore = defineStore('modals', () => {
     openJoinGroup,
     closeJoinGroup,
 
-    // Item form
+
     itemFormOpen,
     itemFormKey,
     itemToEdit,
@@ -277,7 +264,7 @@ export const useModalStore = defineStore('modals', () => {
     notifyItemFormSuccess,
     onItemFormSuccess,
 
-    // Private task form
+
     privateTaskFormOpen,
     privateTaskFormKey,
     privateTaskToEdit,
@@ -287,7 +274,7 @@ export const useModalStore = defineStore('modals', () => {
     notifyPrivateTaskFormSuccess,
     onPrivateTaskFormSuccess,
 
-    // Announcement form
+
     announcementFormOpen,
     announcementFormKey,
     openAnnouncementForm,
@@ -295,14 +282,14 @@ export const useModalStore = defineStore('modals', () => {
     notifyAnnouncementFormSuccess,
     onAnnouncementFormSuccess,
 
-    // Image viewer
+
     imageViewerOpen,
     imageViewerImages,
     imageViewerInitialIndex,
     openImageViewer,
     closeImageViewer,
 
-    // Account modals
+
     showChangePassword,
     showSecurity,
     showSetup,
@@ -312,11 +299,11 @@ export const useModalStore = defineStore('modals', () => {
     openSetup,
     openDeleteAccount,
     closeAllAccountModals,
-    // Sidebar
+
     sidebarExpanded,
     toggleSidebar,
     setSidebarExpanded,
-    // Confirm Dialog
+
     confirmOpen,
     confirmOptions,
     confirm,

@@ -35,10 +35,6 @@ export const useSubjectStore = defineStore('subjectStore', () => {
     }
   }
 
-  /**
-   * Reset the store so subjects are reloaded on next access.
-   * Called when the active tenant/group changes.
-   */
   function reset() {
     subjects.value = [];
     loaded.value = false;
@@ -61,7 +57,6 @@ export const useSubjectStore = defineStore('subjectStore', () => {
     );
   });
 
-  // Listen for tenant changes and reset cached subjects
   function onTenantChanged() {
     reset();
   }

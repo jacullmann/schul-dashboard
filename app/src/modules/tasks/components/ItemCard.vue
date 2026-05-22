@@ -30,7 +30,6 @@ const emit = defineEmits<{
 const cardRef = ref<HTMLElement | null>(null);
 const containerRef = ref<HTMLElement | null>(null);
 
-// Smooth height-collapse of the entire row after the card has slid off screen
 function collapseContainer() {
   const el = containerRef.value;
   if (!el) {
@@ -40,11 +39,10 @@ function collapseContainer() {
 
   const currentHeight = el.offsetHeight;
 
-  // Pin height to measured value, then animate to 0
   el.style.height = currentHeight + 'px';
   el.style.overflow = 'hidden';
-  el.style.marginBottom = '0'; // counteract the flex gap on the parent .items
-  void el.offsetHeight; // flush
+  el.style.marginBottom = '0';
+  void el.offsetHeight;
 
   const easing = 'cubic-bezier(0.78, 0, 0.22, 1)';
   el.style.transition = `height 300ms ${easing}, margin 300ms ${easing}`;
@@ -62,24 +60,20 @@ function collapseContainer() {
   }, 350);
 }
 
-// Swipe composable — only instantiated when swipeable is true
 const { swipeOffset, isSwiping, isDismissing } = props.swipeable
   ? useSwipeToDismiss(cardRef, { onSlideOut: collapseContainer })
   : { swipeOffset: ref(0), isSwiping: ref(false), isDismissing: ref(false) };
 
-// Card transform: only applied while there is actual horizontal offset
 const cardStyle = computed(() => {
   if (!props.swipeable || swipeOffset.value === 0) return undefined;
   return {
     transform: `translateX(${swipeOffset.value}px)`,
-    // Live drag → no transition. Release → spring back or slide-out
     transition: isSwiping.value
       ? 'none'
       : 'transform 360ms cubic-bezier(0.25, 1, 0.5, 1)',
   };
 });
 
-// ─── Collapse / expand transitions (unchanged from original) ──────────────────
 const transitionDuration = '350ms';
 const transitionEasing = 'cubic-bezier(0.25, 1, 0.5, 1)';
 
@@ -106,7 +100,6 @@ function onLeave(el: Element) {
   h.style.opacity = '0';
 }
 
-// ─── Drag & Drop ─────────────────────────────────────────────────────────────
 const isDragOver = ref(false);
 let dragCounter = 0;
 
@@ -147,7 +140,6 @@ function onDrop(e: DragEvent) {
 </script>
 
 <template>
-  <!-- Outer wrapper: handles height collapse after dismiss -->
   <div
     ref="containerRef"
     class="relative"
@@ -157,7 +149,6 @@ function onDrop(e: DragEvent) {
         : 'z-20 focus-within:z-30 hover:z-30 has-[[role=menu]]:z-50'
     "
   >
-    <!-- Background — only rendered + visible while swiping -->
     <div
       v-if="swipeable && (isSwiping || isDismissing || swipeOffset > 0)"
       class="absolute inset-0 rounded-xl flex items-center pl-3 pointer-events-none"
@@ -172,7 +163,6 @@ function onDrop(e: DragEvent) {
       <Archive v-else :size="24" color="#fff" />
     </div>
 
-    <!-- Card — slides on swipe, otherwise completely unchanged -->
     <div
       ref="cardRef"
       class="relative bg-surface border border-surface-border rounded-xl p-1 shadow-input overflow-visible cursor-default touch-pan-y"

@@ -83,7 +83,6 @@ onUnmounted(() => {
     class="sticky flex w-full justify-center items-center bg-canvas text-on-ghost border-b border-canvas-border font-display p-0 top-0 h-(--header-height) z-(--z-header)"
   >
     <div class="relative h-full w-full flex items-center gap-4 px-4 max-w-325">
-      <!-- Mobile sidebar toggle -->
       <BaseButton
         class="md:hidden -ml-1"
         variant="ghost"
@@ -94,12 +93,9 @@ onUnmounted(() => {
         :icon="Menu"
       />
 
-      <!-- Brand logo (desktop) -->
       <router-link :to="logoLink" class="logo-group hidden! !md:flex">
         <AppLogo class="logo-img" aria-hidden="true" />
       </router-link>
-
-      <!-- Brand name (when no active group) -->
       <router-link
         :to="logoLink"
         v-if="!(activeGroupId && groupName)"
@@ -107,8 +103,6 @@ onUnmounted(() => {
       >
         <span class="logo-text">schul-dashboard</span>
       </router-link>
-
-      <!-- Group switcher dropdown -->
       <div
         v-if="activeGroupId && groupName"
         class="relative flex items-center"
@@ -119,7 +113,6 @@ onUnmounted(() => {
           @click="toggleGroupMenu"
           title="Change group"
         >
-          <!-- Current Group Avatar -->
           <Avatar :name="groupName" :picture="activeGroupAvatarUrl" :size="8" />
 
           <span class="logo-text">{{ groupName }}</span>

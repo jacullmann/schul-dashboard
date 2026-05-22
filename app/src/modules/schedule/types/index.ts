@@ -1,7 +1,5 @@
-// --- Schedule Module Types ---
-
 export interface Lesson {
-  id: string; // uuid
+  id: string;
   day: number;
   slot: number;
   duration: number;
@@ -15,7 +13,6 @@ export interface Lesson {
     id: string;
     name: string;
   } | null;
-  // Backward compatibility properties from old JSON
   subjectAbbr?: string;
   subject?: string;
   courseName?: string;

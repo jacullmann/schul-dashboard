@@ -42,7 +42,6 @@ const floatingStyles = computed(() => ({
   top: `${bottom.value + 4}px`,
   left: `${left.value}px`,
   width: `${width.value}px`,
-  // Modal is 100001, so we go slightly higher
   zIndex: 100002,
 }));
 
@@ -54,16 +53,13 @@ const toggleMenu = async () => {
       await nextTick();
 
       if (floatingRef.value) {
-        // floatingRef.value is a Vue component instance, so we need to access its exposed menuEl
         const menuEl = (floatingRef.value as any).menuEl as HTMLElement;
 
-        // BaseMenuButton uses aria-checked="true" for the active state
         const selectedElement = menuEl?.querySelector(
           '[aria-checked="true"]',
         ) as HTMLElement | null;
 
         if (selectedElement) {
-          // Use requestAnimationFrame to ensure the DOM is fully rendered before scrolling
           requestAnimationFrame(() => {
             selectedElement.scrollIntoView({
               block: 'nearest',

@@ -49,7 +49,6 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
         v-if="open && (windowWidth > 768 || !sheet)"
         @cancel="handleCancel"
       >
-        <!-- Header-->
         <BaseRow justify="between" class="items-start mb-4">
           <BaseRow>
             <h3 id="modal-title">
@@ -68,7 +67,6 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
           />
         </BaseRow>
 
-        <!-- Content -->
         <BaseForm
           v-if="submit"
           :submit="submit"
@@ -83,7 +81,6 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
           </template>
         </BaseForm>
 
-        <!-- If there is no submit function, render the content without buttons -->
         <slot v-else name="content"></slot>
       </BaseModalCard>
     </Transition>

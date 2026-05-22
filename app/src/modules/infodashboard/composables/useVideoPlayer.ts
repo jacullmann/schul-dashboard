@@ -69,7 +69,6 @@ export function useVideoPlayer(
   };
 
   const updateTime = () => {
-    // Handled by the rAF updateLoop
   };
 
   const loadMetadata = () => {
@@ -131,7 +130,6 @@ export function useVideoPlayer(
     ffStartTime = Date.now();
     wasPlayingBeforeFastForward.value = !videoRef.value.paused;
 
-    // Delay activation so the badge doesn't flash on quick clicks
     ffTimer = setTimeout(() => {
       if (!videoRef.value) return;
 
@@ -148,7 +146,6 @@ export function useVideoPlayer(
     clearTimeout(ffTimer);
     if (!videoRef.value) return;
 
-    // Already handled by mouseup — prevent mouseleave from using a stale timestamp
     if (ffStartTime === 0) return;
 
     const holdDuration = Date.now() - ffStartTime;
@@ -262,7 +259,6 @@ export function useVideoPlayer(
   useEventListener(document, 'fullscreenchange', handleFullscreenChange);
 
   onMounted(() => {
-    // Set tabindex to make the wrapper focusable so it can receive keyboard events
     if (wrapperRef.value) wrapperRef.value.setAttribute('tabindex', '0');
   });
 

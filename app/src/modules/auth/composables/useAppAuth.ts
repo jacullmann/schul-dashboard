@@ -1,10 +1,8 @@
 import { ref, computed } from 'vue';
 import hw, { ensureCsrf } from '@/api/hwApi';
 
-// ─── Constants ────────────────────────────────────────────────────────────────
 const STATUS_ENDPOINT = '/api/groups/status';
 
-// ─── Shared reactive state (module singleton) ─────────────────────────────────
 const isAuthenticated = ref(false);
 const isLoggedIn = ref(false);
 const isAuthReady = ref(false);
@@ -30,7 +28,6 @@ let statusPromise: Promise<boolean> | null = null;
 let switchPromise: Promise<AuthResult> | null = null;
 let switchTarget: string | null = null;
 
-// ─── Result types ─────────────────────────────────────────────────────────────
 type OkResult = { ok: true };
 type ErrResult = { ok: false; error: string };
 type AuthResult = OkResult | ErrResult;
@@ -43,7 +40,6 @@ type GroupSnapshot = {
   isAuthenticated: boolean;
 };
 
-// ─── Internal helpers ─────────────────────────────────────────────────────────
 function clearAuthState(): void {
   isLoggedIn.value = false;
   isAuthenticated.value = false;
@@ -56,7 +52,6 @@ function clearAuthState(): void {
   try {
     localStorage.removeItem('active_tenant_id');
   } catch {
-    // localStorage may be unavailable (e.g. certain private-browsing modes).
   }
 }
 
@@ -134,7 +129,6 @@ async function doSwitchGroup(
   }
 }
 
-// ─── Composable ───────────────────────────────────────────────────────────────
 export function useAppAuth() {
   async function checkAuthStatus(): Promise<boolean> {
     if (statusPromise) return statusPromise;

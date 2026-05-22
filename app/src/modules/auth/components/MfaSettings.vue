@@ -25,7 +25,6 @@ const {
   deactivateMfa: doDeactivateMfa,
 } = useMfa();
 
-// Setup State
 const setupMode = ref(false);
 const setupStep = ref(1);
 const qrCodeUrl = ref<string | null>(null);
@@ -36,26 +35,21 @@ const verifyError = ref<string | null>(null);
 const loading = ref(false);
 const copied = ref(false);
 
-// Deactivate State
 const deactivateMode = ref(false);
 const deactivateCode = ref('');
 const deactivateError = ref<string | null>(null);
 
-// Input refs
 const codeInput = ref<HTMLInputElement | null>(null);
 const deactivateCodeInput = ref<HTMLInputElement | null>(null);
 
-// Timer
 let timerInterval: ReturnType<typeof setInterval> | null = null;
 const remainingTime = ref('');
 
-// Formatiertes Secret in vierer Gruppen
 const formattedSecret = computed(() => {
   if (!manualSecret.value) return '';
   return manualSecret.value.match(/.{1,4}/g)?.join(' ') || manualSecret.value;
 });
 
-// Timer-Update Funktion
 function updateTimer() {
   if (!expiresAt.value) {
     remainingTime.value = '';
@@ -77,7 +71,6 @@ function updateTimer() {
   remainingTime.value = `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
-// Setup starten
 async function startSetup() {
   loading.value = true;
   verifyError.value = null;
@@ -91,7 +84,6 @@ async function startSetup() {
     setupMode.value = true;
     setupStep.value = 1;
 
-    // Timer starten
     updateTimer();
     timerInterval = setInterval(updateTimer, 1000);
   }
@@ -99,7 +91,6 @@ async function startSetup() {
   loading.value = false;
 }
 
-// Setup abbrechen
 function cancelSetup() {
   setupMode.value = false;
   setupStep.value = 1;
@@ -115,7 +106,6 @@ function cancelSetup() {
   }
 }
 
-// Secret kopieren
 async function copySecret() {
   if (!manualSecret.value) return;
 
@@ -139,7 +129,6 @@ async function copySecret() {
   }
 }
 
-// Code-Input Handler nur mit Zahlen
 function handleCodeInput(event: Event) {
   const input = event.target as HTMLInputElement;
   input.value = input.value.replace(/\D/g, '').slice(0, 6);
@@ -154,7 +143,6 @@ function handleDeactivateCodeInput(event: Event) {
   deactivateError.value = null;
 }
 
-// MFA aktivieren
 async function activateMfa() {
   if (verifyCode.value.length !== 6) return;
 
@@ -176,7 +164,6 @@ async function activateMfa() {
   loading.value = false;
 }
 
-// MFA deaktivieren starten
 function startDeactivate() {
   deactivateMode.value = true;
   deactivateCode.value = '';
@@ -187,14 +174,12 @@ function startDeactivate() {
   });
 }
 
-// Deaktivierung abbrechen
 function cancelDeactivate() {
   deactivateMode.value = false;
   deactivateCode.value = '';
   deactivateError.value = null;
 }
 
-// Deaktivierung bestätigen
 async function confirmDeactivate() {
   if (deactivateCode.value.length !== 6) return;
 
@@ -216,7 +201,6 @@ async function confirmDeactivate() {
   loading.value = false;
 }
 
-// Cleanup
 onUnmounted(() => {
   if (timerInterval) {
     clearInterval(timerInterval);
@@ -301,7 +285,6 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <!-- Step 1 -->
       <div v-if="setupStep === 1" class="flex flex-col gap-4">
         <p
           class="text-sm/relaxed text-on-ghost-muted m-0 text-center font-sans"
@@ -357,7 +340,6 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <!-- Step 2 -->
       <div v-if="setupStep === 2" class="flex flex-col gap-4">
         <p
           class="text-sm/relaxed text-on-ghost-muted m-0 text-center font-sans"
@@ -404,7 +386,6 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <!-- Deaktivieren Option -->
     <div v-if="mfaEnabled && !deactivateMode" class="flex justify-start">
       <BaseButton
         class="border border-danger text-danger hover:bg-danger-hover"
@@ -415,7 +396,6 @@ onUnmounted(() => {
       </BaseButton>
     </div>
 
-    <!-- Deaktivieren Mode -->
     <div v-if="deactivateMode" class="flex flex-col gap-4">
       <div
         class="flex gap-3 p-3 px-4 bg-danger-hover border border-danger rounded-lg text-danger"

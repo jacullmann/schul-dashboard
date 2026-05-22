@@ -92,7 +92,6 @@ export function useLogin(onLoggedIn: () => void, onMfaRequired: () => void) {
   }
 
   return {
-    // State
     email,
     password,
     submitting,
@@ -101,7 +100,6 @@ export function useLogin(onLoggedIn: () => void, onMfaRequired: () => void) {
     emailInputRef,
     errors,
 
-    // Methods
     clearFieldError,
     submit,
   };

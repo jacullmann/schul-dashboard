@@ -53,7 +53,6 @@ async function submit() {
     const res = await auth.createGroup(groupName.value.trim(), password.value);
 
     if (res.ok) {
-      // CSRF token rotation is handled internally by createGroup/checkAuthStatus.
       try {
         await userStore.fetchUser();
       } catch {}

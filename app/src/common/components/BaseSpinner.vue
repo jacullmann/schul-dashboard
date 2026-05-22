@@ -41,7 +41,6 @@ const center = computed(() => sizeNum.value / 2);
     aria-live="polite"
     aria-label="Loading..."
   >
-    <!-- Subtle background track for depth -->
     <circle
       :cx="center"
       :cy="center"
@@ -51,7 +50,6 @@ const center = computed(() => sizeNum.value / 2);
       stroke-opacity="0"
       class="fill-none transition-colors duration-300"
     />
-    <!-- Animated fluid foreground track -->
     <circle
       :cx="center"
       :cy="center"
@@ -74,7 +72,6 @@ const center = computed(() => sizeNum.value / 2);
 }
 
 .spinner-fg {
-  /* Ultra-smooth cubic bezier for liquid-like scaling */
   animation: spinner-dash 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
   will-change: stroke-dasharray, stroke-dashoffset;
 }

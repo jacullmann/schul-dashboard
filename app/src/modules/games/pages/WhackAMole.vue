@@ -16,7 +16,6 @@ const popMole = () => {
 
   if (isGameOver.value) return;
 
-  // Chance to not show a mole (brief pause)
   if (Math.random() < 0.2) {
     activeMole.value = null;
   } else {

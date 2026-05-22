@@ -39,7 +39,6 @@ const onSelectLesson = (lesson: Lesson) => {
   emit('select-lesson', lesson);
 };
 
-// Responsiveness logic (same as Schedule.vue)
 const scrollContainerRef = ref<HTMLElement | null>(null);
 const timeColWrapperRef = ref<HTMLElement | null>(null);
 const daysGridWrapperRef = ref<HTMLElement | null>(null);

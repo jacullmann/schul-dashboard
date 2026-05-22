@@ -58,7 +58,6 @@ const routes = [
     ],
   },
 
-  // ── Default Layout (header + footer) ────────────────────────────────
   {
     path: '/',
     component: () => import('@/layouts/DefaultLayout.vue'),
@@ -76,7 +75,6 @@ const routes = [
         meta: { title: 'navigation.groups' },
       },
 
-      // ── Group-scoped pages ──────────────────────────────────────
       {
         path: 'groups/:groupId',
         children: [
@@ -130,7 +128,6 @@ const routes = [
         ],
       },
 
-      // ── User-scoped pages ───────────────────────────────────────
       {
         path: 'todos',
         name: 'private-todos',
@@ -166,7 +163,6 @@ const routes = [
     ],
   },
 
-  // ── Intelligence-scoped pages ───────────────────────────────────────
   {
     path: '/natural-intelligence',
     component: () => import('@/layouts/IntelligenceLayout.vue'),
@@ -198,7 +194,6 @@ const routes = [
     ],
   },
 
-  // ── Super Admin Dashboard ───────────────────────────────────────────
   {
     path: '/admin',
     component: () => import('@/layouts/DefaultLayout.vue'),
@@ -217,7 +212,6 @@ const routes = [
     ],
   },
 
-  // ── Verify Email ────────────────────────────────────────────────────
   {
     path: '/verify',
     component: () => import('@/layouts/SimpleLayout.vue'),
@@ -231,7 +225,6 @@ const routes = [
     ],
   },
 
-  // ── 404 ─────────────────────────────────────────────────────────────
   {
     path: '/:pathMatch(.*)*',
     component: () => import('@/layouts/DefaultLayout.vue'),
@@ -246,7 +239,6 @@ const routes = [
   },
 ];
 
-// ─── Router Instance ─────────────────────────────────────────────────────────
 
 const router = createRouter({
   history: createWebHistory(),
@@ -257,16 +249,13 @@ const { start, finish } = useLoadingBar();
 const { isLoggedIn, isAuthReady, initAuth, activeGroupId, userGroups } =
   useAppAuth();
 
-// ─── Navigation Guard ─────────────────────────────────────────────────────────
 
 router.beforeEach(async (to, from, next) => {
   if (to.path !== from.path) start();
 
-  // Ensure auth is initialized exactly once on first navigation.
   if (!isAuthReady.value) await initAuth();
 
   const isPublicRoute =
-    // Authentication
     to.path === '/' ||
     to.path === '/login' ||
     to.path === '/register' ||
@@ -274,10 +263,8 @@ router.beforeEach(async (to, from, next) => {
     to.path === '/reset-password' ||
     to.path === '/forgot-password' ||
     to.path.startsWith('/verify') ||
-    // Minigames
     to.path.startsWith('/natural-intelligence');
 
-  // ── Unauthenticated users → login page (internal) ────────────────────────────────
   if (!isPublicRoute && !isLoggedIn.value) {
     finish();
     return next({
@@ -286,7 +273,6 @@ router.beforeEach(async (to, from, next) => {
     });
   }
 
-  // ── Authenticated users → away from public routes ──────────
   if ((to.path === '/' || to.path === '/auth') && isLoggedIn.value) {
     finish();
     return next({
@@ -297,7 +283,6 @@ router.beforeEach(async (to, from, next) => {
     });
   }
 
-  // ── Document title ─────────────────────────────────────────────────
   if (to.meta.title) {
     const translated = i18n.global.t(to.meta.title as string);
     if (to.path === '/') {
@@ -310,17 +295,14 @@ router.beforeEach(async (to, from, next) => {
     document.title = 'Dashboard';
   }
 
-  // ── User store init ────────────────────────────────────────────────
   const userStore = useUserStore();
   if (isLoggedIn.value && !isPublicRoute && !userStore.initialized) {
     try {
       await userStore.fetchUser();
     } catch {
-      // Non-fatal
     }
   }
 
-  // ── Role guards ────────────────────────────────────────────────────
   if (to.meta.requiresSuperAdmin) {
     if (!userStore.initialized) await userStore.fetchUser();
     if (!userStore.isSuperadmin) {
@@ -337,7 +319,6 @@ router.beforeEach(async (to, from, next) => {
     }
   }
 
-  // ── Tenant-required routes ─────────────────────────────────────────
   if (to.meta.requiresTenant && !activeGroupId.value) {
     finish();
     return next({ path: '/home', replace: true });
@@ -345,9 +326,6 @@ router.beforeEach(async (to, from, next) => {
 
   const routeGroupId = to.params.groupId as string | undefined;
   if (routeGroupId && routeGroupId !== activeGroupId.value) {
-    // Fast client-side membership check before hitting the server.
-    // Note: this is advisory — the server will reject unauthorized access
-    // regardless. But it saves a round-trip for obvious non-members.
     if (!userStore.initialized) await userStore.fetchUser();
     const isMember = userGroups.value.some((g) => g.id === routeGroupId);
     if (!isMember && !userStore.isSuperadmin) {
@@ -355,8 +333,6 @@ router.beforeEach(async (to, from, next) => {
       return next({ path: '/home', replace: true });
     }
 
-    // switchActiveGroup has built-in debounce (singleton promise per groupId),
-    // so rapid navigation to the same group won't cause parallel server calls.
     const { switchActiveGroup } = useAppAuth();
     const result = await switchActiveGroup(routeGroupId);
     if (!result.ok) {

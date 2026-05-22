@@ -18,7 +18,6 @@ const { isAuthenticated, isAuthReady, checkAuthStatus } = useAppAuth();
 const { handleOAuthReturn } = useOAuth();
 const { loading, progress, opacity } = useLoadingBar();
 
-// ── Auth lifecycle helpers ─────────────────────────────────────────────────
 
 let pageloadLogged = false;
 
@@ -52,13 +51,12 @@ async function handleTenantChanged() {
   await userStore.fetchUser();
 }
 
-// ── Watchers ──────────────────────────────────────────────────────────────
 
 watch(user, (newUser, oldUser) => {
   if (newUser && !oldUser) logPageload();
 });
 
-// Remove initial loading screen once auth state is resolved
+
 watch(
   isAuthReady,
   (ready) => {
@@ -75,15 +73,12 @@ watch(
   { immediate: true },
 );
 
-// ── Lifecycle ─────────────────────────────────────────────────────────────
 
 let authCheckInterval: ReturnType<typeof setInterval> | null = null;
 
 onMounted(() => {
   logPageload();
 
-  // Handle OAuth redirect (?auth=success|link-required|mfa-pending|error).
-  // Must run after initAuth() which is called by the router guard before mount.
   handleOAuthReturn(async () => {
     await checkAuthStatus();
     await userStore.fetchUser();

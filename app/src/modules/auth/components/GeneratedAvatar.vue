@@ -19,12 +19,11 @@ const avatarLetter = computed(() => {
 
 const avatarColor = computed(() => {
   if (props.name) return getAvatarData(props.name).color;
-  return '#777'; // Fallback
+  return '#777';
 });
 
 const avatarStyle = computed(() => {
   const px = props.size * 4;
-  // Font size is half of the avatar size (e.g. 32px avatar -> 16px font-size)
   const fontSize = px / 2;
   return {
     width: `${px}px`,

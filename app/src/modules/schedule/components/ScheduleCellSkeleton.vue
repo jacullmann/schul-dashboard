@@ -5,9 +5,7 @@ import { useWindowSize } from '@vueuse/core';
 const { width: windowWidth } = useWindowSize();
 
 defineProps<{
-  /** Column index (1–5) so the skeleton is placed in the correct day column. */
   col: number;
-  /** Row index (1–7) so the skeleton sits in the correct time-slot row. */
   row: number;
 }>();
 </script>

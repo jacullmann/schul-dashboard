@@ -17,7 +17,6 @@ const { t } = useI18n();
 
 const { openAnnouncementForm, onFormSuccess } = useAnnouncementForm();
 
-// Refresh the list automatically after a successful creation
 onFormSuccess(() => {
   emit('refresh');
 });

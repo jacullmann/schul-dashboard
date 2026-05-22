@@ -15,22 +15,18 @@ const { t, te } = useI18n();
 const subjectStore = useSubjectStore();
 
 const props = defineProps<{
-  /** Pre-selected entry type when creating; ignored when editing. */
   initialType?: Exclude<ItemType, 'all'>;
   initial?: HwItem | null;
   open: boolean;
 }>();
 const emit = defineEmits<{ (e: 'cancel'): void; (e: 'success'): void }>();
 
-// ── Type tabs ──────────────────────────────────────────────────────────────
 const typeTabItems = computed(() => [
   { id: 'homework', label: t('school.tasks.types.homework') },
   { id: 'dalton', label: t('school.tasks.types.dalton') },
   { id: 'exam', label: t('school.tasks.types.exam') },
 ]);
 
-// When editing, type is fixed to the item's type. When creating, it starts at
-// the provided initialType (default: 'homework') and can be changed via tabs.
 const activeType = ref<Exclude<ItemType, 'all'>>(
   props.initial ? props.initial.type : (props.initialType ?? 'homework'),
 );
@@ -106,7 +102,6 @@ const subjectOther = ref('');
 const description = ref(props.initial?.description || '');
 const courseSel = ref(initialParts.course);
 
-// Form Specific Error Refs
 const titleError = ref('');
 const subjectError = ref('');
 const courseError = ref('');
@@ -192,7 +187,6 @@ async function submit() {
   submitting.value = true;
   submitError.value = '';
 
-  // Reset all specific form errors
   titleError.value = '';
   subjectError.value = '';
   courseError.value = '';
@@ -203,7 +197,6 @@ async function submit() {
   let hasValidationErrors = false;
   let finalSubject = '';
 
-  // --- 1. Validate Subject ---
   const main = subjectSel.value;
   if (!main) {
     subjectError.value = t('school.tasks.itemForm.errors.customMissing');
@@ -232,7 +225,6 @@ async function submit() {
     finalSubject = main;
   }
 
-  // --- 2. Validate Title ---
   const cleanTitle = title.value.trim();
   if (!cleanTitle) {
     titleError.value = t('school.tasks.itemForm.errors.titleMissing');
@@ -242,14 +234,12 @@ async function submit() {
     hasValidationErrors = true;
   }
 
-  // --- 3. Validate Description ---
   const cleanDesc = description.value.trim();
   if (cleanDesc.length > 1000) {
     descriptionError.value = t('school.tasks.itemForm.errors.descriptionLong');
     hasValidationErrors = true;
   }
 
-  // --- 4. Validate Due Date ---
   const selectedDate = new Date(dueLocal.value);
   selectedDate.setHours(23, 59, 0, 0);
 
@@ -261,7 +251,6 @@ async function submit() {
     hasValidationErrors = true;
   }
 
-  // If any errors were found, stop execution before API call
   if (hasValidationErrors) {
     submitting.value = false;
     return;
@@ -290,7 +279,6 @@ async function submit() {
 
     emit('success');
   } catch (e: unknown) {
-    // This catches actual server errors during the API call
     const err = e as {
       response?: { status?: number; data?: { error?: string } };
       message?: string;
@@ -344,7 +332,6 @@ onMounted(() => {
     </template>
 
     <template #content>
-      <!-- Drag & Drop Overlay -->
       <div
         v-if="isDragging"
         class="absolute inset-0 z-50 flex items-center justify-center bg-canvas/80 backdrop-blur-sm border-2 border-dashed border-primary rounded-2xl pointer-events-none"
@@ -359,7 +346,6 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Form Content -->
       <BaseFormGroup v-if="!initial" id="type">
         <BaseTabs
           :items="typeTabItems"

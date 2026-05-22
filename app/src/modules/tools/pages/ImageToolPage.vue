@@ -3,7 +3,6 @@ import { RotateCw, RotateCcw } from '@lucide/vue';
 import { ref, reactive, computed, watch } from 'vue';
 import { useElementBounding, useEventListener } from '@vueuse/core';
 
-// --- Types ---
 interface CropState {
   x: number;
   y: number;
@@ -16,7 +15,6 @@ interface ImageMeta {
   naturalHeight: number;
 }
 
-// --- State ---
 const fileInputRef = ref<HTMLInputElement | null>(null);
 const editorImageRef = ref<HTMLImageElement | null>(null);
 const workspaceRef = ref<HTMLElement | null>(null);
@@ -34,12 +32,10 @@ const settings = reactive({
   height: null as number | null,
 });
 
-// Editor State
 const isEditorOpen = ref(false);
 const isCropInitialized = ref(false);
 const crop = reactive<CropState>({ x: 0, y: 0, w: 0, h: 0 });
 
-// Reactive element bounds — update via ResizeObserver, return 0 when unmounted
 const {
   width: imgRenderedWidth,
   left: imgLeft,
@@ -48,14 +44,12 @@ const {
 const { left: workspaceLeft, top: workspaceTop } =
   useElementBounding(workspaceRef);
 
-// editorScale reacts to the image's rendered width — no imperative DOM reads needed
 const editorScale = computed(() =>
   imageMeta.naturalWidth > 0 && imgRenderedWidth.value > 0
     ? imgRenderedWidth.value / imageMeta.naturalWidth
     : 1,
 );
 
-// Dragging Logic State
 let isDragging = false;
 let resizeDir = '';
 let startMouseX = 0;
@@ -64,7 +58,6 @@ let boxStart = { x: 0, y: 0, w: 0, h: 0 };
 
 const handleDirs = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'] as const;
 
-// --- File Handling ---
 const triggerUpload = () => fileInputRef.value?.click();
 
 const handleFileChange = (e: Event) => {
@@ -85,14 +78,12 @@ const loadFile = (file: File) => {
   const reader = new FileReader();
   reader.onload = (e) => {
     const result = e.target?.result as string;
-    // We create a temporary Image object to get natural dimensions immediately
     const img = new Image();
     img.onload = () => {
       currentImageSrc.value = result;
       imageMeta.naturalWidth = img.naturalWidth;
       imageMeta.naturalHeight = img.naturalHeight;
 
-      // Reset settings
       settings.width = img.naturalWidth;
       settings.height = img.naturalHeight;
     };
@@ -101,7 +92,6 @@ const loadFile = (file: File) => {
   reader.readAsDataURL(file);
 };
 
-// --- Conversion Logic ---
 const convertAndDownload = () => {
   if (!hasImage.value) return;
 
@@ -133,9 +123,6 @@ const convertAndDownload = () => {
   img.src = currentImageSrc.value;
 };
 
-// --- Editor Logic ---
-
-// Initialize crop box once the editor image is in the DOM and has non-zero dimensions
 watch(imgRenderedWidth, (width) => {
   if (width > 0 && isEditorOpen.value && !isCropInitialized.value) {
     const initW = imageMeta.naturalWidth * 0.5;
@@ -157,7 +144,6 @@ const closeEditor = () => {
   isCropInitialized.value = false;
 };
 
-// Core function to update crop state with bounds checking
 const setCrop = (x: number, y: number, w: number, h: number) => {
   if (x < 0) x = 0;
   if (y < 0) y = 0;
@@ -170,8 +156,6 @@ const setCrop = (x: number, y: number, w: number, h: number) => {
   crop.h = Math.round(h);
 };
 
-// Computed style for the visual crop box
-// Offset the box by the image's position within the workspace (handles padding/centering)
 const cropBoxStyle = computed(() => {
   const relLeft = imgLeft.value - workspaceLeft.value;
   const relTop = imgTop.value - workspaceTop.value;
@@ -183,12 +167,10 @@ const cropBoxStyle = computed(() => {
   };
 });
 
-// Manual Input Handler
+
 const updateCropFromInput = () => {
   setCrop(crop.x, crop.y, crop.w, crop.h);
 };
-
-// --- Drag & Resize Logic ---
 
 const startDrag = (e: MouseEvent, direction: string | false) => {
   if (direction) {
@@ -202,41 +184,34 @@ const startDrag = (e: MouseEvent, direction: string | false) => {
   startMouseX = e.clientX;
   startMouseY = e.clientY;
 
-  // Snapshot current state
   boxStart = { ...crop };
 };
 
 const handleGlobalMouseMove = (e: MouseEvent) => {
   if (!isDragging && !resizeDir) return;
 
-  // Calculate delta in Natural Pixels
   const dx = (e.clientX - startMouseX) / editorScale.value;
   const dy = (e.clientY - startMouseY) / editorScale.value;
 
   if (isDragging) {
     setCrop(boxStart.x + dx, boxStart.y + dy, boxStart.w, boxStart.h);
   } else if (resizeDir) {
-    // Calculate new dimensions based on direction
     let newX = boxStart.x;
     let newY = boxStart.y;
     let newW = boxStart.w;
     let newH = boxStart.h;
 
-    // North
     if (resizeDir.includes('n')) {
       newY = boxStart.y + dy;
       newH = boxStart.h - dy;
     }
-    // South
     if (resizeDir.includes('s')) {
       newH = boxStart.h + dy;
     }
-    // West
     if (resizeDir.includes('w')) {
       newX = boxStart.x + dx;
       newW = boxStart.w - dx;
     }
-    // East
     if (resizeDir.includes('e')) {
       newW = boxStart.w + dx;
     }
@@ -250,11 +225,8 @@ const handleGlobalMouseUp = () => {
   resizeDir = '';
 };
 
-// Global listeners are always attached; handlers guard against inactive drag state
 useEventListener(window, 'mousemove', handleGlobalMouseMove);
 useEventListener(window, 'mouseup', handleGlobalMouseUp);
-
-// --- Image Manipulation ---
 
 const rotateImage = (deg: number) => {
   const img = new Image();
@@ -263,7 +235,6 @@ const rotateImage = (deg: number) => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Swap dimensions if 90 or 270 degrees
     if (Math.abs(deg) === 90) {
       canvas.width = img.naturalHeight;
       canvas.height = img.naturalWidth;
@@ -302,7 +273,6 @@ const applyEdits = () => {
 const updateImageSource = (newSrc: string) => {
   currentImageSrc.value = newSrc;
 
-  // Update metadata for the new image
   const i = new Image();
   i.onload = () => {
     imageMeta.naturalWidth = i.naturalWidth;
@@ -310,7 +280,6 @@ const updateImageSource = (newSrc: string) => {
     settings.width = i.naturalWidth;
     settings.height = i.naturalHeight;
 
-    // If editor is open (e.g. rotation), reset so the imgRenderedWidth watcher re-initializes
     if (isEditorOpen.value) {
       isCropInitialized.value = false;
     }

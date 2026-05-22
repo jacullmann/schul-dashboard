@@ -35,7 +35,6 @@ onBeforeUnmount(() => destroy());
     <div class="crt-overlay"></div>
     <div class="crt-flicker"></div>
 
-    <!-- HUD (visible only while playing) -->
     <div v-if="gameState === 'PLAYING'" id="ui-layer">
       <div id="top-hud">
         <div class="hud-text">

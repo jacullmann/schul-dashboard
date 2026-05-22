@@ -25,7 +25,6 @@ const props = defineProps<{
 const triggerRef = ref<HTMLElement | null>(null);
 const menuRef = ref<HTMLElement | null>(null);
 
-// ── Mobile drill-down context ───────────────────────────────
 const sheetCtx = inject(MENU_SHEET_KEY, undefined);
 const { width: vw, height: vh } = useWindowSize();
 const isMobile = computed(() => vw.value < 768 && !!sheetCtx);
@@ -41,7 +40,6 @@ function drillDown() {
   }
 }
 
-// ── Desktop hover/focus logic (unchanged) ───────────────────
 const isOpen = computed(
   () =>
     activeTrigger.value !== null && activeTrigger.value === triggerRef.value,
@@ -102,8 +100,6 @@ const { width: popupW, height: popupH } = useElementBounding(menuRef);
 const popupStyle = computed(() => {
   if (!isOpen.value) return {};
 
-  // Offset the submenu card so it doesn't overlap the trigger button.
-  // The 5px offset accounts for the BaseMenuCard's padding (p-1 = 4px) and border (1px).
   const SUBMENU_X_OFFSET = 5;
   let left = btnRight.value + SUBMENU_X_OFFSET;
   let top = btnTop.value;
@@ -113,15 +109,10 @@ const popupStyle = computed(() => {
     left = btnLeft.value - width - SUBMENU_X_OFFSET;
   }
 
-  // For submenus, we typically align them exactly next to the trigger button.
-  // If there's not enough room below the trigger to fit the submenu,
-  // we align its bottom with the trigger's bottom so it expands upwards.
-
   const estimatedH = popupH.value || 150;
   const spaceBelow = vh.value - btnTop.value;
 
   if (spaceBelow < estimatedH) {
-    // Anchor to the bottom of the button
     return {
       position: 'fixed',
       left: `${Math.round(left)}px`,
@@ -162,7 +153,6 @@ const popupStyle = computed(() => {
       </BaseMenuButton>
     </div>
 
-    <!-- Desktop: side panel (unchanged) -->
     <template v-if="!isMobile">
       <BaseMenu
         :open="isOpen"
@@ -175,7 +165,6 @@ const popupStyle = computed(() => {
       </BaseMenu>
     </template>
 
-    <!-- Mobile: teleport content into parent BaseMenu's submenu area -->
     <Teleport
       v-else-if="sheetCtx?.submenuTarget.value"
       :to="sheetCtx.submenuTarget.value"

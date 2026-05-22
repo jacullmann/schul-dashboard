@@ -2,7 +2,6 @@
 @plugin '@tailwindcss/typography';
 
 @theme {
-  /* ── Primitive palette ─────────────────────────────────── */
   --color-black: oklch(0 0 0);
   --color-smoke: oklch(0 0 0 / 7%);
   --color-onyx: oklch(0.1684 0 0);
@@ -29,25 +28,20 @@
   --color-bismuth-purple: oklch(0.5878 0.29968 308.4769);
   --color-bismuth-violet: oklch(0.4898 0.295776 280.2478);
 
-  /* ── Semantic / alias colors ────────────────────────────── */
-  /* Canvas */
   --color-canvas: var(--color-white);
   --color-canvas-border: var(--color-cloud);
 
-  /* Surface */
   --color-surface: var(--color-white);
   --color-surface-hover: var(--color-smoke);
   --color-surface-highlight: oklch(0.9702 0 0);
   --color-surface-border: var(--color-cloud);
   --color-surface-hover-border: oklch(0.7921 0 0);
 
-  /* Ghost */
   --color-ghost-hover: var(--color-smoke);
   --color-on-ghost: var(--color-black);
   --color-on-ghost-muted: var(--color-graphite);
   --color-on-ghost-subtle: var(--color-ghost);
 
-  /* Action */
   --color-action: var(--color-black);
   --color-action-hover: var(--color-charcoal);
   --color-on-action: var(--color-white);
@@ -55,7 +49,6 @@
   --color-action-disabled: var(--color-ash);
   --color-on-action-disabled: var(--color-graphite);
 
-  /* Danger */
   --color-danger: var(--color-cinnabar);
   --color-on-danger: var(--color-white);
   --color-on-danger-muted: var(--color-cotton-candy);
@@ -66,7 +59,6 @@
     transparent
   );
 
-  /* Success */
   --color-success: var(--color-basil);
   --color-on-success: var(--color-white);
   --color-success-hover: color-mix(
@@ -75,19 +67,15 @@
     transparent
   );
 
-  /* Warn */
   --color-warn: var(--color-yellow);
   --color-on-warn: var(--color-onyx);
 
-  /* Misc */
   --color-primary: var(--color-black);
   --color-focus: var(--color-ghost);
 
-  /* ── Typography ────────────────────────────────────────── */
   --font-sans: 'Inter', sans-serif;
   --font-display: 'Satoshi', sans-serif;
 
-  /* ── Border-radius ──────────────────────────────────────── */
   --radius-sm: 0.25rem;
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
@@ -96,7 +84,6 @@
   --radius-3xl: 2rem;
   --radius-full: 999px;
 
-  /* ── Shadows ────────────────────────────────────────────── */
   --shadow-input: 0 1px 2px 0 oklch(0 0 0 / 5%);
   --shadow-card: 0 1px 2px 0 oklch(0 0 0 / 5%);
   --color-shadow-light: oklch(0 0 0 / 5%);
@@ -104,20 +91,16 @@
   --shadow-menu: 0 12px 24px -2px var(--color-shadow-heavy);
   --shadow-focus-ring: 0 0 0 3px var(--focus-ring-color, var(--color-cloud));
 
-  /* ── Transitions ────────────────────────────────────────── */
-  /* Hover */
+
   --duration-hover: 100ms;
   --ease-hover: ease;
 
-  /* Focus */
   --duration-focus: 200ms;
   --ease-focus: ease;
 
-  /* ── Custom dimensions ──────────────────────────────────── */
   --header-height: 65px;
   --announcement-height: 0px;
 
-  /* ── Z-index scale ──────────────────────────────────────── */
   --z-below: -10;
   --z-hide: -1;
 
@@ -135,7 +118,6 @@
   --z-critical: 10000;
   --z-tooltip: 20000;
 
-  /* ── Animations ────────────────────────────────────────── */
   --animate-pulse: pulse 2s cubic-bezier(0.22, 1, 0.36, 1) infinite;
   --animate-fade-up: fade-up 0.35s ease-out forwards;
   --animate-ripple: ripple-effect 400ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
@@ -161,7 +143,6 @@
     }
   }
 
-  /* ── Kbd ───────────────────────────────────────────────── */
   --color-kbd-bg: oklch(0.9731 0 0);
   --color-kbd-text: oklch(0.2768 0 0);
   --color-kbd-border: oklch(0.873 0 0);
@@ -191,34 +172,29 @@
     var(--color-bismuth-purple) 77.2%,
     var(--color-bismuth-violet) 115.2%
   );
-  /* ANIMATIONS */
+
   --animate-pulse: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 
-  /* CUSTOM DIMENSIONS */
   --header-height: 65px;
   --announcement-height: 0px;
 }
 
 @layer base {
   html.dark {
-    /* Canvas */
     --color-canvas: var(--color-onyx);
     --color-canvas-border: var(--color-charcoal);
 
-    /* Surface */
     --color-surface: var(--color-charcoal);
     --color-surface-hover: var(--color-mist);
     --color-surface-highlight: var(--color-charcoal-highlight);
     --color-surface-border: var(--color-graphite);
     --color-surface-hover-border: var(--color-steel);
 
-    /* Ghost */
     --color-ghost-hover: var(--color-mist);
     --color-on-ghost: var(--color-white);
     --color-on-ghost-muted: var(--color-ash);
     --color-on-ghost-subtle: var(--color-ghost);
 
-    /* Action */
     --color-action: var(--color-white);
     --color-action-hover: var(--color-white-highlight);
     --color-on-action: var(--color-onyx);
@@ -226,7 +202,6 @@
     --color-action-disabled: var(--color-ash);
     --color-on-action-disabled: var(--color-graphite);
 
-    /* Danger */
     --color-danger: var(--color-coral);
     --color-on-danger: var(--color-white);
     --color-on-danger-muted: var(--color-cotton-candy);
@@ -237,7 +212,6 @@
       transparent
     );
 
-    /* Success */
     --color-success: var(--color-pistachio);
     --color-on-success: var(--color-white);
     --color-success-hover: color-mix(
@@ -246,21 +220,17 @@
       transparent
     );
 
-    /* Warn */
     --color-warn: var(--color-yellow);
     --color-on-warn: var(--color-onyx);
 
-    /* Misc */
     --color-primary: var(--color-white);
     --color-focus: var(--color-ash);
 
-    /* Shadows */
     --color-shadow-light: oklch(0 0 0 / 5%);
     --color-shadow-heavy: oklch(0 0 0 / 40%);
     --shadow-focus-ring: 0 0 0 3px var(--color-graphite);
     --focus-ring-color: var(--color-graphite);
 
-    /* Kbd */
     --color-kbd-bg: oklch(0.329 0 0);
     --color-kbd-text: oklch(0.8452 0 0);
     --color-kbd-border: oklch(0.4091 0 0);

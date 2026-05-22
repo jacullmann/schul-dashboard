@@ -1,6 +1,3 @@
-// --- Admin Module Types ---
-
-// ─── Shared Tab Types ───────────────────────────────────────────
 export type SuperAdminTab = 'overview' | 'users' | 'reports' | 'sorgen' | 'doc';
 export type GroupAdminTab =
   | 'overview'
@@ -9,7 +6,6 @@ export type GroupAdminTab =
   | 'announcements'
   | 'subjects';
 
-// ─── Super Admin Stats ──────────────────────────────────────────
 export interface AdminStats {
   userCount: number;
   itemCount: number;
@@ -30,7 +26,6 @@ export interface AdminStats {
   topCreators: { _id: string; count: number; email?: string }[];
 }
 
-// ─── Group Admin Stats ──────────────────────────────────────────
 export interface GroupStats {
   itemCount: number;
   subsCount: number;
@@ -38,7 +33,6 @@ export interface GroupStats {
   memberCount: number;
 }
 
-// ─── Users ──────────────────────────────────────────────────────
 export interface AdminUser {
   id: string;
   email: string;
@@ -50,7 +44,6 @@ export interface AdminUser {
   activityCount?: number;
 }
 
-// ─── Group Members ──────────────────────────────────────────────
 export interface GroupMember {
   userId: string;
   generatedName: string;
@@ -58,7 +51,6 @@ export interface GroupMember {
   joinedAt: string;
 }
 
-// ─── Reports ────────────────────────────────────────────────────
 export interface AdminReport {
   id: string;
   itemId: string;
@@ -72,7 +64,6 @@ export interface AdminReport {
   reportedAt: string;
 }
 
-// ─── Sorgen ─────────────────────────────────────────────────────
 export interface AdminSorge {
   id: string;
   message: string;
@@ -81,7 +72,6 @@ export interface AdminSorge {
   createdAt: string;
 }
 
-// ─── Schedule Substitutions ─────────────────────────────────────
 export interface ScheduleSubstitution {
   id: string;
   lessonId: string;
@@ -96,7 +86,6 @@ export interface ScheduleSubstitution {
   createdAt?: string;
 }
 
-// ─── Announcements ──────────────────────────────────────────────
 export interface AdminAnnouncement {
   id: string;
   content: string;
@@ -104,7 +93,6 @@ export interface AdminAnnouncement {
   createdAt: string;
 }
 
-// ─── Subjects ───────────────────────────────────────────────────
 export interface AdminSubject {
   id: string;
   name: string;

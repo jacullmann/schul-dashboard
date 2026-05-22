@@ -68,13 +68,10 @@ export function useImageUpload() {
     }
 
     try {
-      // Process images concurrently for lightning-fast speeds
       const processedFiles = await Promise.all(
         validFiles.map(processImageBeforeUpload),
       );
 
-      // Upload sequentially or map to parallel? The backend's /api/items/uploads/sign might rate limit if fully parallel.
-      // Doing parallel uploads using Promise.allSettled.
       const uploadTasks = processedFiles.map(async (processedFile) => {
         const { data: sign } = await hw.post('/api/items/uploads/sign');
         const form = new FormData();

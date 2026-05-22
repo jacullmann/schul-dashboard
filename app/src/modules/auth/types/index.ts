@@ -1,5 +1,3 @@
-// --- Auth Module Types ---
-
 export interface MfaSetupResponse {
   ok: boolean;
   qrCode: string;

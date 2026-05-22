@@ -3,8 +3,6 @@ import { useEventListener } from '@vueuse/core';
 import { sfx } from '@/modules/games/composables/useCyberSnareAudio';
 import type { GameState, UpgradeDef, MetaStats } from '@/modules/games/types';
 
-// ─── Types & Constants ──────────────────────────────────────────────
-
 export type { GameState, UpgradeDef, MetaStats };
 
 interface Point {

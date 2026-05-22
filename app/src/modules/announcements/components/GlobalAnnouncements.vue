@@ -42,10 +42,8 @@ function updateAnnouncementHeight() {
   window.dispatchEvent(new CustomEvent('announcement-height-changed'));
 }
 
-// Update layout height whenever the announcement list changes
 watch(announcements, updateAnnouncementHeight);
 
-// On group change: reload announcements and check for unseen ones
 watch(activeGroupId, async (newVal, oldVal) => {
   if (newVal && newVal !== oldVal) {
     currentIndex.value = 0;

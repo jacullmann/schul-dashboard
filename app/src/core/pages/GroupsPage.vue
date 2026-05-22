@@ -218,8 +218,6 @@ async function leaveGroup(group: any) {
             </span>
           </span>
 
-          <!-- ChevronRight :size="16" class="transition duration-150 ease-in-out opacity-0 group-hover:translate-x-0.5 group-hover:opacity-100 text-on-ghost-muted group-[.active]:text-on-action-muted" / -->
-
           <BaseButton
             @click.stop="openMenuId = openMenuId === group.id ? null : group.id"
             variant="ghost"
@@ -241,7 +239,6 @@ async function leaveGroup(group: any) {
       </div>
     </section>
 
-    <!-- Empty State -->
     <section
       v-if="userGroups.length === 0 && !loading"
       class="animate-fade-up"

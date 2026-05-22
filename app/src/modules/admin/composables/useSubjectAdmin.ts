@@ -65,7 +65,6 @@ export function useSubjectAdmin() {
     } catch (e: unknown) {
       const err = e as { response?: { data?: { message?: string } } };
       toastError(err.response?.data?.message || 'Fehler beim Aktualisieren');
-      // Reload to revert optimistic updates
       await loadSubjects();
     } finally {
       saving.value = false;

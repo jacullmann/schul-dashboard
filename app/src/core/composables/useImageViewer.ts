@@ -1,10 +1,6 @@
 import { useModalStore } from '@/stores/modalStore';
 import type { ImageItem } from '@/modules/tasks/types';
 
-/**
- * Thin composable wrapper around the modal store's image-viewer slice.
- * Call-sites should use this instead of importing the store directly.
- */
 export function useImageViewer() {
   const store = useModalStore();
 

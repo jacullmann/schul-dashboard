@@ -1,20 +1,17 @@
 import { ref } from 'vue';
 import hw from '@/api/hwApi';
 
-// ─── Shared reactive state (module singleton) ─────────────────────────────────
 
 const showLinkModal = ref(false);
 const showMfaModal = ref(false);
 const oauthError = ref<string | null>(null);
 
-// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface LinkedProvider {
   provider: string;
   email: string;
 }
 
-// ─── Error message map ────────────────────────────────────────────────────────
 
 const ERROR_MESSAGES: Record<string, string> = {
   access_denied: 'Google-Anmeldung abgebrochen.',
@@ -25,13 +22,9 @@ const ERROR_MESSAGES: Record<string, string> = {
   server_error: 'Ein Serverfehler ist aufgetreten.',
 };
 
-// ─── Composable ───────────────────────────────────────────────────────────────
 
 export function useOAuth() {
-  /**
-   * Starts the Google OAuth flow by navigating the browser to the backend
-   * initiation endpoint. This is a full page navigation — no popup.
-   */
+
   function initiateGoogleLogin(): void {
     const base =
       typeof import.meta !== 'undefined' && import.meta.env
@@ -40,36 +33,24 @@ export function useOAuth() {
     window.location.href = `${base}/api/auth/google`;
   }
 
-  /**
-   * Called on app mount to detect and handle the OAuth redirect return.
-   * Reads the `?auth=` query parameter and drives the appropriate modal/state.
-   *
-   * @param onSuccess - Called after a successful OAuth login (same as a normal login callback).
-   */
   function handleOAuthReturn(onSuccess: () => void): void {
     const params = new URLSearchParams(window.location.search);
     const auth = params.get('auth');
     if (!auth) return;
 
-    // Clean the query params from the URL immediately — the params were read.
     const cleanUrl = window.location.pathname;
     window.history.replaceState({}, '', cleanUrl);
 
     switch (auth) {
       case 'success':
-        // The auth_token and csrf_token cookies are already set by the backend
-        // redirect response. The Axios interceptor reads the CSRF cookie fresh
-        // on every request — no manual sync needed.
         onSuccess();
         break;
 
       case 'link-required':
-        // User has an existing email/password account. Show the linking modal.
         showLinkModal.value = true;
         break;
 
       case 'mfa-pending':
-        // User has MFA enabled. Show the MFA verification overlay.
         showMfaModal.value = true;
         break;
 
@@ -81,18 +62,12 @@ export function useOAuth() {
       }
     }
   }
-
-  /**
-   * Sends the user's password to the backend to complete the account-linking
-   * flow. On success, a full session is established.
-   */
   async function linkGoogleAccount(
     password: string,
   ): Promise<{ ok: true } | { ok: false; error: string }> {
     try {
       const { data } = await hw.post('/api/auth/google/link', { password });
       if (data.ok) {
-        // Backend sets/rotates the CSRF cookie via Set-Cookie on this response.
         showLinkModal.value = false;
         return { ok: true };
       }
@@ -106,9 +81,6 @@ export function useOAuth() {
     }
   }
 
-  /**
-   * Unlinks the Google OAuth provider from the current account.
-   */
   async function unlinkGoogleAccount(): Promise<
     { ok: true } | { ok: false; error: string }
   > {
@@ -124,9 +96,6 @@ export function useOAuth() {
     }
   }
 
-  /**
-   * Fetches the list of OAuth providers linked to the current account.
-   */
   async function fetchLinkedProviders(): Promise<LinkedProvider[]> {
     try {
       const { data } = await hw.get<{ providers: LinkedProvider[] }>(

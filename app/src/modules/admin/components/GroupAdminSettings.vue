@@ -94,10 +94,8 @@ async function onCropConfirmed(blob: Blob) {
   avatarError.value = '';
 
   try {
-    // 1. Get secure signature for Cloudinary upload
     const { data: sign } = await hw.post('/api/items/uploads/sign');
 
-    // 2. Prepare FormData
     const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
     const form = new FormData();
     form.set('file', file);
@@ -106,7 +104,6 @@ async function onCropConfirmed(blob: Blob) {
     form.set('signature', sign.signature);
     form.set('folder', sign.folder);
 
-    // 3. Upload directly to Cloudinary
     const res = await fetch(
       `https://api.cloudinary.com/v1_1/${sign.cloudName}/image/upload`,
       {
@@ -119,7 +116,6 @@ async function onCropConfirmed(blob: Blob) {
     const json = await res.json();
     if (!json.secure_url) throw new Error('Ungültige Antwort von Cloudinary');
 
-    // 4. Save Cloudinary secure URL to DB
     await saveGroupAvatar(json.secure_url);
   } catch (err: any) {
     avatarError.value =
@@ -151,7 +147,6 @@ async function deleteAvatar() {
   }
 }
 
-// Password state
 const oldPassword = ref('');
 const newPassword = ref('');
 const newPassword2 = ref('');
@@ -178,7 +173,6 @@ async function changePassword() {
   }
 }
 
-// Delete group state
 const deleteConfirmText = ref('');
 const deletingGroup = ref(false);
 
@@ -213,7 +207,6 @@ async function confirmDeleteGroup() {
       <p class="m-0">Nur Administratoren können die Einstellungen ändern.</p>
     </div>
 
-    <!-- Erscheinungsbild settings -->
     <div>
       <PageHeader>Erscheinungsbild</PageHeader>
       <div class="flex flex-col sm:flex-row items-center gap-6 mt-4">
@@ -225,7 +218,6 @@ async function confirmDeleteGroup() {
             :size="24"
           />
 
-          <!-- Edit Icon Trigger for Menu (Admin only) -->
           <BaseButton
             v-if="isAdmin"
             variant="action"
@@ -236,7 +228,6 @@ async function confirmDeleteGroup() {
             :disabled="savingAvatar"
           />
 
-          <!-- Upload / Crop progress indicator -->
           <div
             v-if="savingAvatar"
             class="absolute inset-0 bg-zinc-950/70 rounded-full flex items-center justify-center z-20"
@@ -244,7 +235,6 @@ async function confirmDeleteGroup() {
             <BaseSpinner />
           </div>
 
-          <!-- BaseMenu (Options: Upload, Capture, Delete) -->
           <BaseMenu
             v-if="isAdmin"
             :open="isMenuOpen"
@@ -282,7 +272,6 @@ async function confirmDeleteGroup() {
           </BaseMenu>
         </div>
 
-        <!-- Name display & edit -->
         <div class="flex-1 w-full flex flex-col">
           <BaseLabel for="group-name">Name</BaseLabel>
           <div v-if="!editingGroupName" class="flex items-center gap-2 h-6">
@@ -368,7 +357,6 @@ async function confirmDeleteGroup() {
       />
     </div>
 
-    <!-- Password settings -->
     <div v-if="isOwner">
       <PageHeader>Passwort ändern</PageHeader>
 
@@ -424,7 +412,6 @@ async function confirmDeleteGroup() {
       </BaseForm>
     </div>
 
-    <!-- Danger Zone: Delete Group -->
     <div v-if="isOwner">
       <h3 class="text-danger">Danger Zone</h3>
       <p class="text-base/relaxed text-on-ghost-muted m-0 mb-5">

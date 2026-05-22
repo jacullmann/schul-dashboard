@@ -51,7 +51,6 @@ defineEmits<{
       >
     </span>
 
-    <!-- Slot for unread dot, shortcut keys, or arrows -->
     <slot></slot>
   </button>
 </template>

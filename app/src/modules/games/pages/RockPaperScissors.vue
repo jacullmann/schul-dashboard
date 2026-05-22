@@ -50,9 +50,8 @@ const makeMove = (choice: Choice) => {
   if (isGameOver.value || !choice) return;
 
   playerChoice.value = choice;
-  computerChoice.value = null; // Zurücksetzen für Animation
+  computerChoice.value = null;
 
-  // Computer wählt nach einer kurzen Verzögerung
   setTimeout(() => {
     const randomIdx = Math.floor(Math.random() * 3);
     computerChoice.value = choices[randomIdx];

@@ -9,7 +9,6 @@ const isVisible = ref(false);
 
 const getDaysToBerlinBreak = (): number | null => {
   const now = new Date();
-  // Valid Berlin Holiday Starts (2025-2027) - Update this list as needed
   const holidays = [
     new Date('2026-01-31'), // Winterferien 2026
     new Date('2026-03-28'), // Osterferien

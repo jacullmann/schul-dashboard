@@ -42,8 +42,6 @@ const styleObject = computed(() => {
     left: `${x}px`,
   };
 
-  // Stay hidden until bounding data is available to avoid initial flash at wrong position.
-  // Once measured, omit opacity so CSS transition classes can control it during leave.
   if (menuW.value === 0) {
     style.opacity = '0';
   }
@@ -56,7 +54,6 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
 });
 
 useEventListener(window, 'contextmenu', (e: MouseEvent) => {
-  // If we right-click outside the menu, close this menu
   if (menuRef.value && !menuRef.value.contains(e.target as Node)) {
     emit('cancel');
   }

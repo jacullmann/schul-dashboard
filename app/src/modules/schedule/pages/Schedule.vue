@@ -83,7 +83,6 @@ onMounted(() => {
   }
 });
 
-/** Flat list of skeleton cell positions: 5 columns × dynamic rows. */
 const skeletonCells = computed(() => {
   const rowCount = timeSlots.value.length || 9;
   return days.flatMap((_, dayIdx) =>
@@ -144,12 +143,8 @@ const skeletonCells = computed(() => {
             }"
           >
             <span class="block">{{ formatDayName(day) }}</span>
-            <!--span class="block text-[0.75rem] font-normal text-on-ghost-muted mt-0.5">{{
-              weekDates[day]
-            }}</span-->
           </div>
 
-          <!-- Skeleton: 5 days × 7 rows while lessons are loading -->
           <template v-if="loadingLessons">
             <ScheduleCellSkeleton
               v-for="cell in skeletonCells"

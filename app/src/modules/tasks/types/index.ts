@@ -1,5 +1,3 @@
-// --- Tasks Module Types ---
-
 export interface HwItem {
   id: string;
   type: 'homework' | 'dalton' | 'exam';

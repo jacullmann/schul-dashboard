@@ -1,11 +1,5 @@
 import { useModalStore } from '@/stores/modalStore';
 import type { HwItem } from '@/modules/tasks/types';
-import type { ItemType } from '@/modules/tasks/types';
-
-/**
- * Thin composable wrapper around the modal store's item-form slice.
- * Keeps the public API identical so existing call-sites need no changes.
- */
 export function useItemForm() {
   const store = useModalStore();
 

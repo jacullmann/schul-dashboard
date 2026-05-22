@@ -1,9 +1,5 @@
 import { useModalStore } from '@/stores/modalStore';
 
-/**
- * Thin composable wrapper around the modal store's announcement-form slice.
- * Call-sites should use this instead of importing the store directly.
- */
 export function useAnnouncementForm() {
   const store = useModalStore();
 

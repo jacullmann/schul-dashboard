@@ -54,7 +54,6 @@ function handleLink() {
     </div>
 
     <template v-else>
-      <!-- Google provider row -->
       <div
         class="flex items-center justify-between gap-3 p-3 bg-surface border border-surface-border rounded-xl"
       >

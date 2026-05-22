@@ -31,11 +31,10 @@ let isDragFromHandle = false;
 
 const isDraggingDismiss = ref(false);
 
-const DISMISS_THRESHOLD = 100; // px
-const VELOCITY_THRESHOLD = 0.5; // px/ms
+const DISMISS_THRESHOLD = 100;
+const VELOCITY_THRESHOLD = 0.5;
 
 function getBackdropEl(): HTMLElement | null {
-  // Access the root DOM element of the BaseBackdrop component
   return backdropComponent.value?.$el || null;
 }
 
@@ -58,7 +57,6 @@ function onTouchStart(e: TouchEvent) {
   isDragFromHandle = !!target.closest('[data-drag-handle]');
   const isInsideSheet = sheetEl.value.contains(target);
 
-  // If inside sheet, not on handle, and we are scrolled down, let the native scroll handle it
   if (isInsideSheet && !isDragFromHandle && sheetEl.value.scrollTop > 0) return;
 
   dragHandled = false;
@@ -79,7 +77,6 @@ function onTouchMove(e: TouchEvent) {
   const deltaX = touch.clientX - dragStartX;
   const deltaY = touch.clientY - dragStartY;
 
-  // Determine if it's a horizontal swipe on the first move
   if (
     currentDragY === 0 &&
     Math.abs(deltaX) > Math.abs(deltaY) &&

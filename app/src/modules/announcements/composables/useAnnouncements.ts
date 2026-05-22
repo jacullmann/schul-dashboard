@@ -17,7 +17,6 @@ export function useAnnouncements() {
 
   const announcements = ref<Announcement[]>([]);
   const loading = ref(false);
-  /** Server-backed set of announcement IDs the current user has already seen. */
   const seenIds = ref<Set<string>>(new Set());
 
   async function loadAnnouncements(): Promise<void> {
@@ -42,7 +41,6 @@ export function useAnnouncements() {
       );
       seenIds.value = new Set(data);
     } catch {
-      // Non-fatal: treat all as unseen if the table isn't reachable
       seenIds.value = new Set();
     }
   }
@@ -53,20 +51,13 @@ export function useAnnouncements() {
     try {
       await hw.post(`/api/schedule/announcements/${announcementId}/read`);
     } catch {
-      // Non-fatal: local optimistic update already prevents re-showing
     }
   }
 
-  /**
-   * Loads announcements and seen-status in parallel to avoid race conditions,
-   * then shows a single toast for any unseen announcements and marks them read.
-   * Only shows a toast when the user is authenticated.
-   */
   async function checkAndNotifyUnread(): Promise<void> {
     if (user.value) {
       await Promise.all([loadAnnouncements(), loadSeenIds()]);
     } else {
-      // Guest: load announcements for the bar but skip notification
       await loadAnnouncements();
       return;
     }
@@ -83,7 +74,6 @@ export function useAnnouncements() {
         ? `Neue Ankündigung: ${preview}`
         : `${count} neue Ankündigungen: ${preview}`;
 
-    // Use the highest severity of all unread items
     const hasDanger = unread.some((a) => a.color === 'danger');
     const hasWarn = unread.some((a) => a.color === 'warn');
     const duration = Math.min(10000, 5000 + count * 1000);
@@ -96,7 +86,6 @@ export function useAnnouncements() {
       toast.info(msg, duration);
     }
 
-    // Mark all as seen (fire-and-forget, parallel)
     void Promise.all(unread.map((a) => markAsSeen(a.id)));
   }
 

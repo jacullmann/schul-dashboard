@@ -42,7 +42,6 @@ const navItems = computed(() => [
   { id: 'groups', label: 'Groups', icon: markRaw(Layers), count: 0 },
 ]);
 
-// ─── Types ──────────────────────────────────────────────────────────────────
 
 interface AdminStats {
   userCount?: number;
@@ -95,8 +94,6 @@ interface UserActivity {
   meta: Record<string, unknown>;
 }
 
-// ─── State ──────────────────────────────────────────────────────────────────
-
 const stats = ref<AdminStats | null>(null);
 const loadingStats = ref(false);
 const allUsers = ref<User[]>([]);
@@ -122,8 +119,6 @@ function fmtDate(iso: string) {
     year: 'numeric',
   });
 }
-
-// ─── Data loading ────────────────────────────────────────────────────────────
 
 async function loadStats() {
   loadingStats.value = true;
@@ -151,7 +146,6 @@ async function loadReports() {
     const { data } = await hw.get('/api/admin/reports');
     reports.value = data;
   } catch {
-    // Silently ignore report load errors.
   }
 }
 
@@ -166,8 +160,6 @@ async function loadGroups() {
     loadingGroups.value = false;
   }
 }
-
-// ─── User actions ─────────────────────────────────────────────────────────────
 
 async function toggleActivity(userId: string) {
   if (showActivityFor.value === userId) {
@@ -240,8 +232,6 @@ async function pruneOldLogs(u: User) {
   }
 }
 
-// ─── Report actions ───────────────────────────────────────────────────────────
-
 async function toggleReportProcessed(id: string, currentProcessed: boolean) {
   try {
     await hw.patch(`/api/admin/reports/${id}/processed`, {
@@ -278,8 +268,6 @@ async function deleteReport(id: string) {
   }
 }
 
-// ─── Cleanup ─────────────────────────────────────────────────────────────────
-
 async function cleanupOldItems() {
   const isConfirmed = await modalStore.confirm({
     title: 'Cleanup?',
@@ -300,8 +288,6 @@ async function cleanupOldItems() {
     isCleaningUp.value = false;
   }
 }
-
-// ─── Group actions ────────────────────────────────────────────────────────────
 
 async function deleteGroup(g: Group) {
   const isConfirmed = await modalStore.confirm({
@@ -336,7 +322,6 @@ onMounted(() => {
     :active-tab="activeTab"
     @update:active-tab="activeTab = $event"
   >
-    <!-- ═══ OVERVIEW ═══ -->
     <template v-if="activeTab === 'overview'">
       <h2 class="page-title">Dashboard Overview</h2>
 
@@ -427,7 +412,6 @@ onMounted(() => {
       </template>
     </template>
 
-    <!-- ═══ USERS ═══ -->
     <template v-if="activeTab === 'users'">
       <div class="page-header">
         <h2 class="page-title">User Management</h2>
@@ -507,7 +491,6 @@ onMounted(() => {
         </table>
       </div>
 
-      <!-- Activity drawer -->
       <Transition name="drawer">
         <div
           v-if="showActivityFor"
@@ -543,7 +526,6 @@ onMounted(() => {
       </Transition>
     </template>
 
-    <!-- ═══ REPORTS ═══ -->
     <template v-if="activeTab === 'reports'">
       <h2 class="page-title">Reported Content</h2>
 
@@ -637,7 +619,6 @@ onMounted(() => {
       </template>
     </template>
 
-    <!-- ═══ GROUPS ═══ -->
     <template v-if="activeTab === 'groups'">
       <div class="page-header">
         <h2 class="page-title">Group Management</h2>
@@ -710,7 +691,6 @@ onMounted(() => {
   margin: 0;
 }
 
-/* ─── Stats ──────────────────────────────────────────── */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -793,7 +773,6 @@ onMounted(() => {
   gap: 12px;
 }
 
-/* ─── Table ─────────────────────────────────────────────────────────────────── */
 .table-wrap {
   overflow-x: auto;
   border: 1px solid var(--color-surface-border);
@@ -845,7 +824,6 @@ onMounted(() => {
   justify-content: flex-end;
 }
 
-/* ─── Badges ─────────────────────────────────────────────────────────────────── */
 .badge {
   padding: 2px 7px;
   border-radius: 4px;
@@ -870,7 +848,6 @@ onMounted(() => {
   color: #6366f1;
 }
 
-/* ─── Icon buttons ───────────────────────────────────────────────────────────── */
 .btn-icon {
   display: flex;
   align-items: center;
@@ -894,7 +871,6 @@ onMounted(() => {
   color: #ef4444;
 }
 
-/* ─── Reports ───────────────────────────────── */
 .report-section {
   margin-bottom: 32px;
 }
@@ -945,7 +921,6 @@ onMounted(() => {
   gap: 6px;
 }
 
-/* ─── Drawer ─────────────────────────────────────────────────────────────────── */
 .drawer-overlay {
   position: fixed;
   inset: 0;
@@ -1027,7 +1002,6 @@ onMounted(() => {
   overflow-x: auto;
 }
 
-/* ─── Doc ────────────────────────────────────────────────────────────────────── */
 .doc-wrapper {
   flex: 1;
   min-height: 0;
@@ -1035,7 +1009,6 @@ onMounted(() => {
   flex-direction: column;
 }
 
-/* ─── Misc ───────────────────────────────────────────────────────────────────── */
 .center-loader {
   display: flex;
   justify-content: center;

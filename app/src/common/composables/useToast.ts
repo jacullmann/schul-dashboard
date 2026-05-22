@@ -6,7 +6,7 @@ export interface Toast {
   id: number;
   message: string;
   type: ToastType;
-  duration: number; // ms, 0 = persistent
+  duration: number;
   dismissible: boolean;
 }
 
@@ -38,7 +38,6 @@ function setIsHovered(hovered: boolean) {
 function updateTimers() {
   const now = Date.now();
 
-  // Clear all existing timers and update remaining time
   state.toasts.forEach((toast) => {
     if (toast.timerId) {
       clearTimeout(toast.timerId);
@@ -51,10 +50,9 @@ function updateTimers() {
   });
 
   if (isHovered.value) {
-    return; // Do not start any timers while hovered
+    return;
   }
 
-  // Find the front-most toast (last in array) that is not persistent
   const frontToast = state.toasts[state.toasts.length - 1];
   if (frontToast && frontToast.duration > 0) {
     if (frontToast.remainingTime > 0) {
@@ -125,7 +123,6 @@ function clear(): void {
   state.toasts.splice(0);
 }
 
-// Convenience helpers
 type Opts = Omit<ToastOptions, 'type'>;
 
 const success = (

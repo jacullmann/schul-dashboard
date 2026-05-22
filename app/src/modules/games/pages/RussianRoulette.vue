@@ -11,7 +11,6 @@ import {
   Minus,
 } from '@lucide/vue';
 
-// --- State ---
 const chamberSize = ref(6);
 const bulletCount = ref(1);
 const spinAfterShot = ref(true);
@@ -26,7 +25,6 @@ const currentChamberIndex = ref(0);
 const shotChambers = ref<Set<number>>(new Set());
 const visualSpinSpins = ref(0);
 
-// --- Initialization ---
 function initGame() {
   status.value = 'playing';
   shotsFired.value = 0;
@@ -43,14 +41,12 @@ function initGame() {
   }
   cylinder.value = newCylinder;
 
-  // Start on a random chamber
   currentChamberIndex.value = Math.floor(Math.random() * chamberSize.value);
 }
 
-// Watchers for settings to keep valid bounds
 watch(chamberSize, (v) => {
   if (v < 2) chamberSize.value = 2;
-  if (v > 12) chamberSize.value = 12; // Max 12 visually makes sense
+  if (v > 12) chamberSize.value = 12;
   if (bulletCount.value >= chamberSize.value)
     bulletCount.value = Math.max(1, chamberSize.value - 1);
   initGame();
@@ -65,7 +61,6 @@ watch(bulletCount, (v) => {
 
 watch(spinAfterShot, () => initGame());
 
-// --- Computed ---
 const probabilityPercentage = computed(() => {
   if (status.value === 'dead') return 100;
   if (status.value === 'won') return 0;
@@ -93,7 +88,6 @@ const gameStatusText = computed(() => {
 
 const cylinderStyle = computed(() => {
   const anglePerChamber = 360 / chamberSize.value;
-  // Combine total full spins with the target angle of the current index
   const baseAngle = -(currentChamberIndex.value * anglePerChamber);
   const totalAngle = baseAngle - visualSpinSpins.value * 360;
 
@@ -104,7 +98,7 @@ const cylinderStyle = computed(() => {
 
 const getChamberStyle = (index: number) => {
   const angle = (360 / chamberSize.value) * index;
-  const radius = Math.max(40, 100 - chamberSize.value * 3); // Adjust distance from center
+  const radius = Math.max(40, 100 - chamberSize.value * 3);
   return {
     transform: `rotate(${angle}deg) translateY(-${radius}px)`,
     width: `${Math.max(15, 40 - chamberSize.value)}px`,
@@ -117,7 +111,6 @@ function adjustSetting(type: 'chamber' | 'bullet', delta: number) {
   if (type === 'bullet') bulletCount.value += delta;
 }
 
-// --- Interaction ---
 function pullTrigger() {
   if (status.value !== 'playing' || isProcessing.value) return;
   isProcessing.value = true;
@@ -125,10 +118,9 @@ function pullTrigger() {
   let delay = 400;
 
   if (spinAfterShot.value) {
-    // Spin cylinder animation
     visualSpinSpins.value += 2 + Math.floor(Math.random() * 3);
     currentChamberIndex.value = Math.floor(Math.random() * chamberSize.value);
-    delay = 1200; // Longer delay for spin
+    delay = 1200;
   }
 
   setTimeout(() => {
@@ -145,7 +137,6 @@ function pullTrigger() {
         if (shotsFired.value === chamberSize.value - bulletCount.value) {
           status.value = 'won';
         } else {
-          // Progress to the next chamber visually
           currentChamberIndex.value =
             (currentChamberIndex.value + 1) % chamberSize.value;
         }
@@ -171,7 +162,6 @@ onMounted(() => {
             : ''
       "
     >
-      <!-- Top header -->
       <header class="rr-header">
         <h1 class="rr-title">RUSSIAN ROULETTE</h1>
         <button
@@ -183,7 +173,6 @@ onMounted(() => {
         </button>
       </header>
 
-      <!-- Settings Menu -->
       <div v-if="showSettings" class="rr-settings-panel">
         <div class="rr-setting-row">
           <div class="rr-setting-info">
@@ -233,7 +222,6 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Live Odds & Feedback -->
       <div class="rr-info-board">
         <div
           class="rr-main-icon"
@@ -262,7 +250,6 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Cylinder Visualizer -->
       <div class="rr-visual-arena">
         <div class="rr-hammer-indicator"></div>
         <div
@@ -289,7 +276,6 @@ onMounted(() => {
                 !shotChambers.has(index),
             }"
           >
-            <!-- Show bullet icon only if game ended, to see where bullets were -->
             <div
               v-if="(status === 'dead' || status === 'won') && cylinder[index]"
               class="rr-bullet"
@@ -298,7 +284,6 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Actions -->
       <div class="rr-actions">
         <button
           v-if="status === 'playing'"
@@ -328,11 +313,6 @@ onMounted(() => {
 </template>
 
 <style scoped>
-/* 
-  COMPLETELY INDEPENDENT STYLES FOR RUSSIAN ROULETTE 
-  Does not rely on global vars whatsoever. 
-*/
-
 @import url('https://fonts.googleapis.com/css2?family=Teko:wght@400;600;700&display=swap');
 
 .rr-container {
@@ -488,7 +468,6 @@ onMounted(() => {
   font-variant-numeric: tabular-nums;
 }
 
-/* Toggle Switch */
 .rr-toggle {
   position: relative;
   display: inline-block;
@@ -529,7 +508,6 @@ onMounted(() => {
   transform: translateX(20px);
 }
 
-/* Information Board */
 .rr-info-board {
   display: flex;
   align-items: center;
@@ -589,7 +567,6 @@ onMounted(() => {
   color: #bbbbbb;
 }
 
-/* Cylinder Visualizer */
 .rr-visual-arena {
   position: relative;
   width: 100%;
@@ -655,8 +632,8 @@ onMounted(() => {
   position: absolute;
   top: 50%;
   left: 50%;
-  margin-top: -15px; /* Half of default 30px width */
-  margin-left: -15px; /* Half of default 30px height */
+  margin-top: -15px;
+  margin-left: -15px;
   border-radius: 50%;
   background: #0a0a0a;
   border: 2px solid #2a2a2a;
@@ -708,7 +685,6 @@ onMounted(() => {
     0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
-/* Actions */
 .rr-actions {
   display: flex;
   flex-direction: column;

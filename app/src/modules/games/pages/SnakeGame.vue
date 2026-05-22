@@ -47,13 +47,11 @@ const update = () => {
   head.x += direction.value.x;
   head.y += direction.value.y;
 
-  // Wall collision
   if (head.x < 0 || head.x >= gridSize || head.y < 0 || head.y >= gridSize) {
     gameOver();
     return;
   }
 
-  // Self collision
   if (
     snake.value.some((segment) => segment.x === head.x && segment.y === head.y)
   ) {
@@ -63,7 +61,6 @@ const update = () => {
 
   snake.value.unshift(head);
 
-  // Food collision
   if (head.x === food.value.x && head.y === food.value.y) {
     score.value += 10;
     generateFood();

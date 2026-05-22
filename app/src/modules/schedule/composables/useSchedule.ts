@@ -25,18 +25,10 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
 
   const days = [1, 2, 3, 4, 5];
 
-  /**
-   * Returns a map of schedule-day-number → calendar date for the week that is
-   * currently displayed.  The displayed week is the ISO week that contains
-   * `now`, but once Friday has ended (i.e. Saturday 00:00+) we advance one
-   * week so the header already shows next week's dates.
-   */
   const weekDates = computed<Record<number, number>>(() => {
     const d = now.value;
-    const jsDay = d.getDay(); // 0 = Sun … 6 = Sat
+    const jsDay = d.getDay();
 
-    // Offset from Monday for each JS day-of-week value.
-    // Saturday (6) and Sunday (0) both point to the *next* Monday.
     const offsetToMonday: Record<number, number> = {
       0: 1, // Sun  → next Mon (+1)
       1: 0, // Mon  → same Mon ( 0)
@@ -61,7 +53,7 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
   });
 
   const formatDayName = (day: number): string => {
-    const date = new Date(Date.UTC(2024, 0, day, 12)); // 2024-01-01 is Monday
+    const date = new Date(Date.UTC(2024, 0, day, 12));
     return new Intl.DateTimeFormat(locale.value, { weekday: 'long' }).format(
       date,
     );
@@ -120,7 +112,6 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
     }
 
     if (subjectName) {
-      // Check if there is an i18n key for it. Otherwise, display the subjectName directly.
       const translationKey = `global.subjects.${subjectName}`;
       const translation = t(translationKey);
       return translation !== translationKey ? translation : subjectName;
@@ -300,7 +291,7 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
   );
 
   const currentDay = computed(() => {
-    const dayIndex = (now.value.getDay() + 6) % 7; // Monday = 0, Sunday = 6
+    const dayIndex = (now.value.getDay() + 6) % 7;
     if (dayIndex >= 0 && dayIndex < days.length) {
       return days[dayIndex];
     }
@@ -308,9 +299,9 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
   });
 
   const defaultDayIndex = computed(() => {
-    const dayIndex = (now.value.getDay() + 6) % 7; // Monday = 0
+    const dayIndex = (now.value.getDay() + 6) % 7;
     if (dayIndex >= 5) {
-      return 0; // Weekend, default to Monday
+      return 0;
     }
 
     const lessonsToday = effectiveLessons.value.filter(

@@ -94,7 +94,6 @@ onMounted(() => {
         />
       </BaseFormGroup>
 
-      <!-- Allgemeine Nachricht -->
       <span v-if="message && !isError">
         {{ message }}
       </span>

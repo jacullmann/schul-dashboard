@@ -14,9 +14,8 @@ const loadGame = (gameId: string) => {
   if (foundGame) {
     game.value = foundGame;
   } else {
-    // Wenn das Spiel nicht gefunden wird, auf 404 umleiten oder zur Übersicht
     console.error(`Spiel mit ID "${gameId}" nicht gefunden.`);
-    router.replace('/spiele'); // Zurück zur Übersicht
+    router.replace('/spiele');
   }
 };
 
@@ -24,7 +23,6 @@ onMounted(() => {
   loadGame(route.params.id as string);
 });
 
-// Beobachte Änderungen der Route (falls man von einem Spiel zum nächsten navigiert)
 watch(
   () => route.params.id,
   (newId) => {

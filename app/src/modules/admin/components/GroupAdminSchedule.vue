@@ -274,8 +274,6 @@ function handleSaveSub() {
         {{ savingScheduleConfig ? 'Speichert...' : 'Einstellungen speichern' }}
       </BaseButton>
     </div>
-
-    <!-- Config section -->
     <div class="mt-8 border-t border-surface-border pt-6">
       <PageHeader>
         Stundenplanänderungen
@@ -315,7 +313,6 @@ function handleSaveSub() {
         </template>
       </PageHeader>
 
-      <!-- Create Form -->
       <h3 v-if="!selectedLesson" class="text-on-ghost-muted mb-6">
         Bitte wählen Sie eine Stunde aus dem Stundenplan.
       </h3>
@@ -413,7 +410,6 @@ function handleSaveSub() {
         class="p-5"
       />
 
-      <!-- Existing Subs -->
       <div
         v-if="subs.length === 0 && !loadingSubs"
         class="text-center p-8 text-on-ghost-muted text-base"

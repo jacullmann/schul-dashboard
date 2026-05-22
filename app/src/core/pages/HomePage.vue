@@ -61,20 +61,17 @@ function roleLabel(role: string): string {
 }
 
 async function navigateToGroup(groupId: string) {
-  if (navigatingGroupId.value) return; // Prevent double-clicks
+  if (navigatingGroupId.value) return;
   navigatingGroupId.value = groupId;
 
   try {
-    // If this is already the active group, just navigate
     if (groupId === activeGroupId.value) {
       await router.push(`/groups/${groupId}/items/all`);
       return;
     }
 
-    // Switch the active group first
     const res = await switchActiveGroup(groupId);
     if (res.ok) {
-      // Now navigate — the router guard will see the updated activeGroupId
       await router.push(`/groups/${groupId}/items/all`);
     } else {
       console.error('Failed to switch group:', res.error);
@@ -106,7 +103,6 @@ onMounted(() => {
 
 <template>
   <div class="md:p-4">
-    <!-- Welcome Banner -->
     <section class="max-md:pt-4 max-md:px-4 mb-4 md:mb-8">
       <div class="flex justify-between items-start gap-4">
         <div>
@@ -127,7 +123,6 @@ onMounted(() => {
           </p>
         </div>
 
-        <!-- Regular User: Join/Create Group -->
         <div class="relative" v-if="userGroups.length > 0">
           <BaseTooltip content="Add group" placement="bottom">
             <BaseButton
@@ -157,7 +152,6 @@ onMounted(() => {
       </div>
     </section>
 
-    <!-- Regular User: My Groups -->
     <section v-if="userGroups.length > 0" class="mb-9">
       <div class="flex items-center gap-2.5 mb-4 max-md:px-4">
         <h2 class="text-2xl font-bold text-on-ghost m-0 animate-fade-up">
@@ -225,7 +219,6 @@ onMounted(() => {
       </div>
     </section>
 
-    <!-- Empty State -->
     <section v-if="!isSuperadmin && userGroups.length === 0 && !loading">
       <BaseEmptyState
         :icon="UsersRound"
@@ -243,7 +236,6 @@ onMounted(() => {
       </BaseEmptyState>
     </section>
 
-    <!-- Loading -->
     <div v-if="loading" class="flex justify-center p-10">
       <div
         class="w-7 h-7 border-2 border-canvas-border border-t-on-ghost rounded-full animate-spin"

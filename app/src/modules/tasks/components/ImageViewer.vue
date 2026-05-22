@@ -15,14 +15,12 @@ const controlsVisible = ref(true);
 const overlayRef = ref<HTMLElement | null>(null);
 let hideTimeout: ReturnType<typeof setTimeout> | null = null;
 
-// Sync internal index when opening
 watch(
   () => props.visible,
   (val) => {
     if (val) {
       currentIndex.value = props.initialIndex;
       showControls();
-      // Focus for keyboard support
       nextTick(() => overlayRef.value?.focus());
     }
   },
@@ -35,8 +33,6 @@ const hasPrev = computed(() => currentIndex.value > 0);
 function next() {
   if (hasNext.value) {
     currentIndex.value++;
-    // Re-focus overlay to ensure keyboard navigation keeps working
-    // even if the button that was clicked disappears or loses focus.
     nextTick(() => overlayRef.value?.focus());
   }
 }
@@ -52,19 +48,16 @@ function cancel() {
   emit('cancel');
 }
 
-// Keyboard Navigation
 function handleKeydown(e: KeyboardEvent) {
   if (e.key === 'Escape') cancel();
   if (e.key === 'ArrowRight') next();
   if (e.key === 'ArrowLeft') prev();
 }
 
-// Activity / Auto-hide Logic
 function showControls() {
   controlsVisible.value = true;
   if (hideTimeout) clearTimeout(hideTimeout);
 
-  // Hide after 2 seconds of inactivity
   hideTimeout = setTimeout(() => {
     controlsVisible.value = false;
   }, 2000);
@@ -78,7 +71,6 @@ onBeforeUnmount(() => {
   if (hideTimeout) clearTimeout(hideTimeout);
 });
 
-// Disables Scrolling while viewing Image
 watch(
   () => props.visible,
   (val) => {

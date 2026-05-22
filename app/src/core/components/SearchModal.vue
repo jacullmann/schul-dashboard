@@ -75,7 +75,6 @@ const isAnyGroupAdmin = computed(() => {
 
 const query = ref('');
 
-// Switch modes handling
 const mode = computed(() => modalStore.searchMode);
 
 function setMode(newMode: 'default' | 'group' | 'theme' | 'language') {
@@ -83,17 +82,12 @@ function setMode(newMode: 'default' | 'group' | 'theme' | 'language') {
   modalStore.searchMode = newMode;
 }
 
-// Ensure backspace clears mode if query is empty
 function onKeydown(e: KeyboardEvent) {
   if (e.key === 'Backspace' && query.value === '' && mode.value !== 'default') {
     setMode('default');
     e.preventDefault();
   }
 }
-
-// ---------------------------------------------------------------------------
-// DEFAULT MODE
-// ---------------------------------------------------------------------------
 
 type ResultCategory = 'page' | 'action';
 
@@ -109,7 +103,6 @@ interface SearchResult {
 }
 
 const defaultResults = computed<SearchResult[]>(() => [
-  // Pages
   {
     id: 'home',
     label: t('sidebar.home'),
@@ -195,7 +188,6 @@ const defaultResults = computed<SearchResult[]>(() => [
     icon: Crop,
     action: () => navigate('/imagetool'),
   },
-  // Actions
   {
     id: 'toggle-sidebar',
     label: t('sidebar.toggle'),
@@ -280,7 +272,6 @@ const defaultResults = computed<SearchResult[]>(() => [
       emit('cancel');
     },
   },
-  // Account Actions
   {
     id: 'edit-courses',
     label: t('account.menu.courses.title'),
@@ -359,7 +350,6 @@ function navigate(path: string) {
   emit('cancel');
 }
 
-// Fuzzy-ish filtering for default results
 function matchesQuery(item: SearchResult, q: string): boolean {
   if (!q) return true;
   const haystack = `${item.label} ${item.description ?? ''}`.toLowerCase();
@@ -389,10 +379,6 @@ const defaultActionResults = computed(() =>
 function globalIndex(item: SearchResult): number {
   return filteredDefaultResults.value.indexOf(item);
 }
-
-// ---------------------------------------------------------------------------
-// GROUP MODE
-// ---------------------------------------------------------------------------
 
 const filteredGroups = computed(() => {
   if (!query.value) return userGroups.value;
@@ -427,10 +413,6 @@ async function onSwitchGroup(id: string) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// THEME MODE
-// ---------------------------------------------------------------------------
-
 const themeOptions = computed(() => [
   { id: 'system', label: t('global.theme.system'), icon: SunMoon },
   { id: 'dark', label: t('global.theme.dark'), icon: Moon },
@@ -448,10 +430,6 @@ function onSwitchTheme(id: string) {
   emit('cancel');
 }
 
-// ---------------------------------------------------------------------------
-// LANGUAGE MODE
-// ---------------------------------------------------------------------------
-
 const languageOptions = [
   { id: 'de', label: 'Deutsch', icon: Languages },
   { id: 'en', label: 'English', icon: Languages },
@@ -467,10 +445,6 @@ function onSwitchLanguage(id: string) {
   setPreference('language', id as any);
   emit('cancel');
 }
-
-// ---------------------------------------------------------------------------
-// COMPUTED PROPS FOR COMMAND PALETTE
-// ---------------------------------------------------------------------------
 
 const paletteProps = computed(() => {
   if (mode.value === 'group') {
@@ -497,7 +471,6 @@ const paletteProps = computed(() => {
       prefix: 'language-result-',
     };
   }
-  // default
   return {
     itemCount: filteredDefaultResults.value.length,
     placeholder: t('search.modal.placeholder'),
@@ -517,7 +490,6 @@ function handleSelect(index: number) {
     const lang = filteredLanguages.value[index];
     if (lang) onSwitchLanguage(lang.id);
   } else {
-    // default
     filteredDefaultResults.value[index]?.action();
   }
 }
@@ -535,7 +507,6 @@ function handleSelect(index: number) {
     @keydown.capture="onKeydown"
   >
     <template #default="{ selectedIndex, setSelectedIndex }">
-      <!-- GROUP MODE -->
       <template v-if="mode === 'group'">
         <div
           class="px-4 py-1.5 flex items-center gap-2 text-xs text-on-ghost-muted font-semibold uppercase tracking-wider mb-1"
@@ -575,7 +546,6 @@ function handleSelect(index: number) {
         </template>
       </template>
 
-      <!-- THEME MODE -->
       <template v-else-if="mode === 'theme'">
         <div
           class="px-4 py-1.5 flex items-center gap-2 text-xs text-on-ghost-muted font-semibold uppercase tracking-wider mb-1"
@@ -611,7 +581,6 @@ function handleSelect(index: number) {
         </template>
       </template>
 
-      <!-- LANGUAGE MODE -->
       <template v-else-if="mode === 'language'">
         <div
           class="px-4 py-1.5 flex items-center gap-2 text-xs text-on-ghost-muted font-semibold uppercase tracking-wider mb-1"
@@ -647,9 +616,8 @@ function handleSelect(index: number) {
         </template>
       </template>
 
-      <!-- DEFAULT MODE -->
       <template v-else>
-        <!-- Pages section -->
+
         <template v-if="defaultPageResults.length">
           <div class="px-4 py-1.5">
             <span
@@ -677,7 +645,6 @@ function handleSelect(index: number) {
           </BaseCommandPaletteItem>
         </template>
 
-        <!-- Actions section -->
         <template v-if="defaultActionResults.length">
           <div
             class="px-4 py-1.5"
@@ -715,7 +682,6 @@ function handleSelect(index: number) {
         </template>
       </template>
 
-      <!-- Empty state -->
       <div
         v-if="paletteProps.itemCount === 0"
         class="px-4 py-10 flex flex-col items-center gap-2 text-center"

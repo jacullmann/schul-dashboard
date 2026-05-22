@@ -24,9 +24,8 @@ const y = ref(0);
 const processing = ref(false);
 
 const boxSize = 320;
-const cropSize = 224; // Circle cutout size (70% of 320px)
+const cropSize = 224;
 
-// Calculate scaling
 const minScale = computed(() => {
   if (originalWidth.value === 0 || originalHeight.value === 0) return 1;
   return Math.max(cropSize / originalWidth.value, cropSize / originalHeight.value);
@@ -46,7 +45,6 @@ const imgStyle = computed(() => {
   };
 });
 
-// Clamp position inside circular bounds
 function clampPosition() {
   const maxX = Math.max(0, (imgW.value - cropSize) / 2);
   const maxY = Math.max(0, (imgH.value - cropSize) / 2);
@@ -54,12 +52,10 @@ function clampPosition() {
   y.value = Math.max(-maxY, Math.min(maxY, y.value));
 }
 
-// Re-clamp on zoom/scale change
 watch(scale, () => {
   clampPosition();
 });
 
-// Load original dimensions when image changes
 watch(
   () => props.imageSrc,
   (newSrc) => {
@@ -78,7 +74,6 @@ watch(
   { immediate: true }
 );
 
-// Drag/Pan handling
 let isDragging = false;
 let startMouseX = 0;
 let startMouseY = 0;
@@ -112,17 +107,14 @@ function onPointerUp(e: PointerEvent) {
   try {
     el.releasePointerCapture(e.pointerId);
   } catch {
-    // Ignore if already released or invalid
   }
 }
 
-// Mouse Wheel Zoom
 function onWheel(e: WheelEvent) {
   const delta = -e.deltaY * 0.003;
   zoom.value = Math.max(1.0, Math.min(4.0, zoom.value + delta));
 }
 
-// Process and submit cropped image
 function applyCrop() {
   if (processing.value || !props.imageSrc) return;
   processing.value = true;
@@ -136,7 +128,6 @@ function applyCrop() {
       return;
     }
 
-    // Set 512x512 premium avatar size
     canvas.width = 512;
     canvas.height = 512;
 
@@ -177,7 +168,6 @@ function applyCrop() {
 
     <template #content>
       <div class="flex flex-col items-center gap-6 py-2 select-none">
-        <!-- Interactive Cropping Container -->
         <div
           class="relative w-[320px] h-[320px] rounded-2xl bg-zinc-950/80 border border-white/10 overflow-hidden cursor-move touch-none"
           @pointerdown="onPointerDown"
@@ -193,7 +183,6 @@ function applyCrop() {
             :style="imgStyle"
           />
 
-          <!-- Semi-transparent overlay with circle cutout mask -->
           <svg
             class="absolute inset-0 w-full h-full pointer-events-none"
             viewBox="0 0 320 320"
@@ -215,7 +204,6 @@ function applyCrop() {
           </svg>
         </div>
 
-        <!-- Zoom Slider -->
         <div class="flex items-center gap-3 w-full max-w-[280px]">
           <ZoomOut class="w-4 h-4 text-on-ghost-muted" />
           <input

@@ -38,15 +38,10 @@ const updatePosition = () => {
 
   const rect = triggerRef.value.getBoundingClientRect();
   const offset = 8;
-
-  // We calculate the anchor point.
-  // Notice we don't need the tooltip to be visible to get the trigger's rect.
   const pos: Record<string, CSSProperties> = {
     top: {
       top: `${rect.top - offset}px`,
       left: `${rect.left + rect.width / 2}px`,
-      // We use a CSS variable to pass the centering transform
-      // so it doesn't conflict with our transition transforms.
       '--translate-base': 'translate(-50%, -100%)',
     },
     bottom: {
@@ -91,9 +86,7 @@ const show = () => {
   const delay = props.debounce === 'slow' ? 350 : 50;
 
   showTimeout = setTimeout(() => {
-    // 1. Calculate position FIRST
     updatePosition();
-    // 2. Then reveal, so it enters the DOM with the correct style already applied
     isVisible.value = true;
   }, delay);
 };

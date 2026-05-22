@@ -21,10 +21,8 @@ const {
   deleteSubject,
 } = useSubjectAdmin();
 
-// New subject form
 const newSubjectName = ref('');
 
-// Inline editing state
 const editingId = ref<string | null>(null);
 const editingName = ref('');
 
@@ -83,7 +81,6 @@ onMounted(() => {
       </template>
     </PageHeader>
 
-    <!-- Add Subject (admin only) -->
     <div v-if="isAdmin" class="mb-6">
       <div class="flex gap-2.5 items-center">
         <BaseInput
@@ -106,7 +103,6 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Loading / Empty -->
     <div
       v-if="loading && subjects.length === 0"
       class="flex justify-center p-8"
@@ -120,7 +116,6 @@ onMounted(() => {
       Keine Fächer vorhanden.
     </div>
 
-    <!-- Subjects List -->
     <div v-else class="flex flex-col gap-1.5">
       <div
         v-for="(subject, index) in subjects"
@@ -132,7 +127,7 @@ onMounted(() => {
         }"
         :class="{ 'opacity-60': !subject.isActive }"
       >
-        <!-- Display mode -->
+
         <template v-if="editingId !== subject.id">
           <span
             class="font-medium text-base whitespace-nowrap overflow-hidden text-ellipsis ml-2"
@@ -164,7 +159,6 @@ onMounted(() => {
           </BaseRow>
         </template>
 
-        <!-- Edit mode -->
         <template v-else>
           <div class="flex items-center gap-2 w-full">
             <BaseInput

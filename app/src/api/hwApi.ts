@@ -5,7 +5,6 @@ const hw = axios.create({
   withCredentials: true,
 });
 
-// Reads the CSRF token from the `csrf_token` cookie
 const getCsrfFromCookie = (): string | null => {
   const match = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]*)/);
   return match ? decodeURIComponent(match[1]) : null;
@@ -27,10 +26,6 @@ hw.interceptors.response.use(
   },
 );
 
-/**
- * Ensures the CSRF cookie is present.
- * Calls the backend init endpoint if the cookie is missing (e.g. first visit).
- */
 export const ensureCsrf = async (): Promise<void> => {
   if (!getCsrfFromCookie()) {
     await hw.get('/api/system/csrf/init');
