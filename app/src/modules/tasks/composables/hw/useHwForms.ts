@@ -29,7 +29,7 @@ export function useHwForms(ctx: HwContext) {
   }
 
   function canEditNote() {
-    return ctx.user.value?.role !== 'superadmin';
+    return ctx.user.value?.role === 'superadmin';
   }
 
   function startEditNote(item: HwItem) {
@@ -70,7 +70,8 @@ export function useHwForms(ctx: HwContext) {
     const modalStore = useModalStore();
     const isConfirmed = await modalStore.confirm({
       title: 'Anmerkung löschen?',
-      content: 'Bist du sicher, dass du diese Anmerkung unwiderruflich löschen möchtest?',
+      content:
+        'Bist du sicher, dass du diese Anmerkung unwiderruflich löschen möchtest?',
       submitText: 'Anmerkung löschen',
       danger: true,
     });
