@@ -269,7 +269,6 @@ async function submit() {
 
   try {
     const payload = {
-      type: activeType.value,
       title: cleanTitle,
       subject: finalSubject,
       description: cleanDesc,
@@ -280,7 +279,10 @@ async function submit() {
     if (props.initial) {
       await hw.patch(`/api/items/${props.initial.id}`, payload);
     } else {
-      await hw.post('/api/items', payload);
+      await hw.post('/api/items', {
+        ...payload,
+        type: activeType.value,
+      });
     }
 
     emit('success');
