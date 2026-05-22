@@ -15,6 +15,7 @@ import {
   ArchiveRestore,
   Info,
   Plus,
+  MessageSquarePlus,
 } from '@lucide/vue';
 import { useTasks } from '@/modules/tasks/composables/useTasks';
 import { useItemForm } from '@/core/composables/useItemForm';
@@ -88,6 +89,7 @@ const {
   startEditNote,
   cancelEditNote,
   saveNote,
+  deleteNote,
   goTab,
   isChecked,
   toggleCheck,
@@ -320,6 +322,14 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
               {{ t('global.buttons.edit') }}
             </BaseMenuButton>
 
+            <BaseMenuButton
+              v-if="canEditNote() && !item.editorNote"
+              @click="onMenuAction('addNote', item)"
+              :icon="MessageSquarePlus"
+            >
+              {{ t('school.tasks.items.menu.addNote') }}
+            </BaseMenuButton>
+
             <BaseMenuDivider />
 
             <BaseMenuButton
@@ -405,11 +415,11 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
           v-if="
             (item.images && item.images.length) ||
             item.editorNote ||
-            user?.role === 'superadmin'
+            editingNoteForId === item.id
           "
         >
           <div v-if="item.images && item.images.length">
-            <div class="images-row mt-2 mb-1">
+            <div class="images-row mt-2 mb-2">
               <template v-if="!isRevealed(item.id)">
                 <div
                   v-for="(img, idx) in item.images.slice(0, imagesPerRow)"
@@ -480,8 +490,8 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
           </div>
 
           <div
-            v-if="item.editorNote || user?.role === 'superadmin'"
-            class="note-section mt-2 pt-2 border-t border-surface-border flex justify-between"
+            v-if="item.editorNote || editingNoteForId === item.id"
+            class="note-section mt-2 pt-1 border-t border-surface-border flex justify-between gap-3"
           >
             <div class="w-full">
               <div class="text-on-ghost text-base font-bold mb-1">
@@ -529,18 +539,36 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
               </div>
             </div>
 
-            <BaseTooltip
+            <div
               v-if="editingNoteForId !== item.id && canEditNote()"
-              :content="t('global.buttons.edit')"
-              placement="bottom"
+              class="flex gap-1 items-start -mr-2"
             >
-              <BaseButton
-                @click.stop="startEditNote(item)"
-                variant="ghost"
-                :icon="Pencil"
-                size="sm"
-              />
-            </BaseTooltip>
+              <BaseTooltip
+                :content="t('global.buttons.edit')"
+                placement="bottom"
+              >
+                <BaseButton
+                  @click.stop="startEditNote(item)"
+                  variant="ghost"
+                  :icon="Pencil"
+                  size="sm"
+                />
+              </BaseTooltip>
+
+              <BaseTooltip
+                v-if="item.editorNote"
+                :content="t('global.buttons.delete')"
+                placement="bottom"
+              >
+                <BaseButton
+                  @click.stop="deleteNote(item.id)"
+                  variant="ghost"
+                  :icon="Trash2"
+                  size="sm"
+                  class="text-danger hover:text-danger-hover"
+                />
+              </BaseTooltip>
+            </div>
           </div>
         </template>
       </ItemCard>

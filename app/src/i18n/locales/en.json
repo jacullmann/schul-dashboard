@@ -531,6 +531,7 @@
       },
       "items": {
         "menu": {
+          "addNote": "Add note",
           "archive": "Archive",
           "delete": {
             "action": "Delete Entry",

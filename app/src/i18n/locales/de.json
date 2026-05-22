@@ -533,6 +533,7 @@
       },
       "items": {
         "menu": {
+          "addNote": "Anmerkung hinzufügen",
           "archive": "Archivieren",
           "delete": {
             "action": "Eintrag löschen",

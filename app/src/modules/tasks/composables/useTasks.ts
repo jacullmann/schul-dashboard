@@ -156,6 +156,7 @@ export function useTasks() {
     }
     if (action === 'images') return images.triggerImageUpload(item);
     if (action === 'edit') return forms.editItem(item);
+    if (action === 'addNote') return forms.startEditNote(item);
     if (action === 'delete') return actions.deleteItem(item.id);
     if (action === 'report') return actions.reportItem(item);
     if (action === 'pin') return actions.togglePin(item);
@@ -301,6 +302,7 @@ export function useTasks() {
     startEditNote: forms.startEditNote,
     cancelEditNote: forms.cancelEditNote,
     saveNote: forms.saveNote,
+    deleteNote: forms.deleteNote,
     goTab,
     isChecked: actions.isChecked,
     toggleCheck: actions.toggleCheck,

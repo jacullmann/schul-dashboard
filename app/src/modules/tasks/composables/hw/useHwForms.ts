@@ -3,6 +3,7 @@ import type { HwItem, ItemType } from '@/modules/tasks/types';
 import hw from '@/api/hwApi';
 import { useToast } from '@/common/composables/useToast';
 import { useItemForm } from '@/core/composables/useItemForm';
+import { useModalStore } from '@/stores/modalStore';
 import type { HwContext } from './types';
 
 export function useHwForms(ctx: HwContext) {
@@ -28,7 +29,7 @@ export function useHwForms(ctx: HwContext) {
   }
 
   function canEditNote() {
-    return ctx.user.value?.role === 'superadmin';
+    return ctx.user.value?.role !== 'superadmin';
   }
 
   function startEditNote(item: HwItem) {
@@ -65,6 +66,38 @@ export function useHwForms(ctx: HwContext) {
     }
   }
 
+  async function deleteNote(itemId: string) {
+    const modalStore = useModalStore();
+    const isConfirmed = await modalStore.confirm({
+      title: 'Anmerkung löschen?',
+      content: 'Bist du sicher, dass du diese Anmerkung unwiderruflich löschen möchtest?',
+      submitText: 'Anmerkung löschen',
+      danger: true,
+    });
+
+    if (!isConfirmed) return;
+
+    if (savingNote.value) return;
+    savingNote.value = true;
+
+    try {
+      await hw.patch(`/api/items/${itemId}/note`, {
+        editorNote: '',
+      });
+
+      const item = ctx.items.value.find((i) => i.id === itemId);
+      if (item) item.editorNote = '';
+
+      useToast().success('Anmerkung gelöscht.');
+    } catch (e: any) {
+      useToast().error(
+        e.response?.data?.error || 'Fehler beim Löschen der Anmerkung.',
+      );
+    } finally {
+      savingNote.value = false;
+    }
+  }
+
   return {
     editingNoteForId,
     noteEditContent,
@@ -76,5 +109,6 @@ export function useHwForms(ctx: HwContext) {
     startEditNote,
     cancelEditNote,
     saveNote,
+    deleteNote,
   };
 }
