@@ -13,8 +13,8 @@ import {
   X,
   Loader2,
   ArrowDown,
-  Sparkles,
-  Info
+  Info,
+  Users
 } from '@lucide/vue';
 
 const { t } = useI18n();
@@ -41,10 +41,10 @@ const messageContainer = ref<HTMLElement | null>(null);
 let socket: Socket | null = null;
 let typingTimeout: any = null;
 
-// Generate deterministic initials and beautiful color gradient for usernames
+// Deterministic username avatar details
 const getAvatarInitials = (name: string) => {
   if (!name) return '??';
-  const parts = name.split(/(?=[A-Z])/); // Split on uppercase letters
+  const parts = name.split(/(?=[A-Z])/);
   if (parts.length >= 2) {
     return (parts[0][0] + parts[1][0]).toUpperCase();
   }
@@ -57,9 +57,31 @@ const getAvatarGradient = (username: string) => {
   for (let i = 0; i < username.length; i++) {
     hash = username.charCodeAt(i) + ((hash << 5) - hash);
   }
-  const hue1 = Math.abs(hash) % 360;
-  const hue2 = (hue1 + 60) % 360;
-  return `linear-gradient(135deg, hsl(${hue1}, 80%, 65%), hsl(${hue2}, 85%, 55%))`;
+  const hue = Math.abs(hash) % 360;
+  return `linear-gradient(135deg, hsl(${hue}, 80%, 65%), hsl(${(hue + 40) % 360}, 85%, 50%))`;
+};
+
+// visual message grouping algorithms (premium slack/iMessage style)
+const isGroupedWithPrevious = (msg: any, index: number) => {
+  if (index === 0) return false;
+  const prevMsg = messages.value[index - 1];
+  if (prevMsg.userId !== msg.userId) return false;
+  if (msg.parentId) return false; // Don't group if this is a reply to keep layout clean
+  if (prevMsg.parentId) return false;
+
+  const timeDiff = new Date(msg.createdAt).getTime() - new Date(prevMsg.createdAt).getTime();
+  return timeDiff < 90000; // Group if within 90 seconds
+};
+
+const isGroupedWithNext = (msg: any, index: number) => {
+  if (index === messages.value.length - 1) return false;
+  const nextMsg = messages.value[index + 1];
+  if (nextMsg.userId !== msg.userId) return false;
+  if (nextMsg.parentId) return false;
+  if (msg.parentId) return false;
+
+  const timeDiff = new Date(nextMsg.createdAt).getTime() - new Date(msg.createdAt).getTime();
+  return timeDiff < 90000;
 };
 
 // Check if scroll is near bottom
@@ -109,7 +131,7 @@ const fetchMessages = async () => {
   }
 };
 
-// Initialize WebSocket Socket.io connection
+// Initialize WebSocket connection
 const initSocket = () => {
   const socketUrl = import.meta.env.VITE_HW_API_BASE || window.location.origin;
   socket = io(`${socketUrl}/messages`, {
@@ -118,14 +140,13 @@ const initSocket = () => {
   });
 
   socket.on('connect', () => {
-    console.log('Socket.io client connected to /messages');
+    console.log('Socket.io client connected');
     if (socket && groupId.value) {
       socket.emit('joinGroup', { groupId: groupId.value });
     }
   });
 
   socket.on('newMessage', (message: any) => {
-    // Avoid double adding if somehow received twice
     if (messages.value.some((m) => m.id === message.id)) return;
     messages.value.push(message);
     scrollToBottom();
@@ -145,7 +166,6 @@ const initSocket = () => {
   });
 };
 
-// Clean up WebSocket connection
 const cleanupSocket = () => {
   if (socket) {
     socket.off('connect');
@@ -170,7 +190,7 @@ const sendMessage = async () => {
     payload.parentId = replyParent.value.id;
   }
 
-  // Clear typing indicator and input fields immediately for snappy UI
+  // Clear typing and input fields immediately for snappy UI
   messageInput.value = '';
   const currentReplyParent = replyParent.value;
   replyParent.value = null;
@@ -178,8 +198,6 @@ const sendMessage = async () => {
 
   try {
     await hw.post('/api/messages', payload);
-    // Successful REST call triggers MessagesGateway to broadcast.
-    // The broadcased message is caught by the 'newMessage' socket listener and added.
   } catch (err) {
     console.error('Failed to send message:', err);
     // Restore input on failure
@@ -253,7 +271,6 @@ onUnmounted(() => {
   cleanupSocket();
 });
 
-// React to group ID changes (e.g. from routing menu)
 watch(groupId, () => {
   cleanupSocket();
   void fetchMessages();
@@ -262,25 +279,25 @@ watch(groupId, () => {
 </script>
 
 <template>
-  <div class="card h-[calc(100vh-100px)] min-h-[500px] flex flex-col overflow-hidden relative border border-surface-border/40 bg-surface/50 backdrop-blur-md shadow-2xl p-0 animate-fade-up">
-    <!-- Chat Header -->
-    <div class="px-6 py-4 border-b border-surface-border flex items-center justify-between bg-surface-hover/20 backdrop-blur-sm shrink-0">
-      <div class="flex items-center gap-3.5">
-        <div class="w-10 h-10 rounded-xl bg-action-color/10 border border-action-color/20 flex items-center justify-center text-action-color shadow-sm">
-          <MessageSquare class="w-5 h-5 animate-pulse" />
+  <div class="h-[calc(100vh-100px)] min-h-[500px] flex flex-col overflow-hidden relative border border-surface-border bg-surface shadow-input rounded-2xl p-0 animate-fade-up">
+    
+    <!-- Sophisticated Minimalist Header -->
+    <div class="px-6 py-4 border-b border-surface-border flex items-center justify-between bg-surface shrink-0">
+      <div class="flex items-center gap-4">
+        <div class="w-10 h-10 rounded-xl bg-action/10 border border-action/15 flex items-center justify-center text-action shadow-sm relative group">
+          <MessageSquare class="w-5 h-5 transition-transform duration-300 group-hover:scale-110" />
+          <span class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-surface shadow-sm"></span>
         </div>
         <div>
-          <h2 class="text-base font-bold text-foreground flex items-center gap-2">
+          <h2 class="text-sm font-bold tracking-tight text-on-ghost flex items-center gap-2">
             {{ t('chat.title') }}
-            <span class="flex h-2.5 w-2.5 relative">
-              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-            </span>
           </h2>
-          <p class="text-xs text-muted flex items-center gap-1">
-            <Sparkles class="w-3.5 h-3.5 text-action-color/80" />
-            {{ t('chat.joinedRoom') }}
-          </p>
+          <div class="flex items-center gap-2 mt-0.5">
+            <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <p class="text-xs font-semibold text-on-ghost-muted select-none">
+              {{ t('chat.joinedRoom') }}
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -289,162 +306,187 @@ watch(groupId, () => {
     <div
       ref="messageContainer"
       @scroll="handleScroll"
-      class="flex-1 overflow-y-auto px-6 py-5 space-y-4 scroll-smooth"
+      class="flex-1 overflow-y-auto px-6 py-4 space-y-1.5 custom-scrollbar scroll-smooth bg-canvas"
     >
       <!-- Loading State -->
-      <div v-if="loading" class="h-full flex flex-col justify-center items-center gap-3 text-muted">
-        <Loader2 class="w-8 h-8 animate-spin text-action-color" />
-        <span class="text-sm font-medium animate-pulse">Lade Gruppen-Chat...</span>
+      <div v-if="loading" class="h-full flex flex-col justify-center items-center gap-3 text-on-ghost-muted">
+        <Loader2 class="w-7 h-7 animate-spin text-action" />
+        <span class="text-xs font-semibold tracking-wider uppercase opacity-85 animate-pulse">Lade Chat...</span>
       </div>
 
       <!-- Error State -->
-      <div v-else-if="error" class="h-full flex flex-col justify-center items-center gap-2 text-danger p-6 text-center">
-        <Info class="w-10 h-10 mb-2 opacity-80" />
-        <span class="text-sm font-semibold">{{ error }}</span>
-        <button @click="fetchMessages" class="mt-2 px-4 py-2 text-xs bg-danger/10 hover:bg-danger/20 border border-danger/20 rounded-lg transition-all duration-200">
-          Erneut versuchen
+      <div v-else-if="error" class="h-full flex flex-col justify-center items-center gap-3 text-danger p-6 text-center">
+        <Info class="w-9 h-9 opacity-80" />
+        <span class="text-sm font-semibold tracking-tight">{{ error }}</span>
+        <button @click="fetchMessages" class="mt-2 px-5 py-2.5 text-xs font-bold bg-danger/10 hover:bg-danger/20 border border-danger/20 text-danger rounded-2xl transition-all duration-200 shadow-sm active:scale-95">
+          Erneut laden
         </button>
       </div>
 
       <!-- Messages Stream -->
       <template v-else>
-        <div v-if="messages.length === 0" class="h-full flex flex-col justify-center items-center text-muted gap-2.5 p-6 text-center select-none">
-          <div class="w-14 h-14 bg-surface-hover/30 rounded-2xl border border-surface-border/50 flex items-center justify-center opacity-70 mb-2">
-            <MessageSquare class="w-7 h-7 text-muted/60" />
+        <div v-if="messages.length === 0" class="h-full flex flex-col justify-center items-center text-on-ghost-muted gap-3 p-6 text-center select-none">
+          <div class="w-16 h-16 bg-surface-hover/20 rounded-3xl border border-surface-border/30 flex items-center justify-center opacity-80 mb-1">
+            <MessageSquare class="w-6 h-6 text-on-ghost-muted opacity-80 animate-pulse" />
           </div>
-          <span class="text-sm font-semibold">{{ t('chat.noMessages') }}</span>
+          <span class="text-sm font-bold tracking-tight text-on-ghost-muted">{{ t('chat.noMessages') }}</span>
         </div>
 
-        <div
-          v-for="msg in messages"
-          :key="msg.id"
-          :id="`msg-${msg.id}`"
-          :class="[
-            'group/msg flex items-end gap-3.5 max-w-[85%] sm:max-w-[75%]',
-            msg.userId === currentUserId ? 'ml-auto flex-row-reverse' : 'mr-auto'
-          ]"
-        >
-          <!-- User Avatar (Only for others) -->
+        <TransitionGroup name="msg-list">
           <div
-            v-if="msg.userId !== currentUserId"
-            class="w-9 h-9 rounded-xl flex items-center justify-center text-white text-[11px] font-bold shrink-0 shadow-md select-none border border-white/10"
-            :style="{ background: getAvatarGradient(msg.senderName) }"
-            :title="msg.senderName"
+            v-for="(msg, index) in messages"
+            :key="msg.id"
+            :id="`msg-${msg.id}`"
+            :class="[
+              'group/msg flex items-end gap-3 max-w-[85%] sm:max-w-[70%] transition-all duration-200',
+              msg.userId === currentUserId ? 'ml-auto flex-row-reverse' : 'mr-auto',
+              isGroupedWithPrevious(msg, index) ? 'mt-[3px]' : 'mt-4'
+            ]"
           >
-            {{ getAvatarInitials(msg.senderName) }}
-          </div>
-
-          <!-- Message Body -->
-          <div class="flex flex-col gap-1 relative max-w-full">
-            <!-- Username display for others -->
-            <span
-              v-if="msg.userId !== currentUserId"
-              class="text-[11px] font-bold text-muted/90 px-1 select-none"
-            >
-              {{ msg.senderName }}
-            </span>
-
-            <!-- Message Card Bubble -->
-            <div
-              :class="[
-                'p-3.5 transition-all duration-200 shadow-md relative group',
-                msg.userId === currentUserId
-                  ? 'bg-gradient-to-br from-action-color to-action-hover text-white rounded-2xl rounded-tr-none border border-action-color/10'
-                  : 'bg-card-bg border border-card-border/30 text-foreground rounded-2xl rounded-tl-none hover:border-card-border/60'
-              ]"
-            >
-              <!-- Reply context inside message bubble -->
+            <!-- User Avatar (Only for others, hidden for grouped consecutive messages) -->
+            <div class="w-9 shrink-0 flex justify-center">
               <div
-                v-if="msg.parentId && msg.parentContent"
-                @click="scrollToMessage(msg.parentId)"
-                :class="[
-                  'mb-2 p-2 border-l-2 text-[11px] rounded transition-all duration-150 cursor-pointer select-none max-w-full truncate',
-                  msg.userId === currentUserId
-                    ? 'bg-white/10 hover:bg-white/20 border-white/40 text-white/90'
-                    : 'bg-surface/50 border-action-color/60 text-muted hover:bg-surface/85'
-                ]"
-                :title="t('chat.quoteLabel')"
+                v-if="msg.userId !== currentUserId && !isGroupedWithPrevious(msg, index)"
+                class="w-9 h-9 rounded-2xl flex items-center justify-center text-white text-[11px] font-extrabold shrink-0 shadow-md select-none border border-white/10 relative transition-transform duration-300 hover:scale-105"
+                :style="{ background: getAvatarGradient(msg.senderName) }"
+                :title="msg.senderName"
               >
-                <span class="block font-bold mb-0.5 opacity-90">@{{ msg.parentSenderName }}</span>
-                <span class="italic font-medium">{{ msg.parentContent }}</span>
+                {{ getAvatarInitials(msg.senderName) }}
               </div>
+            </div>
 
-              <!-- Message Text -->
-              <p class="text-sm leading-relaxed whitespace-pre-wrap break-words font-medium">
-                {{ msg.content }}
-              </p>
-
-              <!-- Timestamp inside bubble -->
+            <!-- Message Body -->
+            <div class="flex flex-col gap-0.5 relative max-w-full">
+              <!-- Username display for others (Only if not grouped) -->
               <span
-                :class="[
-                  'block text-[9px] mt-1.5 select-none font-medium',
-                  msg.userId === currentUserId ? 'text-white/60 text-right' : 'text-muted/80 text-left'
-                ]"
+                v-if="msg.userId !== currentUserId && !isGroupedWithPrevious(msg, index)"
+                class="text-[10px] font-bold text-on-ghost-muted px-1 tracking-tight select-none mb-1"
               >
-                {{ formatTime(msg.createdAt) }}
+                {{ msg.senderName }}
               </span>
 
-              <!-- Fast Reply Overlay Button on Hover -->
-              <button
-                @click="startReply(msg)"
+              <!-- Message Card Bubble with custom grouped borders -->
+              <div
                 :class="[
-                  'absolute top-1/2 -translate-y-1/2 opacity-0 group-hover/msg:opacity-100 p-2 bg-surface hover:bg-surface-hover border border-surface-border text-foreground hover:text-action-color shadow-lg rounded-xl transition-all duration-200 focus:opacity-100 z-10 shrink-0',
-                  msg.userId === currentUserId ? 'left-[-46px]' : 'right-[-46px]'
+                  'py-2.5 px-4 transition-all duration-200 relative group message-bubble',
+                  msg.userId === currentUserId
+                    ? 'bg-action text-on-action border border-action/10 shadow-sm'
+                    : 'bg-surface-highlight border border-surface-border text-on-ghost hover:bg-surface-hover/80 hover:border-surface-hover-border shadow-sm',
+                  
+                  // Border radius computation for group chains
+                  msg.userId === currentUserId
+                    ? [
+                        isGroupedWithPrevious(msg, index) && isGroupedWithNext(msg, index) ? 'rounded-2xl rounded-tr-md rounded-br-md' : '',
+                        !isGroupedWithPrevious(msg, index) && isGroupedWithNext(msg, index) ? 'rounded-2xl rounded-tr-none rounded-br-md' : '',
+                        isGroupedWithPrevious(msg, index) && !isGroupedWithNext(msg, index) ? 'rounded-2xl rounded-tr-md rounded-br-none' : '',
+                        !isGroupedWithPrevious(msg, index) && !isGroupedWithNext(msg, index) ? 'rounded-2xl rounded-tr-none' : ''
+                      ]
+                    : [
+                        isGroupedWithPrevious(msg, index) && isGroupedWithNext(msg, index) ? 'rounded-2xl rounded-tl-md rounded-bl-md' : '',
+                        !isGroupedWithPrevious(msg, index) && isGroupedWithNext(msg, index) ? 'rounded-2xl rounded-tl-none rounded-bl-md' : '',
+                        isGroupedWithPrevious(msg, index) && !isGroupedWithNext(msg, index) ? 'rounded-2xl rounded-tl-md rounded-bl-none' : '',
+                        !isGroupedWithPrevious(msg, index) && !isGroupedWithNext(msg, index) ? 'rounded-2xl rounded-tl-none' : ''
+                      ]
                 ]"
-                title="Antworten"
               >
-                <Reply class="w-3.5 h-3.5" />
-              </button>
+                <!-- Reply context -->
+                <div
+                  v-if="msg.parentId && msg.parentContent"
+                  @click="scrollToMessage(msg.parentId)"
+                  :class="[
+                    'mb-2 p-2.5 border-l-2 text-[11px] rounded-xl transition-all duration-150 cursor-pointer select-none max-w-full truncate',
+                    msg.userId === currentUserId
+                      ? 'bg-on-action/10 hover:bg-on-action/15 border-on-action/40 text-on-action/90'
+                      : 'bg-surface/50 border-surface-border text-on-ghost-muted hover:bg-surface/80'
+                  ]"
+                  :title="t('chat.quoteLabel')"
+                >
+                  <span class="block font-bold mb-0.5 opacity-90 text-[10px]">@{{ msg.parentSenderName }}</span>
+                  <span class="italic font-medium">{{ msg.parentContent }}</span>
+                </div>
+
+                <!-- Message Text -->
+                <p class="text-sm leading-relaxed whitespace-pre-wrap break-words font-medium tracking-tight">
+                  {{ msg.content }}
+                </p>
+
+                <!-- Timestamp inside bubble -->
+                <span
+                  :class="[
+                    'block text-[9px] mt-1 select-none font-bold tracking-tight opacity-75',
+                    msg.userId === currentUserId ? 'text-on-action/60 text-right' : 'text-on-ghost-muted/80 text-left'
+                  ]"
+                >
+                  {{ formatTime(msg.createdAt) }}
+                </span>
+
+                <!-- Modern floating actions on hover -->
+                <div
+                  :class="[
+                    'absolute top-1/2 -translate-y-1/2 opacity-0 group-hover/msg:opacity-100 flex items-center transition-all duration-200 delay-75 scale-90 translate-y-1 group-hover/msg:scale-100 group-hover/msg:translate-y-[-50%] z-10',
+                    msg.userId === currentUserId ? 'left-[-40px]' : 'right-[-40px]'
+                  ]"
+                >
+                  <button
+                    @click="startReply(msg)"
+                    class="p-2 bg-surface hover:bg-surface-highlight border border-surface-border text-on-ghost-muted hover:text-action shadow-md rounded-xl transition-all duration-150 active:scale-95"
+                    title="Antworten"
+                  >
+                    <Reply class="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        </TransitionGroup>
       </template>
     </div>
 
-    <!-- Sticky Scroll to Bottom Button -->
-    <Transition name="fade">
+    <!-- Minimalistic Floating Scroll Bottom Button -->
+    <Transition name="scale-fade">
       <button
         v-if="showScrollBottomBtn"
         @click="scrollToBottom(true)"
-        class="absolute bottom-24 right-6 p-3 bg-action-color hover:bg-action-hover text-white rounded-full shadow-2xl border border-action-color/20 hover:scale-110 active:scale-95 transition-all duration-200 z-50 animate-bounce"
-        title="Nach unten scrollen"
+        class="absolute bottom-24 right-8 p-3.5 bg-action hover:bg-action-hover text-on-action rounded-full shadow-lg border border-action/15 hover:scale-110 active:scale-95 transition-all duration-200 z-50 flex items-center justify-center"
+        title="Nach unten"
       >
         <ArrowDown class="w-4 h-4" />
       </button>
     </Transition>
 
     <!-- Typing Indicator Area -->
-    <div class="px-6 py-2 h-7 flex items-center shrink-0">
+    <div class="px-6 py-1 h-6 flex items-center shrink-0 bg-canvas">
       <Transition name="fade">
-        <div v-if="typingDisplay" class="flex items-center gap-2 text-[11px] text-muted font-bold select-none animate-pulse">
-          <div class="flex gap-1">
-            <span class="w-1 h-1 bg-muted rounded-full animate-bounce"></span>
-            <span class="w-1 h-1 bg-muted rounded-full animate-bounce [animation-delay:0.2s]"></span>
-            <span class="w-1 h-1 bg-muted rounded-full animate-bounce [animation-delay:0.4s]"></span>
+        <div v-if="typingDisplay" class="flex items-center gap-2.5 text-[10px] text-on-ghost-muted font-bold select-none tracking-tight">
+          <div class="flex items-center gap-1.5 h-2">
+            <span class="w-1.5 h-1.5 bg-action rounded-full typing-dot"></span>
+            <span class="w-1.5 h-1.5 bg-action rounded-full typing-dot"></span>
+            <span class="w-1.5 h-1.5 bg-action rounded-full typing-dot"></span>
           </div>
-          <span>{{ typingDisplay }}</span>
+          <span class="animate-pulse">{{ typingDisplay }}</span>
         </div>
       </Transition>
     </div>
 
     <!-- Bottom Input Bar & Active Reply Area -->
-    <div class="border-t border-surface-border bg-surface-hover/20 backdrop-blur-sm shrink-0">
-      <!-- Active Reply context header -->
+    <div class="border-t border-surface-border bg-surface shrink-0">
+      
+      <!-- Premium active reply context banner -->
       <Transition name="slide-up">
         <div
           v-if="replyParent"
-          class="flex items-center justify-between px-6 py-3.5 bg-surface/90 border-b border-surface-border/60 text-xs text-muted"
+          class="flex items-center justify-between px-6 py-3 bg-surface-highlight border-b border-surface-border text-xs text-on-ghost-muted"
         >
-          <div class="flex items-center gap-2 border-l-2 border-action-color pl-2.5 truncate max-w-[85%]">
-            <Reply class="w-3.5 h-3.5 text-action-color shrink-0" />
-            <span class="truncate font-semibold select-none">
-              {{ t('chat.replyingTo') }} <strong class="text-foreground">@{{ replyParent.senderName }}</strong>:
-              <span class="italic text-muted font-normal ml-1">"{{ replyParent.content }}"</span>
+          <div class="flex items-center gap-2.5 border-l-2 border-action pl-3 truncate max-w-[85%]">
+            <Reply class="w-3.5 h-3.5 text-action shrink-0" />
+            <span class="truncate font-bold tracking-tight select-none">
+              {{ t('chat.replyingTo') }} <strong class="text-on-ghost">@{{ replyParent.senderName }}</strong>:
+              <span class="italic text-on-ghost-muted font-normal ml-1 opacity-90">"{{ replyParent.content }}"</span>
             </span>
           </div>
           <button
             @click="replyParent = null"
-            class="p-1.5 hover:text-foreground hover:bg-surface-hover rounded-full transition-all duration-200 shrink-0"
+            class="p-1.5 hover:text-on-ghost hover:bg-surface-hover/80 rounded-full transition-all duration-150 shrink-0"
             title="Antwort abbrechen"
           >
             <X class="w-4 h-4" />
@@ -452,16 +494,16 @@ watch(groupId, () => {
         </div>
       </Transition>
 
-      <!-- Input Actions and Textarea -->
-      <form @submit.prevent="sendMessage" class="p-4 flex items-center gap-3">
-        <div class="flex-1 relative flex items-center bg-card-bg/60 border border-card-border/40 focus-within:border-action-color/60 focus-within:ring-2 focus-within:ring-action-color/10 rounded-2xl transition-all duration-200">
+      <!-- Float Input Area -->
+      <form @submit.prevent="sendMessage" class="p-4 flex items-center gap-4">
+        <div class="flex-1 relative flex items-center bg-surface-highlight border border-surface-border focus-within:border-action/40 focus-within:ring-2 focus-within:ring-action/5 rounded-2xl transition-all duration-200">
           <textarea
             id="chat-input-field"
             v-model="messageInput"
             @input="handleInput"
             @keydown.enter.prevent="sendMessage"
             rows="1"
-            class="flex-1 py-3.5 pl-4 pr-12 bg-transparent text-sm text-foreground focus:outline-none placeholder-muted/80 resize-none max-h-24 scrollbar-hide font-medium"
+            class="flex-1 py-4 pl-5 pr-12 bg-transparent border-none shadow-none outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 text-sm text-on-ghost placeholder:text-on-ghost-subtle resize-none max-h-24 custom-scrollbar font-medium tracking-tight"
             :placeholder="t('chat.placeholder')"
             required
             maxlength="1000"
@@ -471,9 +513,14 @@ watch(groupId, () => {
         <button
           type="submit"
           :disabled="!messageInput.trim()"
-          class="p-4 bg-action-color hover:bg-action-hover disabled:bg-surface-hover disabled:text-muted text-white rounded-2xl shadow-lg border border-action-color/15 hover:scale-105 active:scale-95 disabled:scale-100 disabled:shadow-none transition-all duration-200 shrink-0 flex items-center justify-center"
+          :class="[
+            'p-4 rounded-2xl transition-all duration-200 shrink-0 flex items-center justify-center active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed',
+            messageInput.trim()
+              ? 'bg-action text-on-action hover:bg-action-hover hover:scale-105 shadow-sm'
+              : 'bg-surface-hover text-on-ghost-muted border border-surface-border'
+          ]"
         >
-          <Send class="w-4 h-4" />
+          <Send class="w-4.5 h-4.5" />
         </button>
       </form>
     </div>
@@ -481,21 +528,99 @@ watch(groupId, () => {
 </template>
 
 <style scoped>
-/* Scoped transitions and effects */
+/* Sophisticated minimal scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.15);
+  border-radius: 99px;
+  transition: all 0.2s ease;
+}
+.custom-scrollbar:hover::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.35);
+}
+
+/* Pulse highlight animation for quoted scroll targets using variables */
+@keyframes flash-message-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 transparent;
+    border-color: var(--color-surface-border);
+  }
+  50% {
+    box-shadow: 0 0 12px 2px var(--color-focus);
+    border-color: var(--color-action);
+    transform: scale(1.015);
+  }
+}
+
+.flash-message {
+  animation: flash-message-pulse 1.8s cubic-bezier(0.16, 1, 0.3, 1) 1;
+  transition: all 0.3s ease;
+}
+
+/* Tactile bounce animation for typing indicator dots */
+@keyframes wave-dots {
+  0%, 100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translateY(-3.5px);
+    opacity: 1;
+  }
+}
+
+.typing-dot {
+  animation: wave-dots 1.1s ease-in-out infinite;
+}
+.typing-dot:nth-child(2) {
+  animation-delay: 0.18s;
+}
+.typing-dot:nth-child(3) {
+  animation-delay: 0.36s;
+}
+
+/* Premium micro-elevations on bubble hover */
+.message-bubble {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.message-bubble:hover {
+  transform: translateY(-0.5px);
+  box-shadow: 0 4px 14px -3px rgba(0, 0, 0, 0.08);
+}
+
+/* Smooth enter transitions for chat stream */
+.msg-list-enter-active {
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.msg-list-enter-from {
+  opacity: 0;
+  transform: translateY(16px) scale(0.97);
+}
+.msg-list-move {
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Standard Transitions */
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
-  transform: translateY(4px);
+  transform: translateY(3px);
 }
 
 .slide-up-enter-active,
 .slide-up-leave-active {
-  transition: max-height 0.2s ease, opacity 0.2s ease, padding 0.2s ease;
-  max-height: 50px;
+  transition: max-height 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease, padding 0.2s ease;
+  max-height: 52px;
   overflow: hidden;
 }
 .slide-up-enter-from,
@@ -506,29 +631,13 @@ watch(groupId, () => {
   padding-bottom: 0 !important;
 }
 
-@keyframes flash-message-pulse {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
-    border-color: rgba(99, 102, 241, 0.2);
-  }
-  50% {
-    box-shadow: 0 0 16px 4px rgba(99, 102, 241, 0.45);
-    border-color: rgba(99, 102, 241, 0.85);
-    transform: scale(1.015);
-  }
+.scale-fade-enter-active,
+.scale-fade-leave-active {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
-
-.flash-message {
-  animation: flash-message-pulse 1.8s cubic-bezier(0.4, 0, 0.2, 1) 1;
-  transition: all 0.3s ease;
-}
-
-/* Hide scrollbar for clean card overlay and text areas */
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+.scale-fade-enter-from,
+.scale-fade-leave-to {
+  opacity: 0;
+  transform: scale(0.75) translate(4px, 4px);
 }
 </style>
