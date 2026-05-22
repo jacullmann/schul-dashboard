@@ -45,7 +45,7 @@ const GAP = 12;
 
 function getToastStyle(index: number) {
   const reversedIndex = toasts.length - 1 - index;
-  
+
   let expandedOffset = 0;
   if (isHovered.value) {
     for (let i = toasts.length - 1; i > index; i--) {
@@ -102,7 +102,7 @@ const hitBoxHeight = computed(() => {
   const frontId = toasts[toasts.length - 1].id;
   const frontHeight = heights.value.get(frontId) || 48;
   const visibleStacks = Math.min(toasts.length - 1, VISIBLE_COUNT - 1);
-  return frontHeight + (visibleStacks * GAP);
+  return frontHeight + visibleStacks * GAP;
 });
 </script>
 
@@ -113,23 +113,22 @@ const hitBoxHeight = computed(() => {
       role="region"
       aria-label="Notifications"
       aria-live="polite"
-      style="pointer-events: none;"
+      style="pointer-events: none"
     >
-      <div 
+      <div
         class="relative w-full"
         @mouseenter="onMouseEnter"
         @mouseleave="onMouseLeave"
       >
-        <div 
-          class="absolute top-0 left-0 w-full transition-all duration-400 ease-out-expo" 
-          :style="{ height: hitBoxHeight + 'px', pointerEvents: toasts.length > 0 ? 'auto' : 'none' }"
+        <div
+          class="absolute top-0 left-0 w-full transition-all duration-400 ease-out-expo"
+          :style="{
+            height: hitBoxHeight + 'px',
+            pointerEvents: toasts.length > 0 ? 'auto' : 'none',
+          }"
         ></div>
 
-        <TransitionGroup 
-          name="toast-stack" 
-          tag="div" 
-          class="relative w-full"
-        >
+        <TransitionGroup name="toast-stack" tag="div" class="relative w-full">
           <div
             v-for="(toast, index) in toasts"
             :key="toast.id"
@@ -140,11 +139,15 @@ const hitBoxHeight = computed(() => {
             role="alert"
             :aria-atomic="true"
           >
-            <span class="ml-2.5 my-2.5 shrink-0 flex items-center justify-center">
+            <span
+              class="ml-2.5 my-2.5 shrink-0 flex items-center justify-center"
+            >
               <component :is="ICONS[toast.type]" :size="20" />
             </span>
 
-            <span class="my-2.5 flex-1 min-w-0 break-words text-base leading-5 truncate">
+            <span
+              class="my-2.5 flex-1 min-w-0 break-words text-base leading-5 truncate"
+            >
               {{ toast.message }}
             </span>
 
@@ -159,11 +162,15 @@ const hitBoxHeight = computed(() => {
                     : 'ghost'
               "
               @click="dismiss(toast.id)"
-              style="pointer-events: auto;"
+              style="pointer-events: auto"
             />
-            <div 
+            <div
               class="absolute inset-0 pointer-events-none transition-opacity duration-400 ease-out-expo bg-steel"
-              :style="{ opacity: isHovered ? 0 : Math.min(1, (toasts.length - 1 - index) * 0.2) }"
+              :style="{
+                opacity: isHovered
+                  ? 0
+                  : Math.min(1, (toasts.length - 1 - index) * 0.2),
+              }"
             ></div>
           </div>
         </TransitionGroup>

@@ -114,7 +114,24 @@ import InfoModal from '@/common/components/InfoModal.vue';
 
       <BaseRow justify="between" class="flex-nowrap!">
         <div class="text-base text-on-ghost">
-          Neue Einträge erstellen und Bilder hinzufügen
+          Einträge erstellen
+        </div>
+
+        <BaseSelect
+          :form="false"
+          modelValue="user"
+          :options="[
+            { label: 'Alle', value: 'user' },
+            { label: 'Moderatoren', value: 'moderator' },
+            { label: 'Admins', value: 'admin' },
+          ]"
+          classes="w-38!"
+        />
+      </BaseRow>
+
+      <BaseRow justify="between" class="flex-nowrap!">
+        <div class="text-base text-on-ghost">
+          Bilder zu Einträgen hochladen
         </div>
 
         <BaseSelect
@@ -137,6 +154,21 @@ import InfoModal from '@/common/components/InfoModal.vue';
         <BaseSelect
           :form="false"
           modelValue="moderator"
+          :options="[
+            { label: 'Alle', value: 'user' },
+            { label: 'Moderatoren', value: 'moderator' },
+            { label: 'Admins', value: 'admin' },
+          ]"
+          classes="w-38!"
+        />
+      </BaseRow>
+
+      <BaseRow justify="between" class="flex-nowrap!">
+        <div class="text-base text-on-ghost">Nachrichten senden</div>
+
+        <BaseSelect
+          :form="false"
+          modelValue="user"
           :options="[
             { label: 'Alle', value: 'user' },
             { label: 'Moderatoren', value: 'moderator' },

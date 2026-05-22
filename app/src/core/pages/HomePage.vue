@@ -172,7 +172,7 @@ onMounted(() => {
             animationDelay: `${index * 0.075}s`,
             animationFillMode: 'both',
           }"
-          :class="{ active: group.id === 'mock-group-4' }"
+          :class="{ active: group.id === activeGroupId }"
           @click="navigateToGroup(group.id)"
           :disabled="navigatingGroupId === group.id"
         >

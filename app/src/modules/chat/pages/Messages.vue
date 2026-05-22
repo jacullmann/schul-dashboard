@@ -337,7 +337,7 @@ watch(groupId, () => {
     <div
       ref="messageContainer"
       @scroll="handleScroll"
-      class="flex-1 overflow-y-auto px-2 md:px-8 py-4 custom-scrollbar scroll-smooth bg-canvas"
+      class="flex-1 overflow-y-auto py-4 custom-scrollbar scroll-smooth bg-canvas"
     >
       <!-- Loading State -->
       <div
@@ -389,7 +389,7 @@ watch(groupId, () => {
             v-for="(msg, index) in messages"
             :key="msg.id"
             :id="`msg-${msg.id}`"
-            class="w-full"
+            class="w-full px-2 md:px-8"
             :class="isGroupedWithPrevious(msg, index) ? 'mt-1' : 'mt-4'"
           >
             <div
@@ -616,7 +616,7 @@ watch(groupId, () => {
             @input="handleInput"
             @keydown.enter.prevent="sendMessage"
             rows="1"
-            class="w-full flex-1 items-center justify-center py-0 px-1.75 rounded-none bg-transparent border-none shadow-none outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 text-base/5 text-on-ghost placeholder:text-on-ghost-subtle resize-none max-h-24 custom-scrollbar font-medium tracking-tight"
+            class="w-full flex-1 items-center justify-center py-0 px-1.75 rounded-none bg-transparent border-none shadow-none outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 text-base/5 text-on-ghost placeholder:text-on-ghost-subtle resize-none font-normal"
             :placeholder="t('chat.placeholder')"
             required
             maxlength="1000"

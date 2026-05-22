@@ -6,17 +6,20 @@ import { useRouter, useRoute } from 'vue-router';
 import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import AppLogo from '@/common/components/AppLogo.vue';
-import { Menu, ChevronDown, Plus } from '@lucide/vue';
+import { Menu, ChevronDown, Plus, LogOut } from '@lucide/vue';
 import { useModalStore } from '@/stores/modalStore';
 import Avatar from '@/modules/auth/components/Avatar.vue';
+import hw from '@/api/hwApi';
 
 const userStore = useUserStore();
+const { user } = storeToRefs(userStore);
 const {
   groupName,
   userGroups,
   activeGroupId,
   switchActiveGroup,
   activeGroupAvatarUrl,
+  activeGroupOwnerId,
 } = useAppAuth();
 const router = useRouter();
 const route = useRoute();
@@ -67,6 +70,38 @@ onClickOutside(groupMenuRef, () => {
   groupMenuOpen.value = false;
 });
 
+const loading = ref(false);
+
+async function leaveGroup() {
+  if (!activeGroupId.value) return;
+
+  const isConfirmed = await modalStore.confirm({
+    title: 'Leave Group?',
+    content: `Are you sure you want to leave the group "${groupName.value}"?`,
+    submitText: 'Leave',
+    danger: true,
+  });
+
+  if (activeGroupOwnerId.value === user.value?.id) {
+    alert(
+      'The owner cannot leave the group. Transfer ownership or delete the group instead.',
+    );
+    return;
+  }
+  if (!isConfirmed) return;
+
+  loading.value = true;
+  try {
+    await hw.delete(`/api/groups/${activeGroupId.value}/leave`);
+    window.location.reload();
+  } catch (err) {
+    console.error('Failed to leave group:', err);
+    alert('Failed to leave group.');
+  } finally {
+    loading.value = false;
+  }
+}
+
 onMounted(() => {
   if (!userStore.initialized) {
     userStore.fetchUser();
@@ -109,17 +144,16 @@ onUnmounted(() => {
         ref="groupMenuRef"
       >
         <button
-          class="flex items-center gap-2 group cursor-pointer"
+          class="flex items-center gap-2 group cursor-pointer hover:bg-ghost-hover transition-hover rounded-full -m-1 p-1"
           @click="toggleGroupMenu"
-          title="Change group"
         >
           <Avatar :name="groupName" :picture="activeGroupAvatarUrl" :size="8" />
 
-          <span class="logo-text">{{ groupName }}</span>
+          <span class="logo-text leading-8">{{ groupName }}</span>
           <ChevronDown
             :size="16"
-            class="transition-transform duration-200 ease-in-out text-on-ghost-muted group-hover:text-on-ghost transition-hover"
-            :class="{ 'rotate-180': groupMenuOpen }"
+            class="transform transition-transform duration-200 ease-in-out text-on-ghost-muted group-hover:text-on-ghost transition-hover mr-2"
+            :class="groupMenuOpen ? 'rotate-180' : ''"
           />
         </button>
 
@@ -152,6 +186,10 @@ onUnmounted(() => {
             :icon="Plus"
           >
             New group
+          </BaseMenuButton>
+
+          <BaseMenuButton @click="leaveGroup" :icon="LogOut" variant="danger" :disabled="loading">
+            Leave group
           </BaseMenuButton>
         </BaseMenu>
       </div>

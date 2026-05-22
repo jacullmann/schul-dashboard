@@ -534,7 +534,12 @@ function handleSelect(index: number) {
             @mouseenter="setSelectedIndex(index)"
           >
             <template #icon>
-              <Avatar :name="group.name" :picture="group.avatarUrl" :unread="group.hasUnreadContent" :size="8" />
+              <Avatar
+                :name="group.name"
+                :picture="group.avatarUrl"
+                :unread="group.hasUnreadContent"
+                :size="8"
+              />
             </template>
 
             <ArrowUpRight

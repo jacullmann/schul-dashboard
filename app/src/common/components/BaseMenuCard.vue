@@ -24,7 +24,11 @@ defineExpose({ menuEl });
 </script>
 
 <template>
-  <Transition appear :name="desktopTransition" @after-leave="emit('after-leave')">
+  <Transition
+    appear
+    :name="desktopTransition"
+    @after-leave="emit('after-leave')"
+  >
     <div
       v-if="open"
       ref="menuEl"

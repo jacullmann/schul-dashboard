@@ -88,7 +88,6 @@ async function navigateToGroup(groupId: string) {
   }
 }
 
-
 async function leaveGroup(group: any) {
   const isConfirmed = await modalStore.confirm({
     title: 'Leave Group?',

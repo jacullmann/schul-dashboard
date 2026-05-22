@@ -70,7 +70,9 @@ function formatDate(iso: string) {
         ]"
       >
         <div class="flex flex-col ml-3 my-1">
-          <div class="text-base/relaxed text-on-ghost mb-2">{{ ann.content }}</div>
+          <div class="text-base/relaxed text-on-ghost mb-2">
+            {{ ann.content }}
+          </div>
           <span class="text-sm/relaxed text-on-ghost-muted">{{
             formatDate(ann.createdAt)
           }}</span>

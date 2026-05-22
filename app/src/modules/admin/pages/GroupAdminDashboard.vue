@@ -278,7 +278,6 @@ function goBack() {
   max-width: 800px;
   margin: 0 auto;
   overflow: hidden;
-  box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
 }

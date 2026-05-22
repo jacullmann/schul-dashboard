@@ -28,7 +28,10 @@ const cropSize = 224;
 
 const minScale = computed(() => {
   if (originalWidth.value === 0 || originalHeight.value === 0) return 1;
-  return Math.max(cropSize / originalWidth.value, cropSize / originalHeight.value);
+  return Math.max(
+    cropSize / originalWidth.value,
+    cropSize / originalHeight.value,
+  );
 });
 
 const scale = computed(() => zoom.value * minScale.value);
@@ -71,7 +74,7 @@ watch(
     };
     img.src = newSrc;
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 let isDragging = false;
@@ -138,7 +141,17 @@ function applyCrop() {
     const sourceY = cropYImg / scale.value;
     const sourceSize = cropSize / scale.value;
 
-    ctx.drawImage(img, sourceX, sourceY, sourceSize, sourceSize, 0, 0, 512, 512);
+    ctx.drawImage(
+      img,
+      sourceX,
+      sourceY,
+      sourceSize,
+      sourceSize,
+      0,
+      0,
+      512,
+      512,
+    );
 
     canvas.toBlob(
       (blob) => {
@@ -148,7 +161,7 @@ function applyCrop() {
         }
       },
       'image/jpeg',
-      0.9
+      0.9,
     );
   };
   img.src = props.imageSrc;
@@ -218,7 +231,8 @@ function applyCrop() {
         </div>
 
         <p class="text-xs text-on-ghost-muted text-center m-0">
-          Ziehen Sie das Bild zum Ausrichten. Benutzen Sie das Mausrad oder den Schieberegler zum Zoomen.
+          Ziehen Sie das Bild zum Ausrichten. Benutzen Sie das Mausrad oder den
+          Schieberegler zum Zoomen.
         </p>
       </div>
     </template>
