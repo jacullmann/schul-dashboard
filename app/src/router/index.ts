@@ -106,6 +106,16 @@ const routes = [
             },
           },
           {
+            path: 'messages',
+            name: 'group-messages',
+            component: () => import('@/modules/chat/pages/Messages.vue'),
+            meta: {
+              title: 'sidebar.messages',
+              requiresTenant: true,
+              groupContext: true,
+            },
+          },
+          {
             path: 'admin',
             name: 'group-admin',
             component: () =>

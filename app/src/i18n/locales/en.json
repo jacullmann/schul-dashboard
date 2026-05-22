@@ -654,11 +654,25 @@
     "expand": "Expand",
     "groups": "Groups",
     "home": "Home",
+    "messages": "Messages",
     "private": "Private Tasks",
     "schedule": "Schedule",
     "search": "Search",
     "tasks": "Tasks",
     "toggle": "Toggle Sidebar"
+  },
+  "chat": {
+    "title": "Group Chat",
+    "placeholder": "Type a message...",
+    "send": "Send",
+    "replyingTo": "Replying to",
+    "cancelReply": "Cancel Reply",
+    "typing": "is typing...",
+    "typingMultiple": "are typing...",
+    "noMessages": "No messages yet. Say hello!",
+    "joinedRoom": "Connected to chat",
+    "errorLoading": "Failed to load messages",
+    "quoteLabel": "Reply to"
   },
   "welcome": {
     "auth": {

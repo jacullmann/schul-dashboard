@@ -12,6 +12,7 @@ import {
   Crown,
   Lock,
   Search,
+  MessageCircle,
 } from '@lucide/vue';
 import AccountMenu from '@/modules/auth/components/AccountMenu.vue';
 import { useSearchModal } from '@/core/composables/useSearchModal';
@@ -235,6 +236,19 @@ onUnmounted(() => {
           @click="
             withGroup(() =>
               handleNavigation(`/groups/${activeGroupId}/schedule`),
+            )
+          "
+        />
+
+        <SidebarButton
+          :label="t('sidebar.messages')"
+          :expanded="isExpanded"
+          :active="$route.path.startsWith(`/groups/${activeGroupId}/messages`)"
+          :icon="MessageCircle"
+          :page="true"
+          @click="
+            withGroup(() =>
+              handleNavigation(`/groups/${activeGroupId}/messages`),
             )
           "
         />

@@ -8,6 +8,7 @@ import { TodosModule } from './todos/todos.module';
 import { GroupModule } from './group/group.module';
 import { ItemsModule } from './items/items.module';
 import { ScheduleModule } from './schedule/schedule.module';
+import { MessagesModule } from './messages/messages.module';
 import { SuperAdminModule } from './super-admin/super-admin.module';
 import { MfaModule } from './mfa/mfa.module';
 import { EmailModule } from './common/email/email.module';
@@ -45,6 +46,7 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
     GroupModule,
     ItemsModule,
     ScheduleModule,
+    MessagesModule,
     SuperAdminModule,
     MfaModule,
     OAuthModule,

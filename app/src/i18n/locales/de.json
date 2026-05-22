@@ -656,11 +656,25 @@
     "expand": "Erweitern",
     "groups": "Gruppen",
     "home": "Start",
+    "messages": "Nachrichten",
     "private": "Private Aufgaben",
     "schedule": "Stundenplan",
     "search": "Suchen",
     "tasks": "Aufgaben",
     "toggle": "Seitenleiste umschalten"
+  },
+  "chat": {
+    "title": "Gruppenchat",
+    "placeholder": "Nachricht eingeben...",
+    "send": "Senden",
+    "replyingTo": "Antwort auf",
+    "cancelReply": "Antwort abbrechen",
+    "typing": "schreibt...",
+    "typingMultiple": "schreiben...",
+    "noMessages": "Noch keine Nachrichten. Sag Hallo!",
+    "joinedRoom": "Mit dem Chat verbunden",
+    "errorLoading": "Fehler beim Laden der Nachrichten",
+    "quoteLabel": "Antwort an"
   },
   "welcome": {
     "auth": {
