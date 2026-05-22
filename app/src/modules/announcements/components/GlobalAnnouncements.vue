@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useAnnouncements } from '@/modules/announcements/composables/useAnnouncements';
 import { Ellipsis } from '@lucide/vue';
@@ -35,9 +35,14 @@ function nextAnnouncement() {
   }
 }
 
+const announcementEl = ref<HTMLElement | null>(null);
+let resizeObserver: ResizeObserver | null = null;
+
 function updateAnnouncementHeight() {
-  const height =
-    announcements.value.length && activeGroupId.value ? '45px' : '0px';
+  let height = '0px';
+  if (announcements.value.length && activeGroupId.value && announcementEl.value) {
+    height = `${announcementEl.value.getBoundingClientRect().height}px`;
+  }
   document.documentElement.style.setProperty('--announcement-height', height);
   window.dispatchEvent(new CustomEvent('announcement-height-changed'));
 }
@@ -59,7 +64,23 @@ onMounted(async () => {
   if (activeGroupId.value) {
     await checkAndNotifyUnread();
   }
+  
+  if (typeof window !== 'undefined' && 'ResizeObserver' in window) {
+    resizeObserver = new ResizeObserver(() => {
+      updateAnnouncementHeight();
+    });
+    if (announcementEl.value) {
+      resizeObserver.observe(announcementEl.value);
+    }
+  }
+  
   updateAnnouncementHeight();
+});
+
+onUnmounted(() => {
+  if (resizeObserver) {
+    resizeObserver.disconnect();
+  }
 });
 </script>
 
@@ -98,6 +119,7 @@ onMounted(async () => {
   >
     <div class="overflow-hidden min-h-0">
       <div
+        ref="announcementEl"
         class="p-0 text-on-ghost text-sm flex items-center justify-center shadow-menu border-b cursor-pointer"
         :class="[
           colorFor(currentAnnouncement.color).replace('is-', 'bg-'),

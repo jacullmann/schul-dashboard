@@ -11,7 +11,7 @@ import {
   SendHorizontal,
   Reply,
   X,
-  Loader2,
+  Loader,
   ArrowDown,
   Info,
 } from '@lucide/vue';
@@ -38,28 +38,72 @@ const typingUsers = ref<Map<string, string>>(new Map());
 const showScrollBottomBtn = ref(false);
 const messageContainer = ref<HTMLElement | null>(null);
 
+// Touch swipe-to-reply state
+let touchStartX = 0;
+let touchStartY = 0;
+const activeSwipeMessageId = ref<string | null>(null);
+const swipeX = ref(0);
+const isSwiping = ref(false);
+
+const handleTouchStart = (e: TouchEvent, msgId: string) => {
+  const touch = e.touches[0];
+  touchStartX = touch.clientX;
+  touchStartY = touch.clientY;
+  activeSwipeMessageId.value = msgId;
+  isSwiping.value = false;
+  swipeX.value = 0;
+};
+
+const handleTouchMove = (e: TouchEvent) => {
+  if (!activeSwipeMessageId.value) return;
+  const touch = e.touches[0];
+  const diffX = touch.clientX - touchStartX;
+  const diffY = touch.clientY - touchStartY;
+
+  // Detect direction on initial movement
+  if (!isSwiping.value) {
+    if (Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 8) {
+      activeSwipeMessageId.value = null;
+      return;
+    }
+    if (Math.abs(diffX) > 8) {
+      isSwiping.value = true;
+    }
+  }
+
+  if (isSwiping.value) {
+    if (diffX > 0) {
+      if (e.cancelable) {
+        e.preventDefault();
+      }
+      const maxSwipe = 80;
+      swipeX.value = Math.min(diffX * 0.5, maxSwipe);
+    } else {
+      swipeX.value = 0;
+    }
+  }
+};
+
+const handleTouchEnd = (msg: any) => {
+  if (activeSwipeMessageId.value === msg.id && isSwiping.value) {
+    if (swipeX.value >= 40) {
+      startReply(msg);
+      if (window.navigator && window.navigator.vibrate) {
+        try {
+          window.navigator.vibrate(15);
+        } catch (err) {
+          // ignore security errors
+        }
+      }
+    }
+  }
+  activeSwipeMessageId.value = null;
+  swipeX.value = 0;
+  isSwiping.value = false;
+};
+
 let socket: Socket | null = null;
 let typingTimeout: any = null;
-
-// Deterministic username avatar details
-const getAvatarInitials = (name: string) => {
-  if (!name) return '??';
-  const parts = name.split(/(?=[A-Z])/);
-  if (parts.length >= 2) {
-    return (parts[0][0] + parts[1][0]).toUpperCase();
-  }
-  return name.slice(0, 2).toUpperCase();
-};
-
-const getAvatarGradient = (username: string) => {
-  if (!username) return 'linear-gradient(135deg, #cbd5e1, #94a3b8)';
-  let hash = 0;
-  for (let i = 0; i < username.length; i++) {
-    hash = username.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const hue = Math.abs(hash) % 360;
-  return `linear-gradient(135deg, hsl(${hue}, 80%, 65%), hsl(${(hue + 40) % 360}, 85%, 50%))`;
-};
 
 // visual message grouping algorithms (premium slack/iMessage style)
 const isGroupedWithPrevious = (msg: any, index: number) => {
@@ -268,11 +312,14 @@ const typingDisplay = computed(() => {
 onMounted(() => {
   void fetchMessages();
   initSocket();
+
+  document.body.style.overflow = 'hidden';
 });
 
 onUnmounted(() => {
   emitStopTyping();
   cleanupSocket();
+  document.body.style.overflow = '';
 });
 
 watch(groupId, () => {
@@ -284,20 +331,20 @@ watch(groupId, () => {
 
 <template>
   <div
-    class="h-[calc(100vh-100px)] min-h-[500px] flex flex-col overflow-hidden relative p-0 animate-fade-up"
+    class="chat-container md:min-h-[500px] min-h-0 flex flex-col overflow-hidden relative p-0 animate-fade-up"
   >
     <!-- Main Message Area -->
     <div
       ref="messageContainer"
       @scroll="handleScroll"
-      class="flex-1 overflow-y-auto px-8 py-4 space-y-1.5 custom-scrollbar scroll-smooth bg-canvas"
+      class="flex-1 overflow-y-auto px-2 md:px-8 py-4 custom-scrollbar scroll-smooth bg-canvas"
     >
       <!-- Loading State -->
       <div
         v-if="loading"
         class="h-full flex flex-col justify-center items-center gap-3 text-on-ghost-muted"
       >
-        <Loader2 class="w-7 h-7 animate-spin text-action" />
+        <BaseSpinner size="32px" />
         <span
           class="text-xs font-semibold tracking-wider uppercase opacity-85 animate-pulse"
           >Lade Chat...</span
@@ -343,40 +390,79 @@ watch(groupId, () => {
             :key="msg.id"
             :id="`msg-${msg.id}`"
             class="w-full"
+            :class="isGroupedWithPrevious(msg, index) ? 'mt-1' : 'mt-4'"
           >
             <div
               :class="[
-                'group/msg flex items-end gap-3 max-w-[85%] sm:max-w-[70%] transition-all duration-200',
+                'group/msg flex items-end gap-2 max-w-[85%] sm:max-w-[70%] transition-all duration-200',
                 msg.userId === currentUserId
                   ? 'ml-auto flex-row-reverse'
                   : 'mr-auto',
-                isGroupedWithPrevious(msg, index) ? 'mt-[3px]' : 'mt-4',
               ]"
             >
               <!-- User Avatar (Only for others, hidden for grouped consecutive messages) -->
-              <div class="w-9 shrink-0 flex justify-center self-start">
+              <div
+                v-if="msg.userId !== currentUserId"
+                class="w-8 shrink-0 flex justify-center self-start"
+              >
                 <Avatar
                   v-if="
                     msg.userId !== currentUserId &&
                     !isGroupedWithPrevious(msg, index)
                   "
                   :name="msg.senderName"
-                  :size="9"
+                  :size="8"
                 />
               </div>
 
               <!-- Message Body -->
-              <div class="flex gap-0.5 relative max-w-full">
+              <div class="flex gap-0.5 relative max-w-full min-w-0">
+                <!-- Swipe Reply Indicator (behind the bubble) -->
+                <div
+                  v-if="activeSwipeMessageId === msg.id && swipeX > 0"
+                  class="absolute left-[-32px] top-1/2 -translate-y-1/2 flex items-center pointer-events-none z-0"
+                  :style="{
+                    opacity: Math.min(swipeX / 40, 1),
+                    transform: `scale(${swipeX >= 40 ? 1.15 : 0.95}) translateY(-50%)`,
+                  }"
+                >
+                  <div
+                    class="w-7 h-7 rounded-full flex items-center justify-center transition-all duration-150"
+                    :class="
+                      swipeX >= 40
+                        ? 'bg-action text-on-action shadow'
+                        : 'bg-surface border border-surface-border text-on-ghost-subtle'
+                    "
+                  >
+                    <Reply class="w-3.5 h-3.5" />
+                  </div>
+                </div>
+
                 <!-- Message Card Bubble with custom grouped borders -->
                 <div
                   :class="[
-                    'p-2 transition-all duration-200 relative group',
+                    'p-2 transition-all duration-200 relative group min-w-0 max-w-full',
                     msg.userId === currentUserId
                       ? 'bg-action text-on-action shadow-input'
                       : 'bg-surface border border-surface-border text-on-ghost shadow-input',
 
                     getBubbleBorderClasses(msg, index),
                   ]"
+                  :style="
+                    activeSwipeMessageId === msg.id
+                      ? {
+                          transform: `translateX(${swipeX}px)`,
+                          transition: 'none',
+                        }
+                      : {
+                          transform: 'translateX(0px)',
+                          transition:
+                            'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+                        }
+                  "
+                  @touchstart="handleTouchStart($event, msg.id)"
+                  @touchmove="handleTouchMove"
+                  @touchend="handleTouchEnd(msg)"
                 >
                   <span
                     v-if="
@@ -394,7 +480,7 @@ watch(groupId, () => {
                     @click="scrollToMessage(msg.parentId)"
                     v-wave
                     :class="[
-                      'flex flex-col mb-1 px-3 py-2 border-l-4 text-sm rounded-md transition-all duration-150 cursor-pointer select-none max-w-full truncate',
+                      'flex flex-col mb-1 px-3 py-2 border-l-4 text-sm rounded-md transition-all duration-150 cursor-pointer select-none max-w-full w-full min-w-0',
                       msg.userId === currentUserId
                         ? 'bg-action-hover hover:bg-on-action/20 border-on-action-muted text-on-action-muted'
                         : 'bg-ghost-hover hover:bg-on-ghost/15 border-on-ghost-muted text-on-ghost-muted mt-1',
@@ -402,12 +488,12 @@ watch(groupId, () => {
                     :title="t('chat.quoteLabel')"
                   >
                     <span class="font-bold">{{ msg.parentSenderName }}</span>
-                    <span>{{ msg.parentContent }}</span>
+                    <span class="truncate">{{ msg.parentContent }}</span>
                   </div>
 
                   <!-- Message Text with Inline Timestamp -->
                   <div
-                    class="px-2 flex flex-wrap items-end justify-between gap-x-3 gap-y-1"
+                    class="px-2 flex flex-wrap items-end justify-between gap-x-2 gap-y-1"
                   >
                     <span
                       class="text-base/relaxed whitespace-pre-wrap break-words"
@@ -416,10 +502,10 @@ watch(groupId, () => {
                     </span>
                     <span
                       :class="[
-                        'text-[10px] select-none font-bold tracking-tight opacity-75 whitespace-nowrap ml-auto self-end pb-[2px]',
+                        'text-xs select-none font-normal tracking-tight whitespace-nowrap ml-auto self-end',
                         msg.userId === currentUserId
-                          ? 'text-on-action/60'
-                          : 'text-on-ghost-muted/80',
+                          ? 'text-on-action-muted/70'
+                          : 'text-on-ghost-subtle',
                       ]"
                     >
                       {{ formatTime(msg.createdAt) }}
@@ -429,10 +515,10 @@ watch(groupId, () => {
                   <!-- Modern floating actions on hover -->
                   <div
                     :class="[
-                      'absolute top-1/2 -translate-y-1/2 opacity-0 group-hover/msg:opacity-100 flex items-center transition-all duration-200 delay-75 scale-90 translate-y-1 group-hover/msg:scale-100 group-hover/msg:translate-y-[-50%] z-10',
+                      'absolute top-1/2 -translate-y-1/2 opacity-0 group-hover/msg:opacity-100 flex items-center transition-all duration-200 delay-75 scale-90 translate-y-1 group-hover/msg:scale-100 group-hover/msg:translate-y-[-50%] z-10 hidden md:flex',
                       msg.userId === currentUserId
-                        ? 'left-[-56px]'
-                        : 'right-[-56px]',
+                        ? 'left-[-48px]'
+                        : 'right-[-48px]',
                     ]"
                   >
                     <BaseButton
@@ -449,7 +535,7 @@ watch(groupId, () => {
         </TransitionGroup>
 
         <!-- Typing Indicator Area -->
-        <div class="px-6 py-1 h-6 flex items-center shrink-0 bg-canvas">
+        <div class="px-6 py-1 h-6 mt-4 flex items-center shrink-0 bg-canvas">
           <Transition name="fade">
             <div
               v-if="typingDisplay"
@@ -479,7 +565,7 @@ watch(groupId, () => {
         v-if="showScrollBottomBtn"
         variant="action"
         @click="scrollToBottom(true)"
-        class="absolute! bottom-24 right-8"
+        class="absolute! bottom-20 right-4 md:bottom-24 md:right-8"
         title="Nach unten"
         :icon="ArrowDown"
       >
@@ -492,27 +578,27 @@ watch(groupId, () => {
       <form
         novalidate
         @submit.prevent="sendMessage"
-        class="px-2 pb-4 flex items-center gap-2"
+        class="p-2 pt-0 flex items-end gap-2"
       >
         <div
-          class="flex-1 relative flex flex-col items-center py-2.25 px-2.25 min-h-10 bg-surface border border-surface-border focus-within:border-focus focus-within:shadow-focus-ring rounded-2xl transition-all duration-200"
+          class="flex-1 min-w-0 relative flex flex-col items-stretch py-2.25 px-2.25 min-h-10 bg-surface border border-surface-border focus-within:border-focus focus-within:shadow-focus-ring rounded-2xl transition-all duration-200"
           :class="replyParent ? 'rounded-t-xl' : ''"
         >
           <!-- Premium active reply context banner -->
           <Transition name="slide-up">
             <div
               v-if="replyParent"
-              class="flex w-full items-center justify-between px-3 py-2 mb-2 rounded-md bg-ghost-hover border-l-4 border-action text-xs text-on-ghost-muted"
+              class="flex w-full min-w-0 items-center justify-between px-3 py-2 mb-2 rounded-md bg-ghost-hover border-l-4 border-action text-xs text-on-ghost-muted"
             >
               <div
-                class="flex flex-col items-left justify-center truncate max-w-[85%]"
+                class="flex-1 min-w-0 flex flex-col justify-center"
               >
-                <span class="text-sm font-bold select-none">
+                <span class="text-sm font-bold select-none truncate">
                   {{ replyParent.senderName }}
                 </span>
-                <span class="text-sm font-normal text-on-ghost-muted">{{
-                  replyParent.content
-                }}</span>
+                <span class="text-sm font-normal text-on-ghost-subtle truncate">
+                  {{ replyParent.content }}
+                </span>
               </div>
               <BaseButton
                 @click="replyParent = null"
@@ -530,7 +616,7 @@ watch(groupId, () => {
             @input="handleInput"
             @keydown.enter.prevent="sendMessage"
             rows="1"
-            class="flex-1 items-center justify-center py-0 px-1.75 rounded-none bg-transparent border-none shadow-none outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 text-base/5 text-on-ghost placeholder:text-on-ghost-subtle resize-none max-h-24 custom-scrollbar font-medium tracking-tight"
+            class="w-full flex-1 items-center justify-center py-0 px-1.75 rounded-none bg-transparent border-none shadow-none outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 text-base/5 text-on-ghost placeholder:text-on-ghost-subtle resize-none max-h-24 custom-scrollbar font-medium tracking-tight"
             :placeholder="t('chat.placeholder')"
             required
             maxlength="1000"
@@ -551,6 +637,11 @@ watch(groupId, () => {
 </template>
 
 <style scoped>
+.chat-container {
+  height: calc(100dvh - var(--header-height, 65px) - var(--announcement-height, 0px) - 8px);
+  height: calc(100dvh - var(--header-height, 65px) - var(--announcement-height, 0px) - 8px - env(safe-area-inset-bottom, 0px));
+}
+
 /* Sophisticated minimal scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
   width: 5px;
