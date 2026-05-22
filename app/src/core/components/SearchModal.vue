@@ -10,6 +10,7 @@ import {
   House,
   ListTodo,
   CalendarDays,
+  MessageCircle,
   Lock,
   UsersRound,
   SlidersHorizontal,
@@ -134,6 +135,15 @@ const defaultResults = computed<SearchResult[]>(() => [
     icon: CalendarDays,
     action: () =>
       withGroup(() => navigate(`/groups/${activeGroupId.value}/schedule`)),
+  },
+  {
+    id: 'messages',
+    label: t('sidebar.messages'),
+    description: t('search.descriptions.messages'),
+    category: 'page',
+    icon: MessageCircle,
+    action: () =>
+      withGroup(() => navigate(`/groups/${activeGroupId.value}/messages`)),
   },
   {
     id: 'private',
