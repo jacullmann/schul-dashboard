@@ -15,6 +15,7 @@ import {
   ArrowDown,
   Info,
 } from '@lucide/vue';
+import Avatar from '@/modules/auth/components/Avatar.vue';
 
 const { t } = useI18n();
 const route = useRoute();
@@ -354,23 +355,18 @@ watch(groupId, () => {
             >
               <!-- User Avatar (Only for others, hidden for grouped consecutive messages) -->
               <div class="w-9 shrink-0 flex justify-center self-start">
-                <div
+                <Avatar
                   v-if="
                     msg.userId !== currentUserId &&
                     !isGroupedWithPrevious(msg, index)
                   "
-                  class="w-9 h-9 rounded-2xl flex items-center justify-center text-white text-[11px] font-extrabold shrink-0 shadow-md select-none border border-white/10 relative transition-transform duration-300 hover:scale-105"
-                  :style="{ background: getAvatarGradient(msg.senderName) }"
-                  :title="msg.senderName"
-                >
-                  {{ getAvatarInitials(msg.senderName) }}
-                </div>
+                  :name="msg.senderName"
+                  :size="9"
+                />
               </div>
 
               <!-- Message Body -->
               <div class="flex gap-0.5 relative max-w-full">
-                <!-- Username display for others (Only if not grouped) -->
-
                 <!-- Message Card Bubble with custom grouped borders -->
                 <div
                   :class="[
@@ -387,7 +383,7 @@ watch(groupId, () => {
                       msg.userId !== currentUserId &&
                       !isGroupedWithPrevious(msg, index)
                     "
-                    class="px-2 text-sm/relaxed font-bold text-on-ghost tracking-tight select-none mb-1"
+                    class="px-2 text-base/relaxed font-bold text-on-ghost tracking-tight select-none mb-1"
                   >
                     {{ msg.senderName }}
                   </span>
@@ -396,20 +392,17 @@ watch(groupId, () => {
                   <div
                     v-if="msg.parentId && msg.parentContent"
                     @click="scrollToMessage(msg.parentId)"
+                    v-wave
                     :class="[
-                      'mb-2 p-2.5 border-l-2 text-[11px] rounded-md transition-all duration-150 cursor-pointer select-none max-w-full truncate',
+                      'flex flex-col mb-1 px-3 py-2 border-l-4 text-sm rounded-md transition-all duration-150 cursor-pointer select-none max-w-full truncate',
                       msg.userId === currentUserId
-                        ? 'bg-on-action/10 hover:bg-on-action/15 border-on-action/40 text-on-action/90'
-                        : 'bg-ghost-hover border-on-ghost-muted text-on-ghost-muted hover:bg-surface/80',
+                        ? 'bg-action-hover hover:bg-on-action/20 border-on-action-muted text-on-action-muted'
+                        : 'bg-ghost-hover hover:bg-on-ghost/15 border-on-ghost-muted text-on-ghost-muted mt-1',
                     ]"
                     :title="t('chat.quoteLabel')"
                   >
-                    <span class="block font-bold mb-0.5 opacity-90 text-[10px]"
-                      >@{{ msg.parentSenderName }}</span
-                    >
-                    <span class="italic font-medium">{{
-                      msg.parentContent
-                    }}</span>
+                    <span class="font-bold">{{ msg.parentSenderName }}</span>
+                    <span>{{ msg.parentContent }}</span>
                   </div>
 
                   <!-- Message Text with Inline Timestamp -->
@@ -417,7 +410,7 @@ watch(groupId, () => {
                     class="px-2 flex flex-wrap items-end justify-between gap-x-3 gap-y-1"
                   >
                     <span
-                      class="text-sm/relaxed whitespace-pre-wrap break-words"
+                      class="text-base/relaxed whitespace-pre-wrap break-words"
                     >
                       {{ msg.content }}
                     </span>
