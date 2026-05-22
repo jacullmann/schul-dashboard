@@ -272,7 +272,10 @@ async function submit() {
       title: cleanTitle,
       subject: finalSubject,
       description: cleanDesc,
-      images: imgImages.value,
+      images: imgImages.value.map((img) => ({
+        publicId: img.publicId,
+        metadata: img.metadata || {},
+      })),
       dueDate: selectedDate.toISOString(),
     };
 
