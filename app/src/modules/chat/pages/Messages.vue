@@ -11,7 +11,6 @@ import {
   SendHorizontal,
   Reply,
   X,
-  Loader,
   ArrowDown,
   Info,
 } from '@lucide/vue';
@@ -25,7 +24,6 @@ const { user } = storeToRefs(userStore);
 const groupId = computed(() => route.params.groupId as string);
 const currentUserId = computed(() => user.value?.id || '');
 
-// Chat State
 const messages = ref<any[]>([]);
 const loading = ref(true);
 const error = ref<string | null>(null);
@@ -34,11 +32,9 @@ const replyParent = ref<any | null>(null);
 const isTyping = ref(false);
 const typingUsers = ref<Map<string, string>>(new Map());
 
-// UI scroll state
 const showScrollBottomBtn = ref(false);
 const messageContainer = ref<HTMLElement | null>(null);
 
-// Touch swipe-to-reply state
 let touchStartX = 0;
 let touchStartY = 0;
 const activeSwipeMessageId = ref<string | null>(null);
@@ -60,7 +56,6 @@ const handleTouchMove = (e: TouchEvent) => {
   const diffX = touch.clientX - touchStartX;
   const diffY = touch.clientY - touchStartY;
 
-  // Detect direction on initial movement
   if (!isSwiping.value) {
     if (Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 8) {
       activeSwipeMessageId.value = null;
@@ -105,40 +100,39 @@ const handleTouchEnd = (msg: any) => {
 let socket: Socket | null = null;
 let typingTimeout: any = null;
 
-// visual message grouping algorithms (premium slack/iMessage style)
 const isGroupedWithPrevious = (msg: any, index: number) => {
   if (index === 0) return false;
   const prevMsg = messages.value[index - 1];
   if (prevMsg.userId !== msg.userId) return false;
-  if (msg.parentId) return false; // Don't group if this is a reply to keep layout clean
-  if (prevMsg.parentId) return false;
 
   const timeDiff =
     new Date(msg.createdAt).getTime() - new Date(prevMsg.createdAt).getTime();
-  return timeDiff < 90000; // Group if within 90 seconds
+  return timeDiff < 90000;
 };
 
 const getBubbleBorderClasses = (msg: any, index: number) => {
   const p = isGroupedWithPrevious(msg, index);
+  const r = msg.parentId && msg.parentContent;
 
   return `rounded-2xl ${
     msg.userId === currentUserId.value
-      ? (msg.parentId && msg.parentContent ? 'rounded-tl-xl' : '') +
-        (p ? ' rounded-tr-2xl' : ' rounded-tr-sm')
+      ? p
+        ? r
+          ? 'rounded-t-xl'
+          : ''
+        : r ? 'rounded-tl-xl rounded-tr-sm' : 'rounded-tr-sm'
       : p
         ? ' rounded-tl-2xl'
         : ' rounded-tl-sm'
   }`;
 };
 
-// Check if scroll is near bottom
 const isNearBottom = () => {
   if (!messageContainer.value) return false;
   const c = messageContainer.value;
   return c.scrollHeight - c.scrollTop - c.clientHeight < 180;
 };
 
-// Scroll to bottom
 const scrollToBottom = (force = false) => {
   nextTick(() => {
     if (!messageContainer.value) return;
@@ -148,7 +142,6 @@ const scrollToBottom = (force = false) => {
   });
 };
 
-// Handle container scroll event to toggle the "Scroll to Bottom" sticky button
 const handleScroll = () => {
   if (!messageContainer.value) return;
   const c = messageContainer.value;
@@ -156,14 +149,12 @@ const handleScroll = () => {
     c.scrollHeight - c.scrollTop - c.clientHeight > 300;
 };
 
-// Format Timestamp
 const formatTime = (timestamp: string) => {
   if (!timestamp) return '';
   const date = new Date(timestamp);
   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 };
 
-// Fetch chat history
 const fetchMessages = async () => {
   loading.value = true;
   error.value = null;
@@ -179,7 +170,6 @@ const fetchMessages = async () => {
   }
 };
 
-// Initialize WebSocket connection
 const initSocket = () => {
   const socketUrl = import.meta.env.VITE_HW_API_BASE || window.location.origin;
   socket = io(`${socketUrl}/messages`, {
@@ -225,7 +215,6 @@ const cleanupSocket = () => {
   }
 };
 
-// Send message via REST API
 const sendMessage = async () => {
   const text = messageInput.value.trim();
   if (!text) return;
@@ -238,7 +227,6 @@ const sendMessage = async () => {
     payload.parentId = replyParent.value.id;
   }
 
-  // Clear typing and input fields immediately for snappy UI
   messageInput.value = '';
   const currentReplyParent = replyParent.value;
   replyParent.value = null;
@@ -248,13 +236,11 @@ const sendMessage = async () => {
     await hw.post('/api/messages', payload);
   } catch (err) {
     console.error('Failed to send message:', err);
-    // Restore input on failure
     messageInput.value = text;
     replyParent.value = currentReplyParent;
   }
 };
 
-// Typing status emission
 const handleInput = () => {
   if (!socket || !socket.connected) return;
 
@@ -275,7 +261,6 @@ const emitStopTyping = () => {
   socket.emit('stopTyping', { groupId: groupId.value });
 };
 
-// Reply configuration
 const startReply = (message: any) => {
   replyParent.value = message;
   nextTick(() => {
@@ -284,7 +269,6 @@ const startReply = (message: any) => {
   });
 };
 
-// Quote clicking scrolls target parent message into view with flash effect
 const scrollToMessage = (id: string) => {
   const el = document.getElementById(`msg-${id}`);
   if (el) {
@@ -296,7 +280,6 @@ const scrollToMessage = (id: string) => {
   }
 };
 
-// Computed typing display string
 const typingDisplay = computed(() => {
   const users = Array.from(typingUsers.value.values());
   if (users.length === 0) return '';
@@ -333,13 +316,11 @@ watch(groupId, () => {
   <div
     class="chat-container md:min-h-[500px] min-h-0 flex flex-col overflow-hidden relative p-0 animate-fade-up"
   >
-    <!-- Main Message Area -->
     <div
       ref="messageContainer"
       @scroll="handleScroll"
       class="flex-1 overflow-y-auto py-4 custom-scrollbar scroll-smooth bg-canvas"
     >
-      <!-- Loading State -->
       <div
         v-if="loading"
         class="h-full flex flex-col justify-center items-center gap-3 text-on-ghost-muted"
@@ -351,7 +332,6 @@ watch(groupId, () => {
         >
       </div>
 
-      <!-- Error State -->
       <div
         v-else-if="error"
         class="h-full flex flex-col justify-center items-center gap-3 text-danger p-6 text-center"
@@ -366,7 +346,6 @@ watch(groupId, () => {
         </button>
       </div>
 
-      <!-- Messages Stream -->
       <template v-else>
         <div
           v-if="messages.length === 0"
@@ -400,7 +379,6 @@ watch(groupId, () => {
                   : 'mr-auto',
               ]"
             >
-              <!-- User Avatar (Only for others, hidden for grouped consecutive messages) -->
               <div
                 v-if="msg.userId !== currentUserId"
                 class="w-8 shrink-0 flex justify-center self-start"
@@ -415,9 +393,7 @@ watch(groupId, () => {
                 />
               </div>
 
-              <!-- Message Body -->
               <div class="flex gap-0.5 relative max-w-full min-w-0">
-                <!-- Swipe Reply Indicator (behind the bubble) -->
                 <div
                   v-if="activeSwipeMessageId === msg.id && swipeX > 0"
                   class="absolute left-[-32px] top-1/2 -translate-y-1/2 flex items-center pointer-events-none z-0"
@@ -438,7 +414,6 @@ watch(groupId, () => {
                   </div>
                 </div>
 
-                <!-- Message Card Bubble with custom grouped borders -->
                 <div
                   :class="[
                     'p-2 transition-all duration-200 relative group min-w-0 max-w-full',
@@ -474,7 +449,6 @@ watch(groupId, () => {
                     {{ msg.senderName }}
                   </span>
 
-                  <!-- Reply context -->
                   <div
                     v-if="msg.parentId && msg.parentContent"
                     @click="scrollToMessage(msg.parentId)"
@@ -491,7 +465,6 @@ watch(groupId, () => {
                     <span class="truncate">{{ msg.parentContent }}</span>
                   </div>
 
-                  <!-- Message Text with Inline Timestamp -->
                   <div
                     class="px-2 flex flex-wrap items-end justify-between gap-x-2 gap-y-1"
                   >
@@ -512,7 +485,6 @@ watch(groupId, () => {
                     </span>
                   </div>
 
-                  <!-- Modern floating actions on hover -->
                   <div
                     :class="[
                       'absolute top-1/2 -translate-y-1/2 opacity-0 group-hover/msg:opacity-100 flex items-center transition-all duration-200 delay-75 scale-90 translate-y-1 group-hover/msg:scale-100 group-hover/msg:translate-y-[-50%] z-10 hidden md:flex',
@@ -534,7 +506,6 @@ watch(groupId, () => {
           </div>
         </TransitionGroup>
 
-        <!-- Typing Indicator Area -->
         <div class="px-6 py-1 h-6 mt-4 flex items-center shrink-0 bg-canvas">
           <Transition name="fade">
             <div
@@ -559,7 +530,6 @@ watch(groupId, () => {
       </template>
     </div>
 
-    <!-- Minimalistic Floating Scroll Bottom Button -->
     <Transition name="scale-fade">
       <BaseButton
         v-if="showScrollBottomBtn"
@@ -572,9 +542,7 @@ watch(groupId, () => {
       </BaseButton>
     </Transition>
 
-    <!-- Bottom Input Bar & Active Reply Area -->
     <div class="shrink-0">
-      <!-- Float Input Area -->
       <form
         novalidate
         @submit.prevent="sendMessage"
@@ -584,15 +552,12 @@ watch(groupId, () => {
           class="flex-1 min-w-0 relative flex flex-col items-stretch py-2.25 px-2.25 min-h-10 bg-surface border border-surface-border focus-within:border-focus focus-within:shadow-focus-ring rounded-2xl transition-all duration-200"
           :class="replyParent ? 'rounded-t-xl' : ''"
         >
-          <!-- Premium active reply context banner -->
           <Transition name="slide-up">
             <div
               v-if="replyParent"
               class="flex w-full min-w-0 items-center justify-between px-3 py-2 mb-2 rounded-md bg-ghost-hover border-l-4 border-action text-xs text-on-ghost-muted"
             >
-              <div
-                class="flex-1 min-w-0 flex flex-col justify-center"
-              >
+              <div class="flex-1 min-w-0 flex flex-col justify-center">
                 <span class="text-sm font-bold select-none truncate">
                   {{ replyParent.senderName }}
                 </span>
@@ -638,28 +603,15 @@ watch(groupId, () => {
 
 <style scoped>
 .chat-container {
-  height: calc(100dvh - var(--header-height, 65px) - var(--announcement-height, 0px) - 8px);
-  height: calc(100dvh - var(--header-height, 65px) - var(--announcement-height, 0px) - 8px - env(safe-area-inset-bottom, 0px));
+  height: calc(
+    100dvh - var(--header-height, 65px) - var(--announcement-height, 0px) - 8px
+  );
+  height: calc(
+    100dvh - var(--header-height, 65px) - var(--announcement-height, 0px) -
+      8px - env(safe-area-inset-bottom, 0px)
+  );
 }
 
-/* Sophisticated minimal scrollbar */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.15);
-  border-radius: 99px;
-  transition: all 0.2s ease;
-}
-.custom-scrollbar:hover::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.35);
-}
-
-/* Pulse highlight animation for quoted scroll targets using variables */
 @keyframes flash-message-pulse {
   0%,
   100% {
@@ -675,7 +627,6 @@ watch(groupId, () => {
   transition: all 0.3s ease;
 }
 
-/* Tactile bounce animation for typing indicator dots */
 @keyframes wave-dots {
   0%,
   100% {
@@ -698,7 +649,6 @@ watch(groupId, () => {
   animation-delay: 0.36s;
 }
 
-/* Smooth enter transitions for chat stream */
 .msg-list-enter-active {
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -710,7 +660,6 @@ watch(groupId, () => {
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Standard Transitions */
 .fade-enter-active,
 .fade-leave-active {
   transition:
