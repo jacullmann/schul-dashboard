@@ -5,7 +5,7 @@ import '@/assets/css/style.css';
 import router from '@/router';
 import { useTheme } from '@/common/composables/useTheme';
 import i18n from '@/i18n';
-import VWave from 'v-wave'
+import VWave from 'v-wave';
 
 const { initializeTheme } = useTheme();
 initializeTheme();
@@ -16,8 +16,9 @@ app.use(router);
 app.use(i18n);
 app.use(VWave, {
   color: 'currentColor',
-  initialOpacity: 0.2,
-  duration: 0.4,
+  initialOpacity: 0.12,
+  finalOpacity: 0.12,
+  duration: 0.2,
 });
 app.config.errorHandler = (err, instance, info) => {
   //if (import.meta.env.DEV) {

@@ -146,7 +146,7 @@ const itemStyles: Record<string, { bg: string }> = {
               :key="item.id"
               class="relative flex items-center justify-between w-full p-4 bg-transparent hover:bg-surface-hover cursor-pointer transition-hover outline-none text-left md:rounded-2xl"
               @click="selectTab(item.id)"
-              v-ripple
+              v-wave
             >
               <div class="flex items-center gap-4">
                 <div class="flex size-10 justify-center items-center">
@@ -171,7 +171,6 @@ const itemStyles: Record<string, { bg: string }> = {
               variant="ghost"
               on="ghost"
               @click="goBack"
-              v-ripple
               aria-label="Go Back"
               :icon="ArrowLeft"
             />

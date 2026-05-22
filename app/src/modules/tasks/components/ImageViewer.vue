@@ -120,6 +120,7 @@ watch(
       <Transition name="fade-controls">
         <div v-show="controlsVisible" class="fixed inset-0 pointer-events-none">
           <button
+            v-wave
             class="absolute top-4 right-4 pointer-events-auto bg-[rgba(0,0,0,0.6)] border-none text-white cursor-pointer p-2 rounded-full flex items-center justify-center transition-colors hover:bg-[rgba(0,0,0,0.4)] backdrop-blur-[4px]"
             @click.stop="cancel"
           >
@@ -128,6 +129,7 @@ watch(
 
           <button
             v-if="hasPrev"
+            v-wave
             class="absolute top-1/2 left-4 -translate-y-1/2 pointer-events-auto bg-[rgba(0,0,0,0.6)] border-none text-white cursor-pointer p-2 rounded-full flex items-center justify-center transition-colors hover:bg-[rgba(0,0,0,0.4)] backdrop-blur-[4px]"
             @click.stop="prev"
           >
@@ -136,6 +138,7 @@ watch(
 
           <button
             v-if="hasNext"
+            v-wave
             class="absolute top-1/2 right-4 -translate-y-1/2 pointer-events-auto bg-[rgba(0,0,0,0.6)] border-none text-white cursor-pointer p-2 rounded-full flex items-center justify-center transition-colors hover:bg-[rgba(0,0,0,0.4)] backdrop-blur-[4px]"
             @click.stop="next"
           >
