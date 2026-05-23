@@ -109,8 +109,7 @@ function onPointerUp(e: PointerEvent) {
   const el = e.currentTarget as HTMLElement;
   try {
     el.releasePointerCapture(e.pointerId);
-  } catch {
-  }
+  } catch {}
 }
 
 function onWheel(e: WheelEvent) {

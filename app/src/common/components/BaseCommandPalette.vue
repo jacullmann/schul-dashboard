@@ -101,7 +101,6 @@ function setSelectedIndex(idx: number) {
       "
       @keydown="handleKeydown"
     >
-
       <div class="flex items-center gap-3 p-4 border-b border-surface-border">
         <Search :size="20" class="text-on-ghost-subtle shrink-0" />
         <input

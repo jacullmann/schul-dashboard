@@ -51,8 +51,7 @@ function clearAuthState(): void {
   statusPromise = null;
   try {
     localStorage.removeItem('active_tenant_id');
-  } catch {
-  }
+  } catch {}
 }
 
 function applyStatusData(data: {

@@ -167,7 +167,6 @@ const cropBoxStyle = computed(() => {
   };
 });
 
-
 const updateCropFromInput = () => {
   setCrop(crop.x, crop.y, crop.w, crop.h);
 };

@@ -1,31 +1,26 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { Plus, Brush } from '@lucide/vue';
-import {
-  onClickOutside,
-  useElementBounding,
-  useWindowSize,
-  useEventListener,
-} from '@vueuse/core';
+import { onClickOutside, useEventListener } from '@vueuse/core';
+import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/vue';
 
 const isOpen = ref(false);
 const triggerRef = ref<HTMLElement | null>(null);
-const menuRef = ref<HTMLElement | null>(null);
+const menuComponentRef = ref<any>(null);
+const menuRef = computed(() => menuComponentRef.value?.menuEl || null);
 
-const { bottom, left, right } = useElementBounding(triggerRef);
-const { width: windowWidth } = useWindowSize();
-
-const menuStyles = computed(() => {
-  const menuMinWidth = 192; // min-w-48 = 12rem = 192px
-  const shouldFlip = left.value + menuMinWidth > windowWidth.value;
-
-  return {
-    position: 'fixed' as const,
-    top: `${bottom.value + 8}px`,
-    left: shouldFlip ? `${right.value - menuMinWidth}px` : `${left.value}px`,
-    zIndex: 1000,
-  };
+const { floatingStyles, isPositioned } = useFloating(triggerRef, menuRef, {
+  strategy: 'fixed',
+  placement: 'bottom-start',
+  whileElementsMounted: autoUpdate,
+  transform: false,
+  middleware: [offset(8), flip(), shift({ padding: 8 })],
 });
+
+const menuStyles = computed(() => ({
+  ...floatingStyles.value,
+  opacity: isPositioned.value ? undefined : 0,
+}));
 
 function toggle() {
   isOpen.value = !isOpen.value;
@@ -40,7 +35,7 @@ onClickOutside(
   () => {
     close();
   },
-  { ignore: [computed(() => (menuRef.value as any)?.menuEl)] },
+  { ignore: [menuRef] },
 );
 
 useEventListener(document, 'keydown', (e) => {
@@ -64,7 +59,7 @@ useEventListener(document, 'keydown', (e) => {
       <BaseMenu
         :open="isOpen"
         @close="close"
-        ref="menuRef"
+        ref="menuComponentRef"
         :style="menuStyles"
         class="min-w-56!"
       >

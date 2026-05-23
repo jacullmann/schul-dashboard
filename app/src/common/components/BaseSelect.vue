@@ -3,6 +3,7 @@ import { ref, nextTick, computed } from 'vue';
 import { onClickOutside, useElementBounding } from '@vueuse/core';
 import { ChevronDown } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
+import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/vue';
 
 const { t } = useI18n();
 
@@ -32,17 +33,26 @@ const emit = defineEmits<{
 }>();
 
 const isOpen = ref(false);
-const wrapperRef = ref<HTMLElement | null>(null);
-const floatingRef = ref<HTMLElement | null>(null);
+const wrapperRef = ref<any>(null);
+const floatingRef = ref<any>(null);
 
-const { left, bottom, width } = useElementBounding(wrapperRef);
+const triggerEl = computed(() => wrapperRef.value?.$el || null);
+const menuEl = computed(() => floatingRef.value?.menuEl || null);
 
-const floatingStyles = computed(() => ({
-  position: 'fixed' as const,
-  top: `${bottom.value + 4}px`,
-  left: `${left.value}px`,
+const { floatingStyles, isPositioned } = useFloating(triggerEl, menuEl, {
+  placement: 'bottom-start',
+  whileElementsMounted: autoUpdate,
+  transform: false,
+  middleware: [offset(4), flip(), shift({ padding: 8 })],
+});
+
+const { width } = useElementBounding(triggerEl);
+
+const selectStyles = computed(() => ({
+  ...floatingStyles.value,
   width: `${width.value}px`,
   zIndex: 100002,
+  opacity: isPositioned.value ? undefined : 0,
 }));
 
 const toggleMenu = async () => {
@@ -53,9 +63,9 @@ const toggleMenu = async () => {
       await nextTick();
 
       if (floatingRef.value) {
-        const menuEl = (floatingRef.value as any).menuEl as HTMLElement;
+        const innerMenuEl = floatingRef.value.menuEl as HTMLElement;
 
-        const selectedElement = menuEl?.querySelector(
+        const selectedElement = innerMenuEl?.querySelector(
           '[aria-checked="true"]',
         ) as HTMLElement | null;
 
@@ -82,7 +92,7 @@ onClickOutside(
   () => {
     isOpen.value = false;
   },
-  { ignore: [computed(() => (floatingRef.value as any)?.menuEl)] },
+  { ignore: [menuEl] },
 );
 </script>
 
@@ -128,7 +138,7 @@ onClickOutside(
         :open="isOpen"
         @close="isOpen = false"
         ref="floatingRef"
-        :style="floatingStyles"
+        :style="selectStyles"
         class="max-h-80 z-[9999]"
       >
         <BaseMenuButton

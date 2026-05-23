@@ -31,7 +31,9 @@ function parseCookies(cookieHeader?: string): Record<string, string> {
     credentials: true,
   },
 })
-export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class MessagesGateway
+  implements OnGatewayConnection, OnGatewayDisconnect
+{
   private readonly logger = new Logger(MessagesGateway.name);
 
   @WebSocketServer()
@@ -46,7 +48,9 @@ export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect
       const token = cookies[COOKIE_NAME];
 
       if (!token) {
-        this.logger.warn(`Connection attempt rejected: no ${COOKIE_NAME} cookie found.`);
+        this.logger.warn(
+          `Connection attempt rejected: no ${COOKIE_NAME} cookie found.`,
+        );
         client.disconnect();
         return;
       }
@@ -63,7 +67,9 @@ export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect
       client.data.activeGroupId = payload.gId;
       this.logger.log(`Client ${client.id} connected. User: ${payload.sub}`);
     } catch (err) {
-      this.logger.error(`Error in socket connection: ${err instanceof Error ? err.message : err}`);
+      this.logger.error(
+        `Error in socket connection: ${err instanceof Error ? err.message : err}`,
+      );
       client.disconnect();
     }
   }
@@ -123,5 +129,13 @@ export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect
     const room = `group:${tenantId}`;
     this.server.to(room).emit('newMessage', message);
     this.logger.log(`Broadcasted new message to room ${room}`);
+  }
+
+  broadcastMessageDeleted(tenantId: string, messageId: string) {
+    const room = `group:${tenantId}`;
+    this.server.to(room).emit('messageDeleted', { messageId });
+    this.logger.log(
+      `Broadcasted message deletion ${messageId} to room ${room}`,
+    );
   }
 }

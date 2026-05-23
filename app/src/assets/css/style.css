@@ -15,6 +15,7 @@
   --color-white-highlight: oklch(0.9491 0 0);
   --color-mist: oklch(1 0 0 / 11%);
   --color-white: oklch(1 0 0);
+  --color-cobalt: oklch(0.5223 0.2209 260.65);
   --color-cinnabar: oklch(0.6368 0.2078 25.33);
   --color-coral: oklch(0.6643 0.2005 24.41);
   --color-coral-highlight: oklch(0.7044 0.1872 23.19);
@@ -90,7 +91,6 @@
   --color-shadow-heavy: oklch(0 0 0 / 10%);
   --shadow-menu: 0 12px 24px -2px var(--color-shadow-heavy);
   --shadow-focus-ring: 0 0 0 3px var(--focus-ring-color, var(--color-cloud));
-
 
   --duration-hover: 100ms;
   --ease-hover: ease;

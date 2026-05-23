@@ -100,7 +100,6 @@ function goBack() {
   transitionDirection.value = 'backward';
   activeTab.value = '';
 }
-
 </script>
 
 <template>

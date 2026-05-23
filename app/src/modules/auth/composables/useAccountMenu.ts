@@ -4,6 +4,7 @@ import {
   useElementBounding,
   useWindowSize,
 } from '@vueuse/core';
+import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/vue';
 import type { UserData } from '@/stores/userStore';
 import { useAccountModals } from '@/modules/auth/composables/useAccountModals';
 
@@ -30,48 +31,33 @@ export function useAccountMenu(
 
   const open = ref(false);
 
-  const {
-    left: btnLeft,
-    top: btnTop,
-    bottom: btnBottom,
-  } = useElementBounding(refs.root);
-  const { width: popupW, height: popupH } = useElementBounding(refs.popupInner);
-  const { width: vw, height: vh } = useWindowSize();
+  const triggerEl = computed(() => refs.root.value);
+  const menuEl = computed(() => refs.popupInner.value);
+
+  const { floatingStyles, isPositioned } = useFloating(triggerEl, menuEl, {
+    strategy: 'fixed',
+    placement: 'bottom-start',
+    whileElementsMounted: autoUpdate,
+    transform: false,
+    middleware: [offset(8), flip(), shift({ padding: 8 })],
+  });
+
+  const { width: popupW } = useElementBounding(refs.popupInner);
+  const { width: vw } = useWindowSize();
 
   const isMobile = computed(() => vw.value < 768);
 
   const popupStyle = computed<CSSProperties>(() => {
     if (!open.value) return {};
-
     if (isMobile.value) return {};
 
-    let left = btnLeft.value;
     const width = Math.min(300, popupW.value || 300);
 
-    if (left + width > vw.value - 8) {
-      left = Math.max(8, vw.value - width - 8);
-    }
-
-    const spaceBelow = vh.value - btnBottom.value;
-    const estimatedH = popupH.value || 350;
-
-    if (spaceBelow < estimatedH) {
-      return {
-        position: 'fixed',
-        left: `${Math.round(left)}px`,
-        bottom: `${Math.round(vh.value - btnTop.value + 8)}px`,
-        width: `${width}px`,
-        transformOrigin: 'bottom left',
-      };
-    } else {
-      return {
-        position: 'fixed',
-        left: `${Math.round(left)}px`,
-        top: `${Math.round(btnBottom.value + 8)}px`,
-        width: `${width}px`,
-        transformOrigin: 'top left',
-      };
-    }
+    return {
+      ...floatingStyles.value,
+      width: `${width}px`,
+      opacity: isPositioned.value ? undefined : 0,
+    };
   });
 
   function cancel() {

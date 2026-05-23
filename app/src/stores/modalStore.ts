@@ -120,10 +120,8 @@ export const useModalStore = defineStore('modals', () => {
     return () => _privateTaskFormSuccessCallbacks.delete(cb);
   }
 
-
   const announcementFormOpen = ref(false);
   const announcementFormKey = ref(0);
-
 
   const _announcementFormSuccessCallbacks = new Set<() => void>();
 
@@ -146,7 +144,6 @@ export const useModalStore = defineStore('modals', () => {
     return () => _announcementFormSuccessCallbacks.delete(cb);
   }
 
-
   const imageViewerOpen = ref(false);
   const imageViewerImages = ref<ImageItem[]>([]);
   const imageViewerInitialIndex = ref(0);
@@ -166,7 +163,6 @@ export const useModalStore = defineStore('modals', () => {
     }, 300);
   }
 
-
   const showChangePassword = ref(false);
   const showSecurity = ref(false);
   const showSetup = ref(false);
@@ -185,7 +181,6 @@ export const useModalStore = defineStore('modals', () => {
     showDeleteAccount.value = true;
   }
 
-
   const confirmOpen = ref(false);
   const confirmOptions = ref<ConfirmOptions>({
     title: '',
@@ -193,7 +188,6 @@ export const useModalStore = defineStore('modals', () => {
     submitText: 'Confirm',
     danger: false,
   });
-
 
   let confirmResolve: ((value: boolean) => void) | null = null;
 
@@ -219,7 +213,6 @@ export const useModalStore = defineStore('modals', () => {
     }
   }
 
-
   const sidebarExpanded = ref(false);
 
   function toggleSidebar() {
@@ -238,13 +231,11 @@ export const useModalStore = defineStore('modals', () => {
   }
 
   return {
-
     searchOpen,
     searchMode,
     openSearch,
     closeSearch,
     toggleSearch,
-
 
     createGroupOpen,
     joinGroupOpen,
@@ -252,7 +243,6 @@ export const useModalStore = defineStore('modals', () => {
     closeCreateGroup,
     openJoinGroup,
     closeJoinGroup,
-
 
     itemFormOpen,
     itemFormKey,
@@ -264,7 +254,6 @@ export const useModalStore = defineStore('modals', () => {
     notifyItemFormSuccess,
     onItemFormSuccess,
 
-
     privateTaskFormOpen,
     privateTaskFormKey,
     privateTaskToEdit,
@@ -274,7 +263,6 @@ export const useModalStore = defineStore('modals', () => {
     notifyPrivateTaskFormSuccess,
     onPrivateTaskFormSuccess,
 
-
     announcementFormOpen,
     announcementFormKey,
     openAnnouncementForm,
@@ -282,13 +270,11 @@ export const useModalStore = defineStore('modals', () => {
     notifyAnnouncementFormSuccess,
     onAnnouncementFormSuccess,
 
-
     imageViewerOpen,
     imageViewerImages,
     imageViewerInitialIndex,
     openImageViewer,
     closeImageViewer,
-
 
     showChangePassword,
     showSecurity,

@@ -66,7 +66,6 @@ const {
   confirmOptions,
 } = storeToRefs(modalStore);
 
-
 function onItemFormSuccess() {
   toast.success(t('school.tasks.itemForm.successEdit'));
   modalStore.notifyItemFormSuccess();
@@ -84,7 +83,6 @@ function onAnnouncementFormSuccess() {
   toast.success('Ankündigung erfolgreich veröffentlicht!');
   modalStore.notifyAnnouncementFormSuccess();
 }
-
 
 function onPasswordChanged() {
   toast.success('Passwort erfolgreich geändert!');

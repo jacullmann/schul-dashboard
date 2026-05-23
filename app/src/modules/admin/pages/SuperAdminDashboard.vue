@@ -42,7 +42,6 @@ const navItems = computed(() => [
   { id: 'groups', label: 'Groups', icon: markRaw(Layers), count: 0 },
 ]);
 
-
 interface AdminStats {
   userCount?: number;
   itemCount?: number;
@@ -145,8 +144,7 @@ async function loadReports() {
   try {
     const { data } = await hw.get('/api/admin/reports');
     reports.value = data;
-  } catch {
-  }
+  } catch {}
 }
 
 async function loadGroups() {

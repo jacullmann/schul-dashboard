@@ -4,14 +4,14 @@ import { computed } from 'vue';
 const model = defineModel<boolean>({ default: false });
 
 const props = withDefaults(
-    defineProps<{
-      label?: string;
-      disabled?: boolean;
-    }>(),
-    {
-      label: '',
-      disabled: false,
-    },
+  defineProps<{
+    label?: string;
+    disabled?: boolean;
+  }>(),
+  {
+    label: '',
+    disabled: false,
+  },
 );
 
 const toggle = () => {

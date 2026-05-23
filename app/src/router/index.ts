@@ -239,7 +239,6 @@ const routes = [
   },
 ];
 
-
 const router = createRouter({
   history: createWebHistory(),
   routes,
@@ -248,7 +247,6 @@ const router = createRouter({
 const { start, finish } = useLoadingBar();
 const { isLoggedIn, isAuthReady, initAuth, activeGroupId, userGroups } =
   useAppAuth();
-
 
 router.beforeEach(async (to, from, next) => {
   if (to.path !== from.path) start();
@@ -299,8 +297,7 @@ router.beforeEach(async (to, from, next) => {
   if (isLoggedIn.value && !isPublicRoute && !userStore.initialized) {
     try {
       await userStore.fetchUser();
-    } catch {
-    }
+    } catch {}
   }
 
   if (to.meta.requiresSuperAdmin) {

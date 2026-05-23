@@ -622,7 +622,6 @@ function handleSelect(index: number) {
       </template>
 
       <template v-else>
-
         <template v-if="defaultPageResults.length">
           <div class="px-4 py-1.5">
             <span

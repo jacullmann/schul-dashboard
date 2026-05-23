@@ -220,8 +220,7 @@ export function useGroupAdmin() {
     try {
       const { data } = await hw.get('/api/schedule/announcements');
       announcements.value = data;
-    } catch {
-    }
+    } catch {}
   }
 
   async function createAnnouncement(content: string, color: string) {

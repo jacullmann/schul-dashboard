@@ -1,8 +1,23 @@
-import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  UseGuards,
+  Delete,
+  Param,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { TenantGuard } from '../common/guards/tenant.guard';
-import { ActiveTenantId } from '../common/decorators/tenant.decorator';
-import { CurrentUserId } from '../common/decorators/current-user.decorator';
+import {
+  ActiveTenantId,
+  TenantRole,
+} from '../common/decorators/tenant.decorator';
+import {
+  CurrentUserId,
+  CurrentUser,
+} from '../common/decorators/current-user.decorator';
+import type { AuthUser } from '../common/decorators/current-user.decorator';
 import { MessagesService } from './messages.service';
 import { MessagesGateway } from './messages.gateway';
 import { CreateMessageDto } from './dto/create-message.dto';
@@ -28,8 +43,32 @@ export class MessagesController {
     @CurrentUserId() userId: string,
     @Body() body: CreateMessageDto,
   ) {
-    const message = await this.messagesService.createMessage(tenantId, userId, body);
+    const message = await this.messagesService.createMessage(
+      tenantId,
+      userId,
+      body,
+    );
     this.messagesGateway.broadcastMessage(tenantId, message);
     return message;
+  }
+
+  @UseGuards(TenantGuard)
+  @Delete(':id')
+  async deleteMessage(
+    @ActiveTenantId() tenantId: string,
+    @CurrentUserId() userId: string,
+    @TenantRole() tenantRole: string | undefined,
+    @CurrentUser() user: AuthUser,
+    @Param('id') messageId: string,
+  ) {
+    await this.messagesService.deleteMessage(
+      tenantId,
+      userId,
+      tenantRole,
+      user.globalRole,
+      messageId,
+    );
+    this.messagesGateway.broadcastMessageDeleted(tenantId, messageId);
+    return { ok: true };
   }
 }

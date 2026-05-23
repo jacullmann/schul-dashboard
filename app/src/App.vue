@@ -18,7 +18,6 @@ const { isAuthenticated, isAuthReady, checkAuthStatus } = useAppAuth();
 const { handleOAuthReturn } = useOAuth();
 const { loading, progress, opacity } = useLoadingBar();
 
-
 let pageloadLogged = false;
 
 function logPageload() {
@@ -51,11 +50,9 @@ async function handleTenantChanged() {
   await userStore.fetchUser();
 }
 
-
 watch(user, (newUser, oldUser) => {
   if (newUser && !oldUser) logPageload();
 });
-
 
 watch(
   isAuthReady,
@@ -72,7 +69,6 @@ watch(
   },
   { immediate: true },
 );
-
 
 let authCheckInterval: ReturnType<typeof setInterval> | null = null;
 

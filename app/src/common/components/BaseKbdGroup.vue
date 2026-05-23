@@ -21,7 +21,6 @@ const getDisplayKey = (key: string): string => {
   const k = key.toLowerCase();
 
   const mapping: Record<string, string> = {
-
     control: shortcutSymbol,
     ctrl: shortcutSymbol,
     meta: isMac ? '⌘' : 'Win',

@@ -13,13 +13,66 @@ import {
   X,
   ArrowDown,
   Info,
+  Ellipsis,
+  Copy,
+  Trash2,
 } from '@lucide/vue';
 import Avatar from '@/modules/auth/components/Avatar.vue';
+import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
+import { useToast } from '@/common/composables/useToast';
+import { useModalStore } from '@/stores/modalStore';
+
+import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/vue';
 
 const { t } = useI18n();
 const route = useRoute();
 const userStore = useUserStore();
 const { user } = storeToRefs(userStore);
+const { userGroups } = useAppAuth();
+const toast = useToast();
+const modalStore = useModalStore();
+
+const activeMessage = ref<any | null>(null);
+const menuPosition = ref({ x: 0, y: 0 });
+const menuRef = ref<HTMLElement | null>(null);
+
+const virtualElement = computed(() => {
+  if (menuPosition.value.x === 0 && menuPosition.value.y === 0) {
+    return null;
+  }
+  return {
+    getBoundingClientRect() {
+      return {
+        width: 0,
+        height: 0,
+        x: menuPosition.value.x,
+        y: menuPosition.value.y,
+        top: menuPosition.value.y,
+        left: menuPosition.value.x,
+        right: menuPosition.value.x,
+        bottom: menuPosition.value.y,
+      };
+    },
+  };
+});
+
+const { floatingStyles, isPositioned } = useFloating(virtualElement, menuRef, {
+  strategy: 'fixed',
+  placement: 'bottom-start',
+  whileElementsMounted: autoUpdate,
+  transform: false,
+  middleware: [offset(4), flip(), shift({ padding: 8 })],
+});
+
+const contextMenuStyles = computed(() => ({
+  ...floatingStyles.value,
+  opacity: isPositioned.value ? undefined : 0,
+}));
+
+const openMenu = (event: MouseEvent, msg: any) => {
+  activeMessage.value = msg;
+  menuPosition.value = { x: event.clientX, y: event.clientY };
+};
 
 const groupId = computed(() => route.params.groupId as string);
 const currentUserId = computed(() => user.value?.id || '');
@@ -120,7 +173,9 @@ const getBubbleBorderClasses = (msg: any, index: number) => {
         ? r
           ? 'rounded-t-xl'
           : ''
-        : r ? 'rounded-tl-xl rounded-tr-sm' : 'rounded-tr-sm'
+        : r
+          ? 'rounded-tl-xl rounded-tr-sm'
+          : 'rounded-tr-sm'
       : p
         ? ' rounded-tl-2xl'
         : ' rounded-tl-sm'
@@ -190,6 +245,20 @@ const initSocket = () => {
     scrollToBottom();
   });
 
+  socket.on('messageDeleted', ({ messageId }: { messageId: string }) => {
+    if (activeMessage.value?.id === messageId) {
+      activeMessage.value = null;
+    }
+    messages.value = messages.value.filter((m) => m.id !== messageId);
+    messages.value.forEach((m) => {
+      if (m.parentId === messageId) {
+        m.parentId = null;
+        m.parentContent = undefined;
+        m.parentSenderName = undefined;
+      }
+    });
+  });
+
   socket.on('userTyping', ({ userId, senderName, isTyping: userIsTyping }) => {
     if (userId === currentUserId.value) return;
     if (userIsTyping) {
@@ -208,6 +277,7 @@ const cleanupSocket = () => {
   if (socket) {
     socket.off('connect');
     socket.off('newMessage');
+    socket.off('messageDeleted');
     socket.off('userTyping');
     socket.off('disconnect');
     socket.disconnect();
@@ -292,6 +362,51 @@ const typingDisplay = computed(() => {
   return `${users[0]} & ${users.length - 1} ${t('sidebar.others')} ${t('chat.typingMultiple')}`;
 });
 
+const canDeleteMessage = (msg: any) => {
+  if (!user.value) return false;
+  if (msg.userId === currentUserId.value) return true;
+  if (user.value.role === 'superadmin') return true;
+  const activeGroup = userGroups.value.find((g) => g.id === groupId.value);
+  if (
+    activeGroup &&
+    (activeGroup.role === 'admin' || activeGroup.role === 'moderator')
+  ) {
+    return true;
+  }
+  return false;
+};
+
+const copyMessage = async (msg: any) => {
+  activeMessage.value = null;
+  try {
+    await navigator.clipboard.writeText(msg.content);
+    toast.success(t('chat.copySuccess'));
+  } catch (err) {
+    console.error('Failed to copy message:', err);
+    toast.error(t('global.errors.unknown'));
+  }
+};
+
+const deleteMessage = async (msg: any) => {
+  activeMessage.value = null;
+  const isConfirmed = await modalStore.confirm({
+    title: t('chat.deleteConfirmTitle'),
+    content: t('chat.deleteConfirm'),
+    submitText: t('global.buttons.delete'),
+    danger: true,
+  });
+
+  if (!isConfirmed) return;
+
+  try {
+    await hw.delete(`/api/messages/${msg.id}`);
+    toast.success(t('chat.deleteSuccess'));
+  } catch (err) {
+    console.error('Failed to delete message:', err);
+    toast.error(t('global.errors.delete'));
+  }
+};
+
 onMounted(() => {
   void fetchMessages();
   initSocket();
@@ -368,12 +483,13 @@ watch(groupId, () => {
             v-for="(msg, index) in messages"
             :key="msg.id"
             :id="`msg-${msg.id}`"
-            class="w-full px-2 md:px-8"
+            class="group/msg w-full px-2 md:px-8"
             :class="isGroupedWithPrevious(msg, index) ? 'mt-1' : 'mt-4'"
+            @contextmenu.prevent.stop="openMenu($event, msg)"
           >
             <div
               :class="[
-                'group/msg flex items-end gap-2 max-w-[85%] sm:max-w-[70%] transition-all duration-200',
+                'flex items-end gap-2 max-w-[85%] sm:max-w-[70%] transition-all duration-200',
                 msg.userId === currentUserId
                   ? 'ml-auto flex-row-reverse'
                   : 'mr-auto',
@@ -487,24 +603,55 @@ watch(groupId, () => {
 
                   <div
                     :class="[
-                      'absolute top-1/2 -translate-y-1/2 opacity-0 group-hover/msg:opacity-100 flex items-center transition-all duration-200 delay-75 scale-90 translate-y-1 group-hover/msg:scale-100 group-hover/msg:translate-y-[-50%] z-10 hidden md:flex',
+                      'absolute top-1/2 -translate-y-1/2 opacity-0 group-hover/msg:opacity-100 flex gap-2 items-center transition-all duration-200 delay-75 scale-90 translate-y-1 group-hover/msg:scale-100 group-hover/msg:translate-y-[-50%] z-10 hidden md:flex',
                       msg.userId === currentUserId
-                        ? 'left-[-48px]'
-                        : 'right-[-48px]',
+                        ? 'left-[-96px] flex-row-reverse'
+                        : 'right-[-96px] flex-row',
                     ]"
                   >
-                    <BaseButton
-                      @click="startReply(msg)"
-                      title="Antworten"
-                      :icon="Reply"
-                    >
-                    </BaseButton>
+                    <BaseTooltip content="Antworten" placement="bottom">
+                      <BaseButton @click="startReply(msg)" :icon="Reply" />
+                    </BaseTooltip>
+
+                    <BaseTooltip content="Mehr" placement="bottom">
+                      <BaseButton
+                        @click.stop="openMenu($event, msg)"
+                        :icon="Ellipsis"
+                      />
+                    </BaseTooltip>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </TransitionGroup>
+
+        <Teleport to="body">
+          <BaseMenu
+            :open="!!activeMessage"
+            @close="activeMessage = null"
+            :ref="(el: any) => (menuRef = el?.menuEl)"
+            class="fixed! z-[10001]! min-w-[180px]"
+            :style="contextMenuStyles"
+          >
+            <BaseMenuButton
+              v-if="activeMessage"
+              :icon="Copy"
+              @click="copyMessage(activeMessage)"
+            >
+              {{ t('global.buttons.copy') }}
+            </BaseMenuButton>
+
+            <BaseMenuButton
+              v-if="activeMessage && canDeleteMessage(activeMessage)"
+              variant="danger"
+              :icon="Trash2"
+              @click="deleteMessage(activeMessage)"
+            >
+              {{ t('global.buttons.delete') }}
+            </BaseMenuButton>
+          </BaseMenu>
+        </Teleport>
 
         <div class="px-6 py-1 h-6 mt-4 flex items-center shrink-0 bg-canvas">
           <Transition name="fade">

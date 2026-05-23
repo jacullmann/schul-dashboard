@@ -127,7 +127,6 @@ onMounted(() => {
         }"
         :class="{ 'opacity-60': !subject.isActive }"
       >
-
         <template v-if="editingId !== subject.id">
           <span
             class="font-medium text-base whitespace-nowrap overflow-hidden text-ellipsis ml-2"

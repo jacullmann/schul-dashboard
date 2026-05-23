@@ -188,7 +188,12 @@ onUnmounted(() => {
             New group
           </BaseMenuButton>
 
-          <BaseMenuButton @click="leaveGroup" :icon="LogOut" variant="danger" :disabled="loading">
+          <BaseMenuButton
+            @click="leaveGroup"
+            :icon="LogOut"
+            variant="danger"
+            :disabled="loading"
+          >
             Leave group
           </BaseMenuButton>
         </BaseMenu>

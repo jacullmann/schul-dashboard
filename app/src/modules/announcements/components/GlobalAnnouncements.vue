@@ -40,7 +40,11 @@ let resizeObserver: ResizeObserver | null = null;
 
 function updateAnnouncementHeight() {
   let height = '0px';
-  if (announcements.value.length && activeGroupId.value && announcementEl.value) {
+  if (
+    announcements.value.length &&
+    activeGroupId.value &&
+    announcementEl.value
+  ) {
     height = `${announcementEl.value.getBoundingClientRect().height}px`;
   }
   document.documentElement.style.setProperty('--announcement-height', height);
@@ -64,7 +68,7 @@ onMounted(async () => {
   if (activeGroupId.value) {
     await checkAndNotifyUnread();
   }
-  
+
   if (typeof window !== 'undefined' && 'ResizeObserver' in window) {
     resizeObserver = new ResizeObserver(() => {
       updateAnnouncementHeight();
@@ -73,7 +77,7 @@ onMounted(async () => {
       resizeObserver.observe(announcementEl.value);
     }
   }
-  
+
   updateAnnouncementHeight();
 });
 

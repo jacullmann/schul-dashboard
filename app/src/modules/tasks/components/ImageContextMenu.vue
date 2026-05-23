@@ -2,12 +2,7 @@
 import { ref, computed } from 'vue';
 import { Upload, Trash2 } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
-import {
-  useEventListener,
-  useElementBounding,
-  useWindowSize,
-  onClickOutside,
-} from '@vueuse/core';
+import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/vue';
 
 const { t } = useI18n();
 
@@ -22,67 +17,60 @@ const emit = defineEmits(['cancel', 'upload', 'delete']);
 
 const menuRef = ref<HTMLElement | null>(null);
 
-const { width: menuW, height: menuH } = useElementBounding(menuRef);
-const { width: winW, height: winH } = useWindowSize();
-
-const padding = 10;
-
-const styleObject = computed(() => {
-  const x = Math.min(
-    Math.max(padding, props.x),
-    winW.value - menuW.value - padding,
-  );
-  const y = Math.min(
-    Math.max(padding, props.y),
-    winH.value - menuH.value - padding,
-  );
-
-  const style: Record<string, string> = {
-    top: `${y}px`,
-    left: `${x}px`,
+const virtualElement = computed(() => {
+  const x = props.x;
+  const y = props.y;
+  return {
+    getBoundingClientRect() {
+      return {
+        width: 0,
+        height: 0,
+        x,
+        y,
+        top: y,
+        left: x,
+        right: x,
+        bottom: y,
+      };
+    },
   };
-
-  if (menuW.value === 0) {
-    style.opacity = '0';
-  }
-
-  return style;
 });
 
-useEventListener(window, 'keydown', (e: KeyboardEvent) => {
-  if (props.visible && e.key === 'Escape') emit('cancel');
+const { floatingStyles, isPositioned } = useFloating(virtualElement, menuRef, {
+  strategy: 'fixed',
+  placement: 'bottom-start',
+  whileElementsMounted: autoUpdate,
+  transform: false,
+  middleware: [offset(4), flip(), shift({ padding: 8 })],
 });
 
-useEventListener(window, 'contextmenu', (e: MouseEvent) => {
-  if (menuRef.value && !menuRef.value.contains(e.target as Node)) {
-    emit('cancel');
-  }
-});
-
-onClickOutside(menuRef, () => {
-  emit('cancel');
-});
+const contextMenuStyles = computed(() => ({
+  ...floatingStyles.value,
+  opacity: isPositioned.value ? undefined : 0,
+}));
 </script>
 
 <template>
-  <BaseMenu
-    :open="visible"
-    @close="emit('cancel')"
-    :ref="(el: any) => (menuRef = el?.menuEl)"
-    class="fixed! z-[10001]! min-w-[180px]"
-    :style="styleObject"
-  >
-    <BaseMenuButton :icon="Upload" @click="emit('upload')">
-      {{ t('school.tasks.items.menu.uploadImages') }}
-    </BaseMenuButton>
-
-    <BaseMenuButton
-      v-if="canDelete"
-      variant="danger"
-      :icon="Trash2"
-      @click="emit('delete')"
+  <Teleport to="body">
+    <BaseMenu
+      :open="visible"
+      @close="emit('cancel')"
+      :ref="(el: any) => (menuRef = el?.menuEl)"
+      class="fixed! z-[10001]! min-w-[180px]"
+      :style="contextMenuStyles"
     >
-      {{ t('global.buttons.delete') }}
-    </BaseMenuButton>
-  </BaseMenu>
+      <BaseMenuButton :icon="Upload" @click="emit('upload')">
+        {{ t('school.tasks.items.menu.uploadImages') }}
+      </BaseMenuButton>
+
+      <BaseMenuButton
+        v-if="canDelete"
+        variant="danger"
+        :icon="Trash2"
+        @click="emit('delete')"
+      >
+        {{ t('global.buttons.delete') }}
+      </BaseMenuButton>
+    </BaseMenu>
+  </Teleport>
 </template>

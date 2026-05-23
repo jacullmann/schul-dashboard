@@ -1,12 +1,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { Settings2, Globe, Image, Terminal, Lightbulb } from '@lucide/vue';
-import {
-  onClickOutside,
-  useElementBounding,
-  useWindowSize,
-  useEventListener,
-} from '@vueuse/core';
+import { onClickOutside, useEventListener, useWindowSize } from '@vueuse/core';
+import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/vue';
 
 const webSearch = defineModel<boolean>('webSearch', { default: true });
 const createImage = defineModel<boolean>('createImage', { default: false });
@@ -15,30 +11,23 @@ const reasoning = defineModel<boolean>('reasoning', { default: false });
 
 const isOpen = ref(false);
 const triggerRef = ref<HTMLElement | null>(null);
-const menuRef = ref<HTMLElement | null>(null);
+const menuComponentRef = ref<any>(null);
+const menuRef = computed(() => menuComponentRef.value?.menuEl || null);
 
-const { bottom, left, right, top: triggerTop } = useElementBounding(triggerRef);
-const { width: windowWidth, height: windowHeight } = useWindowSize();
-const { height: actualMenuHeight } = useElementBounding(menuRef);
+const { width: windowWidth } = useWindowSize();
 
-const menuStyles = computed(() => {
-  const menuMinWidth = 224; // min-w-56 = 14rem = 224px
-  const h = actualMenuHeight.value || 280; // Use actual height or fallback estimate
-
-  const shouldFlipHorizontally = left.value + menuMinWidth > windowWidth.value;
-  const shouldFlipVertically = bottom.value + h > windowHeight.value;
-
-  return {
-    position: 'fixed' as const,
-    top: shouldFlipVertically
-      ? `${triggerTop.value - h - 8}px`
-      : `${bottom.value + 8}px`,
-    left: shouldFlipHorizontally
-      ? `${right.value - menuMinWidth}px`
-      : `${left.value}px`,
-    zIndex: 1000,
-  };
+const { floatingStyles, isPositioned } = useFloating(triggerRef, menuRef, {
+  strategy: 'fixed',
+  placement: 'bottom-start',
+  whileElementsMounted: autoUpdate,
+  transform: false,
+  middleware: [offset(8), flip(), shift({ padding: 8 })],
 });
+
+const menuStyles = computed(() => ({
+  ...floatingStyles.value,
+  opacity: isPositioned.value ? undefined : 0,
+}));
 
 function toggle() {
   isOpen.value = !isOpen.value;
@@ -53,7 +42,7 @@ onClickOutside(
   () => {
     close();
   },
-  { ignore: [computed(() => (menuRef.value as any)?.menuEl)] },
+  { ignore: [menuRef] },
 );
 
 useEventListener(document, 'keydown', (e) => {
@@ -88,7 +77,7 @@ useEventListener(document, 'keydown', (e) => {
       <BaseMenu
         :open="isOpen"
         @close="close"
-        ref="menuRef"
+        ref="menuComponentRef"
         :style="menuStyles"
         class="min-w-56!"
       >

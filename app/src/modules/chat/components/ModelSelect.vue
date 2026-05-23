@@ -1,12 +1,9 @@
 <script setup lang="ts">
 import { ref, nextTick, computed } from 'vue';
-import {
-  useWindowSize,
-  onClickOutside,
-  useElementBounding,
-} from '@vueuse/core';
+import { onClickOutside, useElementBounding } from '@vueuse/core';
 import { ChevronDown } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
+import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/vue';
 
 const { t } = useI18n();
 
@@ -35,36 +32,26 @@ const options = [
 
 const isOpen = ref(false);
 const wrapperRef = ref<HTMLElement | null>(null);
-const floatingRef = ref<HTMLElement | null>(null);
+const floatingComponentRef = ref<any>(null);
+const floatingRef = computed(() => floatingComponentRef.value?.menuEl || null);
 
-const {
-  left,
-  right,
-  bottom,
-  top: triggerTop,
-  width: buttonWidth,
-} = useElementBounding(wrapperRef);
-const { width: windowWidth, height: windowHeight } = useWindowSize();
-const { height: menuActualHeight } = useElementBounding(floatingRef);
+const { width: buttonWidth } = useElementBounding(wrapperRef);
 
-const floatingStyles = computed(() => {
+const { floatingStyles, isPositioned } = useFloating(wrapperRef, floatingRef, {
+  placement: 'bottom-start',
+  whileElementsMounted: autoUpdate,
+  transform: false,
+  middleware: [offset(4), flip(), shift({ padding: 8 })],
+});
+
+const selectStyles = computed(() => {
   const menuMinWidth = 256;
   const menuWidth = Math.max(buttonWidth.value, menuMinWidth);
-  const h = menuActualHeight.value || 280;
-
-  const shouldFlipHorizontally = left.value + menuWidth > windowWidth.value;
-  const shouldFlipVertically = bottom.value + h > windowHeight.value;
-
   return {
-    position: 'fixed' as const,
-    top: shouldFlipVertically
-      ? `${triggerTop.value - h - 4}px`
-      : `${bottom.value + 4}px`,
-    left: shouldFlipHorizontally
-      ? `${right.value - menuWidth}px`
-      : `${left.value}px`,
-    width: `${buttonWidth.value}px`,
+    ...floatingStyles.value,
+    width: `${menuWidth}px`,
     zIndex: 100002,
+    opacity: isPositioned.value ? undefined : 0,
   };
 });
 
@@ -110,7 +97,7 @@ onClickOutside(
   () => {
     isOpen.value = false;
   },
-  { ignore: [computed(() => (floatingRef.value as any)?.menuEl)] },
+  { ignore: [floatingRef] },
 );
 </script>
 
@@ -142,8 +129,8 @@ onClickOutside(
       <BaseMenu
         :open="isOpen"
         @close="isOpen = false"
-        ref="floatingRef"
-        :style="floatingStyles"
+        ref="floatingComponentRef"
+        :style="selectStyles"
         class="max-h-80 z-[9999] min-w-68!"
       >
         <BaseMenuButton

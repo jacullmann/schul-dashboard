@@ -1,17 +1,14 @@
 import { ref } from 'vue';
 import hw from '@/api/hwApi';
 
-
 const showLinkModal = ref(false);
 const showMfaModal = ref(false);
 const oauthError = ref<string | null>(null);
-
 
 interface LinkedProvider {
   provider: string;
   email: string;
 }
-
 
 const ERROR_MESSAGES: Record<string, string> = {
   access_denied: 'Google-Anmeldung abgebrochen.',
@@ -22,9 +19,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   server_error: 'Ein Serverfehler ist aufgetreten.',
 };
 
-
 export function useOAuth() {
-
   function initiateGoogleLogin(): void {
     const base =
       typeof import.meta !== 'undefined' && import.meta.env

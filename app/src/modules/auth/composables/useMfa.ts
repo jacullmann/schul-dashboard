@@ -107,8 +107,7 @@ export function useMfa() {
   async function cancelMfaLogin(): Promise<void> {
     try {
       await hw.post('/api/auth/mfa/cancel');
-    } catch {
-    }
+    } catch {}
   }
 
   function resetMfaState(): void {

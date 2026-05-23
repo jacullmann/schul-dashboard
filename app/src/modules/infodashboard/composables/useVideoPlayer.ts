@@ -68,8 +68,7 @@ export function useVideoPlayer(
     }
   };
 
-  const updateTime = () => {
-  };
+  const updateTime = () => {};
 
   const loadMetadata = () => {
     if (videoRef.value) duration.value = videoRef.value.duration;

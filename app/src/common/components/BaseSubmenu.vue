@@ -6,11 +6,8 @@ const activeTrigger = ref<HTMLElement | null>(null);
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, inject } from 'vue';
-import {
-  useElementBounding,
-  useWindowSize,
-  useEventListener,
-} from '@vueuse/core';
+import { useEventListener, useWindowSize } from '@vueuse/core';
+import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/vue';
 import BaseMenuButton from '@/common/components/BaseMenuButton.vue';
 import BaseMenu from '@/common/components/BaseMenu.vue';
 import type { Component } from 'vue';
@@ -23,10 +20,11 @@ const props = defineProps<{
 }>();
 
 const triggerRef = ref<HTMLElement | null>(null);
-const menuRef = ref<HTMLElement | null>(null);
+const menuComponentRef = ref<any>(null);
+const menuRef = computed(() => menuComponentRef.value?.menuEl || null);
 
 const sheetCtx = inject(MENU_SHEET_KEY, undefined);
-const { width: vw, height: vh } = useWindowSize();
+const { width: vw } = useWindowSize();
 const isMobile = computed(() => vw.value < 768 && !!sheetCtx);
 
 const submenuId = `sub-${Math.random().toString(36).slice(2, 9)}`;
@@ -89,47 +87,21 @@ onBeforeUnmount(() => {
   }
 });
 
-const {
-  left: btnLeft,
-  top: btnTop,
-  right: btnRight,
-  bottom: btnBottom,
-} = useElementBounding(triggerRef);
-const { width: popupW, height: popupH } = useElementBounding(menuRef);
-
-const popupStyle = computed(() => {
-  if (!isOpen.value) return {};
-
-  const SUBMENU_X_OFFSET = 5;
-  let left = btnRight.value + SUBMENU_X_OFFSET;
-  let top = btnTop.value;
-
-  const width = popupW.value || 180;
-  if (left + width > vw.value) {
-    left = btnLeft.value - width - SUBMENU_X_OFFSET;
-  }
-
-  const estimatedH = popupH.value || 150;
-  const spaceBelow = vh.value - btnTop.value;
-
-  if (spaceBelow < estimatedH) {
-    return {
-      position: 'fixed',
-      left: `${Math.round(left)}px`,
-      bottom: `${Math.round(vh.value - btnBottom.value)}px`,
-      minWidth: '180px',
-      transformOrigin: 'bottom left',
-    };
-  }
-
-  return {
-    position: 'fixed',
-    left: `${Math.round(left)}px`,
-    top: `${Math.round(top)}px`,
-    minWidth: '180px',
-    transformOrigin: 'top left',
-  };
+const { floatingStyles, isPositioned } = useFloating(triggerRef, menuRef, {
+  placement: 'right-start',
+  whileElementsMounted: autoUpdate,
+  transform: false,
+  middleware: [
+    offset({ mainAxis: 5, alignmentAxis: 0 }),
+    flip(),
+    shift({ padding: 8 }),
+  ],
 });
+
+const submenuStyles = computed(() => ({
+  ...floatingStyles.value,
+  opacity: isPositioned.value ? undefined : 0,
+}));
 </script>
 
 <template>
@@ -157,8 +129,8 @@ const popupStyle = computed(() => {
       <BaseMenu
         :open="isOpen"
         desktopTransition="fade-dropdown-side"
-        :style="popupStyle"
-        :ref="(el: any) => (menuRef = el?.menuEl)"
+        :style="submenuStyles"
+        ref="menuComponentRef"
         class="z-[1100]"
       >
         <slot></slot>
@@ -166,7 +138,7 @@ const popupStyle = computed(() => {
     </template>
 
     <Teleport
-      v-else-if="sheetCtx?.submenuTarget.value"
+      v-if="sheetCtx?.submenuTarget.value"
       :to="sheetCtx.submenuTarget.value"
     >
       <div v-show="isMobileActive">

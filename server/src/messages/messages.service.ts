@@ -1,4 +1,9 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { SupabaseService } from '../common/supabase/supabase.service';
 import { generateUserName } from '../common/utils/name-generator.util';
 import { CreateMessageDto } from './dto/create-message.dto';
@@ -31,7 +36,9 @@ export class MessagesService {
       .limit(100);
 
     if (error) {
-      throw new InternalServerErrorException('Fehler beim Laden der Nachrichten');
+      throw new InternalServerErrorException(
+        'Fehler beim Laden der Nachrichten',
+      );
     }
 
     if (!messages || messages.length === 0) {
@@ -50,7 +57,10 @@ export class MessagesService {
       ),
     ];
 
-    const parentMap = new Map<string, { content: string; senderName: string }>();
+    const parentMap = new Map<
+      string,
+      { content: string; senderName: string }
+    >();
 
     if (parentIds.length > 0) {
       const { data: parents } = await sb
@@ -109,7 +119,9 @@ export class MessagesService {
       .single();
 
     if (error || !message) {
-      throw new InternalServerErrorException('Nachricht konnte nicht gesendet werden');
+      throw new InternalServerErrorException(
+        'Nachricht konnte nicht gesendet werden',
+      );
     }
 
     const response: GroupMessageResponse = {
@@ -132,10 +144,71 @@ export class MessagesService {
 
       if (parent) {
         response.parentContent = parent.content;
-        response.parentSenderName = generateUserName(parent.user_id, parent.tenant_id);
+        response.parentSenderName = generateUserName(
+          parent.user_id,
+          parent.tenant_id,
+        );
       }
     }
 
     return response;
+  }
+
+  async deleteMessage(
+    tenantId: string,
+    userId: string,
+    tenantRole: string | undefined,
+    globalRole: string,
+    messageId: string,
+  ): Promise<void> {
+    const sb = this.supabaseService.getClient();
+
+    // 1. Fetch the message first to verify existence and check ownership
+    const { data: message, error: fetchError } = await sb
+      .from('group_messages')
+      .select('*')
+      .eq('id', messageId)
+      .eq('tenant_id', tenantId)
+      .maybeSingle();
+
+    if (fetchError || !message) {
+      throw new NotFoundException('Nachricht nicht gefunden');
+    }
+
+    // 2. Check permissions: creator, superadmin, or tenant admin/moderator
+    const isOwner = message.user_id === userId;
+    const isSuperAdmin = globalRole === 'superadmin';
+    const isTenantAdminOrMod =
+      tenantRole === 'admin' || tenantRole === 'moderator';
+
+    if (!isOwner && !isSuperAdmin && !isTenantAdminOrMod) {
+      throw new ForbiddenException(
+        'Keine Berechtigung zum Löschen dieser Nachricht',
+      );
+    }
+
+    // 3. Gracefully nullify parent_id references in replies
+    const { error: updateError } = await sb
+      .from('group_messages')
+      .update({ parent_id: null })
+      .eq('parent_id', messageId);
+
+    if (updateError) {
+      throw new InternalServerErrorException(
+        'Fehler beim Entfernen der Referenzen',
+      );
+    }
+
+    // 4. Delete the message itself
+    const { error: deleteError } = await sb
+      .from('group_messages')
+      .delete()
+      .eq('id', messageId);
+
+    if (deleteError) {
+      throw new InternalServerErrorException(
+        'Fehler beim Löschen der Nachricht',
+      );
+    }
   }
 }

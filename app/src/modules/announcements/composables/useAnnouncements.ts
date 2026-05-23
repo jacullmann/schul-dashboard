@@ -50,8 +50,7 @@ export function useAnnouncements() {
     seenIds.value.add(announcementId);
     try {
       await hw.post(`/api/schedule/announcements/${announcementId}/read`);
-    } catch {
-    }
+    } catch {}
   }
 
   async function checkAndNotifyUnread(): Promise<void> {

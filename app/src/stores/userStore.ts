@@ -22,7 +22,6 @@ export const useUserStore = defineStore('user', () => {
   const initialized = ref(false);
   const hasShownSetup = ref(false);
 
-
   const isLoggedIn = computed(() => user.value !== null);
   const role = computed(() => user.value?.role);
   const isSuperadmin = computed(() => user.value?.role === 'superadmin');
@@ -59,7 +58,6 @@ export const useUserStore = defineStore('user', () => {
             tenantRole: data.tenantRole ?? null,
             preferences: data.preferences,
           };
-
 
           if (data.preferences) {
             const { syncFromBackend } = usePreferences();

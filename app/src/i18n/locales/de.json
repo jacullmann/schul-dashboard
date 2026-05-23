@@ -165,6 +165,7 @@
       "cancel": "Abbrechen",
       "close": "Schließen",
       "confirm": "Bestätigen",
+      "copy": "Kopieren",
       "create": "Erstellen",
       "delete": "Löschen",
       "duplicate": "Duplizieren",
@@ -675,7 +676,11 @@
     "noMessages": "Noch keine Nachrichten. Sag Hallo!",
     "joinedRoom": "Mit dem Chat verbunden",
     "errorLoading": "Fehler beim Laden der Nachrichten",
-    "quoteLabel": "Antwort an"
+    "quoteLabel": "Antwort an",
+    "copySuccess": "Nachricht in die Zwischenablage kopiert",
+    "deleteConfirm": "Möchtest du diese Nachricht wirklich löschen?",
+    "deleteConfirmTitle": "Nachricht löschen?",
+    "deleteSuccess": "Nachricht erfolgreich gelöscht"
   },
   "welcome": {
     "auth": {
