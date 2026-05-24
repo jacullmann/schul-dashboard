@@ -649,7 +649,7 @@
     }
   },
   "sidebar": {
-    "admin": "Admin Settings",
+    "admin": "Group Settings",
     "collapse": "Collapse",
     "entry": "New Entry",
     "announcement": "New Announcement",

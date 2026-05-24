@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { markRaw, computed, ref } from 'vue';
+import { markRaw, computed, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import {
   // LayoutDashboard,
   CalendarDays,
@@ -7,7 +8,7 @@ import {
   UsersRound,
   Key,
   BookOpen,
-  Settings,
+  SlidersHorizontal,
   ArrowLeft,
 } from '@lucide/vue';
 import { useGroupAdmin } from '@/modules/admin/composables/useGroupAdmin';
@@ -15,18 +16,20 @@ import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { type AdminNavItem } from '@/layouts/AdminLayout.vue';
 
-import GroupAdminOverview from '@/modules/admin/components/GroupAdminOverview.vue';
-import GroupAdminMembers from '@/modules/admin/components/GroupAdminMembers.vue';
-import GroupAdminPermissions from '@/modules/admin/components/GroupAdminPermissions.vue';
-import GroupAdminSchedule from '@/modules/admin/components/GroupAdminSchedule.vue';
-import GroupAdminAnnouncements from '@/modules/admin/components/GroupAdminAnnouncements.vue';
-import GroupAdminSubjects from '@/modules/admin/components/GroupAdminSubjects.vue';
-import GroupAdminSettings from '@/modules/admin/components/GroupAdminSettings.vue';
+import GroupSettingsOverview from '@/modules/admin/components/GroupSettingsOverview.vue';
+import GroupSettingsMembers from '@/modules/admin/components/GroupSettingsMembers.vue';
+import GroupSettingsPermissions from '@/modules/admin/components/GroupSettingsPermissions.vue';
+import GroupSettingsSchedule from '@/modules/admin/components/GroupSettingsSchedule.vue';
+import GroupSettingsAnnouncements from '@/modules/admin/components/GroupSettingsAnnouncements.vue';
+import GroupSettingsSubjects from '@/modules/admin/components/GroupSettingsSubjects.vue';
+import GroupSettingsGeneral from '@/modules/admin/components/GroupSettingsGeneral.vue';
+
+const route = useRoute();
+const router = useRouter();
 
 const {
   groupId,
   groupName,
-  activeTab,
   stats,
   members,
   loadingMembers,
@@ -60,6 +63,19 @@ const {
   transferOwnership,
 } = useGroupAdmin();
 
+const activeTab = computed<string>({
+  get() {
+    return (route.params.tab as string) || '';
+  },
+  set(val) {
+    if (val) {
+      void router.push(`/groups/${groupId.value}/settings/${val}`);
+    } else {
+      void router.push(`/groups/${groupId.value}/settings`);
+    }
+  },
+});
+
 const { activeGroupOwnerId } = useAppAuth();
 const userStore = useUserStore();
 const isAdmin = computed(() => userStore.user?.tenantRole === 'admin');
@@ -76,10 +92,22 @@ const navItems: AdminNavItem[] = [
     description: 'Activity • Status • Quick actions',
   }, */
   {
+    id: 'general',
+    label: 'General',
+    icon: markRaw(SlidersHorizontal),
+    description: 'Appearance • Password • Deletion',
+  },
+  {
     id: 'members',
     label: 'Members',
     icon: markRaw(UsersRound),
     description: 'Roles • Bans • Ownership',
+  },
+  {
+    id: 'permissions',
+    label: 'Permissions',
+    icon: markRaw(Key),
+    description: 'Permissions • Roles • Security',
   },
   {
     id: 'schedule',
@@ -99,19 +127,6 @@ const navItems: AdminNavItem[] = [
     icon: markRaw(Megaphone),
     description: 'Manage Announcements',
   },
-
-  {
-    id: 'permissions',
-    label: 'Permissions',
-    icon: markRaw(Key),
-    description: 'Permissions • Roles • Security',
-  },
-  {
-    id: 'settings',
-    label: 'Settings',
-    icon: markRaw(Settings),
-    description: 'Appearance • Password • Deletion',
-  },
 ];
 
 const transitionDirection = ref<'forward' | 'backward'>('forward');
@@ -125,7 +140,16 @@ const activeTabLabel = computed(() => {
   return item ? item.label : '';
 });
 
-activeTab.value = '';
+watch(
+  () => route.params.tab,
+  (newTab, oldTab) => {
+    if (newTab && !oldTab) {
+      transitionDirection.value = 'forward';
+    } else if (!newTab && oldTab) {
+      transitionDirection.value = 'backward';
+    }
+  },
+);
 
 function selectTab(id: string) {
   transitionDirection.value = 'forward';
@@ -201,14 +225,14 @@ function goBack() {
 
         <div class="detail-content scrollbar-hide">
           <div class="detail-inner">
-            <GroupAdminOverview
+            <GroupSettingsOverview
               v-if="activeTab === 'overview'"
               :stats="stats"
               :cleaning-up="cleaningUp"
               @cleanup="cleanupOldItems"
             />
 
-            <GroupAdminMembers
+            <GroupSettingsMembers
               v-if="activeTab === 'members'"
               :members="members"
               :loading="loadingMembers"
@@ -222,7 +246,7 @@ function goBack() {
               @transfer-ownership="transferOwnership"
             />
 
-            <GroupAdminSchedule
+            <GroupSettingsSchedule
               v-if="activeTab === 'schedule'"
               :subs="subs"
               :loading-subs="loadingSubs"
@@ -236,25 +260,25 @@ function goBack() {
               @update-schedule-config="updateScheduleConfig"
             />
 
-            <GroupAdminAnnouncements
+            <GroupSettingsAnnouncements
               v-if="activeTab === 'announcements'"
               :announcements="announcements"
               @refresh="loadAnnouncements"
               @delete="deleteAnnouncement"
             />
 
-            <GroupAdminSubjects
+            <GroupSettingsSubjects
               v-if="activeTab === 'subjects'"
               :is-admin="isAdmin"
             />
 
-            <GroupAdminPermissions
+            <GroupSettingsPermissions
               v-if="activeTab === 'permissions'"
               :is-admin="isAdmin"
             />
 
-            <GroupAdminSettings
-              v-if="activeTab === 'settings'"
+            <GroupSettingsGeneral
+              v-if="activeTab === 'general'"
               :is-admin="isAdmin"
               :is-owner="isOwner"
               :group-name="groupName"

@@ -68,12 +68,6 @@ const routes = [
         component: () => import('@/core/pages/HomePage.vue'),
         meta: { title: 'navigation.home' },
       },
-      {
-        path: 'groups',
-        name: 'groups',
-        component: () => import('@/core/pages/GroupsPage.vue'),
-        meta: { title: 'navigation.groups' },
-      },
 
       {
         path: 'groups/:groupId',
@@ -114,10 +108,10 @@ const routes = [
             },
           },
           {
-            path: 'admin',
+            path: 'settings/:tab?',
             name: 'group-admin',
             component: () =>
-              import('@/modules/admin/pages/GroupAdminDashboard.vue'),
+              import('@/modules/admin/pages/GroupSettings.vue'),
             meta: {
               title: 'navigation.groupAdmin',
               requiresGroupAdmin: true,

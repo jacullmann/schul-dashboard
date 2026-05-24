@@ -146,14 +146,7 @@ const defaultResults = computed<SearchResult[]>(() => [
     icon: Lock,
     action: () => navigate('/todos'),
   },
-  {
-    id: 'groups',
-    label: t('sidebar.groups'),
-    description: t('search.descriptions.groups'),
-    category: 'page',
-    icon: UsersRound,
-    action: () => navigate('/groups'),
-  },
+
   {
     id: 'admin',
     label: t('sidebar.admin'),
@@ -161,7 +154,7 @@ const defaultResults = computed<SearchResult[]>(() => [
     category: 'page',
     icon: SlidersHorizontal,
     action: () =>
-      withGroup(() => navigate(`/groups/${activeGroupId.value}/admin`)),
+      withGroup(() => navigate(`/groups/${activeGroupId.value}/settings`)),
     condition: isAnyGroupAdmin.value,
   },
   {

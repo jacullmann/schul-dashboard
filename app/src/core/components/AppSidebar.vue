@@ -7,8 +7,7 @@ import {
   House,
   ListTodo,
   CalendarDays,
-  UsersRound,
-  SlidersHorizontal,
+  Settings,
   Crown,
   Lock,
   Search,
@@ -253,23 +252,14 @@ onUnmounted(() => {
         />
 
         <SidebarButton
-          :label="t('sidebar.groups')"
-          :expanded="isExpanded"
-          :active="$route.path === '/groups'"
-          :icon="UsersRound"
-          :page="true"
-          @click="handleNavigation('/groups')"
-        />
-
-        <SidebarButton
           v-if="isAnyGroupAdmin"
           :label="t('sidebar.admin')"
           :expanded="isExpanded"
-          :active="$route.path.startsWith(`/groups/${activeGroupId}/admin`)"
-          :icon="SlidersHorizontal"
+          :active="$route.path.startsWith(`/groups/${activeGroupId}/settings`)"
+          :icon="Settings"
           :page="true"
           @click="
-            withGroup(() => handleNavigation(`/groups/${activeGroupId}/admin`))
+            withGroup(() => handleNavigation(`/groups/${activeGroupId}/settings`))
           "
         />
 
