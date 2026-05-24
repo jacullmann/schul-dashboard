@@ -88,11 +88,12 @@ onBeforeUnmount(() => {
 });
 
 const { floatingStyles, isPositioned } = useFloating(triggerRef, menuRef, {
+  strategy: 'fixed',
   placement: 'right-start',
   whileElementsMounted: autoUpdate,
   transform: false,
   middleware: [
-    offset({ mainAxis: 5, alignmentAxis: 0 }),
+    offset({ mainAxis: 0, alignmentAxis: 0 }),
     flip(),
     shift({ padding: 8 }),
   ],

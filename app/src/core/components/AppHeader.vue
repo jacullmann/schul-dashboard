@@ -145,6 +145,7 @@ onUnmounted(() => {
       >
         <button
           class="flex items-center gap-2 group cursor-pointer hover:bg-ghost-hover transition-hover rounded-full -m-1 p-1"
+          v-wave
           @click="toggleGroupMenu"
         >
           <Avatar :name="groupName" :picture="activeGroupAvatarUrl" :size="8" />
