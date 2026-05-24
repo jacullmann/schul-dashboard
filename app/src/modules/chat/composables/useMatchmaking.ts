@@ -37,13 +37,11 @@ export function useMatchmaking() {
     activeSession.value = null;
 
     try {
-      // 1. Update profile status
       await supabase
         .from('profiles')
         .update({ status: 'searching' })
         .eq('id', profile.value.id);
 
-      // 2. Check if the user already has an active or waiting session
       const { data: existingSessions, error: existingErr } = await supabase
         .from('sessions')
         .select('*')
@@ -59,7 +57,6 @@ export function useMatchmaking() {
       if (existingSessions && existingSessions.length > 0) {
         sessionId = existingSessions[0].id;
       } else {
-        // 3. Call the Atomic Matchmaking RPC if no existing session
         const { data: rpcSessionId, error: rpcError } = await supabase.rpc(
           'find_match',
           {
@@ -71,7 +68,6 @@ export function useMatchmaking() {
         sessionId = rpcSessionId;
       }
 
-      // 4. Setup the subscription BEFORE evaluating the state to prevent race conditions
       const channel = supabase.channel(`session_wait_${sessionId}`);
       matchSubscription = channel;
 
@@ -89,7 +85,7 @@ export function useMatchmaking() {
 
           if (updatedSession.status === 'active') {
             isSearching.value = false;
-            cleanupSubscription(); // We found a match, stop listening to matchmaking changes
+            cleanupSubscription();
           }
         },
       );
@@ -113,7 +109,6 @@ export function useMatchmaking() {
         });
       });
 
-      // 5. Fetch the initial state of the matched/created session
       const { data: sessionData, error: fetchErr } = await supabase
         .from('sessions')
         .select('*')
@@ -122,7 +117,6 @@ export function useMatchmaking() {
 
       if (fetchErr) throw fetchErr;
 
-      // 6. Evaluate state. If active, we are ready.
       if (sessionData.status === 'active') {
         activeSession.value = sessionData;
         isSearching.value = false;
@@ -130,7 +124,6 @@ export function useMatchmaking() {
         return;
       }
 
-      // 7. If waiting, just update the active session (subscription is already active)
       activeSession.value = sessionData;
     } catch (err: any) {
       cleanupSubscription();
@@ -163,7 +156,6 @@ export function useMatchmaking() {
 
         activeSession.value = existingSessions[0];
 
-        // Re-attach subscription for existing session
         const channel = supabase.channel(`session_wait_${sessionId}`);
         matchSubscription = channel;
 
@@ -212,7 +204,6 @@ export function useMatchmaking() {
     }
   };
 
-  // Prevents dangling listeners if the user navigates away
   onUnmounted(() => {
     cleanupSubscription();
   });

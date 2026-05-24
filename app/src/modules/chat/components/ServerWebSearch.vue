@@ -99,7 +99,6 @@ onMounted(() => {
             />
           </div>
 
-          <!-- Body: Search Results / Article Content -->
           <div class="flex-1 overflow-y-auto max-h-[640px] custom-scrollbar">
             <template v-if="currentView === 'results'">
               <div v-if="loading" class="p-8 text-center text-on-ghost-subtle">
@@ -176,7 +175,6 @@ onMounted(() => {
             </template>
           </div>
 
-          <!-- Footer: Navigation Hint -->
           <div
             class="px-4 py-2.5 border-t border-canvas-border flex items-center gap-4 text-xs text-on-ghost-muted"
           >

@@ -183,7 +183,6 @@ async function leaveGroup(group: any) {
           @click="navigateToGroup(group.id)"
           :disabled="navigatingGroupId === group.id"
         >
-          <!-- Group Avatar (Square Cutout) -->
           <span
             class="flex items-center justify-center size-9 sm:size-10 shrink-0 border border-white/5 shadow-inner select-none transition-all duration-150 rounded-xl overflow-hidden text-sm font-bold text-white"
             :style="

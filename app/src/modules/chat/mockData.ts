@@ -109,5 +109,5 @@ export const developmentMockLiveSteps: AiStep[] = [
     duration_ms: 1600,
   },
   { status: 'reading', timestamp: Date.now() - 2600, duration_ms: 1200 },
-  { status: 'pondering', timestamp: Date.now() - 1400 }, // Missing duration implies it is the currently executing step
+  { status: 'pondering', timestamp: Date.now() - 1400 },
 ];

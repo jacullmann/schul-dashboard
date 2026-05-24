@@ -1,6 +1,6 @@
 import { ref, readonly } from 'vue';
 import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/modules/chat/composables/useAuth'; // Adjust path if needed
+import { useAuth } from '@/modules/chat/composables/useAuth';
 
 export function useReports() {
   const { user } = useAuth();
@@ -9,13 +9,6 @@ export function useReports() {
   const reportError = ref<string | null>(null);
   const reportSuccess = ref(false);
 
-  /**
-   * Submits a report against another user.
-   * @param reportedId The auth ID of the user being reported.
-   * @param messageId The ID of the specific message (optional, in case of general report).
-   * @param messageContentSnapshot The exact text of the message at the time of reporting.
-   * @param reason The reason for the report (e.g., 'spam', 'harassment', 'inappropriate').
-   */
   const submitReport = async (
     reportedId: string,
     messageId: string | null,
@@ -43,7 +36,7 @@ export function useReports() {
         message_id: messageId,
         message_content_snapshot: messageContentSnapshot,
         reason: reason,
-        status: 'pending', // Defaults to pending, but explicitly declaring is good practice
+        status: 'pending',
       });
 
       if (error) throw error;
@@ -64,10 +57,6 @@ export function useReports() {
     }
   };
 
-  /**
-   * Resets the report state, useful for closing a report modal
-   * and ensuring it's clean the next time it opens.
-   */
   const resetReportState = () => {
     isSubmitting.value = false;
     reportError.value = null;

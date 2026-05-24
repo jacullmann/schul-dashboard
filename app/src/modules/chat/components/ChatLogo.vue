@@ -2,23 +2,8 @@
 import { computed } from 'vue';
 
 interface Props {
-  /**
-   * The size of the logo.
-   * Pass string presets ('sm', 'md', 'lg', etc.) or a numeric pixel value.
-   */
   size?: number | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
-
-  /**
-   * Triggers a continuous, elegant loading animation state
-   */
   loading?: boolean;
-
-  /**
-   * Aesthetic variant:
-   *  - solid: standard minimal monochrome silhouette
-   *  - gradient: dynamic multi-color magic gradient
-   *  - outline: clean outlined minimal variant
-   */
   variant?: 'solid' | 'gradient' | 'outline';
 }
 

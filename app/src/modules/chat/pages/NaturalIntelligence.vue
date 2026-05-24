@@ -20,7 +20,6 @@ const router = useRouter();
         </div>
 
         <BaseRow justify="center">
-          <!-- BaseButton variant="ghost" @click="router.push('/natural-intelligence/server')">Fulfill requests</BaseButton> -->
           <BaseButton
             variant="action"
             @click="router.push('/natural-intelligence/chat')"

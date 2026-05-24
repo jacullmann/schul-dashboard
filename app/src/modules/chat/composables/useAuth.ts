@@ -18,7 +18,6 @@ export function useAuth() {
   const initializeAuth = async () => {
     isAuthLoading.value = true;
     try {
-      // 1. Check for existing session first to avoid MAU bloat on refresh
       const {
         data: { session },
       } = await supabase.auth.getSession();
@@ -41,7 +40,7 @@ export function useAuth() {
       .eq('id', userId)
       .single();
 
-    if (error && error.code !== 'PGRST116') throw error; // Ignore "Row not found"
+    if (error && error.code !== 'PGRST116') throw error;
     currentProfile.value = data;
   };
 
@@ -52,7 +51,6 @@ export function useAuth() {
     try {
       let userId = currentUser.value?.id;
 
-      // If not already authenticated, sign in anonymously
       if (!userId) {
         const { data: authData, error: authErr } =
           await supabase.auth.signInAnonymously();
@@ -63,7 +61,6 @@ export function useAuth() {
 
       if (!userId) throw new Error('Failed to secure an Auth ID.');
 
-      // Upsert the profile (creates or updates status/role)
       const { data: profileData, error: profileErr } = await supabase
         .from('profiles')
         .upsert({ id: userId, role, status: 'idle' }, { onConflict: 'id' })

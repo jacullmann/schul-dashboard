@@ -32,7 +32,6 @@ export function useChatSession(sessionId: string) {
   const isOpponentConnected = ref(true);
   const chatError = ref<string | null>(null);
 
-  // Local state for AI player's steps
   const aiSteps = ref<AiStep[]>([]);
   let stepStartTime: number | null = null;
 
@@ -52,7 +51,6 @@ export function useChatSession(sessionId: string) {
     hasOpponentJoinedOnce = false;
     isSubscribed = false;
 
-    // 1. Setup the master channel first to start connection early
     chatChannel = supabase.channel(`chat_${sessionId}`, {
       config: { presence: { key: user.value.id } },
     });
@@ -103,7 +101,6 @@ export function useChatSession(sessionId: string) {
           const newStatus: string | null = payload.payload.status;
           currentAiStatus.value = newStatus;
 
-          // Mirror the sender-side step accumulation so we have a full live history
           if (newStatus) {
             const lastReceivedStep = aiSteps.value[aiSteps.value.length - 1];
             const isDuplicate =
@@ -112,7 +109,6 @@ export function useChatSession(sessionId: string) {
               lastReceivedStep.tool === payload.payload.tool;
 
             if (!isDuplicate) {
-              // Finalize duration of the previous step
               if (lastReceivedStep && stepStartTime !== null) {
                 lastReceivedStep.duration_ms = Date.now() - stepStartTime;
               }
@@ -124,7 +120,6 @@ export function useChatSession(sessionId: string) {
               });
             }
           } else {
-            // Status cleared – finalize last step
             const lastReceivedStep = aiSteps.value[aiSteps.value.length - 1];
             if (lastReceivedStep && stepStartTime !== null) {
               lastReceivedStep.duration_ms = Date.now() - stepStartTime;
@@ -144,7 +139,6 @@ export function useChatSession(sessionId: string) {
         }
       });
 
-    // 2. Fetch historical messages BEFORE awaiting subscription
     const fetchHistory = async () => {
       const { data, error } = await supabase
         .from('messages')
@@ -167,14 +161,12 @@ export function useChatSession(sessionId: string) {
 
     await fetchHistory();
 
-    // 3. Await subscription without false timeouts
     await new Promise<void>((resolve) => {
       chatChannel!.subscribe(async (status, err) => {
         if (status === 'SUBSCRIBED') {
           isSubscribed = true;
           await chatChannel?.track({ online_at: new Date().toISOString() });
 
-          // Safety net: fetch history one more time to catch anything inserted during our connection gap
           await fetchHistory();
           resolve();
         } else if (
@@ -184,7 +176,7 @@ export function useChatSession(sessionId: string) {
         ) {
           console.error(`Channel subscription failed: ${status}`, err);
           isSubscribed = false;
-          resolve(); // Resolve to avoid hanging UI, but broadcast will be disabled
+          resolve();
         }
       });
     });
@@ -193,12 +185,10 @@ export function useChatSession(sessionId: string) {
   const setAiStatus = async (status: string | null, tool?: string) => {
     if (!chatChannel || !user.value || !isSubscribed) return;
 
-    // Don't add duplicate consecutive identical statuses to the log
     const lastStep = aiSteps.value[aiSteps.value.length - 1];
     const isDuplicate =
       lastStep && lastStep.status === status && lastStep.tool === tool;
 
-    // Calculate duration for the previous step if it exists and we're changing status
     if (lastStep && stepStartTime !== null && !isDuplicate) {
       lastStep.duration_ms = Date.now() - stepStartTime;
     }
@@ -214,8 +204,6 @@ export function useChatSession(sessionId: string) {
       stepStartTime = null;
     }
 
-    // Always broadcast the current status even if it's a "duplicate" in the log
-    // (to keep the live UI updated/refreshed)
     await chatChannel
       .send({
         type: 'broadcast',
@@ -231,7 +219,6 @@ export function useChatSession(sessionId: string) {
   ) => {
     if (!content.trim() || !user.value) return;
 
-    // Finalize the last step if any
     const lastStep = aiSteps.value[aiSteps.value.length - 1];
     if (lastStep && stepStartTime !== null) {
       lastStep.duration_ms = Date.now() - stepStartTime;
@@ -255,10 +242,9 @@ export function useChatSession(sessionId: string) {
     messages.value.push(optimisticMessage);
 
     setTyping(false);
-    setAiStatus(null); // Clear status on send
-    aiSteps.value = []; // Reset steps for next message
+    setAiStatus(null);
+    aiSteps.value = [];
 
-    // Persist to DB FIRST to ensure recipient can fetch it if they miss the broadcast
     const { error } = await supabase.from('messages').insert({
       id: messageId,
       session_id: sessionId,
@@ -273,7 +259,6 @@ export function useChatSession(sessionId: string) {
       return;
     }
 
-    // Broadcast the message immediately after DB commit
     if (chatChannel && isSubscribed) {
       chatChannel
         .send({

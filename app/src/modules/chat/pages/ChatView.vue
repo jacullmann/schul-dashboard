@@ -83,7 +83,6 @@ watch(
       chat.value = sessionChat;
       await sessionChat.initializeChat();
 
-      // Send pending message if any
       if (pendingMessage.value) {
         sessionChat.sendMessage(pendingMessage.value);
         pendingMessage.value = '';
@@ -181,7 +180,6 @@ const handleCancel = async () => {
   }
 };
 
-// 1. Template refs mapping to your HTML elements
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
 const chatContainer = ref<HTMLElement | null>(null);
 const innerContainerRef = ref<any>(null);
@@ -218,29 +216,22 @@ const calculateSpacer = () => {
 useResizeObserver(chatContainer, calculateSpacer);
 useResizeObserver(innerContainerEl, calculateSpacer);
 
-// 2. The magic resize function
 const autoResize = async () => {
-  await nextTick(); // Wait for Vue to update the v-model
+  await nextTick();
 
   const textarea = textareaRef.value;
   if (!textarea) return;
 
-  // 1. Capture the current height before we mess with it
   const currentHeight = textarea.style.height || `${textarea.clientHeight}px`;
 
-  // 2. Disable transitions temporarily to calculate the new height instantly
   textarea.style.transition = 'none';
   textarea.style.height = 'auto';
   const targetHeight = textarea.scrollHeight;
 
-  // 3. Revert back to the exact starting height
   textarea.style.height = currentHeight;
 
-  // 4. Force a browser reflow (This is the magic line that makes the transition work)
   void textarea.offsetHeight;
 
-  // 5. Re-enable the transition and set the new target height
-  // You can adjust the timing (0.2s) and easing curve here
   textarea.style.transition = 'height 0.2s cubic-bezier(0.25, 1, 0.5, 1)';
   textarea.style.height = `${targetHeight}px`;
 };
@@ -298,7 +289,6 @@ async function send() {
   }
 }
 
-// Watch for new messages to scroll
 watch(
   () => displayMessages.value.length,
   () => {
@@ -331,7 +321,7 @@ async function handleReport(message: UIMessage, reason: string) {
     useToast().success(
       'Report submitted successfully. Our team will review it.',
     );
-    // Close modal, etc.
+
   } else if (error.value === 'already_reported') {
     useToast().info(
       'This message has already been reported. Thank you for your vigilance!',
@@ -341,7 +331,6 @@ async function handleReport(message: UIMessage, reason: string) {
   }
 }
 
-// Voice Recognition
 const isListening = ref(false);
 let recognition: any = null;
 
@@ -362,16 +351,15 @@ const toggleSpeechRecognition = () => {
 
   recognition = new SpeechRecognition();
   recognition.lang = 'en-US';
-  recognition.interimResults = true; // Shows text as you speak
-  recognition.continuous = false; // Stops when you stop speaking
+  recognition.interimResults = true;
+  recognition.continuous = false;
 
   recognition.onstart = () => {
     isListening.value = true;
   };
 
   recognition.onresult = (event: any) => {
-    // Get the latest transcript
-    // Update your existing userInput ref
+
     userInput.value = Array.from(event.results)
       .map((result: any) => result[0])
       .map((result) => result.transcript)
@@ -393,7 +381,6 @@ const toggleSpeechRecognition = () => {
   recognition.start();
 };
 
-// ─── Human Message Collapsing ──────────────────────────────────────────────────
 
 const overflowingHumanMessages = ref<Record<string, boolean>>({});
 const expandedHumanMessages = ref<Record<string, boolean>>({});
@@ -419,12 +406,8 @@ const checkHumanMessageOverflow = (
   });
 };
 
-// ─── Step History ─────────────────────────────────────────────────────────────
-
-/** Whether the step history panel is expanded */
 const isStepHistoryExpanded = ref(false);
 
-/** Per-message expanded state keyed by message id */
 const expandedMessageSteps = ref<Record<string, boolean>>({});
 
 function toggleMessageSteps(messageId: string) {
@@ -436,16 +419,11 @@ function isMessageStepsExpanded(messageId: string) {
   return !!expandedMessageSteps.value[messageId];
 }
 
-/**
- * The live steps being accumulated for the currently-in-progress response.
- * Reads from the chat composable's reactive `aiSteps` ref.
- */
 const liveSteps = computed<AiStep[]>(() => {
   if (USE_MOCK_DATA) return developmentMockLiveSteps;
   return chat.value?.aiSteps ?? [];
 });
 
-// Collapse the live panel whenever a new response cycle begins (steps reset to 0).
 watch(
   () => liveSteps.value.length,
   (len, prevLen) => {
@@ -455,7 +433,6 @@ watch(
   },
 );
 
-/** Mapping from status key to a Lucide icon component */
 const stepIconMap: Record<string, any> = {
   thinking: Lightbulb,
   generating: Sparkles,
@@ -469,18 +446,11 @@ function getStepIcon(status: string): any {
   return stepIconMap[status] ?? Zap;
 }
 
-/**
- * Generate a human-readable label for a step.
- * Falls back to the i18n translation for the status key.
- */
 function getStepLabel(step: AiStep): string {
   const base = t(`chat.status.${step.status}`, step.status);
   return step.tool ? `${base}` : base;
 }
 
-/**
- * Format a duration in milliseconds to a compact human-readable string.
- */
 function formatDuration(ms?: number): string {
   if (ms === undefined || ms === null) return '';
   if (ms < 1000) return `${ms}ms`;
@@ -523,7 +493,6 @@ function formatDuration(ms?: number): string {
               : 'items-start is-ai',
           ]"
         >
-          <!-- Persisted step history for completed assistant messages -->
           <div
             v-if="
               message.role === 'assistant' &&
@@ -582,8 +551,6 @@ function formatDuration(ms?: number): string {
               </div>
             </Transition>
           </div>
-
-          <!-- Message bubble -->
           <div
             v-if="message.role === 'human'"
             class="flex flex-col items-end max-w-[75%] mb-2"
@@ -603,8 +570,6 @@ function formatDuration(ms?: number): string {
               >
                 {{ message.content }}
               </div>
-
-              <!-- Gradient fade for unexpanded overflowing text -->
               <div
                 v-if="
                   !expandedHumanMessages[message.id] &&
@@ -612,8 +577,6 @@ function formatDuration(ms?: number): string {
                 "
                 class="absolute bottom-0 left-0 w-full h-8 bg-linear-to-t from-surface to-transparent pointer-events-none z-10"
               ></div>
-
-              <!-- Expand / Collapse Button -->
               <div
                 v-if="overflowingHumanMessages[message.id]"
                 class="flex justify-end -mt-2 z-20 relative"
@@ -674,11 +637,8 @@ function formatDuration(ms?: number): string {
             </BaseRow>
           </div>
         </div>
-
-        <!-- Live Thinking Indicator with collapsible step history -->
         <div v-if="isThinking" key="thinking" class="flex justify-start w-full">
           <div class="flex flex-col gap-2 py-2 px-2 w-full">
-            <!-- Live step history (collapsible) — always visible while the AI is responding -->
             <div v-if="!isSearching" class="flex flex-col gap-0 mb-1">
               <BaseButton
                 :class="{
@@ -747,7 +707,6 @@ function formatDuration(ms?: number): string {
               </Transition>
             </div>
 
-            <!-- Current status row -->
             <div class="flex items-center gap-2">
               <ChatLogo size="md" :loading="true" variant="gradient" />
               <span class="text-base text-on-ghost-muted">{{
@@ -1000,8 +959,6 @@ function formatDuration(ms?: number): string {
   opacity: 0;
   animation: word-reveal 0.3s ease forwards;
 }
-
-/* ─── Step History ──────────────────────────────────────────────────────── */
 
 .animate-live-pulse {
   animation: live-pulse 1s ease-in-out infinite;

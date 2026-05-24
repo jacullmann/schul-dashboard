@@ -70,7 +70,6 @@ watch(
       chat.value = sessionChat;
       await sessionChat.initializeChat();
 
-      // Send pending message if any
       if (pendingMessage.value) {
         sessionChat.sendMessage(pendingMessage.value);
         pendingMessage.value = '';
@@ -80,7 +79,6 @@ watch(
   { immediate: true },
 );
 
-// Optional: Notify when the opponent leaves
 watch(
   () => chat.value?.isOpponentConnected,
   (isConnected) => {
@@ -94,7 +92,6 @@ const webSearch = ref(false);
 const webSearchActive = ref(false);
 const webSearchEnabled = ref(true);
 
-// Reset searching state when modal closes
 watch(webSearch, (isOpen) => {
   if (!isOpen) webSearchActive.value = false;
 });
@@ -179,7 +176,6 @@ const handleCancel = async () => {
   }
 };
 
-// 1. Template refs mapping to your HTML elements
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
 const chatContainer = ref<HTMLElement | null>(null);
 const innerContainerRef = ref<any>(null);
@@ -216,7 +212,6 @@ const calculateSpacer = () => {
 useResizeObserver(chatContainer, calculateSpacer);
 useResizeObserver(innerContainerEl, calculateSpacer);
 
-// 2. The magic resize function + Typing indicator trigger
 const handleInput = async () => {
   await nextTick();
 
@@ -242,7 +237,6 @@ const scrollToBottom = () => {
   }
 };
 
-// 3. New specific handler for the Find User button
 async function handleFindUser() {
   if (isSearching.value) return;
 
@@ -256,7 +250,6 @@ async function handleFindUser() {
   }
 }
 
-// 4. Send function updated to ONLY handle sending messages
 async function send() {
   if (isThinking.value) return;
   const content = userInput.value.trim();
@@ -289,7 +282,6 @@ watch(
   },
 );
 
-// 5. Fully clears the chat AND resets the matchmaking state
 async function clearChat() {
   if (chat.value) {
     await chat.value.leaveChat();
@@ -310,7 +302,6 @@ async function handleReport(message: UIMessage, reason: string) {
 
   if (isSuccessful) {
     toast.success('Report submitted successfully. Our team will review it.');
-    // Close modal, etc.
   } else if (error.value === 'already_reported') {
     toast.info(
       'This message has already been reported. Thank you for your vigilance!',
@@ -320,7 +311,6 @@ async function handleReport(message: UIMessage, reason: string) {
   }
 }
 
-// Voice Recognition
 const isListening = ref(false);
 let recognition: any = null;
 
@@ -507,17 +497,6 @@ const toggleSpeechRecognition = () => {
               "
             ></div>
 
-            <!--Transition
-              enter-active-class="transition-opacity duration-300 delay-150"
-              enter-from-class="opacity-0"
-              leave-active-class="transition-opacity duration-300"
-              leave-to-class="opacity-0"
-            >
-              <div v-if="!isLockedIn" class="flex flex-col justify-center items-center px-4">
-                <ModelSelectionCards v-model="selectedModel" />
-                <BaseButton variant="action" :full="true" class="mt-4 max-w-120" @click="handleFindUser">Queue for incoming requests</BaseButton>
-              </div>
-            </Transition -->
           </div>
         </Transition>
 

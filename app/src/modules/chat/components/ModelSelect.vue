@@ -9,7 +9,6 @@ const { t } = useI18n();
 
 const modelValue = defineModel<string>({ required: true });
 
-// --- NEW: Added Props and Emits for Lock-in functionality ---
 const props = defineProps<{
   isLocked?: boolean;
 }>();
@@ -82,7 +81,6 @@ const selectOption = (value: string) => {
     return;
   }
 
-  // --- NEW: Intercept lock logic ---
   if (props.isLocked) {
     emit('require-reset', value);
   } else {
