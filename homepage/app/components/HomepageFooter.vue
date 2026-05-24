@@ -9,7 +9,7 @@ const localePath = useLocalePath();
   <footer class="w-full bg-canvas border-t border-surface-border">
     <div class="max-w-[1300px] w-full mx-auto px-4 lg:px-6 py-14 md:py-10">
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
-        <!-- Brand -->
+
         <div class="flex flex-col gap-3">
           <NuxtLink
             :to="localePath('index')"
@@ -28,7 +28,6 @@ const localePath = useLocalePath();
           </p>
         </div>
 
-        <!-- Navigation -->
         <div class="flex flex-col gap-3">
           <p class="text-sm font-semibold text-on-ghost m-0">
             {{ t('footer.navigation.title') }}
@@ -52,7 +51,6 @@ const localePath = useLocalePath();
           </nav>
         </div>
 
-        <!-- Legal -->
         <div class="flex flex-col gap-3">
           <p class="text-sm font-semibold text-on-ghost m-0">{{ t('footer.legal.title') }}</p>
           <nav class="flex flex-col gap-2" aria-label="Legal navigation">
@@ -68,7 +66,6 @@ const localePath = useLocalePath();
           </nav>
         </div>
 
-        <!-- Preferences -->
         <div class="flex flex-col gap-5">
           <ThemeSwitch />
           <LanguageSwitch />

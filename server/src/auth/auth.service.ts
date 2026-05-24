@@ -41,8 +41,6 @@ export class AuthService {
     authenticator.options = { step: 30, window: 1 };
   }
 
-  // ─── Private: cookie helpers ─────────────────────────────────────────────
-
   private setAuthToken(
     res: Response,
     userId: string,
@@ -98,8 +96,6 @@ export class AuthService {
     });
   }
 
-  // ─── Public: login ────────────────────────────────────────────────────────
-
   async login(email: string, password: string, res: Response, _ip?: string) {
     const sb = this.supabaseService.getClient();
     const { data: user } = await sb
@@ -116,9 +112,6 @@ export class AuthService {
 
     const ok = await bcrypt.compare(password, user.password_hash as string);
     if (!ok) {
-      // Log the failed attempt for security monitoring. We log only when the
-      // user record exists to avoid inserting orphan activity rows; we still
-      // return the same generic error so the email is not confirmed to callers.
       await sb.from('user_activity').insert({
         user_id: user.id,
         type: 'auth:login_failed',
@@ -185,8 +178,6 @@ export class AuthService {
 
     return { ok: true };
   }
-
-  // ─── Public: MFA verification ─────────────────────────────────────────────
 
   async verifyMfa(
     code: string,
@@ -273,8 +264,6 @@ export class AuthService {
     return { ok: true };
   }
 
-  // ─── Public: registration ─────────────────────────────────────────────────
-
   async register(
     email: string,
     password: string,
@@ -301,7 +290,6 @@ export class AuthService {
       language: 'de',
       personalized: 'true',
     };
-    // Only carry over known preference keys to prevent arbitrary data storage.
     const ALLOWED_PREF_KEYS = new Set(Object.keys(defaultPreferences));
     const sanitizedPrefs = Object.fromEntries(
       Object.entries(preferences || {}).filter(([k]) =>
@@ -347,16 +335,12 @@ export class AuthService {
     }
   }
 
-  // ─── Public: logout ───────────────────────────────────────────────────────
-
   logout(res: Response) {
     this.clearAuthToken(res);
     this.clearMfaPendingToken(res);
     rotateCsrfToken(res, this.appConfig);
     return { ok: true };
   }
-
-  // ─── Public: profile ──────────────────────────────────────────────────────
 
   async getMe(userId: string, activeGroupId: string | null) {
     if (!userId) return { authenticated: false };
@@ -402,8 +386,6 @@ export class AuthService {
     };
   }
 
-  // ─── Public: account deletion ─────────────────────────────────────────────
-
   async deleteMe(userId: string, res: Response) {
     const sb = this.supabaseService.getClient();
     const { data: user } = await sb
@@ -444,8 +426,6 @@ export class AuthService {
     return { ok: true };
   }
 
-  // ─── Public: email verification ───────────────────────────────────────────
-
   async verifyEmail(token: string) {
     const sb = this.supabaseService.getClient();
     const { data: ver } = await sb
@@ -485,8 +465,6 @@ export class AuthService {
     return { ok: true };
   }
 
-  // ─── Public: password reset ───────────────────────────────────────────────
-
   async forgotPassword(email: string) {
     email = email.toLowerCase();
     const sb = this.supabaseService.getClient();
@@ -496,7 +474,6 @@ export class AuthService {
       .eq('email', email)
       .maybeSingle();
     if (!user) {
-      // Return the same message regardless to prevent user enumeration.
       return {
         ok: true,
         message: 'If the email exists, a recovery email has been sent.',
@@ -518,7 +495,6 @@ export class AuthService {
     try {
       await this.emailService.sendPasswordResetEmail(email, code);
     } catch {
-      // Swallow mail errors to prevent user enumeration.
     }
 
     return {
@@ -616,7 +592,6 @@ export class AuthService {
     try {
       await this.emailService.sendSecurityEmail(email);
     } catch {
-      // Security notification failure is non-critical.
     }
 
     return {
@@ -667,13 +642,6 @@ export class AuthService {
     return { ok: true, message: 'Password changed successfully.' };
   }
 
-  // ─── OAuth helpers (used by OAuthService) ────────────────────────────────
-
-  /**
-   * Issues a full JWT session for a user. Queries the DB for their global role
-   * and first tenant group, then sets the auth_token cookie.
-   * Used by OAuthService after successful Google authentication.
-   */
   async createUserSession(
     userId: string,
     email: string,
@@ -698,10 +666,6 @@ export class AuthService {
     this.setAuthToken(res, userId, email, globalRole, activeGroupId);
   }
 
-  /**
-   * Issues an MFA-pending token for a user mid-authentication.
-   * Used by OAuthService when Google OAuth identifies a user who has MFA enabled.
-   */
   issueMfaPendingToken(userId: string, email: string, res: Response): void {
     this.generateMfaPendingToken(res, userId, email);
   }

@@ -40,7 +40,6 @@ export class ScheduleController {
     return this.scheduleService.getAnnouncements(tenantId);
   }
 
-  /** Returns the list of announcement IDs the current user has already seen as popups. */
   @Get('announcements/read-status')
   getAnnouncementReadStatus(
     @CurrentUserId() userId: string,
@@ -49,7 +48,6 @@ export class ScheduleController {
     return this.scheduleService.getAnnouncementReadStatus(userId, tenantId);
   }
 
-  /** Marks a specific announcement popup as seen for the current user. */
   @Post('announcements/:id/read')
   markAnnouncementRead(
     @CurrentUserId() userId: string,

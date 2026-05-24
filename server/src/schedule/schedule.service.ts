@@ -48,7 +48,6 @@ export class ScheduleService {
       }
 
       if (userId) {
-        // Fire-and-forget: record the user's last schedule visit timestamp.
         sb.from('user_tenant_state')
           .upsert(
             {
@@ -159,8 +158,6 @@ export class ScheduleService {
     announcementId: string,
   ): Promise<void> {
     const sb = this.supabaseService.getClient();
-    // Check-then-insert: avoids relying on a unique constraint that may not exist
-    // in all environments. Idempotent — calling multiple times is safe.
     const { data: existing } = await sb
       .from('user_announcement_read_status')
       .select('id')

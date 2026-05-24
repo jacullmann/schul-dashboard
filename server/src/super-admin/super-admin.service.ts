@@ -38,7 +38,6 @@ export class SuperAdminService {
       .from('reports')
       .select('*', { count: 'exact', head: true });
 
-    // Aggregate item counts by type directly from the items table.
     const { data: allItemTypes } = await sb
       .from('items')
       .select('type')
@@ -77,7 +76,6 @@ export class SuperAdminService {
       .eq('tenant_id', tenantId)
       .gte('created_at', sevenDaysAgo);
 
-    // Aggregate top creators directly from the items table.
     const { data: allCreators } = await sb
       .from('items')
       .select('created_by')
@@ -184,7 +182,6 @@ export class SuperAdminService {
 
     if (!groups || groups.length === 0) return [];
 
-    // Collect all owner IDs and fetch their emails in one query.
     const ownerIds = [
       ...new Set((groups as any[]).map((g: any) => g.owner_id as string)),
     ];

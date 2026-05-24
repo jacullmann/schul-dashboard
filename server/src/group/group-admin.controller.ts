@@ -172,8 +172,6 @@ export class GroupAdminController {
     return this.groupAdminService.cleanupOldItems(tenantId, userId);
   }
 
-  // --- Subjects ---
-
   @TenantRoles('admin', 'moderator')
   @Get('subjects')
   getSubjects(@ActiveTenantId() tenantId: string) {

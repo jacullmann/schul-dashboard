@@ -69,7 +69,7 @@ export class GroupController {
     );
   }
 
-  @Public() // Accessible to non-authenticated (checked gracefully via req param)
+  @Public()
   @UseGuards(JwtAuthGuard)
   @Get('status')
   getStatus(@Req() req: any) {

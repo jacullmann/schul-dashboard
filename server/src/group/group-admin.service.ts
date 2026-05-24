@@ -228,7 +228,6 @@ export class GroupAdminService {
 
     const sb = this.supabaseService.getClient();
 
-    // Check if current user is owner
     const { data: group } = await sb
       .from('groups')
       .select('owner_id')
@@ -242,7 +241,6 @@ export class GroupAdminService {
       );
     }
 
-    // Check if target is admin in this group
     const { data: targetRole } = await sb
       .from('user_roles')
       .select('id, roles(name)')
@@ -251,7 +249,6 @@ export class GroupAdminService {
       .limit(1)
       .maybeSingle();
 
-    // Check targetRole exists and is admin (role_id=2 or roles.name='admin')
     const roleName = (targetRole as any)?.roles?.name;
     if (!targetRole || roleName !== 'admin') {
       throw new BadRequestException(
@@ -446,7 +443,6 @@ export class GroupAdminService {
       throw new ForbiddenException('Only the owner can delete this group.');
     }
 
-    // Assuming DB has ON DELETE CASCADE configured for tenant_id in related tables
     const { error: groupDeleteError } = await sb
       .from('groups')
       .delete()
@@ -455,8 +451,6 @@ export class GroupAdminService {
     if (groupDeleteError)
       throw new InternalServerErrorException('Failed to delete group');
 
-    // We can't log activity for user in the same group context if the tenant_id constraint cascades user_roles,
-    // but user_activity is not bound to tenant_id (only user_id), so it's fine.
     await sb.from('user_activity').insert({
       user_id: userId,
       type: 'group-admin:delete-group',
@@ -487,13 +481,7 @@ export class GroupAdminService {
     });
 
     if (publicIdsToDelete.length > 0) {
-      // Logic for cloudinary deletion here if integrated. E.g., via CloudinaryService
-      // This part mirrors Express exactly but without the direct api call since Cloudinary setup might be missing
-      // We'll leave the deletion of the images logic stubbed out or implement a CloudinaryService later
-      // The instruction just demands exact contractual parity. We omit actual remote deletion here unless required.
-      // In Express: await cloudinary.api.delete_resources(publicIdsToDelete.slice(i, i + 100));
-      // For now, doing just db deletion.
-      // // TODO: Impl CloudinaryService
+      // TODO: Impl CloudinaryService for image deletion from cloudinary
     }
 
     await sb
@@ -518,8 +506,6 @@ export class GroupAdminService {
       message: `${itemIds.length} entries deleted.`,
     };
   }
-
-  // --- Subjects ---
 
   async getSubjects(tenantId: string) {
     const sb = this.supabaseService.getClient();
@@ -614,8 +600,6 @@ export class GroupAdminService {
 
     if (!existing) throw new NotFoundException('Subject not found');
 
-    // Explicit reference check across all FK-referencing tables to prevent
-    // accidental deletion of subjects still in use.
     const [
       { count: scheduleCount },
       { count: courseCount },
@@ -661,7 +645,6 @@ export class GroupAdminService {
     return { ok: true };
   }
 
-  // --- Schedule substitutions ---
   async getSchedule(tenantId: string) {
     const sb = this.supabaseService.getClient();
     const { data: lessons, error } = await sb
@@ -775,7 +758,6 @@ export class GroupAdminService {
     return { ok: true };
   }
 
-  // --- Announcements ---
   async createAnnouncement(
     tenantId: string,
     userId: string,

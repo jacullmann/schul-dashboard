@@ -10,16 +10,11 @@ const CSRF_COOKIE_NAME = 'csrf_token';
 export class CsrfMiddleware implements NestMiddleware {
   constructor(private readonly config: AppConfig) {}
 
-  /**
-   * Sets (or refreshes) the CSRF cookie on the given response.
-   * The cookie is intentionally non-HttpOnly so that the browser-side JS can
-   * read it and attach it as the `x-csrf-token` request header.
-   */
   static setCsrfCookie(res: Response, token: string, config: AppConfig): void {
     res.cookie(CSRF_COOKIE_NAME, token, {
       ...config.baseCookieOptions,
       httpOnly: false,
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      maxAge: 30 * 24 * 60 * 60 * 1000,
     });
   }
 
@@ -39,8 +34,6 @@ export class CsrfMiddleware implements NestMiddleware {
       const cookieBuf = Buffer.from(cookieToken as string);
       const headerBuf = Buffer.from(headerToken as string);
 
-      // Buffers must be the same byte-length for timingSafeEqual.
-      // If lengths differ the tokens are clearly different, so reject immediately.
       if (cookieBuf.length !== headerBuf.length) {
         throw new Error('length mismatch');
       }
@@ -55,10 +48,6 @@ export class CsrfMiddleware implements NestMiddleware {
   }
 }
 
-/**
- * Generates a new CSRF token, sets the cookie, and returns the token string.
- * Call this whenever the authentication state changes (login, logout, group switch).
- */
 export function rotateCsrfToken(res: Response, config: AppConfig): string {
   const token = crypto.randomBytes(32).toString('hex');
   CsrfMiddleware.setCsrfCookie(res, token, config);

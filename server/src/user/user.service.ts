@@ -34,7 +34,6 @@ export class UserService {
   async updatePreferences(userId: string, preferences: Record<string, any>) {
     const sb = this.supabaseService.getClient();
 
-    // Fetch the existing user preferences
     const { data: user } = await sb
       .from('users')
       .select('preferences')
@@ -43,8 +42,6 @@ export class UserService {
 
     if (!user) throw new NotFoundException('User not found');
 
-    // Parse existing preferences safely, accounting for stringified JSON or objects
-    // Fall back to schema defaults if the user has a null/empty preferences column
     const defaultPreferences = {
       theme: 'system',
       language: 'de',
@@ -60,7 +57,6 @@ export class UserService {
             ...(JSON.parse(user.preferences) as Record<string, any>),
           };
         } catch {
-          // Ignore invalid JSON in existing preferences
         }
       } else if (
         typeof user.preferences === 'object' &&
@@ -73,7 +69,6 @@ export class UserService {
       }
     }
 
-    // Clean incoming preferences to remove undefined keys
     const newPrefs = { ...preferences };
     Object.keys(newPrefs).forEach((key) => {
       if (newPrefs[key] === undefined) {
@@ -81,7 +76,6 @@ export class UserService {
       }
     });
 
-    // Merge incoming preferences with existing preferences
     const mergedPreferences = {
       ...currentPrefs,
       ...newPrefs,
@@ -237,7 +231,6 @@ export class UserService {
     }
     if (!item) throw new NotFoundException('Item not found.');
 
-    // Manually handle upsert via delete + insert to avoid potential composite key issues or onConflict bugs
     const { error: deleteError } = await sb
       .from('user_item_visibility')
       .delete()
@@ -246,8 +239,6 @@ export class UserService {
 
     if (deleteError) {
       console.error('Manual upsert delete phase error:', deleteError);
-      // We don't necessarily throw here if it was just "not found",
-      // but Supabase delete error usually means something else went wrong.
     }
 
     const { error: insertError } = await sb

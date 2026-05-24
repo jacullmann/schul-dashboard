@@ -17,7 +17,6 @@ import { generateUserName } from '../common/utils/name-generator.util';
 
 const DUMMY_HASH = bcrypt.hashSync('__dummy__', 10);
 
-/** Epoch used as "never visited" sentinel for user_tenant_state rows that don't exist yet. */
 const EPOCH_ISO = '1970-01-01T00:00:00.000Z';
 
 @Injectable()
@@ -228,14 +227,9 @@ export class GroupService {
           avatarUrl: ur.groups.avatar_url as string,
         }));
 
-      // Determine unread status per-user:
-      //   Announcements — unread if not present in user_announcement_read_status.
-      //   Schedule subs — unread if created after the user's last schedule visit
-      //                    (tracked in user_tenant_state.last_schedule_visit_at).
       if (groups.length > 0) {
         const tenantIds = groups.map((g) => g.id);
 
-        // Phase 1: parallel fetch (all announcements, all subs, user visit state)
         const [
           { data: allAnnouncements },
           { data: allSubs },
@@ -256,7 +250,6 @@ export class GroupService {
             .in('tenant_id', tenantIds),
         ]);
 
-        // Phase 2: fetch which announcements this user has already read
         const announcementIds = (allAnnouncements || []).map(
           (a: any) => a.id as string,
         );
@@ -272,7 +265,6 @@ export class GroupService {
           );
         }
 
-        // Build per-group last-schedule-visit lookup
         const lastVisitMap = new Map<string, string>(
           (userStates || []).map((s: any) => [
             s.tenant_id as string,
@@ -313,7 +305,6 @@ export class GroupService {
       let activeGroup: (typeof groups)[number] | null =
         groups.find((g) => g.id === activeGroupId) ?? null;
 
-      // Super-admins can be active in groups they are not a member of.
       if (!activeGroup && activeGroupId && globalRole === 'superadmin') {
         const { data: adminGroup } = await sb
           .from('groups')
@@ -502,9 +493,6 @@ export class GroupService {
     }
 
     this.clearAuthToken(res);
-    // Rotate (not clear) the CSRF token so the browser immediately has a valid
-    // token for the next request (e.g. the login form POST after logout).
-    // Clearing the cookie would leave a gap until ensureCsrf() re-initialises it.
     rotateCsrfToken(res, this.appConfig);
     return { ok: true };
   }

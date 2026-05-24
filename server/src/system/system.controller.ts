@@ -10,11 +10,6 @@ import { CsrfMiddleware } from '../common/middleware/csrf.middleware';
 export class SystemController {
   constructor(private readonly appConfig: AppConfig) {}
 
-  /**
-   * Initialises the CSRF cookie on first page load.
-   * This endpoint is intentionally public — the browser calls it before
-   * authenticating to obtain a CSRF token for subsequent mutations.
-   */
   @Public()
   @ApiOperation({ summary: 'Initialises CSRF protection cookie.' })
   @Get('csrf/init')

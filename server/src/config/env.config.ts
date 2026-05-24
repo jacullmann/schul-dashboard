@@ -118,8 +118,6 @@ export class AppConfig {
     private readonly configService: ConfigService<EnvironmentVariables>,
   ) {}
 
-  // ─── Environment ──────────────────────────────────────────────────────────
-
   get isProduction(): boolean {
     return this.nodeEnv === Environment.Production;
   }
@@ -140,13 +138,10 @@ export class AppConfig {
     return this.configService.get('CLIENT_VERIFY_URL')!;
   }
 
-  // ─── Cookies ──────────────────────────────────────────────────────────────
-
   get cookieDomain(): string {
     return this.configService.get('COOKIE_DOMAIN')!;
   }
 
-  /** Base cookie options shared by all cookies in this application. */
   get baseCookieOptions(): CookieOptions {
     return {
       domain: this.cookieDomain,
@@ -156,29 +151,21 @@ export class AppConfig {
     };
   }
 
-  // ─── JWT secrets ──────────────────────────────────────────────────────────
-
-  /** Primary user session JWT secret. */
   get jwtSecret(): string {
     return this.configService.get('USER_JWT_SECRET')!;
   }
 
-  /** Short-lived MFA-pending token secret. */
   get mfaPendingJwtSecret(): string {
     return this.configService.get('MFA_PENDING_JWT_SECRET')!;
   }
 
-  /** Short-lived OAuth-pending token secret (state cookie + pending link). */
   get oauthPendingJwtSecret(): string {
     return this.configService.get('OAUTH_PENDING_JWT_SECRET')!;
   }
 
-  /** Short-lived password-reset token secret. */
   get passwordResetJwtSecret(): string {
     return this.configService.get('PASSWORD_RESET_JWT_SECRET')!;
   }
-
-  // ─── Google OAuth ─────────────────────────────────────────────────────────
 
   get googleClientId(): string {
     return this.configService.get('GOOGLE_OAUTH_CLIENT_ID')!;
@@ -192,8 +179,6 @@ export class AppConfig {
     return this.configService.get('GOOGLE_OAUTH_REDIRECT_URI')!;
   }
 
-  // ─── Supabase ─────────────────────────────────────────────────────────────
-
   get supabaseUrl(): string {
     return this.configService.get('SUPABASE_URL')!;
   }
@@ -201,8 +186,6 @@ export class AppConfig {
   get supabaseServiceRoleKey(): string {
     return this.configService.get('SUPABASE_SERVICE_ROLE_KEY')!;
   }
-
-  // ─── Email (Resend) ───────────────────────────────────────────────────────
 
   get resendApiKey(): string {
     return this.configService.get('RESEND_API_KEY')!;
@@ -214,8 +197,6 @@ export class AppConfig {
       'schul-dashboard <noreply@schul-dashboard.com>'
     );
   }
-
-  // ─── Cloudinary ───────────────────────────────────────────────────────────
 
   get cloudinaryCloudName(): string {
     return this.configService.get('CLOUDINARY_CLOUD_NAME')!;
@@ -234,10 +215,6 @@ export class AppConfig {
   }
 }
 
-/**
- * Global configuration module — imported once in AppModule.
- * AppConfig is available everywhere without explicit per-module imports.
- */
 @Global()
 @Module({
   imports: [ConfigModule],

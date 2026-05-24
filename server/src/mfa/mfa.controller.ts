@@ -20,7 +20,6 @@ export class MfaController {
     return this.mfaService.setup(userId);
   }
 
-  // TOTP codes are 6-digit; limit guessing attempts to 10 per minute.
   @Throttle({ default: { limit: 10, ttl: 60000 } })
   @Post('activate')
   activate(@CurrentUserId() userId: string, @Body() body: MfaCodeDto) {

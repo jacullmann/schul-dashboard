@@ -31,7 +31,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
         typeof exceptionResponse === 'object' &&
         exceptionResponse !== null
       ) {
-        // If it comes from our custom ValidationPipe, it's mapped to { error, errors }
         if (
           'message' in exceptionResponse &&
           typeof exceptionResponse.message === 'string'
@@ -61,7 +60,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
       );
     }
 
-    // The frontend expects the format { error: string, errors?: any[] }
     response.status(status).json({
       error: message,
       errors: errors,

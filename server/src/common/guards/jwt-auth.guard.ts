@@ -39,8 +39,6 @@ export class JwtAuthGuard implements CanActivate {
     const token = request.cookies[COOKIE_NAME];
 
     if (isPublic) {
-      // For public routes, decode the user if a valid token is present so that
-      // handlers can access optional user context without enforcing auth.
       if (token && typeof token === 'string') {
         try {
           const payload = this.jwtService.verifyUserToken(
@@ -56,7 +54,6 @@ export class JwtAuthGuard implements CanActivate {
             request.activeGroupId = payload.gId || null;
           }
         } catch {
-          // Ignore invalid token for public routes.
         }
       }
       return true;

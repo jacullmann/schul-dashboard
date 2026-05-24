@@ -275,7 +275,6 @@ export class TodosService {
             position: p,
           });
         } catch {
-          // Ignore reordering errors for individual items
         }
       }
       if (rebalanceUpdates.length > 0) {

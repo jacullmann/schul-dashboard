@@ -15,8 +15,6 @@ import { rotateCsrfToken } from '../common/middleware/csrf.middleware';
 import { OAUTH_PENDING_COOKIE } from './guards/oauth-pending.guard';
 import { Request, Response } from 'express';
 
-// ─── Google API types ─────────────────────────────────────────────────────────
-
 interface GoogleJwk {
   kid: string;
   n: string;
@@ -37,7 +35,6 @@ interface GoogleTokenResponse {
 }
 
 interface GoogleIdTokenPayload {
-  /** Google's stable, immutable user identifier */
   sub: string;
   email: string;
   email_verified: boolean;
@@ -47,8 +44,6 @@ interface GoogleIdTokenPayload {
   exp: number;
   iat: number;
 }
-
-// ─── Internal resolution types ────────────────────────────────────────────────
 
 type OAuthResolution =
   | {
@@ -67,7 +62,6 @@ const OAUTH_STATE_COOKIE = 'oauth_state_token';
 export class OAuthService {
   private readonly logger = new Logger(OAuthService.name);
 
-  /** In-memory JWKS cache — avoids hitting Google on every callback. */
   private jwksCache: { keys: GoogleJwks; fetchedAt: number } | null = null;
   private readonly JWKS_CACHE_TTL_MS = 5 * 60 * 1000;
 
@@ -78,12 +72,6 @@ export class OAuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  // ─── Public: initiate OAuth flow ─────────────────────────────────────────
-
-  /**
-   * Generates state + nonce, stores them in a short-lived HttpOnly cookie,
-   * and returns the Google authorization URL to redirect the user to.
-   */
   buildGoogleAuthUrl(res: Response): string {
     const { state, nonce } = this.setOAuthStateCookie(res);
 
@@ -101,13 +89,6 @@ export class OAuthService {
     return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
   }
 
-  // ─── Public: handle Google callback ──────────────────────────────────────
-
-  /**
-   * Handles the OAuth 2.0 callback from Google.
-   * Performs full token verification and account resolution, then sets the
-   * appropriate cookies and returns the redirect URL.
-   */
   async handleCallback(
     code: string | undefined,
     stateParam: string | undefined,
@@ -127,7 +108,6 @@ export class OAuthService {
       return `${frontendUrl}/?auth=error&reason=invalid_request`;
     }
 
-    // ── 1. Validate state + extract nonce ─────────────────────────────────
     let nonce: string;
     try {
       nonce = this.verifyAndClearOAuthState(req, res, stateParam);
@@ -135,7 +115,6 @@ export class OAuthService {
       return `${frontendUrl}/?auth=error&reason=invalid_state`;
     }
 
-    // ── 2. Exchange code for tokens ───────────────────────────────────────
     let tokenResponse: GoogleTokenResponse;
     try {
       tokenResponse = await this.exchangeCodeForTokens(code);
@@ -144,7 +123,6 @@ export class OAuthService {
       return `${frontendUrl}/?auth=error&reason=token_exchange_failed`;
     }
 
-    // ── 3. Verify ID token ────────────────────────────────────────────────
     let googleProfile: GoogleIdTokenPayload;
     try {
       googleProfile = await this.verifyGoogleIdToken(
@@ -158,7 +136,6 @@ export class OAuthService {
 
     const { sub: googleId, email: googleEmail } = googleProfile;
 
-    // ── 4. Account resolution ─────────────────────────────────────────────
     let resolution: OAuthResolution;
     try {
       resolution = await this.resolveAccount(googleId, googleEmail);
@@ -167,7 +144,6 @@ export class OAuthService {
       return `${frontendUrl}/?auth=error&reason=server_error`;
     }
 
-    // ── 5. Act on resolution ──────────────────────────────────────────────
     if (resolution.type === 'link_required') {
       this.setPendingOAuthToken(
         res,
@@ -197,8 +173,6 @@ export class OAuthService {
 
     return `${frontendUrl}/?auth=error&reason=server_error`;
   }
-
-  // ─── Public: link Google to existing account ─────────────────────────────
 
   async linkGoogleAccount(
     googleId: string,
@@ -274,8 +248,6 @@ export class OAuthService {
     return { ok: true, csrfToken: newCsrfToken };
   }
 
-  // ─── Public: unlink Google from account ──────────────────────────────────
-
   async unlinkGoogleAccount(userId: string): Promise<{ ok: true }> {
     const sb = this.supabaseService.getClient();
 
@@ -305,8 +277,6 @@ export class OAuthService {
     return { ok: true };
   }
 
-  // ─── Public: list linked providers ───────────────────────────────────────
-
   async getLinkedProviders(
     userId: string,
   ): Promise<{ providers: Array<{ provider: string; email: string }> }> {
@@ -326,8 +296,6 @@ export class OAuthService {
 
     return { providers };
   }
-
-  // ─── Private: account resolution ─────────────────────────────────────────
 
   private async resolveAccount(
     googleId: string,
@@ -413,8 +381,6 @@ export class OAuthService {
     return { type: 'new_user', userId: newUser.id as string, email };
   }
 
-  // ─── Private: Google token exchange ──────────────────────────────────────
-
   private async exchangeCodeForTokens(
     code: string,
   ): Promise<GoogleTokenResponse> {
@@ -444,8 +410,6 @@ export class OAuthService {
 
     return response.json() as Promise<GoogleTokenResponse>;
   }
-
-  // ─── Private: ID token verification ──────────────────────────────────────
 
   private async verifyGoogleIdToken(
     idToken: string,
@@ -488,8 +452,6 @@ export class OAuthService {
     return payload;
   }
 
-  // ─── Private: JWKS fetch with caching ────────────────────────────────────
-
   private async getGoogleJwks(): Promise<GoogleJwks> {
     const now = Date.now();
     if (
@@ -508,8 +470,6 @@ export class OAuthService {
     this.jwksCache = { keys, fetchedAt: now };
     return keys;
   }
-
-  // ─── Private: OAuth state cookie (CSRF + nonce) ───────────────────────────
 
   private setOAuthStateCookie(res: Response): { state: string; nonce: string } {
     const state = crypto.randomBytes(32).toString('hex');
@@ -561,8 +521,6 @@ export class OAuthService {
     return payload.nonce;
   }
 
-  // ─── Private: pending OAuth token (for link-required flow) ───────────────
-
   private setPendingOAuthToken(
     res: Response,
     googleId: string,
@@ -586,8 +544,6 @@ export class OAuthService {
       httpOnly: true,
     });
   }
-
-  // ─── Private: helpers ─────────────────────────────────────────────────────
 
   private async updateLastLogin(userId: string): Promise<void> {
     const sb = this.supabaseService.getClient();

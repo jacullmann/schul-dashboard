@@ -88,7 +88,6 @@ export class ItemsService {
     }
 
     if (type === 'all' || !type) {
-      // Fire-and-forget: record the user's last group visit timestamp.
       sb.from('user_tenant_state')
         .upsert(
           {

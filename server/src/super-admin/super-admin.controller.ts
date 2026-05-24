@@ -22,7 +22,6 @@ import {
   AdminCreateScheduleSubDto,
 } from './dto/super-admin.dto';
 
-// Global super-admin routes: user management, reports, global stats
 @UseGuards(JwtAuthGuard, SuperAdminGuard)
 @Controller('admin')
 export class SuperAdminController {

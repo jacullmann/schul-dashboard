@@ -31,8 +31,6 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  // 15 login attempts per minute per IP — tight enough to stop brute force,
-  // loose enough for legitimate users on slow connections.
   @Throttle({ default: { limit: 15, ttl: 60000 } })
   @Public()
   @Post('login')
@@ -44,7 +42,6 @@ export class AuthController {
     return this.authService.login(body.email, body.password, res, ip);
   }
 
-  // MFA code submission is similarly brute-force sensitive.
   @Throttle({ default: { limit: 10, ttl: 60000 } })
   @Public()
   @UseGuards(MfaPendingGuard)
@@ -65,7 +62,6 @@ export class AuthController {
     return this.authService.cancelMfa(res);
   }
 
-  // Registration: prevent account-creation spam.
   @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Public()
   @Post('register')
@@ -84,10 +80,9 @@ export class AuthController {
   }
 
   @Public()
-  @UseGuards(JwtAuthGuard) // Used dynamically to gracefully populate user without failing if not logged in
+  @UseGuards(JwtAuthGuard)
   @Get('me')
   async getMe(@Req() req: any) {
-    // If not authenticated, request.user is undefined
     const userId = (req as Record<string, any>).userId as string | undefined;
     const activeGroupId = (req as Record<string, any>).activeGroupId as
       | string
@@ -111,7 +106,6 @@ export class AuthController {
     return this.authService.verifyEmail(token);
   }
 
-  // Forgot-password: prevent email enumeration amplification and spam.
   @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Public()
   @Post('forgot')
@@ -119,7 +113,6 @@ export class AuthController {
     return this.authService.forgotPassword(body.email);
   }
 
-  // Reset-code verification: the 6-char hex code window needs throttling.
   @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Public()
   @Post('reset/verify')

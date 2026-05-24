@@ -82,7 +82,6 @@ export class MessagesGateway
   handleJoinGroup(client: Socket, payload: { groupId: string }) {
     if (!payload.groupId) return;
 
-    // Security check: Verify the user is authorized for this tenant context
     if (client.data.activeGroupId !== payload.groupId) {
       this.logger.warn(
         `User ${client.data.userId} tried to join group ${payload.groupId} but active token group is ${client.data.activeGroupId}`,

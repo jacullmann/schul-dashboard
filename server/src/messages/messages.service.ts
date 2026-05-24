@@ -45,10 +45,8 @@ export class MessagesService {
       return [];
     }
 
-    // Chronological order: reverse the fetched messages
     const chronologicalMessages = [...messages].reverse();
 
-    // Fetch parent messages to display reply context
     const parentIds = [
       ...new Set(
         chronologicalMessages
@@ -163,7 +161,6 @@ export class MessagesService {
   ): Promise<void> {
     const sb = this.supabaseService.getClient();
 
-    // 1. Fetch the message first to verify existence and check ownership
     const { data: message, error: fetchError } = await sb
       .from('group_messages')
       .select('*')
@@ -175,7 +172,6 @@ export class MessagesService {
       throw new NotFoundException('Nachricht nicht gefunden');
     }
 
-    // 2. Check permissions: creator, superadmin, or tenant admin/moderator
     const isOwner = message.user_id === userId;
     const isSuperAdmin = globalRole === 'superadmin';
     const isTenantAdminOrMod =
@@ -187,7 +183,6 @@ export class MessagesService {
       );
     }
 
-    // 3. Gracefully nullify parent_id references in replies
     const { error: updateError } = await sb
       .from('group_messages')
       .update({ parent_id: null })
@@ -199,7 +194,6 @@ export class MessagesService {
       );
     }
 
-    // 4. Delete the message itself
     const { error: deleteError } = await sb
       .from('group_messages')
       .delete()

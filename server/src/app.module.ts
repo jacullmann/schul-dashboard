@@ -53,11 +53,7 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
   ],
   controllers: [],
   providers: [
-    // ThrottlerGuard enforces the default rate limit on every route.
-    // Use @Throttle({ default: { limit, ttl } }) to override per-route.
-    // Use @SkipThrottle() to exempt a route entirely (e.g. health checks).
     { provide: APP_GUARD, useClass: ThrottlerGuard },
-    // JwtAuthGuard protects all routes by default; use @Public() to opt out.
     { provide: APP_GUARD, useClass: JwtAuthGuard },
   ],
 })
