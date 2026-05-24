@@ -429,7 +429,7 @@ watch(groupId, () => {
 
 <template>
   <div
-    class="chat-container md:min-h-[500px] min-h-0 flex flex-col overflow-hidden relative p-0 animate-fade-up"
+    class="chat-container min-h-0 flex flex-col overflow-hidden relative p-0 animate-fade-up"
   >
     <div
       ref="messageContainer"
@@ -438,27 +438,24 @@ watch(groupId, () => {
     >
       <div
         v-if="loading"
-        class="h-full flex flex-col justify-center items-center gap-3 text-on-ghost-muted"
+        class="h-full flex flex-col justify-center items-center"
       >
         <BaseSpinner size="32px" />
-        <span
-          class="text-xs font-semibold tracking-wider uppercase opacity-85 animate-pulse"
-          >Lade Chat...</span
-        >
       </div>
 
       <div
         v-else-if="error"
         class="h-full flex flex-col justify-center items-center gap-3 text-danger p-6 text-center"
       >
-        <Info class="w-9 h-9 opacity-80" />
+        <Info :size="40" />
         <span class="text-sm font-semibold tracking-tight">{{ error }}</span>
-        <button
+        <BaseButton
+          variant="ghost"
+          on="ghost"
           @click="fetchMessages"
-          class="mt-2 px-5 py-2.5 text-xs font-bold bg-danger/10 hover:bg-danger/20 border border-danger/20 text-danger rounded-2xl transition-all duration-200 shadow-sm active:scale-95"
         >
           Erneut laden
-        </button>
+        </BaseButton>
       </div>
 
       <template v-else>
@@ -534,8 +531,8 @@ watch(groupId, () => {
                   :class="[
                     'p-2 transition-all duration-200 relative group min-w-0 max-w-full',
                     msg.userId === currentUserId
-                      ? 'bg-action text-on-action shadow-input'
-                      : 'bg-surface border border-surface-border text-on-ghost shadow-input',
+                      ? 'bg-action text-on-action'
+                      : 'bg-ghost-hover text-on-ghost',
 
                     getBubbleBorderClasses(msg, index),
                   ]"
