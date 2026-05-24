@@ -1,5 +1,5 @@
 import { ref, computed } from 'vue';
-import hw, { ensureCsrf } from '@/api/hwApi';
+import hw, { ensureCsrf, refreshSession } from '@/api/hwApi';
 
 const STATUS_ENDPOINT = '/api/groups/status';
 
@@ -10,6 +10,7 @@ const groupName = ref<string | null>(null);
 const activeGroupId = ref<string | null>(null);
 const activeGroupOwnerId = ref<string | null>(null);
 const activeGroupAvatarUrl = ref<string | null>(null);
+
 type UserGroup = {
   id: string;
   name: string;
@@ -27,6 +28,7 @@ let initPromise: Promise<void> | null = null;
 let statusPromise: Promise<boolean> | null = null;
 let switchPromise: Promise<AuthResult> | null = null;
 let switchTarget: string | null = null;
+let authExpiredHandlerInstalled = false;
 
 type OkResult = { ok: true };
 type ErrResult = { ok: false; error: string };
@@ -73,9 +75,22 @@ function applyStatusData(data: {
   userGroups.value = data.groups ?? [];
 }
 
+function installAuthExpiredHandlerOnce(): void {
+  if (authExpiredHandlerInstalled) return;
+  authExpiredHandlerInstalled = true;
+  window.addEventListener('auth-expired', () => {
+    clearAuthState();
+    isAuthReady.value = true;
+    initPromise = null;
+  });
+}
+
 async function doInitAuth(): Promise<void> {
   try {
     await ensureCsrf();
+    try {
+      await refreshSession({ silent: true });
+    } catch {}
     const { data } = await hw.get(STATUS_ENDPOINT);
     applyStatusData(data);
   } catch {
@@ -129,6 +144,8 @@ async function doSwitchGroup(
 }
 
 export function useAppAuth() {
+  installAuthExpiredHandlerOnce();
+
   async function checkAuthStatus(): Promise<boolean> {
     if (statusPromise) return statusPromise;
 
@@ -231,9 +248,19 @@ export function useAppAuth() {
 
   async function logout(): Promise<void> {
     try {
-      await hw.post('/api/groups/logout');
+      await hw.post('/api/auth/logout');
     } catch {
-      // Always clear local state even if the server call fails.
+    } finally {
+      clearAuthState();
+      isAuthReady.value = false;
+      initPromise = null;
+    }
+  }
+
+  async function logoutAllDevices(): Promise<void> {
+    try {
+      await hw.post('/api/auth/logout-all');
+    } catch {
     } finally {
       clearAuthState();
       isAuthReady.value = false;
@@ -265,5 +292,6 @@ export function useAppAuth() {
     createGroup,
     switchActiveGroup,
     logout,
+    logoutAllDevices,
   };
 }

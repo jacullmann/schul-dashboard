@@ -34,9 +34,7 @@ export class OAuthPendingGuard implements CanActivate {
     }
 
     try {
-      const payload = this.jwtService.verifyOAuthPendingToken(
-        token,
-      ) as OAuthPendingPayload;
+      const payload = this.jwtService.verifyOAuthPendingToken(token);
 
       if (
         payload.purpose !== 'oauth_pending' ||

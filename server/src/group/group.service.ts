@@ -11,7 +11,7 @@ import { AppConfig } from '../config/env.config';
 import { JwtService } from '../common/jwt/jwt.service';
 import * as bcrypt from 'bcryptjs';
 import { Response } from 'express';
-import { COOKIE_NAME } from '../common/guards/jwt-auth.guard';
+import { ACCESS_COOKIE } from '../auth/auth.cookies';
 import { rotateCsrfToken } from '../common/middleware/csrf.middleware';
 import { generateUserName } from '../common/utils/name-generator.util';
 
@@ -43,7 +43,7 @@ export class GroupService {
     const token = this.jwtService.signUserToken(payload, {
       expiresIn: '7d',
     });
-    res.cookie(COOKIE_NAME, token, {
+    res.cookie(ACCESS_COOKIE, token, {
       ...this.appConfig.baseCookieOptions,
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000,
@@ -51,7 +51,7 @@ export class GroupService {
   }
 
   private clearAuthToken(res: Response) {
-    res.clearCookie(COOKIE_NAME, {
+    res.clearCookie(ACCESS_COOKIE, {
       ...this.appConfig.baseCookieOptions,
       httpOnly: true,
     });

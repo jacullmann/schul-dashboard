@@ -56,8 +56,7 @@ export class UserService {
             ...currentPrefs,
             ...(JSON.parse(user.preferences) as Record<string, any>),
           };
-        } catch {
-        }
+        } catch {}
       } else if (
         typeof user.preferences === 'object' &&
         !Array.isArray(user.preferences)

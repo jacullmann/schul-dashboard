@@ -7,7 +7,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { JwtService } from '../common/jwt/jwt.service';
-import { COOKIE_NAME } from '../common/guards/jwt-auth.guard';
+import { ACCESS_COOKIE } from '../auth/auth.cookies';
 import { generateUserName } from '../common/utils/name-generator.util';
 import { Logger } from '@nestjs/common';
 
@@ -45,11 +45,11 @@ export class MessagesGateway
     try {
       const cookieHeader = client.handshake.headers.cookie;
       const cookies = parseCookies(cookieHeader);
-      const token = cookies[COOKIE_NAME];
+      const token = cookies[ACCESS_COOKIE];
 
       if (!token) {
         this.logger.warn(
-          `Connection attempt rejected: no ${COOKIE_NAME} cookie found.`,
+          `Connection attempt rejected: no ${ACCESS_COOKIE} cookie found.`,
         );
         client.disconnect();
         return;

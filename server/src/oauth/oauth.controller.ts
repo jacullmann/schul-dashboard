@@ -64,6 +64,7 @@ export class OAuthController {
       googleEmail,
       body.password,
       res,
+      req,
     );
   }
 

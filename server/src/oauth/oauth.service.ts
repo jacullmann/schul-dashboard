@@ -165,7 +165,7 @@ export class OAuthService {
         return `${frontendUrl}/?auth=mfa-pending`;
       }
 
-      await this.authService.createUserSession(userId, email, res);
+      await this.authService.createUserSession(userId, email, res, req);
       await this.updateLastLogin(userId);
       rotateCsrfToken(res, this.appConfig);
       return `${frontendUrl}/?auth=success`;
@@ -179,6 +179,7 @@ export class OAuthService {
     googleEmail: string,
     password: string,
     res: Response,
+    req?: Request,
   ): Promise<{ ok: true; csrfToken: string }> {
     const sb = this.supabaseService.getClient();
 
@@ -242,6 +243,7 @@ export class OAuthService {
       user.id as string,
       user.email as string,
       res,
+      req,
     );
     await this.updateLastLogin(user.id as string);
 
@@ -439,7 +441,7 @@ export class OAuthService {
       algorithms: ['RS256'],
       audience: this.appConfig.googleClientId,
       issuer: ['https://accounts.google.com', 'accounts.google.com'],
-    }) as GoogleIdTokenPayload;
+    });
 
     if (!payload.email_verified) {
       throw new UnauthorizedException('Google email is not verified.');
@@ -506,11 +508,7 @@ export class OAuthService {
       throw new UnauthorizedException('OAuth state cookie missing.');
     }
 
-    const payload = this.jwtService.verifyOAuthPendingToken(token) as {
-      state: string;
-      nonce: string;
-      purpose: string;
-    };
+    const payload = this.jwtService.verifyOAuthPendingToken(token);
 
     if (payload.purpose !== 'oauth_state' || payload.state !== stateParam) {
       this.clearOAuthStateCookie(res);

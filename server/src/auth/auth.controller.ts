@@ -36,10 +36,11 @@ export class AuthController {
   @Post('login')
   async login(
     @Body() body: LoginDto,
+    @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
     @Ip() ip: string,
   ) {
-    return this.authService.login(body.email, body.password, res, ip);
+    return this.authService.login(body.email, body.password, res, ip, req);
   }
 
   @Throttle({ default: { limit: 10, ttl: 60000 } })
@@ -53,7 +54,7 @@ export class AuthController {
     @Ip() ip: string,
   ) {
     const { sub, email } = req.mfaPending as { sub: string; email: string };
-    return this.authService.verifyMfa(body.code, sub, email, res, ip);
+    return this.authService.verifyMfa(body.code, sub, email, res, ip, req);
   }
 
   @Public()
@@ -71,12 +72,6 @@ export class AuthController {
       body.password,
       body.preferences,
     );
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Post('logout')
-  logout(@Res({ passthrough: true }) res: Response) {
-    return this.authService.logout(res);
   }
 
   @Public()
@@ -131,11 +126,17 @@ export class AuthController {
   async changePassword(
     @CurrentUserId() userId: string,
     @Body() body: ChangePasswordDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+    @Ip() ip: string,
   ) {
     return this.authService.changePassword(
       userId,
       body.currentPassword,
       body.newPassword,
+      res,
+      req,
+      ip,
     );
   }
 

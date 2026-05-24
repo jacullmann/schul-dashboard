@@ -4,9 +4,7 @@ import { JwtService } from './jwt.service';
 
 @Global()
 @Module({
-  imports: [
-    NestJwtModule.register({ secret: 'dummy' }),
-  ],
+  imports: [NestJwtModule.register({ secret: 'dummy' })],
   providers: [JwtService],
   exports: [JwtService],
 })

@@ -110,8 +110,7 @@ const routes = [
           {
             path: 'settings/:tab?',
             name: 'group-admin',
-            component: () =>
-              import('@/modules/admin/pages/GroupSettings.vue'),
+            component: () => import('@/modules/admin/pages/GroupSettings.vue'),
             meta: {
               title: 'navigation.groupAdmin',
               requiresGroupAdmin: true,

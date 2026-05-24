@@ -274,8 +274,7 @@ export class TodosService {
             user_id: userId,
             position: p,
           });
-        } catch {
-        }
+        } catch {}
       }
       if (rebalanceUpdates.length > 0) {
         const { data: refreshedRows } = await sb

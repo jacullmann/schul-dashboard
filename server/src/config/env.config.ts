@@ -1,5 +1,6 @@
 import { plainToInstance } from 'class-transformer';
 import {
+  IsBoolean,
   IsEnum,
   IsNumber,
   IsOptional,
@@ -34,6 +35,10 @@ class EnvironmentVariables {
 
   @IsString()
   COOKIE_DOMAIN: string;
+
+  @IsOptional()
+  @IsBoolean()
+  COOKIE_SECURE?: boolean;
 
   @IsUrl({ require_tld: false })
   CLIENT_VERIFY_URL: string;
@@ -142,11 +147,17 @@ export class AppConfig {
     return this.configService.get('COOKIE_DOMAIN')!;
   }
 
+  get cookieSecure(): boolean {
+    const explicit = this.configService.get<boolean>('COOKIE_SECURE');
+    if (typeof explicit === 'boolean') return explicit;
+    return this.isProduction;
+  }
+
   get baseCookieOptions(): CookieOptions {
     return {
       domain: this.cookieDomain,
       path: '/',
-      secure: true,
+      secure: this.cookieSecure,
       sameSite: 'lax',
     };
   }

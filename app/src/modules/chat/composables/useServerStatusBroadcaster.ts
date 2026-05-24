@@ -27,14 +27,12 @@ export function useServerStatusBroadcaster(
   chat: Ref<ChatSessionInterface | null>,
   states: ToolStates,
 ) {
-
   const isActivelyTyping = ref(false);
   let typingDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
   watch(
     () => states.userInput.value,
     (newVal, oldVal) => {
-
       if (newVal === oldVal) return;
 
       if (chat.value && newVal.trim().length > 0) {
@@ -52,7 +50,6 @@ export function useServerStatusBroadcaster(
   );
 
   const currentStatus = computed<{ key: AiStatusKey; tool?: string }>(() => {
-
     if (isActivelyTyping.value) return { key: 'generating' };
     if (states.webSearch.value) return { key: 'searching', tool: 'web_search' };
     if (states.createImage.value)

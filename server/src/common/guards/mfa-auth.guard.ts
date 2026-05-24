@@ -34,9 +34,7 @@ export class MfaPendingGuard implements CanActivate {
     }
 
     try {
-      const payload = this.jwtService.verifyMfaPendingToken(
-        token,
-      ) as MfaPendingPayload;
+      const payload = this.jwtService.verifyMfaPendingToken(token);
 
       if (payload.purpose !== 'mfa_pending' || !payload.sub || !payload.email) {
         throw new Error();

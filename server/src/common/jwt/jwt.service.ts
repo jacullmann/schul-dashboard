@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { JwtService as NestJwtService } from '@nestjs/jwt';
+import {
+  JwtService as NestJwtService,
+  JwtSignOptions,
+  JwtVerifyOptions,
+} from '@nestjs/jwt';
 import { KeyObject } from 'crypto';
 import { AppConfig } from '../../config/env.config';
 
@@ -10,61 +14,77 @@ export class JwtService {
     private readonly appConfig: AppConfig,
   ) {}
 
-  signUserToken(payload: any, options?: any) {
+  signUserToken(payload: object, options: JwtSignOptions = {}) {
     return this.nestJwtService.sign(payload, {
       secret: this.appConfig.jwtSecret,
+      algorithm: 'HS256',
       ...options,
     });
   }
 
-  verifyUserToken(token: string) {
-    return this.nestJwtService.verify(token, {
+  verifyUserToken<T extends object = any>(token: string): T {
+    return this.nestJwtService.verify<T>(token, {
       secret: this.appConfig.jwtSecret,
+      algorithms: ['HS256'],
     });
   }
 
-  signMfaPendingToken(payload: any, options?: any) {
+  signMfaPendingToken(payload: object, options: JwtSignOptions = {}) {
     return this.nestJwtService.sign(payload, {
       secret: this.appConfig.mfaPendingJwtSecret,
+      algorithm: 'HS256',
+      expiresIn: '10m',
       ...options,
     });
   }
 
-  verifyMfaPendingToken(token: string) {
-    return this.nestJwtService.verify(token, {
+  verifyMfaPendingToken<T extends object = any>(token: string): T {
+    return this.nestJwtService.verify<T>(token, {
       secret: this.appConfig.mfaPendingJwtSecret,
+      algorithms: ['HS256'],
     });
   }
 
-  signOAuthPendingToken(payload: any, options?: any) {
+  signOAuthPendingToken(payload: object, options: JwtSignOptions = {}) {
     return this.nestJwtService.sign(payload, {
       secret: this.appConfig.oauthPendingJwtSecret,
+      algorithm: 'HS256',
+      expiresIn: '10m',
       ...options,
     });
   }
 
-  verifyOAuthPendingToken(token: string) {
-    return this.nestJwtService.verify(token, {
+  verifyOAuthPendingToken<T extends object = any>(token: string): T {
+    return this.nestJwtService.verify<T>(token, {
       secret: this.appConfig.oauthPendingJwtSecret,
+      algorithms: ['HS256'],
     });
   }
 
-  signPasswordResetToken(payload: any, options?: any) {
+  signPasswordResetToken(payload: object, options: JwtSignOptions = {}) {
     return this.nestJwtService.sign(payload, {
       secret: this.appConfig.passwordResetJwtSecret,
+      algorithm: 'HS256',
+      expiresIn: '30m',
       ...options,
     });
   }
 
-  verifyPasswordResetToken(token: string) {
-    return this.nestJwtService.verify(token, {
+  verifyPasswordResetToken<T extends object = any>(token: string): T {
+    return this.nestJwtService.verify<T>(token, {
       secret: this.appConfig.passwordResetJwtSecret,
+      algorithms: ['HS256'],
     });
   }
 
-  verifyRsaToken(token: string, publicKey: KeyObject, options?: any) {
-    return this.nestJwtService.verify(token, {
+  verifyRsaToken<T extends object = any>(
+    token: string,
+    publicKey: KeyObject,
+    options: JwtVerifyOptions = {},
+  ): T {
+    return this.nestJwtService.verify<T>(token, {
       secret: publicKey as any,
+      algorithms: ['RS256'],
       ...options,
     });
   }

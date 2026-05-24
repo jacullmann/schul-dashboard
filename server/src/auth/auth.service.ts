@@ -9,6 +9,7 @@ import * as bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
 import dayjs from 'dayjs';
 import { authenticator } from '@otplib/preset-v11';
+import { Response, Request } from 'express';
 import { SupabaseService } from '../common/supabase/supabase.service';
 import { EmailService } from '../common/email/email.service';
 import { AppConfig } from '../config/env.config';
@@ -16,9 +17,13 @@ import { JwtService } from '../common/jwt/jwt.service';
 import { generateUserName } from '../common/utils/name-generator.util';
 import { decryptData } from '../common/utils/encryption.util';
 import { rotateCsrfToken } from '../common/middleware/csrf.middleware';
-import { COOKIE_NAME } from '../common/guards/jwt-auth.guard';
 import { MFA_PENDING_COOKIE } from '../common/guards/mfa-auth.guard';
-import { Response } from 'express';
+import { TokenService } from './token.service';
+import {
+  setAccessCookie,
+  setRefreshCookie,
+  clearAuthCookies,
+} from './auth.cookies';
 
 function isWeakPassword(password: string): boolean {
   if (password.length < 8) return true;
@@ -37,32 +42,62 @@ export class AuthService {
     private readonly emailService: EmailService,
     private readonly appConfig: AppConfig,
     private readonly jwtService: JwtService,
+    private readonly tokenService: TokenService,
   ) {
     authenticator.options = { step: 30, window: 1 };
   }
 
-  private setAuthToken(
+  private async resolveUserContext(userId: string): Promise<{
+    globalRole: string;
+    activeGroupId: string | null;
+  }> {
+    const sb = this.supabaseService.getClient();
+
+    const { data: globalRoleRow } = await sb
+      .from('user_roles')
+      .select('roles(name)')
+      .eq('user_id', userId)
+      .is('tenant_id', null)
+      .limit(1)
+      .maybeSingle();
+
+    const globalRole =
+      ((globalRoleRow as any)?.roles?.name as string | undefined) ?? 'user';
+
+    const { data: firstGroup } = await sb
+      .from('user_roles')
+      .select('tenant_id')
+      .eq('user_id', userId)
+      .not('tenant_id', 'is', null)
+      .limit(1)
+      .maybeSingle();
+
+    return {
+      globalRole,
+      activeGroupId: (firstGroup?.tenant_id as string | null) ?? null,
+    };
+  }
+
+  private async issueSessionCookies(
     res: Response,
+    req: Request | undefined,
     userId: string,
     email: string,
     globalRole: string,
     activeGroupId: string | null,
-  ) {
-    const payload = {
-      sub: userId,
+    ip?: string,
+  ): Promise<void> {
+    const issued = await this.tokenService.issueTokenPair({
+      userId,
       email,
-      gRole: globalRole || 'user',
-      gId: activeGroupId || null,
-    };
+      globalRole,
+      activeGroupId,
+      userAgent: req?.headers['user-agent'],
+      ipAddress: ip,
+    });
 
-    const token = this.jwtService.signUserToken(payload, {
-      expiresIn: '7d',
-    });
-    res.cookie(COOKIE_NAME, token, {
-      ...this.appConfig.baseCookieOptions,
-      httpOnly: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    setAccessCookie(res, issued.accessToken, this.appConfig);
+    setRefreshCookie(res, issued.refreshToken, this.appConfig);
   }
 
   private generateMfaPendingToken(
@@ -89,19 +124,18 @@ export class AuthService {
     });
   }
 
-  private clearAuthToken(res: Response) {
-    res.clearCookie(COOKIE_NAME, {
-      ...this.appConfig.baseCookieOptions,
-      httpOnly: true,
-    });
-  }
-
-  async login(email: string, password: string, res: Response, _ip?: string) {
+  async login(
+    email: string,
+    password: string,
+    res: Response,
+    ip?: string,
+    req?: Request,
+  ) {
     const sb = this.supabaseService.getClient();
     const { data: user } = await sb
       .from('users')
       .select(
-        'id, email, password_hash, email_verified, mfa_enabled, mfa_secret, user_roles(roles(name), tenant_id)',
+        'id, email, password_hash, email_verified, mfa_enabled, mfa_secret',
       )
       .eq('email', email.toLowerCase())
       .maybeSingle();
@@ -115,7 +149,7 @@ export class AuthService {
       await sb.from('user_activity').insert({
         user_id: user.id,
         type: 'auth:login_failed',
-        meta: { ip: _ip, reason: 'bad_password' },
+        meta: { ip, reason: 'bad_password' },
       });
       throw new UnauthorizedException('Invalid credentials.');
     }
@@ -140,7 +174,6 @@ export class AuthService {
       return { ok: true, requiresMfa: true };
     }
 
-    rotateCsrfToken(res, this.appConfig);
     await sb
       .from('users')
       .update({ last_login_at: new Date().toISOString() })
@@ -156,25 +189,20 @@ export class AuthService {
       );
     }
 
-    const userRoles = user.user_roles as any[];
-    const globalRole =
-      userRoles?.find((ur) => !ur.tenant_id)?.roles?.name || 'user';
+    const { globalRole, activeGroupId } = await this.resolveUserContext(
+      user.id as string,
+    );
 
-    const { data: firstGroup } = await sb
-      .from('user_roles')
-      .select('tenant_id')
-      .eq('user_id', user.id)
-      .not('tenant_id', 'is', null)
-      .limit(1)
-      .maybeSingle();
-
-    this.setAuthToken(
+    await this.issueSessionCookies(
       res,
+      req,
       user.id as string,
       user.email as string,
       globalRole,
-      firstGroup?.tenant_id || null,
+      activeGroupId,
+      ip,
     );
+    rotateCsrfToken(res, this.appConfig);
 
     return { ok: true };
   }
@@ -185,13 +213,12 @@ export class AuthService {
     email: string,
     res: Response,
     ip?: string,
+    req?: Request,
   ) {
     const sb = this.supabaseService.getClient();
     const { data: user } = await sb
       .from('users')
-      .select(
-        'id, email, mfa_enabled, mfa_secret, user_roles(roles(name), tenant_id)',
-      )
+      .select('id, email, mfa_enabled, mfa_secret')
       .eq('id', userId)
       .maybeSingle();
 
@@ -215,7 +242,6 @@ export class AuthService {
     }
 
     this.clearMfaPendingToken(res);
-    rotateCsrfToken(res, this.appConfig);
 
     await sb
       .from('users')
@@ -236,25 +262,18 @@ export class AuthService {
       .from('user_activity')
       .insert({ user_id: userId, type: 'auth:mfa_login', meta: {} });
 
-    const userRoles = user.user_roles as any[];
-    const globalRole =
-      userRoles?.find((ur) => !ur.tenant_id)?.roles?.name || 'user';
+    const { globalRole, activeGroupId } = await this.resolveUserContext(userId);
 
-    const { data: firstGroup } = await sb
-      .from('user_roles')
-      .select('tenant_id')
-      .eq('user_id', userId)
-      .not('tenant_id', 'is', null)
-      .limit(1)
-      .maybeSingle();
-
-    this.setAuthToken(
+    await this.issueSessionCookies(
       res,
+      req,
       user.id as string,
       user.email as string,
       globalRole,
-      firstGroup?.tenant_id || null,
+      activeGroupId,
+      ip,
     );
+    rotateCsrfToken(res, this.appConfig);
 
     return { ok: true };
   }
@@ -335,13 +354,6 @@ export class AuthService {
     }
   }
 
-  logout(res: Response) {
-    this.clearAuthToken(res);
-    this.clearMfaPendingToken(res);
-    rotateCsrfToken(res, this.appConfig);
-    return { ok: true };
-  }
-
   async getMe(userId: string, activeGroupId: string | null) {
     if (!userId) return { authenticated: false };
 
@@ -412,6 +424,8 @@ export class AuthService {
       );
     }
 
+    await this.tokenService.revokeAllForUser(userId, 'account_deleted');
+
     const { error: deleteErr } = await sb
       .from('users')
       .delete()
@@ -420,7 +434,7 @@ export class AuthService {
       throw new InternalServerErrorException('Failed to delete account.');
     }
 
-    this.clearAuthToken(res);
+    clearAuthCookies(res, this.appConfig);
     this.clearMfaPendingToken(res);
     rotateCsrfToken(res, this.appConfig);
     return { ok: true };
@@ -494,8 +508,7 @@ export class AuthService {
 
     try {
       await this.emailService.sendPasswordResetEmail(email, code);
-    } catch {
-    }
+    } catch {}
 
     return {
       ok: true,
@@ -576,6 +589,11 @@ export class AuthService {
       })
       .eq('id', user.id);
 
+    await this.tokenService.revokeAllForUser(
+      user.id as string,
+      'password_change',
+    );
+
     const { error: activityErr } = await sb.from('user_activity').insert({
       user_id: user.id,
       type: 'account:password_reset',
@@ -591,8 +609,7 @@ export class AuthService {
 
     try {
       await this.emailService.sendSecurityEmail(email);
-    } catch {
-    }
+    } catch {}
 
     return {
       ok: true,
@@ -604,6 +621,9 @@ export class AuthService {
     userId: string,
     currentPassword: string,
     newPassword: string,
+    res?: Response,
+    req?: Request,
+    ip?: string,
   ) {
     if (isWeakPassword(newPassword)) {
       throw new BadRequestException(WEAK_PASSWORD_MSG);
@@ -612,7 +632,7 @@ export class AuthService {
     const sb = this.supabaseService.getClient();
     const { data: user } = await sb
       .from('users')
-      .select('id, password_hash')
+      .select('id, email, password_hash')
       .eq('id', userId)
       .maybeSingle();
     if (!user) throw new BadRequestException('User not found.');
@@ -630,6 +650,23 @@ export class AuthService {
       .update({ password_hash: newPasswordHash })
       .eq('id', userId);
 
+    await this.tokenService.revokeAllForUser(userId, 'password_change');
+
+    if (res) {
+      const { globalRole, activeGroupId } =
+        await this.resolveUserContext(userId);
+      await this.issueSessionCookies(
+        res,
+        req,
+        userId,
+        user.email as string,
+        globalRole,
+        activeGroupId,
+        ip,
+      );
+      rotateCsrfToken(res, this.appConfig);
+    }
+
     const { error: activityErr } = await sb.from('user_activity').insert({
       user_id: userId,
       type: 'account:password_change',
@@ -646,24 +683,19 @@ export class AuthService {
     userId: string,
     email: string,
     res: Response,
+    req?: Request,
+    ip?: string,
   ): Promise<void> {
-    const sb = this.supabaseService.getClient();
-
-    const { data: user } = await sb
-      .from('users')
-      .select('user_roles(roles(name), tenant_id)')
-      .eq('id', userId)
-      .single();
-
-    const userRoles = (user?.user_roles ?? []) as any[];
-
-    const firstGroup = userRoles.find((ur) => ur.tenant_id);
-    const activeGroupId = firstGroup?.tenant_id || null;
-
-    const globalRole =
-      userRoles.find((ur) => !ur.tenant_id)?.roles?.name || 'user';
-
-    this.setAuthToken(res, userId, email, globalRole, activeGroupId);
+    const { globalRole, activeGroupId } = await this.resolveUserContext(userId);
+    await this.issueSessionCookies(
+      res,
+      req,
+      userId,
+      email,
+      globalRole,
+      activeGroupId,
+      ip,
+    );
   }
 
   issueMfaPendingToken(userId: string, email: string, res: Response): void {
