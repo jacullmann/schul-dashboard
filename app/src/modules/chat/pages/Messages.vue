@@ -449,11 +449,7 @@ watch(groupId, () => {
       >
         <Info :size="40" />
         <span class="text-sm font-semibold tracking-tight">{{ error }}</span>
-        <BaseButton
-          variant="ghost"
-          on="ghost"
-          @click="fetchMessages"
-        >
+        <BaseButton variant="ghost" on="ghost" @click="fetchMessages">
           Erneut laden
         </BaseButton>
       </div>
@@ -509,21 +505,21 @@ watch(groupId, () => {
               <div class="flex gap-0.5 relative max-w-full min-w-0">
                 <div
                   v-if="activeSwipeMessageId === msg.id && swipeX > 0"
-                  class="absolute left-[-32px] top-1/2 -translate-y-1/2 flex items-center pointer-events-none z-0"
+                  class="absolute left-[-32px] top-1/2 flex items-center pointer-events-none z-0"
                   :style="{
                     opacity: Math.min(swipeX / 40, 1),
-                    transform: `scale(${swipeX >= 40 ? 1.15 : 0.95}) translateY(-50%)`,
+                    transform: `scale(${swipeX >= 40 ? 1 : 0.85}) translateY(-50%)`,
                   }"
                 >
                   <div
-                    class="w-7 h-7 rounded-full flex items-center justify-center transition-all duration-150"
+                    class="size-9 rounded-full flex items-center justify-center transition-all duration-150"
                     :class="
                       swipeX >= 40
-                        ? 'bg-action text-on-action shadow'
-                        : 'bg-surface border border-surface-border text-on-ghost-subtle'
+                        ? 'bg-action text-on-action'
+                        : 'bg-ghost-hover text-on-ghost-subtle'
                     "
                   >
-                    <Reply class="w-3.5 h-3.5" />
+                    <Reply :size="18" />
                   </div>
                 </div>
 
@@ -631,22 +627,22 @@ watch(groupId, () => {
             class="fixed! z-[10001]! min-w-[180px]"
             :style="contextMenuStyles"
           >
-            <BaseMenuButton
-              v-if="activeMessage"
-              :icon="Copy"
-              @click="copyMessage(activeMessage)"
-            >
-              {{ t('global.buttons.copy') }}
-            </BaseMenuButton>
+            <template v-if="activeMessage">
+              <BaseMenuButton :icon="Copy" @click="copyMessage(activeMessage)">
+                {{ t('global.buttons.copy') }}
+              </BaseMenuButton>
 
-            <BaseMenuButton
-              v-if="activeMessage && canDeleteMessage(activeMessage)"
-              variant="danger"
-              :icon="Trash2"
-              @click="deleteMessage(activeMessage)"
-            >
-              {{ t('global.buttons.delete') }}
-            </BaseMenuButton>
+              <BaseMenuDivider />
+
+              <BaseMenuButton
+                v-if="canDeleteMessage(activeMessage)"
+                variant="danger"
+                :icon="Trash2"
+                @click="deleteMessage(activeMessage)"
+              >
+                {{ t('global.buttons.delete') }}
+              </BaseMenuButton>
+            </template>
           </BaseMenu>
         </Teleport>
 
@@ -656,7 +652,7 @@ watch(groupId, () => {
               v-if="typingDisplay"
               class="flex items-center gap-2.5 text-sm text-on-ghost-muted font-bold select-none"
             >
-              <div class="flex items-center gap-1 h-2">
+              <div class="flex items-center gap-0.75 h-2">
                 <span
                   class="w-1.5 h-1.5 bg-action rounded-full typing-dot"
                 ></span>

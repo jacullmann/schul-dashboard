@@ -62,6 +62,7 @@ function onTouchStart(e: TouchEvent) {
   dragHandled = false;
   isDraggingDismiss.value = false;
   const touch = e.touches[0];
+  if (!touch) return;
   dragStartX = touch.clientX;
   dragStartY = touch.clientY;
   dragStartTime = Date.now();
@@ -73,6 +74,7 @@ function onTouchStart(e: TouchEvent) {
 function onTouchMove(e: TouchEvent) {
   if (!isDragging || !sheetEl.value) return;
   const touch = e.touches[0];
+  if (!touch) return;
 
   const deltaX = touch.clientX - dragStartX;
   const deltaY = touch.clientY - dragStartY;
