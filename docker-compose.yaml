@@ -59,7 +59,29 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  geoip:
+    build:
+      context: ./geoip-service
+      dockerfile: Dockerfile
+    volumes:
+      - geoip_data:/app/data
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - MAXMIND_LICENSE_KEY=${MAXMIND_LICENSE_KEY:-}
+      - GEOIP_DATABASE_URL=https://raw.githubusercontent.com/P3TERX/GeoLite.mmdb/download/GeoLite2-City.mmdb
+      - GEOIP_DATABASE_PATH=/app/data/GeoLite2-City.mmdb
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://0.0.0.0:8080/health || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
 volumes:
   server_node_modules:
   app_node_modules:
   homepage_node_modules:
+  geoip_data:
