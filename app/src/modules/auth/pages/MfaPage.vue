@@ -1,15 +1,22 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/userStore';
+import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import MfaVerifyModal from '@/modules/auth/components/MfaVerifyModal.vue';
 
 const router = useRouter();
 const userStore = useUserStore();
+const { checkAuthStatus } = useAppAuth();
 
 async function handleMfaVerified() {
   try {
+    await checkAuthStatus();
+
     await userStore.fetchUser();
-  } catch {}
+  } catch (error) {
+    console.error('Fehler beim Laden des Users nach MFA:', error);
+  }
+
   await router.push('/home');
 }
 
