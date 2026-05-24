@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { markRaw, computed, ref } from 'vue';
 import {
-  LayoutDashboard,
+  // LayoutDashboard,
   CalendarDays,
   Megaphone,
   UsersRound,
-  UserRoundKey,
+  Key,
   BookOpen,
   Settings,
   ArrowLeft,
@@ -69,13 +69,49 @@ const isOwner = computed(
 );
 
 const navItems: AdminNavItem[] = [
-  { id: 'overview', label: 'Overview', icon: markRaw(LayoutDashboard) },
-  { id: 'members', label: 'Members', icon: markRaw(UsersRound) },
-  { id: 'schedule', label: 'Schedule', icon: markRaw(CalendarDays) },
-  { id: 'announcements', label: 'Announcements', icon: markRaw(Megaphone) },
-  { id: 'subjects', label: 'Subjects', icon: markRaw(BookOpen) },
-  { id: 'permissions', label: 'Permissions', icon: markRaw(UserRoundKey) },
-  { id: 'settings', label: 'Settings', icon: markRaw(Settings) },
+  /* {
+    id: 'overview',
+    label: 'Overview',
+    icon: markRaw(LayoutDashboard),
+    description: 'Activity • Status • Quick actions',
+  }, */
+  {
+    id: 'members',
+    label: 'Members',
+    icon: markRaw(UsersRound),
+    description: 'Roles • Bans • Ownership',
+  },
+  {
+    id: 'schedule',
+    label: 'Schedule',
+    icon: markRaw(CalendarDays),
+    description: 'Lessons • Schedule changes',
+  },
+  {
+    id: 'subjects',
+    label: 'Subjects',
+    icon: markRaw(BookOpen),
+    description: 'Subjects • Courses',
+  },
+  {
+    id: 'announcements',
+    label: 'Announcements',
+    icon: markRaw(Megaphone),
+    description: 'Manage Announcements',
+  },
+
+  {
+    id: 'permissions',
+    label: 'Permissions',
+    icon: markRaw(Key),
+    description: 'Permissions • Roles • Security',
+  },
+  {
+    id: 'settings',
+    label: 'Settings',
+    icon: markRaw(Settings),
+    description: 'Appearance • Password • Deletion',
+  },
 ];
 
 const transitionDirection = ref<'forward' | 'backward'>('forward');
@@ -108,29 +144,41 @@ function goBack() {
       <div v-if="!activeTab" class="settings-pane master-pane" key="master">
         <header class="settings-header">
           <div class="header-content">
-            <h1 class="header-title">Verwaltung</h1>
+            <h1 class="header-title">Gruppen Verwaltung</h1>
             <p v-if="groupName" class="header-subtitle">{{ groupName }}</p>
           </div>
         </header>
 
         <div class="p-0 md:p-4">
           <div class="settings-group">
-            <button
-              v-for="item in navItems"
+            <BaseList
+              v-for="(item, index) in navItems"
               :key="item.id"
-              class="relative flex items-center justify-between w-full p-4 bg-transparent hover:bg-surface-hover cursor-pointer transition-hover outline-none text-left md:rounded-2xl"
+              class="animate-fade-up"
+              :style="{
+                animationDelay: `${index * 0.075}s`,
+                animationFillMode: 'both',
+              }"
+              :separator="index !== navItems.length - 1"
+              :chevron="true"
               @click="selectTab(item.id)"
-              v-wave
             >
-              <div class="flex items-center gap-4">
-                <div class="flex size-10 justify-center items-center">
+              <template #icon>
+                <span class="flex size-10 justify-center items-center">
                   <component :is="item.icon" :size="24" />
-                </div>
-                <span class="text-on-ghost text-base font-medium">{{
-                  item.label
-                }}</span>
-              </div>
-            </button>
+                </span>
+              </template>
+              <template #label>
+                <span class="flex flex-col min-h-10 justify-between">
+                  <span class="text-on-ghost text-base/tight font-medium">{{
+                    item.label
+                  }}</span>
+                  <span class="text-on-ghost-muted text-xs/tight font-normal">{{
+                    item.description
+                  }}</span>
+                </span>
+              </template>
+            </BaseList>
           </div>
         </div>
       </div>
@@ -276,7 +324,6 @@ function goBack() {
 .settings-group {
   max-width: 800px;
   margin: 0 auto;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
 }

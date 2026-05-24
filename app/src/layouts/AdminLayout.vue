@@ -8,6 +8,7 @@ export interface AdminNavItem {
   icon: Component;
   count?: number;
   danger?: boolean;
+  description?: string;
 }
 
 const props = defineProps<{

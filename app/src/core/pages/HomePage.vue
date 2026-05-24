@@ -5,7 +5,7 @@ import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
 import { useModalStore } from '@/stores/modalStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
-import { UserRoundPlus, Plus, ChevronRight, UsersRound } from '@lucide/vue';
+import { UserRoundPlus, Plus, UsersRound } from '@lucide/vue';
 import hw from '@/api/hwApi';
 import { useI18n } from 'vue-i18n';
 import Avatar from '@/modules/auth/components/Avatar.vue';
@@ -160,65 +160,44 @@ onMounted(() => {
         >
       </div>
       <div class="flex flex-col">
-        <template v-for="(group, index) in userGroups" :key="group.id">
-          <button
-            v-wave
-            class="relative group flex items-center w-full gap-2 py-3 px-6 md:p-3.5 md:pr-6 md:rounded-2xl bg-transparent cursor-pointer text-left transition-hover hover:bg-ghost-hover md:hover:bg-surface-highlight disabled:opacity-50 animate-fade-up"
-            :style="{
-              animationDelay: `${index * 0.075}s`,
-              animationFillMode: 'both',
-            }"
-            :class="{ active: group.id === activeGroupId }"
-            @click="navigateToGroup(group.id)"
-            :disabled="navigatingGroupId === group.id"
-          >
-            <span
-              class="absolute transition-[max-height,width,top,opacity] duration-200 -left-4 group-[.active]:top-0 group-hover:top-[25%] top-[45%] bottom-0 w-0.5 opacity-0 group-[.active]:w-1.5 group-hover:w-1.5 group-[.active]:opacity-100 group-hover:opacity-100 group-[.active]:max-h-full group-hover:max-h-[50%] max-h-[10%] bg-action rounded-r-full"
-            ></span>
-            <Avatar
-              class="size-9 md:size-10"
-              :name="group.name"
-              :picture="group.avatarUrl"
-              :size="10"
-            />
-            <span class="flex flex-col flex-1">
-              <span class="flex items-center gap-1.5 overflow-hidden">
-                <span class="font-semibold text-base text-on-ghost truncate">
-                  {{ group.name }}
-                </span>
-                <NotificationDot
-                  v-if="group.hasUnreadContent"
-                  class="max-md:hidden"
-                />
+        <BaseList
+          v-for="(group, index) in userGroups"
+          :key="group.id"
+          class="animate-fade-up"
+          :style="{
+            animationDelay: `${index * 0.075}s`,
+            animationFillMode: 'both',
+          }"
+          :active="group.id === activeGroupId"
+          :separator="index !== userGroups.length - 1"
+          :disabled="navigatingGroupId === group.id"
+          :chevron="true"
+          :indicator="true"
+          :unread="group.hasUnreadContent"
+          @click="navigateToGroup(group.id)"
+        >
+          <template #icon>
+            <Avatar :name="group.name" :picture="group.avatarUrl" :size="10" />
+          </template>
+
+          <template #label>
+            <span class="flex items-center gap-1.5 overflow-hidden">
+              <span class="font-semibold text-base text-on-ghost truncate">
+                {{ group.name }}
               </span>
-              <span
-                class="text-xs font-semibold uppercase tracking-wider"
-                :class="roleColors[group.role]"
-              >
-                {{ roleLabel(group.role) }}
-              </span>
+              <NotificationDot
+                v-if="group.hasUnreadContent"
+                class="max-md:hidden"
+              />
             </span>
-
-            <ChevronRight
-              :size="16"
-              class="hidden md:block transition duration-150 ease-in-out opacity-0 -translate-x-1 group-hover:translate-x-0 group-hover:opacity-100 text-on-ghost-muted"
-            />
-
-            <NotificationDot
-              v-if="group.hasUnreadContent"
-              class="md:hidden"
-              :size="3"
-            />
-          </button>
-          <div
-            v-if="index !== userGroups.length - 1"
-            class="border-b border-canvas-border mx-6 animate-fade-up max-md:hidden"
-            :style="{
-              animationDelay: `${index * 0.075}s`,
-              animationFillMode: 'both',
-            }"
-          ></div>
-        </template>
+            <span
+              class="text-xs font-semibold uppercase tracking-wider"
+              :class="roleColors[group.role]"
+            >
+              {{ roleLabel(group.role) }}
+            </span>
+          </template>
+        </BaseList>
       </div>
     </section>
 
