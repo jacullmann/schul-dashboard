@@ -29,7 +29,12 @@ export function useHwForms(ctx: HwContext) {
   }
 
   function canEditNote() {
-    return ctx.user.value?.role === 'superadmin';
+    if (!ctx.user.value) return false;
+    return (
+      ctx.user.value.role === 'superadmin' ||
+      ctx.user.value.tenantRole === 'admin' ||
+      ctx.user.value.tenantRole === 'moderator'
+    );
   }
 
   function startEditNote(item: HwItem) {
