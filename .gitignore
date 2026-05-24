@@ -8,6 +8,7 @@ build/
 *.tsbuildinfo
 .nuxt/
 .output/
+target/
 
 # IDE & Editors
 .idea/
