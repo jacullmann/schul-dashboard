@@ -6,29 +6,24 @@ use tar::Archive;
 use tracing::{info, warn, error};
 use tempfile::NamedTempFile;
 
-/// Downloads and extracts the GeoLite2 City database.
-///
-/// If `license_key` is provided, it downloads from MaxMind's official servers (tar.gz format).
-/// Otherwise, it falls back to downloading the raw mmdb file from the `mirror_url`.
 pub async fn download_and_extract_db(
     license_key: Option<&str>,
     mirror_url: &str,
     target_path: &str,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let target_path_obj = Path::new(target_path);
-    
-    // Ensure parent directory exists
+
+
     if let Some(parent) = target_path_obj.parent() {
         fs::create_dir_all(parent)?;
     }
 
-    // Create a temporary file in the same directory to guarantee atomic swapping
     let parent_dir = target_path_obj.parent().unwrap_or_else(|| Path::new("."));
     let mut temp_file = NamedTempFile::new_in(parent_dir)?;
     info!("Starting database download to temporary file: {:?}", temp_file.path());
 
     let client = reqwest::Client::builder()
-        .timeout(std::time::Duration::from_secs(300)) // 5 minute timeout for large files
+        .timeout(std::time::Duration::from_secs(300))
         .build()?;
 
     if let Some(key) = license_key {
@@ -79,7 +74,6 @@ pub async fn download_and_extract_db(
         temp_file.write_all(&bytes)?;
     }
 
-    // Flush and persist the temporary file atomically to the target path
     temp_file.flush()?;
     temp_file.persist(target_path)?;
 

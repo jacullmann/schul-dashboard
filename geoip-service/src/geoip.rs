@@ -30,7 +30,6 @@ impl GeoIpState {
         }
     }
 
-    /// Load or reload the database from a file path
     pub fn load_database(&self, path: &str) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         info!("Loading GeoIP database from {}", path);
         let data = std::fs::read(path)?;
@@ -48,12 +47,10 @@ impl GeoIpState {
         Ok(())
     }
 
-    /// Check if database is loaded
     pub fn is_loaded(&self) -> bool {
         self.reader.read().map(|r| r.is_some()).unwrap_or(false)
     }
 
-    /// Perform an IP lookup
     pub fn lookup(&self, ip: IpAddr) -> Result<LookupResponse, String> {
         let reader_lock = self.reader.read().map_err(|e| {
             format!("Failed to acquire read lock for lookup: {}", e)
@@ -67,7 +64,6 @@ impl GeoIpState {
             format!("IP lookup failed: {}", e)
         })?;
 
-        // Extract country
         let country = city_data.country
             .as_ref()
             .and_then(|c| c.names.as_ref())
@@ -77,18 +73,18 @@ impl GeoIpState {
             .as_ref()
             .and_then(|c| c.iso_code.map(|s| s.to_string()));
 
-        // Extract city
+
         let city = city_data.city
             .as_ref()
             .and_then(|c| c.names.as_ref())
             .and_then(|n| n.get("en").map(|s| s.to_string()));
 
-        // Extract location coordinates and timezone
+
         let latitude = city_data.location.as_ref().and_then(|l| l.latitude);
         let longitude = city_data.location.as_ref().and_then(|l| l.longitude);
         let timezone = city_data.location.as_ref().and_then(|l| l.time_zone.map(|s| s.to_string()));
 
-        // Extract continent
+
         let continent = city_data.continent
             .as_ref()
             .and_then(|c| c.names.as_ref())
@@ -98,7 +94,7 @@ impl GeoIpState {
             .as_ref()
             .and_then(|c| c.code.map(|s| s.to_string()));
 
-        // Extract postal code
+
         let postal_code = city_data.postal
             .as_ref()
             .and_then(|p| p.code.map(|s| s.to_string()));

@@ -27,7 +27,6 @@ struct AppConfig {
 
 impl AppConfig {
     fn from_env() -> Self {
-        // Try loading .env file if it exists, but don't fail if it's missing (it will be passed in docker)
         let _ = dotenvy::dotenv();
 
         let port = std::env::var("PORT")
@@ -56,7 +55,6 @@ impl AppConfig {
 
 #[tokio::main]
 async fn main() {
-    // Initialize tracing logger
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
@@ -70,7 +68,6 @@ async fn main() {
     let config = Arc::new(AppConfig::from_env());
     let geoip_state = GeoIpState::new();
 
-    // 1. Try to load existing database on startup
     if StdPath::new(&config.database_path).exists() {
         info!("Found existing database at startup. Loading...");
         if let Err(e) = geoip_state.load_database(&config.database_path) {
@@ -78,7 +75,6 @@ async fn main() {
         }
     }
 
-    // 2. If not loaded (e.g. fresh mount), perform initial download synchronously
     if !geoip_state.is_loaded() {
         info!("No valid database found at startup. Performing initial download...");
         match update::download_and_extract_db(
@@ -100,13 +96,11 @@ async fn main() {
         }
     }
 
-    // 3. Spawn background automated weekly update task
     let cron_state = geoip_state.clone();
     let cron_config = config.clone();
     tokio::spawn(async move {
         info!("Background update scheduler initialized. Checking database age every hour.");
         loop {
-            // Check every hour
             sleep(Duration::from_secs(3600)).await;
             
             let should_update = match get_file_age_in_days(&cron_config.database_path) {
@@ -144,29 +138,24 @@ async fn main() {
         }
     });
 
-    // 4. Setup Axum Web Server Router
     let app = Router::new()
         .route("/health", get(health_handler))
         .route("/lookup/:ip", get(lookup_handler))
         .route("/update", post(update_handler))
         .with_state((geoip_state, config.clone()));
 
-    // 5. Start Web Server
     let addr = SocketAddr::from(([0, 0, 0, 0], config.port));
     info!("HTTP server listening on {}", addr);
     let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
     axum::serve(listener, app).await.unwrap();
 }
 
-/// Helper function to calculate file age in days
 fn get_file_age_in_days(path: &str) -> Option<u64> {
     let metadata = std::fs::metadata(path).ok()?;
     let modified = metadata.modified().ok()?;
     let duration = SystemTime::now().duration_since(modified).ok()?;
     Some(duration.as_secs() / 86400)
 }
-
-// --- Request Handlers ---
 
 async fn health_handler(
     State((geoip_state, config)): State<(GeoIpState, Arc<AppConfig>)>,
@@ -220,8 +209,7 @@ async fn update_handler(
     State((geoip_state, config)): State<(GeoIpState, Arc<AppConfig>)>,
 ) -> impl IntoResponse {
     info!("Manual database update triggered via HTTP request.");
-    
-    // Spawn update process asynchronously so we don't block the HTTP request
+
     tokio::spawn(async move {
         match update::download_and_extract_db(
             config.license_key.as_deref(),
