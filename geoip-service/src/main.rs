@@ -156,7 +156,7 @@ async fn main() {
 
     let app = Router::new()
         .route("/health", get(health_handler))
-        .route("/lookup/:ip", get(lookup_handler))
+        .route("/lookup/{ip}", get(lookup_handler))
         .route("/update", post(update_handler))
         .with_state((geoip_state, config.clone()));
 
