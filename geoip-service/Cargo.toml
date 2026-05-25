@@ -7,7 +7,7 @@ edition = "2021"
 axum = "0.8"
 tokio = { version = "1.5", features = ["full"] }
 maxminddb = "0.28"
-reqwest = { version = "0.13", default-features = false, features = ["rustls-tls", "json"] }
+reqwest = { version = "0.13", default-features = false, features = ["rustls", "json"] }
 flate2 = "1.1"
 tar = "0.4"
 serde = { version = "1", features = ["derive"] }
