@@ -1,7 +1,7 @@
 use flate2::read::GzDecoder;
 use std::{
     fs::{self},
-    io::{Read, Write},
+    io::Write,
     path::Path,
 };
 use tar::Archive;

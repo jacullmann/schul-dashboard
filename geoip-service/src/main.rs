@@ -86,7 +86,7 @@ async fn main() {
             &config.mirror_url,
             &config.database_path,
         )
-            .await
+        .await
         {
             Ok(_) => {
                 if let Err(e) = geoip_state.load_database(&config.database_path).await {
@@ -126,7 +126,7 @@ async fn main() {
                     &cron_config.mirror_url,
                     &cron_config.database_path,
                 )
-                    .await
+                .await
                 {
                     Ok(_) => {
                         if let Err(e) = cron_state.load_database(&cron_config.database_path).await {
@@ -232,7 +232,7 @@ async fn update_handler(
             &config.mirror_url,
             &config.database_path,
         )
-            .await
+        .await
         {
             Ok(_) => {
                 if let Err(e) = geoip_state.load_database(&config.database_path).await {

@@ -33,7 +33,10 @@ impl GeoIpState {
         }
     }
 
-    pub async fn load_database(&self, path: &str) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn load_database(
+        &self,
+        path: &str,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         info!("Loading GeoIP database from {}", path);
         let data = tokio::fs::read(path).await?;
         let reader = Reader::from_source(data)?;
@@ -72,9 +75,10 @@ impl GeoIpState {
             });
         }
 
-        let reader_lock = self.reader.read().map_err(|e| {
-            format!("Failed to acquire read lock for lookup: {}", e)
-        })?;
+        let reader_lock = self
+            .reader
+            .read()
+            .map_err(|e| format!("Failed to acquire read lock for lookup: {}", e))?;
 
         let reader = reader_lock
             .as_ref()
