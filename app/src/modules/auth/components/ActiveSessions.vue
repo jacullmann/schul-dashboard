@@ -259,7 +259,7 @@ onMounted(() => {
           :disabled="revokingAll"
           :loading="revokingAll"
           variant="ghost"
-          class="border border-danger/30 text-danger hover:bg-danger-hover text-xs py-1.5 px-3"
+          on="ghost"
           :icon="LogOut"
         >
           Andere Geräte abmelden
@@ -289,7 +289,7 @@ onMounted(() => {
                     ? Laptop
                     : Monitor
               "
-              :size="24"
+              :size="32"
             />
           </div>
 
@@ -305,7 +305,7 @@ onMounted(() => {
               {{ session.location?.city ? `${session.location.city}, ` : '' }}
               {{ session.location?.country || 'Standort unbekannt' }}
               •
-              {{ index === 0 ? 'This device' : 'formatDate(session.issuedAt)' }}
+              {{ index === 0 ? 'This device' : formatDate(session.issuedAt) }}
             </div>
 
             <!-- Last Active / Registration date -->
