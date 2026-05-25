@@ -1,8 +1,10 @@
 use maxminddb::{geoip2, Reader};
-use std::net::IpAddr;
-use std::sync::{Arc, RwLock};
 use serde::Serialize;
-use tracing::{info, error};
+use std::{
+    net::IpAddr,
+    sync::{Arc, RwLock},
+};
+use tracing::{error, info};
 
 #[derive(Debug, Serialize, Clone)]
 pub struct LookupResponse {
@@ -35,7 +37,7 @@ impl GeoIpState {
         info!("Loading GeoIP database from {}", path);
         let data = tokio::fs::read(path).await?;
         let reader = Reader::from_source(data)?;
-        
+
         {
             let mut writer = self.reader.write().map_err(|e| {
                 error!("Failed to acquire write lock for database reload: {}", e);
@@ -43,7 +45,7 @@ impl GeoIpState {
             })?;
             *writer = Some(reader);
         }
-        
+
         info!("GeoIP database successfully loaded and hot-swapped!");
         Ok(())
     }
@@ -74,53 +76,28 @@ impl GeoIpState {
             format!("Failed to acquire read lock for lookup: {}", e)
         })?;
 
-        let reader = reader_lock.as_ref().ok_or_else(|| {
-            "GeoIP database is not loaded yet".to_string()
-        })?;
-
-        let lookup_result = reader.lookup(ip).map_err(|e| {
-            format!("IP lookup failed: {}", e)
-        })?;
-
-        let city_data: geoip2::City<'_> = lookup_result.decode().map_err(|e| {
-            format!("Failed to decode GeoIP data: {}", e)
-        })?.ok_or_else(|| "IP address not found in database".to_string())?;
-
-        // Extract country
-        let country = city_data.country
+        let reader = reader_lock
             .as_ref()
-            .and_then(|c| c.names.as_ref())
-            .and_then(|n| n.english.map(|s| s.to_string()));
-            
-        let country_code = city_data.country
-            .as_ref()
-            .and_then(|c| c.iso_code.map(|s| s.to_string()));
+            .ok_or_else(|| "GeoIP database is not loaded yet".to_string())?;
 
+        let lookup_result = reader
+            .lookup(ip)
+            .map_err(|e| format!("IP lookup failed: {}", e))?;
 
-        let city = city_data.city
-            .as_ref()
-            .and_then(|c| c.names.as_ref())
-            .and_then(|n| n.english.map(|s| s.to_string()));
+        let city_data: geoip2::City<'_> = lookup_result
+            .decode()
+            .map_err(|e| format!("Failed to decode GeoIP data: {}", e))?
+            .ok_or_else(|| "IP address not found in database".to_string())?;
 
-
-        let latitude = city_data.location.as_ref().and_then(|l| l.latitude);
-        let longitude = city_data.location.as_ref().and_then(|l| l.longitude);
-        let timezone = city_data.location.as_ref().and_then(|l| l.time_zone.map(|s| s.to_string()));
-
-
-        let continent = city_data.continent
-            .as_ref()
-            .and_then(|c| c.names.as_ref())
-            .and_then(|n| n.english.map(|s| s.to_string()));
-            
-        let continent_code = city_data.continent
-            .as_ref()
-            .and_then(|c| c.code.map(|s| s.to_string()));
-
-
-        let postal_code = city_data.postal
-            .as_ref()
-            .and_then(|p| p.code.map(|s| s.to_string()));
+        let country = city_data.country.names.english.map(|s| s.to_string());
+        let country_code = city_data.country.iso_code.map(|s| s.to_string());
+        let city = city_data.city.names.english.map(|s| s.to_string());
+        let latitude = city_data.location.latitude;
+        let longitude = city_data.location.longitude;
+        let timezone = city_data.location.time_zone.map(|s| s.to_string());
+        let continent = city_data.continent.names.english.map(|s| s.to_string());
+        let continent_code = city_data.continent.code.map(|s| s.to_string());
+        let postal_code = city_data.postal.code.map(|s| s.to_string());
 
         Ok(LookupResponse {
             ip: ip.to_string(),
@@ -138,12 +115,9 @@ impl GeoIpState {
     }
 }
 
-// Helper to determine if an IP is in private address space.
 fn is_private_ip(ip: IpAddr) -> bool {
     match ip {
-        IpAddr::V4(ipv4) => {
-            ipv4.is_private()
-        }
+        IpAddr::V4(ipv4) => ipv4.is_private(),
         IpAddr::V6(ipv6) => {
             let segments = ipv6.segments();
             let first_byte = (segments[0] >> 8) as u8;

@@ -1,23 +1,35 @@
-FROM node:22-alpine AS base
-RUN corepack enable pnpm
-
-FROM base AS deps
+FROM lukemathwalker/cargo-chef:0.1-rust-1.95-slim-bookworm AS chef
 WORKDIR /app
-COPY pnpm-lock.yaml package.json pnpm-workspace.yaml ./
-RUN pnpm install --frozen-lockfile
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        pkg-config \
+        libssl-dev \
+        ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
-FROM base AS builder
-WORKDIR /app
-ENV NODE_ENV=production
-COPY --from=deps /app/node_modules ./node_modules
+FROM chef AS planner
 COPY . .
-RUN pnpm run build
+RUN cargo chef prepare --recipe-path recipe.json
 
-FROM node:22-alpine AS runner
+FROM chef AS builder
+COPY --from=planner /app/recipe.json recipe.json
+
+RUN cargo chef cook --release --recipe-path recipe.json
+
+COPY . .
+RUN cargo build --release --bin schul-dashboard-backend
+
+FROM debian:bookworm-slim AS runtime
 WORKDIR /app
-ENV NODE_ENV=production
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=builder /app/dist ./dist
-COPY package.json ./
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd --system --gid 1001 app \
+    && useradd --system --uid 1001 --gid app --no-create-home app
+
+COPY --from=builder /app/target/release/schul-dashboard-backend /app/schul-dashboard-backend
+
+USER app
 EXPOSE 3000
-CMD ["node", "dist/main.js"]
+
+ENTRYPOINT ["/app/schul-dashboard-backend"]

@@ -5,10 +5,12 @@ use axum::{
     routing::{get, post},
     Json, Router,
 };
-use std::net::{IpAddr, SocketAddr};
-use std::path::Path as StdPath;
-use std::sync::Arc;
-use std::time::SystemTime;
+use std::{
+    net::{IpAddr, SocketAddr},
+    path::Path as StdPath,
+    sync::Arc,
+    time::SystemTime,
+};
 use tokio::time::{sleep, Duration};
 use tracing::{error, info, warn};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -16,7 +18,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 mod geoip;
 mod update;
 
-use crate::geoip::{GeoIpState, LookupResponse};
+use crate::geoip::GeoIpState;
 
 struct AppConfig {
     port: u16,
@@ -38,8 +40,10 @@ impl AppConfig {
             .ok()
             .filter(|s| !s.trim().is_empty());
 
-        let mirror_url = std::env::var("GEOIP_DATABASE_URL")
-            .unwrap_or_else(|_| "https://raw.githubusercontent.com/P3TERX/GeoLite.mmdb/download/GeoLite2-City.mmdb".to_string());
+        let mirror_url = std::env::var("GEOIP_DATABASE_URL").unwrap_or_else(|_| {
+            "https://raw.githubusercontent.com/P3TERX/GeoLite.mmdb/download/GeoLite2-City.mmdb"
+                .to_string()
+        });
 
         let database_path = std::env::var("GEOIP_DATABASE_PATH")
             .unwrap_or_else(|_| "data/GeoLite2-City.mmdb".to_string());
@@ -82,7 +86,7 @@ async fn main() {
             &config.mirror_url,
             &config.database_path,
         )
-        .await
+            .await
         {
             Ok(_) => {
                 if let Err(e) = geoip_state.load_database(&config.database_path).await {
@@ -102,7 +106,7 @@ async fn main() {
         info!("Background update scheduler initialized.");
         loop {
             let is_loaded = cron_state.is_loaded();
-            
+
             let should_update = match get_file_age_in_days(&cron_config.database_path) {
                 Some(age_days) => {
                     info!("Database file age is {} days.", age_days);
@@ -122,7 +126,7 @@ async fn main() {
                     &cron_config.mirror_url,
                     &cron_config.database_path,
                 )
-                .await
+                    .await
                 {
                     Ok(_) => {
                         if let Err(e) = cron_state.load_database(&cron_config.database_path).await {
@@ -139,9 +143,6 @@ async fn main() {
                 }
             }
 
-            // ROBUSTNESS: Dynamic scheduling interval
-            // If the database has never been loaded or an update failed, retry in 5 minutes.
-            // Otherwise, wait 1 hour before verifying file age again.
             let sleep_duration = if !is_loaded || !update_successful {
                 info!("Database is not loaded or update failed. Retrying in 5 minutes...");
                 Duration::from_secs(300)
@@ -231,7 +232,7 @@ async fn update_handler(
             &config.mirror_url,
             &config.database_path,
         )
-        .await
+            .await
         {
             Ok(_) => {
                 if let Err(e) = geoip_state.load_database(&config.database_path).await {
@@ -255,7 +256,6 @@ async fn update_handler(
     )
 }
 
-// Helper to check if an IP address is a private address
 fn is_private_ip(ip: IpAddr) -> bool {
     match ip {
         IpAddr::V4(ipv4) => ipv4.is_private(),

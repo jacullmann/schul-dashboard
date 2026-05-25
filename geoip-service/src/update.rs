@@ -1,10 +1,12 @@
-use std::fs::{self, File};
-use std::io::{self, Read, Write};
-use std::path::Path;
 use flate2::read::GzDecoder;
+use std::{
+    fs::{self},
+    io::{Read, Write},
+    path::Path,
+};
 use tar::Archive;
-use tracing::{info, warn, error};
 use tempfile::NamedTempFile;
+use tracing::info;
 
 pub async fn download_and_extract_db(
     license_key: Option<&str>,
@@ -13,14 +15,16 @@ pub async fn download_and_extract_db(
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let target_path_obj = Path::new(target_path);
 
-
     if let Some(parent) = target_path_obj.parent() {
         fs::create_dir_all(parent)?;
     }
 
     let parent_dir = target_path_obj.parent().unwrap_or_else(|| Path::new("."));
     let mut temp_file = NamedTempFile::new_in(parent_dir)?;
-    info!("Starting database download to temporary file: {:?}", temp_file.path());
+    info!(
+        "Starting database download to temporary file: {:?}",
+        temp_file.path()
+    );
 
     let client = reqwest::Client::builder()
         .timeout(std::time::Duration::from_secs(300))
@@ -35,11 +39,18 @@ pub async fn download_and_extract_db(
 
         let response = client.get(&url).send().await?;
         if !response.status().is_success() {
-            return Err(format!("Failed to download from MaxMind: HTTP {}", response.status()).into());
+            return Err(format!(
+                "Failed to download from MaxMind: HTTP {}",
+                response.status()
+            )
+            .into());
         }
 
         let bytes = response.bytes().await?;
-        info!("Downloaded official MaxMind tar.gz file. Size: {} bytes. Extracting...", bytes.len());
+        info!(
+            "Downloaded official MaxMind tar.gz file. Size: {} bytes. Extracting...",
+            bytes.len()
+        );
 
         let tar_gz = std::io::Cursor::new(bytes);
         let tar = GzDecoder::new(tar_gz);
@@ -59,23 +70,36 @@ pub async fn download_and_extract_db(
         }
 
         if !found {
-            return Err("Could not find GeoLite2-City.mmdb in the downloaded MaxMind archive.".into());
+            return Err(
+                "Could not find GeoLite2-City.mmdb in the downloaded MaxMind archive.".into(),
+            );
         }
     } else {
-        info!("No license key provided. Downloading from mirror: {}", mirror_url);
+        info!(
+            "No license key provided. Downloading from mirror: {}",
+            mirror_url
+        );
         let response = client.get(mirror_url).send().await?;
         if !response.status().is_success() {
-            return Err(format!("Failed to download from mirror: HTTP {}", response.status()).into());
+            return Err(
+                format!("Failed to download from mirror: HTTP {}", response.status()).into(),
+            );
         }
 
         let bytes = response.bytes().await?;
-        info!("Downloaded raw database file from mirror. Size: {} bytes.", bytes.len());
+        info!(
+            "Downloaded raw database file from mirror. Size: {} bytes.",
+            bytes.len()
+        );
         temp_file.write_all(&bytes)?;
     }
 
     temp_file.flush()?;
     temp_file.persist(target_path)?;
 
-    info!("Database successfully written and persisted to {}", target_path);
+    info!(
+        "Database successfully written and persisted to {}",
+        target_path
+    );
     Ok(())
 }
