@@ -1,7 +1,7 @@
 use axum::{
+    Json,
     http::StatusCode,
     response::{IntoResponse, Response},
-    Json,
 };
 use serde_json::json;
 use thiserror::Error;
@@ -60,18 +60,12 @@ impl AppError {
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
         let (status, body) = match &self {
-            AppError::BadRequest(msg) => (
-                StatusCode::BAD_REQUEST,
-                json!({ "error": msg }),
-            ),
+            AppError::BadRequest(msg) => (StatusCode::BAD_REQUEST, json!({ "error": msg })),
             AppError::Validation(errs) => (
                 StatusCode::BAD_REQUEST,
                 json!({ "error": "Validation Error.", "errors": errs }),
             ),
-            AppError::Unauthorized(msg) => (
-                StatusCode::UNAUTHORIZED,
-                json!({ "error": msg }),
-            ),
+            AppError::Unauthorized(msg) => (StatusCode::UNAUTHORIZED, json!({ "error": msg })),
             AppError::AuthRequired => (
                 StatusCode::UNAUTHORIZED,
                 json!({ "error": "Authentication required.", "requiresAuth": true }),
@@ -80,14 +74,8 @@ impl IntoResponse for AppError {
                 StatusCode::UNAUTHORIZED,
                 json!({ "error": "Access token is invalid or has expired.", "requiresAuth": true }),
             ),
-            AppError::Forbidden(msg) => (
-                StatusCode::FORBIDDEN,
-                json!({ "error": msg }),
-            ),
-            AppError::NotFound(msg) => (
-                StatusCode::NOT_FOUND,
-                json!({ "error": msg }),
-            ),
+            AppError::Forbidden(msg) => (StatusCode::FORBIDDEN, json!({ "error": msg })),
+            AppError::NotFound(msg) => (StatusCode::NOT_FOUND, json!({ "error": msg })),
             AppError::RateLimited => (
                 StatusCode::TOO_MANY_REQUESTS,
                 json!({ "error": "Too many requests." }),

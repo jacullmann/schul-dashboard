@@ -114,9 +114,7 @@ async fn main() -> anyhow::Result<()> {
         .context("Failed to bind TCP listener")?;
 
     info!("Server listening on {addr}");
-    axum::serve(listener, app)
-        .await
-        .context("Server error")?;
+    axum::serve(listener, app).await.context("Server error")?;
 
     Ok(())
 }

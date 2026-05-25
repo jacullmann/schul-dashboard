@@ -1,7 +1,7 @@
 use crate::error::AppError;
 use aes_gcm::{
-    aead::{Aead, KeyInit, OsRng, rand_core::RngCore},
     Aes256Gcm, Key, Nonce,
+    aead::{Aead, KeyInit, OsRng, rand_core::RngCore},
 };
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
@@ -64,15 +64,14 @@ impl EncryptionService {
         let salt = salt.to_vec();
 
         let derived = tokio::task::spawn_blocking(move || {
-            let params = scrypt::Params::new(14, 8, 1, 32)
-                .expect("valid scrypt params");
+            let params = scrypt::Params::new(14, 8, 1, 32).expect("valid scrypt params");
             let mut key = [0u8; 32];
             scrypt::scrypt(key_material.as_bytes(), &salt, &params, &mut key)
                 .expect("scrypt failed");
             key
         })
-            .await
-            .map_err(|e| AppError::internal(format!("Key derivation spawn failed: {e}")))?;
+        .await
+        .map_err(|e| AppError::internal(format!("Key derivation spawn failed: {e}")))?;
 
         let mut cache = self.cache.lock().unwrap();
         if cache.len() >= KEY_CACHE_MAX {
@@ -84,7 +83,13 @@ impl EncryptionService {
                 cache.remove(&oldest);
             }
         }
-        cache.insert(user_id.to_string(), CacheEntry { key: derived, at: Instant::now() });
+        cache.insert(
+            user_id.to_string(),
+            CacheEntry {
+                key: derived,
+                at: Instant::now(),
+            },
+        );
 
         Ok(derived)
     }
@@ -111,13 +116,16 @@ impl EncryptionService {
         })
     }
 
-    pub async fn decrypt(&self, payload: &EncryptedPayload, user_id: &str) -> Result<String, AppError> {
+    pub async fn decrypt(
+        &self,
+        payload: &EncryptedPayload,
+        user_id: &str,
+    ) -> Result<String, AppError> {
         let key_bytes = self.derive_key(user_id).await?;
         let key = Key::<Aes256Gcm>::from_slice(&key_bytes);
         let cipher = Aes256Gcm::new(key);
 
-        let iv = hex::decode(&payload.iv)
-            .map_err(|_| AppError::internal("Invalid IV encoding"))?;
+        let iv = hex::decode(&payload.iv).map_err(|_| AppError::internal("Invalid IV encoding"))?;
         let mut ciphertext = hex::decode(&payload.data)
             .map_err(|_| AppError::internal("Invalid ciphertext encoding"))?;
         let auth_tag = hex::decode(&payload.auth_tag)

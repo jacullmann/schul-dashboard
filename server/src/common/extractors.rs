@@ -9,6 +9,7 @@ use axum::{
     http::request::Parts,
 };
 use axum_extra::extract::CookieJar;
+use std::convert::Infallible;
 use uuid::Uuid;
 
 #[derive(Debug, Clone)]
@@ -43,19 +44,14 @@ where
             .map(|c| c.value().to_owned())
             .ok_or(AppError::AuthRequired)?;
 
-        let claims = app_state
-            .jwt
-            .verify_access(&token)?;
+        let claims = app_state.jwt.verify_access(&token)?;
 
         let user_id = claims
             .sub
             .parse::<Uuid>()
             .map_err(|_| AppError::TokenExpired)?;
 
-        let active_group_id = claims
-            .g_id
-            .as_deref()
-            .and_then(|s| s.parse::<Uuid>().ok());
+        let active_group_id = claims.g_id.as_deref().and_then(|s| s.parse::<Uuid>().ok());
 
         Ok(AuthUser {
             user_id,
@@ -178,9 +174,9 @@ where
                 "SELECT owner_id, permissions FROM groups WHERE id = $1",
                 tenant_id
             )
-                .fetch_optional(&app_state.db)
-                .await?
-                .ok_or_else(|| AppError::NotFound("Group not found.".into()))?;
+            .fetch_optional(&app_state.db)
+            .await?
+            .ok_or_else(|| AppError::NotFound("Group not found.".into()))?;
 
             return Ok(TenantContext {
                 tenant_id,
@@ -203,9 +199,9 @@ where
             user.user_id,
             tenant_id
         )
-            .fetch_optional(&app_state.db)
-            .await?
-            .ok_or_else(|| AppError::Forbidden("Kein Zugriff auf diesen Tenant.".into()))?;
+        .fetch_optional(&app_state.db)
+        .await?
+        .ok_or_else(|| AppError::Forbidden("Kein Zugriff auf diesen Tenant.".into()))?;
 
         Ok(TenantContext {
             tenant_id,
@@ -214,5 +210,45 @@ where
             group_permissions: row.permissions.unwrap_or(serde_json::json!({})),
             user,
         })
+    }
+}
+
+pub struct ClientIp(pub Option<String>);
+pub struct UserAgent(pub Option<String>);
+
+#[axum::async_trait]
+impl<S> FromRequestParts<S> for ClientIp
+where
+    S: Send + Sync,
+{
+    type Rejection = Infallible;
+
+    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
+        let ip = parts
+            .headers
+            .get("x-forwarded-for")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|s| s.split(',').next())
+            .map(|s| s.trim().to_string());
+
+        Ok(ClientIp(ip))
+    }
+}
+
+#[axum::async_trait]
+impl<S> FromRequestParts<S> for UserAgent
+where
+    S: Send + Sync,
+{
+    type Rejection = Infallible;
+
+    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
+        let ua = parts
+            .headers
+            .get("user-agent")
+            .and_then(|v| v.to_str().ok())
+            .map(String::from);
+
+        Ok(UserAgent(ua))
     }
 }

@@ -1,5 +1,5 @@
-mod handlers;
-mod routes;
-mod service;
-mod dto;
-mod gateway;
+pub mod dto;
+pub mod gateway;
+pub mod handlers;
+pub mod routes;
+pub mod service;

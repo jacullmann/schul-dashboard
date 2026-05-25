@@ -13,8 +13,8 @@ pub async fn hash_password(password: String) -> Result<String, AppError> {
             .map(|h| h.to_string())
             .map_err(|e| AppError::internal(format!("Password hashing failed: {e}")))
     })
-        .await
-        .map_err(|e| AppError::internal(format!("Spawn blocking failed: {e}")))?
+    .await
+    .map_err(|e| AppError::internal(format!("Spawn blocking failed: {e}")))?
 }
 
 pub async fn verify_password(password: String, hash: String) -> Result<bool, AppError> {
@@ -25,8 +25,8 @@ pub async fn verify_password(password: String, hash: String) -> Result<bool, App
             .verify_password(password.as_bytes(), &parsed)
             .is_ok())
     })
-        .await
-        .map_err(|e| AppError::internal(format!("Spawn blocking failed: {e}")))?
+    .await
+    .map_err(|e| AppError::internal(format!("Spawn blocking failed: {e}")))?
 }
 
 pub fn validate_password_strength(password: &str) -> Result<(), &'static str> {

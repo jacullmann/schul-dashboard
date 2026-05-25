@@ -2,12 +2,7 @@ use crate::{
     config::{BaseCookieOptions, CSRF_COOKIE, CSRF_HEADER},
     error::AppError,
 };
-use axum::{
-    extract::Request,
-    http::Method,
-    middleware::Next,
-    response::Response,
-};
+use axum::{extract::Request, http::Method, middleware::Next, response::Response};
 use axum_extra::extract::CookieJar;
 use subtle::ConstantTimeEq;
 use tower_cookies::{Cookie, Cookies};
@@ -41,9 +36,7 @@ pub async fn csrf_middleware(
         return Ok(next.run(request).await);
     }
 
-    let cookie_token = cookies
-        .get(CSRF_COOKIE)
-        .map(|c| c.value().to_owned());
+    let cookie_token = cookies.get(CSRF_COOKIE).map(|c| c.value().to_owned());
 
     let header_token = request
         .headers()

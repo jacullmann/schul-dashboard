@@ -100,8 +100,7 @@ impl JwtService {
     }
 
     pub fn sign_access(&self, claims: &AccessClaims) -> anyhow::Result<String> {
-        encode(&Header::default(), claims, &self.user_enc)
-            .context("Failed to sign access token")
+        encode(&Header::default(), claims, &self.user_enc).context("Failed to sign access token")
     }
 
     pub fn verify_access(&self, token: &str) -> Result<AccessClaims, AppError> {
@@ -112,7 +111,12 @@ impl JwtService {
             .map_err(|_| AppError::TokenExpired)
     }
 
-    pub fn sign_mfa_pending(&self, user_id: Uuid, email: &str, ttl: Duration) -> anyhow::Result<String> {
+    pub fn sign_mfa_pending(
+        &self,
+        user_id: Uuid,
+        email: &str,
+        ttl: Duration,
+    ) -> anyhow::Result<String> {
         let claims = MfaPendingClaims {
             sub: user_id.to_string(),
             email: email.to_string(),

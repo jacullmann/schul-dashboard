@@ -43,12 +43,15 @@ subtle = "2.6"
 rand = "0.10"
 totp-rs = { version = "5.7", features = ["otpauth"] }
 uuid = { version = "1.23", features = ["v4", "serde"] }
-reqwest = { version = "0.13", default-features = false, features = ["json", "rustls-tls"] }
+reqwest = { version = "0.13", default-features = false, features = ["json", "rustls"] }
+resend-rs = "0.25"
 chrono = { version = "0.4", default-features = false, features = ["clock", "serde"] }
 url = "2.5"
+fractional_index = "2.0"
+hmac = "0.13"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 thiserror = "2.0"
 anyhow = "1"
 dotenvy = "0.15"
-resend-rs = "0.25"
+petname = "3"

@@ -19,31 +19,16 @@ use serde::Deserialize;
 use serde_json::{Value, json};
 use validator::Validate;
 
-fn extract_ip(headers: &HeaderMap) -> Option<String> {
-    headers
-        .get("x-forwarded-for")
-        .and_then(|v| v.to_str().ok())
-        .and_then(|s| s.split(',').next())
-        .map(|s| s.trim().to_string())
-}
-
-fn extract_ua(headers: &HeaderMap) -> Option<String> {
-    headers
-        .get("user-agent")
-        .and_then(|v| v.to_str().ok())
-        .map(String::from)
-}
-
 pub async fn login(
     State(state): State<AppState>,
-    headers: HeaderMap,
+    ClientIp(ip): ClientIp,
+    UserAgent(ua): UserAgent,
     Json(dto): Json<LoginDto>,
 ) -> AppResult<(CookieJar, Json<Value>)> {
-    dto.validate()
-        .map_err(|e| AppError::Validation(e.field_errors().keys().map(|k| k.to_string()).collect()))?;
+    dto.validate().map_err(|e| {
+        AppError::Validation(e.field_errors().keys().map(|k| k.to_string()).collect())
+    })?;
 
-    let ip = extract_ip(&headers);
-    let ua = extract_ua(&headers);
     let svc = AuthService::from_state(&state);
 
     match svc.login(dto, ua.as_deref(), ip.as_deref()).await? {
@@ -57,18 +42,24 @@ pub async fn login(
 pub async fn verify_mfa(
     State(state): State<AppState>,
     pending: MfaPending,
-    headers: HeaderMap,
+    ClientIp(ip): ClientIp,
+    UserAgent(ua): UserAgent,
     Json(dto): Json<VerifyMfaDto>,
 ) -> AppResult<(CookieJar, Json<Value>)> {
-    dto.validate()
-        .map_err(|e| AppError::Validation(e.field_errors().keys().map(|k| k.to_string()).collect()))?;
+    dto.validate().map_err(|e| {
+        AppError::Validation(e.field_errors().keys().map(|k| k.to_string()).collect())
+    })?;
 
-    let ip = extract_ip(&headers);
-    let ua = extract_ua(&headers);
     let svc = AuthService::from_state(&state);
 
     let jar = svc
-        .verify_mfa(&dto.code, pending.user_id, &pending.email, ua.as_deref(), ip.as_deref())
+        .verify_mfa(
+            &dto.code,
+            pending.user_id,
+            &pending.email,
+            ua.as_deref(),
+            ip.as_deref(),
+        )
         .await?;
 
     Ok((jar, Json(json!({ "ok": true }))))
@@ -87,17 +78,15 @@ pub async fn register(
     State(state): State<AppState>,
     Json(dto): Json<RegisterDto>,
 ) -> AppResult<Json<Value>> {
-    dto.validate()
-        .map_err(|e| AppError::Validation(e.field_errors().keys().map(|k| k.to_string()).collect()))?;
+    dto.validate().map_err(|e| {
+        AppError::Validation(e.field_errors().keys().map(|k| k.to_string()).collect())
+    })?;
 
     let svc = AuthService::from_state(&state);
     Ok(Json(svc.register(dto).await?))
 }
 
-pub async fn get_me(
-    State(state): State<AppState>,
-    opt: OptionalAuth,
-) -> AppResult<Json<Value>> {
+pub async fn get_me(State(state): State<AppState>, opt: OptionalAuth) -> AppResult<Json<Value>> {
     match opt.0 {
         None => Ok(Json(json!({ "authenticated": false }))),
         Some(user) => {
@@ -133,8 +122,9 @@ pub async fn forgot_password(
     State(state): State<AppState>,
     Json(dto): Json<ForgotPasswordDto>,
 ) -> AppResult<Json<Value>> {
-    dto.validate()
-        .map_err(|e| AppError::Validation(e.field_errors().keys().map(|k| k.to_string()).collect()))?;
+    dto.validate().map_err(|e| {
+        AppError::Validation(e.field_errors().keys().map(|k| k.to_string()).collect())
+    })?;
     let svc = AuthService::from_state(&state);
     Ok(Json(svc.forgot_password(&dto.email).await?))
 }
@@ -143,8 +133,9 @@ pub async fn verify_reset_token(
     State(state): State<AppState>,
     Json(dto): Json<ResetPasswordVerifyDto>,
 ) -> AppResult<Json<Value>> {
-    dto.validate()
-        .map_err(|e| AppError::Validation(e.field_errors().keys().map(|k| k.to_string()).collect()))?;
+    dto.validate().map_err(|e| {
+        AppError::Validation(e.field_errors().keys().map(|k| k.to_string()).collect())
+    })?;
     let svc = AuthService::from_state(&state);
     Ok(Json(svc.verify_reset_token(&dto.email, &dto.code).await?))
 }
@@ -154,33 +145,38 @@ pub async fn reset_password(
     Json(dto): Json<ResetPasswordDto>,
 ) -> AppResult<Json<Value>> {
     let svc = AuthService::from_state(&state);
-    Ok(Json(svc.reset_password(&dto.reset_token, &dto.password).await?))
+    Ok(Json(
+        svc.reset_password(&dto.reset_token, &dto.password).await?,
+    ))
 }
 
 pub async fn change_password(
     State(state): State<AppState>,
     user: AuthUser,
-    headers: HeaderMap,
+    ClientIp(ip): ClientIp,
+    UserAgent(ua): UserAgent,
     Json(dto): Json<ChangePasswordDto>,
 ) -> AppResult<(CookieJar, Json<Value>)> {
-    dto.validate()
-        .map_err(|e| AppError::Validation(e.field_errors().keys().map(|k| k.to_string()).collect()))?;
+    dto.validate().map_err(|e| {
+        AppError::Validation(e.field_errors().keys().map(|k| k.to_string()).collect())
+    })?;
 
-    let ip = extract_ip(&headers);
-    let ua = extract_ua(&headers);
     let svc = AuthService::from_state(&state);
 
     let (jar, body) = svc
-        .change_password(user.user_id, dto.current_password, dto.new_password, ua.as_deref(), ip.as_deref())
+        .change_password(
+            user.user_id,
+            dto.current_password,
+            dto.new_password,
+            ua.as_deref(),
+            ip.as_deref(),
+        )
         .await?;
 
     Ok((jar, Json(body)))
 }
 
-pub async fn get_groups(
-    State(state): State<AppState>,
-    user: AuthUser,
-) -> AppResult<Json<Value>> {
+pub async fn get_groups(State(state): State<AppState>, user: AuthUser) -> AppResult<Json<Value>> {
     let svc = AuthService::from_state(&state);
     Ok(Json(svc.get_groups(user.user_id).await?))
 }
@@ -188,7 +184,8 @@ pub async fn get_groups(
 pub async fn refresh(
     State(state): State<AppState>,
     jar: CookieJar,
-    headers: HeaderMap,
+    ClientIp(ip): ClientIp,
+    UserAgent(ua): UserAgent,
 ) -> AppResult<(CookieJar, Json<Value>)> {
     use crate::config::REFRESH_COOKIE;
 
@@ -196,12 +193,8 @@ pub async fn refresh(
         .get(REFRESH_COOKIE)
         .map(|c| c.value().to_string())
         .filter(|s| !s.is_empty())
-        .ok_or_else(|| {
-            AppError::Unauthorized("No refresh token.".into())
-        })?;
+        .ok_or_else(|| AppError::Unauthorized("No refresh token.".into()))?;
 
-    let ip = extract_ip(&headers);
-    let ua = extract_ua(&headers);
     let svc = TokenService::from_state(&state);
 
     let issued = svc
@@ -244,7 +237,8 @@ pub async fn logout_all(
     jar: CookieJar,
 ) -> AppResult<(CookieJar, Json<Value>)> {
     let svc = TokenService::from_state(&state);
-    svc.revoke_all_for_user(user.user_id, LOGOUT_ALL, None).await?;
+    svc.revoke_all_for_user(user.user_id, LOGOUT_ALL, None)
+        .await?;
 
     let opts = state.config.base_cookie_options();
     let new_jar = jar

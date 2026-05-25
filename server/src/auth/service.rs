@@ -38,11 +38,8 @@ impl AuthService {
             config: state.config.clone(),
         }
     }
-    
-    async fn resolve_user_context(
-        &self,
-        user_id: Uuid,
-    ) -> AppResult<(String, Option<Uuid>)> {
+
+    async fn resolve_user_context(&self, user_id: Uuid) -> AppResult<(String, Option<Uuid>)> {
         let global_role = sqlx::query!(
             r#"
             SELECT r.name FROM user_roles ur
@@ -52,18 +49,18 @@ impl AuthService {
             "#,
             user_id
         )
-            .fetch_optional(&self.db)
-            .await?
-            .map(|r| r.name)
-            .unwrap_or_else(|| "user".into());
+        .fetch_optional(&self.db)
+        .await?
+        .map(|r| r.name)
+        .unwrap_or_else(|| "user".into());
 
         let active_group_id = sqlx::query!(
             "SELECT tenant_id FROM user_roles WHERE user_id = $1 AND tenant_id IS NOT NULL LIMIT 1",
             user_id
         )
-            .fetch_optional(&self.db)
-            .await?
-            .and_then(|r| r.tenant_id);
+        .fetch_optional(&self.db)
+        .await?
+        .and_then(|r| r.tenant_id);
 
         Ok((global_role, active_group_id))
     }
@@ -115,9 +112,9 @@ impl AuthService {
             "#,
             email
         )
-            .fetch_optional(&self.db)
-            .await?
-            .ok_or_else(|| AppError::Unauthorized("Invalid credentials.".into()))?;
+        .fetch_optional(&self.db)
+        .await?
+        .ok_or_else(|| AppError::Unauthorized("Invalid credentials.".into()))?;
 
         let hash = user.password_hash.as_deref().unwrap_or("");
         let ok = verify_password(dto.password, hash.to_string()).await?;
@@ -139,14 +136,13 @@ impl AuthService {
             ));
         }
 
-        let ban = sqlx::query!(
-            "SELECT id FROM banned_users WHERE user_id = $1",
-            user.id
-        )
+        let ban = sqlx::query!("SELECT id FROM banned_users WHERE user_id = $1", user.id)
             .fetch_optional(&self.db)
             .await?;
         if ban.is_some() {
-            return Err(AppError::Forbidden("Your account has been suspended.".into()));
+            return Err(AppError::Forbidden(
+                "Your account has been suspended.".into(),
+            ));
         }
 
         if user.mfa_enabled && user.mfa_secret.is_some() {
@@ -163,17 +159,19 @@ impl AuthService {
             "UPDATE users SET last_login_at = now() WHERE id = $1",
             user.id
         )
-            .execute(&self.db)
-            .await?;
+        .execute(&self.db)
+        .await?;
 
         sqlx::query!(
             "DELETE FROM mfa_pending_secrets WHERE user_id = $1",
             user.id
         )
-            .execute(&self.db)
-            .await?;
+        .execute(&self.db)
+        .await?;
 
-        let (jar, _csrf) = self.issue_session(user.id, &user.email, user_agent, ip).await?;
+        let (jar, _csrf) = self
+            .issue_session(user.id, &user.email, user_agent, ip)
+            .await?;
         Ok(LoginResult::Success(jar))
     }
 
@@ -191,9 +189,9 @@ impl AuthService {
             "SELECT mfa_enabled, mfa_secret FROM users WHERE id = $1",
             user_id
         )
-            .fetch_optional(&self.db)
-            .await?
-            .ok_or_else(|| AppError::Unauthorized("Authentication failed.".into()))?;
+        .fetch_optional(&self.db)
+        .await?
+        .ok_or_else(|| AppError::Unauthorized("Authentication failed.".into()))?;
 
         if !user.mfa_enabled || user.mfa_secret.is_none() {
             return Err(AppError::Unauthorized("Authentication failed.".into()));
@@ -214,16 +212,22 @@ impl AuthService {
             "INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'auth:mfa_login', '{}')",
             user_id
         )
-            .execute(&self.db)
-            .await?;
+        .execute(&self.db)
+        .await?;
 
-        sqlx::query!("UPDATE users SET last_login_at = now() WHERE id = $1", user_id)
-            .execute(&self.db)
-            .await?;
+        sqlx::query!(
+            "UPDATE users SET last_login_at = now() WHERE id = $1",
+            user_id
+        )
+        .execute(&self.db)
+        .await?;
 
-        sqlx::query!("DELETE FROM mfa_pending_secrets WHERE user_id = $1", user_id)
-            .execute(&self.db)
-            .await?;
+        sqlx::query!(
+            "DELETE FROM mfa_pending_secrets WHERE user_id = $1",
+            user_id
+        )
+        .execute(&self.db)
+        .await?;
 
         let opts = self.config.base_cookie_options();
         let (mut jar, _) = self.issue_session(user_id, email, user_agent, ip).await?;
@@ -232,8 +236,7 @@ impl AuthService {
     }
 
     pub async fn register(&self, dto: RegisterDto) -> AppResult<serde_json::Value> {
-        validate_password_strength(&dto.password)
-            .map_err(|e| AppError::BadRequest(e.into()))?;
+        validate_password_strength(&dto.password).map_err(|e| AppError::BadRequest(e.into()))?;
 
         let email = dto.email.to_lowercase();
 
@@ -241,7 +244,9 @@ impl AuthService {
             .fetch_optional(&self.db)
             .await?;
         if exists.is_some() {
-            return Err(AppError::BadRequest("Email address is already registered.".into()));
+            return Err(AppError::BadRequest(
+                "Email address is already registered.".into(),
+            ));
         }
 
         let password_hash = hash_password(dto.password).await?;
@@ -277,9 +282,9 @@ impl AuthService {
             password_hash,
             prefs,
         )
-            .fetch_one(&self.db)
-            .await
-            .map_err(|_| AppError::BadRequest("Registration failed.".into()))?;
+        .fetch_one(&self.db)
+        .await
+        .map_err(|_| AppError::BadRequest("Registration failed.".into()))?;
 
         let token = {
             use rand::RngCore;
@@ -295,12 +300,16 @@ impl AuthService {
             token,
             expires_at,
         )
-            .execute(&self.db)
-            .await?;
+        .execute(&self.db)
+        .await?;
 
         let verify_url = format!("{}?token={}", self.config.client_verify_url, token);
 
-        match self.email.send_verification_email(&user.email, &verify_url).await {
+        match self
+            .email
+            .send_verification_email(&user.email, &verify_url)
+            .await
+        {
             Ok(_) => Ok(json!({
                 "ok": true,
                 "message": "Registration successful. Please check your inbox and spam folder."
@@ -324,8 +333,8 @@ impl AuthService {
             "#,
             user_id
         )
-            .fetch_optional(&self.db)
-            .await?;
+        .fetch_optional(&self.db)
+        .await?;
 
         let user = match user {
             None => return Ok(json!({ "authenticated": false })),
@@ -341,10 +350,10 @@ impl AuthService {
             "#,
             user_id
         )
-            .fetch_optional(&self.db)
-            .await?
-            .map(|r| r.name)
-            .unwrap_or_else(|| "user".into());
+        .fetch_optional(&self.db)
+        .await?
+        .map(|r| r.name)
+        .unwrap_or_else(|| "user".into());
 
         let tenant_role = if let Some(gid) = active_group_id {
             sqlx::query!(
@@ -357,9 +366,9 @@ impl AuthService {
                 user_id,
                 gid
             )
-                .fetch_optional(&self.db)
-                .await?
-                .map(|r| r.name)
+            .fetch_optional(&self.db)
+            .await?
+            .map(|r| r.name)
         } else {
             None
         };
@@ -368,11 +377,11 @@ impl AuthService {
             "SELECT subject_id, course_id FROM user_courses WHERE user_id = $1",
             user_id
         )
-            .fetch_all(&self.db)
-            .await?
-            .into_iter()
-            .map(|r| json!({ "subjectId": r.subject_id, "courseId": r.course_id }))
-            .collect::<Vec<_>>();
+        .fetch_all(&self.db)
+        .await?
+        .into_iter()
+        .map(|r| json!({ "subjectId": r.subject_id, "courseId": r.course_id }))
+        .collect::<Vec<_>>();
 
         Ok(json!({
             "authenticated": true,
@@ -398,17 +407,16 @@ impl AuthService {
             "#,
             user_id
         )
-            .fetch_all(&self.db)
-            .await?;
+        .fetch_all(&self.db)
+        .await?;
 
         if roles.iter().any(|r| r.name == "superadmin") {
-            return Err(AppError::Forbidden("Admin accounts cannot be deleted.".into()));
+            return Err(AppError::Forbidden(
+                "Admin accounts cannot be deleted.".into(),
+            ));
         }
 
-        let owned = sqlx::query!(
-            "SELECT id FROM groups WHERE owner_id = $1 LIMIT 1",
-            user_id
-        )
+        let owned = sqlx::query!("SELECT id FROM groups WHERE owner_id = $1 LIMIT 1", user_id)
             .fetch_optional(&self.db)
             .await?;
 
@@ -418,7 +426,9 @@ impl AuthService {
             ));
         }
 
-        self.tokens.revoke_all_for_user(user_id, ACCOUNT_DELETED, None).await?;
+        self.tokens
+            .revoke_all_for_user(user_id, ACCOUNT_DELETED, None)
+            .await?;
 
         sqlx::query!("DELETE FROM users WHERE id = $1", user_id)
             .execute(&self.db)
@@ -438,12 +448,14 @@ impl AuthService {
             "SELECT email, expires_at FROM verifications WHERE token = $1",
             token
         )
-            .fetch_optional(&self.db)
-            .await?
-            .ok_or_else(|| AppError::BadRequest("Invalid verification token.".into()))?;
+        .fetch_optional(&self.db)
+        .await?
+        .ok_or_else(|| AppError::BadRequest("Invalid verification token.".into()))?;
 
         if ver.expires_at < Utc::now() {
-            return Err(AppError::BadRequest("Verification token has expired.".into()));
+            return Err(AppError::BadRequest(
+                "Verification token has expired.".into(),
+            ));
         }
 
         let user = sqlx::query!("SELECT id FROM users WHERE email = $1", ver.email)
@@ -455,8 +467,8 @@ impl AuthService {
             "UPDATE users SET email_verified = true WHERE id = $1",
             user.id
         )
-            .execute(&self.db)
-            .await?;
+        .execute(&self.db)
+        .await?;
 
         sqlx::query!("DELETE FROM verifications WHERE email = $1", ver.email)
             .execute(&self.db)
@@ -490,15 +502,17 @@ impl AuthService {
             "UPDATE password_resets SET used = true WHERE email = $1 AND used = false",
             email
         )
-            .execute(&self.db)
-            .await?;
+        .execute(&self.db)
+        .await?;
 
         sqlx::query!(
             "INSERT INTO password_resets (email, code, expires_at) VALUES ($1, $2, $3)",
-            email, code, expires_at
+            email,
+            code,
+            expires_at
         )
-            .execute(&self.db)
-            .await?;
+        .execute(&self.db)
+        .await?;
 
         let _ = self.email.send_password_reset_email(&email, &code).await;
 
@@ -522,11 +536,12 @@ impl AuthService {
             WHERE email = $1 AND code = $2 AND used = false
             ORDER BY created_at DESC LIMIT 1
             "#,
-            email, code
+            email,
+            code
         )
-            .fetch_optional(&self.db)
-            .await?
-            .ok_or_else(|| AppError::BadRequest("Invalid reset code.".into()))?;
+        .fetch_optional(&self.db)
+        .await?
+        .ok_or_else(|| AppError::BadRequest("Invalid reset code.".into()))?;
 
         if pr.expires_at < Utc::now() {
             return Err(AppError::BadRequest("Reset code has expired.".into()));
@@ -536,8 +551,8 @@ impl AuthService {
             "UPDATE password_resets SET used = true WHERE id = $1",
             pr.id
         )
-            .execute(&self.db)
-            .await?;
+        .execute(&self.db)
+        .await?;
 
         let reset_token = self
             .jwt
@@ -552,8 +567,7 @@ impl AuthService {
         reset_token: &str,
         password: &str,
     ) -> AppResult<serde_json::Value> {
-        validate_password_strength(password)
-            .map_err(|e| AppError::BadRequest(e.into()))?;
+        validate_password_strength(password).map_err(|e| AppError::BadRequest(e.into()))?;
 
         let claims = self.jwt.verify_password_reset(reset_token)?;
         if claims.purpose != "password_reset" {
@@ -561,10 +575,7 @@ impl AuthService {
         }
 
         let email = claims.email.to_lowercase();
-        let user = sqlx::query!(
-            "SELECT id, mfa_enabled FROM users WHERE email = $1",
-            email
-        )
+        let user = sqlx::query!("SELECT id, mfa_enabled FROM users WHERE email = $1", email)
             .fetch_optional(&self.db)
             .await?
             .ok_or_else(|| AppError::BadRequest("User not found.".into()))?;
@@ -577,7 +588,9 @@ impl AuthService {
             .execute(&self.db)
             .await?;
 
-        self.tokens.revoke_all_for_user(user.id, PASSWORD_CHANGE, None).await?;
+        self.tokens
+            .revoke_all_for_user(user.id, PASSWORD_CHANGE, None)
+            .await?;
 
         sqlx::query!(
             r#"
@@ -587,8 +600,8 @@ impl AuthService {
             user.id,
             json!({ "by": "self", "mfaWasEnabled": user.mfa_enabled, "mfaDisabled": true })
         )
-            .execute(&self.db)
-            .await?;
+        .execute(&self.db)
+        .await?;
 
         let _ = self.email.send_security_email(&email).await;
 
@@ -606,22 +619,17 @@ impl AuthService {
         user_agent: Option<&str>,
         ip: Option<&str>,
     ) -> AppResult<(CookieJar, serde_json::Value)> {
-        validate_password_strength(&new_password)
-            .map_err(|e| AppError::BadRequest(e.into()))?;
+        validate_password_strength(&new_password).map_err(|e| AppError::BadRequest(e.into()))?;
 
         let user = sqlx::query!(
             "SELECT id, email, password_hash FROM users WHERE id = $1",
             user_id
         )
-            .fetch_optional(&self.db)
-            .await?
-            .ok_or_else(|| AppError::BadRequest("User not found.".into()))?;
+        .fetch_optional(&self.db)
+        .await?
+        .ok_or_else(|| AppError::BadRequest("User not found.".into()))?;
 
-        let ok = verify_password(
-            current_password,
-            user.password_hash.unwrap_or_default(),
-        )
-            .await?;
+        let ok = verify_password(current_password, user.password_hash.unwrap_or_default()).await?;
         if !ok {
             return Err(AppError::Forbidden("Current password is incorrect.".into()));
         }
@@ -629,14 +637,19 @@ impl AuthService {
         let hash = hash_password(new_password).await?;
         sqlx::query!(
             "UPDATE users SET password_hash = $1 WHERE id = $2",
-            hash, user.id
+            hash,
+            user.id
         )
-            .execute(&self.db)
+        .execute(&self.db)
+        .await?;
+
+        self.tokens
+            .revoke_all_for_user(user_id, PASSWORD_CHANGE, None)
             .await?;
 
-        self.tokens.revoke_all_for_user(user_id, PASSWORD_CHANGE, None).await?;
-
-        let (jar, _) = self.issue_session(user_id, &user.email, user_agent, ip).await?;
+        let (jar, _) = self
+            .issue_session(user_id, &user.email, user_agent, ip)
+            .await?;
 
         sqlx::query!(
             "INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'account:password_change', $2)",
@@ -646,7 +659,10 @@ impl AuthService {
             .execute(&self.db)
             .await?;
 
-        Ok((jar, json!({ "ok": true, "message": "Password changed successfully." })))
+        Ok((
+            jar,
+            json!({ "ok": true, "message": "Password changed successfully." }),
+        ))
     }
 
     pub async fn get_groups(&self, user_id: Uuid) -> AppResult<serde_json::Value> {
@@ -662,8 +678,8 @@ impl AuthService {
             "#,
             user_id
         )
-            .fetch_all(&self.db)
-            .await?;
+        .fetch_all(&self.db)
+        .await?;
 
         let groups = rows
             .into_iter()

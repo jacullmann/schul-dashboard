@@ -89,8 +89,8 @@ impl TokenService {
             ua,
             ip_address,
         )
-            .fetch_one(&self.db)
-            .await?;
+        .fetch_one(&self.db)
+        .await?;
 
         let claims = AccessClaims::new(
             user_id,
@@ -99,7 +99,9 @@ impl TokenService {
             active_group_id,
             ACCESS_TOKEN_TTL,
         );
-        let access_token = self.jwt.sign_access(&claims)
+        let access_token = self
+            .jwt
+            .sign_access(&claims)
             .map_err(|e| AppError::internal(format!("Failed to sign access token: {e}")))?;
 
         Ok(IssuedTokens {
@@ -126,8 +128,8 @@ impl TokenService {
             "#,
             hash
         )
-            .fetch_optional(&self.db)
-            .await?;
+        .fetch_optional(&self.db)
+        .await?;
 
         let row = match row {
             None => return Ok(None),
@@ -137,7 +139,8 @@ impl TokenService {
         if row.used_at.is_some() || row.revoked_at.is_some() {
             tracing::warn!(
                 "Refresh token reuse detected for user {}, family {}",
-                row.user_id, row.family_id
+                row.user_id,
+                row.family_id
             );
             self.revoke_family(row.family_id, REUSE_DETECTED).await?;
             return Ok(None);
@@ -156,8 +159,8 @@ impl TokenService {
             "#,
             row.id
         )
-            .fetch_optional(&self.db)
-            .await?;
+        .fetch_optional(&self.db)
+        .await?;
 
         if updated.is_none() {
             tracing::warn!("Refresh rotation race on token {}", row.id);
@@ -200,12 +203,16 @@ impl TokenService {
             reason,
             hash,
         )
-            .execute(&self.db)
-            .await?;
+        .execute(&self.db)
+        .await?;
         Ok(())
     }
 
-    pub async fn revoke_family(&self, family_id: Uuid, reason: RevokeReason) -> Result<(), AppError> {
+    pub async fn revoke_family(
+        &self,
+        family_id: Uuid,
+        reason: RevokeReason,
+    ) -> Result<(), AppError> {
         sqlx::query!(
             r#"
             UPDATE refresh_tokens
@@ -215,8 +222,8 @@ impl TokenService {
             reason,
             family_id,
         )
-            .execute(&self.db)
-            .await?;
+        .execute(&self.db)
+        .await?;
         Ok(())
     }
 
@@ -233,10 +240,12 @@ impl TokenService {
                 SET revoked_at = now(), revoked_reason = $1
                 WHERE user_id = $2 AND revoked_at IS NULL AND family_id != $3
                 "#,
-                reason, user_id, except,
+                reason,
+                user_id,
+                except,
             )
-                .execute(&self.db)
-                .await?;
+            .execute(&self.db)
+            .await?;
         } else {
             sqlx::query!(
                 r#"
@@ -244,10 +253,11 @@ impl TokenService {
                 SET revoked_at = now(), revoked_reason = $1
                 WHERE user_id = $2 AND revoked_at IS NULL
                 "#,
-                reason, user_id,
+                reason,
+                user_id,
             )
-                .execute(&self.db)
-                .await?;
+            .execute(&self.db)
+            .await?;
         }
         Ok(())
     }
@@ -265,8 +275,8 @@ impl TokenService {
             "#,
             user_id
         )
-            .fetch_all(&self.db)
-            .await?;
+        .fetch_all(&self.db)
+        .await?;
 
         let mut sessions = Vec::with_capacity(rows.len());
         for row in rows {
@@ -320,10 +330,7 @@ impl TokenService {
     }
 
     async fn load_user_claims(&self, user_id: Uuid) -> Result<Option<UserClaims>, AppError> {
-        let user = sqlx::query!(
-            "SELECT id, email FROM users WHERE id = $1",
-            user_id
-        )
+        let user = sqlx::query!("SELECT id, email FROM users WHERE id = $1", user_id)
             .fetch_optional(&self.db)
             .await?;
 
@@ -331,11 +338,8 @@ impl TokenService {
             None => return Ok(None),
             Some(u) => u,
         };
-        
-        let ban = sqlx::query!(
-            "SELECT id FROM banned_users WHERE user_id = $1",
-            user_id
-        )
+
+        let ban = sqlx::query!("SELECT id FROM banned_users WHERE user_id = $1", user_id)
             .fetch_optional(&self.db)
             .await?;
 
@@ -352,18 +356,18 @@ impl TokenService {
             "#,
             user_id
         )
-            .fetch_optional(&self.db)
-            .await?
-            .map(|r| r.name)
-            .unwrap_or_else(|| "user".into());
+        .fetch_optional(&self.db)
+        .await?
+        .map(|r| r.name)
+        .unwrap_or_else(|| "user".into());
 
         let active_group_id = sqlx::query!(
             "SELECT tenant_id FROM user_roles WHERE user_id = $1 AND tenant_id IS NOT NULL LIMIT 1",
             user_id
         )
-            .fetch_optional(&self.db)
-            .await?
-            .and_then(|r| r.tenant_id);
+        .fetch_optional(&self.db)
+        .await?
+        .and_then(|r| r.tenant_id);
 
         Ok(Some(UserClaims {
             user_id: user.id,

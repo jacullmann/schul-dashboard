@@ -1,6 +1,7 @@
 use crate::{
     common::{email::EmailService, encryption::EncryptionService, jwt::JwtService},
     config::Config,
+    messages::gateway::MessageBus,
 };
 use reqwest::Client;
 use sqlx::PgPool;
@@ -14,6 +15,7 @@ pub struct AppState {
     pub jwt: JwtService,
     pub email: EmailService,
     pub encryption: EncryptionService,
+    pub message_bus: MessageBus,
 }
 
 impl AppState {
@@ -28,7 +30,6 @@ impl AppState {
         let email = EmailService::new(
             Some(config.resend_api_key.clone()),
             config.email_from.clone(),
-            http.clone(),
         );
         let encryption = EncryptionService::new(
             config.encryption_key.clone(),
@@ -42,6 +43,7 @@ impl AppState {
             jwt,
             email,
             encryption,
+            message_bus: MessageBus::default(),
         }
     }
 }
