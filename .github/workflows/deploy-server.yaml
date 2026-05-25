@@ -4,7 +4,7 @@ on:
   push:
     branches: ["main"]
     paths:
-      - 'backend-r/**'
+      - 'server/**'
       - '.github/workflows/deploy-server.yaml'
   workflow_dispatch:
 
@@ -46,8 +46,8 @@ jobs:
       - name: Build and push image
         uses: docker/build-push-action@v6
         with:
-          context: ./server-r
-          file: ./backend-r/Dockerfile
+          context: ./server
+          file: ./server/Dockerfile
           platforms: linux/amd64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
@@ -60,3 +60,4 @@ jobs:
           curl --fail-with-body --request GET \
             --url '${{ secrets.COOLIFY_WEBHOOK_SERVER }}' \
             --header 'Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}'
+          
