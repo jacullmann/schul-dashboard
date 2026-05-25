@@ -202,14 +202,14 @@ async function confirmDeleteGroup() {
 </script>
 
 <template>
-  <div class="animate-fade-up flex flex-col gap-4">
+  <div class="animate-fade-up flex flex-col gap-8">
     <div v-if="!isAdmin" class="text-center text-base text-on-ghost-muted">
       <p class="m-0">Nur Administratoren können die Einstellungen ändern.</p>
     </div>
 
     <div>
       <PageHeader>Erscheinungsbild</PageHeader>
-      <div class="flex flex-col sm:flex-row items-center gap-6 mt-4">
+      <div class="flex items-center gap-6">
         <!-- Avatar Preview Circle -->
         <div class="relative flex-shrink-0">
           <Avatar
