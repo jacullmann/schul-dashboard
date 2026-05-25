@@ -101,6 +101,10 @@ class EnvironmentVariables {
 
   @IsString()
   EMAIL_FROM: string;
+
+  @IsOptional()
+  @IsString()
+  GEOIP_SERVICE_URL?: string;
 }
 
 export function validate(config: Record<string, unknown>) {
@@ -207,6 +211,10 @@ export class AppConfig {
       this.configService.get('EMAIL_FROM') ||
       'schul-dashboard <noreply@schul-dashboard.com>'
     );
+  }
+
+  get geoipServiceUrl(): string | undefined {
+    return this.configService.get('GEOIP_SERVICE_URL');
   }
 
   get cloudinaryCloudName(): string {

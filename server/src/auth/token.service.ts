@@ -236,6 +236,45 @@ export class TokenService {
     await query;
   }
 
+  private async lookupIp(
+    ip: string,
+  ): Promise<{
+    city: string | null;
+    country: string | null;
+    countryCode: string | null;
+  } | null> {
+    if (ip === '127.0.0.1' || ip === '::1' || ip === 'localhost') {
+      return {
+        city: 'Lokaler Host',
+        country: 'Lokales Netzwerk',
+        countryCode: null,
+      };
+    }
+
+    const serviceUrl = this.appConfig.geoipServiceUrl || 'http://geoip:8080';
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 500);
+
+      const res = await fetch(`${serviceUrl}/lookup/${ip}`, {
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        const data = (await res.json()) as any;
+        return {
+          city: data.city || null,
+          country: data.country || null,
+          countryCode: data.country_code || null,
+        };
+      }
+    } catch (e) {
+      this.logger.debug(`Failed to lookup IP ${ip}: ${e}`);
+    }
+    return null;
+  }
+
   async listActiveSessions(userId: string): Promise<
     Array<{
       familyId: string;
@@ -243,6 +282,11 @@ export class TokenService {
       lastUsedAt: string;
       userAgent: string | null;
       ipAddress: string | null;
+      location: {
+        city: string | null;
+        country: string | null;
+        countryCode: string | null;
+      } | null;
     }>
   > {
     const sb = this.supabaseService.getClient();
@@ -257,13 +301,24 @@ export class TokenService {
       .gt('expires_at', new Date().toISOString())
       .order('last_used_at', { ascending: false });
 
-    return (data ?? []).map((r) => ({
-      familyId: r.family_id,
-      issuedAt: r.issued_at,
-      lastUsedAt: r.last_used_at,
-      userAgent: r.user_agent,
-      ipAddress: r.ip_address,
-    }));
+    const sessions = data ?? [];
+
+    return Promise.all(
+      sessions.map(async (r) => {
+        let location = null;
+        if (r.ip_address) {
+          location = await this.lookupIp(r.ip_address);
+        }
+        return {
+          familyId: r.family_id,
+          issuedAt: r.issued_at,
+          lastUsedAt: r.last_used_at,
+          userAgent: r.user_agent,
+          ipAddress: r.ip_address,
+          location,
+        };
+      }),
+    );
   }
 
   private async loadUserClaims(userId: string): Promise<{

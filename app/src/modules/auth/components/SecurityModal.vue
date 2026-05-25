@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue';
 import BaseTabs from '@/common/components/BaseTabs.vue';
 import MfaSettings from '@/modules/auth/components/MfaSettings.vue';
 import ConnectedAccounts from '@/modules/auth/components/ConnectedAccounts.vue';
+import ActiveSessions from '@/modules/auth/components/ActiveSessions.vue';
 import { useMfa } from '@/modules/auth/composables/useMfa';
 
 const props = defineProps<{
@@ -19,6 +20,7 @@ const { mfaEnabled, fetchMfaStatus, setMfaEnabled } = useMfa();
 const tabs = [
   { id: 'mfa', label: 'MFA', routePath: '' },
   { id: 'connected', label: 'Verbundene Konten', routePath: '' },
+  { id: 'sessions', label: 'Aktive Geräte', routePath: '' },
 ];
 
 const activeTab = ref('mfa');
@@ -60,6 +62,10 @@ onMounted(async () => {
 
       <div v-else-if="activeTab === 'connected'" class="flex flex-col gap-4">
         <ConnectedAccounts />
+      </div>
+
+      <div v-else-if="activeTab === 'sessions'" class="flex flex-col gap-4">
+        <ActiveSessions />
       </div>
     </template>
   </BaseModal>
