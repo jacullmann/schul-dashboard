@@ -6,8 +6,6 @@ import {
   Monitor,
   Trash2,
   LogOut,
-  Clock,
-  MapPin,
   AlertCircle,
 } from '@lucide/vue';
 import hw from '@/api/hwApi';
@@ -268,9 +266,7 @@ onMounted(() => {
         </BaseButton>
       </div>
 
-      <div
-        class="flex flex-col gap-2.5 max-h-[300px] overflow-y-auto pr-1"
-      >
+      <div class="flex flex-col gap-2.5 max-h-[300px] overflow-y-auto pr-1">
         <div
           v-for="(session, index) in sessions"
           :key="session.familyId"
@@ -282,7 +278,7 @@ onMounted(() => {
         >
           <!-- Device Icon -->
           <div
-            class="flex items-center justify-center w-10 h-10 rounded-xl bg-surface-hover text-on-ghost-muted shrink-0 transition-colors"
+            class="flex items-center justify-center w-10 h-10 text-on-ghost-muted shrink-0 transition-colors"
             :class="{
               '!bg-success-surface !text-[var(--special--green)]': index === 0,
             }"
@@ -296,7 +292,7 @@ onMounted(() => {
                     ? Laptop
                     : Monitor
               "
-              :size="20"
+              :size="24"
             />
           </div>
 
@@ -307,27 +303,20 @@ onMounted(() => {
                 {{ parseUserAgent(session.userAgent).browser }} auf
                 {{ parseUserAgent(session.userAgent).os }}
               </span>
-
-              <!-- Current Device Badge -->
-              <span
-                v-if="index === 0"
-                class="text-[10px]/none font-bold uppercase tracking-wider bg-[var(--special--green)]/20 text-[var(--special--green)] px-1.5 py-0.5 rounded-full"
-              >
-                Dieses Gerät
-              </span>
             </div>
 
             <!-- IP and Location -->
             <div
-              class="flex items-center gap-2 text-xs/4 text-on-ghost-muted flex-wrap"
+              class="flex items-center gap-1 text-xs/4 text-on-ghost-muted flex-wrap"
             >
-              <MapPin :size="16"></MapPin>
-              <span>{{ session.location?.city ? `${session.location.city}, ` : '' }}
-              {{ session.location?.country || 'Standort unbekannt' }}</span>
+              {{ session.location?.city ? `${session.location.city}, ` : '' }}
+              {{ session.location?.country || 'Standort unbekannt' }}
+              •
+              {{ index === 0 ? 'This device' : 'formatDate(session.issuedAt)' }}
             </div>
 
             <!-- Last Active / Registration date -->
-            <div
+            <!-- div
               class="flex items-center gap-1 text-xs text-on-ghost-muted/80 mt-0.5"
             >
               <Clock :size="12" />
@@ -341,20 +330,20 @@ onMounted(() => {
               <span class="text-on-ghost-muted/30">•</span>
               <span>Login: {{ formatDate(session.issuedAt) }}</span>
             </div>
-          </div>
+          </div -->
 
           <!-- Revoke Action -->
-          <div v-if="index !== 0" class="shrink-0">
-            <BaseButton
-              @click="revokeSession(session)"
-              :disabled="revokingId === session.familyId"
-              :loading="revokingId === session.familyId"
-              variant="ghost"
-              class="!p-2 text-on-ghost-muted hover:text-danger hover:bg-danger-hover rounded-lg transition-colors"
-              :icon="Trash2"
-              title="Gerät abmelden"
-            />
-          </div>
+          <template v-if="index !== 0">
+            <BaseTooltip content="Gerät abmelden" placement="bottom">
+              <BaseButton
+                @click="revokeSession(session)"
+                :loading="revokingId === session.familyId"
+                variant="ghost"
+                on="ghost"
+                :icon="Trash2"
+              />
+            </BaseTooltip>
+          </template>
         </div>
       </div>
     </div>
