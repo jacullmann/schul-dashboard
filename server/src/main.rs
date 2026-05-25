@@ -1,109 +1,122 @@
-mod api;
 mod auth;
 mod common;
 mod config;
-mod db;
-mod services;
-mod state;
+mod error;
 mod group;
+mod items;
 mod messages;
 mod mfa;
 mod oauth;
 mod schedule;
+mod state;
 mod super_admin;
 mod system;
 mod todos;
 mod user;
 
-use std::sync::Arc;
-use tokio::signal;
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
-
-use crate::config::AppConfig;
-use crate::db::create_pool;
-
-#[derive(Clone)]
-pub struct AppState {
-    pub config: Arc<AppConfig>,
-    pub db: sqlx::PgPool,
-    pub http: reqwest::Client,
-}
+use anyhow::Context;
+use axum::{Router, middleware};
+use common::csrf::csrf_middleware;
+use config::Config;
+use sqlx::postgres::PgPoolOptions;
+use state::AppState;
+use tower_http::{
+    compression::CompressionLayer,
+    cors::{AllowHeaders, AllowMethods, AllowOrigin, CorsLayer},
+    request_id::{MakeRequestUuid, SetRequestIdLayer},
+    timeout::TimeoutLayer,
+    trace::TraceLayer,
+};
+use tracing::info;
+use tracing_subscriber::{EnvFilter, layer::SubscriberExt, util::SubscriberInitExt};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let _ = dotenvy::dotenv();
+    tracing_subscriber::registry()
+        .with(
+            EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| "info,server=debug,tower_http=debug".into()),
+        )
+        .with(tracing_subscriber::fmt::layer().json())
+        .init();
 
-    init_tracing();
+    let config = Config::from_env().context("Failed to load configuration")?;
+    let port = config.port;
+    let cors_origin = config.cors_origin.clone();
 
-    let config = Arc::new(AppConfig::from_env()?);
-    tracing::info!("starting backend on port {}", config.port);
+    let db = PgPoolOptions::new()
+        .max_connections(20)
+        .connect(&config.database_url)
+        .await
+        .context("Failed to connect to database")?;
 
-    let db = create_pool(&config.database_url).await?;
-    sqlx::migrate!("./migrations").run(&db).await?;
+    sqlx::migrate!("./migrations")
+        .run(&db)
+        .await
+        .context("Failed to run migrations")?;
 
-    let http = reqwest::Client::builder()
-        .timeout(std::time::Duration::from_secs(10))
-        .build()?;
+    info!("Database connected and migrations applied.");
 
-    let state = AppState {
-        config: config.clone(),
-        db,
-        http,
-    };
+    let state = AppState::new(db, config);
 
-    let app = api::router(state.clone());
+    let cors = CorsLayer::new()
+        .allow_origin(
+            cors_origin
+                .parse::<axum::http::HeaderValue>()
+                .context("Invalid CORS_ORIGIN")?,
+        )
+        .allow_credentials(true)
+        .allow_methods(AllowMethods::list([
+            axum::http::Method::GET,
+            axum::http::Method::POST,
+            axum::http::Method::PUT,
+            axum::http::Method::PATCH,
+            axum::http::Method::DELETE,
+            axum::http::Method::OPTIONS,
+        ]))
+        .allow_headers(AllowHeaders::list([
+            axum::http::header::CONTENT_TYPE,
+            axum::http::header::AUTHORIZATION,
+            "x-csrf-token".parse().unwrap(),
+            "x-tenant-id".parse().unwrap(),
+        ]));
 
-    let addr = std::net::SocketAddr::from(([0, 0, 0, 0], config.port));
-    let listener = tokio::net::TcpListener::bind(addr).await?;
-    tracing::info!("listening on {}", addr);
+    let api = Router::new()
+        .merge(system::routes::router())
+        .merge(auth::routes::router())
+        // remaining modules added as they are implemented:
+        // .merge(user::routes::router())
+        // .merge(group::routes::router())
+        // .merge(todos::routes::router())
+        // .merge(items::routes::router())
+        // .merge(messages::routes::router())
+        // .merge(schedule::routes::router())
+        // .merge(mfa::routes::router())
+        // .merge(oauth::routes::router())
+        // .merge(super_admin::routes::router())
+        .layer(middleware::from_fn_with_state(
+            state.clone(),
+            csrf_middleware,
+        ))
+        .with_state(state);
 
+    let app = Router::new()
+        .nest("/api", api)
+        .layer(cors)
+        .layer(CompressionLayer::new())
+        .layer(TimeoutLayer::new(std::time::Duration::from_secs(30)))
+        .layer(TraceLayer::new_for_http())
+        .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid));
+
+    let addr = std::net::SocketAddr::from(([0, 0, 0, 0], port));
+    let listener = tokio::net::TcpListener::bind(addr)
+        .await
+        .context("Failed to bind TCP listener")?;
+
+    info!("Server listening on {addr}");
     axum::serve(listener, app)
-        .with_graceful_shutdown(shutdown_signal())
-        .await?;
+        .await
+        .context("Server error")?;
 
-    tracing::info!("shutdown complete");
     Ok(())
-}
-
-fn init_tracing() {
-    let env_filter = EnvFilter::try_from_default_env()
-        .unwrap_or_else(|_| EnvFilter::new("info,schul_dashboard_backend=debug,tower_http=info"));
-
-    let use_json = std::env::var("LOG_FORMAT")
-        .map(|v| v == "json")
-        .unwrap_or(false);
-
-    let registry = tracing_subscriber::registry().with(env_filter);
-
-    if use_json {
-        registry
-            .with(tracing_subscriber::fmt::layer().json())
-            .init();
-    } else {
-        registry
-            .with(tracing_subscriber::fmt::layer().compact())
-            .init();
-    }
-}
-
-async fn shutdown_signal() {
-    let ctrl_c = async {
-        signal::ctrl_c().await.expect("install Ctrl+C handler");
-    };
-
-    #[cfg(unix)]
-    let terminate = async {
-        signal::unix::signal(signal::unix::SignalKind::terminate())
-            .expect("install SIGTERM handler")
-            .recv()
-            .await;
-    };
-
-    #[cfg(not(unix))]
-    let terminate = std::future::pending::<()>();
-
-    tokio::select! {
-        _ = ctrl_c => tracing::info!("received Ctrl+C, shutting down"),
-        _ = terminate => tracing::info!("received SIGTERM, shutting down"),
-    }
 }
