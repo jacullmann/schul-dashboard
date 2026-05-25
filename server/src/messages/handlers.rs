@@ -23,6 +23,7 @@ pub async fn mark_read(State(s): State<AppState>, tc: TenantContext) -> AppResul
     MessagesService::from_state(&s)
         .mark_read(tc.tenant_id, tc.user.user_id)
         .await?;
+
     Ok(Json(json!({ "ok": true })))
 }
 

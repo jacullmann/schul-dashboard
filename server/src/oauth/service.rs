@@ -53,16 +53,23 @@ impl OAuthService {
 
     pub fn build_google_auth_url(&self) -> AppResult<(String, CookieJar)> {
         use rand::RngCore;
+
         let mut buf = [0u8; 32];
+
         rand::rng().fill_bytes(&mut buf);
+
         let state_val = hex::encode(buf);
+
         rand::rng().fill_bytes(&mut buf);
+
         let nonce = hex::encode(buf);
 
         let token = self.sign_state_cookie(&state_val, &nonce)?;
+
         let opts = self.config.base_cookie_options();
 
         let mut c = axum_extra::extract::cookie::Cookie::new(OAUTH_STATE_COOKIE, token);
+
         c.set_http_only(true);
         c.set_secure(opts.secure);
         c.set_path("/");
@@ -70,6 +77,7 @@ impl OAuthService {
         c.set_max_age(axum_extra::extract::cookie::time::Duration::minutes(10));
 
         let client_id = self.config.google_client_id.as_deref().unwrap_or("");
+
         let redirect = self.config.google_redirect_uri.as_deref().unwrap_or("");
 
         let params = [
@@ -172,9 +180,11 @@ impl OAuthService {
         .ok_or_else(|| AppError::Unauthorized("Invalid credentials.".into()))?;
 
         let hash = user.password_hash.as_deref().unwrap_or("");
+
         if !verify_password(password.to_string(), hash.to_string()).await? {
             return Err(AppError::Unauthorized("Invalid credentials.".into()));
         }
+
         if !user.email_verified {
             return Err(AppError::Unauthorized(
                 "Please verify your email address first.".into(),
@@ -195,6 +205,7 @@ impl OAuthService {
         })?;
 
         let (global_role, active_group_id) = self.resolve_user_context(user.id).await?;
+
         let tokens = TokenService::from_state(&self.state)
             .issue_pair(
                 user.id,
@@ -208,7 +219,9 @@ impl OAuthService {
             .await?;
 
         let opts = self.config.base_cookie_options();
+
         let csrf = generate_csrf_token();
+
         let jar = CookieJar::new()
             .add(access_cookie(tokens.access_token, &opts))
             .add(refresh_cookie(tokens.refresh_token, &opts))
@@ -235,6 +248,7 @@ impl OAuthService {
         )
         .execute(&self.db)
         .await?;
+
         Ok(json!({ "ok": true }))
     }
 
@@ -245,6 +259,7 @@ impl OAuthService {
         )
         .fetch_all(&self.db)
         .await?;
+
         Ok(
             json!({ "providers": rows.iter().map(|r| json!({ "provider": r.provider, "email": r.provider_email })).collect::<Vec<_>>() }),
         )
@@ -292,12 +307,15 @@ impl OAuthService {
             .fetch_optional(&self.db)
             .await?
             .ok_or_else(|| AppError::internal("Linked user not found"))?;
+
             let ban = sqlx::query!("SELECT id FROM banned_users WHERE user_id = $1", user.id)
                 .fetch_optional(&self.db)
                 .await?;
+
             if ban.is_some() {
                 return Err(AppError::forbidden("Your account has been suspended."));
             }
+
             return Ok(OAuthResolution::Login {
                 user_id: user.id,
                 email: user.email,
@@ -309,6 +327,7 @@ impl OAuthService {
         let existing = sqlx::query!("SELECT id FROM users WHERE email = $1", email)
             .fetch_optional(&self.db)
             .await?;
+
         if existing.is_some() {
             return Ok(OAuthResolution::LinkRequired {
                 google_id: google_id.to_string(),
@@ -375,6 +394,7 @@ impl OAuthService {
         expected_nonce: &str,
     ) -> AppResult<(String, String)> {
         let parts: Vec<&str> = id_token.split('.').collect();
+
         if parts.len() != 3 {
             return Err(AppError::Unauthorized("Malformed ID token.".into()));
         }
@@ -387,8 +407,11 @@ impl OAuthService {
             .map_err(|_| AppError::Unauthorized("Invalid token payload.".into()))?;
 
         let sub = claims["sub"].as_str().unwrap_or("").to_string();
+
         let email = claims["email"].as_str().unwrap_or("").to_string();
+
         let nonce = claims["nonce"].as_str().unwrap_or("");
+
         let email_verified = claims["email_verified"].as_bool().unwrap_or(false);
 
         if !email_verified {
@@ -399,6 +422,7 @@ impl OAuthService {
         }
 
         let exp = claims["exp"].as_i64().unwrap_or(0);
+
         if exp < chrono::Utc::now().timestamp() {
             return Err(AppError::Unauthorized("ID token expired.".into()));
         }
@@ -408,10 +432,12 @@ impl OAuthService {
 
     fn sign_state_cookie(&self, state: &str, nonce: &str) -> AppResult<String> {
         use std::time::{SystemTime, UNIX_EPOCH};
+
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap()
             .as_secs();
+
         let claims = OAuthStateClaims {
             state: state.to_string(),
             nonce: nonce.to_string(),
@@ -419,6 +445,7 @@ impl OAuthService {
             iat: now,
             exp: now + 600,
         };
+
         self.jwt
             .sign_oauth_pending(
                 &serde_json::to_value(&claims).unwrap(),
@@ -440,8 +467,11 @@ impl OAuthService {
     fn verify_state_cookie(&self, cookie: Option<&str>, state_param: &str) -> AppResult<String> {
         let token =
             cookie.ok_or_else(|| AppError::Unauthorized("OAuth state cookie missing.".into()))?;
+
         let mut v = jsonwebtoken::Validation::default();
+
         v.algorithms = vec![jsonwebtoken::Algorithm::HS256];
+
         let data = jsonwebtoken::decode::<OAuthStateClaims>(
             token,
             &jsonwebtoken::DecodingKey::from_secret(
@@ -454,6 +484,7 @@ impl OAuthService {
         if data.claims.purpose != "oauth_state" || data.claims.state != state_param {
             return Err(AppError::Unauthorized("OAuth state mismatch.".into()));
         }
+
         Ok(data.claims.nonce)
     }
 }

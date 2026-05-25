@@ -30,6 +30,7 @@ pub async fn update_preferences(
     Json(dto): Json<UpdatePreferencesDto>,
 ) -> AppResult<Json<Value>> {
     let prefs = serde_json::to_value(dto).unwrap_or_default();
+
     Ok(Json(
         UserService::from_state(&s)
             .update_preferences(user.user_id, prefs)
@@ -47,6 +48,7 @@ pub async fn update_setup(
         .into_iter()
         .map(|c| (c.subject_id, c.course_id))
         .collect();
+
     Ok(Json(
         UserService::from_state(&s)
             .update_setup(user.user_id, &user.global_role, courses)
@@ -108,6 +110,7 @@ pub async fn log_page_load(
         .get("user-agent")
         .and_then(|v| v.to_str().ok())
         .unwrap_or("unknown");
+
     Ok(Json(
         UserService::from_state(&s)
             .log_page_load(user.user_id, ua)

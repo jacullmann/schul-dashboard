@@ -109,9 +109,11 @@ fn require(key: &str) -> Result<String> {
 
 fn require_min(key: &str, min_len: usize) -> Result<String> {
     let val = require(key)?;
+    
     if val.len() < min_len {
         anyhow::bail!("{key} must be at least {min_len} characters long");
     }
+    
     Ok(val)
 }
 

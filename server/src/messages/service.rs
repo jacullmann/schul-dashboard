@@ -33,6 +33,7 @@ impl MessagesService {
         .await?;
 
         let db2 = self.db.clone();
+
         tokio::spawn(async move {
             let _ = sqlx::query!(
                 "INSERT INTO user_tenant_state (user_id, tenant_id, last_messages_visit_at)
@@ -57,6 +58,7 @@ impl MessagesService {
             .collect();
 
         let mut parent_map = std::collections::HashMap::new();
+
         if !parent_ids.is_empty() {
             let parents = sqlx::query!(
                 "SELECT id, user_id, content, tenant_id FROM group_messages WHERE id = ANY($1)",
@@ -81,12 +83,14 @@ impl MessagesService {
             .rev()
             .map(|m| {
                 let sender = generate_user_name(&m.user_id.to_string(), &m.tenant_id.to_string());
+
                 let mut v = json!({
                     "id": m.id, "tenantId": m.tenant_id, "userId": m.user_id,
                     "senderName": sender, "content": m.content,
                     "parentId": m.parent_id,
                     "createdAt": m.created_at, "updatedAt": m.updated_at,
                 });
+
                 if let Some(pid) = m.parent_id {
                     if let Some((pc, ps)) = parent_map.get(&pid) {
                         v["parentContent"] = json!(pc);
@@ -110,6 +114,7 @@ impl MessagesService {
         )
         .execute(&self.db)
         .await?;
+
         Ok(())
     }
 
@@ -136,6 +141,7 @@ impl MessagesService {
                 .as_ref()
                 .and_then(|p| p["send_messages"].as_str().map(String::from))
                 .unwrap_or_else(|| "user".to_string());
+
             if !check_role_permission(tenant_role.unwrap_or("user"), &allowed) {
                 return Err(AppError::forbidden(
                     "Keine Berechtigung zum Senden von Nachrichten.",
@@ -150,6 +156,7 @@ impl MessagesService {
         ).fetch_one(&self.db).await?;
 
         let sender = generate_user_name(&msg.user_id.to_string(), &msg.tenant_id.to_string());
+
         let mut v = json!({
             "id": msg.id, "tenantId": msg.tenant_id, "userId": msg.user_id,
             "senderName": sender, "content": msg.content,
@@ -208,6 +215,7 @@ impl MessagesService {
                     .as_ref()
                     .and_then(|p| p["delete_other_content"].as_str().map(String::from))
                     .unwrap_or_else(|| "moderator".to_string());
+
                 if !check_role_permission(tenant_role.unwrap_or("user"), &allowed) {
                     return Err(AppError::forbidden("Keine Berechtigung zum Löschen."));
                 }
@@ -220,6 +228,7 @@ impl MessagesService {
         )
         .execute(&self.db)
         .await?;
+
         sqlx::query!("DELETE FROM group_messages WHERE id = $1", message_id)
             .execute(&self.db)
             .await?;

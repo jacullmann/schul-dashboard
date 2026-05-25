@@ -9,19 +9,24 @@ use tower_cookies::{Cookie, Cookies};
 
 pub fn generate_csrf_token() -> String {
     use rand::RngCore;
+
     let mut bytes = [0u8; 32];
+
     rand::rng().fill_bytes(&mut bytes);
+
     hex::encode(bytes)
 }
 
 pub fn csrf_cookie(token: &str, opts: &BaseCookieOptions) -> Cookie<'static> {
     let mut c = Cookie::new(CSRF_COOKIE, token.to_owned());
+
     c.set_path("/");
     c.set_domain(opts.domain.clone());
     c.set_secure(opts.secure);
     c.set_http_only(false);
     c.set_same_site(tower_cookies::cookie::SameSite::Lax);
     c.set_max_age(tower_cookies::cookie::time::Duration::days(30));
+
     c
 }
 
@@ -47,7 +52,9 @@ pub async fn csrf_middleware(
     match (cookie_token, header_token) {
         (Some(ct), Some(ht)) => {
             let cb = ct.as_bytes();
+
             let hb = ht.as_bytes();
+
             if cb.len() != hb.len() || !bool::from(cb.ct_eq(hb)) {
                 return Err(AppError::Forbidden("Invalid CSRF token.".into()));
             }

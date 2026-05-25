@@ -67,6 +67,7 @@ pub async fn ws_handler(
         .and_then(|cookies| {
             cookies.split(';').find_map(|c| {
                 let c = c.trim();
+
                 c.strip_prefix(&format!("{}=", ACCESS_COOKIE))
                     .map(|v| v.to_string())
             })
@@ -95,6 +96,7 @@ async fn handle_socket(mut socket: WebSocket, state: AppState, token: Option<Str
     let active_group_id: Option<Uuid> = claims.g_id.as_deref().and_then(|s| s.parse().ok());
 
     let mut rx: Option<broadcast::Receiver<BusEvent>> = None;
+
     let mut joined_group: Option<Uuid> = None;
 
     loop {
@@ -107,7 +109,9 @@ async fn handle_socket(mut socket: WebSocket, state: AppState, token: Option<Str
                                 ClientEvent::JoinGroup { group_id } => {
                                     if active_group_id == Some(group_id) {
                                         let tx = state.message_bus.sender_for(group_id).await;
+
                                         rx = Some(tx.subscribe());
+
                                         joined_group = Some(group_id);
                                     }
                                 }

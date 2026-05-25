@@ -33,6 +33,7 @@ pub async fn login(
 
     match svc.login(dto, ua.as_deref(), ip.as_deref()).await? {
         LoginResult::Success(jar) => Ok((jar, Json(json!({ "ok": true })))),
+
         LoginResult::MfaRequired(jar) => {
             Ok((jar, Json(json!({ "ok": true, "requiresMfa": true }))))
         }
@@ -70,7 +71,9 @@ pub async fn cancel_mfa(
     jar: CookieJar,
 ) -> AppResult<(CookieJar, Json<Value>)> {
     let opts = state.config.base_cookie_options();
+
     let jar = jar.add(clear_mfa_pending_cookie(&opts));
+
     Ok((jar, Json(json!({ "ok": true }))))
 }
 
@@ -83,6 +86,7 @@ pub async fn register(
     })?;
 
     let svc = AuthService::from_state(&state);
+
     Ok(Json(svc.register(dto).await?))
 }
 
@@ -101,7 +105,9 @@ pub async fn delete_me(
     user: AuthUser,
 ) -> AppResult<(CookieJar, Json<Value>)> {
     let svc = AuthService::from_state(&state);
+
     let jar = svc.delete_me(user.user_id).await?;
+
     Ok((jar, Json(json!({ "ok": true }))))
 }
 
@@ -115,6 +121,7 @@ pub async fn verify_email(
     Query(q): Query<VerifyQuery>,
 ) -> AppResult<Json<Value>> {
     let svc = AuthService::from_state(&state);
+
     Ok(Json(svc.verify_email(&q.token).await?))
 }
 
@@ -125,7 +132,9 @@ pub async fn forgot_password(
     dto.validate().map_err(|e| {
         AppError::Validation(e.field_errors().keys().map(|k| k.to_string()).collect())
     })?;
+
     let svc = AuthService::from_state(&state);
+
     Ok(Json(svc.forgot_password(&dto.email).await?))
 }
 
@@ -136,7 +145,9 @@ pub async fn verify_reset_token(
     dto.validate().map_err(|e| {
         AppError::Validation(e.field_errors().keys().map(|k| k.to_string()).collect())
     })?;
+
     let svc = AuthService::from_state(&state);
+
     Ok(Json(svc.verify_reset_token(&dto.email, &dto.code).await?))
 }
 
@@ -145,6 +156,7 @@ pub async fn reset_password(
     Json(dto): Json<ResetPasswordDto>,
 ) -> AppResult<Json<Value>> {
     let svc = AuthService::from_state(&state);
+
     Ok(Json(
         svc.reset_password(&dto.reset_token, &dto.password).await?,
     ))
@@ -178,6 +190,7 @@ pub async fn change_password(
 
 pub async fn get_groups(State(state): State<AppState>, user: AuthUser) -> AppResult<Json<Value>> {
     let svc = AuthService::from_state(&state);
+
     Ok(Json(svc.get_groups(user.user_id).await?))
 }
 
@@ -203,6 +216,7 @@ pub async fn refresh(
         .ok_or_else(|| AppError::Unauthorized("Refresh token invalid.".into()))?;
 
     let opts = state.config.base_cookie_options();
+
     let new_jar = jar
         .add(access_cookie(issued.access_token, &opts))
         .add(refresh_cookie(issued.refresh_token, &opts));
@@ -219,11 +233,13 @@ pub async fn logout(
     if let Some(token) = jar.get(REFRESH_COOKIE).map(|c| c.value().to_string()) {
         if !token.is_empty() {
             let svc = TokenService::from_state(&state);
+
             let _ = svc.revoke_by_token(&token, LOGOUT).await;
         }
     }
 
     let opts = state.config.base_cookie_options();
+
     let new_jar = jar
         .add(clear_access_cookie(&opts))
         .add(clear_refresh_cookie(&opts));
@@ -237,10 +253,12 @@ pub async fn logout_all(
     jar: CookieJar,
 ) -> AppResult<(CookieJar, Json<Value>)> {
     let svc = TokenService::from_state(&state);
+
     svc.revoke_all_for_user(user.user_id, LOGOUT_ALL, None)
         .await?;
 
     let opts = state.config.base_cookie_options();
+
     let new_jar = jar
         .add(clear_access_cookie(&opts))
         .add(clear_refresh_cookie(&opts));
@@ -253,7 +271,9 @@ pub async fn list_sessions(
     user: AuthUser,
 ) -> AppResult<Json<Value>> {
     let svc = TokenService::from_state(&state);
+
     let sessions = svc.list_active_sessions(user.user_id).await?;
+
     Ok(Json(json!({ "sessions": sessions })))
 }
 
@@ -263,6 +283,7 @@ pub async fn revoke_session(
     axum::extract::Path(family_id): axum::extract::Path<uuid::Uuid>,
 ) -> AppResult<Json<Value>> {
     let svc = TokenService::from_state(&state);
+
     let sessions = svc.list_active_sessions(user.user_id).await?;
 
     if !sessions.iter().any(|s| s.family_id == family_id) {
@@ -270,5 +291,6 @@ pub async fn revoke_session(
     }
 
     svc.revoke_family(family_id, ADMIN_REVOKE).await?;
+
     Ok(Json(json!({ "ok": true })))
 }

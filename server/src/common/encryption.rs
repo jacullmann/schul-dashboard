@@ -3,7 +3,6 @@ use aes_gcm::{
     Aes256Gcm, Key, Nonce,
     aead::{Aead, KeyInit, OsRng, rand_core::RngCore},
 };
-use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::{
@@ -44,9 +43,9 @@ impl EncryptionService {
     }
 
     async fn derive_key(&self, user_id: &str) -> Result<[u8; 32], AppError> {
-        // Check cache
         {
             let cache = self.cache.lock().unwrap();
+
             if let Some(entry) = cache.get(user_id) {
                 if entry.at.elapsed() < KEY_CACHE_TTL {
                     return Ok(entry.key);
@@ -55,17 +54,21 @@ impl EncryptionService {
         }
 
         let key_material = format!("{}{}{}", self.encryption_key, self.pepper, user_id);
+
         let salt = Sha256::new()
             .chain_update(self.encryption_key.as_bytes())
             .chain_update(user_id.as_bytes())
             .finalize();
 
         let key_material = key_material.clone();
+
         let salt = salt.to_vec();
 
         let derived = tokio::task::spawn_blocking(move || {
             let params = scrypt::Params::new(14, 8, 1, 32).expect("valid scrypt params");
+
             let mut key = [0u8; 32];
+
             scrypt::scrypt(key_material.as_bytes(), &salt, &params, &mut key)
                 .expect("scrypt failed");
             key
@@ -74,6 +77,7 @@ impl EncryptionService {
         .map_err(|e| AppError::internal(format!("Key derivation spawn failed: {e}")))?;
 
         let mut cache = self.cache.lock().unwrap();
+
         if cache.len() >= KEY_CACHE_MAX {
             if let Some(oldest) = cache
                 .iter()
@@ -96,11 +100,15 @@ impl EncryptionService {
 
     pub async fn encrypt(&self, data: &str, user_id: &str) -> Result<EncryptedPayload, AppError> {
         let key_bytes = self.derive_key(user_id).await?;
+
         let key = Key::<Aes256Gcm>::from_slice(&key_bytes);
+
         let cipher = Aes256Gcm::new(key);
 
         let mut iv_bytes = [0u8; 12];
+
         OsRng.fill_bytes(&mut iv_bytes);
+
         let nonce = Nonce::from_slice(&iv_bytes);
 
         let mut ciphertext = cipher
@@ -122,19 +130,23 @@ impl EncryptionService {
         user_id: &str,
     ) -> Result<String, AppError> {
         let key_bytes = self.derive_key(user_id).await?;
+
         let key = Key::<Aes256Gcm>::from_slice(&key_bytes);
+
         let cipher = Aes256Gcm::new(key);
 
         let iv = hex::decode(&payload.iv).map_err(|_| AppError::internal("Invalid IV encoding"))?;
+
         let mut ciphertext = hex::decode(&payload.data)
             .map_err(|_| AppError::internal("Invalid ciphertext encoding"))?;
+
         let auth_tag = hex::decode(&payload.auth_tag)
             .map_err(|_| AppError::internal("Invalid auth tag encoding"))?;
 
-        // Reconstruct full ciphertext+tag for aes-gcm
         ciphertext.extend_from_slice(&auth_tag);
 
         let nonce = Nonce::from_slice(&iv);
+
         let plaintext = cipher
             .decrypt(nonce, ciphertext.as_ref())
             .map_err(|_| AppError::internal("Decryption failed"))?;

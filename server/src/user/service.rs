@@ -55,6 +55,7 @@ impl UserService {
             .unwrap_or_default();
 
         let allowed = ["theme", "language", "personalized"];
+
         if let Some(obj) = prefs.as_object() {
             for (k, v) in obj {
                 if allowed.contains(&k.as_str()) && !v.is_null() {
@@ -125,6 +126,7 @@ impl UserService {
         )
         .fetch_all(&self.db)
         .await?;
+
         Ok(json!({ "itemIds": rows.iter().map(|r| r.item_id).collect::<Vec<_>>() }))
     }
 
@@ -135,6 +137,7 @@ impl UserService {
         )
         .fetch_all(&self.db)
         .await?;
+
         Ok(json!({ "itemIds": rows.iter().map(|r| r.item_id).collect::<Vec<_>>() }))
     }
 
@@ -147,7 +150,9 @@ impl UserService {
         .await?;
 
         let mut archived = vec![];
+
         let mut kept = vec![];
+
         for r in rows {
             match r.status.as_deref() {
                 Some("archived") => archived.push(r.item_id),
@@ -225,6 +230,7 @@ impl UserService {
         )
         .execute(&self.db)
         .await?;
+
         Ok(json!({ "ok": true }))
     }
 
@@ -278,6 +284,7 @@ impl UserService {
         )
         .execute(&self.db)
         .await?;
+
         sqlx::query!(
             "INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:uncheck', $2)",
             user_id,
@@ -285,6 +292,7 @@ impl UserService {
         )
         .execute(&self.db)
         .await?;
+
         Ok(json!({ "ok": true }))
     }
 
@@ -338,6 +346,7 @@ impl UserService {
         )
         .execute(&self.db)
         .await?;
+
         sqlx::query!(
             "INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:unpin', $2)",
             user_id,
@@ -345,6 +354,7 @@ impl UserService {
         )
         .execute(&self.db)
         .await?;
+
         Ok(json!({ "ok": true }))
     }
 }

@@ -27,10 +27,12 @@ impl AppState {
             .expect("Failed to build HTTP client");
 
         let jwt = JwtService::new(&config);
+        
         let email = EmailService::new(
             Some(config.resend_api_key.clone()),
             config.email_from.clone(),
         );
+        
         let encryption = EncryptionService::new(
             config.encryption_key.clone(),
             config.user_key_pepper.clone(),

@@ -88,6 +88,7 @@ impl ItemsService {
 
         if item_type.is_none() || item_type == Some("all") {
             let db2 = self.db.clone();
+
             tokio::spawn(async move {
                 let _ = sqlx::query!(
                     "INSERT INTO user_tenant_state (user_id, tenant_id, last_group_visit_at)
@@ -103,11 +104,13 @@ impl ItemsService {
         )
         .fetch_all(&self.db)
         .await?;
+
         let archived: std::collections::HashSet<Uuid> = vis
             .iter()
             .filter(|r| r.status.as_deref() == Some("archived"))
             .map(|r| r.item_id)
             .collect();
+
         let kept: std::collections::HashSet<Uuid> = vis
             .iter()
             .filter(|r| r.status.as_deref() == Some("kept"))
@@ -117,9 +120,13 @@ impl ItemsService {
         let result = rows.into_iter()
             .filter(|r| {
                 if let Some(t) = item_type { if t != "all" && r.r#type != t { return false; } }
+
                 let is_old = r.due_date < now || archived.contains(&r.id);
+
                 let is_kept = kept.contains(&r.id);
+
                 let is_archived = archived.contains(&r.id);
+
                 match filter {
                     Some("old") => (r.due_date < now || is_archived) && !is_kept,
                     _ => (r.due_date >= now || is_kept) && !is_archived,
@@ -218,16 +225,19 @@ impl ItemsService {
                 .execute(&self.db)
                 .await?;
         }
+
         if let Some(ref subject) = dto.subject {
             sqlx::query!("UPDATE items SET subject = $1 WHERE id = $2", subject, id)
                 .execute(&self.db)
                 .await?;
         }
+
         if let Some(ref desc) = dto.description {
             sqlx::query!("UPDATE items SET description = $1 WHERE id = $2", desc, id)
                 .execute(&self.db)
                 .await?;
         }
+
         if let Some(ref due) = dto.due_date {
             let parsed = due
                 .parse::<chrono::DateTime<Utc>>()
@@ -236,6 +246,7 @@ impl ItemsService {
                 .execute(&self.db)
                 .await?;
         }
+
         if let Some(ref images) = dto.images {
             sqlx::query!(
                 "UPDATE items SET images = $1 WHERE id = $2",
@@ -249,6 +260,7 @@ impl ItemsService {
         sqlx::query!("UPDATE items SET updated_at = now() WHERE id = $1", id)
             .execute(&self.db)
             .await?;
+
         sqlx::query!(
             "INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:update', $2)",
             user_id,
@@ -292,6 +304,7 @@ impl ItemsService {
                     .as_ref()
                     .and_then(|p| p["delete_other_content"].as_str().map(String::from))
                     .unwrap_or_else(|| "moderator".into());
+
                 if !check_role_permission(tenant_role.unwrap_or("user"), &allowed) {
                     return Err(AppError::forbidden("Nicht autorisiert."));
                 }
@@ -305,6 +318,7 @@ impl ItemsService {
         )
         .execute(&self.db)
         .await?;
+
         sqlx::query!(
             "INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:delete', $2)",
             user_id,
@@ -333,6 +347,7 @@ impl ItemsService {
         .ok_or_else(|| AppError::not_found("Not found."))?;
 
         let trimmed = note.trim();
+
         sqlx::query!(
             "UPDATE items SET editor_note = $1, updated_at = now() WHERE id = $2",
             trimmed,
@@ -340,6 +355,7 @@ impl ItemsService {
         )
         .execute(&self.db)
         .await?;
+
         sqlx::query!(
             "INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:note:update', $2)",
             user_id,
@@ -388,11 +404,17 @@ impl ItemsService {
 
     pub fn create_upload_signature(&self, folder: &str) -> Value {
         let timestamp = Utc::now().timestamp();
+
         let to_sign = format!("folder={folder}&timestamp={timestamp}");
+
         use hmac::{Hmac, Mac};
+
         type HmacSha256 = Hmac<sha2::Sha256>;
+
         let mut mac = HmacSha256::new_from_slice(self.cloudinary_api_secret.as_bytes()).unwrap();
+
         mac.update(to_sign.as_bytes());
+        
         let sig = hex::encode(mac.finalize().into_bytes());
 
         json!({

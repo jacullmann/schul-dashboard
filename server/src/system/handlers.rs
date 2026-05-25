@@ -15,8 +15,12 @@ pub async fn csrf_init(
     jar: CookieJar,
 ) -> AppResult<(CookieJar, Json<Value>)> {
     let token = generate_csrf_token();
+    
     let opts = state.config.base_cookie_options();
+    
     let cookie = crate::common::csrf::csrf_cookie(&token, &opts);
+    
     let new_jar = jar.add(cookie);
+    
     Ok((new_jar, Json(json!({ "ok": true }))))
 }

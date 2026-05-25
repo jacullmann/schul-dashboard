@@ -30,6 +30,7 @@ pub async fn join_group(
             ua.as_deref(),
         )
         .await?;
+
     Ok((jar, Json(body)))
 }
 
@@ -51,6 +52,7 @@ pub async fn create_group(
             ua.as_deref(),
         )
         .await?;
+
     Ok((jar, Json(body)))
 }
 
@@ -59,6 +61,7 @@ pub async fn get_status(State(s): State<AppState>, opt: OptionalAuth) -> AppResu
         Some(u) => (Some(u.user_id), u.active_group_id, Some(u.global_role)),
         None => (None, None, None),
     };
+
     Ok(Json(
         GroupService::from_state(&s)
             .get_status(uid, gid, role.as_deref())
@@ -74,7 +77,8 @@ pub async fn switch_group(
     let (jar, body) = GroupService::from_state(&s)
         .switch_group(user.user_id, &user.email, &user.global_role, dto.group_id)
         .await?;
-    Ok((jar, Json(body)))
+    Ok((jar, Json(body))
+    )
 }
 
 pub async fn leave_group(
@@ -85,6 +89,7 @@ pub async fn leave_group(
     let jar = GroupService::from_state(&s)
         .leave_group(user.user_id, group_id, user.active_group_id)
         .await?;
+
     Ok((jar, Json(json!({ "ok": true }))))
 }
 
@@ -97,6 +102,7 @@ pub async fn logout(
     let jar = GroupService::from_state(&s)
         .logout(jar, ip.as_deref(), ua.as_deref())
         .await?;
+
     Ok((jar, Json(json!({ "ok": true }))))
 }
 

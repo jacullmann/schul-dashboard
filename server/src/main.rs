@@ -41,7 +41,9 @@ async fn main() -> anyhow::Result<()> {
         .init();
 
     let config = Config::from_env().context("Failed to load configuration")?;
+
     let port = config.port;
+
     let cors_origin = config.cors_origin.clone();
 
     let db = PgPoolOptions::new()
@@ -108,11 +110,13 @@ async fn main() -> anyhow::Result<()> {
         .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid));
 
     let addr = std::net::SocketAddr::from(([0, 0, 0, 0], port));
+
     let listener = tokio::net::TcpListener::bind(addr)
         .await
         .context("Failed to bind TCP listener")?;
 
     info!("Server listening on {addr}");
+
     axum::serve(listener, app).await.context("Server error")?;
 
     Ok(())

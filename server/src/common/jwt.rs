@@ -35,6 +35,7 @@ impl AccessClaims {
         ttl: Duration,
     ) -> Self {
         let now = now_secs();
+
         Self {
             sub: user_id.to_string(),
             email,
@@ -105,7 +106,9 @@ impl JwtService {
 
     pub fn verify_access(&self, token: &str) -> Result<AccessClaims, AppError> {
         let mut v = Validation::default();
+
         v.algorithms = vec![jsonwebtoken::Algorithm::HS256];
+
         decode::<AccessClaims>(token, &self.user_dec, &v)
             .map(|d| d.claims)
             .map_err(|_| AppError::TokenExpired)
@@ -124,13 +127,16 @@ impl JwtService {
             iat: now_secs(),
             exp: exp_secs(ttl),
         };
+
         encode(&Header::default(), &claims, &self.mfa_enc)
             .context("Failed to sign MFA pending token")
     }
 
     pub fn verify_mfa_pending(&self, token: &str) -> Result<MfaPendingClaims, AppError> {
         let mut v = Validation::default();
+
         v.algorithms = vec![jsonwebtoken::Algorithm::HS256];
+
         decode::<MfaPendingClaims>(token, &self.mfa_dec, &v)
             .map(|d| d.claims)
             .map_err(|_| AppError::Unauthorized("Authentication failed.".into()))
@@ -151,13 +157,16 @@ impl JwtService {
             iat: now_secs(),
             exp: exp_secs(ttl),
         };
+
         encode(&Header::default(), &claims, &self.oauth_enc)
             .context("Failed to sign OAuth pending token")
     }
 
     pub fn verify_oauth_pending(&self, token: &str) -> Result<OAuthPendingClaims, AppError> {
         let mut v = Validation::default();
+
         v.algorithms = vec![jsonwebtoken::Algorithm::HS256];
+
         decode::<OAuthPendingClaims>(token, &self.oauth_dec, &v)
             .map(|d| d.claims)
             .map_err(|_| AppError::Unauthorized("Authentication failed.".into()))
@@ -170,13 +179,16 @@ impl JwtService {
             iat: now_secs(),
             exp: exp_secs(ttl),
         };
+
         encode(&Header::default(), &claims, &self.reset_enc)
             .context("Failed to sign password reset token")
     }
 
     pub fn verify_password_reset(&self, token: &str) -> Result<PasswordResetClaims, AppError> {
         let mut v = Validation::default();
+
         v.algorithms = vec![jsonwebtoken::Algorithm::HS256];
+
         decode::<PasswordResetClaims>(token, &self.reset_dec, &v)
             .map(|d| d.claims)
             .map_err(|_| AppError::BadRequest("Invalid or expired reset token.".into()))

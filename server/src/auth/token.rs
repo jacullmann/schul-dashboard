@@ -35,14 +35,19 @@ pub struct TokenService {
 
 fn hash_token(token: &str) -> String {
     let mut h = Sha256::new();
+
     h.update(token.as_bytes());
+
     hex::encode(h.finalize())
 }
 
 fn generate_opaque_token() -> String {
     use rand::RngCore;
+
     let mut bytes = [0u8; 32];
+
     rand::rng().fill_bytes(&mut bytes);
+
     base64::Engine::encode(&base64::engine::general_purpose::URL_SAFE_NO_PAD, &bytes)
 }
 
@@ -67,9 +72,13 @@ impl TokenService {
         parent: Option<(Uuid, Uuid)>,
     ) -> Result<IssuedTokens, AppError> {
         let refresh_token = generate_opaque_token();
+
         let token_hash = hash_token(&refresh_token);
+
         let family_id = parent.map(|(_, fid)| fid).unwrap_or_else(Uuid::new_v4);
+
         let parent_id = parent.map(|(pid, _)| pid);
+
         let expires_at = Utc::now() + Duration::from_std(REFRESH_TOKEN_TTL).unwrap();
 
         let ua = user_agent.map(|s| if s.len() > 512 { &s[..512] } else { s });
@@ -142,7 +151,9 @@ impl TokenService {
                 row.user_id,
                 row.family_id
             );
+
             self.revoke_family(row.family_id, REUSE_DETECTED).await?;
+
             return Ok(None);
         }
 
@@ -164,11 +175,14 @@ impl TokenService {
 
         if updated.is_none() {
             tracing::warn!("Refresh rotation race on token {}", row.id);
+
             self.revoke_family(row.family_id, REUSE_DETECTED).await?;
+
             return Ok(None);
         }
 
         let user = self.load_user_claims(row.user_id).await?;
+
         let user = match user {
             None => {
                 self.revoke_family(row.family_id, ADMIN_REVOKE).await?;
@@ -194,6 +208,7 @@ impl TokenService {
 
     pub async fn revoke_by_token(&self, token: &str, reason: RevokeReason) -> Result<(), AppError> {
         let hash = hash_token(token);
+
         sqlx::query!(
             r#"
             UPDATE refresh_tokens
@@ -279,6 +294,7 @@ impl TokenService {
         .await?;
 
         let mut sessions = Vec::with_capacity(rows.len());
+
         for row in rows {
             let location = if let Some(ref ip) = row.ip_address {
                 self.lookup_ip(ip).await
@@ -309,6 +325,7 @@ impl TokenService {
         }
 
         let url = format!("{}/lookup/{ip}", self.geoip_url);
+
         let resp = self
             .http
             .get(&url)
@@ -322,6 +339,7 @@ impl TokenService {
         }
 
         let data: serde_json::Value = resp.json().await.ok()?;
+
         Some(IpLocation {
             city: data["city"].as_str().map(String::from),
             country: data["country"].as_str().map(String::from),

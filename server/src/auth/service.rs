@@ -26,6 +26,7 @@ pub struct AuthService {
     email: EmailService,
     jwt: JwtService,
     config: std::sync::Arc<crate::config::Config>,
+    enc: crate::common::encryption::EncryptionService,
 }
 
 impl AuthService {
@@ -36,6 +37,7 @@ impl AuthService {
             email: state.email.clone(),
             jwt: state.jwt.clone(),
             config: state.config.clone(),
+            enc: state.encryption.clone(),
         }
     }
 
@@ -73,6 +75,7 @@ impl AuthService {
         ip: Option<&str>,
     ) -> AppResult<(CookieJar, String)> {
         let (global_role, active_group_id) = self.resolve_user_context(user_id).await?;
+
         let opts = self.config.base_cookie_options();
 
         let issued = self
@@ -89,6 +92,7 @@ impl AuthService {
             .await?;
 
         let csrf = generate_csrf_token();
+
         let jar = CookieJar::new()
             .add(access_cookie(issued.access_token, &opts))
             .add(refresh_cookie(issued.refresh_token, &opts))
@@ -117,6 +121,7 @@ impl AuthService {
         .ok_or_else(|| AppError::Unauthorized("Invalid credentials.".into()))?;
 
         let hash = user.password_hash.as_deref().unwrap_or("");
+
         let ok = verify_password(dto.password, hash.to_string()).await?;
 
         if !ok {
@@ -147,11 +152,14 @@ impl AuthService {
 
         if user.mfa_enabled && user.mfa_secret.is_some() {
             let opts = self.config.base_cookie_options();
+
             let mfa_token = self
                 .jwt
                 .sign_mfa_pending(user.id, &user.email, MFA_PENDING_TTL)
                 .map_err(|e| AppError::internal(e.to_string()))?;
+
             let jar = CookieJar::new().add(mfa_pending_cookie(mfa_token, &opts));
+
             return Ok(LoginResult::MfaRequired(jar));
         }
 
@@ -172,6 +180,7 @@ impl AuthService {
         let (jar, _csrf) = self
             .issue_session(user.id, &user.email, user_agent, ip)
             .await?;
+
         Ok(LoginResult::Success(jar))
     }
 
@@ -183,8 +192,6 @@ impl AuthService {
         user_agent: Option<&str>,
         ip: Option<&str>,
     ) -> AppResult<CookieJar> {
-        use totp_rs::{Algorithm, Secret, TOTP};
-
         let user = sqlx::query!(
             "SELECT mfa_enabled, mfa_secret FROM users WHERE id = $1",
             user_id
@@ -197,17 +204,25 @@ impl AuthService {
             return Err(AppError::Unauthorized("Authentication failed.".into()));
         }
 
-        // Decrypt secret and verify TOTP
         let encrypted: crate::common::encryption::EncryptedPayload =
             serde_json::from_value(user.mfa_secret.unwrap())
                 .map_err(|_| AppError::internal("Invalid MFA secret format"))?;
 
-        // TODO: wire up EncryptionService here once state carries it
-        // For now the placeholder returns Err — will be fixed in mfa module
-        let _ = encrypted;
-        let _ = code;
+        let uid = user_id.to_string();
 
-        // Record activity
+        let secret_b32 = self.enc.decrypt(&encrypted, &uid).await?;
+
+        let secret_bytes = base32::decode(base32::Alphabet::Rfc4648 { padding: false }, &secret_b32)
+            .ok_or_else(|| AppError::internal("Invalid TOTP secret encoding"))?;
+
+        let totp = totp_rs::TOTP::new(
+            totp_rs::Algorithm::SHA1, 6, 1, 30, secret_bytes, None, "".to_string()
+        ).map_err(|e| AppError::internal(format!("TOTP init: {e}")))?;
+
+        if !totp.check_current(code).map_err(|_| AppError::Unauthorized("Authentication failed.".into()))? {
+            tokio::time::sleep(std::time::Duration::from_millis(100 + rand::random::<u64>() % 100)).await;
+            return Err(AppError::Unauthorized("Authentication failed.".into()));
+        }
         sqlx::query!(
             "INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'auth:mfa_login', '{}')",
             user_id
@@ -230,8 +245,11 @@ impl AuthService {
         .await?;
 
         let opts = self.config.base_cookie_options();
+
         let (mut jar, _) = self.issue_session(user_id, email, user_agent, ip).await?;
+
         jar = jar.add(clear_mfa_pending_cookie(&opts));
+
         Ok(jar)
     }
 
@@ -259,7 +277,9 @@ impl AuthService {
 
         let prefs = if let Some(p) = dto.preferences {
             let allowed = ["theme", "language", "personalized"];
+
             let mut merged = default_prefs.clone();
+
             if let (Some(obj), Some(m)) = (p.as_object(), merged.as_object_mut()) {
                 for (k, v) in obj {
                     if allowed.contains(&k.as_str()) {
@@ -288,10 +308,14 @@ impl AuthService {
 
         let token = {
             use rand::RngCore;
+
             let mut bytes = [0u8; 32];
+
             rand::rng().fill_bytes(&mut bytes);
+
             hex::encode(bytes)
         };
+
         let expires_at = Utc::now() + Duration::days(2);
 
         sqlx::query!(
@@ -435,6 +459,7 @@ impl AuthService {
             .await?;
 
         let opts = self.config.base_cookie_options();
+
         let jar = CookieJar::new()
             .add(clear_access_cookie(&opts))
             .add(clear_refresh_cookie(&opts))
@@ -479,6 +504,7 @@ impl AuthService {
 
     pub async fn forgot_password(&self, email: &str) -> AppResult<serde_json::Value> {
         let email = email.to_lowercase();
+
         let user = sqlx::query!("SELECT id FROM users WHERE email = $1", email)
             .fetch_optional(&self.db)
             .await?;
@@ -492,8 +518,11 @@ impl AuthService {
 
         let code = {
             use rand::RngCore;
+
             let mut bytes = [0u8; 3];
+
             rand::rng().fill_bytes(&mut bytes);
+
             hex::encode(bytes).to_uppercase()
         };
         let expires_at = Utc::now() + Duration::minutes(30);
@@ -528,6 +557,7 @@ impl AuthService {
         code: &str,
     ) -> AppResult<serde_json::Value> {
         let email = email.to_lowercase();
+
         let code = code.trim();
 
         let pr = sqlx::query!(
@@ -570,17 +600,20 @@ impl AuthService {
         validate_password_strength(password).map_err(|e| AppError::BadRequest(e.into()))?;
 
         let claims = self.jwt.verify_password_reset(reset_token)?;
+
         if claims.purpose != "password_reset" {
             return Err(AppError::BadRequest("Invalid reset token.".into()));
         }
 
         let email = claims.email.to_lowercase();
+
         let user = sqlx::query!("SELECT id, mfa_enabled FROM users WHERE email = $1", email)
             .fetch_optional(&self.db)
             .await?
             .ok_or_else(|| AppError::BadRequest("User not found.".into()))?;
 
         let hash = hash_password(password.to_string()).await?;
+
         sqlx::query!(
             "UPDATE users SET password_hash = $1, mfa_enabled = false, mfa_secret = NULL WHERE id = $2",
             hash, user.id
@@ -630,11 +663,13 @@ impl AuthService {
         .ok_or_else(|| AppError::BadRequest("User not found.".into()))?;
 
         let ok = verify_password(current_password, user.password_hash.unwrap_or_default()).await?;
+
         if !ok {
             return Err(AppError::Forbidden("Current password is incorrect.".into()));
         }
 
         let hash = hash_password(new_password).await?;
+
         sqlx::query!(
             "UPDATE users SET password_hash = $1 WHERE id = $2",
             hash,

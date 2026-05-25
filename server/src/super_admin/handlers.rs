@@ -44,6 +44,7 @@ pub async fn cleanup_old_items(
 
 pub async fn get_groups(State(s): State<AppState>, user: AuthUser) -> AppResult<Json<Value>> {
     require_superadmin(&user)?;
+
     Ok(Json(SuperAdminService::from_state(&s).get_groups().await?))
 }
 
@@ -53,6 +54,7 @@ pub async fn delete_group(
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<Value>> {
     require_superadmin(&user)?;
+
     Ok(Json(
         SuperAdminService::from_state(&s).delete_group(id).await?,
     ))
@@ -60,6 +62,7 @@ pub async fn delete_group(
 
 pub async fn get_all_users(State(s): State<AppState>, user: AuthUser) -> AppResult<Json<Value>> {
     require_superadmin(&user)?;
+
     Ok(Json(
         SuperAdminService::from_state(&s).get_all_users().await?,
     ))
@@ -71,6 +74,7 @@ pub async fn get_user_activity(
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<Value>> {
     require_superadmin(&user)?;
+
     Ok(Json(
         SuperAdminService::from_state(&s)
             .get_user_activity(id)
@@ -84,6 +88,7 @@ pub async fn ban_user(
     Path(target): Path<Uuid>,
 ) -> AppResult<Json<Value>> {
     require_superadmin(&user)?;
+
     Ok(Json(
         SuperAdminService::from_state(&s)
             .ban_user(target, user.user_id)
@@ -97,6 +102,7 @@ pub async fn unban_user(
     Path(target): Path<Uuid>,
 ) -> AppResult<Json<Value>> {
     require_superadmin(&user)?;
+
     Ok(Json(
         SuperAdminService::from_state(&s)
             .unban_user(target, user.user_id)
@@ -110,6 +116,7 @@ pub async fn delete_user(
     Path(target): Path<Uuid>,
 ) -> AppResult<Json<Value>> {
     require_superadmin(&user)?;
+
     Ok(Json(
         SuperAdminService::from_state(&s)
             .delete_user(target)
@@ -124,6 +131,7 @@ pub async fn update_user_role(
     Json(dto): Json<UpdateUserRoleDto>,
 ) -> AppResult<Json<Value>> {
     require_superadmin(&user)?;
+
     Ok(Json(
         SuperAdminService::from_state(&s)
             .update_user_role(target, &dto.role, user.user_id)
@@ -137,6 +145,7 @@ pub async fn prune_activity(
     Path(target): Path<Uuid>,
 ) -> AppResult<Json<Value>> {
     require_superadmin(&user)?;
+
     Ok(Json(
         SuperAdminService::from_state(&s)
             .prune_activity(target, user.user_id)
@@ -146,6 +155,7 @@ pub async fn prune_activity(
 
 pub async fn get_reports(State(s): State<AppState>, user: AuthUser) -> AppResult<Json<Value>> {
     require_superadmin(&user)?;
+
     Ok(Json(SuperAdminService::from_state(&s).get_reports().await?))
 }
 
@@ -156,6 +166,7 @@ pub async fn process_report(
     Json(dto): Json<ProcessReportDto>,
 ) -> AppResult<Json<Value>> {
     require_superadmin(&user)?;
+
     Ok(Json(
         SuperAdminService::from_state(&s)
             .process_report(id, user.user_id, dto.processed)
@@ -169,6 +180,7 @@ pub async fn delete_report(
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<Value>> {
     require_superadmin(&user)?;
+
     Ok(Json(
         SuperAdminService::from_state(&s)
             .delete_report(id, user.user_id)
@@ -182,6 +194,7 @@ pub async fn upsert_subject(
     Json(dto): Json<CreateSubjectDto>,
 ) -> AppResult<Json<Value>> {
     require_superadmin(&tc.user)?;
+
     Ok(Json(
         SuperAdminService::from_state(&s)
             .upsert_subject(tc.tenant_id, &dto.name)
@@ -195,6 +208,7 @@ pub async fn delete_subject(
     Path(name): Path<String>,
 ) -> AppResult<Json<Value>> {
     require_superadmin(&tc.user)?;
+
     Ok(Json(
         SuperAdminService::from_state(&s)
             .delete_subject_by_name(tc.tenant_id, &name)
@@ -207,6 +221,7 @@ pub async fn get_schedule_subs_admin(
     tc: TenantContext,
 ) -> AppResult<Json<Value>> {
     require_superadmin(&tc.user)?;
+
     Ok(Json(
         GroupAdminService::from_state(&s)
             .get_schedule_subs(tc.tenant_id)
@@ -220,6 +235,7 @@ pub async fn create_schedule_sub_admin(
     Json(dto): Json<CreateScheduleSubDto>,
 ) -> AppResult<Json<Value>> {
     require_superadmin(&tc.user)?;
+
     Ok(Json(
         GroupAdminService::from_state(&s)
             .create_schedule_sub(tc.tenant_id, tc.user.user_id, dto)
@@ -233,6 +249,7 @@ pub async fn delete_schedule_sub_admin(
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<Value>> {
     require_superadmin(&tc.user)?;
+
     Ok(Json(
         GroupAdminService::from_state(&s)
             .delete_schedule_sub(tc.tenant_id, id)

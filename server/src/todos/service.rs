@@ -30,11 +30,14 @@ impl TodoService {
         ).fetch_all(&self.db).await?;
 
         let uid = user_id.to_string();
+
         let mut result = vec![];
+
         for t in todos {
             let title_payload: crate::common::encryption::EncryptedPayload =
                 serde_json::from_value(t.encrypted_title)
                     .map_err(|_| AppError::internal("Invalid encrypted title"))?;
+
             let title = self.enc.decrypt(&title_payload, &uid).await?;
 
             let description = if let Some(desc_val) = t.encrypted_description {
@@ -86,6 +89,7 @@ impl TodoService {
             .map_err(|_| AppError::internal("Failed to generate position"))?;
 
         let enc_title = self.enc.encrypt(title.trim(), &uid).await?;
+
         let enc_desc = self
             .enc
             .encrypt(description.unwrap_or("").trim(), &uid)
@@ -137,6 +141,7 @@ impl TodoService {
         .ok_or_else(|| AppError::not_found("Private entry not found"))?;
 
         let enc_title = self.enc.encrypt(title.trim(), &uid).await?;
+
         let enc_desc = self
             .enc
             .encrypt(description.unwrap_or("").trim(), &uid)
@@ -182,6 +187,7 @@ impl TodoService {
         .ok_or_else(|| AppError::not_found("Private entry not found"))?;
 
         let new_completed = !todo.completed;
+
         let updated = sqlx::query!(
             "UPDATE encrypted_todos SET completed = $1 WHERE id = $2 RETURNING id, position, updated_at",
             new_completed, id
@@ -246,6 +252,7 @@ impl TodoService {
         sqlx::query!("DELETE FROM encrypted_todos WHERE id = $1", id)
             .execute(&self.db)
             .await?;
+
         sqlx::query!(
             "INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'todo:delete', $2)",
             user_id,

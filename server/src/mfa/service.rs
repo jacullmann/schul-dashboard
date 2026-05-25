@@ -39,6 +39,7 @@ impl MfaService {
             .fetch_optional(&self.db)
             .await?
             .ok_or_else(|| AppError::not_found("User not found."))?;
+
         Ok(json!({ "ok": true, "mfaEnabled": user.mfa_enabled }))
     }
 
@@ -63,11 +64,14 @@ impl MfaService {
         .await?;
 
         let secret_bytes: Vec<u8> = (0..20).map(|_| rand::random::<u8>()).collect();
+
         let secret_b32 =
             base32::encode(base32::Alphabet::Rfc4648 { padding: false }, &secret_bytes);
 
         let uid = user_id.to_string();
+
         let enc = self.enc.encrypt(&secret_b32, &uid).await?;
+
         let expires_at = chrono::Utc::now() + chrono::Duration::minutes(15);
 
         sqlx::query!(
@@ -79,6 +83,7 @@ impl MfaService {
         ).execute(&self.db).await?;
 
         let totp = Self::make_totp(&secret_bytes)?;
+
         let otpauth = totp.get_url(&user.email, "Schul-Dashboard");
 
         let qr = qrcode_generator::to_png_to_vec(
@@ -87,6 +92,7 @@ impl MfaService {
             200,
         )
         .map_err(|e| AppError::internal(format!("QR generation failed: {e}")))?;
+
         let qr_b64 = format!(
             "data:image/png;base64,{}",
             base64::Engine::encode(&base64::engine::general_purpose::STANDARD, &qr)
@@ -108,15 +114,19 @@ impl MfaService {
             .ok_or_else(|| AppError::bad_request("Authentication failed."))?;
 
         let uid = user_id.to_string();
+
         let enc: crate::common::encryption::EncryptedPayload =
             serde_json::from_value(pending.encrypted_secret)
                 .map_err(|_| AppError::internal("Invalid encrypted secret"))?;
+
         let secret_b32 = self.enc.decrypt(&enc, &uid).await?;
+
         let secret_bytes =
             base32::decode(base32::Alphabet::Rfc4648 { padding: false }, &secret_b32)
                 .ok_or_else(|| AppError::internal("Invalid TOTP secret encoding"))?;
 
         let totp = Self::make_totp(&secret_bytes)?;
+
         if !totp
             .check_current(code)
             .map_err(|_| AppError::bad_request("Authentication failed."))?
@@ -125,10 +135,12 @@ impl MfaService {
                 100 + rand::random::<u64>() % 100,
             ))
             .await;
+
             return Err(AppError::bad_request("Authentication failed."));
         }
 
         let enc_for_storage = self.enc.encrypt(&secret_b32, &uid).await?;
+
         sqlx::query!(
             "UPDATE users SET mfa_enabled = true, mfa_secret = $1 WHERE id = $2",
             serde_json::to_value(&enc_for_storage).unwrap(),
@@ -172,15 +184,19 @@ impl MfaService {
         }
 
         let uid = user_id.to_string();
+
         let enc: crate::common::encryption::EncryptedPayload =
             serde_json::from_value(user.mfa_secret.unwrap())
                 .map_err(|_| AppError::internal("Invalid encrypted secret"))?;
+
         let secret_b32 = self.enc.decrypt(&enc, &uid).await?;
+
         let secret_bytes =
             base32::decode(base32::Alphabet::Rfc4648 { padding: false }, &secret_b32)
                 .ok_or_else(|| AppError::internal("Invalid TOTP secret encoding"))?;
 
         let totp = Self::make_totp(&secret_bytes)?;
+
         if !totp
             .check_current(code)
             .map_err(|_| AppError::bad_request("Authentication failed."))?

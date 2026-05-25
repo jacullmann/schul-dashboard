@@ -35,6 +35,7 @@ where
 
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         let app_state = AppState::from_ref(state);
+
         let jar = CookieJar::from_request_parts(parts, state)
             .await
             .map_err(|_| AppError::AuthRequired)?;
@@ -94,7 +95,9 @@ where
 
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         use crate::config::MFA_PENDING_COOKIE;
+
         let app_state = AppState::from_ref(state);
+
         let jar = CookieJar::from_request_parts(parts, state)
             .await
             .map_err(|_| AppError::Unauthorized("Authentication failed.".into()))?;
@@ -152,6 +155,7 @@ where
 
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         let app_state = AppState::from_ref(state);
+        
         let user = AuthUser::from_request_parts(parts, state).await?;
 
         let tenant_id: Uuid = if user.is_superadmin() {

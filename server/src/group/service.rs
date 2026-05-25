@@ -43,8 +43,11 @@ impl GroupService {
                 None,
             )
             .await?;
+
         let opts = self.state.config.base_cookie_options();
+
         let csrf = generate_csrf_token();
+
         Ok(CookieJar::new()
             .add(access_cookie(tokens.access_token, &opts))
             .add(refresh_cookie(tokens.refresh_token, &opts))
@@ -84,7 +87,9 @@ impl GroupService {
             .as_ref()
             .map(|g| g.passcode_hash.as_str())
             .unwrap_or(&*DUMMY);
+        
         let valid = verify_password(password.to_string(), hash.to_string()).await?;
+        
         let authenticated = group.is_some() && valid;
 
         if let Some(ref g) = group {
@@ -95,6 +100,7 @@ impl GroupService {
             )
             .fetch_optional(&self.db)
             .await?;
+            
             if ban.is_some() {
                 return Err(AppError::forbidden("You have been banned from this group."));
             }
@@ -137,6 +143,7 @@ impl GroupService {
         let jar = self
             .issue_session_cookie(user_id, email, global_role, Some(g.id))
             .await?;
+        
         Ok((jar, json!({ "ok": true })))
     }
 
@@ -160,6 +167,7 @@ impl GroupService {
                  VALUES ('group_create', 'failure', $1::inet, $2, $3)",
                 ip, ua, json!({ "groupName": group_name })
             ).execute(&self.db).await?;
+            
             return Err(AppError::bad_request("This group name is already taken."));
         }
 
@@ -271,6 +279,7 @@ impl GroupService {
             )
             .fetch_optional(&self.db)
             .await?;
+            
             if membership.is_none() {
                 return Err(AppError::forbidden("You do not have access to this group."));
             }
@@ -279,6 +288,7 @@ impl GroupService {
         let jar = self
             .issue_session_cookie(user_id, email, global_role, Some(group_id))
             .await?;
+        
         Ok((jar, json!({ "ok": true })))
     }
 
@@ -345,6 +355,7 @@ impl GroupService {
             let user = sqlx::query!("SELECT email FROM users WHERE id = $1", user_id)
                 .fetch_one(&self.db)
                 .await?;
+            
             let global_role = sqlx::query!(
                 r#"SELECT r.name FROM user_roles ur JOIN roles r ON r.id = ur.role_id
                    WHERE ur.user_id = $1 AND ur.tenant_id IS NULL LIMIT 1"#,
@@ -377,6 +388,7 @@ impl GroupService {
         ).execute(&self.db).await?;
 
         let opts = self.state.config.base_cookie_options();
+        
         if let Some(token) = jar
             .get(crate::config::REFRESH_COOKIE)
             .map(|c| c.value().to_string())

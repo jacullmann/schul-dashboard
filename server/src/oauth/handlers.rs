@@ -34,6 +34,7 @@ pub async fn handle_google_callback(
     Query(q): Query<OAuthCallbackQuery>,
 ) -> Redirect {
     let state_cookie = jar.get("oauth_state_token").map(|c| c.value().to_string());
+
     let url = OAuthService::from_state(&s)
         .handle_callback(
             q.code.as_deref(),
@@ -42,6 +43,7 @@ pub async fn handle_google_callback(
             state_cookie.as_deref(),
         )
         .await;
+
     Redirect::temporary(&url)
 }
 
@@ -55,9 +57,10 @@ pub async fn link_google_account(
         .map(|c| c.value().to_string())
         .ok_or_else(|| AppError::Unauthorized("Authentication failed.".into()))?;
 
-    // Decode pending token to get google_id and google_email
     let mut v = jsonwebtoken::Validation::default();
+
     v.algorithms = vec![jsonwebtoken::Algorithm::HS256];
+
     let data = jsonwebtoken::decode::<super::service::OAuthPendingClaims>(
         &pending_token,
         &jsonwebtoken::DecodingKey::from_secret(s.config.oauth_pending_jwt_secret.as_bytes()),
