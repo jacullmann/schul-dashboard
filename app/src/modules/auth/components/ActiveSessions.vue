@@ -332,18 +332,19 @@ onMounted(() => {
             </div>
           </div -->
 
-          <!-- Revoke Action -->
-          <template v-if="index !== 0">
-            <BaseTooltip content="Gerät abmelden" placement="bottom">
-              <BaseButton
-                @click="revokeSession(session)"
-                :loading="revokingId === session.familyId"
-                variant="ghost"
-                on="ghost"
-                :icon="Trash2"
-              />
-            </BaseTooltip>
-          </template>
+            <!-- Revoke Action -->
+            <template v-if="index !== 0">
+              <BaseTooltip content="Gerät abmelden" placement="bottom">
+                <BaseButton
+                  @click="revokeSession(session)"
+                  :loading="revokingId === session.familyId"
+                  variant="ghost"
+                  on="ghost"
+                  :icon="Trash2"
+                />
+              </BaseTooltip>
+            </template>
+          </div>
         </div>
       </div>
     </div>
