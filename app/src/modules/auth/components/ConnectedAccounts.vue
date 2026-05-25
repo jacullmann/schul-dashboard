@@ -59,21 +59,16 @@ function handleLink() {
       >
         <div class="flex items-center gap-3">
           <div
-            class="w-9 h-9 flex items-center justify-center flex-shrink-0"
+            class="size-10 flex items-center justify-center flex-shrink-0"
             aria-hidden="true"
           >
             <GoogleIcon :size="24" />
           </div>
           <div class="flex flex-col gap-0.5">
-            <span class="text-sm font-semibold text-on-ghost">Google</span>
-            <span
-              v-if="googleLinked()"
-              class="text-[0.75rem] text-on-ghost-muted"
-              >{{ googleProvider()?.email }}</span
-            >
-            <span v-else class="text-[0.75rem] text-on-ghost-muted"
-              >Nicht verknüpft</span
-            >
+            <span class="text-base font-semibold text-on-ghost">Google</span>
+            <span class="text-sm text-on-ghost-muted">{{
+              googleLinked() ? googleProvider()?.email : 'Nicht verknüpft'
+            }}</span>
           </div>
         </div>
 
@@ -87,7 +82,6 @@ function handleLink() {
           <BaseButton
             v-if="googleLinked()"
             variant="ghost"
-            class="px-3 py-1 text-[0.75rem] min-h-[28px]"
             :loading="actionLoading"
             @click="handleUnlink"
           >
@@ -97,7 +91,6 @@ function handleLink() {
           <BaseButton
             v-else
             variant="action"
-            class="px-3 py-1 text-[0.75rem] min-h-[28px]"
             :loading="actionLoading"
             @click="handleLink"
           >

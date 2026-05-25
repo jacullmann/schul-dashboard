@@ -266,7 +266,7 @@ onMounted(() => {
         </BaseButton>
       </div>
 
-      <div class="flex flex-col gap-2.5 max-h-[300px] overflow-y-auto pr-1">
+      <div class="flex flex-col gap-3 max-h-[300px] overflow-y-auto pr-1">
         <div
           v-for="(session, index) in sessions"
           :key="session.familyId"
@@ -289,7 +289,7 @@ onMounted(() => {
                     ? Laptop
                     : Monitor
               "
-              :size="32"
+              :size="24"
             />
           </div>
 
