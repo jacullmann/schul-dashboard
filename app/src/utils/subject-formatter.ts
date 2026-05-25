@@ -11,22 +11,16 @@ export function formatSubjectDisplay(
   const parts = subject.split(' - ');
   const mainKey = getSubjectKey(parts[0]!.trim());
 
-  if (parts.length === 2 && ['enrichment', 'wpu1', 'wpu2'].includes(mainKey)) {
-    let course = parts[1]!.trim();
+  if (parts.length === 2) {
     const subjectStore = useSubjectStore();
-    if (mainKey === 'enrichment') {
-      const mapped = subjectStore.enrCourses.find((k) => k.id === course);
-      if (mapped) course = mapped.name;
-    } else if (mainKey === 'wpu1') {
-      const mapped = subjectStore.wpu1Courses.find((k) => k.id === course);
-      if (mapped) course = mapped.name;
-    } else if (mainKey === 'wpu2') {
-      const mapped = subjectStore.wpu2Courses.find((k) => k.id === course);
-      if (mapped) course = mapped.name;
-    }
+    const sub = subjectStore.subjects.find(
+      (s) => s.id === mainKey || s.name.toLowerCase() === mainKey.toLowerCase(),
+    );
+    let course = parts[1]!.trim();
+    const mapped = sub?.courses?.find((k) => k.id === course || k.name === course);
+    if (mapped) course = mapped.name;
 
     let courseDisplay = course;
-
     const courseKey = getSubjectKey(course);
     if (te(`global.subjects.${courseKey}`)) {
       courseDisplay = t(`global.subjects.${courseKey}`);
@@ -42,7 +36,14 @@ export function formatSubjectDisplay(
     if (mainKey === 'enrichment') return `ENR ${courseDisplay}`;
     if (mainKey === 'wpu1') return `WPU 1 ${courseDisplay}`;
     if (mainKey === 'wpu2') return `WPU 2 ${courseDisplay}`;
+
+    let subjectDisplay = parts[0]!.trim();
+    if (te(`global.subjects.${mainKey}`)) {
+      subjectDisplay = t(`global.subjects.${mainKey}`);
+    }
+    return `${subjectDisplay} - ${courseDisplay}`;
   }
+
   if (te(`global.subjects.${mainKey}`)) {
     return t(`global.subjects.${mainKey}`);
   }
