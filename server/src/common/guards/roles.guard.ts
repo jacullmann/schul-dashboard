@@ -28,6 +28,11 @@ export class RolesGuard implements CanActivate {
       return true;
     }
 
+    // Group owners bypass all roles checks in their own group
+    if (request.groupOwnerId && request.userId === request.groupOwnerId) {
+      return true;
+    }
+
     const tenantRole = request.tenantRole;
 
     if (!tenantRole || !requiredRoles.includes(tenantRole)) {

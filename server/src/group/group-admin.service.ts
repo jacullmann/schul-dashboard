@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { SupabaseService } from '../common/supabase/supabase.service';
 import { generateUserName } from '../common/utils/name-generator.util';
+import { checkRolePermission } from '../common/utils/permission.util';
 import * as bcrypt from 'bcryptjs';
 
 const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;
@@ -285,6 +286,16 @@ export class GroupAdminService {
     avatarUrl?: string,
   ) {
     const sb = this.supabaseService.getClient();
+
+    // Fetch group to ensure it exists
+    const { data: group } = await sb
+      .from('groups')
+      .select('id')
+      .eq('id', tenantId)
+      .maybeSingle();
+
+    if (!group) throw new NotFoundException('Group not found');
+
     const updateData: Record<string, any> = {};
 
     if (name && name.trim()) {
@@ -391,20 +402,6 @@ export class GroupAdminService {
     scheduleConfig: Record<string, any>,
   ) {
     const sb = this.supabaseService.getClient();
-
-    const { data: userRole } = await sb
-      .from('user_roles')
-      .select('roles(name)')
-      .eq('tenant_id', tenantId)
-      .eq('user_id', userId)
-      .limit(1)
-      .maybeSingle();
-
-    if ((userRole as any)?.roles?.name !== 'admin') {
-      throw new ForbiddenException(
-        'Only admins can update the schedule config.',
-      );
-    }
 
     const { error: groupUpdateError } = await sb
       .from('groups')
@@ -806,5 +803,103 @@ export class GroupAdminService {
       .eq('id', id)
       .eq('tenant_id', tenantId);
     return { ok: true };
+  }
+
+  async getPermissions(tenantId: string) {
+    const sb = this.supabaseService.getClient();
+    const { data: group, error } = await sb
+      .from('groups')
+      .select('permissions')
+      .eq('id', tenantId)
+      .maybeSingle();
+
+    if (error || !group) {
+      throw new NotFoundException('Gruppe nicht gefunden');
+    }
+
+    const defaultPermissions = {
+      edit_group_general: 'moderator',
+      edit_subjects_courses: 'admin',
+      edit_schedule: 'admin',
+      create_items: 'user',
+      upload_images: 'user',
+      manage_notes: 'moderator',
+      send_messages: 'user',
+      manage_schedule_changes: 'moderator',
+      manage_announcements: 'moderator',
+      moderate_members: 'moderator',
+      delete_other_content: 'moderator',
+    };
+
+    return {
+      permissions: {
+        ...defaultPermissions,
+        ...(group.permissions || {}),
+      },
+    };
+  }
+
+  async updatePermissions(
+    tenantId: string,
+    userId: string,
+    permissions: any,
+  ) {
+    const sb = this.supabaseService.getClient();
+
+    const { data: group } = await sb
+      .from('groups')
+      .select('permissions')
+      .eq('id', tenantId)
+      .maybeSingle();
+
+    if (!group) {
+      throw new NotFoundException('Gruppe nicht gefunden');
+    }
+
+    const VALID_PERMISSION_KEYS = [
+      'edit_group_general',
+      'edit_subjects_courses',
+      'edit_schedule',
+      'create_items',
+      'upload_images',
+      'manage_notes',
+      'send_messages',
+      'manage_schedule_changes',
+      'manage_announcements',
+      'moderate_members',
+      'delete_other_content',
+    ];
+
+    const validRoles = ['user', 'moderator', 'admin'];
+    const currentPermissions = group.permissions || {};
+    const mergedPermissions: Record<string, string> = { ...currentPermissions };
+
+    for (const [key, val] of Object.entries(permissions || {})) {
+      const value = val as string;
+      if (VALID_PERMISSION_KEYS.includes(key)) {
+        if (validRoles.includes(value)) {
+          mergedPermissions[key] = value;
+        }
+      }
+    }
+
+    const { error } = await sb
+      .from('groups')
+      .update({ permissions: mergedPermissions })
+      .eq('id', tenantId);
+
+    if (error) {
+      throw new InternalServerErrorException(
+        'Fehler beim Speichern der Berechtigungen',
+      );
+    }
+
+    await sb.from('user_activity').insert({
+      user_id: userId,
+      type: 'group-admin:update-permissions',
+      meta: { tenantId, permissions: mergedPermissions },
+    });
+
+    return { ok: true, permissions: mergedPermissions };
   }
 }

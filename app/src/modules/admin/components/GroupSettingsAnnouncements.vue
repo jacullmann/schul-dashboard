@@ -3,6 +3,8 @@ import { Plus, Trash2 } from '@lucide/vue';
 import type { AdminAnnouncement } from '@/modules/admin/types';
 import { useAnnouncementForm } from '@/core/composables/useAnnouncementForm';
 import { useI18n } from 'vue-i18n';
+import { computed } from 'vue';
+import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 
 defineProps<{
   announcements: AdminAnnouncement[];
@@ -16,6 +18,9 @@ const emit = defineEmits<{
 const { t } = useI18n();
 
 const { openAnnouncementForm, onFormSuccess } = useAnnouncementForm();
+
+const { checkPermission } = useAppAuth();
+const canManageAnnouncements = computed(() => checkPermission('manage_announcements'));
 
 onFormSuccess(() => {
   emit('refresh');
@@ -38,7 +43,7 @@ function formatDate(iso: string) {
       Ankündigungen
 
       <template #action>
-        <BaseButton variant="action" @click="openAnnouncementForm" :icon="Plus">
+        <BaseButton v-if="canManageAnnouncements" variant="action" @click="openAnnouncementForm" :icon="Plus">
           Neue Ankündigung
         </BaseButton>
       </template>
@@ -77,7 +82,7 @@ function formatDate(iso: string) {
             formatDate(ann.createdAt)
           }}</span>
         </div>
-        <BaseTooltip :content="t('global.buttons.delete')" placement="bottom">
+        <BaseTooltip v-if="canManageAnnouncements" :content="t('global.buttons.delete')" placement="bottom">
           <BaseButton
             variant="ghost"
             size="sm"

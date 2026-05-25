@@ -78,7 +78,11 @@ const activeTab = computed<string>({
 
 const { activeGroupOwnerId } = useAppAuth();
 const userStore = useUserStore();
-const isAdmin = computed(() => userStore.user?.tenantRole === 'admin');
+const isAdmin = computed(
+  () =>
+    userStore.user?.tenantRole === 'admin' ||
+    userStore.user?.role === 'superadmin',
+);
 const isOwner = computed(
   () =>
     !!(userStore.user?.id && activeGroupOwnerId.value === userStore.user.id),

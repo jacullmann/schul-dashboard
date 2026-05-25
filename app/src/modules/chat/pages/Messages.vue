@@ -27,9 +27,13 @@ import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/vue';
 const { t } = useI18n();
 const route = useRoute();
 const userStore = useUserStore();
-const { user } = storeToRefs(userStore);
-const { userGroups } = useAppAuth();
+const { user, role } = storeToRefs(userStore);
+const { userGroups, checkPermission } = useAppAuth();
 const toast = useToast();
+
+const canSend = computed(() => {
+  return checkPermission('send_messages');
+});
 const modalStore = useModalStore();
 
 const activeMessage = ref<any | null>(null);
@@ -366,14 +370,8 @@ const canDeleteMessage = (msg: any) => {
   if (!user.value) return false;
   if (msg.userId === currentUserId.value) return true;
   if (user.value.role === 'superadmin') return true;
-  const activeGroup = userGroups.value.find((g) => g.id === groupId.value);
-  if (
-    activeGroup &&
-    (activeGroup.role === 'admin' || activeGroup.role === 'moderator')
-  ) {
-    return true;
-  }
-  return false;
+
+  return checkPermission('delete_other_content');
 };
 
 const copyMessage = async (msg: any) => {
@@ -714,9 +712,10 @@ watch(groupId, () => {
             @keydown.enter.prevent="sendMessage"
             rows="1"
             class="w-full flex-1 items-center justify-center py-0 px-1.75 rounded-none bg-transparent border-none shadow-none outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 text-base/5 text-on-ghost placeholder:text-on-ghost-subtle resize-none font-normal"
-            :placeholder="t('chat.placeholder')"
+            :placeholder="canSend ? t('chat.placeholder') : 'Das Senden von Nachrichten ist für dich deaktiviert'"
             required
             maxlength="1000"
+            :disabled="!canSend"
           ></textarea>
         </div>
 
@@ -724,7 +723,7 @@ watch(groupId, () => {
           variant="action"
           on="ghost"
           type="submit"
-          :disabled="!messageInput.trim()"
+          :disabled="!messageInput.trim() || !canSend"
           :icon="SendHorizontal"
         >
         </BaseButton>

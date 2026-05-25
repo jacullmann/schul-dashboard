@@ -124,3 +124,56 @@ export class UpdateSubjectDto {
   @IsBoolean()
   isActive?: boolean;
 }
+
+export class GroupPermissionsDto {
+  @IsOptional()
+  @IsIn(['user', 'moderator', 'admin'])
+  edit_group_general?: string;
+
+  @IsOptional()
+  @IsIn(['moderator', 'admin'])
+  edit_subjects_courses?: string;
+
+  @IsOptional()
+  @IsIn(['moderator', 'admin'])
+  edit_schedule?: string;
+
+  @IsOptional()
+  @IsIn(['user', 'moderator', 'admin'])
+  create_items?: string;
+
+  @IsOptional()
+  @IsIn(['user', 'moderator', 'admin'])
+  upload_images?: string;
+
+  @IsOptional()
+  @IsIn(['user', 'moderator', 'admin'])
+  manage_notes?: string;
+
+  @IsOptional()
+  @IsIn(['user', 'moderator', 'admin'])
+  send_messages?: string;
+
+  @IsOptional()
+  @IsIn(['user', 'moderator', 'admin'])
+  manage_schedule_changes?: string;
+
+  @IsOptional()
+  @IsIn(['moderator', 'admin'])
+  manage_announcements?: string;
+
+  @IsOptional()
+  @IsIn(['moderator', 'admin'])
+  moderate_members?: string;
+
+  @IsOptional()
+  @IsIn(['moderator', 'admin'])
+  delete_other_content?: string;
+}
+
+export class UpdateGroupPermissionsDto {
+  @ValidateNested()
+  @Type(() => GroupPermissionsDto)
+  permissions: GroupPermissionsDto;
+}
+

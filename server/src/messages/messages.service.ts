@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { SupabaseService } from '../common/supabase/supabase.service';
 import { generateUserName } from '../common/utils/name-generator.util';
+import { checkRolePermission } from '../common/utils/permission.util';
 import { CreateMessageDto } from './dto/create-message.dto';
 
 export interface GroupMessageResponse {
@@ -101,9 +102,31 @@ export class MessagesService {
   async createMessage(
     tenantId: string,
     userId: string,
+    tenantRole: string | undefined,
+    globalRole: string,
     payload: CreateMessageDto,
   ): Promise<GroupMessageResponse> {
     const sb = this.supabaseService.getClient();
+
+    const { data: group } = await sb
+      .from('groups')
+      .select('permissions, owner_id')
+      .eq('id', tenantId)
+      .maybeSingle();
+
+    if (!group) {
+      throw new NotFoundException('Gruppe nicht gefunden');
+    }
+
+    if (globalRole !== 'superadmin' && group.owner_id !== userId) {
+      const allowedRole = group.permissions?.send_messages || 'user';
+      const isAllowed = checkRolePermission(tenantRole || 'user', allowedRole);
+      if (!isAllowed) {
+        throw new ForbiddenException(
+          'Du hast keine Berechtigung, in dieser Gruppe Nachrichten zu senden.',
+        );
+      }
+    }
 
     const { data: message, error } = await sb
       .from('group_messages')
@@ -174,13 +197,25 @@ export class MessagesService {
 
     const isOwner = message.user_id === userId;
     const isSuperAdmin = globalRole === 'superadmin';
-    const isTenantAdminOrMod =
-      tenantRole === 'admin' || tenantRole === 'moderator';
 
-    if (!isOwner && !isSuperAdmin && !isTenantAdminOrMod) {
-      throw new ForbiddenException(
-        'Keine Berechtigung zum Löschen dieser Nachricht',
-      );
+    if (!isOwner && !isSuperAdmin) {
+      const { data: group } = await sb
+        .from('groups')
+        .select('permissions, owner_id')
+        .eq('id', tenantId)
+        .maybeSingle();
+
+      if (!group) throw new NotFoundException('Gruppe nicht gefunden');
+
+      if (group.owner_id !== userId) {
+        const allowedRole = group.permissions?.delete_other_content || 'moderator';
+        const isAllowed = checkRolePermission(tenantRole || 'user', allowedRole);
+        if (!isAllowed) {
+          throw new ForbiddenException(
+            'Keine Berechtigung zum Löschen der Nachricht eines anderen Nutzers',
+          );
+        }
+      }
     }
 
     const { error: updateError } = await sb

@@ -10,6 +10,7 @@ import { v2 as cloudinary } from 'cloudinary';
 import { AppConfig } from '../config/env.config';
 import { generateUserName } from '../common/utils/name-generator.util';
 import { withThumb, timeLeftColor } from '../common/utils/model.util';
+import { checkRolePermission } from '../common/utils/permission.util';
 import dayjs from 'dayjs';
 
 @Injectable()
@@ -274,9 +275,25 @@ export class ItemsService {
     if (!item) throw new NotFoundException('Not found.');
 
     const isSuperadmin = globalRole === 'superadmin';
-    const isGroupAdmin = tenantRole === 'admin' || tenantRole === 'moderator';
-    if (!isSuperadmin && !isGroupAdmin && item.created_by !== userId) {
-      throw new ForbiddenException('Nicht autorisiert.');
+    const isOwner = item.created_by === userId;
+
+    if (!isOwner && !isSuperadmin) {
+      const { data: group } = await sb
+        .from('groups')
+        .select('permissions, owner_id')
+        .eq('id', tenantId)
+        .maybeSingle();
+
+      if (!group) throw new NotFoundException('Gruppe nicht gefunden');
+
+      const isGroupOwner = group.owner_id === userId;
+      if (!isGroupOwner) {
+        const allowedRole = group.permissions?.delete_other_content || 'moderator';
+        const isAllowed = checkRolePermission(tenantRole || 'user', allowedRole);
+        if (!isAllowed) {
+          throw new ForbiddenException('Nicht autorisiert.');
+        }
+      }
     }
 
     if (item.images?.length > 0) {
@@ -411,12 +428,26 @@ export class ItemsService {
 
     const image = images[idx];
     const isSuperadmin = globalRole === 'superadmin';
-    const isGroupAdmin = tenantRole === 'admin' || tenantRole === 'moderator';
     const isImageOwner = image.createdBy === userId;
     const isItemOwner = item.created_by === userId;
 
-    if (!isSuperadmin && !isGroupAdmin && !isImageOwner && !isItemOwner) {
-      throw new ForbiddenException('Nicht autorisiert.');
+    if (!isSuperadmin && !isImageOwner && !isItemOwner) {
+      const { data: group } = await sb
+        .from('groups')
+        .select('permissions, owner_id')
+        .eq('id', tenantId)
+        .maybeSingle();
+
+      if (!group) throw new NotFoundException('Gruppe nicht gefunden');
+
+      const isGroupOwner = group.owner_id === userId;
+      if (!isGroupOwner) {
+        const allowedRole = group.permissions?.delete_other_content || 'moderator';
+        const isAllowed = checkRolePermission(tenantRole || 'user', allowedRole);
+        if (!isAllowed) {
+          throw new ForbiddenException('Nicht autorisiert.');
+        }
+      }
     }
 
     try {

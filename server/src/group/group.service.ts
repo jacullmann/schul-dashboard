@@ -209,7 +209,7 @@ export class GroupService {
       const { data: userRoles } = await sb
         .from('user_roles')
         .select(
-          'tenant_id, groups(id, name, owner_id, schedule_config, avatar_url), roles(name)',
+          'tenant_id, groups(id, name, owner_id, schedule_config, avatar_url, permissions), roles(name)',
         )
         .eq('user_id', userId)
         .not('tenant_id', 'is', null);
@@ -225,6 +225,7 @@ export class GroupService {
           hasUnreadContent: false,
           scheduleConfig: ur.groups.schedule_config,
           avatarUrl: ur.groups.avatar_url as string,
+          permissions: ur.groups.permissions ?? {},
         }));
 
       if (groups.length > 0) {
@@ -308,7 +309,7 @@ export class GroupService {
       if (!activeGroup && activeGroupId && globalRole === 'superadmin') {
         const { data: adminGroup } = await sb
           .from('groups')
-          .select('id, name, owner_id, schedule_config, avatar_url')
+          .select('id, name, owner_id, schedule_config, avatar_url, permissions')
           .eq('id', activeGroupId)
           .maybeSingle();
 
@@ -322,6 +323,7 @@ export class GroupService {
             hasUnreadContent: false,
             scheduleConfig: adminGroup.schedule_config,
             avatarUrl: adminGroup.avatar_url as string,
+            permissions: adminGroup.permissions ?? {},
           };
         }
       }
@@ -334,6 +336,7 @@ export class GroupService {
               name: activeGroup.name,
               ownerId: activeGroup.ownerId,
               avatarUrl: activeGroup.avatarUrl,
+              permissions: activeGroup.permissions ?? {},
             }
           : null,
         groups,

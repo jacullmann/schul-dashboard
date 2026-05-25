@@ -3,6 +3,7 @@ import { RefreshCw, UserRoundMinus, Crown } from '@lucide/vue';
 import InfoModal from '@/common/components/InfoModal.vue';
 import type { GroupMember } from '@/modules/admin/types';
 import { computed, ref } from 'vue';
+import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 
 const props = defineProps<{
   members: GroupMember[];
@@ -19,6 +20,9 @@ const emit = defineEmits<{
   (e: 'revert-ban', userId: string): void;
   (e: 'transfer-ownership', userId: string): void;
 }>();
+
+const { checkPermission } = useAppAuth();
+const canModerateMembers = computed(() => checkPermission('moderate_members'));
 
 const canDemoteAdmin = computed(() => props.isOwner);
 
@@ -166,7 +170,7 @@ function confirmRemove() {
             <BaseButton
               variant="ghost"
               @click="openRemoveModal(member.userId, member.generatedName)"
-              :disabled="member.role === 'admin'"
+              :disabled="member.role === 'admin' || !canModerateMembers"
               :icon="UserRoundMinus"
             />
           </BaseTooltip>
@@ -174,7 +178,7 @@ function confirmRemove() {
           <BaseSelect
             :modelValue="member.role"
             @update:modelValue="(val: string) => onRoleChange(member, val)"
-            :disabled="member.role === 'admin' && !canDemoteAdmin"
+            :disabled="!canModerateMembers || (member.role === 'admin' && !canDemoteAdmin)"
             :form="false"
             classes="w-48!"
             :options="[
@@ -223,7 +227,7 @@ function confirmRemove() {
           >
         </div>
         <div class="flex items-center gap-2 flex-shrink-0">
-          <BaseButton variant="ghost" @click="emit('revert-ban', user.userId)">
+          <BaseButton :disabled="!canModerateMembers" variant="ghost" @click="emit('revert-ban', user.userId)">
             Unban
           </BaseButton>
         </div>

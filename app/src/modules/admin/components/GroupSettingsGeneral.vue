@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useGroupAdmin } from '@/modules/admin/composables/useGroupAdmin';
@@ -12,7 +12,8 @@ import Avatar from '@/modules/auth/components/Avatar.vue';
 
 const modalStore = useModalStore();
 const { t } = useI18n();
-const { activeGroupAvatarUrl } = useAppAuth();
+const { activeGroupAvatarUrl, checkPermission } = useAppAuth();
+const canEditSettings = computed(() => checkPermission('edit_group_general'));
 
 const props = defineProps<{
   isAdmin: boolean;
@@ -203,8 +204,8 @@ async function confirmDeleteGroup() {
 
 <template>
   <div class="animate-fade-up flex flex-col gap-8">
-    <div v-if="!isAdmin" class="text-center text-base text-on-ghost-muted">
-      <p class="m-0">Nur Administratoren können die Einstellungen ändern.</p>
+    <div v-if="!canEditSettings" class="text-center text-base text-on-ghost-muted">
+      <p class="m-0">Du hast keine Berechtigung, die Einstellungen zu ändern.</p>
     </div>
 
     <div>
@@ -219,7 +220,7 @@ async function confirmDeleteGroup() {
           />
 
           <BaseButton
-            v-if="isAdmin"
+            v-if="canEditSettings"
             variant="action"
             :icon="Pencil"
             size="sm"
@@ -236,7 +237,7 @@ async function confirmDeleteGroup() {
           </div>
 
           <BaseMenu
-            v-if="isAdmin"
+            v-if="canEditSettings"
             :open="isMenuOpen"
             @close="isMenuOpen = false"
             class="left-0 mt-2 z-30 min-w-[180px]"
@@ -278,7 +279,7 @@ async function confirmDeleteGroup() {
             <span class="font-semibold text-xl">{{ groupName }}</span>
             <BaseTooltip :content="t('global.buttons.edit')">
               <BaseButton
-                v-if="isAdmin"
+                v-if="canEditSettings"
                 class="w-8 h-8 p-0"
                 @click="emit('start-edit')"
                 variant="ghost"
@@ -303,7 +304,7 @@ async function confirmDeleteGroup() {
                 "
                 placeholder="Neuer Gruppenname"
                 @keyup.enter="emit('save-edit')"
-                :disabled="!isAdmin"
+                :disabled="!canEditSettings"
               />
               <BaseRow justify="end" class="w-full mt-2">
                 <BaseButton @click="emit('cancel-edit')" variant="ghost">{{
@@ -312,7 +313,7 @@ async function confirmDeleteGroup() {
                 <BaseButton
                   @click="emit('save-edit')"
                   :disabled="
-                    savingGroupName || !newGroupName.trim() || !isAdmin
+                    savingGroupName || !newGroupName.trim() || !canEditSettings
                   "
                   variant="action"
                 >

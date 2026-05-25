@@ -4,6 +4,8 @@ import { useI18n } from 'vue-i18n';
 import { Pencil, Trash2, Plus, RefreshCw, X, Check } from '@lucide/vue';
 import { useSubjectAdmin } from '@/modules/admin/composables/useSubjectAdmin';
 import type { AdminSubject } from '@/modules/admin/types';
+import { computed } from 'vue';
+import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 
 const { t, te } = useI18n();
 
@@ -20,6 +22,9 @@ const {
   updateSubject,
   deleteSubject,
 } = useSubjectAdmin();
+
+const { checkPermission } = useAppAuth();
+const canEditSubjects = computed(() => checkPermission('edit_subjects_courses'));
 
 const newSubjectName = ref('');
 
@@ -81,7 +86,7 @@ onMounted(() => {
       </template>
     </PageHeader>
 
-    <div v-if="isAdmin" class="mb-6">
+    <div v-if="canEditSubjects" class="mb-6">
       <div class="flex gap-2.5 items-center">
         <BaseInput
           id="new-subject-name-input"
@@ -132,7 +137,7 @@ onMounted(() => {
             class="font-medium text-base whitespace-nowrap overflow-hidden text-ellipsis ml-2"
             >{{ subjectLabel(subject) }}</span
           >
-          <BaseRow v-if="isAdmin" justify="end" class="flex-1">
+          <BaseRow v-if="canEditSubjects" justify="end" class="flex-1">
             <BaseCheckbox
               class="m-2"
               :model-value="subject.isActive"

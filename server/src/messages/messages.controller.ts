@@ -41,11 +41,15 @@ export class MessagesController {
   async createMessage(
     @ActiveTenantId() tenantId: string,
     @CurrentUserId() userId: string,
+    @TenantRole() tenantRole: string | undefined,
+    @CurrentUser() user: AuthUser,
     @Body() body: CreateMessageDto,
   ) {
     const message = await this.messagesService.createMessage(
       tenantId,
       userId,
+      tenantRole,
+      user.globalRole,
       body,
     );
     this.messagesGateway.broadcastMessage(tenantId, message);

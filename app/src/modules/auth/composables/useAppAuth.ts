@@ -1,5 +1,6 @@
 import { ref, computed } from 'vue';
 import hw, { ensureCsrf, refreshSession } from '@/api/hwApi';
+import { useUserStore } from '@/stores/userStore';
 
 const STATUS_ENDPOINT = '/api/groups/status';
 
@@ -10,6 +11,7 @@ const groupName = ref<string | null>(null);
 const activeGroupId = ref<string | null>(null);
 const activeGroupOwnerId = ref<string | null>(null);
 const activeGroupAvatarUrl = ref<string | null>(null);
+const activeGroupPermissions = ref<Record<string, string>>({});
 
 type UserGroup = {
   id: string;
@@ -49,6 +51,7 @@ function clearAuthState(): void {
   activeGroupId.value = null;
   activeGroupOwnerId.value = null;
   activeGroupAvatarUrl.value = null;
+  activeGroupPermissions.value = {};
   userGroups.value = [];
   statusPromise = null;
   try {
@@ -63,6 +66,7 @@ function applyStatusData(data: {
     name: string;
     ownerId?: string;
     avatarUrl?: string;
+    permissions?: Record<string, string>;
   } | null;
   groups?: UserGroup[];
 }): void {
@@ -72,6 +76,7 @@ function applyStatusData(data: {
   activeGroupId.value = data.group?.id ?? null;
   activeGroupOwnerId.value = data.group?.ownerId ?? null;
   activeGroupAvatarUrl.value = data.group?.avatarUrl ?? null;
+  activeGroupPermissions.value = data.group?.permissions ?? {};
   userGroups.value = data.groups ?? [];
 }
 
@@ -276,6 +281,45 @@ export function useAppAuth() {
     return activeGroup?.scheduleConfig ?? null;
   });
 
+  function checkPermission(permissionKey: string): boolean {
+    const userStore = useUserStore();
+    if (userStore.user?.role === 'superadmin') return true;
+
+    const activeGroup = userGroups.value.find(
+      (g) => g.id === activeGroupId.value,
+    );
+    if (!activeGroup) return false;
+
+    if (activeGroupOwnerId.value === userStore.user?.id) return true;
+
+    const userRole = activeGroup.role;
+    if (userRole === 'admin') return true;
+
+    const defaultPermissions: Record<string, string> = {
+      edit_group_general: 'moderator',
+      edit_subjects_courses: 'admin',
+      edit_schedule: 'admin',
+      create_items: 'user',
+      upload_images: 'user',
+      manage_notes: 'moderator',
+      send_messages: 'user',
+      manage_schedule_changes: 'moderator',
+      manage_announcements: 'moderator',
+      moderate_members: 'moderator',
+      delete_other_content: 'moderator',
+    };
+
+    const requiredRole =
+      activeGroupPermissions.value[permissionKey] ||
+      defaultPermissions[permissionKey] ||
+      'admin';
+
+    if (requiredRole === 'user') return true;
+    if (requiredRole === 'moderator') return userRole === 'moderator';
+    if (requiredRole === 'admin') return false;
+    return false;
+  }
+
   return {
     isAuthenticated,
     isLoggedIn,
@@ -284,6 +328,7 @@ export function useAppAuth() {
     activeGroupId,
     activeGroupOwnerId,
     activeGroupAvatarUrl,
+    activeGroupPermissions,
     activeScheduleConfig,
     userGroups,
     initAuth,
@@ -293,5 +338,6 @@ export function useAppAuth() {
     switchActiveGroup,
     logout,
     logoutAllDevices,
+    checkPermission,
   };
 }

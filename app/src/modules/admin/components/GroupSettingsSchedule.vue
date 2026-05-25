@@ -27,9 +27,16 @@ const emit = defineEmits<{
   (e: 'update-schedule-config', payload: Record<string, any>): void;
 }>();
 
-const { activeScheduleConfig } = useAppAuth();
+const { activeScheduleConfig, checkPermission } = useAppAuth();
 const userStore = useUserStore();
-const isAdmin = computed(() => userStore.user?.tenantRole === 'admin');
+const isAdmin = computed(
+  () =>
+    userStore.user?.tenantRole === 'admin' ||
+    userStore.user?.role === 'superadmin',
+);
+
+const canEditScheduleConfig = computed(() => checkPermission('edit_schedule'));
+const canManageScheduleChanges = computed(() => checkPermission('manage_schedule_changes'));
 
 const subForm = ref({
   lessonId: '',
@@ -180,7 +187,7 @@ function handleSaveSub() {
           id="config-start"
           type="time"
           v-model="configForm.startTime"
-          :disabled="!isAdmin"
+          :disabled="!canEditScheduleConfig"
         />
       </div>
       <div>
@@ -191,7 +198,7 @@ function handleSaveSub() {
           min="1"
           max="15"
           v-model.number="configForm.totalSlots"
-          :disabled="!isAdmin"
+          :disabled="!canEditScheduleConfig"
         />
       </div>
       <div>
@@ -202,7 +209,7 @@ function handleSaveSub() {
           min="10"
           max="120"
           v-model.number="configForm.lessonDurationMins"
-          :disabled="!isAdmin"
+          :disabled="!canEditScheduleConfig"
         />
       </div>
     </div>
@@ -211,7 +218,7 @@ function handleSaveSub() {
       <div class="flex items-center justify-between mb-3">
         <h3>Pausen</h3>
         <BaseButton
-          v-if="isAdmin"
+          v-if="canEditScheduleConfig"
           variant="ghost"
           @click="addBreak"
           :icon="Plus"
@@ -241,7 +248,7 @@ function handleSaveSub() {
               min="1"
               :max="configForm.totalSlots"
               v-model.number="brk.slot"
-              :disabled="!isAdmin"
+              :disabled="!canEditScheduleConfig"
             />
           </div>
           <div class="form-field flex-1 m-0">
@@ -251,11 +258,11 @@ function handleSaveSub() {
               type="number"
               min="1"
               v-model.number="brk.duration"
-              :disabled="!isAdmin"
+              :disabled="!canEditScheduleConfig"
             />
           </div>
           <BaseButton
-            v-if="isAdmin"
+            v-if="canEditScheduleConfig"
             variant="ghost"
             class="text-danger mb-1"
             @click="removeBreak(brk.id)"
@@ -265,7 +272,7 @@ function handleSaveSub() {
       </div>
     </div>
 
-    <div v-if="isAdmin" class="mt-6">
+    <div v-if="canEditScheduleConfig" class="mt-6">
       <BaseButton
         @click="handleSaveConfig"
         :disabled="savingScheduleConfig"
@@ -335,6 +342,7 @@ function handleSaveSub() {
               id="sub-subject"
               v-model="subForm.subject"
               placeholder="Deutsch"
+              :disabled="!canManageScheduleChanges"
             />
           </div>
           <div class="form-field">
@@ -343,6 +351,7 @@ function handleSaveSub() {
               id="sub-room"
               v-model="subForm.room"
               placeholder="A101"
+              :disabled="!canManageScheduleChanges"
             />
           </div>
           <div class="form-field">
@@ -352,6 +361,7 @@ function handleSaveSub() {
               v-model.number="subForm.slot"
               type="number"
               placeholder="4"
+              :disabled="!canManageScheduleChanges"
             />
           </div>
           <div class="form-field">
@@ -362,6 +372,7 @@ function handleSaveSub() {
               type="number"
               min="1"
               placeholder="2"
+              :disabled="!canManageScheduleChanges"
             />
           </div>
           <div class="form-field">
@@ -373,22 +384,23 @@ function handleSaveSub() {
               min="1"
               max="5"
               placeholder="2"
+              :disabled="!canManageScheduleChanges"
             />
           </div>
         </div>
 
         <div class="flex gap-6 mt-4 mb-6">
-          <BaseCheckbox v-model="subForm.cancelled">
+          <BaseCheckbox v-model="subForm.cancelled" :disabled="!canManageScheduleChanges">
             <span>Ausfall</span>
           </BaseCheckbox>
-          <BaseCheckbox v-model="subForm.hide">
+          <BaseCheckbox v-model="subForm.hide" :disabled="!canManageScheduleChanges">
             <span>Verstecken</span>
           </BaseCheckbox>
         </div>
 
         <BaseButton
           @click="handleSaveSub"
-          :disabled="savingSub || !subForm.lessonId"
+          :disabled="savingSub || !subForm.lessonId || !canManageScheduleChanges"
           variant="action"
         >
           {{ savingSub ? 'Speichert...' : 'Speichern' }}
@@ -456,6 +468,7 @@ function handleSaveSub() {
           <BaseTooltip :content="t('global.buttons.delete')" placement="bottom">
             <BaseButton
               @click="emit('delete-sub', sub.id)"
+              :disabled="!canManageScheduleChanges"
               variant="ghost"
               :icon="Trash2"
             />

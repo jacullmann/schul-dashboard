@@ -14,7 +14,9 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { TenantGuard } from '../common/guards/tenant.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { TenantRoles } from '../common/decorators/roles.decorator';
-import { ActiveTenantId } from '../common/decorators/tenant.decorator';
+import { GroupPermissionGuard } from '../common/guards/group-permission.guard';
+import { GroupPermission } from '../common/decorators/group-permission.decorator';
+import { ActiveTenantId, TenantRole } from '../common/decorators/tenant.decorator';
 import { CurrentUserId } from '../common/decorators/current-user.decorator';
 import {
   ChangeMemberRoleDto,
@@ -25,6 +27,7 @@ import {
   UpdateSubjectDto,
   UpdateGroupPasswordDto,
   UpdateScheduleConfigDto,
+  UpdateGroupPermissionsDto,
 } from './dto/group-admin.dto';
 
 @UseGuards(JwtAuthGuard, TenantGuard, RolesGuard)
@@ -50,7 +53,8 @@ export class GroupAdminController {
     return this.groupAdminService.getBannedUsers(tenantId);
   }
 
-  @TenantRoles('admin')
+  @UseGuards(GroupPermissionGuard)
+  @GroupPermission('moderate_members')
   @Delete('banned-users/:userId')
   revertBan(
     @ActiveTenantId() tenantId: string,
@@ -64,7 +68,8 @@ export class GroupAdminController {
     );
   }
 
-  @TenantRoles('admin')
+  @UseGuards(GroupPermissionGuard)
+  @GroupPermission('moderate_members')
   @Patch('members/:userId/role')
   changeMemberRole(
     @ActiveTenantId() tenantId: string,
@@ -94,7 +99,8 @@ export class GroupAdminController {
     );
   }
 
-  @TenantRoles('admin')
+  @UseGuards(GroupPermissionGuard)
+  @GroupPermission('moderate_members')
   @Delete('members/:userId')
   removeMember(
     @ActiveTenantId() tenantId: string,
@@ -110,7 +116,8 @@ export class GroupAdminController {
     );
   }
 
-  @TenantRoles('admin')
+  @UseGuards(GroupPermissionGuard)
+  @GroupPermission('edit_group_general')
   @Patch('settings')
   renameGroup(
     @ActiveTenantId() tenantId: string,
@@ -122,6 +129,26 @@ export class GroupAdminController {
       userId,
       body.name,
       body.avatarUrl,
+    );
+  }
+
+  @TenantRoles('admin', 'moderator')
+  @Get('permissions')
+  getPermissions(@ActiveTenantId() tenantId: string) {
+    return this.groupAdminService.getPermissions(tenantId);
+  }
+
+  @TenantRoles('admin')
+  @Patch('permissions')
+  updatePermissions(
+    @ActiveTenantId() tenantId: string,
+    @CurrentUserId() userId: string,
+    @Body() body: UpdateGroupPermissionsDto,
+  ) {
+    return this.groupAdminService.updatePermissions(
+      tenantId,
+      userId,
+      body.permissions,
     );
   }
 
@@ -140,7 +167,8 @@ export class GroupAdminController {
     );
   }
 
-  @TenantRoles('admin')
+  @UseGuards(GroupPermissionGuard)
+  @GroupPermission('edit_schedule')
   @Patch('schedule-config')
   updateScheduleConfig(
     @ActiveTenantId() tenantId: string,
@@ -178,7 +206,8 @@ export class GroupAdminController {
     return this.groupAdminService.getSubjects(tenantId);
   }
 
-  @TenantRoles('admin')
+  @UseGuards(GroupPermissionGuard)
+  @GroupPermission('edit_subjects_courses')
   @Post('subjects')
   createSubject(
     @ActiveTenantId() tenantId: string,
@@ -188,7 +217,8 @@ export class GroupAdminController {
     return this.groupAdminService.createSubject(tenantId, userId, body.name);
   }
 
-  @TenantRoles('admin')
+  @UseGuards(GroupPermissionGuard)
+  @GroupPermission('edit_subjects_courses')
   @Patch('subjects/:id')
   updateSubject(
     @ActiveTenantId() tenantId: string,
@@ -202,7 +232,8 @@ export class GroupAdminController {
     });
   }
 
-  @TenantRoles('admin')
+  @UseGuards(GroupPermissionGuard)
+  @GroupPermission('edit_subjects_courses')
   @Delete('subjects/:id')
   deleteSubject(
     @ActiveTenantId() tenantId: string,
@@ -224,7 +255,8 @@ export class GroupAdminController {
     return this.groupAdminService.getScheduleSubs(tenantId);
   }
 
-  @TenantRoles('admin', 'moderator')
+  @UseGuards(GroupPermissionGuard)
+  @GroupPermission('manage_schedule_changes')
   @Post('schedule/subs')
   createScheduleSub(
     @ActiveTenantId() tenantId: string,
@@ -234,7 +266,8 @@ export class GroupAdminController {
     return this.groupAdminService.createScheduleSub(tenantId, userId, body);
   }
 
-  @TenantRoles('admin', 'moderator')
+  @UseGuards(GroupPermissionGuard)
+  @GroupPermission('manage_schedule_changes')
   @Delete('schedule/subs/:id')
   deleteScheduleSub(
     @ActiveTenantId() tenantId: string,
@@ -243,7 +276,8 @@ export class GroupAdminController {
     return this.groupAdminService.deleteScheduleSub(tenantId, id);
   }
 
-  @TenantRoles('admin', 'moderator')
+  @UseGuards(GroupPermissionGuard)
+  @GroupPermission('manage_announcements')
   @Post('announcements')
   createAnnouncement(
     @ActiveTenantId() tenantId: string,
@@ -258,7 +292,8 @@ export class GroupAdminController {
     );
   }
 
-  @TenantRoles('admin', 'moderator')
+  @UseGuards(GroupPermissionGuard)
+  @GroupPermission('manage_announcements')
   @Delete('announcements/:id')
   deleteAnnouncement(
     @ActiveTenantId() tenantId: string,

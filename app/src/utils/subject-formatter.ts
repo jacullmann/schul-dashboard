@@ -17,7 +17,9 @@ export function formatSubjectDisplay(
       (s) => s.id === mainKey || s.name.toLowerCase() === mainKey.toLowerCase(),
     );
     let course = parts[1]!.trim();
-    const mapped = sub?.courses?.find((k) => k.id === course || k.name === course);
+    const mapped = sub?.courses?.find(
+      (k) => k.id === course || k.name === course,
+    );
     if (mapped) course = mapped.name;
 
     let courseDisplay = course;

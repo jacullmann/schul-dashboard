@@ -12,6 +12,7 @@ export class TenantGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
+    const sb = this.supabaseService.getClient();
 
     let tenantId: string | null = request.activeGroupId || null;
 
@@ -29,18 +30,23 @@ export class TenantGuard implements CanActivate {
 
     if (request.user?.globalRole === 'superadmin') {
       request.tenantId = tenantId;
+      const { data: group } = await sb
+        .from('groups')
+        .select('owner_id, permissions')
+        .eq('id', tenantId)
+        .maybeSingle();
+      request.groupOwnerId = group?.owner_id || null;
+      request.groupPermissions = group?.permissions || {};
       return true;
     }
-
-    const sb = this.supabaseService.getClient();
-    const { data: memberships } = await sb
+    const { data: userRoles } = await sb
       .from('user_roles')
-      .select('roles(name)')
+      .select('roles(name), groups(owner_id, permissions)')
       .eq('user_id', request.userId)
       .eq('tenant_id', tenantId)
       .limit(1);
 
-    const membership = memberships?.[0];
+    const membership = userRoles?.[0];
     const roleName = (membership as any)?.roles?.name;
 
     if (!membership || !roleName) {
@@ -49,6 +55,8 @@ export class TenantGuard implements CanActivate {
 
     request.tenantId = tenantId;
     request.tenantRole = roleName;
+    request.groupOwnerId = (membership as any)?.groups?.owner_id || null;
+    request.groupPermissions = (membership as any)?.groups?.permissions || {};
     return true;
   }
 }

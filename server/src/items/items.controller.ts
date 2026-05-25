@@ -14,6 +14,8 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { TenantGuard } from '../common/guards/tenant.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { TenantRoles } from '../common/decorators/roles.decorator';
+import { GroupPermissionGuard } from '../common/guards/group-permission.guard';
+import { GroupPermission } from '../common/decorators/group-permission.decorator';
 import {
   ActiveTenantId,
   TenantRole,
@@ -53,7 +55,8 @@ export class ItemsController {
     return this.itemsService.getItemById(tenantId, id);
   }
 
-  @UseGuards(TenantGuard)
+  @UseGuards(TenantGuard, GroupPermissionGuard)
+  @GroupPermission('create_items')
   @Post()
   createItem(
     @ActiveTenantId() tenantId: string,
@@ -91,8 +94,8 @@ export class ItemsController {
     );
   }
 
-  @UseGuards(TenantGuard, RolesGuard)
-  @TenantRoles('admin', 'moderator')
+  @UseGuards(TenantGuard, GroupPermissionGuard)
+  @GroupPermission('manage_notes')
   @Patch(':id/note')
   updateItemNote(
     @ActiveTenantId() tenantId: string,
@@ -108,7 +111,8 @@ export class ItemsController {
     );
   }
 
-  @UseGuards(TenantGuard)
+  @UseGuards(TenantGuard, GroupPermissionGuard)
+  @GroupPermission('upload_images')
   @Post(':id/images')
   addImage(
     @ActiveTenantId() tenantId: string,
