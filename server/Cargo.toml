@@ -22,7 +22,8 @@ hyper = { version = "1.9", features = ["full"] }
 cookie = "0.18"
 tokio = { version = "1.52", features = ["full"] }
 sqlx = { version = "0.9", default-features = false, features = [
-    "runtime-tokio-rustls",
+    "runtime-tokio",
+    "tls-rustls-ring",
     "postgres",
     "uuid",
     "chrono",
@@ -41,7 +42,7 @@ hex = "0.4"
 base64 = "0.22"
 subtle = "2.6"
 uuid = { version = "1.23", features = ["v4", "serde"] }
-reqwest = { version = "0.13", default-features = false, features = ["json", "rustls-tls"] }
+reqwest = { version = "0.13", default-features = false, features = ["json", "rustls"] }
 chrono = { version = "0.4", default-features = false, features = ["clock", "serde"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
