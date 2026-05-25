@@ -7,7 +7,7 @@ import { useI18n } from 'vue-i18n';
 import hw from '@/api/hwApi';
 import { io, Socket } from 'socket.io-client';
 import {
-  MessageSquare,
+  MessageCircle,
   SendHorizontal,
   Reply,
   X,
@@ -455,21 +455,13 @@ watch(groupId, () => {
       </div>
 
       <template v-else>
-        <div
+        <BaseEmptyState
           v-if="messages.length === 0"
-          class="h-full flex flex-col justify-center items-center text-on-ghost-muted gap-3 p-6 text-center select-none"
+          :icon="MessageCircle"
+          class="animate-fade-up"
         >
-          <div
-            class="w-16 h-16 bg-surface-hover/20 rounded-3xl border border-surface-border/30 flex items-center justify-center opacity-80 mb-1"
-          >
-            <MessageSquare
-              class="w-6 h-6 text-on-ghost-muted opacity-80 animate-pulse"
-            />
-          </div>
-          <span class="text-sm font-bold tracking-tight text-on-ghost-muted">{{
-            t('chat.noMessages')
-          }}</span>
-        </div>
+          <template #title>{{ t('chat.noMessages') }}</template>
+        </BaseEmptyState>
 
         <TransitionGroup name="msg-list">
           <div
