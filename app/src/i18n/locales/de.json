@@ -667,6 +667,7 @@
   },
   "chat": {
     "title": "Gruppenchat",
+    "newMessages": "Neue Nachrichten",
     "placeholder": "Nachricht eingeben...",
     "send": "Senden",
     "replyingTo": "Antwort auf",

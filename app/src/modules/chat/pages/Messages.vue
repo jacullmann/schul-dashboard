@@ -82,12 +82,26 @@ const groupId = computed(() => route.params.groupId as string);
 const currentUserId = computed(() => user.value?.id || '');
 
 const messages = ref<any[]>([]);
+const lastVisitAt = ref<string | null>(null);
 const loading = ref(true);
 const error = ref<string | null>(null);
 const messageInput = ref('');
 const replyParent = ref<any | null>(null);
 const isTyping = ref(false);
 const typingUsers = ref<Map<string, string>>(new Map());
+const pendingMarkRead = ref(false);
+const dismissedNewMessagesDivider = ref(false);
+const isInitialScroll = ref(true);
+
+const firstNewMessageIndex = computed(() => {
+  if (!lastVisitAt.value) return -1;
+  const visitTime = new Date(lastVisitAt.value).getTime();
+  return messages.value.findIndex(
+    (msg) =>
+      msg.userId !== currentUserId.value &&
+      new Date(msg.createdAt).getTime() > visitTime,
+  );
+});
 
 const showScrollBottomBtn = ref(false);
 const messageContainer = ref<HTMLElement | null>(null);
@@ -159,6 +173,7 @@ let typingTimeout: any = null;
 
 const isGroupedWithPrevious = (msg: any, index: number) => {
   if (index === 0) return false;
+  if (index === firstNewMessageIndex.value) return false; // Do not group across the divider
   const prevMsg = messages.value[index - 1];
   if (prevMsg.userId !== msg.userId) return false;
 
@@ -206,6 +221,14 @@ const handleScroll = () => {
   const c = messageContainer.value;
   showScrollBottomBtn.value =
     c.scrollHeight - c.scrollTop - c.clientHeight > 300;
+
+  // Dismiss new messages divider if user scrolls manually
+  if (!dismissedNewMessagesDivider.value && !isInitialScroll.value && messages.value.length > 0) {
+    dismissedNewMessagesDivider.value = true;
+    if (dividerTimeout) {
+      clearTimeout(dividerTimeout);
+    }
+  }
 };
 
 const formatTime = (timestamp: string) => {
@@ -217,10 +240,15 @@ const formatTime = (timestamp: string) => {
 const fetchMessages = async () => {
   loading.value = true;
   error.value = null;
+  isInitialScroll.value = true;
   try {
     const { data } = await hw.get('/api/messages');
-    messages.value = data;
+    messages.value = data.messages;
+    lastVisitAt.value = data.lastVisitAt;
     scrollToBottom(true);
+    setTimeout(() => {
+      isInitialScroll.value = false;
+    }, 500);
   } catch (err) {
     error.value = t('chat.errorLoading');
     console.error(err);
@@ -246,6 +274,10 @@ const initSocket = () => {
   socket.on('newMessage', (message: any) => {
     if (messages.value.some((m) => m.id === message.id)) return;
     messages.value.push(message);
+    if (message.userId !== currentUserId.value) {
+      pendingMarkRead.value = true;
+      void triggerMarkRead();
+    }
     scrollToBottom();
   });
 
@@ -305,6 +337,11 @@ const sendMessage = async () => {
   const currentReplyParent = replyParent.value;
   replyParent.value = null;
   emitStopTyping();
+
+  dismissedNewMessagesDivider.value = true;
+  if (dividerTimeout) {
+    clearTimeout(dividerTimeout);
+  }
 
   try {
     await hw.post('/api/messages', payload);
@@ -405,23 +442,75 @@ const deleteMessage = async (msg: any) => {
   }
 };
 
+let dividerTimeout: any = null;
+
+const triggerMarkRead = async () => {
+  if (!pendingMarkRead.value) return;
+  if (document.visibilityState !== 'visible' || !document.hasFocus()) return;
+
+  pendingMarkRead.value = false;
+  try {
+    await hw.post('/api/messages/read');
+    lastVisitAt.value = new Date().toISOString();
+  } catch (err) {
+    console.error('Failed to mark messages as read:', err);
+    pendingMarkRead.value = true;
+  }
+};
+
+const handleWindowFocus = () => {
+  if (pendingMarkRead.value) {
+    void triggerMarkRead();
+  }
+};
+
 onMounted(() => {
   void fetchMessages();
   initSocket();
 
   document.body.style.overflow = 'hidden';
+  window.addEventListener('focus', handleWindowFocus);
+  document.addEventListener('visibilitychange', handleWindowFocus);
+
+  if (dividerTimeout) {
+    clearTimeout(dividerTimeout);
+  }
+  dividerTimeout = setTimeout(() => {
+    dismissedNewMessagesDivider.value = true;
+  }, 4000);
 });
 
 onUnmounted(() => {
   emitStopTyping();
   cleanupSocket();
+  window.removeEventListener('focus', handleWindowFocus);
+  document.removeEventListener('visibilitychange', handleWindowFocus);
+  if (dividerTimeout) {
+    clearTimeout(dividerTimeout);
+  }
+  if (pendingMarkRead.value) {
+    pendingMarkRead.value = false;
+    void hw.post('/api/messages/read').catch(() => {});
+  }
   document.body.style.overflow = '';
 });
 
 watch(groupId, () => {
+  if (pendingMarkRead.value) {
+    pendingMarkRead.value = false;
+    void hw.post('/api/messages/read').catch(() => {});
+  }
+  dismissedNewMessagesDivider.value = false;
+  isInitialScroll.value = true;
+  if (dividerTimeout) {
+    clearTimeout(dividerTimeout);
+  }
   cleanupSocket();
   void fetchMessages();
   initSocket();
+  dividerTimeout = setTimeout(() => {
+    dismissedNewMessagesDivider.value = true;
+  }, 4000);
 });
 </script>
 
@@ -465,26 +554,43 @@ watch(groupId, () => {
           <div
             v-for="(msg, index) in messages"
             :key="msg.id"
-            :id="`msg-${msg.id}`"
-            class="group/msg w-full px-2 md:px-8"
-            :class="isGroupedWithPrevious(msg, index) ? 'mt-1' : 'mt-4'"
-            @contextmenu.prevent.stop="openMenu($event, msg)"
+            class="w-full flex flex-col items-stretch"
           >
+            <!-- New Messages Divider -->
+            <Transition name="fade">
+              <div
+                v-if="index === firstNewMessageIndex && !dismissedNewMessagesDivider"
+                class="flex items-center my-6 px-4 md:px-8 select-none"
+              >
+                <div class="flex-1 border-t border-danger/30"></div>
+                <span class="mx-4 text-xs font-bold text-danger tracking-wider uppercase bg-canvas px-2.25 py-0.5 rounded-full border border-danger/20 shadow-sm">
+                  {{ messages.length >= 100 && firstNewMessageIndex === 0 ? '100+ ' + t('chat.newMessages') : t('chat.newMessages') }}
+                </span>
+                <div class="flex-1 border-t border-danger/30"></div>
+              </div>
+            </Transition>
+
+            <div
+              :id="`msg-${msg.id}`"
+              class="group/msg w-full px-2 md:px-8"
+              :class="isGroupedWithPrevious(msg, index) ? 'mt-1' : 'mt-4'"
+              @contextmenu.prevent.stop="openMenu($event, msg)"
+            >
             <div
               :class="[
                 'flex items-end gap-2 max-w-[85%] sm:max-w-[70%] transition-all duration-200',
-                msg.userId === currentUserId
+                msg.userId === currentUserId.value
                   ? 'ml-auto flex-row-reverse'
                   : 'mr-auto',
               ]"
             >
               <div
-                v-if="msg.userId !== currentUserId"
+                v-if="msg.userId !== currentUserId.value"
                 class="w-8 shrink-0 flex justify-center self-start"
               >
                 <Avatar
                   v-if="
-                    msg.userId !== currentUserId &&
+                    msg.userId !== currentUserId.value &&
                     !isGroupedWithPrevious(msg, index)
                   "
                   :name="msg.senderName"
@@ -516,7 +622,7 @@ watch(groupId, () => {
                 <div
                   :class="[
                     'p-2 transition-all duration-200 relative group min-w-0 max-w-full',
-                    msg.userId === currentUserId
+                    msg.userId === currentUserId.value
                       ? 'bg-action text-on-action'
                       : 'bg-ghost-hover text-on-ghost',
 
@@ -540,7 +646,7 @@ watch(groupId, () => {
                 >
                   <span
                     v-if="
-                      msg.userId !== currentUserId &&
+                      msg.userId !== currentUserId.value &&
                       !isGroupedWithPrevious(msg, index)
                     "
                     class="px-2 text-base/relaxed font-bold text-on-ghost tracking-tight select-none mb-1"
@@ -554,7 +660,7 @@ watch(groupId, () => {
                     v-wave
                     :class="[
                       'flex flex-col mb-1 px-3 py-2 border-l-4 text-sm rounded-md transition-all duration-150 cursor-pointer select-none max-w-full w-full min-w-0',
-                      msg.userId === currentUserId
+                      msg.userId === currentUserId.value
                         ? 'bg-action-hover hover:bg-on-action/20 border-on-action-muted text-on-action-muted'
                         : 'bg-ghost-hover hover:bg-on-ghost/15 border-on-ghost-muted text-on-ghost-muted mt-1',
                     ]"
@@ -575,7 +681,7 @@ watch(groupId, () => {
                     <span
                       :class="[
                         'text-xs select-none font-normal tracking-tight whitespace-nowrap ml-auto self-end',
-                        msg.userId === currentUserId
+                        msg.userId === currentUserId.value
                           ? 'text-on-action-muted/70'
                           : 'text-on-ghost-subtle',
                       ]"
@@ -587,7 +693,7 @@ watch(groupId, () => {
                   <div
                     :class="[
                       'absolute top-1/2 -translate-y-1/2 opacity-0 group-hover/msg:opacity-100 flex gap-2 items-center transition-all duration-200 delay-75 scale-90 translate-y-1 group-hover/msg:scale-100 group-hover/msg:translate-y-[-50%] z-10 hidden md:flex',
-                      msg.userId === currentUserId
+                      msg.userId === currentUserId.value
                         ? 'left-[-96px] flex-row-reverse'
                         : 'right-[-96px] flex-row',
                     ]"
@@ -607,7 +713,8 @@ watch(groupId, () => {
               </div>
             </div>
           </div>
-        </TransitionGroup>
+        </div>
+      </TransitionGroup>
 
         <Teleport to="body">
           <BaseMenu

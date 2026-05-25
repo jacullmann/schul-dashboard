@@ -231,10 +231,22 @@ export class GroupService {
       if (groups.length > 0) {
         const tenantIds = groups.map((g) => g.id);
 
+        const latestMessagesPromises = tenantIds.map((tId) =>
+          sb
+            .from('group_messages')
+            .select('created_at')
+            .eq('tenant_id', tId)
+            .neq('user_id', userId)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle(),
+        );
+
         const [
           { data: allAnnouncements },
           { data: allSubs },
           { data: userStates },
+          ...latestMessagesResults
         ] = await Promise.all([
           sb
             .from('announcements')
@@ -246,9 +258,10 @@ export class GroupService {
             .in('tenant_id', tenantIds),
           sb
             .from('user_tenant_state')
-            .select('tenant_id, last_schedule_visit_at, last_group_visit_at')
+            .select('tenant_id, last_schedule_visit_at, last_group_visit_at, last_messages_visit_at')
             .eq('user_id', userId)
             .in('tenant_id', tenantIds),
+          ...latestMessagesPromises,
         ]);
 
         const announcementIds = (allAnnouncements || []).map(
@@ -280,6 +293,21 @@ export class GroupService {
           ]),
         );
 
+        const lastMessagesVisitMap = new Map<string, string>(
+          (userStates || []).map((s: any) => [
+            s.tenant_id as string,
+            (s.last_messages_visit_at as string) ?? EPOCH_ISO,
+          ]),
+        );
+
+        const latestMessagesMap = new Map<string, string>();
+        for (let i = 0; i < tenantIds.length; i++) {
+          const res = latestMessagesResults[i];
+          if (res?.data?.created_at) {
+            latestMessagesMap.set(tenantIds[i], res.data.created_at);
+          }
+        }
+
         for (const g of groups) {
           const hasUnreadAnn = (allAnnouncements || []).some(
             (a: any) => a.tenant_id === g.id && !readIds.has(a.id as string),
@@ -289,7 +317,12 @@ export class GroupService {
             (s: any) =>
               s.tenant_id === g.id && (s.created_at as string) > lastVisit,
           );
-          g.hasUnreadContent = hasUnreadAnn || hasNewSubs;
+
+          const lastMessagesVisit = lastMessagesVisitMap.get(g.id) ?? EPOCH_ISO;
+          const latestMsgTime = latestMessagesMap.get(g.id);
+          const hasNewMessages = latestMsgTime ? latestMsgTime > lastMessagesVisit : false;
+
+          g.hasUnreadContent = hasUnreadAnn || hasNewSubs || hasNewMessages;
         }
 
         groups.sort((a, b) => {

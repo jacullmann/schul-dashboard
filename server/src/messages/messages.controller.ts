@@ -19,6 +19,7 @@ import {
 } from '../common/decorators/current-user.decorator';
 import type { AuthUser } from '../common/decorators/current-user.decorator';
 import { MessagesService } from './messages.service';
+import type { GetMessagesResponse } from './messages.service';
 import { MessagesGateway } from './messages.gateway';
 import { CreateMessageDto } from './dto/create-message.dto';
 
@@ -32,8 +33,21 @@ export class MessagesController {
 
   @UseGuards(TenantGuard)
   @Get()
-  async getMessages(@ActiveTenantId() tenantId: string) {
-    return this.messagesService.getMessages(tenantId);
+  async getMessages(
+    @ActiveTenantId() tenantId: string,
+    @CurrentUserId() userId: string,
+  ): Promise<GetMessagesResponse> {
+    return this.messagesService.getMessages(tenantId, userId);
+  }
+
+  @UseGuards(TenantGuard)
+  @Post('read')
+  async markRead(
+    @ActiveTenantId() tenantId: string,
+    @CurrentUserId() userId: string,
+  ) {
+    await this.messagesService.markRead(tenantId, userId);
+    return { ok: true };
   }
 
   @UseGuards(TenantGuard)

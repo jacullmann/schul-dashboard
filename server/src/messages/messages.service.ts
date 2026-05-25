@@ -22,13 +22,32 @@ export interface GroupMessageResponse {
   updatedAt: string;
 }
 
+export interface GetMessagesResponse {
+  messages: GroupMessageResponse[];
+  lastVisitAt: string | null;
+}
+
 @Injectable()
 export class MessagesService {
   constructor(private readonly supabaseService: SupabaseService) {}
 
-  async getMessages(tenantId: string): Promise<GroupMessageResponse[]> {
+  async getMessages(
+    tenantId: string,
+    userId: string,
+  ): Promise<GetMessagesResponse> {
     const sb = this.supabaseService.getClient();
 
+    // 1. Fetch user's previous last_messages_visit_at
+    const { data: userState } = await sb
+      .from('user_tenant_state')
+      .select('last_messages_visit_at')
+      .eq('user_id', userId)
+      .eq('tenant_id', tenantId)
+      .maybeSingle();
+
+    const lastVisitAt = userState?.last_messages_visit_at || null;
+
+    // 2. Fetch messages first to avoid race condition
     const { data: messages, error } = await sb
       .from('group_messages')
       .select('*')
@@ -42,8 +61,20 @@ export class MessagesService {
       );
     }
 
+    // 3. Upsert user's last_messages_visit_at to now after messages are fetched
+    await sb
+      .from('user_tenant_state')
+      .upsert(
+        {
+          user_id: userId,
+          tenant_id: tenantId,
+          last_messages_visit_at: new Date().toISOString(),
+        },
+        { onConflict: 'user_id,tenant_id' },
+      );
+
     if (!messages || messages.length === 0) {
-      return [];
+      return { messages: [], lastVisitAt };
     }
 
     const chronologicalMessages = [...messages].reverse();
@@ -77,7 +108,7 @@ export class MessagesService {
       }
     }
 
-    return chronologicalMessages.map((m) => {
+    const formattedMessages = chronologicalMessages.map((m) => {
       const response: GroupMessageResponse = {
         id: m.id,
         tenantId: m.tenant_id,
@@ -97,6 +128,25 @@ export class MessagesService {
 
       return response;
     });
+
+    return {
+      messages: formattedMessages,
+      lastVisitAt,
+    };
+  }
+
+  async markRead(tenantId: string, userId: string): Promise<void> {
+    const sb = this.supabaseService.getClient();
+    await sb
+      .from('user_tenant_state')
+      .upsert(
+        {
+          user_id: userId,
+          tenant_id: tenantId,
+          last_messages_visit_at: new Date().toISOString(),
+        },
+        { onConflict: 'user_id,tenant_id' },
+      );
   }
 
   async createMessage(
