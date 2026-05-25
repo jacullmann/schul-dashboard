@@ -22,7 +22,7 @@ use sqlx::postgres::PgPoolOptions;
 use state::AppState;
 use tower_http::{
     compression::CompressionLayer,
-    cors::{AllowHeaders, AllowMethods, AllowOrigin, CorsLayer},
+    cors::{AllowHeaders, AllowMethods, CorsLayer},
     request_id::{MakeRequestUuid, SetRequestIdLayer},
     timeout::TimeoutLayer,
     trace::TraceLayer,
@@ -84,16 +84,15 @@ async fn main() -> anyhow::Result<()> {
     let api = Router::new()
         .merge(system::routes::router())
         .merge(auth::routes::router())
-        // remaining modules added as they are implemented:
-        // .merge(user::routes::router())
-        // .merge(group::routes::router())
-        // .merge(todos::routes::router())
-        // .merge(items::routes::router())
-        // .merge(messages::routes::router())
-        // .merge(schedule::routes::router())
-        // .merge(mfa::routes::router())
-        // .merge(oauth::routes::router())
-        // .merge(super_admin::routes::router())
+        .merge(user::routes::router())
+        .merge(group::routes::router())
+        .merge(todos::routes::router())
+        .merge(items::routes::router())
+        .merge(messages::routes::router())
+        .merge(schedule::routes::router())
+        .merge(mfa::routes::router())
+        .merge(oauth::routes::router())
+        .merge(super_admin::routes::router())
         .layer(middleware::from_fn_with_state(
             state.clone(),
             csrf_middleware,
