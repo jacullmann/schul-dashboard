@@ -608,7 +608,7 @@
   },
   "search": {
     "descriptions": {
-      "admin": "Administrator Einstellungen",
+      "admin": "Gruppen Einstellungen",
       "changeLanguage": "Die Sprache der App ändern",
       "changePassword": "Dein Kontopasswort aktualisieren",
       "changeTheme": "Das Design der App anpassen",

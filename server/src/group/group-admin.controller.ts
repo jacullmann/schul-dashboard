@@ -35,19 +35,19 @@ import {
 export class GroupAdminController {
   constructor(private readonly groupAdminService: GroupAdminService) {}
 
-  @TenantRoles('admin', 'moderator')
+  @TenantRoles('admin', 'moderator', 'user')
   @Get('stats')
   getStats(@ActiveTenantId() tenantId: string) {
     return this.groupAdminService.getStats(tenantId);
   }
 
-  @TenantRoles('admin', 'moderator')
+  @TenantRoles('admin', 'moderator', 'user')
   @Get('members')
   getMembers(@ActiveTenantId() tenantId: string) {
     return this.groupAdminService.getMembers(tenantId);
   }
 
-  @TenantRoles('admin', 'moderator')
+  @TenantRoles('admin', 'moderator', 'user')
   @Get('banned-users')
   getBannedUsers(@ActiveTenantId() tenantId: string) {
     return this.groupAdminService.getBannedUsers(tenantId);
@@ -132,7 +132,7 @@ export class GroupAdminController {
     );
   }
 
-  @TenantRoles('admin', 'moderator')
+  @TenantRoles('admin', 'moderator', 'user')
   @Get('permissions')
   getPermissions(@ActiveTenantId() tenantId: string) {
     return this.groupAdminService.getPermissions(tenantId);
@@ -200,7 +200,7 @@ export class GroupAdminController {
     return this.groupAdminService.cleanupOldItems(tenantId, userId);
   }
 
-  @TenantRoles('admin', 'moderator')
+  @TenantRoles('admin', 'moderator', 'user')
   @Get('subjects')
   getSubjects(@ActiveTenantId() tenantId: string) {
     return this.groupAdminService.getSubjects(tenantId);
@@ -243,13 +243,13 @@ export class GroupAdminController {
     return this.groupAdminService.deleteSubject(tenantId, userId, id);
   }
 
-  @TenantRoles('admin', 'moderator')
+  @TenantRoles('admin', 'moderator', 'user')
   @Get('schedule')
   getSchedule(@ActiveTenantId() tenantId: string) {
     return this.groupAdminService.getSchedule(tenantId);
   }
 
-  @TenantRoles('admin', 'moderator')
+  @TenantRoles('admin', 'moderator', 'user')
   @Get('schedule/subs')
   getScheduleSubs(@ActiveTenantId() tenantId: string) {
     return this.groupAdminService.getScheduleSubs(tenantId);

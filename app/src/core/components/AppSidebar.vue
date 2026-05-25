@@ -252,7 +252,7 @@ onUnmounted(() => {
         />
 
         <SidebarButton
-          v-if="isAnyGroupAdmin"
+          v-if="activeGroupId"
           :label="t('sidebar.admin')"
           :expanded="isExpanded"
           :active="$route.path.startsWith(`/groups/${activeGroupId}/settings`)"

@@ -155,7 +155,7 @@ const defaultResults = computed<SearchResult[]>(() => [
     icon: SlidersHorizontal,
     action: () =>
       withGroup(() => navigate(`/groups/${activeGroupId.value}/settings`)),
-    condition: isAnyGroupAdmin.value,
+    condition: !!activeGroupId.value,
   },
   {
     id: 'games',

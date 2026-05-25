@@ -606,7 +606,7 @@
   },
   "search": {
     "descriptions": {
-      "admin": "Administrator Settings",
+      "admin": "Group Settings",
       "changeLanguage": "Change the app's language",
       "changePassword": "Update your account password",
       "changeTheme": "Change the app's appearance",

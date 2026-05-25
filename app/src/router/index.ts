@@ -113,7 +113,7 @@ const routes = [
             component: () => import('@/modules/admin/pages/GroupSettings.vue'),
             meta: {
               title: 'navigation.groupAdmin',
-              requiresGroupAdmin: true,
+              requiresTenant: true,
               groupContext: true,
               fullWidth: true,
             },
