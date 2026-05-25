@@ -60,14 +60,19 @@ impl GeoIpState {
             "GeoIP database is not loaded yet".to_string()
         })?;
 
-        let city_data: geoip2::City = reader.lookup(ip).map_err(|e| {
+        let lookup_result = reader.lookup(ip).map_err(|e| {
             format!("IP lookup failed: {}", e)
         })?;
 
+        let city_data: geoip2::City<'_> = lookup_result.decode().map_err(|e| {
+            format!("Failed to decode GeoIP data: {}", e)
+        })?.ok_or_else(|| "IP address not found in database".to_string())?;
+
+        // Extract country
         let country = city_data.country
             .as_ref()
             .and_then(|c| c.names.as_ref())
-            .and_then(|n| n.get("en").map(|s| s.to_string()));
+            .and_then(|n| n.english.map(|s| s.to_string()));
             
         let country_code = city_data.country
             .as_ref()
@@ -77,7 +82,7 @@ impl GeoIpState {
         let city = city_data.city
             .as_ref()
             .and_then(|c| c.names.as_ref())
-            .and_then(|n| n.get("en").map(|s| s.to_string()));
+            .and_then(|n| n.english.map(|s| s.to_string()));
 
 
         let latitude = city_data.location.as_ref().and_then(|l| l.latitude);
@@ -88,7 +93,7 @@ impl GeoIpState {
         let continent = city_data.continent
             .as_ref()
             .and_then(|c| c.names.as_ref())
-            .and_then(|n| n.get("en").map(|s| s.to_string()));
+            .and_then(|n| n.english.map(|s| s.to_string()));
             
         let continent_code = city_data.continent
             .as_ref()
