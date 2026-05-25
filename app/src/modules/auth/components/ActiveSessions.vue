@@ -279,9 +279,6 @@ onMounted(() => {
           <!-- Device Icon -->
           <div
             class="flex items-center justify-center w-10 h-10 text-on-ghost-muted shrink-0 transition-colors"
-            :class="{
-              '!bg-success-surface !text-[var(--special--green)]': index === 0,
-            }"
           >
             <component
               :is="
@@ -297,18 +294,14 @@ onMounted(() => {
           </div>
 
           <!-- Session Metadata -->
-          <div class="flex flex-col gap-0.5 flex-1 min-w-0">
-            <div class="flex items-center gap-2 flex-wrap">
-              <span class="text-sm font-semibold text-on-ghost truncate">
-                {{ parseUserAgent(session.userAgent).browser }} auf
-                {{ parseUserAgent(session.userAgent).os }}
-              </span>
+          <div class="flex flex-col flex-1 min-w-0">
+            <div class="text-base font-semibold text-on-ghost truncate">
+              {{ parseUserAgent(session.userAgent).browser }} auf
+              {{ parseUserAgent(session.userAgent).os }}
             </div>
 
             <!-- IP and Location -->
-            <div
-              class="flex items-center gap-1 text-xs/4 text-on-ghost-muted flex-wrap"
-            >
+            <div class="flex items-center gap-1 text-sm text-on-ghost-muted">
               {{ session.location?.city ? `${session.location.city}, ` : '' }}
               {{ session.location?.country || 'Standort unbekannt' }}
               •
@@ -333,18 +326,19 @@ onMounted(() => {
           </div -->
 
             <!-- Revoke Action -->
-            <template v-if="index !== 0">
-              <BaseTooltip content="Gerät abmelden" placement="bottom">
-                <BaseButton
-                  @click="revokeSession(session)"
-                  :loading="revokingId === session.familyId"
-                  variant="ghost"
-                  on="ghost"
-                  :icon="Trash2"
-                />
-              </BaseTooltip>
-            </template>
           </div>
+
+          <template v-if="index !== 0">
+            <BaseTooltip content="Gerät abmelden" placement="bottom">
+              <BaseButton
+                @click="revokeSession(session)"
+                :loading="revokingId === session.familyId"
+                variant="ghost"
+                on="ghost"
+                :icon="Trash2"
+              />
+            </BaseTooltip>
+          </template>
         </div>
       </div>
     </div>
