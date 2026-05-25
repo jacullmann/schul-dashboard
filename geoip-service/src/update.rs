@@ -51,9 +51,8 @@ pub async fn download_and_extract_db(
             let path = entry.path()?;
             if path.to_string_lossy().ends_with("GeoLite2-City.mmdb") {
                 info!("Found GeoLite2-City.mmdb in archive at {:?}", path);
-                let mut buffer = Vec::new();
-                entry.read_to_end(&mut buffer)?;
-                temp_file.write_all(&buffer)?;
+                // Stream directly from archive entry to temp file without allocating a large buffer Vec
+                std::io::copy(&mut entry, &mut temp_file)?;
                 found = true;
                 break;
             }

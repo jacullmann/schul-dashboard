@@ -16,6 +16,7 @@ pub struct LookupResponse {
     pub continent: Option<String>,
     pub continent_code: Option<String>,
     pub postal_code: Option<String>,
+    pub is_local: bool,
 }
 
 #[derive(Clone)]
@@ -30,9 +31,9 @@ impl GeoIpState {
         }
     }
 
-    pub fn load_database(&self, path: &str) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn load_database(&self, path: &str) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         info!("Loading GeoIP database from {}", path);
-        let data = std::fs::read(path)?;
+        let data = tokio::fs::read(path).await?;
         let reader = Reader::from_source(data)?;
         
         {
@@ -52,6 +53,23 @@ impl GeoIpState {
     }
 
     pub fn lookup(&self, ip: IpAddr) -> Result<LookupResponse, String> {
+        // Intercept loopback and private/local IP addresses
+        if ip.is_loopback() || is_private_ip(ip) {
+            return Ok(LookupResponse {
+                ip: ip.to_string(),
+                country: Some("Localhost".to_string()),
+                country_code: Some("LO".to_string()),
+                city: Some("Localhost".to_string()),
+                latitude: Some(0.0),
+                longitude: Some(0.0),
+                timezone: Some("UTC".to_string()),
+                continent: Some("Local".to_string()),
+                continent_code: Some("LO".to_string()),
+                postal_code: None,
+                is_local: true,
+            });
+        }
+
         let reader_lock = self.reader.read().map_err(|e| {
             format!("Failed to acquire read lock for lookup: {}", e)
         })?;
@@ -115,6 +133,21 @@ impl GeoIpState {
             continent,
             continent_code,
             postal_code,
+            is_local: false,
         })
+    }
+}
+
+// Helper to determine if an IP is in private address space.
+fn is_private_ip(ip: IpAddr) -> bool {
+    match ip {
+        IpAddr::V4(ipv4) => {
+            ipv4.is_private()
+        }
+        IpAddr::V6(ipv6) => {
+            let segments = ipv6.segments();
+            let first_byte = (segments[0] >> 8) as u8;
+            first_byte == 0xfc || first_byte == 0xfd || (segments[0] & 0xffc0) == 0xfe80
+        }
     }
 }

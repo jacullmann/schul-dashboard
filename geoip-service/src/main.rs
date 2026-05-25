@@ -70,7 +70,7 @@ async fn main() {
 
     if StdPath::new(&config.database_path).exists() {
         info!("Found existing database at startup. Loading...");
-        if let Err(e) = geoip_state.load_database(&config.database_path) {
+        if let Err(e) = geoip_state.load_database(&config.database_path).await {
             error!("Failed to load existing database at startup: {}", e);
         }
     }
@@ -85,7 +85,7 @@ async fn main() {
         .await
         {
             Ok(_) => {
-                if let Err(e) = geoip_state.load_database(&config.database_path) {
+                if let Err(e) = geoip_state.load_database(&config.database_path).await {
                     error!("Failed to load newly downloaded database: {}", e);
                 }
             }
@@ -99,9 +99,9 @@ async fn main() {
     let cron_state = geoip_state.clone();
     let cron_config = config.clone();
     tokio::spawn(async move {
-        info!("Background update scheduler initialized. Checking database age every hour.");
+        info!("Background update scheduler initialized.");
         loop {
-            sleep(Duration::from_secs(3600)).await;
+            let is_loaded = cron_state.is_loaded();
             
             let should_update = match get_file_age_in_days(&cron_config.database_path) {
                 Some(age_days) => {
@@ -114,8 +114,9 @@ async fn main() {
                 }
             };
 
+            let mut update_successful = true;
             if should_update {
-                info!("Database is 7 or more days old, or missing. Commencing automated weekly update...");
+                info!("Database is outdated or missing. Commencing automated update...");
                 match update::download_and_extract_db(
                     cron_config.license_key.as_deref(),
                     &cron_config.mirror_url,
@@ -124,17 +125,31 @@ async fn main() {
                 .await
                 {
                     Ok(_) => {
-                        if let Err(e) = cron_state.load_database(&cron_config.database_path) {
+                        if let Err(e) = cron_state.load_database(&cron_config.database_path).await {
                             error!("Failed to hot-swap database during automated update: {}", e);
+                            update_successful = false;
                         } else {
-                            info!("Automated weekly database update and hot-reload succeeded!");
+                            info!("Automated database update and hot-reload succeeded!");
                         }
                     }
                     Err(e) => {
-                        error!("Automated weekly database update failed: {}", e);
+                        error!("Automated database update failed: {}", e);
+                        update_successful = false;
                     }
                 }
             }
+
+            // ROBUSTNESS: Dynamic scheduling interval
+            // If the database has never been loaded or an update failed, retry in 5 minutes.
+            // Otherwise, wait 1 hour before verifying file age again.
+            let sleep_duration = if !is_loaded || !update_successful {
+                info!("Database is not loaded or update failed. Retrying in 5 minutes...");
+                Duration::from_secs(300)
+            } else {
+                Duration::from_secs(3600)
+            };
+
+            sleep(sleep_duration).await;
         }
     });
 
@@ -187,7 +202,7 @@ async fn lookup_handler(
         }
     };
 
-    if !geoip_state.is_loaded() {
+    if !geoip_state.is_loaded() && !ip.is_loopback() && !is_private_ip(ip) {
         return (
             StatusCode::SERVICE_UNAVAILABLE,
             Json(serde_json::json!({ "error": "GeoIP database is not loaded yet" })),
@@ -219,7 +234,7 @@ async fn update_handler(
         .await
         {
             Ok(_) => {
-                if let Err(e) = geoip_state.load_database(&config.database_path) {
+                if let Err(e) = geoip_state.load_database(&config.database_path).await {
                     error!("Failed to reload database after manual update: {}", e);
                 } else {
                     info!("Manual database update and hot-reload completed successfully!");
@@ -238,4 +253,16 @@ async fn update_handler(
             "message": "Database update has been triggered in the background."
         })),
     )
+}
+
+// Helper to check if an IP address is a private address
+fn is_private_ip(ip: IpAddr) -> bool {
+    match ip {
+        IpAddr::V4(ipv4) => ipv4.is_private(),
+        IpAddr::V6(ipv6) => {
+            let segments = ipv6.segments();
+            let first_byte = (segments[0] >> 8) as u8;
+            first_byte == 0xfc || first_byte == 0xfd || (segments[0] & 0xffc0) == 0xfe80
+        }
+    }
 }
