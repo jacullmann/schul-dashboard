@@ -1,6 +1,6 @@
 use super::{dto::*, gateway::BusEvent, service::MessagesService};
 use crate::{
-    common::extractors::{AuthUser, TenantContext},
+    common::extractors::TenantContext,
     error::AppResult,
     state::AppState,
 };

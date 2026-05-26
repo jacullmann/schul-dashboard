@@ -2,7 +2,7 @@ use super::{dto::*, service::MfaService};
 use crate::{common::extractors::AuthUser, error::AppResult, state::AppState};
 use axum::{
     Json,
-    extract::{ConnectInfo, State},
+    extract::State,
     http::HeaderMap,
 };
 use serde_json::Value;

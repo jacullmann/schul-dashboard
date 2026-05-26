@@ -1,6 +1,6 @@
 use super::service::ScheduleService;
 use crate::{
-    common::extractors::{AuthUser, OptionalAuth, TenantContext},
+    common::extractors::{OptionalAuth, TenantContext},
     error::AppResult,
     state::AppState,
 };

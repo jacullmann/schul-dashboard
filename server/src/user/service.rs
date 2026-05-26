@@ -85,7 +85,7 @@ impl UserService {
     pub async fn update_setup(
         &self,
         user_id: Uuid,
-        global_role: &str,
+        _global_role: &str,
         courses: Vec<(Uuid, Uuid)>,
     ) -> AppResult<Value> {
         sqlx::query!(
