@@ -3,7 +3,7 @@ use crate::{
     error::{AppError, AppResult},
     state::AppState,
 };
-use fractional_index::generate_key_between;
+use fractional_index::FractionalIndex;
 use serde_json::{Value, json};
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -81,12 +81,23 @@ impl TodoService {
         let uid = user_id.to_string();
 
         let first = sqlx::query!(
-            "SELECT position FROM encrypted_todos WHERE user_id = $1 ORDER BY position ASC NULLS LAST LIMIT 1",
+            r#"SELECT position FROM encrypted_todos
+                WHERE user_id = $1
+                ORDER BY position ASC NULLS LAST LIMIT 1"#,
             user_id
         ).fetch_optional(&self.db).await?;
 
-        let new_pos = generate_key_between(None, first.and_then(|r| r.position).as_deref())
-            .map_err(|_| AppError::internal("Failed to generate position"))?;
+        let new_pos = match first.and_then(|r| r.position) {
+            None => FractionalIndex::default(),
+            Some(first_pos) => {
+                let first_idx: FractionalIndex = serde_json::from_str(&format!("\"{}\"", first_pos))
+                    .map_err(|_| AppError::internal("Invalid position encoding"))?;
+
+                FractionalIndex::new_before(&first_idx)
+            }
+        };
+
+        let new_pos_str = new_pos.to_string();
 
         let enc_title = self.enc.encrypt(title.trim(), &uid).await?;
 
@@ -101,11 +112,11 @@ impl TodoService {
             user_id,
             serde_json::to_value(&enc_title).unwrap(),
             serde_json::to_value(&enc_desc).unwrap(),
-            new_pos,
+            new_pos_str,
         ).fetch_one(&self.db).await?;
 
         sqlx::query!(
-            "INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'todo:create', $2)",
+            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'todo:create', $2)"#,
             user_id,
             json!({ "todoId": todo.id })
         )
@@ -132,7 +143,7 @@ impl TodoService {
     ) -> AppResult<Value> {
         let uid = user_id.to_string();
         sqlx::query!(
-            "SELECT id FROM encrypted_todos WHERE id = $1 AND user_id = $2",
+            r#"SELECT id FROM encrypted_todos WHERE id = $1 AND user_id = $2"#,
             id,
             user_id
         )
@@ -158,7 +169,7 @@ impl TodoService {
         .await?;
 
         sqlx::query!(
-            "INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'todo:update', $2)",
+            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'todo:update', $2)"#,
             user_id,
             json!({ "todoId": id })
         )
@@ -178,7 +189,7 @@ impl TodoService {
 
     pub async fn toggle_todo(&self, user_id: Uuid, id: Uuid) -> AppResult<Value> {
         let todo = sqlx::query!(
-            "SELECT id, completed FROM encrypted_todos WHERE id = $1 AND user_id = $2",
+            r#"SELECT id, completed FROM encrypted_todos WHERE id = $1 AND user_id = $2"#,
             id,
             user_id
         )
@@ -189,12 +200,12 @@ impl TodoService {
         let new_completed = !todo.completed;
 
         let updated = sqlx::query!(
-            "UPDATE encrypted_todos SET completed = $1 WHERE id = $2 RETURNING id, position, updated_at",
+            r#"UPDATE encrypted_todos SET completed = $1 WHERE id = $2 RETURNING id, position, updated_at"#,
             new_completed, id
         ).fetch_one(&self.db).await?;
 
         sqlx::query!(
-            "INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'todo:toggle', $2)",
+            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'todo:toggle', $2)"#,
             user_id,
             json!({ "todoId": id, "completed": new_completed })
         )
@@ -217,7 +228,7 @@ impl TodoService {
         next: Option<&str>,
     ) -> AppResult<Value> {
         sqlx::query!(
-            "SELECT id FROM encrypted_todos WHERE id = $1 AND user_id = $2",
+            r#"SELECT id FROM encrypted_todos WHERE id = $1 AND user_id = $2"#,
             id,
             user_id
         )
@@ -225,23 +236,48 @@ impl TodoService {
         .await?
         .ok_or_else(|| AppError::not_found("Private entry not found"))?;
 
-        let new_pos = generate_key_between(prev, next)
-            .map_err(|_| AppError::bad_request("Invalid positions for re-ordering"))?;
+        let new_pos = match (prev, next) {
+            (None, None) => FractionalIndex::default(),
+            (Some(p), None) => {
+                let idx: FractionalIndex = serde_json::from_str(&format!("\"{}\"", p))
+                    .map_err(|_| AppError::bad_request("Invalid prev position"))?;
+
+                FractionalIndex::new_after(&idx)
+            }
+            (None, Some(n)) => {
+                let idx: FractionalIndex = serde_json::from_str(&format!("\"{}\"", n))
+                    .map_err(|_| AppError::bad_request("Invalid next position"))?;
+
+                FractionalIndex::new_before(&idx)
+            }
+            (Some(p), Some(n)) => {
+                let prev_idx: FractionalIndex = serde_json::from_str(&format!("\"{}\"", p))
+                    .map_err(|_| AppError::bad_request("Invalid prev position"))?;
+
+                let next_idx: FractionalIndex = serde_json::from_str(&format!("\"{}\"", n))
+                    .map_err(|_| AppError::bad_request("Invalid next position"))?;
+
+                FractionalIndex::new_between(&prev_idx, &next_idx)
+                    .ok_or_else(|| AppError::bad_request("Cannot insert between these positions"))?
+            }
+        };
+
+        let new_pos_str = new_pos.to_string();
 
         let updated = sqlx::query!(
-            "UPDATE encrypted_todos SET position = $1 WHERE id = $2 RETURNING id, updated_at",
-            new_pos,
+            r#"UPDATE encrypted_todos SET position = $1 WHERE id = $2 RETURNING id, updated_at"#,
+            new_pos_str,
             id
         )
         .fetch_one(&self.db)
         .await?;
 
-        Ok(json!({ "id": updated.id, "position": new_pos, "updatedAt": updated.updated_at }))
+        Ok(json!({ "id": updated.id, "position": new_pos_str, "updatedAt": updated.updated_at }))
     }
 
     pub async fn delete_todo(&self, user_id: Uuid, id: Uuid) -> AppResult<Value> {
         sqlx::query!(
-            "SELECT id FROM encrypted_todos WHERE id = $1 AND user_id = $2",
+            r#"SELECT id FROM encrypted_todos WHERE id = $1 AND user_id = $2"#,
             id,
             user_id
         )
@@ -249,12 +285,12 @@ impl TodoService {
         .await?
         .ok_or_else(|| AppError::not_found("Private entry not found"))?;
 
-        sqlx::query!("DELETE FROM encrypted_todos WHERE id = $1", id)
+        sqlx::query!(r#"DELETE FROM encrypted_todos WHERE id = $1"#, id)
             .execute(&self.db)
             .await?;
 
         sqlx::query!(
-            "INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'todo:delete', $2)",
+            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'todo:delete', $2)"#,
             user_id,
             json!({ "todoId": id })
         )

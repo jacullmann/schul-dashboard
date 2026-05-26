@@ -2,7 +2,7 @@ use super::handlers::*;
 use crate::state::AppState;
 use axum::{
     Router,
-    routing::{delete, get, patch, post, put},
+    routing::{get, patch, put},
 };
 
 pub fn router() -> Router<AppState> {

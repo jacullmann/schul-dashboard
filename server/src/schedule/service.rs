@@ -28,7 +28,7 @@ impl ScheduleService {
 
         let filtered = if let Some(uid) = user_id {
             let user = sqlx::query!(
-                "SELECT personalized, done_setup FROM users WHERE id = $1",
+                r#"SELECT personalized, done_setup FROM users WHERE id = $1"#,
                 uid
             )
             .fetch_optional(&self.db)
@@ -39,7 +39,7 @@ impl ScheduleService {
                 .unwrap_or(false)
             {
                 let courses =
-                    sqlx::query!("SELECT course_id FROM user_courses WHERE user_id = $1", uid)
+                    sqlx::query!(r#"SELECT course_id FROM user_courses WHERE user_id = $1"#, uid)
                         .fetch_all(&self.db)
                         .await?;
                 
@@ -49,9 +49,9 @@ impl ScheduleService {
                 
                 tokio::spawn(async move {
                     let _ = sqlx::query!(
-                        "INSERT INTO user_tenant_state (user_id, tenant_id, last_schedule_visit_at)
+                        r#"INSERT INTO user_tenant_state (user_id, tenant_id, last_schedule_visit_at)
                          VALUES ($1, $2, now())
-                         ON CONFLICT (user_id, tenant_id) DO UPDATE SET last_schedule_visit_at = now()",
+                         ON CONFLICT (user_id, tenant_id) DO UPDATE SET last_schedule_visit_at = now()"#,
                         uid, tenant_id
                     ).execute(&db2).await;
                 });
@@ -83,8 +83,8 @@ impl ScheduleService {
 
     pub async fn get_subs(&self, tenant_id: Uuid) -> AppResult<Value> {
         let subs = sqlx::query!(
-            "SELECT id, lesson_id, day, slot, duration, subject, room, cancelled, hide, created_at
-             FROM schedule_subs WHERE tenant_id = $1",
+            r#"SELECT id, lesson_id, day, slot, duration, subject, room, cancelled, hide, created_at
+             FROM schedule_subs WHERE tenant_id = $1"#,
             tenant_id
         )
         .fetch_all(&self.db)
@@ -125,8 +125,8 @@ impl ScheduleService {
 
     pub async fn get_announcements(&self, tenant_id: Uuid) -> AppResult<Value> {
         let rows = sqlx::query!(
-            "SELECT id, content, color, created_by, created_at FROM announcements
-             WHERE tenant_id = $1 ORDER BY created_at DESC LIMIT 5",
+            r#"SELECT id, content, color, created_by, created_at FROM announcements
+             WHERE tenant_id = $1 ORDER BY created_at DESC LIMIT 5"#,
             tenant_id
         )
         .fetch_all(&self.db)
@@ -166,13 +166,13 @@ impl ScheduleService {
         announcement_id: Uuid,
     ) -> AppResult<()> {
         let exists = sqlx::query!(
-            "SELECT id FROM user_announcement_read_status WHERE user_id = $1 AND announcement_id = $2",
+            r#"SELECT id FROM user_announcement_read_status WHERE user_id = $1 AND announcement_id = $2"#,
             user_id, announcement_id
         ).fetch_optional(&self.db).await?;
 
         if exists.is_none() {
             sqlx::query!(
-                "INSERT INTO user_announcement_read_status (user_id, announcement_id) VALUES ($1, $2)",
+                r#"INSERT INTO user_announcement_read_status (user_id, announcement_id) VALUES ($1, $2)"#,
                 user_id, announcement_id
             ).execute(&self.db).await?;
         }

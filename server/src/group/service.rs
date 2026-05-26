@@ -72,16 +72,16 @@ impl GroupService {
                     &mut argon2::password_hash::rand_core::OsRng,
                 ),
             )
-            .unwrap()
-            .to_string()
+                .unwrap()
+                .to_string()
         });
 
         let group = sqlx::query!(
             r#"SELECT id, name, passcode_hash FROM groups WHERE name = $1"#,
             group_name
         )
-        .fetch_optional(&self.db)
-        .await?;
+            .fetch_optional(&self.db)
+            .await?;
 
         let hash = group
             .as_ref()
@@ -98,8 +98,8 @@ impl GroupService {
                 g.id,
                 user_id
             )
-            .fetch_optional(&self.db)
-            .await?;
+                .fetch_optional(&self.db)
+                .await?;
 
             if ban.is_some() {
                 return Err(AppError::forbidden("You have been banned from this group."));
@@ -127,8 +127,8 @@ impl GroupService {
             user_id,
             g.id
         )
-        .fetch_optional(&self.db)
-        .await?;
+            .fetch_optional(&self.db)
+            .await?;
 
         if existing.is_none() {
             sqlx::query!(
@@ -136,8 +136,8 @@ impl GroupService {
                 user_id,
                 g.id
             )
-            .execute(&self.db)
-            .await?;
+                .execute(&self.db)
+                .await?;
         }
 
         let jar = self
@@ -183,8 +183,8 @@ impl GroupService {
             user_id,
             group.id
         )
-        .execute(&self.db)
-        .await?;
+            .execute(&self.db)
+            .await?;
 
         sqlx::query!(
             r#"INSERT INTO security_events (event_type, event_status, ip_address, user_agent, metadata)
@@ -217,10 +217,10 @@ impl GroupService {
                WHERE ur.user_id = $1 AND ur.tenant_id IS NOT NULL"#,
             uid
         )
-        .fetch_all(&self.db)
-        .await?;
+            .fetch_all(&self.db)
+            .await?;
 
-        let mut groups: Vec<Value> = user_roles
+        let groups: Vec<Value> = user_roles
             .into_iter()
             .map(|ur| {
                 json!({
@@ -237,18 +237,18 @@ impl GroupService {
                 Some(g) => Some(g.clone()),
                 None if global_role == Some("superadmin") => {
                     sqlx::query!(
-                r#"SELECT id, name, owner_id, schedule_config, avatar_url, permissions
-                   FROM groups WHERE id = $1"#,
-                gid
-            )
+                        r#"SELECT id, name, owner_id, schedule_config, avatar_url, permissions
+                           FROM groups WHERE id = $1"#,
+                        gid
+                    )
                         .fetch_optional(&self.db)
                         .await?
                         .map(|g| json!({
-                "id": g.id, "name": g.name, "ownerId": g.owner_id,
-                "role": "superadmin", "hasUnreadContent": false,
-                "scheduleConfig": g.schedule_config, "avatarUrl": g.avatar_url,
-                "permissions": g.permissions.unwrap_or(json!({})),
-            }))
+                        "id": g.id, "name": g.name, "ownerId": g.owner_id,
+                        "role": "superadmin", "hasUnreadContent": false,
+                        "scheduleConfig": g.schedule_config, "avatarUrl": g.avatar_url,
+                        "permissions": g.permissions.unwrap_or(json!({})),
+                    }))
                 }
                 None => None,
             }
@@ -284,8 +284,8 @@ impl GroupService {
                 user_id,
                 group_id
             )
-            .fetch_optional(&self.db)
-            .await?;
+                .fetch_optional(&self.db)
+                .await?;
 
             if membership.is_none() {
                 return Err(AppError::forbidden("You do not have access to this group."));
@@ -320,8 +320,8 @@ impl GroupService {
             user_id,
             group_id
         )
-        .fetch_optional(&self.db)
-        .await?;
+            .fetch_optional(&self.db)
+            .await?;
 
         if role.as_ref().map(|r| r.name.as_str()) == Some("admin") {
             return Err(AppError::forbidden(
@@ -334,29 +334,26 @@ impl GroupService {
             user_id,
             group_id
         )
-        .execute(&self.db)
-        .await?;
-
-        let courses = sqlx::query!(r#"SELECT id FROM courses WHERE tenant_id = $1"#, group_id)
-            .fetch_all(&self.db)
-            .await?;
-        for c in courses {
-            sqlx::query!(
-                r#"DELETE FROM user_courses WHERE user_id = $1 AND course_id = $2"#,
-                user_id,
-                c.id
-            )
             .execute(&self.db)
             .await?;
-        }
+
+        sqlx::query!(
+            r#"DELETE FROM user_courses
+               WHERE user_id = $1
+                 AND course_id IN (SELECT id FROM courses WHERE tenant_id = $2)"#,
+            user_id,
+            group_id
+        )
+            .execute(&self.db)
+            .await?;
 
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'group:leave', $2)"#,
             user_id,
             json!({ "groupId": group_id })
         )
-        .execute(&self.db)
-        .await?;
+            .execute(&self.db)
+            .await?;
 
         let jar = if active_group_id == Some(group_id) {
             let user = sqlx::query!(r#"SELECT email FROM users WHERE id = $1"#, user_id)
@@ -368,10 +365,10 @@ impl GroupService {
                    WHERE ur.user_id = $1 AND ur.tenant_id IS NULL LIMIT 1"#,
                 user_id
             )
-            .fetch_optional(&self.db)
-            .await?
-            .map(|r| r.name)
-            .unwrap_or_else(|| "user".into());
+                .fetch_optional(&self.db)
+                .await?
+                .map(|r| r.name)
+                .unwrap_or_else(|| "user".into());
 
             self.issue_session_cookie(user_id, &user.email, &global_role, None)
                 .await?

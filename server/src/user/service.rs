@@ -23,7 +23,7 @@ impl UserService {
         personalized: bool,
     ) -> AppResult<Value> {
         let row = sqlx::query!(
-            "UPDATE users SET personalized = $1 WHERE id = $2 RETURNING personalized",
+            r#"UPDATE users SET personalized = $1 WHERE id = $2 RETURNING personalized"#,
             personalized,
             user_id
         )
@@ -32,7 +32,7 @@ impl UserService {
         .ok_or_else(|| AppError::not_found("User not found"))?;
 
         sqlx::query!(
-            "INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'profile:personalization:update', $2)",
+            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'profile:personalization:update', $2)"#,
             user_id, json!({ "personalized": personalized })
         ).execute(&self.db).await?;
 
@@ -44,7 +44,7 @@ impl UserService {
         user_id: Uuid,
         prefs: serde_json::Value,
     ) -> AppResult<Value> {
-        let user = sqlx::query!("SELECT preferences FROM users WHERE id = $1", user_id)
+        let user = sqlx::query!(r#"SELECT preferences FROM users WHERE id = $1"#, user_id)
             .fetch_optional(&self.db)
             .await?
             .ok_or_else(|| AppError::not_found("User not found"))?;
@@ -66,7 +66,7 @@ impl UserService {
 
         let merged = Value::Object(current);
         sqlx::query!(
-            "UPDATE users SET preferences = $1 WHERE id = $2",
+            r#"UPDATE users SET preferences = $1 WHERE id = $2"#,
             merged,
             user_id
         )
@@ -74,7 +74,7 @@ impl UserService {
         .await?;
 
         sqlx::query!(
-            "INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'profile:preferences:update', $2)",
+            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'profile:preferences:update', $2)"#,
             user_id, prefs
         ).execute(&self.db).await?;
 
@@ -87,17 +87,17 @@ impl UserService {
         global_role: &str,
         courses: Vec<(Uuid, Uuid)>,
     ) -> AppResult<Value> {
-        sqlx::query!("UPDATE users SET done_setup = true WHERE id = $1", user_id)
+        sqlx::query!(r#"UPDATE users SET done_setup = true WHERE id = $1"#, user_id)
             .execute(&self.db)
             .await?;
 
-        sqlx::query!("DELETE FROM user_courses WHERE user_id = $1", user_id)
+        sqlx::query!(r#"DELETE FROM user_courses WHERE user_id = $1"#, user_id)
             .execute(&self.db)
             .await?;
 
         for (subject_id, course_id) in &courses {
             sqlx::query!(
-                "INSERT INTO user_courses (user_id, subject_id, course_id) VALUES ($1, $2, $3)",
+                r#"INSERT INTO user_courses (user_id, subject_id, course_id) VALUES ($1, $2, $3)"#,
                 user_id,
                 subject_id,
                 course_id
@@ -112,7 +112,7 @@ impl UserService {
             .collect();
 
         sqlx::query!(
-            "INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'profile:setup:complete', $2)",
+            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'profile:setup:complete', $2)"#,
             user_id, json!({ "courses": courses_json })
         ).execute(&self.db).await?;
 
@@ -121,7 +121,7 @@ impl UserService {
 
     pub async fn get_checks(&self, user_id: Uuid) -> AppResult<Value> {
         let rows = sqlx::query!(
-            "SELECT item_id FROM keep_checked WHERE user_id = $1",
+            r#"SELECT item_id FROM keep_checked WHERE user_id = $1"#,
             user_id
         )
         .fetch_all(&self.db)
@@ -132,7 +132,7 @@ impl UserService {
 
     pub async fn get_pins(&self, user_id: Uuid) -> AppResult<Value> {
         let rows = sqlx::query!(
-            "SELECT item_id FROM pinned_items WHERE user_id = $1",
+            r#"SELECT item_id FROM pinned_items WHERE user_id = $1"#,
             user_id
         )
         .fetch_all(&self.db)
@@ -143,7 +143,7 @@ impl UserService {
 
     pub async fn get_visibility(&self, user_id: Uuid) -> AppResult<Value> {
         let rows = sqlx::query!(
-            "SELECT item_id, status FROM user_item_visibility WHERE user_id = $1",
+            r#"SELECT item_id, status FROM user_item_visibility WHERE user_id = $1"#,
             user_id
         )
         .fetch_all(&self.db)
@@ -171,7 +171,7 @@ impl UserService {
         status: &str,
     ) -> AppResult<Value> {
         sqlx::query!(
-            "SELECT id FROM items WHERE id = $1 AND tenant_id = $2",
+            r#"SELECT id FROM items WHERE id = $1 AND tenant_id = $2"#,
             item_id,
             tenant_id
         )
@@ -180,7 +180,7 @@ impl UserService {
         .ok_or_else(|| AppError::not_found("Item not found."))?;
 
         sqlx::query!(
-            "DELETE FROM user_item_visibility WHERE item_id = $1 AND user_id = $2",
+            r#"DELETE FROM user_item_visibility WHERE item_id = $1 AND user_id = $2"#,
             item_id,
             user_id
         )
@@ -188,7 +188,7 @@ impl UserService {
         .await?;
 
         sqlx::query!(
-            "INSERT INTO user_item_visibility (item_id, user_id, status) VALUES ($1, $2, $3)",
+            r#"INSERT INTO user_item_visibility (item_id, user_id, status) VALUES ($1, $2, $3)"#,
             item_id,
             user_id,
             status
@@ -197,7 +197,7 @@ impl UserService {
         .await?;
 
         sqlx::query!(
-            "INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:visibility:set', $2)",
+            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:visibility:set', $2)"#,
             user_id, json!({ "itemId": item_id, "status": status })
         ).execute(&self.db).await?;
 
@@ -206,7 +206,7 @@ impl UserService {
 
     pub async fn remove_visibility(&self, item_id: Uuid, user_id: Uuid) -> AppResult<Value> {
         sqlx::query!(
-            "DELETE FROM user_item_visibility WHERE item_id = $1 AND user_id = $2",
+            r#"DELETE FROM user_item_visibility WHERE item_id = $1 AND user_id = $2"#,
             item_id,
             user_id
         )
@@ -214,7 +214,7 @@ impl UserService {
         .await?;
 
         sqlx::query!(
-            "INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:visibility:remove', $2)",
+            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:visibility:remove', $2)"#,
             user_id, json!({ "itemId": item_id })
         ).execute(&self.db).await?;
 
@@ -224,7 +224,7 @@ impl UserService {
     pub async fn log_page_load(&self, user_id: Uuid, user_agent: &str) -> AppResult<Value> {
         let ua = &user_agent[..user_agent.len().min(100)];
         sqlx::query!(
-            "INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'page:load', $2)",
+            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'page:load', $2)"#,
             user_id,
             json!({ "userAgent": ua })
         )
@@ -241,7 +241,7 @@ impl UserService {
         user_id: Uuid,
     ) -> AppResult<Value> {
         sqlx::query!(
-            "SELECT id FROM items WHERE id = $1 AND tenant_id = $2",
+            r#"SELECT id FROM items WHERE id = $1 AND tenant_id = $2"#,
             item_id,
             tenant_id
         )
@@ -250,7 +250,7 @@ impl UserService {
         .ok_or_else(|| AppError::not_found("Not found."))?;
 
         sqlx::query!(
-            "DELETE FROM keep_checked WHERE item_id = $1 AND user_id = $2",
+            r#"DELETE FROM keep_checked WHERE item_id = $1 AND user_id = $2"#,
             item_id,
             user_id
         )
@@ -258,7 +258,7 @@ impl UserService {
         .await?;
 
         sqlx::query!(
-            "INSERT INTO keep_checked (item_id, user_id, checked_at) VALUES ($1, $2, now())",
+            r#"INSERT INTO keep_checked (item_id, user_id, checked_at) VALUES ($1, $2, now())"#,
             item_id,
             user_id
         )
@@ -266,7 +266,7 @@ impl UserService {
         .await?;
 
         sqlx::query!(
-            "INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:check', $2)",
+            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:check', $2)"#,
             user_id,
             json!({ "itemId": item_id })
         )
@@ -278,7 +278,7 @@ impl UserService {
 
     pub async fn uncheck_item(&self, item_id: Uuid, user_id: Uuid) -> AppResult<Value> {
         sqlx::query!(
-            "DELETE FROM keep_checked WHERE item_id = $1 AND user_id = $2",
+            r#"DELETE FROM keep_checked WHERE item_id = $1 AND user_id = $2"#,
             item_id,
             user_id
         )
@@ -286,7 +286,7 @@ impl UserService {
         .await?;
 
         sqlx::query!(
-            "INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:uncheck', $2)",
+            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:uncheck', $2)"#,
             user_id,
             json!({ "itemId": item_id })
         )
@@ -303,7 +303,7 @@ impl UserService {
         user_id: Uuid,
     ) -> AppResult<Value> {
         sqlx::query!(
-            "SELECT id FROM items WHERE id = $1 AND tenant_id = $2",
+            r#"SELECT id FROM items WHERE id = $1 AND tenant_id = $2"#,
             item_id,
             tenant_id
         )
@@ -312,7 +312,7 @@ impl UserService {
         .ok_or_else(|| AppError::not_found("Not found."))?;
 
         sqlx::query!(
-            "DELETE FROM pinned_items WHERE item_id = $1 AND user_id = $2",
+            r#"DELETE FROM pinned_items WHERE item_id = $1 AND user_id = $2"#,
             item_id,
             user_id
         )
@@ -320,7 +320,7 @@ impl UserService {
         .await?;
 
         sqlx::query!(
-            "INSERT INTO pinned_items (item_id, user_id, pinned_at) VALUES ($1, $2, now())",
+            r#"INSERT INTO pinned_items (item_id, user_id, pinned_at) VALUES ($1, $2, now())"#,
             item_id,
             user_id
         )
@@ -328,7 +328,7 @@ impl UserService {
         .await?;
 
         sqlx::query!(
-            "INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:pin', $2)",
+            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:pin', $2)"#,
             user_id,
             json!({ "itemId": item_id })
         )
@@ -340,7 +340,7 @@ impl UserService {
 
     pub async fn unpin_item(&self, item_id: Uuid, user_id: Uuid) -> AppResult<Value> {
         sqlx::query!(
-            "DELETE FROM pinned_items WHERE item_id = $1 AND user_id = $2",
+            r#"DELETE FROM pinned_items WHERE item_id = $1 AND user_id = $2"#,
             item_id,
             user_id
         )
@@ -348,7 +348,7 @@ impl UserService {
         .await?;
 
         sqlx::query!(
-            "INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:unpin', $2)",
+            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:unpin', $2)"#,
             user_id,
             json!({ "itemId": item_id })
         )

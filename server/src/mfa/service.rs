@@ -34,7 +34,7 @@ impl MfaService {
     }
 
     pub async fn get_status(&self, user_id: Uuid) -> AppResult<Value> {
-        let user = sqlx::query!("SELECT mfa_enabled FROM users WHERE id = $1", user_id)
+        let user = sqlx::query!(r#"SELECT mfa_enabled FROM users WHERE id = $1"#, user_id)
             .fetch_optional(&self.db)
             .await?
             .ok_or_else(|| AppError::not_found("User not found."))?;
@@ -44,23 +44,23 @@ impl MfaService {
 
     pub async fn setup(&self, user_id: Uuid) -> AppResult<Value> {
         let user = sqlx::query!(
-            "SELECT email, mfa_enabled FROM users WHERE id = $1",
+            r#"SELECT email, mfa_enabled FROM users WHERE id = $1"#,
             user_id
         )
-        .fetch_optional(&self.db)
-        .await?
-        .ok_or_else(|| AppError::not_found("User not found."))?;
+            .fetch_optional(&self.db)
+            .await?
+            .ok_or_else(|| AppError::not_found("User not found."))?;
 
         if user.mfa_enabled {
             return Err(AppError::bad_request("MFA is already enabled."));
         }
 
         sqlx::query!(
-            "DELETE FROM mfa_pending_secrets WHERE user_id = $1",
+            r#"DELETE FROM mfa_pending_secrets WHERE user_id = $1"#,
             user_id
         )
-        .execute(&self.db)
-        .await?;
+            .execute(&self.db)
+            .await?;
 
         let secret_bytes: Vec<u8> = (0..20).map(|_| rand::random::<u8>()).collect();
 
@@ -74,14 +74,14 @@ impl MfaService {
         let expires_at = chrono::Utc::now() + chrono::Duration::minutes(15);
 
         sqlx::query!(
-            "INSERT INTO mfa_pending_secrets (user_id, encrypted_secret, expires_at) VALUES ($1, $2, $3)
-             ON CONFLICT (user_id) DO UPDATE SET encrypted_secret = $2, expires_at = $3",
+            r#"INSERT INTO mfa_pending_secrets (user_id, encrypted_secret, expires_at) VALUES ($1, $2, $3)
+             ON CONFLICT (user_id) DO UPDATE SET encrypted_secret = $2, expires_at = $3"#,
             user_id,
             serde_json::to_value(&enc).unwrap(),
             expires_at,
         ).execute(&self.db).await?;
 
-        let totp = Self::make_totp(&secret_bytes)?;
+        let totp = Self::make_totp(&secret_bytes, &user.email)?;
 
         let otpauth = totp.get_url();
 
@@ -90,7 +90,7 @@ impl MfaService {
             qrcode_generator::QrCodeEcc::Low,
             200,
         )
-        .map_err(|e| AppError::internal(format!("QR generation failed: {e}")))?;
+            .map_err(|e| AppError::internal(format!("QR generation failed: {e}")))?;
 
         let qr_b64 = format!(
             "data:image/png;base64,{}",
@@ -98,7 +98,7 @@ impl MfaService {
         );
 
         sqlx::query!(
-            "INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'mfa:setup:started', '{}'::jsonb)",
+            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'mfa:setup:started', '{}'::jsonb)"#,
             user_id
         ).execute(&self.db).await?;
 
@@ -106,8 +106,11 @@ impl MfaService {
     }
 
     pub async fn activate(&self, user_id: Uuid, code: &str) -> AppResult<Value> {
-        let pending = sqlx::query!(
-            "SELECT encrypted_secret FROM mfa_pending_secrets WHERE user_id = $1 AND expires_at > now()",
+        let row = sqlx::query!(
+            r#"SELECT p.encrypted_secret, u.email
+               FROM mfa_pending_secrets p
+               JOIN users u ON u.id = p.user_id
+               WHERE p.user_id = $1 AND p.expires_at > now()"#,
             user_id
         ).fetch_optional(&self.db).await?
             .ok_or_else(|| AppError::bad_request("Authentication failed."))?;
@@ -115,7 +118,7 @@ impl MfaService {
         let uid = user_id.to_string();
 
         let enc: crate::common::encryption::EncryptedPayload =
-            serde_json::from_value(pending.encrypted_secret)
+            serde_json::from_value(row.encrypted_secret)
                 .map_err(|_| AppError::internal("Invalid encrypted secret"))?;
 
         let secret_b32 = self.enc.decrypt(&enc, &uid).await?;
@@ -124,7 +127,7 @@ impl MfaService {
             base32::decode(base32::Alphabet::Rfc4648 { padding: false }, &secret_b32)
                 .ok_or_else(|| AppError::internal("Invalid TOTP secret encoding"))?;
 
-        let totp = Self::make_totp(&secret_bytes)?;
+        let totp = Self::make_totp(&secret_bytes, &row.email)?;
 
         if !totp
             .check_current(code)
@@ -133,7 +136,7 @@ impl MfaService {
             tokio::time::sleep(std::time::Duration::from_millis(
                 100 + rand::random::<u64>() % 100,
             ))
-            .await;
+                .await;
 
             return Err(AppError::bad_request("Authentication failed."));
         }
@@ -141,22 +144,22 @@ impl MfaService {
         let enc_for_storage = self.enc.encrypt(&secret_b32, &uid).await?;
 
         sqlx::query!(
-            "UPDATE users SET mfa_enabled = true, mfa_secret = $1 WHERE id = $2",
+            r#"UPDATE users SET mfa_enabled = true, mfa_secret = $1 WHERE id = $2"#,
             serde_json::to_value(&enc_for_storage).unwrap(),
             user_id
         )
-        .execute(&self.db)
-        .await?;
+            .execute(&self.db)
+            .await?;
 
         sqlx::query!(
-            "DELETE FROM mfa_pending_secrets WHERE user_id = $1",
+            r#"DELETE FROM mfa_pending_secrets WHERE user_id = $1"#,
             user_id
         )
-        .execute(&self.db)
-        .await?;
+            .execute(&self.db)
+            .await?;
 
         sqlx::query!(
-            "INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'mfa:activated', '{}'::jsonb)",
+            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'mfa:activated', '{}'::jsonb)"#,
             user_id
         ).execute(&self.db).await?;
 
@@ -170,12 +173,12 @@ impl MfaService {
         ip: Option<&str>,
     ) -> AppResult<Value> {
         let user = sqlx::query!(
-            "SELECT mfa_enabled, mfa_secret FROM users WHERE id = $1",
+            r#"SELECT email, mfa_enabled, mfa_secret FROM users WHERE id = $1"#,
             user_id
         )
-        .fetch_optional(&self.db)
-        .await?
-        .ok_or_else(|| AppError::not_found("User not found."))?;
+            .fetch_optional(&self.db)
+            .await?
+            .ok_or_else(|| AppError::not_found("User not found."))?;
 
         if !user.mfa_enabled || user.mfa_secret.is_none() {
             tokio::time::sleep(std::time::Duration::from_millis(100)).await;
@@ -194,7 +197,7 @@ impl MfaService {
             base32::decode(base32::Alphabet::Rfc4648 { padding: false }, &secret_b32)
                 .ok_or_else(|| AppError::internal("Invalid TOTP secret encoding"))?;
 
-        let totp = Self::make_totp(&secret_bytes)?;
+        let totp = Self::make_totp(&secret_bytes, &user.email)?;
 
         if !totp
             .check_current(code)
@@ -203,24 +206,24 @@ impl MfaService {
             tokio::time::sleep(std::time::Duration::from_millis(
                 100 + rand::random::<u64>() % 100,
             ))
-            .await;
+                .await;
             return Err(AppError::bad_request("Authentication failed."));
         }
 
         sqlx::query!(
-            "UPDATE users SET mfa_enabled = false, mfa_secret = NULL WHERE id = $1",
+            r#"UPDATE users SET mfa_enabled = false, mfa_secret = NULL WHERE id = $1"#,
             user_id
         )
-        .execute(&self.db)
-        .await?;
+            .execute(&self.db)
+            .await?;
 
         sqlx::query!(
-            "INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'mfa:deactivated', $2)",
+            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'mfa:deactivated', $2)"#,
             user_id,
             json!({ "ip": ip })
         )
-        .execute(&self.db)
-        .await?;
+            .execute(&self.db)
+            .await?;
 
         Ok(json!({ "ok": true, "message": "MFA deactivated successfully." }))
     }

@@ -53,6 +53,7 @@ pub async fn get_announcement_read_status(
     let ids = ScheduleService::from_state(&s)
         .get_announcement_read_status(tc.user.user_id, tc.tenant_id)
         .await?;
+
     Ok(Json(json!(ids)))
 }
 pub async fn mark_announcement_read(
@@ -63,5 +64,6 @@ pub async fn mark_announcement_read(
     ScheduleService::from_state(&s)
         .mark_announcement_read(tc.user.user_id, id)
         .await?;
+
     Ok(Json(json!({ "ok": true })))
 }

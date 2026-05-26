@@ -57,7 +57,7 @@ impl AuthService {
         .unwrap_or_else(|| "user".into());
 
         let active_group_id = sqlx::query!(
-            "SELECT tenant_id FROM user_roles WHERE user_id = $1 AND tenant_id IS NOT NULL LIMIT 1",
+            r#"SELECT tenant_id FROM user_roles WHERE user_id = $1 AND tenant_id IS NOT NULL LIMIT 1"#,
             user_id
         )
         .fetch_optional(&self.db)
@@ -126,7 +126,7 @@ impl AuthService {
 
         if !ok {
             sqlx::query!(
-                "INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'auth:login_failed', $2)",
+                r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'auth:login_failed', $2)"#,
                 user.id,
                 json!({ "ip": ip, "reason": "bad_password" })
             )
@@ -141,7 +141,7 @@ impl AuthService {
             ));
         }
 
-        let ban = sqlx::query!("SELECT id FROM banned_users WHERE user_id = $1", user.id)
+        let ban = sqlx::query!(r#"SELECT id FROM banned_users WHERE user_id = $1"#, user.id)
             .fetch_optional(&self.db)
             .await?;
         if ban.is_some() {
@@ -164,14 +164,14 @@ impl AuthService {
         }
 
         sqlx::query!(
-            "UPDATE users SET last_login_at = now() WHERE id = $1",
+            r#"UPDATE users SET last_login_at = now() WHERE id = $1"#,
             user.id
         )
         .execute(&self.db)
         .await?;
 
         sqlx::query!(
-            "DELETE FROM mfa_pending_secrets WHERE user_id = $1",
+            r#"DELETE FROM mfa_pending_secrets WHERE user_id = $1"#,
             user.id
         )
         .execute(&self.db)
@@ -193,7 +193,7 @@ impl AuthService {
         ip: Option<&str>,
     ) -> AppResult<CookieJar> {
         let user = sqlx::query!(
-            "SELECT mfa_enabled, mfa_secret FROM users WHERE id = $1",
+            r#"SELECT mfa_enabled, mfa_secret FROM users WHERE id = $1"#,
             user_id
         )
         .fetch_optional(&self.db)
@@ -225,21 +225,21 @@ impl AuthService {
             return Err(AppError::Unauthorized("Authentication failed.".into()));
         }
         sqlx::query!(
-            "INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'auth:mfa_login', '{}')",
+            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'auth:mfa_login', '{}')"#,
             user_id
         )
         .execute(&self.db)
         .await?;
 
         sqlx::query!(
-            "UPDATE users SET last_login_at = now() WHERE id = $1",
+            r#"UPDATE users SET last_login_at = now() WHERE id = $1"#,
             user_id
         )
         .execute(&self.db)
         .await?;
 
         sqlx::query!(
-            "DELETE FROM mfa_pending_secrets WHERE user_id = $1",
+            r#"DELETE FROM mfa_pending_secrets WHERE user_id = $1"#,
             user_id
         )
         .execute(&self.db)
@@ -259,7 +259,7 @@ impl AuthService {
 
         let email = dto.email.to_lowercase();
 
-        let exists = sqlx::query!("SELECT id FROM users WHERE email = $1", email)
+        let exists = sqlx::query!(r#"SELECT id FROM users WHERE email = $1"#, email)
             .fetch_optional(&self.db)
             .await?;
         if exists.is_some() {
@@ -312,7 +312,7 @@ impl AuthService {
         let expires_at = Utc::now() + Duration::days(2);
 
         sqlx::query!(
-            "INSERT INTO verifications (email, token, expires_at) VALUES ($1, $2, $3)",
+            r#"INSERT INTO verifications (email, token, expires_at) VALUES ($1, $2, $3)"#,
             email,
             token,
             expires_at,
@@ -391,7 +391,7 @@ impl AuthService {
         };
 
         let courses = sqlx::query!(
-            "SELECT subject_id, course_id FROM user_courses WHERE user_id = $1",
+            r#"SELECT subject_id, course_id FROM user_courses WHERE user_id = $1"#,
             user_id
         )
         .fetch_all(&self.db)
@@ -433,7 +433,7 @@ impl AuthService {
             ));
         }
 
-        let owned = sqlx::query!("SELECT id FROM groups WHERE owner_id = $1 LIMIT 1", user_id)
+        let owned = sqlx::query!(r#"SELECT id FROM groups WHERE owner_id = $1 LIMIT 1"#, user_id)
             .fetch_optional(&self.db)
             .await?;
 
@@ -447,7 +447,7 @@ impl AuthService {
             .revoke_all_for_user(user_id, ACCOUNT_DELETED, None)
             .await?;
 
-        sqlx::query!("DELETE FROM users WHERE id = $1", user_id)
+        sqlx::query!(r#"DELETE FROM users WHERE id = $1"#, user_id)
             .execute(&self.db)
             .await?;
 
@@ -463,7 +463,7 @@ impl AuthService {
 
     pub async fn verify_email(&self, token: &str) -> AppResult<serde_json::Value> {
         let ver = sqlx::query!(
-            "SELECT email, expires_at FROM verifications WHERE token = $1",
+            r#"SELECT email, expires_at FROM verifications WHERE token = $1"#,
             token
         )
         .fetch_optional(&self.db)
@@ -476,19 +476,19 @@ impl AuthService {
             ));
         }
 
-        let user = sqlx::query!("SELECT id FROM users WHERE email = $1", ver.email)
+        let user = sqlx::query!(r#"SELECT id FROM users WHERE email = $1"#, ver.email)
             .fetch_optional(&self.db)
             .await?
             .ok_or_else(|| AppError::BadRequest("User not found.".into()))?;
 
         sqlx::query!(
-            "UPDATE users SET email_verified = true WHERE id = $1",
+            r#"UPDATE users SET email_verified = true WHERE id = $1"#,
             user.id
         )
         .execute(&self.db)
         .await?;
 
-        sqlx::query!("DELETE FROM verifications WHERE email = $1", ver.email)
+        sqlx::query!(r#"DELETE FROM verifications WHERE email = $1"#, ver.email)
             .execute(&self.db)
             .await?;
 
@@ -498,7 +498,7 @@ impl AuthService {
     pub async fn forgot_password(&self, email: &str) -> AppResult<serde_json::Value> {
         let email = email.to_lowercase();
 
-        let user = sqlx::query!("SELECT id FROM users WHERE email = $1", email)
+        let user = sqlx::query!(r#"SELECT id FROM users WHERE email = $1"#, email)
             .fetch_optional(&self.db)
             .await?;
 
@@ -514,14 +514,14 @@ impl AuthService {
         let expires_at = Utc::now() + Duration::minutes(30);
 
         sqlx::query!(
-            "UPDATE password_resets SET used = true WHERE email = $1 AND used = false",
+            r#"UPDATE password_resets SET used = true WHERE email = $1 AND used = false"#,
             email
         )
         .execute(&self.db)
         .await?;
 
         sqlx::query!(
-            "INSERT INTO password_resets (email, code, expires_at) VALUES ($1, $2, $3)",
+            r#"INSERT INTO password_resets (email, code, expires_at) VALUES ($1, $2, $3)"#,
             email,
             code,
             expires_at
@@ -564,7 +564,7 @@ impl AuthService {
         }
 
         sqlx::query!(
-            "UPDATE password_resets SET used = true WHERE id = $1",
+            r#"UPDATE password_resets SET used = true WHERE id = $1"#,
             pr.id
         )
         .execute(&self.db)
@@ -593,7 +593,7 @@ impl AuthService {
 
         let email = claims.email.to_lowercase();
 
-        let user = sqlx::query!("SELECT id, mfa_enabled FROM users WHERE email = $1", email)
+        let user = sqlx::query!(r#"SELECT id, mfa_enabled FROM users WHERE email = $1"#, email)
             .fetch_optional(&self.db)
             .await?
             .ok_or_else(|| AppError::BadRequest("User not found.".into()))?;
@@ -601,7 +601,7 @@ impl AuthService {
         let hash = hash_password(password.to_string()).await?;
 
         sqlx::query!(
-            "UPDATE users SET password_hash = $1, mfa_enabled = false, mfa_secret = NULL WHERE id = $2",
+            r#"UPDATE users SET password_hash = $1, mfa_enabled = false, mfa_secret = NULL WHERE id = $2"#,
             hash, user.id
         )
             .execute(&self.db)
@@ -641,7 +641,7 @@ impl AuthService {
         validate_password_strength(&new_password).map_err(|e| AppError::BadRequest(e.into()))?;
 
         let user = sqlx::query!(
-            "SELECT id, email, password_hash FROM users WHERE id = $1",
+            r#"SELECT id, email, password_hash FROM users WHERE id = $1"#,
             user_id
         )
         .fetch_optional(&self.db)
@@ -657,7 +657,7 @@ impl AuthService {
         let hash = hash_password(new_password).await?;
 
         sqlx::query!(
-            "UPDATE users SET password_hash = $1 WHERE id = $2",
+            r#"UPDATE users SET password_hash = $1 WHERE id = $2"#,
             hash,
             user.id
         )
@@ -673,7 +673,7 @@ impl AuthService {
             .await?;
 
         sqlx::query!(
-            "INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'account:password_change', $2)",
+            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'account:password_change', $2)"#,
             user_id,
             json!({ "by": "self" })
         )
