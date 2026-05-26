@@ -20,46 +20,48 @@ impl SuperAdminService {
             .fetch_one(&self.db)
             .await?
             .unwrap_or(0);
-        
-        let item_count =
-            sqlx::query_scalar!(r#"SELECT COUNT(*) FROM items WHERE tenant_id = $1"#, tenant_id)
-                .fetch_one(&self.db)
-                .await?
-                .unwrap_or(0);
-        
+
+        let item_count = sqlx::query_scalar!(
+            r#"SELECT COUNT(*) FROM items WHERE tenant_id = $1"#,
+            tenant_id
+        )
+        .fetch_one(&self.db)
+        .await?
+        .unwrap_or(0);
+
         let banned_count = sqlx::query_scalar!(r#"SELECT COUNT(*) FROM banned_users"#)
             .fetch_one(&self.db)
             .await?
             .unwrap_or(0);
-        
+
         let report_unprocessed =
             sqlx::query_scalar!(r#"SELECT COUNT(*) FROM reports WHERE processed = false"#)
                 .fetch_one(&self.db)
                 .await?
                 .unwrap_or(0);
-        
+
         let report_total = sqlx::query_scalar!(r#"SELECT COUNT(*) FROM reports"#)
             .fetch_one(&self.db)
             .await?
             .unwrap_or(0);
-        
+
         let verified_users =
             sqlx::query_scalar!(r#"SELECT COUNT(*) FROM users WHERE email_verified = true"#)
                 .fetch_one(&self.db)
                 .await?
                 .unwrap_or(0);
-        
+
         let old_items = sqlx::query_scalar!(
             r#"SELECT COUNT(*) FROM items WHERE tenant_id = $1 AND created_at < now() - interval '90 days'"#, tenant_id
         ).fetch_one(&self.db).await?.unwrap_or(0);
-        
+
         let new_users_week = sqlx::query_scalar!(
             r#"SELECT COUNT(*) FROM users WHERE created_at >= now() - interval '7 days'"#
         )
         .fetch_one(&self.db)
         .await?
         .unwrap_or(0);
-        
+
         let new_items_week = sqlx::query_scalar!(
             r#"SELECT COUNT(*) FROM items WHERE tenant_id = $1 AND created_at >= now() - interval '7 days'"#, tenant_id
         ).fetch_one(&self.db).await?.unwrap_or(0);
@@ -105,20 +107,22 @@ impl SuperAdminService {
         .await?;
 
         let mut result = vec![];
-        
+
         for g in groups {
-            let member_count =
-                sqlx::query_scalar!(r#"SELECT COUNT(*) FROM user_roles WHERE tenant_id = $1"#, g.id)
-                    .fetch_one(&self.db)
-                    .await?
-                    .unwrap_or(0);
-            
+            let member_count = sqlx::query_scalar!(
+                r#"SELECT COUNT(*) FROM user_roles WHERE tenant_id = $1"#,
+                g.id
+            )
+            .fetch_one(&self.db)
+            .await?
+            .unwrap_or(0);
+
             let item_count =
                 sqlx::query_scalar!(r#"SELECT COUNT(*) FROM items WHERE tenant_id = $1"#, g.id)
                     .fetch_one(&self.db)
                     .await?
                     .unwrap_or(0);
-            
+
             let owner_email =
                 sqlx::query_scalar!(r#"SELECT email FROM users WHERE id = $1"#, g.owner_id)
                     .fetch_optional(&self.db)
@@ -139,11 +143,11 @@ impl SuperAdminService {
             .fetch_optional(&self.db)
             .await?
             .ok_or_else(|| AppError::not_found("Group not found."))?;
-        
+
         sqlx::query!(r#"DELETE FROM groups WHERE id = $1"#, group_id)
             .execute(&self.db)
             .await?;
-        
+
         Ok(json!({ "ok": true, "deletedGroupId": group_id }))
     }
 
@@ -161,7 +165,7 @@ impl SuperAdminService {
         let banned = sqlx::query!(r#"SELECT user_id FROM banned_users"#)
             .fetch_all(&self.db)
             .await?;
-        
+
         let banned_ids: std::collections::HashSet<Uuid> =
             banned.into_iter().map(|r| r.user_id).collect();
 
@@ -184,7 +188,7 @@ impl SuperAdminService {
             r#"SELECT type, meta, created_at FROM user_activity WHERE user_id = $1 ORDER BY created_at DESC LIMIT 200"#,
             user_id
         ).fetch_all(&self.db).await?;
-        
+
         Ok(json!(
             rows.into_iter()
                 .map(|r| json!({ "at": r.created_at, "type": r.r#type, "meta": r.meta }))
@@ -208,7 +212,7 @@ impl SuperAdminService {
         )
         .execute(&self.db)
         .await?;
-        
+
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'admin:ban:user', $2)"#,
             admin_id,
@@ -224,7 +228,7 @@ impl SuperAdminService {
         sqlx::query!(r#"DELETE FROM banned_users WHERE user_id = $1"#, target_id)
             .execute(&self.db)
             .await?;
-        
+
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'admin:unban:user', $2)"#,
             admin_id,
@@ -232,7 +236,7 @@ impl SuperAdminService {
         )
         .execute(&self.db)
         .await?;
-        
+
         Ok(json!({ "ok": true, "isBanned": false }))
     }
 
@@ -252,7 +256,7 @@ impl SuperAdminService {
         )
         .fetch_optional(&self.db)
         .await?;
-        
+
         if owned.is_some() {
             return Err(AppError::bad_request(
                 "User owns groups and cannot be deleted.",
@@ -262,7 +266,7 @@ impl SuperAdminService {
         sqlx::query!(r#"DELETE FROM users WHERE id = $1"#, target_id)
             .execute(&self.db)
             .await?;
-        
+
         Ok(json!({ "ok": true }))
     }
 
@@ -283,7 +287,7 @@ impl SuperAdminService {
                 r#"SELECT id FROM user_roles WHERE user_id = $1 AND role_id = 1 AND tenant_id IS NULL"#,
                 target_id
             ).fetch_optional(&self.db).await?;
-            
+
             if exists.is_none() {
                 sqlx::query!(
                     r#"INSERT INTO user_roles (user_id, role_id, tenant_id) VALUES ($1, 1, NULL)"#,
@@ -309,7 +313,7 @@ impl SuperAdminService {
             r#"DELETE FROM user_activity WHERE user_id = $1 AND created_at < now() - interval '30 days'"#,
             target_id
         ).execute(&self.db).await?;
-        
+
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'admin:prune_logs', $2)"#,
             admin_id,
@@ -317,7 +321,7 @@ impl SuperAdminService {
         )
         .execute(&self.db)
         .await?;
-        
+
         Ok(json!({ "ok": true, "message": "Logs pruned." }))
     }
 
@@ -381,12 +385,12 @@ impl SuperAdminService {
         sqlx::query!(r#"DELETE FROM reports WHERE id = $1"#, report_id)
             .execute(&self.db)
             .await?;
-        
+
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'admin:report:delete', $2)"#,
             admin_id, json!({ "reportId": report_id })
         ).execute(&self.db).await?;
-        
+
         Ok(json!({ "ok": true }))
     }
 

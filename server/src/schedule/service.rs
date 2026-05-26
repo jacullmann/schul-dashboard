@@ -38,15 +38,17 @@ impl ScheduleService {
                 .map(|u| u.personalized && u.done_setup)
                 .unwrap_or(false)
             {
-                let courses =
-                    sqlx::query!(r#"SELECT course_id FROM user_courses WHERE user_id = $1"#, uid)
-                        .fetch_all(&self.db)
-                        .await?;
-                
+                let courses = sqlx::query!(
+                    r#"SELECT course_id FROM user_courses WHERE user_id = $1"#,
+                    uid
+                )
+                .fetch_all(&self.db)
+                .await?;
+
                 let course_ids: Vec<Uuid> = courses.into_iter().map(|r| r.course_id).collect();
 
                 let db2 = self.db.clone();
-                
+
                 tokio::spawn(async move {
                     let _ = sqlx::query!(
                         r#"INSERT INTO user_tenant_state (user_id, tenant_id, last_schedule_visit_at)
@@ -156,7 +158,7 @@ impl ScheduleService {
         )
         .fetch_all(&self.db)
         .await?;
-        
+
         Ok(rows.into_iter().map(|r| r.announcement_id).collect())
     }
 
@@ -176,7 +178,7 @@ impl ScheduleService {
                 user_id, announcement_id
             ).execute(&self.db).await?;
         }
-        
+
         Ok(())
     }
 }

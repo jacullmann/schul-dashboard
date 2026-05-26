@@ -1,8 +1,4 @@
-use crate::{
-    config::ACCESS_COOKIE,
-    error::AppError,
-    state::AppState,
-};
+use crate::{config::ACCESS_COOKIE, error::AppError, state::AppState};
 use axum::{
     extract::{FromRef, FromRequestParts},
     http::request::Parts,

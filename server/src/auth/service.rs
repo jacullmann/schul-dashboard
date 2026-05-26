@@ -212,15 +212,29 @@ impl AuthService {
 
         let secret_b32 = self.enc.decrypt(&encrypted, &uid).await?;
 
-        let secret_bytes = base32::decode(base32::Alphabet::Rfc4648 { padding: false }, &secret_b32)
-            .ok_or_else(|| AppError::internal("Invalid TOTP secret encoding"))?;
+        let secret_bytes =
+            base32::decode(base32::Alphabet::Rfc4648 { padding: false }, &secret_b32)
+                .ok_or_else(|| AppError::internal("Invalid TOTP secret encoding"))?;
 
         let totp = totp_rs::TOTP::new(
-            totp_rs::Algorithm::SHA1, 6, 1, 30, secret_bytes, None, "".to_string()
-        ).map_err(|e| AppError::internal(format!("TOTP init: {e}")))?;
+            totp_rs::Algorithm::SHA1,
+            6,
+            1,
+            30,
+            secret_bytes,
+            None,
+            "".to_string(),
+        )
+        .map_err(|e| AppError::internal(format!("TOTP init: {e}")))?;
 
-        if !totp.check_current(code).map_err(|_| AppError::Unauthorized("Authentication failed.".into()))? {
-            tokio::time::sleep(std::time::Duration::from_millis(100 + rand::random::<u64>() % 100)).await;
+        if !totp
+            .check_current(code)
+            .map_err(|_| AppError::Unauthorized("Authentication failed.".into()))?
+        {
+            tokio::time::sleep(std::time::Duration::from_millis(
+                100 + rand::random::<u64>() % 100,
+            ))
+            .await;
 
             return Err(AppError::Unauthorized("Authentication failed.".into()));
         }
@@ -433,9 +447,12 @@ impl AuthService {
             ));
         }
 
-        let owned = sqlx::query!(r#"SELECT id FROM groups WHERE owner_id = $1 LIMIT 1"#, user_id)
-            .fetch_optional(&self.db)
-            .await?;
+        let owned = sqlx::query!(
+            r#"SELECT id FROM groups WHERE owner_id = $1 LIMIT 1"#,
+            user_id
+        )
+        .fetch_optional(&self.db)
+        .await?;
 
         if owned.is_some() {
             return Err(AppError::BadRequest(
@@ -593,10 +610,13 @@ impl AuthService {
 
         let email = claims.email.to_lowercase();
 
-        let user = sqlx::query!(r#"SELECT id, mfa_enabled FROM users WHERE email = $1"#, email)
-            .fetch_optional(&self.db)
-            .await?
-            .ok_or_else(|| AppError::BadRequest("User not found.".into()))?;
+        let user = sqlx::query!(
+            r#"SELECT id, mfa_enabled FROM users WHERE email = $1"#,
+            email
+        )
+        .fetch_optional(&self.db)
+        .await?
+        .ok_or_else(|| AppError::BadRequest("User not found.".into()))?;
 
         let hash = hash_password(password.to_string()).await?;
 

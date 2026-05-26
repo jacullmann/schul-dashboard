@@ -20,11 +20,13 @@ impl GroupAdminService {
     }
 
     pub async fn get_stats(&self, tenant_id: Uuid) -> AppResult<Value> {
-        let item_count =
-            sqlx::query_scalar!(r#"SELECT COUNT(*) FROM items WHERE tenant_id = $1"#, tenant_id)
-                .fetch_one(&self.db)
-                .await?
-                .unwrap_or(0);
+        let item_count = sqlx::query_scalar!(
+            r#"SELECT COUNT(*) FROM items WHERE tenant_id = $1"#,
+            tenant_id
+        )
+        .fetch_one(&self.db)
+        .await?
+        .unwrap_or(0);
 
         let member_count = sqlx::query_scalar!(
             r#"SELECT COUNT(*) FROM user_roles WHERE tenant_id = $1"#,
@@ -320,7 +322,6 @@ impl GroupAdminService {
                 url,
                 tenant_id
             )
-
             .execute(&self.db)
             .await?;
         }
@@ -491,9 +492,13 @@ impl GroupAdminService {
         .ok_or_else(|| AppError::not_found("Subject not found"))?;
 
         if let Some(n) = name {
-            sqlx::query!(r#"UPDATE subjects SET name = $1 WHERE id = $2"#, n.trim(), id)
-                .execute(&self.db)
-                .await?;
+            sqlx::query!(
+                r#"UPDATE subjects SET name = $1 WHERE id = $2"#,
+                n.trim(),
+                id
+            )
+            .execute(&self.db)
+            .await?;
         }
 
         if let Some(a) = is_active {
@@ -524,10 +529,13 @@ impl GroupAdminService {
         .await?
         .ok_or_else(|| AppError::not_found("Subject not found"))?;
 
-        let refs = sqlx::query_scalar!(r#"SELECT COUNT(*) FROM schedules WHERE subject_id = $1"#, id)
-            .fetch_one(&self.db)
-            .await?
-            .unwrap_or(0)
+        let refs = sqlx::query_scalar!(
+            r#"SELECT COUNT(*) FROM schedules WHERE subject_id = $1"#,
+            id
+        )
+        .fetch_one(&self.db)
+        .await?
+        .unwrap_or(0)
             + sqlx::query_scalar!(r#"SELECT COUNT(*) FROM courses WHERE subject_id = $1"#, id)
                 .fetch_one(&self.db)
                 .await?

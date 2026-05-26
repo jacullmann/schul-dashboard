@@ -2,8 +2,8 @@ use crate::config::{
     ACCESS_COOKIE, ACCESS_TOKEN_TTL, BaseCookieOptions, MFA_PENDING_COOKIE, MFA_PENDING_TTL,
     REFRESH_COOKIE, REFRESH_COOKIE_PATH, REFRESH_TOKEN_TTL,
 };
-use cookie::{Cookie, SameSite};
 use cookie::time::Duration;
+use cookie::{Cookie, SameSite};
 
 fn base_cookie(name: &'static str, value: String, opts: &BaseCookieOptions) -> Cookie<'static> {
     let mut c = Cookie::new(name, value);

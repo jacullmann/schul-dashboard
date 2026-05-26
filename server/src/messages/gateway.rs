@@ -1,9 +1,6 @@
 use crate::{config::ACCESS_COOKIE, state::AppState};
-use axum::{
-    extract::State,
-    response::Response,
-};
 use axum::extract::ws::{Message, WebSocket, WebSocketUpgrade};
+use axum::{extract::State, response::Response};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::{collections::HashMap, sync::Arc};

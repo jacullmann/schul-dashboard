@@ -46,7 +46,7 @@ pub async fn deactivate(
     Json(dto): Json<MfaCodeDto>,
 ) -> AppResult<Json<Value>> {
     let ip = extract_ip(&headers, None);
-    
+
     Ok(Json(
         MfaService::from_state(&s)
             .deactivate(user.user_id, &dto.code, ip.as_deref())

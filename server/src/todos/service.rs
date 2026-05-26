@@ -85,13 +85,16 @@ impl TodoService {
                 WHERE user_id = $1
                 ORDER BY position ASC NULLS LAST LIMIT 1"#,
             user_id
-        ).fetch_optional(&self.db).await?;
+        )
+        .fetch_optional(&self.db)
+        .await?;
 
         let new_pos = match first.and_then(|r| r.position) {
             None => FractionalIndex::default(),
             Some(first_pos) => {
-                let first_idx: FractionalIndex = serde_json::from_str(&format!("\"{}\"", first_pos))
-                    .map_err(|_| AppError::internal("Invalid position encoding"))?;
+                let first_idx: FractionalIndex =
+                    serde_json::from_str(&format!("\"{}\"", first_pos))
+                        .map_err(|_| AppError::internal("Invalid position encoding"))?;
 
                 FractionalIndex::new_before(&first_idx)
             }

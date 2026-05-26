@@ -30,7 +30,8 @@ impl MfaService {
             secret_bytes.to_vec(),
             Some("Schul-Dashboard".to_string()),
             account.to_string(),
-        ).map_err(|e| AppError::internal(format!("TOTP init failed: {e}")))
+        )
+        .map_err(|e| AppError::internal(format!("TOTP init failed: {e}")))
     }
 
     pub async fn get_status(&self, user_id: Uuid) -> AppResult<Value> {
@@ -47,9 +48,9 @@ impl MfaService {
             r#"SELECT email, mfa_enabled FROM users WHERE id = $1"#,
             user_id
         )
-            .fetch_optional(&self.db)
-            .await?
-            .ok_or_else(|| AppError::not_found("User not found."))?;
+        .fetch_optional(&self.db)
+        .await?
+        .ok_or_else(|| AppError::not_found("User not found."))?;
 
         if user.mfa_enabled {
             return Err(AppError::bad_request("MFA is already enabled."));
@@ -59,8 +60,8 @@ impl MfaService {
             r#"DELETE FROM mfa_pending_secrets WHERE user_id = $1"#,
             user_id
         )
-            .execute(&self.db)
-            .await?;
+        .execute(&self.db)
+        .await?;
 
         let secret_bytes: Vec<u8> = (0..20).map(|_| rand::random::<u8>()).collect();
 
@@ -90,7 +91,7 @@ impl MfaService {
             qrcode_generator::QrCodeEcc::Low,
             200,
         )
-            .map_err(|e| AppError::internal(format!("QR generation failed: {e}")))?;
+        .map_err(|e| AppError::internal(format!("QR generation failed: {e}")))?;
 
         let qr_b64 = format!(
             "data:image/png;base64,{}",
@@ -112,8 +113,10 @@ impl MfaService {
                JOIN users u ON u.id = p.user_id
                WHERE p.user_id = $1 AND p.expires_at > now()"#,
             user_id
-        ).fetch_optional(&self.db).await?
-            .ok_or_else(|| AppError::bad_request("Authentication failed."))?;
+        )
+        .fetch_optional(&self.db)
+        .await?
+        .ok_or_else(|| AppError::bad_request("Authentication failed."))?;
 
         let uid = user_id.to_string();
 
@@ -136,7 +139,7 @@ impl MfaService {
             tokio::time::sleep(std::time::Duration::from_millis(
                 100 + rand::random::<u64>() % 100,
             ))
-                .await;
+            .await;
 
             return Err(AppError::bad_request("Authentication failed."));
         }
@@ -148,15 +151,15 @@ impl MfaService {
             serde_json::to_value(&enc_for_storage).unwrap(),
             user_id
         )
-            .execute(&self.db)
-            .await?;
+        .execute(&self.db)
+        .await?;
 
         sqlx::query!(
             r#"DELETE FROM mfa_pending_secrets WHERE user_id = $1"#,
             user_id
         )
-            .execute(&self.db)
-            .await?;
+        .execute(&self.db)
+        .await?;
 
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'mfa:activated', '{}'::jsonb)"#,
@@ -176,9 +179,9 @@ impl MfaService {
             r#"SELECT email, mfa_enabled, mfa_secret FROM users WHERE id = $1"#,
             user_id
         )
-            .fetch_optional(&self.db)
-            .await?
-            .ok_or_else(|| AppError::not_found("User not found."))?;
+        .fetch_optional(&self.db)
+        .await?
+        .ok_or_else(|| AppError::not_found("User not found."))?;
 
         if !user.mfa_enabled || user.mfa_secret.is_none() {
             tokio::time::sleep(std::time::Duration::from_millis(100)).await;
@@ -206,7 +209,7 @@ impl MfaService {
             tokio::time::sleep(std::time::Duration::from_millis(
                 100 + rand::random::<u64>() % 100,
             ))
-                .await;
+            .await;
             return Err(AppError::bad_request("Authentication failed."));
         }
 
@@ -214,16 +217,16 @@ impl MfaService {
             r#"UPDATE users SET mfa_enabled = false, mfa_secret = NULL WHERE id = $1"#,
             user_id
         )
-            .execute(&self.db)
-            .await?;
+        .execute(&self.db)
+        .await?;
 
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'mfa:deactivated', $2)"#,
             user_id,
             json!({ "ip": ip })
         )
-            .execute(&self.db)
-            .await?;
+        .execute(&self.db)
+        .await?;
 
         Ok(json!({ "ok": true, "message": "MFA deactivated successfully." }))
     }

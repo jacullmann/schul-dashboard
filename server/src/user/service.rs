@@ -87,9 +87,12 @@ impl UserService {
         global_role: &str,
         courses: Vec<(Uuid, Uuid)>,
     ) -> AppResult<Value> {
-        sqlx::query!(r#"UPDATE users SET done_setup = true WHERE id = $1"#, user_id)
-            .execute(&self.db)
-            .await?;
+        sqlx::query!(
+            r#"UPDATE users SET done_setup = true WHERE id = $1"#,
+            user_id
+        )
+        .execute(&self.db)
+        .await?;
 
         sqlx::query!(r#"DELETE FROM user_courses WHERE user_id = $1"#, user_id)
             .execute(&self.db)

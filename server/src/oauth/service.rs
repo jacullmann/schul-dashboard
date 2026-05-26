@@ -5,12 +5,12 @@ use crate::{
     error::{AppError, AppResult},
     state::AppState,
 };
-use axum_extra::extract::{CookieJar, cookie::SameSite, cookie::Cookie};
+use axum_extra::extract::{CookieJar, cookie::Cookie, cookie::SameSite};
+use cookie::time::Duration;
 use serde_json::{Value, json};
 use sqlx::PgPool;
 use std::sync::Arc;
 use uuid::Uuid;
-use cookie::time::Duration;
 
 const OAUTH_STATE_COOKIE: &str = "oauth_state_token";
 pub const OAUTH_PENDING_COOKIE: &str = "oauth_pending_token";
@@ -109,36 +109,59 @@ impl OAuthService {
         let empty_jar = CookieJar::new();
 
         if error_param == Some("access_denied") {
-            return (empty_jar, format!("{frontend}/?auth=error&reason=access_denied"));
+            return (
+                empty_jar,
+                format!("{frontend}/?auth=error&reason=access_denied"),
+            );
         }
 
         let (code, state_param) = match (code, state_param) {
             (Some(c), Some(s)) => (c, s),
-            _ => return (empty_jar, format!("{frontend}/?auth=error&reason=invalid_request")),
+            _ => {
+                return (
+                    empty_jar,
+                    format!("{frontend}/?auth=error&reason=invalid_request"),
+                );
+            }
         };
 
         let nonce = match self.verify_state_cookie(state_cookie, state_param) {
             Ok(n) => n,
-            Err(_) => return (empty_jar, format!("{frontend}/?auth=error&reason=invalid_state")),
+            Err(_) => {
+                return (
+                    empty_jar,
+                    format!("{frontend}/?auth=error&reason=invalid_state"),
+                );
+            }
         };
 
         let id_token = match self.exchange_code(code).await {
             Ok(t) => t,
-            Err(_) => return (empty_jar, format!("{frontend}/?auth=error&reason=token_exchange_failed")),
+            Err(_) => {
+                return (
+                    empty_jar,
+                    format!("{frontend}/?auth=error&reason=token_exchange_failed"),
+                );
+            }
         };
 
         let profile = match self.verify_id_token(&id_token, &nonce).await {
             Ok(p) => p,
-            Err(_) => return (empty_jar, format!("{frontend}/?auth=error&reason=token_invalid")),
+            Err(_) => {
+                return (
+                    empty_jar,
+                    format!("{frontend}/?auth=error&reason=token_invalid"),
+                );
+            }
         };
 
         match self.resolve_account(&profile.0, &profile.1).await {
             Ok(OAuthResolution::Login {
-                   user_id,
-                   email,
-                   mfa_enabled,
-                   mfa_secret,
-               }) => {
+                user_id,
+                email,
+                mfa_enabled,
+                mfa_secret,
+            }) => {
                 if mfa_enabled && mfa_secret.is_some() {
                     (empty_jar, format!("{frontend}/?auth=mfa-pending"))
                 } else {
@@ -146,12 +169,15 @@ impl OAuthService {
                         r#"UPDATE users SET last_login_at = now() WHERE id = $1"#,
                         user_id
                     )
-                        .execute(&self.db)
-                        .await;
+                    .execute(&self.db)
+                    .await;
 
                     match self.generate_auth_jar(user_id, &email).await {
                         Ok(jar) => (jar, format!("{frontend}/?auth=success")),
-                        Err(_) => (empty_jar, format!("{frontend}/?auth=error&reason=server_error")),
+                        Err(_) => (
+                            empty_jar,
+                            format!("{frontend}/?auth=error&reason=server_error"),
+                        ),
                     }
                 }
             }
@@ -161,10 +187,16 @@ impl OAuthService {
             Ok(OAuthResolution::NewUser { user_id, email }) => {
                 match self.generate_auth_jar(user_id, &email).await {
                     Ok(jar) => (jar, format!("{frontend}/?auth=success")),
-                    Err(_) => (empty_jar, format!("{frontend}/?auth=error&reason=server_error")),
+                    Err(_) => (
+                        empty_jar,
+                        format!("{frontend}/?auth=error&reason=server_error"),
+                    ),
                 }
             }
-            Err(_) => (empty_jar, format!("{frontend}/?auth=error&reason=server_error")),
+            Err(_) => (
+                empty_jar,
+                format!("{frontend}/?auth=error&reason=server_error"),
+            ),
         }
     }
 
@@ -178,9 +210,9 @@ impl OAuthService {
             r#"SELECT id, email, password_hash, email_verified FROM users WHERE email = $1"#,
             google_email.to_lowercase()
         )
-            .fetch_optional(&self.db)
-            .await?
-            .ok_or_else(|| AppError::Unauthorized("Invalid credentials.".into()))?;
+        .fetch_optional(&self.db)
+        .await?
+        .ok_or_else(|| AppError::Unauthorized("Invalid credentials.".into()))?;
 
         let hash = user.password_hash.as_deref().unwrap_or("");
 
@@ -201,13 +233,15 @@ impl OAuthService {
             google_id,
             google_email
         )
-            .execute(&self.db)
-            .await
-            .map_err(|_| {
-                AppError::bad_request("This Google account is already linked to another account.")
-            })?;
+        .execute(&self.db)
+        .await
+        .map_err(|_| {
+            AppError::bad_request("This Google account is already linked to another account.")
+        })?;
 
-        let (jar, _) = self.generate_auth_jar_with_context(user.id, &user.email).await?;
+        let (jar, _) = self
+            .generate_auth_jar_with_context(user.id, &user.email)
+            .await?;
         Ok((jar, json!({ "ok": true })))
     }
 
@@ -227,8 +261,8 @@ impl OAuthService {
             r#"DELETE FROM oauth_accounts WHERE user_id = $1 AND provider = 'google'"#,
             user_id
         )
-            .execute(&self.db)
-            .await?;
+        .execute(&self.db)
+        .await?;
 
         Ok(json!({ "ok": true }))
     }
@@ -238,8 +272,8 @@ impl OAuthService {
             r#"SELECT provider, provider_email FROM oauth_accounts WHERE user_id = $1"#,
             user_id
         )
-            .fetch_all(&self.db)
-            .await?;
+        .fetch_all(&self.db)
+        .await?;
 
         Ok(json!({
             "providers": rows.iter().map(|r| json!({ "provider": r.provider, "email": r.provider_email })).collect::<Vec<_>>()
@@ -252,10 +286,10 @@ impl OAuthService {
                WHERE ur.user_id = $1 AND ur.tenant_id IS NULL LIMIT 1"#,
             user_id
         )
-            .fetch_optional(&self.db)
-            .await?
-            .map(|r| r.name)
-            .unwrap_or_else(|| "user".into());
+        .fetch_optional(&self.db)
+        .await?
+        .map(|r| r.name)
+        .unwrap_or_else(|| "user".into());
 
         let active_group = sqlx::query!(
             r#"SELECT tenant_id FROM user_roles WHERE user_id = $1 AND tenant_id IS NOT NULL LIMIT 1"#,
@@ -285,9 +319,9 @@ impl OAuthService {
                 r#"SELECT id, email, mfa_enabled, mfa_secret FROM users WHERE id = $1"#,
                 row.user_id
             )
-                .fetch_optional(&self.db)
-                .await?
-                .ok_or_else(|| AppError::internal("Linked user not found"))?;
+            .fetch_optional(&self.db)
+            .await?
+            .ok_or_else(|| AppError::internal("Linked user not found"))?;
 
             let ban = sqlx::query!(r#"SELECT id FROM banned_users WHERE user_id = $1"#, user.id)
                 .fetch_optional(&self.db)
@@ -434,7 +468,7 @@ impl OAuthService {
                 self.config.oauth_pending_jwt_secret.as_bytes(),
             ),
         )
-            .map_err(|e| AppError::internal(e.to_string()))
+        .map_err(|e| AppError::internal(e.to_string()))
     }
 
     fn verify_state_cookie(&self, cookie: Option<&str>, state_param: &str) -> AppResult<String> {
@@ -452,7 +486,7 @@ impl OAuthService {
             ),
             &v,
         )
-            .map_err(|_| AppError::Unauthorized("Invalid OAuth state.".into()))?;
+        .map_err(|_| AppError::Unauthorized("Invalid OAuth state.".into()))?;
 
         if data.claims.purpose != "oauth_state" || data.claims.state != state_param {
             return Err(AppError::Unauthorized("OAuth state mismatch.".into()));
@@ -466,11 +500,23 @@ impl OAuthService {
         Ok(jar)
     }
 
-    async fn generate_auth_jar_with_context(&self, user_id: Uuid, email: &str) -> AppResult<(CookieJar, String)> {
+    async fn generate_auth_jar_with_context(
+        &self,
+        user_id: Uuid,
+        email: &str,
+    ) -> AppResult<(CookieJar, String)> {
         let (global_role, active_group_id) = self.resolve_user_context(user_id).await?;
 
         let tokens = TokenService::from_state(&self.state)
-            .issue_pair(user_id, email, &global_role, active_group_id, None, None, None)
+            .issue_pair(
+                user_id,
+                email,
+                &global_role,
+                active_group_id,
+                None,
+                None,
+                None,
+            )
             .await?;
 
         let opts = self.config.base_cookie_options();

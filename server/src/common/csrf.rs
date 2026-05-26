@@ -4,9 +4,9 @@ use crate::{
 };
 use axum::{extract::Request, http::Method, middleware::Next, response::Response};
 use axum_extra::extract::CookieJar;
-use subtle::ConstantTimeEq;
 use cookie::Cookie;
 use cookie::time::Duration;
+use subtle::ConstantTimeEq;
 
 pub fn generate_csrf_token() -> String {
     let bytes: Vec<u8> = (0..20).map(|_| rand::random::<u8>()).collect();

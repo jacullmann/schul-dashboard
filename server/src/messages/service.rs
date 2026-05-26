@@ -38,8 +38,8 @@ impl MessagesService {
             "#,
             tenant_id
         )
-            .fetch_all(&self.db)
-            .await?;
+        .fetch_all(&self.db)
+        .await?;
 
         let db2 = self.db.clone();
 
@@ -51,8 +51,8 @@ impl MessagesService {
                 user_id,
                 tenant_id
             )
-                .execute(&db2)
-                .await;
+            .execute(&db2)
+            .await;
         });
 
         if msgs.is_empty() {
@@ -73,8 +73,8 @@ impl MessagesService {
                 r#"SELECT id, user_id, content, tenant_id FROM group_messages WHERE id = ANY($1)"#,
                 &parent_ids
             )
-                .fetch_all(&self.db)
-                .await?;
+            .fetch_all(&self.db)
+            .await?;
 
             for p in parents {
                 parent_map.insert(
@@ -120,8 +120,8 @@ impl MessagesService {
             user_id,
             tenant_id
         )
-            .execute(&self.db)
-            .await?;
+        .execute(&self.db)
+        .await?;
 
         Ok(())
     }
@@ -139,9 +139,9 @@ impl MessagesService {
             r#"SELECT permissions, owner_id FROM groups WHERE id = $1"#,
             tenant_id
         )
-            .fetch_optional(&self.db)
-            .await?
-            .ok_or_else(|| AppError::not_found("Group not found"))?;
+        .fetch_optional(&self.db)
+        .await?
+        .ok_or_else(|| AppError::not_found("Group not found"))?;
 
         if global_role != "superadmin" && group.owner_id != user_id {
             let allowed = group
@@ -161,8 +161,13 @@ impl MessagesService {
             r#"INSERT INTO group_messages (tenant_id, user_id, content, parent_id)
              VALUES ($1, $2, $3, $4)
              RETURNING id, tenant_id, user_id, content, parent_id, created_at, updated_at"#,
-            tenant_id, user_id, content.trim(), parent_id
-        ).fetch_one(&self.db).await?;
+            tenant_id,
+            user_id,
+            content.trim(),
+            parent_id
+        )
+        .fetch_one(&self.db)
+        .await?;
 
         let sender = generate_user_name(&msg.user_id.to_string(), &msg.tenant_id.to_string());
 
@@ -178,8 +183,8 @@ impl MessagesService {
                 r#"SELECT user_id, content, tenant_id FROM group_messages WHERE id = $1"#,
                 pid
             )
-                .fetch_optional(&self.db)
-                .await?
+            .fetch_optional(&self.db)
+            .await?
             {
                 v["parentContent"] = json!(p.content);
                 v["parentSenderName"] = json!(generate_user_name(
@@ -205,18 +210,18 @@ impl MessagesService {
             message_id,
             tenant_id
         )
-            .fetch_optional(&self.db)
-            .await?
-            .ok_or_else(|| AppError::not_found("Nachricht nicht gefunden"))?;
+        .fetch_optional(&self.db)
+        .await?
+        .ok_or_else(|| AppError::not_found("Nachricht nicht gefunden"))?;
 
         if msg.user_id != user_id && global_role != "superadmin" {
             let group = sqlx::query!(
                 r#"SELECT permissions, owner_id FROM groups WHERE id = $1"#,
                 tenant_id
             )
-                .fetch_optional(&self.db)
-                .await?
-                .ok_or_else(|| AppError::not_found("Group not found"))?;
+            .fetch_optional(&self.db)
+            .await?
+            .ok_or_else(|| AppError::not_found("Group not found"))?;
 
             if group.owner_id != user_id {
                 let allowed = group
@@ -235,8 +240,8 @@ impl MessagesService {
             r#"UPDATE group_messages SET parent_id = NULL WHERE parent_id = $1"#,
             message_id
         )
-            .execute(&self.db)
-            .await?;
+        .execute(&self.db)
+        .await?;
 
         sqlx::query!(r#"DELETE FROM group_messages WHERE id = $1"#, message_id)
             .execute(&self.db)
