@@ -2,7 +2,8 @@ use crate::config::{
     ACCESS_COOKIE, ACCESS_TOKEN_TTL, BaseCookieOptions, MFA_PENDING_COOKIE, MFA_PENDING_TTL,
     REFRESH_COOKIE, REFRESH_COOKIE_PATH, REFRESH_TOKEN_TTL,
 };
-use axum_extra::extract::cookie::{Cookie, SameSite};
+use cookie::{Cookie, SameSite};
+use cookie::time::Duration;
 
 fn base_cookie(name: &'static str, value: String, opts: &BaseCookieOptions) -> Cookie<'static> {
     let mut c = Cookie::new(name, value);
@@ -16,9 +17,7 @@ fn base_cookie(name: &'static str, value: String, opts: &BaseCookieOptions) -> C
 }
 
 fn with_ttl(mut c: Cookie<'static>, secs: u64) -> Cookie<'static> {
-    c.set_max_age(axum_extra::extract::cookie::time::Duration::seconds(
-        secs as i64,
-    ));
+    c.set_max_age(Duration::seconds(secs as i64));
 
     c
 }

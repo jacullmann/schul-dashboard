@@ -10,7 +10,7 @@ use crate::{
         jwt::JwtService,
         password::{hash_password, validate_password_strength, verify_password},
     },
-    config::*,
+    config::{Config, MFA_PENDING_TTL, PASSWORD_RESET_TTL},
     error::{AppError, AppResult},
     state::AppState,
 };
@@ -25,7 +25,7 @@ pub struct AuthService {
     tokens: TokenService,
     email: EmailService,
     jwt: JwtService,
-    config: std::sync::Arc<crate::config::Config>,
+    config: std::sync::Arc<Config>,
     enc: crate::common::encryption::EncryptionService,
 }
 
@@ -221,6 +221,7 @@ impl AuthService {
 
         if !totp.check_current(code).map_err(|_| AppError::Unauthorized("Authentication failed.".into()))? {
             tokio::time::sleep(std::time::Duration::from_millis(100 + rand::random::<u64>() % 100)).await;
+
             return Err(AppError::Unauthorized("Authentication failed.".into()));
         }
         sqlx::query!(
@@ -306,15 +307,7 @@ impl AuthService {
         .await
         .map_err(|_| AppError::BadRequest("Registration failed.".into()))?;
 
-        let token = {
-            use rand::RngCore;
-
-            let mut bytes = [0u8; 32];
-
-            rand::rng().fill_bytes(&mut bytes);
-
-            hex::encode(bytes)
-        };
+        let token = hex::encode(rand::random::<[u8; 32]>());
 
         let expires_at = Utc::now() + Duration::days(2);
 
@@ -516,15 +509,8 @@ impl AuthService {
             }));
         }
 
-        let code = {
-            use rand::RngCore;
+        let code = hex::encode_upper(rand::random::<[u8; 3]>());
 
-            let mut bytes = [0u8; 3];
-
-            rand::rng().fill_bytes(&mut bytes);
-
-            hex::encode(bytes).to_uppercase()
-        };
         let expires_at = Utc::now() + Duration::minutes(30);
 
         sqlx::query!(

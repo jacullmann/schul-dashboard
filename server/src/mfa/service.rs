@@ -5,7 +5,7 @@ use crate::{
 };
 use serde_json::{Value, json};
 use sqlx::PgPool;
-use totp_rs::{Algorithm, Secret, TOTP};
+use totp_rs::{Algorithm, TOTP};
 use uuid::Uuid;
 
 pub struct MfaService {
@@ -21,17 +21,16 @@ impl MfaService {
         }
     }
 
-    fn make_totp(secret_bytes: &[u8]) -> AppResult<TOTP> {
+    fn make_totp(secret_bytes: &[u8], account: &str) -> AppResult<TOTP> {
         TOTP::new(
             Algorithm::SHA1,
             6,
             1,
             30,
             secret_bytes.to_vec(),
-            None,
-            "".to_string(),
-        )
-        .map_err(|e| AppError::internal(format!("TOTP init failed: {e}")))
+            Some("Schul-Dashboard".to_string()),
+            account.to_string(),
+        ).map_err(|e| AppError::internal(format!("TOTP init failed: {e}")))
     }
 
     pub async fn get_status(&self, user_id: Uuid) -> AppResult<Value> {
@@ -84,7 +83,7 @@ impl MfaService {
 
         let totp = Self::make_totp(&secret_bytes)?;
 
-        let otpauth = totp.get_url(&user.email, "Schul-Dashboard");
+        let otpauth = totp.get_url();
 
         let qr = qrcode_generator::to_png_to_vec(
             otpauth.as_bytes(),

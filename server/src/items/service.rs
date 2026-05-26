@@ -7,6 +7,7 @@ use chrono::Utc;
 use serde_json::{Value, json};
 use sqlx::PgPool;
 use uuid::Uuid;
+use sha2::{Sha256, Digest};
 
 fn time_left_color(due: &chrono::DateTime<Utc>) -> &'static str {
     let diff = (*due - Utc::now()).num_seconds() as f64 / 86400.0;
@@ -21,30 +22,6 @@ fn time_left_color(due: &chrono::DateTime<Utc>) -> &'static str {
     } else {
         "ok"
     }
-}
-
-fn map_item(row: &impl ItemRow) -> Value {
-    json!({
-        "id": row.id(), "type": row.item_type(), "title": row.title(),
-        "subject": row.subject(), "description": row.description(),
-        "images": row.images(), "dueDate": row.due_date(),
-        "createdBy": row.created_by(), "editorNote": row.editor_note(),
-        "createdAt": row.created_at(), "updatedAt": row.updated_at(),
-    })
-}
-
-trait ItemRow {
-    fn id(&self) -> Uuid;
-    fn item_type(&self) -> &str;
-    fn title(&self) -> &str;
-    fn subject(&self) -> &str;
-    fn description(&self) -> &str;
-    fn images(&self) -> &Value;
-    fn due_date(&self) -> &chrono::DateTime<Utc>;
-    fn created_by(&self) -> Uuid;
-    fn editor_note(&self) -> &str;
-    fn created_at(&self) -> &chrono::DateTime<Utc>;
-    fn updated_at(&self) -> &chrono::DateTime<Utc>;
 }
 
 pub struct ItemsService {
@@ -83,27 +60,27 @@ impl ItemsService {
                ORDER BY i.due_date ASC"#,
             tenant_id
         )
-        .fetch_all(&self.db)
-        .await?;
+            .fetch_all(&self.db)
+            .await?;
 
         if item_type.is_none() || item_type == Some("all") {
             let db2 = self.db.clone();
 
             tokio::spawn(async move {
                 let _ = sqlx::query!(
-                    "INSERT INTO user_tenant_state (user_id, tenant_id, last_group_visit_at)
-                     VALUES ($1, $2, now()) ON CONFLICT (user_id, tenant_id) DO UPDATE SET last_group_visit_at = now()",
+                    r#"INSERT INTO user_tenant_state (user_id, tenant_id, last_group_visit_at)
+                     VALUES ($1, $2, now()) ON CONFLICT (user_id, tenant_id) DO UPDATE SET last_group_visit_at = now()"#,
                     user_id, tenant_id
                 ).execute(&db2).await;
             });
         }
 
         let vis = sqlx::query!(
-            "SELECT item_id, status FROM user_item_visibility WHERE user_id = $1",
+            r#"SELECT item_id, status FROM user_item_visibility WHERE user_id = $1"#,
             user_id
         )
-        .fetch_all(&self.db)
-        .await?;
+            .fetch_all(&self.db)
+            .await?;
 
         let archived: std::collections::HashSet<Uuid> = vis
             .iter()
@@ -121,10 +98,7 @@ impl ItemsService {
             .filter(|r| {
                 if let Some(t) = item_type { if t != "all" && r.r#type != t { return false; } }
 
-                let is_old = r.due_date < now || archived.contains(&r.id);
-
                 let is_kept = kept.contains(&r.id);
-
                 let is_archived = archived.contains(&r.id);
 
                 match filter {
@@ -148,15 +122,18 @@ impl ItemsService {
 
     pub async fn get_item_by_id(&self, tenant_id: Uuid, id: Uuid) -> AppResult<Value> {
         let row = sqlx::query!(
-            r#"SELECT i.*, u.email as creator_email FROM items i
+            r#"SELECT i.id, i.type, i.title, i.subject, i.description, i.images, i.due_date,
+                      i.created_by, i.editor_note, i.created_at, i.updated_at,
+                      u.email as creator_email
+               FROM items i
                LEFT JOIN users u ON u.id = i.created_by
                WHERE i.id = $1 AND i.tenant_id = $2"#,
             id,
             tenant_id
         )
-        .fetch_optional(&self.db)
-        .await?
-        .ok_or_else(|| AppError::not_found("Item not found."))?;
+            .fetch_optional(&self.db)
+            .await?
+            .ok_or_else(|| AppError::not_found("Item not found."))?;
 
         Ok(json!({
             "id": row.id, "type": row.r#type, "title": row.title,
@@ -190,12 +167,12 @@ impl ItemsService {
         ).fetch_one(&self.db).await?;
 
         sqlx::query!(
-            "INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:create', $2)",
+            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:create', $2)"#,
             user_id,
             json!({ "id": row.id, "type": dto.r#type })
         )
-        .execute(&self.db)
-        .await?;
+            .execute(&self.db)
+            .await?;
 
         Ok(json!({ "ok": true, "id": row.id }))
     }
@@ -208,32 +185,32 @@ impl ItemsService {
         dto: &crate::items::dto::UpdateItemDto,
     ) -> AppResult<Value> {
         let item = sqlx::query!(
-            "SELECT id, created_by FROM items WHERE id = $1 AND tenant_id = $2",
+            r#"SELECT id, created_by FROM items WHERE id = $1 AND tenant_id = $2"#,
             id,
             tenant_id
         )
-        .fetch_optional(&self.db)
-        .await?
-        .ok_or_else(|| AppError::not_found("Not found."))?;
+            .fetch_optional(&self.db)
+            .await?
+            .ok_or_else(|| AppError::not_found("Not found."))?;
 
         if item.created_by != user_id {
             return Err(AppError::forbidden("Only the creator can edit this item."));
         }
 
         if let Some(ref title) = dto.title {
-            sqlx::query!("UPDATE items SET title = $1 WHERE id = $2", title, id)
+            sqlx::query!(r#"UPDATE items SET title = $1 WHERE id = $2"#, title.trim(), id)
                 .execute(&self.db)
                 .await?;
         }
 
         if let Some(ref subject) = dto.subject {
-            sqlx::query!("UPDATE items SET subject = $1 WHERE id = $2", subject, id)
+            sqlx::query!(r#"UPDATE items SET subject = $1 WHERE id = $2"#, subject.trim(), id)
                 .execute(&self.db)
                 .await?;
         }
 
         if let Some(ref desc) = dto.description {
-            sqlx::query!("UPDATE items SET description = $1 WHERE id = $2", desc, id)
+            sqlx::query!(r#"UPDATE items SET description = $1 WHERE id = $2"#, desc.trim(), id)
                 .execute(&self.db)
                 .await?;
         }
@@ -242,32 +219,32 @@ impl ItemsService {
             let parsed = due
                 .parse::<chrono::DateTime<Utc>>()
                 .map_err(|_| AppError::bad_request("Invalid due_date"))?;
-            sqlx::query!("UPDATE items SET due_date = $1 WHERE id = $2", parsed, id)
+            sqlx::query!(r#"UPDATE items SET due_date = $1 WHERE id = $2"#, parsed, id)
                 .execute(&self.db)
                 .await?;
         }
 
         if let Some(ref images) = dto.images {
             sqlx::query!(
-                "UPDATE items SET images = $1 WHERE id = $2",
+                r#"UPDATE items SET images = $1 WHERE id = $2"#,
                 json!(images),
                 id
             )
-            .execute(&self.db)
-            .await?;
+                .execute(&self.db)
+                .await?;
         }
 
-        sqlx::query!("UPDATE items SET updated_at = now() WHERE id = $1", id)
+        sqlx::query!(r#"UPDATE items SET updated_at = now() WHERE id = $1"#, id)
             .execute(&self.db)
             .await?;
 
         sqlx::query!(
-            "INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:update', $2)",
+            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:update', $2)"#,
             user_id,
             json!({ "id": id })
         )
-        .execute(&self.db)
-        .await?;
+            .execute(&self.db)
+            .await?;
 
         Ok(json!({ "ok": true }))
     }
@@ -281,22 +258,22 @@ impl ItemsService {
         tenant_role: Option<&str>,
     ) -> AppResult<Value> {
         let item = sqlx::query!(
-            "SELECT id, created_by, images FROM items WHERE id = $1 AND tenant_id = $2",
+            r#"SELECT id, created_by FROM items WHERE id = $1 AND tenant_id = $2"#,
             id,
             tenant_id
         )
-        .fetch_optional(&self.db)
-        .await?
-        .ok_or_else(|| AppError::not_found("Not found."))?;
+            .fetch_optional(&self.db)
+            .await?
+            .ok_or_else(|| AppError::not_found("Not found."))?;
 
         if item.created_by != user_id && global_role != "superadmin" {
             let group = sqlx::query!(
-                "SELECT permissions, owner_id FROM groups WHERE id = $1",
+                r#"SELECT permissions, owner_id FROM groups WHERE id = $1"#,
                 tenant_id
             )
-            .fetch_optional(&self.db)
-            .await?
-            .ok_or_else(|| AppError::not_found("Group not found"))?;
+                .fetch_optional(&self.db)
+                .await?
+                .ok_or_else(|| AppError::not_found("Group not found"))?;
 
             if group.owner_id != user_id {
                 let allowed = group
@@ -312,20 +289,20 @@ impl ItemsService {
         }
 
         sqlx::query!(
-            "DELETE FROM items WHERE id = $1 AND tenant_id = $2",
+            r#"DELETE FROM items WHERE id = $1 AND tenant_id = $2"#,
             id,
             tenant_id
         )
-        .execute(&self.db)
-        .await?;
+            .execute(&self.db)
+            .await?;
 
         sqlx::query!(
-            "INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:delete', $2)",
+            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:delete', $2)"#,
             user_id,
             json!({ "id": id })
         )
-        .execute(&self.db)
-        .await?;
+            .execute(&self.db)
+            .await?;
 
         Ok(json!({ "ok": true }))
     }
@@ -338,31 +315,31 @@ impl ItemsService {
         note: &str,
     ) -> AppResult<Value> {
         sqlx::query!(
-            "SELECT id FROM items WHERE id = $1 AND tenant_id = $2",
+            r#"SELECT id FROM items WHERE id = $1 AND tenant_id = $2"#,
             id,
             tenant_id
         )
-        .fetch_optional(&self.db)
-        .await?
-        .ok_or_else(|| AppError::not_found("Not found."))?;
+            .fetch_optional(&self.db)
+            .await?
+            .ok_or_else(|| AppError::not_found("Not found."))?;
 
         let trimmed = note.trim();
 
         sqlx::query!(
-            "UPDATE items SET editor_note = $1, updated_at = now() WHERE id = $2",
+            r#"UPDATE items SET editor_note = $1, updated_at = now() WHERE id = $2"#,
             trimmed,
             id
         )
-        .execute(&self.db)
-        .await?;
+            .execute(&self.db)
+            .await?;
 
         sqlx::query!(
-            "INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:note:update', $2)",
+            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:note:update', $2)"#,
             user_id,
             json!({ "itemId": id })
         )
-        .execute(&self.db)
-        .await?;
+            .execute(&self.db)
+            .await?;
 
         Ok(json!({ "ok": true, "editorNote": trimmed }))
     }
@@ -375,29 +352,29 @@ impl ItemsService {
     ) -> AppResult<Value> {
         if dto.category == "falschinfo"
             && dto
-                .reason
-                .as_deref()
-                .map(|r| r.trim().is_empty())
-                .unwrap_or(true)
+            .reason
+            .as_deref()
+            .map(|r| r.trim().is_empty())
+            .unwrap_or(true)
         {
             return Err(AppError::bad_request("Please provide a reason."));
         }
 
         sqlx::query!(
-            "INSERT INTO reports (item_id, item_title, category, reason, reporter_id, reporter_email)
-             VALUES ($1, $2, $3, $4, $5, $6)",
+            r#"INSERT INTO reports (item_id, item_title, category, reason, reporter_id, reporter_email)
+             VALUES ($1, $2, $3, $4, $5, $6)"#,
             dto.item_id, dto.item_title, dto.category,
             dto.reason.as_deref().map(|r| r.trim()),
             user_id, email
         ).execute(&self.db).await?;
 
         sqlx::query!(
-            "INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:report', $2)",
+            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:report', $2)"#,
             user_id,
             json!({ "itemId": dto.item_id, "category": dto.category })
         )
-        .execute(&self.db)
-        .await?;
+            .execute(&self.db)
+            .await?;
 
         Ok(json!({ "ok": true, "message": "Item reported successfully." }))
     }
@@ -405,17 +382,13 @@ impl ItemsService {
     pub fn create_upload_signature(&self, folder: &str) -> Value {
         let timestamp = Utc::now().timestamp();
 
-        let to_sign = format!("folder={folder}&timestamp={timestamp}");
+        let to_sign = format!("folder={folder}&timestamp={timestamp}{}", self.cloudinary_api_secret);
 
-        use hmac::{Hmac, Mac};
+        let mut hasher = Sha256::new();
 
-        type HmacSha256 = Hmac<sha2::Sha256>;
+        hasher.update(to_sign.as_bytes());
 
-        let mut mac = HmacSha256::new_from_slice(self.cloudinary_api_secret.as_bytes()).unwrap();
-
-        mac.update(to_sign.as_bytes());
-        
-        let sig = hex::encode(mac.finalize().into_bytes());
+        let sig = hex::encode(hasher.finalize());
 
         json!({
             "cloudName": self.cloudinary_cloud_name,

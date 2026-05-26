@@ -5,6 +5,5 @@ pub mod extractors;
 pub mod jwt;
 pub mod model;
 pub mod name_generator;
-pub mod pagination;
 pub mod password;
 pub mod permission;

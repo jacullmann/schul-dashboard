@@ -64,7 +64,7 @@ impl GroupService {
         ip: Option<&str>,
         ua: Option<&str>,
     ) -> AppResult<(CookieJar, Value)> {
-        static DUMMY: once_cell::sync::Lazy<String> = once_cell::sync::Lazy::new(|| {
+        static DUMMY: std::sync::LazyLock<String> = std::sync::LazyLock::new(|| {
             argon2::password_hash::PasswordHasher::hash_password(
                 &argon2::Argon2::default(),
                 b"__dummy__",
@@ -77,7 +77,7 @@ impl GroupService {
         });
 
         let group = sqlx::query!(
-            "SELECT id, name, passcode_hash FROM groups WHERE name = $1",
+            r#"SELECT id, name, passcode_hash FROM groups WHERE name = $1"#,
             group_name
         )
         .fetch_optional(&self.db)
@@ -87,28 +87,28 @@ impl GroupService {
             .as_ref()
             .map(|g| g.passcode_hash.as_str())
             .unwrap_or(&*DUMMY);
-        
+
         let valid = verify_password(password.to_string(), hash.to_string()).await?;
-        
+
         let authenticated = group.is_some() && valid;
 
         if let Some(ref g) = group {
             let ban = sqlx::query!(
-                "SELECT id FROM group_bans WHERE tenant_id = $1 AND user_id = $2",
+                r#"SELECT id FROM group_bans WHERE tenant_id = $1 AND user_id = $2"#,
                 g.id,
                 user_id
             )
             .fetch_optional(&self.db)
             .await?;
-            
+
             if ban.is_some() {
                 return Err(AppError::forbidden("You have been banned from this group."));
             }
         }
 
         sqlx::query!(
-            "INSERT INTO security_events (event_type, event_status, ip_address, user_agent, metadata)
-             VALUES ('group_join', $1, $2::inet, $3, $4)",
+            r#"INSERT INTO security_events (event_type, event_status, ip_address, user_agent, metadata)
+             VALUES ('group_join', $1, $2::inet, $3, $4)"#,
             if authenticated { "success" } else { "failure" },
             ip, ua,
             json!({ "groupName": group_name, "userId": user_id })
@@ -123,7 +123,7 @@ impl GroupService {
         let g = group.unwrap();
 
         let existing = sqlx::query!(
-            "SELECT id FROM user_roles WHERE user_id = $1 AND role_id = 4 AND tenant_id = $2",
+            r#"SELECT id FROM user_roles WHERE user_id = $1 AND role_id = 4 AND tenant_id = $2"#,
             user_id,
             g.id
         )
@@ -132,7 +132,7 @@ impl GroupService {
 
         if existing.is_none() {
             sqlx::query!(
-                "INSERT INTO user_roles (user_id, role_id, tenant_id) VALUES ($1, 4, $2)",
+                r#"INSERT INTO user_roles (user_id, role_id, tenant_id) VALUES ($1, 4, $2)"#,
                 user_id,
                 g.id
             )
@@ -143,7 +143,7 @@ impl GroupService {
         let jar = self
             .issue_session_cookie(user_id, email, global_role, Some(g.id))
             .await?;
-        
+
         Ok((jar, json!({ "ok": true })))
     }
 
@@ -157,29 +157,29 @@ impl GroupService {
         ip: Option<&str>,
         ua: Option<&str>,
     ) -> AppResult<(CookieJar, Value)> {
-        let exists = sqlx::query!("SELECT id FROM groups WHERE name = $1", group_name)
+        let exists = sqlx::query!(r#"SELECT id FROM groups WHERE name = $1"#, group_name)
             .fetch_optional(&self.db)
             .await?;
 
         if exists.is_some() {
             sqlx::query!(
-                "INSERT INTO security_events (event_type, event_status, ip_address, user_agent, metadata)
-                 VALUES ('group_create', 'failure', $1::inet, $2, $3)",
+                r#"INSERT INTO security_events (event_type, event_status, ip_address, user_agent, metadata)
+                 VALUES ('group_create', 'failure', $1::inet, $2, $3)"#,
                 ip, ua, json!({ "groupName": group_name })
             ).execute(&self.db).await?;
-            
+
             return Err(AppError::bad_request("This group name is already taken."));
         }
 
         let hash = crate::common::password::hash_password(password.to_string()).await?;
 
         let group = sqlx::query!(
-            "INSERT INTO groups (name, passcode_hash, owner_id) VALUES ($1, $2, $3) RETURNING id, name",
+            r#"INSERT INTO groups (name, passcode_hash, owner_id) VALUES ($1, $2, $3) RETURNING id, name"#,
             group_name, hash, user_id
         ).fetch_one(&self.db).await?;
 
         sqlx::query!(
-            "INSERT INTO user_roles (user_id, role_id, tenant_id) VALUES ($1, 2, $2)",
+            r#"INSERT INTO user_roles (user_id, role_id, tenant_id) VALUES ($1, 2, $2)"#,
             user_id,
             group.id
         )
@@ -187,8 +187,8 @@ impl GroupService {
         .await?;
 
         sqlx::query!(
-            "INSERT INTO security_events (event_type, event_status, ip_address, user_agent, metadata)
-             VALUES ('group_create', 'success', $1::inet, $2, $3)",
+            r#"INSERT INTO security_events (event_type, event_status, ip_address, user_agent, metadata)
+             VALUES ('group_create', 'success', $1::inet, $2, $3)"#,
             ip, ua, json!({ "groupName": group.name, "groupId": group.id, "createdBy": user_id })
         ).execute(&self.db).await?;
 
@@ -233,18 +233,25 @@ impl GroupService {
             .collect();
 
         let active_group = if let Some(gid) = active_group_id {
-            groups
-                .iter()
-                .find(|g| g["id"].as_str() == Some(&gid.to_string()))
-                .cloned()
-                .or_else(|| {
-                    if global_role == Some("superadmin") {
-                        // TODO:  superadmin can access any group — returned as-is
-                        None // lazy: we skip the extra DB query here for simplicity
-                    } else {
-                        None
-                    }
-                })
+            match groups.iter().find(|g| g["id"].as_str() == Some(&gid.to_string())) {
+                Some(g) => Some(g.clone()),
+                None if global_role == Some("superadmin") => {
+                    sqlx::query!(
+                r#"SELECT id, name, owner_id, schedule_config, avatar_url, permissions
+                   FROM groups WHERE id = $1"#,
+                gid
+            )
+                        .fetch_optional(&self.db)
+                        .await?
+                        .map(|g| json!({
+                "id": g.id, "name": g.name, "ownerId": g.owner_id,
+                "role": "superadmin", "hasUnreadContent": false,
+                "scheduleConfig": g.schedule_config, "avatarUrl": g.avatar_url,
+                "permissions": g.permissions.unwrap_or(json!({})),
+            }))
+                }
+                None => None,
+            }
         } else {
             None
         };
@@ -267,19 +274,19 @@ impl GroupService {
         group_id: Uuid,
     ) -> AppResult<(CookieJar, Value)> {
         if global_role == "superadmin" {
-            sqlx::query!("SELECT id FROM groups WHERE id = $1", group_id)
+            sqlx::query!(r#"SELECT id FROM groups WHERE id = $1"#, group_id)
                 .fetch_optional(&self.db)
                 .await?
                 .ok_or_else(|| AppError::not_found("Group not found."))?;
         } else {
             let membership = sqlx::query!(
-                "SELECT tenant_id FROM user_roles WHERE user_id = $1 AND tenant_id = $2",
+                r#"SELECT tenant_id FROM user_roles WHERE user_id = $1 AND tenant_id = $2"#,
                 user_id,
                 group_id
             )
             .fetch_optional(&self.db)
             .await?;
-            
+
             if membership.is_none() {
                 return Err(AppError::forbidden("You do not have access to this group."));
             }
@@ -288,7 +295,7 @@ impl GroupService {
         let jar = self
             .issue_session_cookie(user_id, email, global_role, Some(group_id))
             .await?;
-        
+
         Ok((jar, json!({ "ok": true })))
     }
 
@@ -298,7 +305,7 @@ impl GroupService {
         group_id: Uuid,
         active_group_id: Option<Uuid>,
     ) -> AppResult<CookieJar> {
-        let group = sqlx::query!("SELECT owner_id FROM groups WHERE id = $1", group_id)
+        let group = sqlx::query!(r#"SELECT owner_id FROM groups WHERE id = $1"#, group_id)
             .fetch_optional(&self.db)
             .await?
             .ok_or_else(|| AppError::not_found("Group not found."))?;
@@ -323,19 +330,19 @@ impl GroupService {
         }
 
         sqlx::query!(
-            "DELETE FROM user_roles WHERE user_id = $1 AND tenant_id = $2",
+            r#"DELETE FROM user_roles WHERE user_id = $1 AND tenant_id = $2"#,
             user_id,
             group_id
         )
         .execute(&self.db)
         .await?;
 
-        let courses = sqlx::query!("SELECT id FROM courses WHERE tenant_id = $1", group_id)
+        let courses = sqlx::query!(r#"SELECT id FROM courses WHERE tenant_id = $1"#, group_id)
             .fetch_all(&self.db)
             .await?;
         for c in courses {
             sqlx::query!(
-                "DELETE FROM user_courses WHERE user_id = $1 AND course_id = $2",
+                r#"DELETE FROM user_courses WHERE user_id = $1 AND course_id = $2"#,
                 user_id,
                 c.id
             )
@@ -344,7 +351,7 @@ impl GroupService {
         }
 
         sqlx::query!(
-            "INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'group:leave', $2)",
+            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'group:leave', $2)"#,
             user_id,
             json!({ "groupId": group_id })
         )
@@ -352,10 +359,10 @@ impl GroupService {
         .await?;
 
         let jar = if active_group_id == Some(group_id) {
-            let user = sqlx::query!("SELECT email FROM users WHERE id = $1", user_id)
+            let user = sqlx::query!(r#"SELECT email FROM users WHERE id = $1"#, user_id)
                 .fetch_one(&self.db)
                 .await?;
-            
+
             let global_role = sqlx::query!(
                 r#"SELECT r.name FROM user_roles ur JOIN roles r ON r.id = ur.role_id
                    WHERE ur.user_id = $1 AND ur.tenant_id IS NULL LIMIT 1"#,
@@ -382,13 +389,13 @@ impl GroupService {
         ua: Option<&str>,
     ) -> AppResult<CookieJar> {
         sqlx::query!(
-            "INSERT INTO security_events (event_type, event_status, ip_address, user_agent, metadata)
-             VALUES ('group_logout', 'success', $1::inet, $2, '{}'::jsonb)",
+            r#"INSERT INTO security_events (event_type, event_status, ip_address, user_agent, metadata)
+             VALUES ('group_logout', 'success', $1::inet, $2, '{}'::jsonb)"#,
             ip, ua
         ).execute(&self.db).await?;
 
         let opts = self.state.config.base_cookie_options();
-        
+
         if let Some(token) = jar
             .get(crate::config::REFRESH_COOKIE)
             .map(|c| c.value().to_string())

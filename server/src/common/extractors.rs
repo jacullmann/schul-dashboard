@@ -1,11 +1,10 @@
 use crate::{
-    common::jwt::{AccessClaims, JwtService},
     config::ACCESS_COOKIE,
     error::AppError,
     state::AppState,
 };
 use axum::{
-    extract::{FromRef, FromRequestParts, State},
+    extract::{FromRef, FromRequestParts},
     http::request::Parts,
 };
 use axum_extra::extract::CookieJar;
@@ -155,7 +154,7 @@ where
 
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         let app_state = AppState::from_ref(state);
-        
+
         let user = AuthUser::from_request_parts(parts, state).await?;
 
         let tenant_id: Uuid = if user.is_superadmin() {
@@ -175,7 +174,7 @@ where
 
         if user.is_superadmin() {
             let row = sqlx::query!(
-                "SELECT owner_id, permissions FROM groups WHERE id = $1",
+                r#"SELECT owner_id, permissions FROM groups WHERE id = $1"#,
                 tenant_id
             )
             .fetch_optional(&app_state.db)
@@ -220,7 +219,6 @@ where
 pub struct ClientIp(pub Option<String>);
 pub struct UserAgent(pub Option<String>);
 
-#[axum::async_trait]
 impl<S> FromRequestParts<S> for ClientIp
 where
     S: Send + Sync,
@@ -239,7 +237,6 @@ where
     }
 }
 
-#[axum::async_trait]
 impl<S> FromRequestParts<S> for UserAgent
 where
     S: Send + Sync,

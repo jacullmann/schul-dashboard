@@ -18,32 +18,41 @@ impl MessagesService {
 
     pub async fn get_messages(&self, tenant_id: Uuid, user_id: Uuid) -> AppResult<Value> {
         let state = sqlx::query!(
-            "SELECT last_messages_visit_at FROM user_tenant_state WHERE user_id = $1 AND tenant_id = $2",
+            r#"SELECT last_messages_visit_at FROM user_tenant_state WHERE user_id = $1 AND tenant_id = $2"#,
             user_id, tenant_id
         ).fetch_optional(&self.db).await?;
 
         let last_visit_at = state.and_then(|s| s.last_messages_visit_at);
 
         let msgs = sqlx::query!(
-            "SELECT id, tenant_id, user_id, content, parent_id, created_at, updated_at
-             FROM group_messages WHERE tenant_id = $1 ORDER BY created_at DESC LIMIT 100",
+            r#"
+            SELECT id, tenant_id, user_id, content, parent_id, created_at, updated_at
+            FROM (
+                SELECT id, tenant_id, user_id, content, parent_id, created_at, updated_at
+                FROM group_messages
+                WHERE tenant_id = $1
+                ORDER BY created_at DESC
+                LIMIT 100
+            ) sub
+            ORDER BY created_at ASC
+            "#,
             tenant_id
         )
-        .fetch_all(&self.db)
-        .await?;
+            .fetch_all(&self.db)
+            .await?;
 
         let db2 = self.db.clone();
 
         tokio::spawn(async move {
             let _ = sqlx::query!(
-                "INSERT INTO user_tenant_state (user_id, tenant_id, last_messages_visit_at)
+                r#"INSERT INTO user_tenant_state (user_id, tenant_id, last_messages_visit_at)
                  VALUES ($1, $2, now()) ON CONFLICT (user_id, tenant_id)
-                 DO UPDATE SET last_messages_visit_at = now()",
+                 DO UPDATE SET last_messages_visit_at = now()"#,
                 user_id,
                 tenant_id
             )
-            .execute(&db2)
-            .await;
+                .execute(&db2)
+                .await;
         });
 
         if msgs.is_empty() {
@@ -61,11 +70,11 @@ impl MessagesService {
 
         if !parent_ids.is_empty() {
             let parents = sqlx::query!(
-                "SELECT id, user_id, content, tenant_id FROM group_messages WHERE id = ANY($1)",
+                r#"SELECT id, user_id, content, tenant_id FROM group_messages WHERE id = ANY($1)"#,
                 &parent_ids
             )
-            .fetch_all(&self.db)
-            .await?;
+                .fetch_all(&self.db)
+                .await?;
 
             for p in parents {
                 parent_map.insert(
@@ -78,9 +87,8 @@ impl MessagesService {
             }
         }
 
-        let mut result: Vec<Value> = msgs
+        let result: Vec<Value> = msgs
             .into_iter()
-            .rev()
             .map(|m| {
                 let sender = generate_user_name(&m.user_id.to_string(), &m.tenant_id.to_string());
 
@@ -106,14 +114,14 @@ impl MessagesService {
 
     pub async fn mark_read(&self, tenant_id: Uuid, user_id: Uuid) -> AppResult<()> {
         sqlx::query!(
-            "INSERT INTO user_tenant_state (user_id, tenant_id, last_messages_visit_at)
+            r#"INSERT INTO user_tenant_state (user_id, tenant_id, last_messages_visit_at)
              VALUES ($1, $2, now()) ON CONFLICT (user_id, tenant_id)
-             DO UPDATE SET last_messages_visit_at = now()",
+             DO UPDATE SET last_messages_visit_at = now()"#,
             user_id,
             tenant_id
         )
-        .execute(&self.db)
-        .await?;
+            .execute(&self.db)
+            .await?;
 
         Ok(())
     }
@@ -128,12 +136,12 @@ impl MessagesService {
         parent_id: Option<Uuid>,
     ) -> AppResult<Value> {
         let group = sqlx::query!(
-            "SELECT permissions, owner_id FROM groups WHERE id = $1",
+            r#"SELECT permissions, owner_id FROM groups WHERE id = $1"#,
             tenant_id
         )
-        .fetch_optional(&self.db)
-        .await?
-        .ok_or_else(|| AppError::not_found("Group not found"))?;
+            .fetch_optional(&self.db)
+            .await?
+            .ok_or_else(|| AppError::not_found("Group not found"))?;
 
         if global_role != "superadmin" && group.owner_id != user_id {
             let allowed = group
@@ -150,8 +158,9 @@ impl MessagesService {
         }
 
         let msg = sqlx::query!(
-            "INSERT INTO group_messages (tenant_id, user_id, content, parent_id)
-             VALUES ($1, $2, $3, $4) RETURNING id, tenant_id, user_id, content, parent_id, created_at, updated_at",
+            r#"INSERT INTO group_messages (tenant_id, user_id, content, parent_id)
+             VALUES ($1, $2, $3, $4)
+             RETURNING id, tenant_id, user_id, content, parent_id, created_at, updated_at"#,
             tenant_id, user_id, content.trim(), parent_id
         ).fetch_one(&self.db).await?;
 
@@ -166,11 +175,11 @@ impl MessagesService {
 
         if let Some(pid) = msg.parent_id {
             if let Some(p) = sqlx::query!(
-                "SELECT user_id, content, tenant_id FROM group_messages WHERE id = $1",
+                r#"SELECT user_id, content, tenant_id FROM group_messages WHERE id = $1"#,
                 pid
             )
-            .fetch_optional(&self.db)
-            .await?
+                .fetch_optional(&self.db)
+                .await?
             {
                 v["parentContent"] = json!(p.content);
                 v["parentSenderName"] = json!(generate_user_name(
@@ -192,22 +201,22 @@ impl MessagesService {
         message_id: Uuid,
     ) -> AppResult<()> {
         let msg = sqlx::query!(
-            "SELECT user_id FROM group_messages WHERE id = $1 AND tenant_id = $2",
+            r#"SELECT user_id FROM group_messages WHERE id = $1 AND tenant_id = $2"#,
             message_id,
             tenant_id
         )
-        .fetch_optional(&self.db)
-        .await?
-        .ok_or_else(|| AppError::not_found("Nachricht nicht gefunden"))?;
+            .fetch_optional(&self.db)
+            .await?
+            .ok_or_else(|| AppError::not_found("Nachricht nicht gefunden"))?;
 
         if msg.user_id != user_id && global_role != "superadmin" {
             let group = sqlx::query!(
-                "SELECT permissions, owner_id FROM groups WHERE id = $1",
+                r#"SELECT permissions, owner_id FROM groups WHERE id = $1"#,
                 tenant_id
             )
-            .fetch_optional(&self.db)
-            .await?
-            .ok_or_else(|| AppError::not_found("Group not found"))?;
+                .fetch_optional(&self.db)
+                .await?
+                .ok_or_else(|| AppError::not_found("Group not found"))?;
 
             if group.owner_id != user_id {
                 let allowed = group
@@ -223,13 +232,13 @@ impl MessagesService {
         }
 
         sqlx::query!(
-            "UPDATE group_messages SET parent_id = NULL WHERE parent_id = $1",
+            r#"UPDATE group_messages SET parent_id = NULL WHERE parent_id = $1"#,
             message_id
         )
-        .execute(&self.db)
-        .await?;
+            .execute(&self.db)
+            .await?;
 
-        sqlx::query!("DELETE FROM group_messages WHERE id = $1", message_id)
+        sqlx::query!(r#"DELETE FROM group_messages WHERE id = $1"#, message_id)
             .execute(&self.db)
             .await?;
 

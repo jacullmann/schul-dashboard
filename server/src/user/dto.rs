@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use validator::Validate;
 
@@ -32,7 +32,7 @@ fn validate_visibility_status(s: &str) -> Result<(), validator::ValidationError>
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct UpdatePreferencesDto {
     pub theme: Option<String>,
     pub language: Option<String>,

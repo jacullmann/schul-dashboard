@@ -42,13 +42,9 @@ fn hash_token(token: &str) -> String {
 }
 
 fn generate_opaque_token() -> String {
-    use rand::RngCore;
+    use base64::prelude::*;
 
-    let mut bytes = [0u8; 32];
-
-    rand::rng().fill_bytes(&mut bytes);
-
-    base64::Engine::encode(&base64::engine::general_purpose::URL_SAFE_NO_PAD, &bytes)
+    BASE64_URL_SAFE_NO_PAD.encode(rand::random::<[u8; 32]>())
 }
 
 impl TokenService {
@@ -296,7 +292,7 @@ impl TokenService {
         let mut sessions = Vec::with_capacity(rows.len());
 
         for row in rows {
-            let location = if let Some(ref ip) = row.ip_address {
+            let location = if let Some(ip) = row.ip_address.as_deref() {
                 self.lookup_ip(ip).await
             } else {
                 None

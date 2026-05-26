@@ -65,7 +65,7 @@ impl EncryptionService {
         let salt = salt.to_vec();
 
         let derived = tokio::task::spawn_blocking(move || {
-            let params = scrypt::Params::new(14, 8, 1, 32).expect("valid scrypt params");
+            let params = scrypt::Params::new(14, 8, 1).expect("valid scrypt params");
 
             let mut key = [0u8; 32];
 

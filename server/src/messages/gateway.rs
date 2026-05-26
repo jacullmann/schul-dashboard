@@ -1,11 +1,9 @@
-use crate::{common::jwt::JwtService, config::ACCESS_COOKIE, state::AppState};
+use crate::{config::ACCESS_COOKIE, state::AppState};
 use axum::{
-    extract::{
-        State, WebSocketUpgrade,
-        ws::{Message, WebSocket},
-    },
+    extract::State,
     response::Response,
 };
+use axum::extract::ws::{Message, WebSocket, WebSocketUpgrade};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::{collections::HashMap, sync::Arc};

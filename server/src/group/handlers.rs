@@ -1,7 +1,7 @@
 use super::{dto::*, service::GroupService};
 use crate::{
     common::extractors::{AuthUser, ClientIp, OptionalAuth, TenantContext, UserAgent},
-    error::AppResult,
+    error::{AppError, AppResult},
     state::AppState,
 };
 use axum::{
@@ -9,8 +9,11 @@ use axum::{
     extract::{Path, Query, State},
 };
 use axum_extra::extract::CookieJar;
+use serde::Deserialize;
 use serde_json::{Value, json};
 use uuid::Uuid;
+
+use super::admin::service::GroupAdminService;
 
 pub async fn join_group(
     State(s): State<AppState>,
@@ -77,8 +80,8 @@ pub async fn switch_group(
     let (jar, body) = GroupService::from_state(&s)
         .switch_group(user.user_id, &user.email, &user.global_role, dto.group_id)
         .await?;
-    Ok((jar, Json(body))
-    )
+
+    Ok((jar, Json(body)))
 }
 
 pub async fn leave_group(
@@ -106,8 +109,6 @@ pub async fn logout(
     Ok((jar, Json(json!({ "ok": true }))))
 }
 
-use super::admin::service::GroupAdminService;
-
 pub async fn get_stats(State(s): State<AppState>, tc: TenantContext) -> AppResult<Json<Value>> {
     Ok(Json(
         GroupAdminService::from_state(&s)
@@ -115,6 +116,7 @@ pub async fn get_stats(State(s): State<AppState>, tc: TenantContext) -> AppResul
             .await?,
     ))
 }
+
 pub async fn get_members(State(s): State<AppState>, tc: TenantContext) -> AppResult<Json<Value>> {
     Ok(Json(
         GroupAdminService::from_state(&s)
@@ -122,6 +124,7 @@ pub async fn get_members(State(s): State<AppState>, tc: TenantContext) -> AppRes
             .await?,
     ))
 }
+
 pub async fn get_banned_users(
     State(s): State<AppState>,
     tc: TenantContext,
@@ -132,6 +135,7 @@ pub async fn get_banned_users(
             .await?,
     ))
 }
+
 pub async fn revert_ban(
     State(s): State<AppState>,
     tc: TenantContext,
@@ -143,6 +147,7 @@ pub async fn revert_ban(
             .await?,
     ))
 }
+
 pub async fn change_member_role(
     State(s): State<AppState>,
     tc: TenantContext,
@@ -155,10 +160,11 @@ pub async fn change_member_role(
             .await?,
     ))
 }
+
 pub async fn transfer_ownership(
     State(s): State<AppState>,
     tc: TenantContext,
-    Json(body): Json<serde_json::Value>,
+    Json(body): Json<Value>,
 ) -> AppResult<Json<Value>> {
     let target: Uuid = body["targetUserId"]
         .as_str()
@@ -171,12 +177,11 @@ pub async fn transfer_ownership(
     ))
 }
 
-use crate::error::AppError;
-use serde::Deserialize;
 #[derive(Deserialize)]
 pub struct BanQuery {
     pub ban: Option<String>,
 }
+
 pub async fn remove_member(
     State(s): State<AppState>,
     tc: TenantContext,
@@ -194,6 +199,7 @@ pub async fn remove_member(
             .await?,
     ))
 }
+
 pub async fn rename_group(
     State(s): State<AppState>,
     tc: TenantContext,
@@ -210,6 +216,7 @@ pub async fn rename_group(
             .await?,
     ))
 }
+
 pub async fn get_permissions(
     State(s): State<AppState>,
     tc: TenantContext,
@@ -220,6 +227,7 @@ pub async fn get_permissions(
             .await?,
     ))
 }
+
 pub async fn update_permissions(
     State(s): State<AppState>,
     tc: TenantContext,
@@ -231,6 +239,7 @@ pub async fn update_permissions(
             .await?,
     ))
 }
+
 pub async fn update_group_password(
     State(s): State<AppState>,
     tc: TenantContext,
@@ -247,6 +256,7 @@ pub async fn update_group_password(
             .await?,
     ))
 }
+
 pub async fn update_schedule_config(
     State(s): State<AppState>,
     tc: TenantContext,
@@ -258,6 +268,7 @@ pub async fn update_schedule_config(
             .await?,
     ))
 }
+
 pub async fn delete_group(State(s): State<AppState>, tc: TenantContext) -> AppResult<Json<Value>> {
     Ok(Json(
         GroupAdminService::from_state(&s)
@@ -265,6 +276,7 @@ pub async fn delete_group(State(s): State<AppState>, tc: TenantContext) -> AppRe
             .await?,
     ))
 }
+
 pub async fn cleanup_old_items(
     State(s): State<AppState>,
     tc: TenantContext,
@@ -275,6 +287,7 @@ pub async fn cleanup_old_items(
             .await?,
     ))
 }
+
 pub async fn get_subjects_admin(
     State(s): State<AppState>,
     tc: TenantContext,
@@ -285,6 +298,7 @@ pub async fn get_subjects_admin(
             .await?,
     ))
 }
+
 pub async fn create_subject(
     State(s): State<AppState>,
     tc: TenantContext,
@@ -296,6 +310,7 @@ pub async fn create_subject(
             .await?,
     ))
 }
+
 pub async fn update_subject(
     State(s): State<AppState>,
     tc: TenantContext,
@@ -314,6 +329,7 @@ pub async fn update_subject(
             .await?,
     ))
 }
+
 pub async fn delete_subject(
     State(s): State<AppState>,
     tc: TenantContext,
@@ -325,6 +341,7 @@ pub async fn delete_subject(
             .await?,
     ))
 }
+
 pub async fn get_schedule_admin(
     State(s): State<AppState>,
     tc: TenantContext,
@@ -335,6 +352,7 @@ pub async fn get_schedule_admin(
             .await?,
     ))
 }
+
 pub async fn get_schedule_subs_admin(
     State(s): State<AppState>,
     tc: TenantContext,
@@ -345,6 +363,7 @@ pub async fn get_schedule_subs_admin(
             .await?,
     ))
 }
+
 pub async fn create_schedule_sub(
     State(s): State<AppState>,
     tc: TenantContext,
@@ -356,6 +375,7 @@ pub async fn create_schedule_sub(
             .await?,
     ))
 }
+
 pub async fn delete_schedule_sub(
     State(s): State<AppState>,
     tc: TenantContext,
@@ -367,6 +387,7 @@ pub async fn delete_schedule_sub(
             .await?,
     ))
 }
+
 pub async fn create_announcement(
     State(s): State<AppState>,
     tc: TenantContext,
@@ -383,6 +404,7 @@ pub async fn create_announcement(
             .await?,
     ))
 }
+
 pub async fn delete_announcement(
     State(s): State<AppState>,
     tc: TenantContext,

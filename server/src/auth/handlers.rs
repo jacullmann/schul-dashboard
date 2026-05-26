@@ -5,14 +5,13 @@ use crate::{
         service::{AuthService, LoginResult},
         token::{TokenService, *},
     },
-    common::extractors::{AuthUser, MfaPending, OptionalAuth},
+    common::extractors::{AuthUser, ClientIp, MfaPending, OptionalAuth, UserAgent},
     error::{AppError, AppResult},
     state::AppState,
 };
 use axum::{
     Json,
     extract::{Query, State},
-    http::HeaderMap,
 };
 use axum_extra::extract::CookieJar;
 use serde::Deserialize;

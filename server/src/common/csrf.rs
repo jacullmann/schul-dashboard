@@ -5,14 +5,11 @@ use crate::{
 use axum::{extract::Request, http::Method, middleware::Next, response::Response};
 use axum_extra::extract::CookieJar;
 use subtle::ConstantTimeEq;
-use tower_cookies::{Cookie, Cookies};
+use cookie::Cookie;
+use cookie::time::Duration;
 
 pub fn generate_csrf_token() -> String {
-    use rand::RngCore;
-
-    let mut bytes = [0u8; 32];
-
-    rand::rng().fill_bytes(&mut bytes);
+    let bytes: Vec<u8> = (0..20).map(|_| rand::random::<u8>()).collect();
 
     hex::encode(bytes)
 }
@@ -24,8 +21,8 @@ pub fn csrf_cookie(token: &str, opts: &BaseCookieOptions) -> Cookie<'static> {
     c.set_domain(opts.domain.clone());
     c.set_secure(opts.secure);
     c.set_http_only(false);
-    c.set_same_site(tower_cookies::cookie::SameSite::Lax);
-    c.set_max_age(tower_cookies::cookie::time::Duration::days(30));
+    c.set_same_site(cookie::SameSite::Lax);
+    c.set_max_age(Duration::days(30));
 
     c
 }
