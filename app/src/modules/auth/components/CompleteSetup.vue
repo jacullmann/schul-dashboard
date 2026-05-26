@@ -10,12 +10,12 @@ const subjectStore = useSubjectStore();
 
 const getCourseLabel = (courseName: string): string => {
   const courseKey = getSubjectKey(courseName);
-  if (te(`global.subjects.${courseKey}`)) {
-    return t(`global.subjects.${courseKey}`);
+  if (te(`common.subjects.${courseKey}`)) {
+    return t(`common.subjects.${courseKey}`);
   }
 
-  const mr = t('global.titles.abbr.mr');
-  const ms = t('global.titles.abbr.ms');
+  const mr = t('common.titles.abbr.mr');
+  const ms = t('common.titles.abbr.ms');
   return courseName.replace(/^Herr\s+/, `${mr} `).replace(/^Frau\s+/, `${ms} `);
 };
 
@@ -74,7 +74,7 @@ const getOptionsForSubject = (subjectId: string, isExtra: boolean) => {
     value: c.id,
   }));
   if (isExtra) {
-    opts.unshift({ label: t('global.selection.no'), value: 'NONE' });
+    opts.unshift({ label: t('common.selection.no'), value: 'NONE' });
   }
   return opts;
 };
@@ -107,7 +107,7 @@ async function submitData(dataToSend: {
 }
 async function save() {
   if (props.isSetup && !isValid.value) {
-    error.value = 'Bitte alle Pflichtkurse auswählen.';
+    error.value = t('auth.setup.errors.required_courses');
     return;
   }
   submitting.value = true;
@@ -141,16 +141,16 @@ async function skip() {
   >
     <template #title>{{
       isSetup
-        ? t('account.menu.courses.titleCreation')
-        : t('account.menu.courses.title')
+        ? t('auth.courses.title_creation')
+        : t('auth.courses.title')
     }}</template>
 
     <template #content>
       <p class="text-sm text-on-ghost-muted mb-6">
         {{
           isSetup
-            ? t('account.menu.courses.descriptionCreation')
-            : t('account.menu.courses.description')
+            ? t('auth.courses.description_creation')
+            : t('auth.courses.description')
         }}
       </p>
 
@@ -193,11 +193,11 @@ async function skip() {
     </template>
 
     <template #cancel-text>
-      {{ isSetup ? t('global.buttons.skip') : t('global.buttons.cancel') }}
+      {{ isSetup ? t('common.buttons.skip') : t('common.buttons.cancel') }}
     </template>
 
     <template #action-text>
-      {{ t('global.buttons.save') }}
+      {{ t('common.buttons.save') }}
     </template>
   </BaseModal>
 </template>

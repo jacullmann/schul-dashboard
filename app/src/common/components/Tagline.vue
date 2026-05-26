@@ -31,13 +31,13 @@ const getDaysToBerlinBreak = (): number | null => {
 
 const displayQuote = computed(() => {
   if (randomIndex.value === null) return '';
-  return t(`global.footer.quotes.${randomIndex.value}`, {
+  return t(`common.footer.quotes.${randomIndex.value}`, {
     daysToHoliday: getDaysToBerlinBreak() ?? '?',
   });
 });
 
 onMounted(() => {
-  const quotes = tm('global.footer.quotes') as string[];
+  const quotes = tm('common.footer.quotes') as string[];
 
   if (quotes && quotes.length > 0) {
     randomIndex.value = Math.floor(Math.random() * quotes.length);

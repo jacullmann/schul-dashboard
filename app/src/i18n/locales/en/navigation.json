@@ -1,0 +1,14 @@
+{
+  "auth": "Authentication",
+  "game_detail": "Game",
+  "games": "Game Overview",
+  "group_admin": "Group Administration",
+  "home": "Home",
+  "image_tool": "Image Tool",
+  "legal": "Legal",
+  "not_found": "404",
+  "private_todos": "Private Entries",
+  "super_admin": "Super Admin",
+  "update_history": "Update History",
+  "verify_email": "Email Verification"
+}

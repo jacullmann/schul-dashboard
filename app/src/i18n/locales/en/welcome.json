@@ -1,0 +1,90 @@
+{
+  "auth": {
+    "disclaimer": "Any unauthorized attempt to circumvent security measures or to obtain or compromise sensitive data (including personal data) will be fully documented. Such violations will be reported to law enforcement immediately and without exception, regardless of whether the attempt was successful or whether data was actually obtained.",
+    "disclaimer_title": "Important Legal Notice!",
+    "name": "Name",
+    "passcode": "Access Code",
+    "server_status": {
+      "error": "Server unreachable",
+      "good": "Server reachable",
+      "not_ok": "Server connection interrupted",
+      "ok": "Unexpected server response"
+    },
+    "terms": "Accept Terms of Use and Privacy Policy",
+    "title": "Authentication"
+  },
+  "comparison": {
+    "attribution": "Edited original by Alarichall, CC BY-SA 4.0, via Wikimedia Commons",
+    "headline": "Paper is so <span class=\"highlight\">yesterday.</span> Start your journey into the <span class=\"highlight\">future</span> today"
+  },
+  "footer": {
+    "by_students_for_students": "This is a private project by students for students",
+    "disclaimer": {
+      "text": "This is a protected and private application. Any unauthorized attempt to circumvent security measures or to obtain or compromise sensitive data (including personal data) will be documented without exception. Such violations will be reported to law enforcement immediately and without exception, regardless of whether the attempt was successful or whether data was actually obtained.",
+      "title": "Notice"
+    },
+    "navigation": {
+      "landing_page": "Home",
+      "status": "Status"
+    }
+  },
+  "hero": {
+    "cta": "Get started",
+    "headline_sans": "In Your <b>Pocket<b/>",
+    "headline_serif": "Your School Life",
+    "learn_more": "Learn more",
+    "subline": "All the info you need, at any time, right in your pocket. Collaborative and ",
+    "subline_highlight": "completely free",
+    "visual": {
+      "items": [
+        {
+          "title": "Read Chapter 3"
+        },
+        {
+          "title": "Notes for the test"
+        },
+        {
+          "title": "Book exercises",
+          "text": "Complete p. 137 exercises 4b and 5 in writing"
+        }
+      ]
+    }
+  },
+  "reasons": {
+    "by_students_for_students": "<span class=\"highlight\">By </span> students <span class=\"highlight\">for </span> students, which means:",
+    "reasons": [
+      {
+        "number": "0",
+        "text": " euros"
+      },
+      {
+        "number": "0",
+        "text": " ads"
+      },
+      {
+        "number": "0",
+        "text": " data sold"
+      },
+      {
+        "number": "100%",
+        "text": " attention to detail"
+      }
+    ],
+    "why": "Why schul-dashboard?"
+  },
+  "verify": {
+    "causes": {
+      "expired_link": "The link is expired",
+      "used_link": "The link was already used",
+      "wrong_link": "The link was copied incorrectly"
+    },
+    "close_tab": "You can now close this tab and sign in with your account",
+    "error": "Verification failed",
+    "error_description": "Your verification link is invalid or expired. Try again or contact support",
+    "possible_causes": "Possible causes",
+    "success": "Successfully verified!",
+    "success_description": "Your email was successfully verified. You can now sign in",
+    "verifying": "Verifying email",
+    "wait": "Please wait, we're verifying your email..."
+  }
+}

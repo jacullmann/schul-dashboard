@@ -1,4 +1,5 @@
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useModalStore } from '@/stores/modalStore';
 import type { HwItem } from '@/modules/tasks/types';
 import hw from '@/api/hwApi';
@@ -8,6 +9,7 @@ export function useHwActions(
   ctx: HwContext,
   handleSuccessAction: (msg: string) => void,
 ) {
+  const { t } = useI18n();
   const modalStore = useModalStore();
   const deletingEntry = ref(false);
 
@@ -158,10 +160,10 @@ export function useHwActions(
 
   async function deleteItem(id: string) {
     const isConfirmed = await modalStore.confirm({
-      title: 'Diesen Eintrag löschen?',
+      title: t('tasks.actions.delete_modal.title'),
       content:
-        'Wenn du diesen Eintrag löschst, werden dieser und alle dazugehörigen Bilder unwiderruflich gelöscht.',
-      submitText: 'Eintrag löschen',
+        t('tasks.actions.delete_modal.message'),
+      submitText: t('tasks.actions.delete_modal.submit'),
       danger: true,
     });
 
@@ -171,9 +173,9 @@ export function useHwActions(
     try {
       await hw.delete(`/api/items/${id}`);
       ctx.items.value = ctx.items.value.filter((item) => item.id !== id);
-      handleSuccessAction('Eintrag gelöscht.');
+      handleSuccessAction(t('tasks.actions.delete_modal.success'));
     } catch (e: any) {
-      handleSuccessAction(e.response?.data?.error || 'Fehler beim Löschen.');
+      handleSuccessAction(e.response?.data?.error || t('tasks.actions.delete_modal.error'));
     } finally {
       deletingEntry.value = false;
     }

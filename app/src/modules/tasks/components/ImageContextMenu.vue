@@ -60,7 +60,7 @@ const contextMenuStyles = computed(() => ({
       :style="contextMenuStyles"
     >
       <BaseMenuButton :icon="Upload" @click="emit('upload')">
-        {{ t('school.tasks.items.menu.uploadImages') }}
+        {{ t('tasks.list.items.menu.upload_images') }}
       </BaseMenuButton>
 
       <BaseMenuButton
@@ -69,7 +69,7 @@ const contextMenuStyles = computed(() => ({
         :icon="Trash2"
         @click="emit('delete')"
       >
-        {{ t('global.buttons.delete') }}
+        {{ t('common.buttons.delete') }}
       </BaseMenuButton>
     </BaseMenu>
   </Teleport>

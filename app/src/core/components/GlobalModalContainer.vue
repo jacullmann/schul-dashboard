@@ -67,25 +67,25 @@ const {
 } = storeToRefs(modalStore);
 
 function onItemFormSuccess() {
-  toast.success(t('school.tasks.itemForm.successEdit'));
+  toast.success(t('tasks.list.item_form.success_edit'));
   modalStore.notifyItemFormSuccess();
 }
 
 function onPrivateTaskFormSuccess(task: any) {
   const msg = modalStore.privateTaskToEdit
-    ? t('school.private.successUpdate')
-    : t('school.private.successCreate');
+    ? t('tasks.private_tasks.success_update')
+    : t('tasks.private_tasks.success_create');
   toast.success(msg);
   modalStore.notifyPrivateTaskFormSuccess(task);
 }
 
 function onAnnouncementFormSuccess() {
-  toast.success('Ankündigung erfolgreich veröffentlicht!');
+  toast.success(t('announcements.actions.publish_success_toast'));
   modalStore.notifyAnnouncementFormSuccess();
 }
 
 function onPasswordChanged() {
-  toast.success('Passwort erfolgreich geändert!');
+  toast.success(t('auth.change_password.success_toast'));
   modalStore.showChangePassword = false;
 }
 
@@ -156,7 +156,7 @@ async function onAuthSuccess() {
         <button
           class="oauth-error-close"
           @click="clearOAuthError"
-          aria-label="Schließen"
+          :aria-label="t('common.actions.close_aria_label')"
         >
           ✕
         </button>

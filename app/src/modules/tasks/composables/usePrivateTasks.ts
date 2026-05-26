@@ -68,7 +68,7 @@ export function usePrivateTasks() {
       privateTasks.value = data;
       syncState();
     } catch {
-      useToast().error(t('school.private.errorLoad'));
+      useToast().error(t('tasks.private_tasks.error_load'));
     } finally {
       loading.value = false;
     }
@@ -82,7 +82,7 @@ export function usePrivateTasks() {
       updatePrivateTask({ ...task, updatedAt: data.updatedAt });
     } catch (e: any) {
       task.completed = previous;
-      useToast().error(e.response?.data?.error || t('global.errors.update'));
+      useToast().error(e.response?.data?.error || t('common.errors.update'));
     }
   };
 
@@ -95,10 +95,10 @@ export function usePrivateTasks() {
         completed: false,
       });
       addPrivateTask(data);
-      useToast().success(t('school.private.successDuplicate'));
+      useToast().success(t('tasks.private_tasks.success_duplicate'));
     } catch (e: any) {
       useToast().error(
-        e.response?.data?.error || t('school.private.errorDuplicate'),
+        e.response?.data?.error || t('tasks.private_tasks.error_duplicate'),
       );
     } finally {
       loading.value = false;
@@ -108,9 +108,9 @@ export function usePrivateTasks() {
   const deletePrivateTask = async (id: string) => {
     if (
       !(await modalStore.confirm({
-        title: t('school.tasks.items.menu.delete.title'),
-        content: t('school.private.deleteConfirm'),
-        submitText: t('global.buttons.delete'),
+        title: t('tasks.list.items.menu.delete.title'),
+        content: t('tasks.private_tasks.delete_confirm'),
+        submitText: t('common.buttons.delete'),
         danger: true,
       }))
     )
@@ -127,11 +127,11 @@ export function usePrivateTasks() {
 
     try {
       await hw.delete(`/api/todos/${id}`);
-      useToast().success(t('school.private.successDelete'));
+      useToast().success(t('tasks.private_tasks.success_delete'));
     } catch (e: any) {
       privateTasks.value.splice(idx, 0, backup);
       syncState();
-      useToast().error(e.response?.data?.error || t('global.errors.delete'));
+      useToast().error(e.response?.data?.error || t('common.errors.delete'));
     }
   };
 
@@ -163,7 +163,7 @@ export function usePrivateTasks() {
       });
     } catch (e: any) {
       void loadPrivateTasks();
-      useToast().error(e.response?.data?.error || t('global.errors.update'));
+      useToast().error(e.response?.data?.error || t('common.errors.update'));
     }
   };
 

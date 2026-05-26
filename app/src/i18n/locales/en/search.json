@@ -1,0 +1,44 @@
+{
+  "descriptions": {
+    "admin": "Group Settings",
+    "change_language": "Change the app's language",
+    "change_password": "Update your account password",
+    "change_theme": "Change the app's appearance",
+    "create_entry": "Add a new entry to the task list",
+    "create_group": "Create a new group",
+    "create_private_entry": "Add a new private entry to your tasks",
+    "edit_courses": "Customize your course selection",
+    "games": "Games and entertainment",
+    "groups": "Manage your groups",
+    "home": "Go to the start page",
+    "image_tool": "Crop and edit images",
+    "info_dashboard": "Exciting stories and facts",
+    "join_group": "Join an existing group",
+    "logout": "Securely sign out of your account",
+    "messages": "Chat with your group and send messages",
+    "private": "Manage your private tasks",
+    "schedule": "View class schedule",
+    "security": "Two-factor authentication and security settings",
+    "switch_group": "Switch between your groups",
+    "tasks": "Tasks, homework & exams",
+    "toggle_sidebar": "Expand/collapse the sidebar"
+  },
+  "items": {
+    "create_entry": "Create new entry",
+    "create_group": "Create group",
+    "create_private_entry": "Create new private entry",
+    "games": "Games",
+    "image_tool": "Image Tool",
+    "info_dashboard": "Info Dashboard",
+    "join_group": "Join group",
+    "switch_group": "Switch group"
+  },
+  "modal": {
+    "category_actions": "Actions",
+    "category_pages": "Pages",
+    "hint_confirm": "to open",
+    "hint_navigate": "to navigate",
+    "placeholder": "Search pages and actions…",
+    "title": "Quick Search"
+  }
+}

@@ -6,6 +6,7 @@ const cards = ref<
   { id: number; emoji: string; isFlipped: boolean; isMatched: boolean }[]
 >([]);
 const flippedCards = ref<number[]>([]);
+const { t } = useI18n();
 const moves = ref(0);
 const isGameOver = ref(false);
 
@@ -63,7 +64,7 @@ onMounted(initGame);
 <template>
   <div class="memory-container">
     <h2>Memory</h2>
-    <p>Züge: {{ moves }}</p>
+    <p>{{ t('games.memory.moves_count', { moves }) }}</p>
     <div class="grid">
       <div
         v-for="(card, index) in cards"
@@ -82,8 +83,8 @@ onMounted(initGame);
       </div>
     </div>
     <div v-if="isGameOver" class="game-over">
-      <h3>Gewonnen! 🎉</h3>
-      <p>Du hast {{ moves }} Züge gebraucht.</p>
+      <h3>{{ t('games.memory.victory_title') }}</h3>
+      <p>{{ t('games.memory.victory_message', { moves }) }}</p>
       <BaseButton @click="initGame">Nochmal spielen</BaseButton>
     </div>
   </div>

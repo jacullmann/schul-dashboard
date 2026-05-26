@@ -33,10 +33,10 @@ const { t, tm } = useI18n();
 const { width: windowWidth } = useWindowSize();
 
 const tabItems = computed(() => [
-  { id: 'all', label: t('school.tasks.tabs.all') },
-  { id: 'homework', label: t('school.tasks.tabs.homework') },
-  { id: 'dalton', label: t('school.tasks.tabs.dalton') },
-  { id: 'exam', label: t('school.tasks.tabs.exams') },
+  { id: 'all', label: t('tasks.list.tabs.all') },
+  { id: 'homework', label: t('tasks.list.tabs.homework') },
+  { id: 'dalton', label: t('tasks.list.tabs.dalton') },
+  { id: 'exam', label: t('tasks.list.tabs.exams') },
 ]);
 
 async function handleSwipe(item: HwItem) {
@@ -171,15 +171,15 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
       style="animation-delay: 0s; animation-fill-mode: both"
     >
       <PageHeader>
-        {{ t('school.tasks.title') }}
+        {{ t('tasks.list.title') }}
         <template #info>
           <InfoModal
-            :tooltip="t('school.tasks.infopop.tooltip')"
-            :title="t('school.tasks.title')"
+            :tooltip="t('tasks.list.infopop.tooltip')"
+            :title="t('tasks.list.title')"
           >
-            <h3>{{ t('school.tasks.infopop.description') }}</h3>
+            <h3>{{ t('tasks.list.infopop.description') }}</h3>
             <template
-              v-for="(section, index) in tm('school.tasks.infopop.sections')"
+              v-for="(section, index) in tm('tasks.list.infopop.sections')"
               :key="index"
             >
               <h3 v-html="section.title"></h3>
@@ -219,7 +219,7 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
         <BaseTooltip content="New Entry" placement="bottom">
           <BaseButton
             variant="action"
-            :aria-label="t('school.tasks.itemForm.newEntry')"
+            :aria-label="t('tasks.list.item_form.new_entry')"
             @click="openItemForm()"
             :icon="Plus"
             icon-classes="size-6"
@@ -286,7 +286,7 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
 
         <template #actions-pre>
           <BaseTooltip
-            :content="t('school.tasks.items.menu.unpin')"
+            :content="t('tasks.list.items.menu.unpin')"
             placement="bottom"
           >
             <BaseButton
@@ -311,7 +311,7 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
               @click="onMenuAction('images', item)"
               :icon="Upload"
             >
-              {{ t('school.tasks.items.menu.uploadImages') }}
+              {{ t('tasks.list.items.menu.upload_images') }}
             </BaseMenuButton>
 
             <BaseMenuButton
@@ -319,7 +319,7 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
               @click="onMenuAction('edit', item)"
               :icon="Pencil"
             >
-              {{ t('global.buttons.edit') }}
+              {{ t('common.buttons.edit') }}
             </BaseMenuButton>
 
             <BaseMenuButton
@@ -327,7 +327,7 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
               @click="onMenuAction('addNote', item)"
               :icon="MessageSquarePlus"
             >
-              {{ t('school.tasks.items.menu.addNote') }}
+              {{ t('tasks.list.items.menu.add_note') }}
             </BaseMenuButton>
 
             <BaseMenuDivider />
@@ -339,8 +339,8 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
             >
               {{
                 isPinned(item.id)
-                  ? t('school.tasks.items.menu.unpin')
-                  : t('school.tasks.items.menu.pin')
+                  ? t('tasks.list.items.menu.unpin')
+                  : t('tasks.list.items.menu.pin')
               }}
             </BaseMenuButton>
 
@@ -350,15 +350,15 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
             >
               {{
                 showOldEntries
-                  ? t('school.tasks.items.menu.unarchive')
-                  : t('school.tasks.items.menu.archive')
+                  ? t('tasks.list.items.menu.unarchive')
+                  : t('tasks.list.items.menu.archive')
               }}
             </BaseMenuButton>
 
             <BaseMenuDivider />
 
             <BaseMenuButton @click="onMenuAction('share', item)" :icon="Send">
-              {{ t('school.tasks.items.menu.share') }}
+              {{ t('tasks.list.items.menu.share') }}
             </BaseMenuButton>
 
             <BaseMenuButton
@@ -368,7 +368,7 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
               "
               :icon="Info"
             >
-              {{ t('school.tasks.items.menu.info') }}
+              {{ t('tasks.list.items.menu.info') }}
             </BaseMenuButton>
 
             <BaseMenuDivider />
@@ -378,7 +378,7 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
               @click="onMenuAction('report', item)"
               :icon="Flag"
             >
-              {{ t('school.tasks.items.menu.report.name') }}
+              {{ t('tasks.list.items.menu.report.name') }}
             </BaseMenuButton>
 
             <BaseMenuButton
@@ -387,7 +387,7 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
               @click="onMenuAction('delete', item)"
               :icon="Trash2"
             >
-              {{ t('global.buttons.delete') }}
+              {{ t('common.buttons.delete') }}
             </BaseMenuButton>
           </BaseMenu>
         </template>
@@ -495,7 +495,7 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
           >
             <div class="w-full">
               <div class="text-on-ghost text-base font-bold mb-1">
-                {{ t('school.tasks.notes.note') }}
+                {{ t('tasks.list.notes.note') }}
               </div>
 
               <div
@@ -506,7 +506,7 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
                 <span
                   v-else
                   class="note-placeholder text-on-ghost-muted italic"
-                  >{{ t('school.tasks.notes.noNotes') }}</span
+                  >{{ t('tasks.list.notes.no_notes') }}</span
                 >
               </div>
 
@@ -525,7 +525,7 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
                     :disabled="savingNote"
                     variant="ghost"
                   >
-                    {{ t('global.buttons.cancel') }}
+                    {{ t('common.buttons.cancel') }}
                   </BaseButton>
                   <BaseButton
                     @click.stop="saveNote(item.id)"
@@ -533,7 +533,7 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
                     variant="action"
                     :loading="savingNote"
                   >
-                    {{ t('global.buttons.save') }}
+                    {{ t('common.buttons.save') }}
                   </BaseButton>
                 </BaseRow>
               </div>
@@ -544,7 +544,7 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
               class="flex gap-1 items-start -mr-2"
             >
               <BaseTooltip
-                :content="t('global.buttons.edit')"
+                :content="t('common.buttons.edit')"
                 placement="bottom"
               >
                 <BaseButton
@@ -557,7 +557,7 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
 
               <BaseTooltip
                 v-if="item.editorNote"
-                :content="t('global.buttons.delete')"
+                :content="t('common.buttons.delete')"
                 placement="bottom"
               >
                 <BaseButton
@@ -583,17 +583,17 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
         :primary-action="openItemForm"
         :secondary-action="resetFilters"
       >
-        <template #title>{{ t('school.tasks.items.view.noEntries') }}</template>
+        <template #title>{{ t('tasks.list.items.view.no_entries') }}</template>
         <template #message>{{
           filteredItems.length
-            ? t('school.tasks.items.view.noEntriesInViewMessage')
-            : t('school.tasks.items.view.noEntriesMessage')
+            ? t('tasks.list.items.view.no_entries_in_view_message')
+            : t('tasks.list.items.view.no_entries_message')
         }}</template>
         <template #primary-action-label>{{
-          t('school.tasks.createEntry')
+          t('tasks.list.create_entry')
         }}</template>
         <template #secondary-action-label>{{
-          t('school.tasks.resetFilters')
+          t('tasks.list.reset_filters')
         }}</template>
       </BaseEmptyState>
 
@@ -605,10 +605,10 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
           v-if="visibleCount < filteredItems.length"
           @click="showMore"
           variant="ghost"
-          >{{ t('global.buttons.showMore') }}</BaseButton
+          >{{ t('common.buttons.show_more') }}</BaseButton
         >
         <BaseButton v-if="visibleCount > 5" variant="ghost" @click="showLess">{{
-          t('global.buttons.showLess')
+          t('common.buttons.show_less')
         }}</BaseButton>
       </div>
     </div>

@@ -40,11 +40,11 @@ function formatDate(iso: string) {
 <template>
   <div class="animate-fade-up">
     <PageHeader>
-      Ankündigungen
+      {{ t('announcements.list.title') }}
 
       <template #action>
         <BaseButton v-if="canManageAnnouncements" variant="action" @click="openAnnouncementForm" :icon="Plus">
-          Neue Ankündigung
+          {{ t('announcements.list.create_button') }}
         </BaseButton>
       </template>
     </PageHeader>
@@ -53,7 +53,7 @@ function formatDate(iso: string) {
       v-if="announcements.length === 0"
       class="text-center p-8 text-on-ghost-muted text-base"
     >
-      Keine Ankündigungen vorhanden.
+      {{ t('announcements.list.empty_state') }}
     </div>
     <div v-else class="flex flex-col gap-2">
       <div
@@ -82,7 +82,7 @@ function formatDate(iso: string) {
             formatDate(ann.createdAt)
           }}</span>
         </div>
-        <BaseTooltip v-if="canManageAnnouncements" :content="t('global.buttons.delete')" placement="bottom">
+        <BaseTooltip v-if="canManageAnnouncements" :content="t('common.buttons.delete')" placement="bottom">
           <BaseButton
             variant="ghost"
             size="sm"

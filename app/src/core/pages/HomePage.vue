@@ -34,10 +34,10 @@ const displayName = computed(() => {
 
 const greeting = computed(() => {
   const h = new Date().getHours();
-  if (h < 6) return 'groups.home.goodNight';
-  if (h < 12) return 'groups.home.goodMorning';
-  if (h < 18) return 'groups.home.goodDay';
-  return 'groups.home.goodEvening';
+  if (h < 6) return 'common.groups.good_night';
+  if (h < 12) return 'common.groups.good_morning';
+  if (h < 18) return 'common.groups.good_day';
+  return 'common.groups.good_evening';
 });
 
 const roleColors: Record<string, string> = {
@@ -114,14 +114,14 @@ onMounted(() => {
           <p class="text-base/relaxed text-on-ghost-muted m-0 animate-fade-up">
             {{
               userGroups.length
-                ? 'Wähle eine Gruppe aus, um loszulegen.'
-                : 'Tritt einer Gruppe bei oder erstelle eine neue.'
+                ? t('common.groups.choose_group_prompt')
+                : t('common.groups.join_or_create_prompt')
             }}
           </p>
         </div>
 
         <div class="relative" v-if="userGroups.length > 0">
-          <BaseTooltip content="Add group" placement="bottom">
+          <BaseTooltip :content="t('common.groups.tooltip.add_group')" placement="bottom">
             <BaseButton
               @click="addGroup = true"
               variant="action"
@@ -137,12 +137,12 @@ onMounted(() => {
             ><BaseMenuButton
               :icon="UserRoundPlus"
               @click="(modalStore.openJoinGroup(), (addGroup = false))"
-              >{{ t('groups.home.joinGroup') }}</BaseMenuButton
+              >{{ t('common.groups.join_group') }}</BaseMenuButton
             >
             <BaseMenuButton
               :icon="Plus"
               @click="(modalStore.openCreateGroup(), (addGroup = false))"
-              >{{ t('groups.home.createGroup') }}</BaseMenuButton
+              >{{ t('common.groups.create_group') }}</BaseMenuButton
             >
           </BaseMenu>
         </div>
@@ -152,7 +152,7 @@ onMounted(() => {
     <section v-if="userGroups.length > 0" class="mb-9">
       <div class="flex items-center gap-2.5 mb-4 max-md:px-4">
         <h2 class="text-2xl font-bold text-on-ghost m-0 animate-fade-up">
-          {{ t('groups.home.yourGroups') }}
+          {{ t('common.groups.your_groups') }}
         </h2>
         <span
           class="text-on-ghost-muted bg-ghost-hover rounded-full text-sm font-semibold px-2.5 py-0.5 animate-fade-up"
@@ -207,13 +207,13 @@ onMounted(() => {
         :primary-action="() => modalStore.openJoinGroup()"
         :secondary-action="() => modalStore.openCreateGroup()"
       >
-        <template #title>{{ t('groups.home.noGroups') }}</template>
-        <template #message>{{ t('groups.home.joinGroupText') }}</template>
+        <template #title>{{ t('common.groups.no_groups') }}</template>
+        <template #message>{{ t('common.groups.join_group_text') }}</template>
         <template #primary-action-label>{{
-          t('groups.home.joinGroup')
+          t('common.groups.join_group')
         }}</template>
         <template #secondary-action-label>{{
-          t('groups.home.createGroup')
+          t('common.groups.create_group')
         }}</template>
       </BaseEmptyState>
     </section>

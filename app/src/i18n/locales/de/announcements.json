@@ -1,0 +1,39 @@
+{
+  "actions": {
+    "publish_success_toast": "Ankündigung erfolgreich veröffentlicht!",
+    "create": "Ankündigung erstellen",
+    "create_description": "Eine neue Ankündigung für deine Gruppe veröffentlichen."
+  },
+  "list": {
+    "title": "Ankündigungen",
+    "create_button": "Neue Ankündigung",
+    "empty_state": "Keine Ankündigungen vorhanden."
+  },
+  "form": {
+    "errors": {
+      "empty": "Eine Ankündigung darf nicht leer sein.",
+      "too_long": "Die Ankündigung ist zu lang (max. 1000 Zeichen)."
+    },
+    "title": "Neue Ankündigung",
+    "content_label": "Ankündigung",
+    "options": {
+      "info": "Info",
+      "warning": "Warnung",
+      "important": "Wichtig"
+    }
+  },
+  "all": {
+    "title": "Alle Ankündigungen"
+  },
+  "notifications": {
+    "new_single": "Neue Ankündigung: {preview}",
+    "new_plural": "{count} neue Ankündigungen: {preview}"
+  },
+  "delete_modal": {
+    "title": "Diese Ankündigung löschen?",
+    "message": "Wenn du diese Ankündigung löschst, wird sie unwiderruflich entfernt."
+  },
+  "errors": {
+    "delete_failed": "Ankündigung konnte nicht gelöscht werden."
+  }
+}

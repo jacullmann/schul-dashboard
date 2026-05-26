@@ -39,7 +39,7 @@ const { t } = useI18n();
       <div
         class="text-danger font-bold text-base group-[.highlight-active]:text-danger!"
       >
-        {{ t('school.tables.schedule.cancelled') }}
+        {{ t('schedule.cancelled') }}
       </div>
       <div
         class="flex justify-between text-sm text-on-ghost-muted mt-0.5 group-[.highlight-active]:text-surface-hover!"

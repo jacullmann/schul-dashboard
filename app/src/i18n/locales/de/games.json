@@ -1,0 +1,69 @@
+{
+  "detail": {
+    "back_button": "Zurück zur Spiele-Übersicht"
+  },
+  "list": {
+    "tic_tac_toe": {
+      "description": "Wer drei in einer Reihe hat, gewinnt!"
+    },
+    "russian_roulette": {
+      "description": "Dies ist nur ein Spiel!",
+      "tags": {
+        "strategy": "Strategie",
+        "no_gambling": "Kein Glückspiel",
+        "classic": "Klassiker",
+        "russian": "Russisch"
+      }
+    },
+    "rock_paper_scissors": {
+      "description": "Spiele Schere-Stein-Papier gegen einen Computer."
+    },
+    "memory_game": {
+      "description": "Finde alle Paare! Ein klassisches Gedächtnisspiel."
+    },
+    "snake_game": {
+      "description": "Friss die Äpfel und lass die Schlange wachsen, aber beiße dich nicht selbst!"
+    },
+    "whack_a_mole": {
+      "description": "Hau den Maulwurf! Teste deine Reaktionsgeschwindigkeit.",
+      "tags": {
+        "reaction": "Reaktion",
+        "fun": "Spaß",
+        "solo": "Solo"
+      }
+    }
+  },
+  "memory": {
+    "moves_count": "Züge: {moves}",
+    "victory_title": "Gewonnen! 🎉",
+    "victory_message": "Du hast {moves} Züge gebraucht."
+  },
+  "rps": {
+    "choose_prompt": "Wähle Schere, Stein oder Papier!",
+    "computer_thinking": "Der Computer wählt...",
+    "you": "Du"
+  },
+  "roulette": {
+    "status": {
+      "won": "Überlebt",
+      "click": "*Klick* - Nächster Versuch."
+    },
+    "settings": {
+      "chamber_size_label": "Trommelgröße",
+      "bullet_count_label": "Anzahl der geladenen Schüsse"
+    },
+    "stats": {
+      "mortality_label": "Mortalität"
+    },
+    "actions": {
+      "spinning": "Trommel dreht...",
+      "shoot": "Abdrücken",
+      "reload": "Neu Laden"
+    }
+  },
+  "snake": {
+    "game_over": "Game Over! 💥",
+    "restart": "Neu starten",
+    "instruction": "Nutze die Pfeiltasten zum Steuern."
+  }
+}

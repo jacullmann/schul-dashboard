@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useUserStore } from '@/stores/userStore';
+
+const { t } = useI18n();
 
 defineProps<{
   open: boolean;
@@ -60,11 +63,11 @@ async function submit() {
       emit('cancel');
       await router.push(`/groups/${activeGroupId.value}/items/all`);
     } else {
-      errorMsg.value = res.error || 'Erstellen der Gruppe fehlgeschlagen';
+      errorMsg.value = res.error || t('auth.groups.errors.create_failed');
     }
   } catch (err: unknown) {
     const e = err as { response?: { data?: { error?: string } } };
-    errorMsg.value = e.response?.data?.error || 'Unbekannter Fehler';
+    errorMsg.value = e.response?.data?.error || t('common.errors.unknown');
   } finally {
     submitting.value = false;
   }
@@ -80,7 +83,7 @@ async function submit() {
     :error="errorMsg"
     :cancel="undefined"
   >
-    <template #title> Gruppe erstellen </template>
+    <template #title>{{ t('common.groups.create_group') }}</template>
 
     <template #content>
       <BaseFormGroup id="group-name">
@@ -89,7 +92,7 @@ async function submit() {
           id="group-name"
           ref="groupNameInputRef"
           v-model="groupName"
-          placeholder="Name der Gruppe"
+          :placeholder="t('admin.general.appearance.name_placeholder')"
           type="text"
           autocomplete="off"
           @input="clearError"
@@ -97,30 +100,30 @@ async function submit() {
       </BaseFormGroup>
 
       <BaseFormGroup id="group-password">
-        <BaseLabel for="group-password">Passwort</BaseLabel>
+        <BaseLabel for="group-password">{{ t('auth.login.password') }}</BaseLabel>
         <BaseInput
           id="group-password"
           type="password"
           v-model="password"
-          placeholder="Passwort"
+          :placeholder="t('auth.login.password')"
           autocomplete="new-password"
           @input="clearError"
         />
       </BaseFormGroup>
 
       <BaseFormGroup id="group-confirm">
-        <BaseLabel for="group-confirm">Passwort bestätigen</BaseLabel>
+        <BaseLabel for="group-confirm">{{ t('auth.login.confirm_password') }}</BaseLabel>
         <BaseInput
           id="group-confirm"
           type="password"
           v-model="passwordConfirm"
-          placeholder="Passwort wiederholen"
+          :placeholder="t('auth.login.confirm_placeholder')"
           autocomplete="new-password"
           @input="clearError"
         />
       </BaseFormGroup>
     </template>
 
-    <template #action-text> Erstellen </template>
+    <template #action-text> {{ t('common.buttons.create') }} </template>
   </BaseModal>
 </template>

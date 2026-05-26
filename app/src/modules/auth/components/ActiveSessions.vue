@@ -10,6 +10,7 @@ import {
 } from '@lucide/vue';
 import hw from '@/api/hwApi';
 import { useModalStore } from '@/stores/modalStore';
+import { useI18n } from 'vue-i18n';
 
 interface SessionLocation {
   city: string | null;
@@ -32,6 +33,7 @@ const revokingId = ref<string | null>(null);
 const revokingAll = ref(false);
 const error = ref<string | null>(null);
 
+const { t } = useI18n();
 const modalStore = useModalStore();
 
 async function fetchSessions() {
@@ -43,7 +45,7 @@ async function fetchSessions() {
   } catch (err) {
     console.error('Failed to fetch active sessions:', err);
     error.value =
-      'Fehler beim Laden der aktiven Geräte. Bitte versuche es erneut.';
+      t('auth.sessions.errors.load_failed');
   } finally {
     loading.value = false;
   }
@@ -51,9 +53,9 @@ async function fetchSessions() {
 
 async function revokeSession(session: ActiveSession) {
   const isConfirmed = await modalStore.confirm({
-    title: 'Gerät abmelden?',
-    content: `Möchtest du die Sitzung auf dem Gerät (${parseUserAgent(session.userAgent).browser} unter ${parseUserAgent(session.userAgent).os}) wirklich beenden?`,
-    submitText: 'Abmelden',
+    title: t('auth.sessions.delete_modal.title'),
+    content: t('auth.sessions.delete_modal.message', { browser: parseUserAgent(session.userAgent).browser, os: parseUserAgent(session.userAgent).os }),
+    submitText: t('common.buttons.logout'),
     danger: true,
   });
 
@@ -67,7 +69,7 @@ async function revokeSession(session: ActiveSession) {
     );
   } catch (err) {
     console.error('Failed to revoke session:', err);
-    alert('Die Sitzung konnte nicht beendet werden.');
+    alert(t('auth.sessions.errors.delete_failed'));
   } finally {
     revokingId.value = null;
   }
@@ -75,10 +77,10 @@ async function revokeSession(session: ActiveSession) {
 
 async function logoutAllOtherSessions() {
   const isConfirmed = await modalStore.confirm({
-    title: 'Alle anderen Geräte abmelden?',
+    title: t('auth.sessions.delete_all_modal.title'),
     content:
-      'Möchtest du dich wirklich auf allen anderen Geräten abmelden? Deine aktuelle Sitzung bleibt bestehen.',
-    submitText: 'Alle anderen abmelden',
+      t('auth.sessions.delete_all_modal.message'),
+    submitText: t('auth.sessions.delete_all_modal.submit'),
     danger: true,
   });
 
@@ -101,7 +103,7 @@ async function logoutAllOtherSessions() {
     sessions.value = currentSession ? [currentSession] : [];
   } catch (err) {
     console.error('Failed to logout other sessions:', err);
-    alert('Fehler beim Abmelden anderer Geräte.');
+    alert(t('auth.sessions.errors.delete_all_failed'));
     await fetchSessions(); // Refresh to get current state
   } finally {
     revokingAll.value = false;
@@ -115,15 +117,15 @@ function parseUserAgent(ua: string | null): {
 } {
   if (!ua) {
     return {
-      browser: 'Unbekannter Browser',
-      os: 'Unbekanntes System',
+      browser: t('auth.sessions.browser.unknown'),
+      os: t('auth.sessions.os.unknown'),
       isMobile: false,
     };
   }
 
   const uaLower = ua.toLowerCase();
   let browser = 'Unbekannter Browser';
-  let os = 'Unbekanntes System';
+  let os = t('auth.sessions.os.unknown');
   let isMobile = false;
 
   // Detect Mobile
@@ -190,15 +192,15 @@ function formatRelativeTime(dateStr: string): string {
     const diffMs = now.getTime() - d.getTime();
     const diffMins = Math.floor(diffMs / 60000);
 
-    if (diffMins < 1) return 'Gerade eben';
-    if (diffMins < 60) return `Vor ${diffMins} Min.`;
+    if (diffMins < 1) return t('auth.sessions.time.just_now');
+    if (diffMins < 60) return t('auth.sessions.time.minutes_ago', { mins: diffMins });
 
     const diffHours = Math.floor(diffMins / 60);
-    if (diffHours < 24) return `Vor ${diffHours} Std.`;
+    if (diffHours < 24) return t('auth.sessions.time.hours_ago', { hours: diffHours });
 
     const diffDays = Math.floor(diffHours / 24);
-    if (diffDays === 1) return 'Gestern';
-    return `Vor ${diffDays} Tagen`;
+    if (diffDays === 1) return t('auth.sessions.time.yesterday');
+    return t('auth.sessions.time.days_ago', { days: diffDays });
   } catch {
     return '';
   }
@@ -212,11 +214,9 @@ onMounted(() => {
 <template>
   <div class="flex flex-col gap-4">
     <div class="flex flex-col gap-2">
-      <h3>Angemeldete Geräte & Sitzungen</h3>
+      <h3>{{ t('auth.sessions.title') }}</h3>
       <div class="text-sm/relaxed text-on-ghost-muted">
-        Hier siehst du alle Browser und Geräte, auf denen du aktuell eingeloggt
-        bist. Du kannst ungewöhnliche Sitzungen beenden, um die Sicherheit
-        deines Kontos zu gewährleisten.
+        {{ t('auth.sessions.description') }}
       </div>
     </div>
 
@@ -262,7 +262,7 @@ onMounted(() => {
           on="ghost"
           :icon="LogOut"
         >
-          Andere Geräte abmelden
+          {{ t('auth.sessions.actions.delete_all') }}
         </BaseButton>
       </div>
 
@@ -285,7 +285,7 @@ onMounted(() => {
                 parseUserAgent(session.userAgent).isMobile
                   ? Smartphone
                   : parseUserAgent(session.userAgent).os !==
-                      'Unbekanntes System'
+                      t('auth.sessions.os.unknown')
                     ? Laptop
                     : Monitor
               "
@@ -296,16 +296,16 @@ onMounted(() => {
           <!-- Session Metadata -->
           <div class="flex flex-col flex-1 min-w-0">
             <div class="text-base font-semibold text-on-ghost truncate">
-              {{ parseUserAgent(session.userAgent).browser }} auf
+              {{ parseUserAgent(session.userAgent).browser }} {{ t('auth.sessions.on_device') }}
               {{ parseUserAgent(session.userAgent).os }}
             </div>
 
             <!-- IP and Location -->
             <div class="flex items-center gap-1 text-sm text-on-ghost-muted">
               {{ session.location?.city ? `${session.location.city}, ` : '' }}
-              {{ session.location?.country || 'Standort unbekannt' }}
+              {{ session.location?.country || t('auth.sessions.location.unknown') }}
               •
-              {{ index === 0 ? 'This device' : formatDate(session.issuedAt) }}
+              {{ index === 0 ? t('auth.sessions.this_device') : formatDate(session.issuedAt) }}
             </div>
 
             <!-- Last Active / Registration date -->
@@ -329,7 +329,7 @@ onMounted(() => {
           </div>
 
           <template v-if="index !== 0">
-            <BaseTooltip content="Gerät abmelden" placement="bottom">
+            <BaseTooltip :content="t('auth.sessions.actions.delete')" placement="bottom">
               <BaseButton
                 @click="revokeSession(session)"
                 :loading="revokingId === session.familyId"

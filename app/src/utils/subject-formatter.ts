@@ -24,11 +24,11 @@ export function formatSubjectDisplay(
 
     let courseDisplay = course;
     const courseKey = getSubjectKey(course);
-    if (te(`global.subjects.${courseKey}`)) {
-      courseDisplay = t(`global.subjects.${courseKey}`);
+    if (te(`common.subjects.${courseKey}`)) {
+      courseDisplay = t(`common.subjects.${courseKey}`);
     } else {
-      const mr = t('global.titles.abbr.mr');
-      const ms = t('global.titles.abbr.ms');
+      const mr = t('common.titles.abbr.mr');
+      const ms = t('common.titles.abbr.ms');
 
       courseDisplay = course
         .replace(/^Herr\s+/, `${mr} `)
@@ -40,14 +40,14 @@ export function formatSubjectDisplay(
     if (mainKey === 'wpu2') return `WPU 2 ${courseDisplay}`;
 
     let subjectDisplay = parts[0]!.trim();
-    if (te(`global.subjects.${mainKey}`)) {
-      subjectDisplay = t(`global.subjects.${mainKey}`);
+    if (te(`common.subjects.${mainKey}`)) {
+      subjectDisplay = t(`common.subjects.${mainKey}`);
     }
     return `${subjectDisplay} - ${courseDisplay}`;
   }
 
-  if (te(`global.subjects.${mainKey}`)) {
-    return t(`global.subjects.${mainKey}`);
+  if (te(`common.subjects.${mainKey}`)) {
+    return t(`common.subjects.${mainKey}`);
   }
 
   return subject;

@@ -1,0 +1,34 @@
+{
+  "articles": {
+    "1": {
+      "content": "Trotz der Behauptung, dass sich die Christdemokraten um die Armen, Zugewanderten und Opfer scheren, beweisen sie immer wieder: Was uns ein Dorn im Auge ist, soll weg.\n\nIn New York wurde das Prinzip längst perfektioniert – Bänke mit Kurven, Abtrennungen und Stacheln sind der Trend des Jahres. Denn wenn man sich nicht hinlegen kann, geht man weg und „aus den Augen, aus dem Sinn“, oder? Leider ertönten keine feierlichen Trompeten, gefolgt von genug bezahlbaren Wohnungen und die Obdachlosen legten sich neben die Bänke. Aber die Berliner CDU glaubt, in Kreuzberg herrschen andere Gesetze. Wenn sie das ganze Geld, das für die Versorgung und Unterstützung der Suchtkranken eingeplant war, für einen riesigen Zaun um den Görlitzer Park ausgeben, dann müssten sie auf magische Weise verschwinden und keine zusätzlichen Investitionen wären nötig, so die These. Allerdings muss sich ein Denkfehler eingeschlichen haben – das einzige Problem, das verschwindet, ist die Entscheidung, wofür man 2 Mio. Euro Steuergelder ausgeben soll.\n\nEin befragter Anwohner findet, der Park brauche definitiv Hilfe, aber in Form von Hilfe für die Abhängigen – nur schlecht, dass das im Haushalt nicht vorgesehen ist. In den letzten Monaten gab es Aufschreie im Minutentakt, eine gesunde Prise zivilen Ungehorsam und zwei Klagen vom Bezirk, die schneller abgewiesen wurden, als man sie durchlesen kann. Aber was wissen die Menschen, um die es geht, schon über das Thema? Die christlichen „Demokraten“ hören auf das Volk – allerdings nur auf die reicheren 20 % in den Randbezirken. Der Zaun ist ein Geschenk an ihre Wähler, die den Park als Schande sehen, und kommt gleich mit einer Glückwunschkarte, auf der „Wir machen alles, was ihr wollt“ steht.\n\nSolange Kai Wegner seine Symbolpolitik betreibt und jegliche Aufrufe der Bevölkerung ignoriert, scheint Geld für echte Lösungen fernzubleiben. Uns bleibt also nur noch eins zu hoffen – jeder freischaffende Pharmahändler denkt sich um 22 Uhr bei Schließung der Tore: Jetzt ist Feierabend.",
+      "excerpt": "„Niemand hat die Absicht, eine Mauer zu errichten.“ So hieß es vor 60 Jahren. Dann wurde eine Mauer errichtet. Heute ist es ein Zaun und statt der Sozialisten will die CDU ihn bauen.",
+      "title": "Niemand hat die Absicht, einen Zaun zu errichten"
+    }
+  },
+  "dashboard": {
+    "all_topics": "Alle Themen",
+    "categories": {
+      "culture": "Kultur",
+      "economy": "Wirtschaft",
+      "politics": "Politik",
+      "science": "Wissenschaft",
+      "technology": "Technologie"
+    },
+    "description": "Spannende Geschichte rund um den Globus",
+    "max_time": "Max. Lesezeit:",
+    "recommendations": "Das könnte dich auch interessieren",
+    "sort_by": "Sortieren:",
+    "sort_methods": {
+      "newest": "Neueste",
+      "oldest": "Älteste",
+      "relevance": "Relevanz",
+      "shortest": "Kürzeste Lesezeit"
+    },
+    "title": "Info Dashboard",
+    "topic": "Thema:"
+  },
+  "kanye": {
+    "footnote": "Die Abbildungen der Albumcover dienen ausschließlich der Identifizierung. Das Urheberrecht liegt bei den jeweiligen Eigentümern, Labels und Künstlern."
+  }
+}

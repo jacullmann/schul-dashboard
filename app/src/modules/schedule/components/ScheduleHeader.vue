@@ -12,18 +12,18 @@ const { t, tm } = useI18n();
 
 <template>
   <PageHeader>
-    {{ t('school.tables.schedule.title') }}
+    {{ t('schedule.title') }}
     <template #info>
       <InfoModal
-        :tooltip="t('school.tables.schedule.infopop.tooltip')"
-        :title="t('school.tables.schedule.title')"
+        :tooltip="t('schedule.infopop.tooltip')"
+        :title="t('schedule.title')"
       >
         <h3 class="text-xl font-bold mb-2">
-          {{ t('school.tables.schedule.infopop.description') }}
+          {{ t('schedule.infopop.description') }}
         </h3>
         <div
           v-for="(section, index) in tm(
-            'school.tables.schedule.infopop.sections',
+            'schedule.infopop.sections',
           )"
           :key="index"
           class="mb-4"

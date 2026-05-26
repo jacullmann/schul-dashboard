@@ -1,4 +1,5 @@
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
 import { useModalStore } from '@/stores/modalStore';
@@ -11,6 +12,7 @@ const modalStore = useModalStore();
 export type { Announcement };
 
 export function useAnnouncements() {
+  const { t } = useI18n();
   const userStore = useUserStore();
   const { user } = storeToRefs(userStore);
   const toast = useToast();
@@ -70,8 +72,8 @@ export function useAnnouncements() {
       firstContent.length > 80 ? firstContent.slice(0, 80) + '…' : firstContent;
     const msg =
       count === 1
-        ? `Neue Ankündigung: ${preview}`
-        : `${count} neue Ankündigungen: ${preview}`;
+        ? t('announcements.notifications.new_single', { preview })
+        : t('announcements.notifications.new_plural', { count, preview });
 
     const hasDanger = unread.some((a) => a.color === 'danger');
     const hasWarn = unread.some((a) => a.color === 'warn');
@@ -90,10 +92,10 @@ export function useAnnouncements() {
 
   async function deleteAnnouncement(id: string): Promise<void> {
     const isConfirmed = await modalStore.confirm({
-      title: 'Diese Ankündigung löschen?',
+      title: t('announcements.delete_modal.title'),
       content:
-        'Wenn du diese Ankündigung löschst, wird sie unwiderruflich entfernt.',
-      submitText: 'Löschen',
+        t('announcements.delete_modal.message'),
+      submitText: t('common.buttons.delete'),
       danger: true,
     });
 
@@ -105,7 +107,7 @@ export function useAnnouncements() {
       const err = e as { response?: { data?: { error?: string } } };
       toast.error(
         err.response?.data?.error ||
-          'Ankündigung konnte nicht gelöscht werden.',
+          t('announcements.errors.delete_failed'),
       );
     }
   }

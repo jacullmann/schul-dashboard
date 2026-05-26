@@ -229,7 +229,7 @@ defineExpose({ menuEl: desktopMenuEl, startClose });
         @click="popView"
         :icon="ChevronLeft"
         class="ml-1 w-fit"
-        >{{ t('global.buttons.back') }}</BaseButton
+        >{{ t('common.buttons.back') }}</BaseButton
       >
     </div>
 

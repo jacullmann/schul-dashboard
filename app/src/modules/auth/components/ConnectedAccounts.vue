@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useOAuth } from '@/modules/auth/composables/useOAuth';
 import GoogleIcon from '@/modules/auth/components/GoogleIcon.vue';
+
+const { t } = useI18n();
 
 const { fetchLinkedProviders, unlinkGoogleAccount, initiateGoogleLogin } =
   useOAuth();
@@ -67,7 +70,7 @@ function handleLink() {
           <div class="flex flex-col gap-0.5">
             <span class="text-base font-semibold text-on-ghost">Google</span>
             <span class="text-sm text-on-ghost-muted">{{
-              googleLinked() ? googleProvider()?.email : 'Nicht verknüpft'
+              googleLinked() ? googleProvider()?.email : t('auth.connected_accounts.not_linked')
             }}</span>
           </div>
         </div>

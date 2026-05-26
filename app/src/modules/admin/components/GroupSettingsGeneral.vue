@@ -72,7 +72,7 @@ function onFileSelected(e: Event) {
   if (!file) return;
 
   if (!file.type.startsWith('image/')) {
-    avatarError.value = 'Bitte wählen Sie eine gültige Bilddatei aus.';
+    avatarError.value = t('admin.general.avatar.errors.invalid_file');
     return;
   }
 
@@ -84,7 +84,7 @@ function onFileSelected(e: Event) {
     avatarError.value = '';
   };
   reader.onerror = () => {
-    avatarError.value = 'Fehler beim Lesen der Datei.';
+    avatarError.value = t('admin.general.avatar.errors.read_failed');
   };
   reader.readAsDataURL(file);
 }
@@ -113,14 +113,14 @@ async function onCropConfirmed(blob: Blob) {
       },
     );
 
-    if (!res.ok) throw new Error('Cloudinary Upload fehlgeschlagen');
+    if (!res.ok) throw new Error(t('admin.general.avatar.errors.upload_failed'));
     const json = await res.json();
-    if (!json.secure_url) throw new Error('Ungültige Antwort von Cloudinary');
+    if (!json.secure_url) throw new Error(t('admin.general.avatar.errors.invalid_response'));
 
     await saveGroupAvatar(json.secure_url);
   } catch (err: any) {
     avatarError.value =
-      err.message || 'Fehler beim Hochladen des Profilbildes.';
+      err.message || t('admin.general.avatar.errors.save_failed');
   } finally {
     savingAvatar.value = false;
   }
@@ -128,10 +128,10 @@ async function onCropConfirmed(blob: Blob) {
 
 async function deleteAvatar() {
   const isConfirmed = await modalStore.confirm({
-    title: 'Gruppenbild löschen',
+    title: t('admin.general.avatar.delete_modal.title'),
     content:
-      'Sind Sie sicher, dass Sie das Gruppen-Profilbild löschen möchten?',
-    submitText: t('global.buttons.delete') || 'Löschen',
+      t('admin.general.avatar.delete_modal.message'),
+    submitText: t('common.buttons.delete'),
     danger: true,
   });
 
@@ -142,7 +142,7 @@ async function deleteAvatar() {
   try {
     await saveGroupAvatar(null);
   } catch (err: any) {
-    avatarError.value = err.message || 'Fehler beim Löschen des Profilbildes.';
+    avatarError.value = err.message || t('admin.general.avatar.errors.delete_failed');
   } finally {
     savingAvatar.value = false;
   }
@@ -157,7 +157,7 @@ const pwdError = ref('');
 async function changePassword() {
   if (!oldPassword.value || !newPassword.value) return;
   if (newPassword.value !== newPassword2.value) {
-    pwdError.value = 'Passwörter stimmen nicht überein';
+    pwdError.value = t('admin.general.password.errors.mismatch');
     return;
   }
   pwdError.value = '';
@@ -168,7 +168,7 @@ async function changePassword() {
     newPassword.value = '';
     newPassword2.value = '';
   } catch (err: any) {
-    pwdError.value = err.message || 'Ein Fehler ist aufgetreten';
+    pwdError.value = err.message || t('admin.general.password.errors.generic');
   } finally {
     changingPassword.value = false;
   }
@@ -182,10 +182,10 @@ async function confirmDeleteGroup() {
   if (deleteConfirmText.value !== expectedConfirmation) return;
 
   const isConfirmed = await modalStore.confirm({
-    title: 'Gruppe löschen',
+    title: t('admin.general.delete_group.modal.title'),
     content:
-      'Sind Sie sicher, dass Sie diese Gruppe unwiderruflich löschen möchten?',
-    submitText: t('global.buttons.delete'),
+      t('admin.general.delete_group.modal.message'),
+    submitText: t('common.buttons.delete'),
     danger: true,
   });
 
@@ -205,11 +205,11 @@ async function confirmDeleteGroup() {
 <template>
   <div class="animate-fade-up flex flex-col gap-8">
     <div v-if="!canEditSettings" class="text-center text-base text-on-ghost-muted">
-      <p class="m-0">Du hast keine Berechtigung, die Einstellungen zu ändern.</p>
+      <p class="m-0">{{ t('admin.general.errors.unauthorized') }}</p>
     </div>
 
     <div>
-      <PageHeader>Erscheinungsbild</PageHeader>
+      <PageHeader>{{ t('admin.general.appearance.title') }}</PageHeader>
       <div class="flex items-center gap-6">
         <!-- Avatar Preview Circle -->
         <div class="relative flex-shrink-0">
@@ -274,10 +274,10 @@ async function confirmDeleteGroup() {
         </div>
 
         <div class="flex-1 w-full flex flex-col">
-          <BaseLabel for="group-name">Name</BaseLabel>
+          <BaseLabel for="group-name">{{ t('admin.general.appearance.name_label') }}</BaseLabel>
           <div v-if="!editingGroupName" class="flex items-center gap-2 h-6">
             <span class="font-semibold text-xl">{{ groupName }}</span>
-            <BaseTooltip :content="t('global.buttons.edit')">
+            <BaseTooltip :content="t('common.buttons.edit')">
               <BaseButton
                 v-if="canEditSettings"
                 class="w-8 h-8 p-0"
@@ -302,13 +302,13 @@ async function confirmDeleteGroup() {
                     ($event.target as HTMLInputElement).value,
                   )
                 "
-                placeholder="Neuer Gruppenname"
+                :placeholder="t('admin.general.appearance.name_placeholder')"
                 @keyup.enter="emit('save-edit')"
                 :disabled="!canEditSettings"
               />
               <BaseRow justify="end" class="w-full mt-2">
                 <BaseButton @click="emit('cancel-edit')" variant="ghost">{{
-                  t('global.buttons.cancel')
+                  t('common.buttons.cancel')
                 }}</BaseButton>
                 <BaseButton
                   @click="emit('save-edit')"
@@ -318,7 +318,7 @@ async function confirmDeleteGroup() {
                   variant="action"
                 >
                   {{
-                    savingGroupName ? 'Speichert...' : t('global.buttons.save')
+                    savingGroupName ? t('common.buttons.saving') : t('common.buttons.save')
                   }}
                 </BaseButton>
               </BaseRow>
@@ -359,7 +359,7 @@ async function confirmDeleteGroup() {
     </div>
 
     <div v-if="isOwner">
-      <PageHeader>Passwort ändern</PageHeader>
+      <PageHeader>{{ t('admin.general.password.title') }}</PageHeader>
 
       <BaseForm
         :submit="changePassword"
@@ -377,7 +377,7 @@ async function confirmDeleteGroup() {
       >
         <template #content>
           <BaseFormGroup id="old-password">
-            <BaseLabel for="old-password">Aktuelles Passwort</BaseLabel>
+            <BaseLabel for="old-password">{{ t('admin.general.password.current_label') }}</BaseLabel>
             <BaseInput
               id="old-password"
               type="password"
@@ -387,7 +387,7 @@ async function confirmDeleteGroup() {
           </BaseFormGroup>
 
           <BaseFormGroup id="new-password">
-            <BaseLabel for="new-password">Neues Passwort</BaseLabel>
+            <BaseLabel for="new-password">{{ t('admin.general.password.new_label') }}</BaseLabel>
             <BaseInput
               id="new-password"
               type="password"
@@ -398,7 +398,7 @@ async function confirmDeleteGroup() {
 
           <BaseFormGroup id="new-password-confirm">
             <BaseLabel for="new-password-confirm"
-              >Neues Passwort bestätigen</BaseLabel
+              >{{ t('admin.general.password.confirm_label') }}</BaseLabel
             >
             <BaseInput
               id="new-password-confirm"
@@ -409,12 +409,12 @@ async function confirmDeleteGroup() {
           </BaseFormGroup>
         </template>
 
-        <template #action-text> Passwort ändern </template>
+        <template #action-text> {{ t('admin.general.password.title') }} </template>
       </BaseForm>
     </div>
 
     <div v-if="isOwner">
-      <h3 class="text-danger">Danger Zone</h3>
+      <h3 class="text-danger">{{ t('admin.general.delete_group.danger_zone_title') }}</h3>
       <p class="text-base/relaxed text-on-ghost-muted m-0 mb-5">
         Das Löschen der Gruppe ist endgültig und kann nicht rückgängig gemacht
         werden. Alle damit verbundenen Daten (Aufgaben, Klausuren, Ankündigungen
@@ -444,7 +444,7 @@ async function confirmDeleteGroup() {
           </BaseFormGroup>
         </template>
 
-        <template #action-text> Gruppe unwiderruflich löschen </template>
+        <template #action-text> {{ t('admin.general.delete_group.submit_button') }} </template>
       </BaseForm>
     </div>
   </div>

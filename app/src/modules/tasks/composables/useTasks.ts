@@ -127,14 +127,14 @@ export function useTasks() {
     formatSubjectDisplay(subject, t, te);
 
   const getTypeLabel = (type: string) => {
-    if (type === 'homework') return t('school.tasks.types.homework');
-    if (type === 'dalton') return t('school.tasks.types.dalton');
-    if (type === 'exam') return t('school.tasks.types.exam');
+    if (type === 'homework') return t('tasks.list.types.homework');
+    if (type === 'dalton') return t('tasks.list.types.dalton');
+    if (type === 'exam') return t('tasks.list.types.exam');
     return type;
   };
 
   const subjectOptions = computed(() => [
-    { label: t('school.tasks.allsubjects'), value: '' },
+    { label: t('tasks.list.allsubjects'), value: '' },
     ...subjectStore.availableSubjectKeys.map((s) => ({
       label: getSubjectName(s),
       value: s,
@@ -231,7 +231,7 @@ export function useTasks() {
     if (oldVal && !val && images.currentUploadItemId.value) {
       if (imageUpload.uploadSuccess.value) {
         await list.refreshItem(images.currentUploadItemId.value);
-        useToast().success(t('school.tasks.itemForm.successUpload'));
+        useToast().success(t('tasks.list.item_form.success_upload'));
       } else if (imageUpload.uploadError.value) {
         useToast().error(imageUpload.uploadError.value);
       }

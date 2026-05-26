@@ -49,31 +49,31 @@ export function useRegister(onRegistered: () => void) {
     let ok = true;
 
     if (!email.value?.trim()) {
-      errors.email = t('account.auth.errors.emailMissing');
+      errors.email = t('auth.login.errors.email_missing');
       ok = false;
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())) {
-      errors.email = t('account.auth.errors.emailWrong');
+      errors.email = t('auth.login.errors.email_wrong');
       ok = false;
     }
 
     if (!password.value) {
-      errors.password = t('account.auth.errors.passwordMissing');
+      errors.password = t('auth.login.errors.password_missing');
       ok = false;
     } else if (password.value.length < 8) {
-      errors.password = t('account.auth.errors.newShort');
+      errors.password = t('auth.login.errors.new_short');
       ok = false;
     }
 
     if (!passwordConfirm.value) {
-      errors.passwordConfirm = t('account.auth.errors.confirmMissing');
+      errors.passwordConfirm = t('auth.login.errors.confirm_missing');
       ok = false;
     } else if (password.value !== passwordConfirm.value) {
-      errors.passwordConfirm = t('account.auth.errors.confirmWrong');
+      errors.passwordConfirm = t('auth.login.errors.confirm_wrong');
       ok = false;
     }
 
     if (!acceptedPrivacy.value) {
-      errors.privacy = t('account.auth.errors.termsMissing');
+      errors.privacy = t('auth.login.errors.terms_missing');
       ok = false;
     }
 
@@ -102,12 +102,12 @@ export function useRegister(onRegistered: () => void) {
         preferences,
       });
 
-      message.value = t('account.auth.successRegister');
+      message.value = t('auth.login.success_register');
       isError.value = false;
       onRegistered();
     } catch (e: unknown) {
       const err = e as { response?: { data?: { error?: string } } };
-      message.value = err.response?.data?.error || t('global.errors.unknown');
+      message.value = err.response?.data?.error || t('common.errors.unknown');
       isError.value = true;
     } finally {
       submitting.value = false;

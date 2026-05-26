@@ -169,12 +169,11 @@ function handleSaveSub() {
       Stundenplan
       <template #info>
         <InfoModal
-          tooltip="Übersicht der Stundenplaneinstellungen"
+          tooltip="t('admin.schedule.info.tooltip')"
           title="Stundenplaneinstellungen"
         >
           <h3>
-            Konfiguriere die globalen Einstellungen für den Stundenplan (Zeiten,
-            Pausen).
+            {{ t('admin.schedule.config.instruction_text') }}
           </h3>
         </InfoModal>
       </template>
@@ -202,7 +201,7 @@ function handleSaveSub() {
         />
       </div>
       <div>
-        <BaseLabel for="config-duration">Stundenlänge (Minuten)</BaseLabel>
+        <BaseLabel for="config-duration">{{ t('admin.schedule.config.lesson_duration_label') }}</BaseLabel>
         <BaseInput
           id="config-duration"
           type="number"
@@ -216,14 +215,14 @@ function handleSaveSub() {
 
     <div class="mt-6 mb-4">
       <div class="flex items-center justify-between mb-3">
-        <h3>Pausen</h3>
+        <h3>{{ t('admin.schedule.config.breaks_title') }}</h3>
         <BaseButton
           v-if="canEditScheduleConfig"
           variant="ghost"
           @click="addBreak"
           :icon="Plus"
         >
-          Pause hinzufügen
+          {{ t('admin.schedule.config.add_break_button') }}
         </BaseButton>
       </div>
 
@@ -231,7 +230,7 @@ function handleSaveSub() {
         v-if="configForm.breaks.length === 0"
         class="text-center p-4 text-on-ghost-muted text-base"
       >
-        Keine Pausen konfiguriert.
+        {{ t('admin.schedule.config.no_breaks') }}
       </div>
 
       <div class="flex flex-col gap-2">
@@ -241,7 +240,7 @@ function handleSaveSub() {
           class="flex gap-2 items-end"
         >
           <div class="form-field flex-1 m-0">
-            <BaseLabel :for="`break-slot-${brk.id}`">Nach Stunde</BaseLabel>
+            <BaseLabel :for="`break-slot-${brk.id}`">{{ t('admin.schedule.config.after_lesson_label') }}</BaseLabel>
             <BaseInput
               :id="`break-slot-${brk.id}`"
               type="number"
@@ -252,7 +251,7 @@ function handleSaveSub() {
             />
           </div>
           <div class="form-field flex-1 m-0">
-            <BaseLabel :for="`break-dur-${brk.id}`">Dauer (Minuten)</BaseLabel>
+            <BaseLabel :for="`break-dur-${brk.id}`">{{ t('admin.schedule.config.break_duration_label') }}</BaseLabel>
             <BaseInput
               :id="`break-dur-${brk.id}`"
               type="number"
@@ -278,32 +277,28 @@ function handleSaveSub() {
         :disabled="savingScheduleConfig"
         variant="action"
       >
-        {{ savingScheduleConfig ? 'Speichert...' : 'Einstellungen speichern' }}
+        {{ savingScheduleConfig ? t('common.buttons.saving') : t('admin.schedule.config.save_button') }}
       </BaseButton>
     </div>
     <div class="mt-8 border-t border-surface-border pt-6">
       <PageHeader>
-        Stundenplanänderungen
+        {{ t('admin.schedule.changes.title') }}
 
         <template #info>
           <InfoModal
-            tooltip="Übersicht des Stundenplanänderungsmenüs"
-            title="Stundenplanänderungen"
+            tooltip="t('admin.schedule.changes.tooltip')"
+            title="t('admin.schedule.changes.title')"
           >
-            <h3>Trage Änderungen Live und anschaulich ein</h3>
+            <h3>{{ t('admin.schedule.changes.headline') }}</h3>
 
-            <h3>Stunden auswählen</h3>
+            <h3>{{ t('admin.schedule.changes.select_lessons') }}</h3>
             <p>
-              Klicke in der Stundenplanansicht die Stunden an, die du ändern
-              möchtest.
+              {{ t('admin.schedule.changes.select_instruction') }}
             </p>
 
-            <h3>Änderungen eintragen</h3>
+            <h3>{{ t('admin.schedule.changes.submit_changes') }}</h3>
             <p>
-              Schreibe in die passenden Textfelder die neuen Daten. Falls ein
-              Wert gleichbleiben soll, kannst du das Feld freilassen. Mit den
-              entsprechenden Checkboxen kannst du auch markieren ob Stunden
-              ausfallen oder Stunden ganz verbergen.
+              {{ t('admin.schedule.changes.submit_instruction') }}
             </p>
           </InfoModal>
         </template>
@@ -321,23 +316,23 @@ function handleSaveSub() {
       </PageHeader>
 
       <h3 v-if="!selectedLesson" class="text-on-ghost-muted mb-6">
-        Bitte wählen Sie eine Stunde aus dem Stundenplan.
+        {{ t('admin.schedule.changes.select_lesson_warning') }}
       </h3>
 
       <div v-if="selectedLesson">
-        <h3 class="mt-0 mb-2 text-lg">Ausgewählte Stunde</h3>
+        <h3 class="mt-0 mb-2 text-lg">{{ t('admin.schedule.changes.selected_lesson') }}</h3>
         <p class="m-0 mb-4 text-on-ghost-muted text-base">
-          Ersetzt:
-          <strong>{{ getDisplayName(selectedLesson) }}</strong> (Stunde:
-          {{ selectedLesson.slot }}, Letzte Stunde:
-          {{ selectedLesson.slot + selectedLesson.duration - 1 }}, Raum:
-          {{ selectedLesson.room || '-' }}, Tag: {{ selectedLesson.day }})
+          {{ t('admin.schedule.changes.replaces_prefix') }}
+          <strong>{{ getDisplayName(selectedLesson) }}</strong> ({{ t('admin.schedule.changes.lesson_label') }}
+          {{ selectedLesson.slot }}, {{ t('admin.schedule.changes.last_lesson_label') }}
+          {{ selectedLesson.slot + selectedLesson.duration - 1 }}, {{ t('admin.schedule.changes.room_label') }}
+          {{ selectedLesson.room || '-' }}, {{ t('admin.schedule.changes.day_label') }} {{ selectedLesson.day }})
         </p>
 
         <div class="grid grid-cols-2 gap-3 mb-4 sm:grid-cols-1">
           <input type="hidden" v-model="subForm.lessonId" />
           <div class="form-field">
-            <BaseLabel for="sub-subject">Neues Fach</BaseLabel>
+            <BaseLabel for="sub-subject">{{ t('admin.schedule.changes.new_subject_label') }}</BaseLabel>
             <BaseInput
               id="sub-subject"
               v-model="subForm.subject"
@@ -346,7 +341,7 @@ function handleSaveSub() {
             />
           </div>
           <div class="form-field">
-            <BaseLabel for="sub-room">Neuer Raum</BaseLabel>
+            <BaseLabel for="sub-room">{{ t('admin.schedule.changes.new_room_label') }}</BaseLabel>
             <BaseInput
               id="sub-room"
               v-model="subForm.room"
@@ -355,7 +350,7 @@ function handleSaveSub() {
             />
           </div>
           <div class="form-field">
-            <BaseLabel for="sub-slot">Neue Stunde</BaseLabel>
+            <BaseLabel for="sub-slot">{{ t('admin.schedule.changes.new_slot_label') }}</BaseLabel>
             <BaseInput
               id="sub-slot"
               v-model.number="subForm.slot"
@@ -365,7 +360,7 @@ function handleSaveSub() {
             />
           </div>
           <div class="form-field">
-            <BaseLabel for="sub-duration">Neue Dauer</BaseLabel>
+            <BaseLabel for="sub-duration">{{ t('admin.schedule.changes.new_duration_label') }}</BaseLabel>
             <BaseInput
               id="sub-duration"
               v-model.number="subForm.duration"
@@ -376,7 +371,7 @@ function handleSaveSub() {
             />
           </div>
           <div class="form-field">
-            <BaseLabel for="sub-day">Neuer Tag (1 = Mo, 5 = Fr)</BaseLabel>
+            <BaseLabel for="sub-day">{{ t('admin.schedule.changes.new_day_label') }}</BaseLabel>
             <BaseInput
               id="sub-day"
               v-model.number="subForm.day"
@@ -391,10 +386,10 @@ function handleSaveSub() {
 
         <div class="flex gap-6 mt-4 mb-6">
           <BaseCheckbox v-model="subForm.cancelled" :disabled="!canManageScheduleChanges">
-            <span>Ausfall</span>
+            <span>{{ t('admin.schedule.changes.cancelled_label') }}</span>
           </BaseCheckbox>
           <BaseCheckbox v-model="subForm.hide" :disabled="!canManageScheduleChanges">
-            <span>Verstecken</span>
+            <span>{{ t('admin.schedule.changes.hide_label') }}</span>
           </BaseCheckbox>
         </div>
 
@@ -403,11 +398,11 @@ function handleSaveSub() {
           :disabled="savingSub || !subForm.lessonId || !canManageScheduleChanges"
           variant="action"
         >
-          {{ savingSub ? 'Speichert...' : 'Speichern' }}
+          {{ savingSub ? t('common.buttons.saving') : t('common.buttons.save') }}
         </BaseButton>
       </div>
 
-      <h3 class="p-5 pb-0 text-lg">Stunde auswählen</h3>
+      <h3 class="p-5 pb-0 text-lg">{{ t('admin.schedule.changes.select_lesson_slot') }}</h3>
       <div
         v-if="loadingLessons"
         class="text-center p-8 text-on-ghost-muted text-base"
@@ -426,7 +421,7 @@ function handleSaveSub() {
         v-if="subs.length === 0 && !loadingSubs"
         class="text-center p-8 text-on-ghost-muted text-base"
       >
-        Keine Substitutions vorhanden.
+        {{ t('admin.schedule.changes.no_changes') }}
       </div>
       <div v-else class="flex flex-col gap-1.5">
         <div
@@ -465,7 +460,7 @@ function handleSaveSub() {
               >Raum: {{ sub.room }}</span
             >
           </div>
-          <BaseTooltip :content="t('global.buttons.delete')" placement="bottom">
+          <BaseTooltip :content="t('common.buttons.delete')" placement="bottom">
             <BaseButton
               @click="emit('delete-sub', sub.id)"
               :disabled="!canManageScheduleChanges"

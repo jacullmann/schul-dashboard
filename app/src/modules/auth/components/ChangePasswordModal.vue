@@ -42,20 +42,20 @@ onMounted(() => {
     :loading="submitting"
   >
     <template #title>
-      {{ t('account.menu.changePassword.title') }}
+      {{ t('auth.change_password.title') }}
     </template>
 
     <template #content>
       <BaseFormGroup id="currentPassword" :error="errors.current">
         <BaseLabel for="currentPassword">
-          {{ t('account.menu.changePassword.currentPassword') }}
+          {{ t('auth.change_password.current_password') }}
         </BaseLabel>
         <BaseInput
           ref="currentPasswordRef"
           id="currentPassword"
           type="password"
           v-model="currentPassword"
-          :placeholder="t('account.menu.changePassword.currentPlaceholder')"
+          :placeholder="t('auth.change_password.current_placeholder')"
           @input="clearFieldError('current')"
           @keydown.enter="submit"
           :aria-describedby="
@@ -66,13 +66,13 @@ onMounted(() => {
 
       <BaseFormGroup id="newPassword" :error="errors.new">
         <BaseLabel for="newPassword">
-          {{ t('account.menu.changePassword.newPassword') }}
+          {{ t('auth.change_password.new_password') }}
         </BaseLabel>
         <BaseInput
           id="newPassword"
           type="password"
           v-model="newPassword"
-          :placeholder="t('account.menu.changePassword.newPlaceholder')"
+          :placeholder="t('auth.change_password.new_placeholder')"
           @input="clearFieldError('new')"
           @keydown.enter="submit"
           :aria-describedby="errors.new ? 'newPassword-error' : undefined"
@@ -81,13 +81,13 @@ onMounted(() => {
 
       <BaseFormGroup id="newPassword2" :error="errors.confirm">
         <BaseLabel for="newPassword2">
-          {{ t('account.menu.changePassword.confirmPassword') }}
+          {{ t('auth.change_password.confirm_password') }}
         </BaseLabel>
         <BaseInput
           id="newPassword2"
           type="password"
           v-model="newPassword2"
-          :placeholder="t('account.menu.changePassword.confirmPlaceholder')"
+          :placeholder="t('auth.change_password.confirm_placeholder')"
           @input="clearFieldError('confirm')"
           @keydown.enter="submit"
           :aria-describedby="errors.confirm ? 'newPassword2-error' : undefined"
@@ -100,7 +100,7 @@ onMounted(() => {
     </template>
 
     <template #action-text>
-      {{ t('account.menu.changePassword.title') }}
+      {{ t('auth.change_password.title') }}
     </template>
   </BaseModal>
 </template>

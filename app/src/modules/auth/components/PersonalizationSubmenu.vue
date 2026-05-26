@@ -27,8 +27,8 @@ const dropdownValue = computed({
 });
 
 const options = computed(() => [
-  { value: 'yes', label: t('global.selection.yes'), icon: Filter },
-  { value: 'no', label: t('global.selection.no'), icon: FilterX },
+  { value: 'yes', label: t('common.selection.yes'), icon: Filter },
+  { value: 'no', label: t('common.selection.no'), icon: FilterX },
 ]);
 
 async function setPersonalization(value: boolean) {
@@ -65,7 +65,7 @@ async function setPersonalization(value: boolean) {
   <BaseMenuSelect
     v-model="dropdownValue"
     :options="options"
-    :prefix="t('account.menu.personalization') + ':'"
+    :prefix="t('auth.settings.personalization') + ':'"
     :disabled="updating"
   />
 </template>

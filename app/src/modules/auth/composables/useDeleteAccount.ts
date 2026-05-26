@@ -19,17 +19,17 @@ export function useDeleteAccount(emit: {
     try {
       const res = await hw.delete('/api/auth/me');
       if (res?.data?.ok) {
-        successMsg.value = t('account.menu.deleteAccount.success');
+        successMsg.value = t('auth.delete_account.success');
         emit('deleted');
         setTimeout(() => emit('cancel'), 600);
       } else {
-        const err = res?.data?.error || t('global.errors.unknown');
+        const err = res?.data?.error || t('common.errors.unknown');
         errorMsg.value = err;
         emit('error', err);
       }
     } catch (e: unknown) {
       const err = e as { response?: { data?: { error?: string } } };
-      const msg = err?.response?.data?.error || t('global.errors.delete');
+      const msg = err?.response?.data?.error || t('common.errors.delete');
       errorMsg.value = msg;
       emit('error', msg);
     } finally {

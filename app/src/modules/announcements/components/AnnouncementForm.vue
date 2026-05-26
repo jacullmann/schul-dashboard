@@ -32,11 +32,11 @@ async function submit() {
   submitError.value = '';
 
   if (!annContent.value.trim()) {
-    contentError.value = 'Eine Ankündigung darf nicht leer sein.';
+    contentError.value = t('announcements.form.errors.empty');
     return;
   }
   if (annContent.value.trim().length > 1000) {
-    contentError.value = 'Die Ankündigung ist zu lang (max. 1000 Zeichen).';
+    contentError.value = t('announcements.form.errors.too_long');
     return;
   }
 
@@ -55,7 +55,7 @@ async function submit() {
     submitError.value =
       err.response?.data?.error ??
       err.message ??
-      'Ein unerwarteter Fehler ist aufgetreten.';
+      t('common.errors.unknown');
   } finally {
     submitting.value = false;
   }
@@ -69,7 +69,7 @@ async function submit() {
     :submit="submit"
     :loading="submitting"
   >
-    <template #title> Neue Ankündigung </template>
+    <template #title>{{ t('announcements.form.title') }}</template>
 
     <template #content>
       <BaseFormContent :error="submitError">
@@ -99,9 +99,9 @@ async function submit() {
             id="announcement-importance-input"
             v-model="annColor"
             :options="[
-              { label: 'Info', value: 'info' },
-              { label: 'Warnung', value: 'warn' },
-              { label: 'Wichtig', value: 'danger' },
+              { label: t('announcements.form.options.info'), value: 'info' },
+              { label: t('announcements.form.options.warning'), value: 'warn' },
+              { label: t('announcements.form.options.important'), value: 'danger' },
             ]"
           />
         </BaseFormGroup>
@@ -109,7 +109,7 @@ async function submit() {
     </template>
 
     <template #action-text>
-      {{ t('global.buttons.add') }}
+      {{ t('common.buttons.add') }}
     </template>
   </BaseModal>
 </template>

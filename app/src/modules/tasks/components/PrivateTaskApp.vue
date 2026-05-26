@@ -131,17 +131,17 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
       <div class="flex gap-2 items-center text-on-ghost mb-4">
         <Lock class="text-on-ghost" :size="24" />
         <h2 class="m-0 text-2xl/6">
-          {{ t('school.private.onlyVisibleToYou') }}
+          {{ t('tasks.private_tasks.only_visible_to_you') }}
         </h2>
         <InfoModal
-          :tooltip="t('school.private.infopop.tooltip')"
-          :title="t('school.private.onlyVisibleToYou')"
+          :tooltip="t('tasks.private_tasks.infopop.tooltip')"
+          :title="t('tasks.private_tasks.only_visible_to_you')"
         >
-          <p v-html="t('school.private.infopop.text')"></p>
+          <p v-html="t('tasks.private_tasks.infopop.text')"></p>
         </InfoModal>
       </div>
       <div v-if="!user" class="p-8 text-center">
-        <p>{{ t('school.private.requiresAccount') }}</p>
+        <p>{{ t('tasks.private_tasks.requires_account') }}</p>
       </div>
     </div>
 
@@ -169,7 +169,7 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
         v-else-if="privateTasks.length === 0"
         class="p-12 text-center text-on-ghost-muted"
       >
-        <p>{{ t('school.private.noEntriesFound') }}</p>
+        <p>{{ t('tasks.private_tasks.no_entries_found') }}</p>
       </div>
 
       <div v-else class="private-tasks-container">
@@ -225,7 +225,7 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
                     openMenuId = null;
                   "
                 >
-                  {{ t('global.buttons.edit') }}
+                  {{ t('common.buttons.edit') }}
                 </BaseMenuButton>
 
                 <BaseMenuButton
@@ -235,7 +235,7 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
                     openMenuId = null;
                   "
                 >
-                  {{ t('global.buttons.duplicate') }}
+                  {{ t('common.buttons.duplicate') }}
                 </BaseMenuButton>
 
                 <BaseMenuDivider />
@@ -248,7 +248,7 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
                     openMenuId = null;
                   "
                 >
-                  {{ t('school.private.menu.up') }}
+                  {{ t('tasks.private_tasks.menu.up') }}
                 </BaseMenuButton>
 
                 <BaseMenuButton
@@ -259,7 +259,7 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
                     openMenuId = null;
                   "
                 >
-                  {{ t('school.private.menu.down') }}
+                  {{ t('tasks.private_tasks.menu.down') }}
                 </BaseMenuButton>
 
                 <BaseMenuDivider
@@ -274,7 +274,7 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
                     openMenuId = null;
                   "
                 >
-                  {{ t('global.buttons.delete') }}
+                  {{ t('common.buttons.delete') }}
                 </BaseMenuButton>
               </BaseMenu>
             </template>

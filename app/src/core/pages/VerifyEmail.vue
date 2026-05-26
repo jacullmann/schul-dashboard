@@ -86,7 +86,7 @@ onMounted(async () => {
             variant="ghost"
             :icon="ArrowLeft"
           >
-            {{ t('global.buttons.back') }}
+            {{ t('common.buttons.back') }}
           </BaseButton>
         </div>
       </template>

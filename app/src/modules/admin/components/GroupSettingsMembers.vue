@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { RefreshCw, UserRoundMinus, Crown } from '@lucide/vue';
+import { useI18n } from 'vue-i18n';
 import InfoModal from '@/common/components/InfoModal.vue';
 import type { GroupMember } from '@/modules/admin/types';
 import { computed, ref } from 'vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
+
+const { t } = useI18n();
 
 const props = defineProps<{
   members: GroupMember[];
@@ -75,39 +78,25 @@ function confirmRemove() {
 <template>
   <div class="animate-fade-up">
     <PageHeader>
-      Mitglieder
+      {{ t('admin.members.title') }}
 
       <template #info>
-        <InfoModal tooltip="Übersicht des Mitgliedermenüs" title="Mitglieder">
-          <h3>Verwalte Mitglieder deiner Gruppe</h3>
+        <InfoModal tooltip="t('admin.members.info.tooltip')" title="t('admin.members.title')">
+          <h3>{{ t('admin.members.info.headline') }}</h3>
 
-          <h3>Mitgliedsliste</h3>
-          <p>
-            Hier siehst du eine Liste aller Mitglieder deiner Gruppe zusammen
-            mit ihren Berechtigungen (Mitglied, Moderator, Admin). Um die Daten
-            der Nutzer zu schützen wird ein automatisch generierter Alias
-            angezeigt. Über das Dropdown-Menü kannst du die Rolle eines
-            Mitglieds ändern.
-          </p>
+          <h3>{{ t('admin.members.info.list_title') }}</h3>
+          <p>{{ t('admin.members.info.list_text') }}</p>
 
-          <h3>Rollen ändern</h3>
-          <p>
-            Wenn du die Rolle eines Nutzers ändern willst, um ihm Berechtigungen
-            zu erteilen oder zu entziehen, kannst du dies über das
-            Dropdown-Menü, das neben jedem Mitglied steht, tun.
-          </p>
+          <h3>{{ t('admin.members.info.role_title') }}</h3>
+          <p>{{ t('admin.members.info.role_text') }}</p>
 
-          <h3>Mitglieder entfernen</h3>
-          <p>
-            Um ein Mitglied aus der Gruppe zu entfernen, klicke auf das
-            entsprechende Symbol neben dem Dropdown-Menü. Admins können nicht
-            entfernt werden.
-          </p>
+          <h3>{{ t('admin.members.info.remove_title') }}</h3>
+          <p>{{ t('admin.members.info.remove_text') }}</p>
         </InfoModal>
       </template>
 
       <template #action>
-        <BaseTooltip content="Aktualisieren">
+        <BaseTooltip :content="t('common.buttons.refresh')">
           <BaseButton
             @click="emit('refresh')"
             :disabled="loading"
@@ -125,7 +114,7 @@ function confirmRemove() {
       v-else-if="members.length === 0"
       class="text-center p-8 text-on-ghost-muted text-base"
     >
-      Keine Mitglieder gefunden.
+      {{ t('admin.members.list.empty') }}
     </div>
 
     <div v-else class="flex flex-col gap-1.5">
@@ -157,7 +146,7 @@ function confirmRemove() {
         <div class="flex items-center gap-2 flex-shrink-0">
           <BaseTooltip
             v-if="isOwner && member.role === 'admin'"
-            content="Eigentümerschaft übertragen"
+            :content="t('admin.members.actions.transfer_ownership')"
             placement="bottom"
           >
             <BaseButton
@@ -166,7 +155,7 @@ function confirmRemove() {
               :icon="Crown"
             />
           </BaseTooltip>
-          <BaseTooltip content="Aus Gruppe entfernen" placement="bottom">
+          <BaseTooltip :content="t('admin.members.actions.remove')" placement="bottom">
             <BaseButton
               variant="ghost"
               @click="openRemoveModal(member.userId, member.generatedName)"
@@ -191,7 +180,7 @@ function confirmRemove() {
       </div>
     </div>
 
-    <PageHeader class="mt-8"> Banned Users </PageHeader>
+    <PageHeader class="mt-8"> {{ t('admin.members.ban_list.title') }} </PageHeader>
 
     <div
       v-if="loadingBanned && (!bannedUsers || bannedUsers.length === 0)"
@@ -203,7 +192,7 @@ function confirmRemove() {
       v-else-if="!bannedUsers || bannedUsers.length === 0"
       class="text-center p-8 text-on-ghost-muted text-base"
     >
-      No banned users.
+      {{ t('admin.members.ban_list.empty') }}
     </div>
     <div v-else class="flex flex-col gap-1.5">
       <div
@@ -222,13 +211,12 @@ function confirmRemove() {
           >
           <span
             class="text-[0.7rem] font-semibold uppercase tracking-[0.04em] text-on-ghost-muted"
-            >Banned On
-            {{ new Date(user.bannedAt).toLocaleDateString('de-DE') }}</span
+            >{{ t('admin.members.ban_list.banned_on_prefix') }}{{ new Date(user.bannedAt).toLocaleDateString('de-DE') }}</span
           >
         </div>
         <div class="flex items-center gap-2 flex-shrink-0">
           <BaseButton :disabled="!canModerateMembers" variant="ghost" @click="emit('revert-ban', user.userId)">
-            Unban
+            {{ t('admin.members.ban_list.actions.unban') }}
           </BaseButton>
         </div>
       </div>
@@ -240,25 +228,22 @@ function confirmRemove() {
       :danger="true"
       :submit="confirmRemove"
     >
-      <template #title>Remove Member</template>
+      <template #title>{{ t('admin.members.remove_modal.title') }}</template>
 
       <template #content>
         <p class="m-0!">
-          Are you sure you want to remove
-          <strong>{{ removeModal.userName }}</strong> from the group?
+          {{ t('admin.members.remove_modal.confirm_prefix') }}<strong>{{ removeModal.userName }}</strong>{{ t('admin.members.remove_modal.confirm_suffix') }}
         </p>
         <p class="m-0!">
-          Users can rejoin at any time if they have the credentials for your
-          group. To block them from doing so you can ban them.
+          {{ t('admin.members.remove_modal.rejoin_info') }}
         </p>
 
         <BaseCheckbox v-model="removeModal.ban"
-          >Ban
-          <strong>{{ removeModal.userName }}</strong> permanently</BaseCheckbox
+          >{{ t('admin.members.remove_modal.ban_checkbox_prefix') }}<strong>{{ removeModal.userName }}</strong>{{ t('admin.members.remove_modal.ban_checkbox_suffix') }}</BaseCheckbox
         >
       </template>
 
-      <template #action-text> Remove </template>
+      <template #action-text> {{ t('admin.members.remove_modal.submit_button') }} </template>
     </BaseModal>
   </div>
 </template>

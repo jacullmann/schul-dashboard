@@ -10,6 +10,9 @@ import {
   AlertTriangle,
 } from '@lucide/vue';
 import { useMfa } from '@/modules/auth/composables/useMfa';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps<{
   mfaEnabled: boolean;
@@ -237,8 +240,8 @@ onUnmounted(() => {
       </div>
     </div>
     <p class="text-sm/relaxed text-on-ghost-muted m-0 font-sans">
-      Die Zwei-Faktor-Authentifizierung bietet zusätzlichen Schutz für dein
-      Konto. Du benötigst dafür eine beliebige 2FA-App, wie bspw. Google
+      {{ t('auth.mfa.setup.description_prefix') }}
+      {{ t('auth.mfa.setup.description_suffix') }}
       Authenticator.
     </p>
     <div v-if="!mfaEnabled && !setupMode" class="flex justify-start">
@@ -327,7 +330,7 @@ onUnmounted(() => {
           v-if="expiresAt"
         >
           <Clock :size="16" />
-          <span>Gültig für {{ remainingTime }}</span>
+          <span>{{ t('auth.mfa.setup.time_valid', { time: remainingTime }) }}</span>
         </div>
 
         <div class="flex justify-end gap-3 mt-2">
@@ -345,7 +348,7 @@ onUnmounted(() => {
           class="text-sm/relaxed text-on-ghost-muted m-0 text-center font-sans"
         >
           Gib den 6-stelligen Code aus deiner Authenticator-App ein, um die
-          Einrichtung abzuschließen.
+          {{ t('auth.mfa.setup.complete_instruction') }}
         </p>
 
         <div class="flex justify-center">
@@ -402,8 +405,8 @@ onUnmounted(() => {
       >
         <AlertTriangle :size="20" class="flex-shrink-0 mt-0.5" />
         <p class="m-0 text-sm/[1.4]">
-          Indem du fortfährst verringerst du die Sicherheit deines Kontos. Um
-          die Deaktivierung abzuschließen, must du noch ein letztes Mal den
+          {{ t('auth.mfa.deactivate.warning_prefix') }}
+          {{ t('auth.mfa.deactivate.warning_suffix') }}
           korrekten Code eingeben
         </p>
       </div>

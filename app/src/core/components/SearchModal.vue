@@ -105,7 +105,7 @@ interface SearchResult {
 const defaultResults = computed<SearchResult[]>(() => [
   {
     id: 'home',
-    label: t('sidebar.home'),
+    label: t('common.sidebar.home'),
     description: t('search.descriptions.home'),
     category: 'page',
     icon: House,
@@ -113,7 +113,7 @@ const defaultResults = computed<SearchResult[]>(() => [
   },
   {
     id: 'tasks',
-    label: t('sidebar.tasks'),
+    label: t('common.sidebar.tasks'),
     description: t('search.descriptions.tasks'),
     category: 'page',
     icon: ListTodo,
@@ -122,7 +122,7 @@ const defaultResults = computed<SearchResult[]>(() => [
   },
   {
     id: 'schedule',
-    label: t('sidebar.schedule'),
+    label: t('common.sidebar.schedule'),
     description: t('search.descriptions.schedule'),
     category: 'page',
     icon: CalendarDays,
@@ -131,7 +131,7 @@ const defaultResults = computed<SearchResult[]>(() => [
   },
   {
     id: 'messages',
-    label: t('sidebar.messages'),
+    label: t('common.sidebar.messages'),
     description: t('search.descriptions.messages'),
     category: 'page',
     icon: MessageCircle,
@@ -140,7 +140,7 @@ const defaultResults = computed<SearchResult[]>(() => [
   },
   {
     id: 'private',
-    label: t('sidebar.private'),
+    label: t('common.sidebar.private'),
     description: t('search.descriptions.private'),
     category: 'page',
     icon: Lock,
@@ -149,7 +149,7 @@ const defaultResults = computed<SearchResult[]>(() => [
 
   {
     id: 'admin',
-    label: t('sidebar.admin'),
+    label: t('common.sidebar.admin'),
     description: t('search.descriptions.admin'),
     category: 'page',
     icon: SlidersHorizontal,
@@ -167,24 +167,24 @@ const defaultResults = computed<SearchResult[]>(() => [
   },
   {
     id: 'info-dashboard',
-    label: t('search.items.infoDashboard'),
-    description: t('search.descriptions.infoDashboard'),
+    label: t('search.items.info_dashboard'),
+    description: t('search.descriptions.info_dashboard'),
     category: 'page',
     icon: Newspaper,
     action: () => navigate('/info-dashboard'),
   },
   {
     id: 'image-tool',
-    label: t('search.items.imageTool'),
-    description: t('search.descriptions.imageTool'),
+    label: t('search.items.image_tool'),
+    description: t('search.descriptions.image_tool'),
     category: 'page',
     icon: Crop,
     action: () => navigate('/imagetool'),
   },
   {
     id: 'toggle-sidebar',
-    label: t('sidebar.toggle'),
-    description: t('search.descriptions.toggleSidebar'),
+    label: t('common.sidebar.toggle'),
+    description: t('search.descriptions.toggle_sidebar'),
     category: 'action',
     icon: PanelLeft,
     action: () => {
@@ -195,8 +195,8 @@ const defaultResults = computed<SearchResult[]>(() => [
   },
   {
     id: 'create-entry',
-    label: t('search.items.createEntry'),
-    description: t('search.descriptions.createEntry'),
+    label: t('search.items.create_entry'),
+    description: t('search.descriptions.create_entry'),
     category: 'action',
     icon: CirclePlus,
     action: () => {
@@ -209,8 +209,8 @@ const defaultResults = computed<SearchResult[]>(() => [
   },
   {
     id: 'create-private-entry',
-    label: t('search.items.createPrivateEntry'),
-    description: t('search.descriptions.createPrivateEntry'),
+    label: t('search.items.create_private_entry'),
+    description: t('search.descriptions.create_private_entry'),
     category: 'action',
     icon: Lock,
     action: () => {
@@ -221,8 +221,8 @@ const defaultResults = computed<SearchResult[]>(() => [
   },
   {
     id: 'create-announcement',
-    label: 'Ankündigung erstellen',
-    description: 'Eine neue Ankündigung für deine Gruppe veröffentlichen.',
+    label: t('announcements.actions.create'),
+    description: t('announcements.actions.create_description'),
     category: 'action',
     icon: Newspaper,
     action: () => {
@@ -236,8 +236,8 @@ const defaultResults = computed<SearchResult[]>(() => [
   },
   {
     id: 'switch-group',
-    label: t('search.items.switchGroup'),
-    description: t('search.descriptions.switchGroup'),
+    label: t('search.items.switch_group'),
+    description: t('search.descriptions.switch_group'),
     category: 'action',
     icon: UsersRound,
     action: () => setMode('group'),
@@ -245,8 +245,8 @@ const defaultResults = computed<SearchResult[]>(() => [
   },
   {
     id: 'join-group',
-    label: t('search.items.joinGroup'),
-    description: t('search.descriptions.joinGroup'),
+    label: t('search.items.join_group'),
+    description: t('search.descriptions.join_group'),
     category: 'action',
     icon: LogIn,
     action: () => {
@@ -256,8 +256,8 @@ const defaultResults = computed<SearchResult[]>(() => [
   },
   {
     id: 'create-group',
-    label: t('search.items.createGroup'),
-    description: t('search.descriptions.createGroup'),
+    label: t('search.items.create_group'),
+    description: t('search.descriptions.create_group'),
     category: 'action',
     icon: UserRoundPlus,
     action: () => {
@@ -267,8 +267,8 @@ const defaultResults = computed<SearchResult[]>(() => [
   },
   {
     id: 'edit-courses',
-    label: t('account.menu.courses.title'),
-    description: t('search.descriptions.editCourses'),
+    label: t('auth.courses.title'),
+    description: t('search.descriptions.edit_courses'),
     category: 'action',
     icon: LucideGraduationCap,
     action: () => {
@@ -278,23 +278,23 @@ const defaultResults = computed<SearchResult[]>(() => [
   },
   {
     id: 'change-theme',
-    label: t('account.menu.theme.title'),
-    description: t('search.descriptions.changeTheme'),
+    label: t('auth.settings.theme.title'),
+    description: t('search.descriptions.change_theme'),
     category: 'action',
     icon: SunMoon,
     action: () => setMode('theme'),
   },
   {
     id: 'change-language',
-    label: t('account.menu.language.title'),
-    description: t('search.descriptions.changeLanguage'),
+    label: t('auth.settings.language.title'),
+    description: t('search.descriptions.change_language'),
     category: 'action',
     icon: Languages,
     action: () => setMode('language'),
   },
   {
     id: 'security',
-    label: t('account.menu.security.title'),
+    label: t('auth.security.title'),
     description: t('search.descriptions.security'),
     category: 'action',
     icon: Shield,
@@ -305,8 +305,8 @@ const defaultResults = computed<SearchResult[]>(() => [
   },
   {
     id: 'change-password',
-    label: t('account.menu.changePassword.title'),
-    description: t('search.descriptions.changePassword'),
+    label: t('auth.change_password.title'),
+    description: t('search.descriptions.change_password'),
     category: 'action',
     icon: LucideKeyRound,
     action: () => {
@@ -316,7 +316,7 @@ const defaultResults = computed<SearchResult[]>(() => [
   },
   {
     id: 'logout',
-    label: t('account.menu.logout'),
+    label: t('auth.actions.logout'),
     description: t('search.descriptions.logout'),
     category: 'action',
     icon: LogOut,
@@ -407,9 +407,9 @@ async function onSwitchGroup(id: string) {
 }
 
 const themeOptions = computed(() => [
-  { id: 'system', label: t('global.theme.system'), icon: SunMoon },
-  { id: 'dark', label: t('global.theme.dark'), icon: Moon },
-  { id: 'light', label: t('global.theme.light'), icon: Sun },
+  { id: 'system', label: t('common.theme.system'), icon: SunMoon },
+  { id: 'dark', label: t('common.theme.dark'), icon: Moon },
+  { id: 'light', label: t('common.theme.light'), icon: Sun },
 ]);
 
 const filteredThemes = computed(() => {
@@ -443,24 +443,24 @@ const paletteProps = computed(() => {
   if (mode.value === 'group') {
     return {
       itemCount: filteredGroups.value.length,
-      placeholder: t('search.items.switchGroup'),
-      title: t('search.items.switchGroup'),
+      placeholder: t('search.items.switch_group'),
+      title: t('search.items.switch_group'),
       prefix: 'group-result-',
     };
   }
   if (mode.value === 'theme') {
     return {
       itemCount: filteredThemes.value.length,
-      placeholder: t('search.descriptions.changeTheme'),
-      title: t('account.menu.theme.title'),
+      placeholder: t('search.descriptions.change_theme'),
+      title: t('auth.settings.theme.title'),
       prefix: 'theme-result-',
     };
   }
   if (mode.value === 'language') {
     return {
       itemCount: filteredLanguages.value.length,
-      placeholder: t('search.descriptions.changeLanguage'),
-      title: t('account.menu.language.title'),
+      placeholder: t('search.descriptions.change_language'),
+      title: t('auth.settings.language.title'),
       prefix: 'language-result-',
     };
   }
@@ -507,13 +507,13 @@ function handleSelect(index: number) {
           <button
             @click="setMode('default')"
             class="hover:text-on-ghost transition-colors inline-flex items-center"
-            aria-label="Zurück"
+            :aria-label="t('common.buttons.back')"
           >
             <ArrowLeft :size="14" class="mr-1" />
-            {{ t('global.back', 'Back') }}
+            {{ t('common.buttons.back') }}
           </button>
           <span class="opacity-50">/</span>
-          <span>{{ t('search.items.switchGroup') }}</span>
+          <span>{{ t('search.items.switch_group') }}</span>
         </div>
         <template v-if="filteredGroups.length">
           <BaseCommandPaletteItem
@@ -551,13 +551,13 @@ function handleSelect(index: number) {
           <button
             @click="setMode('default')"
             class="hover:text-on-ghost transition-colors inline-flex items-center"
-            aria-label="Zurück"
+            :aria-label="t('common.buttons.back')"
           >
             <ArrowLeft :size="14" class="mr-1" />
-            {{ t('global.back', 'Back') }}
+            {{ t('common.buttons.back') }}
           </button>
           <span class="opacity-50">/</span>
-          <span>{{ t('account.menu.theme.title') }}</span>
+          <span>{{ t('auth.settings.theme.title') }}</span>
         </div>
         <template v-if="filteredThemes.length">
           <BaseCommandPaletteItem
@@ -586,13 +586,13 @@ function handleSelect(index: number) {
           <button
             @click="setMode('default')"
             class="hover:text-on-ghost transition-colors inline-flex items-center"
-            aria-label="Zurück"
+            :aria-label="t('common.buttons.back')"
           >
             <ArrowLeft :size="14" class="mr-1" />
-            {{ t('global.back', 'Back') }}
+            {{ t('common.buttons.back') }}
           </button>
           <span class="opacity-50">/</span>
-          <span>{{ t('account.menu.language.title') }}</span>
+          <span>{{ t('auth.settings.language.title') }}</span>
         </div>
         <template v-if="filteredLanguages.length">
           <BaseCommandPaletteItem
@@ -620,7 +620,7 @@ function handleSelect(index: number) {
             <span
               class="text-xs text-on-ghost-muted font-semibold uppercase tracking-wider"
             >
-              {{ t('search.modal.categoryPages') }}
+              {{ t('search.modal.category_pages') }}
             </span>
           </div>
           <BaseCommandPaletteItem
@@ -650,7 +650,7 @@ function handleSelect(index: number) {
             <span
               class="text-xs text-on-ghost-muted font-semibold uppercase tracking-wider"
             >
-              {{ t('search.modal.categoryActions') }}
+              {{ t('search.modal.category_actions') }}
             </span>
           </div>
           <BaseCommandPaletteItem

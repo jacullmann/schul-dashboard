@@ -34,7 +34,7 @@ const props = withDefaults(
     <BaseRow justify="end" class="mt-4">
       <BaseButton v-if="cancel" type="button" variant="ghost" @click="cancel">
         <slot name="cancel-text">
-          {{ t('global.buttons.cancel') }}
+          {{ t('common.buttons.cancel') }}
         </slot>
       </BaseButton>
 
@@ -46,7 +46,7 @@ const props = withDefaults(
         :disabled="loading || !requirement"
       >
         <slot name="action-text">
-          {{ t('global.buttons.confirm') }}
+          {{ t('common.buttons.confirm') }}
         </slot>
       </BaseButton>
     </BaseRow>

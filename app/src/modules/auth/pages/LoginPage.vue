@@ -62,11 +62,11 @@ onMounted(() => {
     <div class="w-full max-w-[420px]">
       <div class="text-center mb-8">
         <h1 class="text-center!">
-          {{ t('account.auth.login') }}
+          {{ t('auth.login.login') }}
         </h1>
         <p class="text-sm text-on-ghost-muted mt-2">
           {{
-            t('account.auth.loginDescription', { defaultValue: 'Welcome back' })
+            t('auth.login.login_description', { defaultValue: 'Welcome back' })
           }}
         </p>
       </div>
@@ -75,13 +75,13 @@ onMounted(() => {
         <template #content>
           <BaseFormGroup id="login-email" :error="errors.email">
             <BaseLabel for="login-email">
-              {{ t('account.auth.email') }}
+              {{ t('auth.login.email') }}
             </BaseLabel>
             <BaseInput
               id="login-email"
               ref="emailInputRef"
               v-model="email"
-              :placeholder="t('account.auth.emailPlaceholder')"
+              :placeholder="t('auth.login.email_placeholder')"
               type="email"
               autocomplete="email"
               required
@@ -92,12 +92,12 @@ onMounted(() => {
 
           <BaseFormGroup id="login-password" :error="errors.password">
             <BaseLabel for="login-password">
-              {{ t('account.auth.password') }}
+              {{ t('auth.login.password') }}
             </BaseLabel>
             <BaseInput
               id="login-password"
               v-model="password"
-              :placeholder="t('account.auth.passwordPlaceholder')"
+              :placeholder="t('auth.login.password_placeholder')"
               type="password"
               autocomplete="current-password"
               required
@@ -110,7 +110,7 @@ onMounted(() => {
 
           <div class="flex justify-end">
             <BaseLink to="/forgot-password">
-              {{ t('account.auth.forgot') }}
+              {{ t('auth.login.forgot') }}
             </BaseLink>
           </div>
 
@@ -137,14 +137,14 @@ onMounted(() => {
         </template>
 
         <template #action-text>
-          {{ t('account.auth.login') }}
+          {{ t('auth.login.login') }}
         </template>
       </BaseForm>
 
       <div class="flex items-center gap-3 mb-6">
         <div class="flex-1 h-px bg-canvas-border" />
         <span class="text-xs text-on-ghost-muted">
-          {{ t('account.auth.orContinueWith') }}
+          {{ t('auth.login.or_continue_with') }}
         </span>
         <div class="flex-1 h-px bg-canvas-border" />
       </div>
@@ -155,12 +155,12 @@ onMounted(() => {
         class="w-full justify-center"
       >
         <GoogleIcon :size="16" />
-        <span>{{ t('account.auth.loginGoogle') }}</span>
+        <span>{{ t('auth.login.login_google') }}</span>
       </BaseButton>
       <div class="text-center mt-8">
         <p class="text-sm text-on-ghost-muted">
           {{
-            t('account.auth.noAccount', {
+            t('auth.login.no_account', {
               defaultValue: "Don't have an account?",
             })
           }}
@@ -169,7 +169,7 @@ onMounted(() => {
             @click="navigateToRegister"
             class="text-on-ghost font-medium hover:opacity-75 transition-opacity cursor-pointer"
           >
-            {{ t('account.auth.register') }}
+            {{ t('auth.login.register') }}
           </button>
         </p>
       </div>

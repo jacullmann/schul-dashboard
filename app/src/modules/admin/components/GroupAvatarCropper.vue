@@ -175,7 +175,7 @@ function applyCrop() {
     :loading="processing"
   >
     <template #title>
-      {{ t('global.buttons.edit') || 'Bild anpassen' }}
+      {{ t('common.buttons.edit') || 'Bild anpassen' }}
     </template>
 
     <template #content>
@@ -237,7 +237,7 @@ function applyCrop() {
     </template>
 
     <template #action-text>
-      {{ t('global.buttons.save') || 'Speichern' }}
+      {{ t('common.buttons.save') || 'Speichern' }}
     </template>
   </BaseModal>
 </template>

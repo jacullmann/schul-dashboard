@@ -32,7 +32,7 @@ const formatDate = (dateStr: string) => {
     </div>
     <div class="card-content">
       <span class="badge-small">{{
-        t('info.dashboard.categories.' + article.topic)
+        t('infodashboard.dashboard.categories.' + article.topic)
       }}</span>
       <h3 class="card-title">{{ t(article.titleKey) }}</h3>
       <div class="card-top"></div>

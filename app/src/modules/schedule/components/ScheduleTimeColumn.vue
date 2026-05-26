@@ -15,7 +15,7 @@ const { t } = useI18n();
     <div
       class="bg-surface text-on-ghost px-3 py-2 border border-surface-border text-center font-bold rounded-md max-[500px]:rounded-lg text-base shadow-input max-[500px]:static min-[501px]:[grid-column:1] min-[501px]:[grid-row:1] animate-fade-up"
     >
-      {{ t('school.tables.schedule.lesson') }}
+      {{ t('schedule.lesson') }}
     </div>
 
     <div

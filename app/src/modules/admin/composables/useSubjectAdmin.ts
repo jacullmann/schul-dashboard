@@ -1,10 +1,12 @@
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import hw from '@/api/hwApi';
 import type { AdminSubject } from '@/modules/admin/types';
 import { useToast } from '@/common/composables/useToast';
 import { useModalStore } from '@/stores/modalStore';
 
 export function useSubjectAdmin() {
+  const { t } = useI18n();
   const modalStore = useModalStore();
   const { success, error: toastError } = useToast();
 
@@ -20,7 +22,7 @@ export function useSubjectAdmin() {
       );
       subjects.value = data || [];
     } catch {
-      toastError('Fehler beim Laden der Fächer');
+      toastError(t('admin.subjects.errors.load_failed'));
     } finally {
       loading.value = false;
     }
@@ -38,9 +40,9 @@ export function useSubjectAdmin() {
       );
       subjects.value.push(data);
       subjects.value.sort((a, b) => a.name.localeCompare(b.name));
-      success('Fach erstellt');
+      success(t('admin.subjects.errors.create_success'));
     } catch {
-      toastError('Fehler beim Erstellen');
+      toastError(t('admin.subjects.errors.create_failed'));
     } finally {
       saving.value = false;
     }
@@ -61,10 +63,10 @@ export function useSubjectAdmin() {
       if (updates.name !== undefined) {
         subjects.value.sort((a, b) => a.name.localeCompare(b.name));
       }
-      success('Fach aktualisiert');
+      success(t('admin.subjects.errors.update_success'));
     } catch (e: unknown) {
       const err = e as { response?: { data?: { message?: string } } };
-      toastError(err.response?.data?.message || 'Fehler beim Aktualisieren');
+      toastError(err.response?.data?.message || t('admin.subjects.errors.update_failed'));
       await loadSubjects();
     } finally {
       saving.value = false;
@@ -73,10 +75,10 @@ export function useSubjectAdmin() {
 
   async function deleteSubject(id: string) {
     const isConfirmed = await modalStore.confirm({
-      title: 'Dieses Fach löschen?',
+      title: t('admin.subjects.delete_modal.title'),
       content:
-        'Fach wirklich löschen? Falls es noch referenziert wird, schlage stattdessen eine Deaktivierung vor.',
-      submitText: 'Löschen',
+        t('admin.subjects.delete_modal.message'),
+      submitText: t('common.buttons.delete'),
       danger: true,
     });
 
@@ -84,10 +86,10 @@ export function useSubjectAdmin() {
     try {
       await hw.delete(`/api/group-admin/subjects/${id}`);
       subjects.value = subjects.value.filter((s) => s.id !== id);
-      success('Fach gelöscht');
+      success(t('admin.subjects.errors.delete_success'));
     } catch (e: unknown) {
       const err = e as { response?: { data?: { message?: string } } };
-      toastError(err.response?.data?.message || 'Fehler beim Löschen');
+      toastError(err.response?.data?.message || t('admin.subjects.errors.delete_failed'));
     }
   }
 

@@ -4,9 +4,9 @@ export const articles: Article[] = [
   {
     id: 1,
     type: 'text',
-    titleKey: 'info.articles.1.title',
-    excerptKey: 'info.articles.1.excerpt',
-    contentKey: 'info.articles.1.content',
+    titleKey: 'infodashboard.articles.1.title',
+    excerptKey: 'infodashboard.articles.1.excerpt',
+    contentKey: 'infodashboard.articles.1.content',
     author: 'Herbert Fischer',
     date: '2026-01-09',
     readTime: 2,

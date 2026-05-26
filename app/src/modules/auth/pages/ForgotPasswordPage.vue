@@ -67,19 +67,19 @@ async function handleNext() {
   setMessage('');
   if (step.value === 1) {
     if (!email.value || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
-      setMessage(t('account.auth.reset.errors.invalidEmail'), true);
+      setMessage(t('auth.login.reset.errors.invalid_email'), true);
       return;
     }
     submitting.value = true;
     try {
       await hw.post('/api/auth/forgot', { email: email.value });
-      setMessage(t('account.auth.reset.errors.codeSent'), false);
+      setMessage(t('auth.login.reset.errors.code_sent'), false);
       step.value = 2;
     } catch (e: unknown) {
       const err = e as { response?: { data?: { error?: string } } };
       setMessage(
         err?.response?.data?.error ||
-          t('account.auth.reset.errors.requestFailed'),
+          t('auth.login.reset.errors.request_failed'),
         true,
       );
     } finally {
@@ -87,7 +87,7 @@ async function handleNext() {
     }
   } else if (step.value === 2) {
     if (!code.value || code.value.trim().length !== 6) {
-      setMessage(t('account.auth.reset.errors.invalidCode'), true);
+      setMessage(t('auth.login.reset.errors.invalid_code'), true);
       return;
     }
     submitting.value = true;
@@ -97,13 +97,13 @@ async function handleNext() {
         code: code.value.trim(),
       });
       savedResetToken = data.resetToken;
-      setMessage(t('account.auth.reset.errors.codeVerified'), false);
+      setMessage(t('auth.login.reset.errors.code_verified'), false);
       step.value = 3;
     } catch (e: unknown) {
       const err = e as { response?: { data?: { error?: string } } };
       setMessage(
         err?.response?.data?.error ||
-          t('account.auth.reset.errors.codeExpired'),
+          t('auth.login.reset.errors.code_expired'),
         true,
       );
     } finally {
@@ -111,15 +111,15 @@ async function handleNext() {
     }
   } else if (step.value === 3) {
     if (!password.value || password.value.length < 8) {
-      setMessage(t('account.auth.reset.errors.passwordShort'), true);
+      setMessage(t('auth.login.reset.errors.password_short'), true);
       return;
     }
     if (password.value !== password2.value) {
-      setMessage(t('account.auth.reset.errors.passwordMismatch'), true);
+      setMessage(t('auth.login.reset.errors.password_mismatch'), true);
       return;
     }
     if (!savedResetToken) {
-      setMessage(t('account.auth.reset.errors.noToken'), true);
+      setMessage(t('auth.login.reset.errors.no_token'), true);
       step.value = 1;
       return;
     }
@@ -129,14 +129,14 @@ async function handleNext() {
         resetToken: savedResetToken,
         password: password.value,
       });
-      const msg = data.message || t('account.auth.resetSuccess');
+      const msg = data.message || t('auth.login.reset_success');
       useToast().success(msg);
       await router.push('/login');
     } catch (e: unknown) {
       const err = e as { response?: { data?: { error?: string } } };
       setMessage(
         err?.response?.data?.error ||
-          t('account.auth.reset.errors.resetFailed'),
+          t('auth.login.reset.errors.reset_failed'),
         true,
       );
     } finally {
@@ -151,12 +151,12 @@ async function handleNext() {
     <CenteredAuthModal
       :title="
         step === 1
-          ? t('account.auth.reset.title')
+          ? t('auth.login.reset.title')
           : step === 2
-            ? t('account.auth.reset.step2.title', {
+            ? t('auth.login.reset.step2.title', {
                 defaultValue: 'Verify Code',
               })
-            : t('account.auth.reset.step3.title', {
+            : t('auth.login.reset.step3.title', {
                 defaultValue: 'New Password',
               })
       "
@@ -165,20 +165,20 @@ async function handleNext() {
     >
       <div v-if="step === 1" class="space-y-4">
         <p class="text-sm text-on-ghost-muted">
-          {{ t('account.auth.reset.step1.description') }}
+          {{ t('auth.login.reset.step1.description') }}
         </p>
         <div>
           <label
             for="reset-email"
             class="block text-base font-medium text-on-ghost mb-2"
           >
-            {{ t('account.auth.email') }}
+            {{ t('auth.login.email') }}
           </label>
           <BaseInput
             id="reset-email"
             ref="emailInputRef"
             v-model="email"
-            :placeholder="t('account.auth.reset.placeholders.email')"
+            :placeholder="t('auth.login.reset.placeholders.email')"
             type="email"
             required
           />
@@ -186,40 +186,40 @@ async function handleNext() {
       </div>
       <div v-else-if="step === 2" class="space-y-4">
         <p class="text-sm text-on-ghost-muted">
-          {{ t('account.auth.reset.step2.description') }}
+          {{ t('auth.login.reset.step2.description') }}
         </p>
         <div>
           <label
             for="reset-code"
             class="block text-base font-medium text-on-ghost mb-2"
           >
-            {{ t('account.auth.reset.placeholders.code') }}
+            {{ t('auth.login.reset.placeholders.code') }}
           </label>
           <BaseInput
             id="reset-code"
             ref="codeInputRef"
             v-model="code"
-            :placeholder="t('account.auth.reset.placeholders.code')"
+            :placeholder="t('auth.login.reset.placeholders.code')"
             required
           />
         </div>
       </div>
       <div v-else-if="step === 3" class="space-y-4">
         <p class="text-sm text-on-ghost-muted">
-          {{ t('account.auth.reset.step3.description') }}
+          {{ t('auth.login.reset.step3.description') }}
         </p>
         <div>
           <label
             for="reset-password"
             class="block text-base font-medium text-on-ghost mb-2"
           >
-            {{ t('account.auth.reset.placeholders.newPassword') }}
+            {{ t('auth.login.reset.placeholders.new_password') }}
           </label>
           <BaseInput
             id="reset-password"
             ref="passwordInputRef"
             v-model="password"
-            :placeholder="t('account.auth.reset.placeholders.newPassword')"
+            :placeholder="t('auth.login.reset.placeholders.new_password')"
             type="password"
             required
           />
@@ -229,12 +229,12 @@ async function handleNext() {
             for="reset-password-confirm"
             class="block text-base font-medium text-on-ghost mb-2"
           >
-            {{ t('account.auth.reset.placeholders.confirmPassword') }}
+            {{ t('auth.login.reset.placeholders.confirm_password') }}
           </label>
           <BaseInput
             id="reset-password-confirm"
             v-model="password2"
-            :placeholder="t('account.auth.reset.placeholders.confirmPassword')"
+            :placeholder="t('auth.login.reset.placeholders.confirm_password')"
             type="password"
             required
           />
@@ -255,7 +255,7 @@ async function handleNext() {
       </Transition>
       <template #actions>
         <BaseButton type="button" variant="ghost" @click="goBackToLogin">
-          {{ t('global.buttons.cancel') }}
+          {{ t('common.buttons.cancel') }}
         </BaseButton>
         <BaseButton
           v-if="step === 2"
@@ -264,7 +264,7 @@ async function handleNext() {
           @click="goBack"
           :disabled="submitting"
         >
-          {{ t('global.buttons.back') }}
+          {{ t('common.buttons.back') }}
         </BaseButton>
         <BaseButton
           type="button"
@@ -275,10 +275,10 @@ async function handleNext() {
         >
           {{
             step === 1
-              ? t('account.auth.reset.actions.requestCode')
+              ? t('auth.login.reset.actions.request_code')
               : step === 2
-                ? t('account.auth.reset.actions.verifyCode')
-                : t('account.auth.reset.actions.setPassword')
+                ? t('auth.login.reset.actions.verify_code')
+                : t('auth.login.reset.actions.set_password')
           }}
         </BaseButton>
       </template>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 type Choice = 'Schere' | 'Stein' | 'Papier' | null;
 type Result = 'Gewonnen' | 'Verloren' | 'Unentschieden' | null;
@@ -31,10 +32,10 @@ const determineWinner = (p1: Choice, p2: Choice): Result => {
 
 const status = computed(() => {
   if (!playerChoice.value) {
-    return 'Wähle Schere, Stein oder Papier!';
+    return t('games.rps.choose_prompt');
   }
   if (!isGameOver.value) {
-    return 'Der Computer wählt...';
+    return t('games.rps.computer_thinking');
   }
   return `Ergebnis: ${gameResult.value}!`;
 });
@@ -76,7 +77,7 @@ const resetGame = () => {
   <div class="rps-game">
     <div class="result-display">
       <div class="choice-card player-choice">
-        <h3>Du</h3>
+        <h3>{{ t('games.rps.you') }}</h3>
         <div class="icon-box">
           <span v-if="playerChoice" class="icon-emoji">{{
             choiceEmojis[playerChoice]

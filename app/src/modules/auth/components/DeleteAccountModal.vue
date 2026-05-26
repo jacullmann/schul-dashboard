@@ -30,26 +30,26 @@ const { understoodChecked, submitting, errorMsg, successMsg, confirmDelete } =
     :error="errorMsg"
   >
     <template #title>
-      {{ t('account.menu.deleteAccount.title') }}
+      {{ t('auth.delete_account.title') }}
     </template>
 
     <template #content>
       <div class="bg-danger-hover border border-danger rounded-xl px-3 py-2">
         <strong class="font-sans text-lg text-danger block mb-2">{{
-          t('account.menu.deleteAccount.warnBox.title')
+          t('auth.delete_account.warn_box.title')
         }}</strong>
         <div class="text-sm text-on-ghost font-bold">
-          {{ t('contact.contact.email') }}: {{ email }}
+          {{ t('common.contact.email') }}: {{ email }}
         </div>
         <br />
         <div
           class="text-sm/relaxed text-on-ghost"
-          v-html="t('account.menu.deleteAccount.warnBox.text')"
+          v-html="t('auth.delete_account.warn_box.text')"
         ></div>
       </div>
 
       <BaseCheckbox v-model="understoodChecked">
-        {{ t('account.menu.deleteAccount.confirm') }}
+        {{ t('auth.delete_account.confirm') }}
       </BaseCheckbox>
 
       <div
@@ -61,7 +61,7 @@ const { understoodChecked, submitting, errorMsg, successMsg, confirmDelete } =
     </template>
 
     <template #action-text>
-      {{ t('global.buttons.delete') }}
+      {{ t('common.buttons.delete') }}
     </template>
   </BaseModal>
 </template>

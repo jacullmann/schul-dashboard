@@ -60,7 +60,7 @@ async function handleCreate() {
 }
 
 function subjectLabel(subject: AdminSubject): string {
-  const key = `global.subjects.${subject.name}`;
+  const key = `common.subjects.${subject.name}`;
   return te(key) ? `${subject.name} (${t(key)})` : subject.name;
 }
 
@@ -72,7 +72,7 @@ onMounted(() => {
 <template>
   <div class="animate-fade-up">
     <PageHeader>
-      Fächer
+      {{ t('admin.subjects.title') }}
 
       <template #action>
         <BaseTooltip content="Aktualisieren">
@@ -92,7 +92,7 @@ onMounted(() => {
           id="new-subject-name-input"
           v-model="newSubjectName"
           class="flex-1 max-w-[400px]"
-          placeholder="Neues Fach hinzufügen..."
+          :placeholder="t('admin.subjects.add_placeholder')"
           @keyup.enter="handleCreate"
           :disabled="saving"
         />
@@ -103,7 +103,7 @@ onMounted(() => {
           variant="action"
           :icon="Plus"
         >
-          Hinzufügen
+          {{ t('common.buttons.add') }}
         </BaseButton>
       </div>
     </div>
@@ -118,7 +118,7 @@ onMounted(() => {
       v-else-if="subjects.length === 0"
       class="text-center p-8 text-on-ghost-muted text-base"
     >
-      Keine Fächer vorhanden.
+      {{ t('admin.subjects.list.empty') }}
     </div>
 
     <div v-else class="flex flex-col gap-1.5">
@@ -143,7 +143,7 @@ onMounted(() => {
               :model-value="subject.isActive"
               @change="handleToggleActive(subject, $event)"
             />
-            <BaseTooltip content="Umbenennen" placement="bottom">
+            <BaseTooltip :content="t('admin.subjects.rename')" placement="bottom">
               <BaseButton
                 variant="ghost"
                 size="sm"
@@ -152,7 +152,7 @@ onMounted(() => {
                 g
               />
             </BaseTooltip>
-            <BaseTooltip content="Löschen" placement="bottom">
+            <BaseTooltip :content="t('common.buttons.delete')" placement="bottom">
               <BaseButton
                 variant="ghost"
                 size="sm"
@@ -173,20 +173,20 @@ onMounted(() => {
               @keyup.escape="cancelRename"
               autofocus
             />
-            <BaseTooltip content="Speichern">
+            <BaseTooltip :content="t('common.buttons.save')">
               <BaseButton
                 variant="ghost"
                 @click="saveRename(subject.id)"
                 :disabled="!editingName.trim() || saving"
-                title="Speichern"
+                :title="t('common.buttons.save')"
                 :icon="Check"
               />
             </BaseTooltip>
-            <BaseTooltip content="Abbrechen">
+            <BaseTooltip :content="t('common.buttons.cancel')">
               <BaseButton
                 variant="ghost"
                 @click="cancelRename"
-                title="Abbrechen"
+                :title="t('common.buttons.cancel')"
                 :icon="X"
               />
             </BaseTooltip>

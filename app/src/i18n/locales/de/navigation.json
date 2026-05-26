@@ -1,0 +1,14 @@
+{
+  "auth": "Authentifizierung",
+  "game_detail": "Spiel",
+  "games": "Spiel Übersicht",
+  "group_admin": "Gruppen-Verwaltung",
+  "home": "Home",
+  "image_tool": "Bildbearbeitung",
+  "legal": "Rechtliches",
+  "not_found": "404",
+  "private_todos": "Meine Einträge",
+  "super_admin": "Super Admin",
+  "update_history": "Update History",
+  "verify_email": "E-Mail Verifizierung"
+}

@@ -10,9 +10,9 @@ import { useI18n } from 'vue-i18n';
 const { t } = useI18n();
 
 const themeOptions = computed<MenuOption[]>(() => [
-  { value: 'system', label: t('global.theme.system'), icon: SunMoon },
-  { value: 'dark', label: t('global.theme.dark'), icon: Moon },
-  { value: 'light', label: t('global.theme.light'), icon: Sun },
+  { value: 'system', label: t('common.theme.system'), icon: SunMoon },
+  { value: 'dark', label: t('common.theme.dark'), icon: Moon },
+  { value: 'light', label: t('common.theme.light'), icon: Sun },
 ]);
 
 const { currentTheme, setPreference } = usePreferences();
@@ -26,7 +26,7 @@ function updateTheme(mode: string) {
   <BaseMenuSelect
     :model-value="currentTheme"
     :options="themeOptions"
-    :prefix="t('global.theme.theme') + ':'"
+    :prefix="t('common.theme.theme') + ':'"
     @update:model-value="updateTheme"
   />
 </template>

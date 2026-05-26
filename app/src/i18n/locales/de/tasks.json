@@ -1,0 +1,209 @@
+{
+  "list": {
+    "allsubjects": "Alle Fächer",
+    "archive": {
+      "archive": "Archiv",
+      "archive_note": "Du siehst gerade alte Einträge",
+      "close_archive": "Archiv schließen"
+    },
+    "create_entry": "Eintrag erstellen",
+    "infopop": {
+      "description": "Arbeite kollaborativ mit anderen und behalte alles im Blick.",
+      "sections": [
+        {
+          "title": "Einträge",
+          "text": "Jede/r, die/der ein Konto hat, kann einen Eintrag hinzufügen. Ob <strong>Hausaufgabe</strong>, <strong>Daltonauftrag</strong> oder <strong>Prüfung</strong> – alles, was du für die Schule im Überblick haben musst, kann hochgeladen werden. Alle Einträge sind öffentlich und jederzeit einsehbar, du kannst also gemeinsam mit anderen tracken."
+        },
+        {
+          "title": "Einträge hinzufügen",
+          "text": "Um einen Eintrag hinzuzufügen, klicke auf das <strong>+</strong> und wähle den Typ aus. Hausaufgaben, Daltonaufträge und Prüfungen sind immer öffentlich, Private Einträge sind verschlüsselt und nur für dich sichtbar. Fülle nun das Formular aus und wähle Fach und Abgabedatum aus. Optional können dazugehörige Bilder hochgeladen werden wie Tafelbilder, Musterlösungen, Notizen, Lernzettel o. ä."
+        },
+        {
+          "title": "Bilder hochladen",
+          "text": "Bilder können auch bei fremden Einträgen hochgeladen werden, sofern passend; klicke auf das <strong>3-Punkte-Menü</strong>, wähle <strong>Bilder hochladen</strong> aus und wähle die gewünschten Bilder aus. Um eigene Bilder zu entfernen, <strong>halte</strong> das Bild <strong>gedrückt</strong> oder klicke mit der <strong>rechten Maustaste</strong> auf dein Bild und wähle im Menü <strong>Löschen</strong> aus."
+        },
+        {
+          "title": "Falschinformationen melden",
+          "text": "Einträge sollten in der Regel wahr sein, aber falls du bei einem fremden Eintrag falsche Informationen entdeckst, kannst du im 3-Punkte-Menü auf \"Melden\" klicken und unter \"Falschinformationen\" eine Korrektur abschicken. Deine Nachricht wird dann geprüft und als Anmerkung dem gemeldeten Eintrag angehängt."
+        },
+        {
+          "title": "Abgeschlossene Aufgaben tracken",
+          "text": "Wenn du ein Konto hast, kannst du mit der <strong>Checkbox</strong> jeden Eintrag, den du erledigt hast, abhaken. Dein Fortschritt wird in der Cloud gespeichert und der Eintrag verkleinert, um Platz für offene Aufträge zu machen. So hast du gleich im Blick, was du noch erledigen musst."
+        },
+        {
+          "title": "Personalisierte Kurse",
+          "text": "Wenn du bei deinem Konto hinterlegt hast, welche Kurse/Wahlfächer du belegst, kannst du automatisch Einträge zu anderen Fächern ausblenden lassen. Deine Auswahl kannst du in deinen <strong>Kontoeinstellungen</strong> anpassen. Wenn du trotzdem alle Einträge sehen willst, kannst du diese Option ebenfalls in deinen Kontoeinstellungen deaktivieren."
+        },
+        {
+          "title": "Archiv",
+          "text": "Einträge, die älter als <strong>24 Stunden</strong> sind, werden automatisch ausgeblendet, um die Ansicht übersichtlich zu halten. Falls du einen älteren Eintrag suchst, kannst du auf den <strong>Archiv</strong>-Button klicken und Einträge einsehen, die bis zu <strong>30 Tage</strong> alt sind."
+        }
+      ],
+      "tooltip": "Übersicht und Funktionen für Aufgaben"
+    },
+    "item_form": {
+      "course": "Kurs",
+      "custom_subject": "Benutzerdefiniertes Fach",
+      "description": "Beschreibung",
+      "drop_to_upload": "Bilder hier ablegen",
+      "due_date": "Datum",
+      "edit_entry": "Eintrag bearbeiten",
+      "errors": {
+        "course_missing": "Wähle einen Kurs aus",
+        "custom_long": "Das benutzerdefinierte Fach ist zu lang (max. 100 Zeichen)",
+        "custom_missing": "Trage ein benutzerdefiniertes Fach ein",
+        "date_new": "Das Datum liegt zu weit in der Zukunft",
+        "date_old": "Das Datum liegt zu weit in der Vergangenheit",
+        "description_long": "Die Beschreibung ist zu lang (max. 1000 Zeichen)",
+        "title_long": "Der Titel ist zu lang (max. 60 Zeichen)",
+        "title_missing": "Füge einen Titel hinzu"
+      },
+      "images": "Bilder",
+      "new_entry": "Neuer Eintrag",
+      "subject": "Fach",
+      "success_create": "Eintrag erfolgreich erstellt",
+      "success_edit": "Eintrag erfolgreich bearbeitet",
+      "success_upload": "Bilder erfolgreich hochgeladen",
+      "title": "Titel",
+      "upload_images": "Bilder hochladen",
+      "uploading_image": "Lade Bild hoch..."
+    },
+    "items": {
+      "menu": {
+        "add_note": "Anmerkung hinzufügen",
+        "archive": "Archivieren",
+        "delete": {
+          "action": "Eintrag löschen",
+          "description": "Wenn du diesen Eintrag löschst, werden dieser und alle dazugehörigen Bilder unwiderruflich gelöscht.",
+          "title": "Diesen Eintrag löschen?"
+        },
+        "info": "Info",
+        "info_modal": {
+          "created_at": "Erstellt am",
+          "created_by": "Erstellt von",
+          "not_edited": "–",
+          "title": "Eintrag-Info",
+          "updated_at": "Zuletzt bearbeitet"
+        },
+        "pin": "Anheften",
+        "report": {
+          "action": "Eintrag melden",
+          "false_label": "Korrektur (erforderlich)",
+          "false_placeholder": "Korrektur...",
+          "illegal_label": "Was genau ist das Problem? (optional)",
+          "illegal_placeholder": "Beschreibung...",
+          "infopop": {
+            "sections": [
+              {
+                "title": "Falschinformationen",
+                "text": "Die Informationen, welche in dem Eintrag genannt werden, oder die hochgeladenen Bilder enthalten falsche oder irreführende Inhalte? Solchen Einträgen können Anmerkungen mit Korrekturen beigefügt werden, jedoch musst du beschreiben, was nicht stimmt und/oder wie die richtigen Informationen lauten. Versuche dich dabei bitte möglichst kurz und verständlich zu fassen. Deine Nachricht wird, sobald sie geprüft wurde, dem gemeldeten Eintrag angehängt."
+              },
+              {
+                "title": "Unangebrachte/Illegale Inhalte",
+                "text": "Einträge und hochgeladene Bilder, die gegen unsere Nutzungsbedingungen oder geltendes Recht verstoßen, werden umgehend entfernt. Falls genaueres Wissen über den Hintergrund einer Aussage/eines Bildes nötig ist, beschreibe es bitte möglichst genau, sodass wir etwas unternehmen können. Wenn der Verstoß offensichtlich ist, kannst du uns trotzdem helfen, indem du beschreibst, was nicht stimmt, aber wir untersuchen immer den ganzen Artikel, auch wenn du keinen konkreten Grund nennst."
+              }
+            ],
+            "title": "Einträge melden",
+            "tooltip": "Informationen zum Melden Melden von Einträgen"
+          },
+          "name": "Melden",
+          "select_reason": "Wähle den Grund aus:",
+          "title": "Diesen Eintrag melden?"
+        },
+        "share": "Teilen",
+        "share_confirm": "Link in die Zwischenablage kopiert!",
+        "unarchive": "Wiederherstellen",
+        "unpin": "Lösen",
+        "upload_images": "Bilder hochladen"
+      },
+      "view": {
+        "no_entries": "Keine Einträge gefunden",
+        "no_entries_in_view_message": "Keine Einträge in der aktuellen Ansicht. Ändere deine Filter oder füge einen neuen Eintrag hinzu",
+        "no_entries_message": "Füge einen neuen Eintrag hinzu oder "
+      }
+    },
+    "notes": {
+      "no_notes": "Keine Anmerkung vorhanden",
+      "note": "Anmerkung"
+    },
+    "reset_filters": "Filter zurücksetzen",
+    "tabs": {
+      "all": "Alle",
+      "dalton": "Dalton",
+      "exams": "Prüfungen",
+      "homework": "Hausaufgaben",
+      "private": "Privat"
+    },
+    "title": "Aufgaben",
+    "types": {
+      "dalton": "Dalton",
+      "exam": "Prüfung",
+      "homework": "Hausaufgabe"
+    }
+  },
+  "private_tasks": {
+    "delete_confirm": "Möchtest du diesen privaten Eintrag wirklich löschen?",
+    "entry": "Privater Eintrag",
+    "entry_delete_confirm": "Privater Eintrag erfolgreich gelöscht",
+    "error_duplicate": "Fehler beim duplizieren",
+    "error_load": "Fehler beim Laden der privaten Einträge",
+    "infopop": {
+      "text": "Anders als normale Einträge sind diese <strong>verschlüsselt</strong> und nur für dich sichtbar. So kannst du auch persönliche Aufgaben und To-dos tracken – alles mit <strong>einem Programm</strong>. Dank <strong>AES-256 Verschlüsselung</strong> musst du dir keine Sorgen um die Sicherheit machen: Man kann nur mit <strong>deinem Passwort</strong> auf deine privaten Einträge zugreifen.",
+      "tooltip": "Überblick und Funktionen zu privaten Einträgen"
+    },
+    "loading": "Lade private Einträge...",
+    "menu": {
+      "down": "Nach unten",
+      "up": "Nach oben"
+    },
+    "new_entry": "Neuer Eintrag",
+    "no_entries_found": "Keine privaten Einträge gefunden.",
+    "only_visible_to_you": "Nur für dich sichtbar",
+    "requires_account": "Du musst angemeldet sein, um private Einträge zu verwenden.",
+    "success_create": "Privater Eintrag erstellt",
+    "success_delete": "Privater Eintrag erfolgreich gelöscht",
+    "success_duplicate": "Privater Eintrag erfolgreich dupliziert",
+    "success_update": "Privater Eintrag aktualisiert",
+    "title": "Private Aufgaben",
+    "todo_form": {
+      "description_placeholder": "6 Eier...",
+      "title": "Neuer privater Eintrag",
+      "title_placeholder": "Einkaufen gehen..."
+    }
+  },
+  "report": {
+    "info_tooltip": "Melden Info",
+    "info_title": "Infos zum Melden von Einträgen",
+    "select_reason_label": "Wähle den Grund aus:",
+    "reason_required_label": "Begründung (erforderlich)",
+    "reason_placeholder": "Begründung...",
+    "description_placeholder": "Beschreibung..."
+  },
+  "actions": {
+    "delete_modal": {
+      "title": "Diesen Eintrag löschen?",
+      "message": "Wenn du diesen Eintrag löschst, werden dieser und alle dazugehörigen Bilder unwiderruflich gelöscht.",
+      "submit": "Eintrag löschen",
+      "success": "Eintrag gelöscht.",
+      "error": "Fehler beim Löschen."
+    }
+  },
+  "notes": {
+    "delete_modal": {
+      "title": "Anmerkung löschen?",
+      "message": "Bist du sicher, dass du diese Anmerkung unwiderruflich löschen möchtest?",
+      "submit": "Anmerkung löschen",
+      "success": "Anmerkung gelöscht.",
+      "error": "Fehler beim Löschen der Anmerkung."
+    }
+  },
+  "images": {
+    "delete_modal": {
+      "title": "Dieses Bild löschen?",
+      "message": "Wenn du dieses Bild löschst, wird es unwiderruflich entfernt.",
+      "submit": "Bild löschen",
+      "success": "Bild gelöscht.",
+      "error": "Fehler beim Löschen des Bildes."
+    }
+  }
+}

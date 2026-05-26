@@ -26,19 +26,19 @@ const {
 } = useArticleSearch();
 
 const topicOptions = computed(() => [
-  { value: 'All', label: t('info.dashboard.allTopics') },
-  { value: 'technology', label: t('info.dashboard.categories.technology') },
-  { value: 'politics', label: t('info.dashboard.categories.politics') },
-  { value: 'science', label: t('info.dashboard.categories.science') },
-  { value: 'culture', label: t('info.dashboard.categories.culture') },
-  { value: 'economy', label: t('info.dashboard.categories.economy') },
+  { value: 'All', label: t('infodashboard.dashboard.all_topics') },
+  { value: 'technology', label: t('infodashboard.dashboard.categories.technology') },
+  { value: 'politics', label: t('infodashboard.dashboard.categories.politics') },
+  { value: 'science', label: t('infodashboard.dashboard.categories.science') },
+  { value: 'culture', label: t('infodashboard.dashboard.categories.culture') },
+  { value: 'economy', label: t('infodashboard.dashboard.categories.economy') },
 ]);
 
 const sortOptions = computed(() => [
-  { value: 'relevance', label: t('info.dashboard.sortMethods.relevance') },
-  { value: 'dateDesc', label: t('info.dashboard.sortMethods.newest') },
-  { value: 'dateAsc', label: t('info.dashboard.sortMethods.oldest') },
-  { value: 'readTime', label: t('info.dashboard.sortMethods.shortest') },
+  { value: 'relevance', label: t('infodashboard.dashboard.sort_methods.relevance') },
+  { value: 'dateDesc', label: t('infodashboard.dashboard.sort_methods.newest') },
+  { value: 'dateAsc', label: t('infodashboard.dashboard.sort_methods.oldest') },
+  { value: 'readTime', label: t('infodashboard.dashboard.sort_methods.shortest') },
 ]);
 
 const getSliderStyle = (current: number, max: number) => {
@@ -58,11 +58,11 @@ const getSliderStyle = (current: number, max: number) => {
     >
       <div class="cursor-pointer flex flex-col" @click="goHome">
         <span class="font-black text-[1.5rem] tracking-[-1px] font-display">{{
-          t('info.dashboard.title')
+          t('infodashboard.dashboard.title')
         }}</span>
         <span
           class="text-[0.8rem] text-on-ghost-muted uppercase tracking-[2px]"
-          >{{ t('info.dashboard.description') }}</span
+          >{{ t('infodashboard.dashboard.description') }}</span
         >
       </div>
 
@@ -89,21 +89,21 @@ const getSliderStyle = (current: number, max: number) => {
       >
         <div class="flex flex-col gap-2">
           <label class="text-[0.8rem] text-on-ghost">{{
-            t('info.dashboard.topic')
+            t('infodashboard.dashboard.topic')
           }}</label>
           <BaseSelect v-model="activeTopicFilter" :options="topicOptions" />
         </div>
 
         <div class="flex flex-col gap-2">
           <label class="text-[0.8rem] text-on-ghost">{{
-            t('info.dashboard.sortBy')
+            t('infodashboard.dashboard.sort_by')
           }}</label>
           <BaseSelect v-model="sortOption" :options="sortOptions" />
         </div>
 
         <div class="flex flex-col gap-2">
           <label class="text-[0.8rem] text-on-ghost"
-            >{{ t('info.dashboard.maxTime') }}
+            >{{ t('infodashboard.dashboard.max_time') }}
             {{ minReadTime === 0 ? 'Any' : minReadTime + 'm' }}</label
           >
           <input
@@ -144,7 +144,7 @@ const getSliderStyle = (current: number, max: number) => {
             </div>
             <div class="flex flex-col justify-center">
               <span class="text-base text-on-ghost mb-1.5">{{
-                t('info.dashboard.categories.' + processedArticles[0]!.topic)
+                t('infodashboard.dashboard.categories.' + processedArticles[0]!.topic)
               }}</span>
               <h1 class="text-[3rem]/none m-0 font-extrabold font-display">
                 {{ t(processedArticles[0]!.titleKey) }}
@@ -212,7 +212,7 @@ const getSliderStyle = (current: number, max: number) => {
 
             <header class="text-left mb-8 mt-4">
               <span class="text-base text-on-ghost mb-1.5">{{
-                t('info.dashboard.categories.' + activeArticle.topic)
+                t('infodashboard.dashboard.categories.' + activeArticle.topic)
               }}</span>
               <h1 class="text-[2.5rem]/none my-2 font-extrabold font-display">
                 {{ t(activeArticle.titleKey) }}
@@ -234,7 +234,7 @@ const getSliderStyle = (current: number, max: number) => {
           <article v-else class="full-article">
             <header class="text-left mb-8">
               <span class="text-base text-on-ghost mb-1.5">{{
-                t('info.dashboard.categories.' + activeArticle.topic)
+                t('infodashboard.dashboard.categories.' + activeArticle.topic)
               }}</span>
               <h1 class="text-[2.5rem]/none my-2 font-extrabold font-display">
                 {{ t(activeArticle.titleKey) }}
@@ -273,7 +273,7 @@ const getSliderStyle = (current: number, max: number) => {
 
           <div class="mt-16 pt-8 border-t border-surface-border">
             <h3 class="font-display">
-              {{ t('info.dashboard.recommendations') }}
+              {{ t('infodashboard.dashboard.recommendations') }}
             </h3>
             <div class="grid grid-cols-1 gap-8">
               <ArticleCard

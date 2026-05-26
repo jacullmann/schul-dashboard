@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import BaseTabs from '@/common/components/BaseTabs.vue';
 import InfoModal from '@/common/components/InfoModal.vue';
+
+const { t } = useI18n();
 
 const MAX_LENGTH = 5000;
 
@@ -48,7 +51,7 @@ watch(
     <template #title> Diesen Eintrag melden? </template>
 
     <template #title-infopop>
-      <InfoModal tooltip="Melden Info" title="Infos zum Melden von Einträgen">
+      <InfoModal :tooltip="t('tasks.report.info_tooltip')" :title="t('tasks.report.info_title')">
         <h3 class="text-xl font-display font-bold mb-2">Falschinformationen</h3>
         <p class="text-on-ghost-muted text-base mb-4">
           Die Informationen, welche in dem Eintrag genannt werden, oder die
@@ -76,7 +79,7 @@ watch(
 
     <template #content>
       <BaseFormGroup id="reportReason">
-        <BaseLabel for="reportReason">Wähle den Grund aus:</BaseLabel>
+        <BaseLabel for="reportReason">{{ t('tasks.report.select_reason_label') }}</BaseLabel>
         <BaseTabs
           id="reportReason"
           :items="tabItems"
@@ -89,7 +92,7 @@ watch(
         <BaseLabel for="reportDescription">
           {{
             category === 'falschinfo'
-              ? 'Begründung (erforderlich)'
+              ? t('tasks.report.reason_required_label')
               : 'Was genau ist das Problem? (optional)'
           }}
         </BaseLabel>
@@ -100,7 +103,7 @@ watch(
           :model-value="reason"
           @update:model-value="$emit('update:reason', $event)"
           :placeholder="
-            category === 'falschinfo' ? 'Begründung...' : 'Beschreibung...'
+            category === 'falschinfo' ? t('tasks.report.reason_placeholder') : t('tasks.report.description_placeholder')
           "
           :required="category === 'falschinfo'"
           :maxlength="MAX_LENGTH"

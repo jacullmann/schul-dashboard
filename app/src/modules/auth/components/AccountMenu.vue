@@ -124,7 +124,7 @@ const {
         :icon="LucideGraduationCap"
         @click="openSetup"
       >
-        {{ t('account.menu.courses.title') }}
+        {{ t('auth.courses.title') }}
       </BaseMenuButton>
 
       <PersonalizationSubmenu
@@ -135,21 +135,21 @@ const {
       <BaseMenuDivider />
 
       <BaseMenuButton :icon="Shield" @click="openSecurity">
-        {{ t('account.menu.security.title') }}
+        {{ t('auth.security.title') }}
       </BaseMenuButton>
 
       <BaseMenuButton :icon="LucideKeyRound" @click="openChangePassword">
-        {{ t('account.menu.changePassword.title') }}
+        {{ t('auth.change_password.title') }}
       </BaseMenuButton>
 
       <BaseMenuButton :icon="LogOut" @click="handleLogout">
-        {{ t('account.menu.logout') }}
+        {{ t('auth.actions.logout') }}
       </BaseMenuButton>
 
       <BaseMenuDivider />
 
       <BaseMenuButton :icon="Trash2" variant="danger" @click="startDelete">
-        {{ t('account.menu.deleteAccount.title') }}
+        {{ t('auth.delete_account.title') }}
       </BaseMenuButton>
     </BaseMenu>
   </div>

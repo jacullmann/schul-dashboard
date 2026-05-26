@@ -1,0 +1,18 @@
+{
+  "image": {
+    "title": "Bildbearbeitung",
+    "upload_click": "Klicken zum Hochladen",
+    "upload_drag": "oder Drag & Drop",
+    "settings": {
+      "format": "Ausgabeformat",
+      "quality": "Qualität: {quality} %",
+      "width": "Breite (px)",
+      "height": "Höhe (px)",
+      "size": "Größe"
+    },
+    "actions": {
+      "convert": "Konvertieren",
+      "apply": "Anwenden"
+    }
+  }
+}

@@ -10,6 +10,9 @@ import {
   Plus,
   Minus,
 } from '@lucide/vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const chamberSize = ref(6);
 const bulletCount = ref(1);
@@ -73,7 +76,7 @@ const probabilityPercentage = computed(() => {
 
 const oddsDisplay = computed(() => {
   if (status.value === 'dead') return 'Gestorben';
-  if (status.value === 'won') return 'Überlebt';
+  if (status.value === 'won') return t('games.roulette.status.won');
   return spinAfterShot.value
     ? `${bulletCount.value} / ${chamberSize.value}`
     : `${bulletCount.value} / ${chamberSize.value - shotsFired.value}`;
@@ -82,7 +85,7 @@ const oddsDisplay = computed(() => {
 const gameStatusText = computed(() => {
   if (status.value === 'dead') return '*PANG* ...';
   if (status.value === 'won') return 'Trommel geleert. Du lebst.';
-  if (shotsFired.value > 0) return '*Klick* - Nächster Versuch.';
+  if (shotsFired.value > 0) return t('games.roulette.status.click');
   return `Waffe geladen.`;
 });
 
@@ -176,7 +179,7 @@ onMounted(() => {
       <div v-if="showSettings" class="rr-settings-panel">
         <div class="rr-setting-row">
           <div class="rr-setting-info">
-            <span class="rr-setting-label">Trommelgröße</span>
+            <span class="rr-setting-label">{{ t('games.roulette.settings.chamber_size_label') }}</span>
             <span class="rr-setting-desc"
               >Kammern in der Trommel (Max: 12)</span
             >
@@ -195,7 +198,7 @@ onMounted(() => {
         <div class="rr-setting-row">
           <div class="rr-setting-info">
             <span class="rr-setting-label">Patronen</span>
-            <span class="rr-setting-desc">Anzahl der geladenen Schüsse</span>
+            <span class="rr-setting-desc">{{ t('games.roulette.settings.bullet_count_label') }}</span>
           </div>
           <div class="rr-control">
             <button @click="adjustSetting('bullet', -1)" class="rr-ctrl-btn">
@@ -244,7 +247,7 @@ onMounted(() => {
               color: probabilityPercentage > 50 ? '#ff4444' : '#aaaaaa',
             }"
           >
-            Mortalität: {{ Math.round(probabilityPercentage) }}%
+            {{ t('games.roulette.stats.mortality_label') }}: {{ Math.round(probabilityPercentage) }}%
           </div>
           <div class="rr-message">{{ gameStatusText }}</div>
         </div>
@@ -296,7 +299,7 @@ onMounted(() => {
             class="rr-btn-icon"
             :class="{ 'rr-spin': isProcessing && spinAfterShot }"
           />
-          <span>{{ isProcessing ? 'Trommel dreht...' : 'Abdrücken' }}</span>
+          <span>{{ isProcessing ? t('games.roulette.actions.spinning') : t('games.roulette.actions.shoot') }}</span>
         </button>
 
         <button
@@ -305,7 +308,7 @@ onMounted(() => {
           @click="initGame"
         >
           <RefreshCw class="rr-btn-icon" />
-          <span>Neu Laden</span>
+          <span>{{ t('games.roulette.actions.reload') }}</span>
         </button>
       </div>
     </div>

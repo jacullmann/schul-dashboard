@@ -9,6 +9,7 @@ import {
   FastForward,
 } from '@lucide/vue';
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useVideoPlayer } from '@/modules/infodashboard/composables/useVideoPlayer';
 
 defineProps<{
@@ -16,6 +17,7 @@ defineProps<{
   poster?: string;
 }>();
 
+const { t } = useI18n();
 const videoRef = ref<HTMLVideoElement | null>(null);
 const wrapperRef = ref<HTMLElement | null>(null);
 
@@ -108,7 +110,7 @@ const {
           @input="seek"
           class="player-range"
           :style="getSliderStyle(currentTime, duration)"
-          aria-label="Video spulen"
+          :aria-label="t('common.video_player.seek_slider.aria_label')"
         />
       </div>
 
@@ -118,7 +120,7 @@ const {
             type="button"
             class="bg-transparent border-none text-white cursor-pointer p-0 flex items-center justify-center"
             @click="togglePlay"
-            :aria-label="isPlaying ? 'Pausieren' : 'Abspielen'"
+            :aria-label="isPlaying ? t('common.video_player.play_button.pause_aria_label') : t('common.video_player.play_button.play_aria_label')"
           >
             <Pause
               v-if="isPlaying"
@@ -145,7 +147,7 @@ const {
               type="button"
               class="bg-transparent border-none text-white cursor-pointer p-0 flex items-center justify-center"
               @click="toggleMute"
-              :aria-label="volume === 0 ? 'Ton einschalten' : 'Stummschalten'"
+              :aria-label="volume === 0 ? t('common.video_player.volume_button.unmute_aria_label') : t('common.video_player.volume_button.mute_aria_label')"
             >
               <VolumeX
                 v-if="volume === 0"
@@ -177,7 +179,7 @@ const {
                 @input="updateVolume"
                 class="player-range w-[60px] flex-shrink-0"
                 :style="getSliderStyle(volume, 1)"
-                aria-label="Lautstärke"
+                :aria-label="t('common.video_player.volume_slider.aria_label')"
               />
             </div>
           </div>
@@ -194,8 +196,8 @@ const {
             @click="toggleFullscreen"
             :aria-label="
               isFullscreen
-                ? 'Vollbildmodus beenden'
-                : 'Vollbildmodus aktivieren'
+                ? t('common.video_player.fullscreen_button.exit_aria_label')
+                : t('common.video_player.fullscreen_button.enter_aria_label')
             "
           >
             <Minimize

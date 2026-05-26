@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useAnnouncements } from '@/modules/announcements/composables/useAnnouncements';
 import { Ellipsis } from '@lucide/vue';
+
+const { t } = useI18n();
 
 const { activeGroupId } = useAppAuth();
 
@@ -90,7 +93,7 @@ onUnmounted(() => {
 
 <template>
   <BaseModal :open="showMenu" @cancel="showMenu = false">
-    <template #title> Alle Ankündigungen </template>
+    <template #title>{{ t('announcements.all.title') }}</template>
 
     <template #content>
       <div class="max-h-[60vh] overflow-y-auto flex flex-col">

@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useUserStore } from '@/stores/userStore';
 import { useModalStore } from '@/stores/modalStore';
+
+const { t } = useI18n();
 
 defineProps<{
   open: boolean;
@@ -58,7 +61,7 @@ async function submit() {
       await router.push(`/groups/${activeGroupId.value}/items/all`);
       modalStore.showSetup = true;
     } else {
-      errorMsg.value = res.error || 'Zugriff verweigert. Code prüfen.';
+      errorMsg.value = res.error || t('auth.groups.errors.join_failed');
     }
   } catch (err: unknown) {
     const e = err as { message?: string };
@@ -78,7 +81,7 @@ async function submit() {
     :error="errorMsg"
     :cancel="undefined"
   >
-    <template #title> Gruppe beitreten </template>
+    <template #title>{{ t('common.groups.join_group') }}</template>
 
     <template #content>
       <BaseFormGroup id="join-group-name">
@@ -87,7 +90,7 @@ async function submit() {
           id="join-group-name"
           ref="groupNameInputRef"
           v-model="groupName"
-          placeholder="Name der Gruppe"
+          :placeholder="t('admin.general.appearance.name_placeholder')"
           type="text"
           autocomplete="off"
           @input="clearError"

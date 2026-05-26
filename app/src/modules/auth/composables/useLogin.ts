@@ -41,18 +41,18 @@ export function useLogin(onLoggedIn: () => void, onMfaRequired: () => void) {
     let ok = true;
 
     if (!email.value?.trim()) {
-      errors.email = t('account.auth.errors.emailMissing');
+      errors.email = t('auth.login.errors.email_missing');
       ok = false;
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())) {
-      errors.email = t('account.auth.errors.emailWrong');
+      errors.email = t('auth.login.errors.email_wrong');
       ok = false;
     }
 
     if (!password.value) {
-      errors.password = t('account.auth.errors.passwordMissing');
+      errors.password = t('auth.login.errors.password_missing');
       ok = false;
     } else if (password.value.length < 8) {
-      errors.password = t('account.auth.errors.passwordShort');
+      errors.password = t('auth.login.errors.password_short');
       ok = false;
     }
 
@@ -84,7 +84,7 @@ export function useLogin(onLoggedIn: () => void, onMfaRequired: () => void) {
       }
     } catch (e: unknown) {
       const err = e as { response?: { data?: { error?: string } } };
-      message.value = err.response?.data?.error || t('global.errors.unknown');
+      message.value = err.response?.data?.error || t('common.errors.unknown');
       isError.value = true;
     } finally {
       submitting.value = false;

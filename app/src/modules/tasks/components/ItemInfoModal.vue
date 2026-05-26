@@ -15,7 +15,7 @@ defineEmits(['cancel']);
 const { t, locale } = useI18n();
 
 function formatDate(iso: string | undefined): string {
-  if (!iso) return t('school.tasks.items.menu.infoModal.notEdited');
+  if (!iso) return t('tasks.list.items.menu.info_modal.not_edited');
   return new Date(iso).toLocaleString(locale.value, {
     year: 'numeric',
     month: '2-digit',
@@ -38,14 +38,14 @@ const showUpdated = computed(() => {
 <template>
   <BaseModal :open="open" :sheet="true" @cancel="$emit('cancel')">
     <template #title>
-      {{ t('school.tasks.items.menu.infoModal.title') }}
+      {{ t('tasks.list.items.menu.info_modal.title') }}
     </template>
 
     <template #content>
       <dl class="flex flex-col gap-4">
         <div class="flex flex-col gap-1">
           <dt class="text-sm text-on-ghost-muted font-medium">
-            {{ t('school.tasks.items.menu.infoModal.createdAt') }}
+            {{ t('tasks.list.items.menu.info_modal.created_at') }}
           </dt>
           <dd class="m-0 text-base text-on-ghost font-medium">
             {{ formatDate(item?.createdAt) }}
@@ -54,19 +54,19 @@ const showUpdated = computed(() => {
 
         <div class="flex flex-col gap-1">
           <dt class="text-sm text-on-ghost-muted font-medium">
-            {{ t('school.tasks.items.menu.infoModal.updatedAt') }}
+            {{ t('tasks.list.items.menu.info_modal.updated_at') }}
           </dt>
           <dd class="m-0 text-base text-on-ghost font-medium">
             <span v-if="showUpdated">{{ formatDate(item?.updatedAt) }}</span>
             <span v-else class="text-on-ghost-muted">{{
-              t('school.tasks.items.menu.infoModal.notEdited')
+              t('tasks.list.items.menu.info_modal.not_edited')
             }}</span>
           </dd>
         </div>
 
         <div v-if="isModOrAdmin" class="flex flex-col gap-1">
           <dt class="text-sm text-on-ghost-muted font-medium">
-            {{ t('school.tasks.items.menu.infoModal.createdBy') }}
+            {{ t('tasks.list.items.menu.info_modal.created_by') }}
           </dt>
           <dd class="m-0 text-base text-on-ghost font-medium">
             {{ item?.createdByName || 'Unbekannt' }}

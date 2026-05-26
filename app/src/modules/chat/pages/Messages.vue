@@ -250,7 +250,7 @@ const fetchMessages = async () => {
       isInitialScroll.value = false;
     }, 500);
   } catch (err) {
-    error.value = t('chat.errorLoading');
+    error.value = t('chat.error_loading');
     console.error(err);
   } finally {
     loading.value = false;
@@ -398,9 +398,9 @@ const typingDisplay = computed(() => {
     return `${users[0]} ${t('chat.typing')}`;
   }
   if (users.length === 2) {
-    return `${users[0]} & ${users[1]} ${t('chat.typingMultiple')}`;
+    return `${users[0]} & ${users[1]} ${t('chat.typing_multiple')}`;
   }
-  return `${users[0]} & ${users.length - 1} ${t('sidebar.others')} ${t('chat.typingMultiple')}`;
+  return `${users[0]} & ${users.length - 1} ${t('common.sidebar.others')} ${t('chat.typing_multiple')}`;
 });
 
 const canDeleteMessage = (msg: any) => {
@@ -415,19 +415,19 @@ const copyMessage = async (msg: any) => {
   activeMessage.value = null;
   try {
     await navigator.clipboard.writeText(msg.content);
-    toast.success(t('chat.copySuccess'));
+    toast.success(t('chat.copy_success'));
   } catch (err) {
     console.error('Failed to copy message:', err);
-    toast.error(t('global.errors.unknown'));
+    toast.error(t('common.errors.unknown'));
   }
 };
 
 const deleteMessage = async (msg: any) => {
   activeMessage.value = null;
   const isConfirmed = await modalStore.confirm({
-    title: t('chat.deleteConfirmTitle'),
-    content: t('chat.deleteConfirm'),
-    submitText: t('global.buttons.delete'),
+    title: t('chat.delete_confirm_title'),
+    content: t('chat.delete_confirm'),
+    submitText: t('common.buttons.delete'),
     danger: true,
   });
 
@@ -435,10 +435,10 @@ const deleteMessage = async (msg: any) => {
 
   try {
     await hw.delete(`/api/messages/${msg.id}`);
-    toast.success(t('chat.deleteSuccess'));
+    toast.success(t('chat.delete_success'));
   } catch (err) {
     console.error('Failed to delete message:', err);
-    toast.error(t('global.errors.delete'));
+    toast.error(t('common.errors.delete'));
   }
 };
 
@@ -547,7 +547,7 @@ watch(groupId, () => {
           :icon="MessageCircle"
           class="animate-fade-up"
         >
-          <template #title>{{ t('chat.noMessages') }}</template>
+          <template #title>{{ t('chat.no_messages') }}</template>
         </BaseEmptyState>
 
         <TransitionGroup name="msg-list">
@@ -564,7 +564,7 @@ watch(groupId, () => {
               >
                 <div class="flex-1 border-t border-danger/30"></div>
                 <span class="mx-4 text-xs font-bold text-danger tracking-wider uppercase bg-canvas px-2.25 py-0.5 rounded-full border border-danger/20 shadow-sm">
-                  {{ messages.length >= 100 && firstNewMessageIndex === 0 ? '100+ ' + t('chat.newMessages') : t('chat.newMessages') }}
+                  {{ messages.length >= 100 && firstNewMessageIndex === 0 ? '100+ ' + t('chat.new_messages') : t('chat.new_messages') }}
                 </span>
                 <div class="flex-1 border-t border-danger/30"></div>
               </div>
@@ -664,7 +664,7 @@ watch(groupId, () => {
                         ? 'bg-action-hover hover:bg-on-action/20 border-on-action-muted text-on-action-muted'
                         : 'bg-ghost-hover hover:bg-on-ghost/15 border-on-ghost-muted text-on-ghost-muted mt-1',
                     ]"
-                    :title="t('chat.quoteLabel')"
+                    :title="t('chat.quote_label')"
                   >
                     <span class="font-bold">{{ msg.parentSenderName }}</span>
                     <span class="truncate">{{ msg.parentContent }}</span>
@@ -726,7 +726,7 @@ watch(groupId, () => {
           >
             <template v-if="activeMessage">
               <BaseMenuButton :icon="Copy" @click="copyMessage(activeMessage)">
-                {{ t('global.buttons.copy') }}
+                {{ t('common.buttons.copy') }}
               </BaseMenuButton>
 
               <BaseMenuDivider />
@@ -737,7 +737,7 @@ watch(groupId, () => {
                 :icon="Trash2"
                 @click="deleteMessage(activeMessage)"
               >
-                {{ t('global.buttons.delete') }}
+                {{ t('common.buttons.delete') }}
               </BaseMenuButton>
             </template>
           </BaseMenu>
@@ -819,7 +819,7 @@ watch(groupId, () => {
             @keydown.enter.prevent="sendMessage"
             rows="1"
             class="w-full flex-1 items-center justify-center py-0 px-1.75 rounded-none bg-transparent border-none shadow-none outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 text-base/5 text-on-ghost placeholder:text-on-ghost-subtle resize-none font-normal"
-            :placeholder="canSend ? t('chat.placeholder') : 'Das Senden von Nachrichten ist für dich deaktiviert'"
+            :placeholder="canSend ? t('chat.placeholder') : t('chat.errors.send_deactivated')"
             required
             maxlength="1000"
             :disabled="!canSend"

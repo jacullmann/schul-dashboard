@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import GoogleIcon from '@/modules/auth/components/GoogleIcon.vue';
 import { useOAuth } from '@/modules/auth/composables/useOAuth';
 
@@ -48,7 +49,7 @@ function cancel() {
     :error="errorMsg"
     :requirement="password"
   >
-    <template #title> Google-Konto verknüpfen </template>
+    <template #title>{{ t('auth.google_link.title') }}</template>
 
     <template #content>
       <div class="flex flex-col items-center gap-3 mb-4">
@@ -62,16 +63,16 @@ function cancel() {
 
       <p class="m-0 mb-4 text-sm/relaxed text-on-ghost-muted text-center">
         Ein Konto mit dieser E-Mail-Adresse existiert bereits. Gib dein Passwort
-        ein, um Google mit deinem bestehenden Konto zu verknüpfen.
+        {{ t('auth.google_link.description') }}
       </p>
 
       <BaseFormGroup id="link-password">
-        <BaseLabel for="link-password">Passwort</BaseLabel>
+        <BaseLabel for="link-password">{{ t('auth.login.password') }}</BaseLabel>
         <BaseInput
           id="link-password"
           type="password"
           v-model="password"
-          placeholder="Dein Passwort"
+          :placeholder="t('auth.login.password')"
           autocomplete="current-password"
           autofocus
           @input="errorMsg = ''"
@@ -79,6 +80,6 @@ function cancel() {
       </BaseFormGroup>
     </template>
 
-    <template #action-text> Verknüpfen </template>
+    <template #action-text> {{ t('auth.connected_accounts.actions.link') }} </template>
   </BaseModal>
 </template>

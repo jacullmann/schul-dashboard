@@ -5,7 +5,7 @@ export const games: Game[] = [
   {
     id: 'tic-tac-toe',
     name: 'Tic-Tac-Toe',
-    description: 'Wer drei in einer Reihe hat, gewinnt!',
+    description: useI18n().t('games.list.tic_tac_toe.description'),
     component: defineAsyncComponent(() => import('../pages/TicTacToe.vue')),
     tags: ['Strategie', '2-Spieler'],
     previewImage:
@@ -14,18 +14,18 @@ export const games: Game[] = [
   {
     id: 'russisch-roulette',
     name: 'Russisch Roulette',
-    description: 'Dies ist nur ein Spiel!',
+    description: useI18n().t('games.list.russian_roulette.description'),
     component: defineAsyncComponent(
       () => import('../pages/RussianRoulette.vue'),
     ),
-    tags: ['Strategie', 'Kein Glückspiel', 'Klassiker', 'Russisch'],
+    tags: [useI18n().t('games.list.russian_roulette.tags.strategy'), useI18n().t('games.list.russian_roulette.tags.no_gambling'), useI18n().t('games.list.russian_roulette.tags.classic'), useI18n().t('games.list.russian_roulette.tags.russian')],
     previewImage:
       'https://images.unsplash.com/photo-1594078807666-6af57bc52363?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
   },
   {
     id: 'rock-paper-scissors',
     name: 'Schere, Stein, Papier',
-    description: 'Spiele Schere-Stein-Papier gegen einen Computer.',
+    description: useI18n().t('games.list.rock_paper_scissors.description'),
     component: defineAsyncComponent(
       () => import('../pages/RockPaperScissors.vue'),
     ),
@@ -45,7 +45,7 @@ export const games: Game[] = [
   {
     id: 'memory-game',
     name: 'Memory',
-    description: 'Finde alle Paare! Ein klassisches Gedächtnisspiel.',
+    description: useI18n().t('games.list.memory_game.description'),
     component: defineAsyncComponent(() => import('../pages/MemoryGame.vue')),
     tags: ['Klassiker', 'Gehirntraining', 'Solo'],
     previewImage:
@@ -55,7 +55,7 @@ export const games: Game[] = [
     id: 'snake-game',
     name: 'Snake',
     description:
-      'Friss die Äpfel und lass die Schlange wachsen, aber beiße dich nicht selbst!',
+      useI18n().t('games.list.snake_game.description'),
     component: defineAsyncComponent(() => import('../pages/SnakeGame.vue')),
     tags: ['Arcade', 'Klassiker', 'Action'],
     previewImage:
@@ -64,9 +64,9 @@ export const games: Game[] = [
   {
     id: 'whack-a-mole',
     name: 'Whack-a-Mole',
-    description: 'Hau den Maulwurf! Teste deine Reaktionsgeschwindigkeit.',
+    description: useI18n().t('games.list.whack_a_mole.description'),
     component: defineAsyncComponent(() => import('../pages/WhackAMole.vue')),
-    tags: ['Reaktion', 'Spaß', 'Solo'],
+    tags: [useI18n().t('games.list.whack_a_mole.tags.reaction'), useI18n().t('games.list.whack_a_mole.tags.fun'), useI18n().t('games.list.whack_a_mole.tags.solo')],
     previewImage:
       'https://images.unsplash.com/photo-1651559316159-69315814fe1c?q=80&w=1450&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
   },

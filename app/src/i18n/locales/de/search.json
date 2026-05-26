@@ -1,0 +1,44 @@
+{
+  "descriptions": {
+    "admin": "Gruppen Einstellungen",
+    "change_language": "Die Sprache der App ändern",
+    "change_password": "Dein Kontopasswort aktualisieren",
+    "change_theme": "Das Design der App anpassen",
+    "create_entry": "Neuen Eintrag zur Aufgabenliste hinzufügen",
+    "create_group": "Eine neue Gruppe erstellen",
+    "create_private_entry": "Neuen privaten Eintrag hinzufügen",
+    "edit_courses": "Deine Kursauswahl anpassen",
+    "games": "Spiele und Unterhaltung",
+    "groups": "Gruppen verwalten",
+    "home": "Zur Startseite",
+    "image_tool": "Bilder zuschneiden und bearbeiten",
+    "info_dashboard": "Spannende Geschichten und Fakten",
+    "join_group": "Einer bestehenden Gruppe beitreten",
+    "logout": "Sicher von deinem Konto abmelden",
+    "messages": "Mit deiner Gruppe chatten und Nachrichten schreiben",
+    "private": "Eigene private Aufgaben verwalten",
+    "schedule": "Stundenplan anzeigen",
+    "security": "Zwei-Faktor-Authentifizierung und Sicherheit",
+    "switch_group": "Zwischen deinen Gruppen wechseln",
+    "tasks": "Aufgaben, Hausaufgaben & Prüfungen",
+    "toggle_sidebar": "Seitenleiste ein- oder ausklappen"
+  },
+  "items": {
+    "create_entry": "Neuen Eintrag erstellen",
+    "create_group": "Gruppe erstellen",
+    "create_private_entry": "Neuen privaten Eintrag erstellen",
+    "games": "Spiele",
+    "image_tool": "Bild-Tool",
+    "info_dashboard": "Info Dashboard",
+    "join_group": "Gruppe beitreten",
+    "switch_group": "Gruppe wechseln"
+  },
+  "modal": {
+    "category_actions": "Aktionen",
+    "category_pages": "Seiten",
+    "hint_confirm": "Öffnen",
+    "hint_navigate": "Navigieren",
+    "placeholder": "Seiten und Aktionen suchen…",
+    "title": "Schnellsuche"
+  }
+}

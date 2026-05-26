@@ -1,4 +1,5 @@
 import { onUnmounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import type { HwItem, ItemType } from '@/modules/tasks/types';
 import hw from '@/api/hwApi';
 import { useToast } from '@/common/composables/useToast';
@@ -7,6 +8,7 @@ import { useModalStore } from '@/stores/modalStore';
 import type { HwContext } from './types';
 
 export function useHwForms(ctx: HwContext) {
+  const { t } = useI18n();
   const { openItemForm, openEditForm, onFormSuccess } = useItemForm();
 
   const unregister = onFormSuccess(() => ctx.reloadList());
@@ -17,7 +19,7 @@ export function useHwForms(ctx: HwContext) {
   const savingNote = ref(false);
 
   function onItemFormError(msg: string) {
-    useToast().error(msg || 'Bitte Eingaben prüfen.');
+    useToast().error(msg || t('common.errors.validation_failed'));
   }
 
   function editItem(item: HwItem) {
@@ -74,10 +76,10 @@ export function useHwForms(ctx: HwContext) {
   async function deleteNote(itemId: string) {
     const modalStore = useModalStore();
     const isConfirmed = await modalStore.confirm({
-      title: 'Anmerkung löschen?',
+      title: t('tasks.notes.delete_modal.title'),
       content:
-        'Bist du sicher, dass du diese Anmerkung unwiderruflich löschen möchtest?',
-      submitText: 'Anmerkung löschen',
+        t('tasks.notes.delete_modal.message'),
+      submitText: t('tasks.notes.delete_modal.submit'),
       danger: true,
     });
 
@@ -94,10 +96,10 @@ export function useHwForms(ctx: HwContext) {
       const item = ctx.items.value.find((i) => i.id === itemId);
       if (item) item.editorNote = '';
 
-      useToast().success('Anmerkung gelöscht.');
+      useToast().success(t('tasks.notes.delete_modal.success'));
     } catch (e: any) {
       useToast().error(
-        e.response?.data?.error || 'Fehler beim Löschen der Anmerkung.',
+        e.response?.data?.error || t('tasks.notes.delete_modal.error'),
       );
     } finally {
       savingNote.value = false;

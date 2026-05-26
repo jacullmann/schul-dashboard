@@ -14,9 +14,9 @@ const emit = defineEmits<{
 
 const buttonText = computed(() => {
   if (props.modelValue) {
-    return t('school.tasks.archive.closeArchive');
+    return t('tasks.list.archive.close_archive');
   } else {
-    return t('school.tasks.archive.archive');
+    return t('tasks.list.archive.archive');
   }
 });
 

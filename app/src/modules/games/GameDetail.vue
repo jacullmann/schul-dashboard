@@ -6,6 +6,7 @@ import type { Game } from '@/modules/games/types';
 import { ChevronLeft } from '@lucide/vue';
 
 const route = useRoute();
+const { t } = useI18n();
 const router = useRouter();
 const game = ref<Game | undefined>(undefined);
 
@@ -47,7 +48,7 @@ watch(
         :icon="ChevronLeft"
         @click="router.push('/games')"
       >
-        Zurück zur Spiele-Übersicht
+        {{ t('games.detail.back_button') }}
       </BaseButton>
 
       <div class="p-[30px] rounded-xl">

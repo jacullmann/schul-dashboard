@@ -17,7 +17,7 @@ const { user } = storeToRefs(userStore);
 <template>
   <div class="card">
     <PageHeader class="animate-fade-up">
-      {{ t('school.private.title') }}
+      {{ t('tasks.private_tasks.title') }}
       <template #action>
         <BaseButton
           v-if="user"
@@ -25,7 +25,7 @@ const { user } = storeToRefs(userStore);
           variant="action"
           :icon="Plus"
         >
-          <span>{{ t('school.private.newEntry') }}</span>
+          <span>{{ t('tasks.private_tasks.new_entry') }}</span>
         </BaseButton>
       </template>
     </PageHeader>

@@ -1,0 +1,18 @@
+{
+  "title": "Group Chat",
+  "new_messages": "New Messages",
+  "placeholder": "Type a message...",
+  "send": "Send",
+  "replying_to": "Replying to",
+  "cancel_reply": "Cancel Reply",
+  "typing": "is typing...",
+  "typing_multiple": "are typing...",
+  "no_messages": "No messages yet. Say hello!",
+  "joined_room": "Connected to chat",
+  "error_loading": "Failed to load messages",
+  "quote_label": "Reply to",
+  "copy_success": "Message copied to clipboard",
+  "delete_confirm": "Are you sure you want to delete this message?",
+  "delete_confirm_title": "Delete Message?",
+  "delete_success": "Message successfully deleted"
+}

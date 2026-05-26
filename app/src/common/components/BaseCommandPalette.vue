@@ -130,11 +130,11 @@ function setSelectedIndex(idx: number) {
         <BaseRow>
           <BaseKbd>↑</BaseKbd>
           <BaseKbd>↓</BaseKbd>
-          {{ t('search.modal.hintNavigate') }}
+          {{ t('search.modal.hint_navigate') }}
         </BaseRow>
         <BaseRow>
           <BaseKbd>↵</BaseKbd>
-          {{ t('search.modal.hintConfirm') }}
+          {{ t('search.modal.hint_confirm') }}
         </BaseRow>
       </div>
     </div>

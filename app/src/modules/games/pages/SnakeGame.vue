@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useEventListener } from '@vueuse/core';
 
 const gridSize = 20;
@@ -8,6 +9,7 @@ const cellSize = 20;
 const snake = ref([{ x: 10, y: 10 }]);
 const food = ref({ x: 15, y: 15 });
 const direction = ref({ x: 0, y: -1 });
+const { t } = useI18n();
 const score = ref(0);
 const isGameOver = ref(false);
 const gameLoop = ref<number | null>(null);
@@ -142,12 +144,12 @@ onUnmounted(() => {
     </div>
 
     <div v-if="isGameOver" class="game-over">
-      <h3>Game Over! 💥</h3>
-      <BaseButton @click="initGame">Neu starten</BaseButton>
+      <h3>{{ t('games.snake.game_over') }}</h3>
+      <BaseButton @click="initGame">{{ t('games.snake.restart') }}</BaseButton>
     </div>
 
     <div class="controls">
-      <p>Nutze die Pfeiltasten zum Steuern.</p>
+      <p>{{ t('games.snake.instruction') }}</p>
     </div>
   </div>
 </template>

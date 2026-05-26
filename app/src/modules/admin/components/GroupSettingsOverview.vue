@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import type { GroupStats } from '@/modules/admin/types';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps<{
   stats: GroupStats | null;
@@ -20,7 +23,7 @@ const emit = defineEmits<{
         <span class="text-[1.5rem]/4 font-bold">{{
           stats?.itemCount ?? '–'
         }}</span>
-        <span class="text-sm text-on-ghost-muted">Aktive Einträge</span>
+        <span class="text-sm text-on-ghost-muted">{{ t('admin.overview.stats.active_entries') }}</span>
       </div>
       <div
         class="bg-surface border border-surface-border shadow-input rounded-xl p-4.5 flex flex-col gap-1"
@@ -28,7 +31,7 @@ const emit = defineEmits<{
         <span class="text-[1.5rem]/4 font-bold">{{
           stats?.memberCount ?? '–'
         }}</span>
-        <span class="text-sm text-on-ghost-muted">Mitglieder</span>
+        <span class="text-sm text-on-ghost-muted">{{ t('admin.overview.stats.members') }}</span>
       </div>
       <div
         class="bg-surface border border-surface-border shadow-input rounded-xl p-4.5 flex flex-col gap-1"
@@ -36,7 +39,7 @@ const emit = defineEmits<{
         <span class="text-[1.5rem]/4 font-bold">{{
           stats?.subsCount ?? '–'
         }}</span>
-        <span class="text-sm text-on-ghost-muted">Stundenplanänderungen</span>
+        <span class="text-sm text-on-ghost-muted">{{ t('admin.overview.stats.schedule_changes') }}</span>
       </div>
       <div
         class="bg-surface border border-surface-border shadow-input rounded-xl p-4.5 flex flex-col gap-1"
@@ -48,7 +51,7 @@ const emit = defineEmits<{
           stats?.oldItemsCount ?? '–'
         }}</span>
         <span class="text-sm text-on-ghost-muted"
-          >Alte Einträge (90+ Tage)</span
+          >{{ t('admin.overview.stats.old_entries') }}</span
         >
       </div>
     </div>
@@ -69,7 +72,7 @@ const emit = defineEmits<{
           :disabled="cleaningUp"
           variant="danger"
         >
-          {{ cleaningUp ? 'Löscht...' : 'Bereinigen' }}
+          {{ cleaningUp ? t('common.buttons.deleting') : t('admin.overview.cleanup.action_button') }}
         </BaseButton>
       </BaseRow>
     </div>

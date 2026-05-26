@@ -98,21 +98,21 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
     if (normalizedSubject === 'wpu1' || normalizedSubject === 'wpu2') {
       const courseName = lesson.courses?.name || lesson.courseName;
       if (courseName) {
-        return `WPU ${t(`global.subjects.${courseName}`)}`;
+        return `WPU ${t(`common.subjects.${courseName}`)}`;
       }
       return normalizedSubject === 'wpu1' ? 'WPU 1' : 'WPU 2';
     }
 
     if (normalizedSubject === 'enrichment') {
-      return t('global.subjects.enrichment');
+      return t('common.subjects.enrichment');
     }
 
     if (normalizedSubject === 'theater') {
-      return t('global.subjects.theater');
+      return t('common.subjects.theater');
     }
 
     if (subjectName) {
-      const translationKey = `global.subjects.${subjectName}`;
+      const translationKey = `common.subjects.${subjectName}`;
       const translation = t(translationKey);
       return translation !== translationKey ? translation : subjectName;
     }

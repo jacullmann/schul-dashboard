@@ -42,31 +42,31 @@ export function useChangePassword(emit: {
     let ok = true;
 
     if (!currentPassword.value) {
-      errors.current = t('account.menu.changePassword.errors.currentMissing');
+      errors.current = t('auth.change_password.errors.current_missing');
       ok = false;
     } else if (currentPassword.value.length < 8) {
-      errors.current = t('account.menu.changePassword.errors.currentShort');
+      errors.current = t('auth.change_password.errors.current_short');
       ok = false;
     }
 
     if (!newPassword.value) {
-      errors.new = t('account.menu.changePassword.errors.newMissing');
+      errors.new = t('auth.change_password.errors.new_missing');
       ok = false;
     } else if (newPassword.value.length < 8) {
-      errors.new = t('account.menu.changePassword.errors.newShort');
+      errors.new = t('auth.change_password.errors.new_short');
       ok = false;
     }
 
     if (!newPassword2.value) {
-      errors.confirm = t('account.menu.changePassword.errors.confirmMissing');
+      errors.confirm = t('auth.change_password.errors.confirm_missing');
       ok = false;
     } else if (newPassword.value !== newPassword2.value) {
-      errors.confirm = t('account.menu.changePassword.errors.confirmWrong');
+      errors.confirm = t('auth.change_password.errors.confirm_wrong');
       ok = false;
     }
 
     if (ok && currentPassword.value === newPassword.value) {
-      errors.new = t('account.menu.changePassword.errors.equal');
+      errors.new = t('auth.change_password.errors.equal');
       ok = false;
     }
 
@@ -86,18 +86,18 @@ export function useChangePassword(emit: {
         newPassword: newPassword.value,
       });
 
-      useToast().success(t('account.menu.changePassword.success'));
+      useToast().success(t('auth.change_password.success'));
       emit('success');
       emit('cancel');
     } catch (e: unknown) {
       const err = e as { response?: { data?: { error?: string } } };
       const errorMsg =
         err.response?.data?.error ||
-        t('account.menu.changePassword.errors.failed');
+        t('auth.change_password.errors.failed');
       setMessage(errorMsg, true);
 
       if (errorMsg.includes('falsch')) {
-        errors.current = t('account.menu.changePassword.errors.currentWrong');
+        errors.current = t('auth.change_password.errors.current_wrong');
       }
     } finally {
       submitting.value = false;

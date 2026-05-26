@@ -202,7 +202,7 @@ export function useGroupAdmin() {
     const isConfirmed = await modalStore.confirm({
       title: 'Delete Schedule Change?',
       content: 'If you delete this change, it will be removed permanently',
-      submitText: t('global.buttons.delete'),
+      submitText: t('common.buttons.delete'),
       danger: true,
     });
 
@@ -244,7 +244,7 @@ export function useGroupAdmin() {
     const isConfirmed = await modalStore.confirm({
       title: 'Delete Announcement?',
       content: 'Are you sure you want to delete this announcement?',
-      submitText: t('global.buttons.delete'),
+      submitText: t('common.buttons.delete'),
       danger: true,
     });
 
@@ -316,7 +316,7 @@ export function useGroupAdmin() {
         avatarUrl: avatarUrl ? avatarUrl.trim() : null,
       });
       showMessage(
-        avatarUrl ? 'Group-Bild aktualisiert' : 'Group-Bild gelöscht',
+        avatarUrl ? t('admin.general.avatar.errors.update_success') : t('admin.general.avatar.errors.delete_success'),
       );
       await checkAuthStatus();
     } catch (e: unknown) {

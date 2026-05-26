@@ -1,0 +1,22 @@
+{
+  "cancelled": "Entfällt",
+  "disclaimer": "Schul-dashboard und das Admin-Team übernehmen keine Gewähr für die Richtigkeit, Vollständigkeit und Aktualität der der bereitgestellten Informationen.",
+  "infopop": {
+    "description": "Die digitale Version vom Programm",
+    "sections": [
+      {
+        "title": "Personalisierte Kurse",
+        "text": "Wenn du bei deinem Konto hinterlegt hast, welche Kurse/Wahlfächer du belegst, kannst du automatisch alle Stunden, die dich nicht betreffen, ausblenden lassen. Deine Auswahl kannst du in deinen Kontoeinstellungen anpassen. Wenn du trotzdem alle Stunden sehen willst, kannst du diese Option ebenfalls in deinen Kontoeinstellungen deaktivieren."
+      },
+      {
+        "title": "Live-Änderungen",
+        "text": "Vertretung, Ausfall, Raumänderungen usw. werden vom Admin-Team zeitnah übertragen und gleich im digitalen Stundenplan angezeigt."
+      }
+    ],
+    "tooltip": "Überblick und Funktionen zum Stundenplan"
+  },
+  "lesson": "Stunde",
+  "loading": "Lade Stundenplan...",
+  "personalized": "Personalisiert",
+  "title": "Stundenplan"
+}

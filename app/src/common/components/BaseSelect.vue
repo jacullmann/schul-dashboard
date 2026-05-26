@@ -128,7 +128,7 @@ onClickOutside(
       <span class="truncate">
         {{
           options.find((o) => o.value === modelValue)?.label ||
-          t('global.selection.placeholder')
+          t('common.selection.placeholder')
         }}
       </span>
     </BaseButton>

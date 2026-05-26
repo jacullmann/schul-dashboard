@@ -22,9 +22,9 @@ const props = defineProps<{
 const emit = defineEmits<{ (e: 'cancel'): void; (e: 'success'): void }>();
 
 const typeTabItems = computed(() => [
-  { id: 'homework', label: t('school.tasks.types.homework') },
-  { id: 'dalton', label: t('school.tasks.types.dalton') },
-  { id: 'exam', label: t('school.tasks.types.exam') },
+  { id: 'homework', label: t('tasks.list.types.homework') },
+  { id: 'dalton', label: t('tasks.list.types.dalton') },
+  { id: 'exam', label: t('tasks.list.types.exam') },
 ]);
 
 const activeType = ref<Exclude<ItemType, 'all'>>(
@@ -145,24 +145,24 @@ const submitError = ref('');
 
 const subjectOptions = computed(() => {
   const opts = subjectStore.availableSubjectKeys.map((s) => {
-    const translationKey = `global.subjects.${s}`;
+    const translationKey = `common.subjects.${s}`;
     const label = te(translationKey) ? t(translationKey) : s;
     return { label, value: s };
   });
 
-  opts.push({ label: t('global.selection.other'), value: '__OTHER__' });
+  opts.push({ label: t('common.selection.other'), value: '__OTHER__' });
 
   return opts;
 });
 
 const getCourseLabel = (courseName: string): string => {
   const courseKey = getSubjectKey(courseName);
-  if (te(`global.subjects.${courseKey}`)) {
-    return t(`global.subjects.${courseKey}`);
+  if (te(`common.subjects.${courseKey}`)) {
+    return t(`common.subjects.${courseKey}`);
   }
 
-  const mr = t('global.titles.abbr.mr');
-  const ms = t('global.titles.abbr.ms');
+  const mr = t('common.titles.abbr.mr');
+  const ms = t('common.titles.abbr.ms');
   return courseName.replace(/^Herr\s+/, `${mr} `).replace(/^Frau\s+/, `${ms} `);
 };
 
@@ -199,22 +199,22 @@ async function submit() {
 
   const main = subjectSel.value;
   if (!main) {
-    subjectError.value = t('school.tasks.itemForm.errors.customMissing');
+    subjectError.value = t('tasks.list.item_form.errors.custom_missing');
     hasValidationErrors = true;
   } else if (main === '__OTHER__') {
     finalSubject = subjectOther.value.trim();
     if (!finalSubject) {
-      subjectOtherError.value = t('school.tasks.itemForm.errors.customMissing');
+      subjectOtherError.value = t('tasks.list.item_form.errors.custom_missing');
       hasValidationErrors = true;
     } else if (finalSubject.length > 100) {
-      subjectOtherError.value = t('school.tasks.itemForm.errors.customLong');
+      subjectOtherError.value = t('tasks.list.item_form.errors.custom_long');
       hasValidationErrors = true;
     }
   } else if (selectedSubjectHasCourses.value) {
     if (!courseSel.value) {
-      const translationKey = `global.subjects.${main}`;
+      const translationKey = `common.subjects.${main}`;
       const courseName = te(translationKey) ? t(translationKey) : main;
-      courseError.value = t('school.tasks.itemForm.errors.courseMissing', {
+      courseError.value = t('tasks.list.item_form.errors.course_missing', {
         course: courseName,
       });
       hasValidationErrors = true;
@@ -227,16 +227,16 @@ async function submit() {
 
   const cleanTitle = title.value.trim();
   if (!cleanTitle) {
-    titleError.value = t('school.tasks.itemForm.errors.titleMissing');
+    titleError.value = t('tasks.list.item_form.errors.title_missing');
     hasValidationErrors = true;
   } else if (cleanTitle.length > 60) {
-    titleError.value = t('school.tasks.itemForm.errors.titleLong');
+    titleError.value = t('tasks.list.item_form.errors.title_long');
     hasValidationErrors = true;
   }
 
   const cleanDesc = description.value.trim();
   if (cleanDesc.length > 1000) {
-    descriptionError.value = t('school.tasks.itemForm.errors.descriptionLong');
+    descriptionError.value = t('tasks.list.item_form.errors.description_long');
     hasValidationErrors = true;
   }
 
@@ -244,10 +244,10 @@ async function submit() {
   selectedDate.setHours(23, 59, 0, 0);
 
   if (selectedDate < minDate) {
-    dueDateError.value = t('school.tasks.itemForm.errors.dateOld');
+    dueDateError.value = t('tasks.list.item_form.errors.date_old');
     hasValidationErrors = true;
   } else if (selectedDate > maxDate) {
-    dueDateError.value = t('school.tasks.itemForm.errors.dateNew');
+    dueDateError.value = t('tasks.list.item_form.errors.date_new');
     hasValidationErrors = true;
   }
 
@@ -326,8 +326,8 @@ onMounted(() => {
     <template #title>
       {{
         initial
-          ? t('school.tasks.itemForm.editEntry')
-          : t('school.tasks.itemForm.newEntry')
+          ? t('tasks.list.item_form.edit_entry')
+          : t('tasks.list.item_form.new_entry')
       }}
     </template>
 
@@ -340,7 +340,7 @@ onMounted(() => {
           <div class="text-2xl mb-2">📸</div>
           <div class="text-xl font-bold text-primary">
             {{
-              t('school.tasks.itemForm.dropToUpload') || 'Bilder hier ablegen'
+              t('tasks.list.item_form.drop_to_upload') || 'Bilder hier ablegen'
             }}
           </div>
         </div>
@@ -356,7 +356,7 @@ onMounted(() => {
 
       <BaseFormGroup id="title" :error="titleError">
         <BaseLabel for="title" :required="true">{{
-          t('school.tasks.itemForm.title')
+          t('tasks.list.item_form.title')
         }}</BaseLabel>
         <BaseInput
           ref="titleInputRef"
@@ -368,7 +368,7 @@ onMounted(() => {
 
       <BaseFormGroup id="subject" :error="subjectError">
         <BaseLabel for="subject" :required="true">{{
-          t('school.tasks.itemForm.subject')
+          t('tasks.list.item_form.subject')
         }}</BaseLabel>
         <BaseSelect
           id="subject"
@@ -384,7 +384,7 @@ onMounted(() => {
         :error="courseError"
       >
         <BaseLabel for="courseSel" :required="true">{{
-          t('school.tasks.itemForm.course')
+          t('tasks.list.item_form.course')
         }}</BaseLabel>
         <BaseSelect
           id="courseSel"
@@ -400,7 +400,7 @@ onMounted(() => {
         :error="subjectOtherError"
       >
         <BaseLabel for="subjectOther" :required="true">{{
-          t('school.tasks.itemForm.customSubject')
+          t('tasks.list.item_form.custom_subject')
         }}</BaseLabel>
         <BaseInput
           id="subjectOther"
@@ -413,7 +413,7 @@ onMounted(() => {
 
       <BaseFormGroup id="description" :error="descriptionError">
         <BaseLabel for="description">{{
-          t('school.tasks.itemForm.description')
+          t('tasks.list.item_form.description')
         }}</BaseLabel>
         <BaseInput
           id="description"
@@ -426,7 +426,7 @@ onMounted(() => {
 
       <BaseFormGroup id="dueDate" :error="dueDateError">
         <BaseLabel for="dueDate" :required="true">{{
-          t('school.tasks.itemForm.dueDate')
+          t('tasks.list.item_form.due_date')
         }}</BaseLabel>
         <BaseInput
           id="dueDate"
@@ -438,7 +438,7 @@ onMounted(() => {
 
       <BaseFormGroup id="images" :error="imgUploadError">
         <BaseLabel for="images">{{
-          t('school.tasks.itemForm.images')
+          t('tasks.list.item_form.images')
         }}</BaseLabel>
         <BaseRow id="images">
           <div
@@ -462,13 +462,13 @@ onMounted(() => {
                 variant="danger"
                 :icon="X"
               >
-                {{ t('school.tasks.itemForm.removeImage') }}
+                {{ t('tasks.list.item_form.remove_image') }}
               </BaseButton>
             </div>
           </div>
 
           <BaseTooltip
-            :content="t('school.tasks.items.menu.uploadImages')"
+            :content="t('tasks.list.items.menu.upload_images')"
             placement="right"
           >
             <BaseButton
@@ -485,7 +485,7 @@ onMounted(() => {
     </template>
 
     <template #action-text>
-      {{ initial ? t('global.buttons.save') : t('global.buttons.create') }}
+      {{ initial ? t('common.buttons.save') : t('common.buttons.create') }}
     </template>
   </BaseModal>
 </template>

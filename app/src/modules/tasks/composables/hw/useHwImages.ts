@@ -1,10 +1,12 @@
 import { ref, reactive } from 'vue';
+import { useI18n } from 'vue-i18n';
 import type { HwItem, ImageItem } from '@/modules/tasks/types';
 import { useModalStore } from '@/stores/modalStore';
 import { useToast } from '@/common/composables/useToast';
 import type { HwContext } from './types';
 
 export function useHwImages(ctx: HwContext, imageUpload: any) {
+  const { t } = useI18n();
   const showImageViewer = ref(false);
   const viewerImages = ref<HwItem['images']>([]);
   const viewerStartIndex = ref(0);
@@ -86,9 +88,9 @@ export function useHwImages(ctx: HwContext, imageUpload: any) {
     closeImageMenu();
 
     const isConfirmed = await modalStore.confirm({
-      title: 'Dieses Bild löschen?',
-      content: 'Wenn du dieses Bild löschst, wird es unwiderruflich entfernt.',
-      submitText: 'Bild löschen',
+      title: t('tasks.images.delete_modal.title'),
+      content: t('tasks.images.delete_modal.message'),
+      submitText: t('tasks.images.delete_modal.submit'),
       danger: true,
     });
 
@@ -98,9 +100,9 @@ export function useHwImages(ctx: HwContext, imageUpload: any) {
     try {
       await imageUpload.removeImg(targetImage, targetItem.id);
       await ctx.refreshItem(targetItem.id);
-      useToast().success('Bild gelöscht.', 3000);
+      useToast().success(t('tasks.images.delete_modal.success'), 3000);
     } catch {
-      useToast().error('Fehler beim Löschen des Bildes.', 4000);
+      useToast().error(t('tasks.images.delete_modal.error'), 4000);
     } finally {
       deletingImage.value = false;
     }

@@ -1,4 +1,5 @@
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import hw from '@/api/hwApi';
 import { processImageBeforeUpload } from '@/modules/tasks/composables/useConvertImage';
 import type { ImageItem } from '@/modules/tasks/types';
@@ -11,6 +12,7 @@ const uploadError = ref('');
 const uploadSuccess = ref(false);
 
 export function useImageUpload() {
+  const { t } = useI18n();
   function init(initialImages: ImageItem[] = []) {
     images.value = [...initialImages];
     uploading.value = false;
@@ -167,10 +169,10 @@ export function useImageUpload() {
           `/api/items/${parentId}/images/${encodeURIComponent(img.publicId)}`,
         );
         images.value = images.value.filter((i) => i.publicId !== img.publicId);
-        uploadError.value = 'Bild erfolgreich gelöscht.';
+        uploadError.value = t('tasks.images.delete_modal.success');
         setTimeout(() => (uploadError.value = ''), 3000);
       } catch {
-        uploadError.value = 'Fehler beim Löschen des Bildes.';
+        uploadError.value = t('tasks.images.delete_modal.error');
       }
     } else {
       images.value = images.value.filter((i) => i.publicId !== img.publicId);

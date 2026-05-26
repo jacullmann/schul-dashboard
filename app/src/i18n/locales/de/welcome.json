@@ -1,0 +1,90 @@
+{
+  "auth": {
+    "disclaimer": "Jeder unbefugte Versuch, die Sicherheitsvorkehrungen zu umgehen oder sensitive Daten (inklusive personenbezogener Daten) zu erlangen oder zu kompromittieren, wird lückenlos dokumentiert. Derartige Verstöße werden ausnahmslos und unverzüglich zur Strafanzeige gebracht, unabhängig davon, ob der Versuch erfolgreich war oder ob Daten tatsächlich erlangt wurden.",
+    "disclaimer_title": "Wichtiger rechtlicher Hinweis!",
+    "name": "Name",
+    "passcode": "Zugangscode",
+    "server_status": {
+      "error": "Server nicht erreichbar",
+      "good": "Server erreichbar",
+      "not_ok": "Serververbindung unterbrochen",
+      "ok": "Serverantwort unerwartet"
+    },
+    "terms": "Nutzungsbedingungen und Datenschutzerklärung akzeptieren",
+    "title": "Authentifizierung"
+  },
+  "comparison": {
+    "attribution": "Bearbeitetes Original von Alarichall, CC BY-SA 4.0, via Wikimedia Commons",
+    "headline": "Papier ist von <b>gestern.</b> Starte heute noch in die <b>Zukunft</b>"
+  },
+  "footer": {
+    "by_students_for_students": "Dies ist ein privates Projekt von Schülern für Schüler",
+    "disclaimer": {
+      "text": "Dies ist eine geschützte und private Applikation. Jeder unbefugte Versuch, die Sicherheitsvorkehrungen zu umgehen oder sensitive Daten (inklusive personenbezogener Daten) zu erlangen oder zu kompromittieren, wird ausnahmslos dokumentiert. Derartige Verstöße werden ausnahmslos und unverzüglich zur Strafanzeige gebracht, unabhängig davon, ob der Versuch erfolgreich war oder ob Daten tatsächlich erlangt wurden.",
+      "title": "Hinweis"
+    },
+    "navigation": {
+      "landing_page": "Startseite",
+      "status": "Status"
+    }
+  },
+  "hero": {
+    "cta": "Jetzt loslegen",
+    "headline_sans": "in deiner <b>Hosentasche</b>",
+    "headline_serif": "Dein Schulleben",
+    "learn_more": "Mehr erfahren",
+    "subline": "Alle Infos zu jeder Zeit in deiner Hosentasche. Kollaborativ und ",
+    "subline_highlight": "komplett kostenfrei",
+    "visual": {
+      "items": [
+        {
+          "title": "Kapitel 3 lesen"
+        },
+        {
+          "title": "Notizen für den Test"
+        },
+        {
+          "title": "Aufgaben im Buch",
+          "text": "S. 137 4b und 5 schriftlich bearbeiten"
+        }
+      ]
+    }
+  },
+  "reasons": {
+    "by_students_for_students": "<b>Von </b> Schülern <b>für </b> Schüler, das heißt:",
+    "reasons": [
+      {
+        "number": "0",
+        "text": " Euro"
+      },
+      {
+        "number": "0",
+        "text": " Werbung"
+      },
+      {
+        "number": "0",
+        "text": " verkaufte Daten"
+      },
+      {
+        "number": "100%",
+        "text": " Liebe zum Detail"
+      }
+    ],
+    "why": "Warum schul-dashboard?"
+  },
+  "verify": {
+    "causes": {
+      "expired_link": "Der Link ist abgelaufen (Die Gültigkeit des Links ist zeitlich begrenzt)",
+      "used_link": "Der Link wurde bereits verwendet",
+      "wrong_link": "Der Link wurde nicht korrekt kopiert"
+    },
+    "close_tab": "Du kannst diesen Tab nun schließen und dich mit deinem Konto anmelden.",
+    "error": "Verifizierung fehlgeschlagen",
+    "error_description": "Dein Bestätigungslink ist ungültig oder bereits abgelaufen. Versuche es erneut oder kontaktiere unseren Support.",
+    "possible_causes": "Mögliche Gründe",
+    "success": "Erfolgreich verifiziert!",
+    "success_description": "Deine E-Mail wurde erfolgreich verifiziert. Du kannst dich jetzt anmelden",
+    "verifying": "E-Mail wird verifiziert",
+    "wait": "Bitte warte einen Moment, wir verifizieren gerade deine E-Mail..."
+  }
+}

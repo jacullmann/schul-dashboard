@@ -45,10 +45,10 @@ async function verify() {
     const isExpired =
       result.error?.includes('expired') || result.error?.includes('abgelaufen');
     if (isExpired) {
-      error.value = t('account.mfa.verify.errors.sessionExpired');
+      error.value = t('auth.mfa.verify.errors.session_expired');
       setTimeout(() => emit('cancelled'), 2000);
     } else {
-      error.value = result.error || t('account.mfa.verify.errors.failed');
+      error.value = result.error || t('auth.mfa.verify.errors.failed');
     }
     code.value = '';
     shakeInput.value = true;
@@ -76,13 +76,13 @@ onMounted(() => {
 
 <template>
   <CenteredAuthModal
-    :title="t('account.mfa.verify.title')"
+    :title="t('auth.mfa.verify.title')"
     :close-on-backdrop="false"
     @close="cancel"
   >
     <div class="space-y-4">
       <p class="text-sm text-on-ghost-muted text-center">
-        {{ t('account.mfa.verify.instruction') }}
+        {{ t('auth.mfa.verify.instruction') }}
       </p>
 
       <div class="flex justify-center">
@@ -121,19 +121,25 @@ onMounted(() => {
           class="flex items-center justify-center gap-2 text-danger text-sm"
         >
           <AlertTriangle :size="16" />
-          {{ t('account.mfa.verify.attemptsRemaining', attemptsRemaining) }}
+          {{
+          attemptsRemaining === 0
+            ? t('auth.mfa.verify.attempts_remaining_none')
+            : attemptsRemaining === 1
+              ? t('auth.mfa.verify.attempts_remaining_one', { n: 1 })
+              : t('auth.mfa.verify.attempts_remaining_other', { n: attemptsRemaining })
+        }}
         </div>
       </Transition>
 
       <div class="pt-4 border-t border-canvas-border">
         <p class="text-xs/relaxed text-on-ghost-muted text-center m-0">
-          {{ t('account.mfa.verify.support.text') }}
+          {{ t('auth.mfa.verify.support.text') }}
           <br />
           <a
             href="mailto:kontakt@schul-dashboard.com"
             class="text-on-ghost underline hover:opacity-75 transition-opacity"
           >
-            {{ t('account.mfa.verify.support.link') }}
+            {{ t('auth.mfa.verify.support.link') }}
           </a>
         </p>
       </div>
@@ -141,7 +147,7 @@ onMounted(() => {
 
     <template #actions>
       <BaseButton type="button" variant="ghost" @click="cancel">
-        {{ t('global.buttons.cancel') }}
+        {{ t('common.buttons.cancel') }}
       </BaseButton>
       <BaseButton
         type="button"
@@ -150,7 +156,7 @@ onMounted(() => {
         :disabled="code.length !== 6 || loading"
         :loading="loading"
       >
-        {{ t('global.buttons.confirm') }}
+        {{ t('common.buttons.confirm') }}
       </BaseButton>
     </template>
   </CenteredAuthModal>

@@ -163,7 +163,7 @@ onUnmounted(() => {
     <div class="flex flex-col gap-4 w-full flex-1 min-h-0">
       <div class="hidden md:flex flex flex-col w-full">
         <SidebarButton
-          :label="isExpanded ? t('sidebar.collapse') : t('sidebar.expand')"
+          :label="isExpanded ? t('common.sidebar.collapse') : t('common.sidebar.expand')"
           :shortcut="['ctrl', 'shift', 'd']"
           :expanded="isExpanded"
           :icon="PanelLeft"
@@ -174,7 +174,7 @@ onUnmounted(() => {
 
       <div class="flex flex-col gap-0 w-full">
         <SidebarButton
-          :label="t('sidebar.entry')"
+          :label="t('common.sidebar.entry')"
           :shortcut="['alt', 'n']"
           :expanded="isExpanded"
           :icon="CirclePlus"
@@ -184,7 +184,7 @@ onUnmounted(() => {
 
         <SidebarButton
           v-if="isAnyGroupAdmin"
-          :label="t('sidebar.announcement')"
+          :label="t('common.sidebar.announcement')"
           :shortcut="['alt', 'n']"
           :expanded="isExpanded"
           :icon="Megaphone"
@@ -193,7 +193,7 @@ onUnmounted(() => {
         />
 
         <SidebarButton
-          :label="t('sidebar.search')"
+          :label="t('common.sidebar.search')"
           :shortcut="['ctrl', 'k']"
           :expanded="isExpanded"
           :icon="Search"
@@ -204,7 +204,7 @@ onUnmounted(() => {
 
       <div class="flex flex-col gap-0 w-full">
         <SidebarButton
-          :label="t('sidebar.home')"
+          :label="t('common.sidebar.home')"
           :expanded="isExpanded"
           :active="$route.path.startsWith('/home')"
           :icon="House"
@@ -213,7 +213,7 @@ onUnmounted(() => {
         />
 
         <SidebarButton
-          :label="t('sidebar.tasks')"
+          :label="t('common.sidebar.tasks')"
           :expanded="isExpanded"
           :active="$route.path.startsWith(`/groups/${activeGroupId}/items`)"
           :icon="ListTodo"
@@ -226,7 +226,7 @@ onUnmounted(() => {
         />
 
         <SidebarButton
-          :label="t('sidebar.schedule')"
+          :label="t('common.sidebar.schedule')"
           :expanded="isExpanded"
           :active="$route.path.startsWith(`/groups/${activeGroupId}/schedule`)"
           :icon="CalendarDays"
@@ -239,7 +239,7 @@ onUnmounted(() => {
         />
 
         <SidebarButton
-          :label="t('sidebar.messages')"
+          :label="t('common.sidebar.messages')"
           :expanded="isExpanded"
           :active="$route.path.startsWith(`/groups/${activeGroupId}/messages`)"
           :icon="MessageCircle"
@@ -253,7 +253,7 @@ onUnmounted(() => {
 
         <SidebarButton
           v-if="activeGroupId"
-          :label="t('sidebar.admin')"
+          :label="t('common.sidebar.admin')"
           :expanded="isExpanded"
           :active="$route.path.startsWith(`/groups/${activeGroupId}/settings`)"
           :icon="Settings"
@@ -274,7 +274,7 @@ onUnmounted(() => {
         />
 
         <SidebarButton
-          :label="t('sidebar.private')"
+          :label="t('common.sidebar.private')"
           :expanded="isExpanded"
           :active="$route.path.startsWith('/todos')"
           :icon="Lock"
