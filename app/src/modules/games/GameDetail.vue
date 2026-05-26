@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { getGameById } from '@/modules/games/composables/GameData';
 import type { Game } from '@/modules/games/types';
 import { ChevronLeft } from '@lucide/vue';

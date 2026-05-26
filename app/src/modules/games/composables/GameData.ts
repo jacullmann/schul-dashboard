@@ -1,11 +1,14 @@
 import { defineAsyncComponent } from 'vue';
 import type { Game } from '@/modules/games/types';
+import i18n from '@/i18n';
 
 export const games: Game[] = [
   {
     id: 'tic-tac-toe',
     name: 'Tic-Tac-Toe',
-    description: useI18n().t('games.list.tic_tac_toe.description'),
+    get description() {
+      return i18n.global.t('games.list.tic_tac_toe.description');
+    },
     component: defineAsyncComponent(() => import('../pages/TicTacToe.vue')),
     tags: ['Strategie', '2-Spieler'],
     previewImage:
@@ -14,18 +17,29 @@ export const games: Game[] = [
   {
     id: 'russisch-roulette',
     name: 'Russisch Roulette',
-    description: useI18n().t('games.list.russian_roulette.description'),
+    get description() {
+      return i18n.global.t('games.list.russian_roulette.description');
+    },
     component: defineAsyncComponent(
       () => import('../pages/RussianRoulette.vue'),
     ),
-    tags: [useI18n().t('games.list.russian_roulette.tags.strategy'), useI18n().t('games.list.russian_roulette.tags.no_gambling'), useI18n().t('games.list.russian_roulette.tags.classic'), useI18n().t('games.list.russian_roulette.tags.russian')],
+    get tags() {
+      return [
+        i18n.global.t('games.list.russian_roulette.tags.strategy'),
+        i18n.global.t('games.list.russian_roulette.tags.no_gambling'),
+        i18n.global.t('games.list.russian_roulette.tags.classic'),
+        i18n.global.t('games.list.russian_roulette.tags.russian'),
+      ];
+    },
     previewImage:
       'https://images.unsplash.com/photo-1594078807666-6af57bc52363?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
   },
   {
     id: 'rock-paper-scissors',
     name: 'Schere, Stein, Papier',
-    description: useI18n().t('games.list.rock_paper_scissors.description'),
+    get description() {
+      return i18n.global.t('games.list.rock_paper_scissors.description');
+    },
     component: defineAsyncComponent(
       () => import('../pages/RockPaperScissors.vue'),
     ),
@@ -45,7 +59,9 @@ export const games: Game[] = [
   {
     id: 'memory-game',
     name: 'Memory',
-    description: useI18n().t('games.list.memory_game.description'),
+    get description() {
+      return i18n.global.t('games.list.memory_game.description');
+    },
     component: defineAsyncComponent(() => import('../pages/MemoryGame.vue')),
     tags: ['Klassiker', 'Gehirntraining', 'Solo'],
     previewImage:
@@ -54,8 +70,9 @@ export const games: Game[] = [
   {
     id: 'snake-game',
     name: 'Snake',
-    description:
-      useI18n().t('games.list.snake_game.description'),
+    get description() {
+      return i18n.global.t('games.list.snake_game.description');
+    },
     component: defineAsyncComponent(() => import('../pages/SnakeGame.vue')),
     tags: ['Arcade', 'Klassiker', 'Action'],
     previewImage:
@@ -64,9 +81,17 @@ export const games: Game[] = [
   {
     id: 'whack-a-mole',
     name: 'Whack-a-Mole',
-    description: useI18n().t('games.list.whack_a_mole.description'),
+    get description() {
+      return i18n.global.t('games.list.whack_a_mole.description');
+    },
     component: defineAsyncComponent(() => import('../pages/WhackAMole.vue')),
-    tags: [useI18n().t('games.list.whack_a_mole.tags.reaction'), useI18n().t('games.list.whack_a_mole.tags.fun'), useI18n().t('games.list.whack_a_mole.tags.solo')],
+    get tags() {
+      return [
+        i18n.global.t('games.list.whack_a_mole.tags.reaction'),
+        i18n.global.t('games.list.whack_a_mole.tags.fun'),
+        i18n.global.t('games.list.whack_a_mole.tags.solo'),
+      ];
+    },
     previewImage:
       'https://images.unsplash.com/photo-1651559316159-69315814fe1c?q=80&w=1450&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
   },

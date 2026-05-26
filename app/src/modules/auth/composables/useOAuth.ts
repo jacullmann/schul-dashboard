@@ -1,4 +1,5 @@
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import hw from '@/api/hwApi';
 
 const showLinkModal = ref(false);
@@ -10,16 +11,18 @@ interface LinkedProvider {
   email: string;
 }
 
-const ERROR_MESSAGES: Record<string, string> = {
-  access_denied: 'Google-Anmeldung abgebrochen.',
-  invalid_state: 'Sicherheitsfehler. Bitte erneut versuchen.',
-  token_invalid: useI18n().t('auth.google_link.errors.token_invalid'),
-  token_exchange_failed: 'Verbindung zu Google fehlgeschlagen.',
-  invalid_request: useI18n().t('auth.google_link.errors.invalid_request'),
-  server_error: 'Ein Serverfehler ist aufgetreten.',
-};
-
 export function useOAuth() {
+  const { t } = useI18n();
+
+  const ERROR_MESSAGES: Record<string, string> = {
+    access_denied: 'Google-Anmeldung abgebrochen.',
+    invalid_state: 'Sicherheitsfehler. Bitte erneut versuchen.',
+    token_invalid: t('auth.google_link.errors.token_invalid'),
+    token_exchange_failed: 'Verbindung zu Google fehlgeschlagen.',
+    invalid_request: t('auth.google_link.errors.invalid_request'),
+    server_error: 'Ein Serverfehler ist aufgetreten.',
+  };
+
   function initiateGoogleLogin(): void {
     const base =
       typeof import.meta !== 'undefined' && import.meta.env
@@ -66,12 +69,12 @@ export function useOAuth() {
         showLinkModal.value = false;
         return { ok: true };
       }
-      return { ok: false, error: useI18n().t('auth.google_link.errors.failed') };
+      return { ok: false, error: t('auth.google_link.errors.failed') };
     } catch (err: unknown) {
       const e = err as { response?: { data?: { error?: string } } };
       return {
         ok: false,
-        error: e.response?.data?.error ?? useI18n().t('auth.google_link.errors.failed'),
+        error: e.response?.data?.error ?? t('auth.google_link.errors.failed'),
       };
     }
   }
