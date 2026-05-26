@@ -170,15 +170,15 @@ function goBack() {
   <div class="phone-settings-container">
     <Transition :name="transitionName">
       <div v-if="!activeTab" class="settings-pane master-pane" key="master">
-        <header class="settings-header">
-          <div class="header-content">
-            <h1 class="header-title">Gruppen Verwaltung</h1>
-            <p v-if="groupName" class="header-subtitle">{{ groupName }}</p>
+        <header class="p-4 pt-6 md:pt-8 md:px-6 md:pb-5 bg-canvas border-b border-canvas-border shrink-0">
+          <div class="w-full max-w-200 mx-auto">
+            <h1>Gruppen Verwaltung</h1>
+            <div v-if="groupName" class="text-on-ghost-muted font-semibold text-base">{{ groupName }}</div>
           </div>
         </header>
 
         <div class="p-0 md:p-4">
-          <div class="settings-group">
+          <div class="flex flex-col max-w-200 mx-auto ">
             <BaseList
               v-for="(item, index) in navItems"
               :key="item.id"
@@ -212,7 +212,7 @@ function goBack() {
       </div>
 
       <div v-else class="settings-pane detail-pane" :key="activeTab">
-        <header class="detail-header">
+        <header class="flex items-center py-4 md:py-6 h-16 bg-canvas border-b border-canvas-border shrink-0">
           <div
             class="header-left max-w-250 my-0 mx-auto flex items-center w-full gap-2"
           >
@@ -227,8 +227,8 @@ function goBack() {
           </div>
         </header>
 
-        <div class="detail-content scrollbar-hide">
-          <div class="detail-inner">
+        <div class="flex-1 overflow-y-auto p-4 md:py-8 px-6 bg-canvas">
+          <div class="w-full max-w-250 mx-auto">
             <GroupSettingsOverview
               v-if="activeTab === 'overview'"
               :stats="stats"
@@ -323,62 +323,6 @@ function goBack() {
   overflow: hidden;
 }
 
-.settings-header {
-  padding: 32px 24px 20px;
-  background: var(--color-canvas);
-  border-bottom: 1px solid var(--color-canvas-border);
-  flex-shrink: 0;
-}
-
-.header-content {
-  max-width: 800px;
-  margin: 0 auto;
-  width: 100%;
-}
-
-.header-title {
-  font-size: 2.25rem;
-  font-weight: 800;
-  letter-spacing: -0.035em;
-  color: var(--color-on-ghost);
-}
-
-.header-subtitle {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--color-on-ghost-muted);
-  margin-top: 6px;
-}
-.settings-group {
-  max-width: 800px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-}
-
-.detail-header {
-  height: 68px;
-  padding: 0 24px;
-  display: flex;
-  align-items: center;
-  background: var(--color-canvas);
-  border-bottom: 1px solid var(--color-canvas-border);
-  flex-shrink: 0;
-}
-
-.detail-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 32px 24px;
-  background: var(--color-canvas);
-}
-
-.detail-inner {
-  max-width: 1000px;
-  margin: 0 auto;
-  width: 100%;
-}
-
 .slide-forward-enter-active,
 .slide-forward-leave-active {
   transition:
@@ -431,20 +375,5 @@ function goBack() {
 .slide-backward-leave-to {
   transform: translateX(100%);
   z-index: 2;
-}
-
-@media (max-width: 767px) {
-  .settings-header {
-    padding: 24px 16px 16px;
-  }
-  .settings-list-wrapper {
-    padding: 0;
-  }
-  .detail-header {
-    padding: 0 16px;
-  }
-  .detail-content {
-    padding: 20px 16px;
-  }
 }
 </style>

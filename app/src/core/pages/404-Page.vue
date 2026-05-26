@@ -23,77 +23,113 @@ const goBack = () => {
 </script>
 
 <template>
-  <div class="card not-found-container">
-    <div class="not-found-content">
-      <div class="error-code animate-fade-up">404</div>
+  <div class="p-4 max-w-[800px] my-0 mx-0 md:my-10 md:mx-auto">
+    <div class="flex flex-col items-center text-center py-5 max-[500px]:py-2.5">
+      <div
+        class="font-display text-[96px] font-bold text-on-ghost leading-none mb-4 tracking-[-0.02em] max-md:text-[72px] max-[500px]:text-[64px] animate-fade-up"
+      >
+        404
+      </div>
       <h1
-        class="error-title animate-fade-up"
+        class="font-display text-[32px] font-semibold text-on-ghost m-0 mb-3 max-md:text-[24px] animate-fade-up"
         style="animation-delay: 0.05s; animation-fill-mode: both"
       >
         Page not found
       </h1>
       <p
-        class="error-description animate-fade-up"
+        class="text-base text-on-ghost-muted m-0 mb-12 max-w-[500px] max-md:text-sm max-md:mb-8 animate-fade-up"
         style="animation-delay: 0.1s; animation-fill-mode: both"
       >
         The page you're looking for doesn't exist or isn't available.
       </p>
 
       <div
-        class="navigation-section animate-fade-up"
+        class="w-full mb-8 animate-fade-up"
         style="animation-delay: 0.15s; animation-fill-mode: both"
       >
-        <div class="nav-grid">
-          <router-link to="/home" class="nav-card">
-            <div class="nav-icon">
+        <div
+          class="grid w-full gap-3 grid-cols-[repeat(auto-fit,minmax(280px,1fr))] max-md:grid-cols-1"
+        >
+          <router-link
+            to="/home"
+            class="flex items-center gap-3 p-3 bg-surface border border-surface-border shadow-input rounded-xl no-underline transition-all duration-150 ease cursor-pointer hover:bg-surface-highlight"
+          >
+            <div
+              class="shrink-0 w-10 h-10 flex items-center justify-center text-on-ghost-muted"
+            >
               <LayoutDashboard :size="24" />
             </div>
-            <div class="nav-info">
-              <div class="nav-title">Homepage</div>
-              <div class="nav-desc">Overview of your groups</div>
+            <div class="flex-1 text-left">
+              <div class="text-[15px] font-semibold text-on-ghost mb-[2px]">
+                Homepage
+              </div>
+              <div class="text-[13px] text-on-ghost-muted">
+                Overview of your groups
+              </div>
             </div>
           </router-link>
 
           <router-link
             :to="`/groups/${activeGroupId}/items/all`"
-            class="nav-card"
+            class="flex items-center gap-3 p-3 bg-surface border border-surface-border shadow-input rounded-xl no-underline transition-all duration-150 ease cursor-pointer hover:bg-surface-highlight"
           >
-            <div class="nav-icon">
+            <div
+              class="shrink-0 w-10 h-10 flex items-center justify-center text-on-ghost-muted"
+            >
               <ListTodo :size="24" />
             </div>
-            <div class="nav-info">
-              <div class="nav-title">Tasks</div>
-              <div class="nav-desc">Homework, assignments and exams</div>
+            <div class="flex-1 text-left">
+              <div class="text-[15px] font-semibold text-on-ghost mb-[2px]">
+                Tasks
+              </div>
+              <div class="text-[13px] text-on-ghost-muted">
+                Homework, assignments and exams
+              </div>
             </div>
           </router-link>
 
           <router-link
             :to="`/groups/${activeGroupId}/schedule`"
-            class="nav-card"
+            class="flex items-center gap-3 p-3 bg-surface border border-surface-border shadow-input rounded-xl no-underline transition-all duration-150 ease cursor-pointer hover:bg-surface-highlight"
           >
-            <div class="nav-icon">
+            <div
+              class="shrink-0 w-10 h-10 flex items-center justify-center text-on-ghost-muted"
+            >
               <CalendarDays :size="24" />
             </div>
-            <div class="nav-info">
-              <div class="nav-title">Schedule</div>
-              <div class="nav-desc">All of your lessons</div>
+            <div class="flex-1 text-left">
+              <div class="text-[15px] font-semibold text-on-ghost mb-[2px]">
+                Schedule
+              </div>
+              <div class="text-[13px] text-on-ghost-muted">
+                All of your lessons
+              </div>
             </div>
           </router-link>
 
-          <router-link to="/todos" class="nav-card">
-            <div class="nav-icon">
+          <router-link
+            to="/todos"
+            class="flex items-center gap-3 p-3 bg-surface border border-surface-border shadow-input rounded-xl no-underline transition-all duration-150 ease cursor-pointer hover:bg-surface-highlight"
+          >
+            <div
+              class="shrink-0 w-10 h-10 flex items-center justify-center text-on-ghost-muted"
+            >
               <Lock :size="24" />
             </div>
-            <div class="nav-info">
-              <div class="nav-title">Private Tasks</div>
-              <div class="nav-desc">Your private list of tasks</div>
+            <div class="flex-1 text-left">
+              <div class="text-[15px] font-semibold text-on-ghost mb-[2px]">
+                Private Tasks
+              </div>
+              <div class="text-[13px] text-on-ghost-muted">
+                Your private list of tasks
+              </div>
             </div>
           </router-link>
         </div>
       </div>
 
       <div
-        class="action-section animate-fade-up"
+        class="mt-4 animate-fade-up"
         style="animation-delay: 0.2s; animation-fill-mode: both"
       >
         <BaseButton @click="goBack" variant="ghost" :icon="ArrowLeft">
@@ -103,150 +139,3 @@ const goBack = () => {
     </div>
   </div>
 </template>
-
-<style scoped>
-.not-found-container {
-  max-width: 800px;
-  margin: 40px auto;
-}
-
-.not-found-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 20px 0;
-}
-
-.error-code {
-  font-family: var(--font-display), sans-serif;
-  font-size: 96px;
-  font-weight: 700;
-  color: var(--color-on-ghost);
-  line-height: 1;
-  margin-bottom: 16px;
-  letter-spacing: -0.02em;
-}
-
-.error-title {
-  font-family: var(--font-display), sans-serif;
-  font-size: 32px;
-  font-weight: 600;
-  color: var(--color-on-ghost);
-  margin: 0 0 12px 0;
-}
-
-.error-description {
-  font-size: var(--text-base);
-  color: var(--color-on-ghost-muted);
-  margin: 0 0 48px 0;
-  max-width: 500px;
-}
-
-.navigation-section {
-  width: 100%;
-  margin-bottom: 32px;
-}
-
-.section-title {
-  font-family: var(--font-display), sans-serif;
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--color-on-ghost);
-  margin: 0 0 16px 0;
-  text-align: left;
-}
-
-.nav-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 12px;
-  width: 100%;
-}
-
-.nav-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-surface-border);
-  box-shadow: var(--shadow-input);
-  border-radius: var(--radius-xl);
-  text-decoration: none;
-  transition: all 0.15s ease;
-  cursor: pointer;
-}
-
-.nav-card:hover {
-  background-color: var(--color-surface-highlight);
-}
-
-.nav-icon {
-  flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-on-ghost-muted);
-}
-
-.nav-info {
-  flex: 1;
-  text-align: left;
-}
-
-.nav-title {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--color-on-ghost);
-  margin-bottom: 2px;
-}
-
-.nav-desc {
-  font-size: 13px;
-  color: var(--color-on-ghost-muted);
-}
-
-.action-section {
-  margin-top: 16px;
-}
-
-@media (max-width: 768px) {
-  .not-found-container {
-    margin: 0;
-  }
-
-  .error-code {
-    font-size: 72px;
-  }
-
-  .error-title {
-    font-size: 24px;
-  }
-
-  .error-description {
-    font-size: 14px;
-    margin-bottom: 32px;
-  }
-
-  .nav-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .section-title {
-    font-size: 16px;
-  }
-}
-
-@media (max-width: 500px) {
-  .error-code {
-    font-size: 64px;
-  }
-
-  .not-found-content {
-    padding: 10px 0;
-  }
-}
-</style>
