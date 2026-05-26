@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE password_resets SET used = true WHERE email = $1 AND used = false",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "749c81af697e2fd279832e7a4d4ec98d52f8c87370ff1496d587052481cb7869"
+}

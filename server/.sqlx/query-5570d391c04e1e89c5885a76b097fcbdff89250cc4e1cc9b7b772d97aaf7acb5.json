@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE users SET mfa_enabled = true, mfa_secret = $1 WHERE id = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Jsonb",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "5570d391c04e1e89c5885a76b097fcbdff89250cc4e1cc9b7b772d97aaf7acb5"
+}

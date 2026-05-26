@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                UPDATE refresh_tokens\n                SET revoked_at = now(), revoked_reason = $1\n                WHERE user_id = $2 AND revoked_at IS NULL AND family_id != $3\n                ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "004dc356766b8ac9b169aade79e39a68c38efd833166bbebed843c814c3d4340"
+}

@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM oauth_accounts WHERE user_id = $1 AND provider = 'google'",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "41c8ad2d2131d1fc7c423a9aa14007e2335662c7ffda012169b58e7dcdcae2b8"
+}

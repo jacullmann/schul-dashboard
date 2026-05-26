@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT position FROM encrypted_todos\n                WHERE user_id = $1\n                ORDER BY position ASC NULLS LAST LIMIT 1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "position",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "encrypted_todos",
+            "name": "position"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "44b8b91a27fe25f7cb9e62878cef8f449cc070a07aafd5a91cf069041ea236e5"
+}

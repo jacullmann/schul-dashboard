@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO security_events (event_type, event_status, ip_address, user_agent, metadata)\n             VALUES ('group_logout', 'success', $1::inet, $2, '{}'::jsonb)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Inet",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "5134b5cf2a8f2a52c9f888b6f4c6d28b4fe501402470a62c1f546abb564e7999"
+}

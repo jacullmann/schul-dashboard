@@ -1,0 +1,40 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT p.encrypted_secret, u.email\n               FROM mfa_pending_secrets p\n               JOIN users u ON u.id = p.user_id\n               WHERE p.user_id = $1 AND p.expires_at > now()",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "encrypted_secret",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "mfa_pending_secrets",
+            "name": "encrypted_secret"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "email",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "users",
+            "name": "email"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "eb01e28e107dad982f3e566b298a4157e394ce7c0a25132f3a93f25ebd0b06a4"
+}

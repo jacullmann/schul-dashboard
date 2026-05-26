@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT permissions FROM groups WHERE id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "permissions",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "groups",
+            "name": "permissions"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "661f517ebd3a75fb016b23efdf5368a79c56758893620bae42dd39eb3dea7981"
+}

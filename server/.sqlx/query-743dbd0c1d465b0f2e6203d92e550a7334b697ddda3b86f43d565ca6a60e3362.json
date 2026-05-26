@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO keep_checked (item_id, user_id, checked_at) VALUES ($1, $2, now())",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "743dbd0c1d465b0f2e6203d92e550a7334b697ddda3b86f43d565ca6a60e3362"
+}

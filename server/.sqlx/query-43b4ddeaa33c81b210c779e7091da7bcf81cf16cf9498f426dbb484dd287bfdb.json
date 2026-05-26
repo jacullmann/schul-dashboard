@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO pinned_items (item_id, user_id, pinned_at) VALUES ($1, $2, now())",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "43b4ddeaa33c81b210c779e7091da7bcf81cf16cf9498f426dbb484dd287bfdb"
+}

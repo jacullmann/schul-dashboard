@@ -51,7 +51,8 @@ impl UserService {
 
         let mut current = user
             .preferences
-            .and_then(|v| v.as_object().cloned())
+            .as_object()
+            .cloned()
             .unwrap_or_default();
 
         let allowed = ["theme", "language", "personalized"];

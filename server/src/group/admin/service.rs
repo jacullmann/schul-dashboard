@@ -132,7 +132,7 @@ impl GroupAdminService {
             return Err(AppError::bad_request("You cannot change your own role."));
         }
 
-        let role_id: i64 = match role {
+        let role_id: i32 = match role {
             "admin" => 2,
             "moderator" => 3,
             "user" => 4,
@@ -601,11 +601,12 @@ impl GroupAdminService {
         user_id: Uuid,
         dto: CreateScheduleSubDto,
     ) -> AppResult<Value> {
+        let day_str = dto.day.map(|d| d.to_string());
         let row = sqlx::query!(
             r#"INSERT INTO schedule_subs (tenant_id, lesson_id, day, slot, duration, subject, room, cancelled, hide)
                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
                RETURNING id, lesson_id, day, slot, duration, subject, room, cancelled, hide, created_at"#,
-            tenant_id, dto.lesson_id, dto.day, dto.slot, dto.duration,
+            tenant_id, dto.lesson_id, day_str.as_deref(), dto.slot, dto.duration,
             dto.subject, dto.room, dto.cancelled.unwrap_or(false), dto.hide.unwrap_or(false)
         ).fetch_one(&self.db).await?;
 
@@ -683,7 +684,7 @@ impl GroupAdminService {
 
         let mut merged = defaults.as_object().unwrap().clone();
 
-        if let Some(obj) = group.permissions.as_ref().and_then(|p| p.as_object()) {
+        if let Some(obj) = group.permissions.as_object() {
             for (k, v) in obj {
                 merged.insert(k.clone(), v.clone());
             }
@@ -720,7 +721,8 @@ impl GroupAdminService {
 
         let mut current = group
             .permissions
-            .and_then(|p| p.as_object().cloned())
+            .as_object()
+            .cloned()
             .unwrap_or_default();
 
         if let Some(obj) = permissions.as_object() {

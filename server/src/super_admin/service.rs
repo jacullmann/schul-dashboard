@@ -126,8 +126,7 @@ impl SuperAdminService {
             let owner_email =
                 sqlx::query_scalar!(r#"SELECT email FROM users WHERE id = $1"#, g.owner_id)
                     .fetch_optional(&self.db)
-                    .await?
-                    .flatten();
+                    .await?;
 
             result.push(json!({
                 "id": g.id, "name": g.name, "ownerId": g.owner_id,
@@ -177,7 +176,8 @@ impl SuperAdminService {
                     "role": u.global_role.unwrap_or_else(|| "user".into()),
                     "emailVerified": u.email_verified,
                     "createdAt": u.created_at, "lastLoginAt": u.last_login_at,
-                    "doneSetup": u.done_setup, "isBanned": banned_ids.contains(&u.id),
+                    "doneSetup": u.done_setup,
+                    "isBanned": u.id.map(|id| banned_ids.contains(&id)).unwrap_or(false),
                 }))
                 .collect::<Vec<_>>()
         ))
@@ -234,8 +234,8 @@ impl SuperAdminService {
             admin_id,
             json!({ "targetUserId": target_id })
         )
-        .execute(&self.db)
-        .await?;
+            .execute(&self.db)
+            .await?;
 
         Ok(json!({ "ok": true, "isBanned": false }))
     }
@@ -301,8 +301,8 @@ impl SuperAdminService {
                 r#"DELETE FROM user_roles WHERE user_id = $1 AND role_id = 1 AND tenant_id IS NULL"#,
                 target_id
             )
-            .execute(&self.db)
-            .await?;
+                .execute(&self.db)
+                .await?;
         }
 
         Ok(json!({ "ok": true }))
@@ -319,8 +319,8 @@ impl SuperAdminService {
             admin_id,
             json!({ "targetUserId": target_id })
         )
-        .execute(&self.db)
-        .await?;
+            .execute(&self.db)
+            .await?;
 
         Ok(json!({ "ok": true, "message": "Logs pruned." }))
     }
@@ -328,7 +328,7 @@ impl SuperAdminService {
     pub async fn get_reports(&self) -> AppResult<Value> {
         let rows = sqlx::query!(
             r#"SELECT id, item_id, item_title, category, reason, reporter_id, reporter_email,
-                    processed, processed_at, reported_at FROM reports ORDER BY created_at DESC"#
+                      processed, processed_at, reported_at FROM reports ORDER BY created_at DESC"#
         )
         .fetch_all(&self.db)
         .await?;
@@ -354,12 +354,12 @@ impl SuperAdminService {
     ) -> AppResult<Value> {
         let row = sqlx::query!(
             r#"UPDATE reports SET processed = $1,
-               processed_at = CASE WHEN $1 THEN now() ELSE NULL END,
-               processed_by = CASE WHEN $1 THEN $2 ELSE NULL END
-               WHERE id = $3 RETURNING processed, processed_at"#,
-            processed,
-            admin_id,
-            report_id
+   processed_at = CASE WHEN $1 THEN now() ELSE NULL END,
+   processed_by = CASE WHEN $1 THEN $2::uuid ELSE NULL END
+   WHERE id = $3 RETURNING processed, processed_at"#,
+processed,
+admin_id as Uuid,
+report_id
         )
         .fetch_optional(&self.db)
         .await?

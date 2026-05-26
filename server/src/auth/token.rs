@@ -79,6 +79,8 @@ impl TokenService {
 
         let ua = user_agent.map(|s| if s.len() > 512 { &s[..512] } else { s });
 
+        let ip_parsed: Option<ipnetwork::IpNetwork> = ip_address.and_then(|s| s.parse().ok());
+
         let row = sqlx::query!(
             r#"
             INSERT INTO refresh_tokens
@@ -92,7 +94,7 @@ impl TokenService {
             parent_id,
             expires_at,
             ua,
-            ip_address,
+            ip_parsed,
         )
         .fetch_one(&self.db)
         .await?;

@@ -1,0 +1,29 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                SELECT r.name FROM user_roles ur\n                JOIN roles r ON r.id = ur.role_id\n                WHERE ur.user_id = $1 AND ur.tenant_id = $2\n                LIMIT 1\n                ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "roles",
+            "name": "name"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "a08f19f7ad22353b75ff36623d2675bcd3a394fcb76d18c22237da321d891c2f"
+}

@@ -1,0 +1,52 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT ur.user_id, ur.assigned_at, r.name as role_name\n               FROM user_roles ur JOIN roles r ON r.id = ur.role_id\n               WHERE ur.tenant_id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "user_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "user_roles",
+            "name": "user_id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "assigned_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "user_roles",
+            "name": "assigned_at"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "role_name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "roles",
+            "name": "name"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "9479873dcdbd334dff29dfc8551f9935590a0c8b77641e45b6f3096f3c0a5612"
+}

@@ -106,11 +106,13 @@ impl GroupService {
             }
         }
 
+        let ip_parsed: Option<ipnetwork::IpNetwork> = ip.and_then(|s| s.parse().ok());
+
         sqlx::query!(
             r#"INSERT INTO security_events (event_type, event_status, ip_address, user_agent, metadata)
              VALUES ('group_join', $1, $2::inet, $3, $4)"#,
             if authenticated { "success" } else { "failure" },
-            ip, ua,
+            ip_parsed, ua,
             json!({ "groupName": group_name, "userId": user_id })
         ).execute(&self.db).await?;
 
@@ -161,11 +163,13 @@ impl GroupService {
             .fetch_optional(&self.db)
             .await?;
 
+        let ip_parsed: Option<ipnetwork::IpNetwork> = ip.and_then(|s| s.parse().ok());
+
         if exists.is_some() {
             sqlx::query!(
                 r#"INSERT INTO security_events (event_type, event_status, ip_address, user_agent, metadata)
                  VALUES ('group_create', 'failure', $1::inet, $2, $3)"#,
-                ip, ua, json!({ "groupName": group_name })
+                ip_parsed, ua, json!({ "groupName": group_name })
             ).execute(&self.db).await?;
 
             return Err(AppError::bad_request("This group name is already taken."));
@@ -189,7 +193,7 @@ impl GroupService {
         sqlx::query!(
             r#"INSERT INTO security_events (event_type, event_status, ip_address, user_agent, metadata)
              VALUES ('group_create', 'success', $1::inet, $2, $3)"#,
-            ip, ua, json!({ "groupName": group.name, "groupId": group.id, "createdBy": user_id })
+            ip_parsed, ua, json!({ "groupName": group.name, "groupId": group.id, "createdBy": user_id })
         ).execute(&self.db).await?;
 
         let jar = self
@@ -227,7 +231,7 @@ impl GroupService {
                     "id": ur.gid, "name": ur.gname, "ownerId": ur.owner_id,
                     "role": ur.role_name, "hasUnreadContent": false,
                     "scheduleConfig": ur.schedule_config, "avatarUrl": ur.avatar_url,
-                    "permissions": ur.permissions.unwrap_or(json!({})),
+                    "permissions": ur.permissions,
                 })
             })
             .collect();
@@ -250,7 +254,7 @@ impl GroupService {
                         "id": g.id, "name": g.name, "ownerId": g.owner_id,
                         "role": "superadmin", "hasUnreadContent": false,
                         "scheduleConfig": g.schedule_config, "avatarUrl": g.avatar_url,
-                        "permissions": g.permissions.unwrap_or(json!({})),
+                        "permissions": g.permissions,
                     })
                 }),
                 None => None,
@@ -388,10 +392,12 @@ impl GroupService {
         ip: Option<&str>,
         ua: Option<&str>,
     ) -> AppResult<CookieJar> {
+        let ip_parsed: Option<ipnetwork::IpNetwork> = ip.and_then(|s| s.parse().ok());
+
         sqlx::query!(
             r#"INSERT INTO security_events (event_type, event_status, ip_address, user_agent, metadata)
              VALUES ('group_logout', 'success', $1::inet, $2, '{}'::jsonb)"#,
-            ip, ua
+            ip_parsed, ua
         ).execute(&self.db).await?;
 
         let opts = self.state.config.base_cookie_options();

@@ -9,7 +9,8 @@ use sha2::{Digest, Sha256};
 use sqlx::PgPool;
 use uuid::Uuid;
 
-fn time_left_color(due: &chrono::DateTime<Utc>) -> &'static str {
+fn time_left_color(due: Option<&chrono::DateTime<Utc>>) -> &'static str {
+    let Some(due) = due else { return "ok" };
     let diff = (*due - Utc::now()).num_seconds() as f64 / 86400.0;
     if diff < 0.0 {
         "expired"
@@ -52,12 +53,12 @@ impl ItemsService {
 
         let rows = sqlx::query!(
             r#"SELECT i.id, i.type, i.title, i.subject, i.description, i.images, i.due_date,
-                      i.created_by, i.editor_note, i.created_at, i.updated_at,
-                      u.email as creator_email
-               FROM items i
-               LEFT JOIN users u ON u.id = i.created_by
-               WHERE i.tenant_id = $1
-               ORDER BY i.due_date ASC"#,
+       i.created_by, i.editor_note, i.created_at, i.updated_at,
+       u.email as "creator_email?: String"
+FROM items i
+    LEFT JOIN users u ON u.id = i.created_by
+WHERE i.tenant_id = $1
+ORDER BY i.due_date ASC"#,
             tenant_id
         )
         .fetch_all(&self.db)
@@ -69,7 +70,7 @@ impl ItemsService {
             tokio::spawn(async move {
                 let _ = sqlx::query!(
                     r#"INSERT INTO user_tenant_state (user_id, tenant_id, last_group_visit_at)
-                     VALUES ($1, $2, now()) ON CONFLICT (user_id, tenant_id) DO UPDATE SET last_group_visit_at = now()"#,
+                       VALUES ($1, $2, now()) ON CONFLICT (user_id, tenant_id) DO UPDATE SET last_group_visit_at = now()"#,
                     user_id, tenant_id
                 ).execute(&db2).await;
             });
@@ -112,7 +113,7 @@ impl ItemsService {
                 "images": r.images, "dueDate": r.due_date,
                 "createdBy": r.created_by,
                 "createdByEmail": r.creator_email.unwrap_or_else(|| "Unbekannt".into()),
-                "timeColor": time_left_color(&r.due_date),
+                "timeColor": time_left_color(Some(&r.due_date)),
                 "editorNote": r.editor_note, "createdAt": r.created_at, "updatedAt": r.updated_at,
             }))
             .collect();
@@ -123,11 +124,11 @@ impl ItemsService {
     pub async fn get_item_by_id(&self, tenant_id: Uuid, id: Uuid) -> AppResult<Value> {
         let row = sqlx::query!(
             r#"SELECT i.id, i.type, i.title, i.subject, i.description, i.images, i.due_date,
-                      i.created_by, i.editor_note, i.created_at, i.updated_at,
-                      u.email as creator_email
-               FROM items i
-               LEFT JOIN users u ON u.id = i.created_by
-               WHERE i.id = $1 AND i.tenant_id = $2"#,
+          i.created_by, i.editor_note, i.created_at, i.updated_at,
+          u.email as "creator_email?: String"
+   FROM items i
+   LEFT JOIN users u ON u.id = i.created_by
+   WHERE i.id = $1 AND i.tenant_id = $2"#,
             id,
             tenant_id
         )
@@ -141,7 +142,7 @@ impl ItemsService {
             "images": row.images, "dueDate": row.due_date,
             "createdBy": row.created_by,
             "createdByEmail": row.creator_email.unwrap_or_else(|| "Unbekannt".into()),
-            "timeColor": time_left_color(&row.due_date),
+            "timeColor": time_left_color(row.due_date.as_ref()),
             "editorNote": row.editor_note, "createdAt": row.created_at, "updatedAt": row.updated_at,
         }))
     }
@@ -292,10 +293,9 @@ impl ItemsService {
             .ok_or_else(|| AppError::not_found("Group not found"))?;
 
             if group.owner_id != user_id {
-                let allowed = group
-                    .permissions
-                    .as_ref()
-                    .and_then(|p| p["delete_other_content"].as_str().map(String::from))
+                let allowed = group.permissions["delete_other_content"]
+                    .as_str()
+                    .map(String::from)
                     .unwrap_or_else(|| "moderator".into());
 
                 if !check_role_permission(tenant_role.unwrap_or("user"), &allowed) {

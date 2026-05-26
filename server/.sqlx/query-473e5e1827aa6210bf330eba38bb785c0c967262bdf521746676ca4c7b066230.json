@@ -1,0 +1,29 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE users SET personalized = $1 WHERE id = $2 RETURNING personalized",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "personalized",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "users",
+            "name": "personalized"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Bool",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "473e5e1827aa6210bf330eba38bb785c0c967262bdf521746676ca4c7b066230"
+}

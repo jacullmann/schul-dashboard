@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO user_activity (user_id, type, meta)\n            VALUES ($1, 'account:password_reset', $2)\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Jsonb"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "d02c1af92c91eb2b0d703f794816eadac24fb5ff1b1c9b6d055bfcad91153b54"
+}

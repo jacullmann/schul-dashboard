@@ -1,0 +1,53 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT r.name as role_name, g.owner_id, g.permissions\n            FROM user_roles ur\n            JOIN roles r ON r.id = ur.role_id\n            JOIN groups g ON g.id = ur.tenant_id\n            WHERE ur.user_id = $1 AND ur.tenant_id = $2\n            LIMIT 1\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "role_name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "roles",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "owner_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "groups",
+            "name": "owner_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "permissions",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "groups",
+            "name": "permissions"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "3428da33d3aa058430e0e1f73db3997b2e42d38f914bdccfc9a7de885b4ebda9"
+}

@@ -32,10 +32,10 @@ pub async fn handle_google_callback(
     State(s): State<AppState>,
     jar: CookieJar,
     Query(q): Query<OAuthCallbackQuery>,
-) -> Redirect {
+) -> (CookieJar, Redirect) {
     let state_cookie = jar.get("oauth_state_token").map(|c| c.value().to_string());
 
-    let url = OAuthService::from_state(&s)
+    let (new_jar, url) = OAuthService::from_state(&s)
         .handle_callback(
             q.code.as_deref(),
             q.state.as_deref(),
@@ -44,7 +44,7 @@ pub async fn handle_google_callback(
         )
         .await;
 
-    Redirect::temporary(&url)
+    (new_jar, Redirect::temporary(&url))
 }
 
 pub async fn link_google_account(

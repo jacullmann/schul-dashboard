@@ -144,10 +144,9 @@ impl MessagesService {
         .ok_or_else(|| AppError::not_found("Group not found"))?;
 
         if global_role != "superadmin" && group.owner_id != user_id {
-            let allowed = group
-                .permissions
-                .as_ref()
-                .and_then(|p| p["send_messages"].as_str().map(String::from))
+            let allowed = group.permissions["send_messages"]
+                .as_str()
+                .map(String::from)
                 .unwrap_or_else(|| "user".to_string());
 
             if !check_role_permission(tenant_role.unwrap_or("user"), &allowed) {
@@ -224,10 +223,9 @@ impl MessagesService {
             .ok_or_else(|| AppError::not_found("Group not found"))?;
 
             if group.owner_id != user_id {
-                let allowed = group
-                    .permissions
-                    .as_ref()
-                    .and_then(|p| p["delete_other_content"].as_str().map(String::from))
+                let allowed = group.permissions["delete_other_content"]
+                    .as_str()
+                    .map(String::from)
                     .unwrap_or_else(|| "moderator".to_string());
 
                 if !check_role_permission(tenant_role.unwrap_or("user"), &allowed) {

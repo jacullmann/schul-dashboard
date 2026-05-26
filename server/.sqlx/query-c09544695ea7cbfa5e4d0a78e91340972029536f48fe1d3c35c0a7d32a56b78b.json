@@ -1,0 +1,29 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT ars.announcement_id FROM user_announcement_read_status ars\n               JOIN announcements a ON a.id = ars.announcement_id\n               WHERE ars.user_id = $1 AND a.tenant_id = $2",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "announcement_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "user_announcement_read_status",
+            "name": "announcement_id"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "c09544695ea7cbfa5e4d0a78e91340972029536f48fe1d3c35c0a7d32a56b78b"
+}

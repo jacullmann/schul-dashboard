@@ -180,8 +180,8 @@ where
             return Ok(TenantContext {
                 tenant_id,
                 tenant_role: "superadmin".into(),
-                group_owner_id: row.owner_id,
-                group_permissions: row.permissions.unwrap_or(serde_json::json!({})),
+                group_owner_id: Some(row.owner_id),
+                group_permissions: row.permissions,
                 user,
             });
         }
@@ -205,8 +205,8 @@ where
         Ok(TenantContext {
             tenant_id,
             tenant_role: row.role_name,
-            group_owner_id: row.owner_id,
-            group_permissions: row.permissions.unwrap_or(serde_json::json!({})),
+            group_owner_id: Some(row.owner_id),
+            group_permissions: row.permissions,
             user,
         })
     }

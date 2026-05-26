@@ -1,0 +1,112 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT ur.tenant_id, g.id as gid, g.name as gname, g.owner_id, g.schedule_config,\n                      g.avatar_url, g.permissions, r.name as role_name\n               FROM user_roles ur\n               JOIN groups g ON g.id = ur.tenant_id\n               JOIN roles r ON r.id = ur.role_id\n               WHERE ur.user_id = $1 AND ur.tenant_id IS NOT NULL",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "tenant_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "user_roles",
+            "name": "tenant_id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "gid",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "groups",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "gname",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "groups",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "owner_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "groups",
+            "name": "owner_id"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "schedule_config",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "groups",
+            "name": "schedule_config"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "avatar_url",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "groups",
+            "name": "avatar_url"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "permissions",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "groups",
+            "name": "permissions"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "role_name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "roles",
+            "name": "name"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      true,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "a282e5a0e5397a8202da3f799aa0bbe39039e7c41e1b3fe2bbc036cc022ae4f3"
+}
