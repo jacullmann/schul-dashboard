@@ -35,12 +35,6 @@ pub struct UpdateEditorNoteDto {
     pub editor_note: String,
 }
 
-#[derive(Debug, Deserialize)]
-pub struct AddImageDto {
-    pub public_id: String,
-    pub metadata: Option<serde_json::Value>,
-}
-
 #[derive(Debug, Deserialize, Validate)]
 pub struct ReportItemDto {
     pub item_id: Uuid,

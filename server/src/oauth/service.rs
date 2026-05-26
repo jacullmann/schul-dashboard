@@ -1,6 +1,6 @@
 use crate::{
     auth::{cookies::*, token::TokenService},
-    common::{csrf::generate_csrf_token, jwt::JwtService, password::verify_password},
+    common::{csrf::generate_csrf_token, password::verify_password},
     config::Config,
     error::{AppError, AppResult},
     state::AppState,
@@ -36,7 +36,6 @@ pub struct OAuthPendingClaims {
 pub struct OAuthService {
     db: PgPool,
     config: Arc<Config>,
-    jwt: JwtService,
     http: reqwest::Client,
     state: AppState,
 }
@@ -46,7 +45,6 @@ impl OAuthService {
         Self {
             db: s.db.clone(),
             config: s.config.clone(),
-            jwt: s.jwt.clone(),
             http: s.http.clone(),
             state: s.clone(),
         }
@@ -181,9 +179,30 @@ impl OAuthService {
                     }
                 }
             }
-            Ok(OAuthResolution::LinkRequired { .. }) => {
-                (empty_jar, format!("{frontend}/?auth=link-required"))
-            }
+            Ok(OAuthResolution::LinkRequired {
+                google_id,
+                google_email,
+            }) => match self.sign_pending_cookie(&google_id, &google_email) {
+                Ok(pending_token) => {
+                    let opts = self.config.base_cookie_options();
+
+                    let mut c = Cookie::new(OAUTH_PENDING_COOKIE, pending_token);
+
+                    c.set_http_only(true);
+                    c.set_secure(opts.secure);
+                    c.set_path("/");
+                    c.set_same_site(SameSite::Lax);
+                    c.set_max_age(Duration::minutes(15));
+
+                    let jar = CookieJar::new().add(c);
+
+                    (jar, format!("{frontend}/?auth=link-required"))
+                }
+                Err(_) => (
+                    empty_jar,
+                    format!("{frontend}/?auth=error&reason=server_error"),
+                ),
+            },
             Ok(OAuthResolution::NewUser { user_id, email }) => {
                 match self.generate_auth_jar(user_id, &email).await {
                     Ok(jar) => (jar, format!("{frontend}/?auth=success")),
@@ -276,7 +295,10 @@ impl OAuthService {
         .await?;
 
         Ok(json!({
-            "providers": rows.iter().map(|r| json!({ "provider": r.provider, "email": r.provider_email })).collect::<Vec<_>>()
+            "providers": rows.iter().map(|r| json!({
+                "provider": r.provider,
+                "email": r.provider_email
+            })).collect::<Vec<_>>()
         }))
     }
 
@@ -312,7 +334,9 @@ impl OAuthService {
         let linked = sqlx::query!(
             r#"SELECT user_id FROM oauth_accounts WHERE provider = 'google' AND provider_user_id = $1"#,
             google_id
-        ).fetch_optional(&self.db).await?;
+        )
+            .fetch_optional(&self.db)
+            .await?;
 
         if let Some(row) = linked {
             let user = sqlx::query!(
@@ -353,12 +377,16 @@ impl OAuthService {
         let user = sqlx::query!(
             r#"INSERT INTO users (email, password_hash, email_verified) VALUES ($1, NULL, true) RETURNING id, email"#,
             email
-        ).fetch_one(&self.db).await?;
+        )
+            .fetch_one(&self.db)
+            .await?;
 
         sqlx::query!(
             r#"INSERT INTO oauth_accounts (user_id, provider, provider_user_id, provider_email) VALUES ($1, 'google', $2, $3)"#,
             user.id, google_id, email
-        ).execute(&self.db).await?;
+        )
+            .execute(&self.db)
+            .await?;
 
         Ok(OAuthResolution::NewUser {
             user_id: user.id,
@@ -396,10 +424,11 @@ impl OAuthService {
             return Err(AppError::internal("Google token exchange failed"));
         }
 
-        let data: serde_json::Value = resp
+        let data: Value = resp
             .json()
             .await
             .map_err(|_| AppError::internal("Failed to parse token response"))?;
+
         Ok(data["id_token"].as_str().unwrap_or("").to_string())
     }
 
@@ -459,6 +488,31 @@ impl OAuthService {
             purpose: "oauth_state".into(),
             iat: now,
             exp: now + 600,
+        };
+
+        jsonwebtoken::encode(
+            &jsonwebtoken::Header::default(),
+            &claims,
+            &jsonwebtoken::EncodingKey::from_secret(
+                self.config.oauth_pending_jwt_secret.as_bytes(),
+            ),
+        )
+        .map_err(|e| AppError::internal(e.to_string()))
+    }
+
+    fn sign_pending_cookie(&self, google_id: &str, google_email: &str) -> AppResult<String> {
+        use std::time::{SystemTime, UNIX_EPOCH};
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
+
+        let claims = OAuthPendingClaims {
+            google_id: google_id.to_string(),
+            google_email: google_email.to_string(),
+            purpose: "oauth_pending".into(),
+            iat: now,
+            exp: now + 900,
         };
 
         jsonwebtoken::encode(

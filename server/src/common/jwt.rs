@@ -57,16 +57,6 @@ pub struct MfaPendingClaims {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct OAuthPendingClaims {
-    pub sub: String,
-    pub email: String,
-    pub provider: String,
-    pub purpose: String,
-    pub iat: u64,
-    pub exp: u64,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
 pub struct PasswordResetClaims {
     pub email: String,
     pub purpose: String,
@@ -80,8 +70,6 @@ pub struct JwtService {
     user_dec: DecodingKey,
     mfa_enc: EncodingKey,
     mfa_dec: DecodingKey,
-    oauth_enc: EncodingKey,
-    oauth_dec: DecodingKey,
     reset_enc: EncodingKey,
     reset_dec: DecodingKey,
 }
@@ -93,8 +81,6 @@ impl JwtService {
             user_dec: DecodingKey::from_secret(config.user_jwt_secret.as_bytes()),
             mfa_enc: EncodingKey::from_secret(config.mfa_pending_jwt_secret.as_bytes()),
             mfa_dec: DecodingKey::from_secret(config.mfa_pending_jwt_secret.as_bytes()),
-            oauth_enc: EncodingKey::from_secret(config.oauth_pending_jwt_secret.as_bytes()),
-            oauth_dec: DecodingKey::from_secret(config.oauth_pending_jwt_secret.as_bytes()),
             reset_enc: EncodingKey::from_secret(config.password_reset_jwt_secret.as_bytes()),
             reset_dec: DecodingKey::from_secret(config.password_reset_jwt_secret.as_bytes()),
         }
@@ -138,36 +124,6 @@ impl JwtService {
         v.algorithms = vec![jsonwebtoken::Algorithm::HS256];
 
         decode::<MfaPendingClaims>(token, &self.mfa_dec, &v)
-            .map(|d| d.claims)
-            .map_err(|_| AppError::Unauthorized("Authentication failed.".into()))
-    }
-
-    pub fn sign_oauth_pending(
-        &self,
-        user_id: Uuid,
-        email: &str,
-        provider: &str,
-        ttl: Duration,
-    ) -> anyhow::Result<String> {
-        let claims = OAuthPendingClaims {
-            sub: user_id.to_string(),
-            email: email.to_string(),
-            provider: provider.to_string(),
-            purpose: "oauth_pending".into(),
-            iat: now_secs(),
-            exp: exp_secs(ttl),
-        };
-
-        encode(&Header::default(), &claims, &self.oauth_enc)
-            .context("Failed to sign OAuth pending token")
-    }
-
-    pub fn verify_oauth_pending(&self, token: &str) -> Result<OAuthPendingClaims, AppError> {
-        let mut v = Validation::default();
-
-        v.algorithms = vec![jsonwebtoken::Algorithm::HS256];
-
-        decode::<OAuthPendingClaims>(token, &self.oauth_dec, &v)
             .map(|d| d.claims)
             .map_err(|_| AppError::Unauthorized("Authentication failed.".into()))
     }

@@ -49,11 +49,7 @@ impl UserService {
             .await?
             .ok_or_else(|| AppError::not_found("User not found"))?;
 
-        let mut current = user
-            .preferences
-            .as_object()
-            .cloned()
-            .unwrap_or_default();
+        let mut current = user.preferences.as_object().cloned().unwrap_or_default();
 
         let allowed = ["theme", "language", "personalized"];
 

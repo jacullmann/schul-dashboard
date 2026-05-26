@@ -10,7 +10,9 @@ use crate::{
         jwt::JwtService,
         password::{hash_password, validate_password_strength, verify_password},
     },
-    config::{Config, MFA_PENDING_TTL, PASSWORD_RESET_TTL},
+    config::{
+        Config, EMAIL_VERIFY_TTL, MFA_PENDING_TTL, PASSWORD_RESET_CODE_TTL, PASSWORD_RESET_TTL,
+    },
     error::{AppError, AppResult},
     state::AppState,
 };
@@ -323,7 +325,7 @@ impl AuthService {
 
         let token = hex::encode(rand::random::<[u8; 32]>());
 
-        let expires_at = Utc::now() + Duration::days(2);
+        let expires_at = Utc::now() + Duration::from_std(EMAIL_VERIFY_TTL).unwrap();
 
         sqlx::query!(
             r#"INSERT INTO verifications (email, token, expires_at) VALUES ($1, $2, $3)"#,
@@ -528,7 +530,7 @@ impl AuthService {
 
         let code = hex::encode_upper(rand::random::<[u8; 3]>());
 
-        let expires_at = Utc::now() + Duration::minutes(30);
+        let expires_at = Utc::now() + Duration::from_std(PASSWORD_RESET_CODE_TTL).unwrap();
 
         sqlx::query!(
             r#"UPDATE password_resets SET used = true WHERE email = $1 AND used = false"#,

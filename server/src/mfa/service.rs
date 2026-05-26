@@ -1,4 +1,5 @@
 use crate::{
+    auth::token::{MFA_CHANGE, TokenService},
     common::encryption::EncryptionService,
     error::{AppError, AppResult},
     state::AppState,
@@ -11,6 +12,7 @@ use uuid::Uuid;
 pub struct MfaService {
     db: PgPool,
     enc: EncryptionService,
+    state: AppState,
 }
 
 impl MfaService {
@@ -18,6 +20,7 @@ impl MfaService {
         Self {
             db: state.db.clone(),
             enc: state.encryption.clone(),
+            state: state.clone(),
         }
     }
 
@@ -76,11 +79,13 @@ impl MfaService {
 
         sqlx::query!(
             r#"INSERT INTO mfa_pending_secrets (user_id, encrypted_secret, expires_at) VALUES ($1, $2, $3)
-             ON CONFLICT (user_id) DO UPDATE SET encrypted_secret = $2, expires_at = $3"#,
+               ON CONFLICT (user_id) DO UPDATE SET encrypted_secret = $2, expires_at = $3"#,
             user_id,
             serde_json::to_value(&enc).unwrap(),
             expires_at,
-        ).execute(&self.db).await?;
+        )
+            .execute(&self.db)
+            .await?;
 
         let totp = Self::make_totp(&secret_bytes, &user.email)?;
 
@@ -101,7 +106,9 @@ impl MfaService {
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'mfa:setup:started', '{}'::jsonb)"#,
             user_id
-        ).execute(&self.db).await?;
+        )
+            .execute(&self.db)
+            .await?;
 
         Ok(json!({ "ok": true, "qrCode": qr_b64, "secret": secret_b32, "expiresAt": expires_at }))
     }
@@ -161,10 +168,16 @@ impl MfaService {
         .execute(&self.db)
         .await?;
 
+        TokenService::from_state(&self.state)
+            .revoke_all_for_user(user_id, MFA_CHANGE, None)
+            .await?;
+
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'mfa:activated', '{}'::jsonb)"#,
             user_id
-        ).execute(&self.db).await?;
+        )
+            .execute(&self.db)
+            .await?;
 
         Ok(json!({ "ok": true, "message": "MFA activated successfully." }))
     }
@@ -219,6 +232,10 @@ impl MfaService {
         )
         .execute(&self.db)
         .await?;
+
+        TokenService::from_state(&self.state)
+            .revoke_all_for_user(user_id, MFA_CHANGE, None)
+            .await?;
 
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'mfa:deactivated', $2)"#,

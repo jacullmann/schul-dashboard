@@ -1,9 +1,5 @@
 use super::{dto::*, gateway::BusEvent, service::MessagesService};
-use crate::{
-    common::extractors::TenantContext,
-    error::AppResult,
-    state::AppState,
-};
+use crate::{common::extractors::TenantContext, error::AppResult, state::AppState};
 use axum::{
     Json,
     extract::{Path, State},

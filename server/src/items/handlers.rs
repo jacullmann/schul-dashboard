@@ -76,7 +76,9 @@ pub async fn delete_item(
                 id,
                 tc.user.user_id,
                 &tc.user.global_role,
-                Some(&tc.tenant_role),
+                &tc.tenant_role,
+                tc.group_owner_id,
+                &tc.group_permissions,
             )
             .await?,
     ))

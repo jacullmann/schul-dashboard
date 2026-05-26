@@ -24,7 +24,6 @@ use tower_http::{
     compression::CompressionLayer,
     cors::{AllowHeaders, AllowMethods, CorsLayer},
     request_id::{MakeRequestUuid, SetRequestIdLayer},
-    timeout::TimeoutLayer,
     trace::TraceLayer,
 };
 use tracing::info;
@@ -101,11 +100,14 @@ async fn main() -> anyhow::Result<()> {
         ))
         .with_state(state);
 
+    #[allow(deprecated)]
     let app = Router::new()
         .nest("/api", api)
         .layer(cors)
         .layer(CompressionLayer::new())
-        .layer(TimeoutLayer::new(std::time::Duration::from_secs(30)))
+        .layer(tower_http::timeout::TimeoutLayer::new(
+            std::time::Duration::from_secs(30)
+        ))
         .layer(TraceLayer::new_for_http())
         .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid));
 

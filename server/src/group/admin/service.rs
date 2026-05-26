@@ -8,8 +8,6 @@ use serde_json::{Value, json};
 use sqlx::PgPool;
 use uuid::Uuid;
 
-const NINETY_DAYS_SECS: i64 = 90 * 24 * 60 * 60;
-
 pub struct GroupAdminService {
     db: PgPool,
 }
@@ -719,11 +717,7 @@ impl GroupAdminService {
             .await?
             .ok_or_else(|| AppError::not_found("Group not found"))?;
 
-        let mut current = group
-            .permissions
-            .as_object()
-            .cloned()
-            .unwrap_or_default();
+        let mut current = group.permissions.as_object().cloned().unwrap_or_default();
 
         if let Some(obj) = permissions.as_object() {
             for (k, v) in obj {

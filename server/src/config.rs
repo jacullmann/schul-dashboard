@@ -3,38 +3,27 @@ use std::time::Duration;
 
 #[derive(Debug, Clone)]
 pub struct Config {
-    pub node_env: String,
     pub port: u16,
-
     pub cors_origin: String,
-
     pub cookie_domain: String,
     pub cookie_secure: bool,
-
     pub client_verify_url: String,
-
     pub database_url: String,
-
     pub user_jwt_secret: String,
     pub password_reset_jwt_secret: String,
     pub mfa_pending_jwt_secret: String,
     pub oauth_pending_jwt_secret: String,
-
     pub google_client_id: Option<String>,
     pub google_client_secret: Option<String>,
     pub google_redirect_uri: Option<String>,
-
     pub encryption_key: String,
     pub user_key_pepper: String,
-
     pub cloudinary_cloud_name: String,
     pub cloudinary_api_key: String,
     pub cloudinary_api_secret: String,
     pub cloudinary_folder: String,
-
     pub resend_api_key: String,
     pub email_from: String,
-
     pub geoip_service_url: String,
 }
 
@@ -56,7 +45,6 @@ impl Config {
             .unwrap_or(is_production);
 
         Ok(Self {
-            node_env,
             port,
             cors_origin: require("CORS_ORIGIN")?,
             cookie_domain: require("COOKIE_DOMAIN")?,
@@ -83,10 +71,6 @@ impl Config {
             geoip_service_url: std::env::var("GEOIP_SERVICE_URL")
                 .unwrap_or_else(|_| "http://geoip-service:8080".into()),
         })
-    }
-
-    pub fn is_production(&self) -> bool {
-        self.node_env == "production"
     }
 
     pub fn base_cookie_options(&self) -> BaseCookieOptions {

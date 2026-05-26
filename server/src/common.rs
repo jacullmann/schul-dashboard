@@ -3,7 +3,6 @@ pub mod email;
 pub mod encryption;
 pub mod extractors;
 pub mod jwt;
-pub mod model;
 pub mod name_generator;
 pub mod password;
 pub mod permission;

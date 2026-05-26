@@ -53,12 +53,12 @@ impl ItemsService {
 
         let rows = sqlx::query!(
             r#"SELECT i.id, i.type, i.title, i.subject, i.description, i.images, i.due_date,
-       i.created_by, i.editor_note, i.created_at, i.updated_at,
-       u.email as "creator_email?: String"
-FROM items i
-    LEFT JOIN users u ON u.id = i.created_by
-WHERE i.tenant_id = $1
-ORDER BY i.due_date ASC"#,
+                      i.created_by, i.editor_note, i.created_at, i.updated_at,
+                      u.email as "creator_email?: String"
+               FROM items i
+               LEFT JOIN users u ON u.id = i.created_by
+               WHERE i.tenant_id = $1
+               ORDER BY i.due_date ASC"#,
             tenant_id
         )
         .fetch_all(&self.db)
@@ -72,7 +72,9 @@ ORDER BY i.due_date ASC"#,
                     r#"INSERT INTO user_tenant_state (user_id, tenant_id, last_group_visit_at)
                        VALUES ($1, $2, now()) ON CONFLICT (user_id, tenant_id) DO UPDATE SET last_group_visit_at = now()"#,
                     user_id, tenant_id
-                ).execute(&db2).await;
+                )
+                    .execute(&db2)
+                    .await;
             });
         }
 
@@ -95,11 +97,16 @@ ORDER BY i.due_date ASC"#,
             .map(|r| r.item_id)
             .collect();
 
-        let result = rows.into_iter()
+        let result = rows
+            .into_iter()
             .filter(|r| {
-                if let Some(t) = item_type { if t != "all" && r.r#type != t { return false; } }
-
+                if let Some(t) = item_type {
+                    if t != "all" && r.r#type != t {
+                        return false;
+                    }
+                }
                 let is_kept = kept.contains(&r.id);
+
                 let is_archived = archived.contains(&r.id);
 
                 match filter {
@@ -107,15 +114,17 @@ ORDER BY i.due_date ASC"#,
                     _ => (r.due_date >= now || is_kept) && !is_archived,
                 }
             })
-            .map(|r| json!({
-                "id": r.id, "type": r.r#type, "title": r.title,
-                "subject": r.subject, "description": r.description,
-                "images": r.images, "dueDate": r.due_date,
-                "createdBy": r.created_by,
-                "createdByEmail": r.creator_email.unwrap_or_else(|| "Unbekannt".into()),
-                "timeColor": time_left_color(Some(&r.due_date)),
-                "editorNote": r.editor_note, "createdAt": r.created_at, "updatedAt": r.updated_at,
-            }))
+            .map(|r| {
+                json!({
+                    "id": r.id, "type": r.r#type, "title": r.title,
+                    "subject": r.subject, "description": r.description,
+                    "images": r.images, "dueDate": r.due_date,
+                    "createdBy": r.created_by,
+                    "createdByEmail": r.creator_email.unwrap_or_else(|| "Unbekannt".into()),
+                    "timeColor": time_left_color(Some(&r.due_date)),
+                    "editorNote": r.editor_note, "createdAt": r.created_at, "updatedAt": r.updated_at,
+                })
+            })
             .collect();
 
         Ok(result)
@@ -124,11 +133,11 @@ ORDER BY i.due_date ASC"#,
     pub async fn get_item_by_id(&self, tenant_id: Uuid, id: Uuid) -> AppResult<Value> {
         let row = sqlx::query!(
             r#"SELECT i.id, i.type, i.title, i.subject, i.description, i.images, i.due_date,
-          i.created_by, i.editor_note, i.created_at, i.updated_at,
-          u.email as "creator_email?: String"
-   FROM items i
-   LEFT JOIN users u ON u.id = i.created_by
-   WHERE i.id = $1 AND i.tenant_id = $2"#,
+                      i.created_by, i.editor_note, i.created_at, i.updated_at,
+                      u.email as "creator_email?: String"
+               FROM items i
+               LEFT JOIN users u ON u.id = i.created_by
+               WHERE i.id = $1 AND i.tenant_id = $2"#,
             id,
             tenant_id
         )
@@ -153,19 +162,32 @@ ORDER BY i.due_date ASC"#,
         user_id: Uuid,
         dto: &crate::items::dto::CreateItemDto,
     ) -> AppResult<Value> {
-        let images: Vec<Value> = dto.images.as_deref().unwrap_or(&[]).iter().map(|img| {
-            json!({ "publicId": img.public_id, "createdBy": user_id, "metadata": img.metadata })
-        }).collect();
+        let images: Vec<Value> = dto
+            .images
+            .as_deref()
+            .unwrap_or(&[])
+            .iter()
+            .map(|img| {
+                json!({ "publicId": img.public_id, "createdBy": user_id, "metadata": img.metadata })
+            })
+            .collect();
 
         let row = sqlx::query!(
             r#"INSERT INTO items (type, title, subject, description, images, due_date, created_by, tenant_id)
                VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id"#,
-            dto.r#type, dto.title.trim(), dto.subject.trim(),
+            dto.r#type,
+            dto.title.trim(),
+            dto.subject.trim(),
             dto.description.as_deref().unwrap_or("").trim(),
-            json!(images), dto.due_date.parse::<chrono::DateTime<Utc>>()
+            json!(images),
+            dto.due_date
+                .parse::<chrono::DateTime<Utc>>()
                 .map_err(|_| AppError::bad_request("Invalid due_date format"))?,
-            user_id, tenant_id
-        ).fetch_one(&self.db).await?;
+            user_id,
+            tenant_id
+        )
+            .fetch_one(&self.db)
+            .await?;
 
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:create', $2)"#,
@@ -272,7 +294,9 @@ ORDER BY i.due_date ASC"#,
         id: Uuid,
         user_id: Uuid,
         global_role: &str,
-        tenant_role: Option<&str>,
+        tenant_role: &str,
+        group_owner_id: Option<Uuid>,
+        group_permissions: &Value,
     ) -> AppResult<Value> {
         let item = sqlx::query!(
             r#"SELECT id, created_by FROM items WHERE id = $1 AND tenant_id = $2"#,
@@ -283,24 +307,19 @@ ORDER BY i.due_date ASC"#,
         .await?
         .ok_or_else(|| AppError::not_found("Not found."))?;
 
-        if item.created_by != user_id && global_role != "superadmin" {
-            let group = sqlx::query!(
-                r#"SELECT permissions, owner_id FROM groups WHERE id = $1"#,
-                tenant_id
-            )
-            .fetch_optional(&self.db)
-            .await?
-            .ok_or_else(|| AppError::not_found("Group not found"))?;
+        let is_creator = item.created_by == user_id;
 
-            if group.owner_id != user_id {
-                let allowed = group.permissions["delete_other_content"]
-                    .as_str()
-                    .map(String::from)
-                    .unwrap_or_else(|| "moderator".into());
+        let is_superadmin = global_role == "superadmin";
 
-                if !check_role_permission(tenant_role.unwrap_or("user"), &allowed) {
-                    return Err(AppError::forbidden("Nicht autorisiert."));
-                }
+        let is_owner = group_owner_id == Some(user_id);
+
+        if !is_creator && !is_superadmin && !is_owner {
+            let required = group_permissions["delete_other_content"]
+                .as_str()
+                .unwrap_or("moderator");
+
+            if !check_role_permission(tenant_role, required) {
+                return Err(AppError::forbidden("Nicht autorisiert."));
             }
         }
 
@@ -378,11 +397,16 @@ ORDER BY i.due_date ASC"#,
 
         sqlx::query!(
             r#"INSERT INTO reports (item_id, item_title, category, reason, reporter_id, reporter_email)
-             VALUES ($1, $2, $3, $4, $5, $6)"#,
-            dto.item_id, dto.item_title, dto.category,
+               VALUES ($1, $2, $3, $4, $5, $6)"#,
+            dto.item_id,
+            dto.item_title,
+            dto.category,
             dto.reason.as_deref().map(|r| r.trim()),
-            user_id, email
-        ).execute(&self.db).await?;
+            user_id,
+            email
+        )
+            .execute(&self.db)
+            .await?;
 
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:report', $2)"#,

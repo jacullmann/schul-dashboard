@@ -357,9 +357,9 @@ impl SuperAdminService {
    processed_at = CASE WHEN $1 THEN now() ELSE NULL END,
    processed_by = CASE WHEN $1 THEN $2::uuid ELSE NULL END
    WHERE id = $3 RETURNING processed, processed_at"#,
-processed,
-admin_id as Uuid,
-report_id
+            processed,
+            admin_id as Uuid,
+            report_id
         )
         .fetch_optional(&self.db)
         .await?

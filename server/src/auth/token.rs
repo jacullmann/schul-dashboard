@@ -22,8 +22,6 @@ pub const MFA_CHANGE: RevokeReason = "mfa_change";
 pub struct IssuedTokens {
     pub access_token: String,
     pub refresh_token: String,
-    pub refresh_token_id: Uuid,
-    pub family_id: Uuid,
 }
 
 pub struct TokenService {
@@ -81,12 +79,11 @@ impl TokenService {
 
         let ip_parsed: Option<ipnetwork::IpNetwork> = ip_address.and_then(|s| s.parse().ok());
 
-        let row = sqlx::query!(
+        sqlx::query!(
             r#"
             INSERT INTO refresh_tokens
                 (user_id, token_hash, family_id, parent_id, expires_at, user_agent, ip_address)
             VALUES ($1, $2, $3, $4, $5, $6, $7::inet)
-            RETURNING id, family_id
             "#,
             user_id,
             token_hash,
@@ -96,7 +93,7 @@ impl TokenService {
             ua,
             ip_parsed,
         )
-        .fetch_one(&self.db)
+        .execute(&self.db)
         .await?;
 
         let claims = AccessClaims::new(
@@ -114,8 +111,6 @@ impl TokenService {
         Ok(IssuedTokens {
             access_token,
             refresh_token,
-            refresh_token_id: row.id,
-            family_id: row.family_id,
         })
     }
 
@@ -346,7 +341,7 @@ impl TokenService {
     }
 
     async fn load_user_claims(&self, user_id: Uuid) -> Result<Option<UserClaims>, AppError> {
-        let user = sqlx::query!("SELECT id, email FROM users WHERE id = $1", user_id)
+        let user = sqlx::query!(r#"SELECT id, email FROM users WHERE id = $1"#, user_id)
             .fetch_optional(&self.db)
             .await?;
 
@@ -355,7 +350,7 @@ impl TokenService {
             Some(u) => u,
         };
 
-        let ban = sqlx::query!("SELECT id FROM banned_users WHERE user_id = $1", user_id)
+        let ban = sqlx::query!(r#"SELECT id FROM banned_users WHERE user_id = $1"#, user_id)
             .fetch_optional(&self.db)
             .await?;
 
@@ -378,12 +373,12 @@ impl TokenService {
         .unwrap_or_else(|| "user".into());
 
         let active_group_id = sqlx::query!(
-            "SELECT tenant_id FROM user_roles WHERE user_id = $1 AND tenant_id IS NOT NULL LIMIT 1",
+            r#"SELECT tenant_id FROM user_roles WHERE user_id = $1 AND tenant_id IS NOT NULL LIMIT 1"#,
             user_id
         )
-        .fetch_optional(&self.db)
-        .await?
-        .and_then(|r| r.tenant_id);
+            .fetch_optional(&self.db)
+            .await?
+            .and_then(|r| r.tenant_id);
 
         Ok(Some(UserClaims {
             user_id: user.id,

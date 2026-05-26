@@ -29,9 +29,6 @@ pub enum AppError {
     #[error("{0}")]
     NotFound(String),
 
-    #[error("Too many requests.")]
-    RateLimited,
-
     #[error("An unexpected error occurred.")]
     Internal(#[from] anyhow::Error),
 
@@ -76,10 +73,6 @@ impl IntoResponse for AppError {
             ),
             AppError::Forbidden(msg) => (StatusCode::FORBIDDEN, json!({ "error": msg })),
             AppError::NotFound(msg) => (StatusCode::NOT_FOUND, json!({ "error": msg })),
-            AppError::RateLimited => (
-                StatusCode::TOO_MANY_REQUESTS,
-                json!({ "error": "Too many requests." }),
-            ),
             AppError::Internal(e) => {
                 tracing::error!("Internal error: {e:#}");
                 (
