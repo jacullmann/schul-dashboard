@@ -106,7 +106,7 @@ async fn main() -> anyhow::Result<()> {
         .layer(cors)
         .layer(CompressionLayer::new())
         .layer(tower_http::timeout::TimeoutLayer::new(
-            std::time::Duration::from_secs(30)
+            std::time::Duration::from_secs(30),
         ))
         .layer(TraceLayer::new_for_http())
         .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid));

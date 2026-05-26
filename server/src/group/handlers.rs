@@ -14,6 +14,7 @@ use serde_json::{Value, json};
 use uuid::Uuid;
 
 use super::admin::service::GroupAdminService;
+use crate::group::dto::CreateScheduleSubDto;
 
 pub async fn join_group(
     State(s): State<AppState>,
@@ -166,6 +167,11 @@ pub async fn transfer_ownership(
     tc: TenantContext,
     Json(body): Json<Value>,
 ) -> AppResult<Json<Value>> {
+    if !tc.is_owner() {
+        return Err(AppError::forbidden(
+            "Only the owner can transfer ownership.",
+        ));
+    }
     let target: Uuid = body["targetUserId"]
         .as_str()
         .and_then(|s| s.parse().ok())
@@ -233,6 +239,11 @@ pub async fn update_permissions(
     tc: TenantContext,
     Json(dto): Json<UpdateGroupPermissionsDto>,
 ) -> AppResult<Json<Value>> {
+    if !tc.can_bypass_tenant_checks() {
+        return Err(AppError::forbidden(
+            "Only the group owner or superadmin can change permissions.",
+        ));
+    }
     Ok(Json(
         GroupAdminService::from_state(&s)
             .update_permissions(tc.tenant_id, tc.user.user_id, dto.permissions)
@@ -245,6 +256,11 @@ pub async fn update_group_password(
     tc: TenantContext,
     Json(dto): Json<UpdateGroupPasswordDto>,
 ) -> AppResult<Json<Value>> {
+    if !tc.is_owner() {
+        return Err(AppError::forbidden(
+            "Only the group owner can change the password.",
+        ));
+    }
     Ok(Json(
         GroupAdminService::from_state(&s)
             .update_password(
@@ -270,6 +286,12 @@ pub async fn update_schedule_config(
 }
 
 pub async fn delete_group(State(s): State<AppState>, tc: TenantContext) -> AppResult<Json<Value>> {
+    if !tc.is_owner() {
+        return Err(AppError::forbidden(
+            "Only the group owner can delete this group.",
+        ));
+    }
+
     Ok(Json(
         GroupAdminService::from_state(&s)
             .delete_group(tc.tenant_id, tc.user.user_id)
@@ -281,6 +303,12 @@ pub async fn cleanup_old_items(
     State(s): State<AppState>,
     tc: TenantContext,
 ) -> AppResult<Json<Value>> {
+    if !tc.can_bypass_tenant_checks() {
+        return Err(AppError::forbidden(
+            "Only the group owner or superadmin can run cleanup.",
+        ));
+    }
+
     Ok(Json(
         GroupAdminService::from_state(&s)
             .cleanup_old_items(tc.tenant_id, tc.user.user_id)
