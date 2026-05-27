@@ -138,13 +138,11 @@ async fn handle_socket(mut socket: WebSocket, state: AppState, token: Option<Str
             event = async {
                 if let Some(ref mut r) = rx { r.recv().await.ok() } else { None }
             }, if rx.is_some() => {
-                if let Some(ev) = event {
-                    if let Ok(json) = serde_json::to_string(&ev) {
-                        if socket.send(Message::Text(json.into())).await.is_err() {
+                if let Some(ev) = event
+                    && let Ok(json) = serde_json::to_string(&ev)
+                        && socket.send(Message::Text(json.into())).await.is_err() {
                             break;
                         }
-                    }
-                }
             }
         }
     }

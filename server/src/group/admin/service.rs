@@ -721,12 +721,11 @@ impl GroupAdminService {
 
         if let Some(obj) = permissions.as_object() {
             for (k, v) in obj {
-                if valid_keys.contains(&k.as_str()) {
-                    if let Some(r) = v.as_str() {
-                        if valid_roles.contains(&r) {
-                            current.insert(k.clone(), v.clone());
-                        }
-                    }
+                if valid_keys.contains(&k.as_str())
+                    && let Some(r) = v.as_str()
+                    && valid_roles.contains(&r)
+                {
+                    current.insert(k.clone(), v.clone());
                 }
             }
         }

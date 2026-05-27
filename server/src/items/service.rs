@@ -100,11 +100,10 @@ impl ItemsService {
         let result = rows
             .into_iter()
             .filter(|r| {
-                if let Some(t) = item_type {
-                    if t != "all" && r.r#type != t {
+                if let Some(t) = item_type
+                    && t != "all" && r.r#type != t {
                         return false;
                     }
-                }
                 let is_kept = kept.contains(&r.id);
 
                 let is_archived = archived.contains(&r.id);

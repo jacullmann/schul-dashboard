@@ -46,10 +46,10 @@ impl EncryptionService {
         {
             let cache = self.cache.lock().unwrap();
 
-            if let Some(entry) = cache.get(user_id) {
-                if entry.at.elapsed() < KEY_CACHE_TTL {
-                    return Ok(entry.key);
-                }
+            if let Some(entry) = cache.get(user_id)
+                && entry.at.elapsed() < KEY_CACHE_TTL
+            {
+                return Ok(entry.key);
             }
         }
 
@@ -78,14 +78,13 @@ impl EncryptionService {
 
         let mut cache = self.cache.lock().unwrap();
 
-        if cache.len() >= KEY_CACHE_MAX {
-            if let Some(oldest) = cache
+        if cache.len() >= KEY_CACHE_MAX
+            && let Some(oldest) = cache
                 .iter()
                 .min_by_key(|(_, v)| v.at)
                 .map(|(k, _)| k.clone())
-            {
-                cache.remove(&oldest);
-            }
+        {
+            cache.remove(&oldest);
         }
         cache.insert(
             user_id.to_string(),

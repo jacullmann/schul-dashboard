@@ -99,11 +99,11 @@ impl MessagesService {
                     "createdAt": m.created_at, "updatedAt": m.updated_at,
                 });
 
-                if let Some(pid) = m.parent_id {
-                    if let Some((pc, ps)) = parent_map.get(&pid) {
-                        v["parentContent"] = json!(pc);
-                        v["parentSenderName"] = json!(ps);
-                    }
+                if let Some(pid) = m.parent_id
+                    && let Some((pc, ps)) = parent_map.get(&pid)
+                {
+                    v["parentContent"] = json!(pc);
+                    v["parentSenderName"] = json!(ps);
                 }
                 v
             })
@@ -177,20 +177,19 @@ impl MessagesService {
             "createdAt": msg.created_at, "updatedAt": msg.updated_at,
         });
 
-        if let Some(pid) = msg.parent_id {
-            if let Some(p) = sqlx::query!(
+        if let Some(pid) = msg.parent_id
+            && let Some(p) = sqlx::query!(
                 r#"SELECT user_id, content, tenant_id FROM group_messages WHERE id = $1"#,
                 pid
             )
             .fetch_optional(&self.db)
             .await?
-            {
-                v["parentContent"] = json!(p.content);
-                v["parentSenderName"] = json!(generate_user_name(
-                    &p.user_id.to_string(),
-                    &p.tenant_id.to_string()
-                ));
-            }
+        {
+            v["parentContent"] = json!(p.content);
+            v["parentSenderName"] = json!(generate_user_name(
+                &p.user_id.to_string(),
+                &p.tenant_id.to_string()
+            ));
         }
 
         Ok(v)

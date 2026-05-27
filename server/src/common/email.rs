@@ -10,16 +10,14 @@ pub struct EmailService {
 
 impl EmailService {
     pub fn new(api_key: Option<String>, from: String) -> Self {
-        let resend = api_key
-            .map(|k| {
-                if k.is_empty() {
-                    warn!("RESEND_API_KEY is empty — emails will not be sent.");
-                    None
-                } else {
-                    Some(Resend::new(&k))
-                }
-            })
-            .flatten();
+        let resend = api_key.and_then(|k| {
+            if k.is_empty() {
+                warn!("RESEND_API_KEY is empty — emails will not be sent.");
+                None
+            } else {
+                Some(Resend::new(&k))
+            }
+        });
 
         if resend.is_none() {
             warn!("Email service not configured — emails will not be sent.");

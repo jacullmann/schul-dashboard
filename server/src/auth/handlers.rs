@@ -229,12 +229,12 @@ pub async fn logout(
 ) -> AppResult<(CookieJar, Json<Value>)> {
     use crate::config::REFRESH_COOKIE;
 
-    if let Some(token) = jar.get(REFRESH_COOKIE).map(|c| c.value().to_string()) {
-        if !token.is_empty() {
-            let svc = TokenService::from_state(&state);
+    if let Some(token) = jar.get(REFRESH_COOKIE).map(|c| c.value().to_string())
+        && !token.is_empty()
+    {
+        let svc = TokenService::from_state(&state);
 
-            let _ = svc.revoke_by_token(&token, LOGOUT).await;
-        }
+        let _ = svc.revoke_by_token(&token, LOGOUT).await;
     }
 
     let opts = state.config.base_cookie_options();

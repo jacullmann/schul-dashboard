@@ -15,11 +15,16 @@ mod todos;
 mod user;
 
 use anyhow::Context;
-use axum::{Router, middleware};
+use axum::{Router, body::Body, http::Response, middleware};
 use common::csrf::csrf_middleware;
 use config::Config;
 use sqlx::postgres::PgPoolOptions;
 use state::AppState;
+use std::{sync::Arc, time::Duration};
+use tower_governor::{
+    GovernorLayer, errors::GovernorError, governor::GovernorConfigBuilder,
+    key_extractor::SmartIpKeyExtractor,
+};
 use tower_http::{
     compression::CompressionLayer,
     cors::{AllowHeaders, AllowMethods, CorsLayer},
@@ -82,6 +87,25 @@ async fn main() -> anyhow::Result<()> {
             "x-tenant-id".parse().unwrap(),
         ]));
 
+    let global_governor = Arc::new(
+        GovernorConfigBuilder::default()
+            .per_second(20)
+            .burst_size(100)
+            .key_extractor(SmartIpKeyExtractor)
+            .finish()
+            .context("Failed to build global rate limit config")?,
+    );
+
+    let global_limiter = global_governor.limiter().clone();
+    tokio::spawn(async move {
+        let mut interval = tokio::time::interval(Duration::from_secs(60));
+        loop {
+            interval.tick().await;
+            tracing::debug!("rate limit storage size: {}", global_limiter.len());
+            global_limiter.retain_recent();
+        }
+    });
+
     let api = Router::new()
         .merge(system::routes::router())
         .merge(auth::routes::router())
@@ -94,6 +118,10 @@ async fn main() -> anyhow::Result<()> {
         .merge(mfa::routes::router())
         .merge(oauth::routes::router())
         .merge(super_admin::routes::router())
+        .layer(
+            GovernorLayer::new(global_governor)
+                .error_handler(|e: GovernorError| -> Response<Body> { Response::from(e) }),
+        )
         .layer(middleware::from_fn_with_state(
             state.clone(),
             csrf_middleware,
@@ -102,12 +130,12 @@ async fn main() -> anyhow::Result<()> {
 
     #[allow(deprecated)]
     let app = Router::new()
-        .nest("/api", api)
+        .merge(api)
         .layer(cors)
         .layer(CompressionLayer::new())
-        .layer(tower_http::timeout::TimeoutLayer::new(
-            std::time::Duration::from_secs(30),
-        ))
+        .layer(tower_http::timeout::TimeoutLayer::new(Duration::from_secs(
+            30,
+        )))
         .layer(TraceLayer::new_for_http())
         .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid));
 
