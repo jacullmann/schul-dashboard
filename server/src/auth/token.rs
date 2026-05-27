@@ -17,6 +17,8 @@ pub const PASSWORD_CHANGE: RevokeReason = "password_change";
 pub const ADMIN_REVOKE: RevokeReason = "admin_revoke";
 pub const ACCOUNT_DELETED: RevokeReason = "account_deleted";
 pub const MFA_CHANGE: RevokeReason = "mfa_change";
+const SESSION_LIMIT: RevokeReason = "session_limit";
+const MAX_SESSIONS_PER_USER: i32 = 10;
 
 #[derive(Debug)]
 pub struct IssuedTokens {
@@ -65,35 +67,52 @@ impl TokenService {
         }
     }
 
-    pub async fn issue_pair(&self, params: IssueTokenParams<'_>) -> Result<IssuedTokens, AppError> {
-        let user_id = params.user_id;
-        let email = params.email;
-        let global_role = params.global_role;
-        let active_group_id = params.active_group_id;
-        let user_agent = params.user_agent;
-        let ip_address = params.ip_address;
-        let parent = params.parent;
+    pub async fn issue_pair(&self, p: IssueTokenParams<'_>) -> Result<IssuedTokens, AppError> {
+        if p.parent.is_none() {
+            sqlx::query!(
+                r#"UPDATE refresh_tokens
+                   SET revoked_at = now(), revoked_reason = $1
+                   WHERE id IN (
+                       SELECT id FROM refresh_tokens
+                       WHERE user_id = $2
+                         AND revoked_at IS NULL
+                         AND expires_at > now()
+                       ORDER BY issued_at ASC
+                       LIMIT GREATEST(0, (
+                           SELECT COUNT(*) FROM refresh_tokens
+                           WHERE user_id = $2
+                             AND revoked_at IS NULL
+                             AND expires_at > now()
+                       ) - ($3 - 1))
+                   )"#,
+                SESSION_LIMIT,
+                p.user_id,
+                MAX_SESSIONS_PER_USER,
+            )
+            .execute(&self.db)
+            .await?;
+        }
+
         let refresh_token = generate_opaque_token();
 
         let token_hash = hash_token(&refresh_token);
 
-        let family_id = parent.map(|(_, fid)| fid).unwrap_or_else(Uuid::new_v4);
+        let family_id = p.parent.map(|(_, fid)| fid).unwrap_or_else(Uuid::new_v4);
 
-        let parent_id = parent.map(|(pid, _)| pid);
+        let parent_id = p.parent.map(|(pid, _)| pid);
 
         let expires_at = Utc::now() + Duration::from_std(REFRESH_TOKEN_TTL).unwrap();
 
-        let ua = user_agent.map(|s| if s.len() > 512 { &s[..512] } else { s });
-
-        let ip_parsed: Option<ipnetwork::IpNetwork> = ip_address.and_then(|s| s.parse().ok());
+        let ua = p
+            .user_agent
+            .map(|s| if s.len() > 512 { &s[..512] } else { s });
+        let ip_parsed: Option<ipnetwork::IpNetwork> = p.ip_address.and_then(|s| s.parse().ok());
 
         sqlx::query!(
-            r#"
-            INSERT INTO refresh_tokens
+            r#"INSERT INTO refresh_tokens
                 (user_id, token_hash, family_id, parent_id, expires_at, user_agent, ip_address)
-            VALUES ($1, $2, $3, $4, $5, $6, $7::inet)
-            "#,
-            user_id,
+               VALUES ($1, $2, $3, $4, $5, $6, $7::inet)"#,
+            p.user_id,
             token_hash,
             family_id,
             parent_id,
@@ -105,10 +124,10 @@ impl TokenService {
         .await?;
 
         let claims = AccessClaims::new(
-            user_id,
-            email.to_string(),
-            global_role.to_string(),
-            active_group_id,
+            p.user_id,
+            p.email.to_string(),
+            p.global_role.to_string(),
+            p.active_group_id,
             ACCESS_TOKEN_TTL,
         );
         let access_token = self
@@ -131,11 +150,8 @@ impl TokenService {
         let hash = hash_token(presented_token);
 
         let row = sqlx::query!(
-            r#"
-            SELECT id, user_id, family_id, used_at, revoked_at, expires_at
-            FROM refresh_tokens
-            WHERE token_hash = $1
-            "#,
+            r#"SELECT id, user_id, family_id, used_at, revoked_at, expires_at
+               FROM refresh_tokens WHERE token_hash = $1"#,
             hash
         )
         .fetch_optional(&self.db)
@@ -163,12 +179,9 @@ impl TokenService {
         }
 
         let updated = sqlx::query!(
-            r#"
-            UPDATE refresh_tokens
-            SET used_at = now()
-            WHERE id = $1 AND used_at IS NULL AND revoked_at IS NULL
-            RETURNING id
-            "#,
+            r#"UPDATE refresh_tokens SET used_at = now()
+               WHERE id = $1 AND used_at IS NULL AND revoked_at IS NULL
+               RETURNING id"#,
             row.id
         )
         .fetch_optional(&self.db)
@@ -211,11 +224,8 @@ impl TokenService {
         let hash = hash_token(token);
 
         sqlx::query!(
-            r#"
-            UPDATE refresh_tokens
-            SET revoked_at = now(), revoked_reason = $1
-            WHERE token_hash = $2 AND revoked_at IS NULL
-            "#,
+            r#"UPDATE refresh_tokens SET revoked_at = now(), revoked_reason = $1
+               WHERE token_hash = $2 AND revoked_at IS NULL"#,
             reason,
             hash,
         )
@@ -230,11 +240,8 @@ impl TokenService {
         reason: RevokeReason,
     ) -> Result<(), AppError> {
         sqlx::query!(
-            r#"
-            UPDATE refresh_tokens
-            SET revoked_at = now(), revoked_reason = $1
-            WHERE family_id = $2 AND revoked_at IS NULL
-            "#,
+            r#"UPDATE refresh_tokens SET revoked_at = now(), revoked_reason = $1
+               WHERE family_id = $2 AND revoked_at IS NULL"#,
             reason,
             family_id,
         )
@@ -251,11 +258,8 @@ impl TokenService {
     ) -> Result<(), AppError> {
         if let Some(except) = except_family {
             sqlx::query!(
-                r#"
-                UPDATE refresh_tokens
-                SET revoked_at = now(), revoked_reason = $1
-                WHERE user_id = $2 AND revoked_at IS NULL AND family_id != $3
-                "#,
+                r#"UPDATE refresh_tokens SET revoked_at = now(), revoked_reason = $1
+                   WHERE user_id = $2 AND revoked_at IS NULL AND family_id != $3"#,
                 reason,
                 user_id,
                 except,
@@ -264,11 +268,8 @@ impl TokenService {
             .await?;
         } else {
             sqlx::query!(
-                r#"
-                UPDATE refresh_tokens
-                SET revoked_at = now(), revoked_reason = $1
-                WHERE user_id = $2 AND revoked_at IS NULL
-                "#,
+                r#"UPDATE refresh_tokens SET revoked_at = now(), revoked_reason = $1
+                   WHERE user_id = $2 AND revoked_at IS NULL"#,
                 reason,
                 user_id,
             )
@@ -280,15 +281,13 @@ impl TokenService {
 
     pub async fn list_active_sessions(&self, user_id: Uuid) -> Result<Vec<SessionInfo>, AppError> {
         let rows = sqlx::query!(
-            r#"
-            SELECT family_id, issued_at, last_used_at, user_agent, host(ip_address) as ip_address
-            FROM refresh_tokens
-            WHERE user_id = $1
-              AND revoked_at IS NULL
-              AND used_at IS NULL
-              AND expires_at > now()
-            ORDER BY last_used_at DESC
-            "#,
+            r#"SELECT family_id, issued_at, last_used_at, user_agent, host(ip_address) as ip_address
+               FROM refresh_tokens
+               WHERE user_id = $1
+                 AND revoked_at IS NULL
+                 AND used_at IS NULL
+                 AND expires_at > now()
+               ORDER BY last_used_at DESC"#,
             user_id
         )
         .fetch_all(&self.db)
@@ -361,12 +360,10 @@ impl TokenService {
         }
 
         let global_role = sqlx::query!(
-            r#"
-            SELECT r.name FROM user_roles ur
-            JOIN roles r ON r.id = ur.role_id
-            WHERE ur.user_id = $1 AND ur.tenant_id IS NULL
-            LIMIT 1
-            "#,
+            r#"SELECT r.name FROM user_roles ur
+               JOIN roles r ON r.id = ur.role_id
+               WHERE ur.user_id = $1 AND ur.tenant_id IS NULL
+               LIMIT 1"#,
             user_id
         )
         .fetch_optional(&self.db)
@@ -375,12 +372,13 @@ impl TokenService {
         .unwrap_or_else(|| "user".into());
 
         let active_group_id = sqlx::query!(
-            r#"SELECT tenant_id FROM user_roles WHERE user_id = $1 AND tenant_id IS NOT NULL LIMIT 1"#,
+            r#"SELECT tenant_id FROM user_roles
+               WHERE user_id = $1 AND tenant_id IS NOT NULL LIMIT 1"#,
             user_id
         )
-            .fetch_optional(&self.db)
-            .await?
-            .and_then(|r| r.tenant_id);
+        .fetch_optional(&self.db)
+        .await?
+        .and_then(|r| r.tenant_id);
 
         Ok(Some(UserClaims {
             user_id: user.id,

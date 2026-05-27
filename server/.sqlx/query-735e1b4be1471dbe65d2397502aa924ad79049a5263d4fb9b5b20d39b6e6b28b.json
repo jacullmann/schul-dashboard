@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT tenant_id FROM user_roles\n               WHERE user_id = $1 AND tenant_id IS NOT NULL LIMIT 1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "tenant_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "user_roles",
+            "name": "tenant_id"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "735e1b4be1471dbe65d2397502aa924ad79049a5263d4fb9b5b20d39b6e6b28b"
+}

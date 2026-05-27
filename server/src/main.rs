@@ -63,6 +63,29 @@ async fn main() -> anyhow::Result<()> {
 
     info!("Database connected and migrations applied.");
 
+    let cleanup_db = db.clone();
+
+    tokio::spawn(async move {
+        tokio::time::sleep(Duration::from_secs(30)).await;
+
+        let mut interval = tokio::time::interval(Duration::from_secs(6 * 60 * 60));
+
+        loop {
+            interval.tick().await;
+            match sqlx::query!(
+                r#"DELETE FROM refresh_tokens
+                   WHERE expires_at < now()
+                   OR (revoked_at IS NOT NULL AND revoked_at < now() - interval '7 days')"#
+            )
+            .execute(&cleanup_db)
+            .await
+            {
+                Ok(r) => tracing::info!("Token cleanup: {} rows deleted", r.rows_affected()),
+                Err(e) => tracing::error!("Token cleanup failed: {e}"),
+            }
+        }
+    });
+
     let state = AppState::new(db, config);
 
     let cors = CorsLayer::new()
