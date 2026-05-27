@@ -233,10 +233,11 @@ async function onAuthSuccess() {
   />
 
   <CompleteSetup
+    v-if="user"
     :open="showSetup"
-    :is-setup="!user.doneSetup"
+    :is-setup="!user?.doneSetup"
     :initial-data="{
-      courses: user.courses || [],
+      courses: user?.courses || [],
     }"
     @cancel="modalStore.showSetup = false"
     @success="modalStore.showSetup = false"
