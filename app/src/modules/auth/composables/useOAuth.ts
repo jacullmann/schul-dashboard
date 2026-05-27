@@ -26,7 +26,7 @@ export function useOAuth() {
   function initiateGoogleLogin(): void {
     const base =
       typeof import.meta !== 'undefined' && import.meta.env
-        ? (import.meta.env.VITE_HW_API_BASE ?? '')
+        ? (import.meta.env.VITE_API_URL ?? '')
         : '';
     window.location.href = `${base}/auth/google`;
   }

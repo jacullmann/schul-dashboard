@@ -258,7 +258,7 @@ const fetchMessages = async () => {
 };
 
 const initSocket = () => {
-  const socketUrl = import.meta.env.VITE_HW_API_BASE || window.location.origin;
+  const socketUrl = import.meta.env.VITE_API_URL || window.location.origin;
   socket = io(`${socketUrl}/messages`, {
     withCredentials: true,
     transports: ['websocket', 'polling'],

@@ -210,9 +210,8 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      loginUrl: 'https://app.schul-dashboard.com/login',
       appUrl: 'https://app.schul-dashboard.com',
-      hwApiBase: '',
+      apiUrl: '',
     },
   },
 
