@@ -110,7 +110,6 @@ pub const EMAIL_VERIFY_TTL: Duration = Duration::from_secs(2 * 24 * 60 * 60);
 
 pub const ACCESS_COOKIE: &str = "access_token";
 pub const REFRESH_COOKIE: &str = "refresh_token";
-pub const REFRESH_COOKIE_PATH: &str = "/auth/refresh";
 pub const MFA_PENDING_COOKIE: &str = "mfa_pending_token";
 pub const CSRF_COOKIE: &str = "csrf_token";
 pub const CSRF_HEADER: &str = "x-csrf-token";

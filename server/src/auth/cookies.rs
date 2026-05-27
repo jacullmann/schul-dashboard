@@ -1,6 +1,6 @@
 use crate::config::{
     ACCESS_COOKIE, ACCESS_TOKEN_TTL, BaseCookieOptions, MFA_PENDING_COOKIE, MFA_PENDING_TTL,
-    REFRESH_COOKIE, REFRESH_COOKIE_PATH, REFRESH_TOKEN_TTL,
+    REFRESH_COOKIE, REFRESH_TOKEN_TTL,
 };
 use cookie::time::Duration;
 use cookie::{Cookie, SameSite};
@@ -37,7 +37,7 @@ pub fn refresh_cookie(token: String, opts: &BaseCookieOptions) -> Cookie<'static
 
     let mut c = with_ttl(c, REFRESH_TOKEN_TTL.as_secs());
 
-    c.set_path(REFRESH_COOKIE_PATH);
+    c.set_path("/");
 
     c
 }
@@ -57,7 +57,7 @@ pub fn clear_refresh_cookie(opts: &BaseCookieOptions) -> Cookie<'static> {
 
     let mut c = with_ttl(c, 0);
 
-    c.set_path(REFRESH_COOKIE_PATH);
+    c.set_path("/");
 
     c
 }
