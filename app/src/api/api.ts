@@ -29,7 +29,7 @@ type RetryConfig = InternalAxiosRequestConfig & {
 let refreshInFlight: Promise<void> | null = null;
 let refreshFailedListeners: Array<() => void> = [];
 
-const REFRESH_URL = '/api/auth/refresh';
+const REFRESH_URL = '/auth/refresh';
 
 function performRefresh(opts: { silent?: boolean } = {}): Promise<void> {
   if (refreshInFlight) return refreshInFlight;
@@ -91,7 +91,7 @@ hw.interceptors.response.use(
 
 export const ensureCsrf = async (): Promise<void> => {
   if (!getCsrfFromCookie()) {
-    await hw.get('/api/system/csrf/init');
+    await hw.get('/system/csrf/init');
   }
 };
 

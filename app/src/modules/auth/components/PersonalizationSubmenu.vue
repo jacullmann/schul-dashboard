@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue';
 import { Filter, FilterX } from '@lucide/vue';
 import BaseMenuSelect from '@/common/components/BaseMenuSelect.vue';
-import hw from '@/api/hwApi';
+import hw from '../../../api/api';
 import { useI18n } from 'vue-i18n';
 import { useToast } from '@/common/composables/useToast';
 
@@ -39,7 +39,7 @@ async function setPersonalization(value: boolean) {
   updating.value = true;
 
   try {
-    const { data } = await hw.patch('/api/user/personalization', {
+    const { data } = await hw.patch('/user/personalization', {
       personalized: value,
     });
 

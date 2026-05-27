@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import hw from '@/api/hwApi';
+import hw from '../../../api/api';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
@@ -42,7 +42,7 @@ async function submit() {
 
   submitting.value = true;
   try {
-    await hw.post('/api/group-admin/announcements', {
+    await hw.post('/group-admin/announcements', {
       content: annContent.value.trim(),
       color: annColor.value,
     });

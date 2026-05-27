@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import hw from '@/api/hwApi';
+import hw from '../../api/api';
 import {
   CheckCircle2,
   XCircle,
@@ -19,7 +19,7 @@ onMounted(async () => {
   const params = new URLSearchParams(location.search);
   const token = params.get('token') || '';
   try {
-    const { data } = await hw.get('/api/auth/verify', { params: { token } });
+    const { data } = await hw.get('/auth/verify', { params: { token } });
     ok.value = data.ok;
   } catch {
     ok.value = false;

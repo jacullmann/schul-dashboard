@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { useEventListener } from '@vueuse/core';
-import hw from '@/api/hwApi';
+import hw from '@/api/api.ts';
 
 export interface Course {
   id: string;
@@ -25,7 +25,7 @@ export const useSubjectStore = defineStore('subjectStore', () => {
     if (loaded.value || loading.value) return;
     loading.value = true;
     try {
-      const { data } = await hw.get<Subject[]>('/api/schedule/subjects');
+      const { data } = await hw.get<Subject[]>('/schedule/subjects');
       subjects.value = data || [];
       loaded.value = true;
     } catch (e) {

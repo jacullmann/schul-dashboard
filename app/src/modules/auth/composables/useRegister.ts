@@ -1,6 +1,6 @@
 import { ref, reactive, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
-import hw from '@/api/hwApi';
+import hw from '@/api/api.ts';
 import { usePreferences } from '@/common/composables/usePreferences';
 import type BaseInput from '@/common/components/BaseInput.vue';
 
@@ -96,7 +96,7 @@ export function useRegister(onRegistered: () => void) {
         personalized: true,
       };
 
-      await hw.post('/api/auth/register', {
+      await hw.post('/auth/register', {
         email: email.value,
         password: password.value,
         preferences,

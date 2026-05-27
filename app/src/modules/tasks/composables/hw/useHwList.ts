@@ -1,6 +1,6 @@
 import { computed, nextTick } from 'vue';
 import type { HwContext } from './types';
-import hw from '@/api/hwApi';
+import hw from '@/api/api.ts';
 import { useSubjectStore } from '@/stores/subjectStore';
 import { getSubjectKey } from '@/types/subjects';
 
@@ -115,7 +115,7 @@ export function useHwList(ctx: HwContext) {
       return;
     }
     try {
-      const { data } = await hw.get('/api/user/checks');
+      const { data } = await hw.get('/user/checks');
       ctx.checkedItems.value = new Set(data.itemIds || []);
     } catch {
       ctx.checkedItems.value = new Set();
@@ -131,7 +131,7 @@ export function useHwList(ctx: HwContext) {
       return;
     }
     try {
-      const { data } = await hw.get('/api/user/visibility');
+      const { data } = await hw.get('/user/visibility');
       ctx.archivedItems.value = new Set(data.archived || []);
       ctx.keptItems.value = new Set(data.kept || []);
     } catch {
@@ -198,7 +198,7 @@ export function useHwList(ctx: HwContext) {
     if (ctx.showOldEntries.value) params.filter = 'old';
 
     try {
-      const { data } = await hw.get('/api/items', { params });
+      const { data } = await hw.get('/items', { params });
       ctx.items.value = data;
       ctx.expandedDescriptions.value = new Set();
       ctx.revealedImages.value = new Set();
@@ -220,7 +220,7 @@ export function useHwList(ctx: HwContext) {
 
   async function refreshItem(itemId: string, onUpdate?: (item: any) => void) {
     try {
-      const { data } = await hw.get(`/api/items/${itemId}`);
+      const { data } = await hw.get(`/items/${itemId}`);
       const index = ctx.items.value.findIndex((i) => i.id === itemId);
       if (index !== -1) {
         ctx.items.value[index] = data;

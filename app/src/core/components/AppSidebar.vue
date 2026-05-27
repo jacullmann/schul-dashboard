@@ -19,7 +19,7 @@ import { useItemForm } from '@/core/composables/useItemForm';
 import { useAnnouncementForm } from '@/core/composables/useAnnouncementForm';
 import { useModalStore } from '@/stores/modalStore';
 import { storeToRefs } from 'pinia';
-import hw from '@/api/hwApi';
+import hw from '../../api/api';
 import { onMounted, onUnmounted } from 'vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useRouter } from 'vue-router';
@@ -64,7 +64,7 @@ function onPersonalizationChanged(value: boolean) {
 
 async function logout() {
   try {
-    await hw.post('/api/auth/logout');
+    await hw.post('/auth/logout');
   } catch (err) {
     console.error('Logout failed:', err);
   } finally {

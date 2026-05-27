@@ -1,6 +1,6 @@
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import hw from '@/api/hwApi';
+import hw from '@/api/api.ts';
 import { processImageBeforeUpload } from '@/modules/tasks/composables/useConvertImage';
 import type { ImageItem } from '@/modules/tasks/types';
 
@@ -75,7 +75,7 @@ export function useImageUpload() {
       );
 
       const uploadTasks = processedFiles.map(async (processedFile) => {
-        const { data: sign } = await hw.post('/api/items/uploads/sign');
+        const { data: sign } = await hw.post('/items/uploads/sign');
         const form = new FormData();
         form.set('file', processedFile);
         form.set('api_key', sign.apiKey);
@@ -107,7 +107,7 @@ export function useImageUpload() {
         const imgPayload = { publicId: json.public_id, metadata };
 
         if (itemId) {
-          const { data } = await hw.post(`/api/items/${itemId}/images`, {
+          const { data } = await hw.post(`/items/${itemId}/images`, {
             image: imgPayload,
           });
           images.value.push(data.image);
@@ -166,7 +166,7 @@ export function useImageUpload() {
     if (parentId) {
       try {
         await hw.delete(
-          `/api/items/${parentId}/images/${encodeURIComponent(img.publicId)}`,
+          `/items/${parentId}/images/${encodeURIComponent(img.publicId)}`,
         );
         images.value = images.value.filter((i) => i.publicId !== img.publicId);
         uploadError.value = t('tasks.images.delete_modal.success');

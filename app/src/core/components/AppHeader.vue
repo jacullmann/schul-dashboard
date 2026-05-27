@@ -9,7 +9,7 @@ import AppLogo from '@/common/components/AppLogo.vue';
 import { Menu, ChevronDown, Plus, LogOut } from '@lucide/vue';
 import { useModalStore } from '@/stores/modalStore';
 import Avatar from '@/modules/auth/components/Avatar.vue';
-import hw from '@/api/hwApi';
+import hw from '../../api/api';
 
 const userStore = useUserStore();
 const { user } = storeToRefs(userStore);
@@ -92,7 +92,7 @@ async function leaveGroup() {
 
   loading.value = true;
   try {
-    await hw.delete(`/api/groups/${activeGroupId.value}/leave`);
+    await hw.delete(`/groups/${activeGroupId.value}/leave`);
     window.location.reload();
   } catch (err) {
     console.error('Failed to leave group:', err);

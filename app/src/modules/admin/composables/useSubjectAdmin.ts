@@ -1,6 +1,6 @@
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import hw from '@/api/hwApi';
+import hw from '@/api/api.ts';
 import type { AdminSubject } from '@/modules/admin/types';
 import { useToast } from '@/common/composables/useToast';
 import { useModalStore } from '@/stores/modalStore';
@@ -18,7 +18,7 @@ export function useSubjectAdmin() {
     loading.value = true;
     try {
       const { data } = await hw.get<AdminSubject[]>(
-        '/api/group-admin/subjects',
+        '/group-admin/subjects',
       );
       subjects.value = data || [];
     } catch {
@@ -33,7 +33,7 @@ export function useSubjectAdmin() {
     saving.value = true;
     try {
       const { data } = await hw.post<AdminSubject>(
-        '/api/group-admin/subjects',
+        '/group-admin/subjects',
         {
           name: name.trim(),
         },
@@ -54,7 +54,7 @@ export function useSubjectAdmin() {
   ) {
     saving.value = true;
     try {
-      await hw.patch(`/api/group-admin/subjects/${id}`, updates);
+      await hw.patch(`/group-admin/subjects/${id}`, updates);
       const subject = subjects.value.find((s) => s.id === id);
       if (subject) {
         if (updates.name !== undefined) subject.name = updates.name.trim();
@@ -84,7 +84,7 @@ export function useSubjectAdmin() {
 
     if (!isConfirmed) return;
     try {
-      await hw.delete(`/api/group-admin/subjects/${id}`);
+      await hw.delete(`/group-admin/subjects/${id}`);
       subjects.value = subjects.value.filter((s) => s.id !== id);
       success(t('admin.subjects.errors.delete_success'));
     } catch (e: unknown) {

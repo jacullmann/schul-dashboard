@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import hw from '@/api/hwApi';
+import hw from '@/api/api.ts';
 import { usePreferences } from '@/common/composables/usePreferences';
 
 export interface UserData {
@@ -44,7 +44,7 @@ export const useUserStore = defineStore('user', () => {
     fetchPromise = (async () => {
       loading.value = true;
       try {
-        const { data } = await hw.get('/api/auth/me');
+        const { data } = await hw.get('/auth/me');
         if (data.authenticated) {
           user.value = {
             id: data.id,

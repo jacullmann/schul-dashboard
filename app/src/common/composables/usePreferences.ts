@@ -1,5 +1,5 @@
 import { computed } from 'vue';
-import hw from '@/api/hwApi';
+import hw from '@/api/api.ts';
 import { useTheme, type ThemeMode } from '@/common/composables/useTheme';
 import { useUserStore } from '@/stores/userStore';
 import i18n, { type SupportedLocale, LOCALE_KEY } from '@/i18n';
@@ -22,7 +22,7 @@ export function usePreferences() {
 
     if (userStore.isLoggedIn) {
       try {
-        hw.patch('/api/user/preferences', { [key]: value }).catch((err) => {
+        hw.patch('/user/preferences', { [key]: value }).catch((err) => {
           console.error(`Failed to sync preference ${key} to backend`, err);
         });
       } catch (err) {

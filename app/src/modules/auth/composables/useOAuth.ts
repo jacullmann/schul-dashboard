@@ -1,6 +1,6 @@
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import hw from '@/api/hwApi';
+import hw from '@/api/api.ts';
 
 const showLinkModal = ref(false);
 const showMfaModal = ref(false);
@@ -28,7 +28,7 @@ export function useOAuth() {
       typeof import.meta !== 'undefined' && import.meta.env
         ? (import.meta.env.VITE_HW_API_BASE ?? '')
         : '';
-    window.location.href = `${base}/api/auth/google`;
+    window.location.href = `${base}/auth/google`;
   }
 
   function handleOAuthReturn(onSuccess: () => void): void {
@@ -64,7 +64,7 @@ export function useOAuth() {
     password: string,
   ): Promise<{ ok: true } | { ok: false; error: string }> {
     try {
-      const { data } = await hw.post('/api/auth/google/link', { password });
+      const { data } = await hw.post('/auth/google/link', { password });
       if (data.ok) {
         showLinkModal.value = false;
         return { ok: true };
@@ -83,7 +83,7 @@ export function useOAuth() {
     { ok: true } | { ok: false; error: string }
   > {
     try {
-      await hw.delete('/api/auth/google/unlink');
+      await hw.delete('/auth/google/unlink');
       return { ok: true };
     } catch (err: unknown) {
       const e = err as { response?: { data?: { error?: string } } };
@@ -97,7 +97,7 @@ export function useOAuth() {
   async function fetchLinkedProviders(): Promise<LinkedProvider[]> {
     try {
       const { data } = await hw.get<{ providers: LinkedProvider[] }>(
-        '/api/auth/providers',
+        '/auth/providers',
       );
       return data.providers ?? [];
     } catch {

@@ -24,8 +24,6 @@ const COLORS = {
 const TRAIL_MAX_DIST = 10;
 const ENERGY_DRAIN_RATE = 0.4;
 
-// ─── Entity Classes ─────────────────────────────────────────────────
-
 class Enemy {
   x: number;
   y: number;
@@ -317,8 +315,6 @@ class Flash {
   }
 }
 
-// ─── Math Utilities ─────────────────────────────────────────────────
-
 function dist(a: Point, b: Point) {
   return Math.hypot(b.x - a.x, b.y - a.y);
 }
@@ -368,8 +364,6 @@ function ptSegDist(p: Point, v: Point, w: Point) {
   t = Math.max(0, Math.min(1, t));
   return dist(p, { x: v.x + t * (w.x - v.x), y: v.y + t * (w.y - v.y) });
 }
-
-// ─── Upgrade Definitions ────────────────────────────────────────────
 
 function createDefaultMeta(): MetaStats {
   return {
@@ -435,8 +429,6 @@ function createDefaultMeta(): MetaStats {
   };
 }
 
-// ─── Main Composable ────────────────────────────────────────────────
-
 export function useCyberSnare() {
   // Reactive state exposed to template
   const gameState = ref<GameState>('START');
@@ -448,7 +440,6 @@ export function useCyberSnare() {
   const energyBarColor = ref<string>(COLORS.cyan);
   const meta: MetaStats = reactive(createDefaultMeta());
 
-  // Internal mutable state (not reactive — performance critical)
   let canvas: HTMLCanvasElement | null = null;
   let ctx: CanvasRenderingContext2D | null = null;
   let monitorEl: HTMLElement | null = null;
@@ -483,8 +474,6 @@ export function useCyberSnare() {
   let ENERGY_MAX_INT = 30;
   let ENERGY_REGEN = 0.15;
 
-  // ─── Sync refs ──────────────────────────────────────────────
-
   function syncRefs() {
     score.value = playerScore;
     lives.value = playerLives;
@@ -502,8 +491,6 @@ export function useCyberSnare() {
       energyBarColor.value = COLORS.cyan;
     }
   }
-
-  // ─── Helpers ────────────────────────────────────────────────
 
   function spawnExplosion(x: number, y: number, color: string, amount = 15) {
     for (let i = 0; i < amount; i++) particles.push(new Particle(x, y, color));
@@ -690,8 +677,6 @@ export function useCyberSnare() {
     }
   }
 
-  // ─── Update & Draw ──────────────────────────────────────────
-
   function update(dt: number) {
     frameCount++;
 
@@ -793,7 +778,6 @@ export function useCyberSnare() {
     particles.forEach((p) => p.draw(ctx!));
     enemies.forEach((en) => en.draw(ctx!));
 
-    // Persistent walls
     persistentWalls.forEach((pw) => {
       if (pw.points.length < 2) return;
       const c = ctx!;
@@ -817,7 +801,6 @@ export function useCyberSnare() {
       c.shadowBlur = 0;
     });
 
-    // Player trail
     if (trail.length > 0) {
       const t0 = trail[0]!;
       ctx.beginPath();
@@ -842,7 +825,6 @@ export function useCyberSnare() {
       ctx.shadowBlur = 0;
     }
 
-    // Player cursor
     if (gameState.value === 'PLAYING') {
       ctx.save();
       ctx.translate(playerX, playerY);
@@ -878,8 +860,6 @@ export function useCyberSnare() {
     draw();
     animId = requestAnimationFrame(loop);
   }
-
-  // ─── Input ──────────────────────────────────────────────────
 
   function updatePos(e: MouseEvent | TouchEvent) {
     if ('touches' in e && e.touches.length > 0) {
@@ -926,7 +906,6 @@ export function useCyberSnare() {
     }
   }
 
-  // ─── Resize ─────────────────────────────────────────────────
 
   function resize() {
     W = window.innerWidth;
@@ -937,7 +916,6 @@ export function useCyberSnare() {
     }
   }
 
-  // ─── Public API ─────────────────────────────────────────────
 
   function resetGame() {
     ENERGY_MAX_INT = 30 + (meta.upgrades.energy?.lvl ?? 0) * 20;
@@ -1045,7 +1023,6 @@ export function useCyberSnare() {
   }
 
   return {
-    // State
     gameState,
     score,
     lives,
@@ -1054,7 +1031,6 @@ export function useCyberSnare() {
     driveSpace,
     energyBarColor,
     meta,
-    // Actions
     init,
     destroy,
     startGame,

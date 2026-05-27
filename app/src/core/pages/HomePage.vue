@@ -6,7 +6,7 @@ import { useUserStore } from '@/stores/userStore';
 import { useModalStore } from '@/stores/modalStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { UserRoundPlus, Plus, UsersRound } from '@lucide/vue';
-import hw from '@/api/hwApi';
+import hw from '../../api/api';
 import { useI18n } from 'vue-i18n';
 import Avatar from '@/modules/auth/components/Avatar.vue';
 
@@ -84,7 +84,7 @@ async function loadAllGroups() {
   if (!isSuperadmin.value) return;
   loading.value = true;
   try {
-    const { data } = await hw.get('/api/admin/groups');
+    const { data } = await hw.get('/admin/groups');
     allGroups.value = data;
   } catch (err) {
     console.error('Failed to load groups:', err);

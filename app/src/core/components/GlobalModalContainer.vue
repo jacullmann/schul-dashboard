@@ -8,7 +8,7 @@ import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useOAuth } from '@/modules/auth/composables/useOAuth';
 import { useMfa } from '@/modules/auth/composables/useMfa';
-import hw from '@/api/hwApi';
+import hw from '../../api/api';
 
 import GoogleLinkModal from '@/modules/auth/components/GoogleLinkModal.vue';
 import MfaVerifyModal from '@/modules/auth/components/MfaVerifyModal.vue';
@@ -102,7 +102,7 @@ function onSetupSuccess(updatedUser: any) {
 
 async function logout() {
   try {
-    await hw.post('/api/auth/logout');
+    await hw.post('/auth/logout');
   } catch (err) {
     console.error('Logout failed:', err);
   } finally {

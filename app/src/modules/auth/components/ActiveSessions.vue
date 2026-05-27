@@ -8,7 +8,7 @@ import {
   LogOut,
   AlertCircle,
 } from '@lucide/vue';
-import hw from '@/api/hwApi';
+import hw from '../../../api/api';
 import { useModalStore } from '@/stores/modalStore';
 import { useI18n } from 'vue-i18n';
 
@@ -40,7 +40,7 @@ async function fetchSessions() {
   loading.value = true;
   error.value = null;
   try {
-    const res = await hw.get('/api/auth/sessions');
+    const res = await hw.get('/auth/sessions');
     sessions.value = res.data.sessions || [];
   } catch (err) {
     console.error('Failed to fetch active sessions:', err);
@@ -63,7 +63,7 @@ async function revokeSession(session: ActiveSession) {
 
   revokingId.value = session.familyId;
   try {
-    await hw.delete(`/api/auth/sessions/${session.familyId}`);
+    await hw.delete(`/auth/sessions/${session.familyId}`);
     sessions.value = sessions.value.filter(
       (s) => s.familyId !== session.familyId,
     );
@@ -88,23 +88,18 @@ async function logoutAllOtherSessions() {
 
   revokingAll.value = true;
   try {
-    // Current session is index 0. We want to revoke all except the current one.
-    // In our backend, POST /api/auth/logout-all logs out ALL sessions including the current one.
-    // So to logout all except current, we can revoke them one by one in parallel!
-    // This is incredibly elegant and perfectly matches the user request.
     const currentSession = sessions.value[0];
     const others = sessions.value.slice(1);
 
     await Promise.all(
-      others.map((s) => hw.delete(`/api/auth/sessions/${s.familyId}`)),
+      others.map((s) => hw.delete(`/auth/sessions/${s.familyId}`)),
     );
 
-    // Keep only the current session
     sessions.value = currentSession ? [currentSession] : [];
   } catch (err) {
     console.error('Failed to logout other sessions:', err);
     alert(t('auth.sessions.errors.delete_all_failed'));
-    await fetchSessions(); // Refresh to get current state
+    await fetchSessions();
   } finally {
     revokingAll.value = false;
   }
@@ -128,12 +123,10 @@ function parseUserAgent(ua: string | null): {
   let os = t('auth.sessions.os.unknown');
   let isMobile = false;
 
-  // Detect Mobile
   if (/mobile|android|iphone|ipad|phone/i.test(uaLower)) {
     isMobile = true;
   }
 
-  // Parse OS
   if (uaLower.includes('windows')) {
     os = 'Windows';
   } else if (uaLower.includes('macintosh') || uaLower.includes('mac os x')) {
@@ -154,7 +147,6 @@ function parseUserAgent(ua: string | null): {
     os = 'ChromeOS';
   }
 
-  // Parse Browser
   if (uaLower.includes('edg/')) {
     browser = 'Microsoft Edge';
   } else if (uaLower.includes('opera') || uaLower.includes('opr/')) {
@@ -220,7 +212,6 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Error State -->
     <div
       v-if="error"
       class="flex flex-col gap-3 p-4 bg-danger-hover border border-danger rounded-xl items-center text-center"
@@ -235,7 +226,6 @@ onMounted(() => {
       >
     </div>
 
-    <!-- Loading State -->
     <div v-else-if="loading" class="flex flex-col gap-3">
       <div
         v-for="i in 2"
@@ -250,9 +240,7 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Sessions List -->
     <div v-else class="flex flex-col gap-3">
-      <!-- Bulk Action Button -->
       <div v-if="sessions.length > 1" class="flex justify-end">
         <BaseButton
           @click="logoutAllOtherSessions"
@@ -276,7 +264,6 @@ onMounted(() => {
               index === 0,
           }"
         >
-          <!-- Device Icon -->
           <div
             class="flex items-center justify-center w-10 h-10 text-on-ghost-muted shrink-0 transition-colors"
           >
@@ -293,14 +280,12 @@ onMounted(() => {
             />
           </div>
 
-          <!-- Session Metadata -->
           <div class="flex flex-col flex-1 min-w-0">
             <div class="text-base font-semibold text-on-ghost truncate">
               {{ parseUserAgent(session.userAgent).browser }} {{ t('auth.sessions.on_device') }}
               {{ parseUserAgent(session.userAgent).os }}
             </div>
 
-            <!-- IP and Location -->
             <div class="flex items-center gap-1 text-sm text-on-ghost-muted">
               {{ session.location?.city ? `${session.location.city}, ` : '' }}
               {{ session.location?.country || t('auth.sessions.location.unknown') }}
@@ -308,7 +293,6 @@ onMounted(() => {
               {{ index === 0 ? t('auth.sessions.this_device') : formatDate(session.issuedAt) }}
             </div>
 
-            <!-- Last Active / Registration date -->
             <!-- div
               class="flex items-center gap-1 text-xs text-on-ghost-muted/80 mt-0.5"
             >
@@ -325,7 +309,6 @@ onMounted(() => {
             </div>
           </div -->
 
-            <!-- Revoke Action -->
           </div>
 
           <template v-if="index !== 0">

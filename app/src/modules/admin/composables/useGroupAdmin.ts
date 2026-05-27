@@ -1,7 +1,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
-import hw from '@/api/hwApi';
+import hw from '@/api/api.ts';
 import type {
   GroupMember,
   GroupStats,
@@ -74,7 +74,7 @@ export function useGroupAdmin() {
   async function loadStats() {
     loadingStats.value = true;
     try {
-      const { data } = await hw.get('/api/group-admin/stats');
+      const { data } = await hw.get('/group-admin/stats');
       stats.value = data;
     } catch {
       showMessage('Failed to load statistics', true);
@@ -86,7 +86,7 @@ export function useGroupAdmin() {
   async function loadMembers() {
     loadingMembers.value = true;
     try {
-      const { data } = await hw.get('/api/group-admin/members');
+      const { data } = await hw.get('/group-admin/members');
       members.value = data;
     } catch {
       showMessage('Failed to load members', true);
@@ -97,7 +97,7 @@ export function useGroupAdmin() {
 
   async function changeRole(userId: string, newRole: string) {
     try {
-      await hw.patch(`/api/group-admin/members/${userId}/role`, {
+      await hw.patch(`/group-admin/members/${userId}/role`, {
         role: newRole,
       });
       const member = members.value.find((m) => m.userId === userId);
@@ -112,7 +112,7 @@ export function useGroupAdmin() {
 
   async function removeMember(userId: string, _name: string, ban = false) {
     try {
-      await hw.delete(`/api/group-admin/members/${userId}?ban=${ban}`);
+      await hw.delete(`/group-admin/members/${userId}?ban=${ban}`);
       members.value = members.value.filter((m) => m.userId !== userId);
       showMessage(ban ? 'Member removed and banned' : 'Member removed');
       await loadStats();
@@ -126,7 +126,7 @@ export function useGroupAdmin() {
   async function loadBannedUsers() {
     loadingBannedUsers.value = true;
     try {
-      const { data } = await hw.get('/api/group-admin/banned-users');
+      const { data } = await hw.get('/group-admin/banned-users');
       bannedUsers.value = data;
     } catch {
       showMessage('Failed to load banned users', true);
@@ -137,7 +137,7 @@ export function useGroupAdmin() {
 
   async function revertBan(userId: string) {
     try {
-      await hw.delete(`/api/group-admin/banned-users/${userId}`);
+      await hw.delete(`/group-admin/banned-users/${userId}`);
       bannedUsers.value = bannedUsers.value.filter((u) => u.userId !== userId);
       showMessage('Ban reverted');
     } catch {
@@ -148,7 +148,7 @@ export function useGroupAdmin() {
   async function loadSchedule() {
     loadingLessons.value = true;
     try {
-      const { data } = await hw.get('/api/group-admin/schedule');
+      const { data } = await hw.get('/group-admin/schedule');
       lessons.value = data;
     } catch {
       showMessage('Failed to load schedule', true);
@@ -160,7 +160,7 @@ export function useGroupAdmin() {
   async function loadSubs() {
     loadingSubs.value = true;
     try {
-      const { data } = await hw.get('/api/group-admin/schedule/subs');
+      const { data } = await hw.get('/group-admin/schedule/subs');
       subs.value = data;
     } catch {
       showMessage('Failed to load substitutions', true);
@@ -173,7 +173,7 @@ export function useGroupAdmin() {
     if (!subData.lessonId) return;
     savingSub.value = true;
     try {
-      await hw.post('/api/group-admin/schedule/subs', subData);
+      await hw.post('/group-admin/schedule/subs', subData);
       await loadSubs();
       showMessage('Substitution saved');
     } catch {
@@ -188,7 +188,7 @@ export function useGroupAdmin() {
   async function updateScheduleConfig(scheduleConfig: Record<string, any>) {
     savingScheduleConfig.value = true;
     try {
-      await hw.patch('/api/group-admin/schedule-config', { scheduleConfig });
+      await hw.patch('/group-admin/schedule-config', { scheduleConfig });
       await useAppAuth().checkAuthStatus();
       showMessage('Schedule config updated');
     } catch {
@@ -208,7 +208,7 @@ export function useGroupAdmin() {
 
     if (!isConfirmed) return;
     try {
-      await hw.delete(`/api/group-admin/schedule/subs/${id}`);
+      await hw.delete(`/group-admin/schedule/subs/${id}`);
       subs.value = subs.value.filter((s) => s.id !== id);
       showMessage('Substitution deleted');
     } catch {
@@ -218,7 +218,7 @@ export function useGroupAdmin() {
 
   async function loadAnnouncements() {
     try {
-      const { data } = await hw.get('/api/schedule/announcements');
+      const { data } = await hw.get('/schedule/announcements');
       announcements.value = data;
     } catch {}
   }
@@ -227,7 +227,7 @@ export function useGroupAdmin() {
     if (!content.trim()) return;
     creatingAnn.value = true;
     try {
-      await hw.post('/api/group-admin/announcements', {
+      await hw.post('/group-admin/announcements', {
         content: content.trim(),
         color,
       });
@@ -250,7 +250,7 @@ export function useGroupAdmin() {
 
     if (!isConfirmed) return;
     try {
-      await hw.delete(`/api/group-admin/announcements/${id}`);
+      await hw.delete(`/group-admin/announcements/${id}`);
       announcements.value = announcements.value.filter((a) => a.id !== id);
       showMessage('Announcement deleted');
     } catch {
@@ -269,7 +269,7 @@ export function useGroupAdmin() {
     if (!isConfirmed) return;
     cleaningUp.value = true;
     try {
-      const { data } = await hw.delete('/api/group-admin/cleanup/old-items');
+      const { data } = await hw.delete('/group-admin/cleanup/old-items');
       showMessage(data.message || 'Cleanup completed');
       await loadStats();
     } catch {
@@ -293,7 +293,7 @@ export function useGroupAdmin() {
     if (!newGroupName.value.trim()) return;
     savingGroupName.value = true;
     try {
-      await hw.patch('/api/group-admin/settings', {
+      await hw.patch('/group-admin/settings', {
         name: newGroupName.value.trim(),
       });
       showMessage('Group name updated');
@@ -312,7 +312,7 @@ export function useGroupAdmin() {
 
   async function saveGroupAvatar(avatarUrl: string | null) {
     try {
-      await hw.patch('/api/group-admin/settings', {
+      await hw.patch('/group-admin/settings', {
         avatarUrl: avatarUrl ? avatarUrl.trim() : null,
       });
       showMessage(
@@ -331,7 +331,7 @@ export function useGroupAdmin() {
 
   async function updateGroupPassword(oldPassword: string, newPassword: string) {
     try {
-      await hw.patch('/api/group-admin/password', { oldPassword, newPassword });
+      await hw.patch('/group-admin/password', { oldPassword, newPassword });
       showMessage('Password changed successfully');
       return true;
     } catch (e: unknown) {
@@ -349,7 +349,7 @@ export function useGroupAdmin() {
 
   async function deleteGroup() {
     try {
-      await hw.delete('/api/group-admin');
+      await hw.delete('/group-admin');
       showMessage('Group deleted successfully');
       return true;
     } catch (e: unknown) {
@@ -376,7 +376,7 @@ export function useGroupAdmin() {
 
     if (!isConfirmed) return;
     try {
-      await hw.post('/api/group-admin/transfer-ownership', { targetUserId });
+      await hw.post('/group-admin/transfer-ownership', { targetUserId });
       showMessage('Ownership transferred successfully');
       await checkAuthStatus();
     } catch (e: unknown) {

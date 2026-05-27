@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import InfoModal from '@/common/components/InfoModal.vue';
-import hw from '@/api/hwApi';
+import hw from '../../../api/api';
 import { useToast } from '@/common/composables/useToast';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 
@@ -35,7 +35,7 @@ const saving = ref(false);
 async function fetchPermissions() {
   loading.value = true;
   try {
-    const { data } = await hw.get('/api/group-admin/permissions');
+    const { data } = await hw.get('/group-admin/permissions');
     if (data.permissions) {
       permissions.value = {
         ...permissions.value,
@@ -57,7 +57,7 @@ async function savePermission(key: string, value: string) {
   permissions.value[key] = value;
 
   try {
-    const { data } = await hw.patch('/api/group-admin/permissions', {
+    const { data } = await hw.patch('/group-admin/permissions', {
       permissions: permissions.value,
     });
     if (data.ok) {

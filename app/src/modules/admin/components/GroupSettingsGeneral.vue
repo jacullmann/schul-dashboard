@@ -6,7 +6,7 @@ import { useGroupAdmin } from '@/modules/admin/composables/useGroupAdmin';
 import { Pencil, Camera, Trash2, Upload } from '@lucide/vue';
 import { useModalStore } from '@/stores/modalStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
-import hw from '@/api/hwApi';
+import hw from '../../../api/api';
 import GroupAvatarCropper from './GroupAvatarCropper.vue';
 import Avatar from '@/modules/auth/components/Avatar.vue';
 
@@ -95,7 +95,7 @@ async function onCropConfirmed(blob: Blob) {
   avatarError.value = '';
 
   try {
-    const { data: sign } = await hw.post('/api/items/uploads/sign');
+    const { data: sign } = await hw.post('/items/uploads/sign');
 
     const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
     const form = new FormData();

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, watch, computed } from 'vue';
 import { useEventListener } from '@vueuse/core';
-import hw from '@/api/hwApi';
+import hw from '../../../api/api';
 import type { HwItem } from '@/modules/tasks/composables/useTasks';
 import type { ItemType } from '@/modules/tasks/types';
 import { useImageUpload } from '@/modules/tasks/composables/useImageUpload';
@@ -269,9 +269,9 @@ async function submit() {
     };
 
     if (props.initial) {
-      await hw.patch(`/api/items/${props.initial.id}`, payload);
+      await hw.patch(`/items/${props.initial.id}`, payload);
     } else {
-      await hw.post('/api/items', {
+      await hw.post('/items', {
         ...payload,
         type: activeType.value,
       });

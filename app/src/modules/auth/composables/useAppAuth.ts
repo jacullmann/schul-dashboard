@@ -1,8 +1,8 @@
 import { ref, computed } from 'vue';
-import hw, { ensureCsrf, refreshSession } from '@/api/hwApi';
+import hw, { ensureCsrf, refreshSession } from '@/api/api.ts';
 import { useUserStore } from '@/stores/userStore';
 
-const STATUS_ENDPOINT = '/api/groups/status';
+const STATUS_ENDPOINT = '/groups/status';
 
 const isAuthenticated = ref(false);
 const isLoggedIn = ref(false);
@@ -112,7 +112,7 @@ async function doSwitchGroup(
   checkAuthStatus: () => Promise<boolean>,
 ): Promise<AuthResult> {
   try {
-    const { status, data } = await hw.post('/api/groups/switch', { groupId });
+    const { status, data } = await hw.post('/groups/switch', { groupId });
 
     if ((status === 200 || status === 201) && data.ok) {
       await checkAuthStatus();
@@ -182,7 +182,7 @@ export function useAppAuth() {
     password: string,
   ): Promise<AuthResult> {
     try {
-      const { status, data } = await hw.post('/api/groups/join', {
+      const { status, data } = await hw.post('/groups/join', {
         groupName: name,
         password,
       });
@@ -210,7 +210,7 @@ export function useAppAuth() {
     password: string,
   ): Promise<AuthResult> {
     try {
-      const { status, data } = await hw.post('/api/groups/create', {
+      const { status, data } = await hw.post('/groups/create', {
         groupName: name,
         password,
       });
@@ -253,7 +253,7 @@ export function useAppAuth() {
 
   async function logout(): Promise<void> {
     try {
-      await hw.post('/api/auth/logout');
+      await hw.post('/auth/logout');
     } catch {
     } finally {
       clearAuthState();
@@ -264,7 +264,7 @@ export function useAppAuth() {
 
   async function logoutAllDevices(): Promise<void> {
     try {
-      await hw.post('/api/auth/logout-all');
+      await hw.post('/auth/logout-all');
     } catch {
     } finally {
       clearAuthState();

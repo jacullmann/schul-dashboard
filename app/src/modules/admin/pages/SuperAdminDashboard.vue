@@ -14,7 +14,7 @@ import {
   FileText,
   Layers,
 } from '@lucide/vue';
-import hw from '@/api/hwApi';
+import hw from '../../../api/api';
 import AdminLayout from '@/layouts/AdminLayout.vue';
 import { useToast } from '@/common/composables/useToast';
 import { useModalStore } from '@/stores/modalStore';
@@ -122,7 +122,7 @@ function fmtDate(iso: string) {
 async function loadStats() {
   loadingStats.value = true;
   try {
-    const { data } = await hw.get('/api/admin/stats');
+    const { data } = await hw.get('/admin/stats');
     stats.value = data;
   } catch (e) {
     console.error(e);
@@ -133,7 +133,7 @@ async function loadStats() {
 
 async function loadAllUsers() {
   try {
-    const { data } = await hw.get('/api/admin/all-users');
+    const { data } = await hw.get('/admin/all-users');
     allUsers.value = data;
   } catch {
     toastError('Failed to load users.');
@@ -142,7 +142,7 @@ async function loadAllUsers() {
 
 async function loadReports() {
   try {
-    const { data } = await hw.get('/api/admin/reports');
+    const { data } = await hw.get('/admin/reports');
     reports.value = data;
   } catch {}
 }
@@ -150,7 +150,7 @@ async function loadReports() {
 async function loadGroups() {
   loadingGroups.value = true;
   try {
-    const { data } = await hw.get('/api/admin/groups');
+    const { data } = await hw.get('/admin/groups');
     groups.value = data;
   } catch {
     toastError('Failed to load groups.');
@@ -166,7 +166,7 @@ async function toggleActivity(userId: string) {
   }
   loadingActivities.value[userId] = true;
   try {
-    const { data } = await hw.get(`/api/admin/users/${userId}/activity`);
+    const { data } = await hw.get(`/admin/users/${userId}/activity`);
     userActivities.value[userId] = data;
     showActivityFor.value = userId;
   } catch {
@@ -180,11 +180,11 @@ async function toggleBan(u: User) {
   if (u.role === 'superadmin') return;
   try {
     if (u.isBanned) {
-      await hw.delete(`/api/admin/users/${u.id}/ban`);
+      await hw.delete(`/admin/users/${u.id}/ban`);
       u.isBanned = false;
       toastSuccess('User unbanned.');
     } else {
-      await hw.post(`/api/admin/users/${u.id}/ban`);
+      await hw.post(`/admin/users/${u.id}/ban`);
       u.isBanned = true;
       toastSuccess('User banned.');
     }
@@ -204,7 +204,7 @@ async function deleteUser(id: string) {
 
   if (!isConfirmed) return;
   try {
-    await hw.delete(`/api/admin/users/${id}`);
+    await hw.delete(`/admin/users/${id}`);
     allUsers.value = allUsers.value.filter((u) => u.id !== id);
     toastSuccess('User deleted.');
     loadStats();
@@ -223,7 +223,7 @@ async function pruneOldLogs(u: User) {
 
   if (!isConfirmed) return;
   try {
-    await hw.delete(`/api/admin/users/${u.id}/activity/prune`);
+    await hw.delete(`/admin/users/${u.id}/activity/prune`);
     toastSuccess('Logs pruned.');
   } catch {
     toastError('Failed to prune logs.');
@@ -232,7 +232,7 @@ async function pruneOldLogs(u: User) {
 
 async function toggleReportProcessed(id: string, currentProcessed: boolean) {
   try {
-    await hw.patch(`/api/admin/reports/${id}/processed`, {
+    await hw.patch(`/admin/reports/${id}/processed`, {
       processed: !currentProcessed,
     });
     const r = reports.value.find((x) => x.id === id);
@@ -257,7 +257,7 @@ async function deleteReport(id: string) {
 
   if (!isConfirmed) return;
   try {
-    await hw.delete(`/api/admin/reports/${id}`);
+    await hw.delete(`/admin/reports/${id}`);
     reports.value = reports.value.filter((r) => r.id !== id);
     toastSuccess('Report deleted.');
     loadStats();
@@ -277,7 +277,7 @@ async function cleanupOldItems() {
   if (!isConfirmed) return;
   isCleaningUp.value = true;
   try {
-    const { data } = await hw.delete('/api/admin/cleanup/old-items');
+    const { data } = await hw.delete('/admin/cleanup/old-items');
     toastSuccess(data.message || 'Cleanup complete.');
     loadStats();
   } catch {
@@ -297,7 +297,7 @@ async function deleteGroup(g: Group) {
 
   if (!isConfirmed) return;
   try {
-    await hw.delete(`/api/admin/groups/${g.id}`);
+    await hw.delete(`/admin/groups/${g.id}`);
     groups.value = groups.value.filter((x) => x.id !== g.id);
     toastSuccess(`Group "${g.name}" deleted.`);
   } catch {

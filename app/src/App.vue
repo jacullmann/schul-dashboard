@@ -9,7 +9,7 @@ import { useOAuth } from '@/modules/auth/composables/useOAuth';
 import { useLoadingBar } from '@/common/composables/loadingState';
 import GlobalModalContainer from '@/core/components/GlobalModalContainer.vue';
 import BaseToast from '@/common/components/BaseToast.vue';
-import hw from '@/api/hwApi';
+import hw from './api/api';
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -23,7 +23,7 @@ let pageloadLogged = false;
 function logPageload() {
   if (pageloadLogged || !user.value) return;
   pageloadLogged = true;
-  hw.post('/api/user/activity/pageload').catch(() => {
+  hw.post('/user/activity/pageload').catch(() => {
     pageloadLogged = false;
   });
 }

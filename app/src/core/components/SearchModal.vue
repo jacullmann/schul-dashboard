@@ -40,7 +40,7 @@ import { useAccountModals } from '@/modules/auth/composables/useAccountModals';
 import { useMfa } from '@/modules/auth/composables/useMfa';
 import { useUserStore } from '@/stores/userStore';
 import { usePreferences } from '@/common/composables/usePreferences';
-import hw from '@/api/hwApi';
+import hw from '../../api/api';
 import { useGroupAction } from '@/core/composables/useGroupAction';
 import Avatar from '@/modules/auth/components/Avatar.vue';
 
@@ -327,7 +327,7 @@ const defaultResults = computed<SearchResult[]>(() => [
 async function logout() {
   emit('cancel');
   try {
-    await hw.post('/api/auth/logout');
+    await hw.post('/auth/logout');
   } catch (err) {
     console.error('Logout failed:', err);
   } finally {

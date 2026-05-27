@@ -1,5 +1,5 @@
 import { ref } from 'vue';
-import hw from '@/api/hwApi';
+import hw from '@/api/api.ts';
 import { useI18n } from 'vue-i18n';
 
 export function useDeleteAccount(emit: {
@@ -17,7 +17,7 @@ export function useDeleteAccount(emit: {
     submitting.value = true;
     errorMsg.value = '';
     try {
-      const res = await hw.delete('/api/auth/me');
+      const res = await hw.delete('/auth/me');
       if (res?.data?.ok) {
         successMsg.value = t('auth.delete_account.success');
         emit('deleted');

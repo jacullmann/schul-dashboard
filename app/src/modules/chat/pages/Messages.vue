@@ -4,7 +4,7 @@ import { useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
 import { useI18n } from 'vue-i18n';
-import hw from '@/api/hwApi';
+import hw from '../../../api/api';
 import { io, Socket } from 'socket.io-client';
 import {
   MessageCircle,
@@ -242,7 +242,7 @@ const fetchMessages = async () => {
   error.value = null;
   isInitialScroll.value = true;
   try {
-    const { data } = await hw.get('/api/messages');
+    const { data } = await hw.get('/messages');
     messages.value = data.messages;
     lastVisitAt.value = data.lastVisitAt;
     scrollToBottom(true);
@@ -344,7 +344,7 @@ const sendMessage = async () => {
   }
 
   try {
-    await hw.post('/api/messages', payload);
+    await hw.post('/messages', payload);
   } catch (err) {
     console.error('Failed to send message:', err);
     messageInput.value = text;
@@ -434,7 +434,7 @@ const deleteMessage = async (msg: any) => {
   if (!isConfirmed) return;
 
   try {
-    await hw.delete(`/api/messages/${msg.id}`);
+    await hw.delete(`/messages/${msg.id}`);
     toast.success(t('chat.delete_success'));
   } catch (err) {
     console.error('Failed to delete message:', err);
@@ -450,7 +450,7 @@ const triggerMarkRead = async () => {
 
   pendingMarkRead.value = false;
   try {
-    await hw.post('/api/messages/read');
+    await hw.post('/messages/read');
     lastVisitAt.value = new Date().toISOString();
   } catch (err) {
     console.error('Failed to mark messages as read:', err);
@@ -490,7 +490,7 @@ onUnmounted(() => {
   }
   if (pendingMarkRead.value) {
     pendingMarkRead.value = false;
-    void hw.post('/api/messages/read').catch(() => {});
+    void hw.post('/messages/read').catch(() => {});
   }
   document.body.style.overflow = '';
 });
@@ -498,7 +498,7 @@ onUnmounted(() => {
 watch(groupId, () => {
   if (pendingMarkRead.value) {
     pendingMarkRead.value = false;
-    void hw.post('/api/messages/read').catch(() => {});
+    void hw.post('/messages/read').catch(() => {});
   }
   dismissedNewMessagesDivider.value = false;
   isInitialScroll.value = true;

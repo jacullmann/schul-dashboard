@@ -158,7 +158,6 @@ function navigateToLogin() {
         </template>
       </BaseForm>
 
-      <!-- OAuth Divider -->
       <div class="flex items-center gap-3 mb-6">
         <div class="flex-1 h-px bg-canvas-border" />
         <span class="text-xs text-on-ghost-muted">
@@ -167,7 +166,6 @@ function navigateToLogin() {
         <div class="flex-1 h-px bg-canvas-border" />
       </div>
 
-      <!-- Google Register -->
       <BaseButton
         type="button"
         variant="ghost"

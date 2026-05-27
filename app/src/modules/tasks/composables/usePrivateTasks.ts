@@ -2,7 +2,7 @@ import { ref, watch, onMounted } from 'vue';
 import { useEventListener } from '@vueuse/core';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
-import hw from '@/api/hwApi';
+import hw from '@/api/api.ts';
 import { useModalStore } from '@/stores/modalStore';
 import { useI18n } from 'vue-i18n';
 import type { PrivateTask } from '@/modules/tasks/types';
@@ -64,7 +64,7 @@ export function usePrivateTasks() {
     if (!user.value) return;
     loading.value = true;
     try {
-      const { data } = await hw.get('/api/todos');
+      const { data } = await hw.get('/todos');
       privateTasks.value = data;
       syncState();
     } catch {
@@ -78,7 +78,7 @@ export function usePrivateTasks() {
     const previous = task.completed;
     task.completed = !task.completed;
     try {
-      const { data } = await hw.patch(`/api/todos/${task.id}/toggle`);
+      const { data } = await hw.patch(`/todos/${task.id}/toggle`);
       updatePrivateTask({ ...task, updatedAt: data.updatedAt });
     } catch (e: any) {
       task.completed = previous;
@@ -89,7 +89,7 @@ export function usePrivateTasks() {
   const duplicatePrivateTask = async (task: PrivateTask) => {
     loading.value = true;
     try {
-      const { data } = await hw.post('/api/todos', {
+      const { data } = await hw.post('/todos', {
         title: task.title,
         description: task.description,
         completed: false,
@@ -126,7 +126,7 @@ export function usePrivateTasks() {
     syncState();
 
     try {
-      await hw.delete(`/api/todos/${id}`);
+      await hw.delete(`/todos/${id}`);
       useToast().success(t('tasks.private_tasks.success_delete'));
     } catch (e: any) {
       privateTasks.value.splice(idx, 0, backup);
@@ -152,7 +152,7 @@ export function usePrivateTasks() {
     syncState();
 
     try {
-      const { data } = await hw.patch(`/api/todos/${id}/reorder`, {
+      const { data } = await hw.patch(`/todos/${id}/reorder`, {
         prevPosition,
         nextPosition,
       });

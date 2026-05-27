@@ -3,7 +3,7 @@ import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
 import { useModalStore } from '@/stores/modalStore';
-import hw from '@/api/hwApi';
+import hw from '@/api/api.ts';
 import { useToast } from '@/common/composables/useToast';
 import type { Announcement } from '@/modules/announcements/types';
 
@@ -25,7 +25,7 @@ export function useAnnouncements() {
     loading.value = true;
     try {
       const { data } = await hw.get<Announcement[]>(
-        '/api/schedule/announcements',
+        '/schedule/announcements',
       );
       announcements.value = data;
     } catch (e) {
@@ -39,7 +39,7 @@ export function useAnnouncements() {
     if (!user.value) return;
     try {
       const { data } = await hw.get<string[]>(
-        '/api/schedule/announcements/read-status',
+        '/schedule/announcements/read-status',
       );
       seenIds.value = new Set(data);
     } catch {
@@ -51,7 +51,7 @@ export function useAnnouncements() {
     if (seenIds.value.has(announcementId)) return;
     seenIds.value.add(announcementId);
     try {
-      await hw.post(`/api/schedule/announcements/${announcementId}/read`);
+      await hw.post(`/schedule/announcements/${announcementId}/read`);
     } catch {}
   }
 
@@ -101,7 +101,7 @@ export function useAnnouncements() {
 
     if (!isConfirmed) return;
     try {
-      await hw.delete(`/api/group-admin/announcements/${id}`);
+      await hw.delete(`/group-admin/announcements/${id}`);
       announcements.value = announcements.value.filter((a) => a.id !== id);
     } catch (e: unknown) {
       const err = e as { response?: { data?: { error?: string } } };

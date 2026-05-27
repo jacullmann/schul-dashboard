@@ -1,5 +1,5 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
-import hw from '@/api/hwApi';
+import hw from '@/api/api.ts';
 import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import type { Lesson, Substitution, TimeSlot } from '@/modules/schedule/types';
@@ -122,7 +122,7 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
 
   async function loadSubstitutions() {
     try {
-      const { data } = await hw.get('/api/schedule/subs');
+      const { data } = await hw.get('/schedule/subs');
       substitutions.value = data;
     } catch (error) {
       console.error('Error loading substitutions:', error);
@@ -135,7 +135,7 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
   async function loadSchedule() {
     loadingLessons.value = true;
     try {
-      const { data } = await hw.get('/api/schedule');
+      const { data } = await hw.get('/schedule');
       lessons.value = data;
     } catch (error) {
       console.error('Error loading schedule:', error);

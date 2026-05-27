@@ -1,5 +1,5 @@
 import { ref, computed } from 'vue';
-import hw from '@/api/hwApi';
+import hw from '@/api/api.ts';
 import type { MfaSetupResponse, MfaStatusResponse } from '@/modules/auth/types';
 
 const mfaEnabled = ref(false);
@@ -12,7 +12,7 @@ export function useMfa() {
     mfaError.value = null;
 
     try {
-      const { data } = await hw.get<MfaStatusResponse>('/api/mfa/status');
+      const { data } = await hw.get<MfaStatusResponse>('/mfa/status');
       mfaEnabled.value = data.mfaEnabled;
       return data.mfaEnabled;
     } catch (err: unknown) {
@@ -30,7 +30,7 @@ export function useMfa() {
     mfaError.value = null;
 
     try {
-      const { data } = await hw.post<MfaSetupResponse>('/api/mfa/setup');
+      const { data } = await hw.post<MfaSetupResponse>('/mfa/setup');
       return data;
     } catch (err: unknown) {
       const e = err as { response?: { data?: { error?: string } } };
@@ -49,7 +49,7 @@ export function useMfa() {
     mfaError.value = null;
 
     try {
-      await hw.post('/api/mfa/activate', { code });
+      await hw.post('/mfa/activate', { code });
       mfaEnabled.value = true;
       return { ok: true };
     } catch (err: unknown) {
@@ -70,7 +70,7 @@ export function useMfa() {
     mfaError.value = null;
 
     try {
-      await hw.post('/api/mfa/deactivate', { code });
+      await hw.post('/mfa/deactivate', { code });
       mfaEnabled.value = false;
       return { ok: true };
     } catch (err: unknown) {
@@ -91,7 +91,7 @@ export function useMfa() {
     mfaError.value = null;
 
     try {
-      await hw.post('/api/auth/mfa/verify', { code });
+      await hw.post('/auth/mfa/verify', { code });
       return { ok: true };
     } catch (err: unknown) {
       const e = err as { response?: { data?: { error?: string } } };
@@ -106,7 +106,7 @@ export function useMfa() {
 
   async function cancelMfaLogin(): Promise<void> {
     try {
-      await hw.post('/api/auth/mfa/cancel');
+      await hw.post('/auth/mfa/cancel');
     } catch {}
   }
 

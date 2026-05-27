@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, computed, watch, onMounted } from 'vue';
-import hw from '@/api/hwApi';
+import hw from '../../../api/api';
 import { useI18n } from 'vue-i18n';
 import { useSubjectStore } from '@/stores/subjectStore';
 import { getSubjectKey } from '@/types/subjects';
@@ -91,7 +91,7 @@ async function submitData(dataToSend: {
 }) {
   error.value = '';
   try {
-    const { data } = await hw.patch('/api/user/setup', dataToSend);
+    const { data } = await hw.patch('/user/setup', dataToSend);
 
     emit('update:user', data.user);
     emit('success');

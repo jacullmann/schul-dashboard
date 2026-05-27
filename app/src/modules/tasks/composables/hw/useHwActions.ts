@@ -2,7 +2,7 @@ import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useModalStore } from '@/stores/modalStore';
 import type { HwItem } from '@/modules/tasks/types';
-import hw from '@/api/hwApi';
+import hw from '@/api/api.ts';
 import type { HwContext } from './types';
 
 export function useHwActions(
@@ -30,7 +30,7 @@ export function useHwActions(
       return;
     }
     try {
-      const { data } = await hw.get('/api/user/pins');
+      const { data } = await hw.get('/user/pins');
       ctx.pinnedItems.value = new Set(data.itemIds || []);
     } catch {
       ctx.pinnedItems.value = new Set();
@@ -62,8 +62,8 @@ export function useHwActions(
 
     try {
       if (wasChecked)
-        await hw.delete(`/api/user/items/${id}/check`, getConfig());
-      else await hw.post(`/api/user/items/${id}/check`, {}, getConfig());
+        await hw.delete(`/user/items/${id}/check`, getConfig());
+      else await hw.post(`/user/items/${id}/check`, {}, getConfig());
     } catch {
       if (wasChecked) ctx.checkedItems.value.add(id);
       else ctx.checkedItems.value.delete(id);
@@ -94,10 +94,10 @@ export function useHwActions(
 
     try {
       if (newStatus === null)
-        await hw.delete(`/api/user/items/${id}/visibility`, getConfig());
+        await hw.delete(`/user/items/${id}/visibility`, getConfig());
       else
         await hw.post(
-          `/api/user/items/${id}/visibility`,
+          `/user/items/${id}/visibility`,
           { status: newStatus },
           getConfig(),
         );
@@ -120,8 +120,8 @@ export function useHwActions(
     else ctx.pinnedItems.value.add(id);
 
     try {
-      if (wasPinned) await hw.delete(`/api/user/items/${id}/pin`, getConfig());
-      else await hw.post(`/api/user/items/${id}/pin`, {}, getConfig());
+      if (wasPinned) await hw.delete(`/user/items/${id}/pin`, getConfig());
+      else await hw.post(`/user/items/${id}/pin`, {}, getConfig());
     } catch {
       if (wasPinned) ctx.pinnedItems.value.add(id);
       else ctx.pinnedItems.value.delete(id);
@@ -171,7 +171,7 @@ export function useHwActions(
 
     deletingEntry.value = true;
     try {
-      await hw.delete(`/api/items/${id}`);
+      await hw.delete(`/items/${id}`);
       ctx.items.value = ctx.items.value.filter((item) => item.id !== id);
       handleSuccessAction(t('tasks.actions.delete_modal.success'));
     } catch (e: any) {
@@ -195,7 +195,7 @@ export function useHwActions(
     handleSuccessAction('Melde...');
 
     try {
-      await hw.post('/api/items/reports', {
+      await hw.post('/items/reports', {
         itemId: item.id,
         itemTitle: item.title,
         category,

@@ -1,7 +1,7 @@
 import { onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { HwItem, ItemType } from '@/modules/tasks/types';
-import hw from '@/api/hwApi';
+import hw from '@/api/api.ts';
 import { useToast } from '@/common/composables/useToast';
 import { useItemForm } from '@/core/composables/useItemForm';
 import { useModalStore } from '@/stores/modalStore';
@@ -54,7 +54,7 @@ export function useHwForms(ctx: HwContext) {
     savingNote.value = true;
 
     try {
-      await hw.patch(`/api/items/${itemId}/note`, {
+      await hw.patch(`/items/${itemId}/note`, {
         editorNote: noteEditContent.value,
       });
 
@@ -89,7 +89,7 @@ export function useHwForms(ctx: HwContext) {
     savingNote.value = true;
 
     try {
-      await hw.patch(`/api/items/${itemId}/note`, {
+      await hw.patch(`/items/${itemId}/note`, {
         editorNote: '',
       });
 
