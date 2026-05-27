@@ -3,6 +3,7 @@ use uuid::Uuid;
 use validator::Validate;
 
 #[derive(Debug, Deserialize, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct CreateItemDto {
     pub r#type: String,
     #[validate(length(min = 1, max = 60))]
@@ -16,6 +17,7 @@ pub struct CreateItemDto {
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct UpdateItemDto {
     pub title: Option<String>,
     pub subject: Option<String>,
@@ -25,17 +27,20 @@ pub struct UpdateItemDto {
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ImageDto {
     pub public_id: String,
     pub metadata: Option<serde_json::Value>,
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct UpdateEditorNoteDto {
     pub editor_note: String,
 }
 
 #[derive(Debug, Deserialize, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct ReportItemDto {
     pub item_id: Uuid,
     #[validate(length(min = 1, max = 200))]
@@ -45,6 +50,7 @@ pub struct ReportItemDto {
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ItemsQuery {
     pub r#type: Option<String>,
     pub filter: Option<String>,

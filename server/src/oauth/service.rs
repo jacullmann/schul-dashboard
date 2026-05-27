@@ -562,15 +562,15 @@ impl OAuthService {
         let (global_role, active_group_id) = self.resolve_user_context(user_id).await?;
 
         let tokens = TokenService::from_state(&self.state)
-            .issue_pair(
+            .issue_pair(crate::auth::token::IssueTokenParams {
                 user_id,
                 email,
-                &global_role,
+                global_role: &global_role,
                 active_group_id,
-                None,
-                None,
-                None,
-            )
+                user_agent: None,
+                ip_address: None,
+                parent: None,
+            })
             .await?;
 
         let opts = self.config.base_cookie_options();

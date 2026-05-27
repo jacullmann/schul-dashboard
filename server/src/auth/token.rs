@@ -24,6 +24,16 @@ pub struct IssuedTokens {
     pub refresh_token: String,
 }
 
+pub struct IssueTokenParams<'a> {
+    pub user_id: Uuid,
+    pub email: &'a str,
+    pub global_role: &'a str,
+    pub active_group_id: Option<Uuid>,
+    pub user_agent: Option<&'a str>,
+    pub ip_address: Option<&'a str>,
+    pub parent: Option<(Uuid, Uuid)>,
+}
+
 pub struct TokenService {
     pub db: PgPool,
     pub jwt: JwtService,
@@ -55,16 +65,14 @@ impl TokenService {
         }
     }
 
-    pub async fn issue_pair(
-        &self,
-        user_id: Uuid,
-        email: &str,
-        global_role: &str,
-        active_group_id: Option<Uuid>,
-        user_agent: Option<&str>,
-        ip_address: Option<&str>,
-        parent: Option<(Uuid, Uuid)>,
-    ) -> Result<IssuedTokens, AppError> {
+    pub async fn issue_pair(&self, params: IssueTokenParams<'_>) -> Result<IssuedTokens, AppError> {
+        let user_id = params.user_id;
+        let email = params.email;
+        let global_role = params.global_role;
+        let active_group_id = params.active_group_id;
+        let user_agent = params.user_agent;
+        let ip_address = params.ip_address;
+        let parent = params.parent;
         let refresh_token = generate_opaque_token();
 
         let token_hash = hash_token(&refresh_token);
@@ -185,15 +193,15 @@ impl TokenService {
         };
 
         let issued = self
-            .issue_pair(
-                user.user_id,
-                &user.email,
-                &user.global_role,
-                user.active_group_id,
+            .issue_pair(IssueTokenParams {
+                user_id: user.user_id,
+                email: &user.email,
+                global_role: &user.global_role,
+                active_group_id: user.active_group_id,
                 user_agent,
                 ip_address,
-                Some((row.id, row.family_id)),
-            )
+                parent: Some((row.id, row.family_id)),
+            })
             .await?;
 
         Ok(Some(issued))

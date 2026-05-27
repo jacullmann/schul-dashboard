@@ -3,6 +3,7 @@ use uuid::Uuid;
 use validator::Validate;
 
 #[derive(Debug, Deserialize, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct JoinGroupDto {
     #[validate(length(min = 1, max = 100))]
     pub group_name: String,
@@ -10,6 +11,7 @@ pub struct JoinGroupDto {
 }
 
 #[derive(Debug, Deserialize, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct CreateGroupDto {
     #[validate(length(min = 1, max = 100))]
     pub group_name: String,
@@ -17,33 +19,39 @@ pub struct CreateGroupDto {
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SwitchGroupDto {
     pub group_id: Uuid,
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ChangeMemberRoleDto {
     pub role: String,
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct RenameGroupDto {
     pub name: Option<String>,
     pub avatar_url: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct UpdateGroupPasswordDto {
     pub old_password: String,
     pub new_password: String,
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct UpdateScheduleConfigDto {
     pub schedule_config: serde_json::Value,
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CreateScheduleSubDto {
     pub lesson_id: Uuid,
     pub day: Option<i32>,
@@ -56,23 +64,27 @@ pub struct CreateScheduleSubDto {
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CreateAnnouncementDto {
     pub content: String,
     pub color: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CreateSubjectDto {
     pub name: String,
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct UpdateSubjectDto {
     pub name: Option<String>,
     pub is_active: Option<bool>,
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct UpdateGroupPermissionsDto {
     pub permissions: serde_json::Value,
 }

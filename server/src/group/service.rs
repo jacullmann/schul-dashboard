@@ -12,6 +12,26 @@ use serde_json::{Value, json};
 use sqlx::PgPool;
 use uuid::Uuid;
 
+pub struct JoinGroupParams<'a> {
+    pub user_id: Uuid,
+    pub email: &'a str,
+    pub global_role: &'a str,
+    pub group_name: &'a str,
+    pub password: &'a str,
+    pub ip: Option<&'a str>,
+    pub ua: Option<&'a str>,
+}
+
+pub struct CreateGroupParams<'a> {
+    pub user_id: Uuid,
+    pub email: &'a str,
+    pub global_role: &'a str,
+    pub group_name: &'a str,
+    pub password: &'a str,
+    pub ip: Option<&'a str>,
+    pub ua: Option<&'a str>,
+}
+
 pub struct GroupService {
     db: PgPool,
     state: AppState,
@@ -33,15 +53,15 @@ impl GroupService {
         active_group_id: Option<Uuid>,
     ) -> AppResult<CookieJar> {
         let tokens = TokenService::from_state(&self.state)
-            .issue_pair(
+            .issue_pair(crate::auth::token::IssueTokenParams {
                 user_id,
                 email,
                 global_role,
                 active_group_id,
-                None,
-                None,
-                None,
-            )
+                user_agent: None,
+                ip_address: None,
+                parent: None,
+            })
             .await?;
 
         let opts = self.state.config.base_cookie_options();
@@ -54,16 +74,14 @@ impl GroupService {
             .add(crate::common::csrf::csrf_cookie(&csrf, &opts)))
     }
 
-    pub async fn join_group(
-        &self,
-        user_id: Uuid,
-        email: &str,
-        global_role: &str,
-        group_name: &str,
-        password: &str,
-        ip: Option<&str>,
-        ua: Option<&str>,
-    ) -> AppResult<(CookieJar, Value)> {
+    pub async fn join_group(&self, params: JoinGroupParams<'_>) -> AppResult<(CookieJar, Value)> {
+        let user_id = params.user_id;
+        let email = params.email;
+        let global_role = params.global_role;
+        let group_name = params.group_name;
+        let password = params.password;
+        let ip = params.ip;
+        let ua = params.ua;
         static DUMMY: std::sync::LazyLock<String> = std::sync::LazyLock::new(|| {
             argon2::password_hash::PasswordHasher::hash_password(
                 &argon2::Argon2::default(),
@@ -151,14 +169,15 @@ impl GroupService {
 
     pub async fn create_group(
         &self,
-        user_id: Uuid,
-        email: &str,
-        global_role: &str,
-        group_name: &str,
-        password: &str,
-        ip: Option<&str>,
-        ua: Option<&str>,
+        params: CreateGroupParams<'_>,
     ) -> AppResult<(CookieJar, Value)> {
+        let user_id = params.user_id;
+        let email = params.email;
+        let global_role = params.global_role;
+        let group_name = params.group_name;
+        let password = params.password;
+        let ip = params.ip;
+        let ua = params.ua;
         let exists = sqlx::query!(r#"SELECT id FROM groups WHERE name = $1"#, group_name)
             .fetch_optional(&self.db)
             .await?;

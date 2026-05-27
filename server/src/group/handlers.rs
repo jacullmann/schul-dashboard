@@ -24,15 +24,15 @@ pub async fn join_group(
     Json(dto): Json<JoinGroupDto>,
 ) -> AppResult<(CookieJar, Json<Value>)> {
     let (jar, body) = GroupService::from_state(&s)
-        .join_group(
-            user.user_id,
-            &user.email,
-            &user.global_role,
-            &dto.group_name,
-            &dto.password,
-            ip.as_deref(),
-            ua.as_deref(),
-        )
+        .join_group(crate::group::service::JoinGroupParams {
+            user_id: user.user_id,
+            email: &user.email,
+            global_role: &user.global_role,
+            group_name: &dto.group_name,
+            password: &dto.password,
+            ip: ip.as_deref(),
+            ua: ua.as_deref(),
+        })
         .await?;
 
     Ok((jar, Json(body)))
@@ -46,15 +46,15 @@ pub async fn create_group(
     Json(dto): Json<CreateGroupDto>,
 ) -> AppResult<(CookieJar, Json<Value>)> {
     let (jar, body) = GroupService::from_state(&s)
-        .create_group(
-            user.user_id,
-            &user.email,
-            &user.global_role,
-            &dto.group_name,
-            &dto.password,
-            ip.as_deref(),
-            ua.as_deref(),
-        )
+        .create_group(crate::group::service::CreateGroupParams {
+            user_id: user.user_id,
+            email: &user.email,
+            global_role: &user.global_role,
+            group_name: &dto.group_name,
+            password: &dto.password,
+            ip: ip.as_deref(),
+            ua: ua.as_deref(),
+        })
         .await?;
 
     Ok((jar, Json(body)))

@@ -25,6 +25,16 @@ fn time_left_color(due: Option<&chrono::DateTime<Utc>>) -> &'static str {
     }
 }
 
+pub struct DeleteItemParams<'a> {
+    pub tenant_id: Uuid,
+    pub id: Uuid,
+    pub user_id: Uuid,
+    pub global_role: &'a str,
+    pub tenant_role: &'a str,
+    pub group_owner_id: Option<Uuid>,
+    pub group_permissions: &'a Value,
+}
+
 pub struct ItemsService {
     db: PgPool,
     cloudinary_cloud_name: String,
@@ -287,16 +297,14 @@ impl ItemsService {
         Ok(json!({ "ok": true }))
     }
 
-    pub async fn delete_item(
-        &self,
-        tenant_id: Uuid,
-        id: Uuid,
-        user_id: Uuid,
-        global_role: &str,
-        tenant_role: &str,
-        group_owner_id: Option<Uuid>,
-        group_permissions: &Value,
-    ) -> AppResult<Value> {
+    pub async fn delete_item(&self, params: DeleteItemParams<'_>) -> AppResult<Value> {
+        let tenant_id = params.tenant_id;
+        let id = params.id;
+        let user_id = params.user_id;
+        let global_role = params.global_role;
+        let tenant_role = params.tenant_role;
+        let group_owner_id = params.group_owner_id;
+        let group_permissions = params.group_permissions;
         let item = sqlx::query!(
             r#"SELECT id, created_by FROM items WHERE id = $1 AND tenant_id = $2"#,
             id,

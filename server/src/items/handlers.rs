@@ -71,15 +71,15 @@ pub async fn delete_item(
 ) -> AppResult<Json<Value>> {
     Ok(Json(
         ItemsService::from_state(&s)
-            .delete_item(
-                tc.tenant_id,
+            .delete_item(crate::items::service::DeleteItemParams {
+                tenant_id: tc.tenant_id,
                 id,
-                tc.user.user_id,
-                &tc.user.global_role,
-                &tc.tenant_role,
-                tc.group_owner_id,
-                &tc.group_permissions,
-            )
+                user_id: tc.user.user_id,
+                global_role: &tc.user.global_role,
+                tenant_role: &tc.tenant_role,
+                group_owner_id: tc.group_owner_id,
+                group_permissions: &tc.group_permissions,
+            })
             .await?,
     ))
 }

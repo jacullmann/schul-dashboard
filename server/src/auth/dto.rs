@@ -47,12 +47,14 @@ pub struct ResetPasswordVerifyDto {
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ResetPasswordDto {
     pub reset_token: String,
     pub password: String,
 }
 
 #[derive(Debug, Deserialize, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct ChangePasswordDto {
     #[validate(length(min = 8, max = 255))]
     pub current_password: String,

@@ -82,15 +82,15 @@ impl AuthService {
 
         let issued = self
             .tokens
-            .issue_pair(
+            .issue_pair(crate::auth::token::IssueTokenParams {
                 user_id,
                 email,
-                &global_role,
+                global_role: &global_role,
                 active_group_id,
                 user_agent,
-                ip,
-                None,
-            )
+                ip_address: ip,
+                parent: None,
+            })
             .await?;
 
         let csrf = generate_csrf_token();
