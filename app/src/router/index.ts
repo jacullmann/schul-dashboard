@@ -264,12 +264,21 @@ router.beforeEach(async (to, from, next) => {
     });
   }
 
-  if ((to.path === '/' || to.path === '/auth') && isLoggedIn.value) {
+  if (
+      (to.path === '/' ||
+          to.path === '/auth' ||
+          to.path === '/login' ||
+          to.path === '/register' ||
+          to.path === '/verify-mfa' ||
+          to.path === '/forgot-password' ||
+          to.path === '/reset-password') &&
+      isLoggedIn.value
+  ) {
     finish();
     return next({
       path: activeGroupId.value
-        ? `/groups/${activeGroupId.value}/items/all`
-        : '/home',
+          ? `/groups/${activeGroupId.value}/items/all`
+          : '/home',
       replace: true,
     });
   }
