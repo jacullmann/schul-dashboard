@@ -281,7 +281,7 @@ impl TokenService {
     pub async fn list_active_sessions(&self, user_id: Uuid) -> Result<Vec<SessionInfo>, AppError> {
         let rows = sqlx::query!(
             r#"
-            SELECT family_id, issued_at, last_used_at, user_agent, ip_address::text as ip_address
+            SELECT family_id, issued_at, last_used_at, user_agent, host(ip_address) as ip_address
             FROM refresh_tokens
             WHERE user_id = $1
               AND revoked_at IS NULL
@@ -317,15 +317,9 @@ impl TokenService {
     }
 
     async fn lookup_ip(&self, ip: &str) -> Option<IpLocation> {
-        if matches!(ip, "127.0.0.1" | "::1" | "localhost") {
-            return Some(IpLocation {
-                city: Some("Lokaler Host".into()),
-                country: Some("Lokales Netzwerk".into()),
-                country_code: None,
-            });
-        }
+        let clean_ip = ip.split('/').next().unwrap_or(ip);
 
-        let url = format!("{}/lookup/{ip}", self.geoip_url);
+        let url = format!("{}/lookup/{}", self.geoip_url, clean_ip);
 
         let resp = self
             .http

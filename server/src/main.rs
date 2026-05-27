@@ -89,8 +89,8 @@ async fn main() -> anyhow::Result<()> {
 
     let global_governor = Arc::new(
         GovernorConfigBuilder::default()
-            .per_second(200)
-            .burst_size(300)
+            .per_second(400)
+            .burst_size(600)
             .key_extractor(SmartIpKeyExtractor)
             .finish()
             .context("Failed to build global rate limit config")?,

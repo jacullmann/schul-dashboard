@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT family_id, issued_at, last_used_at, user_agent, ip_address::text as ip_address\n            FROM refresh_tokens\n            WHERE user_id = $1\n              AND revoked_at IS NULL\n              AND used_at IS NULL\n              AND expires_at > now()\n            ORDER BY last_used_at DESC\n            ",
+  "query": "\n            SELECT family_id, issued_at, last_used_at, user_agent, host(ip_address) as ip_address\n            FROM refresh_tokens\n            WHERE user_id = $1\n              AND revoked_at IS NULL\n              AND used_at IS NULL\n              AND expires_at > now()\n            ORDER BY last_used_at DESC\n            ",
   "describe": {
     "columns": [
       {
@@ -67,5 +67,5 @@
       null
     ]
   },
-  "hash": "fe8bdf37cf806526a68581d209bc27d1365b925de657dde2efef374ca2f5563c"
+  "hash": "f2999c1799ca3c57553083caa563767534f260b9b7387b7e7fcdd2e8fad8bc85"
 }
