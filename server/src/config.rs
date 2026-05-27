@@ -102,7 +102,7 @@ fn require_min(key: &str, min_len: usize) -> Result<String> {
 }
 
 pub const ACCESS_TOKEN_TTL: Duration = Duration::from_secs(15 * 60);
-pub const REFRESH_TOKEN_TTL: Duration = Duration::from_secs(30 * 24 * 60 * 60);
+pub const REFRESH_TOKEN_TTL: Duration = Duration::from_secs(7 * 24 * 60 * 60);
 pub const MFA_PENDING_TTL: Duration = Duration::from_secs(5 * 60);
 pub const PASSWORD_RESET_TTL: Duration = Duration::from_secs(15 * 60);
 pub const PASSWORD_RESET_CODE_TTL: Duration = Duration::from_secs(30 * 60);

@@ -1,5 +1,5 @@
 import { ref, computed } from 'vue';
-import hw, { ensureCsrf, refreshSession } from '@/api/api.ts';
+import hw, { ensureCsrf } from '@/api/api.ts';
 import { useUserStore } from '@/stores/userStore';
 
 const STATUS_ENDPOINT = '/groups/status';
@@ -93,9 +93,6 @@ function installAuthExpiredHandlerOnce(): void {
 async function doInitAuth(): Promise<void> {
   try {
     await ensureCsrf();
-    try {
-      await refreshSession({ silent: true });
-    } catch {}
     const { data } = await hw.get(STATUS_ENDPOINT);
     applyStatusData(data);
   } catch {
