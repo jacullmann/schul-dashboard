@@ -22,8 +22,7 @@ use crate::geoip::GeoIpState;
 
 struct AppConfig {
     port: u16,
-    license_key: Option<String>,
-    mirror_url: String,
+    license_key: String,
     database_path: String,
 }
 
@@ -37,13 +36,11 @@ impl AppConfig {
             .unwrap_or(8080);
 
         let license_key = std::env::var("MAXMIND_LICENSE_KEY")
-            .ok()
-            .filter(|s| !s.trim().is_empty());
+            .expect("CRITICAL: MAXMIND_LICENSE_KEY environment variable is required");
 
-        let mirror_url = std::env::var("GEOIP_DATABASE_URL").unwrap_or_else(|_| {
-            "https://raw.githubusercontent.com/P3TERX/GeoLite.mmdb/download/GeoLite2-City.mmdb"
-                .to_string()
-        });
+        if license_key.trim().is_empty() {
+            panic!("CRITICAL: MAXMIND_LICENSE_KEY environment variable cannot be empty");
+        }
 
         let database_path = std::env::var("GEOIP_DATABASE_PATH")
             .unwrap_or_else(|_| "data/GeoLite2-City.mmdb".to_string());
@@ -51,7 +48,6 @@ impl AppConfig {
         Self {
             port,
             license_key,
-            mirror_url,
             database_path,
         }
     }
@@ -67,7 +63,7 @@ async fn main() {
         .with(tracing_subscriber::fmt::layer())
         .init();
 
-    info!("Starting GeoIP Microservice...");
+    info!("Starting GeoIP Microservice (Official MaxMind Only)...");
 
     let config = Arc::new(AppConfig::from_env());
     let geoip_state = GeoIpState::new();
@@ -81,13 +77,7 @@ async fn main() {
 
     if !geoip_state.is_loaded() {
         info!("No valid database found at startup. Performing initial download...");
-        match update::download_and_extract_db(
-            config.license_key.as_deref(),
-            &config.mirror_url,
-            &config.database_path,
-        )
-        .await
-        {
+        match update::download_and_extract_db(&config.license_key, &config.database_path).await {
             Ok(_) => {
                 if let Err(e) = geoip_state.load_database(&config.database_path).await {
                     error!("Failed to load newly downloaded database: {}", e);
@@ -122,8 +112,7 @@ async fn main() {
             if should_update {
                 info!("Database is outdated or missing. Commencing automated update...");
                 match update::download_and_extract_db(
-                    cron_config.license_key.as_deref(),
-                    &cron_config.mirror_url,
+                    &cron_config.license_key,
                     &cron_config.database_path,
                 )
                 .await
@@ -227,13 +216,7 @@ async fn update_handler(
     info!("Manual database update triggered via HTTP request.");
 
     tokio::spawn(async move {
-        match update::download_and_extract_db(
-            config.license_key.as_deref(),
-            &config.mirror_url,
-            &config.database_path,
-        )
-        .await
-        {
+        match update::download_and_extract_db(&config.license_key, &config.database_path).await {
             Ok(_) => {
                 if let Err(e) = geoip_state.load_database(&config.database_path).await {
                     error!("Failed to reload database after manual update: {}", e);
