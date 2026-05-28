@@ -8,7 +8,7 @@ import { useImageUpload } from '@/modules/tasks/composables/useImageUpload';
 import { useI18n } from 'vue-i18n';
 import { getSubjectKey } from '@/types/subjects';
 import { useSubjectStore } from '@/stores/subjectStore';
-import { X, Upload } from '@lucide/vue';
+import { X, Upload, FileText } from '@lucide/vue';
 import BaseInput from '@/common/components/BaseInput.vue';
 
 const { t, te } = useI18n();
@@ -42,6 +42,10 @@ const {
   uploadFiles,
 } = useImageUpload();
 
+const isPdf = (img: any) => {
+  return img.url?.toLowerCase().endsWith('.pdf') || img.metadata?.format === 'pdf';
+};
+
 const isDragging = ref(false);
 const dragCounter = ref(0);
 
@@ -70,12 +74,12 @@ const handleDrop = async (e: DragEvent) => {
   const files = e.dataTransfer?.files;
   if (!files || files.length === 0) return;
 
-  const imageFiles = Array.from(files).filter((f) =>
-    f.type.startsWith('image/'),
+  const validFiles = Array.from(files).filter((f) =>
+    f.type.startsWith('image/') || f.type === 'application/pdf',
   );
-  if (imageFiles.length === 0) return;
+  if (validFiles.length === 0) return;
 
-  await uploadFiles(imageFiles, !!props.initial, props.initial?.id);
+  await uploadFiles(validFiles, !!props.initial, props.initial?.id);
 };
 
 const getInitialSubjectParts = () => {
@@ -455,6 +459,14 @@ onMounted(() => {
                 alt="Vorschau"
               />
             </BaseLink>
+            <!-- PDF Indicator Badge -->
+            <div
+              v-if="isPdf(img)"
+              class="absolute top-1 left-1 flex items-center gap-0.5 bg-black/60 border border-white/10 text-white px-1.5 py-0.5 rounded text-[10px] font-bold select-none pointer-events-none backdrop-blur-sm shadow-sm"
+            >
+              <FileText class="w-2.5 h-2.5 text-white" />
+              <span>PDF</span>
+            </div>
             <div class="absolute top-1 right-1">
               <BaseButton
                 type="button"

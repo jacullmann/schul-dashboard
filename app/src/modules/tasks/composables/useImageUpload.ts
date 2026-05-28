@@ -24,11 +24,21 @@ export function useImageUpload() {
     if (!url) return '';
     try {
       const u = new URL(url);
-      const parts = u.pathname.split('/');
+      let pathname = u.pathname;
+      const isPdf = pathname.toLowerCase().endsWith('.pdf');
+      if (isPdf) {
+        pathname = pathname.replace(/\.pdf$/i, '.jpg');
+      }
+      const parts = pathname.split('/');
       const uploadIdx = parts.findIndex((p) => p === 'upload');
       if (uploadIdx !== -1) {
-        parts.splice(uploadIdx + 1, 0, 'f_webp,q_auto,w_256,h_256,c_fill');
+        const transform = isPdf
+          ? 'f_auto,q_auto,w_256,h_256,c_fill,pg_1'
+          : 'f_webp,q_auto,w_256,h_256,c_fill';
+        parts.splice(uploadIdx + 1, 0, transform);
         u.pathname = parts.join('/');
+      } else {
+        u.pathname = pathname;
       }
       return u.toString();
     } catch {
@@ -59,11 +69,28 @@ export function useImageUpload() {
       return;
     }
 
-    const validFiles = files
-      .filter((f) => f.type.startsWith('image/'))
-      .slice(0, remaining);
+    const validFilesList: File[] = [];
+    for (const f of files) {
+      if (f.type.startsWith('image/')) {
+        validFilesList.push(f);
+      } else if (f.type === 'application/pdf') {
+        if (f.size > 5 * 1024 * 1024) {
+          uploadError.value = 'PDF-Dateien dürfen maximal 5 MB groß sein.';
+          uploading.value = false;
+          return;
+        }
+        validFilesList.push(f);
+      }
+    }
 
-    if (validFiles.length > PER_USER_MAX_IMAGES) {
+    const slicedFiles = validFilesList.slice(0, remaining);
+
+    if (slicedFiles.length === 0) {
+      uploading.value = false;
+      return;
+    }
+
+    if (slicedFiles.length > PER_USER_MAX_IMAGES) {
       uploadError.value = `Maximal ${PER_USER_MAX_IMAGES} Bilder pro Upload erlaubt.`;
       uploading.value = false;
       return;
@@ -71,7 +98,7 @@ export function useImageUpload() {
 
     try {
       const processedFiles = await Promise.all(
-        validFiles.map(processImageBeforeUpload),
+        slicedFiles.map(processImageBeforeUpload),
       );
 
       const uploadTasks = processedFiles.map(async (processedFile) => {
@@ -144,7 +171,7 @@ export function useImageUpload() {
 
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = 'image/*';
+    input.accept = 'image/*,application/pdf';
     input.multiple = true;
 
     input.oncancel = () => {

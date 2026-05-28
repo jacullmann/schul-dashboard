@@ -130,7 +130,7 @@ function onDrop(e: DragEvent) {
   isDragOver.value = false;
   if (e.dataTransfer?.files.length) {
     const files = Array.from(e.dataTransfer.files).filter((f) =>
-      f.type.startsWith('image/'),
+      f.type.startsWith('image/') || f.type === 'application/pdf',
     );
     if (files.length > 0) {
       emit('files-dropped', files);

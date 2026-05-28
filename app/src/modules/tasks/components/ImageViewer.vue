@@ -30,6 +30,10 @@ const currentImage = computed(() => props.images[currentIndex.value]);
 const hasNext = computed(() => currentIndex.value < props.images.length - 1);
 const hasPrev = computed(() => currentIndex.value > 0);
 
+const isPdf = (img: any) => {
+  return img?.url?.toLowerCase().endsWith('.pdf') || img?.metadata?.format === 'pdf';
+};
+
 function next() {
   if (hasNext.value) {
     currentIndex.value++;
@@ -99,8 +103,14 @@ watch(
         class="w-full h-full flex items-center justify-center"
         @click.self="cancel"
       >
+        <iframe
+          v-if="currentImage && isPdf(currentImage)"
+          :src="currentImage.url"
+          class="w-[90vw] h-[85vh] max-w-5xl rounded-xl border-none bg-white shadow-menu"
+          @click.stop
+        ></iframe>
         <img
-          v-if="currentImage"
+          v-else-if="currentImage"
           :src="currentImage.url"
           class="max-w-full max-h-full rounded-xl object-contain shadow-menu transition-transform duration-200 ease-out"
           draggable="false"

@@ -16,6 +16,7 @@ import {
   Info,
   Plus,
   MessageSquarePlus,
+  FileText,
 } from '@lucide/vue';
 import { useTasks } from '@/modules/tasks/composables/useTasks';
 import { useItemForm } from '@/core/composables/useItemForm';
@@ -28,6 +29,10 @@ import { computed, ref, watch, onMounted } from 'vue';
 import type { HwItem } from '@/modules/tasks/composables/useTasks';
 
 const showInfoItem = ref<HwItem | null>(null);
+
+const isPdf = (img: any) => {
+  return img.url?.toLowerCase().endsWith('.pdf') || img.metadata?.format === 'pdf';
+};
 
 const { t, tm } = useI18n();
 const { width: windowWidth } = useWindowSize();
@@ -443,6 +448,15 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
                     />
                   </button>
 
+                  <!-- PDF Indicator Badge -->
+                  <div
+                    v-if="isPdf(img)"
+                    class="absolute top-2 left-2 flex items-center gap-1 bg-black/60 border border-white/10 text-white px-2 py-0.5 rounded text-xs font-semibold select-none pointer-events-none backdrop-blur-sm shadow-sm"
+                  >
+                    <FileText class="w-3.5 h-3.5 text-white" />
+                    <span>PDF</span>
+                  </div>
+
                   <button
                     v-if="
                       idx === imagesPerRow - 1 &&
@@ -484,6 +498,15 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
                       alt=""
                     />
                   </button>
+
+                  <!-- PDF Indicator Badge -->
+                  <div
+                    v-if="isPdf(img)"
+                    class="absolute top-2 left-2 flex items-center gap-1 bg-black/60 border border-white/10 text-white px-2 py-0.5 rounded text-xs font-semibold select-none pointer-events-none backdrop-blur-sm shadow-sm"
+                  >
+                    <FileText class="w-3.5 h-3.5 text-white" />
+                    <span>PDF</span>
+                  </div>
                 </div>
               </template>
             </div>
