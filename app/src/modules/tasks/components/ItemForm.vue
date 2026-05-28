@@ -40,11 +40,10 @@ const {
   uploadImage,
   removeImg,
   uploadFiles,
+  makeUrl,
 } = useImageUpload();
 
-const isPdf = (img: any) => {
-  return img.url?.toLowerCase().endsWith('.pdf') || img.metadata?.format === 'pdf';
-};
+const isPdf = (img: any) => img.metadata?.format === 'pdf';
 
 const isDragging = ref(false);
 const dragCounter = ref(0);
@@ -450,16 +449,16 @@ onMounted(() => {
             :key="img.publicId"
             class="relative w-30 h-30 rounded-md overflow-hidden bg-[rgba(26, 26, 26, 0.5)] backdrop-blur-sm"
           >
-            <BaseLink :to="img.url">
+            <BaseLink :to="makeUrl(img.publicId)">
               <img
-                :src="img.thumbUrl || (img.url ? makeThumb(img.url) : '')"
+                :src="makeThumb(img.publicId)"
                 class="block w-full h-full object-cover"
                 loading="lazy"
                 decoding="async"
                 alt="Vorschau"
               />
             </BaseLink>
-            <!-- PDF Indicator Badge -->
+
             <div
               v-if="isPdf(img)"
               class="absolute top-1 left-1 flex items-center gap-0.5 bg-black/60 border border-white/10 text-white px-1.5 py-0.5 rounded text-[10px] font-bold select-none pointer-events-none backdrop-blur-sm shadow-sm"

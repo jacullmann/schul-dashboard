@@ -38,9 +38,9 @@ export function useHwImages(ctx: HwContext, imageUpload: any) {
   }
 
   function handleImageContextMenu(
-    event: MouseEvent,
-    item: HwItem,
-    img: ImageItem,
+      event: MouseEvent,
+      item: HwItem,
+      img: ImageItem,
   ) {
     openImageMenu(event, item, img);
   }
@@ -108,8 +108,12 @@ export function useHwImages(ctx: HwContext, imageUpload: any) {
     }
   }
 
-  function makeThumb(url: string) {
-    return imageUpload.makeThumb(url);
+  function makeThumb(input: string) {
+    return imageUpload.makeThumb(input);
+  }
+
+  function makeUrl(input: string) {
+    return imageUpload.makeUrl(input);
   }
 
   return {
@@ -128,5 +132,6 @@ export function useHwImages(ctx: HwContext, imageUpload: any) {
     triggerImageDrop,
     triggerImageDelete,
     makeThumb,
+    makeUrl,
   };
 }

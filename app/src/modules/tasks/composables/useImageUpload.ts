@@ -6,13 +6,63 @@ import type { ImageItem } from '@/modules/tasks/types';
 
 export type { ImageItem };
 
+const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME as string;
+
 const images = ref<ImageItem[]>([]);
 const uploading = ref(false);
 const uploadError = ref('');
 const uploadSuccess = ref(false);
 
+function buildCloudinaryUrl(publicId: string, transform: string): string {
+  const isPdf = publicId.toLowerCase().endsWith('.pdf');
+  const effectivePublicId = isPdf
+      ? publicId.replace(/\.pdf$/i, '.jpg')
+      : publicId;
+  return `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/${transform}/${effectivePublicId}`;
+}
+
+export function makeThumb(input?: string): string {
+  if (!input) return '';
+
+  if (input.startsWith('http')) {
+    try {
+      const u = new URL(input);
+      const parts = u.pathname.split('/');
+      const uploadIdx = parts.findIndex((p) => p === 'upload');
+      if (uploadIdx !== -1) {
+        const isPdf = u.pathname.toLowerCase().endsWith('.pdf');
+        const transform = isPdf
+            ? 'f_auto,q_auto,w_256,h_256,c_fill,pg_1'
+            : 'f_webp,q_auto,w_256,h_256,c_fill';
+        parts.splice(uploadIdx + 1, 0, transform);
+        if (isPdf) u.pathname = u.pathname.replace(/\.pdf$/i, '.jpg');
+        u.pathname = parts.join('/');
+      }
+      return u.toString();
+    } catch {
+      return input;
+    }
+  }
+
+  const isPdf = input.toLowerCase().endsWith('.pdf');
+
+  const transform = isPdf
+      ? 'f_auto,q_auto,w_256,h_256,c_fill,pg_1'
+      : 'f_webp,q_auto,w_256,h_256,c_fill';
+  return buildCloudinaryUrl(input, transform);
+}
+
+export function makeUrl(input?: string): string {
+  if (!input) return '';
+
+  if (input.startsWith('http')) return input;
+
+  return buildCloudinaryUrl(input, 'f_webp,q_auto');
+}
+
 export function useImageUpload() {
   const { t } = useI18n();
+
   function init(initialImages: ImageItem[] = []) {
     images.value = [...initialImages];
     uploading.value = false;
@@ -20,36 +70,10 @@ export function useImageUpload() {
     uploadSuccess.value = false;
   }
 
-  function makeThumb(url?: string) {
-    if (!url) return '';
-    try {
-      const u = new URL(url);
-      let pathname = u.pathname;
-      const isPdf = pathname.toLowerCase().endsWith('.pdf');
-      if (isPdf) {
-        pathname = pathname.replace(/\.pdf$/i, '.jpg');
-      }
-      const parts = pathname.split('/');
-      const uploadIdx = parts.findIndex((p) => p === 'upload');
-      if (uploadIdx !== -1) {
-        const transform = isPdf
-          ? 'f_auto,q_auto,w_256,h_256,c_fill,pg_1'
-          : 'f_webp,q_auto,w_256,h_256,c_fill';
-        parts.splice(uploadIdx + 1, 0, transform);
-        u.pathname = parts.join('/');
-      } else {
-        u.pathname = pathname;
-      }
-      return u.toString();
-    } catch {
-      return url;
-    }
-  }
-
   async function uploadFiles(
-    files: File[],
-    isEditMode: boolean,
-    itemId?: string,
+      files: File[],
+      isEditMode: boolean,
+      itemId?: string,
   ) {
     if (files.length === 0) return;
 
@@ -98,7 +122,7 @@ export function useImageUpload() {
 
     try {
       const processedFiles = await Promise.all(
-        slicedFiles.map(processImageBeforeUpload),
+          slicedFiles.map(processImageBeforeUpload),
       );
 
       const uploadTasks = processedFiles.map(async (processedFile) => {
@@ -111,11 +135,8 @@ export function useImageUpload() {
         form.set('folder', sign.folder);
 
         const res = await fetch(
-          `https://api.cloudinary.com/v1_1/${sign.cloudName}/image/upload`,
-          {
-            method: 'POST',
-            body: form,
-          },
+            `https://api.cloudinary.com/v1_1/${sign.cloudName}/image/upload`,
+            { method: 'POST', body: form },
         );
 
         if (!res.ok) throw new Error('Cloudinary Upload failed');
@@ -142,7 +163,7 @@ export function useImageUpload() {
           images.value.push({
             publicId: json.public_id,
             url: json.secure_url,
-            thumbUrl: makeThumb(json.secure_url),
+            thumbUrl: makeThumb(json.public_id),
             createdBy: '',
             metadata,
           });
@@ -187,13 +208,13 @@ export function useImageUpload() {
   }
 
   async function removeImg(
-    img: { publicId: string; url?: string },
-    parentId?: string,
+      img: { publicId: string; url?: string },
+      parentId?: string,
   ) {
     if (parentId) {
       try {
         await hw.delete(
-          `/items/${parentId}/images/${encodeURIComponent(img.publicId)}`,
+            `/items/${parentId}/images/${encodeURIComponent(img.publicId)}`,
         );
         images.value = images.value.filter((i) => i.publicId !== img.publicId);
         uploadError.value = t('tasks.images.delete_modal.success');
@@ -213,6 +234,7 @@ export function useImageUpload() {
     uploadSuccess,
     init,
     makeThumb,
+    makeUrl,
     uploadImage,
     uploadFiles,
     removeImg,

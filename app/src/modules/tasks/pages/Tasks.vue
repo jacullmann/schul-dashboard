@@ -30,9 +30,7 @@ import type { HwItem } from '@/modules/tasks/composables/useTasks';
 
 const showInfoItem = ref<HwItem | null>(null);
 
-const isPdf = (img: any) => {
-  return img.url?.toLowerCase().endsWith('.pdf') || img.metadata?.format === 'pdf';
-};
+const isPdf = (img: any) => img.metadata?.format === 'pdf';
 
 const { t, tm } = useI18n();
 const { width: windowWidth } = useWindowSize();
@@ -117,6 +115,7 @@ const {
   getSubjectName,
   getTypeLabel,
   resetFilters,
+  makeUrl,
 } = useTasks();
 
 const { openItemForm } = useItemForm();
@@ -440,7 +439,7 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
                     @click.stop="openImageViewerForItem(item, idx)"
                   >
                     <img
-                      :src="img.thumbUrl || makeThumb(img.url || '')"
+                      :src="makeThumb(img.publicId)"
                       class="block h-full w-full object-cover [pointer-events:none]"
                       loading="lazy"
                       draggable="false"
@@ -448,7 +447,6 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
                     />
                   </button>
 
-                  <!-- PDF Indicator Badge -->
                   <div
                     v-if="isPdf(img)"
                     class="absolute top-2 left-2 flex items-center gap-1 bg-black/60 border border-white/10 text-white px-2 py-0.5 rounded text-xs font-semibold select-none pointer-events-none backdrop-blur-sm shadow-sm"
@@ -491,7 +489,7 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
                     @click.stop="openImageViewerForItem(item, idx)"
                   >
                     <img
-                      :src="img.thumbUrl || makeThumb(img.url || '')"
+                      :src="makeThumb(img.publicId)"
                       class="block h-full w-full object-cover [pointer-events:none]"
                       loading="lazy"
                       draggable="false"
@@ -499,7 +497,6 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
                     />
                   </button>
 
-                  <!-- PDF Indicator Badge -->
                   <div
                     v-if="isPdf(img)"
                     class="absolute top-2 left-2 flex items-center gap-1 bg-black/60 border border-white/10 text-white px-2 py-0.5 rounded text-xs font-semibold select-none pointer-events-none backdrop-blur-sm shadow-sm"

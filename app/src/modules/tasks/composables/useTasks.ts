@@ -342,5 +342,6 @@ export function useTasks() {
     getSubjectName,
     getTypeLabel,
     resetFilters,
+    makeUrl: images.makeUrl,
   };
 }
