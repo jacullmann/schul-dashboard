@@ -4,6 +4,7 @@ use crate::{
     state::AppState,
 };
 use fractional_index::FractionalIndex;
+use serde::Deserialize;
 use serde_json::{Value, json};
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -11,6 +12,15 @@ use uuid::Uuid;
 pub struct TodoService {
     db: PgPool,
     enc: EncryptionService,
+}
+
+#[derive(Deserialize)]
+struct FiWrapper(#[serde(with = "fractional_index::stringify")] FractionalIndex);
+
+fn parse_index(s: &str) -> AppResult<FractionalIndex> {
+    serde_json::from_value::<FiWrapper>(serde_json::Value::String(s.to_string()))
+        .map(|w| w.0)
+        .map_err(|_| AppError::internal("Invalid position encoding"))
 }
 
 impl TodoService {
@@ -27,11 +37,13 @@ impl TodoService {
                FROM encrypted_todos WHERE user_id = $1
                ORDER BY position ASC NULLS LAST, created_at ASC"#,
             user_id
-        ).fetch_all(&self.db).await?;
+        )
+            .fetch_all(&self.db)
+            .await?;
 
         let uid = user_id.to_string();
 
-        let mut result = vec![];
+        let mut result = Vec::with_capacity(todos.len());
 
         for t in todos {
             let title_payload: crate::common::encryption::EncryptedPayload =
@@ -40,23 +52,18 @@ impl TodoService {
 
             let title = self.enc.decrypt(&title_payload, &uid).await?;
 
-            let description = if let Some(desc_val) = t.encrypted_description {
-                if let Ok(desc_payload) =
-                    serde_json::from_value::<crate::common::encryption::EncryptedPayload>(desc_val)
-                {
-                    if !desc_payload.data.is_empty() {
-                        self.enc
-                            .decrypt(&desc_payload, &uid)
-                            .await
-                            .unwrap_or_default()
-                    } else {
-                        String::new()
+            let description = match t.encrypted_description {
+                Some(desc_val) => {
+                    match serde_json::from_value::<crate::common::encryption::EncryptedPayload>(
+                        desc_val,
+                    ) {
+                        Ok(p) if !p.data.is_empty() => {
+                            self.enc.decrypt(&p, &uid).await.unwrap_or_default()
+                        }
+                        _ => String::new(),
                     }
-                } else {
-                    String::new()
                 }
-            } else {
-                String::new()
+                None => String::new(),
             };
 
             result.push(json!({
@@ -69,6 +76,7 @@ impl TodoService {
                 "updatedAt": t.updated_at,
             }));
         }
+
         Ok(result)
     }
 
@@ -82,22 +90,21 @@ impl TodoService {
 
         let first = sqlx::query!(
             r#"SELECT position FROM encrypted_todos
-                WHERE user_id = $1
-                ORDER BY position ASC NULLS LAST LIMIT 1"#,
+               WHERE user_id = $1
+               ORDER BY position ASC NULLS LAST LIMIT 1"#,
             user_id
         )
         .fetch_optional(&self.db)
         .await?;
 
-        let new_pos = match first.and_then(|r| r.position) {
-            None => FractionalIndex::default(),
-            Some(first_pos) => {
-                let first_idx: FractionalIndex =
-                    serde_json::from_str(&format!("\"{}\"", first_pos))
-                        .map_err(|_| AppError::internal("Invalid position encoding"))?;
-
-                FractionalIndex::new_before(&first_idx)
+        let new_pos = if let Some(row) = first {
+            if let Some(pos) = row.position {
+                FractionalIndex::new_before(&parse_index(&pos)?)
+            } else {
+                FractionalIndex::default()
             }
+        } else {
+            FractionalIndex::default()
         };
 
         let new_pos_str = new_pos.to_string();
@@ -111,12 +118,15 @@ impl TodoService {
 
         let todo = sqlx::query!(
             r#"INSERT INTO encrypted_todos (user_id, encrypted_title, encrypted_description, position)
-               VALUES ($1, $2, $3, $4) RETURNING id, completed, position, created_at, updated_at"#,
+               VALUES ($1, $2, $3, $4)
+               RETURNING id, completed, position, created_at, updated_at"#,
             user_id,
             serde_json::to_value(&enc_title).unwrap(),
             serde_json::to_value(&enc_desc).unwrap(),
             new_pos_str,
-        ).fetch_one(&self.db).await?;
+        )
+            .fetch_one(&self.db)
+            .await?;
 
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'todo:create', $2)"#,
@@ -145,6 +155,7 @@ impl TodoService {
         description: Option<&str>,
     ) -> AppResult<Value> {
         let uid = user_id.to_string();
+
         sqlx::query!(
             r#"SELECT id FROM encrypted_todos WHERE id = $1 AND user_id = $2"#,
             id,
@@ -162,8 +173,10 @@ impl TodoService {
             .await?;
 
         let updated = sqlx::query!(
-            r#"UPDATE encrypted_todos SET encrypted_title = $1, encrypted_description = $2
-               WHERE id = $3 RETURNING id, completed, position, created_at, updated_at"#,
+            r#"UPDATE encrypted_todos
+               SET encrypted_title = $1, encrypted_description = $2
+               WHERE id = $3
+               RETURNING id, completed, position, created_at, updated_at"#,
             serde_json::to_value(&enc_title).unwrap(),
             serde_json::to_value(&enc_desc).unwrap(),
             id,
@@ -203,9 +216,13 @@ impl TodoService {
         let new_completed = !todo.completed;
 
         let updated = sqlx::query!(
-            r#"UPDATE encrypted_todos SET completed = $1 WHERE id = $2 RETURNING id, position, updated_at"#,
-            new_completed, id
-        ).fetch_one(&self.db).await?;
+            r#"UPDATE encrypted_todos SET completed = $1 WHERE id = $2
+               RETURNING id, position, updated_at"#,
+            new_completed,
+            id
+        )
+        .fetch_one(&self.db)
+        .await?;
 
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'todo:toggle', $2)"#,
@@ -241,41 +258,28 @@ impl TodoService {
 
         let new_pos = match (prev, next) {
             (None, None) => FractionalIndex::default(),
-            (Some(p), None) => {
-                let idx: FractionalIndex = serde_json::from_str(&format!("\"{}\"", p))
-                    .map_err(|_| AppError::bad_request("Invalid prev position"))?;
-
-                FractionalIndex::new_after(&idx)
-            }
-            (None, Some(n)) => {
-                let idx: FractionalIndex = serde_json::from_str(&format!("\"{}\"", n))
-                    .map_err(|_| AppError::bad_request("Invalid next position"))?;
-
-                FractionalIndex::new_before(&idx)
-            }
-            (Some(p), Some(n)) => {
-                let prev_idx: FractionalIndex = serde_json::from_str(&format!("\"{}\"", p))
-                    .map_err(|_| AppError::bad_request("Invalid prev position"))?;
-
-                let next_idx: FractionalIndex = serde_json::from_str(&format!("\"{}\"", n))
-                    .map_err(|_| AppError::bad_request("Invalid next position"))?;
-
-                FractionalIndex::new_between(&prev_idx, &next_idx)
-                    .ok_or_else(|| AppError::bad_request("Cannot insert between these positions"))?
-            }
+            (Some(p), None) => FractionalIndex::new_after(&parse_index(p)?),
+            (None, Some(n)) => FractionalIndex::new_before(&parse_index(n)?),
+            (Some(p), Some(n)) => FractionalIndex::new_between(&parse_index(p)?, &parse_index(n)?)
+                .ok_or_else(|| AppError::bad_request("Cannot insert between these positions"))?,
         };
 
         let new_pos_str = new_pos.to_string();
 
         let updated = sqlx::query!(
-            r#"UPDATE encrypted_todos SET position = $1 WHERE id = $2 RETURNING id, updated_at"#,
+            r#"UPDATE encrypted_todos SET position = $1 WHERE id = $2
+               RETURNING id, updated_at"#,
             new_pos_str,
             id
         )
         .fetch_one(&self.db)
         .await?;
 
-        Ok(json!({ "id": updated.id, "position": new_pos_str, "updatedAt": updated.updated_at }))
+        Ok(json!({
+            "id": updated.id,
+            "position": new_pos_str,
+            "updatedAt": updated.updated_at,
+        }))
     }
 
     pub async fn delete_todo(&self, user_id: Uuid, id: Uuid) -> AppResult<Value> {
@@ -301,5 +305,23 @@ impl TodoService {
         .await?;
 
         Ok(json!({ "ok": true }))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_roundtrip() {
+        let idx = FractionalIndex::default();
+
+        let s = idx.to_string();
+
+        let parsed = parse_index(&s).unwrap();
+
+        let after = FractionalIndex::new_before(&parsed);
+
+        println!("{}", after.to_string());
     }
 }

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO encrypted_todos (user_id, encrypted_title, encrypted_description, position)\n               VALUES ($1, $2, $3, $4) RETURNING id, completed, position, created_at, updated_at",
+  "query": "INSERT INTO encrypted_todos (user_id, encrypted_title, encrypted_description, position)\n               VALUES ($1, $2, $3, $4)\n               RETURNING id, completed, position, created_at, updated_at",
   "describe": {
     "columns": [
       {
@@ -75,5 +75,5 @@
       false
     ]
   },
-  "hash": "7a1f9f60af4995ec73b1494690d590a13be68b8e61aa60c4e3691832a480e9f3"
+  "hash": "f0d5975010c8b3280d348c42b7542058ea8b85958860375f19d0a9aacee00342"
 }
