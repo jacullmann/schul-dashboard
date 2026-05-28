@@ -174,6 +174,7 @@ async function onAuthSuccess() {
   >
     {{ confirmOptions.content }}
   </BaseDialog>
+
   <Teleport to="body">
     <Transition name="fade-scale" appear>
       <SearchModal v-if="searchOpen" @cancel="modalStore.closeSearch()" />

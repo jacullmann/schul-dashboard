@@ -92,13 +92,7 @@ function setSelectedIndex(idx: number) {
       role="dialog"
       aria-modal="true"
       :aria-label="title"
-      class="search-in bg-surface border border-surface-border rounded-2xl w-[calc(100%-32px)] max-w-140 overflow-hidden fixed text-left"
-      style="
-        z-index: 100003;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-      "
+      class="bg-surface border border-surface-border rounded-2xl w-[calc(100%-32px)] max-w-140 overflow-hidden fixed text-left z-100001"
       @keydown="handleKeydown"
     >
       <div class="flex items-center gap-3 p-4 border-b border-surface-border">

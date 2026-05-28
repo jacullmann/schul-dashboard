@@ -1,7 +1,7 @@
 import axios, {
   AxiosError,
-  AxiosRequestConfig,
-  InternalAxiosRequestConfig,
+  type AxiosRequestConfig,
+  type InternalAxiosRequestConfig,
 } from 'axios';
 
 const hw = axios.create({
