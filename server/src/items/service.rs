@@ -314,8 +314,8 @@ impl ItemsService {
         }
 
         let mut images: Vec<Value> = match item.images {
-            Value::Array(arr) => arr,
-            _ => vec![],
+            Some(Value::Array(arr)) => arr,
+            _ => Vec::new(),
         };
 
         if images.len() >= 12 {
@@ -369,8 +369,8 @@ impl ItemsService {
         .ok_or_else(|| AppError::not_found("Item not found."))?;
 
         let images: Vec<Value> = match item.images {
-            Value::Array(arr) => arr,
-            _ => vec![],
+            Some(Value::Array(arr)) => arr,
+            _ => Vec::new(),
         };
 
         let target = images

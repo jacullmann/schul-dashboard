@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:image:add', $2)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Jsonb"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "2bc5d6220cfd016d4d48ba91376a7b73b7c7e843fb87d0806cf374f35ccd3a3d"
+}
