@@ -172,7 +172,7 @@ onMounted(() => {
           :separator="index !== userGroups.length - 1"
           :disabled="navigatingGroupId === group.id"
           :chevron="true"
-          :indicator="true"
+          :indicator="false"
           :unread="group.hasUnreadContent"
           @click="navigateToGroup(group.id)"
         >

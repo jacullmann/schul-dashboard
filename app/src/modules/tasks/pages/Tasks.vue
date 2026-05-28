@@ -449,9 +449,9 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
 
                   <div
                     v-if="isPdf(img)"
-                    class="absolute top-2 left-2 flex items-center gap-1 bg-black/60 border border-white/10 text-white px-2 py-0.5 rounded text-xs font-semibold select-none pointer-events-none backdrop-blur-sm shadow-sm"
+                    class="absolute top-1 left-1 flex items-center gap-1.5 bg-black/40 border border-white/10 text-white p-1.5 pr-2 rounded-md text-sm/4 font-semibold select-none pointer-events-none backdrop-blur-sm"
                   >
-                    <FileText class="w-3.5 h-3.5 text-white" />
+                    <FileText :size="16" class="text-white" />
                     <span>PDF</span>
                   </div>
 
