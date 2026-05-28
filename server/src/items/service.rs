@@ -80,11 +80,13 @@ impl ItemsService {
             tokio::spawn(async move {
                 let _ = sqlx::query!(
                     r#"INSERT INTO user_tenant_state (user_id, tenant_id, last_group_visit_at)
-                       VALUES ($1, $2, now()) ON CONFLICT (user_id, tenant_id) DO UPDATE SET last_group_visit_at = now()"#,
-                    user_id, tenant_id
+                       VALUES ($1, $2, now()) ON CONFLICT (user_id, tenant_id)
+                       DO UPDATE SET last_group_visit_at = now()"#,
+                    user_id,
+                    tenant_id
                 )
-                    .execute(&db2)
-                    .await;
+                .execute(&db2)
+                .await;
             });
         }
 
@@ -111,9 +113,10 @@ impl ItemsService {
             .into_iter()
             .filter(|r| {
                 if let Some(t) = item_type
-                    && t != "all" && r.r#type != t {
-                        return false;
-                    }
+                    && t != "all" && r.r#type != t
+                {
+                    return false;
+                }
                 let is_kept = kept.contains(&r.id);
 
                 let is_archived = archived.contains(&r.id);
@@ -123,17 +126,15 @@ impl ItemsService {
                     _ => (r.due_date >= now || is_kept) && !is_archived,
                 }
             })
-            .map(|r| {
-                json!({
-                    "id": r.id, "type": r.r#type, "title": r.title,
-                    "subject": r.subject, "description": r.description,
-                    "images": r.images, "dueDate": r.due_date,
-                    "createdBy": r.created_by,
-                    "createdByEmail": r.creator_email.unwrap_or_else(|| "Unbekannt".into()),
-                    "timeColor": time_left_color(Some(&r.due_date)),
-                    "editorNote": r.editor_note, "createdAt": r.created_at, "updatedAt": r.updated_at,
-                })
-            })
+            .map(|r| json!({
+                "id": r.id, "type": r.r#type, "title": r.title,
+                "subject": r.subject, "description": r.description,
+                "images": r.images, "dueDate": r.due_date,
+                "createdBy": r.created_by,
+                "createdByEmail": r.creator_email.unwrap_or_else(|| "Unbekannt".into()),
+                "timeColor": time_left_color(Some(&r.due_date)),
+                "editorNote": r.editor_note, "createdAt": r.created_at, "updatedAt": r.updated_at,
+            }))
             .collect();
 
         Ok(result)
@@ -176,24 +177,18 @@ impl ItemsService {
             .as_deref()
             .unwrap_or(&[])
             .iter()
-            .map(|img| {
-                json!({ "publicId": img.public_id, "createdBy": user_id, "metadata": img.metadata })
-            })
+            .map(|img| json!({ "publicId": img.public_id, "createdBy": user_id, "metadata": img.metadata }))
             .collect();
 
         let row = sqlx::query!(
             r#"INSERT INTO items (type, title, subject, description, images, due_date, created_by, tenant_id)
                VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id"#,
-            dto.r#type,
-            dto.title.trim(),
-            dto.subject.trim(),
+            dto.r#type, dto.title.trim(), dto.subject.trim(),
             dto.description.as_deref().unwrap_or("").trim(),
             json!(images),
-            dto.due_date
-                .parse::<chrono::DateTime<Utc>>()
+            dto.due_date.parse::<chrono::DateTime<Utc>>()
                 .map_err(|_| AppError::bad_request("Invalid due_date format"))?,
-            user_id,
-            tenant_id
+            user_id, tenant_id
         )
             .fetch_one(&self.db)
             .await?;
@@ -297,51 +292,164 @@ impl ItemsService {
         Ok(json!({ "ok": true }))
     }
 
+    pub async fn add_image(
+        &self,
+        tenant_id: Uuid,
+        item_id: Uuid,
+        user_id: Uuid,
+        global_role: &str,
+        dto: &crate::items::dto::AddImageDto,
+    ) -> AppResult<Value> {
+        let item = sqlx::query!(
+            r#"SELECT id, created_by, images FROM items WHERE id = $1 AND tenant_id = $2"#,
+            item_id,
+            tenant_id
+        )
+        .fetch_optional(&self.db)
+        .await?
+        .ok_or_else(|| AppError::not_found("Item not found."))?;
+
+        if item.created_by != user_id && global_role != "superadmin" {
+            return Err(AppError::forbidden("Only the creator can add images."));
+        }
+
+        let mut images: Vec<Value> = match item.images {
+            Value::Array(arr) => arr,
+            _ => vec![],
+        };
+
+        if images.len() >= 12 {
+            return Err(AppError::bad_request(
+                "Maximum of 12 images per item reached.",
+            ));
+        }
+
+        let new_image = json!({
+            "publicId": dto.image.public_id,
+            "createdBy": user_id,
+            "metadata": dto.image.metadata,
+        });
+
+        images.push(new_image.clone());
+
+        sqlx::query!(
+            r#"UPDATE items SET images = $1, updated_at = now() WHERE id = $2"#,
+            json!(images),
+            item_id
+        )
+        .execute(&self.db)
+        .await?;
+
+        sqlx::query!(
+            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:image:add', $2)"#,
+            user_id,
+            json!({ "itemId": item_id, "publicId": dto.image.public_id })
+        )
+        .execute(&self.db)
+        .await?;
+
+        Ok(json!({ "ok": true, "image": new_image }))
+    }
+
+    pub async fn remove_image(
+        &self,
+        tenant_id: Uuid,
+        item_id: Uuid,
+        user_id: Uuid,
+        global_role: &str,
+        public_id: &str,
+    ) -> AppResult<Value> {
+        let item = sqlx::query!(
+            r#"SELECT id, created_by, images FROM items WHERE id = $1 AND tenant_id = $2"#,
+            item_id,
+            tenant_id
+        )
+        .fetch_optional(&self.db)
+        .await?
+        .ok_or_else(|| AppError::not_found("Item not found."))?;
+
+        let images: Vec<Value> = match item.images {
+            Value::Array(arr) => arr,
+            _ => vec![],
+        };
+
+        let target = images
+            .iter()
+            .find(|img| img["publicId"].as_str() == Some(public_id))
+            .ok_or_else(|| AppError::not_found("Image not found."))?;
+
+        let image_uploader = target["createdBy"]
+            .as_str()
+            .and_then(|s| s.parse::<Uuid>().ok());
+
+        let is_item_creator = item.created_by == user_id;
+
+        let is_image_uploader = image_uploader == Some(user_id);
+
+        let is_superadmin = global_role == "superadmin";
+
+        if !is_item_creator && !is_image_uploader && !is_superadmin {
+            return Err(AppError::forbidden("Not authorized to delete this image."));
+        }
+
+        let updated: Vec<Value> = images
+            .into_iter()
+            .filter(|img| img["publicId"].as_str() != Some(public_id))
+            .collect();
+
+        sqlx::query!(
+            r#"UPDATE items SET images = $1, updated_at = now() WHERE id = $2"#,
+            json!(updated),
+            item_id
+        )
+        .execute(&self.db)
+        .await?;
+
+        sqlx::query!(
+            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:image:remove', $2)"#,
+            user_id, json!({ "itemId": item_id, "publicId": public_id })
+        )
+            .execute(&self.db)
+            .await?;
+
+        Ok(json!({ "ok": true }))
+    }
+
     pub async fn delete_item(&self, params: DeleteItemParams<'_>) -> AppResult<Value> {
-        let tenant_id = params.tenant_id;
-        let id = params.id;
-        let user_id = params.user_id;
-        let global_role = params.global_role;
-        let tenant_role = params.tenant_role;
-        let group_owner_id = params.group_owner_id;
-        let group_permissions = params.group_permissions;
         let item = sqlx::query!(
             r#"SELECT id, created_by FROM items WHERE id = $1 AND tenant_id = $2"#,
-            id,
-            tenant_id
+            params.id,
+            params.tenant_id
         )
         .fetch_optional(&self.db)
         .await?
         .ok_or_else(|| AppError::not_found("Not found."))?;
 
-        let is_creator = item.created_by == user_id;
-
-        let is_superadmin = global_role == "superadmin";
-
-        let is_owner = group_owner_id == Some(user_id);
+        let is_creator = item.created_by == params.user_id;
+        let is_superadmin = params.global_role == "superadmin";
+        let is_owner = params.group_owner_id == Some(params.user_id);
 
         if !is_creator && !is_superadmin && !is_owner {
-            let required = group_permissions["delete_other_content"]
+            let required = params.group_permissions["delete_other_content"]
                 .as_str()
                 .unwrap_or("moderator");
-
-            if !check_role_permission(tenant_role, required) {
+            if !check_role_permission(params.tenant_role, required) {
                 return Err(AppError::forbidden("Nicht autorisiert."));
             }
         }
 
         sqlx::query!(
             r#"DELETE FROM items WHERE id = $1 AND tenant_id = $2"#,
-            id,
-            tenant_id
+            params.id,
+            params.tenant_id
         )
         .execute(&self.db)
         .await?;
 
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:delete', $2)"#,
-            user_id,
-            json!({ "id": id })
+            params.user_id,
+            json!({ "id": params.id })
         )
         .execute(&self.db)
         .await?;

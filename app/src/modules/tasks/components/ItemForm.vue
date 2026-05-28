@@ -484,8 +484,7 @@ onMounted(() => {
           >
             <BaseButton
               type="button"
-              @click="uploadImage(!!initial)"
-              :disabled="imgUploading"
+              @click="uploadImage(!!initial, initial?.id)" :disabled="imgUploading"
               variant="ghost"
               :loading="imgUploading"
               :icon="Upload"

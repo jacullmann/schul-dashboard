@@ -2,7 +2,7 @@ use super::handlers::*;
 use crate::state::AppState;
 use axum::{
     Router,
-    routing::{get, patch, post},
+    routing::{delete, get, patch, post},
 };
 
 pub fn router() -> Router<AppState> {
@@ -15,4 +15,6 @@ pub fn router() -> Router<AppState> {
             get(get_item_by_id).patch(update_item).delete(delete_item),
         )
         .route("/items/{id}/note", patch(update_item_note))
+        .route("/items/{id}/images", post(add_image))
+        .route("/items/{id}/images/{public_id}", delete(remove_image))
 }

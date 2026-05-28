@@ -97,6 +97,45 @@ pub async fn update_item_note(
     ))
 }
 
+pub async fn add_image(
+    State(s): State<AppState>,
+    tc: TenantContext,
+    Path(id): Path<Uuid>,
+    Json(dto): Json<AddImageDto>,
+) -> AppResult<Json<Value>> {
+    Ok(Json(
+        ItemsService::from_state(&s)
+            .add_image(
+                tc.tenant_id,
+                id,
+                tc.user.user_id,
+                &tc.user.global_role,
+                &dto,
+            )
+            .await?,
+    ))
+}
+
+pub async fn remove_image(
+    State(s): State<AppState>,
+    tc: TenantContext,
+    Path((id, public_id)): Path<(Uuid, String)>,
+) -> AppResult<Json<Value>> {
+    let decoded = urlencoding::decode(&public_id)
+        .map_err(|_| crate::error::AppError::bad_request("Invalid public_id encoding"))?;
+    Ok(Json(
+        ItemsService::from_state(&s)
+            .remove_image(
+                tc.tenant_id,
+                id,
+                tc.user.user_id,
+                &tc.user.global_role,
+                &decoded,
+            )
+            .await?,
+    ))
+}
+
 pub async fn report_item(
     State(s): State<AppState>,
     user: AuthUser,

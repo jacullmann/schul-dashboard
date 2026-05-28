@@ -35,6 +35,12 @@ pub struct ImageDto {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct AddImageDto {
+    pub image: ImageDto,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct UpdateEditorNoteDto {
     pub editor_note: String,
 }
