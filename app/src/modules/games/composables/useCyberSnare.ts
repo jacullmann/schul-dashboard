@@ -906,7 +906,6 @@ export function useCyberSnare() {
     }
   }
 
-
   function resize() {
     W = window.innerWidth;
     H = window.innerHeight;
@@ -915,7 +914,6 @@ export function useCyberSnare() {
       canvas.height = H;
     }
   }
-
 
   function resetGame() {
     ENERGY_MAX_INT = 30 + (meta.upgrades.energy?.lvl ?? 0) * 20;

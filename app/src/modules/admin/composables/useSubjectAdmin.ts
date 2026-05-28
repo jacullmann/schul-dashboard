@@ -17,9 +17,7 @@ export function useSubjectAdmin() {
   async function loadSubjects() {
     loading.value = true;
     try {
-      const { data } = await hw.get<AdminSubject[]>(
-        '/group-admin/subjects',
-      );
+      const { data } = await hw.get<AdminSubject[]>('/group-admin/subjects');
       subjects.value = data || [];
     } catch {
       toastError(t('admin.subjects.errors.load_failed'));
@@ -32,12 +30,9 @@ export function useSubjectAdmin() {
     if (!name.trim()) return;
     saving.value = true;
     try {
-      const { data } = await hw.post<AdminSubject>(
-        '/group-admin/subjects',
-        {
-          name: name.trim(),
-        },
-      );
+      const { data } = await hw.post<AdminSubject>('/group-admin/subjects', {
+        name: name.trim(),
+      });
       subjects.value.push(data);
       subjects.value.sort((a, b) => a.name.localeCompare(b.name));
       success(t('admin.subjects.errors.create_success'));
@@ -66,7 +61,9 @@ export function useSubjectAdmin() {
       success(t('admin.subjects.errors.update_success'));
     } catch (e: unknown) {
       const err = e as { response?: { data?: { message?: string } } };
-      toastError(err.response?.data?.message || t('admin.subjects.errors.update_failed'));
+      toastError(
+        err.response?.data?.message || t('admin.subjects.errors.update_failed'),
+      );
       await loadSubjects();
     } finally {
       saving.value = false;
@@ -76,8 +73,7 @@ export function useSubjectAdmin() {
   async function deleteSubject(id: string) {
     const isConfirmed = await modalStore.confirm({
       title: t('admin.subjects.delete_modal.title'),
-      content:
-        t('admin.subjects.delete_modal.message'),
+      content: t('admin.subjects.delete_modal.message'),
       submitText: t('common.buttons.delete'),
       danger: true,
     });
@@ -89,7 +85,9 @@ export function useSubjectAdmin() {
       success(t('admin.subjects.errors.delete_success'));
     } catch (e: unknown) {
       const err = e as { response?: { data?: { message?: string } } };
-      toastError(err.response?.data?.message || t('admin.subjects.errors.delete_failed'));
+      toastError(
+        err.response?.data?.message || t('admin.subjects.errors.delete_failed'),
+      );
     }
   }
 

@@ -92,8 +92,7 @@ export function useChangePassword(emit: {
     } catch (e: unknown) {
       const err = e as { response?: { data?: { error?: string } } };
       const errorMsg =
-        err.response?.data?.error ||
-        t('auth.change_password.errors.failed');
+        err.response?.data?.error || t('auth.change_password.errors.failed');
       setMessage(errorMsg, true);
 
       if (errorMsg.includes('falsch')) {

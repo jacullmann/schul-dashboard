@@ -24,9 +24,7 @@ export function useAnnouncements() {
   async function loadAnnouncements(): Promise<void> {
     loading.value = true;
     try {
-      const { data } = await hw.get<Announcement[]>(
-        '/schedule/announcements',
-      );
+      const { data } = await hw.get<Announcement[]>('/schedule/announcements');
       announcements.value = data;
     } catch (e) {
       console.error('Failed to load announcements', e);
@@ -93,8 +91,7 @@ export function useAnnouncements() {
   async function deleteAnnouncement(id: string): Promise<void> {
     const isConfirmed = await modalStore.confirm({
       title: t('announcements.delete_modal.title'),
-      content:
-        t('announcements.delete_modal.message'),
+      content: t('announcements.delete_modal.message'),
       submitText: t('common.buttons.delete'),
       danger: true,
     });
@@ -106,8 +103,7 @@ export function useAnnouncements() {
     } catch (e: unknown) {
       const err = e as { response?: { data?: { error?: string } } };
       toast.error(
-        err.response?.data?.error ||
-          t('announcements.errors.delete_failed'),
+        err.response?.data?.error || t('announcements.errors.delete_failed'),
       );
     }
   }

@@ -61,8 +61,7 @@ export function useHwActions(
     else ctx.checkedItems.value.add(id);
 
     try {
-      if (wasChecked)
-        await hw.delete(`/user/items/${id}/check`, getConfig());
+      if (wasChecked) await hw.delete(`/user/items/${id}/check`, getConfig());
       else await hw.post(`/user/items/${id}/check`, {}, getConfig());
     } catch {
       if (wasChecked) ctx.checkedItems.value.add(id);
@@ -161,8 +160,7 @@ export function useHwActions(
   async function deleteItem(id: string) {
     const isConfirmed = await modalStore.confirm({
       title: t('tasks.actions.delete_modal.title'),
-      content:
-        t('tasks.actions.delete_modal.message'),
+      content: t('tasks.actions.delete_modal.message'),
       submitText: t('tasks.actions.delete_modal.submit'),
       danger: true,
     });
@@ -175,7 +173,9 @@ export function useHwActions(
       ctx.items.value = ctx.items.value.filter((item) => item.id !== id);
       handleSuccessAction(t('tasks.actions.delete_modal.success'));
     } catch (e: any) {
-      handleSuccessAction(e.response?.data?.error || t('tasks.actions.delete_modal.error'));
+      handleSuccessAction(
+        e.response?.data?.error || t('tasks.actions.delete_modal.error'),
+      );
     } finally {
       deletingEntry.value = false;
     }

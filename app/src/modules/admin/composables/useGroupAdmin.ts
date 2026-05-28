@@ -316,7 +316,9 @@ export function useGroupAdmin() {
         avatarUrl: avatarUrl ? avatarUrl.trim() : null,
       });
       showMessage(
-        avatarUrl ? t('admin.general.avatar.errors.update_success') : t('admin.general.avatar.errors.delete_success'),
+        avatarUrl
+          ? t('admin.general.avatar.errors.update_success')
+          : t('admin.general.avatar.errors.delete_success'),
       );
       await checkAuthStatus();
     } catch (e: unknown) {

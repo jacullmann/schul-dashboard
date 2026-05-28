@@ -77,8 +77,7 @@ export function useHwForms(ctx: HwContext) {
     const modalStore = useModalStore();
     const isConfirmed = await modalStore.confirm({
       title: t('tasks.notes.delete_modal.title'),
-      content:
-        t('tasks.notes.delete_modal.message'),
+      content: t('tasks.notes.delete_modal.message'),
       submitText: t('tasks.notes.delete_modal.submit'),
       danger: true,
     });
