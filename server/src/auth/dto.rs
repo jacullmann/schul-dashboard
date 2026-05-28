@@ -2,6 +2,7 @@ use serde::Deserialize;
 use validator::Validate;
 
 #[derive(Debug, Deserialize, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct LoginDto {
     #[validate(email(message = "Invalid credentials."))]
     pub email: String,
@@ -11,6 +12,7 @@ pub struct LoginDto {
 }
 
 #[derive(Debug, Deserialize, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct RegisterDto {
     #[validate(email(message = "Invalid email address."))]
     pub email: String,
@@ -26,18 +28,21 @@ pub struct RegisterDto {
 }
 
 #[derive(Debug, Deserialize, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct VerifyMfaDto {
     #[validate(length(equal = 6, message = "MFA Code must be exactly 6 digits."))]
     pub code: String,
 }
 
 #[derive(Debug, Deserialize, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct ForgotPasswordDto {
     #[validate(email)]
     pub email: String,
 }
 
 #[derive(Debug, Deserialize, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct ResetPasswordVerifyDto {
     #[validate(email)]
     pub email: String,

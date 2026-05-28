@@ -41,20 +41,7 @@ async function fetchSessions() {
   error.value = null;
   try {
     const res = await hw.get('/auth/sessions');
-
-    const rawSessions = res.data.sessions || [];
-    sessions.value = rawSessions.map((s: any): ActiveSession => ({
-      familyId: s.family_id,
-      issuedAt: s.issued_at,
-      lastUsedAt: s.last_used_at,
-      userAgent: s.user_agent,
-      ipAddress: s.ip_address,
-      location: s.location ? {
-        city: s.location.city,
-        country: s.location.country,
-        countryCode: s.location.country_code,
-      } : null,
-    }));
+    sessions.value = res.data.sessions || [];
   } catch (err) {
     console.error('Failed to fetch active sessions:', err);
     error.value = t('auth.sessions.errors.load_failed');

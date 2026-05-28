@@ -398,6 +398,7 @@ struct UserClaims {
 }
 
 #[derive(Debug, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SessionInfo {
     pub family_id: Uuid,
     pub issued_at: String,
@@ -408,6 +409,7 @@ pub struct SessionInfo {
 }
 
 #[derive(Debug, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct IpLocation {
     pub city: Option<String>,
     pub country: Option<String>,
