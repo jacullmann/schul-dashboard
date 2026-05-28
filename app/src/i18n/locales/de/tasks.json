@@ -24,7 +24,7 @@
         },
         {
           "title": "Falschinformationen melden",
-          "text": "Einträge sollten in der Regel wahr sein, aber falls du bei einem fremden Eintrag falsche Informationen entdeckst, kannst du im 3-Punkte-Menü auf \"Melden\" klicken und unter \"Falschinformationen\" eine Korrektur abschicken. Deine Nachricht wird dann geprüft und als Anmerkung dem gemeldeten Eintrag angehängt."
+          "text": "Einträge sollten in der Regel wahr sein, aber falls du bei einem fremden Eintrag falsche Informationen entdeckst, kannst du im 3-Punkte-Menü auf \"Melden\" klicken und unter \"Falschinformationen\" eine Korrektur abschicken. Deine Nachricht wird dann geprüft und als Notiz dem gemeldeten Eintrag angehängt."
         },
         {
           "title": "Abgeschlossene Aufgaben tracken",
@@ -70,7 +70,7 @@
     },
     "items": {
       "menu": {
-        "add_note": "Anmerkung hinzufügen",
+        "add_note": "Notiz hinzufügen",
         "archive": "Archivieren",
         "delete": {
           "action": "Eintrag löschen",
@@ -96,7 +96,7 @@
             "sections": [
               {
                 "title": "Falschinformationen",
-                "text": "Die Informationen, welche in dem Eintrag genannt werden, oder die hochgeladenen Bilder enthalten falsche oder irreführende Inhalte? Solchen Einträgen können Anmerkungen mit Korrekturen beigefügt werden, jedoch musst du beschreiben, was nicht stimmt und/oder wie die richtigen Informationen lauten. Versuche dich dabei bitte möglichst kurz und verständlich zu fassen. Deine Nachricht wird, sobald sie geprüft wurde, dem gemeldeten Eintrag angehängt."
+                "text": "Die Informationen, welche in dem Eintrag genannt werden, oder die hochgeladenen Bilder enthalten falsche oder irreführende Inhalte? Solchen Einträgen können Notizen mit Korrekturen beigefügt werden, jedoch musst du beschreiben, was nicht stimmt und/oder wie die richtigen Informationen lauten. Versuche dich dabei bitte möglichst kurz und verständlich zu fassen. Deine Nachricht wird, sobald sie geprüft wurde, dem gemeldeten Eintrag angehängt."
               },
               {
                 "title": "Unangebrachte/Illegale Inhalte",
@@ -123,8 +123,8 @@
       }
     },
     "notes": {
-      "no_notes": "Keine Anmerkung vorhanden",
-      "note": "Anmerkung"
+      "no_notes": "Keine Notiz vorhanden",
+      "note": "Notiz"
     },
     "reset_filters": "Filter zurücksetzen",
     "tabs": {
@@ -190,11 +190,11 @@
   },
   "notes": {
     "delete_modal": {
-      "title": "Anmerkung löschen?",
-      "message": "Bist du sicher, dass du diese Anmerkung unwiderruflich löschen möchtest?",
-      "submit": "Anmerkung löschen",
-      "success": "Anmerkung gelöscht.",
-      "error": "Fehler beim Löschen der Anmerkung."
+      "title": "Notiz löschen?",
+      "message": "Bist du sicher, dass du diese Notiz unwiderruflich löschen möchtest?",
+      "submit": "Notiz löschen",
+      "success": "Notiz gelöscht.",
+      "error": "Fehler beim Löschen der Notiz."
     }
   },
   "images": {
