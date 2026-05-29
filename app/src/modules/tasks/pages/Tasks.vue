@@ -17,6 +17,8 @@ import {
   Plus,
   MessageSquarePlus,
   FileText,
+  PieChart,
+  Table,
 } from '@lucide/vue';
 import { useTasks } from '@/modules/tasks/composables/useTasks';
 import { useItemForm } from '@/core/composables/useItemForm';
@@ -35,31 +37,35 @@ const isPdf = (img: any) => img.metadata?.format === 'pdf';
 const getFileBadge = (img: any) => {
   const format = img.metadata?.format?.toLowerCase();
   if (format === 'pdf' || img.publicId?.toLowerCase().endsWith('.pdf')) {
-    return { label: 'PDF', color: 'bg-black/60', icon: FileText };
+    return { label: 'PDF', icon: FileText };
   }
   if (format === 'docx' || format === 'doc') {
-    return { label: 'WORD', color: 'bg-blue-600/80', icon: FileText };
+    return { label: 'DOCX', icon: FileText };
   }
   if (format === 'pptx' || format === 'ppt') {
-    return { label: 'POWERPOINT', color: 'bg-orange-600/80', icon: FileText };
+    return { label: 'PPTX', icon: PieChart };
   }
   if (format === 'xlsx' || format === 'xls') {
-    return { label: 'EXCEL', color: 'bg-green-600/80', icon: FileText };
+    return { label: 'XLSX', icon: Table };
   }
   return null;
 };
 
 const isOfficeFileWithoutThumb = (img: any) => {
   const format = img.metadata?.format?.toLowerCase();
-  const isOffice = ['docx', 'pptx', 'xlsx', 'doc', 'ppt', 'xls'].includes(format);
+  const isOffice = ['docx', 'pptx', 'xlsx', 'doc', 'ppt', 'xls'].includes(
+    format,
+  );
   return isOffice && !img.metadata?.thumbnailId;
 };
 
 const getOfficeBgClass = (img: any) => {
   const format = img.metadata?.format?.toLowerCase();
   if (format === 'docx' || format === 'doc') return 'from-blue-600 to-blue-800';
-  if (format === 'pptx' || format === 'ppt') return 'from-orange-500 to-orange-700';
-  if (format === 'xlsx' || format === 'xls') return 'from-green-600 to-green-800';
+  if (format === 'pptx' || format === 'ppt')
+    return 'from-orange-500 to-orange-700';
+  if (format === 'xlsx' || format === 'xls')
+    return 'from-green-600 to-green-800';
   return 'from-gray-500 to-gray-700';
 };
 
@@ -208,6 +214,9 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
 
 <template>
   <div class="card">
+    <div
+      class="absolute -top-[30%] left-[10%] w-[80%] aspect-[2] bg-ghost-hover rounded-b-full blur-[300px]"
+    ></div>
     <div
       class="animate-fade-up"
       style="animation-delay: 0s; animation-fill-mode: both"
@@ -481,9 +490,19 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
                       class="flex flex-col items-center justify-center w-full h-full text-white p-3 text-center select-none bg-gradient-to-br"
                       :class="getOfficeBgClass(img)"
                     >
-                      <FileText :size="32" class="mb-1.5 drop-shadow-md opacity-90" />
-                      <span class="text-[10px] font-bold uppercase tracking-wider drop-shadow-sm">{{ img.metadata?.format }}</span>
-                      <span class="text-[9px] opacity-75 mt-0.5 max-w-full overflow-hidden text-ellipsis whitespace-nowrap px-1" :title="img.metadata?.name">{{ img.metadata?.name || 'Dokument' }}</span>
+                      <FileText
+                        :size="32"
+                        class="mb-1.5 drop-shadow-md opacity-90"
+                      />
+                      <span
+                        class="text-[10px] font-bold uppercase tracking-wider drop-shadow-sm"
+                        >{{ img.metadata?.format }}</span
+                      >
+                      <span
+                        class="text-[9px] opacity-75 mt-0.5 max-w-full overflow-hidden text-ellipsis whitespace-nowrap px-1"
+                        :title="img.metadata?.name"
+                        >{{ img.metadata?.name || 'Dokument' }}</span
+                      >
                     </div>
                     <img
                       v-else
@@ -497,10 +516,13 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
 
                   <div
                     v-if="getFileBadge(img)"
-                    class="absolute top-1 left-1 flex items-center gap-1.5 border border-white/10 text-white p-1 pr-1.5 rounded text-[10px] font-semibold select-none pointer-events-none backdrop-blur-sm shadow-sm"
-                    :class="getFileBadge(img).color"
+                    class="absolute top-1 left-1 flex items-center gap-1.5 bg-black/40 border border-white/10 text-white p-1.5 pr-2 rounded-md text-sm/4 font-semibold select-none pointer-events-none backdrop-blur-sm"
                   >
-                    <component :is="getFileBadge(img).icon" :size="12" class="text-white" />
+                    <component
+                      :is="getFileBadge(img).icon"
+                      :size="16"
+                      class="text-white"
+                    />
                     <span>{{ getFileBadge(img).label }}</span>
                   </div>
 
@@ -537,15 +559,25 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
                     class="img-clickable w-full h-full cursor-pointer bg-transparent block"
                     @click.stop="openImageViewerForItem(item, idx)"
                   >
-                    <div
+                    <span
                       v-if="isOfficeFileWithoutThumb(img)"
                       class="flex flex-col items-center justify-center w-full h-full text-white p-3 text-center select-none bg-gradient-to-br"
                       :class="getOfficeBgClass(img)"
                     >
-                      <FileText :size="32" class="mb-1.5 drop-shadow-md opacity-90" />
-                      <span class="text-[10px] font-bold uppercase tracking-wider drop-shadow-sm">{{ img.metadata?.format }}</span>
-                      <span class="text-[9px] opacity-75 mt-0.5 max-w-full overflow-hidden text-ellipsis whitespace-nowrap px-1" :title="img.metadata?.name">{{ img.metadata?.name || 'Dokument' }}</span>
-                    </div>
+                      <FileText
+                        :size="32"
+                        class="mb-1.5 drop-shadow-md opacity-90"
+                      />
+                      <span
+                        class="text-[10px] font-bold uppercase tracking-wider drop-shadow-sm"
+                        >{{ img.metadata?.format }}</span
+                      >
+                      <span
+                        class="text-[9px] opacity-75 mt-0.5 max-w-full overflow-hidden text-ellipsis whitespace-nowrap px-1"
+                        :title="img.metadata?.name"
+                        >{{ img.metadata?.name || 'Dokument' }}</span
+                      >
+                    </span>
                     <img
                       v-else
                       :src="getThumbSrc(img)"
@@ -558,10 +590,13 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
 
                   <div
                     v-if="getFileBadge(img)"
-                    class="absolute top-2 left-2 flex items-center gap-1.5 border border-white/10 text-white p-1 pr-1.5 rounded text-[10px] font-semibold select-none pointer-events-none backdrop-blur-sm shadow-sm"
-                    :class="getFileBadge(img).color"
+                    class="absolute top-1 left-1 flex items-center gap-1.5 bg-black/40 border border-white/10 text-white p-1.5 pr-2 rounded-md text-sm/4 font-semibold select-none pointer-events-none backdrop-blur-sm"
                   >
-                    <component :is="getFileBadge(img).icon" :size="12" class="text-white" />
+                    <component
+                      :is="getFileBadge(img).icon"
+                      :size="16"
+                      class="text-white"
+                    />
                     <span>{{ getFileBadge(img).label }}</span>
                   </div>
                 </div>
