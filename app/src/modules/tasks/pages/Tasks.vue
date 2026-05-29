@@ -213,9 +213,6 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
 <template>
   <div class="card">
     <div
-      class="absolute -top-[30%] left-[10%] w-[80%] aspect-[2] bg-ghost-hover rounded-b-full blur-[300px]"
-    ></div>
-    <div
       class="animate-fade-up"
       style="animation-delay: 0s; animation-fill-mode: both"
     >
