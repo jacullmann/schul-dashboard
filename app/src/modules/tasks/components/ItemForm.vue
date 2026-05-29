@@ -309,6 +309,7 @@ const titleInputRef = ref<InstanceType<typeof BaseInput> | null>(null);
 useEventListener(window, 'keydown', onKeyDown);
 
 onMounted(() => {
+  subjectStore.loadSubjects();
   imgInit(props.initial?.images || []);
   titleInputRef.value?.focus();
 });

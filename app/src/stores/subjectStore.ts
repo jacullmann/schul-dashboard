@@ -11,7 +11,7 @@ export interface Course {
 export interface Subject {
   id: string;
   name: string;
-  is_active: boolean;
+  isActive: boolean;
   category: 'core' | 'elective' | 'extra';
   courses?: Course[];
 }
@@ -42,7 +42,7 @@ export const useSubjectStore = defineStore('subjectStore', () => {
   }
 
   const availableSubjectKeys = computed(() => {
-    return subjects.value.filter((s) => s.is_active).map((s) => s.name);
+    return subjects.value.filter((s) => s.isActive).map((s) => s.name);
   });
 
   const electiveSubjects = computed(() => {
