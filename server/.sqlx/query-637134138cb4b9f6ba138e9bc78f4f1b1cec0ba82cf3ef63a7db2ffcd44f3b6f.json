@@ -1,0 +1,12 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM public.group_messages\n                   WHERE created_at < now() - INTERVAL '7 days'",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": []
+  },
+  "hash": "637134138cb4b9f6ba138e9bc78f4f1b1cec0ba82cf3ef63a7db2ffcd44f3b6f"
+}

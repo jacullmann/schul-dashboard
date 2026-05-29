@@ -177,7 +177,7 @@ impl SuperAdminService {
                     "emailVerified": u.email_verified,
                     "createdAt": u.created_at, "lastLoginAt": u.last_login_at,
                     "doneSetup": u.done_setup,
-                    "isBanned": u.id.map(|id| banned_ids.contains(&id)).unwrap_or(false),
+                    "isBanned": banned_ids.contains(&u.id),
                 }))
                 .collect::<Vec<_>>()
         ))

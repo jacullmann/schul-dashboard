@@ -161,7 +161,7 @@ impl ItemsService {
             "images": row.images, "dueDate": row.due_date,
             "createdBy": row.created_by,
             "createdByEmail": row.creator_email.unwrap_or_else(|| "Unbekannt".into()),
-            "timeColor": time_left_color(row.due_date.as_ref()),
+            "timeColor": time_left_color(Some(&row.due_date)),
             "editorNote": row.editor_note, "createdAt": row.created_at, "updatedAt": row.updated_at,
         }))
     }

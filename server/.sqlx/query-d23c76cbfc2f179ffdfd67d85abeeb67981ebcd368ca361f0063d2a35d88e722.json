@@ -143,18 +143,18 @@
       ]
     },
     "nullable": [
+      false,
+      false,
+      false,
+      false,
       true,
       true,
+      false,
+      false,
       true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      false
+      false,
+      false,
+      true
     ]
   },
   "hash": "d23c76cbfc2f179ffdfd67d85abeeb67981ebcd368ca361f0063d2a35d88e722"
