@@ -70,7 +70,9 @@ function handleLink() {
           <div class="flex flex-col gap-0.5">
             <span class="text-base font-semibold text-on-ghost">Google</span>
             <span class="text-sm text-on-ghost-muted">{{
-              googleLinked() ? googleProvider()?.email : t('auth.connected_accounts.not_linked')
+              googleLinked()
+                ? googleProvider()?.email
+                : t('auth.connected_accounts.not_linked')
             }}</span>
           </div>
         </div>

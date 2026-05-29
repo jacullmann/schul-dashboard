@@ -122,12 +122,14 @@ onMounted(() => {
         >
           <AlertTriangle :size="16" />
           {{
-          attemptsRemaining === 0
-            ? t('auth.mfa.verify.attempts_remaining_none')
-            : attemptsRemaining === 1
-              ? t('auth.mfa.verify.attempts_remaining_one', { n: 1 })
-              : t('auth.mfa.verify.attempts_remaining_other', { n: attemptsRemaining })
-        }}
+            attemptsRemaining === 0
+              ? t('auth.mfa.verify.attempts_remaining_none')
+              : attemptsRemaining === 1
+                ? t('auth.mfa.verify.attempts_remaining_one', { n: 1 })
+                : t('auth.mfa.verify.attempts_remaining_other', {
+                    n: attemptsRemaining,
+                  })
+          }}
         </div>
       </Transition>
 

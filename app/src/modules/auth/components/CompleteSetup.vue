@@ -140,9 +140,7 @@ async function skip() {
     :loading="submitting || skipping"
   >
     <template #title>{{
-      isSetup
-        ? t('auth.courses.title_creation')
-        : t('auth.courses.title')
+      isSetup ? t('auth.courses.title_creation') : t('auth.courses.title')
     }}</template>
 
     <template #content>

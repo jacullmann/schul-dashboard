@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
 import { useI18n } from 'vue-i18n';
+import { useWindowSize } from '@vueuse/core';
 import hw from '../../../api/api';
 import {
   MessageCircle,
@@ -34,6 +35,9 @@ const canSend = computed(() => {
   return checkPermission('send_messages');
 });
 const modalStore = useModalStore();
+
+const { width: windowWidth } = useWindowSize();
+const isMobile = computed(() => windowWidth.value < 768);
 
 const activeMessage = ref<any | null>(null);
 const menuPosition = ref({ x: 0, y: 0 });
@@ -96,9 +100,9 @@ const firstNewMessageIndex = computed(() => {
   if (!lastVisitAt.value) return -1;
   const visitTime = new Date(lastVisitAt.value).getTime();
   return messages.value.findIndex(
-      (msg) =>
-          msg.userId !== currentUserId.value &&
-          new Date(msg.createdAt).getTime() > visitTime,
+    (msg) =>
+      msg.userId !== currentUserId.value &&
+      new Date(msg.createdAt).getTime() > visitTime,
   );
 });
 
@@ -156,8 +160,7 @@ const handleTouchEnd = (msg: any) => {
       if (window.navigator && window.navigator.vibrate) {
         try {
           window.navigator.vibrate(15);
-        } catch (err) {
-        }
+        } catch (err) {}
       }
     }
   }
@@ -179,7 +182,7 @@ const isGroupedWithPrevious = (msg: any, index: number) => {
   if (prevMsg.userId !== msg.userId) return false;
 
   const timeDiff =
-      new Date(msg.createdAt).getTime() - new Date(prevMsg.createdAt).getTime();
+    new Date(msg.createdAt).getTime() - new Date(prevMsg.createdAt).getTime();
   return timeDiff < 90000;
 };
 
@@ -188,17 +191,17 @@ const getBubbleBorderClasses = (msg: any, index: number) => {
   const r = msg.parentId && msg.parentContent;
 
   return `rounded-2xl ${
-      msg.userId === currentUserId.value
-          ? p
-              ? r
-                  ? 'rounded-t-xl'
-                  : ''
-              : r
-                  ? 'rounded-tl-xl rounded-tr-sm'
-                  : 'rounded-tr-sm'
-          : p
-              ? ' rounded-tl-2xl'
-              : ' rounded-tl-sm'
+    msg.userId === currentUserId.value
+      ? p
+        ? r
+          ? 'rounded-t-xl'
+          : ''
+        : r
+          ? 'rounded-tl-xl rounded-tr-sm'
+          : 'rounded-tr-sm'
+      : p
+        ? ' rounded-tl-2xl'
+        : ' rounded-tl-sm'
   }`;
 };
 
@@ -221,9 +224,13 @@ const handleScroll = () => {
   if (!messageContainer.value) return;
   const c = messageContainer.value;
   showScrollBottomBtn.value =
-      c.scrollHeight - c.scrollTop - c.clientHeight > 300;
+    c.scrollHeight - c.scrollTop - c.clientHeight > 300;
 
-  if (!dismissedNewMessagesDivider.value && !isInitialScroll.value && messages.value.length > 0) {
+  if (
+    !dismissedNewMessagesDivider.value &&
+    !isInitialScroll.value &&
+    messages.value.length > 0
+  ) {
     dismissedNewMessagesDivider.value = true;
     if (dividerTimeout) {
       clearTimeout(dividerTimeout);
@@ -265,7 +272,9 @@ const sendWsMessage = (payload: object) => {
 
 const initSocket = () => {
   const apiUrl = import.meta.env.VITE_API_URL || window.location.origin;
-  const wsUrl = apiUrl.replace(/^https?/, (p) => (p === 'https' ? 'wss' : 'ws'));
+  const wsUrl = apiUrl.replace(/^https?/, (p) =>
+    p === 'https' ? 'wss' : 'ws',
+  );
 
   ws = new WebSocket(`${wsUrl}/messages/ws`);
 
@@ -361,7 +370,9 @@ const sendMessage = async () => {
   }
 
   messageInput.value = '';
-  const textarea = document.getElementById('chat-input-field') as HTMLTextAreaElement | null;
+  const textarea = document.getElementById(
+    'chat-input-field',
+  ) as HTMLTextAreaElement | null;
   if (textarea) textarea.style.height = 'auto';
 
   const currentReplyParent = replyParent.value;
@@ -556,23 +567,23 @@ watch(groupId, () => {
 
 <template>
   <div
-      class="chat-container min-h-0 flex flex-col overflow-hidden relative p-0 animate-fade-up"
+    class="chat-container min-h-0 flex flex-col overflow-hidden relative p-0 animate-fade-up"
   >
     <div
-        ref="messageContainer"
-        @scroll="handleScroll"
-        class="flex-1 overflow-y-auto py-4 custom-scrollbar scroll-smooth bg-canvas"
+      ref="messageContainer"
+      @scroll="handleScroll"
+      class="flex-1 overflow-y-auto py-4 custom-scrollbar scroll-smooth bg-canvas"
     >
       <div
-          v-if="loading"
-          class="h-full flex flex-col justify-center items-center"
+        v-if="loading"
+        class="h-full flex flex-col justify-center items-center"
       >
         <BaseSpinner size="32px" />
       </div>
 
       <div
-          v-else-if="error"
-          class="h-full flex flex-col justify-center items-center gap-3 text-danger p-6 text-center"
+        v-else-if="error"
+        class="h-full flex flex-col justify-center items-center gap-3 text-danger p-6 text-center"
       >
         <Info :size="40" />
         <span class="text-sm font-semibold tracking-tight">{{ error }}</span>
@@ -583,160 +594,168 @@ watch(groupId, () => {
 
       <template v-else>
         <BaseEmptyState
-            v-if="messages.length === 0"
-            :icon="MessageCircle"
-            class="animate-fade-up"
+          v-if="messages.length === 0"
+          :icon="MessageCircle"
+          class="animate-fade-up"
         >
           <template #title>{{ t('chat.no_messages') }}</template>
         </BaseEmptyState>
 
         <TransitionGroup name="msg-list">
           <div
-              v-for="(msg, index) in messages"
-              :key="msg.id"
-              class="w-full flex flex-col items-stretch"
+            v-for="(msg, index) in messages"
+            :key="msg.id"
+            class="w-full flex flex-col items-stretch"
           >
             <!-- New Messages Divider -->
             <Transition name="fade">
               <div
-                  v-if="index === firstNewMessageIndex && !dismissedNewMessagesDivider"
-                  class="flex items-center my-6 px-4 md:px-8 select-none"
+                v-if="
+                  index === firstNewMessageIndex && !dismissedNewMessagesDivider
+                "
+                class="flex items-center my-6 px-4 md:px-8 select-none"
               >
                 <div class="flex-1 border-t border-danger/30"></div>
-                <span class="mx-4 text-xs font-bold text-danger tracking-wider uppercase bg-canvas px-2.25 py-0.5 rounded-full border border-danger/20 shadow-sm">
-                  {{ messages.length >= 100 && firstNewMessageIndex === 0 ? '100+ ' + t('chat.new_messages') : t('chat.new_messages') }}
+                <span
+                  class="mx-4 text-xs font-bold text-danger tracking-wider uppercase bg-canvas px-2.25 py-0.5 rounded-full border border-danger/20 shadow-sm"
+                >
+                  {{
+                    messages.length >= 100 && firstNewMessageIndex === 0
+                      ? '100+ ' + t('chat.new_messages')
+                      : t('chat.new_messages')
+                  }}
                 </span>
                 <div class="flex-1 border-t border-danger/30"></div>
               </div>
             </Transition>
 
             <div
-                :id="`msg-${msg.id}`"
-                class="group/msg w-full px-2 md:px-8"
-                :class="isGroupedWithPrevious(msg, index) ? 'mt-1' : 'mt-4'"
-                @contextmenu.prevent.stop="openMenu($event, msg)"
+              :id="`msg-${msg.id}`"
+              class="group/msg w-full px-2 md:px-8"
+              :class="isGroupedWithPrevious(msg, index) ? 'mt-1' : 'mt-4'"
+              @contextmenu.prevent.stop="openMenu($event, msg)"
             >
               <div
-                  :class="[
-                'flex items-end gap-2 max-w-[85%] sm:max-w-[70%] transition-all duration-200',
-                msg.userId === currentUserId
-                  ? 'ml-auto flex-row-reverse'
-                  : 'mr-auto',
-              ]"
+                :class="[
+                  'flex items-end gap-2 max-w-[85%] sm:max-w-[70%] transition-all duration-200',
+                  msg.userId === currentUserId
+                    ? 'ml-auto flex-row-reverse'
+                    : 'mr-auto',
+                ]"
               >
                 <div
-                    v-if="msg.userId !== currentUserId"
-                    class="w-8 shrink-0 flex justify-center self-start"
+                  v-if="msg.userId !== currentUserId"
+                  class="w-8 shrink-0 flex justify-center self-start"
                 >
                   <Avatar
-                      v-if="
-                    msg.userId !== currentUserId &&
-                    !isGroupedWithPrevious(msg, index)
-                  "
-                      :name="msg.senderName"
-                      :size="8"
+                    v-if="
+                      msg.userId !== currentUserId &&
+                      !isGroupedWithPrevious(msg, index)
+                    "
+                    :name="msg.senderName"
+                    :size="8"
                   />
                 </div>
 
                 <div class="flex gap-0.5 relative max-w-full min-w-0">
                   <div
-                      v-if="activeSwipeMessageId === msg.id && swipeX > 0"
-                      class="absolute left-[-32px] top-1/2 flex items-center pointer-events-none z-0"
-                      :style="{
-                    opacity: Math.min(swipeX / 40, 1),
-                    transform: `scale(${swipeX >= 40 ? 1 : 0.85}) translateY(-50%)`,
-                  }"
+                    v-if="activeSwipeMessageId === msg.id && swipeX > 0"
+                    class="absolute left-[-32px] top-1/2 flex items-center pointer-events-none z-0"
+                    :style="{
+                      opacity: Math.min(swipeX / 40, 1),
+                      transform: `scale(${swipeX >= 40 ? 1 : 0.85}) translateY(-50%)`,
+                    }"
                   >
                     <div
-                        class="size-9 rounded-full flex items-center justify-center transition-all duration-150"
-                        :class="
-                      swipeX >= 40
-                        ? 'bg-action text-on-action'
-                        : 'bg-ghost-hover text-on-ghost-subtle'
-                    "
+                      class="size-9 rounded-full flex items-center justify-center transition-all duration-150"
+                      :class="
+                        swipeX >= 40
+                          ? 'bg-action text-on-action'
+                          : 'bg-ghost-hover text-on-ghost-subtle'
+                      "
                     >
                       <Reply :size="18" />
                     </div>
                   </div>
 
                   <div
-                      :class="[
-                    'p-2 transition-all duration-200 relative group min-w-0 max-w-full',
-                    msg.userId === currentUserId
-                      ? 'bg-action text-on-action'
-                      : 'bg-ghost-hover text-on-ghost',
+                    :class="[
+                      'p-2 transition-all duration-200 relative group min-w-0 max-w-full',
+                      msg.userId === currentUserId
+                        ? 'bg-action text-on-action'
+                        : 'bg-ghost-hover text-on-ghost',
 
-                    getBubbleBorderClasses(msg, index),
-                  ]"
-                      :style="
-                    activeSwipeMessageId === msg.id
-                      ? {
-                          transform: `translateX(${swipeX}px)`,
-                          transition: 'none',
-                        }
-                      : {
-                          transform: 'translateX(0px)',
-                          transition:
-                            'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-                        }
-                  "
-                      @touchstart="handleTouchStart($event, msg.id)"
-                      @touchmove="handleTouchMove"
-                      @touchend="handleTouchEnd(msg)"
-                  >
-                  <span
-                      v-if="
-                      msg.userId !== currentUserId &&
-                      !isGroupedWithPrevious(msg, index)
+                      getBubbleBorderClasses(msg, index),
+                    ]"
+                    :style="
+                      activeSwipeMessageId === msg.id
+                        ? {
+                            transform: `translateX(${swipeX}px)`,
+                            transition: 'none',
+                          }
+                        : {
+                            transform: 'translateX(0px)',
+                            transition:
+                              'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+                          }
                     "
-                      class="px-2 text-base/relaxed font-bold text-on-ghost tracking-tight select-none mb-1"
+                    @touchstart="handleTouchStart($event, msg.id)"
+                    @touchmove="handleTouchMove"
+                    @touchend="handleTouchEnd(msg)"
                   >
-                    {{ msg.senderName }}
-                  </span>
+                    <span
+                      v-if="
+                        msg.userId !== currentUserId &&
+                        !isGroupedWithPrevious(msg, index)
+                      "
+                      class="px-2 text-base/relaxed font-bold text-on-ghost tracking-tight select-none mb-1"
+                    >
+                      {{ msg.senderName }}
+                    </span>
 
                     <div
-                        v-if="msg.parentId && msg.parentContent"
-                        @click="scrollToMessage(msg.parentId)"
-                        v-wave
-                        :class="[
-                      'flex flex-col mb-1 px-3 py-2 border-l-4 text-sm rounded-md transition-all duration-150 cursor-pointer select-none max-w-full w-full min-w-0',
-                      msg.userId === currentUserId
-                        ? 'bg-action-hover hover:bg-on-action/20 border-on-action-muted text-on-action-muted'
-                        : 'bg-ghost-hover hover:bg-on-ghost/15 border-on-ghost-muted text-on-ghost-muted mt-1',
-                    ]"
-                        :title="t('chat.quote_label')"
+                      v-if="msg.parentId && msg.parentContent"
+                      @click="scrollToMessage(msg.parentId)"
+                      v-wave
+                      :class="[
+                        'flex flex-col mb-1 px-3 py-2 border-l-4 text-sm rounded-md transition-all duration-150 cursor-pointer select-none max-w-full w-full min-w-0',
+                        msg.userId === currentUserId
+                          ? 'bg-action-hover hover:bg-on-action/20 border-on-action-muted text-on-action-muted'
+                          : 'bg-ghost-hover hover:bg-on-ghost/15 border-on-ghost-muted text-on-ghost-muted mt-1',
+                      ]"
+                      :title="t('chat.quote_label')"
                     >
                       <span class="font-bold">{{ msg.parentSenderName }}</span>
                       <span class="truncate">{{ msg.parentContent }}</span>
                     </div>
 
                     <div
-                        class="px-2 flex flex-wrap items-end justify-between gap-x-2 gap-y-1"
+                      class="px-2 flex flex-wrap items-end justify-between gap-x-2 gap-y-1"
                     >
-                    <span
-                        class="text-base/relaxed whitespace-pre-wrap break-words"
-                    >
-                      {{ msg.content }}
-                    </span>
                       <span
-                          :class="[
-                        'text-xs select-none font-normal tracking-tight whitespace-nowrap ml-auto self-end',
-                        msg.userId === currentUserId
-                          ? 'text-on-action-muted/70'
-                          : 'text-on-ghost-subtle',
-                      ]"
+                        class="text-base/relaxed whitespace-pre-wrap break-words"
                       >
-                      {{ formatTime(msg.createdAt) }}
-                    </span>
+                        {{ msg.content }}
+                      </span>
+                      <span
+                        :class="[
+                          'text-xs select-none font-normal tracking-tight whitespace-nowrap ml-auto self-end',
+                          msg.userId === currentUserId
+                            ? 'text-on-action-muted/70'
+                            : 'text-on-ghost-subtle',
+                        ]"
+                      >
+                        {{ formatTime(msg.createdAt) }}
+                      </span>
                     </div>
 
                     <div
-                        :class="[
-                      'absolute top-1/2 -translate-y-1/2 opacity-0 group-hover/msg:opacity-100 flex gap-2 items-center transition-all duration-200 delay-75 scale-90 translate-y-1 group-hover/msg:scale-100 group-hover/msg:translate-y-[-50%] z-10 hidden md:flex',
-                      msg.userId === currentUserId
-                        ? 'left-[-96px] flex-row-reverse'
-                        : 'right-[-96px] flex-row',
-                    ]"
+                      :class="[
+                        'absolute top-1/2 -translate-y-1/2 opacity-0 group-hover/msg:opacity-100 flex gap-2 items-center transition-all duration-200 delay-75 scale-90 translate-y-1 group-hover/msg:scale-100 group-hover/msg:translate-y-[-50%] z-10 hidden md:flex',
+                        msg.userId === currentUserId
+                          ? 'left-[-96px] flex-row-reverse'
+                          : 'right-[-96px] flex-row',
+                      ]"
                     >
                       <BaseTooltip content="Antworten" placement="bottom">
                         <BaseButton @click="startReply(msg)" :icon="Reply" />
@@ -744,8 +763,8 @@ watch(groupId, () => {
 
                       <BaseTooltip content="Mehr" placement="bottom">
                         <BaseButton
-                            @click.stop="openMenu($event, msg)"
-                            :icon="Ellipsis"
+                          @click.stop="openMenu($event, msg)"
+                          :icon="Ellipsis"
                         />
                       </BaseTooltip>
                     </div>
@@ -756,13 +775,13 @@ watch(groupId, () => {
           </div>
         </TransitionGroup>
 
-        <Teleport to="body">
+        <Teleport to="body" :disabled="isMobile">
           <BaseMenu
-              :open="!!activeMessage"
-              @close="activeMessage = null"
-              :ref="(el: any) => (menuRef = el?.menuEl)"
-              class="fixed! z-[10001]! min-w-[180px]"
-              :style="contextMenuStyles"
+            :open="!!activeMessage"
+            @close="activeMessage = null"
+            :ref="(el: any) => (menuRef = el?.menuEl)"
+            :class="!isMobile ? 'fixed! z-[10001]! min-w-[180px]' : ''"
+            :style="!isMobile ? contextMenuStyles : undefined"
           >
             <template v-if="activeMessage">
               <BaseMenuButton :icon="Copy" @click="copyMessage(activeMessage)">
@@ -772,10 +791,10 @@ watch(groupId, () => {
               <BaseMenuDivider />
 
               <BaseMenuButton
-                  v-if="canDeleteMessage(activeMessage)"
-                  variant="danger"
-                  :icon="Trash2"
-                  @click="deleteMessage(activeMessage)"
+                v-if="canDeleteMessage(activeMessage)"
+                variant="danger"
+                :icon="Trash2"
+                @click="deleteMessage(activeMessage)"
               >
                 {{ t('common.buttons.delete') }}
               </BaseMenuButton>
@@ -786,18 +805,18 @@ watch(groupId, () => {
         <div class="px-6 py-1 h-6 mt-4 flex items-center shrink-0 bg-canvas">
           <Transition name="fade">
             <div
-                v-if="typingDisplay"
-                class="flex items-center gap-2.5 text-sm text-on-ghost-muted font-bold select-none"
+              v-if="typingDisplay"
+              class="flex items-center gap-2.5 text-sm text-on-ghost-muted font-bold select-none"
             >
               <div class="flex items-center gap-0.75 h-2">
                 <span
-                    class="w-1.5 h-1.5 bg-action rounded-full typing-dot"
+                  class="w-1.5 h-1.5 bg-action rounded-full typing-dot"
                 ></span>
                 <span
-                    class="w-1.5 h-1.5 bg-action rounded-full typing-dot"
+                  class="w-1.5 h-1.5 bg-action rounded-full typing-dot"
                 ></span>
                 <span
-                    class="w-1.5 h-1.5 bg-action rounded-full typing-dot"
+                  class="w-1.5 h-1.5 bg-action rounded-full typing-dot"
                 ></span>
               </div>
               <span>{{ typingDisplay }}</span>
@@ -809,30 +828,30 @@ watch(groupId, () => {
 
     <Transition name="scale-fade">
       <BaseButton
-          v-if="showScrollBottomBtn"
-          variant="action"
-          @click="scrollToBottom(true)"
-          class="absolute! bottom-20 right-4 md:bottom-24 md:right-8"
-          title="Nach unten"
-          :icon="ArrowDown"
+        v-if="showScrollBottomBtn"
+        variant="action"
+        @click="scrollToBottom(true)"
+        class="absolute! bottom-20 right-4 md:bottom-24 md:right-8"
+        title="Nach unten"
+        :icon="ArrowDown"
       >
       </BaseButton>
     </Transition>
 
     <div class="shrink-0">
       <form
-          novalidate
-          @submit.prevent="sendMessage"
-          class="p-2 pt-0 flex items-end gap-2"
+        novalidate
+        @submit.prevent="sendMessage"
+        class="p-2 pt-0 flex items-end gap-2"
       >
         <div
-            class="flex-1 min-w-0 relative flex flex-col items-stretch py-2.25 px-2.25 min-h-10 bg-surface border border-surface-border focus-within:border-focus focus-within:shadow-focus-ring rounded-2xl transition-all duration-200"
-            :class="replyParent ? 'rounded-t-xl' : ''"
+          class="flex-1 min-w-0 relative flex flex-col items-stretch py-2.25 px-2.25 min-h-10 bg-surface border border-surface-border focus-within:border-focus focus-within:shadow-focus-ring rounded-2xl transition-all duration-200"
+          :class="replyParent ? 'rounded-t-xl' : ''"
         >
           <Transition name="slide-up">
             <div
-                v-if="replyParent"
-                class="flex w-full min-w-0 items-center justify-between px-3 py-2 mb-2 rounded-md bg-ghost-hover border-l-4 border-action text-xs text-on-ghost-muted"
+              v-if="replyParent"
+              class="flex w-full min-w-0 items-center justify-between px-3 py-2 mb-2 rounded-md bg-ghost-hover border-l-4 border-action text-xs text-on-ghost-muted"
             >
               <div class="flex-1 min-w-0 flex flex-col justify-center">
                 <span class="text-sm font-bold select-none truncate">
@@ -843,35 +862,39 @@ watch(groupId, () => {
                 </span>
               </div>
               <BaseButton
-                  @click="replyParent = null"
-                  class="p-1.5 hover:text-on-ghost hover:bg-surface-hover/80 rounded-full transition-all duration-150 shrink-0"
-                  title="Antwort abbrechen"
-                  variant="ghost"
-                  on="ghost"
-                  :icon="X"
+                @click="replyParent = null"
+                class="p-1.5 hover:text-on-ghost hover:bg-surface-hover/80 rounded-full transition-all duration-150 shrink-0"
+                title="Antwort abbrechen"
+                variant="ghost"
+                on="ghost"
+                :icon="X"
               />
             </div>
           </Transition>
           <textarea
-              id="chat-input-field"
-              v-model="messageInput"
-              @input="handleInput"
-              @keydown.enter.exact.prevent="sendMessage"
-              rows="1"
-              class="w-full flex-1 items-center justify-center py-0 px-1.75 rounded-none bg-transparent border-none shadow-none outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 text-base/5 text-on-ghost placeholder:text-on-ghost-subtle resize-none font-normal overflow-hidden"
-              :placeholder="canSend ? t('chat.placeholder') : t('chat.errors.send_deactivated')"
-              required
-              maxlength="1000"
-              :disabled="!canSend"
+            id="chat-input-field"
+            v-model="messageInput"
+            @input="handleInput"
+            @keydown.enter.exact.prevent="sendMessage"
+            rows="1"
+            class="w-full flex-1 items-center justify-center py-0 px-1.75 rounded-none bg-transparent border-none shadow-none outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 text-base/5 text-on-ghost placeholder:text-on-ghost-subtle resize-none font-normal overflow-hidden"
+            :placeholder="
+              canSend
+                ? t('chat.placeholder')
+                : t('chat.errors.send_deactivated')
+            "
+            required
+            maxlength="1000"
+            :disabled="!canSend"
           ></textarea>
         </div>
 
         <BaseButton
-            variant="action"
-            on="ghost"
-            type="submit"
-            :disabled="!messageInput.trim() || !canSend"
-            :icon="SendHorizontal"
+          variant="action"
+          on="ghost"
+          type="submit"
+          :disabled="!messageInput.trim() || !canSend"
+          :icon="SendHorizontal"
         >
         </BaseButton>
       </form>
@@ -882,10 +905,10 @@ watch(groupId, () => {
 <style scoped>
 .chat-container {
   height: calc(
-      100dvh - var(--header-height, 65px) - var(--announcement-height, 0px) - 8px
+    100dvh - var(--header-height, 65px) - var(--announcement-height, 0px) - 8px
   );
   height: calc(
-      100dvh - var(--header-height, 65px) - var(--announcement-height, 0px) -
+    100dvh - var(--header-height, 65px) - var(--announcement-height, 0px) -
       8px - env(safe-area-inset-bottom, 0px)
   );
 }
@@ -941,8 +964,8 @@ watch(groupId, () => {
 .fade-enter-active,
 .fade-leave-active {
   transition:
-      opacity 0.2s ease,
-      transform 0.2s ease;
+    opacity 0.2s ease,
+    transform 0.2s ease;
 }
 .fade-enter-from,
 .fade-leave-to {
@@ -953,9 +976,9 @@ watch(groupId, () => {
 .slide-up-enter-active,
 .slide-up-leave-active {
   transition:
-      max-height 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-      opacity 0.2s ease,
-      padding 0.2s ease;
+    max-height 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.2s ease,
+    padding 0.2s ease;
   max-height: 52px;
   overflow: hidden;
 }

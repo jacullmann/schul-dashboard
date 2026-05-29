@@ -81,7 +81,10 @@ function confirmRemove() {
       {{ t('admin.members.title') }}
 
       <template #info>
-        <InfoModal tooltip="t('admin.members.info.tooltip')" title="t('admin.members.title')">
+        <InfoModal
+          tooltip="t('admin.members.info.tooltip')"
+          title="t('admin.members.title')"
+        >
           <h3>{{ t('admin.members.info.headline') }}</h3>
 
           <h3>{{ t('admin.members.info.list_title') }}</h3>
@@ -155,7 +158,10 @@ function confirmRemove() {
               :icon="Crown"
             />
           </BaseTooltip>
-          <BaseTooltip :content="t('admin.members.actions.remove')" placement="bottom">
+          <BaseTooltip
+            :content="t('admin.members.actions.remove')"
+            placement="bottom"
+          >
             <BaseButton
               variant="ghost"
               @click="openRemoveModal(member.userId, member.generatedName)"
@@ -167,7 +173,10 @@ function confirmRemove() {
           <BaseSelect
             :modelValue="member.role"
             @update:modelValue="(val: string) => onRoleChange(member, val)"
-            :disabled="!canModerateMembers || (member.role === 'admin' && !canDemoteAdmin)"
+            :disabled="
+              !canModerateMembers ||
+              (member.role === 'admin' && !canDemoteAdmin)
+            "
             :form="false"
             classes="w-48!"
             :options="[
@@ -180,7 +189,9 @@ function confirmRemove() {
       </div>
     </div>
 
-    <PageHeader class="mt-8"> {{ t('admin.members.ban_list.title') }} </PageHeader>
+    <PageHeader class="mt-8">
+      {{ t('admin.members.ban_list.title') }}
+    </PageHeader>
 
     <div
       v-if="loadingBanned && (!bannedUsers || bannedUsers.length === 0)"
@@ -211,11 +222,16 @@ function confirmRemove() {
           >
           <span
             class="text-[0.7rem] font-semibold uppercase tracking-[0.04em] text-on-ghost-muted"
-            >{{ t('admin.members.ban_list.banned_on_prefix') }}{{ new Date(user.bannedAt).toLocaleDateString('de-DE') }}</span
+            >{{ t('admin.members.ban_list.banned_on_prefix')
+            }}{{ new Date(user.bannedAt).toLocaleDateString('de-DE') }}</span
           >
         </div>
         <div class="flex items-center gap-2 flex-shrink-0">
-          <BaseButton :disabled="!canModerateMembers" variant="ghost" @click="emit('revert-ban', user.userId)">
+          <BaseButton
+            :disabled="!canModerateMembers"
+            variant="ghost"
+            @click="emit('revert-ban', user.userId)"
+          >
             {{ t('admin.members.ban_list.actions.unban') }}
           </BaseButton>
         </div>
@@ -232,18 +248,26 @@ function confirmRemove() {
 
       <template #content>
         <p class="m-0!">
-          {{ t('admin.members.remove_modal.confirm_prefix') }}<strong>{{ removeModal.userName }}</strong>{{ t('admin.members.remove_modal.confirm_suffix') }}
+          {{ t('admin.members.remove_modal.confirm_prefix')
+          }}<strong>{{ removeModal.userName }}</strong
+          >{{ t('admin.members.remove_modal.confirm_suffix') }}
         </p>
         <p class="m-0!">
           {{ t('admin.members.remove_modal.rejoin_info') }}
         </p>
 
         <BaseCheckbox v-model="removeModal.ban"
-          >{{ t('admin.members.remove_modal.ban_checkbox_prefix') }}<strong>{{ removeModal.userName }}</strong>{{ t('admin.members.remove_modal.ban_checkbox_suffix') }}</BaseCheckbox
+          >{{ t('admin.members.remove_modal.ban_checkbox_prefix')
+          }}<strong>{{ removeModal.userName }}</strong
+          >{{
+            t('admin.members.remove_modal.ban_checkbox_suffix')
+          }}</BaseCheckbox
         >
       </template>
 
-      <template #action-text> {{ t('admin.members.remove_modal.submit_button') }} </template>
+      <template #action-text>
+        {{ t('admin.members.remove_modal.submit_button') }}
+      </template>
     </BaseModal>
   </div>
 </template>

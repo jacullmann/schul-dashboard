@@ -321,7 +321,6 @@ async function handleReport(message: UIMessage, reason: string) {
     useToast().success(
       'Report submitted successfully. Our team will review it.',
     );
-
   } else if (error.value === 'already_reported') {
     useToast().info(
       'This message has already been reported. Thank you for your vigilance!',
@@ -359,7 +358,6 @@ const toggleSpeechRecognition = () => {
   };
 
   recognition.onresult = (event: any) => {
-
     userInput.value = Array.from(event.results)
       .map((result: any) => result[0])
       .map((result) => result.transcript)
@@ -380,7 +378,6 @@ const toggleSpeechRecognition = () => {
 
   recognition.start();
 };
-
 
 const overflowingHumanMessages = ref<Record<string, boolean>>({});
 const expandedHumanMessages = ref<Record<string, boolean>>({});

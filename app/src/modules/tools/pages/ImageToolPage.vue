@@ -292,7 +292,9 @@ const updateImageSource = (newSrc: string) => {
 <template>
   <div class="card">
     <div class="container">
-      <h2 class="mb-4 animate-[fade-up_0.5s_ease-out]">{{ t('tools.image.title') }}</h2>
+      <h2 class="mb-4 animate-[fade-up_0.5s_ease-out]">
+        {{ t('tools.image.title') }}
+      </h2>
 
       <div
         class="border-2 border-dashed border-canvas-border rounded-md p-4 text-center cursor-pointer transition-all duration-200 mb-8 animate-[fade-up_0.5s_ease-out_both] delay-[0.05s]"
@@ -303,7 +305,8 @@ const updateImageSource = (newSrc: string) => {
         @drop.prevent="handleDrop"
       >
         <p class="mt-0">
-          <strong>{{ t('tools.image.upload_click') }}</strong> {{ t('tools.image.upload_drag') }}
+          <strong>{{ t('tools.image.upload_click') }}</strong>
+          {{ t('tools.image.upload_drag') }}
         </p>
         <span class="text-sm text-on-ghost-muted"
           >JPG, PNG, WEBP, AVIF, GIF, BMP</span
@@ -322,7 +325,9 @@ const updateImageSource = (newSrc: string) => {
         :class="{ '!opacity-100 !pointer-events-auto': hasImage }"
       >
         <div class="flex flex-col">
-          <BaseLabel for="image-format-select">{{ t('tools.image.settings.format') }}</BaseLabel>
+          <BaseLabel for="image-format-select">{{
+            t('tools.image.settings.format')
+          }}</BaseLabel>
           <BaseSelect
             id="image-format-select"
             v-model="settings.format"
@@ -334,7 +339,9 @@ const updateImageSource = (newSrc: string) => {
           />
         </div>
         <div class="flex flex-col">
-          <BaseLabel for="image-quality-range">{{ t('tools.image.settings.quality', { quality: settings.quality }) }}</BaseLabel>
+          <BaseLabel for="image-quality-range">{{
+            t('tools.image.settings.quality', { quality: settings.quality })
+          }}</BaseLabel>
           <input
             id="image-quality-range"
             type="range"
@@ -344,7 +351,9 @@ const updateImageSource = (newSrc: string) => {
           />
         </div>
         <div class="flex flex-col">
-          <BaseLabel for="image-width-input">{{ t('tools.image.settings.width') }}</BaseLabel>
+          <BaseLabel for="image-width-input">{{
+            t('tools.image.settings.width')
+          }}</BaseLabel>
           <BaseInput
             id="image-width-input"
             type="number"
@@ -353,7 +362,9 @@ const updateImageSource = (newSrc: string) => {
           />
         </div>
         <div class="flex flex-col">
-          <BaseLabel for="image-height-input">{{ t('tools.image.settings.height') }}</BaseLabel>
+          <BaseLabel for="image-height-input">{{
+            t('tools.image.settings.height')
+          }}</BaseLabel>
           <BaseInput
             id="image-height-input"
             type="number"
@@ -368,8 +379,12 @@ const updateImageSource = (newSrc: string) => {
         class="mt-8 animate-[fade-up_0.5s_ease-out_both] delay-[0.15s]"
         v-if="hasImage"
       >
-        <BaseButton @click="openEditor" variant="ghost">{{ t('common.buttons.edit') }}</BaseButton>
-        <BaseButton @click="convertAndDownload" variant="action">{{ t('tools.image.actions.convert') }}</BaseButton>
+        <BaseButton @click="openEditor" variant="ghost">{{
+          t('common.buttons.edit')
+        }}</BaseButton>
+        <BaseButton @click="convertAndDownload" variant="action">{{
+          t('tools.image.actions.convert')
+        }}</BaseButton>
       </BaseRow>
 
       <div
@@ -377,7 +392,8 @@ const updateImageSource = (newSrc: string) => {
         v-show="hasImage"
       >
         <div class="mb-2 text-sm text-on-ghost-muted">
-          {{ t('tools.image.settings.size') }}: {{ imageMeta.naturalWidth }} x {{ imageMeta.naturalHeight }}
+          {{ t('tools.image.settings.size') }}: {{ imageMeta.naturalWidth }} x
+          {{ imageMeta.naturalHeight }}
         </div>
         <img
           :src="currentImageSrc"

@@ -51,7 +51,10 @@ watch(
     <template #title> Diesen Eintrag melden? </template>
 
     <template #title-infopop>
-      <InfoModal :tooltip="t('tasks.report.info_tooltip')" :title="t('tasks.report.info_title')">
+      <InfoModal
+        :tooltip="t('tasks.report.info_tooltip')"
+        :title="t('tasks.report.info_title')"
+      >
         <h3 class="text-xl font-display font-bold mb-2">Falschinformationen</h3>
         <p class="text-on-ghost-muted text-base mb-4">
           Die Informationen, welche in dem Eintrag genannt werden, oder die
@@ -79,7 +82,9 @@ watch(
 
     <template #content>
       <BaseFormGroup id="reportReason">
-        <BaseLabel for="reportReason">{{ t('tasks.report.select_reason_label') }}</BaseLabel>
+        <BaseLabel for="reportReason">{{
+          t('tasks.report.select_reason_label')
+        }}</BaseLabel>
         <BaseTabs
           id="reportReason"
           :items="tabItems"
@@ -103,7 +108,9 @@ watch(
           :model-value="reason"
           @update:model-value="$emit('update:reason', $event)"
           :placeholder="
-            category === 'falschinfo' ? t('tasks.report.reason_placeholder') : t('tasks.report.description_placeholder')
+            category === 'falschinfo'
+              ? t('tasks.report.reason_placeholder')
+              : t('tasks.report.description_placeholder')
           "
           :required="category === 'falschinfo'"
           :maxlength="MAX_LENGTH"

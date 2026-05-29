@@ -96,7 +96,9 @@ onMounted(() => {
 
     <div v-if="loading" class="flex flex-col justify-center items-center py-10">
       <BaseSpinner size="32px" />
-      <span class="text-sm text-on-ghost-muted mt-2">{{ t('admin.permissions.list.loading') }}</span>
+      <span class="text-sm text-on-ghost-muted mt-2">{{
+        t('admin.permissions.list.loading')
+      }}</span>
     </div>
 
     <div v-else class="flex flex-col gap-4 relative">
@@ -107,7 +109,10 @@ onMounted(() => {
         <BaseSpinner size="24px" />
       </div>
 
-      <div v-if="!isAdmin" class="text-xs text-warning bg-warning/10 border border-warning/20 p-3 rounded-lg mb-2">
+      <div
+        v-if="!isAdmin"
+        class="text-xs text-warning bg-warning/10 border border-warning/20 p-3 rounded-lg mb-2"
+      >
         {{ t('admin.permissions.list.admin_only_warning') }}
       </div>
 
@@ -125,7 +130,10 @@ onMounted(() => {
           :disabled="!isAdmin || saving"
           :options="[
             { label: t('admin.permissions.options.all'), value: 'user' },
-            { label: t('admin.permissions.options.moderators'), value: 'moderator' },
+            {
+              label: t('admin.permissions.options.moderators'),
+              value: 'moderator',
+            },
             { label: t('admin.permissions.options.admins'), value: 'admin' },
           ]"
           classes="w-38!"
@@ -133,7 +141,9 @@ onMounted(() => {
       </BaseRow>
 
       <BaseRow justify="between" class="flex-nowrap!">
-        <div class="text-base text-on-ghost">{{ t('admin.permissions.items.edit_subjects_courses') }}</div>
+        <div class="text-base text-on-ghost">
+          {{ t('admin.permissions.items.edit_subjects_courses') }}
+        </div>
 
         <BaseSelect
           :form="false"
@@ -149,7 +159,9 @@ onMounted(() => {
       </BaseRow>
 
       <BaseRow justify="between" class="flex-nowrap!">
-        <div class="text-base text-on-ghost">{{ t('admin.permissions.items.edit_schedule') }}</div>
+        <div class="text-base text-on-ghost">
+          {{ t('admin.permissions.items.edit_schedule') }}
+        </div>
 
         <BaseSelect
           :form="false"
@@ -167,7 +179,9 @@ onMounted(() => {
       <h3>{{ t('admin.permissions.categories.tasks') }}</h3>
 
       <BaseRow justify="between" class="flex-nowrap!">
-        <div class="text-base text-on-ghost">{{ t('admin.permissions.items.create_items') }}</div>
+        <div class="text-base text-on-ghost">
+          {{ t('admin.permissions.items.create_items') }}
+        </div>
 
         <BaseSelect
           :form="false"
@@ -184,7 +198,9 @@ onMounted(() => {
       </BaseRow>
 
       <BaseRow justify="between" class="flex-nowrap!">
-        <div class="text-base text-on-ghost">{{ t('admin.permissions.items.upload_images') }}</div>
+        <div class="text-base text-on-ghost">
+          {{ t('admin.permissions.items.upload_images') }}
+        </div>
 
         <BaseSelect
           :form="false"
@@ -222,7 +238,9 @@ onMounted(() => {
       <h3>{{ t('admin.permissions.categories.chat') }}</h3>
 
       <BaseRow justify="between" class="flex-nowrap!">
-        <div class="text-base text-on-ghost">{{ t('admin.permissions.items.send_messages') }}</div>
+        <div class="text-base text-on-ghost">
+          {{ t('admin.permissions.items.send_messages') }}
+        </div>
 
         <BaseSelect
           :form="false"

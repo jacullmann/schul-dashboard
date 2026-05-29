@@ -102,8 +102,7 @@ async function handleNext() {
     } catch (e: unknown) {
       const err = e as { response?: { data?: { error?: string } } };
       setMessage(
-        err?.response?.data?.error ||
-          t('auth.login.reset.errors.code_expired'),
+        err?.response?.data?.error || t('auth.login.reset.errors.code_expired'),
         true,
       );
     } finally {
@@ -135,8 +134,7 @@ async function handleNext() {
     } catch (e: unknown) {
       const err = e as { response?: { data?: { error?: string } } };
       setMessage(
-        err?.response?.data?.error ||
-          t('auth.login.reset.errors.reset_failed'),
+        err?.response?.data?.error || t('auth.login.reset.errors.reset_failed'),
         true,
       );
     } finally {

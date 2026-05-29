@@ -121,7 +121,10 @@ onMounted(() => {
         </div>
 
         <div class="relative" v-if="userGroups.length > 0">
-          <BaseTooltip :content="t('common.groups.tooltip.add_group')" placement="bottom">
+          <BaseTooltip
+            :content="t('common.groups.tooltip.add_group')"
+            placement="bottom"
+          >
             <BaseButton
               @click="addGroup = true"
               variant="action"

@@ -36,7 +36,9 @@ const isAdmin = computed(
 );
 
 const canEditScheduleConfig = computed(() => checkPermission('edit_schedule'));
-const canManageScheduleChanges = computed(() => checkPermission('manage_schedule_changes'));
+const canManageScheduleChanges = computed(() =>
+  checkPermission('manage_schedule_changes'),
+);
 
 const subForm = ref({
   lessonId: '',
@@ -201,7 +203,9 @@ function handleSaveSub() {
         />
       </div>
       <div>
-        <BaseLabel for="config-duration">{{ t('admin.schedule.config.lesson_duration_label') }}</BaseLabel>
+        <BaseLabel for="config-duration">{{
+          t('admin.schedule.config.lesson_duration_label')
+        }}</BaseLabel>
         <BaseInput
           id="config-duration"
           type="number"
@@ -240,7 +244,9 @@ function handleSaveSub() {
           class="flex gap-2 items-end"
         >
           <div class="form-field flex-1 m-0">
-            <BaseLabel :for="`break-slot-${brk.id}`">{{ t('admin.schedule.config.after_lesson_label') }}</BaseLabel>
+            <BaseLabel :for="`break-slot-${brk.id}`">{{
+              t('admin.schedule.config.after_lesson_label')
+            }}</BaseLabel>
             <BaseInput
               :id="`break-slot-${brk.id}`"
               type="number"
@@ -251,7 +257,9 @@ function handleSaveSub() {
             />
           </div>
           <div class="form-field flex-1 m-0">
-            <BaseLabel :for="`break-dur-${brk.id}`">{{ t('admin.schedule.config.break_duration_label') }}</BaseLabel>
+            <BaseLabel :for="`break-dur-${brk.id}`">{{
+              t('admin.schedule.config.break_duration_label')
+            }}</BaseLabel>
             <BaseInput
               :id="`break-dur-${brk.id}`"
               type="number"
@@ -277,7 +285,11 @@ function handleSaveSub() {
         :disabled="savingScheduleConfig"
         variant="action"
       >
-        {{ savingScheduleConfig ? t('common.buttons.saving') : t('admin.schedule.config.save_button') }}
+        {{
+          savingScheduleConfig
+            ? t('common.buttons.saving')
+            : t('admin.schedule.config.save_button')
+        }}
       </BaseButton>
     </div>
     <div class="mt-8 border-t border-surface-border pt-6">
@@ -320,19 +332,28 @@ function handleSaveSub() {
       </h3>
 
       <div v-if="selectedLesson">
-        <h3 class="mt-0 mb-2 text-lg">{{ t('admin.schedule.changes.selected_lesson') }}</h3>
+        <h3 class="mt-0 mb-2 text-lg">
+          {{ t('admin.schedule.changes.selected_lesson') }}
+        </h3>
         <p class="m-0 mb-4 text-on-ghost-muted text-base">
           {{ t('admin.schedule.changes.replaces_prefix') }}
-          <strong>{{ getDisplayName(selectedLesson) }}</strong> ({{ t('admin.schedule.changes.lesson_label') }}
-          {{ selectedLesson.slot }}, {{ t('admin.schedule.changes.last_lesson_label') }}
-          {{ selectedLesson.slot + selectedLesson.duration - 1 }}, {{ t('admin.schedule.changes.room_label') }}
-          {{ selectedLesson.room || '-' }}, {{ t('admin.schedule.changes.day_label') }} {{ selectedLesson.day }})
+          <strong>{{ getDisplayName(selectedLesson) }}</strong> ({{
+            t('admin.schedule.changes.lesson_label')
+          }}
+          {{ selectedLesson.slot }},
+          {{ t('admin.schedule.changes.last_lesson_label') }}
+          {{ selectedLesson.slot + selectedLesson.duration - 1 }},
+          {{ t('admin.schedule.changes.room_label') }}
+          {{ selectedLesson.room || '-' }},
+          {{ t('admin.schedule.changes.day_label') }} {{ selectedLesson.day }})
         </p>
 
         <div class="grid grid-cols-2 gap-3 mb-4 sm:grid-cols-1">
           <input type="hidden" v-model="subForm.lessonId" />
           <div class="form-field">
-            <BaseLabel for="sub-subject">{{ t('admin.schedule.changes.new_subject_label') }}</BaseLabel>
+            <BaseLabel for="sub-subject">{{
+              t('admin.schedule.changes.new_subject_label')
+            }}</BaseLabel>
             <BaseInput
               id="sub-subject"
               v-model="subForm.subject"
@@ -341,7 +362,9 @@ function handleSaveSub() {
             />
           </div>
           <div class="form-field">
-            <BaseLabel for="sub-room">{{ t('admin.schedule.changes.new_room_label') }}</BaseLabel>
+            <BaseLabel for="sub-room">{{
+              t('admin.schedule.changes.new_room_label')
+            }}</BaseLabel>
             <BaseInput
               id="sub-room"
               v-model="subForm.room"
@@ -350,7 +373,9 @@ function handleSaveSub() {
             />
           </div>
           <div class="form-field">
-            <BaseLabel for="sub-slot">{{ t('admin.schedule.changes.new_slot_label') }}</BaseLabel>
+            <BaseLabel for="sub-slot">{{
+              t('admin.schedule.changes.new_slot_label')
+            }}</BaseLabel>
             <BaseInput
               id="sub-slot"
               v-model.number="subForm.slot"
@@ -360,7 +385,9 @@ function handleSaveSub() {
             />
           </div>
           <div class="form-field">
-            <BaseLabel for="sub-duration">{{ t('admin.schedule.changes.new_duration_label') }}</BaseLabel>
+            <BaseLabel for="sub-duration">{{
+              t('admin.schedule.changes.new_duration_label')
+            }}</BaseLabel>
             <BaseInput
               id="sub-duration"
               v-model.number="subForm.duration"
@@ -371,7 +398,9 @@ function handleSaveSub() {
             />
           </div>
           <div class="form-field">
-            <BaseLabel for="sub-day">{{ t('admin.schedule.changes.new_day_label') }}</BaseLabel>
+            <BaseLabel for="sub-day">{{
+              t('admin.schedule.changes.new_day_label')
+            }}</BaseLabel>
             <BaseInput
               id="sub-day"
               v-model.number="subForm.day"
@@ -385,24 +414,36 @@ function handleSaveSub() {
         </div>
 
         <div class="flex gap-6 mt-4 mb-6">
-          <BaseCheckbox v-model="subForm.cancelled" :disabled="!canManageScheduleChanges">
+          <BaseCheckbox
+            v-model="subForm.cancelled"
+            :disabled="!canManageScheduleChanges"
+          >
             <span>{{ t('admin.schedule.changes.cancelled_label') }}</span>
           </BaseCheckbox>
-          <BaseCheckbox v-model="subForm.hide" :disabled="!canManageScheduleChanges">
+          <BaseCheckbox
+            v-model="subForm.hide"
+            :disabled="!canManageScheduleChanges"
+          >
             <span>{{ t('admin.schedule.changes.hide_label') }}</span>
           </BaseCheckbox>
         </div>
 
         <BaseButton
           @click="handleSaveSub"
-          :disabled="savingSub || !subForm.lessonId || !canManageScheduleChanges"
+          :disabled="
+            savingSub || !subForm.lessonId || !canManageScheduleChanges
+          "
           variant="action"
         >
-          {{ savingSub ? t('common.buttons.saving') : t('common.buttons.save') }}
+          {{
+            savingSub ? t('common.buttons.saving') : t('common.buttons.save')
+          }}
         </BaseButton>
       </div>
 
-      <h3 class="p-5 pb-0 text-lg">{{ t('admin.schedule.changes.select_lesson_slot') }}</h3>
+      <h3 class="p-5 pb-0 text-lg">
+        {{ t('admin.schedule.changes.select_lesson_slot') }}
+      </h3>
       <div
         v-if="loadingLessons"
         class="text-center p-8 text-on-ghost-muted text-base"

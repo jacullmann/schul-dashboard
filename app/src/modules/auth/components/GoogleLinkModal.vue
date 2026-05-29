@@ -67,7 +67,9 @@ function cancel() {
       </p>
 
       <BaseFormGroup id="link-password">
-        <BaseLabel for="link-password">{{ t('auth.login.password') }}</BaseLabel>
+        <BaseLabel for="link-password">{{
+          t('auth.login.password')
+        }}</BaseLabel>
         <BaseInput
           id="link-password"
           type="password"
@@ -80,6 +82,8 @@ function cancel() {
       </BaseFormGroup>
     </template>
 
-    <template #action-text> {{ t('auth.connected_accounts.actions.link') }} </template>
+    <template #action-text>
+      {{ t('auth.connected_accounts.actions.link') }}
+    </template>
   </BaseModal>
 </template>

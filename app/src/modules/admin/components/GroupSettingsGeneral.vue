@@ -113,9 +113,11 @@ async function onCropConfirmed(blob: Blob) {
       },
     );
 
-    if (!res.ok) throw new Error(t('admin.general.avatar.errors.upload_failed'));
+    if (!res.ok)
+      throw new Error(t('admin.general.avatar.errors.upload_failed'));
     const json = await res.json();
-    if (!json.secure_url) throw new Error(t('admin.general.avatar.errors.invalid_response'));
+    if (!json.secure_url)
+      throw new Error(t('admin.general.avatar.errors.invalid_response'));
 
     await saveGroupAvatar(json.secure_url);
   } catch (err: any) {
@@ -129,8 +131,7 @@ async function onCropConfirmed(blob: Blob) {
 async function deleteAvatar() {
   const isConfirmed = await modalStore.confirm({
     title: t('admin.general.avatar.delete_modal.title'),
-    content:
-      t('admin.general.avatar.delete_modal.message'),
+    content: t('admin.general.avatar.delete_modal.message'),
     submitText: t('common.buttons.delete'),
     danger: true,
   });
@@ -142,7 +143,8 @@ async function deleteAvatar() {
   try {
     await saveGroupAvatar(null);
   } catch (err: any) {
-    avatarError.value = err.message || t('admin.general.avatar.errors.delete_failed');
+    avatarError.value =
+      err.message || t('admin.general.avatar.errors.delete_failed');
   } finally {
     savingAvatar.value = false;
   }
@@ -183,8 +185,7 @@ async function confirmDeleteGroup() {
 
   const isConfirmed = await modalStore.confirm({
     title: t('admin.general.delete_group.modal.title'),
-    content:
-      t('admin.general.delete_group.modal.message'),
+    content: t('admin.general.delete_group.modal.message'),
     submitText: t('common.buttons.delete'),
     danger: true,
   });
@@ -204,7 +205,10 @@ async function confirmDeleteGroup() {
 
 <template>
   <div class="animate-fade-up flex flex-col gap-8">
-    <div v-if="!canEditSettings" class="text-center text-base text-on-ghost-muted">
+    <div
+      v-if="!canEditSettings"
+      class="text-center text-base text-on-ghost-muted"
+    >
       <p class="m-0">{{ t('admin.general.errors.unauthorized') }}</p>
     </div>
 
@@ -274,7 +278,9 @@ async function confirmDeleteGroup() {
         </div>
 
         <div class="flex-1 w-full flex flex-col">
-          <BaseLabel for="group-name">{{ t('admin.general.appearance.name_label') }}</BaseLabel>
+          <BaseLabel for="group-name">{{
+            t('admin.general.appearance.name_label')
+          }}</BaseLabel>
           <div v-if="!editingGroupName" class="flex items-center gap-2 h-6">
             <span class="font-semibold text-xl">{{ groupName }}</span>
             <BaseTooltip :content="t('common.buttons.edit')">
@@ -318,7 +324,9 @@ async function confirmDeleteGroup() {
                   variant="action"
                 >
                   {{
-                    savingGroupName ? t('common.buttons.saving') : t('common.buttons.save')
+                    savingGroupName
+                      ? t('common.buttons.saving')
+                      : t('common.buttons.save')
                   }}
                 </BaseButton>
               </BaseRow>
@@ -377,7 +385,9 @@ async function confirmDeleteGroup() {
       >
         <template #content>
           <BaseFormGroup id="old-password">
-            <BaseLabel for="old-password">{{ t('admin.general.password.current_label') }}</BaseLabel>
+            <BaseLabel for="old-password">{{
+              t('admin.general.password.current_label')
+            }}</BaseLabel>
             <BaseInput
               id="old-password"
               type="password"
@@ -387,7 +397,9 @@ async function confirmDeleteGroup() {
           </BaseFormGroup>
 
           <BaseFormGroup id="new-password">
-            <BaseLabel for="new-password">{{ t('admin.general.password.new_label') }}</BaseLabel>
+            <BaseLabel for="new-password">{{
+              t('admin.general.password.new_label')
+            }}</BaseLabel>
             <BaseInput
               id="new-password"
               type="password"
@@ -397,9 +409,9 @@ async function confirmDeleteGroup() {
           </BaseFormGroup>
 
           <BaseFormGroup id="new-password-confirm">
-            <BaseLabel for="new-password-confirm"
-              >{{ t('admin.general.password.confirm_label') }}</BaseLabel
-            >
+            <BaseLabel for="new-password-confirm">{{
+              t('admin.general.password.confirm_label')
+            }}</BaseLabel>
             <BaseInput
               id="new-password-confirm"
               type="password"
@@ -409,12 +421,16 @@ async function confirmDeleteGroup() {
           </BaseFormGroup>
         </template>
 
-        <template #action-text> {{ t('admin.general.password.title') }} </template>
+        <template #action-text>
+          {{ t('admin.general.password.title') }}
+        </template>
       </BaseForm>
     </div>
 
     <div v-if="isOwner">
-      <h3 class="text-danger">{{ t('admin.general.delete_group.danger_zone_title') }}</h3>
+      <h3 class="text-danger">
+        {{ t('admin.general.delete_group.danger_zone_title') }}
+      </h3>
       <p class="text-base/relaxed text-on-ghost-muted m-0 mb-5">
         Das Löschen der Gruppe ist endgültig und kann nicht rückgängig gemacht
         werden. Alle damit verbundenen Daten (Aufgaben, Klausuren, Ankündigungen
@@ -444,7 +460,9 @@ async function confirmDeleteGroup() {
           </BaseFormGroup>
         </template>
 
-        <template #action-text> {{ t('admin.general.delete_group.submit_button') }} </template>
+        <template #action-text>
+          {{ t('admin.general.delete_group.submit_button') }}
+        </template>
       </BaseForm>
     </div>
   </div>

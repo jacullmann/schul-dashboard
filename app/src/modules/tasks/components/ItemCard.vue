@@ -129,13 +129,17 @@ function onDrop(e: DragEvent) {
   dragCounter = 0;
   isDragOver.value = false;
   if (e.dataTransfer?.files.length) {
-    const files = Array.from(e.dataTransfer.files).filter((f) =>
-      f.type.startsWith('image/') ||
-      f.type === 'application/pdf' ||
-      f.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-      f.type === 'application/vnd.openxmlformats-officedocument.presentationml.presentation' ||
-      f.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
-      /\.(docx|pptx|xlsx)$/i.test(f.name)
+    const files = Array.from(e.dataTransfer.files).filter(
+      (f) =>
+        f.type.startsWith('image/') ||
+        f.type === 'application/pdf' ||
+        f.type ===
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+        f.type ===
+          'application/vnd.openxmlformats-officedocument.presentationml.presentation' ||
+        f.type ===
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+        /\.(docx|pptx|xlsx)$/i.test(f.name),
     );
     if (files.length > 0) {
       emit('files-dropped', files);
@@ -226,10 +230,7 @@ function onDrop(e: DragEvent) {
             @after-enter="onAfterEnter"
             @leave="onLeave"
           >
-            <div
-              v-show="!isCollapsed"
-              class="overflow-hidden"
-            >
+            <div v-show="!isCollapsed" class="overflow-hidden">
               <BaseRow class="mt-1">
                 <slot name="badges"></slot>
               </BaseRow>

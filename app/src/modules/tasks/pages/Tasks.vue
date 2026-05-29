@@ -28,6 +28,7 @@ import ItemInfoModal from '@/modules/tasks/components/ItemInfoModal.vue';
 import { useI18n } from 'vue-i18n';
 import { useWindowSize } from '@vueuse/core';
 import { computed, ref, watch, onMounted } from 'vue';
+import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/vue';
 import type { HwItem } from '@/modules/tasks/composables/useTasks';
 
 const showInfoItem = ref<HwItem | null>(null);
@@ -159,6 +160,75 @@ const {
   getTypeLabel,
   resetFilters,
 } = useTasks();
+
+const isMobile = computed(() => windowWidth.value < 768);
+
+const menuCoords = ref<{ x: number; y: number } | null>(null);
+const menuRef = ref<HTMLElement | null>(null);
+
+const menuVirtualElement = computed(() => {
+  if (!menuCoords.value) return null;
+  const { x, y } = menuCoords.value;
+  return {
+    getBoundingClientRect() {
+      return {
+        width: 0,
+        height: 0,
+        x,
+        y,
+        top: y,
+        left: x,
+        right: x,
+        bottom: y,
+      };
+    },
+  };
+});
+
+const { floatingStyles, isPositioned } = useFloating(
+  menuVirtualElement,
+  menuRef,
+  {
+    strategy: 'fixed',
+    placement: 'bottom-start',
+    whileElementsMounted: autoUpdate,
+    transform: false,
+    middleware: [
+      offset(4),
+      flip({
+        fallbackPlacements: ['bottom-end', 'top-start', 'top-end'],
+      }),
+      shift({ padding: 8 }),
+    ],
+  },
+);
+
+const itemMenuStyles = computed(() => ({
+  ...floatingStyles.value,
+  opacity: isPositioned.value ? undefined : 0,
+}));
+
+function handleCardMenuClick(item: HwItem, event: MouseEvent) {
+  if (openMenuId.value === item.id) {
+    openMenuId.value = null;
+    menuCoords.value = null;
+  } else {
+    menuCoords.value = { x: event.clientX, y: event.clientY };
+    openMenuId.value = item.id;
+  }
+}
+
+function handleCardContextMenu(item: HwItem, event: MouseEvent) {
+  menuCoords.value = { x: event.clientX, y: event.clientY };
+  openMenuId.value = item.id;
+}
+
+watch(openMenuId, (newVal) => {
+  if (newVal === null) {
+    menuCoords.value = null;
+    menuRef.value = null;
+  }
+});
 
 const { openItemForm } = useItemForm();
 const { openImageViewer } = useImageViewer();
@@ -294,8 +364,8 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
         :swipe-action="showOldEntries ? 'keep' : 'archive'"
         @swiped="handleSwipe(item)"
         @dblclick="handleItemDoubleClick(item, $event)"
-        @contextmenu.prevent.stop="openMenuId = item.id"
-        @menu-click="toggleMenu(item.id)"
+        @contextmenu.prevent.stop="handleCardContextMenu(item, $event)"
+        @menu-click="handleCardMenuClick(item, $event)"
         @files-dropped="(files: File[]) => triggerImageDrop(item, files)"
       >
         <template #checkbox>
@@ -347,95 +417,103 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
         </template>
 
         <template #menu>
-          <BaseMenu
-            :open="openMenuId === item.id"
-            @close="openMenuId = null"
-            class="right-0 mt-8 z-[10000]!"
-            @click.stop
-          >
-            <BaseMenuButton
-              @click="onMenuAction('images', item)"
-              :icon="Upload"
-            >
-              {{ t('tasks.list.items.menu.upload_images') }}
-            </BaseMenuButton>
-
-            <BaseMenuButton
-              v-if="canEdit(item.createdBy)"
-              @click="onMenuAction('edit', item)"
-              :icon="Pencil"
-            >
-              {{ t('common.buttons.edit') }}
-            </BaseMenuButton>
-
-            <BaseMenuButton
-              v-if="canEditNote() && !item.editorNote"
-              @click="onMenuAction('addNote', item)"
-              :icon="MessageSquarePlus"
-            >
-              {{ t('tasks.list.items.menu.add_note') }}
-            </BaseMenuButton>
-
-            <BaseMenuDivider />
-
-            <BaseMenuButton
-              @click="onMenuAction('pin', item)"
-              :icon="Pin"
-              :iconClasses="isPinned(item.id) ? 'fill-current' : ''"
-            >
-              {{
-                isPinned(item.id)
-                  ? t('tasks.list.items.menu.unpin')
-                  : t('tasks.list.items.menu.pin')
-              }}
-            </BaseMenuButton>
-
-            <BaseMenuButton
-              @click="onMenuAction('archive', item)"
-              :icon="showOldEntries ? ArchiveRestore : Archive"
-            >
-              {{
-                showOldEntries
-                  ? t('tasks.list.items.menu.unarchive')
-                  : t('tasks.list.items.menu.archive')
-              }}
-            </BaseMenuButton>
-
-            <BaseMenuDivider />
-
-            <BaseMenuButton @click="onMenuAction('share', item)" :icon="Send">
-              {{ t('tasks.list.items.menu.share') }}
-            </BaseMenuButton>
-
-            <BaseMenuButton
-              @click="
-                openMenuId = null;
-                showInfoItem = item;
+          <Teleport to="body" :disabled="isMobile">
+            <BaseMenu
+              :open="openMenuId === item.id"
+              @close="openMenuId = null"
+              :ref="
+                (el: any) => {
+                  if (el && openMenuId === item.id) menuRef = el.menuEl;
+                }
               "
-              :icon="Info"
+              :class="!isMobile ? 'fixed! z-[10000]! min-w-[180px]' : ''"
+              :style="!isMobile ? itemMenuStyles : undefined"
+              @click.stop
             >
-              {{ t('tasks.list.items.menu.info') }}
-            </BaseMenuButton>
+              <BaseMenuButton
+                @click="onMenuAction('images', item)"
+                :icon="Upload"
+              >
+                {{ t('tasks.list.items.menu.upload_images') }}
+              </BaseMenuButton>
 
-            <BaseMenuDivider />
+              <BaseMenuButton
+                v-if="canEdit(item.createdBy)"
+                @click="onMenuAction('edit', item)"
+                :icon="Pencil"
+              >
+                {{ t('common.buttons.edit') }}
+              </BaseMenuButton>
 
-            <BaseMenuButton
-              title="Melden"
-              @click="onMenuAction('report', item)"
-              :icon="Flag"
-            >
-              {{ t('tasks.list.items.menu.report.name') }}
-            </BaseMenuButton>
+              <BaseMenuButton
+                v-if="canEditNote() && !item.editorNote"
+                @click="onMenuAction('addNote', item)"
+                :icon="MessageSquarePlus"
+              >
+                {{ t('tasks.list.items.menu.add_note') }}
+              </BaseMenuButton>
 
-            <BaseMenuButton
-              variant="danger"
-              v-if="canDelete(item.createdBy)"
-              @click="onMenuAction('delete', item)"
-              :icon="Trash2"
-            >
-              {{ t('common.buttons.delete') }}
-            </BaseMenuButton>
-          </BaseMenu>
+              <BaseMenuDivider />
+
+              <BaseMenuButton
+                @click="onMenuAction('pin', item)"
+                :icon="Pin"
+                :iconClasses="isPinned(item.id) ? 'fill-current' : ''"
+              >
+                {{
+                  isPinned(item.id)
+                    ? t('tasks.list.items.menu.unpin')
+                    : t('tasks.list.items.menu.pin')
+                }}
+              </BaseMenuButton>
+
+              <BaseMenuButton
+                @click="onMenuAction('archive', item)"
+                :icon="showOldEntries ? ArchiveRestore : Archive"
+              >
+                {{
+                  showOldEntries
+                    ? t('tasks.list.items.menu.unarchive')
+                    : t('tasks.list.items.menu.archive')
+                }}
+              </BaseMenuButton>
+
+              <BaseMenuDivider />
+
+              <BaseMenuButton @click="onMenuAction('share', item)" :icon="Send">
+                {{ t('tasks.list.items.menu.share') }}
+              </BaseMenuButton>
+
+              <BaseMenuButton
+                @click="
+                  openMenuId = null;
+                  showInfoItem = item;
+                "
+                :icon="Info"
+              >
+                {{ t('tasks.list.items.menu.info') }}
+              </BaseMenuButton>
+
+              <BaseMenuDivider />
+
+              <BaseMenuButton
+                title="Melden"
+                @click="onMenuAction('report', item)"
+                :icon="Flag"
+              >
+                {{ t('tasks.list.items.menu.report.name') }}
+              </BaseMenuButton>
+
+              <BaseMenuButton
+                variant="danger"
+                v-if="canDelete(item.createdBy)"
+                @click="onMenuAction('delete', item)"
+                :icon="Trash2"
+              >
+                {{ t('common.buttons.delete') }}
+              </BaseMenuButton>
+            </BaseMenu>
+          </Teleport>
         </template>
 
         <template #body v-if="item.description.length">

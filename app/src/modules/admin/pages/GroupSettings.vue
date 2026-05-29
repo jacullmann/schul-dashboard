@@ -170,15 +170,22 @@ function goBack() {
   <div class="phone-settings-container">
     <Transition :name="transitionName">
       <div v-if="!activeTab" class="settings-pane master-pane" key="master">
-        <header class="p-4 pt-6 md:pt-8 md:px-6 md:pb-5 bg-canvas border-b border-canvas-border shrink-0">
+        <header
+          class="p-4 pt-6 md:pt-8 md:px-6 md:pb-5 bg-canvas border-b border-canvas-border shrink-0"
+        >
           <div class="w-full max-w-200 mx-auto">
             <h1>Gruppen Verwaltung</h1>
-            <div v-if="groupName" class="text-on-ghost-muted font-semibold text-base">{{ groupName }}</div>
+            <div
+              v-if="groupName"
+              class="text-on-ghost-muted font-semibold text-base"
+            >
+              {{ groupName }}
+            </div>
           </div>
         </header>
 
         <div class="p-0 md:p-4">
-          <div class="flex flex-col max-w-200 mx-auto ">
+          <div class="flex flex-col max-w-200 mx-auto">
             <BaseList
               v-for="(item, index) in navItems"
               :key="item.id"
@@ -212,7 +219,9 @@ function goBack() {
       </div>
 
       <div v-else class="settings-pane detail-pane" :key="activeTab">
-        <header class="flex items-center py-4 md:py-6 h-16 bg-canvas border-b border-canvas-border shrink-0">
+        <header
+          class="flex items-center py-4 md:py-6 h-16 bg-canvas border-b border-canvas-border shrink-0"
+        >
           <div
             class="header-left max-w-250 my-0 mx-auto flex items-center w-full gap-2"
           >

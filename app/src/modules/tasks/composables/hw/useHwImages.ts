@@ -38,9 +38,9 @@ export function useHwImages(ctx: HwContext, imageUpload: any) {
   }
 
   function handleImageContextMenu(
-      event: MouseEvent,
-      item: HwItem,
-      img: ImageItem,
+    event: MouseEvent,
+    item: HwItem,
+    img: ImageItem,
   ) {
     openImageMenu(event, item, img);
   }

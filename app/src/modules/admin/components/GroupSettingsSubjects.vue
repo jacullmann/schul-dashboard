@@ -24,7 +24,9 @@ const {
 } = useSubjectAdmin();
 
 const { checkPermission } = useAppAuth();
-const canEditSubjects = computed(() => checkPermission('edit_subjects_courses'));
+const canEditSubjects = computed(() =>
+  checkPermission('edit_subjects_courses'),
+);
 
 const newSubjectName = ref('');
 
@@ -143,7 +145,10 @@ onMounted(() => {
               :model-value="subject.isActive"
               @change="handleToggleActive(subject, $event)"
             />
-            <BaseTooltip :content="t('admin.subjects.rename')" placement="bottom">
+            <BaseTooltip
+              :content="t('admin.subjects.rename')"
+              placement="bottom"
+            >
               <BaseButton
                 variant="ghost"
                 size="sm"
@@ -152,7 +157,10 @@ onMounted(() => {
                 g
               />
             </BaseTooltip>
-            <BaseTooltip :content="t('common.buttons.delete')" placement="bottom">
+            <BaseTooltip
+              :content="t('common.buttons.delete')"
+              placement="bottom"
+            >
               <BaseButton
                 variant="ghost"
                 size="sm"

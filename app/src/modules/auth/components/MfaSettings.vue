@@ -330,7 +330,9 @@ onUnmounted(() => {
           v-if="expiresAt"
         >
           <Clock :size="16" />
-          <span>{{ t('auth.mfa.setup.time_valid', { time: remainingTime }) }}</span>
+          <span>{{
+            t('auth.mfa.setup.time_valid', { time: remainingTime })
+          }}</span>
         </div>
 
         <div class="flex justify-end gap-3 mt-2">

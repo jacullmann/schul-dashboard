@@ -73,8 +73,8 @@ const handleDrop = async (e: DragEvent) => {
   const files = e.dataTransfer?.files;
   if (!files || files.length === 0) return;
 
-  const validFiles = Array.from(files).filter((f) =>
-    f.type.startsWith('image/') || f.type === 'application/pdf',
+  const validFiles = Array.from(files).filter(
+    (f) => f.type.startsWith('image/') || f.type === 'application/pdf',
   );
   if (validFiles.length === 0) return;
 
@@ -485,7 +485,8 @@ onMounted(() => {
           >
             <BaseButton
               type="button"
-              @click="uploadImage(!!initial, initial?.id)" :disabled="imgUploading"
+              @click="uploadImage(!!initial, initial?.id)"
+              :disabled="imgUploading"
               variant="ghost"
               :loading="imgUploading"
               :icon="Upload"

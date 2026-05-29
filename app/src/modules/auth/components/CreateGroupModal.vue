@@ -100,7 +100,9 @@ async function submit() {
       </BaseFormGroup>
 
       <BaseFormGroup id="group-password">
-        <BaseLabel for="group-password">{{ t('auth.login.password') }}</BaseLabel>
+        <BaseLabel for="group-password">{{
+          t('auth.login.password')
+        }}</BaseLabel>
         <BaseInput
           id="group-password"
           type="password"
@@ -112,7 +114,9 @@ async function submit() {
       </BaseFormGroup>
 
       <BaseFormGroup id="group-confirm">
-        <BaseLabel for="group-confirm">{{ t('auth.login.confirm_password') }}</BaseLabel>
+        <BaseLabel for="group-confirm">{{
+          t('auth.login.confirm_password')
+        }}</BaseLabel>
         <BaseInput
           id="group-confirm"
           type="password"

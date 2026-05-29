@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { Plus, Brush } from '@lucide/vue';
-import { onClickOutside, useEventListener } from '@vueuse/core';
+import { onClickOutside, useEventListener, useWindowSize } from '@vueuse/core';
 import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/vue';
+
+const { width: windowWidth } = useWindowSize();
+const isMobile = computed(() => windowWidth.value < 768);
 
 const isOpen = ref(false);
 const triggerRef = ref<HTMLElement | null>(null);
@@ -55,12 +58,12 @@ useEventListener(document, 'keydown', (e) => {
       />
     </BaseTooltip>
 
-    <Teleport to="body">
+    <Teleport to="body" :disabled="isMobile">
       <BaseMenu
         :open="isOpen"
         @close="close"
         ref="menuComponentRef"
-        :style="menuStyles"
+        :style="!isMobile ? menuStyles : undefined"
         class="min-w-56!"
       >
         <BaseMenuButton :icon="Brush" @click="(drawImage, close())">

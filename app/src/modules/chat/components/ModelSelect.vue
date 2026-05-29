@@ -1,9 +1,16 @@
 <script setup lang="ts">
 import { ref, nextTick, computed } from 'vue';
-import { onClickOutside, useElementBounding } from '@vueuse/core';
+import {
+  onClickOutside,
+  useElementBounding,
+  useWindowSize,
+} from '@vueuse/core';
 import { ChevronDown } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/vue';
+
+const { width: windowWidth } = useWindowSize();
+const isMobile = computed(() => windowWidth.value < 768);
 
 const { t } = useI18n();
 
@@ -123,12 +130,12 @@ onClickOutside(
       </span>
     </BaseButton>
 
-    <Teleport to="body">
+    <Teleport to="body" :disabled="isMobile">
       <BaseMenu
         :open="isOpen"
         @close="isOpen = false"
         ref="floatingComponentRef"
-        :style="selectStyles"
+        :style="!isMobile ? selectStyles : undefined"
         class="max-h-80 z-[9999] min-w-68!"
       >
         <BaseMenuButton

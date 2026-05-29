@@ -17,6 +17,7 @@ const menuComponentRef = ref<any>(null);
 const menuRef = computed(() => menuComponentRef.value?.menuEl || null);
 
 const { width: windowWidth } = useWindowSize();
+const isMobile = computed(() => windowWidth.value < 768);
 
 const { floatingStyles, isPositioned } = useFloating(triggerRef, menuRef, {
   strategy: 'fixed',
@@ -75,12 +76,12 @@ useEventListener(document, 'keydown', (e) => {
       />
     </BaseTooltip>
 
-    <Teleport to="body">
+    <Teleport to="body" :disabled="isMobile">
       <BaseMenu
         :open="isOpen"
         @close="close"
         ref="menuComponentRef"
-        :style="menuStyles"
+        :style="!isMobile ? menuStyles : undefined"
         class="min-w-56!"
       >
         <BaseMenuButton

@@ -14,7 +14,9 @@ import { usePrivateTasks } from '@/modules/tasks/composables/usePrivateTasks';
 import { VueDraggableNext as draggable } from 'vue-draggable-next';
 import ItemCard from '@/modules/tasks/components/ItemCard.vue';
 import { usePrivateTaskForm } from '@/core/composables/usePrivateTaskForm';
-import { onUnmounted } from 'vue';
+import { computed, ref, onUnmounted } from 'vue';
+import { useWindowSize } from '@vueuse/core';
+import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/vue';
 import BaseSkeleton from '@/common/components/BaseSkeleton.vue';
 
 const { t } = useI18n();
@@ -36,6 +38,76 @@ const {
   deletePrivateTask,
   reorderPrivateTask,
 } = usePrivateTasks();
+
+const { width: windowWidth } = useWindowSize();
+const isMobile = computed(() => windowWidth.value < 768);
+
+const menuCoords = ref<{ x: number; y: number } | null>(null);
+const menuRef = ref<HTMLElement | null>(null);
+
+const menuVirtualElement = computed(() => {
+  if (!menuCoords.value) return null;
+  const { x, y } = menuCoords.value;
+  return {
+    getBoundingClientRect() {
+      return {
+        width: 0,
+        height: 0,
+        x,
+        y,
+        top: y,
+        left: x,
+        right: x,
+        bottom: y,
+      };
+    },
+  };
+});
+
+const { floatingStyles, isPositioned } = useFloating(
+  menuVirtualElement,
+  menuRef,
+  {
+    strategy: 'fixed',
+    placement: 'bottom-start',
+    whileElementsMounted: autoUpdate,
+    transform: false,
+    middleware: [
+      offset(4),
+      flip({
+        fallbackPlacements: ['bottom-end', 'top-start', 'top-end'],
+      }),
+      shift({ padding: 8 }),
+    ],
+  },
+);
+
+const itemMenuStyles = computed(() => ({
+  ...floatingStyles.value,
+  opacity: isPositioned.value ? undefined : 0,
+}));
+
+function handleCardMenuClick(privateTask: PrivateTask, event: MouseEvent) {
+  if (openMenuId.value === privateTask.id) {
+    openMenuId.value = null;
+    menuCoords.value = null;
+  } else {
+    menuCoords.value = { x: event.clientX, y: event.clientY };
+    openMenuId.value = privateTask.id;
+  }
+}
+
+function handleCardContextMenu(privateTask: PrivateTask, event: MouseEvent) {
+  menuCoords.value = { x: event.clientX, y: event.clientY };
+  openMenuId.value = privateTask.id;
+}
+
+watch(openMenuId, (newVal) => {
+  if (newVal === null) {
+    menuCoords.value = null;
+    menuRef.value = null;
+  }
+});
 
 onUnmounted(
   onFormSuccess((task: PrivateTask) => {
@@ -201,8 +273,10 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
             :is-collapsed="privateTask.completed"
             :title="privateTask.title"
             @dblclick="user ? togglePrivateTaskCompletion(privateTask) : null"
-            @contextmenu.prevent.stop="toggleMenu(privateTask.id)"
-            @menu-click="toggleMenu(privateTask.id)"
+            @contextmenu.prevent.stop="
+              handleCardContextMenu(privateTask, $event)
+            "
+            @menu-click="handleCardMenuClick(privateTask, $event)"
           >
             <template #checkbox>
               <BaseCheckbox
@@ -212,71 +286,80 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
             </template>
 
             <template #menu>
-              <BaseMenu
-                :open="openMenuId === privateTask.id"
-                @close="openMenuId = null"
-                class="right-0 86 z-[10000]!"
-                @click.stop
-              >
-                <BaseMenuButton
-                  :icon="Pencil"
-                  @click="
-                    openEditPrivateTaskForm(privateTask);
-                    openMenuId = null;
+              <Teleport to="body" :disabled="isMobile">
+                <BaseMenu
+                  :open="openMenuId === privateTask.id"
+                  @close="openMenuId = null"
+                  :ref="
+                    (el: any) => {
+                      if (el && openMenuId === privateTask.id)
+                        menuRef = el.menuEl;
+                    }
                   "
+                  :class="!isMobile ? 'fixed! z-[10000]! min-w-[180px]' : ''"
+                  :style="!isMobile ? itemMenuStyles : undefined"
+                  @click.stop
                 >
-                  {{ t('common.buttons.edit') }}
-                </BaseMenuButton>
+                  <BaseMenuButton
+                    :icon="Pencil"
+                    @click="
+                      openEditPrivateTaskForm(privateTask);
+                      openMenuId = null;
+                    "
+                  >
+                    {{ t('common.buttons.edit') }}
+                  </BaseMenuButton>
 
-                <BaseMenuButton
-                  :icon="Copy"
-                  @click="
-                    duplicatePrivateTask(privateTask);
-                    openMenuId = null;
-                  "
-                >
-                  {{ t('common.buttons.duplicate') }}
-                </BaseMenuButton>
+                  <BaseMenuButton
+                    :icon="Copy"
+                    @click="
+                      duplicatePrivateTask(privateTask);
+                      openMenuId = null;
+                    "
+                  >
+                    {{ t('common.buttons.duplicate') }}
+                  </BaseMenuButton>
 
-                <BaseMenuDivider />
+                  <BaseMenuDivider />
 
-                <BaseMenuButton
-                  v-if="index > 0"
-                  :icon="ChevronUp"
-                  @click="
-                    moveItemUp(index);
-                    openMenuId = null;
-                  "
-                >
-                  {{ t('tasks.private_tasks.menu.up') }}
-                </BaseMenuButton>
+                  <BaseMenuButton
+                    v-if="index > 0"
+                    :icon="ChevronUp"
+                    @click="
+                      moveItemUp(index);
+                      openMenuId = null;
+                    "
+                  >
+                    {{ t('tasks.private_tasks.menu.up') }}
+                  </BaseMenuButton>
 
-                <BaseMenuButton
-                  v-if="index < displayPrivateTasks.length - 1"
-                  :icon="ChevronDown"
-                  @click="
-                    moveItemDown(index);
-                    openMenuId = null;
-                  "
-                >
-                  {{ t('tasks.private_tasks.menu.down') }}
-                </BaseMenuButton>
+                  <BaseMenuButton
+                    v-if="index < displayPrivateTasks.length - 1"
+                    :icon="ChevronDown"
+                    @click="
+                      moveItemDown(index);
+                      openMenuId = null;
+                    "
+                  >
+                    {{ t('tasks.private_tasks.menu.down') }}
+                  </BaseMenuButton>
 
-                <BaseMenuDivider
-                  v-if="index > 0 || index < displayPrivateTasks.length - 1"
-                />
+                  <BaseMenuDivider
+                    v-if="index > 0 || index < displayPrivateTasks.length - 1"
+                  />
 
-                <BaseMenuButton
-                  :icon="Trash2"
-                  variant="danger"
-                  @click="
-                    deletePrivateTask(privateTask.id);
-                    openMenuId = null;
-                  "
-                >
-                  {{ t('common.buttons.delete') }}
-                </BaseMenuButton>
-              </BaseMenu>
+                  <BaseMenuButton
+                    :icon="Trash2"
+                    variant="danger"
+                    @click="
+                      deletePrivateTask(privateTask.id);
+                      openMenuId = null;
+                    "
+                  >
+                    {{ t('common.buttons.delete') }}
+                  </BaseMenuButton>
+                </BaseMenu>
+              </Teleport>
             </template>
 
             <template #body v-if="privateTask.description">

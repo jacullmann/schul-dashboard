@@ -179,7 +179,9 @@ onMounted(() => {
       <div v-if="showSettings" class="rr-settings-panel">
         <div class="rr-setting-row">
           <div class="rr-setting-info">
-            <span class="rr-setting-label">{{ t('games.roulette.settings.chamber_size_label') }}</span>
+            <span class="rr-setting-label">{{
+              t('games.roulette.settings.chamber_size_label')
+            }}</span>
             <span class="rr-setting-desc"
               >Kammern in der Trommel (Max: 12)</span
             >
@@ -198,7 +200,9 @@ onMounted(() => {
         <div class="rr-setting-row">
           <div class="rr-setting-info">
             <span class="rr-setting-label">Patronen</span>
-            <span class="rr-setting-desc">{{ t('games.roulette.settings.bullet_count_label') }}</span>
+            <span class="rr-setting-desc">{{
+              t('games.roulette.settings.bullet_count_label')
+            }}</span>
           </div>
           <div class="rr-control">
             <button @click="adjustSetting('bullet', -1)" class="rr-ctrl-btn">
@@ -247,7 +251,8 @@ onMounted(() => {
               color: probabilityPercentage > 50 ? '#ff4444' : '#aaaaaa',
             }"
           >
-            {{ t('games.roulette.stats.mortality_label') }}: {{ Math.round(probabilityPercentage) }}%
+            {{ t('games.roulette.stats.mortality_label') }}:
+            {{ Math.round(probabilityPercentage) }}%
           </div>
           <div class="rr-message">{{ gameStatusText }}</div>
         </div>
@@ -299,7 +304,11 @@ onMounted(() => {
             class="rr-btn-icon"
             :class="{ 'rr-spin': isProcessing && spinAfterShot }"
           />
-          <span>{{ isProcessing ? t('games.roulette.actions.spinning') : t('games.roulette.actions.shoot') }}</span>
+          <span>{{
+            isProcessing
+              ? t('games.roulette.actions.spinning')
+              : t('games.roulette.actions.shoot')
+          }}</span>
         </button>
 
         <button

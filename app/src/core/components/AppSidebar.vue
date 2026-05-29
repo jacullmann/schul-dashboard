@@ -163,7 +163,11 @@ onUnmounted(() => {
     <div class="flex flex-col gap-4 w-full flex-1 min-h-0">
       <div class="hidden md:flex flex flex-col w-full">
         <SidebarButton
-          :label="isExpanded ? t('common.sidebar.collapse') : t('common.sidebar.expand')"
+          :label="
+            isExpanded
+              ? t('common.sidebar.collapse')
+              : t('common.sidebar.expand')
+          "
           :shortcut="['ctrl', 'shift', 'd']"
           :expanded="isExpanded"
           :icon="PanelLeft"
@@ -259,7 +263,9 @@ onUnmounted(() => {
           :icon="Settings"
           :page="true"
           @click="
-            withGroup(() => handleNavigation(`/groups/${activeGroupId}/settings`))
+            withGroup(() =>
+              handleNavigation(`/groups/${activeGroupId}/settings`),
+            )
           "
         />
 

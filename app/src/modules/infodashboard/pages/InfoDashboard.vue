@@ -27,18 +27,33 @@ const {
 
 const topicOptions = computed(() => [
   { value: 'All', label: t('infodashboard.dashboard.all_topics') },
-  { value: 'technology', label: t('infodashboard.dashboard.categories.technology') },
-  { value: 'politics', label: t('infodashboard.dashboard.categories.politics') },
+  {
+    value: 'technology',
+    label: t('infodashboard.dashboard.categories.technology'),
+  },
+  {
+    value: 'politics',
+    label: t('infodashboard.dashboard.categories.politics'),
+  },
   { value: 'science', label: t('infodashboard.dashboard.categories.science') },
   { value: 'culture', label: t('infodashboard.dashboard.categories.culture') },
   { value: 'economy', label: t('infodashboard.dashboard.categories.economy') },
 ]);
 
 const sortOptions = computed(() => [
-  { value: 'relevance', label: t('infodashboard.dashboard.sort_methods.relevance') },
-  { value: 'dateDesc', label: t('infodashboard.dashboard.sort_methods.newest') },
+  {
+    value: 'relevance',
+    label: t('infodashboard.dashboard.sort_methods.relevance'),
+  },
+  {
+    value: 'dateDesc',
+    label: t('infodashboard.dashboard.sort_methods.newest'),
+  },
   { value: 'dateAsc', label: t('infodashboard.dashboard.sort_methods.oldest') },
-  { value: 'readTime', label: t('infodashboard.dashboard.sort_methods.shortest') },
+  {
+    value: 'readTime',
+    label: t('infodashboard.dashboard.sort_methods.shortest'),
+  },
 ]);
 
 const getSliderStyle = (current: number, max: number) => {
@@ -144,7 +159,10 @@ const getSliderStyle = (current: number, max: number) => {
             </div>
             <div class="flex flex-col justify-center">
               <span class="text-base text-on-ghost mb-1.5">{{
-                t('infodashboard.dashboard.categories.' + processedArticles[0]!.topic)
+                t(
+                  'infodashboard.dashboard.categories.' +
+                    processedArticles[0]!.topic,
+                )
               }}</span>
               <h1 class="text-[3rem]/none m-0 font-extrabold font-display">
                 {{ t(processedArticles[0]!.titleKey) }}

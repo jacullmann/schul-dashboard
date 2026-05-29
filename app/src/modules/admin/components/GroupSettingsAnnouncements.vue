@@ -20,7 +20,9 @@ const { t } = useI18n();
 const { openAnnouncementForm, onFormSuccess } = useAnnouncementForm();
 
 const { checkPermission } = useAppAuth();
-const canManageAnnouncements = computed(() => checkPermission('manage_announcements'));
+const canManageAnnouncements = computed(() =>
+  checkPermission('manage_announcements'),
+);
 
 onFormSuccess(() => {
   emit('refresh');
@@ -43,7 +45,12 @@ function formatDate(iso: string) {
       {{ t('announcements.list.title') }}
 
       <template #action>
-        <BaseButton v-if="canManageAnnouncements" variant="action" @click="openAnnouncementForm" :icon="Plus">
+        <BaseButton
+          v-if="canManageAnnouncements"
+          variant="action"
+          @click="openAnnouncementForm"
+          :icon="Plus"
+        >
           {{ t('announcements.list.create_button') }}
         </BaseButton>
       </template>
@@ -82,7 +89,11 @@ function formatDate(iso: string) {
             formatDate(ann.createdAt)
           }}</span>
         </div>
-        <BaseTooltip v-if="canManageAnnouncements" :content="t('common.buttons.delete')" placement="bottom">
+        <BaseTooltip
+          v-if="canManageAnnouncements"
+          :content="t('common.buttons.delete')"
+          placement="bottom"
+        >
           <BaseButton
             variant="ghost"
             size="sm"

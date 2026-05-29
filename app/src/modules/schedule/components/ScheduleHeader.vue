@@ -22,9 +22,7 @@ const { t, tm } = useI18n();
           {{ t('schedule.infopop.description') }}
         </h3>
         <div
-          v-for="(section, index) in tm(
-            'schedule.infopop.sections',
-          )"
+          v-for="(section, index) in tm('schedule.infopop.sections')"
           :key="index"
           class="mb-4"
         >

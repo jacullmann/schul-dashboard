@@ -120,7 +120,11 @@ const {
             type="button"
             class="bg-transparent border-none text-white cursor-pointer p-0 flex items-center justify-center"
             @click="togglePlay"
-            :aria-label="isPlaying ? t('common.video_player.play_button.pause_aria_label') : t('common.video_player.play_button.play_aria_label')"
+            :aria-label="
+              isPlaying
+                ? t('common.video_player.play_button.pause_aria_label')
+                : t('common.video_player.play_button.play_aria_label')
+            "
           >
             <Pause
               v-if="isPlaying"
@@ -147,7 +151,11 @@ const {
               type="button"
               class="bg-transparent border-none text-white cursor-pointer p-0 flex items-center justify-center"
               @click="toggleMute"
-              :aria-label="volume === 0 ? t('common.video_player.volume_button.unmute_aria_label') : t('common.video_player.volume_button.mute_aria_label')"
+              :aria-label="
+                volume === 0
+                  ? t('common.video_player.volume_button.unmute_aria_label')
+                  : t('common.video_player.volume_button.mute_aria_label')
+              "
             >
               <VolumeX
                 v-if="volume === 0"

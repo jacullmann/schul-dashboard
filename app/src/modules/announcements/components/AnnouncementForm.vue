@@ -53,9 +53,7 @@ async function submit() {
       message?: string;
     };
     submitError.value =
-      err.response?.data?.error ??
-      err.message ??
-      t('common.errors.unknown');
+      err.response?.data?.error ?? err.message ?? t('common.errors.unknown');
   } finally {
     submitting.value = false;
   }
@@ -101,7 +99,10 @@ async function submit() {
             :options="[
               { label: t('announcements.form.options.info'), value: 'info' },
               { label: t('announcements.form.options.warning'), value: 'warn' },
-              { label: t('announcements.form.options.important'), value: 'danger' },
+              {
+                label: t('announcements.form.options.important'),
+                value: 'danger',
+              },
             ]"
           />
         </BaseFormGroup>

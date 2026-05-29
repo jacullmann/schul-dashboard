@@ -496,7 +496,6 @@ const toggleSpeechRecognition = () => {
                   : 'Choose what <b>model</b> to play as'
               "
             ></div>
-
           </div>
         </Transition>
 
