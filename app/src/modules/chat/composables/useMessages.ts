@@ -50,13 +50,17 @@ export function useMessages() {
     };
   });
 
-  const { floatingStyles, isPositioned } = useFloating(virtualElement, menuRef, {
-    strategy: 'fixed',
-    placement: 'bottom-start',
-    whileElementsMounted: autoUpdate,
-    transform: false,
-    middleware: [offset(4), flip(), shift({ padding: 8 })],
-  });
+  const { floatingStyles, isPositioned } = useFloating(
+    virtualElement,
+    menuRef,
+    {
+      strategy: 'fixed',
+      placement: 'bottom-start',
+      whileElementsMounted: autoUpdate,
+      transform: false,
+      middleware: [offset(4), flip(), shift({ padding: 8 })],
+    },
+  );
 
   const contextMenuStyles = computed(() => ({
     ...floatingStyles.value,

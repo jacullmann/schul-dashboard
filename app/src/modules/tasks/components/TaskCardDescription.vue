@@ -12,7 +12,8 @@ defineEmits<{
 <template>
   <div v-if="description.length">
     <span v-if="!isExpanded">
-      {{ description.slice(0, 200) }}<span v-if="description.length > 200">…</span>
+      {{ description.slice(0, 200)
+      }}<span v-if="description.length > 200">…</span>
     </span>
     <span v-else>{{ description }}</span>
     <button

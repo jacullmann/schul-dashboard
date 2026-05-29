@@ -22,7 +22,9 @@ const { t } = useI18n();
 </script>
 
 <template>
-  <div class="note-section mt-2 pt-1 border-t border-surface-border flex justify-between gap-3">
+  <div
+    class="note-section mt-2 pt-1 border-t border-surface-border flex justify-between gap-3"
+  >
     <div class="w-full">
       <div class="text-on-ghost text-base font-bold mb-1">
         {{ t('tasks.list.notes.note') }}
@@ -33,11 +35,9 @@ const { t } = useI18n();
         class="text-on-ghost text-base whitespace-pre-wrap break-words"
       >
         <span v-if="note">{{ note }}</span>
-        <span
-          v-else
-          class="note-placeholder text-on-ghost-muted italic"
-          >{{ t('tasks.list.notes.no_notes') }}</span
-        >
+        <span v-else class="note-placeholder text-on-ghost-muted italic">{{
+          t('tasks.list.notes.no_notes')
+        }}</span>
       </div>
 
       <div v-else>
@@ -70,14 +70,8 @@ const { t } = useI18n();
       </div>
     </div>
 
-    <div
-      v-if="!editing && canEdit"
-      class="flex gap-1 items-start -mr-2"
-    >
-      <BaseTooltip
-        :content="t('common.buttons.edit')"
-        placement="bottom"
-      >
+    <div v-if="!editing && canEdit" class="flex gap-1 items-start -mr-2">
+      <BaseTooltip :content="t('common.buttons.edit')" placement="bottom">
         <BaseButton
           @click.stop="$emit('edit-start')"
           variant="ghost"

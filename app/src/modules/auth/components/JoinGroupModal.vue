@@ -58,7 +58,7 @@ async function submit() {
       } catch {}
 
       emit('cancel');
-      await router.push(`/groups/${activeGroupId.value}/items/all`);
+      await router.push(`/groups/${activeGroupId.value}/dashboard`);
       modalStore.showSetup = true;
     } else {
       errorMsg.value = res.error || t('auth.groups.errors.join_failed');

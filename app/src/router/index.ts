@@ -1,13 +1,14 @@
 import { createRouter, createWebHistory } from 'vue-router';
+import type { RouteRecordRaw } from 'vue-router';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useLoadingBar } from '@/common/composables/loadingState';
 import { useUserStore } from '@/stores/userStore';
 import i18n from '@/i18n';
 
-const routes = [
+const routes: RouteRecordRaw[] = [
   {
     path: '/',
-    redirect: '/home',
+    redirect: '/groups',
   },
   {
     path: '/login',
@@ -63,9 +64,9 @@ const routes = [
     component: () => import('@/layouts/DefaultLayout.vue'),
     children: [
       {
-        path: 'home',
-        name: 'home',
-        component: () => import('@/core/pages/HomePage.vue'),
+        path: 'groups',
+        name: 'groups',
+        component: () => import('@/core/pages/Groups.vue'),
         meta: { title: 'navigation.home' },
       },
 
@@ -74,7 +75,18 @@ const routes = [
         children: [
           {
             path: '',
-            redirect: (to: any) => `/groups/${to.params.groupId}/items/all`,
+            redirect: (to: any) => `/groups/${to.params.groupId}/dashboard`,
+          },
+          {
+            path: 'dashboard',
+            name: 'group-dashboard',
+            component: () => import('@/core/pages/Dashboard.vue'),
+            props: true,
+            meta: {
+              title: 'tasks.list.title',
+              requiresTenant: true,
+              groupContext: true,
+            },
           },
           {
             path: 'items/:type?/:itemId?',
@@ -277,8 +289,8 @@ router.beforeEach(async (to, from, next) => {
     finish();
     return next({
       path: activeGroupId.value
-        ? `/groups/${activeGroupId.value}/items/all`
-        : '/home',
+        ? `/groups/${activeGroupId.value}/dashboard`
+        : '/groups',
       replace: true,
     });
   }
@@ -306,7 +318,7 @@ router.beforeEach(async (to, from, next) => {
     if (!userStore.initialized) await userStore.fetchUser();
     if (!userStore.isSuperadmin) {
       finish();
-      return next({ path: '/home', replace: true });
+      return next({ path: '/groups', replace: true });
     }
   }
 
@@ -314,13 +326,13 @@ router.beforeEach(async (to, from, next) => {
     if (!userStore.initialized) await userStore.fetchUser();
     if (!userStore.isGroupAdmin && !userStore.isSuperadmin) {
       finish();
-      return next({ path: '/home', replace: true });
+      return next({ path: '/groups', replace: true });
     }
   }
 
   if (to.meta.requiresTenant && !activeGroupId.value) {
     finish();
-    return next({ path: '/home', replace: true });
+    return next({ path: '/groups', replace: true });
   }
 
   const routeGroupId = to.params.groupId as string | undefined;
@@ -329,14 +341,14 @@ router.beforeEach(async (to, from, next) => {
     const isMember = userGroups.value.some((g) => g.id === routeGroupId);
     if (!isMember && !userStore.isSuperadmin) {
       finish();
-      return next({ path: '/home', replace: true });
+      return next({ path: '/groups', replace: true });
     }
 
     const { switchActiveGroup } = useAppAuth();
     const result = await switchActiveGroup(routeGroupId);
     if (!result.ok) {
       finish();
-      return next({ path: '/home', replace: true });
+      return next({ path: '/groups', replace: true });
     }
   }
 

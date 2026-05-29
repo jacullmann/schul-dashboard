@@ -44,7 +44,7 @@ withDefaults(
 
       <span
         v-if="label"
-        class="transition-[max-width,opacity,margin-left] transition-hover text-sm/5 font-medium whitespace-nowrap overflow-hidden"
+        class="transition-[max-width,opacity,margin-left] text-sm/5 font-medium whitespace-nowrap overflow-hidden"
         :class="[
           expanded
             ? 'max-w-40 opacity-100 ml-3 duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)]'

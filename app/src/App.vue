@@ -134,6 +134,6 @@ onUnmounted(() => {
 
 <style scoped>
 .progress-bar {
-  background: var(--background-image-bismuth);
+  background: var(--color-action);
 }
 </style>

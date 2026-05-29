@@ -63,13 +63,13 @@ async function navigateToGroup(groupId: string) {
 
   try {
     if (groupId === activeGroupId.value) {
-      await router.push(`/groups/${groupId}/items/all`);
+      await router.push(`/groups/${groupId}/dashboard`);
       return;
     }
 
     const res = await switchActiveGroup(groupId);
     if (res.ok) {
-      await router.push(`/groups/${groupId}/items/all`);
+      await router.push(`/groups/${groupId}/dashboard`);
     } else {
       console.error('Failed to switch group:', res.error);
     }

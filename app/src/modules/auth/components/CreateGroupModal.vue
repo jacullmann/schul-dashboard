@@ -61,7 +61,7 @@ async function submit() {
       } catch {}
 
       emit('cancel');
-      await router.push(`/groups/${activeGroupId.value}/items/all`);
+      await router.push(`/groups/${activeGroupId.value}/dashboard`);
     } else {
       errorMsg.value = res.error || t('auth.groups.errors.create_failed');
     }

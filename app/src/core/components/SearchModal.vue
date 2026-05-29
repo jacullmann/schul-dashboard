@@ -104,12 +104,13 @@ interface SearchResult {
 
 const defaultResults = computed<SearchResult[]>(() => [
   {
-    id: 'home',
-    label: t('common.sidebar.home'),
+    id: 'dashboard',
+    label: t('common.sidebar.dashboard'),
     description: t('search.descriptions.home'),
     category: 'page',
     icon: House,
-    action: () => navigate('/home'),
+    action: () =>
+      withGroup(() => navigate(`/groups/${activeGroupId.value}/dashboard`)),
   },
   {
     id: 'tasks',
@@ -146,7 +147,15 @@ const defaultResults = computed<SearchResult[]>(() => [
     icon: Lock,
     action: () => navigate('/todos'),
   },
-
+  {
+    id: 'groups',
+    label: t('common.sidebar.groups'),
+    description: t('search.descriptions.groups'),
+    category: 'page',
+    icon: UsersRound,
+    action: () =>
+      withGroup(() => navigate(`/groups`)),
+  },
   {
     id: 'admin',
     label: t('common.sidebar.admin'),
@@ -394,11 +403,11 @@ async function onSwitchGroup(id: string) {
         );
         await router.push(newPath);
 
-        if (route.path === '/home') {
-          await router.push(`/groups/${id}/items/all`);
+        if (route.path === '/groups') {
+          await router.push(`/groups/${id}/dashboard`);
         }
       } else {
-        await router.push(`/groups/${id}/items/all`);
+        await router.push(`/groups/${id}/dashboard`);
       }
     } else {
       console.error('Failed to switch group', res.error);

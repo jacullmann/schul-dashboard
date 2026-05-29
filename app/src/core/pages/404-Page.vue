@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
 import {
-  LayoutDashboard,
+  House,
   ListTodo,
   CalendarDays,
   Lock,
@@ -51,20 +51,20 @@ const goBack = () => {
           class="grid w-full gap-3 grid-cols-[repeat(auto-fit,minmax(280px,1fr))] max-md:grid-cols-1"
         >
           <router-link
-            to="/home"
+            :to="`/groups/${activeGroupId}/dashboard`"
             class="flex items-center gap-3 p-3 bg-surface border border-surface-border shadow-input rounded-xl no-underline transition-all duration-150 ease cursor-pointer hover:bg-surface-highlight"
           >
             <div
               class="shrink-0 w-10 h-10 flex items-center justify-center text-on-ghost-muted"
             >
-              <LayoutDashboard :size="24" />
+              <House :size="24" />
             </div>
             <div class="flex-1 text-left">
               <div class="text-[15px] font-semibold text-on-ghost mb-[2px]">
                 Homepage
               </div>
               <div class="text-[13px] text-on-ghost-muted">
-                Overview of your groups
+                Overview of the group
               </div>
             </div>
           </router-link>

@@ -34,7 +34,7 @@ function toggleExpanded() {
 const groupMenuOpen = ref(false);
 const groupMenuRef = ref<HTMLElement | null>(null);
 
-const logoLink = computed(() => '/home');
+const logoLink = computed(() => '/groups');
 
 function toggleGroupMenu() {
   groupMenuOpen.value = !groupMenuOpen.value;
@@ -54,11 +54,11 @@ async function onSwitchGroup(id: string) {
           `/groups/${id}`,
         );
         await router.push(newPath);
-        if (route.path === '/home') {
-          await router.push(`/groups/${id}/items/all`);
+        if (route.path === '/groups') {
+          await router.push(`/groups/${id}/dashboard`);
         }
       } else {
-        await router.push(`/groups/${id}/items/all`);
+        await router.push(`/groups/${id}/dashboard`);
       }
     } else {
       console.error('Failed to switch group', res.error);
@@ -182,7 +182,7 @@ onUnmounted(() => {
           <BaseMenuButton
             @click="
               groupMenuOpen = false;
-              router.push('/home');
+              modalStore.openCreateGroup();
             "
             :icon="Plus"
           >

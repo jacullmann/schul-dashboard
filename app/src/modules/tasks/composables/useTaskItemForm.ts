@@ -164,11 +164,15 @@ export function useTaskItemForm(
 
     const mr = t('common.titles.abbr.mr');
     const ms = t('common.titles.abbr.ms');
-    return courseName.replace(/^Herr\s+/, `${mr} `).replace(/^Frau\s+/, `${ms} `);
+    return courseName
+      .replace(/^Herr\s+/, `${mr} `)
+      .replace(/^Frau\s+/, `${ms} `);
   };
 
   const selectedSubjectHasCourses = computed(() => {
-    const match = subjectStore.subjects.find((s) => s.name === subjectSel.value);
+    const match = subjectStore.subjects.find(
+      (s) => s.name === subjectSel.value,
+    );
     if (!match || !match.courses) return false;
     if (match.category === 'core') return false;
     if (match.category === 'extra') return match.courses.length >= 2;
@@ -176,7 +180,9 @@ export function useTaskItemForm(
   });
 
   const courseOptions = computed(() => {
-    const match = subjectStore.subjects.find((s) => s.name === subjectSel.value);
+    const match = subjectStore.subjects.find(
+      (s) => s.name === subjectSel.value,
+    );
     if (!match || !match.courses) return [];
     return match.courses.map((c) => ({
       label: getCourseLabel(c.name),
@@ -205,7 +211,9 @@ export function useTaskItemForm(
     } else if (main === '__OTHER__') {
       finalSubject = subjectOther.value.trim();
       if (!finalSubject) {
-        subjectOtherError.value = t('tasks.list.item_form.errors.custom_missing');
+        subjectOtherError.value = t(
+          'tasks.list.item_form.errors.custom_missing',
+        );
         hasValidationErrors = true;
       } else if (finalSubject.length > 100) {
         subjectOtherError.value = t('tasks.list.item_form.errors.custom_long');
@@ -237,7 +245,9 @@ export function useTaskItemForm(
 
     const cleanDesc = description.value.trim();
     if (cleanDesc.length > 1000) {
-      descriptionError.value = t('tasks.list.item_form.errors.description_long');
+      descriptionError.value = t(
+        'tasks.list.item_form.errors.description_long',
+      );
       hasValidationErrors = true;
     }
 

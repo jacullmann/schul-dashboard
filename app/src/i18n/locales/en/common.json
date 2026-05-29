@@ -161,6 +161,7 @@
     "schedule": "Schedule",
     "search": "Search",
     "tasks": "Tasks",
+    "dashboard": "Dashboard",
     "toggle": "Toggle Sidebar"
   },
   "contact": {
@@ -182,7 +183,7 @@
     "title": "Home",
     "your_groups": "Your groups",
     "tooltip": {
-      "add_group": "Add group"
+      "add_group": "Gruppe hinzufügen"
     }
   },
   "roles": {

@@ -154,12 +154,15 @@ function handleItemDoubleClick(event: MouseEvent) {
   emit('toggle-check');
 }
 
-watch(() => props.isOpenMenu, (newVal) => {
-  if (!newVal) {
-    menuCoords.value = null;
-    menuRef.value = null;
-  }
-});
+watch(
+  () => props.isOpenMenu,
+  (newVal) => {
+    if (!newVal) {
+      menuCoords.value = null;
+      menuRef.value = null;
+    }
+  },
+);
 </script>
 
 <template>

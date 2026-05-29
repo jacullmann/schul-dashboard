@@ -243,7 +243,9 @@ function openImageViewerForItem(item: HwItem, index: number) {
           @show-info="showInfoItem = item"
           @image-drop="(files) => triggerImageDrop(item, files)"
           @open-image-viewer="openImageViewerForItem(item, $event)"
-          @image-context-menu="(event, img) => handleImageContextMenu(event, item, img)"
+          @image-context-menu="
+            (event, img) => handleImageContextMenu(event, item, img)
+          "
           @edit-note-start="startEditNote(item)"
           @edit-note-cancel="cancelEditNote()"
           @edit-note-save="saveNote(item.id)"

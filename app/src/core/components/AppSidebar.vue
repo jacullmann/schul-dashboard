@@ -5,6 +5,7 @@ import {
   CirclePlus,
   Megaphone,
   House,
+  UsersRound,
   ListTodo,
   CalendarDays,
   Settings,
@@ -189,7 +190,7 @@ onUnmounted(() => {
         <SidebarButton
           v-if="isAnyGroupAdmin"
           :label="t('common.sidebar.announcement')"
-          :shortcut="['alt', 'n']"
+          :shortcut="['alt', 'a']"
           :expanded="isExpanded"
           :icon="Megaphone"
           :page="false"
@@ -208,12 +209,16 @@ onUnmounted(() => {
 
       <div class="flex flex-col gap-0 w-full">
         <SidebarButton
-          :label="t('common.sidebar.home')"
+          :label="t('common.sidebar.dashboard')"
           :expanded="isExpanded"
-          :active="$route.path.startsWith('/home')"
+          :active="$route.path.startsWith(`/groups/${activeGroupId}/dashboard`)"
           :icon="House"
           :page="true"
-          @click="handleNavigation('/home')"
+          @click="
+            withGroup(() =>
+              handleNavigation(`/groups/${activeGroupId}/dashboard`),
+            )
+          "
         />
 
         <SidebarButton
@@ -278,6 +283,17 @@ onUnmounted(() => {
           :page="true"
           @click="withGroup(() => handleNavigation('/admin'))"
         />
+      </div>
+
+      <div class="flex flex-col gap-0 w-full">
+        <SidebarButton
+          :label="t('common.sidebar.groups')"
+          :expanded="isExpanded"
+          :active="['/groups', '/groups/'].includes($route.path)"
+          :icon="UsersRound"
+          :page="true"
+          @click="handleNavigation('/groups')"
+        />
 
         <SidebarButton
           :label="t('common.sidebar.private')"
@@ -312,7 +328,7 @@ onUnmounted(() => {
             :unread="group.hasUnreadContent"
           />
           <span
-            class="transition-[max-width,opacity,margin-left] transition-hover text-sm/5 font-medium whitespace-nowrap overflow-hidden"
+            class="transition-[max-width,opacity,margin-left] text-sm/5 font-medium whitespace-nowrap overflow-hidden"
             :class="
               isExpanded
                 ? 'max-w-40 opacity-100 ml-2 duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)]'

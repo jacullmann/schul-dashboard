@@ -76,6 +76,7 @@ defineExpose({
       />
       <span class="flex flex-col">
         <span
+          class="truncate"
           :class="[
             active && !$slots.description ? 'font-bold' : 'font-medium',
             isMobile
