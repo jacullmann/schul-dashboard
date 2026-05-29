@@ -31,6 +31,8 @@ export interface ImageItem {
     format?: string;
     width?: number;
     height?: number;
+    name?: string;
+    thumbnailId?: string | null;
   };
 }
 

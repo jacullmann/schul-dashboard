@@ -32,8 +32,6 @@ import type { HwItem } from '@/modules/tasks/composables/useTasks';
 
 const showInfoItem = ref<HwItem | null>(null);
 
-const isPdf = (img: any) => img.metadata?.format === 'pdf';
-
 const getFileBadge = (img: any) => {
   const format = img.metadata?.format?.toLowerCase();
   if (format === 'pdf' || img.publicId?.toLowerCase().endsWith('.pdf')) {
@@ -61,11 +59,12 @@ const isOfficeFileWithoutThumb = (img: any) => {
 
 const getOfficeBgClass = (img: any) => {
   const format = img.metadata?.format?.toLowerCase();
-  if (format === 'docx' || format === 'doc') return 'from-blue-600 to-blue-800';
+  if (format === 'docx' || format === 'doc')
+    return 'from-blue-400 to-indigo-800';
   if (format === 'pptx' || format === 'ppt')
-    return 'from-orange-500 to-orange-700';
+    return 'from-orange-400 to-rose-700';
   if (format === 'xlsx' || format === 'xls')
-    return 'from-green-600 to-green-800';
+    return 'from-lime-400 to-green-800';
   return 'from-gray-500 to-gray-700';
 };
 
@@ -159,7 +158,6 @@ const {
   getSubjectName,
   getTypeLabel,
   resetFilters,
-  makeUrl,
 } = useTasks();
 
 const { openItemForm } = useItemForm();
@@ -471,136 +469,80 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
         >
           <div v-if="item.images && item.images.length">
             <div class="images-row mt-2 mb-2">
-              <template v-if="!isRevealed(item.id)">
-                <div
-                  v-for="(img, idx) in item.images.slice(0, imagesPerRow)"
-                  :key="img.publicId"
-                  class="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-md border-none bg-black/[0.12] select-none"
-                  @contextmenu.prevent.stop="
-                    handleImageContextMenu($event, item, img)
-                  "
+              <div
+                v-for="(img, idx) in isRevealed(item.id)
+                  ? item.images
+                  : item.images.slice(0, imagesPerRow)"
+                :key="img.publicId"
+                class="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-md border-none bg-black/[0.12] select-none"
+                @contextmenu.prevent.stop="
+                  handleImageContextMenu($event, item, img)
+                "
+              >
+                <button
+                  type="button"
+                  class="img-clickable w-full h-full cursor-pointer bg-transparent block"
+                  @click.stop="openImageViewerForItem(item, idx)"
                 >
-                  <button
-                    type="button"
-                    class="img-clickable w-full h-full cursor-pointer bg-transparent block"
-                    @click.stop="openImageViewerForItem(item, idx)"
-                  >
-                    <div
-                      v-if="isOfficeFileWithoutThumb(img)"
-                      class="flex flex-col items-center justify-center w-full h-full text-white p-3 text-center select-none bg-gradient-to-br"
-                      :class="getOfficeBgClass(img)"
-                    >
-                      <FileText
-                        :size="32"
-                        class="mb-1.5 drop-shadow-md opacity-90"
-                      />
-                      <span
-                        class="text-[10px] font-bold uppercase tracking-wider drop-shadow-sm"
-                        >{{ img.metadata?.format }}</span
-                      >
-                      <span
-                        class="text-[9px] opacity-75 mt-0.5 max-w-full overflow-hidden text-ellipsis whitespace-nowrap px-1"
-                        :title="img.metadata?.name"
-                        >{{ img.metadata?.name || 'Dokument' }}</span
-                      >
-                    </div>
-                    <img
-                      v-else
-                      :src="getThumbSrc(img)"
-                      class="block h-full w-full object-cover [pointer-events:none]"
-                      loading="lazy"
-                      draggable="false"
-                      alt="Vorschau"
-                    />
-                  </button>
-
-                  <div
-                    v-if="getFileBadge(img)"
-                    class="absolute top-1 left-1 flex items-center gap-1.5 bg-black/40 border border-white/10 text-white p-1.5 pr-2 rounded-md text-sm/4 font-semibold select-none pointer-events-none backdrop-blur-sm"
+                  <span
+                    v-if="isOfficeFileWithoutThumb(img)"
+                    class="flex flex-col items-center justify-center w-full h-full text-white p-3 text-center select-none bg-gradient-to-br"
+                    :class="getOfficeBgClass(img)"
                   >
                     <component
-                      :is="getFileBadge(img).icon"
-                      :size="16"
-                      class="text-white"
+                      :is="getFileBadge(img)?.icon"
+                      :size="32"
+                      class="mb-1.5 drop-shadow-md opacity-90"
                     />
-                    <span>{{ getFileBadge(img).label }}</span>
-                  </div>
-
-                  <button
-                    v-if="
-                      idx === imagesPerRow - 1 &&
-                      item.images.length > imagesPerRow
-                    "
-                    class="img-overlay absolute flex inset-0 items-center justify-center rounded-md cursor-pointer z-10"
-                    @click.stop.prevent="revealImages(item.id)"
-                    @contextmenu.stop.prevent
-                  >
+                    <span class="text-sm font-bold uppercase">{{
+                      img.metadata?.format
+                    }}</span>
                     <span
-                      class="overlay-blur absolute inset-0 bg-[#8886] rounded-md backdrop-blur-sm"
-                    ></span>
-                    <span class="text-4xl font-medium text-white z-10"
-                      >+{{ item.images.length - (imagesPerRow - 1) }}</span
+                      class="text-xs text-white opacity-75 max-w-full truncate px-1"
+                      :title="img.metadata?.name"
+                      >{{ img.metadata?.name || 'Dokument' }}</span
                     >
-                  </button>
-                </div>
-              </template>
+                  </span>
+                  <img
+                    v-else
+                    :src="getThumbSrc(img)"
+                    class="block h-full w-full object-cover [pointer-events:none]"
+                    loading="lazy"
+                    draggable="false"
+                    alt="Vorschau"
+                  />
+                </button>
 
-              <template v-else>
                 <div
-                  v-for="(img, idx) in item.images"
-                  :key="img.publicId"
-                  class="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-md border-none bg-black/[0.12] select-none"
-                  @contextmenu.prevent.stop="
-                    handleImageContextMenu($event, item, img)
-                  "
+                  v-if="getFileBadge(img) && !isOfficeFileWithoutThumb(img)"
+                  class="absolute top-1 left-1 flex items-center gap-1.5 bg-black/40 border border-white/10 text-white p-1.5 pr-2 rounded-md text-sm/4 font-semibold select-none pointer-events-none backdrop-blur-sm"
                 >
-                  <button
-                    type="button"
-                    class="img-clickable w-full h-full cursor-pointer bg-transparent block"
-                    @click.stop="openImageViewerForItem(item, idx)"
-                  >
-                    <span
-                      v-if="isOfficeFileWithoutThumb(img)"
-                      class="flex flex-col items-center justify-center w-full h-full text-white p-3 text-center select-none bg-gradient-to-br"
-                      :class="getOfficeBgClass(img)"
-                    >
-                      <FileText
-                        :size="32"
-                        class="mb-1.5 drop-shadow-md opacity-90"
-                      />
-                      <span
-                        class="text-[10px] font-bold uppercase tracking-wider drop-shadow-sm"
-                        >{{ img.metadata?.format }}</span
-                      >
-                      <span
-                        class="text-[9px] opacity-75 mt-0.5 max-w-full overflow-hidden text-ellipsis whitespace-nowrap px-1"
-                        :title="img.metadata?.name"
-                        >{{ img.metadata?.name || 'Dokument' }}</span
-                      >
-                    </span>
-                    <img
-                      v-else
-                      :src="getThumbSrc(img)"
-                      class="block h-full w-full object-cover [pointer-events:none]"
-                      loading="lazy"
-                      draggable="false"
-                      alt=""
-                    />
-                  </button>
-
-                  <div
-                    v-if="getFileBadge(img)"
-                    class="absolute top-1 left-1 flex items-center gap-1.5 bg-black/40 border border-white/10 text-white p-1.5 pr-2 rounded-md text-sm/4 font-semibold select-none pointer-events-none backdrop-blur-sm"
-                  >
-                    <component
-                      :is="getFileBadge(img).icon"
-                      :size="16"
-                      class="text-white"
-                    />
-                    <span>{{ getFileBadge(img).label }}</span>
-                  </div>
+                  <component
+                    :is="getFileBadge(img)?.icon"
+                    :size="16"
+                    class="text-white"
+                  />
+                  <span>{{ getFileBadge(img)?.label }}</span>
                 </div>
-              </template>
+
+                <button
+                  v-if="
+                    !isRevealed(item.id) &&
+                    idx === imagesPerRow - 1 &&
+                    item.images.length > imagesPerRow
+                  "
+                  class="img-overlay absolute flex inset-0 items-center justify-center rounded-md cursor-pointer z-10"
+                  @click.stop.prevent="revealImages(item.id)"
+                  @contextmenu.stop.prevent
+                >
+                  <span
+                    class="overlay-blur absolute inset-0 bg-[#8886] rounded-md backdrop-blur-sm"
+                  ></span>
+                  <span class="text-4xl font-medium text-white z-10"
+                    >+{{ item.images.length - (imagesPerRow - 1) }}</span
+                  >
+                </button>
+              </div>
             </div>
           </div>
 

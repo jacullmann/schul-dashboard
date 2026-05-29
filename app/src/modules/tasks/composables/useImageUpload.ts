@@ -22,7 +22,7 @@ export async function extractOfficeThumbnail(file: File): Promise<File | null> {
       'docProps/thumbnail.jpg',
       'docProps/thumbnail.png',
       'docProps/thumbnail.wmf',
-      'docProps/thumbnail.emf'
+      'docProps/thumbnail.emf',
     ];
 
     for (const path of possiblePaths) {
@@ -43,7 +43,9 @@ export async function extractOfficeThumbnail(file: File): Promise<File | null> {
         }
 
         if (extension === 'wmf' || extension === 'emf') {
-          console.warn(`Extracted thumbnail is in ${extension.toUpperCase()} format, which is not supported by browsers.`);
+          console.warn(
+            `Extracted thumbnail is in ${extension.toUpperCase()} format, which is not supported by browsers.`,
+          );
           return null;
         }
 
@@ -59,8 +61,8 @@ export async function extractOfficeThumbnail(file: File): Promise<File | null> {
 function buildCloudinaryUrl(publicId: string, transform: string): string {
   const isPdf = publicId.toLowerCase().endsWith('.pdf');
   const effectivePublicId = isPdf
-      ? publicId.replace(/\.pdf$/i, '.jpg')
-      : publicId;
+    ? publicId.replace(/\.pdf$/i, '.jpg')
+    : publicId;
   return `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/${transform}/${effectivePublicId}`;
 }
 
@@ -75,8 +77,8 @@ export function makeThumb(input?: string): string {
       if (uploadIdx !== -1) {
         const isPdf = u.pathname.toLowerCase().endsWith('.pdf');
         const transform = isPdf
-            ? 'f_auto,q_auto,w_256,h_256,c_fill,pg_1'
-            : 'f_webp,q_auto,w_256,h_256,c_fill';
+          ? 'f_auto,q_auto,w_256,h_256,c_fill,pg_1'
+          : 'f_webp,q_auto,w_256,h_256,c_fill';
         parts.splice(uploadIdx + 1, 0, transform);
         if (isPdf) u.pathname = u.pathname.replace(/\.pdf$/i, '.jpg');
         u.pathname = parts.join('/');
@@ -90,8 +92,8 @@ export function makeThumb(input?: string): string {
   const isPdf = input.toLowerCase().endsWith('.pdf');
 
   const transform = isPdf
-      ? 'f_auto,q_auto,w_256,h_256,c_fill,pg_1'
-      : 'f_webp,q_auto,w_256,h_256,c_fill';
+    ? 'f_auto,q_auto,w_256,h_256,c_fill,pg_1'
+    : 'f_webp,q_auto,w_256,h_256,c_fill';
   return buildCloudinaryUrl(input, transform);
 }
 
@@ -120,9 +122,9 @@ export function useImageUpload() {
   }
 
   async function uploadFiles(
-      files: File[],
-      isEditMode: boolean,
-      itemId?: string,
+    files: File[],
+    isEditMode: boolean,
+    itemId?: string,
   ) {
     if (files.length === 0) return;
 
@@ -154,9 +156,12 @@ export function useImageUpload() {
         }
         validFilesList.push(f);
       } else if (
-        f.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-        f.type === 'application/vnd.openxmlformats-officedocument.presentationml.presentation' ||
-        f.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+        f.type ===
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+        f.type ===
+          'application/vnd.openxmlformats-officedocument.presentationml.presentation' ||
+        f.type ===
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
         /\.(docx|pptx|xlsx)$/i.test(f.name)
       ) {
         if (f.size > 5 * 1024 * 1024) {
@@ -200,7 +205,8 @@ export function useImageUpload() {
               if (sign.cloudName === 'mock_cloud') {
                 // Mock image upload in development
                 json = {
-                  secure_url: 'http://localhost:3000/mock/upload/worksheet-mathe.svg',
+                  secure_url:
+                    'http://localhost:3000/mock/upload/worksheet-mathe.svg',
                   public_id: 'mock_office_thumbnail_id',
                   version: 1,
                   format: 'svg',
@@ -217,8 +223,11 @@ export function useImageUpload() {
                   `https://api.cloudinary.com/v1_1/${sign.cloudName}/image/upload`,
                   { method: 'POST', body: form },
                 );
-                if (!res.ok) throw new Error('Cloudinary thumbnail upload failed');
-                json = await res.json();
+                if (!res.ok) {
+                  console.warn('Cloudinary thumbnail upload failed');
+                } else {
+                  json = await res.json();
+                }
               }
 
               if (json && json.public_id) {
@@ -226,7 +235,10 @@ export function useImageUpload() {
               }
             }
           } catch (err) {
-            console.warn('Failed to extract/upload thumbnail, proceeding without thumbnail:', err);
+            console.warn(
+              'Failed to extract/upload thumbnail, proceeding without thumbnail:',
+              err,
+            );
           }
 
           // 2. Upload the original Office file as a RAW resource
@@ -363,7 +375,7 @@ export function useImageUpload() {
     }
   }
 
-  async function uploadImage(isEditMode: boolean, itemId?: string) {
+  function uploadImage(isEditMode: boolean, itemId?: string) {
     uploading.value = true;
     uploadError.value = '';
     uploadSuccess.value = false;
@@ -386,13 +398,13 @@ export function useImageUpload() {
   }
 
   async function removeImg(
-      img: { publicId: string; url?: string },
-      parentId?: string,
+    img: { publicId: string; url?: string },
+    parentId?: string,
   ) {
     if (parentId) {
       try {
         await hw.delete(
-            `/items/${parentId}/images/${encodeURIComponent(img.publicId)}`,
+          `/items/${parentId}/images/${encodeURIComponent(img.publicId)}`,
         );
         images.value = images.value.filter((i) => i.publicId !== img.publicId);
         uploadError.value = t('tasks.images.delete_modal.success');
