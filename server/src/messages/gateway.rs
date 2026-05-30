@@ -46,11 +46,14 @@ impl MessageBus {
 }
 
 #[derive(Deserialize)]
-#[serde(tag = "type", rename_all = "camelCase")]
+#[serde(tag = "type")]
 enum ClientEvent {
-    JoinGroup { group_id: Uuid },
-    Typing { group_id: Uuid },
-    StopTyping { group_id: Uuid },
+    #[serde(rename = "joinGroup")]
+    JoinGroup { #[serde(rename = "groupId")] group_id: Uuid },
+    #[serde(rename = "typing")]
+    Typing { #[serde(rename = "groupId")] group_id: Uuid },
+    #[serde(rename = "stopTyping")]
+    StopTyping { #[serde(rename = "groupId")] group_id: Uuid },
 }
 
 pub async fn ws_handler(
