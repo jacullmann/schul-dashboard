@@ -8,7 +8,16 @@ RUN pnpm install --frozen-lockfile
 
 FROM base AS builder
 WORKDIR /app
+
+ARG VITE_API_URL
+ARG VITE_CLOUDINARY_CLOUD_NAME
+ARG VITE_HOMEPAGE_URL
+
 ENV NODE_ENV=production
+ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_CLOUDINARY_CLOUD_NAME=$VITE_CLOUDINARY_CLOUD_NAME
+ENV VITE_HOMEPAGE_URL=$VITE_HOMEPAGE_URL
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN pnpm run build
