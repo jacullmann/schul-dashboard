@@ -14,7 +14,7 @@ import { usePrivateTasks } from '@/modules/tasks/composables/usePrivateTasks';
 import { VueDraggableNext as draggable } from 'vue-draggable-next';
 import ItemCard from '@/modules/tasks/components/ItemCard.vue';
 import { usePrivateTaskForm } from '@/core/composables/usePrivateTaskForm';
-import { computed, ref, onUnmounted } from 'vue';
+import { computed, ref, onUnmounted, watch } from 'vue';
 import { useWindowSize } from '@vueuse/core';
 import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/vue';
 import BaseSkeleton from '@/common/components/BaseSkeleton.vue';

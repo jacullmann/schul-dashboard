@@ -134,10 +134,14 @@ const routes: RouteRecordRaw[] = [
       },
 
       {
-        path: 'todos',
+        path: 'private',
         name: 'private-todos',
         component: () => import('@/modules/tasks/pages/PrivateTasks.vue'),
         meta: { title: 'navigation.private_todos' },
+      },
+      {
+        path: 'todos',
+        redirect: '/private',
       },
       {
         path: 'games',

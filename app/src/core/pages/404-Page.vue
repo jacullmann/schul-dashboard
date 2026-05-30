@@ -1,12 +1,6 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
-import {
-  House,
-  ListTodo,
-  CalendarDays,
-  Lock,
-  ArrowLeft,
-} from '@lucide/vue';
+import { House, ListTodo, CalendarDays, Lock, ArrowLeft } from '@lucide/vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 
 const router = useRouter();
@@ -108,7 +102,7 @@ const goBack = () => {
           </router-link>
 
           <router-link
-            to="/todos"
+            to="/private"
             class="flex items-center gap-3 p-3 bg-surface border border-surface-border shadow-input rounded-xl no-underline transition-all duration-150 ease cursor-pointer hover:bg-surface-highlight"
           >
             <div

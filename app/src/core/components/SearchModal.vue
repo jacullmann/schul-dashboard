@@ -145,7 +145,7 @@ const defaultResults = computed<SearchResult[]>(() => [
     description: t('search.descriptions.private'),
     category: 'page',
     icon: Lock,
-    action: () => navigate('/todos'),
+    action: () => navigate('/private'),
   },
   {
     id: 'groups',
@@ -153,8 +153,7 @@ const defaultResults = computed<SearchResult[]>(() => [
     description: t('search.descriptions.groups'),
     category: 'page',
     icon: UsersRound,
-    action: () =>
-      withGroup(() => navigate(`/groups`)),
+    action: () => withGroup(() => navigate(`/groups`)),
   },
   {
     id: 'admin',

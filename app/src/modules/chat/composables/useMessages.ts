@@ -11,7 +11,10 @@ import { useModalStore } from '@/stores/modalStore';
 import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/vue';
 
 export function useMessages() {
-  const { t } = useI18n();
+  const i18n = useI18n();
+  const t = (key: string, named?: Record<string, any>) =>
+    i18n.t(key, named || {});
+
   const route = useRoute();
   const userStore = useUserStore();
   const { user } = storeToRefs(userStore);

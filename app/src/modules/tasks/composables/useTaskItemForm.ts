@@ -16,7 +16,11 @@ export function useTaskItemForm(
     (e: 'success'): void;
   },
 ) {
-  const { t, te } = useI18n();
+  const i18n = useI18n();
+  const t = (key: string, named?: Record<string, any>) =>
+    i18n.t(key, named || {});
+  const te = (key: string) => i18n.te(key);
+
   const subjectStore = useSubjectStore();
 
   const typeTabItems = computed(() => [
@@ -317,7 +321,7 @@ export function useTaskItemForm(
   useEventListener(window, 'keydown', onKeyDown);
 
   onMounted(() => {
-    subjectStore.loadSubjects();
+    void subjectStore.loadSubjects();
     imgInit(initial?.images || []);
     titleInputRef.value?.focus();
   });

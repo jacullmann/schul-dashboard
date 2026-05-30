@@ -298,10 +298,10 @@ onUnmounted(() => {
         <SidebarButton
           :label="t('common.sidebar.private')"
           :expanded="isExpanded"
-          :active="$route.path.startsWith('/todos')"
+          :active="$route.path.startsWith('/private')"
           :icon="Lock"
           :page="true"
-          @click="handleNavigation('/todos')"
+          @click="handleNavigation('/private')"
         />
       </div>
 

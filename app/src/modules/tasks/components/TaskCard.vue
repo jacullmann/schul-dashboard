@@ -327,7 +327,7 @@ watch(
       </Teleport>
     </template>
 
-    <template #body>
+    <template #body v-if="item.description">
       <TaskCardDescription
         :description="item.description"
         :is-expanded="isExpanded"
