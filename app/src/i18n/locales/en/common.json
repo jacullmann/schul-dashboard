@@ -194,6 +194,26 @@
     "superadmin": "Superadmin"
   },
   "dashboard": {
-    "title": "Dashboard"
+    "title": "Dashboard",
+    "tasks_overview": {
+      "title": "Tasks",
+      "subtitle": "Due in the next 2 days",
+      "last_edited": "Last edited",
+      "no_tasks": "No upcoming tasks in the next 2 days.",
+      "view_all": "View all tasks",
+      "due_today": "Due today",
+      "due_tomorrow": "Due tomorrow"
+    },
+    "schedule_overview": {
+      "title": "Schedule",
+      "next_lesson": "Next Lesson",
+      "no_more_lessons": "No more lessons for this week.",
+      "substitutions": "Schedule Changes",
+      "no_substitutions": "No schedule changes this week.",
+      "view_full": "View full schedule",
+      "cancelled": "Cancelled",
+      "room_change": "Room change: {room}",
+      "substituted": "Substitution"
+    }
   }
 }

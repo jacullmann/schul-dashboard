@@ -202,7 +202,27 @@
     "superadmin": "Superadmin"
   },
   "dashboard": {
-    "title": "Dashboard"
+    "title": "Dashboard",
+    "tasks_overview": {
+      "title": "Aufgaben",
+      "subtitle": "In den nächsten 2 Tagen fällig",
+      "last_edited": "Zuletzt bearbeitet",
+      "no_tasks": "Keine anstehenden Aufgaben in den nächsten 2 Tagen.",
+      "view_all": "Alle Aufgaben anzeigen",
+      "due_today": "Heute fällig",
+      "due_tomorrow": "Morgen fällig"
+    },
+    "schedule_overview": {
+      "title": "Stundenplan",
+      "next_lesson": "Nächste Stunde",
+      "no_more_lessons": "Keine weiteren Stunden für diese Woche.",
+      "substitutions": "Planänderungen & Vertretungen",
+      "no_substitutions": "Keine Planänderungen in dieser Woche.",
+      "view_full": "Vollständigen Plan anzeigen",
+      "cancelled": "Ausfall",
+      "room_change": "Raumänderung: {room}",
+      "substituted": "Vertretung"
+    }
   },
   "video_player": {
     "seek_slider": {
