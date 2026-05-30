@@ -415,5 +415,8 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
     getDisplayName,
     getGroupStyle,
     formatDayName,
+    lessons,
+    substitutions,
+    effectiveLessons,
   };
 }
