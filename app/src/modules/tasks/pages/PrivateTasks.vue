@@ -26,7 +26,9 @@ const { user } = storeToRefs(userStore);
         >
           <p v-html="t('tasks.private_tasks.infopop.description')"></p>
           <template
-            v-for="(section, index) in tm('tasks.private_tasks.infopop.sections')"
+            v-for="(section, index) in tm(
+              'tasks.private_tasks.infopop.sections',
+            )"
             :key="index"
           >
             <h3 v-html="section.title"></h3>

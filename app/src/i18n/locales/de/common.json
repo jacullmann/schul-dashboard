@@ -205,7 +205,6 @@
     "title": "Dashboard",
     "tasks_overview": {
       "title": "Aufgaben",
-      "subtitle": "In den nächsten 2 Tagen fällig",
       "last_edited": "Zuletzt bearbeitet",
       "no_tasks": "Keine anstehenden Aufgaben in den nächsten 2 Tagen.",
       "view_all": "Alle Aufgaben anzeigen",

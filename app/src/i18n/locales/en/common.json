@@ -197,7 +197,6 @@
     "title": "Dashboard",
     "tasks_overview": {
       "title": "Tasks",
-      "subtitle": "Due in the next 2 days",
       "last_edited": "Last edited",
       "no_tasks": "No upcoming tasks in the next 2 days.",
       "view_all": "View all tasks",

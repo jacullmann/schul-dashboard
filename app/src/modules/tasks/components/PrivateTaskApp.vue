@@ -200,7 +200,9 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
 <template>
   <div class="private-task-app-integrated">
     <div class="private-task-header animate-fade-up">
-      <div class="flex gap-2 items-center justify-center text-on-ghost-muted mb-4">
+      <div
+        class="flex gap-2 items-center justify-center text-on-ghost-muted mb-4"
+      >
         <Lock :size="20" />
         <span class="font-medium text-base">
           {{ t('tasks.private_tasks.only_visible_to_you') }}
