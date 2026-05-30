@@ -200,17 +200,11 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
 <template>
   <div class="private-task-app-integrated">
     <div class="private-task-header animate-fade-up">
-      <div class="flex gap-2 items-center text-on-ghost mb-4">
-        <Lock class="text-on-ghost" :size="24" />
-        <h2 class="m-0 text-2xl/6">
+      <div class="flex gap-2 items-center justify-center text-on-ghost-muted mb-4">
+        <Lock :size="20" />
+        <span class="font-medium text-base">
           {{ t('tasks.private_tasks.only_visible_to_you') }}
-        </h2>
-        <InfoModal
-          :tooltip="t('tasks.private_tasks.infopop.tooltip')"
-          :title="t('tasks.private_tasks.only_visible_to_you')"
-        >
-          <p v-html="t('tasks.private_tasks.infopop.text')"></p>
-        </InfoModal>
+        </span>
       </div>
       <div v-if="!user" class="p-8 text-center">
         <p>{{ t('tasks.private_tasks.requires_account') }}</p>

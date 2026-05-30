@@ -1,3 +1,4 @@
+<script setup lang="ts"></script>
 <template>
   <BaseRow justify="between" class="mb-4">
     <BaseRow>
@@ -8,6 +9,8 @@
       <slot name="info"></slot>
     </BaseRow>
 
-    <slot name="action"></slot>
+    <div class="-my-2">
+      <slot name="action"></slot>
+    </div>
   </BaseRow>
 </template>

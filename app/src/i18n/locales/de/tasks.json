@@ -148,7 +148,21 @@
     "error_duplicate": "Fehler beim duplizieren",
     "error_load": "Fehler beim Laden der privaten Einträge",
     "infopop": {
-      "text": "Anders als normale Einträge sind diese <strong>verschlüsselt</strong> und nur für dich sichtbar. So kannst du auch persönliche Aufgaben und To-dos tracken – alles mit <strong>einem Programm</strong>. Dank <strong>AES-256 Verschlüsselung</strong> musst du dir keine Sorgen um die Sicherheit machen: Man kann nur mit <strong>deinem Passwort</strong> auf deine privaten Einträge zugreifen.",
+      "description": "Verwalte deine private Aufgaben",
+      "sections": [
+        {
+          "title": "Nur für dich sichtbar",
+          "text": "Anders als normale Aufgaben sind diese <strong>verschlüsselt</strong> und nur für dich sichtbar. So kannst du auch persönliche Aufgaben und To-dos tracken – alles mit <strong>einem Programm</strong>."
+        },
+        {
+          "title": "Reihenfolge",
+          "text": "Sortiere deine Aufgaben der Wichtigkeit nach. Bewege sie durch <strong>ziehen</strong> oder über das <strong>3-Punkte-Menü</strong> in der Liste nach oben oder nach unten. So siehst du deine Prioritäten auf den ersten Blick."
+        },
+        {
+          "title": "Sicherheit",
+          "text": "Dank <strong>AES-256 Verschlüsselung</strong> musst du dir keine Sorgen um ungewollte Mitleser machen: Man kann nur mit <strong>deinem Passwort</strong> auf deine privaten Einträge zugreifen."
+        }
+      ],
       "tooltip": "Überblick und Funktionen zu privaten Einträgen"
     },
     "loading": "Lade private Einträge...",

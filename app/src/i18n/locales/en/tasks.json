@@ -148,7 +148,17 @@
     "error_duplicate": "Failed to duplicate entry",
     "error_load": "Failed to load private entries",
     "infopop": {
-      "text": "Unlike regular entries, these are <strong>encrypted</strong> and only visible to you. This way you can also track personal tasks and to-dos – all within <strong>one app</strong>. Thanks to <strong>AES-256 encryption</strong> you don't need to worry about security: only <strong>your password</strong> can be used to access your private entries.",
+      "description": "Manage your private tasks",
+      "sections": [
+        {
+          "title": "Only visible to you",
+          "text": "Unlike regular tasks, these are <strong>encrypted</strong> and only visible to you. This way you can also track personal tasks and to-dos – all within <strong>one app</strong>."
+        },
+        {
+          "title": "Security",
+          "text": "Thanks to <strong>AES-256 encryption</strong> you don't need to worry about unwanted readers: only <strong>your password</strong> can be used to access your private entries."
+        }
+      ],
       "tooltip": "Overview and features for private entries"
     },
     "loading": "Loading private entries...",

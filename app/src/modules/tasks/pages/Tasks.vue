@@ -145,7 +145,7 @@ function openImageViewerForItem(item: HwItem, index: number) {
             :tooltip="t('tasks.list.infopop.tooltip')"
             :title="t('tasks.list.title')"
           >
-            <h3>{{ t('tasks.list.infopop.description') }}</h3>
+            <p>{{ t('tasks.list.infopop.description') }}</p>
             <template
               v-for="(section, index) in tm('tasks.list.infopop.sections')"
               :key="index"
