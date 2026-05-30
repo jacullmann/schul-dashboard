@@ -1,4 +1,4 @@
-use crate::{config::ACCESS_COOKIE, state::AppState};
+use crate::{common::name_generator::generate_user_name, config::ACCESS_COOKIE, state::AppState};
 use axum::extract::ws::{Message, WebSocket, WebSocketUpgrade};
 use axum::{extract::State, response::Response};
 use serde::{Deserialize, Serialize};
@@ -39,9 +39,8 @@ impl MessageBus {
     }
 
     pub async fn broadcast(&self, tenant_id: Uuid, event: BusEvent) {
-        if let Some(tx) = self.inner.lock().await.get(&tenant_id) {
-            let _ = tx.send(event);
-        }
+        let tx = self.sender_for(tenant_id).await;
+        let _ = tx.send(event);
     }
 }
 
@@ -49,11 +48,20 @@ impl MessageBus {
 #[serde(tag = "type")]
 enum ClientEvent {
     #[serde(rename = "joinGroup")]
-    JoinGroup { #[serde(rename = "groupId")] group_id: Uuid },
+    JoinGroup {
+        #[serde(rename = "groupId")]
+        group_id: Uuid,
+    },
     #[serde(rename = "typing")]
-    Typing { #[serde(rename = "groupId")] group_id: Uuid },
+    Typing {
+        #[serde(rename = "groupId")]
+        group_id: Uuid,
+    },
     #[serde(rename = "stopTyping")]
-    StopTyping { #[serde(rename = "groupId")] group_id: Uuid },
+    StopTyping {
+        #[serde(rename = "groupId")]
+        group_id: Uuid,
+    },
 }
 
 pub async fn ws_handler(
@@ -93,10 +101,11 @@ async fn handle_socket(mut socket: WebSocket, state: AppState, token: Option<Str
         Err(_) => return,
     };
 
-
     let mut rx: Option<broadcast::Receiver<BusEvent>> = None;
 
     let mut joined_group: Option<Uuid> = None;
+
+    let mut sender_name: Option<String> = None;
 
     loop {
         tokio::select! {
@@ -126,22 +135,26 @@ async fn handle_socket(mut socket: WebSocket, state: AppState, token: Option<Str
                                         let tx = state.message_bus.sender_for(group_id).await;
                                         rx = Some(tx.subscribe());
                                         joined_group = Some(group_id);
+                                        sender_name = Some(generate_user_name(
+                                            &user_id.to_string(),
+                                            &group_id.to_string(),
+                                        ));
                                     }
                                 }
                                 ClientEvent::Typing { group_id } => {
-                                    if joined_group == Some(group_id) {
+                                    if joined_group == Some(group_id) && let Some(ref name) = sender_name {
                                         state.message_bus.broadcast(group_id, BusEvent::UserTyping {
                                             user_id,
-                                            sender_name: format!("User-{}", user_id.as_u128() % 99999),
+                                            sender_name: name.clone(),
                                             is_typing: true,
                                         }).await;
                                     }
                                 }
                                 ClientEvent::StopTyping { group_id } => {
-                                    if joined_group == Some(group_id) {
+                                    if joined_group == Some(group_id) && let Some(ref name) = sender_name {
                                         state.message_bus.broadcast(group_id, BusEvent::UserTyping {
                                             user_id,
-                                            sender_name: format!("User-{}", user_id.as_u128() % 99999),
+                                            sender_name: name.clone(),
                                             is_typing: false,
                                         }).await;
                                     }
@@ -161,10 +174,8 @@ async fn handle_socket(mut socket: WebSocket, state: AppState, token: Option<Str
             }, if rx.is_some() => {
                 match event {
                     Ok(ev) => {
-                        if let Ok(json) = serde_json::to_string(&ev) {
-                            if socket.send(Message::Text(json.into())).await.is_err() {
-                                break;
-                            }
+                        if let Ok(json) = serde_json::to_string(&ev) && socket.send(Message::Text(json.into())).await.is_err() {
+                            break;
                         }
                     }
                     Err(tokio::sync::broadcast::error::RecvError::Lagged(_)) => {

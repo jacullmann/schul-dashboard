@@ -19,8 +19,8 @@ pub fn start_background_jobs(db: PgPool) {
                    WHERE expires_at < now()
                       OR (revoked_at IS NOT NULL AND revoked_at < now() - interval '7 days')"#
             )
-                .execute(&cleanup_tokens_db)
-                .await
+            .execute(&cleanup_tokens_db)
+            .await
             {
                 Ok(r) => info!("Token cleanup: {} rows deleted", r.rows_affected()),
                 Err(e) => error!("Token cleanup failed: {e}"),
@@ -54,8 +54,8 @@ pub fn start_background_jobs(db: PgPool) {
                        WHERE created_at < now() - INTERVAL '7 days'
                    )"#
             )
-                .execute(&mut *tx)
-                .await;
+            .execute(&mut *tx)
+            .await;
 
             if let Err(e) = update_res {
                 error!("messages cleanup step 1 (UPDATE) failed: {e}. rolling back transaction.");
@@ -71,8 +71,8 @@ pub fn start_background_jobs(db: PgPool) {
                 r#"DELETE FROM public.group_messages
                    WHERE created_at < now() - INTERVAL '7 days'"#
             )
-                .execute(&mut *tx)
-                .await;
+            .execute(&mut *tx)
+            .await;
 
             if let Err(e) = delete_res {
                 error!("messages cleanup step 2 (DELETE) failed: {e}. rolling back transaction.");

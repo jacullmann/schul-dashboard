@@ -372,6 +372,7 @@ export function useMessages() {
 
   const typingDisplay = computed(() => {
     const users = Array.from(typingUsers.value.values());
+    console.log(users);
     if (users.length === 0) return '';
     if (users.length === 1) {
       return `${users[0]} ${t('chat.typing')}`;
