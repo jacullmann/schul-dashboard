@@ -166,7 +166,8 @@ const filteredTasks = computed(() => {
   let list = rawItems.value.filter((item) => !checkedIds.value.has(item.id));
 
   // Personalized filter
-  const isPersonalizedActive = user.value?.personalized && user.value?.doneSetup;
+  const isPersonalizedActive =
+    user.value?.personalized && user.value?.doneSetup;
   if (isPersonalizedActive && userSubjects.value.size > 0) {
     list = list.filter((item) => {
       const subjectLower = item.subject.toLowerCase();
@@ -188,8 +189,20 @@ const filteredTasks = computed(() => {
   }
 
   // Next 2 days filter (Heute & Morgen)
-  const startOfToday = new Date(now.value.getFullYear(), now.value.getMonth(), now.value.getDate());
-  const endOfTomorrow = new Date(now.value.getFullYear(), now.value.getMonth(), now.value.getDate() + 1, 23, 59, 59, 999);
+  const startOfToday = new Date(
+    now.value.getFullYear(),
+    now.value.getMonth(),
+    now.value.getDate(),
+  );
+  const endOfTomorrow = new Date(
+    now.value.getFullYear(),
+    now.value.getMonth(),
+    now.value.getDate() + 2,
+    23,
+    59,
+    59,
+    999,
+  );
 
   return list.filter((item) => {
     const due = new Date(item.dueDate);
@@ -201,7 +214,9 @@ const filteredTasks = computed(() => {
 const sortedTasks = computed(() => {
   const copy = [...filteredTasks.value];
   return copy
-    .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+    .sort(
+      (a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime(),
+    )
     .slice(0, 3);
 });
 
@@ -209,7 +224,9 @@ const sortedTasks = computed(() => {
 const lastEditedTaskId = computed(() => {
   if (!sortedTasks.value.length) return null;
   let newestTask = sortedTasks.value[0];
-  let newestTime = new Date(newestTask.updatedAt || newestTask.createdAt || 0).getTime();
+  let newestTime = new Date(
+    newestTask.updatedAt || newestTask.createdAt || 0,
+  ).getTime();
 
   for (let i = 1; i < sortedTasks.value.length; i++) {
     const task = sortedTasks.value[i];
@@ -234,13 +251,15 @@ const isToday = (dateStr: string) => {
 };
 
 const getDueDateLabel = (dateStr: string) => {
-  if (isToday(dateStr)) return t('dashboard.tasks_overview.due_today');
-  return t('dashboard.tasks_overview.due_tomorrow');
+  if (isToday(dateStr)) return t('common.dashboard.tasks_overview.due_today');
+  return t('common.dashboard.tasks_overview.due_tomorrow');
 };
 
 // Next upcoming lesson logic
 const totalSlots = computed(() => activeScheduleConfig.value?.totalSlots ?? 9);
-const lessonDurationMins = computed(() => activeScheduleConfig.value?.lessonDurationMins ?? 45);
+const lessonDurationMins = computed(
+  () => activeScheduleConfig.value?.lessonDurationMins ?? 45,
+);
 
 const startTimeHour = computed(() => {
   const time = activeScheduleConfig.value?.startTime ?? '08:00';
@@ -316,7 +335,9 @@ const upcomingLesson = computed(() => {
   if (!lessonsWithTimes.length) return null;
 
   // Find lessons starting in the future
-  let futureLessons = lessonsWithTimes.filter((l) => l.startTotal > currentTotalWeekMinutes);
+  let futureLessons = lessonsWithTimes.filter(
+    (l) => l.startTotal > currentTotalWeekMinutes,
+  );
 
   if (futureLessons.length > 0) {
     futureLessons.sort((a, b) => a.startTotal - b.startTotal);
@@ -334,7 +355,8 @@ const getDisplayName = (lesson: any): string => {
     return lesson.subject;
   }
 
-  const subjectName = lesson.subjects?.name || lesson.subject || lesson.subjectAbbr || '';
+  const subjectName =
+    lesson.subjects?.name || lesson.subject || lesson.subjectAbbr || '';
   const normalizedSubject = subjectName.toLowerCase();
 
   if (normalizedSubject === 'wpu1' || normalizedSubject === 'wpu2') {
@@ -378,28 +400,34 @@ const scheduleChanges = computed(() => {
 
 const formatDayName = (day: number): string => {
   const date = new Date(Date.UTC(2024, 0, day, 12));
-  return new Intl.DateTimeFormat(locale.value, { weekday: 'long' }).format(date);
+  return new Intl.DateTimeFormat(locale.value, { weekday: 'long' }).format(
+    date,
+  );
 };
 </script>
 
 <template>
-  <div class="space-y-6 animate-fade-up max-w-[1200px] mx-auto px-2 md:px-4 py-4">
+  <div
+    class="space-y-6 animate-fade-up max-w-[1200px] mx-auto px-2 md:px-4 py-4"
+  >
     <!-- Header Welcome Banner -->
     <div
       class="relative overflow-hidden rounded-2xl p-[1px] bg-gradient-to-br from-bismuth-yellow via-bismuth-red to-bismuth-purple shadow-md"
     >
       <div
-        class="bg-surface/90 dark:bg-charcoal/90 backdrop-blur-md rounded-[15px] p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-4"
+        class="bg-surface/90 dark:bg-charcoal/90 backdrop-blur-md rounded-2xl p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-4"
       >
         <div class="space-y-2">
           <div class="flex items-center gap-2">
-            <h1 class="text-2xl md:text-3xl font-display font-bold tracking-tight text-on-ghost">
+            <h1
+              class="text-2xl md:text-3xl font-display font-bold tracking-tight text-on-ghost"
+            >
               {{ greeting }}, {{ user?.name || user?.username || 'User' }}!
             </h1>
-            <Sparkles class="size-6 text-bismuth-yellow animate-pulse" />
           </div>
           <p class="text-on-ghost-muted text-sm md:text-base max-w-xl m-0">
-            Willkommen zurück in deinem Schul-Dashboard. Hier findest du eine Übersicht deiner anstehenden Aufgaben und deines Stundenplans.
+            Willkommen zurück in deinem Schul-Dashboard. Hier findest du eine
+            Übersicht deiner anstehenden Aufgaben und deines Stundenplans.
           </p>
         </div>
 
@@ -408,7 +436,13 @@ const formatDayName = (day: number): string => {
             class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-surface-highlight dark:bg-surface-highlight/10 border border-surface-border"
           >
             <Clock class="size-3.5 text-on-ghost-muted" />
-            {{ new Date().toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' }) }}
+            {{
+              new Date().toLocaleDateString(locale, {
+                weekday: 'short',
+                day: 'numeric',
+                month: 'short',
+              })
+            }}
           </span>
         </div>
       </div>
@@ -421,30 +455,32 @@ const formatDayName = (day: number): string => {
         class="group p-[1px] rounded-2xl bg-gradient-to-br from-bismuth-yellow via-bismuth-red to-bismuth-purple shadow-card transition-all duration-300 hover:shadow-lg flex flex-col"
       >
         <div
-          class="h-full rounded-[15px] p-5 md:p-6 bg-surface/95 dark:bg-charcoal/95 backdrop-blur-md flex flex-col justify-between gap-6"
+          class="h-full rounded-2xl p-5 md:p-6 bg-surface/95 dark:bg-charcoal/95 backdrop-blur-md flex flex-col justify-between gap-6"
         >
           <!-- Tasks Header -->
-          <div class="flex items-center justify-between gap-4 border-b border-surface-border/50 pb-4">
-            <div class="flex items-center gap-3">
-              <div class="p-2 rounded-xl bg-bismuth-red/10 text-bismuth-red">
-                <ClipboardList class="size-6" />
-              </div>
-              <div>
-                <h2 class="text-lg md:text-xl font-display font-bold text-on-ghost leading-tight">
-                  {{ t('dashboard.tasks_overview.title') }}
-                </h2>
-                <p class="text-on-ghost-muted text-xs md:text-sm m-0">
-                  {{ t('dashboard.tasks_overview.subtitle') }}
-                </p>
-              </div>
+          <div
+            class="flex items-center justify-between gap-4 border-b border-surface-border/50 pb-4"
+          >
+            <div>
+              <h2
+                class="text-lg md:text-xl font-display font-bold text-on-ghost leading-tight"
+              >
+                {{ t('common.dashboard.tasks_overview.title') }}
+              </h2>
+              <p class="text-on-ghost-muted text-xs md:text-sm m-0">
+                {{ t('common.dashboard.tasks_overview.subtitle') }}
+              </p>
             </div>
 
             <router-link
               v-if="activeGroupId"
-              :to="{ name: 'group-items', params: { groupId: activeGroupId, type: 'all' } }"
+              :to="{
+                name: 'group-items',
+                params: { groupId: activeGroupId, type: 'all' },
+              }"
               class="inline-flex items-center gap-1 text-xs font-semibold text-bismuth-red hover:underline group-hover:translate-x-0.5 transition-transform"
             >
-              {{ t('dashboard.tasks_overview.view_all') }}
+              {{ t('common.dashboard.tasks_overview.view_all') }}
               <ChevronRight class="size-4" />
             </router-link>
           </div>
@@ -452,7 +488,11 @@ const formatDayName = (day: number): string => {
           <!-- Tasks Content -->
           <div class="flex-1 flex flex-col justify-center min-h-[220px]">
             <div v-if="loadingTasks" class="space-y-4 animate-pulse">
-              <div v-for="i in 3" :key="i" class="h-16 bg-surface-highlight rounded-xl"></div>
+              <div
+                v-for="i in 3"
+                :key="i"
+                class="h-16 bg-surface-highlight rounded-xl"
+              ></div>
             </div>
 
             <template v-else>
@@ -481,7 +521,11 @@ const formatDayName = (day: number): string => {
                       <!-- Due badge -->
                       <span
                         class="inline-block px-2 py-0.5 rounded-md text-[10px] font-bold"
-                        :class="isToday(task.dueDate) ? 'bg-danger/10 text-danger border border-danger/20' : 'bg-success/10 text-success border border-success/20'"
+                        :class="
+                          isToday(task.dueDate)
+                            ? 'bg-danger/10 text-danger border border-danger/20'
+                            : 'bg-success/10 text-success border border-success/20'
+                        "
                       >
                         {{ getDueDateLabel(task.dueDate) }}
                       </span>
@@ -492,11 +536,13 @@ const formatDayName = (day: number): string => {
                         class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-warn/10 text-on-warn dark:text-yellow border border-warn/25 animate-pulse"
                       >
                         <RefreshCw class="size-2.5 shrink-0" />
-                        {{ t('dashboard.tasks_overview.last_edited') }}
+                        {{ t('common.dashboard.tasks_overview.last_edited') }}
                       </span>
                     </div>
 
-                    <h3 class="text-sm font-semibold text-on-ghost truncate m-0">
+                    <h3
+                      class="text-sm font-semibold text-on-ghost truncate m-0"
+                    >
                       {{ task.title }}
                     </h3>
 
@@ -509,12 +555,14 @@ const formatDayName = (day: number): string => {
 
               <!-- Tasks Empty state -->
               <div v-else class="text-center py-8 space-y-3">
-                <div class="inline-flex p-3 rounded-full bg-success/10 text-success">
+                <div
+                  class="inline-flex p-3 rounded-full bg-success/10 text-success"
+                >
                   <CheckCircle2 class="size-10" />
                 </div>
                 <div>
                   <h3 class="text-sm font-bold text-on-ghost text-center">
-                    {{ t('dashboard.tasks_overview.no_tasks') }}
+                    {{ t('common.dashboard.tasks_overview.no_tasks') }}
                   </h3>
                 </div>
               </div>
@@ -528,30 +576,33 @@ const formatDayName = (day: number): string => {
         class="group p-[1px] rounded-2xl bg-gradient-to-br from-bismuth-purple via-bismuth-violet to-bismuth-yellow shadow-card transition-all duration-300 hover:shadow-lg flex flex-col"
       >
         <div
-          class="h-full rounded-[15px] p-5 md:p-6 bg-surface/95 dark:bg-charcoal/95 backdrop-blur-md flex flex-col justify-between gap-6"
+          class="h-full rounded-2xl p-5 md:p-6 bg-surface/95 dark:bg-charcoal/95 backdrop-blur-md flex flex-col justify-between gap-6"
         >
           <!-- Schedule Header -->
-          <div class="flex items-center justify-between gap-4 border-b border-surface-border/50 pb-4">
-            <div class="flex items-center gap-3">
-              <div class="p-2 rounded-xl bg-bismuth-purple/10 text-bismuth-purple">
-                <Calendar class="size-6" />
-              </div>
-              <div>
-                <h2 class="text-lg md:text-xl font-display font-bold text-on-ghost leading-tight">
-                  {{ t('dashboard.schedule_overview.title') }}
-                </h2>
-                <p class="text-on-ghost-muted text-xs md:text-sm m-0">
-                  {{ t('dashboard.schedule_overview.next_lesson') }} & changes
-                </p>
-              </div>
+          <div
+            class="flex items-center justify-between gap-4 border-b border-surface-border/50 pb-4"
+          >
+            <div>
+              <h2
+                class="text-lg md:text-xl font-display font-bold text-on-ghost leading-tight"
+              >
+                {{ t('common.dashboard.schedule_overview.title') }}
+              </h2>
+              <p class="text-on-ghost-muted text-xs md:text-sm m-0">
+                {{ t('common.dashboard.schedule_overview.next_lesson') }} &
+                changes
+              </p>
             </div>
 
             <router-link
               v-if="activeGroupId"
-              :to="{ name: 'group-schedule', params: { groupId: activeGroupId } }"
+              :to="{
+                name: 'group-schedule',
+                params: { groupId: activeGroupId },
+              }"
               class="inline-flex items-center gap-1 text-xs font-semibold text-bismuth-purple hover:underline group-hover:translate-x-0.5 transition-transform"
             >
-              {{ t('dashboard.schedule_overview.view_full') }}
+              {{ t('common.dashboard.schedule_overview.view_full') }}
               <ChevronRight class="size-4" />
             </router-link>
           </div>
@@ -560,12 +611,17 @@ const formatDayName = (day: number): string => {
           <div class="flex-1 flex flex-col gap-5 min-h-[220px]">
             <!-- TOP SUB-SECTION: Next Lesson -->
             <div class="space-y-2">
-              <h3 class="text-xs font-bold uppercase tracking-wider text-on-ghost-subtle flex items-center gap-1">
+              <h3
+                class="text-xs font-bold uppercase tracking-wider text-on-ghost-subtle flex items-center gap-1"
+              >
                 <Clock class="size-3.5" />
-                {{ t('dashboard.schedule_overview.next_lesson') }}
+                {{ t('common.dashboard.schedule_overview.next_lesson') }}
               </h3>
 
-              <div v-if="loadingLessons" class="h-20 bg-surface-highlight rounded-xl animate-pulse"></div>
+              <div
+                v-if="loadingLessons"
+                class="h-20 bg-surface-highlight rounded-xl animate-pulse"
+              ></div>
 
               <template v-else>
                 <div
@@ -573,10 +629,19 @@ const formatDayName = (day: number): string => {
                   class="flex items-center justify-between gap-4 p-4 rounded-xl border border-surface-border bg-surface-highlight/40 dark:bg-surface-highlight/5"
                 >
                   <div class="min-w-0 space-y-1">
-                    <div class="flex items-center gap-1.5 text-xs text-on-ghost-muted">
-                      <span class="font-bold text-on-ghost-subtle">{{ upcomingLesson.slot }}. Stunde</span>
+                    <div
+                      class="flex items-center gap-1.5 text-xs text-on-ghost-muted"
+                    >
+                      <span class="font-bold text-on-ghost-subtle"
+                        >{{ upcomingLesson.slot }}. Stunde</span
+                      >
                       <span>•</span>
-                      <span>{{ getSlotTime(upcomingLesson.slot, upcomingLesson.duration) }}</span>
+                      <span>{{
+                        getSlotTime(
+                          upcomingLesson.slot,
+                          upcomingLesson.duration,
+                        )
+                      }}</span>
                       <span>•</span>
                       <span>{{ formatDayName(upcomingLesson.day) }}</span>
                     </div>
@@ -585,7 +650,9 @@ const formatDayName = (day: number): string => {
                       {{ getDisplayName(upcomingLesson) }}
                     </h4>
 
-                    <div class="flex items-center gap-1 text-xs text-on-ghost-subtle">
+                    <div
+                      class="flex items-center gap-1 text-xs text-on-ghost-subtle"
+                    >
                       <MapPin class="size-3.5 shrink-0" />
                       <span>{{ upcomingLesson.room || 'Kein Raum' }}</span>
                     </div>
@@ -596,34 +663,45 @@ const formatDayName = (day: number): string => {
                       v-if="upcomingLesson.cancelled"
                       class="px-2 py-0.5 rounded text-[10px] font-bold bg-danger/15 text-danger border border-danger/20"
                     >
-                      {{ t('dashboard.schedule_overview.cancelled') }}
+                      {{ t('common.dashboard.schedule_overview.cancelled') }}
                     </span>
                     <span
                       v-else-if="upcomingLesson.isSubstitutedSubject"
                       class="px-2 py-0.5 rounded text-[10px] font-bold bg-bismuth-purple/15 text-bismuth-purple border border-bismuth-purple/20"
                     >
-                      {{ t('dashboard.schedule_overview.substituted') }}
+                      {{ t('common.dashboard.schedule_overview.substituted') }}
                     </span>
                   </div>
                 </div>
 
-                <div v-else class="p-4 rounded-xl border border-dashed border-surface-border text-center text-xs text-on-ghost-muted">
-                  {{ t('dashboard.schedule_overview.no_more_lessons') }}
+                <div
+                  v-else
+                  class="p-4 rounded-xl border border-dashed border-surface-border text-center text-xs text-on-ghost-muted"
+                >
+                  {{ t('common.dashboard.schedule_overview.no_more_lessons') }}
                 </div>
               </template>
             </div>
 
             <!-- BOTTOM SUB-SECTION: Substitutions / Changes -->
             <div class="space-y-2 flex-1 flex flex-col">
-              <h3 class="text-xs font-bold uppercase tracking-wider text-on-ghost-subtle flex items-center gap-1">
+              <h3
+                class="text-xs font-bold uppercase tracking-wider text-on-ghost-subtle flex items-center gap-1"
+              >
                 <AlertTriangle class="size-3.5 text-yellow" />
-                {{ t('dashboard.schedule_overview.substitutions') }}
+                {{ t('common.dashboard.schedule_overview.substitutions') }}
               </h3>
 
-              <div v-if="loadingSubs" class="h-16 bg-surface-highlight rounded-xl animate-pulse"></div>
+              <div
+                v-if="loadingSubs"
+                class="h-16 bg-surface-highlight rounded-xl animate-pulse"
+              ></div>
 
               <template v-else>
-                <div v-if="scheduleChanges.length > 0" class="space-y-2 max-h-[120px] overflow-y-auto pr-1">
+                <div
+                  v-if="scheduleChanges.length > 0"
+                  class="space-y-2 max-h-[120px] overflow-y-auto pr-1"
+                >
                   <div
                     v-for="change in scheduleChanges"
                     :key="change.id"
@@ -631,14 +709,23 @@ const formatDayName = (day: number): string => {
                   >
                     <div class="min-w-0">
                       <span class="font-semibold text-on-ghost-muted">
-                        {{ formatDayName(change.day) }}, {{ change.slot }}. Stunde:
+                        {{ formatDayName(change.day) }}, {{ change.slot }}.
+                        Stunde:
                       </span>
                       <span class="font-bold text-on-ghost ml-1">
                         {{ getDisplayName(change) }}
                       </span>
                       <!-- Comparison Details -->
-                      <span v-if="change.room !== change._original?.room" class="text-on-ghost-subtle block mt-0.5 font-medium">
-                        {{ t('dashboard.schedule_overview.room_change', { room: change.room }) }} (war: {{ change._original?.room || '?' }})
+                      <span
+                        v-if="change.room !== change._original?.room"
+                        class="text-on-ghost-subtle block mt-0.5 font-medium"
+                      >
+                        {{
+                          t('common.dashboard.schedule_overview.room_change', {
+                            room: change.room,
+                          })
+                        }}
+                        (war: {{ change._original?.room || '?' }})
                       </span>
                     </div>
 
@@ -646,13 +733,13 @@ const formatDayName = (day: number): string => {
                       v-if="change.cancelled"
                       class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-danger/10 text-danger"
                     >
-                      {{ t('dashboard.schedule_overview.cancelled') }}
+                      {{ t('common.dashboard.schedule_overview.cancelled') }}
                     </span>
                     <span
                       v-else-if="change.isSubstitutedSubject"
                       class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-bismuth-purple/10 text-bismuth-purple"
                     >
-                      {{ t('dashboard.schedule_overview.substituted') }}
+                      {{ t('common.dashboard.schedule_overview.substituted') }}
                     </span>
                     <span
                       v-else
@@ -663,8 +750,11 @@ const formatDayName = (day: number): string => {
                   </div>
                 </div>
 
-                <div v-else class="flex-1 flex items-center justify-center p-4 rounded-xl border border-dashed border-surface-border text-center text-xs text-on-ghost-muted">
-                  {{ t('dashboard.schedule_overview.no_substitutions') }}
+                <div
+                  v-else
+                  class="flex-1 flex items-center justify-center p-4 rounded-xl border border-dashed border-surface-border text-center text-xs text-on-ghost-muted"
+                >
+                  {{ t('common.dashboard.schedule_overview.no_substitutions') }}
                 </div>
               </template>
             </div>
