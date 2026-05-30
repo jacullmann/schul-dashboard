@@ -18,9 +18,11 @@ pub enum BusEvent {
     NewMessage {
         message: Value,
     },
+    #[serde(rename_all = "camelCase")]
     MessageDeleted {
         message_id: Uuid,
     },
+    #[serde(rename_all = "camelCase")]
     UserTyping {
         user_id: Uuid,
         sender_name: String,
@@ -88,7 +90,6 @@ async fn handle_socket(mut socket: WebSocket, state: AppState, token: Option<Str
         Err(_) => return,
     };
 
-    let active_group_id: Option<Uuid> = claims.g_id.as_deref().and_then(|s| s.parse().ok());
 
     let mut rx: Option<broadcast::Receiver<BusEvent>> = None;
 
@@ -102,11 +103,25 @@ async fn handle_socket(mut socket: WebSocket, state: AppState, token: Option<Str
                         if let Ok(event) = serde_json::from_str::<ClientEvent>(&text) {
                             match event {
                                 ClientEvent::JoinGroup { group_id } => {
-                                    if active_group_id == Some(group_id) {
+                                    let mut has_access = claims.g_role == "superadmin";
+                                    if !has_access {
+                                        let is_member = sqlx::query(
+                                            r#"SELECT 1 FROM user_roles WHERE user_id = $1 AND tenant_id = $2"#,
+                                        )
+                                        .bind(user_id)
+                                        .bind(group_id)
+                                        .fetch_optional(&state.db)
+                                        .await
+                                        .unwrap_or(None);
+
+                                        if is_member.is_some() {
+                                            has_access = true;
+                                        }
+                                    }
+
+                                    if has_access {
                                         let tx = state.message_bus.sender_for(group_id).await;
-
                                         rx = Some(tx.subscribe());
-
                                         joined_group = Some(group_id);
                                     }
                                 }
@@ -136,13 +151,26 @@ async fn handle_socket(mut socket: WebSocket, state: AppState, token: Option<Str
                 }
             }
             event = async {
-                if let Some(ref mut r) = rx { r.recv().await.ok() } else { None }
+                match rx.as_mut() {
+                    Some(r) => r.recv().await,
+                    None => std::future::pending().await,
+                }
             }, if rx.is_some() => {
-                if let Some(ev) = event
-                    && let Ok(json) = serde_json::to_string(&ev)
-                        && socket.send(Message::Text(json.into())).await.is_err() {
-                            break;
+                match event {
+                    Ok(ev) => {
+                        if let Ok(json) = serde_json::to_string(&ev) {
+                            if socket.send(Message::Text(json.into())).await.is_err() {
+                                break;
+                            }
                         }
+                    }
+                    Err(tokio::sync::broadcast::error::RecvError::Lagged(_)) => {
+                        // Skip lagged messages to avoid breaking connection
+                    }
+                    Err(tokio::sync::broadcast::error::RecvError::Closed) => {
+                        break;
+                    }
+                }
             }
         }
     }
