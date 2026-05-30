@@ -18,4 +18,3 @@ A web-based platform for schools and student groups.
 - Rust
 - PostgreSQL
 - Docker
-- 
