@@ -15,7 +15,7 @@ const props = defineProps<{
 const toast = useToast();
 const { checkAuthStatus } = useAppAuth();
 
-ref<Record<string, string>>({})
+const permissions = ref<Record<string, string>>({});
 
 const loading = ref(true);
 const saving = ref(false);
