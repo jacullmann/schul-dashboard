@@ -1,0 +1,42 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE reports\n               SET processed = $1,\n                   processed_at = CASE WHEN $1 THEN now() ELSE NULL END,\n                   processed_by = CASE WHEN $1 THEN $2::uuid ELSE NULL END\n               WHERE id = $3\n               RETURNING processed, processed_at",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "processed",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "reports",
+            "name": "processed"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "processed_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "reports",
+            "name": "processed_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Bool",
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      true
+    ]
+  },
+  "hash": "3846b4fab5d53a4535e0311310d6a54408327a19e8cdc91708a19a214d6f9304"
+}

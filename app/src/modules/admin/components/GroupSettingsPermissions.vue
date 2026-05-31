@@ -15,19 +15,7 @@ const props = defineProps<{
 const toast = useToast();
 const { checkAuthStatus } = useAppAuth();
 
-const permissions = ref<Record<string, string>>({
-  edit_group_general: 'moderator',
-  edit_subjects_courses: 'admin',
-  edit_schedule: 'admin',
-  create_items: 'user',
-  upload_images: 'user',
-  manage_notes: 'moderator',
-  send_messages: 'user',
-  manage_schedule_changes: 'moderator',
-  manage_announcements: 'moderator',
-  moderate_members: 'moderator',
-  delete_other_content: 'moderator',
-});
+ref<Record<string, string>>({})
 
 const loading = ref(true);
 const saving = ref(false);

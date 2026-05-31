@@ -1,0 +1,1 @@
+ALTER TABLE refresh_tokens ADD COLUMN role_version INTEGER NOT NULL DEFAULT 1;

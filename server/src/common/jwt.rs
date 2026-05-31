@@ -24,6 +24,8 @@ pub struct AccessClaims {
     pub g_id: Option<String>,
     pub iat: u64,
     pub exp: u64,
+    #[serde(default)]
+    pub rv: u32,
 }
 
 impl AccessClaims {
@@ -33,6 +35,7 @@ impl AccessClaims {
         global_role: String,
         active_group_id: Option<Uuid>,
         ttl: Duration,
+        role_version: u32,
     ) -> Self {
         let now = now_secs();
 
@@ -43,6 +46,7 @@ impl AccessClaims {
             g_id: active_group_id.map(|id| id.to_string()),
             iat: now,
             exp: now + ttl.as_secs(),
+            rv: role_version,
         }
     }
 }

@@ -1,4 +1,12 @@
-use crate::{config::ACCESS_COOKIE, error::AppError, state::AppState};
+use crate::{
+    common::{
+        permission::{GroupPermissions, Permission},
+        role::Role,
+    },
+    config::ACCESS_COOKIE,
+    error::AppError,
+    state::AppState,
+};
 use axum::{
     extract::{FromRef, FromRequestParts},
     http::request::Parts,
@@ -18,6 +26,11 @@ pub struct AuthUser {
 impl AuthUser {
     pub fn is_superadmin(&self) -> bool {
         self.global_role == "superadmin"
+    }
+
+    #[allow(dead_code)]
+    pub fn role(&self) -> Role {
+        Role::from_str_or_user(&self.global_role)
     }
 }
 
@@ -66,7 +79,7 @@ where
     AppState: FromRef<S>,
     S: Send + Sync,
 {
-    type Rejection = std::convert::Infallible;
+    type Rejection = Infallible;
 
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         Ok(OptionalAuth(
@@ -123,9 +136,9 @@ where
 #[derive(Debug, Clone)]
 pub struct TenantContext {
     pub tenant_id: Uuid,
-    pub tenant_role: String,
+    pub tenant_role: Role,
     pub group_owner_id: Option<Uuid>,
-    pub group_permissions: serde_json::Value,
+    pub group_permissions: GroupPermissions,
     pub user: AuthUser,
 }
 
@@ -136,8 +149,28 @@ impl TenantContext {
             .unwrap_or(false)
     }
 
+    pub fn can(&self, permission: Permission) -> bool {
+        if self.user.is_superadmin() {
+            return true;
+        }
+        if self.is_owner() {
+            return true;
+        }
+        let required = self.group_permissions.required_role(permission);
+        self.tenant_role.dominates(required)
+    }
+
     pub fn can_bypass_tenant_checks(&self) -> bool {
         self.user.is_superadmin() || self.is_owner()
+    }
+
+    #[allow(dead_code)]
+    pub fn effective_permission_keys(&self) -> Vec<&'static str> {
+        if self.can_bypass_tenant_checks() {
+            return Permission::ALL.iter().map(|p| p.as_str()).collect();
+        }
+        self.group_permissions
+            .allowed_keys_for_role(self.tenant_role)
     }
 }
 
@@ -179,9 +212,9 @@ where
 
             return Ok(TenantContext {
                 tenant_id,
-                tenant_role: "superadmin".into(),
+                tenant_role: Role::Superadmin,
                 group_owner_id: Some(row.owner_id),
-                group_permissions: row.permissions,
+                group_permissions: GroupPermissions::from_json_with_defaults(&row.permissions),
                 user,
             });
         }
@@ -204,9 +237,9 @@ where
 
         Ok(TenantContext {
             tenant_id,
-            tenant_role: row.role_name,
+            tenant_role: Role::from_str_or_user(&row.role_name),
             group_owner_id: Some(row.owner_id),
-            group_permissions: row.permissions,
+            group_permissions: GroupPermissions::from_json_with_defaults(&row.permissions),
             user,
         })
     }

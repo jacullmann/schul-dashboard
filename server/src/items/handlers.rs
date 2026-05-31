@@ -1,7 +1,14 @@
-use super::{dto::*, service::ItemsService};
+use super::{
+    dto::*,
+    service::{DeleteItemParams, ItemsService},
+};
 use crate::{
-    common::extractors::{AuthUser, TenantContext},
+    common::{
+        extractors::{AuthUser, TenantContext},
+        permission::Permission,
+    },
     error::AppResult,
+    require_permission,
     state::AppState,
 };
 use axum::{
@@ -44,6 +51,8 @@ pub async fn create_item(
     tc: TenantContext,
     Json(dto): Json<CreateItemDto>,
 ) -> AppResult<Json<Value>> {
+    require_permission!(tc, Permission::CreateItems);
+
     Ok(Json(
         ItemsService::from_state(&s)
             .create_item(tc.tenant_id, tc.user.user_id, &dto)
@@ -71,14 +80,13 @@ pub async fn delete_item(
 ) -> AppResult<Json<Value>> {
     Ok(Json(
         ItemsService::from_state(&s)
-            .delete_item(crate::items::service::DeleteItemParams {
+            .delete_item(DeleteItemParams {
                 tenant_id: tc.tenant_id,
                 id,
                 user_id: tc.user.user_id,
-                global_role: &tc.user.global_role,
-                tenant_role: &tc.tenant_role,
-                group_owner_id: tc.group_owner_id,
-                group_permissions: &tc.group_permissions,
+                is_superadmin: tc.user.is_superadmin(),
+                is_owner: tc.is_owner(),
+                can_delete_others: tc.can(Permission::DeleteOtherContent),
             })
             .await?,
     ))
@@ -90,6 +98,8 @@ pub async fn update_item_note(
     Path(id): Path<Uuid>,
     Json(dto): Json<UpdateEditorNoteDto>,
 ) -> AppResult<Json<Value>> {
+    require_permission!(tc, Permission::ManageNotes);
+
     Ok(Json(
         ItemsService::from_state(&s)
             .update_item_note(tc.tenant_id, id, tc.user.user_id, &dto.editor_note)
@@ -103,15 +113,11 @@ pub async fn add_image(
     Path(id): Path<Uuid>,
     Json(dto): Json<AddImageDto>,
 ) -> AppResult<Json<Value>> {
+    let can_upload = tc.can(Permission::UploadImages);
+
     Ok(Json(
         ItemsService::from_state(&s)
-            .add_image(
-                tc.tenant_id,
-                id,
-                tc.user.user_id,
-                &tc.user.global_role,
-                &dto,
-            )
+            .add_image(tc.tenant_id, id, tc.user.user_id, can_upload, &dto)
             .await?,
     ))
 }
@@ -123,13 +129,14 @@ pub async fn remove_image(
 ) -> AppResult<Json<Value>> {
     let decoded = urlencoding::decode(&public_id)
         .map_err(|_| crate::error::AppError::bad_request("Invalid public_id encoding"))?;
+
     Ok(Json(
         ItemsService::from_state(&s)
             .remove_image(
                 tc.tenant_id,
                 id,
                 tc.user.user_id,
-                &tc.user.global_role,
+                tc.user.is_superadmin(),
                 &decoded,
             )
             .await?,

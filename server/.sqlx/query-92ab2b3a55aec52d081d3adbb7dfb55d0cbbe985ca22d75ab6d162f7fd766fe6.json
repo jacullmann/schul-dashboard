@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO user_activity (user_id, type, meta)\n               VALUES ($1, 'admin:prune_logs', $2)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Jsonb"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "92ab2b3a55aec52d081d3adbb7dfb55d0cbbe985ca22d75ab6d162f7fd766fe6"
+}

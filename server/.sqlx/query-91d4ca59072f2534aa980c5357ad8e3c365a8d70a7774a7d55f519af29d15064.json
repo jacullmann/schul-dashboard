@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO user_activity (user_id, type, meta)\n               VALUES ($1, 'admin:unban:user', $2)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Jsonb"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "91d4ca59072f2534aa980c5357ad8e3c365a8d70a7774a7d55f519af29d15064"
+}

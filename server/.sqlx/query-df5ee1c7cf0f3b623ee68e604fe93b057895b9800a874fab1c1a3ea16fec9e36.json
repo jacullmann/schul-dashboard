@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO user_activity (user_id, type, meta)\n               VALUES ($1, 'group-admin:delete-group', $2)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Jsonb"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "df5ee1c7cf0f3b623ee68e604fe93b057895b9800a874fab1c1a3ea16fec9e36"
+}

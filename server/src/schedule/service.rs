@@ -15,12 +15,12 @@ impl ScheduleService {
     pub async fn get_schedule(&self, tenant_id: Uuid, user_id: Option<Uuid>) -> AppResult<Value> {
         let lessons = sqlx::query!(
             r#"SELECT s.id, s.day, s.slot, s.duration, s.room, s.course_id,
-                      sub.id as subject_id, sub.name as subject_name,
-                      c.id as course_id2, c.name as course_name
-               FROM schedules s
-               LEFT JOIN subjects sub ON sub.id = s.subject_id
-               LEFT JOIN courses c ON c.id = s.course_id
-               WHERE s.tenant_id = $1"#,
+          sub.id as "subject_id: Option<Uuid>", sub.name as subject_name,
+          c.id as "course_id2: Option<Uuid>", c.name as course_name
+   FROM schedules s
+   LEFT JOIN subjects sub ON sub.id = s.subject_id
+   LEFT JOIN courses c ON c.id = s.course_id
+   WHERE s.tenant_id = $1"#,
             tenant_id
         )
         .fetch_all(&self.db)

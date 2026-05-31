@@ -1,4 +1,5 @@
 use crate::{
+    common::role::Role,
     error::{AppError, AppResult},
     state::AppState,
 };
@@ -52,8 +53,12 @@ impl SuperAdminService {
                 .unwrap_or(0);
 
         let old_items = sqlx::query_scalar!(
-            r#"SELECT COUNT(*) FROM items WHERE tenant_id = $1 AND created_at < now() - interval '90 days'"#, tenant_id
-        ).fetch_one(&self.db).await?.unwrap_or(0);
+            r#"SELECT COUNT(*) FROM items WHERE tenant_id = $1 AND created_at < now() - interval '90 days'"#,
+            tenant_id
+        )
+            .fetch_one(&self.db)
+            .await?
+            .unwrap_or(0);
 
         let new_users_week = sqlx::query_scalar!(
             r#"SELECT COUNT(*) FROM users WHERE created_at >= now() - interval '7 days'"#
@@ -63,8 +68,12 @@ impl SuperAdminService {
         .unwrap_or(0);
 
         let new_items_week = sqlx::query_scalar!(
-            r#"SELECT COUNT(*) FROM items WHERE tenant_id = $1 AND created_at >= now() - interval '7 days'"#, tenant_id
-        ).fetch_one(&self.db).await?.unwrap_or(0);
+            r#"SELECT COUNT(*) FROM items WHERE tenant_id = $1 AND created_at >= now() - interval '7 days'"#,
+            tenant_id
+        )
+            .fetch_one(&self.db)
+            .await?
+            .unwrap_or(0);
 
         Ok(json!({
             "userCount": user_count, "itemCount": item_count,
@@ -81,8 +90,12 @@ impl SuperAdminService {
 
     pub async fn cleanup_old_items(&self, tenant_id: Uuid, user_id: Uuid) -> AppResult<Value> {
         let count = sqlx::query_scalar!(
-            r#"SELECT COUNT(*) FROM items WHERE tenant_id = $1 AND created_at < now() - interval '90 days'"#, tenant_id
-        ).fetch_one(&self.db).await?.unwrap_or(0);
+            r#"SELECT COUNT(*) FROM items WHERE tenant_id = $1 AND created_at < now() - interval '90 days'"#,
+            tenant_id
+        )
+            .fetch_one(&self.db)
+            .await?
+            .unwrap_or(0);
 
         sqlx::query!(
             r#"DELETE FROM items WHERE tenant_id = $1 AND created_at < now() - interval '90 days'"#,
@@ -93,8 +106,11 @@ impl SuperAdminService {
 
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'admin:cleanup:old_items', $2)"#,
-            user_id, json!({ "deletedCount": count })
-        ).execute(&self.db).await?;
+            user_id,
+            json!({ "deletedCount": count })
+        )
+            .execute(&self.db)
+            .await?;
 
         Ok(json!({ "ok": true, "deletedItems": count }))
     }
@@ -185,9 +201,12 @@ impl SuperAdminService {
 
     pub async fn get_user_activity(&self, user_id: Uuid) -> AppResult<Value> {
         let rows = sqlx::query!(
-            r#"SELECT type, meta, created_at FROM user_activity WHERE user_id = $1 ORDER BY created_at DESC LIMIT 200"#,
+            r#"SELECT type, meta, created_at FROM user_activity
+               WHERE user_id = $1 ORDER BY created_at DESC LIMIT 200"#,
             user_id
-        ).fetch_all(&self.db).await?;
+        )
+        .fetch_all(&self.db)
+        .await?;
 
         Ok(json!(
             rows.into_iter()
@@ -198,9 +217,12 @@ impl SuperAdminService {
 
     pub async fn ban_user(&self, target_id: Uuid, admin_id: Uuid) -> AppResult<Value> {
         let roles = sqlx::query!(
-            r#"SELECT r.name FROM user_roles ur JOIN roles r ON r.id = ur.role_id WHERE ur.user_id = $1"#,
+            r#"SELECT r.name FROM user_roles ur JOIN roles r ON r.id = ur.role_id
+               WHERE ur.user_id = $1"#,
             target_id
-        ).fetch_all(&self.db).await?;
+        )
+        .fetch_all(&self.db)
+        .await?;
 
         if roles.iter().any(|r| r.name == "superadmin") {
             return Err(AppError::bad_request("Admins cannot be banned."));
@@ -214,7 +236,8 @@ impl SuperAdminService {
         .await?;
 
         sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'admin:ban:user', $2)"#,
+            r#"INSERT INTO user_activity (user_id, type, meta)
+               VALUES ($1, 'admin:ban:user', $2)"#,
             admin_id,
             json!({ "targetUserId": target_id })
         )
@@ -230,21 +253,25 @@ impl SuperAdminService {
             .await?;
 
         sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'admin:unban:user', $2)"#,
+            r#"INSERT INTO user_activity (user_id, type, meta)
+               VALUES ($1, 'admin:unban:user', $2)"#,
             admin_id,
             json!({ "targetUserId": target_id })
         )
-            .execute(&self.db)
-            .await?;
+        .execute(&self.db)
+        .await?;
 
         Ok(json!({ "ok": true, "isBanned": false }))
     }
 
     pub async fn delete_user(&self, target_id: Uuid) -> AppResult<Value> {
         let roles = sqlx::query!(
-            r#"SELECT r.name FROM user_roles ur JOIN roles r ON r.id = ur.role_id WHERE ur.user_id = $1"#,
+            r#"SELECT r.name FROM user_roles ur JOIN roles r ON r.id = ur.role_id
+               WHERE ur.user_id = $1"#,
             target_id
-        ).fetch_all(&self.db).await?;
+        )
+        .fetch_all(&self.db)
+        .await?;
 
         if roles.iter().any(|r| r.name == "superadmin") {
             return Err(AppError::forbidden("Admins cannot be deleted."));
@@ -282,45 +309,73 @@ impl SuperAdminService {
             ));
         }
 
-        if role == "superadmin" {
+        if role == Role::Superadmin.as_str() {
             let exists = sqlx::query!(
-                r#"SELECT id FROM user_roles WHERE user_id = $1 AND role_id = 1 AND tenant_id IS NULL"#,
-                target_id
-            ).fetch_optional(&self.db).await?;
+                r#"SELECT id FROM user_roles
+                   WHERE user_id = $1 AND role_id = $2 AND tenant_id IS NULL"#,
+                target_id,
+                Role::Superadmin.db_id() as i32,
+            )
+            .fetch_optional(&self.db)
+            .await?;
 
             if exists.is_none() {
                 sqlx::query!(
-                    r#"INSERT INTO user_roles (user_id, role_id, tenant_id) VALUES ($1, 1, NULL)"#,
-                    target_id
+                    r#"INSERT INTO user_roles (user_id, role_id, tenant_id)
+                       VALUES ($1, $2, NULL)"#,
+                    target_id,
+                    Role::Superadmin.db_id() as i32,
                 )
                 .execute(&self.db)
                 .await?;
             }
         } else {
             sqlx::query!(
-                r#"DELETE FROM user_roles WHERE user_id = $1 AND role_id = 1 AND tenant_id IS NULL"#,
-                target_id
+                r#"DELETE FROM user_roles
+                   WHERE user_id = $1 AND role_id = $2 AND tenant_id IS NULL"#,
+                target_id,
+                Role::Superadmin.db_id() as i32,
             )
-                .execute(&self.db)
-                .await?;
+            .execute(&self.db)
+            .await?;
         }
+
+        sqlx::query!(
+            r#"UPDATE users SET role_version = role_version + 1 WHERE id = $1"#,
+            target_id
+        )
+        .execute(&self.db)
+        .await?;
+
+        sqlx::query!(
+            r#"INSERT INTO user_activity (user_id, type, meta)
+               VALUES ($1, 'admin:role_change', $2)"#,
+            admin_id,
+            json!({ "targetUserId": target_id, "newRole": role })
+        )
+        .execute(&self.db)
+        .await?;
 
         Ok(json!({ "ok": true }))
     }
 
     pub async fn prune_activity(&self, target_id: Uuid, admin_id: Uuid) -> AppResult<Value> {
         sqlx::query!(
-            r#"DELETE FROM user_activity WHERE user_id = $1 AND created_at < now() - interval '30 days'"#,
+            r#"DELETE FROM user_activity
+               WHERE user_id = $1 AND created_at < now() - interval '30 days'"#,
             target_id
-        ).execute(&self.db).await?;
+        )
+        .execute(&self.db)
+        .await?;
 
         sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'admin:prune_logs', $2)"#,
+            r#"INSERT INTO user_activity (user_id, type, meta)
+               VALUES ($1, 'admin:prune_logs', $2)"#,
             admin_id,
             json!({ "targetUserId": target_id })
         )
-            .execute(&self.db)
-            .await?;
+        .execute(&self.db)
+        .await?;
 
         Ok(json!({ "ok": true, "message": "Logs pruned." }))
     }
@@ -328,7 +383,8 @@ impl SuperAdminService {
     pub async fn get_reports(&self) -> AppResult<Value> {
         let rows = sqlx::query!(
             r#"SELECT id, item_id, item_title, category, reason, reporter_id, reporter_email,
-                      processed, processed_at, reported_at FROM reports ORDER BY created_at DESC"#
+                      processed, processed_at, reported_at
+               FROM reports ORDER BY created_at DESC"#
         )
         .fetch_all(&self.db)
         .await?;
@@ -353,10 +409,12 @@ impl SuperAdminService {
         processed: bool,
     ) -> AppResult<Value> {
         let row = sqlx::query!(
-            r#"UPDATE reports SET processed = $1,
-   processed_at = CASE WHEN $1 THEN now() ELSE NULL END,
-   processed_by = CASE WHEN $1 THEN $2::uuid ELSE NULL END
-   WHERE id = $3 RETURNING processed, processed_at"#,
+            r#"UPDATE reports
+               SET processed = $1,
+                   processed_at = CASE WHEN $1 THEN now() ELSE NULL END,
+                   processed_by = CASE WHEN $1 THEN $2::uuid ELSE NULL END
+               WHERE id = $3
+               RETURNING processed, processed_at"#,
             processed,
             admin_id as Uuid,
             report_id
@@ -387,9 +445,13 @@ impl SuperAdminService {
             .await?;
 
         sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'admin:report:delete', $2)"#,
-            admin_id, json!({ "reportId": report_id })
-        ).execute(&self.db).await?;
+            r#"INSERT INTO user_activity (user_id, type, meta)
+               VALUES ($1, 'admin:report:delete', $2)"#,
+            admin_id,
+            json!({ "reportId": report_id })
+        )
+        .execute(&self.db)
+        .await?;
 
         Ok(json!({ "ok": true }))
     }

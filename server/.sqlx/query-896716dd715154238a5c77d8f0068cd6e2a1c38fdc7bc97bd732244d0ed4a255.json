@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO group_bans (user_id, tenant_id, banned_by)\n                   VALUES ($1, $2, $3)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "896716dd715154238a5c77d8f0068cd6e2a1c38fdc7bc97bd732244d0ed4a255"
+}

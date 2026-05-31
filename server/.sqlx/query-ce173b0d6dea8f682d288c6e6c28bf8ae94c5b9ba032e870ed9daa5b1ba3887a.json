@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO user_activity (user_id, type, meta)\n               VALUES ($1, 'group-admin:rename', $2)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Jsonb"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "ce173b0d6dea8f682d288c6e6c28bf8ae94c5b9ba032e870ed9daa5b1ba3887a"
+}

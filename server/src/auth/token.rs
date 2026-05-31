@@ -93,6 +93,11 @@ impl TokenService {
             .await?;
         }
 
+        let role_version =
+            sqlx::query_scalar!(r#"SELECT role_version FROM users WHERE id = $1"#, p.user_id)
+                .fetch_one(&self.db)
+                .await?;
+
         let refresh_token = generate_opaque_token();
 
         let token_hash = hash_token(&refresh_token);
@@ -110,8 +115,9 @@ impl TokenService {
 
         sqlx::query!(
             r#"INSERT INTO refresh_tokens
-                (user_id, token_hash, family_id, parent_id, expires_at, user_agent, ip_address)
-               VALUES ($1, $2, $3, $4, $5, $6, $7::inet)"#,
+                (user_id, token_hash, family_id, parent_id, expires_at,
+                 user_agent, ip_address, role_version)
+               VALUES ($1, $2, $3, $4, $5, $6, $7::inet, $8)"#,
             p.user_id,
             token_hash,
             family_id,
@@ -119,6 +125,7 @@ impl TokenService {
             expires_at,
             ua,
             ip_parsed,
+            role_version,
         )
         .execute(&self.db)
         .await?;
@@ -129,6 +136,7 @@ impl TokenService {
             p.global_role.to_string(),
             p.active_group_id,
             ACCESS_TOKEN_TTL,
+            role_version as u32,
         );
         let access_token = self
             .jwt
@@ -150,7 +158,7 @@ impl TokenService {
         let hash = hash_token(presented_token);
 
         let row = sqlx::query!(
-            r#"SELECT id, user_id, family_id, used_at, revoked_at, expires_at
+            r#"SELECT id, user_id, family_id, used_at, revoked_at, expires_at, role_version
                FROM refresh_tokens WHERE token_hash = $1"#,
             hash
         )
@@ -204,6 +212,16 @@ impl TokenService {
             }
             Some(u) => u,
         };
+
+        if row.role_version != user.role_version {
+            tracing::info!(
+                "Role version mismatch for user {} (token: {}, db: {}) – denying rotate",
+                row.user_id,
+                row.role_version,
+                user.role_version,
+            );
+            return Ok(None);
+        }
 
         let issued = self
             .issue_pair(IssueTokenParams {
@@ -342,9 +360,12 @@ impl TokenService {
     }
 
     async fn load_user_claims(&self, user_id: Uuid) -> Result<Option<UserClaims>, AppError> {
-        let user = sqlx::query!(r#"SELECT id, email FROM users WHERE id = $1"#, user_id)
-            .fetch_optional(&self.db)
-            .await?;
+        let user = sqlx::query!(
+            r#"SELECT id, email, role_version FROM users WHERE id = $1"#,
+            user_id
+        )
+        .fetch_optional(&self.db)
+        .await?;
 
         let user = match user {
             None => return Ok(None),
@@ -385,6 +406,7 @@ impl TokenService {
             email: user.email,
             global_role,
             active_group_id,
+            role_version: user.role_version,
         }))
     }
 }
@@ -395,6 +417,7 @@ struct UserClaims {
     email: String,
     global_role: String,
     active_group_id: Option<Uuid>,
+    role_version: i32,
 }
 
 #[derive(Debug, serde::Serialize)]

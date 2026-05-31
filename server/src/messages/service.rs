@@ -1,5 +1,5 @@
 use crate::{
-    common::{name_generator::generate_user_name, permission::check_role_permission},
+    common::name_generator::generate_user_name,
     error::{AppError, AppResult},
     state::AppState,
 };
@@ -18,9 +18,13 @@ impl MessagesService {
 
     pub async fn get_messages(&self, tenant_id: Uuid, user_id: Uuid) -> AppResult<Value> {
         let state = sqlx::query!(
-            r#"SELECT last_messages_visit_at FROM user_tenant_state WHERE user_id = $1 AND tenant_id = $2"#,
-            user_id, tenant_id
-        ).fetch_optional(&self.db).await?;
+            r#"SELECT last_messages_visit_at
+               FROM user_tenant_state WHERE user_id = $1 AND tenant_id = $2"#,
+            user_id,
+            tenant_id
+        )
+        .fetch_optional(&self.db)
+        .await?;
 
         let last_visit_at = state.and_then(|s| s.last_messages_visit_at);
 
@@ -46,8 +50,8 @@ impl MessagesService {
         tokio::spawn(async move {
             let _ = sqlx::query!(
                 r#"INSERT INTO user_tenant_state (user_id, tenant_id, last_messages_visit_at)
-                 VALUES ($1, $2, now()) ON CONFLICT (user_id, tenant_id)
-                 DO UPDATE SET last_messages_visit_at = now()"#,
+                   VALUES ($1, $2, now()) ON CONFLICT (user_id, tenant_id)
+                   DO UPDATE SET last_messages_visit_at = now()"#,
                 user_id,
                 tenant_id
             )
@@ -70,7 +74,8 @@ impl MessagesService {
 
         if !parent_ids.is_empty() {
             let parents = sqlx::query!(
-                r#"SELECT id, user_id, content, tenant_id FROM group_messages WHERE id = ANY($1)"#,
+                r#"SELECT id, user_id, content, tenant_id
+                   FROM group_messages WHERE id = ANY($1)"#,
                 &parent_ids
             )
             .fetch_all(&self.db)
@@ -115,8 +120,8 @@ impl MessagesService {
     pub async fn mark_read(&self, tenant_id: Uuid, user_id: Uuid) -> AppResult<()> {
         sqlx::query!(
             r#"INSERT INTO user_tenant_state (user_id, tenant_id, last_messages_visit_at)
-             VALUES ($1, $2, now()) ON CONFLICT (user_id, tenant_id)
-             DO UPDATE SET last_messages_visit_at = now()"#,
+               VALUES ($1, $2, now()) ON CONFLICT (user_id, tenant_id)
+               DO UPDATE SET last_messages_visit_at = now()"#,
             user_id,
             tenant_id
         )
@@ -130,36 +135,13 @@ impl MessagesService {
         &self,
         tenant_id: Uuid,
         user_id: Uuid,
-        tenant_role: Option<&str>,
-        global_role: &str,
         content: &str,
         parent_id: Option<Uuid>,
     ) -> AppResult<Value> {
-        let group = sqlx::query!(
-            r#"SELECT permissions, owner_id FROM groups WHERE id = $1"#,
-            tenant_id
-        )
-        .fetch_optional(&self.db)
-        .await?
-        .ok_or_else(|| AppError::not_found("Group not found"))?;
-
-        if global_role != "superadmin" && group.owner_id != user_id {
-            let allowed = group.permissions["send_messages"]
-                .as_str()
-                .map(String::from)
-                .unwrap_or_else(|| "user".to_string());
-
-            if !check_role_permission(tenant_role.unwrap_or("user"), &allowed) {
-                return Err(AppError::forbidden(
-                    "Keine Berechtigung zum Senden von Nachrichten.",
-                ));
-            }
-        }
-
         let msg = sqlx::query!(
             r#"INSERT INTO group_messages (tenant_id, user_id, content, parent_id)
-             VALUES ($1, $2, $3, $4)
-             RETURNING id, tenant_id, user_id, content, parent_id, created_at, updated_at"#,
+               VALUES ($1, $2, $3, $4)
+               RETURNING id, tenant_id, user_id, content, parent_id, created_at, updated_at"#,
             tenant_id,
             user_id,
             content.trim(),
@@ -169,7 +151,6 @@ impl MessagesService {
         .await?;
 
         let sender = generate_user_name(&msg.user_id.to_string(), &msg.tenant_id.to_string());
-
         let mut v = json!({
             "id": msg.id, "tenantId": msg.tenant_id, "userId": msg.user_id,
             "senderName": sender, "content": msg.content,
@@ -199,9 +180,8 @@ impl MessagesService {
         &self,
         tenant_id: Uuid,
         user_id: Uuid,
-        tenant_role: Option<&str>,
-        global_role: &str,
         message_id: Uuid,
+        caller_can_delete_others: bool,
     ) -> AppResult<()> {
         let msg = sqlx::query!(
             r#"SELECT user_id FROM group_messages WHERE id = $1 AND tenant_id = $2"#,
@@ -212,25 +192,8 @@ impl MessagesService {
         .await?
         .ok_or_else(|| AppError::not_found("Nachricht nicht gefunden"))?;
 
-        if msg.user_id != user_id && global_role != "superadmin" {
-            let group = sqlx::query!(
-                r#"SELECT permissions, owner_id FROM groups WHERE id = $1"#,
-                tenant_id
-            )
-            .fetch_optional(&self.db)
-            .await?
-            .ok_or_else(|| AppError::not_found("Group not found"))?;
-
-            if group.owner_id != user_id {
-                let allowed = group.permissions["delete_other_content"]
-                    .as_str()
-                    .map(String::from)
-                    .unwrap_or_else(|| "moderator".to_string());
-
-                if !check_role_permission(tenant_role.unwrap_or("user"), &allowed) {
-                    return Err(AppError::forbidden("Keine Berechtigung zum Löschen."));
-                }
-            }
+        if msg.user_id != user_id && !caller_can_delete_others {
+            return Err(AppError::forbidden("Keine Berechtigung zum Löschen."));
         }
 
         sqlx::query!(

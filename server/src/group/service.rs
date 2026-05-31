@@ -3,7 +3,10 @@ use crate::{
         cookies::*,
         token::{LOGOUT, TokenService},
     },
-    common::{csrf::generate_csrf_token, password::verify_password},
+    common::{
+        csrf::generate_csrf_token, password::verify_password, permission::GroupPermissions,
+        role::Role,
+    },
     error::{AppError, AppResult},
     state::AppState,
 };
@@ -152,8 +155,9 @@ impl GroupService {
 
         if existing.is_none() {
             sqlx::query!(
-                r#"INSERT INTO user_roles (user_id, role_id, tenant_id) VALUES ($1, 4, $2)"#,
+                r#"INSERT INTO user_roles (user_id, role_id, tenant_id) VALUES ($1, $2, $3)"#,
                 user_id,
+                Role::User.db_id() as i32,
                 g.id
             )
             .execute(&self.db)
@@ -202,8 +206,9 @@ impl GroupService {
         ).fetch_one(&self.db).await?;
 
         sqlx::query!(
-            r#"INSERT INTO user_roles (user_id, role_id, tenant_id) VALUES ($1, 2, $2)"#,
+            r#"INSERT INTO user_roles (user_id, role_id, tenant_id) VALUES ($1, $2, $3)"#,
             user_id,
+            Role::Admin.db_id() as i32,
             group.id
         )
         .execute(&self.db)
@@ -282,6 +287,28 @@ impl GroupService {
             None
         };
 
+        let active_permission_keys: Vec<&'static str> = if let Some(ref g) = active_group {
+            let is_superadmin = global_role == Some("superadmin");
+            let is_owner = g["ownerId"].as_str() == Some(&uid.to_string());
+
+            if is_superadmin || is_owner {
+                crate::common::permission::Permission::ALL
+                    .iter()
+                    .map(|p| p.as_str())
+                    .collect()
+            } else {
+                let tenant_role = g["role"]
+                    .as_str()
+                    .map(Role::from_str_or_user)
+                    .unwrap_or(Role::User);
+                let raw_perms = g.get("permissions").cloned().unwrap_or(json!({}));
+                let perms = GroupPermissions::from_json_with_defaults(&raw_perms);
+                perms.allowed_keys_for_role(tenant_role)
+            }
+        } else {
+            vec![]
+        };
+
         Ok(json!({
             "authenticated": true,
             "group": active_group.map(|g| json!({
@@ -289,6 +316,7 @@ impl GroupService {
                 "avatarUrl": g["avatarUrl"], "permissions": g["permissions"],
             })),
             "groups": groups,
+            "activePermissions": active_permission_keys,
         }))
     }
 

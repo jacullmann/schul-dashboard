@@ -13,6 +13,10 @@ const activeGroupOwnerId = ref<string | null>(null);
 const activeGroupAvatarUrl = ref<string | null>(null);
 const activeGroupPermissions = ref<Record<string, string>>({});
 
+import type { PermissionKey } from "@/types/permissions.ts";
+
+const activePermissions = ref<Set<PermissionKey>>(new Set());
+
 type UserGroup = {
   id: string;
   name: string;
@@ -52,6 +56,7 @@ function clearAuthState(): void {
   activeGroupOwnerId.value = null;
   activeGroupAvatarUrl.value = null;
   activeGroupPermissions.value = {};
+  activePermissions.value = new Set();
   userGroups.value = [];
   statusPromise = null;
   try {
@@ -69,6 +74,7 @@ function applyStatusData(data: {
     permissions?: Record<string, string>;
   } | null;
   groups?: UserGroup[];
+  activePermissions?: string[];
 }): void {
   isLoggedIn.value = data.authenticated;
   isAuthenticated.value = data.authenticated;
@@ -78,6 +84,10 @@ function applyStatusData(data: {
   activeGroupAvatarUrl.value = data.group?.avatarUrl ?? null;
   activeGroupPermissions.value = data.group?.permissions ?? {};
   userGroups.value = data.groups ?? [];
+
+  activePermissions.value = new Set<PermissionKey>(
+      (data.activePermissions ?? []).filter(isPermissionKey),
+  );
 }
 
 function installAuthExpiredHandlerOnce(): void {
@@ -104,9 +114,9 @@ async function doInitAuth(): Promise<void> {
 }
 
 async function doSwitchGroup(
-  groupId: string,
-  snapshot: GroupSnapshot,
-  checkAuthStatus: () => Promise<boolean>,
+    groupId: string,
+    snapshot: GroupSnapshot,
+    checkAuthStatus: () => Promise<boolean>,
 ): Promise<AuthResult> {
   try {
     const { status, data } = await hw.post('/groups/switch', { groupId });
@@ -114,7 +124,7 @@ async function doSwitchGroup(
     if ((status === 200 || status === 201) && data.ok) {
       await checkAuthStatus();
       window.dispatchEvent(
-        new CustomEvent('tenant-changed', { detail: { groupId } }),
+          new CustomEvent('tenant-changed', { detail: { groupId } }),
       );
       return { ok: true };
     }
@@ -134,15 +144,32 @@ async function doSwitchGroup(
     return {
       ok: false,
       error:
-        err.response?.data?.message ??
-        err.response?.data?.error ??
-        err.message ??
-        'Group switch failed.',
+          err.response?.data?.message ??
+          err.response?.data?.error ??
+          err.message ??
+          'Group switch failed.',
     };
   } finally {
     switchPromise = null;
     switchTarget = null;
   }
+}
+
+function isPermissionKey(s: string): s is PermissionKey {
+  const valid: readonly string[] = [
+    'edit_group_general',
+    'edit_subjects_courses',
+    'edit_schedule',
+    'create_items',
+    'upload_images',
+    'manage_notes',
+    'send_messages',
+    'manage_schedule_changes',
+    'manage_announcements',
+    'moderate_members',
+    'delete_other_content',
+  ] satisfies PermissionKey[];
+  return valid.includes(s);
 }
 
 export function useAppAuth() {
@@ -175,8 +202,8 @@ export function useAppAuth() {
   }
 
   async function joinGroup(
-    name: string,
-    password: string,
+      name: string,
+      password: string,
   ): Promise<AuthResult> {
     try {
       const { status, data } = await hw.post('/groups/join', {
@@ -195,16 +222,16 @@ export function useAppAuth() {
       return {
         ok: false,
         error:
-          err.response?.data?.message ??
-          err.response?.data?.error ??
-          'Invalid code.',
+            err.response?.data?.message ??
+            err.response?.data?.error ??
+            'Invalid code.',
       };
     }
   }
 
   async function createGroup(
-    name: string,
-    password: string,
+      name: string,
+      password: string,
   ): Promise<AuthResult> {
     try {
       const { status, data } = await hw.post('/groups/create', {
@@ -223,9 +250,9 @@ export function useAppAuth() {
       return {
         ok: false,
         error:
-          err.response?.data?.message ??
-          err.response?.data?.error ??
-          'An error occurred.',
+            err.response?.data?.message ??
+            err.response?.data?.error ??
+            'An error occurred.',
       };
     }
   }
@@ -273,48 +300,19 @@ export function useAppAuth() {
   const activeScheduleConfig = computed(() => {
     if (!activeGroupId.value) return null;
     const activeGroup = userGroups.value.find(
-      (g) => g.id === activeGroupId.value,
+        (g) => g.id === activeGroupId.value,
     );
     return activeGroup?.scheduleConfig ?? null;
   });
 
-  function checkPermission(permissionKey: string): boolean {
+  function checkPermission(permissionKey: PermissionKey): boolean {
     const userStore = useUserStore();
+
     if (userStore.user?.role === 'superadmin') return true;
 
-    const activeGroup = userGroups.value.find(
-      (g) => g.id === activeGroupId.value,
-    );
-    if (!activeGroup) return false;
+    if (activeGroupOwnerId.value && userStore.user?.id === activeGroupOwnerId.value) return true;
 
-    if (activeGroupOwnerId.value === userStore.user?.id) return true;
-
-    const userRole = activeGroup.role;
-    if (userRole === 'admin') return true;
-
-    const defaultPermissions: Record<string, string> = {
-      edit_group_general: 'moderator',
-      edit_subjects_courses: 'admin',
-      edit_schedule: 'admin',
-      create_items: 'user',
-      upload_images: 'user',
-      manage_notes: 'moderator',
-      send_messages: 'user',
-      manage_schedule_changes: 'moderator',
-      manage_announcements: 'moderator',
-      moderate_members: 'moderator',
-      delete_other_content: 'moderator',
-    };
-
-    const requiredRole =
-      activeGroupPermissions.value[permissionKey] ||
-      defaultPermissions[permissionKey] ||
-      'admin';
-
-    if (requiredRole === 'user') return true;
-    if (requiredRole === 'moderator') return userRole === 'moderator';
-    if (requiredRole === 'admin') return false;
-    return false;
+    return activePermissions.value.has(permissionKey);
   }
 
   return {
@@ -326,6 +324,7 @@ export function useAppAuth() {
     activeGroupOwnerId,
     activeGroupAvatarUrl,
     activeGroupPermissions,
+    activePermissions,
     activeScheduleConfig,
     userGroups,
     initAuth,

@@ -1,5 +1,4 @@
 use crate::{
-    common::permission::check_role_permission,
     error::{AppError, AppResult},
     state::AppState,
 };
@@ -25,14 +24,13 @@ fn time_left_color(due: Option<&chrono::DateTime<Utc>>) -> &'static str {
     }
 }
 
-pub struct DeleteItemParams<'a> {
+pub struct DeleteItemParams {
     pub tenant_id: Uuid,
     pub id: Uuid,
     pub user_id: Uuid,
-    pub global_role: &'a str,
-    pub tenant_role: &'a str,
-    pub group_owner_id: Option<Uuid>,
-    pub group_permissions: &'a Value,
+    pub is_superadmin: bool,
+    pub is_owner: bool,
+    pub can_delete_others: bool,
 }
 
 pub struct ItemsService {
@@ -161,7 +159,7 @@ impl ItemsService {
             "images": row.images, "dueDate": row.due_date,
             "createdBy": row.created_by,
             "createdByEmail": row.creator_email.unwrap_or_else(|| "Unbekannt".into()),
-            "timeColor": time_left_color(Some(&row.due_date)),
+            "timeColor": time_left_color(row.due_date.as_ref()),
             "editorNote": row.editor_note, "createdAt": row.created_at, "updatedAt": row.updated_at,
         }))
     }
@@ -258,6 +256,7 @@ impl ItemsService {
             let parsed = due
                 .parse::<chrono::DateTime<Utc>>()
                 .map_err(|_| AppError::bad_request("Invalid due_date"))?;
+
             sqlx::query!(
                 r#"UPDATE items SET due_date = $1 WHERE id = $2"#,
                 parsed,
@@ -297,7 +296,7 @@ impl ItemsService {
         tenant_id: Uuid,
         item_id: Uuid,
         user_id: Uuid,
-        global_role: &str,
+        can_upload: bool,
         dto: &crate::items::dto::AddImageDto,
     ) -> AppResult<Value> {
         let item = sqlx::query!(
@@ -309,7 +308,7 @@ impl ItemsService {
         .await?
         .ok_or_else(|| AppError::not_found("Item not found."))?;
 
-        if item.created_by != user_id && global_role != "superadmin" {
+        if item.created_by != user_id && !can_upload {
             return Err(AppError::forbidden("Only the creator can add images."));
         }
 
@@ -356,7 +355,7 @@ impl ItemsService {
         tenant_id: Uuid,
         item_id: Uuid,
         user_id: Uuid,
-        global_role: &str,
+        is_superadmin: bool,
         public_id: &str,
     ) -> AppResult<Value> {
         let item = sqlx::query!(
@@ -382,13 +381,7 @@ impl ItemsService {
             .as_str()
             .and_then(|s| s.parse::<Uuid>().ok());
 
-        let is_item_creator = item.created_by == user_id;
-
-        let is_image_uploader = image_uploader == Some(user_id);
-
-        let is_superadmin = global_role == "superadmin";
-
-        if !is_item_creator && !is_image_uploader && !is_superadmin {
+        if item.created_by != user_id && image_uploader != Some(user_id) && !is_superadmin {
             return Err(AppError::forbidden("Not authorized to delete this image."));
         }
 
@@ -407,7 +400,8 @@ impl ItemsService {
 
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:image:remove', $2)"#,
-            user_id, json!({ "itemId": item_id, "publicId": public_id })
+            user_id,
+            json!({ "itemId": item_id, "publicId": public_id })
         )
             .execute(&self.db)
             .await?;
@@ -415,7 +409,7 @@ impl ItemsService {
         Ok(json!({ "ok": true }))
     }
 
-    pub async fn delete_item(&self, params: DeleteItemParams<'_>) -> AppResult<Value> {
+    pub async fn delete_item(&self, params: DeleteItemParams) -> AppResult<Value> {
         let item = sqlx::query!(
             r#"SELECT id, created_by FROM items WHERE id = $1 AND tenant_id = $2"#,
             params.id,
@@ -426,16 +420,9 @@ impl ItemsService {
         .ok_or_else(|| AppError::not_found("Not found."))?;
 
         let is_creator = item.created_by == params.user_id;
-        let is_superadmin = params.global_role == "superadmin";
-        let is_owner = params.group_owner_id == Some(params.user_id);
 
-        if !is_creator && !is_superadmin && !is_owner {
-            let required = params.group_permissions["delete_other_content"]
-                .as_str()
-                .unwrap_or("moderator");
-            if !check_role_permission(params.tenant_role, required) {
-                return Err(AppError::forbidden("Nicht autorisiert."));
-            }
+        if !is_creator && !params.is_superadmin && !params.is_owner && !params.can_delete_others {
+            return Err(AppError::forbidden("Nicht autorisiert."));
         }
 
         sqlx::query!(
@@ -545,7 +532,6 @@ impl ItemsService {
         let mut hasher = Sha256::new();
 
         hasher.update(to_sign.as_bytes());
-
         let sig = hex::encode(hasher.finalize());
 
         json!({

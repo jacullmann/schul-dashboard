@@ -1,0 +1,136 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, lesson_id, day, slot, duration, subject, room,\n                      cancelled, hide, created_at\n               FROM schedule_subs WHERE tenant_id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "schedule_subs",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "lesson_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "schedule_subs",
+            "name": "lesson_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "day",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "schedule_subs",
+            "name": "day"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "slot",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "schedule_subs",
+            "name": "slot"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "duration",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "schedule_subs",
+            "name": "duration"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "subject",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "schedule_subs",
+            "name": "subject"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "room",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "schedule_subs",
+            "name": "room"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "cancelled",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "schedule_subs",
+            "name": "cancelled"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "hide",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "schedule_subs",
+            "name": "hide"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "schedule_subs",
+            "name": "created_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "0bad517553ecb0f28305f57228dc10e832c72529e84c68ba0323bf737a5138dd"
+}

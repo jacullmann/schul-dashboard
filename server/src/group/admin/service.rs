@@ -1,5 +1,9 @@
 use crate::{
-    common::password::{hash_password, verify_password},
+    common::{
+        password::{hash_password, verify_password},
+        permission::GroupPermissions,
+        role::Role,
+    },
     error::{AppError, AppResult},
     group::dto::CreateScheduleSubDto,
     state::AppState,
@@ -35,9 +39,13 @@ impl GroupAdminService {
         .unwrap_or(0);
 
         let old_items = sqlx::query_scalar!(
-            r#"SELECT COUNT(*) FROM items WHERE tenant_id = $1 AND created_at < now() - interval '90 days'"#,
+            r#"SELECT COUNT(*) FROM items
+               WHERE tenant_id = $1 AND created_at < now() - interval '90 days'"#,
             tenant_id
-        ).fetch_one(&self.db).await?.unwrap_or(0);
+        )
+        .fetch_one(&self.db)
+        .await?
+        .unwrap_or(0);
 
         let subs = sqlx::query_scalar!(
             r#"SELECT COUNT(*) FROM schedule_subs WHERE tenant_id = $1"#,
@@ -47,9 +55,10 @@ impl GroupAdminService {
         .await?
         .unwrap_or(0);
 
-        Ok(
-            json!({ "itemCount": item_count, "subsCount": subs, "oldItemsCount": old_items, "memberCount": member_count }),
-        )
+        Ok(json!({
+            "itemCount": item_count, "subsCount": subs,
+            "oldItemsCount": old_items, "memberCount": member_count,
+        }))
     }
 
     pub async fn get_members(&self, tenant_id: Uuid) -> AppResult<Value> {
@@ -64,20 +73,11 @@ impl GroupAdminService {
 
         let mut members: Vec<Value> = rows
             .into_iter()
-            .map(|r| {
-                json!({
-                    "userId": r.user_id, "role": r.role_name, "joinedAt": r.assigned_at,
-                })
-            })
+            .map(|r| json!({ "userId": r.user_id, "role": r.role_name, "joinedAt": r.assigned_at }))
             .collect();
 
-        let role_order = |r: &str| match r {
-            "admin" => 0,
-            "moderator" => 1,
-            _ => 2,
-        };
-
-        members.sort_by_key(|m| role_order(m["role"].as_str().unwrap_or("user")));
+        members
+            .sort_by_key(|m| Role::from_str_or_user(m["role"].as_str().unwrap_or("user")).db_id());
 
         Ok(json!(members))
     }
@@ -112,9 +112,13 @@ impl GroupAdminService {
         .await?;
 
         sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'group-admin:revert-ban', $2)"#,
-            current_user_id, json!({ "targetUserId": target, "tenantId": tenant_id })
-        ).execute(&self.db).await?;
+            r#"INSERT INTO user_activity (user_id, type, meta)
+               VALUES ($1, 'group-admin:revert-ban', $2)"#,
+            current_user_id,
+            json!({ "targetUserId": target, "tenantId": tenant_id })
+        )
+        .execute(&self.db)
+        .await?;
 
         Ok(json!({ "ok": true }))
     }
@@ -130,12 +134,9 @@ impl GroupAdminService {
             return Err(AppError::bad_request("You cannot change your own role."));
         }
 
-        let role_id: i32 = match role {
-            "admin" => 2,
-            "moderator" => 3,
-            "user" => 4,
-            _ => return Err(AppError::bad_request("Invalid role")),
-        };
+        let role_enum = Role::from_str(role)
+            .filter(|r| matches!(r, Role::Admin | Role::Moderator | Role::User))
+            .ok_or_else(|| AppError::bad_request("Invalid role"))?;
 
         let existing = sqlx::query!(
             r#"SELECT id FROM user_roles WHERE user_id = $1 AND tenant_id = $2"#,
@@ -148,16 +149,20 @@ impl GroupAdminService {
 
         sqlx::query!(
             r#"UPDATE user_roles SET role_id = $1 WHERE id = $2"#,
-            role_id,
+            role_enum.db_id() as i32,
             existing.id
         )
         .execute(&self.db)
         .await?;
 
         sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'group-admin:change-role', $2)"#,
-            current_user_id, json!({ "targetUserId": target, "newRole": role })
-        ).execute(&self.db).await?;
+            r#"INSERT INTO user_activity (user_id, type, meta)
+               VALUES ($1, 'group-admin:change-role', $2)"#,
+            current_user_id,
+            json!({ "targetUserId": target, "newRole": role })
+        )
+        .execute(&self.db)
+        .await?;
 
         Ok(json!({ "ok": true }))
     }
@@ -192,7 +197,7 @@ impl GroupAdminService {
         .await?
         .ok_or_else(|| AppError::not_found("User is not a member"))?;
 
-        if target_role.name == "admin" && group.owner_id != current_user_id {
+        if target_role.name == Role::Admin.as_str() && group.owner_id != current_user_id {
             return Err(AppError::forbidden(
                 "Admins can only be removed by the owner.",
             ));
@@ -208,7 +213,8 @@ impl GroupAdminService {
 
         if ban {
             sqlx::query!(
-                r#"INSERT INTO group_bans (user_id, tenant_id, banned_by) VALUES ($1, $2, $3)"#,
+                r#"INSERT INTO group_bans (user_id, tenant_id, banned_by)
+                   VALUES ($1, $2, $3)"#,
                 target,
                 tenant_id,
                 current_user_id
@@ -218,9 +224,13 @@ impl GroupAdminService {
         }
 
         sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'group-admin:remove-member', $2)"#,
-            current_user_id, json!({ "targetUserId": target })
-        ).execute(&self.db).await?;
+            r#"INSERT INTO user_activity (user_id, type, meta)
+               VALUES ($1, 'group-admin:remove-member', $2)"#,
+            current_user_id,
+            json!({ "targetUserId": target })
+        )
+        .execute(&self.db)
+        .await?;
 
         Ok(json!({ "ok": true }))
     }
@@ -246,20 +256,14 @@ impl GroupAdminService {
             ));
         }
 
-        let role = sqlx::query!(
-            r#"SELECT r.name FROM user_roles ur JOIN roles r ON r.id = ur.role_id
-               WHERE ur.user_id = $1 AND ur.tenant_id = $2"#,
+        sqlx::query!(
+            r#"SELECT id FROM user_roles WHERE user_id = $1 AND tenant_id = $2"#,
             target,
             tenant_id
         )
         .fetch_optional(&self.db)
-        .await?;
-
-        if role.map(|r| r.name).as_deref() != Some("admin") {
-            return Err(AppError::bad_request(
-                "The new owner must be an administrator.",
-            ));
-        }
+        .await?
+        .ok_or_else(|| AppError::not_found("Target user is not a member."))?;
 
         sqlx::query!(
             r#"UPDATE groups SET owner_id = $1 WHERE id = $2"#,
@@ -270,9 +274,33 @@ impl GroupAdminService {
         .await?;
 
         sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'group-admin:transfer-ownership', $2)"#,
-            current_user_id, json!({ "targetUserId": target })
-        ).execute(&self.db).await?;
+            r#"UPDATE user_roles SET role_id = $1
+               WHERE user_id = $2 AND tenant_id = $3"#,
+            Role::Admin.db_id() as i32,
+            current_user_id,
+            tenant_id
+        )
+        .execute(&self.db)
+        .await?;
+
+        sqlx::query!(
+            r#"UPDATE user_roles SET role_id = $1
+               WHERE user_id = $2 AND tenant_id = $3"#,
+            Role::Admin.db_id() as i32,
+            target,
+            tenant_id
+        )
+        .execute(&self.db)
+        .await?;
+
+        sqlx::query!(
+            r#"INSERT INTO user_activity (user_id, type, meta)
+               VALUES ($1, 'group-admin:transfer-ownership', $2)"#,
+            current_user_id,
+            json!({ "newOwnerId": target })
+        )
+        .execute(&self.db)
+        .await?;
 
         Ok(json!({ "ok": true }))
     }
@@ -285,8 +313,6 @@ impl GroupAdminService {
         avatar_url: Option<&str>,
     ) -> AppResult<Value> {
         if let Some(n) = name {
-            let n = n.trim();
-
             let exists = sqlx::query!(
                 r#"SELECT id FROM groups WHERE name = $1 AND id != $2"#,
                 n,
@@ -302,56 +328,111 @@ impl GroupAdminService {
             sqlx::query!(r#"UPDATE groups SET name = $1 WHERE id = $2"#, n, tenant_id)
                 .execute(&self.db)
                 .await?;
-
-            sqlx::query!(
-                r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'group-admin:rename-group', $2)"#,
-                user_id, json!({ "newName": n })
-            ).execute(&self.db).await?;
         }
-        if let Some(url) = avatar_url {
-            let url = if url.trim().is_empty() {
-                None
-            } else {
-                Some(url.trim())
-            };
 
+        if let Some(url) = avatar_url {
+            let val: Option<&str> = if url.is_empty() { None } else { Some(url) };
             sqlx::query!(
                 r#"UPDATE groups SET avatar_url = $1 WHERE id = $2"#,
-                url,
+                val,
                 tenant_id
             )
             .execute(&self.db)
             .await?;
         }
+
+        sqlx::query!(
+            r#"INSERT INTO user_activity (user_id, type, meta)
+               VALUES ($1, 'group-admin:rename', $2)"#,
+            user_id,
+            json!({ "name": name, "avatarUrl": avatar_url })
+        )
+        .execute(&self.db)
+        .await?;
+
         Ok(json!({ "ok": true }))
+    }
+
+    pub async fn get_permissions(&self, tenant_id: Uuid) -> AppResult<Value> {
+        let group = sqlx::query!(r#"SELECT permissions FROM groups WHERE id = $1"#, tenant_id)
+            .fetch_optional(&self.db)
+            .await?
+            .ok_or_else(|| AppError::not_found("Group not found"))?;
+
+        let perms = GroupPermissions::from_json_with_defaults(&group.permissions);
+        Ok(json!({ "permissions": perms.to_json() }))
+    }
+
+    pub async fn update_permissions(
+        &self,
+        tenant_id: Uuid,
+        user_id: Uuid,
+        permissions: serde_json::Value,
+    ) -> AppResult<Value> {
+        let group = sqlx::query!(r#"SELECT permissions FROM groups WHERE id = $1"#, tenant_id)
+            .fetch_optional(&self.db)
+            .await?
+            .ok_or_else(|| AppError::not_found("Group not found"))?;
+
+        let current = GroupPermissions::from_json_with_defaults(&group.permissions);
+
+        let merged = {
+            let merged_raw = {
+                let mut base = current.to_json();
+                if let (Some(base_obj), Some(new_obj)) =
+                    (base.as_object_mut(), permissions.as_object())
+                {
+                    for (k, v) in new_obj {
+                        base_obj.insert(k.clone(), v.clone());
+                    }
+                }
+                base
+            };
+            GroupPermissions::from_json_with_defaults(&merged_raw)
+        };
+
+        let merged_json = merged.to_json();
+
+        sqlx::query!(
+            r#"UPDATE groups SET permissions = $1 WHERE id = $2"#,
+            merged_json,
+            tenant_id
+        )
+        .execute(&self.db)
+        .await?;
+
+        sqlx::query!(
+            r#"INSERT INTO user_activity (user_id, type, meta)
+               VALUES ($1, 'group-admin:update-permissions', $2)"#,
+            user_id,
+            json!({ "permissions": merged_json })
+        )
+        .execute(&self.db)
+        .await?;
+
+        Ok(json!({ "ok": true, "permissions": merged_json }))
     }
 
     pub async fn update_password(
         &self,
         tenant_id: Uuid,
         user_id: Uuid,
-        old: &str,
-        new: &str,
+        old_password: &str,
+        new_password: &str,
     ) -> AppResult<Value> {
         let group = sqlx::query!(
-            r#"SELECT passcode_hash, owner_id FROM groups WHERE id = $1"#,
+            r#"SELECT passcode_hash FROM groups WHERE id = $1"#,
             tenant_id
         )
         .fetch_optional(&self.db)
         .await?
         .ok_or_else(|| AppError::not_found("Group not found"))?;
 
-        if group.owner_id != user_id {
-            return Err(AppError::forbidden(
-                "Only the owner can change the password.",
-            ));
+        if !verify_password(old_password.to_string(), group.passcode_hash).await? {
+            return Err(AppError::Forbidden("Current password is incorrect.".into()));
         }
 
-        if !verify_password(old.to_string(), group.passcode_hash).await? {
-            return Err(AppError::bad_request("The current password is incorrect."));
-        }
-
-        let hash = hash_password(new.to_string()).await?;
+        let hash = hash_password(new_password.to_string()).await?;
 
         sqlx::query!(
             r#"UPDATE groups SET passcode_hash = $1 WHERE id = $2"#,
@@ -362,9 +443,13 @@ impl GroupAdminService {
         .await?;
 
         sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'group-admin:update-password', $2)"#,
-            user_id, json!({ "tenantId": tenant_id })
-        ).execute(&self.db).await?;
+            r#"INSERT INTO user_activity (user_id, type, meta)
+               VALUES ($1, 'group-admin:password-change', $2)"#,
+            user_id,
+            json!({ "tenantId": tenant_id })
+        )
+        .execute(&self.db)
+        .await?;
 
         Ok(json!({ "ok": true }))
     }
@@ -373,67 +458,71 @@ impl GroupAdminService {
         &self,
         tenant_id: Uuid,
         user_id: Uuid,
-        config: serde_json::Value,
+        schedule_config: serde_json::Value,
     ) -> AppResult<Value> {
         sqlx::query!(
             r#"UPDATE groups SET schedule_config = $1 WHERE id = $2"#,
-            config,
+            schedule_config,
             tenant_id
         )
         .execute(&self.db)
         .await?;
 
         sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'group-admin:update-schedule-config', $2)"#,
-            user_id, json!({ "tenantId": tenant_id })
-        ).execute(&self.db).await?;
+            r#"INSERT INTO user_activity (user_id, type, meta)
+               VALUES ($1, 'group-admin:schedule-config-update', $2)"#,
+            user_id,
+            json!({ "tenantId": tenant_id })
+        )
+        .execute(&self.db)
+        .await?;
 
         Ok(json!({ "ok": true }))
     }
 
     pub async fn delete_group(&self, tenant_id: Uuid, user_id: Uuid) -> AppResult<Value> {
-        let group = sqlx::query!(r#"SELECT owner_id FROM groups WHERE id = $1"#, tenant_id)
-            .fetch_optional(&self.db)
-            .await?
-            .ok_or_else(|| AppError::not_found("Group not found"))?;
-
-        if group.owner_id != user_id {
-            return Err(AppError::forbidden("Only the owner can delete this group."));
-        }
-
         sqlx::query!(r#"DELETE FROM groups WHERE id = $1"#, tenant_id)
             .execute(&self.db)
             .await?;
 
         sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'group-admin:delete-group', $2)"#,
-            user_id, json!({ "tenantId": tenant_id })
-        ).execute(&self.db).await?;
+            r#"INSERT INTO user_activity (user_id, type, meta)
+               VALUES ($1, 'group-admin:delete-group', $2)"#,
+            user_id,
+            json!({ "tenantId": tenant_id })
+        )
+        .execute(&self.db)
+        .await?;
 
         Ok(json!({ "ok": true }))
     }
 
     pub async fn cleanup_old_items(&self, tenant_id: Uuid, user_id: Uuid) -> AppResult<Value> {
-        let old = sqlx::query!(
-            r#"SELECT id FROM items WHERE tenant_id = $1 AND created_at < now() - interval '90 days'"#,
+        let count = sqlx::query_scalar!(
+            r#"SELECT COUNT(*) FROM items
+               WHERE tenant_id = $1 AND created_at < now() - interval '90 days'"#,
             tenant_id
         )
-        .fetch_all(&self.db)
-        .await?;
-
-        let count = old.len();
+        .fetch_one(&self.db)
+        .await?
+        .unwrap_or(0);
 
         sqlx::query!(
-            r#"DELETE FROM items WHERE tenant_id = $1 AND created_at < now() - interval '90 days'"#,
+            r#"DELETE FROM items
+               WHERE tenant_id = $1 AND created_at < now() - interval '90 days'"#,
             tenant_id
         )
         .execute(&self.db)
         .await?;
 
         sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'group-admin:cleanup', $2)"#,
-            user_id, json!({ "deletedCount": count })
-        ).execute(&self.db).await?;
+            r#"INSERT INTO user_activity (user_id, type, meta)
+               VALUES ($1, 'group-admin:cleanup:old_items', $2)"#,
+            user_id,
+            json!({ "deletedCount": count })
+        )
+        .execute(&self.db)
+        .await?;
 
         Ok(json!({ "ok": true, "deletedItems": count }))
     }
@@ -448,7 +537,7 @@ impl GroupAdminService {
 
         Ok(json!(
             rows.into_iter()
-                .map(|r| json!({ "id": r.id, "name": r.name, "isActive": r.is_active }))
+                .map(|s| json!({ "id": s.id, "name": s.name, "isActive": s.is_active }))
                 .collect::<Vec<_>>()
         ))
     }
@@ -460,14 +549,22 @@ impl GroupAdminService {
         name: &str,
     ) -> AppResult<Value> {
         let row = sqlx::query!(
-            r#"INSERT INTO subjects (tenant_id, name, is_active) VALUES ($1, $2, true) RETURNING id, name, is_active"#,
-            tenant_id, name.trim()
-        ).fetch_one(&self.db).await?;
+            r#"INSERT INTO subjects (tenant_id, name) VALUES ($1, $2)
+               RETURNING id, name, is_active"#,
+            tenant_id,
+            name
+        )
+        .fetch_one(&self.db)
+        .await?;
 
         sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'group-admin:subject:create', $2)"#,
-            user_id, json!({ "subjectId": row.id, "name": row.name })
-        ).execute(&self.db).await?;
+            r#"INSERT INTO user_activity (user_id, type, meta)
+               VALUES ($1, 'group-admin:subject:create', $2)"#,
+            user_id,
+            json!({ "subjectId": row.id })
+        )
+        .execute(&self.db)
+        .await?;
 
         Ok(json!({ "id": row.id, "name": row.name, "isActive": row.is_active }))
     }
@@ -490,24 +587,28 @@ impl GroupAdminService {
         .ok_or_else(|| AppError::not_found("Subject not found"))?;
 
         if let Some(n) = name {
+            sqlx::query!(r#"UPDATE subjects SET name = $1 WHERE id = $2"#, n, id)
+                .execute(&self.db)
+                .await?;
+        }
+        if let Some(active) = is_active {
             sqlx::query!(
-                r#"UPDATE subjects SET name = $1 WHERE id = $2"#,
-                n.trim(),
+                r#"UPDATE subjects SET is_active = $1 WHERE id = $2"#,
+                active,
                 id
             )
             .execute(&self.db)
             .await?;
         }
 
-        if let Some(a) = is_active {
-            sqlx::query!(r#"UPDATE subjects SET is_active = $1 WHERE id = $2"#, a, id)
-                .execute(&self.db)
-                .await?;
-        }
         sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'group-admin:subject:update', $2)"#,
-            user_id, json!({ "subjectId": id })
-        ).execute(&self.db).await?;
+            r#"INSERT INTO user_activity (user_id, type, meta)
+               VALUES ($1, 'group-admin:subject:update', $2)"#,
+            user_id,
+            json!({ "subjectId": id })
+        )
+        .execute(&self.db)
+        .await?;
 
         Ok(json!({ "ok": true }))
     }
@@ -548,10 +649,15 @@ impl GroupAdminService {
         sqlx::query!(r#"DELETE FROM subjects WHERE id = $1"#, id)
             .execute(&self.db)
             .await?;
+
         sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'group-admin:subject:delete', $2)"#,
-            user_id, json!({ "subjectId": id })
-        ).execute(&self.db).await?;
+            r#"INSERT INTO user_activity (user_id, type, meta)
+               VALUES ($1, 'group-admin:subject:delete', $2)"#,
+            user_id,
+            json!({ "subjectId": id })
+        )
+        .execute(&self.db)
+        .await?;
 
         Ok(json!({ "ok": true }))
     }
@@ -559,11 +665,12 @@ impl GroupAdminService {
     pub async fn get_schedule(&self, tenant_id: Uuid) -> AppResult<Value> {
         let rows = sqlx::query!(
             r#"SELECT s.id, s.day, s.slot, s.duration, s.room, s.course_id,
-                      sub.id as sid, sub.name as sname, c.id as cid, c.name as cname
-               FROM schedules s
-               LEFT JOIN subjects sub ON sub.id = s.subject_id
-               LEFT JOIN courses c ON c.id = s.course_id
-               WHERE s.tenant_id = $1"#,
+          sub.id as "sid: Option<Uuid>", sub.name as sname,
+          c.id as "cid: Option<Uuid>", c.name as cname
+   FROM schedules s
+   LEFT JOIN subjects sub ON sub.id = s.subject_id
+   LEFT JOIN courses c ON c.id = s.course_id
+   WHERE s.tenant_id = $1"#,
             tenant_id
         )
         .fetch_all(&self.db)
@@ -579,9 +686,14 @@ impl GroupAdminService {
 
     pub async fn get_schedule_subs(&self, tenant_id: Uuid) -> AppResult<Value> {
         let rows = sqlx::query!(
-            r#"SELECT id, lesson_id, day, slot, duration, subject, room, cancelled, hide, created_at FROM schedule_subs WHERE tenant_id = $1"#,
+            r#"SELECT id, lesson_id, day, slot, duration, subject, room,
+                      cancelled, hide, created_at
+               FROM schedule_subs WHERE tenant_id = $1"#,
             tenant_id
-        ).fetch_all(&self.db).await?;
+        )
+        .fetch_all(&self.db)
+        .await?;
+
         Ok(json!(
             rows.into_iter()
                 .map(|s| json!({
@@ -600,18 +712,34 @@ impl GroupAdminService {
         dto: CreateScheduleSubDto,
     ) -> AppResult<Value> {
         let day_str = dto.day.map(|d| d.to_string());
+
         let row = sqlx::query!(
-            r#"INSERT INTO schedule_subs (tenant_id, lesson_id, day, slot, duration, subject, room, cancelled, hide)
+            r#"INSERT INTO schedule_subs
+                (tenant_id, lesson_id, day, slot, duration, subject, room, cancelled, hide)
                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-               RETURNING id, lesson_id, day, slot, duration, subject, room, cancelled, hide, created_at"#,
-            tenant_id, dto.lesson_id, day_str.as_deref(), dto.slot, dto.duration,
-            dto.subject, dto.room, dto.cancelled.unwrap_or(false), dto.hide.unwrap_or(false)
-        ).fetch_one(&self.db).await?;
+               RETURNING id, lesson_id, day, slot, duration, subject, room,
+                         cancelled, hide, created_at"#,
+            tenant_id,
+            dto.lesson_id,
+            day_str.as_deref(),
+            dto.slot,
+            dto.duration,
+            dto.subject,
+            dto.room,
+            dto.cancelled.unwrap_or(false),
+            dto.hide.unwrap_or(false)
+        )
+        .fetch_one(&self.db)
+        .await?;
 
         sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'schedule:sub:create', $2)"#,
-            user_id, json!({ "lessonId": dto.lesson_id })
-        ).execute(&self.db).await?;
+            r#"INSERT INTO user_activity (user_id, type, meta)
+               VALUES ($1, 'schedule:sub:create', $2)"#,
+            user_id,
+            json!({ "lessonId": dto.lesson_id })
+        )
+        .execute(&self.db)
+        .await?;
 
         Ok(json!({
             "id": row.id, "lessonId": row.lesson_id, "day": row.day, "slot": row.slot,
@@ -640,13 +768,21 @@ impl GroupAdminService {
         color: Option<&str>,
     ) -> AppResult<Value> {
         let row = sqlx::query!(
-            r#"INSERT INTO announcements (tenant_id, content, color, created_by) VALUES ($1, $2, $3, $4) RETURNING id, content, color, created_by, created_at"#,
-            tenant_id, content, color.unwrap_or("warn"), user_id
-        ).fetch_one(&self.db).await?;
-
-        Ok(
-            json!({ "id": row.id, "content": row.content, "color": row.color, "createdBy": row.created_by, "createdAt": row.created_at }),
+            r#"INSERT INTO announcements (tenant_id, content, color, created_by)
+               VALUES ($1, $2, $3, $4)
+               RETURNING id, content, color, created_by, created_at"#,
+            tenant_id,
+            content,
+            color.unwrap_or("warn"),
+            user_id
         )
+        .fetch_one(&self.db)
+        .await?;
+
+        Ok(json!({
+            "id": row.id, "content": row.content, "color": row.color,
+            "createdBy": row.created_by, "createdAt": row.created_at,
+        }))
     }
 
     pub async fn delete_announcement(&self, tenant_id: Uuid, id: Uuid) -> AppResult<Value> {
@@ -664,87 +800,5 @@ impl GroupAdminService {
             .await?;
 
         Ok(json!({ "ok": true }))
-    }
-
-    pub async fn get_permissions(&self, tenant_id: Uuid) -> AppResult<Value> {
-        let group = sqlx::query!(r#"SELECT permissions FROM groups WHERE id = $1"#, tenant_id)
-            .fetch_optional(&self.db)
-            .await?
-            .ok_or_else(|| AppError::not_found("Group not found"))?;
-
-        let defaults = json!({
-            "edit_group_general": "moderator", "edit_subjects_courses": "admin",
-            "edit_schedule": "admin", "create_items": "user", "upload_images": "user",
-            "manage_notes": "moderator", "send_messages": "user",
-            "manage_schedule_changes": "moderator", "manage_announcements": "moderator",
-            "moderate_members": "moderator", "delete_other_content": "moderator",
-        });
-
-        let mut merged = defaults.as_object().unwrap().clone();
-
-        if let Some(obj) = group.permissions.as_object() {
-            for (k, v) in obj {
-                merged.insert(k.clone(), v.clone());
-            }
-        }
-
-        Ok(json!({ "permissions": merged }))
-    }
-
-    pub async fn update_permissions(
-        &self,
-        tenant_id: Uuid,
-        user_id: Uuid,
-        permissions: serde_json::Value,
-    ) -> AppResult<Value> {
-        let valid_keys = [
-            "edit_group_general",
-            "edit_subjects_courses",
-            "edit_schedule",
-            "create_items",
-            "upload_images",
-            "manage_notes",
-            "send_messages",
-            "manage_schedule_changes",
-            "manage_announcements",
-            "moderate_members",
-            "delete_other_content",
-        ];
-        let valid_roles = ["user", "moderator", "admin"];
-
-        let group = sqlx::query!(r#"SELECT permissions FROM groups WHERE id = $1"#, tenant_id)
-            .fetch_optional(&self.db)
-            .await?
-            .ok_or_else(|| AppError::not_found("Group not found"))?;
-
-        let mut current = group.permissions.as_object().cloned().unwrap_or_default();
-
-        if let Some(obj) = permissions.as_object() {
-            for (k, v) in obj {
-                if valid_keys.contains(&k.as_str())
-                    && let Some(r) = v.as_str()
-                    && valid_roles.contains(&r)
-                {
-                    current.insert(k.clone(), v.clone());
-                }
-            }
-        }
-
-        let merged = serde_json::Value::Object(current.clone());
-
-        sqlx::query!(
-            r#"UPDATE groups SET permissions = $1 WHERE id = $2"#,
-            merged,
-            tenant_id
-        )
-        .execute(&self.db)
-        .await?;
-
-        sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'group-admin:update-permissions', $2)"#,
-            user_id, json!({ "permissions": merged })
-        ).execute(&self.db).await?;
-
-        Ok(json!({ "ok": true, "permissions": current }))
     }
 }

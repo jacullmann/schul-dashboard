@@ -27,7 +27,8 @@ sqlx = { version = "0.9", default-features = false, features = [
     "json",
     "migrate",
     "macros",
-    "ipnetwork"
+    "ipnetwork",
+    "derive",
 ] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1"

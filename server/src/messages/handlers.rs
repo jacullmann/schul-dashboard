@@ -1,5 +1,10 @@
 use super::{dto::*, gateway::BusEvent, service::MessagesService};
-use crate::{common::extractors::TenantContext, error::AppResult, state::AppState};
+use crate::{
+    common::{extractors::TenantContext, permission::Permission},
+    error::AppResult,
+    require_permission,
+    state::AppState,
+};
 use axum::{
     Json,
     extract::{Path, State},
@@ -28,15 +33,10 @@ pub async fn create_message(
     tc: TenantContext,
     Json(dto): Json<CreateMessageDto>,
 ) -> AppResult<Json<Value>> {
+    require_permission!(tc, Permission::SendMessages);
+
     let msg = MessagesService::from_state(&s)
-        .create_message(
-            tc.tenant_id,
-            tc.user.user_id,
-            Some(&tc.tenant_role),
-            &tc.user.global_role,
-            &dto.content,
-            dto.parent_id,
-        )
+        .create_message(tc.tenant_id, tc.user.user_id, &dto.content, dto.parent_id)
         .await?;
 
     s.message_bus
@@ -56,14 +56,10 @@ pub async fn delete_message(
     tc: TenantContext,
     Path(msg_id): Path<Uuid>,
 ) -> AppResult<Json<Value>> {
+    let can_delete_others = tc.can(Permission::DeleteOtherContent);
+
     MessagesService::from_state(&s)
-        .delete_message(
-            tc.tenant_id,
-            tc.user.user_id,
-            Some(&tc.tenant_role),
-            &tc.user.global_role,
-            msg_id,
-        )
+        .delete_message(tc.tenant_id, tc.user.user_id, msg_id, can_delete_others)
         .await?;
 
     s.message_bus
