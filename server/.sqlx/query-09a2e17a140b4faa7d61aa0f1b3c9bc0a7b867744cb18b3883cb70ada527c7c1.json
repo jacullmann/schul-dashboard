@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT s.id, s.day, s.slot, s.duration, s.room, s.course_id,\n          sub.id as \"subject_id: Option<Uuid>\", sub.name as subject_name,\n          c.id as \"course_id2: Option<Uuid>\", c.name as course_name\n   FROM schedules s\n   LEFT JOIN subjects sub ON sub.id = s.subject_id\n   LEFT JOIN courses c ON c.id = s.course_id\n   WHERE s.tenant_id = $1",
+  "query": "SELECT s.id, s.day, s.slot, s.duration, s.room, s.course_id,\n      sub.id as \"subject_id: Option<Uuid>\", sub.name as \"subject_name?\",\n      c.id as \"course_id2: Option<Uuid>\", c.name as \"course_name?\"\nFROM schedules s\nLEFT JOIN subjects sub ON sub.id = s.subject_id\nLEFT JOIN courses c ON c.id = s.course_id\nWHERE s.tenant_id = $1",
   "describe": {
     "columns": [
       {
@@ -82,7 +82,7 @@
       },
       {
         "ordinal": 7,
-        "name": "subject_name",
+        "name": "subject_name?",
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -104,7 +104,7 @@
       },
       {
         "ordinal": 9,
-        "name": "course_name",
+        "name": "course_name?",
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -132,5 +132,5 @@
       false
     ]
   },
-  "hash": "8ab5d7fbcf970e03ee3505f6ffa65139add617ca3fe2b58cf8b63b865db42e65"
+  "hash": "09a2e17a140b4faa7d61aa0f1b3c9bc0a7b867744cb18b3883cb70ada527c7c1"
 }

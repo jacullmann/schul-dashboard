@@ -15,12 +15,12 @@ impl ScheduleService {
     pub async fn get_schedule(&self, tenant_id: Uuid, user_id: Option<Uuid>) -> AppResult<Value> {
         let lessons = sqlx::query!(
             r#"SELECT s.id, s.day, s.slot, s.duration, s.room, s.course_id,
-          sub.id as "subject_id: Option<Uuid>", sub.name as subject_name,
-          c.id as "course_id2: Option<Uuid>", c.name as course_name
-   FROM schedules s
-   LEFT JOIN subjects sub ON sub.id = s.subject_id
-   LEFT JOIN courses c ON c.id = s.course_id
-   WHERE s.tenant_id = $1"#,
+      sub.id as "subject_id: Option<Uuid>", sub.name as "subject_name?",
+      c.id as "course_id2: Option<Uuid>", c.name as "course_name?"
+FROM schedules s
+LEFT JOIN subjects sub ON sub.id = s.subject_id
+LEFT JOIN courses c ON c.id = s.course_id
+WHERE s.tenant_id = $1"#,
             tenant_id
         )
         .fetch_all(&self.db)
@@ -51,11 +51,11 @@ impl ScheduleService {
 
                 tokio::spawn(async move {
                     let _ = sqlx::query!(
-                        r#"INSERT INTO user_tenant_state (user_id, tenant_id, last_schedule_visit_at)
-                         VALUES ($1, $2, now())
-                         ON CONFLICT (user_id, tenant_id) DO UPDATE SET last_schedule_visit_at = now()"#,
-                        uid, tenant_id
-                    ).execute(&db2).await;
+                    r#"INSERT INTO user_tenant_state (user_id, tenant_id, last_schedule_visit_at)
+                      VALUES ($1, $2, now())
+                      ON CONFLICT (user_id, tenant_id) DO UPDATE SET last_schedule_visit_at = now()"#,
+                    uid, tenant_id
+                ).execute(&db2).await;
                 });
 
                 lessons
@@ -74,11 +74,11 @@ impl ScheduleService {
         };
 
         let result: Vec<Value> = filtered.into_iter().map(|l| json!({
-            "id": l.id, "day": l.day, "slot": l.slot, "duration": l.duration, "room": l.room,
-            "courseId": l.course_id,
-            "subjects": l.subject_id.map(|id| json!({ "id": id, "name": l.subject_name })),
-            "courses": l.course_id2.map(|id| json!({ "id": id, "name": l.course_name })),
-        })).collect();
+        "id": l.id, "day": l.day, "slot": l.slot, "duration": l.duration, "room": l.room,
+        "courseId": l.course_id,
+        "subjects": l.subject_id.map(|id| json!({ "id": id, "name": l.subject_name })),
+        "courses": l.course_id2.map(|id| json!({ "id": id, "name": l.course_name })),
+    })).collect();
 
         Ok(json!(result))
     }
