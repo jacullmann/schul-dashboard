@@ -5,6 +5,7 @@ import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useModalStore } from '@/stores/modalStore';
 import { Copy, Check, RefreshCw } from '@lucide/vue';
 import { useToast } from '@/common/composables/useToast';
+import QRCode from 'qrcode';
 
 const { t } = useI18n();
 const auth = useAppAuth();
@@ -37,6 +38,32 @@ const inviteUrl = computed(() => {
   if (!currentToken.value) return '';
   return `${window.location.origin}/invite/${currentToken.value}`;
 });
+
+const qrCodeUrl = ref<string | null>(null);
+
+watch(
+  inviteUrl,
+  async (newUrl) => {
+    if (!newUrl) {
+      qrCodeUrl.value = null;
+      return;
+    }
+    try {
+      qrCodeUrl.value = await QRCode.toDataURL(newUrl, {
+        width: 200,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF',
+        },
+      });
+    } catch (err) {
+      console.error('Failed to generate QR code', err);
+      qrCodeUrl.value = null;
+    }
+  },
+  { immediate: true },
+);
 
 async function copyLink() {
   if (!inviteUrl.value) return;
@@ -89,6 +116,13 @@ async function regenerate() {
       <p class="text-sm text-on-ghost-muted mb-4 leading-relaxed">
         {{ t('auth.groups.invite.modal_desc') }}
       </p>
+
+      <div
+        v-if="qrCodeUrl"
+        class="flex justify-center p-2 bg-white rounded-xl mx-auto mb-4"
+      >
+        <img :src="qrCodeUrl" :alt="t('auth.groups.invite.qr_alt')" class="w-[200px] h-[200px]" />
+      </div>
 
       <BaseFormGroup id="invite-url-group">
         <div class="flex items-center gap-2 mt-1">
