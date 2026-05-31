@@ -49,6 +49,18 @@ export const useModalStore = defineStore('modals', () => {
     joinGroupOpen.value = false;
   }
 
+  const inviteModalOpen = ref(false);
+  const inviteModalToken = ref<string | null>(null);
+
+  function openInviteModal(token: string) {
+    inviteModalToken.value = token;
+    inviteModalOpen.value = true;
+  }
+  function closeInviteModal() {
+    inviteModalOpen.value = false;
+    inviteModalToken.value = null;
+  }
+
   const itemFormOpen = ref(false);
   const itemFormKey = ref(0);
   const itemToEdit = ref<HwItem | null>(null);
@@ -243,6 +255,11 @@ export const useModalStore = defineStore('modals', () => {
     closeCreateGroup,
     openJoinGroup,
     closeJoinGroup,
+
+    inviteModalOpen,
+    inviteModalToken,
+    openInviteModal,
+    closeInviteModal,
 
     itemFormOpen,
     itemFormKey,

@@ -184,7 +184,13 @@ const formatTime = (timestamp: string) => {
             ]"
             :title="t('chat.quote_label')"
           >
-            <span class="font-bold">{{ msg.parentSenderName }}</span>
+            <span class="font-bold">
+              {{
+                msg.parentUserId === currentUserId
+                  ? t('chat.you')
+                  : msg.parentSenderName
+              }}
+            </span>
             <span class="truncate">{{ msg.parentContent }}</span>
           </div>
 

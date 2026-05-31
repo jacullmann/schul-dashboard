@@ -106,6 +106,7 @@
     },
     "items": {
       "edit_group_general": "Gruppenbild und -name bearbeiten",
+      "invite_members": "Mitglieder einladen",
       "edit_subjects_courses": "Fächer/Kursliste bearbeiten",
       "edit_schedule": "Stundenplan bearbeiten",
       "create_items": "Neue Einträge erstellen",

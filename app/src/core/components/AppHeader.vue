@@ -6,13 +6,16 @@ import { useRouter, useRoute } from 'vue-router';
 import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import AppLogo from '@/common/components/AppLogo.vue';
-import { Menu, ChevronDown, Plus, LogOut } from '@lucide/vue';
+import { Menu, ChevronDown, Plus, LogOut, UserPlus } from '@lucide/vue';
+import { useI18n } from 'vue-i18n';
 import { useModalStore } from '@/stores/modalStore';
 import Avatar from '@/modules/auth/components/Avatar.vue';
 import hw from '../../api/api';
 
 const userStore = useUserStore();
 const { user } = storeToRefs(userStore);
+const { t } = useI18n();
+
 const {
   groupName,
   userGroups,
@@ -20,6 +23,8 @@ const {
   switchActiveGroup,
   activeGroupAvatarUrl,
   activeGroupOwnerId,
+  checkPermission,
+  createInvite,
 } = useAppAuth();
 const router = useRouter();
 const route = useRoute();
@@ -97,6 +102,24 @@ async function leaveGroup() {
   } catch (err) {
     console.error('Failed to leave group:', err);
     alert('Failed to leave group.');
+  } finally {
+    loading.value = false;
+  }
+}
+
+async function inviteMember() {
+  groupMenuOpen.value = false;
+  loading.value = true;
+  try {
+    const res = await createInvite();
+    if (res.ok && res.token) {
+      modalStore.openInviteModal(res.token);
+    } else {
+      alert(res.error || 'Failed to generate invite link.');
+    }
+  } catch (err) {
+    console.error('Failed to generate invite link:', err);
+    alert('Failed to generate invite link.');
   } finally {
     loading.value = false;
   }
@@ -187,6 +210,15 @@ onUnmounted(() => {
             :icon="Plus"
           >
             New group
+          </BaseMenuButton>
+
+          <BaseMenuButton
+            v-if="checkPermission('invite_members')"
+            @click="inviteMember"
+            :icon="UserPlus"
+            :disabled="loading"
+          >
+            {{ t('auth.groups.invite.invite_button_header') }}
           </BaseMenuButton>
 
           <BaseMenuButton

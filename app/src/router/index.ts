@@ -233,6 +233,18 @@ const routes: RouteRecordRaw[] = [
       },
     ],
   },
+  {
+    path: '/invite/:token',
+    component: () => import('@/layouts/SimpleLayout.vue'),
+    children: [
+      {
+        path: '',
+        name: 'group-invite',
+        component: () => import('@/core/pages/GroupInvite.vue'),
+        meta: { title: 'navigation.group_invite' },
+      },
+    ],
+  },
 
   {
     path: '/:pathMatch(.*)*',
@@ -270,6 +282,7 @@ router.beforeEach(async (to, from, next) => {
     to.path === '/reset-password' ||
     to.path === '/forgot-password' ||
     to.path.startsWith('/verify') ||
+    to.path.startsWith('/invite') ||
     to.path.startsWith('/natural-intelligence');
 
   if (!isPublicRoute && !isLoggedIn.value) {
@@ -291,6 +304,11 @@ router.beforeEach(async (to, from, next) => {
     isLoggedIn.value
   ) {
     finish();
+    const pendingInvite = sessionStorage.getItem('pending_invite_token');
+    if (pendingInvite) {
+      sessionStorage.removeItem('pending_invite_token');
+      return next({ path: `/invite/${pendingInvite}`, replace: true });
+    }
     return next({
       path: activeGroupId.value
         ? `/groups/${activeGroupId.value}/dashboard`

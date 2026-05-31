@@ -137,7 +137,6 @@ async fn handle_socket(mut socket: WebSocket, state: AppState, token: Option<Str
                                         joined_group = Some(group_id);
                                         sender_name = Some(generate_user_name(
                                             &user_id.to_string(),
-                                            &group_id.to_string(),
                                         ));
                                     }
                                 }

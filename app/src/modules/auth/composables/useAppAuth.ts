@@ -168,6 +168,7 @@ function isPermissionKey(s: string): s is PermissionKey {
     'manage_announcements',
     'moderate_members',
     'delete_other_content',
+    'invite_members',
   ] satisfies PermissionKey[];
   return valid.includes(s);
 }
@@ -315,6 +316,85 @@ export function useAppAuth() {
     return activePermissions.value.has(permissionKey);
   }
 
+  async function createInvite(): Promise<{
+    ok: boolean;
+    token?: string;
+    error?: string;
+  }> {
+    try {
+      const { status, data } = await hw.post('/groups/invite');
+      if (status === 200 || status === 201) {
+        return { ok: true, token: data.token };
+      }
+      return { ok: false, error: 'Failed to create invite.' };
+    } catch (error: unknown) {
+      const err = error as {
+        response?: { data?: { message?: string; error?: string } };
+      };
+      return {
+        ok: false,
+        error:
+          err.response?.data?.message ??
+          err.response?.data?.error ??
+          'An error occurred.',
+      };
+    }
+  }
+
+  async function getInvite(token: string): Promise<{
+    ok: boolean;
+    groupName?: string;
+    avatarUrl?: string;
+    error?: string;
+  }> {
+    try {
+      const { status, data } = await hw.get(`/groups/invite/${token}`);
+      if (status === 200) {
+        return {
+          ok: true,
+          groupName: data.groupName,
+          avatarUrl: data.avatarUrl,
+        };
+      }
+      return { ok: false, error: 'Failed to get invite details.' };
+    } catch (error: unknown) {
+      const err = error as {
+        response?: { data?: { message?: string; error?: string } };
+      };
+      return {
+        ok: false,
+        error:
+          err.response?.data?.message ??
+          err.response?.data?.error ??
+          'An error occurred.',
+      };
+    }
+  }
+
+  async function acceptInvite(
+    token: string,
+  ): Promise<{ ok: boolean; groupId?: string; error?: string }> {
+    try {
+      const { status, data } = await hw.post(`/groups/invite/${token}/accept`);
+      if ((status === 200 || status === 201) && data.ok) {
+        await checkAuthStatus();
+        return { ok: true, groupId: data.groupId };
+      }
+      return { ok: false, error: 'Failed to accept invite.' };
+    } catch (error: unknown) {
+      const err = error as {
+        response?: { data?: { message?: string; error?: string } };
+      };
+      return {
+        ok: false,
+        error:
+          err.response?.data?.message ??
+          err.response?.data?.error ??
+          'An error occurred.',
+      };
+    }
+  }
+
   return {
     isAuthenticated,
     isLoggedIn,
@@ -335,5 +415,8 @@ export function useAppAuth() {
     logout,
     logoutAllDevices,
     checkPermission,
+    createInvite,
+    getInvite,
+    acceptInvite,
   };
 }

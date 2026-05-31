@@ -15,7 +15,20 @@ const props = defineProps<{
 const toast = useToast();
 const { checkAuthStatus } = useAppAuth();
 
-const permissions = ref<Record<string, string>>({});
+const permissions = ref<Record<string, string>>({
+  edit_group_general: 'moderator',
+  edit_subjects_courses: 'admin',
+  edit_schedule: 'admin',
+  create_items: 'user',
+  upload_images: 'user',
+  manage_notes: 'moderator',
+  send_messages: 'user',
+  manage_schedule_changes: 'moderator',
+  manage_announcements: 'moderator',
+  moderate_members: 'moderator',
+  delete_other_content: 'moderator',
+  invite_members: 'user',
+});
 
 const loading = ref(true);
 const saving = ref(false);
@@ -115,6 +128,28 @@ onMounted(() => {
           :form="false"
           :modelValue="permissions.edit_group_general"
           @update:modelValue="savePermission('edit_group_general', $event)"
+          :disabled="!isAdmin || saving"
+          :options="[
+            { label: t('admin.permissions.options.all'), value: 'user' },
+            {
+              label: t('admin.permissions.options.moderators'),
+              value: 'moderator',
+            },
+            { label: t('admin.permissions.options.admins'), value: 'admin' },
+          ]"
+          classes="w-38!"
+        />
+      </BaseRow>
+
+      <BaseRow justify="between" class="flex-nowrap!">
+        <div class="text-base text-on-ghost">
+          {{ t('admin.permissions.items.invite_members') }}
+        </div>
+
+        <BaseSelect
+          :form="false"
+          :modelValue="permissions.invite_members"
+          @update:modelValue="savePermission('invite_members', $event)"
           :disabled="!isAdmin || saving"
           :options="[
             { label: t('admin.permissions.options.all'), value: 'user' },

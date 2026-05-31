@@ -10,5 +10,6 @@ export type PermissionKey =
     | 'manage_announcements'
     | 'moderate_members'
     | 'delete_other_content'
+    | 'invite_members'
 
 export type GlobalRole = 'superadmin' | 'admin' | 'moderator' | 'user'

@@ -38,6 +38,51 @@ pub async fn join_group(
     Ok((jar, Json(body)))
 }
 
+pub async fn create_invite(
+    State(s): State<AppState>,
+    tc: TenantContext,
+) -> AppResult<Json<Value>> {
+    crate::require_permission!(tc, crate::common::permission::Permission::InviteMembers);
+
+    let body = GroupService::from_state(&s)
+        .create_invite(tc.tenant_id, tc.user.user_id)
+        .await?;
+
+    Ok(Json(body))
+}
+
+pub async fn get_invite(
+    State(s): State<AppState>,
+    Path(token): Path<String>,
+) -> AppResult<Json<Value>> {
+    let body = GroupService::from_state(&s)
+        .get_invite(&token)
+        .await?;
+
+    Ok(Json(body))
+}
+
+pub async fn accept_invite(
+    State(s): State<AppState>,
+    user: AuthUser,
+    ClientIp(ip): ClientIp,
+    UserAgent(ua): UserAgent,
+    Path(token): Path<String>,
+) -> AppResult<(CookieJar, Json<Value>)> {
+    let (jar, body) = GroupService::from_state(&s)
+        .accept_invite(crate::group::service::AcceptInviteParams {
+            user_id: user.user_id,
+            email: &user.email,
+            global_role: &user.global_role,
+            token: &token,
+            ip: ip.as_deref(),
+            ua: ua.as_deref(),
+        })
+        .await?;
+
+    Ok((jar, Json(body)))
+}
+
 pub async fn create_group(
     State(s): State<AppState>,
     user: AuthUser,

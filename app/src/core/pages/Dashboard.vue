@@ -449,15 +449,21 @@ const formatDayName = (day: number): string => {
                 </template>
 
                 <template #actions-pre>
-                  <BaseTooltip
-                    content="View full task"
-                    placement="bottom"
-                  >
+                  <BaseTooltip content="View full task" placement="bottom">
                     <BaseButton
                       variant="ghost"
                       size="sm"
                       :icon="ArrowUpRight"
-                      @click.stop="$router.push({ name: 'group-items', params: { groupId: activeGroupId, type: 'all', itemId: task.id } })"
+                      @click.stop="
+                        $router.push({
+                          name: 'group-items',
+                          params: {
+                            groupId: activeGroupId,
+                            type: 'all',
+                            itemId: task.id,
+                          },
+                        })
+                      "
                     />
                   </BaseTooltip>
                 </template>

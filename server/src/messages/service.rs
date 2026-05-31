@@ -86,7 +86,8 @@ impl MessagesService {
                     p.id,
                     (
                         p.content,
-                        generate_user_name(&p.user_id.to_string(), &p.tenant_id.to_string()),
+                        generate_user_name(&p.user_id.to_string()),
+                        p.user_id,
                     ),
                 );
             }
@@ -95,7 +96,7 @@ impl MessagesService {
         let result: Vec<Value> = msgs
             .into_iter()
             .map(|m| {
-                let sender = generate_user_name(&m.user_id.to_string(), &m.tenant_id.to_string());
+                let sender = generate_user_name(&m.user_id.to_string());
 
                 let mut v = json!({
                     "id": m.id, "tenantId": m.tenant_id, "userId": m.user_id,
@@ -105,10 +106,11 @@ impl MessagesService {
                 });
 
                 if let Some(pid) = m.parent_id
-                    && let Some((pc, ps)) = parent_map.get(&pid)
+                    && let Some((pc, ps, puid)) = parent_map.get(&pid)
                 {
                     v["parentContent"] = json!(pc);
                     v["parentSenderName"] = json!(ps);
+                    v["parentUserId"] = json!(puid);
                 }
                 v
             })
@@ -150,7 +152,7 @@ impl MessagesService {
         .fetch_one(&self.db)
         .await?;
 
-        let sender = generate_user_name(&msg.user_id.to_string(), &msg.tenant_id.to_string());
+        let sender = generate_user_name(&msg.user_id.to_string());
         let mut v = json!({
             "id": msg.id, "tenantId": msg.tenant_id, "userId": msg.user_id,
             "senderName": sender, "content": msg.content,
@@ -168,9 +170,9 @@ impl MessagesService {
         {
             v["parentContent"] = json!(p.content);
             v["parentSenderName"] = json!(generate_user_name(
-                &p.user_id.to_string(),
-                &p.tenant_id.to_string()
+                &p.user_id.to_string()
             ));
+            v["parentUserId"] = json!(p.user_id);
         }
 
         Ok(v)

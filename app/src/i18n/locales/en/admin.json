@@ -4,6 +4,11 @@
       "danger_zone_title": "Danger Zone"
     }
   },
+  "permissions": {
+    "items": {
+      "invite_members": "Invite members"
+    }
+  },
   "members": {
     "ban_list": {
       "title": "Banned Users",

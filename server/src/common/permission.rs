@@ -15,6 +15,7 @@ pub enum Permission {
     ManageAnnouncements,
     ModerateMembers,
     DeleteOtherContent,
+    InviteMembers,
 }
 
 impl Permission {
@@ -31,10 +32,11 @@ impl Permission {
             Self::ManageAnnouncements => "manage_announcements",
             Self::ModerateMembers => "moderate_members",
             Self::DeleteOtherContent => "delete_other_content",
+            Self::InviteMembers => "invite_members",
         }
     }
 
-    pub const ALL: [Permission; 11] = [
+    pub const ALL: [Permission; 12] = [
         Self::EditGroupGeneral,
         Self::EditSubjectsCourses,
         Self::EditSchedule,
@@ -46,6 +48,7 @@ impl Permission {
         Self::ManageAnnouncements,
         Self::ModerateMembers,
         Self::DeleteOtherContent,
+        Self::InviteMembers,
     ];
 
     #[allow(dead_code)]
@@ -62,6 +65,7 @@ impl Permission {
             "manage_announcements" => Some(Self::ManageAnnouncements),
             "moderate_members" => Some(Self::ModerateMembers),
             "delete_other_content" => Some(Self::DeleteOtherContent),
+            "invite_members" => Some(Self::InviteMembers),
             _ => None,
         }
     }
@@ -80,6 +84,7 @@ pub struct GroupPermissions {
     pub manage_announcements: Role,
     pub moderate_members: Role,
     pub delete_other_content: Role,
+    pub invite_members: Role,
 }
 
 impl Default for GroupPermissions {
@@ -96,6 +101,7 @@ impl Default for GroupPermissions {
             manage_announcements: Role::Moderator,
             moderate_members: Role::Moderator,
             delete_other_content: Role::Moderator,
+            invite_members: Role::User,
         }
     }
 }
@@ -114,6 +120,7 @@ impl GroupPermissions {
             Permission::ManageAnnouncements => self.manage_announcements,
             Permission::ModerateMembers => self.moderate_members,
             Permission::DeleteOtherContent => self.delete_other_content,
+            Permission::InviteMembers => self.invite_members,
         }
     }
 
@@ -147,6 +154,7 @@ impl GroupPermissions {
                 "manage_announcements" => perms.manage_announcements = role,
                 "moderate_members" => perms.moderate_members = role,
                 "delete_other_content" => perms.delete_other_content = role,
+                "invite_members" => perms.invite_members = role,
                 _ => {}
             }
         }
@@ -167,6 +175,7 @@ impl GroupPermissions {
             "manage_announcements": self.manage_announcements.as_str(),
             "moderate_members": self.moderate_members.as_str(),
             "delete_other_content": self.delete_other_content.as_str(),
+            "invite_members": self.invite_members.as_str(),
         })
     }
 

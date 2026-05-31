@@ -12,7 +12,7 @@ use crate::{
 };
 use axum_extra::extract::CookieJar;
 use serde_json::{Value, json};
-use sqlx::PgPool;
+use sqlx::{PgPool, Row};
 use uuid::Uuid;
 
 pub struct JoinGroupParams<'a> {
@@ -31,6 +31,15 @@ pub struct CreateGroupParams<'a> {
     pub global_role: &'a str,
     pub group_name: &'a str,
     pub password: &'a str,
+    pub ip: Option<&'a str>,
+    pub ua: Option<&'a str>,
+}
+
+pub struct AcceptInviteParams<'a> {
+    pub user_id: Uuid,
+    pub email: &'a str,
+    pub global_role: &'a str,
+    pub token: &'a str,
     pub ip: Option<&'a str>,
     pub ua: Option<&'a str>,
 }
@@ -461,5 +470,137 @@ impl GroupService {
         Ok(jar
             .add(clear_access_cookie(&opts))
             .add(clear_refresh_cookie(&opts)))
+    }
+
+    pub async fn create_invite(&self, tenant_id: Uuid, user_id: Uuid) -> AppResult<Value> {
+        let token = hex::encode(rand::random::<[u8; 32]>());
+        let expires_at = chrono::Utc::now() + chrono::Duration::days(7);
+
+        sqlx::query(
+            "INSERT INTO group_invites (token, tenant_id, created_by, expires_at) VALUES ($1, $2, $3, $4)"
+        )
+        .bind(token.clone())
+        .bind(tenant_id)
+        .bind(user_id)
+        .bind(expires_at)
+        .execute(&self.db)
+        .await?;
+
+        Ok(json!({ "token": token }))
+    }
+
+    pub async fn get_invite(&self, token: &str) -> AppResult<Value> {
+        let row = sqlx::query(
+            "SELECT g.name, g.avatar_url, gi.expires_at FROM group_invites gi JOIN groups g ON g.id = gi.tenant_id WHERE gi.token = $1"
+        )
+        .bind(token)
+        .fetch_optional(&self.db)
+        .await?;
+
+        let invite = match row {
+            Some(r) if r.try_get::<chrono::DateTime<chrono::Utc>, _>("expires_at").unwrap_or_default() > chrono::Utc::now() => r,
+            _ => return Err(AppError::BadRequest("Invalid or expired invite token.".into())),
+        };
+
+        let name: String = invite.try_get("name").map_err(|e| AppError::internal(e.to_string()))?;
+        let avatar_url: Option<String> = invite.try_get("avatar_url").map_err(|e| AppError::internal(e.to_string()))?;
+
+        Ok(json!({
+            "valid": true,
+            "groupName": name,
+            "avatarUrl": avatar_url,
+        }))
+    }
+
+    pub async fn accept_invite(&self, params: AcceptInviteParams<'_>) -> AppResult<(CookieJar, Value)> {
+        let user_id = params.user_id;
+        let email = params.email;
+        let global_role = params.global_role;
+        let token = params.token;
+        let ip = params.ip;
+        let ua = params.ua;
+
+        let mut tx = self.db.begin().await?;
+
+        let invite = sqlx::query(
+            "SELECT tenant_id, expires_at FROM group_invites WHERE token = $1"
+        )
+        .bind(token)
+        .fetch_optional(&mut *tx)
+        .await?;
+
+        let invite = match invite {
+            Some(inv) if inv.try_get::<chrono::DateTime<chrono::Utc>, _>("expires_at").unwrap_or_default() > chrono::Utc::now() => inv,
+            _ => return Err(AppError::BadRequest("Invalid or expired invite token.".into())),
+        };
+
+        let group_id: Uuid = invite.try_get("tenant_id").map_err(|e| AppError::internal(e.to_string()))?;
+
+        // Check ban
+        let ban = sqlx::query(
+            "SELECT id FROM group_bans WHERE tenant_id = $1 AND user_id = $2"
+        )
+        .bind(group_id)
+        .bind(user_id)
+        .fetch_optional(&mut *tx)
+        .await?;
+
+        if ban.is_some() {
+            return Err(AppError::forbidden("You have been banned from this group."));
+        }
+
+        // Check if already in the group
+        let existing = sqlx::query(
+            "SELECT id FROM user_roles WHERE user_id = $1 AND tenant_id = $2"
+        )
+        .bind(user_id)
+        .bind(group_id)
+        .fetch_optional(&mut *tx)
+        .await?;
+
+        if existing.is_none() {
+            sqlx::query(
+                "INSERT INTO user_roles (user_id, role_id, tenant_id) VALUES ($1, 4, $2)"
+            )
+            .bind(user_id)
+            .bind(group_id)
+            .execute(&mut *tx)
+            .await?;
+        }
+
+        // Delete the invite token immediately to strictly enforce single-use
+        sqlx::query(
+            "DELETE FROM group_invites WHERE token = $1"
+        )
+        .bind(token)
+        .execute(&mut *tx)
+        .await?;
+
+        let ip_parsed: Option<ipnetwork::IpNetwork> = ip.and_then(|s| s.parse().ok());
+
+        sqlx::query(
+            "INSERT INTO security_events (event_type, event_status, ip_address, user_agent, metadata) VALUES ('group_invite_accept', 'success', $1::inet, $2, $3)"
+        )
+        .bind(ip_parsed)
+        .bind(ua)
+        .bind(json!({ "groupId": group_id, "userId": user_id, "token": token }))
+        .execute(&mut *tx)
+        .await?;
+
+        sqlx::query(
+            "INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'group:join', $2)"
+        )
+        .bind(user_id)
+        .bind(json!({ "groupId": group_id, "by": "invite" }))
+        .execute(&mut *tx)
+        .await?;
+
+        tx.commit().await?;
+
+        let jar = self
+            .issue_session_cookie(user_id, email, global_role, Some(group_id))
+            .await?;
+
+        Ok((jar, json!({ "ok": true, "groupId": group_id })))
     }
 }

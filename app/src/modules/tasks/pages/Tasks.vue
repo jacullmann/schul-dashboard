@@ -155,6 +155,18 @@ function openImageViewerForItem(item: HwItem, index: number) {
             </template>
           </InfoModal>
         </template>
+
+        <template #action>
+          <BaseTooltip content="New Entry" placement="bottom">
+            <BaseButton
+              variant="action"
+              :aria-label="t('tasks.list.item_form.new_entry')"
+              @click="openItemForm()"
+              :icon="Plus"
+              icon-classes="size-6"
+            />
+          </BaseTooltip>
+        </template>
       </PageHeader>
     </div>
 
@@ -183,16 +195,6 @@ function openImageViewerForItem(item: HwItem, index: number) {
         />
 
         <ArchiveSwitch v-model="showOldEntries" />
-
-        <BaseTooltip content="New Entry" placement="bottom">
-          <BaseButton
-            variant="action"
-            :aria-label="t('tasks.list.item_form.new_entry')"
-            @click="openItemForm()"
-            :icon="Plus"
-            icon-classes="size-6"
-          />
-        </BaseTooltip>
       </BaseRow>
     </div>
 
