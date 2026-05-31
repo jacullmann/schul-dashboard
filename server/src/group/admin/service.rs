@@ -665,23 +665,31 @@ impl GroupAdminService {
     pub async fn get_schedule(&self, tenant_id: Uuid) -> AppResult<Value> {
         let rows = sqlx::query!(
             r#"SELECT s.id, s.day, s.slot, s.duration, s.room, s.course_id,
-          sub.id as "sid: Option<Uuid>", sub.name as sname,
-          c.id as "cid: Option<Uuid>", c.name as cname
-   FROM schedules s
-   LEFT JOIN subjects sub ON sub.id = s.subject_id
-   LEFT JOIN courses c ON c.id = s.course_id
-   WHERE s.tenant_id = $1"#,
+                  sub.id as "sid?", sub.name as "sname?",
+                  c.id as "cid?", c.name as "cname?"
+           FROM schedules s
+           LEFT JOIN subjects sub ON sub.id = s.subject_id
+           LEFT JOIN courses c ON c.id = s.course_id
+           WHERE s.tenant_id = $1"#,
             tenant_id
         )
         .fetch_all(&self.db)
         .await?;
 
-        Ok(json!(rows.into_iter().map(|l| json!({
-            "id": l.id, "day": l.day, "slot": l.slot, "duration": l.duration, "room": l.room,
-            "courseId": l.course_id,
-            "subjects": l.sid.map(|id| json!({ "id": id, "name": l.sname })),
-            "courses": l.cid.map(|id| json!({ "id": id, "name": l.cname })),
-        })).collect::<Vec<_>>()))
+        Ok(json!(
+            rows.into_iter()
+                .map(|l| json!({
+                    "id": l.id,
+                    "day": l.day,
+                    "slot": l.slot,
+                    "duration": l.duration,
+                    "room": l.room,
+                    "courseId": l.course_id,
+                    "subjects": l.sid.map(|id| json!({ "id": id, "name": l.sname })),
+                    "courses": l.cid.map(|id| json!({ "id": id, "name": l.cname })),
+                }))
+                .collect::<Vec<_>>()
+        ))
     }
 
     pub async fn get_schedule_subs(&self, tenant_id: Uuid) -> AppResult<Value> {
