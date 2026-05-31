@@ -416,6 +416,8 @@ impl AuthService {
         .map(|r| json!({ "subjectId": r.subject_id, "courseId": r.course_id }))
         .collect::<Vec<_>>();
 
+        let pseudonym = crate::common::name_generator::generate_user_name(&user.id.to_string());
+
         Ok(json!({
             "authenticated": true,
             "id": user.id,
@@ -428,6 +430,7 @@ impl AuthService {
             "personalized": user.personalized,
             "mfaEnabled": user.mfa_enabled,
             "preferences": user.preferences,
+            "username": pseudonym,
         }))
     }
 

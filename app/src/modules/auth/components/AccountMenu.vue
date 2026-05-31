@@ -88,6 +88,11 @@ const {
         <span class="text-sm font-medium text-on-ghost truncate">{{
           email
         }}</span>
+        <span
+          v-if="userData?.username"
+          class="text-xs font-normal text-on-ghost-muted truncate"
+          >{{ userData.username }}</span
+        >
       </span>
     </button>
 

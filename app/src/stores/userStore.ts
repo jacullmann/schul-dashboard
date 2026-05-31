@@ -14,6 +14,7 @@ export interface UserData {
   mfaEnabled: boolean;
   tenantRole: string | null;
   preferences?: Record<string, any>;
+  username: string;
 }
 
 export const useUserStore = defineStore('user', () => {
@@ -57,6 +58,7 @@ export const useUserStore = defineStore('user', () => {
             mfaEnabled: data.mfaEnabled ?? false,
             tenantRole: data.tenantRole ?? null,
             preferences: data.preferences,
+            username: data.username || '',
           };
 
           if (data.preferences) {
