@@ -106,7 +106,10 @@ WHERE s.tenant_id = $1"#,
     pub async fn get_subjects(&self, tenant_id: Uuid) -> AppResult<Value> {
         let subjects = sqlx::query!(
             r#"SELECT s.id, s.name, s.is_active, s.category,
-                      json_agg(json_build_object('id', c.id, 'name', c.name)) FILTER (WHERE c.id IS NOT NULL) as courses
+                      COALESCE(
+                          json_agg(json_build_object('id', c.id, 'name', c.name)) FILTER (WHERE c.id IS NOT NULL),
+                          '[]'::json
+                      ) as "courses!"
                FROM subjects s
                LEFT JOIN courses c ON c.subject_id = s.id
                WHERE s.tenant_id = $1
@@ -118,8 +121,11 @@ WHERE s.tenant_id = $1"#,
             subjects
                 .into_iter()
                 .map(|s| json!({
-                    "id": s.id, "name": s.name, "isActive": s.is_active,
-                    "category": s.category, "courses": s.courses.unwrap_or(json!([])),
+                    "id": s.id,
+                    "name": s.name,
+                    "isActive": s.is_active,
+                    "category": s.category,
+                    "courses": s.courses,
                 }))
                 .collect::<Vec<_>>()
         ))

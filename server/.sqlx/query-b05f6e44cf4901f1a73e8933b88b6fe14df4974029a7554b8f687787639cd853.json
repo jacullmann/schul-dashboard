@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT s.id, s.name, s.is_active, s.category,\n                      json_agg(json_build_object('id', c.id, 'name', c.name)) FILTER (WHERE c.id IS NOT NULL) as courses\n               FROM subjects s\n               LEFT JOIN courses c ON c.subject_id = s.id\n               WHERE s.tenant_id = $1\n               GROUP BY s.id ORDER BY s.name",
+  "query": "SELECT s.id, s.name, s.is_active, s.category,\n                      COALESCE(\n                          json_agg(json_build_object('id', c.id, 'name', c.name)) FILTER (WHERE c.id IS NOT NULL),\n                          '[]'::json\n                      ) as \"courses!\"\n               FROM subjects s\n               LEFT JOIN courses c ON c.subject_id = s.id\n               WHERE s.tenant_id = $1\n               GROUP BY s.id ORDER BY s.name",
   "describe": {
     "columns": [
       {
@@ -49,7 +49,7 @@
       },
       {
         "ordinal": 4,
-        "name": "courses",
+        "name": "courses!",
         "type_info": "Json",
         "origin": "Expression"
       }
@@ -67,5 +67,5 @@
       null
     ]
   },
-  "hash": "65538e59651dfa9046b13c9519600d94ba56d0f65eec70a68b9f6de9095aa560"
+  "hash": "b05f6e44cf4901f1a73e8933b88b6fe14df4974029a7554b8f687787639cd853"
 }
