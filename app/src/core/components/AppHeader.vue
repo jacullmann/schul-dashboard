@@ -6,7 +6,7 @@ import { useRouter, useRoute } from 'vue-router';
 import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import AppLogo from '@/common/components/AppLogo.vue';
-import { Menu, ChevronDown, Plus, LogOut, UserPlus } from '@lucide/vue';
+import { Menu, ChevronDown, Plus, LogOut, UserRoundPlus } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import { useModalStore } from '@/stores/modalStore';
 import Avatar from '@/modules/auth/components/Avatar.vue';
@@ -215,7 +215,7 @@ onUnmounted(() => {
           <BaseMenuButton
             v-if="checkPermission('invite_members')"
             @click="inviteMember"
-            :icon="UserPlus"
+            :icon="UserRoundPlus"
             :disabled="loading"
           >
             {{ t('auth.groups.invite.invite_button_header') }}
