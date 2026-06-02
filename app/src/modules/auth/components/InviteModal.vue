@@ -119,9 +119,13 @@ async function regenerate() {
 
       <div
         v-if="qrCodeUrl"
-        class="flex justify-center p-2 bg-white rounded-xl mx-auto mb-4"
+        class="flex justify-center p-2 rounded-xl mx-auto mb-4"
       >
-        <img :src="qrCodeUrl" :alt="t('auth.groups.invite.qr_alt')" class="w-[200px] h-[200px]" />
+        <img
+          :src="qrCodeUrl"
+          :alt="t('auth.groups.invite.qr_alt')"
+          class="w-[200px] h-[200px]"
+        />
       </div>
 
       <BaseFormGroup id="invite-url-group">
@@ -138,15 +142,9 @@ async function regenerate() {
           <BaseButton
             type="button"
             @click="copyLink"
-            :variant="copied ? 'ghost' : 'primary'"
-            class="flex-shrink-0 min-w-32 justify-center gap-2"
+            variant="ghost"
+            :icon="copied ? Check : Copy"
           >
-            <component :is="copied ? Check : Copy" :size="16" />
-            <span>{{
-              copied
-                ? t('auth.groups.invite.copied')
-                : t('auth.groups.invite.copy_button')
-            }}</span>
           </BaseButton>
         </div>
       </BaseFormGroup>
@@ -166,7 +164,7 @@ async function regenerate() {
           />
           <span>{{ t('auth.groups.invite.regenerate_button') }}</span>
         </BaseButton>
-        <BaseButton type="button" variant="primary" @click="$emit('cancel')">
+        <BaseButton type="button" variant="action" @click="$emit('cancel')">
           {{ t('auth.groups.invite.close') }}
         </BaseButton>
       </div>

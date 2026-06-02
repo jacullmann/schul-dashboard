@@ -22,6 +22,7 @@ const errorMsg = ref('');
 
 const groupName = ref('');
 const avatarUrl = ref<string | null>(null);
+const memberCount = ref<number>(0);
 const joining = ref(false);
 
 onMounted(async () => {
@@ -37,6 +38,7 @@ onMounted(async () => {
     if (res.ok && res.groupName) {
       groupName.value = res.groupName;
       avatarUrl.value = res.avatarUrl || null;
+      memberCount.value = res.memberCount || 0;
       ok.value = true;
 
       // If not logged in, save the token for after-login redirect
@@ -87,8 +89,18 @@ function handleRegister() {
 </script>
 
 <template>
-  <div class="card invite-card animate-fade-up">
-    <div class="invite-content">
+  <BaseModal
+    :open="true"
+    :sheet="false"
+    :submit="auth.isLoggedIn.value ? handleJoin : handleLogin"
+    :loading="joining"
+    @cancel="auth.isLoggedIn.value ? $router.push('/groups') : handleRegister"
+  >
+    <template #title>
+      {{ t('auth.groups.invite.card_title') }}
+    </template>
+
+    <template #content>
       <template v-if="loading">
         <div class="loading-container">
           <div class="spinner"></div>
@@ -99,69 +111,27 @@ function handleRegister() {
       </template>
 
       <template v-else-if="ok">
-        <!-- Group Avatar -->
-        <div class="avatar-wrapper mb-6 scale-up animate-delay-100">
-          <div class="avatar-glow"></div>
+        <div
+          class="scale-up animate-delay-100 flex gap-3 justify-center items-center"
+        >
           <Avatar
             :name="groupName"
-            :picture="avatarUrl"
-            :size="24"
-            class="relative z-10 border-4 border-canvas shadow-xl"
+            :picture="avatarUrl || undefined"
+            :size="16"
           />
+          <div>
+            <div class="font-bold text-lg text-on-ghost">{{ groupName }}</div>
+            <div class="text-sm text-on-ghost-muted">
+              {{
+                memberCount === 1
+                  ? t('auth.groups.invite.members_count_one', { count: 1 })
+                  : t('auth.groups.invite.members_count_other', {
+                      count: memberCount,
+                    })
+              }}
+            </div>
+          </div>
         </div>
-
-        <h1 class="invite-title mb-2 font-display">
-          {{ t('auth.groups.invite.card_title') }}
-        </h1>
-
-        <p class="invite-description text-on-ghost-muted mb-8 max-w-sm">
-          {{ t('auth.groups.invite.join_prompt', { groupName }) }}
-        </p>
-
-        <!-- Logged In Join Button -->
-        <template v-if="auth.isLoggedIn.value">
-          <div class="action-buttons w-full flex flex-col gap-3">
-            <BaseButton
-              @click="handleJoin"
-              variant="primary"
-              class="w-full h-12 justify-center font-semibold text-base gap-2 hover:scale-(102) active:scale-(98) transition-all duration-200"
-              :loading="joining"
-            >
-              <JoinIcon :size="20" />
-              <span>{{ t('auth.groups.invite.btn_join') }}</span>
-            </BaseButton>
-            <BaseButton
-              @click="$router.push('/groups')"
-              variant="ghost"
-              class="w-full h-11 justify-center text-sm font-medium text-on-ghost-muted hover:text-on-ghost transition-colors duration-200"
-              :disabled="joining"
-            >
-              {{ t('auth.groups.invite.btn_cancel') }}
-            </BaseButton>
-          </div>
-        </template>
-
-        <!-- Logged Out Action Buttons -->
-        <template v-else>
-          <div class="action-buttons w-full flex flex-col sm:flex-row gap-3">
-            <BaseButton
-              @click="handleLogin"
-              variant="primary"
-              class="flex-1 h-12 justify-center font-semibold gap-2 hover:scale-(102) active:scale-(98) transition-all duration-200"
-            >
-              <LogIn :size="18" />
-              <span>{{ t('auth.groups.invite.btn_login') }}</span>
-            </BaseButton>
-            <BaseButton
-              @click="handleRegister"
-              variant="ghost"
-              class="flex-1 h-12 justify-center font-semibold gap-2 border border-canvas-border hover:bg-ghost/30 hover:scale-(102) active:scale-(98) transition-all duration-200"
-            >
-              <UserPlus :size="18" />
-              <span>{{ t('auth.groups.invite.btn_register') }}</span>
-            </BaseButton>
-          </div>
-        </template>
       </template>
 
       <!-- Invalid/Expired Token Error State -->
@@ -176,17 +146,24 @@ function handleRegister() {
           <p class="invite-description text-on-ghost-muted mb-8 max-w-sm">
             {{ errorMsg }}
           </p>
-          <BaseButton
-            @click="$router.push('/')"
-            variant="ghost"
-            class="h-11 px-6 border border-canvas-border justify-center text-sm font-medium hover:bg-ghost/30 transition-colors duration-200"
-          >
-            {{ t('common.buttons.back') }}
-          </BaseButton>
         </div>
       </template>
-    </div>
-  </div>
+    </template>
+
+    <template #action-text
+      ><template v-if="auth.isLoggedIn.value">{{
+        t('auth.groups.invite.btn_join')
+      }}</template
+      ><template v-else>{{
+        t('auth.groups.invite.btn_login')
+      }}</template></template
+    >
+
+    <template #cancel-text v-if="!auth.isLoggedIn.value">{{
+      t('auth.groups.invite.btn_register')
+    }}</template>
+  </BaseModal>
+  <div class="card invite-card animate-fade-up"></div>
 </template>
 
 <style scoped>
@@ -194,7 +171,7 @@ function handleRegister() {
   max-width: 500px;
   width: 100%;
   padding: 40px 32px;
-  background: rgba(var(--color-canvas-raw), 0.7);
+  background: var(--color-canvas);
   backdrop-filter: blur(20px);
   border: 1px solid var(--color-canvas-border);
   border-radius: var(--radius-2xl);
@@ -217,19 +194,6 @@ function handleRegister() {
   position: relative;
   width: 96px;
   height: 96px;
-}
-
-.avatar-glow {
-  position: absolute;
-  top: -8px;
-  left: -8px;
-  right: -8px;
-  bottom: -8px;
-  background: radial-gradient(circle, var(--color-primary) 0%, transparent 70%);
-  opacity: 0.3;
-  filter: blur(8px);
-  border-radius: 50%;
-  animation: pulse-glow 3s ease-in-out infinite;
 }
 
 @keyframes pulse-glow {
@@ -315,10 +279,6 @@ function handleRegister() {
   .invite-card {
     padding: 32px 20px;
     border-radius: var(--radius-xl);
-  }
-
-  .action-buttons {
-    flex-direction: column !important;
   }
 }
 </style>

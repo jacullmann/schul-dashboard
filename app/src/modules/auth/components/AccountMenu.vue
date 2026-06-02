@@ -78,19 +78,19 @@ const {
       />
 
       <span
-        class="flex flex-col transition-[max-width,opacity,margin-left]"
+        class="flex flex-col gap-1 transition-[max-width,opacity,margin-left]"
         :class="
           expanded
             ? 'max-w-44 opacity-100 ml-2 duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)]'
             : 'max-w-0 opacity-0 ml-0 duration-150 ease-[cubic-bezier(0.32,0,0.67,1)]'
         "
       >
-        <span class="text-sm font-medium text-on-ghost truncate">{{
+        <span class="text-sm/4 font-medium text-on-ghost truncate">{{
           email
         }}</span>
         <span
           v-if="userData?.username"
-          class="text-xs font-normal text-on-ghost-muted truncate"
+          class="text-xs/3 font-normal text-on-ghost-muted truncate"
           >{{ userData.username }}</span
         >
       </span>

@@ -491,7 +491,7 @@ impl GroupService {
 
     pub async fn get_invite(&self, token: &str) -> AppResult<Value> {
         let row = sqlx::query(
-            "SELECT g.name, g.avatar_url, gi.expires_at FROM group_invites gi JOIN groups g ON g.id = gi.tenant_id WHERE gi.token = $1"
+            "SELECT g.name, g.avatar_url, gi.expires_at, (SELECT COUNT(*) FROM user_roles WHERE tenant_id = g.id) AS member_count FROM group_invites gi JOIN groups g ON g.id = gi.tenant_id WHERE gi.token = $1"
         )
         .bind(token)
         .fetch_optional(&self.db)
@@ -504,11 +504,13 @@ impl GroupService {
 
         let name: String = invite.try_get("name").map_err(|e| AppError::internal(e.to_string()))?;
         let avatar_url: Option<String> = invite.try_get("avatar_url").map_err(|e| AppError::internal(e.to_string()))?;
+        let member_count: i64 = invite.try_get("member_count").map_err(|e| AppError::internal(e.to_string()))?;
 
         Ok(json!({
             "valid": true,
             "groupName": name,
             "avatarUrl": avatar_url,
+            "memberCount": member_count,
         }))
     }
 
