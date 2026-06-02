@@ -54,6 +54,8 @@ const {
   userGroups,
   switchActiveGroup,
   logout: appAuthLogout,
+  checkPermission,
+  createInvite,
 } = useAppAuth();
 const { openItemForm } = useItemForm();
 const { openPrivateTaskForm } = usePrivateTaskForm();
@@ -252,15 +254,23 @@ const defaultResults = computed<SearchResult[]>(() => [
     shortcut: ['ctrl', 'g'],
   },
   {
-    id: 'join-group',
-    label: t('search.items.join_group'),
-    description: t('search.descriptions.join_group'),
+    id: 'invite-member',
+    label: t('auth.groups.invite.invite_button_header'),
+    description: t('search.descriptions.invite_member'),
     category: 'action',
-    icon: LogIn,
-    action: () => {
-      modalStore.openJoinGroup();
+    icon: UserRoundPlus,
+    action: async () => {
       emit('cancel');
+      try {
+        const res = await createInvite();
+        if (res.ok && res.token) {
+          modalStore.openInviteModal(res.token);
+        }
+      } catch (err) {
+        console.error('Failed to generate invite link', err);
+      }
     },
+    condition: !!activeGroupId.value && checkPermission('invite_members'),
   },
   {
     id: 'create-group',

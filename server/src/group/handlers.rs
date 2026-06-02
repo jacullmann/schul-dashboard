@@ -16,28 +16,6 @@ use uuid::Uuid;
 use super::admin::service::GroupAdminService;
 use crate::group::dto::CreateScheduleSubDto;
 
-pub async fn join_group(
-    State(s): State<AppState>,
-    user: AuthUser,
-    ClientIp(ip): ClientIp,
-    UserAgent(ua): UserAgent,
-    Json(dto): Json<JoinGroupDto>,
-) -> AppResult<(CookieJar, Json<Value>)> {
-    let (jar, body) = GroupService::from_state(&s)
-        .join_group(crate::group::service::JoinGroupParams {
-            user_id: user.user_id,
-            email: &user.email,
-            global_role: &user.global_role,
-            group_name: &dto.group_name,
-            password: &dto.password,
-            ip: ip.as_deref(),
-            ua: ua.as_deref(),
-        })
-        .await?;
-
-    Ok((jar, Json(body)))
-}
-
 pub async fn create_invite(
     State(s): State<AppState>,
     tc: TenantContext,
@@ -96,7 +74,7 @@ pub async fn create_group(
             email: &user.email,
             global_role: &user.global_role,
             group_name: &dto.group_name,
-            password: &dto.password,
+            avatar_url: dto.avatar_url.as_deref(),
             ip: ip.as_deref(),
             ua: ua.as_deref(),
         })
@@ -296,27 +274,6 @@ pub async fn update_permissions(
     ))
 }
 
-pub async fn update_group_password(
-    State(s): State<AppState>,
-    tc: TenantContext,
-    Json(dto): Json<UpdateGroupPasswordDto>,
-) -> AppResult<Json<Value>> {
-    if !tc.is_owner() {
-        return Err(AppError::forbidden(
-            "Only the group owner can change the password.",
-        ));
-    }
-    Ok(Json(
-        GroupAdminService::from_state(&s)
-            .update_password(
-                tc.tenant_id,
-                tc.user.user_id,
-                &dto.old_password,
-                &dto.new_password,
-            )
-            .await?,
-    ))
-}
 
 pub async fn update_schedule_config(
     State(s): State<AppState>,

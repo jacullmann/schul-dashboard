@@ -4,18 +4,10 @@ use validator::Validate;
 
 #[derive(Debug, Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
-pub struct JoinGroupDto {
-    #[validate(length(min = 1, max = 100))]
-    pub group_name: String,
-    pub password: String,
-}
-
-#[derive(Debug, Deserialize, Validate)]
-#[serde(rename_all = "camelCase")]
 pub struct CreateGroupDto {
     #[validate(length(min = 1, max = 100))]
     pub group_name: String,
-    pub password: String,
+    pub avatar_url: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -35,13 +27,6 @@ pub struct ChangeMemberRoleDto {
 pub struct RenameGroupDto {
     pub name: Option<String>,
     pub avatar_url: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct UpdateGroupPasswordDto {
-    pub old_password: String,
-    pub new_password: String,
 }
 
 #[derive(Debug, Deserialize)]

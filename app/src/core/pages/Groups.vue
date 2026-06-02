@@ -19,7 +19,6 @@ const { user } = storeToRefs(userStore);
 const { activeGroupId, userGroups, switchActiveGroup } = useAppAuth();
 
 const loading = ref(false);
-const addGroup = ref(false);
 const navigatingGroupId = ref<string | null>(null);
 const allGroups = ref<
   Array<{ id: string; name: string; memberCount: number; created_at: string }>
@@ -126,28 +125,12 @@ onMounted(() => {
             placement="bottom"
           >
             <BaseButton
-              @click="addGroup = true"
+              @click="modalStore.openCreateGroup()"
               variant="action"
               :icon="Plus"
               class="animate-fade-up"
             />
           </BaseTooltip>
-          <BaseMenu
-            :open="addGroup"
-            @close="addGroup = false"
-            @cancel="addGroup = false"
-            class="right-0 top-full mt-2 min-w-[200px]"
-            ><BaseMenuButton
-              :icon="UserRoundPlus"
-              @click="(modalStore.openJoinGroup(), (addGroup = false))"
-              >{{ t('common.groups.join_group') }}</BaseMenuButton
-            >
-            <BaseMenuButton
-              :icon="Plus"
-              @click="(modalStore.openCreateGroup(), (addGroup = false))"
-              >{{ t('common.groups.create_group') }}</BaseMenuButton
-            >
-          </BaseMenu>
         </div>
       </div>
     </section>
@@ -207,15 +190,11 @@ onMounted(() => {
     <section v-if="!isSuperadmin && userGroups.length === 0 && !loading">
       <BaseEmptyState
         :icon="UsersRound"
-        :primary-action="() => modalStore.openJoinGroup()"
-        :secondary-action="() => modalStore.openCreateGroup()"
+        :primary-action="() => modalStore.openCreateGroup()"
       >
         <template #title>{{ t('common.groups.no_groups') }}</template>
         <template #message>{{ t('common.groups.join_group_text') }}</template>
         <template #primary-action-label>{{
-          t('common.groups.join_group')
-        }}</template>
-        <template #secondary-action-label>{{
           t('common.groups.create_group')
         }}</template>
       </BaseEmptyState>

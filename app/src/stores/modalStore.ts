@@ -33,20 +33,12 @@ export const useModalStore = defineStore('modals', () => {
   }
 
   const createGroupOpen = ref(false);
-  const joinGroupOpen = ref(false);
 
   function openCreateGroup() {
     createGroupOpen.value = true;
   }
   function closeCreateGroup() {
     createGroupOpen.value = false;
-  }
-
-  function openJoinGroup() {
-    joinGroupOpen.value = true;
-  }
-  function closeJoinGroup() {
-    joinGroupOpen.value = false;
   }
 
   const inviteModalOpen = ref(false);
@@ -250,11 +242,8 @@ export const useModalStore = defineStore('modals', () => {
     toggleSearch,
 
     createGroupOpen,
-    joinGroupOpen,
     openCreateGroup,
     closeCreateGroup,
-    openJoinGroup,
-    closeJoinGroup,
 
     inviteModalOpen,
     inviteModalToken,

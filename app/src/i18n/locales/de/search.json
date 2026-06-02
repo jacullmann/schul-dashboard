@@ -13,7 +13,7 @@
     "home": "Zur Startseite",
     "image_tool": "Bilder zuschneiden und bearbeiten",
     "info_dashboard": "Spannende Geschichten und Fakten",
-    "join_group": "Einer bestehenden Gruppe beitreten",
+    "invite_member": "Mitglieder zu dieser Gruppe einladen",
     "logout": "Sicher von deinem Konto abmelden",
     "messages": "Mit deiner Gruppe chatten und Nachrichten schreiben",
     "private": "Eigene private Aufgaben verwalten",
@@ -30,7 +30,7 @@
     "games": "Spiele",
     "image_tool": "Bild-Tool",
     "info_dashboard": "Info Dashboard",
-    "join_group": "Gruppe beitreten",
+    "invite_member": "Mitglieder einladen",
     "switch_group": "Gruppe wechseln"
   },
   "modal": {

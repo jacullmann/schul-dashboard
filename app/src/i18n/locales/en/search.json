@@ -13,7 +13,7 @@
     "home": "Go to the start page",
     "image_tool": "Crop and edit images",
     "info_dashboard": "Exciting stories and facts",
-    "join_group": "Join an existing group",
+    "invite_member": "Invite members to this group",
     "logout": "Securely sign out of your account",
     "messages": "Chat with your group and send messages",
     "private": "Manage your private tasks",
@@ -30,7 +30,7 @@
     "games": "Games",
     "image_tool": "Image Tool",
     "info_dashboard": "Info Dashboard",
-    "join_group": "Join group",
+    "invite_member": "Invite members",
     "switch_group": "Switch group"
   },
   "modal": {

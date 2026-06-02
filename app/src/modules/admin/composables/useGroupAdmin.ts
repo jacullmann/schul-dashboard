@@ -331,23 +331,6 @@ export function useGroupAdmin() {
     }
   }
 
-  async function updateGroupPassword(oldPassword: string, newPassword: string) {
-    try {
-      await hw.patch('/group-admin/password', { oldPassword, newPassword });
-      showMessage('Password changed successfully');
-      return true;
-    } catch (e: unknown) {
-      const err = e as {
-        response?: { data?: { message?: string; error?: string } };
-      };
-      const msg =
-        err.response?.data?.message ||
-        err.response?.data?.error ||
-        'Failed to change password';
-      showMessage(msg, true);
-      throw new Error(msg);
-    }
-  }
 
   async function deleteGroup() {
     try {
@@ -451,7 +434,6 @@ export function useGroupAdmin() {
     cancelEditGroupName,
     saveGroupName,
     saveGroupAvatar,
-    updateGroupPassword,
     deleteGroup,
     transferOwnership,
 

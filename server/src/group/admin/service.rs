@@ -1,6 +1,5 @@
 use crate::{
     common::{
-        password::{hash_password, verify_password},
         permission::GroupPermissions,
         role::Role,
     },
@@ -413,46 +412,7 @@ impl GroupAdminService {
         Ok(json!({ "ok": true, "permissions": merged_json }))
     }
 
-    pub async fn update_password(
-        &self,
-        tenant_id: Uuid,
-        user_id: Uuid,
-        old_password: &str,
-        new_password: &str,
-    ) -> AppResult<Value> {
-        let group = sqlx::query!(
-            r#"SELECT passcode_hash FROM groups WHERE id = $1"#,
-            tenant_id
-        )
-        .fetch_optional(&self.db)
-        .await?
-        .ok_or_else(|| AppError::not_found("Group not found"))?;
 
-        if !verify_password(old_password.to_string(), group.passcode_hash).await? {
-            return Err(AppError::Forbidden("Current password is incorrect.".into()));
-        }
-
-        let hash = hash_password(new_password.to_string()).await?;
-
-        sqlx::query!(
-            r#"UPDATE groups SET passcode_hash = $1 WHERE id = $2"#,
-            hash,
-            tenant_id
-        )
-        .execute(&self.db)
-        .await?;
-
-        sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta)
-               VALUES ($1, 'group-admin:password-change', $2)"#,
-            user_id,
-            json!({ "tenantId": tenant_id })
-        )
-        .execute(&self.db)
-        .await?;
-
-        Ok(json!({ "ok": true }))
-    }
 
     pub async fn update_schedule_config(
         &self,

@@ -7,7 +7,6 @@ use axum::{
 
 pub fn router() -> Router<AppState> {
     Router::new()
-        .route("/groups/join", post(join_group))
         .route("/groups/create", post(create_group))
         .route("/groups/status", get(get_status))
         .route("/groups/switch", post(switch_group))
@@ -31,7 +30,6 @@ pub fn router() -> Router<AppState> {
             "/group-admin/permissions",
             get(get_permissions).patch(update_permissions),
         )
-        .route("/group-admin/password", patch(update_group_password))
         .route(
             "/group-admin/schedule-config",
             patch(update_schedule_config),

@@ -20,7 +20,6 @@ import SecurityModal from '@/modules/auth/components/SecurityModal.vue';
 import DeleteAccountModal from '@/modules/auth/components/DeleteAccountModal.vue';
 import CompleteSetup from '@/modules/auth/components/CompleteSetup.vue';
 import CreateGroupModal from '@/modules/auth/components/CreateGroupModal.vue';
-import JoinGroupModal from '@/modules/auth/components/JoinGroupModal.vue';
 import InviteModal from '@/modules/auth/components/InviteModal.vue';
 import AnnouncementForm from '@/modules/announcements/components/AnnouncementForm.vue';
 import ImageViewer from '@/modules/tasks/components/ImageViewer.vue';
@@ -54,7 +53,6 @@ const {
   showSetup,
   showDeleteAccount,
   createGroupOpen,
-  joinGroupOpen,
   inviteModalOpen,
   inviteModalToken,
   privateTaskFormOpen,
@@ -253,7 +251,7 @@ async function onAuthSuccess() {
     @cancel="modalStore.closeCreateGroup()"
   />
 
-  <JoinGroupModal :open="joinGroupOpen" @cancel="modalStore.closeJoinGroup()" />
+
 
   <InviteModal
     :open="inviteModalOpen"

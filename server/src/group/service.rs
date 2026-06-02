@@ -4,7 +4,7 @@ use crate::{
         token::{LOGOUT, TokenService},
     },
     common::{
-        csrf::generate_csrf_token, password::verify_password, permission::GroupPermissions,
+        csrf::generate_csrf_token, permission::GroupPermissions,
         role::Role,
     },
     error::{AppError, AppResult},
@@ -15,22 +15,12 @@ use serde_json::{Value, json};
 use sqlx::{PgPool, Row};
 use uuid::Uuid;
 
-pub struct JoinGroupParams<'a> {
-    pub user_id: Uuid,
-    pub email: &'a str,
-    pub global_role: &'a str,
-    pub group_name: &'a str,
-    pub password: &'a str,
-    pub ip: Option<&'a str>,
-    pub ua: Option<&'a str>,
-}
-
 pub struct CreateGroupParams<'a> {
     pub user_id: Uuid,
     pub email: &'a str,
     pub global_role: &'a str,
     pub group_name: &'a str,
-    pub password: &'a str,
+    pub avatar_url: Option<&'a str>,
     pub ip: Option<&'a str>,
     pub ua: Option<&'a str>,
 }
@@ -86,100 +76,6 @@ impl GroupService {
             .add(crate::common::csrf::csrf_cookie(&csrf, &opts)))
     }
 
-    pub async fn join_group(&self, params: JoinGroupParams<'_>) -> AppResult<(CookieJar, Value)> {
-        let user_id = params.user_id;
-        let email = params.email;
-        let global_role = params.global_role;
-        let group_name = params.group_name;
-        let password = params.password;
-        let ip = params.ip;
-        let ua = params.ua;
-        static DUMMY: std::sync::LazyLock<String> = std::sync::LazyLock::new(|| {
-            argon2::password_hash::PasswordHasher::hash_password(
-                &argon2::Argon2::default(),
-                b"__dummy__",
-                &argon2::password_hash::SaltString::generate(
-                    &mut argon2::password_hash::rand_core::OsRng,
-                ),
-            )
-            .unwrap()
-            .to_string()
-        });
-
-        let group = sqlx::query!(
-            r#"SELECT id, name, passcode_hash FROM groups WHERE name = $1"#,
-            group_name
-        )
-        .fetch_optional(&self.db)
-        .await?;
-
-        let hash = group
-            .as_ref()
-            .map(|g| g.passcode_hash.as_str())
-            .unwrap_or(&*DUMMY);
-
-        let valid = verify_password(password.to_string(), hash.to_string()).await?;
-
-        let authenticated = group.is_some() && valid;
-
-        if let Some(ref g) = group {
-            let ban = sqlx::query!(
-                r#"SELECT id FROM group_bans WHERE tenant_id = $1 AND user_id = $2"#,
-                g.id,
-                user_id
-            )
-            .fetch_optional(&self.db)
-            .await?;
-
-            if ban.is_some() {
-                return Err(AppError::forbidden("You have been banned from this group."));
-            }
-        }
-
-        let ip_parsed: Option<ipnetwork::IpNetwork> = ip.and_then(|s| s.parse().ok());
-
-        sqlx::query!(
-            r#"INSERT INTO security_events (event_type, event_status, ip_address, user_agent, metadata)
-             VALUES ('group_join', $1, $2::inet, $3, $4)"#,
-            if authenticated { "success" } else { "failure" },
-            ip_parsed, ua,
-            json!({ "groupName": group_name, "userId": user_id })
-        ).execute(&self.db).await?;
-
-        if !authenticated {
-            return Err(AppError::Unauthorized(
-                "Invalid group name or password.".into(),
-            ));
-        }
-
-        let g = group.unwrap();
-
-        let existing = sqlx::query!(
-            r#"SELECT id FROM user_roles WHERE user_id = $1 AND role_id = 4 AND tenant_id = $2"#,
-            user_id,
-            g.id
-        )
-        .fetch_optional(&self.db)
-        .await?;
-
-        if existing.is_none() {
-            sqlx::query!(
-                r#"INSERT INTO user_roles (user_id, role_id, tenant_id) VALUES ($1, $2, $3)"#,
-                user_id,
-                Role::User.db_id() as i32,
-                g.id
-            )
-            .execute(&self.db)
-            .await?;
-        }
-
-        let jar = self
-            .issue_session_cookie(user_id, email, global_role, Some(g.id))
-            .await?;
-
-        Ok((jar, json!({ "ok": true })))
-    }
-
     pub async fn create_group(
         &self,
         params: CreateGroupParams<'_>,
@@ -188,7 +84,7 @@ impl GroupService {
         let email = params.email;
         let global_role = params.global_role;
         let group_name = params.group_name;
-        let password = params.password;
+        let avatar_url = params.avatar_url;
         let ip = params.ip;
         let ua = params.ua;
         let exists = sqlx::query!(r#"SELECT id FROM groups WHERE name = $1"#, group_name)
@@ -207,18 +103,23 @@ impl GroupService {
             return Err(AppError::bad_request("This group name is already taken."));
         }
 
-        let hash = crate::common::password::hash_password(password.to_string()).await?;
+        let group = sqlx::query(
+            r#"INSERT INTO groups (name, avatar_url, owner_id) VALUES ($1, $2, $3) RETURNING id, name"#
+        )
+        .bind(group_name)
+        .bind(avatar_url)
+        .bind(user_id)
+        .fetch_one(&self.db)
+        .await?;
 
-        let group = sqlx::query!(
-            r#"INSERT INTO groups (name, passcode_hash, owner_id) VALUES ($1, $2, $3) RETURNING id, name"#,
-            group_name, hash, user_id
-        ).fetch_one(&self.db).await?;
+        let group_id: Uuid = group.get("id");
+        let group_name_str: String = group.get("name");
 
         sqlx::query!(
             r#"INSERT INTO user_roles (user_id, role_id, tenant_id) VALUES ($1, $2, $3)"#,
             user_id,
             Role::Admin.db_id() as i32,
-            group.id
+            group_id
         )
         .execute(&self.db)
         .await?;
@@ -226,11 +127,11 @@ impl GroupService {
         sqlx::query!(
             r#"INSERT INTO security_events (event_type, event_status, ip_address, user_agent, metadata)
              VALUES ('group_create', 'success', $1::inet, $2, $3)"#,
-            ip_parsed, ua, json!({ "groupName": group.name, "groupId": group.id, "createdBy": user_id })
+            ip_parsed, ua, json!({ "groupName": group_name_str, "groupId": group_id, "createdBy": user_id })
         ).execute(&self.db).await?;
 
         let jar = self
-            .issue_session_cookie(user_id, email, global_role, Some(group.id))
+            .issue_session_cookie(user_id, email, global_role, Some(group_id))
             .await?;
         Ok((jar, json!({ "ok": true })))
     }

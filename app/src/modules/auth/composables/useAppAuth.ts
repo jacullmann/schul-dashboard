@@ -202,42 +202,14 @@ export function useAppAuth() {
     return initPromise;
   }
 
-  async function joinGroup(
-    name: string,
-    password: string,
-  ): Promise<AuthResult> {
-    try {
-      const { status, data } = await hw.post('/groups/join', {
-        groupName: name,
-        password,
-      });
-      if ((status === 200 || status === 201) && data.ok) {
-        await checkAuthStatus();
-        return { ok: true };
-      }
-      return { ok: false, error: 'Failed to join group.' };
-    } catch (error: unknown) {
-      const err = error as {
-        response?: { data?: { message?: string; error?: string } };
-      };
-      return {
-        ok: false,
-        error:
-          err.response?.data?.message ??
-          err.response?.data?.error ??
-          'Invalid code.',
-      };
-    }
-  }
-
   async function createGroup(
     name: string,
-    password: string,
+    avatarUrl?: string,
   ): Promise<AuthResult> {
     try {
       const { status, data } = await hw.post('/groups/create', {
         groupName: name,
-        password,
+        avatarUrl,
       });
       if ((status === 200 || status === 201) && data.ok) {
         await checkAuthStatus();
@@ -415,7 +387,6 @@ export function useAppAuth() {
     userGroups,
     initAuth,
     checkAuthStatus,
-    joinGroup,
     createGroup,
     switchActiveGroup,
     logout,

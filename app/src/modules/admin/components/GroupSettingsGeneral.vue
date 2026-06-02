@@ -3,7 +3,7 @@ import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useGroupAdmin } from '@/modules/admin/composables/useGroupAdmin';
-import { Pencil, Camera, Trash2, Upload } from '@lucide/vue';
+import { Pencil, Camera, Trash2, Upload, UserRoundPlus } from '@lucide/vue';
 import { useModalStore } from '@/stores/modalStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import hw from '../../../api/api';
@@ -12,7 +12,7 @@ import Avatar from '@/modules/auth/components/Avatar.vue';
 
 const modalStore = useModalStore();
 const { t } = useI18n();
-const { activeGroupAvatarUrl, checkPermission } = useAppAuth();
+const { activeGroupAvatarUrl, checkPermission, createInvite } = useAppAuth();
 const canEditSettings = computed(() => checkPermission('edit_group_general'));
 
 const props = defineProps<{
@@ -31,8 +31,27 @@ const emit = defineEmits<{
   (e: 'update:newGroupName', value: string): void;
 }>();
 
-const { updateGroupPassword, deleteGroup, saveGroupAvatar } = useGroupAdmin();
+const { deleteGroup, saveGroupAvatar } = useGroupAdmin();
 const router = useRouter();
+
+const loadingInvite = ref(false);
+
+async function inviteMember() {
+  loadingInvite.value = true;
+  try {
+    const res = await createInvite();
+    if (res.ok && res.token) {
+      modalStore.openInviteModal(res.token);
+    } else {
+      alert(res.error || 'Failed to generate invite link.');
+    }
+  } catch (err) {
+    console.error('Failed to generate invite link:', err);
+    alert('Failed to generate invite link.');
+  } finally {
+    loadingInvite.value = false;
+  }
+}
 
 // Avatar/Cropper state
 const fileInputRef = ref<HTMLInputElement | null>(null);
@@ -150,31 +169,6 @@ async function deleteAvatar() {
   }
 }
 
-const oldPassword = ref('');
-const newPassword = ref('');
-const newPassword2 = ref('');
-const changingPassword = ref(false);
-const pwdError = ref('');
-
-async function changePassword() {
-  if (!oldPassword.value || !newPassword.value) return;
-  if (newPassword.value !== newPassword2.value) {
-    pwdError.value = t('admin.general.password.errors.mismatch');
-    return;
-  }
-  pwdError.value = '';
-  changingPassword.value = true;
-  try {
-    await updateGroupPassword(oldPassword.value, newPassword.value);
-    oldPassword.value = '';
-    newPassword.value = '';
-    newPassword2.value = '';
-  } catch (err: any) {
-    pwdError.value = err.message || t('admin.general.password.errors.generic');
-  } finally {
-    changingPassword.value = false;
-  }
-}
 
 const deleteConfirmText = ref('');
 const deletingGroup = ref(false);
@@ -366,65 +360,21 @@ async function confirmDeleteGroup() {
       />
     </div>
 
-    <div v-if="isOwner">
-      <PageHeader>{{ t('admin.general.password.title') }}</PageHeader>
-
-      <BaseForm
-        :submit="changePassword"
-        :error="pwdError"
-        :loading="changingPassword"
-        :requirement="
-          !!(
-            oldPassword &&
-            newPassword &&
-            newPassword2 &&
-            newPassword === newPassword2
-          )
-        "
-        class="max-w-160"
+    <div v-if="checkPermission('invite_members')">
+      <PageHeader>{{ t('auth.groups.invite.invite_button_header') }}</PageHeader>
+      <p class="text-base/relaxed text-on-ghost-muted m-0 mb-5">
+        Generieren Sie einen Einladungslink oder QR-Code, damit andere Schüler dieser Gruppe beitreten können.
+      </p>
+      <BaseButton
+        type="button"
+        variant="action"
+        @click="inviteMember"
+        :disabled="loadingInvite"
+        class="gap-2"
       >
-        <template #content>
-          <BaseFormGroup id="old-password">
-            <BaseLabel for="old-password">{{
-              t('admin.general.password.current_label')
-            }}</BaseLabel>
-            <BaseInput
-              id="old-password"
-              type="password"
-              v-model="oldPassword"
-              @input="pwdError = ''"
-            />
-          </BaseFormGroup>
-
-          <BaseFormGroup id="new-password">
-            <BaseLabel for="new-password">{{
-              t('admin.general.password.new_label')
-            }}</BaseLabel>
-            <BaseInput
-              id="new-password"
-              type="password"
-              v-model="newPassword"
-              @input="pwdError = ''"
-            />
-          </BaseFormGroup>
-
-          <BaseFormGroup id="new-password-confirm">
-            <BaseLabel for="new-password-confirm">{{
-              t('admin.general.password.confirm_label')
-            }}</BaseLabel>
-            <BaseInput
-              id="new-password-confirm"
-              type="password"
-              v-model="newPassword2"
-              @input="pwdError = ''"
-            />
-          </BaseFormGroup>
-        </template>
-
-        <template #action-text>
-          {{ t('admin.general.password.title') }}
-        </template>
-      </BaseForm>
+        <UserRoundPlus :size="18" />
+        <span>{{ t('auth.groups.invite.invite_button_header') }}</span>
+      </BaseButton>
     </div>
 
     <div v-if="isOwner">
