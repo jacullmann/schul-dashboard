@@ -65,7 +65,8 @@ function onFileSelected(e: Event) {
   if (!file) return;
 
   if (!file.type.startsWith('image/')) {
-    avatarError.value = t('admin.general.avatar.errors.invalid_file') || 'Ungültiges Dateiformat';
+    avatarError.value =
+      t('admin.general.avatar.errors.invalid_file') || 'Ungültiges Dateiformat';
     return;
   }
 
@@ -77,7 +78,9 @@ function onFileSelected(e: Event) {
     avatarError.value = '';
   };
   reader.onerror = () => {
-    avatarError.value = t('admin.general.avatar.errors.read_failed') || 'Fehler beim Lesen der Datei';
+    avatarError.value =
+      t('admin.general.avatar.errors.read_failed') ||
+      'Fehler beim Lesen der Datei';
   };
   reader.readAsDataURL(file);
 }
@@ -107,15 +110,23 @@ async function onCropConfirmed(blob: Blob) {
     );
 
     if (!res.ok)
-      throw new Error(t('admin.general.avatar.errors.upload_failed') || 'Upload fehlgeschlagen');
+      throw new Error(
+        t('admin.general.avatar.errors.upload_failed') ||
+          'Upload fehlgeschlagen',
+      );
     const json = await res.json();
     if (!json.secure_url)
-      throw new Error(t('admin.general.avatar.errors.invalid_response') || 'Ungültige Serverantwort');
+      throw new Error(
+        t('admin.general.avatar.errors.invalid_response') ||
+          'Ungültige Serverantwort',
+      );
 
     avatarUrl.value = json.secure_url;
   } catch (err: any) {
     avatarError.value =
-      err.message || t('admin.general.avatar.errors.save_failed') || 'Fehler beim Speichern';
+      err.message ||
+      t('admin.general.avatar.errors.save_failed') ||
+      'Fehler beim Speichern';
   } finally {
     savingAvatar.value = false;
   }
@@ -142,7 +153,10 @@ async function submit() {
   errorMsg.value = '';
 
   try {
-    const res = await auth.createGroup(groupName.value.trim(), avatarUrl.value || undefined);
+    const res = await auth.createGroup(
+      groupName.value.trim(),
+      avatarUrl.value || undefined,
+    );
 
     if (res.ok) {
       try {
@@ -236,12 +250,13 @@ async function submit() {
             </BaseMenuButton>
           </BaseMenu>
         </div>
-        <span class="text-xs text-on-ghost-muted">{{ t('admin.general.avatar.description') || 'Optionally choose a group picture' }}</span>
-        <span
-          v-if="avatarError"
-          class="text-xs text-danger font-medium"
-          >{{ avatarError }}</span
-        >
+        <span class="text-xs text-on-ghost-muted">{{
+          t('admin.general.avatar.description') ||
+          'Optionally choose a group picture'
+        }}</span>
+        <span v-if="avatarError" class="text-xs text-danger font-medium">{{
+          avatarError
+        }}</span>
       </div>
 
       <BaseFormGroup id="group-name">

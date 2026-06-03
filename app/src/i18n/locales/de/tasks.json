@@ -139,6 +139,11 @@
       "dalton": "Dalton",
       "exam": "Prüfung",
       "homework": "Hausaufgabe"
+    },
+    "double_task_confirm": {
+      "title": "Aufgabe bereits vorhanden?",
+      "message": "Am {date} gibt es bereits eine {type} für das Fach {subject}. Bist du sicher, dass es sich bei deinem Eintrag nicht um dieselbe Aufgabe handelt?",
+      "confirm": "Ja, Eintrag erstellen"
     }
   },
   "private_tasks": {

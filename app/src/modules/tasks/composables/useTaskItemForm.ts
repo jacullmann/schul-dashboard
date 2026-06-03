@@ -7,6 +7,7 @@ import { useImageUpload } from '@/modules/tasks/composables/useImageUpload';
 import { useI18n } from 'vue-i18n';
 import { getSubjectKey } from '@/types/subjects';
 import { useSubjectStore } from '@/stores/subjectStore';
+import { formatSubjectDisplay } from '@/utils/subject-formatter';
 
 export function useTaskItemForm(
   initial: HwItem | null | undefined,
@@ -113,6 +114,24 @@ export function useTaskItemForm(
   const subjectOtherError = ref('');
   const descriptionError = ref('');
   const dueDateError = ref('');
+
+  const showDoubleTaskConfirm = ref(false);
+  const doubleTaskOriginalItem = ref<HwItem | null>(null);
+  const doubleCheckPassed = ref(false);
+
+  const getSubjectName = (subject: string) =>
+    formatSubjectDisplay(subject, t, te);
+
+  const getTypeLabel = (type: string) => {
+    if (type === 'homework') return t('tasks.list.types.homework');
+    if (type === 'dalton') return t('tasks.list.types.dalton');
+    if (type === 'exam') return t('tasks.list.types.exam');
+    return type;
+  };
+
+  watch([activeType, subjectSel, subjectOther, courseSel, dueLocal], () => {
+    doubleCheckPassed.value = false;
+  });
 
   watch(subjectSel, () => {
     courseSel.value = '';
@@ -271,6 +290,36 @@ export function useTaskItemForm(
       return;
     }
 
+    // Check for double tasks if we are creating a new entry and haven't confirmed it yet
+    if (!initial && !doubleCheckPassed.value) {
+      try {
+        const [activeRes, oldRes] = await Promise.all([
+          hw.get('/items', { params: { type: 'all' } }),
+          hw.get('/items', { params: { type: 'all', filter: 'old' } }),
+        ]);
+
+        const allItems = [...(activeRes.data || []), ...(oldRes.data || [])];
+        const matchingItem = allItems.find((item: any) => {
+          const isSameType = item.type === activeType.value;
+          const isSameSubject =
+            item.subject.trim().toLowerCase() ===
+            finalSubject.trim().toLowerCase();
+          const isSameDate =
+            isoDateOnlyFromIso(item.dueDate) === dueLocal.value;
+          return isSameType && isSameSubject && isSameDate;
+        });
+
+        if (matchingItem) {
+          doubleTaskOriginalItem.value = matchingItem;
+          showDoubleTaskConfirm.value = true;
+          submitting.value = false;
+          return;
+        }
+      } catch (err) {
+        console.error('Failed to check for double tasks:', err);
+      }
+    }
+
     try {
       const payload = {
         title: cleanTitle,
@@ -312,8 +361,20 @@ export function useTaskItemForm(
     }
   }
 
+  async function confirmDoubleTaskSubmit() {
+    doubleCheckPassed.value = true;
+    showDoubleTaskConfirm.value = false;
+    await submit();
+  }
+
   function onKeyDown(e: KeyboardEvent) {
-    if (e.key === 'Escape') emit('cancel');
+    if (e.key === 'Escape') {
+      if (showDoubleTaskConfirm.value) {
+        showDoubleTaskConfirm.value = false;
+      } else {
+        emit('cancel');
+      }
+    }
   }
 
   const titleInputRef = ref<any>(null);
@@ -362,5 +423,10 @@ export function useTaskItemForm(
     courseOptions,
     submit,
     titleInputRef,
+    showDoubleTaskConfirm,
+    doubleTaskOriginalItem,
+    confirmDoubleTaskSubmit,
+    getSubjectName,
+    getTypeLabel,
   };
 }

@@ -7,11 +7,9 @@ import {
   Clock,
   CheckCircle2,
   ChevronRight,
-  MapPin,
-  AlertTriangle,
   Pencil,
-  Pin,
   ArrowUpRight,
+  CalendarDays,
 } from '@lucide/vue';
 
 import { useUserStore } from '@/stores/userStore';
@@ -27,7 +25,7 @@ const router = useRouter();
 const userStore = useUserStore();
 const subjectStore = useSubjectStore();
 const { user } = storeToRefs(userStore);
-const { activeGroupId, activeScheduleConfig } = useAppAuth();
+const { activeGroupId, activeScheduleConfig, checkPermission } = useAppAuth();
 
 // Initialize schedule composable
 const {
@@ -245,25 +243,6 @@ const slotStartMinutes = computed(() => {
   return map;
 });
 
-const getSlotTime = (slot: number, duration: number) => {
-  const startMins = slotStartMinutes.value[slot] ?? 0;
-  let endMins = startMins;
-  for (let d = 0; d < duration; d++) {
-    endMins += lessonDurationMins.value;
-    if (d < duration - 1) {
-      endMins += breaks.value[slot + d] || 0;
-    }
-  }
-
-  const formatMin = (total: number) => {
-    const hours = Math.floor(total / 60);
-    const minutes = total % 60;
-    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-  };
-
-  return `${formatMin(startMins)} - ${formatMin(endMins)}`;
-};
-
 // Robust algorithm for extracting next upcoming lesson
 const upcomingLesson = computed(() => {
   if (!effectiveLessons.value.length) return null;
@@ -293,18 +272,47 @@ const upcomingLesson = computed(() => {
 
   if (!lessonsWithTimes.length) return null;
 
+  const isLessonCourseTaken = (lesson: any): boolean => {
+    if (!user.value?.courses || !Array.isArray(user.value.courses)) {
+      return false;
+    }
+    const lessonCourseId = lesson.courseId || lesson.courses?.id;
+    if (!lessonCourseId) {
+      return false;
+    }
+    return user.value.courses.some((c: any) => c.courseId === lessonCourseId);
+  };
+
   // Find lessons starting in the future
   let futureLessons = lessonsWithTimes.filter(
     (l) => l.startTotal > currentTotalWeekMinutes,
   );
 
   if (futureLessons.length > 0) {
-    futureLessons.sort((a, b) => a.startTotal - b.startTotal);
+    futureLessons.sort((a, b) => {
+      if (a.startTotal !== b.startTotal) {
+        return a.startTotal - b.startTotal;
+      }
+      const aTaken = isLessonCourseTaken(a.lesson);
+      const bTaken = isLessonCourseTaken(b.lesson);
+      if (aTaken && !bTaken) return -1;
+      if (!aTaken && bTaken) return 1;
+      return 0;
+    });
     return futureLessons[0]?.lesson;
   }
 
   // Weekend / after hours: wrap around to first lesson next week
-  lessonsWithTimes.sort((a, b) => a.startTotal - b.startTotal);
+  lessonsWithTimes.sort((a, b) => {
+    if (a.startTotal !== b.startTotal) {
+      return a.startTotal - b.startTotal;
+    }
+    const aTaken = isLessonCourseTaken(a.lesson);
+    const bTaken = isLessonCourseTaken(b.lesson);
+    if (aTaken && !bTaken) return -1;
+    if (!aTaken && bTaken) return 1;
+    return 0;
+  });
   return lessonsWithTimes[0]?.lesson;
 });
 
@@ -363,6 +371,14 @@ const formatDayName = (day: number): string => {
     date,
   );
 };
+
+const hasLessons = computed(() => lessons.value && lessons.value.length > 0);
+const canEditScheduleConfig = computed(() => checkPermission('edit_schedule'));
+
+const isScheduleVisible = computed(() => {
+  if (loadingLessons.value) return true;
+  return hasLessons.value || canEditScheduleConfig.value;
+});
 </script>
 
 <template>
@@ -392,7 +408,10 @@ const formatDayName = (day: number): string => {
       </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div
+      class="grid grid-cols-1 gap-8"
+      :class="{ 'md:grid-cols-2': isScheduleVisible }"
+    >
       <div class="flex flex-col">
         <PageHeader>
           {{ t('common.dashboard.tasks_overview.title') }}
@@ -488,13 +507,11 @@ const formatDayName = (day: number): string => {
       </div>
 
       <!-- RIGHT COLUMN: Schedule Overview -->
-      <div class="flex flex-col">
+      <div v-if="isScheduleVisible" class="flex flex-col">
         <!-- Schedule Header -->
-        <PageHeader
-          class="flex items-center justify-between gap-4 border-b border-surface-border/50 pb-4"
-        >
+        <PageHeader>
           {{ t('common.dashboard.schedule_overview.title') }}
-          <template #action v-if="activeGroupId">
+          <template #action v-if="activeGroupId && hasLessons">
             <BaseTooltip
               :content="t('common.dashboard.schedule_overview.view_full')"
               placement="bottom"
@@ -513,153 +530,180 @@ const formatDayName = (day: number): string => {
         </PageHeader>
 
         <!-- Schedule Content -->
-        <div class="flex-1 flex flex-col gap-5 min-h-[220px]">
+        <div
+          v-if="loadingLessons || loadingSubs"
+          class="flex-1 flex flex-col gap-5 min-h-[220px]"
+        >
+          <!-- TOP SUB-SECTION: Next Lesson Skeleton -->
+          <div class="space-y-2">
+            <h3>
+              {{ t('common.dashboard.schedule_overview.next_lesson') }}
+            </h3>
+            <div
+              class="h-20 bg-surface-highlight rounded-xl animate-pulse"
+            ></div>
+          </div>
+
+          <!-- BOTTOM SUB-SECTION: Substitutions / Changes Skeleton -->
+          <div class="space-y-2 flex-1 flex flex-col">
+            <h3>
+              {{ t('common.dashboard.schedule_overview.substitutions') }}
+            </h3>
+            <div
+              class="h-16 bg-surface-highlight rounded-xl animate-pulse"
+            ></div>
+          </div>
+        </div>
+
+        <!-- Schedule Content when lessons exist -->
+        <div
+          v-else-if="hasLessons"
+          class="flex-1 flex flex-col gap-5 min-h-[220px]"
+        >
           <!-- TOP SUB-SECTION: Next Lesson -->
           <div class="space-y-2">
-            <h3
-              class="text-xs font-bold uppercase tracking-wider text-on-ghost-subtle flex items-center gap-1"
-            >
-              <Clock class="size-3.5" />
+            <h3>
               {{ t('common.dashboard.schedule_overview.next_lesson') }}
             </h3>
 
             <div
-              v-if="loadingLessons"
-              class="h-20 bg-surface-highlight rounded-xl animate-pulse"
-            ></div>
-
-            <template v-else>
-              <div
-                v-if="upcomingLesson"
-                class="flex items-center justify-between gap-4 p-4 rounded-xl border border-surface-border bg-surface-highlight/40 dark:bg-surface-highlight/5"
-              >
-                <div class="min-w-0 space-y-1">
-                  <div
-                    class="flex items-center gap-1.5 text-xs text-on-ghost-muted"
-                  >
-                    <span class="font-bold text-on-ghost-subtle"
-                      >{{ upcomingLesson.slot }}. Stunde</span
-                    >
-                    <span>•</span>
-                    <span>{{
-                      getSlotTime(upcomingLesson.slot, upcomingLesson.duration)
-                    }}</span>
-                    <span>•</span>
-                    <span>{{ formatDayName(upcomingLesson.day) }}</span>
-                  </div>
-
-                  <h4 class="text-base font-bold text-on-ghost truncate m-0">
-                    {{ getDisplayName(upcomingLesson) }}
-                  </h4>
-
-                  <div
-                    class="flex items-center gap-1 text-xs text-on-ghost-subtle"
-                  >
-                    <MapPin class="size-3.5 shrink-0" />
-                    <span>{{ upcomingLesson.room || 'Kein Raum' }}</span>
-                  </div>
+              v-if="upcomingLesson"
+              class="flex items-center justify-between gap-4 px-3 py-2 rounded-lg border border-surface-border bg-surface"
+            >
+              <div class="min-w-0">
+                <div class="text-xs text-on-ghost-muted mb-0.5">
+                  {{ upcomingLesson.slot }}. Stunde
                 </div>
 
-                <div class="shrink-0 flex flex-col gap-1.5 items-end">
-                  <span
-                    v-if="upcomingLesson.cancelled"
-                    class="px-2 py-0.5 rounded text-[10px] font-bold bg-danger/15 text-danger border border-danger/20"
-                  >
-                    {{ t('common.dashboard.schedule_overview.cancelled') }}
-                  </span>
-                  <span
-                    v-else-if="upcomingLesson.isSubstitutedSubject"
-                    class="px-2 py-0.5 rounded text-[10px] font-bold bg-bismuth-purple/15 text-bismuth-purple border border-bismuth-purple/20"
-                  >
-                    {{ t('common.dashboard.schedule_overview.substituted') }}
-                  </span>
+                <div class="text-base font-bold text-on-ghost truncate m-0">
+                  {{ getDisplayName(upcomingLesson) }}
+                </div>
+
+                <div class="text-sm text-on-ghost-muted">
+                  {{ upcomingLesson.room || 'Kein Raum' }}
                 </div>
               </div>
 
-              <div
-                v-else
-                class="p-4 rounded-xl border border-dashed border-surface-border text-center text-xs text-on-ghost-muted"
-              >
-                {{ t('common.dashboard.schedule_overview.no_more_lessons') }}
+              <div class="shrink-0 flex flex-col gap-1.5 items-end">
+                <span
+                  v-if="upcomingLesson.cancelled"
+                  class="px-2 py-0.5 rounded text-xs font-bold bg-danger/15 text-danger border border-danger/20"
+                >
+                  {{ t('common.dashboard.schedule_overview.cancelled') }}
+                </span>
+                <span
+                  v-else-if="upcomingLesson.isSubstitutedSubject"
+                  class="px-2 py-0.5 rounded text-xs font-bold bg-bismuth-purple/15 text-bismuth-purple border border-bismuth-purple/20"
+                >
+                  {{ t('common.dashboard.schedule_overview.substituted') }}
+                </span>
               </div>
-            </template>
+            </div>
+
+            <div
+              v-else
+              class="p-4 rounded-xl border border-dashed border-surface-border text-center text-xs text-on-ghost-muted"
+            >
+              {{ t('common.dashboard.schedule_overview.no_more_lessons') }}
+            </div>
           </div>
 
           <!-- BOTTOM SUB-SECTION: Substitutions / Changes -->
           <div class="space-y-2 flex-1 flex flex-col">
-            <h3
-              class="text-xs font-bold uppercase tracking-wider text-on-ghost-subtle flex items-center gap-1"
-            >
-              <AlertTriangle class="size-3.5 text-yellow" />
+            <h3>
               {{ t('common.dashboard.schedule_overview.substitutions') }}
             </h3>
 
             <div
-              v-if="loadingSubs"
-              class="h-16 bg-surface-highlight rounded-xl animate-pulse"
-            ></div>
-
-            <template v-else>
+              v-if="scheduleChanges.length > 0"
+              class="space-y-2 max-h-[120px] overflow-y-auto pr-1"
+            >
               <div
-                v-if="scheduleChanges.length > 0"
-                class="space-y-2 max-h-[120px] overflow-y-auto pr-1"
+                v-for="change in scheduleChanges"
+                :key="change.id"
+                class="flex items-center justify-between gap-3 p-3 rounded-lg border border-surface-border/40 bg-surface-highlight/25 dark:bg-surface-highlight/3 text-xs"
               >
-                <div
-                  v-for="change in scheduleChanges"
-                  :key="change.id"
-                  class="flex items-center justify-between gap-3 p-3 rounded-lg border border-surface-border/40 bg-surface-highlight/25 dark:bg-surface-highlight/3 text-xs"
-                >
-                  <div class="min-w-0">
-                    <span class="font-semibold text-on-ghost-muted">
-                      {{ formatDayName(change.day) }}, {{ change.slot }}.
-                      Stunde:
-                    </span>
-                    <span class="font-bold text-on-ghost ml-1">
-                      {{ getDisplayName(change) }}
-                    </span>
-                    <!-- Comparison Details -->
-                    <span
-                      v-if="change.room !== change._original?.room"
-                      class="text-on-ghost-subtle block mt-0.5 font-medium"
-                    >
-                      {{
-                        t('common.dashboard.schedule_overview.room_change', {
-                          room: change.room,
-                        })
-                      }}
-                      (war: {{ change._original?.room || '?' }})
-                    </span>
-                  </div>
-
-                  <span
-                    v-if="change.cancelled"
-                    class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-danger/10 text-danger"
-                  >
-                    {{ t('common.dashboard.schedule_overview.cancelled') }}
+                <div class="min-w-0">
+                  <span class="font-semibold text-on-ghost-muted">
+                    {{ formatDayName(change.day) }}, {{ change.slot }}. Stunde:
                   </span>
-                  <span
-                    v-else-if="change.isSubstitutedSubject"
-                    class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-bismuth-purple/10 text-bismuth-purple"
-                  >
-                    {{ t('common.dashboard.schedule_overview.substituted') }}
+                  <span class="font-bold text-on-ghost ml-1">
+                    {{ getDisplayName(change) }}
                   </span>
+                  <!-- Comparison Details -->
                   <span
-                    v-else
-                    class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-warn/10 text-on-warn dark:text-yellow"
+                    v-if="change.room !== change._original?.room"
+                    class="text-on-ghost-subtle block mt-0.5 font-medium"
                   >
-                    Änderung
+                    {{
+                      t('common.dashboard.schedule_overview.room_change', {
+                        room: change.room,
+                      })
+                    }}
+                    (war: {{ change._original?.room || '?' }})
                   </span>
                 </div>
-              </div>
 
-              <div
-                v-else
-                class="flex-1 flex items-center justify-center p-4 rounded-xl border border-dashed border-surface-border text-center text-xs text-on-ghost-muted"
-              >
-                {{ t('common.dashboard.schedule_overview.no_substitutions') }}
+                <span
+                  v-if="change.cancelled"
+                  class="px-1.5 py-0.5 rounded text-xs font-bold bg-danger/10 text-danger"
+                >
+                  {{ t('common.dashboard.schedule_overview.cancelled') }}
+                </span>
+                <span
+                  v-else-if="change.isSubstitutedSubject"
+                  class="px-1.5 py-0.5 rounded text-xs font-bold bg-bismuth-purple/10 text-bismuth-purple"
+                >
+                  {{ t('common.dashboard.schedule_overview.substituted') }}
+                </span>
+                <span
+                  v-else
+                  class="px-1.5 py-0.5 rounded text-xs font-bold bg-warn/10 text-on-warn dark:text-yellow"
+                >
+                  Änderung
+                </span>
               </div>
-            </template>
+            </div>
+
+            <div
+              v-else
+              class="flex-1 flex items-center justify-center p-4 rounded-xl border border-dashed border-surface-border text-center text-xs text-on-ghost-muted"
+            >
+              {{ t('common.dashboard.schedule_overview.no_substitutions') }}
+            </div>
           </div>
+        </div>
+
+        <!-- Schedule Content empty but user can edit -->
+        <div
+          v-else-if="canEditScheduleConfig"
+          class="flex-1 flex flex-col items-center justify-center p-6 text-center border border-dashed border-surface-border rounded-xl bg-surface-highlight/5 space-y-4 min-h-[220px]"
+        >
+          <div
+            class="p-3 rounded-full bg-primary/10 text-primary animate-bounce-slow"
+          >
+            <CalendarDays class="size-8" />
+          </div>
+          <div class="space-y-1.5 max-w-sm">
+            <h4 class="text-sm font-bold text-on-ghost m-0">
+              {{ t('common.dashboard.schedule_overview.title') }}
+            </h4>
+            <p class="text-xs text-on-ghost-muted m-0">
+              {{ t('common.dashboard.schedule_overview.setup_cta') }}
+            </p>
+          </div>
+          <BaseButton
+            variant="action"
+            size="sm"
+            @click="
+              $router.push({
+                name: 'group-admin',
+                params: { groupId: activeGroupId, tab: 'schedule' },
+              })
+            "
+          >
+            {{ t('common.dashboard.schedule_overview.setup_button') }}
+          </BaseButton>
         </div>
       </div>
     </div>

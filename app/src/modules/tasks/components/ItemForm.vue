@@ -4,6 +4,7 @@ import type { HwItem } from '@/modules/tasks/composables/useTasks';
 import type { ItemType } from '@/modules/tasks/types';
 import { X, Upload, FileText } from '@lucide/vue';
 import { useTaskItemForm } from '../composables/useTaskItemForm';
+import ItemCard from './ItemCard.vue';
 
 const { t } = useI18n();
 
@@ -49,6 +50,11 @@ const {
   courseOptions,
   submit,
   titleInputRef,
+  showDoubleTaskConfirm,
+  doubleTaskOriginalItem,
+  confirmDoubleTaskSubmit,
+  getSubjectName,
+  getTypeLabel,
 } = useTaskItemForm(props.initial, props.initialType, emit);
 </script>
 
@@ -235,6 +241,110 @@ const {
 
     <template #action-text>
       {{ initial ? t('common.buttons.save') : t('common.buttons.create') }}
+    </template>
+  </BaseModal>
+
+  <BaseModal
+    :open="showDoubleTaskConfirm"
+    :sheet="true"
+    :submit="confirmDoubleTaskSubmit"
+    :loading="submitting"
+    @cancel="showDoubleTaskConfirm = false"
+  >
+    <template #title>
+      {{ t('tasks.list.double_task_confirm.title') }}
+    </template>
+
+    <template #content>
+      <div class="flex flex-col gap-4">
+        <p class="m-0 text-on-ghost">
+          {{
+            t('tasks.list.double_task_confirm.message', {
+              date: new Date(dueLocal).toLocaleDateString(),
+              type: getTypeLabel(activeType),
+              subject: getSubjectName(doubleTaskOriginalItem?.subject || ''),
+            })
+          }}
+        </p>
+
+        <ItemCard
+          v-if="doubleTaskOriginalItem"
+          :title="doubleTaskOriginalItem.title"
+          :show-menu-trigger="false"
+          :is-collapsed="false"
+          class="border border-surface-border rounded-xl"
+        >
+          <template #badges>
+            <div class="text-on-ghost-muted text-base">
+              {{ getTypeLabel(doubleTaskOriginalItem.type) }} •
+              {{ getSubjectName(doubleTaskOriginalItem.subject) }} •
+              {{
+                new Date(doubleTaskOriginalItem.dueDate).toLocaleDateString()
+              }}
+              <template v-if="doubleTaskOriginalItem.createdByName">
+                • {{ doubleTaskOriginalItem.createdByName }}
+              </template>
+            </div>
+          </template>
+
+          <template #body v-if="doubleTaskOriginalItem.description">
+            <div
+              class="text-on-ghost break-words [overflow-wrap:anywhere] hyphens-auto whitespace-pre-wrap select-text cursor-text"
+            >
+              {{ doubleTaskOriginalItem.description }}
+            </div>
+          </template>
+
+          <template
+            #content-after
+            v-if="
+              (doubleTaskOriginalItem.images &&
+                doubleTaskOriginalItem.images.length) ||
+              doubleTaskOriginalItem.editorNote
+            "
+          >
+            <!-- Images block (non-interactive) -->
+            <div
+              v-if="
+                doubleTaskOriginalItem.images &&
+                doubleTaskOriginalItem.images.length
+              "
+              class="grid grid-cols-4 gap-2 mt-2 mb-2"
+            >
+              <div
+                v-for="img in doubleTaskOriginalItem.images"
+                :key="img.publicId"
+                class="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-md border-none bg-black/[0.12] select-none"
+              >
+                <img
+                  :src="makeThumb(img.metadata?.thumbnailId || img.publicId)"
+                  class="block h-full w-full object-cover [pointer-events:none]"
+                  alt="Vorschau"
+                />
+              </div>
+            </div>
+
+            <!-- Notes block (non-interactive) -->
+            <div
+              v-if="doubleTaskOriginalItem.editorNote"
+              class="note-section mt-2 pt-1 border-t border-surface-border"
+            >
+              <div class="text-on-ghost text-base font-bold mb-1">
+                {{ t('tasks.list.notes.note') }}
+              </div>
+              <div
+                class="text-on-ghost text-base whitespace-pre-wrap break-words"
+              >
+                {{ doubleTaskOriginalItem.editorNote }}
+              </div>
+            </div>
+          </template>
+        </ItemCard>
+      </div>
+    </template>
+
+    <template #action-text>
+      {{ t('tasks.list.double_task_confirm.confirm') }}
     </template>
   </BaseModal>
 </template>

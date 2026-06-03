@@ -162,6 +162,7 @@
     "search": "Search",
     "tasks": "Tasks",
     "dashboard": "Dashboard",
+    "create": "Create group",
     "toggle": "Toggle Sidebar"
   },
   "contact": {
@@ -212,7 +213,9 @@
       "view_full": "View full schedule",
       "cancelled": "Cancelled",
       "room_change": "Room change: {room}",
-      "substituted": "Substitution"
+      "substituted": "Substitution",
+      "setup_cta": "No schedule has been created for this group yet.",
+      "setup_button": "Set Up Schedule"
     }
   }
 }

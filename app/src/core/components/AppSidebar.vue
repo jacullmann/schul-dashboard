@@ -2,7 +2,7 @@
 import { useUserStore } from '@/stores/userStore';
 import {
   PanelLeft,
-  CirclePlus,
+  SquarePen,
   Megaphone,
   House,
   UsersRound,
@@ -13,6 +13,7 @@ import {
   Lock,
   Search,
   MessageCircle,
+  Plus,
 } from '@lucide/vue';
 import AccountMenu from '@/modules/auth/components/AccountMenu.vue';
 import { useSearchModal } from '@/core/composables/useSearchModal';
@@ -107,6 +108,13 @@ function handleAnnouncement() {
   });
 }
 
+function handleCreate() {
+  collapseIfMobile();
+  withGroup(() => {
+    modalStore.openCreateGroup();
+  });
+}
+
 onMounted(() => {
   if (!userStore.initialized) {
     userStore.fetchUser();
@@ -182,7 +190,7 @@ onUnmounted(() => {
           :label="t('common.sidebar.entry')"
           :shortcut="['alt', 'n']"
           :expanded="isExpanded"
-          :icon="CirclePlus"
+          :icon="SquarePen"
           :page="false"
           @click="handleEntry"
         />
@@ -338,6 +346,14 @@ onUnmounted(() => {
             {{ group.name }}
           </span>
         </button>
+
+        <SidebarButton
+          :label="t('common.sidebar.create')"
+          :expanded="isExpanded"
+          :icon="Plus"
+          :page="false"
+          @click="handleCreate"
+        />
       </div>
     </div>
 

@@ -139,6 +139,11 @@
       "dalton": "Dalton",
       "exam": "Exam",
       "homework": "Homework"
+    },
+    "double_task_confirm": {
+      "title": "Task Already Exists?",
+      "message": "On {date} there is already a {type} registered for the subject {subject}. Are you sure your entry isn't about the same task?",
+      "confirm": "Yes, create entry"
     }
   },
   "private_tasks": {

@@ -331,7 +331,6 @@ export function useGroupAdmin() {
     }
   }
 
-
   async function deleteGroup() {
     try {
       await hw.delete('/group-admin');

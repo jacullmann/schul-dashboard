@@ -168,6 +168,7 @@
     "search": "Suchen",
     "tasks": "Aufgaben",
     "dashboard": "Dashboard",
+    "create": "Gruppe erstellen",
     "toggle": "Seitenleiste umschalten"
   },
   "contact": {
@@ -220,7 +221,9 @@
       "view_full": "Vollständigen Plan anzeigen",
       "cancelled": "Ausfall",
       "room_change": "Raumänderung: {room}",
-      "substituted": "Vertretung"
+      "substituted": "Vertretung",
+      "setup_cta": "Es wurde noch kein Stundenplan für diese Gruppe erstellt.",
+      "setup_button": "Stundenplan einrichten"
     }
   },
   "video_player": {

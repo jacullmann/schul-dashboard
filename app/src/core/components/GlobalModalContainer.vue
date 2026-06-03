@@ -251,8 +251,6 @@ async function onAuthSuccess() {
     @cancel="modalStore.closeCreateGroup()"
   />
 
-
-
   <InviteModal
     :open="inviteModalOpen"
     :token="inviteModalToken"

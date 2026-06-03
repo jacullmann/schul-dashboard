@@ -169,7 +169,6 @@ async function deleteAvatar() {
   }
 }
 
-
 const deleteConfirmText = ref('');
 const deletingGroup = ref(false);
 
@@ -361,9 +360,12 @@ async function confirmDeleteGroup() {
     </div>
 
     <div v-if="checkPermission('invite_members')">
-      <PageHeader>{{ t('auth.groups.invite.invite_button_header') }}</PageHeader>
+      <PageHeader>{{
+        t('auth.groups.invite.invite_button_header')
+      }}</PageHeader>
       <p class="text-base/relaxed text-on-ghost-muted m-0 mb-5">
-        Generieren Sie einen Einladungslink oder QR-Code, damit andere Schüler dieser Gruppe beitreten können.
+        Generieren Sie einen Einladungslink oder QR-Code, damit andere Schüler
+        dieser Gruppe beitreten können.
       </p>
       <BaseButton
         type="button"
