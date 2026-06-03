@@ -129,8 +129,43 @@ export function useTaskItemForm(
     return type;
   };
 
-  watch([activeType, subjectSel, subjectOther, courseSel, dueLocal], () => {
-    doubleCheckPassed.value = false;
+  const formattedDueDate = computed(() => {
+    try {
+      if (!dueLocal.value) return '';
+      return new Date(dueLocal.value).toLocaleDateString();
+    } catch {
+      return dueLocal.value;
+    }
+  });
+
+  const doubleTaskSubjectName = computed(() => {
+    if (!doubleTaskOriginalItem.value) return '';
+    return getSubjectName(doubleTaskOriginalItem.value.subject);
+  });
+
+  const doubleTaskTypeLabel = computed(() => {
+    if (!doubleTaskOriginalItem.value) return '';
+    return getTypeLabel(doubleTaskOriginalItem.value.type);
+  });
+
+  const doubleTaskDueDate = computed(() => {
+    if (!doubleTaskOriginalItem.value) return '';
+    try {
+      return new Date(
+        doubleTaskOriginalItem.value.dueDate,
+      ).toLocaleDateString();
+    } catch {
+      return doubleTaskOriginalItem.value.dueDate;
+    }
+  });
+
+  const doubleTaskConfirmMessage = computed(() => {
+    if (!doubleTaskOriginalItem.value) return '';
+    return t('tasks.list.double_task_confirm.message', {
+      date: formattedDueDate.value,
+      type: getTypeLabel(activeType.value),
+      subject: doubleTaskSubjectName.value,
+    });
   });
 
   watch(subjectSel, () => {
@@ -163,6 +198,10 @@ export function useTaskItemForm(
       ? isoDateOnlyFromIso(initial.dueDate)
       : new Date().toISOString().slice(0, 10),
   );
+
+  watch([activeType, subjectSel, subjectOther, courseSel, dueLocal], () => {
+    doubleCheckPassed.value = false;
+  });
 
   const submitting = ref(false);
   const submitError = ref('');
@@ -428,5 +467,9 @@ export function useTaskItemForm(
     confirmDoubleTaskSubmit,
     getSubjectName,
     getTypeLabel,
+    doubleTaskSubjectName,
+    doubleTaskTypeLabel,
+    doubleTaskDueDate,
+    doubleTaskConfirmMessage,
   };
 }

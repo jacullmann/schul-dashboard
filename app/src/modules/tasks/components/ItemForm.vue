@@ -55,6 +55,10 @@ const {
   confirmDoubleTaskSubmit,
   getSubjectName,
   getTypeLabel,
+  doubleTaskSubjectName,
+  doubleTaskTypeLabel,
+  doubleTaskDueDate,
+  doubleTaskConfirmMessage,
 } = useTaskItemForm(props.initial, props.initialType, emit);
 </script>
 
@@ -258,13 +262,7 @@ const {
     <template #content>
       <div class="flex flex-col gap-4">
         <p class="m-0 text-on-ghost">
-          {{
-            t('tasks.list.double_task_confirm.message', {
-              date: new Date(dueLocal).toLocaleDateString(),
-              type: getTypeLabel(activeType),
-              subject: getSubjectName(doubleTaskOriginalItem?.subject || ''),
-            })
-          }}
+          {{ doubleTaskConfirmMessage }}
         </p>
 
         <ItemCard
@@ -276,11 +274,8 @@ const {
         >
           <template #badges>
             <div class="text-on-ghost-muted text-base">
-              {{ getTypeLabel(doubleTaskOriginalItem.type) }} •
-              {{ getSubjectName(doubleTaskOriginalItem.subject) }} •
-              {{
-                new Date(doubleTaskOriginalItem.dueDate).toLocaleDateString()
-              }}
+              {{ doubleTaskTypeLabel }} • {{ doubleTaskSubjectName }} •
+              {{ doubleTaskDueDate }}
               <template v-if="doubleTaskOriginalItem.createdByName">
                 • {{ doubleTaskOriginalItem.createdByName }}
               </template>
