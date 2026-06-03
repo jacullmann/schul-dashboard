@@ -260,82 +260,79 @@ const {
     </template>
 
     <template #content>
-      <div class="flex flex-col gap-4">
-        <p class="m-0 text-on-ghost">
-          {{ doubleTaskConfirmMessage }}
-        </p>
+      <p class="m-0!">
+        {{ doubleTaskConfirmMessage }}
+      </p>
 
-        <ItemCard
-          v-if="doubleTaskOriginalItem"
-          :title="doubleTaskOriginalItem.title"
-          :show-menu-trigger="false"
-          :is-collapsed="false"
-          class="border border-surface-border rounded-xl"
-        >
-          <template #badges>
-            <div class="text-on-ghost-muted text-base">
-              {{ doubleTaskTypeLabel }} • {{ doubleTaskSubjectName }} •
-              {{ doubleTaskDueDate }}
-              <template v-if="doubleTaskOriginalItem.createdByName">
-                • {{ doubleTaskOriginalItem.createdByName }}
-              </template>
-            </div>
-          </template>
+      <ItemCard
+        v-if="doubleTaskOriginalItem"
+        :title="doubleTaskOriginalItem.title"
+        :show-menu-trigger="false"
+        :is-collapsed="false"
+      >
+        <template #badges>
+          <div class="text-on-ghost-muted text-base">
+            {{ doubleTaskTypeLabel }} • {{ doubleTaskSubjectName }} •
+            {{ doubleTaskDueDate }}
+            <template v-if="doubleTaskOriginalItem.createdByName">
+              • {{ doubleTaskOriginalItem.createdByName }}
+            </template>
+          </div>
+        </template>
 
-          <template #body v-if="doubleTaskOriginalItem.description">
-            <div
-              class="text-on-ghost break-words [overflow-wrap:anywhere] hyphens-auto whitespace-pre-wrap select-text cursor-text"
-            >
-              {{ doubleTaskOriginalItem.description }}
-            </div>
-          </template>
-
-          <template
-            #content-after
-            v-if="
-              (doubleTaskOriginalItem.images &&
-                doubleTaskOriginalItem.images.length) ||
-              doubleTaskOriginalItem.editorNote
-            "
+        <template #body v-if="doubleTaskOriginalItem.description">
+          <div
+            class="text-on-ghost break-words [overflow-wrap:anywhere] hyphens-auto whitespace-pre-wrap select-text cursor-text"
           >
-            <!-- Images block (non-interactive) -->
-            <div
-              v-if="
-                doubleTaskOriginalItem.images &&
-                doubleTaskOriginalItem.images.length
-              "
-              class="grid grid-cols-4 gap-2 mt-2 mb-2"
-            >
-              <div
-                v-for="img in doubleTaskOriginalItem.images"
-                :key="img.publicId"
-                class="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-md border-none bg-black/[0.12] select-none"
-              >
-                <img
-                  :src="makeThumb(img.metadata?.thumbnailId || img.publicId)"
-                  class="block h-full w-full object-cover [pointer-events:none]"
-                  alt="Vorschau"
-                />
-              </div>
-            </div>
+            {{ doubleTaskOriginalItem.description }}
+          </div>
+        </template>
 
-            <!-- Notes block (non-interactive) -->
+        <template
+          #content-after
+          v-if="
+            (doubleTaskOriginalItem.images &&
+              doubleTaskOriginalItem.images.length) ||
+            doubleTaskOriginalItem.editorNote
+          "
+        >
+          <!-- Images block (non-interactive) -->
+          <div
+            v-if="
+              doubleTaskOriginalItem.images &&
+              doubleTaskOriginalItem.images.length
+            "
+            class="grid grid-cols-4 gap-2 mt-2 mb-2"
+          >
             <div
-              v-if="doubleTaskOriginalItem.editorNote"
-              class="note-section mt-2 pt-1 border-t border-surface-border"
+              v-for="img in doubleTaskOriginalItem.images"
+              :key="img.publicId"
+              class="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-md border-none bg-black/[0.12] select-none"
             >
-              <div class="text-on-ghost text-base font-bold mb-1">
-                {{ t('tasks.list.notes.note') }}
-              </div>
-              <div
-                class="text-on-ghost text-base whitespace-pre-wrap break-words"
-              >
-                {{ doubleTaskOriginalItem.editorNote }}
-              </div>
+              <img
+                :src="makeThumb(img.metadata?.thumbnailId || img.publicId)"
+                class="block h-full w-full object-cover [pointer-events:none]"
+                alt="Vorschau"
+              />
             </div>
-          </template>
-        </ItemCard>
-      </div>
+          </div>
+
+          <!-- Notes block (non-interactive) -->
+          <div
+            v-if="doubleTaskOriginalItem.editorNote"
+            class="note-section mt-2 pt-1 border-t border-surface-border"
+          >
+            <div class="text-on-ghost text-base font-bold mb-1">
+              {{ t('tasks.list.notes.note') }}
+            </div>
+            <div
+              class="text-on-ghost text-base whitespace-pre-wrap break-words"
+            >
+              {{ doubleTaskOriginalItem.editorNote }}
+            </div>
+          </div>
+        </template>
+      </ItemCard>
     </template>
 
     <template #action-text>
