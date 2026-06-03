@@ -170,6 +170,49 @@ impl ItemsService {
         user_id: Uuid,
         dto: &crate::items::dto::CreateItemDto,
     ) -> AppResult<Value> {
+        let due_date = dto.due_date.parse::<chrono::DateTime<Utc>>()
+            .map_err(|_| AppError::bad_request("Invalid due_date format"))?;
+
+        if !dto.confirm_double_task.unwrap_or(false) {
+            let duplicate = sqlx::query!(
+                r#"SELECT i.id, i.type, i.title, i.subject, i.description, i.images, i.due_date,
+                          i.created_by, i.editor_note, i.created_at, i.updated_at,
+                          u.email as "creator_email?: String"
+                   FROM items i
+                   LEFT JOIN users u ON u.id = i.created_by
+                   WHERE i.tenant_id = $1
+                     AND i.type = $2
+                     AND LOWER(TRIM(i.subject)) = LOWER(TRIM($3))
+                     AND (i.due_date AT TIME ZONE 'Europe/Berlin')::date = ($4 AT TIME ZONE 'Europe/Berlin')::date
+                   LIMIT 1"#,
+                tenant_id,
+                dto.r#type,
+                dto.subject.trim(),
+                due_date
+            )
+            .fetch_optional(&self.db)
+            .await?;
+
+            if let Some(row) = duplicate {
+                let duplicate_val = json!({
+                    "id": row.id,
+                    "type": row.r#type,
+                    "title": row.title,
+                    "subject": row.subject,
+                    "description": row.description,
+                    "images": row.images,
+                    "dueDate": row.due_date,
+                    "createdBy": row.created_by,
+                    "createdByEmail": row.creator_email.unwrap_or_else(|| "Unbekannt".into()),
+                    "timeColor": time_left_color(row.due_date.as_ref()),
+                    "editorNote": row.editor_note,
+                    "createdAt": row.created_at,
+                    "updatedAt": row.updated_at,
+                });
+                return Err(AppError::Conflict("Duplicate task found".to_string(), duplicate_val));
+            }
+        }
+
         let images: Vec<Value> = dto
             .images
             .as_deref()
@@ -184,8 +227,7 @@ impl ItemsService {
             dto.r#type, dto.title.trim(), dto.subject.trim(),
             dto.description.as_deref().unwrap_or("").trim(),
             json!(images),
-            dto.due_date.parse::<chrono::DateTime<Utc>>()
-                .map_err(|_| AppError::bad_request("Invalid due_date format"))?,
+            due_date,
             user_id, tenant_id
         )
             .fetch_one(&self.db)

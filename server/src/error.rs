@@ -29,6 +29,9 @@ pub enum AppError {
     #[error("{0}")]
     NotFound(String),
 
+    #[error("Conflict: {0}")]
+    Conflict(String, serde_json::Value),
+
     #[error("An unexpected error occurred.")]
     Internal(#[from] anyhow::Error),
 
@@ -73,6 +76,10 @@ impl IntoResponse for AppError {
             ),
             AppError::Forbidden(msg) => (StatusCode::FORBIDDEN, json!({ "error": msg })),
             AppError::NotFound(msg) => (StatusCode::NOT_FOUND, json!({ "error": msg })),
+            AppError::Conflict(msg, item) => (
+                StatusCode::CONFLICT,
+                json!({ "error": msg, "code": "DUPLICATE_ITEM", "item": item }),
+            ),
             AppError::Internal(e) => {
                 tracing::error!("Internal error: {e:#}");
                 (

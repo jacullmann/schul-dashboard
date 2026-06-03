@@ -14,6 +14,7 @@ pub struct CreateItemDto {
     pub description: Option<String>,
     pub images: Option<Vec<ImageDto>>,
     pub due_date: String,
+    pub confirm_double_task: Option<bool>,
 }
 
 #[derive(Debug, Deserialize)]

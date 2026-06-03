@@ -329,36 +329,6 @@ export function useTaskItemForm(
       return;
     }
 
-    // Check for double tasks if we are creating a new entry and haven't confirmed it yet
-    if (!initial && !doubleCheckPassed.value) {
-      try {
-        const [activeRes, oldRes] = await Promise.all([
-          hw.get('/items', { params: { type: 'all' } }),
-          hw.get('/items', { params: { type: 'all', filter: 'old' } }),
-        ]);
-
-        const allItems = [...(activeRes.data || []), ...(oldRes.data || [])];
-        const matchingItem = allItems.find((item: any) => {
-          const isSameType = item.type === activeType.value;
-          const isSameSubject =
-            item.subject.trim().toLowerCase() ===
-            finalSubject.trim().toLowerCase();
-          const isSameDate =
-            isoDateOnlyFromIso(item.dueDate) === dueLocal.value;
-          return isSameType && isSameSubject && isSameDate;
-        });
-
-        if (matchingItem) {
-          doubleTaskOriginalItem.value = matchingItem;
-          showDoubleTaskConfirm.value = true;
-          submitting.value = false;
-          return;
-        }
-      } catch (err) {
-        console.error('Failed to check for double tasks:', err);
-      }
-    }
-
     try {
       const payload = {
         title: cleanTitle,
@@ -377,17 +347,29 @@ export function useTaskItemForm(
         await hw.post('/items', {
           ...payload,
           type: activeType.value,
+          confirmDoubleTask: doubleCheckPassed.value,
         });
       }
 
       emit('success');
     } catch (e: unknown) {
       const err = e as {
-        response?: { status?: number; data?: { error?: string } };
+        response?: {
+          status?: number;
+          data?: { error?: string; code?: string; item?: HwItem };
+        };
         message?: string;
       };
 
-      if (err.response?.status === 400) {
+      if (
+        err.response?.status === 409 &&
+        err.response?.data?.code === 'DUPLICATE_ITEM'
+      ) {
+        doubleTaskOriginalItem.value = err.response.data.item || null;
+        showDoubleTaskConfirm.value = true;
+        submitting.value = false;
+        return;
+      } else if (err.response?.status === 400) {
         submitError.value =
           err.response?.data?.error || 'Bitte überprüfe deine Eingaben.';
       } else {
