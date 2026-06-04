@@ -4,7 +4,6 @@ import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import {
-  Clock,
   CheckCircle2,
   ChevronRight,
   Pencil,
@@ -386,7 +385,14 @@ const isScheduleVisible = computed(() => {
     <!-- Header Welcome Banner -->
     <div class="relative">
       <PageHeader>
-        {{ t('common.dashboard.title') }}
+        {{
+          new Date().toLocaleDateString(locale, {
+            weekday: 'short',
+            day: 'numeric',
+            month: 'short',
+          })
+        }}
+        <Tagline />
         <template #info></template>
         <template #action>
           <BaseTooltip content="Edit Layout" placement="bottom">
@@ -394,18 +400,6 @@ const isScheduleVisible = computed(() => {
           </BaseTooltip>
         </template>
       </PageHeader>
-
-      <div class="flex items-center gap-2 self-start md:self-center">
-        <span class="text-on-ghost-muted text-base font-normal">
-          {{
-            new Date().toLocaleDateString(locale, {
-              weekday: 'short',
-              day: 'numeric',
-              month: 'short',
-            })
-          }}
-        </span>
-      </div>
     </div>
 
     <div
@@ -415,7 +409,7 @@ const isScheduleVisible = computed(() => {
       <div class="flex flex-col">
         <PageHeader>
           {{ t('common.dashboard.tasks_overview.title') }}
-          <template #action v-if="activeGroupId">
+          <template v-if="activeGroupId" #action>
             <BaseTooltip
               :content="t('common.dashboard.tasks_overview.view_all')"
               placement="bottom"
@@ -511,7 +505,7 @@ const isScheduleVisible = computed(() => {
         <!-- Schedule Header -->
         <PageHeader>
           {{ t('common.dashboard.schedule_overview.title') }}
-          <template #action v-if="activeGroupId && hasLessons">
+          <template v-if="activeGroupId && hasLessons" #action>
             <BaseTooltip
               :content="t('common.dashboard.schedule_overview.view_full')"
               placement="bottom"
@@ -621,7 +615,7 @@ const isScheduleVisible = computed(() => {
               <div
                 v-for="change in scheduleChanges"
                 :key="change.id"
-                class="flex items-center justify-between gap-3 p-3 rounded-lg border border-surface-border/40 bg-surface-highlight/25 dark:bg-surface-highlight/3 text-xs"
+                class="flex items-center justify-between gap-3 p-3 rounded-lg border border-surface-border bg-surface text-xs"
               >
                 <div class="min-w-0">
                   <span class="font-semibold text-on-ghost-muted">
@@ -677,33 +671,26 @@ const isScheduleVisible = computed(() => {
         <!-- Schedule Content empty but user can edit -->
         <div
           v-else-if="canEditScheduleConfig"
-          class="flex-1 flex flex-col items-center justify-center p-6 text-center border border-dashed border-surface-border rounded-xl bg-surface-highlight/5 space-y-4 min-h-[220px]"
+          class="flex-1 flex items-center justify-center p-6 min-h-[220px]"
         >
-          <div
+          <BaseEmptyState
+            :primary-action="
+              () =>
+                $router.push({
+                  name: 'group-admin',
+                  params: { groupId: activeGroupId, tab: 'schedule' },
+                })
+            "
+            :icon="CalendarDays"
             class="p-3 rounded-full bg-primary/10 text-primary animate-bounce-slow"
           >
-            <CalendarDays class="size-8" />
-          </div>
-          <div class="space-y-1.5 max-w-sm">
-            <h4 class="text-sm font-bold text-on-ghost m-0">
-              {{ t('common.dashboard.schedule_overview.title') }}
-            </h4>
-            <p class="text-xs text-on-ghost-muted m-0">
-              {{ t('common.dashboard.schedule_overview.setup_cta') }}
-            </p>
-          </div>
-          <BaseButton
-            variant="action"
-            size="sm"
-            @click="
-              $router.push({
-                name: 'group-admin',
-                params: { groupId: activeGroupId, tab: 'schedule' },
-              })
-            "
-          >
-            {{ t('common.dashboard.schedule_overview.setup_button') }}
-          </BaseButton>
+            <template #message>{{
+              t('common.dashboard.schedule_overview.setup_cta')
+            }}</template>
+            <template #primary-action-label>{{
+              t('common.dashboard.schedule_overview.setup_button')
+            }}</template>
+          </BaseEmptyState>
         </div>
       </div>
     </div>

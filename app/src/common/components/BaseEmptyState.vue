@@ -25,15 +25,15 @@ defineProps<{
     <BaseRow justify="center">
       <BaseButton
         v-if="primaryAction"
-        @click="primaryAction()"
         variant="action"
+        @click="primaryAction()"
       >
         <slot name="primary-action-label"></slot>
       </BaseButton>
       <BaseButton
         v-if="secondaryAction"
-        @click="secondaryAction()"
         variant="ghost"
+        @click="secondaryAction()"
       >
         <slot name="secondary-action-label"></slot>
       </BaseButton>

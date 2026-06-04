@@ -4,7 +4,7 @@ import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useLoadingBar } from '@/common/composables/loadingState';
 import { useUserStore } from '@/stores/userStore';
 import i18n from '@/i18n';
-import { refreshSession } from "@/api/api";
+import { refreshSession } from '@/api/api';
 
 const routes: RouteRecordRaw[] = [
   {
@@ -267,8 +267,14 @@ const router = createRouter({
 });
 
 const { start, finish } = useLoadingBar();
-const { isLoggedIn, isAuthReady, initAuth, checkAuthStatus, activeGroupId, userGroups } =
-  useAppAuth();
+const {
+  isLoggedIn,
+  isAuthReady,
+  initAuth,
+  checkAuthStatus,
+  activeGroupId,
+  userGroups,
+} = useAppAuth();
 
 router.beforeEach(async (to, from, next) => {
   if (to.path !== from.path) start();
@@ -290,8 +296,7 @@ router.beforeEach(async (to, from, next) => {
     try {
       await refreshSession({ silent: true });
       await checkAuthStatus();
-    } catch {
-    }
+    } catch {}
   }
 
   if (!isPublicRoute && !isLoggedIn.value) {

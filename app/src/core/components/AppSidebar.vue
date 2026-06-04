@@ -22,14 +22,13 @@ import { useAnnouncementForm } from '@/core/composables/useAnnouncementForm';
 import { useModalStore } from '@/stores/modalStore';
 import { storeToRefs } from 'pinia';
 import hw from '../../api/api';
-import { onMounted, onUnmounted } from 'vue';
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useRouter } from 'vue-router';
 import { useMfa } from '@/modules/auth/composables/useMfa';
 import SidebarButton from '@/core/components/SidebarButton.vue';
 import { useI18n } from 'vue-i18n';
 import { useGroupAction } from '@/core/composables/useGroupAction';
-import { computed } from 'vue';
 import Avatar from '@/modules/auth/components/Avatar.vue';
 
 const { t } = useI18n();
@@ -115,10 +114,92 @@ function handleCreate() {
   });
 }
 
+const sidebarScrollEl = ref<HTMLElement | null>(null);
+
+const showTopFade = ref(false);
+const showBottomFade = ref(false);
+
+function updateFadeState(el: HTMLElement | null) {
+  if (!el) {
+    showTopFade.value = false;
+    showBottomFade.value = false;
+    return;
+  }
+  showTopFade.value = el.scrollTop > 1;
+  showBottomFade.value = el.scrollHeight - el.scrollTop - el.clientHeight > 1;
+}
+
+let scrollTicking = false;
+
+function handleScroll() {
+  if (!scrollTicking) {
+    requestAnimationFrame(() => {
+      updateFadeState(sidebarScrollEl.value);
+      scrollTicking = false;
+    });
+    scrollTicking = true;
+  }
+}
+
+const fadeMask = computed(() => {
+  const top = showTopFade.value;
+  const bottom = showBottomFade.value;
+
+  if (top && bottom) {
+    return 'linear-gradient(to bottom, transparent 0px, black 32px, black calc(100% - 32px), transparent 100%)';
+  } else if (top) {
+    return 'linear-gradient(to bottom, transparent 0px, black 32px)';
+  } else if (bottom) {
+    return 'linear-gradient(to top, transparent 0px, black 32px)';
+  }
+  return 'none';
+});
+
+let resizeObserver: ResizeObserver | null = null;
+
+function setupObserver() {
+  if (resizeObserver) {
+    resizeObserver.disconnect();
+  }
+
+  const el = sidebarScrollEl.value;
+  if (!el) {
+    showTopFade.value = false;
+    showBottomFade.value = false;
+    return;
+  }
+
+  updateFadeState(el);
+
+  resizeObserver = new ResizeObserver(() => {
+    updateFadeState(sidebarScrollEl.value);
+  });
+  resizeObserver.observe(el);
+
+  for (const child of el.children) {
+    resizeObserver.observe(child);
+  }
+}
+
+watch(sidebarScrollEl, () => {
+  setupObserver();
+});
+
+watch(
+  userGroups,
+  () => {
+    void nextTick(() => {
+      setupObserver();
+    });
+  },
+  { deep: true },
+);
+
 onMounted(() => {
   if (!userStore.initialized) {
     userStore.fetchUser();
   }
+  setupObserver();
 });
 
 function handleGroupClick(groupId: string) {
@@ -135,6 +216,9 @@ function handleGroupClick(groupId: string) {
 
 onUnmounted(() => {
   document.body.style.overflow = '';
+  if (resizeObserver) {
+    resizeObserver.disconnect();
+  }
 });
 </script>
 
@@ -316,15 +400,18 @@ onUnmounted(() => {
       <BaseMenuDivider />
 
       <div
+        ref="sidebarScrollEl"
         class="flex flex-col gap-2 -mx-2.5 px-2.5 overflow-y-auto overflow-x-hidden flex-1 list-fade"
+        :style="{ '--menu-fade-mask': fadeMask }"
+        @scroll="handleScroll"
       >
         <button
           v-for="(group, index) in userGroups"
           :key="index"
           v-wave
           :class="activeGroupId === group.id ? 'active' : ''"
-          @click="handleGroupClick(group.id)"
           class="group relative gap-0 items-center flex p-1 text-on-ghost-muted hover:text-on-ghost rounded-full bg-transparent hover:bg-surface-hover transition-hover cursor-pointer outline-none w-full touch-target-x-full touch-target-y"
+          @click="handleGroupClick(group.id)"
         >
           <span
             class="absolute transition-[max-height,width,top,opacity] duration-200 -left-2.5 group-[.active]:top-0 group-hover:top-[25%] top-[45%] bottom-0 w-0.5 opacity-0 group-[.active]:w-1 group-hover:w-1 group-[.active]:opacity-100 group-hover:opacity-100 group-[.active]:max-h-full group-hover:max-h-[50%] max-h-[10%] bg-action rounded-r-full"
@@ -380,16 +467,7 @@ onUnmounted(() => {
 }
 
 .list-fade {
-  /* Fades out the bottom 32px of the container */
-  -webkit-mask-image: linear-gradient(
-    to bottom,
-    black calc(100% - 32px),
-    transparent 100%
-  );
-  mask-image: linear-gradient(
-    to bottom,
-    black calc(100% - 32px),
-    transparent 100%
-  );
+  -webkit-mask-image: var(--menu-fade-mask, none);
+  mask-image: var(--menu-fade-mask, none);
 }
 </style>

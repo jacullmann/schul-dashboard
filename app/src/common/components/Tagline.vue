@@ -37,7 +37,7 @@ const displayQuote = computed(() => {
 });
 
 onMounted(() => {
-  const quotes = tm('common.footer.quotes') as string[];
+  const quotes = tm('common.footer.quotes');
 
   if (quotes && quotes.length > 0) {
     randomIndex.value = Math.floor(Math.random() * quotes.length);
@@ -52,7 +52,7 @@ onMounted(() => {
 <template>
   <p
     v-if="isVisible"
-    class="text-on-ghost-muted text-base font-sans italic font-medium m-0"
+    class="text-on-ghost-muted text-base font-sans italic font-medium m-0!"
   >
     {{ displayQuote }}
   </p>
