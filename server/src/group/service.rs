@@ -467,7 +467,6 @@ impl GroupService {
             .try_get("tenant_id")
             .map_err(|e| AppError::internal(e.to_string()))?;
 
-        // Check ban
         let ban = sqlx::query("SELECT id FROM group_bans WHERE tenant_id = $1 AND user_id = $2")
             .bind(group_id)
             .bind(user_id)
@@ -478,7 +477,6 @@ impl GroupService {
             return Err(AppError::forbidden("You have been banned from this group."));
         }
 
-        // Check if already in the group
         let existing =
             sqlx::query("SELECT id FROM user_roles WHERE user_id = $1 AND tenant_id = $2")
                 .bind(user_id)
@@ -494,7 +492,6 @@ impl GroupService {
                 .await?;
         }
 
-        // Delete the invite token immediately to strictly enforce single-use
         sqlx::query("DELETE FROM group_invites WHERE token = $1")
             .bind(token)
             .execute(&mut *tx)
