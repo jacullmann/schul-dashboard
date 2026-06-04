@@ -4,7 +4,6 @@ mod config;
 mod error;
 mod group;
 mod items;
-mod jobs;
 mod messages;
 mod mfa;
 mod oauth;
@@ -63,8 +62,6 @@ async fn main() -> anyhow::Result<()> {
         .context("Failed to run migrations")?;
 
     info!("Database connected and migrations applied.");
-
-    jobs::start_background_jobs(db.clone());
 
     let state = AppState::new(db, config);
 
