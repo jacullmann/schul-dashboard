@@ -53,6 +53,7 @@ const {
   showDoubleTaskConfirm,
   doubleTaskOriginalItem,
   confirmDoubleTaskSubmit,
+  viewExisting,
   getSubjectName,
   getTypeLabel,
   doubleTaskSubjectName,
@@ -251,7 +252,8 @@ const {
   <BaseModal
     :open="showDoubleTaskConfirm"
     :sheet="true"
-    :submit="confirmDoubleTaskSubmit"
+    :submit="viewExisting"
+    :cancel="confirmDoubleTaskSubmit"
     :loading="submitting"
     @cancel="showDoubleTaskConfirm = false"
   >
@@ -336,7 +338,11 @@ const {
     </template>
 
     <template #action-text>
-      {{ t('tasks.list.double_task_confirm.confirm') }}
+      {{ t('tasks.list.double_task_confirm.view_existing') }}
+    </template>
+
+    <template #cancel-text>
+      {{ t('tasks.list.double_task_confirm.create_anyway') }}
     </template>
   </BaseModal>
 </template>

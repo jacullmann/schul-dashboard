@@ -1,4 +1,5 @@
 import { onMounted, ref, watch, computed } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { useEventListener } from '@vueuse/core';
 import hw from '../../../api/api';
 import type { HwItem } from '@/modules/tasks/composables/useTasks';
@@ -18,6 +19,8 @@ export function useTaskItemForm(
   },
 ) {
   const i18n = useI18n();
+  const route = useRoute();
+  const router = useRouter();
   const t = (key: string, named?: Record<string, any>) =>
     i18n.t(key, named || {});
   const te = (key: string) => i18n.te(key);
@@ -388,6 +391,20 @@ export function useTaskItemForm(
     await submit();
   }
 
+  function viewExisting() {
+    if (!doubleTaskOriginalItem.value) return;
+    showDoubleTaskConfirm.value = false;
+    emit('cancel');
+    void router.push({
+      name: 'group-items',
+      params: {
+        groupId: route.params.groupId as string,
+        type: doubleTaskOriginalItem.value.type,
+        itemId: doubleTaskOriginalItem.value.id,
+      },
+    });
+  }
+
   function onKeyDown(e: KeyboardEvent) {
     if (e.key === 'Escape') {
       if (showDoubleTaskConfirm.value) {
@@ -447,6 +464,7 @@ export function useTaskItemForm(
     showDoubleTaskConfirm,
     doubleTaskOriginalItem,
     confirmDoubleTaskSubmit,
+    viewExisting,
     getSubjectName,
     getTypeLabel,
     doubleTaskSubjectName,
