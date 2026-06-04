@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { watch, onMounted, onUnmounted } from 'vue';
+import { watch, onMounted } from 'vue';
 import { useEventListener } from '@vueuse/core';
 import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
@@ -14,7 +14,7 @@ import hw from './api/api';
 const router = useRouter();
 const userStore = useUserStore();
 const { user } = storeToRefs(userStore);
-const { isAuthenticated, isAuthReady, checkAuthStatus } = useAppAuth();
+const { isAuthReady, checkAuthStatus } = useAppAuth();
 const { handleOAuthReturn } = useOAuth();
 const { loading, progress, opacity } = useLoadingBar();
 
@@ -30,19 +30,18 @@ function logPageload() {
 
 async function handleAuthExpired() {
   userStore.clearUser();
-  const stillAuthenticated = await checkAuthStatus();
-  if (stillAuthenticated) {
+  const currentPath = router.currentRoute.value.path;
+  const isPublicRoute =
+      currentPath === '/' ||
+      currentPath.startsWith('/login') ||
+      currentPath.startsWith('/register') ||
+      currentPath.startsWith('/forgot') ||
+      currentPath.startsWith('/verify') ||
+      currentPath.startsWith('/auth') ||
+      currentPath.startsWith('/natural-intelligence');
+
+  if (!isPublicRoute) {
     await router.push('/login');
-  } else {
-    const currentPath = router.currentRoute.value.path;
-    if (
-      currentPath !== '/' &&
-      !currentPath.startsWith('/login') &&
-      !currentPath.startsWith('/auth') &&
-      !currentPath.startsWith('/verify')
-    ) {
-      await router.push('/login');
-    }
   }
 }
 
@@ -70,8 +69,6 @@ watch(
   { immediate: true },
 );
 
-let authCheckInterval: ReturnType<typeof setInterval> | null = null;
-
 onMounted(() => {
   logPageload();
 
@@ -82,20 +79,6 @@ onMounted(() => {
 
   useEventListener(window, 'auth-expired', handleAuthExpired);
   useEventListener(window, 'tenant-changed', handleTenantChanged);
-
-  authCheckInterval = setInterval(
-    () => {
-      if (isAuthenticated.value) checkAuthStatus();
-    },
-    5 * 60 * 1000,
-  );
-});
-
-onUnmounted(() => {
-  if (authCheckInterval) {
-    clearInterval(authCheckInterval);
-    authCheckInterval = null;
-  }
 });
 </script>
 

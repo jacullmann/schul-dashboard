@@ -4,6 +4,7 @@ import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useLoadingBar } from '@/common/composables/loadingState';
 import { useUserStore } from '@/stores/userStore';
 import i18n from '@/i18n';
+import { refreshSession } from "@/api/api";
 
 const routes: RouteRecordRaw[] = [
   {
@@ -266,7 +267,7 @@ const router = createRouter({
 });
 
 const { start, finish } = useLoadingBar();
-const { isLoggedIn, isAuthReady, initAuth, activeGroupId, userGroups } =
+const { isLoggedIn, isAuthReady, initAuth, checkAuthStatus, activeGroupId, userGroups } =
   useAppAuth();
 
 router.beforeEach(async (to, from, next) => {
@@ -286,11 +287,16 @@ router.beforeEach(async (to, from, next) => {
     to.path.startsWith('/natural-intelligence');
 
   if (!isPublicRoute && !isLoggedIn.value) {
+    try {
+      await refreshSession({ silent: true });
+      await checkAuthStatus();
+    } catch {
+    }
+  }
+
+  if (!isPublicRoute && !isLoggedIn.value) {
     finish();
-    return next({
-      path: '/login',
-      replace: true,
-    });
+    return next({ path: '/login', replace: true });
   }
 
   if (
