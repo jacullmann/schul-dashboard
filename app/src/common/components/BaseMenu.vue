@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import { computed, ref, provide, watch, nextTick, onBeforeUnmount } from 'vue';
+import {
+  computed,
+  ref,
+  provide,
+  watch,
+  nextTick,
+  onMounted,
+  onBeforeUnmount,
+} from 'vue';
 import { useWindowSize, onClickOutside } from '@vueuse/core';
 import { ChevronLeft } from '@lucide/vue';
 import { MENU_SHEET_KEY } from '@/common/composables/useMenuContext';
@@ -82,7 +90,7 @@ watch(activeViewId, async (newId, oldId) => {
   const startHeight = container.getBoundingClientRect().height;
   menuHeight.value = startHeight;
 
-  container.offsetHeight;
+  void container.offsetHeight;
 
   await nextTick();
 
@@ -186,6 +194,95 @@ watch(
 
 onBeforeUnmount(() => {
   document.removeEventListener('keydown', handleKeydown);
+  if (resizeObserver) {
+    resizeObserver.disconnect();
+  }
+});
+
+const desktopScrollEl = ref<HTMLElement | null>(null);
+const mobileScrollEl = ref<HTMLElement | null>(null);
+
+const activeScrollEl = computed(() => {
+  return isMobile.value ? mobileScrollEl.value : desktopScrollEl.value;
+});
+
+const showTopFade = ref(false);
+const showBottomFade = ref(false);
+
+function updateFadeState(el: HTMLElement | null) {
+  if (!el) {
+    showTopFade.value = false;
+    showBottomFade.value = false;
+    return;
+  }
+  showTopFade.value = el.scrollTop > 1;
+  showBottomFade.value = el.scrollHeight - el.scrollTop - el.clientHeight > 1;
+}
+
+let scrollTicking = false;
+
+function handleScroll() {
+  if (!scrollTicking) {
+    requestAnimationFrame(() => {
+      updateFadeState(activeScrollEl.value);
+      scrollTicking = false;
+    });
+    scrollTicking = true;
+  }
+}
+
+const fadeMask = computed(() => {
+  const top = showTopFade.value;
+  const bottom = showBottomFade.value;
+
+  if (top && bottom) {
+    return 'linear-gradient(to bottom, transparent 0px, black 32px, black calc(100% - 32px), transparent 100%)';
+  } else if (top) {
+    return 'linear-gradient(to bottom, transparent 0px, black 32px)';
+  } else if (bottom) {
+    return 'linear-gradient(to top, transparent 0px, black 32px)';
+  }
+  return 'none';
+});
+
+let resizeObserver: ResizeObserver | null = null;
+
+function setupObserver() {
+  if (resizeObserver) {
+    resizeObserver.disconnect();
+  }
+
+  const el = activeScrollEl.value;
+  if (!el) {
+    showTopFade.value = false;
+    showBottomFade.value = false;
+    return;
+  }
+
+  updateFadeState(el);
+
+  resizeObserver = new ResizeObserver(() => {
+    updateFadeState(activeScrollEl.value);
+  });
+  resizeObserver.observe(el);
+
+  for (const child of el.children) {
+    resizeObserver.observe(child);
+  }
+}
+
+watch(activeScrollEl, () => {
+  setupObserver();
+});
+
+watch(activeViewId, () => {
+  void nextTick(() => {
+    setupObserver();
+  });
+});
+
+onMounted(() => {
+  setupObserver();
 });
 
 defineExpose({ menuEl: desktopMenuEl, startClose });
@@ -202,13 +299,21 @@ defineExpose({ menuEl: desktopMenuEl, startClose });
     tabindex="-1"
     @after-leave="emit('after-leave')"
   >
-    <slot></slot>
+    <div
+      ref="desktopScrollEl"
+      class="flex-1 overflow-y-auto overflow-x-hidden p-1 max-h-[min(70vh,350px)] gap-0 flex flex-col items-stretch list-fade"
+      :style="{ '--menu-fade-mask': fadeMask }"
+      @scroll="handleScroll"
+    >
+      <slot></slot>
+    </div>
   </BaseMenuCard>
 
   <BaseSheet
     v-if="isMobile"
     ref="sheetComponentRef"
     :open="open"
+    class="!overflow-hidden"
     role="menu"
     aria-orientation="vertical"
     tabindex="-1"
@@ -226,27 +331,30 @@ defineExpose({ menuEl: desktopMenuEl, startClose });
       <BaseButton
         variant="ghost"
         on="ghost"
-        @click="popView"
         :icon="ChevronLeft"
         class="ml-1 w-fit"
+        @click="popView"
         >{{ t('common.buttons.back') }}</BaseButton
       >
     </div>
 
     <div
-      class="relative overflow-hidden transition-[height] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] will-change-[height]"
+      ref="mobileScrollEl"
+      class="relative overflow-y-auto overflow-x-hidden transition-[height] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] will-change-[height] max-h-[70vh] list-fade"
       :style="{
         height: menuHeight === 'auto' ? 'auto' : `${menuHeight}px`,
+        '--menu-fade-mask': fadeMask,
       }"
+      @scroll="handleScroll"
     >
       <div
+        ref="rootViewEl"
         class="w-full transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
         :class="
           activeViewId === 'root'
             ? 'relative translate-x-0 opacity-100 pointer-events-auto'
             : 'absolute top-0 left-0 -translate-x-8 opacity-0 pointer-events-none'
         "
-        ref="rootViewEl"
       >
         <div class="p-1">
           <slot></slot>
@@ -254,16 +362,23 @@ defineExpose({ menuEl: desktopMenuEl, startClose });
       </div>
 
       <div
+        ref="subViewEl"
         class="w-full transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
         :class="
           activeViewId !== 'root'
             ? 'relative translate-x-0 opacity-100 pointer-events-auto'
             : 'absolute top-0 left-0 translate-x-8 opacity-0 pointer-events-none'
         "
-        ref="subViewEl"
       >
         <div ref="submenuTarget" class="p-1"></div>
       </div>
     </div>
   </BaseSheet>
 </template>
+
+<style>
+.list-fade {
+  -webkit-mask-image: var(--menu-fade-mask, none);
+  mask-image: var(--menu-fade-mask, none);
+}
+</style>

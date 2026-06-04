@@ -57,7 +57,9 @@ function onTouchStart(e: TouchEvent) {
   isDragFromHandle = !!target.closest('[data-drag-handle]');
   const isInsideSheet = sheetEl.value.contains(target);
 
-  if (isInsideSheet && !isDragFromHandle && sheetEl.value.scrollTop > 0) return;
+  const scrollEl = target.closest('.overflow-y-auto');
+  const scrollTop = scrollEl ? scrollEl.scrollTop : sheetEl.value.scrollTop;
+  if (isInsideSheet && !isDragFromHandle && scrollTop > 0) return;
 
   dragHandled = false;
   isDraggingDismiss.value = false;
