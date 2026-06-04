@@ -1,8 +1,5 @@
 use crate::{
-    common::{
-        permission::GroupPermissions,
-        role::Role,
-    },
+    common::{permission::GroupPermissions, role::Role},
     error::{AppError, AppResult},
     group::dto::CreateScheduleSubDto,
     state::AppState,
@@ -411,8 +408,6 @@ impl GroupAdminService {
 
         Ok(json!({ "ok": true, "permissions": merged_json }))
     }
-
-
 
     pub async fn update_schedule_config(
         &self,

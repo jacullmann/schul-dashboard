@@ -16,10 +16,7 @@ use uuid::Uuid;
 use super::admin::service::GroupAdminService;
 use crate::group::dto::CreateScheduleSubDto;
 
-pub async fn create_invite(
-    State(s): State<AppState>,
-    tc: TenantContext,
-) -> AppResult<Json<Value>> {
+pub async fn create_invite(State(s): State<AppState>, tc: TenantContext) -> AppResult<Json<Value>> {
     crate::require_permission!(tc, crate::common::permission::Permission::InviteMembers);
 
     let body = GroupService::from_state(&s)
@@ -33,9 +30,7 @@ pub async fn get_invite(
     State(s): State<AppState>,
     Path(token): Path<String>,
 ) -> AppResult<Json<Value>> {
-    let body = GroupService::from_state(&s)
-        .get_invite(&token)
-        .await?;
+    let body = GroupService::from_state(&s).get_invite(&token).await?;
 
     Ok(Json(body))
 }
@@ -273,7 +268,6 @@ pub async fn update_permissions(
             .await?,
     ))
 }
-
 
 pub async fn update_schedule_config(
     State(s): State<AppState>,

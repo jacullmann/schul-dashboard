@@ -8,8 +8,7 @@ use sha2::{Digest, Sha256};
 use sqlx::PgPool;
 use uuid::Uuid;
 
-fn time_left_color(due: Option<&chrono::DateTime<Utc>>) -> &'static str {
-    let Some(due) = due else { return "ok" };
+fn time_left_color(due: &chrono::DateTime<Utc>) -> &'static str {
     let diff = (*due - Utc::now()).num_seconds() as f64 / 86400.0;
     if diff < 0.0 {
         "expired"
@@ -130,7 +129,7 @@ impl ItemsService {
                 "images": r.images, "dueDate": r.due_date,
                 "createdBy": r.created_by,
                 "createdByEmail": r.creator_email.unwrap_or_else(|| "Unbekannt".into()),
-                "timeColor": time_left_color(Some(&r.due_date)),
+                "timeColor": time_left_color(&r.due_date),
                 "editorNote": r.editor_note, "createdAt": r.created_at, "updatedAt": r.updated_at,
             }))
             .collect();
@@ -140,7 +139,7 @@ impl ItemsService {
 
     pub async fn get_item_by_id(&self, tenant_id: Uuid, id: Uuid) -> AppResult<Value> {
         let row = sqlx::query!(
-            r#"SELECT i.id, i.type, i.title, i.subject, i.description, i.images, i.due_date,
+            r#"SELECT i.id, i.type, i.title, i.subject, i.description, i.images, i.due_date as "due_date!",
                       i.created_by, i.editor_note, i.created_at, i.updated_at,
                       u.email as "creator_email?: String"
                FROM items i
@@ -159,7 +158,7 @@ impl ItemsService {
             "images": row.images, "dueDate": row.due_date,
             "createdBy": row.created_by,
             "createdByEmail": row.creator_email.unwrap_or_else(|| "Unbekannt".into()),
-            "timeColor": time_left_color(row.due_date.as_ref()),
+            "timeColor": time_left_color(&row.due_date),
             "editorNote": row.editor_note, "createdAt": row.created_at, "updatedAt": row.updated_at,
         }))
     }
@@ -170,7 +169,9 @@ impl ItemsService {
         user_id: Uuid,
         dto: &crate::items::dto::CreateItemDto,
     ) -> AppResult<Value> {
-        let due_date = dto.due_date.parse::<chrono::DateTime<Utc>>()
+        let due_date = dto
+            .due_date
+            .parse::<chrono::DateTime<Utc>>()
             .map_err(|_| AppError::bad_request("Invalid due_date format"))?;
 
         if !dto.confirm_double_task.unwrap_or(false) {
@@ -204,12 +205,15 @@ impl ItemsService {
                     "dueDate": row.due_date,
                     "createdBy": row.created_by,
                     "createdByEmail": row.creator_email.unwrap_or_else(|| "Unbekannt".into()),
-                    "timeColor": time_left_color(Some(&row.due_date)),
+                    "timeColor": time_left_color(&row.due_date),
                     "editorNote": row.editor_note,
                     "createdAt": row.created_at,
                     "updatedAt": row.updated_at,
                 });
-                return Err(AppError::Conflict("Duplicate task found".to_string(), duplicate_val));
+                return Err(AppError::Conflict(
+                    "Duplicate task found".to_string(),
+                    duplicate_val,
+                ));
             }
         }
 

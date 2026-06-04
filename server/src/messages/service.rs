@@ -169,9 +169,7 @@ impl MessagesService {
             .await?
         {
             v["parentContent"] = json!(p.content);
-            v["parentSenderName"] = json!(generate_user_name(
-                &p.user_id.to_string()
-            ));
+            v["parentSenderName"] = json!(generate_user_name(&p.user_id.to_string()));
             v["parentUserId"] = json!(p.user_id);
         }
 

@@ -3,10 +3,7 @@ use crate::{
         cookies::*,
         token::{LOGOUT, TokenService},
     },
-    common::{
-        csrf::generate_csrf_token, permission::GroupPermissions,
-        role::Role,
-    },
+    common::{csrf::generate_csrf_token, permission::GroupPermissions, role::Role},
     error::{AppError, AppResult},
     state::AppState,
 };
@@ -399,13 +396,29 @@ impl GroupService {
         .await?;
 
         let invite = match row {
-            Some(r) if r.try_get::<chrono::DateTime<chrono::Utc>, _>("expires_at").unwrap_or_default() > chrono::Utc::now() => r,
-            _ => return Err(AppError::BadRequest("Invalid or expired invite token.".into())),
+            Some(r)
+                if r.try_get::<chrono::DateTime<chrono::Utc>, _>("expires_at")
+                    .unwrap_or_default()
+                    > chrono::Utc::now() =>
+            {
+                r
+            }
+            _ => {
+                return Err(AppError::BadRequest(
+                    "Invalid or expired invite token.".into(),
+                ));
+            }
         };
 
-        let name: String = invite.try_get("name").map_err(|e| AppError::internal(e.to_string()))?;
-        let avatar_url: Option<String> = invite.try_get("avatar_url").map_err(|e| AppError::internal(e.to_string()))?;
-        let member_count: i64 = invite.try_get("member_count").map_err(|e| AppError::internal(e.to_string()))?;
+        let name: String = invite
+            .try_get("name")
+            .map_err(|e| AppError::internal(e.to_string()))?;
+        let avatar_url: Option<String> = invite
+            .try_get("avatar_url")
+            .map_err(|e| AppError::internal(e.to_string()))?;
+        let member_count: i64 = invite
+            .try_get("member_count")
+            .map_err(|e| AppError::internal(e.to_string()))?;
 
         Ok(json!({
             "valid": true,
@@ -415,7 +428,10 @@ impl GroupService {
         }))
     }
 
-    pub async fn accept_invite(&self, params: AcceptInviteParams<'_>) -> AppResult<(CookieJar, Value)> {
+    pub async fn accept_invite(
+        &self,
+        params: AcceptInviteParams<'_>,
+    ) -> AppResult<(CookieJar, Value)> {
         let user_id = params.user_id;
         let email = params.email;
         let global_role = params.global_role;
@@ -425,59 +441,64 @@ impl GroupService {
 
         let mut tx = self.db.begin().await?;
 
-        let invite = sqlx::query(
-            "SELECT tenant_id, expires_at FROM group_invites WHERE token = $1"
-        )
-        .bind(token)
-        .fetch_optional(&mut *tx)
-        .await?;
+        let invite =
+            sqlx::query("SELECT tenant_id, expires_at FROM group_invites WHERE token = $1")
+                .bind(token)
+                .fetch_optional(&mut *tx)
+                .await?;
 
         let invite = match invite {
-            Some(inv) if inv.try_get::<chrono::DateTime<chrono::Utc>, _>("expires_at").unwrap_or_default() > chrono::Utc::now() => inv,
-            _ => return Err(AppError::BadRequest("Invalid or expired invite token.".into())),
+            Some(inv)
+                if inv
+                    .try_get::<chrono::DateTime<chrono::Utc>, _>("expires_at")
+                    .unwrap_or_default()
+                    > chrono::Utc::now() =>
+            {
+                inv
+            }
+            _ => {
+                return Err(AppError::BadRequest(
+                    "Invalid or expired invite token.".into(),
+                ));
+            }
         };
 
-        let group_id: Uuid = invite.try_get("tenant_id").map_err(|e| AppError::internal(e.to_string()))?;
+        let group_id: Uuid = invite
+            .try_get("tenant_id")
+            .map_err(|e| AppError::internal(e.to_string()))?;
 
         // Check ban
-        let ban = sqlx::query(
-            "SELECT id FROM group_bans WHERE tenant_id = $1 AND user_id = $2"
-        )
-        .bind(group_id)
-        .bind(user_id)
-        .fetch_optional(&mut *tx)
-        .await?;
+        let ban = sqlx::query("SELECT id FROM group_bans WHERE tenant_id = $1 AND user_id = $2")
+            .bind(group_id)
+            .bind(user_id)
+            .fetch_optional(&mut *tx)
+            .await?;
 
         if ban.is_some() {
             return Err(AppError::forbidden("You have been banned from this group."));
         }
 
         // Check if already in the group
-        let existing = sqlx::query(
-            "SELECT id FROM user_roles WHERE user_id = $1 AND tenant_id = $2"
-        )
-        .bind(user_id)
-        .bind(group_id)
-        .fetch_optional(&mut *tx)
-        .await?;
+        let existing =
+            sqlx::query("SELECT id FROM user_roles WHERE user_id = $1 AND tenant_id = $2")
+                .bind(user_id)
+                .bind(group_id)
+                .fetch_optional(&mut *tx)
+                .await?;
 
         if existing.is_none() {
-            sqlx::query(
-                "INSERT INTO user_roles (user_id, role_id, tenant_id) VALUES ($1, 4, $2)"
-            )
-            .bind(user_id)
-            .bind(group_id)
-            .execute(&mut *tx)
-            .await?;
+            sqlx::query("INSERT INTO user_roles (user_id, role_id, tenant_id) VALUES ($1, 4, $2)")
+                .bind(user_id)
+                .bind(group_id)
+                .execute(&mut *tx)
+                .await?;
         }
 
         // Delete the invite token immediately to strictly enforce single-use
-        sqlx::query(
-            "DELETE FROM group_invites WHERE token = $1"
-        )
-        .bind(token)
-        .execute(&mut *tx)
-        .await?;
+        sqlx::query("DELETE FROM group_invites WHERE token = $1")
+            .bind(token)
+            .execute(&mut *tx)
+            .await?;
 
         let ip_parsed: Option<ipnetwork::IpNetwork> = ip.and_then(|s| s.parse().ok());
 
@@ -491,7 +512,7 @@ impl GroupService {
         .await?;
 
         sqlx::query(
-            "INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'group:join', $2)"
+            "INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'group:join', $2)",
         )
         .bind(user_id)
         .bind(json!({ "groupId": group_id, "by": "invite" }))
