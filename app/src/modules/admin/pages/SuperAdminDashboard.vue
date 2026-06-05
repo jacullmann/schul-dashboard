@@ -14,12 +14,33 @@ import {
   FileText,
   Layers,
 } from '@lucide/vue';
+import { useI18n } from 'vue-i18n';
 import hw from '../../../api/api';
 import AdminLayout from '@/layouts/AdminLayout.vue';
 import { useToast } from '@/common/composables/useToast';
 import { useModalStore } from '@/stores/modalStore';
+import ItemCard from '@/modules/tasks/components/ItemCard.vue';
+import { makeThumb } from '@/modules/tasks/composables/useImageUpload';
+import { formatSubjectDisplay } from '@/utils/subject-formatter';
 
-const { success: toastSuccess, error: toastError } = useToast();
+const i18n = useI18n();
+const t = (key: string, named?: Record<string, any>) =>
+  i18n.t(key, named || {});
+const te = (key: string) => i18n.te(key);
+
+const getTypeLabel = (type: string) => {
+  if (type === 'homework') return t('tasks.list.types.homework');
+  if (type === 'dalton') return t('tasks.list.types.dalton');
+  if (type === 'exam') return t('tasks.list.types.exam');
+  return type;
+};
+
+const getSubjectName = (subject: string) =>
+  formatSubjectDisplay(subject, t, te);
+
+const toast = useToast();
+const toastSuccess = (msg: string) => toast.success(msg);
+const toastError = (msg: string) => toast.error(msg);
 const modalStore = useModalStore();
 
 const activeTab = ref('overview');
@@ -68,6 +89,7 @@ interface User {
 
 interface Report {
   id: string;
+  itemId?: string;
   itemTitle?: string;
   category?: string;
   reason?: string;
@@ -75,6 +97,14 @@ interface Report {
   reportedAt: string;
   processed: boolean;
   processedAt?: string | null;
+  itemType?: string;
+  itemSubject?: string;
+  itemDescription?: string;
+  itemImages?: Array<{ publicId: string; metadata?: any }>;
+  itemDueDate?: string;
+  itemEditorNote?: string;
+  itemTenantId?: string;
+  creatorEmail?: string;
 }
 
 interface Group {
@@ -399,10 +429,10 @@ onMounted(() => {
             than 90 days
           </div>
           <BaseButton
-            @click="cleanupOldItems"
             :disabled="isCleaningUp"
             variant="ghost"
             :icon="Trash2"
+            @click="cleanupOldItems"
           >
             {{ isCleaningUp ? 'Deleting…' : 'Clean up' }}
           </BaseButton>
@@ -413,7 +443,7 @@ onMounted(() => {
     <template v-if="activeTab === 'users'">
       <div class="page-header">
         <h2 class="page-title">User Management</h2>
-        <BaseButton @click="loadAllUsers" variant="ghost">Refresh</BaseButton>
+        <BaseButton variant="ghost" @click="loadAllUsers">Refresh</BaseButton>
       </div>
 
       <div class="table-wrap">
@@ -453,32 +483,32 @@ onMounted(() => {
                 <div class="cell-actions">
                   <button
                     class="btn-icon"
-                    @click="toggleActivity(u.id)"
                     title="Activity log"
+                    @click="toggleActivity(u.id)"
                   >
                     <FileText :size="15" />
                   </button>
                   <button
                     v-if="u.role !== 'superadmin'"
                     class="btn-icon"
-                    @click="toggleBan(u)"
                     :title="u.isBanned ? 'Unban' : 'Ban'"
+                    @click="toggleBan(u)"
                   >
                     <Lock v-if="!u.isBanned" :size="15" />
                     <Unlock v-else :size="15" />
                   </button>
                   <button
                     class="btn-icon"
-                    @click="pruneOldLogs(u)"
                     title="Prune old logs"
+                    @click="pruneOldLogs(u)"
                   >
                     <Eraser :size="15" />
                   </button>
                   <button
                     v-if="u.role !== 'superadmin'"
                     class="btn-icon danger"
-                    @click="deleteUser(u.id)"
                     title="Delete"
+                    @click="deleteUser(u.id)"
                   >
                     <Trash2 :size="15" />
                   </button>
@@ -532,45 +562,206 @@ onMounted(() => {
         <div v-if="unprocessedReports.length" class="report-section">
           <h3 class="sub-heading">Open ({{ unprocessedReports.length }})</h3>
           <div class="card-grid">
-            <div
-              v-for="r in unprocessedReports"
-              :key="r.id"
-              class="report-card"
-            >
-              <div class="report-top">
-                <strong>{{ r.itemTitle }}</strong>
-                <span
-                  class="badge"
-                  :class="
-                    r.category === 'illegal' ? 'badge-red' : 'badge-yellow'
-                  "
-                >
-                  {{ r.category === 'illegal' ? 'Illegal' : 'Misinformation' }}
-                </span>
-              </div>
-              <div class="report-reason" v-if="r.reason">"{{ r.reason }}"</div>
-              <div class="report-meta">
-                From: {{ r.reporterEmail }} · {{ fmtDate(r.reportedAt) }}
-              </div>
-              <div class="report-actions">
-                <BaseButton
-                  class="tiny"
-                  @click="toggleReportProcessed(r.id, false)"
-                  variant="ghost"
-                  :icon="Check"
-                >
-                  Resolve
-                </BaseButton>
-                <BaseButton
-                  class="tiny"
-                  @click="deleteReport(r.id)"
-                  variant="ghost"
-                  :icon="Trash2"
-                >
-                  Delete
-                </BaseButton>
-              </div>
-            </div>
+            <template v-for="r in unprocessedReports" :key="r.id">
+              <!-- If item exists (has itemType) -->
+              <ItemCard
+                v-if="r.itemType"
+                :title="r.itemTitle"
+                :show-menu-trigger="false"
+                :is-collapsed="false"
+              >
+                <template #title>
+                  <router-link
+                    v-if="r.itemId && r.itemTenantId"
+                    v-slot="{ navigate, href }"
+                    :to="`/groups/${r.itemTenantId}/items/${r.itemType}/${r.itemId}`"
+                    custom
+                  >
+                    <a
+                      :href="href"
+                      class="text-lg/6! font-bold text-primary hover:underline hover:text-primary-hover overflow-hidden text-ellipsis whitespace-nowrap -my-[3px]!"
+                      :title="r.itemTitle"
+                      @click="navigate"
+                    >
+                      {{ r.itemTitle }}
+                    </a>
+                  </router-link>
+                  <h3
+                    v-else
+                    class="text-lg/6! overflow-hidden text-ellipsis whitespace-nowrap -my-[3px]!"
+                    :title="r.itemTitle"
+                  >
+                    {{ r.itemTitle }}
+                  </h3>
+                </template>
+
+                <template #badges>
+                  <div
+                    class="text-on-ghost-muted text-base flex flex-wrap gap-1 items-center"
+                  >
+                    <span
+                      class="badge"
+                      :class="
+                        r.category === 'illegal' ? 'badge-red' : 'badge-yellow'
+                      "
+                    >
+                      {{
+                        r.category === 'illegal' ? 'Illegal' : 'Misinformation'
+                      }}
+                    </span>
+                    <span>·</span>
+                    <span>{{ getTypeLabel(r.itemType) }}</span>
+                    <span>·</span>
+                    <span>{{ getSubjectName(r.itemSubject) }}</span>
+                    <span>·</span>
+                    <span>Due: {{ fmtDate(r.itemDueDate) }}</span>
+                    <template v-if="r.creatorEmail">
+                      <span>·</span>
+                      <span>By: {{ r.creatorEmail }}</span>
+                    </template>
+                  </div>
+                </template>
+
+                <template v-if="r.itemDescription" #body>
+                  <div
+                    class="text-on-ghost break-words [overflow-wrap:anywhere] hyphens-auto whitespace-pre-wrap select-text cursor-text"
+                  >
+                    {{ r.itemDescription }}
+                  </div>
+                </template>
+
+                <template #content-after>
+                  <!-- Images block (non-interactive) -->
+                  <div
+                    v-if="r.itemImages && r.itemImages.length"
+                    class="grid grid-cols-4 gap-2 mt-2 mb-2"
+                  >
+                    <div
+                      v-for="img in r.itemImages"
+                      :key="img.publicId"
+                      class="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-md border-none bg-black/[0.12] select-none"
+                    >
+                      <img
+                        :src="
+                          makeThumb(img.metadata?.thumbnailId || img.publicId)
+                        "
+                        class="block h-full w-full object-cover [pointer-events:none]"
+                        alt="Vorschau"
+                      />
+                    </div>
+                  </div>
+
+                  <!-- Notes block (non-interactive) -->
+                  <div
+                    v-if="r.itemEditorNote"
+                    class="note-section mt-2 pt-1 border-t border-surface-border"
+                  >
+                    <div class="text-on-ghost text-base font-bold mb-1">
+                      Note:
+                    </div>
+                    <div
+                      class="text-on-ghost text-base whitespace-pre-wrap break-words"
+                    >
+                      {{ r.itemEditorNote }}
+                    </div>
+                  </div>
+
+                  <!-- Reporter and Reason block -->
+                  <div
+                    v-if="r.reason"
+                    class="report-reason-box mt-2 pt-1 border-t border-surface-border"
+                  >
+                    <div class="text-on-ghost text-base font-bold mb-1">
+                      Report Reason:
+                    </div>
+                    <div class="report-reason italic">"{{ r.reason }}"</div>
+                  </div>
+                  <div class="report-meta mt-1 text-xs text-on-ghost-muted">
+                    From: {{ r.reporterEmail }} · {{ fmtDate(r.reportedAt) }}
+                  </div>
+
+                  <!-- Action buttons -->
+                  <div
+                    class="report-actions mt-3 pt-2 border-t border-surface-border flex gap-2"
+                  >
+                    <BaseButton
+                      class="tiny"
+                      variant="ghost"
+                      :icon="Check"
+                      @click="toggleReportProcessed(r.id, false)"
+                    >
+                      Resolve
+                    </BaseButton>
+                    <BaseButton
+                      class="tiny"
+                      variant="ghost"
+                      :icon="Trash2"
+                      @click="deleteReport(r.id)"
+                    >
+                      Delete
+                    </BaseButton>
+                  </div>
+                </template>
+              </ItemCard>
+
+              <!-- Fallback/deleted item -->
+              <ItemCard
+                v-else
+                :title="r.itemTitle + ' (Deleted)'"
+                :show-menu-trigger="false"
+                :is-collapsed="false"
+              >
+                <template #badges>
+                  <div
+                    class="text-on-ghost-muted text-base flex flex-wrap gap-1 items-center"
+                  >
+                    <span class="badge badge-red">Deleted Item</span>
+                    <span>·</span>
+                    <span
+                      class="badge"
+                      :class="
+                        r.category === 'illegal' ? 'badge-red' : 'badge-yellow'
+                      "
+                    >
+                      {{
+                        r.category === 'illegal' ? 'Illegal' : 'Misinformation'
+                      }}
+                    </span>
+                  </div>
+                </template>
+                <template #content-after>
+                  <div v-if="r.reason" class="report-reason-box mt-2">
+                    <div class="text-on-ghost text-base font-bold mb-1">
+                      Report Reason:
+                    </div>
+                    <div class="report-reason italic">"{{ r.reason }}"</div>
+                  </div>
+                  <div class="report-meta mt-1 text-xs text-on-ghost-muted">
+                    From: {{ r.reporterEmail }} · {{ fmtDate(r.reportedAt) }}
+                  </div>
+                  <div
+                    class="report-actions mt-3 pt-2 border-t border-surface-border flex gap-2"
+                  >
+                    <BaseButton
+                      class="tiny"
+                      variant="ghost"
+                      :icon="Check"
+                      @click="toggleReportProcessed(r.id, false)"
+                    >
+                      Resolve
+                    </BaseButton>
+                    <BaseButton
+                      class="tiny"
+                      variant="ghost"
+                      :icon="Trash2"
+                      @click="deleteReport(r.id)"
+                    >
+                      Delete
+                    </BaseButton>
+                  </div>
+                </template>
+              </ItemCard>
+            </template>
           </div>
         </div>
         <div
@@ -581,37 +772,188 @@ onMounted(() => {
             Processed ({{ processedReports.length }})
           </h3>
           <div class="card-grid">
-            <div
-              v-for="r in processedReports"
-              :key="r.id"
-              class="report-card processed"
-            >
-              <div class="report-top">
-                <strong>{{ r.itemTitle }}</strong>
-                <span class="badge badge-green">Resolved</span>
-              </div>
-              <div class="report-meta">
-                {{ r.reporterEmail }} · {{ fmtDate(r.reportedAt) }}
-              </div>
-              <div class="report-actions">
-                <BaseButton
-                  class="tiny"
-                  @click="toggleReportProcessed(r.id, true)"
-                  variant="ghost"
-                  :icon="RotateCcw"
-                >
-                  Reopen
-                </BaseButton>
-                <BaseButton
-                  class="tiny"
-                  @click="deleteReport(r.id)"
-                  variant="ghost"
-                  :icon="Trash2"
-                >
-                  Delete
-                </BaseButton>
-              </div>
-            </div>
+            <template v-for="r in processedReports" :key="r.id">
+              <!-- If item exists (has itemType) -->
+              <ItemCard
+                v-if="r.itemType"
+                :title="r.itemTitle"
+                :show-menu-trigger="false"
+                :is-collapsed="false"
+              >
+                <template #title>
+                  <router-link
+                    v-if="r.itemId && r.itemTenantId"
+                    v-slot="{ navigate, href }"
+                    :to="`/groups/${r.itemTenantId}/items/${r.itemType}/${r.itemId}`"
+                    custom
+                  >
+                    <a
+                      :href="href"
+                      class="text-lg/6! font-bold text-primary hover:underline hover:text-primary-hover overflow-hidden text-ellipsis whitespace-nowrap -my-[3px]!"
+                      :title="r.itemTitle"
+                      @click="navigate"
+                    >
+                      {{ r.itemTitle }}
+                    </a>
+                  </router-link>
+                  <h3
+                    v-else
+                    class="text-lg/6! overflow-hidden text-ellipsis whitespace-nowrap -my-[3px]!"
+                    :title="r.itemTitle"
+                  >
+                    {{ r.itemTitle }}
+                  </h3>
+                </template>
+
+                <template #badges>
+                  <div
+                    class="text-on-ghost-muted text-base flex flex-wrap gap-1 items-center"
+                  >
+                    <span class="badge badge-green">Resolved</span>
+                    <span>·</span>
+                    <span>{{ getTypeLabel(r.itemType) }}</span>
+                    <span>·</span>
+                    <span>{{ getSubjectName(r.itemSubject) }}</span>
+                    <span>·</span>
+                    <span>Due: {{ fmtDate(r.itemDueDate) }}</span>
+                    <template v-if="r.creatorEmail">
+                      <span>·</span>
+                      <span>By: {{ r.creatorEmail }}</span>
+                    </template>
+                  </div>
+                </template>
+
+                <template v-if="r.itemDescription" #body>
+                  <div
+                    class="text-on-ghost break-words [overflow-wrap:anywhere] hyphens-auto whitespace-pre-wrap select-text cursor-text"
+                  >
+                    {{ r.itemDescription }}
+                  </div>
+                </template>
+
+                <template #content-after>
+                  <!-- Images block (non-interactive) -->
+                  <div
+                    v-if="r.itemImages && r.itemImages.length"
+                    class="grid grid-cols-4 gap-2 mt-2 mb-2"
+                  >
+                    <div
+                      v-for="img in r.itemImages"
+                      :key="img.publicId"
+                      class="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-md border-none bg-black/[0.12] select-none"
+                    >
+                      <img
+                        :src="
+                          makeThumb(img.metadata?.thumbnailId || img.publicId)
+                        "
+                        class="block h-full w-full object-cover [pointer-events:none]"
+                        alt="Vorschau"
+                      />
+                    </div>
+                  </div>
+
+                  <!-- Notes block (non-interactive) -->
+                  <div
+                    v-if="r.itemEditorNote"
+                    class="note-section mt-2 pt-1 border-t border-surface-border"
+                  >
+                    <div class="text-on-ghost text-base font-bold mb-1">
+                      Note:
+                    </div>
+                    <div
+                      class="text-on-ghost text-base whitespace-pre-wrap break-words"
+                    >
+                      {{ r.itemEditorNote }}
+                    </div>
+                  </div>
+
+                  <!-- Reporter and Reason block -->
+                  <div
+                    v-if="r.reason"
+                    class="report-reason-box mt-2 pt-1 border-t border-surface-border"
+                  >
+                    <div class="text-on-ghost text-base font-bold mb-1">
+                      Report Reason:
+                    </div>
+                    <div class="report-reason italic">"{{ r.reason }}"</div>
+                  </div>
+                  <div class="report-meta mt-1 text-xs text-on-ghost-muted">
+                    From: {{ r.reporterEmail }} · {{ fmtDate(r.reportedAt) }}
+                  </div>
+
+                  <!-- Action buttons -->
+                  <div
+                    class="report-actions mt-3 pt-2 border-t border-surface-border flex gap-2"
+                  >
+                    <BaseButton
+                      class="tiny"
+                      variant="ghost"
+                      :icon="RotateCcw"
+                      @click="toggleReportProcessed(r.id, true)"
+                    >
+                      Reopen
+                    </BaseButton>
+                    <BaseButton
+                      class="tiny"
+                      variant="ghost"
+                      :icon="Trash2"
+                      @click="deleteReport(r.id)"
+                    >
+                      Delete
+                    </BaseButton>
+                  </div>
+                </template>
+              </ItemCard>
+
+              <!-- Fallback/deleted item -->
+              <ItemCard
+                v-else
+                :title="r.itemTitle + ' (Deleted)'"
+                :show-menu-trigger="false"
+                :is-collapsed="false"
+              >
+                <template #badges>
+                  <div
+                    class="text-on-ghost-muted text-base flex flex-wrap gap-1 items-center"
+                  >
+                    <span class="badge badge-green">Resolved</span>
+                    <span>·</span>
+                    <span class="badge badge-red">Deleted Item</span>
+                  </div>
+                </template>
+                <template #content-after>
+                  <div v-if="r.reason" class="report-reason-box mt-2">
+                    <div class="text-on-ghost text-base font-bold mb-1">
+                      Report Reason:
+                    </div>
+                    <div class="report-reason italic">"{{ r.reason }}"</div>
+                  </div>
+                  <div class="report-meta mt-1 text-xs text-on-ghost-muted">
+                    From: {{ r.reporterEmail }} · {{ fmtDate(r.reportedAt) }}
+                  </div>
+                  <div
+                    class="report-actions mt-3 pt-2 border-t border-surface-border flex gap-2"
+                  >
+                    <BaseButton
+                      class="tiny"
+                      variant="ghost"
+                      :icon="RotateCcw"
+                      @click="toggleReportProcessed(r.id, true)"
+                    >
+                      Reopen
+                    </BaseButton>
+                    <BaseButton
+                      class="tiny"
+                      variant="ghost"
+                      :icon="Trash2"
+                      @click="deleteReport(r.id)"
+                    >
+                      Delete
+                    </BaseButton>
+                  </div>
+                </template>
+              </ItemCard>
+            </template>
           </div>
         </div>
       </template>
@@ -620,7 +962,7 @@ onMounted(() => {
     <template v-if="activeTab === 'groups'">
       <div class="page-header">
         <h2 class="page-title">Group Management</h2>
-        <BaseButton @click="loadGroups" variant="ghost">Refresh</BaseButton>
+        <BaseButton variant="ghost" @click="loadGroups">Refresh</BaseButton>
       </div>
 
       <div v-if="loadingGroups" class="center-loader">
@@ -656,8 +998,8 @@ onMounted(() => {
                 <div class="cell-actions">
                   <button
                     class="btn-icon danger"
-                    @click="deleteGroup(g)"
                     title="Delete group"
+                    @click="deleteGroup(g)"
                   >
                     <Trash2 :size="15" />
                   </button>

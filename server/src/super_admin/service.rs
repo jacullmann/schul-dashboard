@@ -382,9 +382,15 @@ impl SuperAdminService {
 
     pub async fn get_reports(&self) -> AppResult<Value> {
         let rows = sqlx::query!(
-            r#"SELECT id, item_id, item_title, category, reason, reporter_id, reporter_email,
-                      processed, processed_at, reported_at
-               FROM reports ORDER BY created_at DESC"#
+            r#"SELECT r.id, r.item_id, r.item_title, r.category, r.reason, r.reporter_id, r.reporter_email,
+                      r.processed, r.processed_at, r.reported_at,
+                      i.type AS item_type, i.subject AS item_subject, i.description AS item_description,
+                      i.images AS item_images, i.due_date AS item_due_date, i.editor_note AS item_editor_note,
+                      i.tenant_id AS item_tenant_id, u.email AS creator_email
+               FROM reports r
+               LEFT JOIN items i ON i.id = r.item_id
+               LEFT JOIN users u ON u.id = i.created_by
+               ORDER BY r.created_at DESC"#
         )
         .fetch_all(&self.db)
         .await?;
@@ -397,6 +403,14 @@ impl SuperAdminService {
                     "reportedBy": r.reporter_id, "reporterEmail": r.reporter_email,
                     "processed": r.processed, "processedAt": r.processed_at,
                     "reportedAt": r.reported_at,
+                    "itemType": r.item_type,
+                    "itemSubject": r.item_subject,
+                    "itemDescription": r.item_description,
+                    "itemImages": r.item_images,
+                    "itemDueDate": r.item_due_date,
+                    "itemEditorNote": r.item_editor_note,
+                    "itemTenantId": r.item_tenant_id,
+                    "creatorEmail": r.creator_email,
                 }))
                 .collect::<Vec<_>>()
         ))
