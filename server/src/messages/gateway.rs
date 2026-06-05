@@ -117,7 +117,7 @@ async fn handle_socket(mut socket: WebSocket, state: AppState, token: Option<Str
                                 ClientEvent::JoinGroup { group_id } => {
                                     let mut has_access = claims.g_role == "superadmin";
                                     if !has_access {
-                                        let is_member = sqlx::query(
+                                        let is_member = sqlx::query!(
                                             r#"SELECT 1 FROM user_roles WHERE user_id = $1 AND tenant_id = $2"#,
                                         )
                                         .bind(user_id)

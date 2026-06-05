@@ -100,7 +100,7 @@ impl GroupService {
             return Err(AppError::bad_request("This group name is already taken."));
         }
 
-        let group = sqlx::query(
+        let group = sqlx::query!(
             r#"INSERT INTO groups (name, avatar_url, owner_id) VALUES ($1, $2, $3) RETURNING id, name"#
         )
         .bind(group_name)
@@ -374,7 +374,7 @@ impl GroupService {
         let token = hex::encode(rand::random::<[u8; 32]>());
         let expires_at = chrono::Utc::now() + chrono::Duration::days(7);
 
-        sqlx::query(
+        sqlx::query!(
             "INSERT INTO group_invites (token, tenant_id, created_by, expires_at) VALUES ($1, $2, $3, $4)"
         )
         .bind(token.clone())
@@ -388,22 +388,16 @@ impl GroupService {
     }
 
     pub async fn get_invite(&self, token: &str) -> AppResult<Value> {
-        let row = sqlx::query(
-            "SELECT g.name, g.avatar_url, gi.expires_at, (SELECT COUNT(*) FROM user_roles WHERE tenant_id = g.id) AS member_count FROM group_invites gi JOIN groups g ON g.id = gi.tenant_id WHERE gi.token = $1"
+        let row = sqlx::query!(
+            "SELECT g.name, g.avatar_url, (SELECT COUNT(*) FROM user_roles WHERE tenant_id = g.id) AS member_count FROM group_invites gi JOIN groups g ON g.id = gi.tenant_id WHERE gi.token = $1 AND gi.expires_at > now()"
         )
-        .bind(token)
-        .fetch_optional(&self.db)
-        .await?;
+            .bind(token)
+            .fetch_optional(&self.db)
+            .await?;
 
         let invite = match row {
-            Some(r)
-                if r.try_get::<chrono::DateTime<chrono::Utc>, _>("expires_at")
-                    .unwrap_or_default()
-                    > chrono::Utc::now() =>
-            {
-                r
-            }
-            _ => {
+            Some(r) => r,
+            None => {
                 return Err(AppError::BadRequest(
                     "Invalid or expired invite token.".into(),
                 ));
@@ -441,33 +435,25 @@ impl GroupService {
 
         let mut tx = self.db.begin().await?;
 
-        let invite =
-            sqlx::query("SELECT tenant_id, expires_at FROM group_invites WHERE token = $1")
-                .bind(token)
-                .fetch_optional(&mut *tx)
-                .await?;
+        let invite = sqlx::query!(
+            "DELETE FROM group_invites WHERE token = $1 AND expires_at > now() RETURNING tenant_id",
+        )
+        .bind(token)
+        .fetch_optional(&mut *tx)
+        .await?;
 
-        let invite = match invite {
-            Some(inv)
-                if inv
-                    .try_get::<chrono::DateTime<chrono::Utc>, _>("expires_at")
-                    .unwrap_or_default()
-                    > chrono::Utc::now() =>
-            {
-                inv
-            }
-            _ => {
+        let group_id: Uuid = match invite {
+            Some(row) => row
+                .try_get("tenant_id")
+                .map_err(|e| AppError::internal(e.to_string()))?,
+            None => {
                 return Err(AppError::BadRequest(
                     "Invalid or expired invite token.".into(),
                 ));
             }
         };
 
-        let group_id: Uuid = invite
-            .try_get("tenant_id")
-            .map_err(|e| AppError::internal(e.to_string()))?;
-
-        let ban = sqlx::query("SELECT id FROM group_bans WHERE tenant_id = $1 AND user_id = $2")
+        let ban = sqlx::query!("SELECT id FROM group_bans WHERE tenant_id = $1 AND user_id = $2")
             .bind(group_id)
             .bind(user_id)
             .fetch_optional(&mut *tx)
@@ -478,28 +464,23 @@ impl GroupService {
         }
 
         let existing =
-            sqlx::query("SELECT id FROM user_roles WHERE user_id = $1 AND tenant_id = $2")
+            sqlx::query!("SELECT id FROM user_roles WHERE user_id = $1 AND tenant_id = $2")
                 .bind(user_id)
                 .bind(group_id)
                 .fetch_optional(&mut *tx)
                 .await?;
 
         if existing.is_none() {
-            sqlx::query("INSERT INTO user_roles (user_id, role_id, tenant_id) VALUES ($1, 4, $2)")
+            sqlx::query!("INSERT INTO user_roles (user_id, role_id, tenant_id) VALUES ($1, 4, $2)")
                 .bind(user_id)
                 .bind(group_id)
                 .execute(&mut *tx)
                 .await?;
         }
 
-        sqlx::query("DELETE FROM group_invites WHERE token = $1")
-            .bind(token)
-            .execute(&mut *tx)
-            .await?;
-
         let ip_parsed: Option<ipnetwork::IpNetwork> = ip.and_then(|s| s.parse().ok());
 
-        sqlx::query(
+        sqlx::query!(
             "INSERT INTO security_events (event_type, event_status, ip_address, user_agent, metadata) VALUES ('group_invite_accept', 'success', $1::inet, $2, $3)"
         )
         .bind(ip_parsed)
@@ -508,7 +489,7 @@ impl GroupService {
         .execute(&mut *tx)
         .await?;
 
-        sqlx::query(
+        sqlx::query!(
             "INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'group:join', $2)",
         )
         .bind(user_id)
