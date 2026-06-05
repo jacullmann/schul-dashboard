@@ -384,9 +384,9 @@ impl SuperAdminService {
         let rows = sqlx::query!(
             r#"SELECT r.id, r.item_id, r.item_title, r.category, r.reason, r.reporter_id, r.reporter_email,
                       r.processed, r.processed_at, r.reported_at,
-                      i.type AS item_type, i.subject AS item_subject, i.description AS item_description,
-                      i.images AS item_images, i.due_date AS item_due_date, i.editor_note AS item_editor_note,
-                      i.tenant_id AS item_tenant_id, u.email AS creator_email
+                      i.type AS "item_type?: String", i.subject AS "item_subject?: String", i.description AS "item_description?: String",
+                      i.images AS "item_images?: Value", i.due_date AS "item_due_date?: chrono::DateTime<chrono::Utc>", i.editor_note AS "item_editor_note?: String",
+                      i.tenant_id AS "item_tenant_id?: Uuid", u.email AS "creator_email?: String"
                FROM reports r
                LEFT JOIN items i ON i.id = r.item_id
                LEFT JOIN users u ON u.id = i.created_by
