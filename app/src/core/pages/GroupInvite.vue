@@ -92,9 +92,17 @@ function handleRegister() {
   <BaseModal
     :open="true"
     :sheet="false"
-    :submit="auth.isLoggedIn.value ? handleJoin : handleLogin"
+    :submit="
+      ok ? (auth.isLoggedIn.value ? handleJoin : handleLogin) : undefined
+    "
     :loading="joining"
-    @cancel="auth.isLoggedIn.value ? $router.push('/groups') : handleRegister"
+    @cancel="
+      ok
+        ? auth.isLoggedIn.value
+          ? $router.push('/groups')
+          : handleRegister
+        : undefined
+    "
   >
     <template #title>
       {{ t('auth.groups.invite.card_title') }}
@@ -159,43 +167,13 @@ function handleRegister() {
       }}</template></template
     >
 
-    <template #cancel-text v-if="!auth.isLoggedIn.value">{{
+    <template v-if="!auth.isLoggedIn.value" #cancel-text>{{
       t('auth.groups.invite.btn_register')
     }}</template>
   </BaseModal>
-  <div class="card invite-card animate-fade-up"></div>
 </template>
 
 <style scoped>
-.invite-card {
-  max-width: 500px;
-  width: 100%;
-  padding: 40px 32px;
-  background: var(--color-canvas);
-  backdrop-filter: blur(20px);
-  border: 1px solid var(--color-canvas-border);
-  border-radius: var(--radius-2xl);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  position: relative;
-  overflow: hidden;
-}
-
-.invite-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  width: 100%;
-  position: relative;
-  z-index: 10;
-}
-
-.avatar-wrapper {
-  position: relative;
-  width: 96px;
-  height: 96px;
-}
-
 @keyframes pulse-glow {
   0%,
   100% {
@@ -242,10 +220,6 @@ function handleRegister() {
   }
 }
 
-.animate-spin {
-  animation: spin 1s linear infinite;
-}
-
 .scale-up {
   animation: scale-up 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
@@ -272,13 +246,6 @@ function handleRegister() {
   }
   50% {
     transform: translateY(-8px);
-  }
-}
-
-@media (max-width: 640px) {
-  .invite-card {
-    padding: 32px 20px;
-    border-radius: var(--radius-xl);
   }
 }
 </style>
