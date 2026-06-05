@@ -254,8 +254,6 @@ export function useAppAuth() {
     } catch {
     } finally {
       clearAuthState();
-      isAuthReady.value = false;
-      initPromise = null;
     }
   }
 
@@ -265,8 +263,6 @@ export function useAppAuth() {
     } catch {
     } finally {
       clearAuthState();
-      isAuthReady.value = false;
-      initPromise = null;
     }
   }
 

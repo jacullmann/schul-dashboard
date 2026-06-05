@@ -234,7 +234,7 @@ pub async fn logout(
     {
         let svc = TokenService::from_state(&state);
 
-        let _ = svc.revoke_by_token(&token, LOGOUT).await;
+        let _ = svc.revoke_current_family(&token, LOGOUT).await;
     }
 
     let opts = state.config.base_cookie_options();

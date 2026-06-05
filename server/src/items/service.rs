@@ -433,10 +433,7 @@ impl ItemsService {
             .as_str()
             .and_then(|s| s.parse::<Uuid>().ok());
 
-        if (item.created_by != Some(user_id))
-            && image_uploader != Some(user_id)
-            && !is_superadmin
-        {
+        if (item.created_by != Some(user_id)) && image_uploader != Some(user_id) && !is_superadmin {
             return Err(AppError::forbidden("Not authorized to delete this image."));
         }
 
