@@ -1,0 +1,47 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT g.name,\n                      g.avatar_url,\n                      (SELECT COUNT(*) FROM user_roles WHERE tenant_id = g.id) AS \"member_count!\"\n               FROM group_invites gi\n               JOIN groups g ON g.id = gi.tenant_id\n               WHERE gi.token = $1 AND gi.expires_at > now()",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "groups",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "avatar_url",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "groups",
+            "name": "avatar_url"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "member_count!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      null
+    ]
+  },
+  "hash": "07adf7bac243fdb23cf65cd2ad1ca858d38d0c88774678d6a0fe1fa232551cba"
+}

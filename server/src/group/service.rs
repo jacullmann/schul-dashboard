@@ -9,7 +9,7 @@ use crate::{
 };
 use axum_extra::extract::CookieJar;
 use serde_json::{Value, json};
-use sqlx::{PgPool, Row};
+use sqlx::PgPool;
 use uuid::Uuid;
 
 pub struct CreateGroupParams<'a> {
@@ -101,16 +101,16 @@ impl GroupService {
         }
 
         let group = sqlx::query!(
-            r#"INSERT INTO groups (name, avatar_url, owner_id) VALUES ($1, $2, $3) RETURNING id, name"#
+            r#"INSERT INTO groups (name, avatar_url, owner_id) VALUES ($1, $2, $3) RETURNING id, name"#,
+            group_name,
+            avatar_url,
+            user_id
         )
-        .bind(group_name)
-        .bind(avatar_url)
-        .bind(user_id)
-        .fetch_one(&self.db)
-        .await?;
+            .fetch_one(&self.db)
+            .await?;
 
-        let group_id: Uuid = group.get("id");
-        let group_name_str: String = group.get("name");
+        let group_id = group.id;
+        let group_name_str = group.name;
 
         sqlx::query!(
             r#"INSERT INTO user_roles (user_id, role_id, tenant_id) VALUES ($1, $2, $3)"#,
@@ -375,27 +375,32 @@ impl GroupService {
         let expires_at = chrono::Utc::now() + chrono::Duration::days(7);
 
         sqlx::query!(
-            "INSERT INTO group_invites (token, tenant_id, created_by, expires_at) VALUES ($1, $2, $3, $4)"
+            "INSERT INTO group_invites (token, tenant_id, created_by, expires_at) VALUES ($1, $2, $3, $4)",
+            token.clone(),
+            tenant_id,
+            user_id,
+            expires_at
         )
-        .bind(token.clone())
-        .bind(tenant_id)
-        .bind(user_id)
-        .bind(expires_at)
-        .execute(&self.db)
-        .await?;
+            .execute(&self.db)
+            .await?;
 
         Ok(json!({ "token": token }))
     }
 
     pub async fn get_invite(&self, token: &str) -> AppResult<Value> {
-        let row = sqlx::query!(
-            "SELECT g.name, g.avatar_url, (SELECT COUNT(*) FROM user_roles WHERE tenant_id = g.id) AS member_count FROM group_invites gi JOIN groups g ON g.id = gi.tenant_id WHERE gi.token = $1 AND gi.expires_at > now()"
+        let invite = sqlx::query!(
+            r#"SELECT g.name,
+                      g.avatar_url,
+                      (SELECT COUNT(*) FROM user_roles WHERE tenant_id = g.id) AS "member_count!"
+               FROM group_invites gi
+               JOIN groups g ON g.id = gi.tenant_id
+               WHERE gi.token = $1 AND gi.expires_at > now()"#,
+            token
         )
-            .bind(token)
-            .fetch_optional(&self.db)
-            .await?;
+        .fetch_optional(&self.db)
+        .await?;
 
-        let invite = match row {
+        let invite = match invite {
             Some(r) => r,
             None => {
                 return Err(AppError::BadRequest(
@@ -404,21 +409,11 @@ impl GroupService {
             }
         };
 
-        let name: String = invite
-            .try_get("name")
-            .map_err(|e| AppError::internal(e.to_string()))?;
-        let avatar_url: Option<String> = invite
-            .try_get("avatar_url")
-            .map_err(|e| AppError::internal(e.to_string()))?;
-        let member_count: i64 = invite
-            .try_get("member_count")
-            .map_err(|e| AppError::internal(e.to_string()))?;
-
         Ok(json!({
             "valid": true,
-            "groupName": name,
-            "avatarUrl": avatar_url,
-            "memberCount": member_count,
+            "groupName": invite.name,
+            "avatarUrl": invite.avatar_url,
+            "memberCount": invite.member_count,
         }))
     }
 
@@ -437,15 +432,13 @@ impl GroupService {
 
         let invite = sqlx::query!(
             "DELETE FROM group_invites WHERE token = $1 AND expires_at > now() RETURNING tenant_id",
+            token
         )
-        .bind(token)
         .fetch_optional(&mut *tx)
         .await?;
 
         let group_id: Uuid = match invite {
-            Some(row) => row
-                .try_get("tenant_id")
-                .map_err(|e| AppError::internal(e.to_string()))?,
+            Some(row) => row.tenant_id,
             None => {
                 return Err(AppError::BadRequest(
                     "Invalid or expired invite token.".into(),
@@ -453,47 +446,52 @@ impl GroupService {
             }
         };
 
-        let ban = sqlx::query!("SELECT id FROM group_bans WHERE tenant_id = $1 AND user_id = $2")
-            .bind(group_id)
-            .bind(user_id)
-            .fetch_optional(&mut *tx)
-            .await?;
+        let ban = sqlx::query!(
+            "SELECT id FROM group_bans WHERE tenant_id = $1 AND user_id = $2",
+            group_id,
+            user_id
+        )
+        .fetch_optional(&mut *tx)
+        .await?;
 
         if ban.is_some() {
             return Err(AppError::forbidden("You have been banned from this group."));
         }
 
-        let existing =
-            sqlx::query!("SELECT id FROM user_roles WHERE user_id = $1 AND tenant_id = $2")
-                .bind(user_id)
-                .bind(group_id)
-                .fetch_optional(&mut *tx)
-                .await?;
+        let existing = sqlx::query!(
+            "SELECT id FROM user_roles WHERE user_id = $1 AND tenant_id = $2",
+            user_id,
+            group_id
+        )
+        .fetch_optional(&mut *tx)
+        .await?;
 
         if existing.is_none() {
-            sqlx::query!("INSERT INTO user_roles (user_id, role_id, tenant_id) VALUES ($1, 4, $2)")
-                .bind(user_id)
-                .bind(group_id)
-                .execute(&mut *tx)
-                .await?;
+            sqlx::query!(
+                "INSERT INTO user_roles (user_id, role_id, tenant_id) VALUES ($1, 4, $2)",
+                user_id,
+                group_id
+            )
+            .execute(&mut *tx)
+            .await?;
         }
 
         let ip_parsed: Option<ipnetwork::IpNetwork> = ip.and_then(|s| s.parse().ok());
 
         sqlx::query!(
-            "INSERT INTO security_events (event_type, event_status, ip_address, user_agent, metadata) VALUES ('group_invite_accept', 'success', $1::inet, $2, $3)"
+            "INSERT INTO security_events (event_type, event_status, ip_address, user_agent, metadata) VALUES ('group_invite_accept', 'success', $1::inet, $2, $3)",
+            ip_parsed,
+            ua,
+            json!({ "groupId": group_id, "userId": user_id, "token": token })
         )
-        .bind(ip_parsed)
-        .bind(ua)
-        .bind(json!({ "groupId": group_id, "userId": user_id, "token": token }))
-        .execute(&mut *tx)
-        .await?;
+            .execute(&mut *tx)
+            .await?;
 
         sqlx::query!(
             "INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'group:join', $2)",
+            user_id,
+            json!({ "groupId": group_id, "by": "invite" })
         )
-        .bind(user_id)
-        .bind(json!({ "groupId": group_id, "by": "invite" }))
         .execute(&mut *tx)
         .await?;
 
