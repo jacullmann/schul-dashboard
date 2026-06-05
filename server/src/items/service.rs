@@ -270,7 +270,7 @@ impl ItemsService {
             .await?
             .ok_or_else(|| AppError::not_found("Not found."))?;
 
-        if item.created_by.map_or(true, |id| id != user_id) {
+        if item.created_by != Some(user_id) {
             return Err(AppError::forbidden("Only the creator can edit this item."));
         }
 
@@ -360,7 +360,7 @@ impl ItemsService {
             .await?
             .ok_or_else(|| AppError::not_found("Item not found."))?;
 
-        if item.created_by.map_or(true, |id| id != user_id) && !can_upload {
+        if (item.created_by != Some(user_id)) && !can_upload {
             return Err(AppError::forbidden("Only the creator can add images."));
         }
 
@@ -433,7 +433,7 @@ impl ItemsService {
             .as_str()
             .and_then(|s| s.parse::<Uuid>().ok());
 
-        if item.created_by.map_or(true, |id| id != user_id)
+        if (item.created_by != Some(user_id))
             && image_uploader != Some(user_id)
             && !is_superadmin
         {
@@ -474,7 +474,7 @@ impl ItemsService {
             .await?
             .ok_or_else(|| AppError::not_found("Not found."))?;
 
-        let is_creator = item.created_by.map_or(false, |id| id == params.user_id);
+        let is_creator = item.created_by == Some(params.user_id);
 
         if !is_creator && !params.is_superadmin && !params.is_owner && !params.can_delete_others {
             return Err(AppError::forbidden("Nicht autorisiert."));
