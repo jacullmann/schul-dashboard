@@ -60,7 +60,7 @@ impl ItemsService {
 
         let rows = sqlx::query!(
             r#"SELECT i.id, i.type, i.title, i.subject, i.description, i.images, i.due_date,
-                      i.created_by, i.editor_note, i.created_at, i.updated_at,
+                      i.created_by as "created_by?: Uuid", i.editor_note, i.created_at, i.updated_at,
                       u.email as "creator_email?: String"
                FROM items i
                LEFT JOIN users u ON u.id = i.created_by
@@ -68,8 +68,8 @@ impl ItemsService {
                ORDER BY i.due_date ASC"#,
             tenant_id
         )
-        .fetch_all(&self.db)
-        .await?;
+            .fetch_all(&self.db)
+            .await?;
 
         if item_type.is_none() || item_type == Some("all") {
             let db2 = self.db.clone();
@@ -123,15 +123,19 @@ impl ItemsService {
                     _ => (r.due_date >= now || is_kept) && !is_archived,
                 }
             })
-            .map(|r| json!({
-                "id": r.id, "type": r.r#type, "title": r.title,
-                "subject": r.subject, "description": r.description,
-                "images": r.images, "dueDate": r.due_date,
-                "createdBy": r.created_by,
-                "createdByEmail": r.creator_email.unwrap_or_else(|| "Unbekannt".into()),
-                "timeColor": time_left_color(&r.due_date),
-                "editorNote": r.editor_note, "createdAt": r.created_at, "updatedAt": r.updated_at,
-            }))
+            .map(|r| {
+                let creator_deleted = r.created_by.is_none();
+                json!({
+                    "id": r.id, "type": r.r#type, "title": r.title,
+                    "subject": r.subject, "description": r.description,
+                    "images": r.images, "dueDate": r.due_date,
+                    "createdBy": r.created_by,
+                    "createdByEmail": r.creator_email.unwrap_or_else(|| "Gelöschter Nutzer".into()),
+                    "creatorDeleted": creator_deleted,
+                    "timeColor": time_left_color(&r.due_date),
+                    "editorNote": r.editor_note, "createdAt": r.created_at, "updatedAt": r.updated_at,
+                })
+            })
             .collect();
 
         Ok(result)
@@ -140,7 +144,7 @@ impl ItemsService {
     pub async fn get_item_by_id(&self, tenant_id: Uuid, id: Uuid) -> AppResult<Value> {
         let row = sqlx::query!(
             r#"SELECT i.id, i.type, i.title, i.subject, i.description, i.images, i.due_date as "due_date!",
-                      i.created_by, i.editor_note, i.created_at, i.updated_at,
+                      i.created_by as "created_by?: Uuid", i.editor_note, i.created_at, i.updated_at,
                       u.email as "creator_email?: String"
                FROM items i
                LEFT JOIN users u ON u.id = i.created_by
@@ -148,16 +152,18 @@ impl ItemsService {
             id,
             tenant_id
         )
-        .fetch_optional(&self.db)
-        .await?
-        .ok_or_else(|| AppError::not_found("Item not found."))?;
+            .fetch_optional(&self.db)
+            .await?
+            .ok_or_else(|| AppError::not_found("Item not found."))?;
 
+        let creator_deleted = row.created_by.is_none();
         Ok(json!({
             "id": row.id, "type": row.r#type, "title": row.title,
             "subject": row.subject, "description": row.description,
             "images": row.images, "dueDate": row.due_date,
             "createdBy": row.created_by,
-            "createdByEmail": row.creator_email.unwrap_or_else(|| "Unbekannt".into()),
+            "createdByEmail": row.creator_email.unwrap_or_else(|| "Gelöschter Nutzer".into()),
+            "creatorDeleted": creator_deleted,
             "timeColor": time_left_color(&row.due_date),
             "editorNote": row.editor_note, "createdAt": row.created_at, "updatedAt": row.updated_at,
         }))
@@ -191,8 +197,8 @@ impl ItemsService {
                 dto.subject.trim(),
                 due_date
             )
-            .fetch_optional(&self.db)
-            .await?;
+                .fetch_optional(&self.db)
+                .await?;
 
             if let Some(row) = duplicate {
                 let duplicate_val = json!({
@@ -256,15 +262,15 @@ impl ItemsService {
         dto: &crate::items::dto::UpdateItemDto,
     ) -> AppResult<Value> {
         let item = sqlx::query!(
-            r#"SELECT id, created_by FROM items WHERE id = $1 AND tenant_id = $2"#,
+            r#"SELECT id, created_by as "created_by?: Uuid" FROM items WHERE id = $1 AND tenant_id = $2"#,
             id,
             tenant_id
         )
-        .fetch_optional(&self.db)
-        .await?
-        .ok_or_else(|| AppError::not_found("Not found."))?;
+            .fetch_optional(&self.db)
+            .await?
+            .ok_or_else(|| AppError::not_found("Not found."))?;
 
-        if item.created_by != user_id {
+        if item.created_by.map_or(true, |id| id != user_id) {
             return Err(AppError::forbidden("Only the creator can edit this item."));
         }
 
@@ -346,15 +352,15 @@ impl ItemsService {
         dto: &crate::items::dto::AddImageDto,
     ) -> AppResult<Value> {
         let item = sqlx::query!(
-            r#"SELECT id, created_by, images FROM items WHERE id = $1 AND tenant_id = $2"#,
+            r#"SELECT id, created_by as "created_by?: Uuid", images FROM items WHERE id = $1 AND tenant_id = $2"#,
             item_id,
             tenant_id
         )
-        .fetch_optional(&self.db)
-        .await?
-        .ok_or_else(|| AppError::not_found("Item not found."))?;
+            .fetch_optional(&self.db)
+            .await?
+            .ok_or_else(|| AppError::not_found("Item not found."))?;
 
-        if item.created_by != user_id && !can_upload {
+        if item.created_by.map_or(true, |id| id != user_id) && !can_upload {
             return Err(AppError::forbidden("Only the creator can add images."));
         }
 
@@ -405,13 +411,13 @@ impl ItemsService {
         public_id: &str,
     ) -> AppResult<Value> {
         let item = sqlx::query!(
-            r#"SELECT id, created_by, images FROM items WHERE id = $1 AND tenant_id = $2"#,
+            r#"SELECT id, created_by as "created_by?: Uuid", images FROM items WHERE id = $1 AND tenant_id = $2"#,
             item_id,
             tenant_id
         )
-        .fetch_optional(&self.db)
-        .await?
-        .ok_or_else(|| AppError::not_found("Item not found."))?;
+            .fetch_optional(&self.db)
+            .await?
+            .ok_or_else(|| AppError::not_found("Item not found."))?;
 
         let images: Vec<Value> = match item.images {
             Some(Value::Array(arr)) => arr,
@@ -427,7 +433,10 @@ impl ItemsService {
             .as_str()
             .and_then(|s| s.parse::<Uuid>().ok());
 
-        if item.created_by != user_id && image_uploader != Some(user_id) && !is_superadmin {
+        if item.created_by.map_or(true, |id| id != user_id)
+            && image_uploader != Some(user_id)
+            && !is_superadmin
+        {
             return Err(AppError::forbidden("Not authorized to delete this image."));
         }
 
@@ -457,15 +466,15 @@ impl ItemsService {
 
     pub async fn delete_item(&self, params: DeleteItemParams) -> AppResult<Value> {
         let item = sqlx::query!(
-            r#"SELECT id, created_by FROM items WHERE id = $1 AND tenant_id = $2"#,
+            r#"SELECT id, created_by as "created_by?: Uuid" FROM items WHERE id = $1 AND tenant_id = $2"#,
             params.id,
             params.tenant_id
         )
-        .fetch_optional(&self.db)
-        .await?
-        .ok_or_else(|| AppError::not_found("Not found."))?;
+            .fetch_optional(&self.db)
+            .await?
+            .ok_or_else(|| AppError::not_found("Not found."))?;
 
-        let is_creator = item.created_by == params.user_id;
+        let is_creator = item.created_by.map_or(false, |id| id == params.user_id);
 
         if !is_creator && !params.is_superadmin && !params.is_owner && !params.can_delete_others {
             return Err(AppError::forbidden("Nicht autorisiert."));

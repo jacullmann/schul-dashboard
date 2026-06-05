@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, created_by, images FROM items WHERE id = $1 AND tenant_id = $2",
+  "query": "SELECT id, created_by as \"created_by?: Uuid\", images FROM items WHERE id = $1 AND tenant_id = $2",
   "describe": {
     "columns": [
       {
@@ -16,7 +16,7 @@
       },
       {
         "ordinal": 1,
-        "name": "created_by",
+        "name": "created_by?: Uuid",
         "type_info": "Uuid",
         "origin": {
           "Table": {
@@ -49,5 +49,5 @@
       true
     ]
   },
-  "hash": "58ecab16dadd4739758b01815990f3a8673b3434e058b39dc3297f919a9ef34a"
+  "hash": "86b8639819955fc72a58b433bc6a75746a036cc9d4cac10e8dbd6d69aeb226a7"
 }
