@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { Copy, Trash2 } from '@lucide/vue';
 
 const { t } = useI18n();
 
-const props = defineProps<{
-  activeMessage: any | null;
+defineProps<{
+  activeMessage: any;
   canDelete: boolean;
   contextMenuStyles: any;
   isMobile: boolean;
@@ -18,30 +18,29 @@ const emit = defineEmits<{
   (e: 'delete', msg: any): void;
 }>();
 
-const innerMenuRef = ref<any | null>(null);
+const innerMenuRef = ref<any>(null);
+const menuEl = computed(() => innerMenuRef.value?.menuEl || null);
 
 defineExpose({
-  get menuEl() {
-    return innerMenuRef.value?.menuEl;
-  },
+  menuEl,
 });
 </script>
 
 <template>
   <Teleport to="body" :disabled="isMobile">
     <BaseMenu
-      :open="!!activeMessage"
-      @close="emit('close')"
       ref="innerMenuRef"
+      :open="!!activeMessage"
       :class="!isMobile ? 'fixed! z-[10001]! min-w-[180px]' : ''"
       :style="!isMobile ? contextMenuStyles : undefined"
+      @close="emit('close')"
     >
       <template v-if="activeMessage">
         <BaseMenuButton :icon="Copy" @click="emit('copy', activeMessage)">
           {{ t('common.buttons.copy') }}
         </BaseMenuButton>
 
-        <BaseMenuDivider />
+        <BaseMenuDivider v-if="canDelete" />
 
         <BaseMenuButton
           v-if="canDelete"

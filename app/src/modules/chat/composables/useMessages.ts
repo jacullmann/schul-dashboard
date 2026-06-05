@@ -29,9 +29,10 @@ export function useMessages() {
   const { width: windowWidth } = useWindowSize();
   const isMobile = computed(() => windowWidth.value < 768);
 
-  const activeMessage = ref<any | null>(null);
+  const activeMessage = ref<any>(null);
   const menuPosition = ref({ x: 0, y: 0 });
-  const menuRef = ref<HTMLElement | null>(null);
+  const menuComponentRef = ref<any>(null);
+  const menuRef = computed(() => menuComponentRef.value?.menuEl || null);
 
   const virtualElement = computed(() => {
     if (menuPosition.value.x === 0 && menuPosition.value.y === 0) {
@@ -83,7 +84,7 @@ export function useMessages() {
   const loading = ref(true);
   const error = ref<string | null>(null);
   const messageInput = ref('');
-  const replyParent = ref<any | null>(null);
+  const replyParent = ref<any>(null);
   const isTyping = ref(false);
   const typingUsers = ref<Map<string, string>>(new Map());
   const pendingMarkRead = ref(false);
@@ -504,7 +505,7 @@ export function useMessages() {
     canSend,
     isMobile,
     activeMessage,
-    menuRef,
+    menuRef: menuComponentRef,
     contextMenuStyles,
     openMenu,
     currentUserId,
