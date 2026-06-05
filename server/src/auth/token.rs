@@ -289,19 +289,6 @@ impl TokenService {
         Ok(())
     }
 
-    pub async fn get_current_family_id(&self, token: &str) -> Result<Option<Uuid>, AppError> {
-        let hash = hash_token(token);
-
-        let row = sqlx::query!(
-            r#"SELECT family_id FROM refresh_tokens WHERE token_hash = $1"#,
-            hash
-        )
-        .fetch_optional(&self.db)
-        .await?;
-
-        Ok(row.map(|r| r.family_id))
-    }
-
     pub async fn revoke_all_for_user(
         &self,
         user_id: Uuid,
