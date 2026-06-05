@@ -100,7 +100,8 @@
       "So thats pretty neat",
       "Give me the ZUCC",
       "Starless and bible black",
-      "Please baby no more parties in LA"
+      "Please baby no more parties in LA",
+      "Hasta la vista baby"
     ],
     "remove_device": "Sign out this device"
   },
@@ -115,7 +116,7 @@
     "art": "Art",
     "biology": "Biology",
     "chemistry": "Chemistry",
-    "class_hour": "Class Hour",
+    "homeroom": "Homeroom",
     "cs": "Computer Science",
     "dalton": "Dalton",
     "english": "English",
