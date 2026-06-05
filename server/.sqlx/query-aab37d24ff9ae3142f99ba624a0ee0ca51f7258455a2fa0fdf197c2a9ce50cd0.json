@@ -1,0 +1,230 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT r.id, r.item_id, r.item_title, r.category, r.reason, r.reporter_id, r.reporter_email,\n                      r.processed, r.processed_at, r.reported_at,\n                      i.type AS item_type, i.subject AS item_subject, i.description AS item_description,\n                      i.images AS item_images, i.due_date AS item_due_date, i.editor_note AS item_editor_note,\n                      i.tenant_id AS item_tenant_id, u.email AS creator_email\n               FROM reports r\n               LEFT JOIN items i ON i.id = r.item_id\n               LEFT JOIN users u ON u.id = i.created_by\n               ORDER BY r.created_at DESC",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "reports",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "item_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "reports",
+            "name": "item_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "item_title",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "reports",
+            "name": "item_title"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "category",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "reports",
+            "name": "category"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "reason",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "reports",
+            "name": "reason"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "reporter_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "reports",
+            "name": "reporter_id"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "reporter_email",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "reports",
+            "name": "reporter_email"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "processed",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "reports",
+            "name": "processed"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "processed_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "reports",
+            "name": "processed_at"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "reported_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "reports",
+            "name": "reported_at"
+          }
+        }
+      },
+      {
+        "ordinal": 10,
+        "name": "item_type",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "items",
+            "name": "type"
+          }
+        }
+      },
+      {
+        "ordinal": 11,
+        "name": "item_subject",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "items",
+            "name": "subject"
+          }
+        }
+      },
+      {
+        "ordinal": 12,
+        "name": "item_description",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "items",
+            "name": "description"
+          }
+        }
+      },
+      {
+        "ordinal": 13,
+        "name": "item_images",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "items",
+            "name": "images"
+          }
+        }
+      },
+      {
+        "ordinal": 14,
+        "name": "item_due_date",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "items",
+            "name": "due_date"
+          }
+        }
+      },
+      {
+        "ordinal": 15,
+        "name": "item_editor_note",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "items",
+            "name": "editor_note"
+          }
+        }
+      },
+      {
+        "ordinal": 16,
+        "name": "item_tenant_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "items",
+            "name": "tenant_id"
+          }
+        }
+      },
+      {
+        "ordinal": 17,
+        "name": "creator_email",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "users",
+            "name": "email"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      false,
+      true,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "aab37d24ff9ae3142f99ba624a0ee0ca51f7258455a2fa0fdf197c2a9ce50cd0"
+}
