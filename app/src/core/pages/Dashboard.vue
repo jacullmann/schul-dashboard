@@ -682,7 +682,6 @@ const isScheduleVisible = computed(() => {
                 })
             "
             :icon="CalendarDays"
-            class="p-3 rounded-full bg-primary/10 text-primary animate-bounce-slow"
           >
             <template #message>{{
               t('common.dashboard.schedule_overview.setup_cta')

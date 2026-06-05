@@ -49,7 +49,7 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
         v-if="open && (windowWidth > 768 || !sheet)"
         @cancel="handleCancel"
       >
-        <BaseRow justify="between" class="items-start mb-4">
+        <BaseRow justify="between" class="items-start h-[30px] mb-4">
           <BaseRow>
             <h3 id="modal-title">
               <slot name="title"></slot>
