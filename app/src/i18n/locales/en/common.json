@@ -188,7 +188,7 @@
     "title": "Home",
     "your_groups": "Your groups",
     "tooltip": {
-      "add_group": "Gruppe hinzufügen"
+      "create_group": "Create group"
     }
   },
   "roles": {

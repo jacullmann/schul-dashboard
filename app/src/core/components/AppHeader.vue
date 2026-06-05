@@ -209,7 +209,7 @@ onUnmounted(() => {
             "
             :icon="Plus"
           >
-            New group
+            Create group
           </BaseMenuButton>
 
           <BaseMenuButton

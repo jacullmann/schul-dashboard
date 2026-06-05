@@ -193,8 +193,8 @@
     "your_groups": "Deine Gruppen",
     "choose_group_prompt": "Wähle eine Gruppe aus, um loszulegen.",
     "join_or_create_prompt": "Tritt einer Gruppe bei oder erstelle eine neue.",
-    "tooltips": {
-      "add_group": "Add group"
+    "tooltip": {
+      "create_group": "Gruppe erstellen"
     }
   },
   "roles": {

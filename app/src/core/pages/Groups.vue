@@ -110,7 +110,7 @@ onMounted(() => {
               >{{ displayName }}</span
             >
           </h2>
-          <p class="text-base/relaxed text-on-ghost-muted m-0 animate-fade-up">
+          <p class="text-base/relaxed text-on-ghost-muted m-0! animate-fade-up">
             {{
               userGroups.length
                 ? t('common.groups.choose_group_prompt')
@@ -119,16 +119,17 @@ onMounted(() => {
           </p>
         </div>
 
-        <div class="relative" v-if="userGroups.length > 0">
+        <div v-if="userGroups.length > 0" class="relative">
           <BaseTooltip
-            :content="t('common.groups.tooltip.add_group')"
+            :content="t('common.groups.tooltip.create_group')"
             placement="bottom"
           >
             <BaseButton
-              @click="modalStore.openCreateGroup()"
               variant="action"
               :icon="Plus"
+              icon-classes="size-6"
               class="animate-fade-up"
+              @click="modalStore.openCreateGroup()"
             />
           </BaseTooltip>
         </div>
