@@ -32,6 +32,7 @@ const loading = ref(true);
 const revokingId = ref<string | null>(null);
 const revokingAll = ref(false);
 const error = ref<string | null>(null);
+const currentFamilyId = ref<string | null>(null);
 
 const { t } = useI18n();
 const modalStore = useModalStore();
@@ -42,12 +43,17 @@ async function fetchSessions() {
   try {
     const res = await hw.get('/auth/sessions');
     sessions.value = res.data.sessions || [];
+    currentFamilyId.value = res.data.currentFamilyId ?? null;
   } catch (err) {
     console.error('Failed to fetch active sessions:', err);
     error.value = t('auth.sessions.errors.load_failed');
   } finally {
     loading.value = false;
   }
+}
+
+function isCurrentSession(session: ActiveSession): boolean {
+  return !!currentFamilyId.value && session.familyId === currentFamilyId.value;
 }
 
 async function revokeSession(session: ActiveSession) {
@@ -89,14 +95,11 @@ async function logoutAllOtherSessions() {
 
   revokingAll.value = true;
   try {
-    const currentSession = sessions.value[0];
-    const others = sessions.value.slice(1);
+    const others = sessions.value.filter((s) => !isCurrentSession(s));
 
-    await Promise.all(
-      others.map((s) => hw.delete(`/auth/sessions/${s.familyId}`)),
-    );
+    await Promise.all(others.map((s) => hw.delete(`/auth/sessions/${s.familyId}`)));
 
-    sessions.value = currentSession ? [currentSession] : [];
+    sessions.value = sessions.value.filter((s) => isCurrentSession(s));
   } catch (err) {
     console.error('Failed to logout other sessions:', err);
     alert(t('auth.sessions.errors.delete_all_failed'));
@@ -244,7 +247,7 @@ onMounted(() => {
     </div>
 
     <div v-else class="flex flex-col gap-3">
-      <div v-if="sessions.length > 1" class="flex justify-end">
+      <div v-if="sessions.some(s => !isCurrentSession(s))" class="flex justify-end">
         <BaseButton
           @click="logoutAllOtherSessions"
           :disabled="revokingAll"
@@ -259,12 +262,11 @@ onMounted(() => {
 
       <div class="flex flex-col gap-3 max-h-[300px] overflow-y-auto pr-1">
         <div
-          v-for="(session, index) in sessions"
+          v-for="session in sessions"
           :key="session.familyId"
           class="group relative flex gap-3 items-center p-3.5 bg-surface border border-surface-border shadow-input rounded-xl transition-all duration-200"
           :class="{
-            'border-[var(--special--green)]/40 bg-success-surface/10':
-              index === 0,
+            'border-[var(--special--green)]/40 bg-success-surface/10': isCurrentSession(session),
           }"
         >
           <div
@@ -297,14 +299,14 @@ onMounted(() => {
               }}
               •
               {{
-                index === 0
-                  ? t('auth.sessions.this_device')
-                  : formatDate(session.issuedAt)
+                isCurrentSession(session)
+                    ? t('auth.sessions.this_device')
+                    : formatDate(session.issuedAt)
               }}
             </div>
           </div>
 
-          <template v-if="index !== 0">
+          <template v-if="!isCurrentSession(session)">
             <BaseTooltip
               :content="t('auth.sessions.actions.delete')"
               placement="bottom"

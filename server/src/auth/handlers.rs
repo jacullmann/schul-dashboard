@@ -268,12 +268,28 @@ pub async fn logout_all(
 pub async fn list_sessions(
     State(state): State<AppState>,
     user: AuthUser,
+    jar: CookieJar,
 ) -> AppResult<Json<Value>> {
+    use crate::config::REFRESH_COOKIE;
+
     let svc = TokenService::from_state(&state);
 
     let sessions = svc.list_active_sessions(user.user_id).await?;
 
-    Ok(Json(json!({ "sessions": sessions })))
+    let current_family_id = if let Some(token) = jar
+        .get(REFRESH_COOKIE)
+        .map(|c| c.value().to_string())
+        .filter(|s| !s.is_empty())
+    {
+        svc.get_current_family_id(&token).await?
+    } else {
+        None
+    };
+
+    Ok(Json(json!({
+        "sessions": sessions,
+        "currentFamilyId": current_family_id,
+    })))
 }
 
 pub async fn revoke_session(
