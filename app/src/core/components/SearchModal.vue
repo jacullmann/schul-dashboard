@@ -12,14 +12,16 @@ import {
   CalendarDays,
   MessageCircle,
   Lock,
+  Megaphone,
   UsersRound,
-  SlidersHorizontal,
+  Settings,
   Gamepad,
   Newspaper,
   Crop,
-  CirclePlus,
+  SquarePen,
   LogIn,
   UserRoundPlus,
+  Plus,
   Search,
   ChevronRight,
   ArrowUpRight,
@@ -162,7 +164,7 @@ const defaultResults = computed<SearchResult[]>(() => [
     label: t('common.sidebar.admin'),
     description: t('search.descriptions.admin'),
     category: 'page',
-    icon: SlidersHorizontal,
+    icon: Settings,
     action: () =>
       withGroup(() => navigate(`/groups/${activeGroupId.value}/settings`)),
     condition: !!activeGroupId.value,
@@ -208,7 +210,7 @@ const defaultResults = computed<SearchResult[]>(() => [
     label: t('search.items.create_entry'),
     description: t('search.descriptions.create_entry'),
     category: 'action',
-    icon: CirclePlus,
+    icon: SquarePen,
     action: () => {
       withGroup(() => {
         openItemForm();
@@ -234,7 +236,7 @@ const defaultResults = computed<SearchResult[]>(() => [
     label: t('announcements.actions.create'),
     description: t('announcements.actions.create_description'),
     category: 'action',
-    icon: Newspaper,
+    icon: Megaphone,
     action: () => {
       withGroup(() => {
         openAnnouncementForm();
@@ -277,7 +279,7 @@ const defaultResults = computed<SearchResult[]>(() => [
     label: t('search.items.create_group'),
     description: t('search.descriptions.create_group'),
     category: 'action',
-    icon: UserRoundPlus,
+    icon: Plus,
     action: () => {
       modalStore.openCreateGroup();
       emit('cancel');
