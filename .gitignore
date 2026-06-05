@@ -30,7 +30,7 @@ tmp/
 .gemini/
 .agent/
 .agents/
-.claude
+.claude/
 CLAUDE.md
 claude-start.sh
 .claudeignore
