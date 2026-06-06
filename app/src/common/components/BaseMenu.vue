@@ -301,7 +301,7 @@ defineExpose({ menuEl: desktopMenuEl, startClose });
   >
     <div
       ref="desktopScrollEl"
-      class="flex-1 overflow-y-auto overflow-x-hidden p-1 max-h-[min(70vh,350px)] gap-0 flex flex-col items-stretch list-fade"
+      class="flex-1 overflow-y-auto overflow-x-hidden p-1 max-h-[min(70vh,400px)] gap-0 flex flex-col items-stretch list-fade"
       :style="{ '--menu-fade-mask': fadeMask }"
       @scroll="handleScroll"
     >
