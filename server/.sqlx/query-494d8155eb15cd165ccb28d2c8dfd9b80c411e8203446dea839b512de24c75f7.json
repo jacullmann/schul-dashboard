@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE refresh_tokens\n               SET revoked_at = now(), revoked_reason = $1\n               WHERE id IN (\n                   SELECT id FROM refresh_tokens\n                   WHERE user_id = $2\n                     AND revoked_at IS NULL\n                     AND used_at IS NULL\n                     AND expires_at > now()\n                   ORDER BY last_used_at ASC\n                   LIMIT GREATEST(0, (\n                       SELECT COUNT(*) FROM refresh_tokens\n                       WHERE user_id = $2\n                         AND revoked_at IS NULL\n                         AND used_at IS NULL\n                         AND expires_at > now()\n                   ) - ($3 - 1))\n               )",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Uuid",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "494d8155eb15cd165ccb28d2c8dfd9b80c411e8203446dea839b512de24c75f7"
+}

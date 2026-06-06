@@ -71,20 +71,22 @@ impl TokenService {
         if p.parent.is_none() {
             sqlx::query!(
                 r#"UPDATE refresh_tokens
-                   SET revoked_at = now(), revoked_reason = $1
-                   WHERE id IN (
-                       SELECT id FROM refresh_tokens
+               SET revoked_at = now(), revoked_reason = $1
+               WHERE id IN (
+                   SELECT id FROM refresh_tokens
+                   WHERE user_id = $2
+                     AND revoked_at IS NULL
+                     AND used_at IS NULL
+                     AND expires_at > now()
+                   ORDER BY last_used_at ASC
+                   LIMIT GREATEST(0, (
+                       SELECT COUNT(*) FROM refresh_tokens
                        WHERE user_id = $2
                          AND revoked_at IS NULL
+                         AND used_at IS NULL
                          AND expires_at > now()
-                       ORDER BY issued_at ASC
-                       LIMIT GREATEST(0, (
-                           SELECT COUNT(*) FROM refresh_tokens
-                           WHERE user_id = $2
-                             AND revoked_at IS NULL
-                             AND expires_at > now()
-                       ) - ($3 - 1))
-                   )"#,
+                   ) - ($3 - 1))
+               )"#,
                 SESSION_LIMIT,
                 p.user_id,
                 MAX_SESSIONS_PER_USER,
@@ -352,6 +354,19 @@ impl TokenService {
         }
 
         Ok(sessions)
+    }
+
+    pub async fn get_current_family_id(&self, token: &str) -> Result<Option<Uuid>, AppError> {
+        let hash = hash_token(token);
+
+        let row = sqlx::query!(
+            r#"SELECT family_id FROM refresh_tokens WHERE token_hash = $1"#,
+            hash
+        )
+        .fetch_optional(&self.db)
+        .await?;
+
+        Ok(row.map(|r| r.family_id))
     }
 
     async fn lookup_ip(&self, ip: &str) -> Option<IpLocation> {
