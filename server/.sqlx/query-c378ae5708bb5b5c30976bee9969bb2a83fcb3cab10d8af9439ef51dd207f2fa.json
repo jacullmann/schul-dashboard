@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT r.id, r.item_id, r.item_title, r.category, r.reason, r.reporter_id, r.reporter_email,\n                      r.processed, r.processed_at, r.reported_at,\n                      i.type AS item_type, i.subject AS item_subject, i.description AS item_description,\n                      i.images AS item_images, i.due_date AS item_due_date, i.editor_note AS item_editor_note,\n                      i.tenant_id AS item_tenant_id, u.email AS creator_email\n               FROM reports r\n               LEFT JOIN items i ON i.id = r.item_id\n               LEFT JOIN users u ON u.id = i.created_by\n               ORDER BY r.created_at DESC",
+  "query": "SELECT r.id, r.item_id, r.item_title, r.category, r.reason, r.reporter_id, r.reporter_email,\n                      r.processed, r.processed_at, r.reported_at,\n                      i.type AS \"item_type?: String\", i.subject AS \"item_subject?: String\", i.description AS \"item_description?: String\",\n                      i.images AS \"item_images?: Value\", i.due_date AS \"item_due_date?: chrono::DateTime<chrono::Utc>\", i.editor_note AS \"item_editor_note?: String\",\n                      i.tenant_id AS \"item_tenant_id?: Uuid\", u.email AS \"creator_email?: String\"\n               FROM reports r\n               LEFT JOIN items i ON i.id = r.item_id\n               LEFT JOIN users u ON u.id = i.created_by\n               ORDER BY r.created_at DESC",
   "describe": {
     "columns": [
       {
@@ -115,7 +115,7 @@
       },
       {
         "ordinal": 10,
-        "name": "item_type",
+        "name": "item_type?: String",
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -126,7 +126,7 @@
       },
       {
         "ordinal": 11,
-        "name": "item_subject",
+        "name": "item_subject?: String",
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -137,7 +137,7 @@
       },
       {
         "ordinal": 12,
-        "name": "item_description",
+        "name": "item_description?: String",
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -148,7 +148,7 @@
       },
       {
         "ordinal": 13,
-        "name": "item_images",
+        "name": "item_images?: Value",
         "type_info": "Jsonb",
         "origin": {
           "Table": {
@@ -159,7 +159,7 @@
       },
       {
         "ordinal": 14,
-        "name": "item_due_date",
+        "name": "item_due_date?: chrono::DateTime<chrono::Utc>",
         "type_info": "Timestamptz",
         "origin": {
           "Table": {
@@ -170,7 +170,7 @@
       },
       {
         "ordinal": 15,
-        "name": "item_editor_note",
+        "name": "item_editor_note?: String",
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -181,7 +181,7 @@
       },
       {
         "ordinal": 16,
-        "name": "item_tenant_id",
+        "name": "item_tenant_id?: Uuid",
         "type_info": "Uuid",
         "origin": {
           "Table": {
@@ -192,7 +192,7 @@
       },
       {
         "ordinal": 17,
-        "name": "creator_email",
+        "name": "creator_email?: String",
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -226,5 +226,5 @@
       false
     ]
   },
-  "hash": "aab37d24ff9ae3142f99ba624a0ee0ca51f7258455a2fa0fdf197c2a9ce50cd0"
+  "hash": "c378ae5708bb5b5c30976bee9969bb2a83fcb3cab10d8af9439ef51dd207f2fa"
 }
