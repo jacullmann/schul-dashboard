@@ -145,30 +145,30 @@ onUnmounted(() => {
         class="md:hidden -ml-1"
         variant="ghost"
         on="ghost"
-        @click="toggleExpanded"
         :aria-expanded="isExpanded"
         aria-label="Toggle navigation menu"
         :icon="Menu"
+        @click="toggleExpanded"
       />
 
       <router-link :to="logoLink" class="logo-group hidden! !md:flex">
         <AppLogo class="logo-img" aria-hidden="true" />
       </router-link>
       <router-link
-        :to="logoLink"
         v-if="!(activeGroupId && groupName)"
+        :to="logoLink"
         class="logo-group"
       >
         <span class="logo-text">schul-dashboard</span>
       </router-link>
       <div
         v-if="activeGroupId && groupName"
-        class="relative flex items-center"
         ref="groupMenuRef"
+        class="relative flex items-center"
       >
         <button
-          class="flex items-center gap-2 group cursor-pointer hover:bg-ghost-hover transition-hover rounded-full -m-1 p-1"
           v-wave
+          class="flex items-center gap-2 group cursor-pointer hover:bg-ghost-hover transition-hover rounded-full -m-1 p-1"
           @click="toggleGroupMenu"
         >
           <Avatar :name="groupName" :picture="activeGroupAvatarUrl" :size="8" />
@@ -183,13 +183,13 @@ onUnmounted(() => {
 
         <BaseMenu
           :open="groupMenuOpen"
-          @close="groupMenuOpen = false"
           class="top-full mt-1 left-0"
+          @close="groupMenuOpen = false"
         >
           <BaseMenuButton
             v-for="g in userGroups"
             :key="g.id"
-            :isSelect="true"
+            :is-select="true"
             :active="g.id === activeGroupId"
             @click="onSwitchGroup(g.id)"
           >
@@ -203,29 +203,29 @@ onUnmounted(() => {
           <BaseMenuDivider />
 
           <BaseMenuButton
+            :icon="Plus"
             @click="
               groupMenuOpen = false;
               modalStore.openCreateGroup();
             "
-            :icon="Plus"
           >
             Create group
           </BaseMenuButton>
 
           <BaseMenuButton
             v-if="checkPermission('invite_members')"
-            @click="inviteMember"
             :icon="UserRoundPlus"
             :disabled="loading"
+            @click="inviteMember"
           >
             {{ t('auth.groups.invite.invite_button_header') }}
           </BaseMenuButton>
 
           <BaseMenuButton
-            @click="leaveGroup"
             :icon="LogOut"
             variant="danger"
             :disabled="loading"
+            @click="leaveGroup"
           >
             Leave group
           </BaseMenuButton>

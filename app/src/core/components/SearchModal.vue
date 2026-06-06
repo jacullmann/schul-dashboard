@@ -525,9 +525,9 @@ function handleSelect(index: number) {
           class="px-4 py-1.5 flex items-center gap-2 text-xs text-on-ghost-muted font-semibold uppercase tracking-wider mb-1"
         >
           <button
-            @click="setMode('default')"
             class="hover:text-on-ghost transition-colors inline-flex items-center"
             :aria-label="t('common.buttons.back')"
+            @click="setMode('default')"
           >
             <ArrowLeft :size="14" class="mr-1" />
             {{ t('common.buttons.back') }}
@@ -538,8 +538,8 @@ function handleSelect(index: number) {
         <template v-if="filteredGroups.length">
           <BaseCommandPaletteItem
             v-for="(group, index) in filteredGroups"
-            :key="group.id"
             :id="'group-result-' + index"
+            :key="group.id"
             :active="selectedIndex === index"
             :label="group.name"
             :avatar-text="group.name.charAt(0).toUpperCase()"
@@ -569,9 +569,9 @@ function handleSelect(index: number) {
           class="px-4 py-1.5 flex items-center gap-2 text-xs text-on-ghost-muted font-semibold uppercase tracking-wider mb-1"
         >
           <button
-            @click="setMode('default')"
             class="hover:text-on-ghost transition-colors inline-flex items-center"
             :aria-label="t('common.buttons.back')"
+            @click="setMode('default')"
           >
             <ArrowLeft :size="14" class="mr-1" />
             {{ t('common.buttons.back') }}
@@ -582,8 +582,8 @@ function handleSelect(index: number) {
         <template v-if="filteredThemes.length">
           <BaseCommandPaletteItem
             v-for="(opt, index) in filteredThemes"
-            :key="opt.id"
             :id="'theme-result-' + index"
+            :key="opt.id"
             :active="selectedIndex === index"
             :label="opt.label"
             :icon="opt.icon"
@@ -604,9 +604,9 @@ function handleSelect(index: number) {
           class="px-4 py-1.5 flex items-center gap-2 text-xs text-on-ghost-muted font-semibold uppercase tracking-wider mb-1"
         >
           <button
-            @click="setMode('default')"
             class="hover:text-on-ghost transition-colors inline-flex items-center"
             :aria-label="t('common.buttons.back')"
+            @click="setMode('default')"
           >
             <ArrowLeft :size="14" class="mr-1" />
             {{ t('common.buttons.back') }}
@@ -617,8 +617,8 @@ function handleSelect(index: number) {
         <template v-if="filteredLanguages.length">
           <BaseCommandPaletteItem
             v-for="(opt, index) in filteredLanguages"
-            :key="opt.id"
             :id="'language-result-' + index"
+            :key="opt.id"
             :active="selectedIndex === index"
             :label="opt.label"
             :icon="opt.icon"
@@ -645,8 +645,8 @@ function handleSelect(index: number) {
           </div>
           <BaseCommandPaletteItem
             v-for="item in defaultPageResults"
-            :key="item.id"
             :id="'search-result-' + globalIndex(item)"
+            :key="item.id"
             :active="selectedIndex === globalIndex(item)"
             :label="item.label"
             :description="item.description"
@@ -675,8 +675,8 @@ function handleSelect(index: number) {
           </div>
           <BaseCommandPaletteItem
             v-for="item in defaultActionResults"
-            :key="item.id"
             :id="'search-result-' + globalIndex(item)"
+            :key="item.id"
             :active="selectedIndex === globalIndex(item)"
             :label="item.label"
             :description="item.description"

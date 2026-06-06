@@ -24,9 +24,9 @@ useAppShortcuts();
 
       <main class="full-c flex-1">
         <div
+          key="content"
           :class="{ container: !$route.meta.fullWidth }"
           class="w-full"
-          key="content"
         >
           <router-view v-slot="{ Component }">
             <component :is="Component" :key="activeGroupId || 'default'" />

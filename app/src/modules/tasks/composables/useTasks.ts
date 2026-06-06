@@ -35,6 +35,7 @@ export function useTasks() {
   );
   const showOldEntries = ref(false);
   const subjectFilter = ref('');
+  const hideChecked = ref(false);
   const showPersonalized = computed(() => user.value?.personalized ?? false);
   const activeGroupId = computed(
     () => (route.params.groupId as string) || null,
@@ -67,6 +68,7 @@ export function useTasks() {
     tab,
     showOldEntries,
     subjectFilter,
+    hideChecked,
     activeGroupId,
     showPersonalized,
     items,
@@ -172,10 +174,11 @@ export function useTasks() {
   function resetFilters() {
     subjectFilter.value = '';
     showOldEntries.value = false;
+    hideChecked.value = false;
     if (tab.value !== 'all') goTab('all');
   }
 
-  watch([showOldEntries, tab, subjectFilter], () => {
+  watch([showOldEntries, tab, subjectFilter, hideChecked], () => {
     dismissedItems.value.clear();
   });
 
@@ -221,7 +224,7 @@ export function useTasks() {
     }
   });
 
-  watch([subjectFilter, tab, items], () => {
+  watch([subjectFilter, tab, items, hideChecked], () => {
     if (!route.params.itemId) {
       list.setVisibleCount(Math.min(5, list.filteredItems.value.length || 5));
     }
@@ -278,6 +281,7 @@ export function useTasks() {
     subjectFilter,
     showPersonalized,
     showOldEntries,
+    hideChecked,
     visibleCount,
     limitedItems: list.limitedItems,
     filteredItems: list.filteredItems,

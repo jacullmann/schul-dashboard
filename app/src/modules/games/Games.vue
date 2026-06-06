@@ -36,8 +36,8 @@ const filteredGames = computed(() => {
     >
       <BaseInput
         id="search-input"
-        class="mt-2 mb-16 mx-auto max-w-100"
         v-model="searchTag"
+        class="mt-2 mb-16 mx-auto max-w-100"
         placeholder="Suchen"
       />
 

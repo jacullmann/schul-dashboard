@@ -39,8 +39,8 @@ defineExpose({
 <template>
   <button
     ref="buttonEl"
-    type="button"
     v-wave
+    type="button"
     class="group flex justify-between items-center w-full text-left border-0 py-2 gap-4 cursor-pointer transition-hover user-select-none"
     :class="[
       variant === 'danger'
@@ -112,7 +112,7 @@ defineExpose({
     </span>
 
     <span v-if="isToggle">
-      <BaseToggle :modelValue="active" />
+      <BaseToggle :model-value="active" />
     </span>
   </button>
 </template>

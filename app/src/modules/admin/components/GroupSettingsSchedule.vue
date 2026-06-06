@@ -186,8 +186,8 @@ function handleSaveSub() {
         <BaseLabel for="config-start">Startzeit</BaseLabel>
         <BaseInput
           id="config-start"
-          type="time"
           v-model="configForm.startTime"
+          type="time"
           :disabled="!canEditScheduleConfig"
         />
       </div>
@@ -195,10 +195,10 @@ function handleSaveSub() {
         <BaseLabel for="config-slots">Anzahl Stunden (Pro Tag)</BaseLabel>
         <BaseInput
           id="config-slots"
+          v-model.number="configForm.totalSlots"
           type="number"
           min="1"
           max="15"
-          v-model.number="configForm.totalSlots"
           :disabled="!canEditScheduleConfig"
         />
       </div>
@@ -208,10 +208,10 @@ function handleSaveSub() {
         }}</BaseLabel>
         <BaseInput
           id="config-duration"
+          v-model.number="configForm.lessonDurationMins"
           type="number"
           min="10"
           max="120"
-          v-model.number="configForm.lessonDurationMins"
           :disabled="!canEditScheduleConfig"
         />
       </div>
@@ -223,8 +223,8 @@ function handleSaveSub() {
         <BaseButton
           v-if="canEditScheduleConfig"
           variant="ghost"
-          @click="addBreak"
           :icon="Plus"
+          @click="addBreak"
         >
           {{ t('admin.schedule.config.add_break_button') }}
         </BaseButton>
@@ -249,10 +249,10 @@ function handleSaveSub() {
             }}</BaseLabel>
             <BaseInput
               :id="`break-slot-${brk.id}`"
+              v-model.number="brk.slot"
               type="number"
               min="1"
               :max="configForm.totalSlots"
-              v-model.number="brk.slot"
               :disabled="!canEditScheduleConfig"
             />
           </div>
@@ -262,9 +262,9 @@ function handleSaveSub() {
             }}</BaseLabel>
             <BaseInput
               :id="`break-dur-${brk.id}`"
+              v-model.number="brk.duration"
               type="number"
               min="1"
-              v-model.number="brk.duration"
               :disabled="!canEditScheduleConfig"
             />
           </div>
@@ -272,8 +272,8 @@ function handleSaveSub() {
             v-if="canEditScheduleConfig"
             variant="ghost"
             class="text-danger mb-1"
-            @click="removeBreak(brk.id)"
             :icon="Trash2"
+            @click="removeBreak(brk.id)"
           />
         </div>
       </div>
@@ -281,9 +281,9 @@ function handleSaveSub() {
 
     <div v-if="canEditScheduleConfig" class="mt-6">
       <BaseButton
-        @click="handleSaveConfig"
         :disabled="savingScheduleConfig"
         variant="action"
+        @click="handleSaveConfig"
       >
         {{
           savingScheduleConfig
@@ -318,10 +318,10 @@ function handleSaveSub() {
         <template #action>
           <BaseTooltip content="Aktualisieren">
             <BaseButton
-              @click="emit('refresh')"
               :disabled="loadingSubs"
               variant="ghost"
               :icon="RefreshCw"
+              @click="emit('refresh')"
             />
           </BaseTooltip>
         </template>
@@ -349,7 +349,7 @@ function handleSaveSub() {
         </p>
 
         <div class="grid grid-cols-2 gap-3 mb-4 sm:grid-cols-1">
-          <input type="hidden" v-model="subForm.lessonId" />
+          <input v-model="subForm.lessonId" type="hidden" />
           <div class="form-field">
             <BaseLabel for="sub-subject">{{
               t('admin.schedule.changes.new_subject_label')
@@ -429,11 +429,11 @@ function handleSaveSub() {
         </div>
 
         <BaseButton
-          @click="handleSaveSub"
           :disabled="
             savingSub || !subForm.lessonId || !canManageScheduleChanges
           "
           variant="action"
+          @click="handleSaveSub"
         >
           {{
             savingSub ? t('common.buttons.saving') : t('common.buttons.save')
@@ -453,9 +453,9 @@ function handleSaveSub() {
       <AdminSchedule
         v-else
         :lessons="lessons"
-        :selectedLessonId="subForm.lessonId"
-        @select-lesson="onLessonSelected"
+        :selected-lesson-id="subForm.lessonId"
         class="p-5"
+        @select-lesson="onLessonSelected"
       />
 
       <div
@@ -481,10 +481,10 @@ function handleSaveSub() {
               class="text-[0.7rem] font-semibold px-2 py-0.5 rounded bg-surface-hover text-on-ghost"
               >Unbekannt</span
             >
-            <span class="text-sm text-on-ghost-muted" v-if="sub.slot"
+            <span v-if="sub.slot" class="text-sm text-on-ghost-muted"
               >Stunde: {{ sub.slot }}</span
             >
-            <span class="text-sm text-on-ghost-muted" v-if="sub.day"
+            <span v-if="sub.day" class="text-sm text-on-ghost-muted"
               >Tag: {{ sub.day }}</span
             >
             <span
@@ -503,10 +503,10 @@ function handleSaveSub() {
           </div>
           <BaseTooltip :content="t('common.buttons.delete')" placement="bottom">
             <BaseButton
-              @click="emit('delete-sub', sub.id)"
               :disabled="!canManageScheduleChanges"
               variant="ghost"
               :icon="Trash2"
+              @click="emit('delete-sub', sub.id)"
             />
           </BaseTooltip>
         </div>

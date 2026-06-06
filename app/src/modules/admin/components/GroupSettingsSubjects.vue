@@ -79,10 +79,10 @@ onMounted(() => {
       <template #action>
         <BaseTooltip content="Aktualisieren">
           <BaseButton
-            @click="loadSubjects"
             :disabled="loading"
             variant="ghost"
             :icon="RefreshCw"
+            @click="loadSubjects"
           />
         </BaseTooltip>
       </template>
@@ -95,15 +95,15 @@ onMounted(() => {
           v-model="newSubjectName"
           class="flex-1 max-w-[400px]"
           :placeholder="t('admin.subjects.add_placeholder')"
-          @keyup.enter="handleCreate"
           :disabled="saving"
+          @keyup.enter="handleCreate"
         />
         <BaseButton
-          @click="handleCreate"
           :disabled="!newSubjectName.trim() || saving"
           :loading="saving"
           variant="action"
           :icon="Plus"
+          @click="handleCreate"
         >
           {{ t('common.buttons.add') }}
         </BaseButton>
@@ -152,9 +152,9 @@ onMounted(() => {
               <BaseButton
                 variant="ghost"
                 size="sm"
-                @click="startRename(subject)"
                 :icon="Pencil"
                 g
+                @click="startRename(subject)"
               />
             </BaseTooltip>
             <BaseTooltip
@@ -164,8 +164,8 @@ onMounted(() => {
               <BaseButton
                 variant="ghost"
                 size="sm"
-                @click="deleteSubject(subject.id)"
                 :icon="Trash2"
+                @click="deleteSubject(subject.id)"
               />
             </BaseTooltip>
           </BaseRow>
@@ -177,25 +177,25 @@ onMounted(() => {
               :id="'edit-subject-' + subject.id"
               v-model="editingName"
               class="flex-1 max-w-[400px]"
+              autofocus
               @keyup.enter="saveRename(subject.id)"
               @keyup.escape="cancelRename"
-              autofocus
             />
             <BaseTooltip :content="t('common.buttons.save')">
               <BaseButton
                 variant="ghost"
-                @click="saveRename(subject.id)"
                 :disabled="!editingName.trim() || saving"
                 :title="t('common.buttons.save')"
                 :icon="Check"
+                @click="saveRename(subject.id)"
               />
             </BaseTooltip>
             <BaseTooltip :content="t('common.buttons.cancel')">
               <BaseButton
                 variant="ghost"
-                @click="cancelRename"
                 :title="t('common.buttons.cancel')"
                 :icon="X"
+                @click="cancelRename"
               />
             </BaseTooltip>
           </div>

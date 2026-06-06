@@ -22,12 +22,12 @@ const { understoodChecked, submitting, errorMsg, successMsg, confirmDelete } =
 <template>
   <BaseModal
     :open="open"
-    @cancel="$emit('cancel')"
     :submit="confirmDelete"
     :loading="submitting"
     :danger="true"
     :requirement="understoodChecked"
     :error="errorMsg"
+    @cancel="$emit('cancel')"
   >
     <template #title>
       {{ t('auth.delete_account.title') }}

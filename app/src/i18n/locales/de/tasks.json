@@ -1,6 +1,8 @@
 {
   "list": {
     "allsubjects": "Alle Fächer",
+    "filter": "Filter",
+    "hide_checked": "Erledigte ausblenden",
     "archive": {
       "archive": "Archiv",
       "archive_note": "Du siehst gerade alte Einträge",

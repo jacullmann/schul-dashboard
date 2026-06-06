@@ -180,11 +180,11 @@ async function submit() {
 <template>
   <BaseModal
     :open="open"
-    @cancel="$emit('cancel')"
     :submit="submit"
     :loading="submitting"
     :error="errorMsg"
     :cancel="undefined"
+    @cancel="$emit('cancel')"
   >
     <template #title>{{ t('common.groups.create_group') }}</template>
 
@@ -204,8 +204,8 @@ async function submit() {
             :icon="Pencil"
             size="sm"
             class="absolute! bottom-0 right-0"
-            @click.stop="toggleMenu"
             :disabled="savingAvatar"
+            @click.stop="toggleMenu"
           />
 
           <div
@@ -217,22 +217,22 @@ async function submit() {
 
           <BaseMenu
             :open="isMenuOpen"
-            @close="isMenuOpen = false"
             class="left-0 mt-2 z-30 min-w-[180px]"
+            @close="isMenuOpen = false"
             @click.stop
           >
             <BaseMenuButton
-              @click="triggerUploadAndClose"
               :icon="Upload"
               :disabled="savingAvatar"
+              @click="triggerUploadAndClose"
             >
               Bild hochladen
             </BaseMenuButton>
 
             <BaseMenuButton
-              @click="triggerCameraCaptureAndClose"
               :icon="Camera"
               :disabled="savingAvatar"
+              @click="triggerCameraCaptureAndClose"
             >
               Bild aufnehmen
             </BaseMenuButton>
@@ -242,9 +242,9 @@ async function submit() {
             <BaseMenuButton
               v-if="avatarUrl"
               variant="danger"
-              @click="deleteAvatar"
               :icon="Trash2"
               :disabled="savingAvatar"
+              @click="deleteAvatar"
             >
               Bild löschen
             </BaseMenuButton>
@@ -273,16 +273,16 @@ async function submit() {
       </BaseFormGroup>
 
       <input
-        type="file"
         ref="fileInputRef"
+        type="file"
         accept="image/*"
         class="hidden"
         @change="onFileSelected"
       />
 
       <input
-        type="file"
         ref="cameraInputRef"
+        type="file"
         accept="image/*"
         capture="user"
         class="hidden"

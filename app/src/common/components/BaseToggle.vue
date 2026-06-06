@@ -42,10 +42,10 @@ const dotClasses = computed(() => {
       role="switch"
       :aria-checked="model"
       :disabled="disabled"
-      @click="toggle"
       :class="buttonClasses"
+      @click="toggle"
     >
-      <span class="sr-only" v-if="label">{{ label }}</span>
+      <span v-if="label" class="sr-only">{{ label }}</span>
 
       <span aria-hidden="true" :class="dotClasses"></span>
     </button>

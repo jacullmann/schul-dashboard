@@ -259,17 +259,17 @@ async function handleNext() {
           v-if="step === 2"
           type="button"
           variant="ghost"
-          @click="goBack"
           :disabled="submitting"
+          @click="goBack"
         >
           {{ t('common.buttons.back') }}
         </BaseButton>
         <BaseButton
           type="button"
           variant="action"
-          @click="handleNext"
           :disabled="submitting"
           :loading="submitting"
+          @click="handleNext"
         >
           {{
             step === 1

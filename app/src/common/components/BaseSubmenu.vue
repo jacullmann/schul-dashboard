@@ -114,7 +114,7 @@ const submenuStyles = computed(() => ({
     <div ref="triggerRef">
       <BaseMenuButton
         :icon="icon"
-        :isSubmenu="true"
+        :is-submenu="true"
         :disabled="disabled"
         :force-hover="isOpen && !isMobile"
         type="button"
@@ -128,10 +128,10 @@ const submenuStyles = computed(() => ({
 
     <template v-if="!isMobile">
       <BaseMenu
-        :open="isOpen"
-        desktopTransition="fade-dropdown-side"
-        :style="submenuStyles"
         ref="menuComponentRef"
+        :open="isOpen"
+        desktop-transition="fade-dropdown-side"
+        :style="submenuStyles"
         class="z-[1100]"
       >
         <slot></slot>

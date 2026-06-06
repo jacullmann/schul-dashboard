@@ -27,8 +27,8 @@ withDefaults(
 <template>
   <BaseTooltip :content="label" :shortcut="shortcut" :disabled="!label">
     <button
-      v-bind="$attrs"
       v-wave
+      v-bind="$attrs"
       class="group relative gap-0 items-center flex px-3 py-2.5 md:p-2.5! min-h-10 min-w-10 text-on-ghost-muted hover:text-on-ghost rounded-full bg-transparent hover:bg-ghost-hover transition-hover cursor-pointer outline-none w-full touch-target-x-full"
       :class="{
         'text-on-ghost! active': active && (icon || expanded),

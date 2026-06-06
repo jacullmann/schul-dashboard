@@ -38,7 +38,7 @@ defineEmits<{
       v-if="icon || $slots.icon"
       class="shrink-0 flex items-center justify-center w-8 h-8 text-on-ghost-muted"
     >
-      <component v-if="icon" :is="icon" :size="20" />
+      <component :is="icon" v-if="icon" :size="20" />
       <slot v-else name="icon"></slot>
     </span>
 

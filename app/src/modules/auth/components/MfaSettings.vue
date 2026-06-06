@@ -245,7 +245,7 @@ onUnmounted(() => {
       Authenticator.
     </p>
     <div v-if="!mfaEnabled && !setupMode" class="flex justify-start">
-      <BaseButton @click="startSetup" :disabled="loading" variant="action">
+      <BaseButton :disabled="loading" variant="action" @click="startSetup">
         2FA aktivieren
       </BaseButton>
     </div>
@@ -317,8 +317,8 @@ onUnmounted(() => {
             <button
               type="button"
               class="flex items-center justify-center p-2 bg-none border-none text-on-ghost-muted cursor-pointer rounded-lg transition-all hover:bg-surface-hover hover:text-on-ghost"
-              @click="copySecret"
               :title="copied ? 'Kopiert!' : 'Kopieren'"
+              @click="copySecret"
             >
               <component :is="copied ? Check : Copy" :size="16" />
             </button>
@@ -326,8 +326,8 @@ onUnmounted(() => {
         </div>
 
         <div
-          class="flex items-center justify-center gap-1.5 text-sm text-on-ghost-muted font-sans"
           v-if="expiresAt"
+          class="flex items-center justify-center gap-1.5 text-sm text-on-ghost-muted font-sans"
         >
           <Clock :size="16" />
           <span>{{
@@ -336,10 +336,10 @@ onUnmounted(() => {
         </div>
 
         <div class="flex justify-end gap-3 mt-2">
-          <BaseButton @click="cancelSetup" variant="ghost"
+          <BaseButton variant="ghost" @click="cancelSetup"
             >Abbrechen</BaseButton
           >
-          <BaseButton @click="setupStep = 2" variant="action"
+          <BaseButton variant="action" @click="setupStep = 2"
             >Weiter</BaseButton
           >
         </div>
@@ -378,12 +378,12 @@ onUnmounted(() => {
         </div>
 
         <div class="flex justify-end gap-3 mt-2">
-          <BaseButton @click="setupStep = 1" variant="ghost">Zurück</BaseButton>
+          <BaseButton variant="ghost" @click="setupStep = 1">Zurück</BaseButton>
           <BaseButton
-            @click="activateMfa"
             :disabled="verifyCode.length !== 6 || loading"
             variant="action"
             :loading="loading"
+            @click="activateMfa"
           >
             Aktivieren
           </BaseButton>
@@ -394,8 +394,8 @@ onUnmounted(() => {
     <div v-if="mfaEnabled && !deactivateMode" class="flex justify-start">
       <BaseButton
         class="border border-danger text-danger hover:bg-danger-hover"
-        @click="startDeactivate"
         :icon="ShieldOff"
+        @click="startDeactivate"
       >
         2FA deaktivieren
       </BaseButton>
@@ -438,14 +438,14 @@ onUnmounted(() => {
       </div>
 
       <div class="flex justify-end gap-3 mt-2">
-        <BaseButton @click="cancelDeactivate" variant="ghost"
+        <BaseButton variant="ghost" @click="cancelDeactivate"
           >Abbrechen</BaseButton
         >
         <BaseButton
-          @click="confirmDeactivate"
           :disabled="deactivateCode.length !== 6 || loading"
           variant="danger"
           :loading="loading"
+          @click="confirmDeactivate"
         >
           Deaktivieren
         </BaseButton>

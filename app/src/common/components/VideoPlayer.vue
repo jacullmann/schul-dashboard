@@ -69,7 +69,7 @@ const {
           fill="currentColor"
           :size="24"
           :stroke-width="2"
-          absoluteStrokeWidth
+          absolute-stroke-width
           aria-hidden="true"
         />
       </div>
@@ -107,10 +107,10 @@ const {
           :max="duration"
           :value="currentTime"
           step="0.01"
-          @input="seek"
           class="player-range"
           :style="getSliderStyle(currentTime, duration)"
           :aria-label="t('common.video_player.seek_slider.aria_label')"
+          @input="seek"
         />
       </div>
 
@@ -119,26 +119,26 @@ const {
           <button
             type="button"
             class="bg-transparent border-none text-white cursor-pointer p-0 flex items-center justify-center"
-            @click="togglePlay"
             :aria-label="
               isPlaying
                 ? t('common.video_player.play_button.pause_aria_label')
                 : t('common.video_player.play_button.play_aria_label')
             "
+            @click="togglePlay"
           >
             <Pause
               v-if="isPlaying"
               fill="currentColor"
               :size="24"
               :stroke-width="2"
-              absoluteStrokeWidth
+              absolute-stroke-width
             />
             <Play
               v-else
               fill="currentColor"
               :size="24"
               :stroke-width="2"
-              absoluteStrokeWidth
+              absolute-stroke-width
             />
           </button>
 
@@ -150,19 +150,19 @@ const {
             <button
               type="button"
               class="bg-transparent border-none text-white cursor-pointer p-0 flex items-center justify-center"
-              @click="toggleMute"
               :aria-label="
                 volume === 0
                   ? t('common.video_player.volume_button.unmute_aria_label')
                   : t('common.video_player.volume_button.mute_aria_label')
               "
+              @click="toggleMute"
             >
               <VolumeX
                 v-if="volume === 0"
                 fill="currentColor"
                 :size="24"
                 :stroke-width="2"
-                absoluteStrokeWidth
+                absolute-stroke-width
                 aria-hidden="true"
               />
               <Volume2
@@ -170,7 +170,7 @@ const {
                 :size="24"
                 fill="currentColor"
                 :stroke-width="2"
-                absoluteStrokeWidth
+                absolute-stroke-width
                 aria-hidden="true"
               />
             </button>
@@ -184,10 +184,10 @@ const {
                 max="1"
                 step="0.1"
                 :value="volume"
-                @input="updateVolume"
                 class="player-range w-[60px] flex-shrink-0"
                 :style="getSliderStyle(volume, 1)"
                 :aria-label="t('common.video_player.volume_slider.aria_label')"
+                @input="updateVolume"
               />
             </div>
           </div>
@@ -201,20 +201,25 @@ const {
           <button
             type="button"
             class="bg-transparent border-none text-white cursor-pointer p-0 flex items-center justify-center"
-            @click="toggleFullscreen"
             :aria-label="
               isFullscreen
                 ? t('common.video_player.fullscreen_button.exit_aria_label')
                 : t('common.video_player.fullscreen_button.enter_aria_label')
             "
+            @click="toggleFullscreen"
           >
             <Minimize
               v-if="isFullscreen"
               :size="24"
               :stroke-width="2"
-              absoluteStrokeWidth
+              absolute-stroke-width
             />
-            <Maximize v-else :size="24" :stroke-width="2" absoluteStrokeWidth />
+            <Maximize
+              v-else
+              :size="24"
+              :stroke-width="2"
+              absolute-stroke-width
+            />
           </button>
         </div>
       </div>

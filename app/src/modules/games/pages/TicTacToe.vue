@@ -84,12 +84,12 @@ const resetGame = () => {
         v-for="(cell, index) in board"
         :key="index"
         class="cell"
-        @click="makeMove(index)"
         :class="{
           'x-player': cell === 'X',
           'o-player': cell === 'O',
           'winning-cell': winningCombination.includes(index),
         }"
+        @click="makeMove(index)"
       >
         <svg
           v-if="cell === 'O'"
@@ -126,7 +126,7 @@ const resetGame = () => {
       </div>
     </div>
 
-    <BaseButton @click="resetGame" variant="ghost">
+    <BaseButton variant="ghost" @click="resetGame">
       Neues Spiel starten
     </BaseButton>
   </div>

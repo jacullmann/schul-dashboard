@@ -35,8 +35,8 @@ const handleInput = (e: Event) => {
   <div class="shrink-0">
     <form
       novalidate
-      @submit.prevent="emit('submit')"
       class="p-2 pt-0 flex items-end gap-2"
+      @submit.prevent="emit('submit')"
     >
       <div
         class="flex-1 min-w-0 relative flex flex-col items-stretch py-2.25 px-2.25 min-h-10 bg-surface border border-surface-border focus-within:border-focus focus-within:shadow-focus-ring rounded-2xl transition-all duration-200"
@@ -57,12 +57,12 @@ const handleInput = (e: Event) => {
               </span>
             </div>
             <BaseButton
-              @click="emit('cancelReply')"
               class="p-1.5 hover:text-on-ghost hover:bg-surface-hover/80 rounded-full transition-all duration-150 shrink-0"
               title="Antwort abbrechen"
               variant="ghost"
               on="ghost"
               :icon="X"
+              @click="emit('cancelReply')"
             />
           </div>
         </Transition>
@@ -70,8 +70,6 @@ const handleInput = (e: Event) => {
         <textarea
           id="chat-input-field"
           v-model="textVal"
-          @input="handleInput"
-          @keydown.enter.exact.prevent="emit('submit')"
           rows="1"
           class="w-full flex-1 items-center justify-center py-0 px-1.75 rounded-none bg-transparent border-none shadow-none outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 text-base/5 text-on-ghost placeholder:text-on-ghost-subtle resize-none font-normal overflow-hidden"
           :placeholder="
@@ -80,6 +78,8 @@ const handleInput = (e: Event) => {
           required
           maxlength="1000"
           :disabled="!canSend"
+          @input="handleInput"
+          @keydown.enter.exact.prevent="emit('submit')"
         ></textarea>
       </div>
 

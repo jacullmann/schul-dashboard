@@ -64,10 +64,10 @@ function navigateToLogin() {
               type="email"
               autocomplete="email"
               required
-              @input="clearFieldError('email')"
               :aria-describedby="
                 errors.email ? 'register-email-error' : undefined
               "
+              @input="clearFieldError('email')"
             />
           </BaseFormGroup>
 
@@ -82,10 +82,10 @@ function navigateToLogin() {
               type="password"
               autocomplete="new-password"
               required
-              @input="clearFieldError('password')"
               :aria-describedby="
                 errors.password ? 'register-password-error' : undefined
               "
+              @input="clearFieldError('password')"
             />
           </BaseFormGroup>
 
@@ -100,10 +100,10 @@ function navigateToLogin() {
               type="password"
               autocomplete="new-password"
               required
-              @input="clearFieldError('passwordConfirm')"
               :aria-describedby="
                 errors.passwordConfirm ? 'register-confirm-error' : undefined
               "
+              @input="clearFieldError('passwordConfirm')"
             />
           </BaseFormGroup>
 
@@ -111,10 +111,10 @@ function navigateToLogin() {
             <BaseCheckbox
               v-model="acceptedPrivacy"
               class="mt-1"
-              @change="clearFieldError('privacy')"
               :aria-describedby="
                 errors.privacy ? 'register-privacy-error' : undefined
               "
+              @change="clearFieldError('privacy')"
             >
               <i18n-t keypath="auth.login.terms">
                 <template #privacy>
@@ -169,8 +169,8 @@ function navigateToLogin() {
       <BaseButton
         type="button"
         variant="ghost"
-        @click="initiateGoogleLogin"
         class="w-full justify-center"
+        @click="initiateGoogleLogin"
       >
         <GoogleIcon :size="16" />
         <span>{{ t('auth.login.register_google') }}</span>
@@ -186,8 +186,8 @@ function navigateToLogin() {
           }}
           <button
             type="button"
-            @click="navigateToLogin"
             class="text-on-ghost font-medium hover:opacity-75 transition-opacity cursor-pointer"
+            @click="navigateToLogin"
           >
             {{ t('auth.login.login') }}
           </button>

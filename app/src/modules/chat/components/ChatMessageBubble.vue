@@ -174,7 +174,6 @@ const formatTime = (timestamp: string) => {
           <!-- Replying/Quoted Message -->
           <div
             v-if="msg.parentId && msg.parentContent"
-            @click="emit('scrollToMessage', msg.parentId)"
             v-wave
             :class="[
               'flex flex-col mb-1 px-3 py-2 border-l-4 text-sm rounded-md transition-all duration-150 cursor-pointer select-none max-w-full w-full min-w-0',
@@ -183,6 +182,7 @@ const formatTime = (timestamp: string) => {
                 : 'bg-ghost-hover hover:bg-on-ghost/15 border-on-ghost-muted text-on-ghost-muted mt-1',
             ]"
             :title="t('chat.quote_label')"
+            @click="emit('scrollToMessage', msg.parentId)"
           >
             <span class="font-bold">
               {{
@@ -222,13 +222,13 @@ const formatTime = (timestamp: string) => {
             ]"
           >
             <BaseTooltip content="Antworten" placement="bottom">
-              <BaseButton @click="emit('reply', msg)" :icon="Reply" />
+              <BaseButton :icon="Reply" @click="emit('reply', msg)" />
             </BaseTooltip>
 
             <BaseTooltip content="Mehr" placement="bottom">
               <BaseButton
-                @click.stop="emit('menu', $event, msg)"
                 :icon="Ellipsis"
+                @click.stop="emit('menu', $event, msg)"
               />
             </BaseTooltip>
           </div>

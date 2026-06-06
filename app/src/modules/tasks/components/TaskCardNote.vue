@@ -45,24 +45,24 @@ const { t } = useI18n();
           id="editor-note-input"
           as="textarea"
           :model-value="modelValue"
-          @update:model-value="$emit('update:modelValue', $event)"
           rows="3"
           placeholder="Anmerkung eingeben..."
           maxlength="2000"
+          @update:model-value="$emit('update:modelValue', $event)"
         />
         <BaseRow justify="end" class="mt-2 mb-1">
           <BaseButton
-            @click.stop="$emit('edit-cancel')"
             :disabled="saving"
             variant="ghost"
+            @click.stop="$emit('edit-cancel')"
           >
             {{ t('common.buttons.cancel') }}
           </BaseButton>
           <BaseButton
-            @click.stop="$emit('edit-save')"
             :disabled="saving"
             variant="action"
             :loading="saving"
+            @click.stop="$emit('edit-save')"
           >
             {{ t('common.buttons.save') }}
           </BaseButton>
@@ -73,10 +73,10 @@ const { t } = useI18n();
     <div v-if="!editing && canEdit" class="flex gap-1 items-start -mr-2">
       <BaseTooltip :content="t('common.buttons.edit')" placement="bottom">
         <BaseButton
-          @click.stop="$emit('edit-start')"
           variant="ghost"
           :icon="Pencil"
           size="sm"
+          @click.stop="$emit('edit-start')"
         />
       </BaseTooltip>
 
@@ -86,11 +86,11 @@ const { t } = useI18n();
         placement="bottom"
       >
         <BaseButton
-          @click.stop="$emit('delete')"
           variant="ghost"
           :icon="Trash2"
           size="sm"
           class="text-danger hover:text-danger-hover"
+          @click.stop="$emit('delete')"
         />
       </BaseTooltip>
     </div>

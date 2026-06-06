@@ -156,8 +156,8 @@ async function onAuthSuccess() {
         <span>{{ oauthError }}</span>
         <button
           class="oauth-error-close"
-          @click="clearOAuthError"
           :aria-label="t('common.actions.close_aria_label')"
+          @click="clearOAuthError"
         >
           ✕
         </button>
@@ -183,8 +183,8 @@ async function onAuthSuccess() {
   </Teleport>
 
   <ItemForm
-    :open="itemFormOpen"
     :key="itemFormKey"
+    :open="itemFormOpen"
     :initial-type="itemFormInitialType"
     :initial="itemToEdit"
     @cancel="modalStore.closeItemForm()"
@@ -192,16 +192,16 @@ async function onAuthSuccess() {
   />
 
   <PrivateTaskForm
-    :open="privateTaskFormOpen"
     :key="privateTaskFormKey"
+    :open="privateTaskFormOpen"
     :initial="privateTaskToEdit || undefined"
     @cancel="modalStore.closePrivateTaskForm()"
     @success="onPrivateTaskFormSuccess"
   />
 
   <AnnouncementForm
-    :open="announcementFormOpen"
     :key="announcementFormKey"
+    :open="announcementFormOpen"
     @cancel="modalStore.closeAnnouncementForm()"
     @success="onAnnouncementFormSuccess"
   />

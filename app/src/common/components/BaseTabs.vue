@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted } from 'vue';
-import { useResizeObserver } from '@vueuse/core';
+import { useResizeObserver, useWindowSize } from '@vueuse/core';
 
 interface NavItem {
   id: string;
@@ -26,12 +26,16 @@ const groupId = `tabs-${Math.random().toString(36).substring(2, 9)}`;
 
 const itemRefs = ref<(HTMLElement | null)[]>([]);
 const navBarRef = ref<HTMLElement | null>(null);
-const navBarScrollWidth = ref(0);
+const containerRef = ref<HTMLElement | null>(null);
+const measureRef = ref<HTMLElement | null>(null);
 const resizeTrigger = ref(0);
+const isStretched = ref(false);
 
 const selectedIndex = ref(
   props.items.findIndex((item) => item.id === props.activeId),
 );
+
+const { width: windowWidth } = useWindowSize();
 
 watch(
   () => props.activeId,
@@ -39,7 +43,7 @@ watch(
     const index = props.items.findIndex((item) => item.id === newId);
     if (index !== -1) {
       selectedIndex.value = index;
-      nextTick(() => {
+      void nextTick(() => {
         scrollToActive();
       });
     }
@@ -59,21 +63,30 @@ const pillStyle = computed(() => {
   };
 });
 
-const innerListStyle = computed(() => {
-  if (resizeTrigger.value < 0) return {};
+const clipStyle = computed(() => {
+  if (resizeTrigger.value < 0) return { clipPath: 'inset(0px 100% 0px 0px)' };
   const targetElement = itemRefs.value[selectedIndex.value];
-  if (!targetElement) return {};
+  if (!targetElement) return { clipPath: 'inset(0px 100% 0px 0px)' };
+
+  const left = targetElement.offsetLeft;
+  const width = targetElement.offsetWidth;
 
   return {
-    width: `${navBarScrollWidth.value}px`,
-    transform: `translateX(-${targetElement.offsetLeft}px)`,
+    clipPath: `inset(0px calc(100% - ${left + width}px) 0px ${left}px round 9999px)`,
   };
 });
 
 const updateMetrics = () => {
-  if (navBarRef.value) {
-    navBarScrollWidth.value = navBarRef.value.scrollWidth;
-    resizeTrigger.value++;
+  resizeTrigger.value++;
+};
+
+const checkStretch = () => {
+  if (containerRef.value && measureRef.value) {
+    const parentWidth = containerRef.value.clientWidth;
+    const naturalWidth = measureRef.value.offsetWidth;
+    if (parentWidth > 0) {
+      isStretched.value = naturalWidth > parentWidth * 0.5;
+    }
   }
 };
 
@@ -97,23 +110,58 @@ const scrollToActive = () => {
 };
 
 onMounted(() => {
+  checkStretch();
   updateMetrics();
-  setTimeout(updateMetrics, 100);
+  setTimeout(() => {
+    checkStretch();
+    updateMetrics();
+  }, 100);
+});
+
+watch(isStretched, () => {
+  void nextTick(() => {
+    updateMetrics();
+  });
+});
+
+watch(
+  () => props.items,
+  () => {
+    void nextTick(() => {
+      checkStretch();
+      updateMetrics();
+    });
+  },
+  { deep: true },
+);
+
+watch(windowWidth, () => {
+  checkStretch();
+  updateMetrics();
+});
+
+useResizeObserver(containerRef, () => {
+  checkStretch();
+  updateMetrics();
 });
 
 useResizeObserver(navBarRef, () => {
+  checkStretch();
   updateMetrics();
 });
 </script>
 
 <template>
-  <div class="flex items-center justify-start w-full">
+  <div ref="containerRef" class="flex items-center justify-start w-full">
     <div
-      class="relative bg-surface border border-surface-border p-0 rounded-full flex isolation-isolate max-w-full overflow-x-auto overflow-y-hidden scrollbar-hide shadow-input"
       ref="navBarRef"
+      class="relative bg-surface border border-surface-border p-0 rounded-full flex isolation-isolate max-w-full overflow-x-auto overflow-y-hidden scrollbar-hide shadow-input"
+      :class="isStretched ? 'w-full' : 'w-max'"
     >
+      <!-- Main Labels (z-1) -->
       <div
-        class="flex items-center h-full w-max relative z-1"
+        class="flex items-center h-full relative z-1"
+        :class="isStretched ? 'w-full' : 'w-max'"
         role="radiogroup"
       >
         <label
@@ -124,7 +172,10 @@ useResizeObserver(navBarRef, () => {
               if (el) itemRefs[index] = el as HTMLElement;
             }
           "
-          class="relative bg-transparent min-h-9 min-w-9 touch-target items-center flex border-0 cursor-pointer px-5 py-2 text-sm/4 font-medium text-on-ghost-muted whitespace-nowrap shrink-0 transition-hover hover:text-on-ghost"
+          class="relative bg-transparent min-h-9 min-w-9 touch-target items-center flex border-0 cursor-pointer py-2 text-sm/4 font-medium text-on-ghost-muted whitespace-nowrap transition-hover hover:text-on-ghost"
+          :class="
+            isStretched ? 'grow shrink-0 justify-center px-5' : 'shrink-0 px-5'
+          "
         >
           <input
             type="radio"
@@ -138,23 +189,60 @@ useResizeObserver(navBarRef, () => {
         </label>
       </div>
 
+      <!-- Active Pill Background (z-2) -->
       <div
-        class="absolute top-0 left-0 bottom-0 bg-action rounded-full min-h-9 min-w-9 touch-target z-2 overflow-hidden pointer-events-none transition-all duration-300 ease-[cubic-bezier(0.075,0.82,0.165,1)]"
+        class="absolute top-0 bottom-0 bg-action rounded-full min-h-9 min-w-9 touch-target z-2 pointer-events-none transition-all duration-300 ease-[cubic-bezier(0.075,0.82,0.165,1)]"
         :style="pillStyle"
+        aria-hidden="true"
+      ></div>
+
+      <!-- White Text Spans Overlay (z-3) -->
+      <div
+        class="absolute top-0 left-0 bottom-0 z-3 pointer-events-none transition-all duration-300 ease-[cubic-bezier(0.075,0.82,0.165,1)]"
+        :class="isStretched ? 'w-full' : 'w-max'"
+        :style="clipStyle"
         aria-hidden="true"
       >
         <div
-          class="flex items-center h-full w-max absolute top-0 left-0 pointer-events-none transition-transform duration-300 ease-[cubic-bezier(0.075,0.82,0.165,1)]"
-          :style="innerListStyle"
+          class="flex items-center h-full"
+          :class="isStretched ? 'w-full' : 'w-max'"
         >
           <span
             v-for="item in items"
             :key="`fg-${item.id}`"
-            class="bg-transparent border-0 cursor-pointer px-5 py-2 text-sm/4 font-medium rounded-full text-on-action whitespace-nowrap shrink-0 transition-hover"
+            class="relative bg-transparent min-h-9 min-w-9 touch-target items-center flex border-0 cursor-pointer py-2 text-sm/4 font-medium text-on-action whitespace-nowrap transition-hover"
+            :class="
+              isStretched
+                ? 'grow shrink-0 justify-center px-5'
+                : 'shrink-0 px-5'
+            "
           >
             {{ item.label }}
           </span>
         </div>
+      </div>
+    </div>
+
+    <!-- Invisible container to measure the natural unstretched width of the tabs -->
+    <div
+      ref="measureRef"
+      style="
+        position: absolute;
+        left: -9999px;
+        top: -9999px;
+        pointer-events: none;
+        visibility: hidden;
+        white-space: nowrap;
+      "
+      class="flex w-max"
+      aria-hidden="true"
+    >
+      <div
+        v-for="item in items"
+        :key="`measure-${item.id}`"
+        class="px-5 py-2 text-sm/4 font-medium items-center flex"
+      >
+        {{ item.label }}
       </div>
     </div>
   </div>

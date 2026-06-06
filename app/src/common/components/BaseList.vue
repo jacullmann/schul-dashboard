@@ -23,10 +23,10 @@ withDefaults(
 
 <template>
   <button
+    v-wave
     v-bind="$attrs"
     class="relative group flex items-center w-full gap-2 py-3 px-6 md:p-3.5 md:pr-6 md:rounded-2xl bg-transparent cursor-pointer text-left transition-hover hover:bg-ghost-hover disabled:opacity-50"
     :class="{ active: active }"
-    v-wave
     :disabled="disabled"
   >
     <span
@@ -49,8 +49,8 @@ withDefaults(
   </button>
 
   <div
-    v-bind="$attrs"
     v-if="separator"
+    v-bind="$attrs"
     class="border-b border-canvas-border mx-6 max-md:hidden"
   ></div>
 </template>

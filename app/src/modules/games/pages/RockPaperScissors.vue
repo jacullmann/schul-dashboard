@@ -103,18 +103,18 @@ const resetGame = () => {
       {{ status }}
     </div>
 
-    <div class="controls" v-if="!isGameOver">
+    <div v-if="!isGameOver" class="controls">
       <BaseButton
         v-for="choice in choices"
         :key="choice"
-        @click="makeMove(choice)"
         class="btn-choice"
+        @click="makeMove(choice)"
       >
         {{ choiceEmojis[choice] }} {{ choice }}
       </BaseButton>
     </div>
 
-    <BaseButton v-if="isGameOver" @click="resetGame" class="btn-reset">
+    <BaseButton v-if="isGameOver" class="btn-reset" @click="resetGame">
       Neues Spiel starten
     </BaseButton>
   </div>

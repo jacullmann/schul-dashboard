@@ -2,7 +2,7 @@
 import { computed, ref, watch, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useWindowSize } from '@vueuse/core';
-import { Plus } from '@lucide/vue';
+import { Plus, ListFilter } from '@lucide/vue';
 
 import { useTasks } from '@/modules/tasks/composables/useTasks';
 import { useItemForm } from '@/core/composables/useItemForm';
@@ -14,11 +14,12 @@ import TaskCard from '@/modules/tasks/components/TaskCard.vue';
 import ImageContextMenu from '@/modules/tasks/components/ImageContextMenu.vue';
 import ReportModal from '@/modules/tasks/components/ReportModal.vue';
 import ItemInfoModal from '@/modules/tasks/components/ItemInfoModal.vue';
-import ArchiveSwitch from '@/modules/tasks/components/ArchiveSwitch.vue';
+import NotificationDot from '@/common/components/NotificationDot.vue';
 
 import type { HwItem } from '@/modules/tasks/composables/useTasks';
 
 const showInfoItem = ref<HwItem | null>(null);
+const showFilterModal = ref(false);
 
 const { t, tm } = useI18n();
 const { width: windowWidth } = useWindowSize();
@@ -55,6 +56,7 @@ const {
   initialLoad,
   subjectFilter,
   showOldEntries,
+  hideChecked,
   visibleCount,
   limitedItems,
   filteredItems,
@@ -105,6 +107,9 @@ const {
 } = useTasks();
 
 const isMobile = computed(() => windowWidth.value < 768);
+const hasActiveFilters = computed(
+  () => subjectFilter.value !== '' || showOldEntries.value || hideChecked.value,
+);
 
 const { openItemForm } = useItemForm();
 const { openImageViewer } = useImageViewer();
@@ -161,9 +166,9 @@ function openImageViewerForItem(item: HwItem, index: number) {
             <BaseButton
               variant="action"
               :aria-label="t('tasks.list.item_form.new_entry')"
-              @click="openItemForm()"
               :icon="Plus"
               icon-classes="size-6"
+              @click="openItemForm()"
             />
           </BaseTooltip>
         </template>
@@ -187,14 +192,14 @@ function openImageViewerForItem(item: HwItem, index: number) {
       style="animation-delay: 0.1s; animation-fill-mode: both"
     >
       <BaseRow>
-        <BaseSelect
-          v-model="subjectFilter"
-          :options="subjectOptions"
-          :form="false"
-          class="max-w-36"
-        />
-
-        <ArchiveSwitch v-model="showOldEntries" />
+        <BaseButton
+          variant="ghost"
+          :icon="ListFilter"
+          @click="showFilterModal = true"
+        >
+          {{ t('tasks.list.filter') }}
+          <NotificationDot v-if="hasActiveFilters" :size="1.5" class="ml-1" />
+        </BaseButton>
       </BaseRow>
     </div>
 
@@ -205,6 +210,7 @@ function openImageViewerForItem(item: HwItem, index: number) {
         <TaskCard
           v-for="(item, index) in visibleItems"
           :key="item.id"
+          v-model:note-edit-content="noteEditContent"
           class="animate-fade-up"
           :style="{
             animationDelay: `${(index + 3) * 0.05 - elapsedLoadTime}s`,
@@ -224,7 +230,6 @@ function openImageViewerForItem(item: HwItem, index: number) {
           :highlighted="highlightedItemId === item.id"
           :show-old-entries="showOldEntries"
           :is-open-menu="openMenuId === item.id"
-          v-model:note-edit-content="noteEditContent"
           :editing-note-for-id="editingNoteForId"
           :saving-note="savingNote"
           :can-edit-note="canEditNote()"
@@ -285,8 +290,8 @@ function openImageViewerForItem(item: HwItem, index: number) {
       >
         <BaseButton
           v-if="visibleCount < filteredItems.length"
-          @click="showMore"
           variant="ghost"
+          @click="showMore"
           >{{ t('common.buttons.show_more') }}</BaseButton
         >
         <BaseButton v-if="visibleCount > 5" variant="ghost" @click="showLess">{{
@@ -310,10 +315,10 @@ function openImageViewerForItem(item: HwItem, index: number) {
     />
 
     <ReportModal
+      v-model:reason="reportReason"
       :open="showReportConfirm"
       message=""
       :show-reason-input="true"
-      v-model:reason="reportReason"
       @confirm="doReport"
       @cancel="cancelReport"
     />
@@ -329,5 +334,44 @@ function openImageViewerForItem(item: HwItem, index: number) {
       :is-super-admin="user?.role === 'superadmin'"
       @cancel="showInfoItem = null"
     />
+
+    <BaseModal
+      :open="showFilterModal"
+      :sheet="true"
+      @cancel="showFilterModal = false"
+    >
+      <template #title>
+        {{ t('tasks.list.filter') }}
+      </template>
+
+      <template #content>
+        <div class="flex flex-col gap-2">
+          <div class="flex items-center justify-between h-12">
+            <span class="text-sm font-medium text-on-ghost">
+              {{ t('tasks.list.item_form.subject') }}
+            </span>
+            <BaseSelect
+              v-model="subjectFilter"
+              :options="subjectOptions"
+              :form="false"
+            />
+          </div>
+
+          <div class="flex items-center justify-between h-12">
+            <span class="text-sm font-medium text-on-ghost">
+              {{ t('tasks.list.archive.archive') }}
+            </span>
+            <BaseToggle v-model="showOldEntries" />
+          </div>
+
+          <div class="flex items-center justify-between h-12">
+            <span class="text-sm font-medium text-on-ghost">
+              {{ t('tasks.list.hide_checked') }}
+            </span>
+            <BaseToggle v-model="hideChecked" />
+          </div>
+        </div>
+      </template>
+    </BaseModal>
   </div>
 </template>

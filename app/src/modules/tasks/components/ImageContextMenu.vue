@@ -53,11 +53,11 @@ const contextMenuStyles = computed(() => ({
 <template>
   <Teleport to="body">
     <BaseMenu
-      :open="visible"
-      @close="emit('cancel')"
       :ref="(el: any) => (menuRef = el?.menuEl)"
+      :open="visible"
       class="fixed! z-[10001]! min-w-[180px]"
       :style="contextMenuStyles"
+      @close="emit('cancel')"
     >
       <BaseMenuButton :icon="Upload" @click="emit('upload')">
         {{ t('tasks.list.items.menu.upload_images') }}

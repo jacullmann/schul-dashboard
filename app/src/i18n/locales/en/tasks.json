@@ -1,6 +1,8 @@
 {
   "list": {
     "allsubjects": "All Subjects",
+    "filter": "Filter",
+    "hide_checked": "Hide checked off",
     "archive": {
       "archive": "Archive",
       "archive_note": "You are currently viewing old entries",

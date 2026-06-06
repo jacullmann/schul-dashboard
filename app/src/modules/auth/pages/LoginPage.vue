@@ -91,8 +91,8 @@ onMounted(() => {
               type="email"
               autocomplete="email"
               required
-              @input="clearFieldError('email')"
               :aria-describedby="errors.email ? 'login-email-error' : undefined"
+              @input="clearFieldError('email')"
             />
           </BaseFormGroup>
 
@@ -107,10 +107,10 @@ onMounted(() => {
               type="password"
               autocomplete="current-password"
               required
-              @input="clearFieldError('password')"
               :aria-describedby="
                 errors.password ? 'login-password-error' : undefined
               "
+              @input="clearFieldError('password')"
             />
           </BaseFormGroup>
 
@@ -157,8 +157,8 @@ onMounted(() => {
       <BaseButton
         type="button"
         variant="ghost"
-        @click="initiateGoogleLogin"
         class="w-full justify-center"
+        @click="initiateGoogleLogin"
       >
         <GoogleIcon :size="16" />
         <span>{{ t('auth.login.login_google') }}</span>
@@ -172,8 +172,8 @@ onMounted(() => {
           }}
           <button
             type="button"
-            @click="navigateToRegister"
             class="text-on-ghost font-medium hover:opacity-75 transition-opacity cursor-pointer"
+            @click="navigateToRegister"
           >
             {{ t('auth.login.register') }}
           </button>

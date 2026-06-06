@@ -105,10 +105,10 @@ async function regenerate() {
 <template>
   <BaseModal
     :open="open"
-    @cancel="$emit('cancel')"
     :submit="undefined"
     :loading="false"
     :cancel="undefined"
+    @cancel="$emit('cancel')"
   >
     <template #title>{{ t('auth.groups.invite.modal_title') }}</template>
 
@@ -135,15 +135,15 @@ async function regenerate() {
               id="invite-url-input"
               type="text"
               readonly
-              :modelValue="inviteUrl"
+              :model-value="inviteUrl"
               class="w-full bg-ghost/30 pr-10 font-mono text-xs select-all border border-canvas-border focus:border-primary!"
             />
           </div>
           <BaseButton
             type="button"
-            @click="copyLink"
             variant="ghost"
             :icon="copied ? Check : Copy"
+            @click="copyLink"
           >
           </BaseButton>
         </div>
@@ -153,9 +153,9 @@ async function regenerate() {
         <BaseButton
           type="button"
           variant="ghost"
-          @click="regenerate"
           :disabled="regenerating"
           class="gap-2"
+          @click="regenerate"
         >
           <RefreshCw
             :size="16"

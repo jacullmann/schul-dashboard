@@ -54,14 +54,14 @@ useEventListener(document, 'keydown', (e) => {
 </script>
 
 <template>
-  <div class="relative inline-block" ref="triggerRef">
+  <div ref="triggerRef" class="relative inline-block">
     <BaseButton
       v-if="windowWidth >= 768"
       :icon="Settings2"
-      @click="toggle"
       :class="{ 'bg-surface-hover! text-on-ghost!': isOpen }"
       aria-haspopup="true"
       :aria-expanded="isOpen"
+      @click="toggle"
     >
       Tools
     </BaseButton>
@@ -69,24 +69,24 @@ useEventListener(document, 'keydown', (e) => {
     <BaseTooltip v-else content="Tools" placement="bottom">
       <BaseButton
         :icon="Settings2"
-        @click="toggle"
         :class="{ 'bg-surface-hover! text-on-ghost!': isOpen }"
         aria-haspopup="true"
         :aria-expanded="isOpen"
+        @click="toggle"
       />
     </BaseTooltip>
 
     <Teleport to="body" :disabled="isMobile">
       <BaseMenu
-        :open="isOpen"
-        @close="close"
         ref="menuComponentRef"
+        :open="isOpen"
         :style="!isMobile ? menuStyles : undefined"
         class="min-w-56!"
+        @close="close"
       >
         <BaseMenuButton
           :icon="Globe"
-          isSelect
+          is-select
           :active="webSearch"
           @click="((webSearch = !webSearch), close())"
         >
@@ -97,7 +97,7 @@ useEventListener(document, 'keydown', (e) => {
         </BaseMenuButton>
         <BaseMenuButton
           :icon="Image"
-          isSelect
+          is-select
           :active="createImage"
           @click="((createImage = !createImage), close())"
         >
@@ -106,7 +106,7 @@ useEventListener(document, 'keydown', (e) => {
         </BaseMenuButton>
         <BaseMenuButton
           :icon="Brain"
-          isSelect
+          is-select
           :active="ponder"
           @click="((ponder = !ponder), close())"
         >
@@ -118,7 +118,7 @@ useEventListener(document, 'keydown', (e) => {
         <!-- TODO: Choose Icon: CalendarFold or Coffee -->
         <BaseMenuButton
           :icon="CalendarFold"
-          isSelect
+          is-select
           :active="answerLeisurely"
           @click="((answerLeisurely = !answerLeisurely), close())"
         >

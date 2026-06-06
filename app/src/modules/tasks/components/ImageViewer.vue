@@ -127,13 +127,13 @@ watch(
   <Transition name="fade">
     <BaseBackdrop
       v-if="visible"
+      ref="overlayRef"
       class="z-[100002] p-4"
+      tabindex="0"
       @mousemove="onActivity"
       @cancel="cancel"
       @touchstart="onActivity"
-      tabindex="0"
       @keydown="handleKeydown"
-      ref="overlayRef"
     >
       <div
         class="w-full h-full flex items-center justify-center"
@@ -192,8 +192,8 @@ watch(
           :src="getImageSrc(currentImage)"
           class="max-w-full max-h-full rounded-xl object-contain shadow-menu transition-transform duration-200 ease-out"
           draggable="false"
-          @click.stop
           alt=""
+          @click.stop
         />
       </div>
 

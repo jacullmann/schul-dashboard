@@ -501,11 +501,11 @@ function formatDuration(ms?: number): string {
             <BaseButton
               variant="ghost"
               size="md"
-              @click="toggleMessageSteps(message.id)"
               :aria-expanded="isMessageStepsExpanded(message.id)"
               :icon="
                 isMessageStepsExpanded(message.id) ? ChevronDown : ChevronRight
               "
+              @click="toggleMessageSteps(message.id)"
             >
               <span class="font-medium tracking-tight">
                 {{ message.steps.length }} step{{
@@ -643,14 +643,14 @@ function formatDuration(ms?: number): string {
                     liveSteps.length === 0,
                 }"
                 :disabled="liveSteps.length === 0"
-                @click="
-                  liveSteps.length > 0 &&
-                  (isStepHistoryExpanded = !isStepHistoryExpanded)
-                "
                 :aria-expanded="isStepHistoryExpanded"
                 :aria-disabled="liveSteps.length === 0"
                 :icon="isStepHistoryExpanded ? ChevronDown : ChevronRight"
                 variant="ghost"
+                @click="
+                  liveSteps.length > 0 &&
+                  (isStepHistoryExpanded = !isStepHistoryExpanded)
+                "
               >
                 <span class="font-medium tracking-tight">
                   {{ liveSteps.length }} step{{
@@ -759,7 +759,7 @@ function formatDuration(ms?: number): string {
           </div>
         </Transition>
 
-        <form @submit.prevent="send" novalidate class="relative w-full z-20">
+        <form novalidate class="relative w-full z-20" @submit.prevent="send">
           <div
             class="p-3 rounded-3xl flex flex-col gap-2 bg-surface border border-surface-border w-full shadow-sm"
           >
@@ -767,21 +767,21 @@ function formatDuration(ms?: number): string {
               id="user-input"
               ref="textareaRef"
               v-model="userInput"
-              @input="autoResize"
-              @keydown.enter.exact.prevent="send"
               rows="1"
               placeholder="Ask Natural Intelligence"
               class="w-full py-2 px-3 bg-transparent rounded-none border-none outline-none shadow-none text-on-ghost text-base/6 placeholder:text-on-ghost-subtle resize-none overflow-y-auto max-h-60 block box-border m-0 custom-scrollbar"
+              @input="autoResize"
+              @keydown.enter.exact.prevent="send"
             ></textarea>
 
             <BaseRow justify="between">
               <BaseRow>
                 <FileMenu />
                 <ChatToolSelect
-                  v-model:webSearch="webSearch"
-                  v-model:createImage="createImage"
+                  v-model:web-search="webSearch"
+                  v-model:create-image="createImage"
                   v-model:ponder="ponder"
-                  v-model:answerLeisurely="answerLeisurely"
+                  v-model:answer-leisurely="answerLeisurely"
                 />
 
                 <BaseTooltip
@@ -833,7 +833,7 @@ function formatDuration(ms?: number): string {
               <BaseRow>
                 <ModelSelect
                   v-model="selectedModel"
-                  :isLocked="isLockedIn"
+                  :is-locked="isLockedIn"
                   @require-reset="handleModelChangeRequest"
                 />
                 <Transition
@@ -865,8 +865,8 @@ function formatDuration(ms?: number): string {
                   >
                     <BaseButton
                       :icon="AudioLines"
-                      @click="toggleSpeechRecognition"
                       :variant="isListening ? 'action' : 'ghost'"
+                      @click="toggleSpeechRecognition"
                     />
                   </BaseTooltip>
                   <BaseTooltip

@@ -80,9 +80,9 @@ async function submit() {
 <template>
   <BaseModal
     :open="open"
-    @cancel="$emit('cancel')"
     :loading="submitting"
     :submit="submit"
+    @cancel="$emit('cancel')"
   >
     <template #title>
       {{ initial ? 'Edit Private Entry' : 'New Private Entry' }}
@@ -112,9 +112,9 @@ async function submit() {
           >
           <BaseInput
             id="private-task-description-input"
+            v-model="description"
             as="textarea"
             rows="4"
-            v-model="description"
             placeholder="6 eggs…"
             maxlength="2000"
           />

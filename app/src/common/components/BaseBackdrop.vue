@@ -28,8 +28,8 @@ const opacityClass = {
   <div
     class="fixed inset-0 z-9999 flex items-center justify-center"
     :class="[blurClass[blurSize], opacityClass[opacity]]"
-    @click.self="emit('cancel')"
     aria-hidden="true"
+    @click.self="emit('cancel')"
   >
     <slot></slot>
   </div>

@@ -100,11 +100,11 @@ onUnmounted(() => {
         <BaseButton
           v-for="(ann, index) in announcements"
           :key="ann.id"
-          @click="selectAnnouncement(index)"
           :active="index === currentIndex"
           :class="index === currentIndex ? 'bg-surface!' : ''"
           class="w-full"
           :touch="false"
+          @click="selectAnnouncement(index)"
         >
           <div
             class="w-2 h-2 rounded-full flex-shrink-0"
@@ -147,26 +147,26 @@ onUnmounted(() => {
         >
 
         <span
+          v-if="announcements.length > 1"
           class="text-xs mr-1 flex-shrink-0"
           :class="
             currentAnnouncement.color === 'danger'
               ? 'text-on-danger-muted'
               : 'text-on-ghost-muted'
           "
-          v-if="announcements.length > 1"
         >
           {{ currentIndex + 1 }}/{{ announcements.length }}
         </span>
 
         <BaseTooltip content="More" placement="bottom">
           <BaseButton
-            @click.stop="toggleMenu"
             variant="ghost"
             :on="currentAnnouncement.color === 'danger' ? 'danger' : 'ghost'"
             size="sm"
             :icon="Ellipsis"
             :touch="false"
             class="mr-1"
+            @click.stop="toggleMenu"
           />
         </BaseTooltip>
       </div>

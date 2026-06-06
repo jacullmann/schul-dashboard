@@ -246,7 +246,6 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
           class="flex flex-col gap-3"
           item-key="id"
           handle=".item-card"
-          @end="onDragEnd"
           :animation="200"
           easing="cubic-bezier(0.3, 0, 0.14, 1)"
           ghost-class="ghost-drag"
@@ -257,6 +256,7 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
           :delay-on-touch-only="true"
           filter=".item-menu-trigger, input, button, .checkbox, [role='button']"
           :prevent-on-filter="false"
+          @end="onDragEnd"
         >
           <ItemCard
             v-for="(privateTask, index) in displayPrivateTasks"
@@ -284,16 +284,16 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
             <template #menu>
               <Teleport to="body" :disabled="isMobile">
                 <BaseMenu
-                  :open="openMenuId === privateTask.id"
-                  @close="openMenuId = null"
                   :ref="
                     (el: any) => {
                       if (el && openMenuId === privateTask.id)
                         menuRef = el.menuEl;
                     }
                   "
+                  :open="openMenuId === privateTask.id"
                   :class="!isMobile ? 'fixed! z-[10000]! min-w-[180px]' : ''"
                   :style="!isMobile ? itemMenuStyles : undefined"
+                  @close="openMenuId = null"
                   @click.stop
                 >
                   <BaseMenuButton
@@ -358,7 +358,7 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
               </Teleport>
             </template>
 
-            <template #body v-if="privateTask.description">
+            <template v-if="privateTask.description" #body>
               <span>{{ privateTask.description }}</span>
             </template>
           </ItemCard>

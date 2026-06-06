@@ -49,8 +49,8 @@ const {
   >
     <div
       ref="messageContainer"
-      @scroll="handleScroll"
       class="flex-1 overflow-y-auto py-4 custom-scrollbar scroll-smooth bg-canvas"
+      @scroll="handleScroll"
     >
       <div
         v-if="loading"
@@ -110,22 +110,22 @@ const {
             <!-- Refactored Message Bubble -->
             <ChatMessageBubble
               :msg="msg"
-              :isGrouped="isGroupedWithPrevious(msg, index)"
-              :currentUserId="currentUserId"
+              :is-grouped="isGroupedWithPrevious(msg, index)"
+              :current-user-id="currentUserId"
               @reply="startReply"
               @menu="openMenu"
-              @scrollToMessage="scrollToMessage"
+              @scroll-to-message="scrollToMessage"
             />
           </div>
         </TransitionGroup>
 
         <!-- Refactored Message Context Menu -->
         <ChatContextMenu
-          :activeMessage="activeMessage"
-          :canDelete="activeMessage ? canDeleteMessage(activeMessage) : false"
-          :contextMenuStyles="contextMenuStyles"
-          :isMobile="isMobile"
           ref="menuRef"
+          :active-message="activeMessage"
+          :can-delete="activeMessage ? canDeleteMessage(activeMessage) : false"
+          :context-menu-styles="contextMenuStyles"
+          :is-mobile="isMobile"
           @close="activeMessage = null"
           @copy="copyMessage"
           @delete="deleteMessage"
@@ -164,11 +164,11 @@ const {
     <!-- Refactored Message Input Area -->
     <ChatInput
       v-model="messageInput"
-      :replyParent="replyParent"
-      :canSend="canSend"
+      :reply-parent="replyParent"
+      :can-send="canSend"
       @submit="sendMessage"
       @input="handleInput"
-      @cancelReply="replyParent = null"
+      @cancel-reply="replyParent = null"
     />
   </div>
 </template>

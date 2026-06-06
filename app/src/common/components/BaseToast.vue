@@ -161,8 +161,8 @@ const hitBoxHeight = computed(() => {
                     ? 'danger'
                     : 'ghost'
               "
-              @click="dismiss(toast.id)"
               style="pointer-events: auto"
+              @click="dismiss(toast.id)"
             />
             <div
               class="absolute inset-0 pointer-events-none transition-opacity duration-400 ease-out-expo bg-steel"

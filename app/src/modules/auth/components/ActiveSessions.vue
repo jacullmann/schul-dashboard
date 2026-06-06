@@ -58,7 +58,9 @@ async function fetchSessions() {
 }
 
 function isCurrentSession(session: ActiveSession): boolean {
-  return currentFamilyId.value !== null && session.familyId === currentFamilyId.value;
+  return (
+    currentFamilyId.value !== null && session.familyId === currentFamilyId.value
+  );
 }
 
 async function revokeSession(session: ActiveSession) {
@@ -78,7 +80,7 @@ async function revokeSession(session: ActiveSession) {
   try {
     await hw.delete(`/auth/sessions/${session.familyId}`);
     sessions.value = sessions.value.filter(
-        (s) => s.familyId !== session.familyId,
+      (s) => s.familyId !== session.familyId,
     );
   } catch (err) {
     console.error('Failed to revoke session:', err);
@@ -103,7 +105,7 @@ async function logoutAllOtherSessions() {
     const others = sessions.value.filter((s) => !isCurrentSession(s));
 
     await Promise.all(
-        others.map((s) => hw.delete(`/auth/sessions/${s.familyId}`)),
+      others.map((s) => hw.delete(`/auth/sessions/${s.familyId}`)),
     );
 
     sessions.value = sessions.value.filter((s) => isCurrentSession(s));
@@ -142,10 +144,10 @@ function parseUserAgent(ua: string | null): {
     os = 'Windows';
   } else if (uaLower.includes('macintosh') || uaLower.includes('mac os x')) {
     os = uaLower.includes('iphone')
-        ? 'iOS'
-        : uaLower.includes('ipad')
-            ? 'iPadOS'
-            : 'macOS';
+      ? 'iOS'
+      : uaLower.includes('ipad')
+        ? 'iPadOS'
+        : 'macOS';
   } else if (uaLower.includes('android')) {
     os = 'Android';
   } else if (uaLower.includes('linux')) {
@@ -226,24 +228,24 @@ onMounted(() => {
     </div>
 
     <div
-        v-if="error"
-        class="flex flex-col gap-3 p-4 bg-danger-hover border border-danger rounded-xl items-center text-center"
+      v-if="error"
+      class="flex flex-col gap-3 p-4 bg-danger-hover border border-danger rounded-xl items-center text-center"
     >
       <AlertCircle class="text-danger" :size="32" />
       <span class="text-sm font-medium text-danger">{{ error }}</span>
       <BaseButton
-          @click="fetchSessions"
-          variant="ghost"
-          class="!border-danger/30 hover:!bg-danger/10"
-      >Erneut versuchen</BaseButton
+        variant="ghost"
+        class="!border-danger/30 hover:!bg-danger/10"
+        @click="fetchSessions"
+        >Erneut versuchen</BaseButton
       >
     </div>
 
     <div v-else-if="loading" class="flex flex-col gap-3">
       <div
-          v-for="i in 2"
-          :key="i"
-          class="p-3 bg-surface border border-surface-border rounded-xl flex gap-3 items-center"
+        v-for="i in 2"
+        :key="i"
+        class="p-3 bg-surface border border-surface-border rounded-xl flex gap-3 items-center"
       >
         <BaseSkeleton class="w-10 h-10 rounded-lg shrink-0" />
         <div class="flex flex-col gap-2 flex-1">
@@ -256,12 +258,12 @@ onMounted(() => {
     <div v-else class="flex flex-col gap-3">
       <div v-if="sessions.length > 1" class="flex justify-end">
         <BaseButton
-            @click="logoutAllOtherSessions"
-            :disabled="revokingAll"
-            :loading="revokingAll"
-            variant="ghost"
-            on="ghost"
-            :icon="LogOut"
+          :disabled="revokingAll"
+          :loading="revokingAll"
+          variant="ghost"
+          on="ghost"
+          :icon="LogOut"
+          @click="logoutAllOtherSessions"
         >
           {{ t('auth.sessions.actions.delete_all') }}
         </BaseButton>
@@ -269,27 +271,27 @@ onMounted(() => {
 
       <div class="flex flex-col gap-3 max-h-[300px] overflow-y-auto pr-1">
         <div
-            v-for="session in sessions"
-            :key="session.familyId"
-            class="group relative flex gap-3 items-center p-3.5 bg-surface border border-surface-border shadow-input rounded-xl transition-all duration-200"
-            :class="{
+          v-for="session in sessions"
+          :key="session.familyId"
+          class="group relative flex gap-3 items-center p-3.5 bg-surface border border-surface-border shadow-input rounded-xl transition-all duration-200"
+          :class="{
             'border-[var(--special--green)]/40 bg-success-surface/10':
               isCurrentSession(session),
           }"
         >
           <div
-              class="flex items-center justify-center w-10 h-10 text-on-ghost-muted shrink-0 transition-colors"
+            class="flex items-center justify-center w-10 h-10 text-on-ghost-muted shrink-0 transition-colors"
           >
             <component
-                :is="
+              :is="
                 parseUserAgent(session.userAgent).isMobile
                   ? Smartphone
                   : parseUserAgent(session.userAgent).os !==
-                    t('auth.sessions.os.unknown')
+                      t('auth.sessions.os.unknown')
                     ? Laptop
                     : Monitor
               "
-                :size="24"
+              :size="24"
             />
           </div>
 
@@ -308,23 +310,23 @@ onMounted(() => {
               •
               {{
                 isCurrentSession(session)
-                    ? t('auth.sessions.this_device')
-                    : formatDate(session.issuedAt)
+                  ? t('auth.sessions.this_device')
+                  : formatDate(session.issuedAt)
               }}
             </div>
           </div>
 
           <template v-if="!isCurrentSession(session)">
             <BaseTooltip
-                :content="t('auth.sessions.actions.delete')"
-                placement="bottom"
+              :content="t('auth.sessions.actions.delete')"
+              placement="bottom"
             >
               <BaseButton
-                  @click="revokeSession(session)"
-                  :loading="revokingId === session.familyId"
-                  variant="ghost"
-                  on="ghost"
-                  :icon="Trash2"
+                :loading="revokingId === session.familyId"
+                variant="ghost"
+                on="ghost"
+                :icon="Trash2"
+                @click="revokeSession(session)"
               />
             </BaseTooltip>
           </template>

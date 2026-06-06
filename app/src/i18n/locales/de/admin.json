@@ -51,6 +51,7 @@
     }
   },
   "members": {
+    "joined": "{time} beigetreten",
     "title": "Mitglieder",
     "info": {
       "tooltip": "Übersicht des Mitgliedermenüs",

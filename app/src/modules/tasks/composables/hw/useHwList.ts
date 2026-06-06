@@ -85,6 +85,13 @@ export function useHwList(ctx: HwContext) {
       });
     }
 
+    if (ctx.hideChecked.value) {
+      list = list.filter((item) => !ctx.checkedItems.value.has(item.id));
+      pinnedList = pinnedList.filter(
+        (item) => !ctx.checkedItems.value.has(item.id),
+      );
+    }
+
     return [...pinnedList, ...list];
   });
 

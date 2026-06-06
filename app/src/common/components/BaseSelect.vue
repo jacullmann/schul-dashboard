@@ -67,7 +67,7 @@ const toggleMenu = async () => {
 
         const selectedElement = innerMenuEl?.querySelector(
           '[aria-checked="true"]',
-        ) as HTMLElement | null;
+        );
 
         if (selectedElement) {
           requestAnimationFrame(() => {
@@ -100,7 +100,6 @@ onClickOutside(
   <div class="relative">
     <BaseButton
       ref="wrapperRef"
-      @click="toggleMenu"
       :disabled="disabled"
       class="outline-none"
       :class="[
@@ -119,11 +118,12 @@ onClickOutside(
       :variant="form ? 'input' : 'ghost'"
       :on="props.on"
       :icon="ChevronDown"
-      iconPlacement="trailing"
-      :iconClasses="
+      icon-placement="trailing"
+      :icon-classes="
         'ml-auto shrink-0 transition duration-200 ease-in-out' +
         (isOpen ? ' rotate-180' : '')
       "
+      @click="toggleMenu"
     >
       <span class="truncate">
         {{
@@ -135,19 +135,19 @@ onClickOutside(
 
     <Teleport to="body">
       <BaseMenu
-        :open="isOpen"
-        @close="isOpen = false"
         ref="floatingRef"
+        :open="isOpen"
         :style="selectStyles"
         class="max-h-80 z-[9999]"
+        @close="isOpen = false"
       >
         <BaseMenuButton
           v-for="option in options"
           :key="option.value"
-          @click="selectOption(option.value)"
           type="button"
-          :isSelect="true"
+          :is-select="true"
           :active="modelValue === option.value"
+          @click="selectOption(option.value)"
         >
           {{ option.label }}
         </BaseMenuButton>

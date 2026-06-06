@@ -101,12 +101,12 @@ function setSelectedIndex(idx: number) {
           :id="`${idPrefix}input`"
           ref="inputRef"
           :value="modelValue"
-          @input="onInput"
           type="text"
           :placeholder="placeholder"
           autocomplete="off"
           spellcheck="false"
           class="flex-1 w-full p-0 rounded-none bg-transparent border-none outline-none shadow-none text-on-ghost text-base/4 placeholder:text-on-ghost-subtle"
+          @input="onInput"
         />
         <BaseKbd class="hidden! sm:inline-flex!">Esc</BaseKbd>
       </div>

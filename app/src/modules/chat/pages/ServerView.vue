@@ -499,7 +499,7 @@ const toggleSpeechRecognition = () => {
           </div>
         </Transition>
 
-        <BaseLabel for="tools" v-if="webSearchEnabled || createImageEnabled"
+        <BaseLabel v-if="webSearchEnabled || createImageEnabled" for="tools"
           >Available Tools:</BaseLabel
         >
         <BaseRow id="tools" class="mb-2">
@@ -526,7 +526,7 @@ const toggleSpeechRecognition = () => {
           </BaseTooltip>
         </BaseRow>
 
-        <form @submit.prevent="send" novalidate class="relative w-full z-20">
+        <form novalidate class="relative w-full z-20" @submit.prevent="send">
           <div
             class="p-3 rounded-3xl flex flex-col gap-2 bg-surface border border-surface-border w-full shadow-sm"
           >
@@ -534,19 +534,19 @@ const toggleSpeechRecognition = () => {
               id="user-input"
               ref="textareaRef"
               v-model="userInput"
-              @input="handleInput"
-              @keydown.enter.exact.prevent="send"
               rows="1"
               placeholder="Respond to the user"
               class="w-full py-2 px-3 bg-transparent rounded-none border-none outline-none shadow-none text-on-ghost text-base/6 placeholder:text-on-ghost-subtle resize-none overflow-y-auto max-h-60 block box-border m-0 custom-scrollbar"
+              @input="handleInput"
+              @keydown.enter.exact.prevent="send"
             ></textarea>
 
             <BaseRow justify="between">
               <BaseRow>
                 <FileMenu />
                 <ServerToolSelect
-                  v-model:webSearch="webSearch"
-                  v-model:createImage="createImage"
+                  v-model:web-search="webSearch"
+                  v-model:create-image="createImage"
                   v-model:terminal="terminal"
                   v-model:reasoning="reasoning"
                 />
@@ -555,7 +555,7 @@ const toggleSpeechRecognition = () => {
               <BaseRow>
                 <ModelSelect
                   v-model="selectedModel"
-                  :isLocked="isLockedIn"
+                  :is-locked="isLockedIn"
                   @require-reset="handleModelChangeRequest"
                 />
                 <Transition
@@ -574,8 +574,8 @@ const toggleSpeechRecognition = () => {
                     :icon="Search"
                     variant="action"
                     type="button"
-                    @click.prevent="handleFindUser"
                     :disabled="isSearching"
+                    @click.prevent="handleFindUser"
                   >
                     Find User
                   </BaseButton>
@@ -587,9 +587,9 @@ const toggleSpeechRecognition = () => {
                   >
                     <BaseButton
                       :icon="Square"
-                      @click="handleCancel"
                       variant="action"
                       :fill="true"
+                      @click="handleCancel"
                     />
                   </BaseTooltip>
                   <BaseTooltip
@@ -600,8 +600,8 @@ const toggleSpeechRecognition = () => {
                   >
                     <BaseButton
                       :icon="AudioLines"
-                      @click="toggleSpeechRecognition"
                       :variant="isListening ? 'action' : 'ghost'"
+                      @click="toggleSpeechRecognition"
                     />
                   </BaseTooltip>
                   <BaseTooltip

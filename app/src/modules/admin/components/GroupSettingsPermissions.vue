@@ -126,8 +126,7 @@ onMounted(() => {
 
         <BaseSelect
           :form="false"
-          :modelValue="permissions.edit_group_general"
-          @update:modelValue="savePermission('edit_group_general', $event)"
+          :model-value="permissions.edit_group_general"
           :disabled="!isAdmin || saving"
           :options="[
             { label: t('admin.permissions.options.all'), value: 'user' },
@@ -138,6 +137,7 @@ onMounted(() => {
             { label: t('admin.permissions.options.admins'), value: 'admin' },
           ]"
           classes="w-38!"
+          @update:model-value="savePermission('edit_group_general', $event)"
         />
       </BaseRow>
 
@@ -148,8 +148,7 @@ onMounted(() => {
 
         <BaseSelect
           :form="false"
-          :modelValue="permissions.invite_members"
-          @update:modelValue="savePermission('invite_members', $event)"
+          :model-value="permissions.invite_members"
           :disabled="!isAdmin || saving"
           :options="[
             { label: t('admin.permissions.options.all'), value: 'user' },
@@ -160,6 +159,7 @@ onMounted(() => {
             { label: t('admin.permissions.options.admins'), value: 'admin' },
           ]"
           classes="w-38!"
+          @update:model-value="savePermission('invite_members', $event)"
         />
       </BaseRow>
 
@@ -170,14 +170,14 @@ onMounted(() => {
 
         <BaseSelect
           :form="false"
-          :modelValue="permissions.edit_subjects_courses"
-          @update:modelValue="savePermission('edit_subjects_courses', $event)"
+          :model-value="permissions.edit_subjects_courses"
           :disabled="!isAdmin || saving"
           :options="[
             { label: 'Moderatoren', value: 'moderator' },
             { label: 'Admins', value: 'admin' },
           ]"
           classes="w-38!"
+          @update:model-value="savePermission('edit_subjects_courses', $event)"
         />
       </BaseRow>
 
@@ -188,14 +188,14 @@ onMounted(() => {
 
         <BaseSelect
           :form="false"
-          :modelValue="permissions.edit_schedule"
-          @update:modelValue="savePermission('edit_schedule', $event)"
+          :model-value="permissions.edit_schedule"
           :disabled="!isAdmin || saving"
           :options="[
             { label: 'Moderatoren', value: 'moderator' },
             { label: 'Admins', value: 'admin' },
           ]"
           classes="w-38!"
+          @update:model-value="savePermission('edit_schedule', $event)"
         />
       </BaseRow>
 
@@ -208,8 +208,7 @@ onMounted(() => {
 
         <BaseSelect
           :form="false"
-          :modelValue="permissions.create_items"
-          @update:modelValue="savePermission('create_items', $event)"
+          :model-value="permissions.create_items"
           :disabled="!isAdmin || saving"
           :options="[
             { label: 'Alle', value: 'user' },
@@ -217,6 +216,7 @@ onMounted(() => {
             { label: 'Admins', value: 'admin' },
           ]"
           classes="w-38!"
+          @update:model-value="savePermission('create_items', $event)"
         />
       </BaseRow>
 
@@ -227,8 +227,7 @@ onMounted(() => {
 
         <BaseSelect
           :form="false"
-          :modelValue="permissions.upload_images"
-          @update:modelValue="savePermission('upload_images', $event)"
+          :model-value="permissions.upload_images"
           :disabled="!isAdmin || saving"
           :options="[
             { label: 'Alle', value: 'user' },
@@ -236,6 +235,7 @@ onMounted(() => {
             { label: 'Admins', value: 'admin' },
           ]"
           classes="w-38!"
+          @update:model-value="savePermission('upload_images', $event)"
         />
       </BaseRow>
 
@@ -246,8 +246,7 @@ onMounted(() => {
 
         <BaseSelect
           :form="false"
-          :modelValue="permissions.manage_notes"
-          @update:modelValue="savePermission('manage_notes', $event)"
+          :model-value="permissions.manage_notes"
           :disabled="!isAdmin || saving"
           :options="[
             { label: 'Alle', value: 'user' },
@@ -255,6 +254,7 @@ onMounted(() => {
             { label: 'Admins', value: 'admin' },
           ]"
           classes="w-38!"
+          @update:model-value="savePermission('manage_notes', $event)"
         />
       </BaseRow>
 
@@ -267,8 +267,7 @@ onMounted(() => {
 
         <BaseSelect
           :form="false"
-          :modelValue="permissions.send_messages"
-          @update:modelValue="savePermission('send_messages', $event)"
+          :model-value="permissions.send_messages"
           :disabled="!isAdmin || saving"
           :options="[
             { label: 'Alle', value: 'user' },
@@ -276,6 +275,7 @@ onMounted(() => {
             { label: 'Admins', value: 'admin' },
           ]"
           classes="w-38!"
+          @update:model-value="savePermission('send_messages', $event)"
         />
       </BaseRow>
 
@@ -288,8 +288,7 @@ onMounted(() => {
 
         <BaseSelect
           :form="false"
-          :modelValue="permissions.manage_schedule_changes"
-          @update:modelValue="savePermission('manage_schedule_changes', $event)"
+          :model-value="permissions.manage_schedule_changes"
           :disabled="!isAdmin || saving"
           :options="[
             { label: 'Alle', value: 'user' },
@@ -297,6 +296,9 @@ onMounted(() => {
             { label: 'Admins', value: 'admin' },
           ]"
           classes="w-38!"
+          @update:model-value="
+            savePermission('manage_schedule_changes', $event)
+          "
         />
       </BaseRow>
 
@@ -307,14 +309,14 @@ onMounted(() => {
 
         <BaseSelect
           :form="false"
-          :modelValue="permissions.manage_announcements"
-          @update:modelValue="savePermission('manage_announcements', $event)"
+          :model-value="permissions.manage_announcements"
           :disabled="!isAdmin || saving"
           :options="[
             { label: 'Moderatoren', value: 'moderator' },
             { label: 'Admins', value: 'admin' },
           ]"
           classes="w-38!"
+          @update:model-value="savePermission('manage_announcements', $event)"
         />
       </BaseRow>
 
@@ -327,14 +329,14 @@ onMounted(() => {
 
         <BaseSelect
           :form="false"
-          :modelValue="permissions.moderate_members"
-          @update:modelValue="savePermission('moderate_members', $event)"
+          :model-value="permissions.moderate_members"
           :disabled="!isAdmin || saving"
           :options="[
             { label: 'Moderatoren', value: 'moderator' },
             { label: 'Admins', value: 'admin' },
           ]"
           classes="w-38!"
+          @update:model-value="savePermission('moderate_members', $event)"
         />
       </BaseRow>
 
@@ -345,14 +347,14 @@ onMounted(() => {
 
         <BaseSelect
           :form="false"
-          :modelValue="permissions.delete_other_content"
-          @update:modelValue="savePermission('delete_other_content', $event)"
+          :model-value="permissions.delete_other_content"
           :disabled="!isAdmin || saving"
           :options="[
             { label: 'Moderatoren', value: 'moderator' },
             { label: 'Admins', value: 'admin' },
           ]"
           classes="w-38!"
+          @update:model-value="savePermission('delete_other_content', $event)"
         />
       </BaseRow>
     </div>

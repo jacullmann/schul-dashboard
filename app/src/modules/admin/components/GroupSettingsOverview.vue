@@ -74,9 +74,9 @@ const emit = defineEmits<{
       </div>
       <BaseRow justify="end" class="w-full">
         <BaseButton
-          @click="emit('cleanup')"
           :disabled="cleaningUp"
           variant="danger"
+          @click="emit('cleanup')"
         >
           {{
             cleaningUp

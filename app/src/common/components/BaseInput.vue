@@ -50,8 +50,8 @@ defineExpose({
   <textarea
     v-if="props.as === 'textarea'"
     :id="props.id"
-    v-model="model"
     ref="inputRef"
+    v-model="model"
     class="resize-vertical"
     :class="baseClasses"
     :aria-required="props.required"
@@ -61,9 +61,9 @@ defineExpose({
   <div v-else class="relative w-full flex items-center">
     <input
       :id="props.id"
-      :type="inputType"
-      v-model="model"
       ref="inputRef"
+      v-model="model"
+      :type="inputType"
       :class="[baseClasses, props.type === 'password' ? 'pr-10' : '']"
       :aria-required="props.required"
       v-bind="$attrs"
@@ -72,9 +72,9 @@ defineExpose({
     <button
       v-if="props.type === 'password'"
       type="button"
-      @click="togglePassword"
       class="absolute right-3 p-0 touch-target bg-transparent border-none cursor-pointer text-on-ghost-muted flex items-center justify-center hover:text-on-ghost transition-colors outline-none rounded-sm focus-visible:ring-2 focus-visible:ring-focus"
       :aria-label="isPasswordVisible ? 'Hide password' : 'Show password'"
+      @click="togglePassword"
     >
       <EyeOff v-if="isPasswordVisible" :size="20" />
       <Eye v-else :size="20" />

@@ -63,9 +63,9 @@ async function submit() {
 <template>
   <BaseModal
     :open="open"
-    @cancel="$emit('cancel')"
     :submit="submit"
     :loading="submitting"
+    @cancel="$emit('cancel')"
   >
     <template #title>{{ t('announcements.form.title') }}</template>
 
@@ -77,9 +77,9 @@ async function submit() {
           >
           <BaseInput
             id="announcement-content-input"
-            as="textarea"
             ref="contentInputRef"
             v-model="annContent"
+            as="textarea"
             placeholder="Verfasse deine Nachricht..."
             rows="3"
             maxlength="1000"

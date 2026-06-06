@@ -222,8 +222,8 @@ async function confirmDeleteGroup() {
             :icon="Pencil"
             size="sm"
             class="absolute! bottom-0 right-0"
-            @click.stop="toggleMenu"
             :disabled="savingAvatar"
+            @click.stop="toggleMenu"
           />
 
           <div
@@ -236,22 +236,22 @@ async function confirmDeleteGroup() {
           <BaseMenu
             v-if="canEditSettings"
             :open="isMenuOpen"
-            @close="isMenuOpen = false"
             class="left-0 mt-2 z-30 min-w-[180px]"
+            @close="isMenuOpen = false"
             @click.stop
           >
             <BaseMenuButton
-              @click="triggerUploadAndClose"
               :icon="Upload"
               :disabled="savingAvatar"
+              @click="triggerUploadAndClose"
             >
               Bild hochladen
             </BaseMenuButton>
 
             <BaseMenuButton
-              @click="triggerCameraCaptureAndClose"
               :icon="Camera"
               :disabled="savingAvatar"
+              @click="triggerCameraCaptureAndClose"
             >
               Bild aufnehmen
             </BaseMenuButton>
@@ -261,9 +261,9 @@ async function confirmDeleteGroup() {
             <BaseMenuButton
               v-if="activeGroupAvatarUrl"
               variant="danger"
-              @click="deleteAvatarAndClose"
               :icon="Trash2"
               :disabled="savingAvatar"
+              @click="deleteAvatarAndClose"
             >
               Bild löschen
             </BaseMenuButton>
@@ -280,9 +280,9 @@ async function confirmDeleteGroup() {
               <BaseButton
                 v-if="canEditSettings"
                 class="w-8 h-8 p-0"
-                @click="emit('start-edit')"
                 variant="ghost"
                 :icon="Pencil"
+                @click="emit('start-edit')"
               />
             </BaseTooltip>
           </div>
@@ -295,26 +295,26 @@ async function confirmDeleteGroup() {
                 id="group-name"
                 class="flex-1"
                 :value="newGroupName"
+                :placeholder="t('admin.general.appearance.name_placeholder')"
+                :disabled="!canEditSettings"
                 @input="
                   emit(
                     'update:newGroupName',
                     ($event.target as HTMLInputElement).value,
                   )
                 "
-                :placeholder="t('admin.general.appearance.name_placeholder')"
                 @keyup.enter="emit('save-edit')"
-                :disabled="!canEditSettings"
               />
               <BaseRow justify="end" class="w-full mt-2">
-                <BaseButton @click="emit('cancel-edit')" variant="ghost">{{
+                <BaseButton variant="ghost" @click="emit('cancel-edit')">{{
                   t('common.buttons.cancel')
                 }}</BaseButton>
                 <BaseButton
-                  @click="emit('save-edit')"
                   :disabled="
                     savingGroupName || !newGroupName.trim() || !canEditSettings
                   "
                   variant="action"
+                  @click="emit('save-edit')"
                 >
                   {{
                     savingGroupName
@@ -335,16 +335,16 @@ async function confirmDeleteGroup() {
       </div>
 
       <input
-        type="file"
         ref="fileInputRef"
+        type="file"
         accept="image/*"
         class="hidden"
         @change="onFileSelected"
       />
 
       <input
-        type="file"
         ref="cameraInputRef"
+        type="file"
         accept="image/*"
         capture="user"
         class="hidden"
@@ -370,9 +370,9 @@ async function confirmDeleteGroup() {
       <BaseButton
         type="button"
         variant="action"
-        @click="inviteMember"
         :disabled="loadingInvite"
         class="gap-2"
+        @click="inviteMember"
       >
         <UserRoundPlus :size="18" />
         <span>{{ t('auth.groups.invite.invite_button_header') }}</span>

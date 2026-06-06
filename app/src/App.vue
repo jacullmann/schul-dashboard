@@ -85,8 +85,8 @@ onMounted(() => {
 <template>
   <div class="full">
     <div
-      class="fixed top-0 left-0 right-0 h-[3px] w-full bg-transparent z-9999 pointer-events-none transition-all duration-200 ease-in-out"
       v-if="loading"
+      class="fixed top-0 left-0 right-0 h-[3px] w-full bg-transparent z-9999 pointer-events-none transition-all duration-200 ease-in-out"
       :style="{ opacity: opacity }"
     >
       <div

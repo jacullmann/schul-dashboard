@@ -26,7 +26,7 @@ const props = withDefaults(
 </script>
 
 <template>
-  <form @submit.prevent="submit" novalidate>
+  <form novalidate @submit.prevent="submit">
     <BaseFormContent :error="error">
       <slot name="content"></slot>
     </BaseFormContent>

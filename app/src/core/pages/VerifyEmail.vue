@@ -82,9 +82,9 @@ onMounted(async () => {
 
         <div class="action-section">
           <BaseButton
-            @click="$router.push('/')"
             variant="ghost"
             :icon="ArrowLeft"
+            @click="$router.push('/')"
           >
             {{ t('common.buttons.back') }}
           </BaseButton>

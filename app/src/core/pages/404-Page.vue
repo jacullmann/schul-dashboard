@@ -126,7 +126,7 @@ const goBack = () => {
         class="mt-4 animate-fade-up"
         style="animation-delay: 0.2s; animation-fill-mode: both"
       >
-        <BaseButton @click="goBack" variant="ghost" :icon="ArrowLeft">
+        <BaseButton variant="ghost" :icon="ArrowLeft" @click="goBack">
           Go back
         </BaseButton>
       </div>

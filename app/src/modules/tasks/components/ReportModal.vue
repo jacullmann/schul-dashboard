@@ -42,11 +42,11 @@ watch(
 <template>
   <BaseModal
     :open="open"
-    @cancel="emit('cancel')"
     :submit="() => emit('confirm', category)"
     :loading="loading"
     :danger="true"
     :requirement="!(category === 'falschinfo' && !reason?.trim())"
+    @cancel="emit('cancel')"
   >
     <template #title> Diesen Eintrag melden? </template>
 
@@ -102,11 +102,10 @@ watch(
           }}
         </BaseLabel>
         <BaseInput
-          as="textarea"
           id="reportDescription"
+          as="textarea"
           class="w-full min-h-[120px] resize-vertical"
           :model-value="reason"
-          @update:model-value="$emit('update:reason', $event)"
           :placeholder="
             category === 'falschinfo'
               ? t('tasks.report.reason_placeholder')
@@ -114,6 +113,7 @@ watch(
           "
           :required="category === 'falschinfo'"
           :maxlength="MAX_LENGTH"
+          @update:model-value="$emit('update:reason', $event)"
         ></BaseInput>
       </BaseFormGroup>
     </template>

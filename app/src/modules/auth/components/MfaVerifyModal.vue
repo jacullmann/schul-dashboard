@@ -154,9 +154,9 @@ onMounted(() => {
       <BaseButton
         type="button"
         variant="action"
-        @click="verify"
         :disabled="code.length !== 6 || loading"
         :loading="loading"
+        @click="verify"
       >
         {{ t('common.buttons.confirm') }}
       </BaseButton>

@@ -69,7 +69,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <form @submit.prevent="search" novalidate>
+  <form novalidate @submit.prevent="search">
     <BaseBackdrop @cancel="emit('cancel')">
       <div class="fixed w-full h-full md:p-4 md:h-fit md:w-[640px] z-[20000]">
         <!-- Header: Search Bar -->
@@ -121,8 +121,8 @@ onMounted(() => {
                   v-for="result in searchResults"
                   :key="result.pageid"
                   type="button"
-                  @click="viewArticle(result.pageid, result.title)"
                   class="p-3 rounded-lg hover:bg-surface-hover transition-colors group text-left"
+                  @click="viewArticle(result.pageid, result.title)"
                 >
                   <div
                     class="text-on-ghost font-medium mb-1 group-hover:text-primary transition-colors flex items-center justify-between"
@@ -147,8 +147,8 @@ onMounted(() => {
             <template v-else-if="currentView === 'article'">
               <div class="p-4 relative">
                 <button
-                  @click="currentView = 'results'"
                   class="mb-4 text-primary hover:text-primary-hover flex items-center gap-1 text-sm font-medium transition-colors"
+                  @click="currentView = 'results'"
                 >
                   <ChevronLeft :size="16" /> Back to results
                 </button>

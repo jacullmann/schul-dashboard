@@ -133,11 +133,11 @@ async function skip() {
 <template>
   <BaseModal
     :open="open"
-    @cancel="$emit('cancel')"
     :error="error"
     :submit="save"
     :cancel="isSetup ? skip : () => $emit('cancel')"
     :loading="submitting || skipping"
+    @cancel="$emit('cancel')"
   >
     <template #title>{{
       isSetup ? t('auth.courses.title_creation') : t('auth.courses.title')
@@ -158,8 +158,8 @@ async function skip() {
       <div v-else class="flex flex-col gap-5">
         <BaseFormGroup
           v-for="subject in subjectStore.electiveSubjects"
-          :key="subject.id"
           :id="subject.id"
+          :key="subject.id"
         >
           <BaseLabel :for="subject.id">{{
             getCourseLabel(subject.name)
@@ -167,15 +167,15 @@ async function skip() {
           <BaseSelect
             :id="subject.id"
             :model-value="selections[subject.id] ?? ''"
-            @update:model-value="(v) => (selections[subject.id] = v)"
             :options="getOptionsForSubject(subject.id, false)"
+            @update:model-value="(v) => (selections[subject.id] = v)"
           />
         </BaseFormGroup>
 
         <BaseFormGroup
           v-for="subject in subjectStore.extraSubjects"
-          :key="subject.id"
           :id="subject.id"
+          :key="subject.id"
         >
           <BaseLabel :for="subject.id">{{
             getCourseLabel(subject.name)
@@ -183,8 +183,8 @@ async function skip() {
           <BaseSelect
             :id="subject.id"
             :model-value="selections[subject.id] ?? ''"
-            @update:model-value="(v) => (selections[subject.id] = v)"
             :options="getOptionsForSubject(subject.id, true)"
+            @update:model-value="(v) => (selections[subject.id] = v)"
           />
         </BaseFormGroup>
       </div>

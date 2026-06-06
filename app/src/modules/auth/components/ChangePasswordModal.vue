@@ -36,10 +36,10 @@ onMounted(() => {
 <template>
   <BaseModal
     :open="open"
-    @cancel="$emit('cancel')"
     :submit="submit"
     :error="isError ? message : undefined"
     :loading="submitting"
+    @cancel="$emit('cancel')"
   >
     <template #title>
       {{ t('auth.change_password.title') }}
@@ -51,16 +51,16 @@ onMounted(() => {
           {{ t('auth.change_password.current_password') }}
         </BaseLabel>
         <BaseInput
-          ref="currentPasswordRef"
           id="currentPassword"
-          type="password"
+          ref="currentPasswordRef"
           v-model="currentPassword"
+          type="password"
           :placeholder="t('auth.change_password.current_placeholder')"
-          @input="clearFieldError('current')"
-          @keydown.enter="submit"
           :aria-describedby="
             errors.current ? 'currentPassword-error' : undefined
           "
+          @input="clearFieldError('current')"
+          @keydown.enter="submit"
         />
       </BaseFormGroup>
 
@@ -70,12 +70,12 @@ onMounted(() => {
         </BaseLabel>
         <BaseInput
           id="newPassword"
-          type="password"
           v-model="newPassword"
+          type="password"
           :placeholder="t('auth.change_password.new_placeholder')"
+          :aria-describedby="errors.new ? 'newPassword-error' : undefined"
           @input="clearFieldError('new')"
           @keydown.enter="submit"
-          :aria-describedby="errors.new ? 'newPassword-error' : undefined"
         />
       </BaseFormGroup>
 
@@ -85,12 +85,12 @@ onMounted(() => {
         </BaseLabel>
         <BaseInput
           id="newPassword2"
-          type="password"
           v-model="newPassword2"
+          type="password"
           :placeholder="t('auth.change_password.confirm_placeholder')"
+          :aria-describedby="errors.confirm ? 'newPassword2-error' : undefined"
           @input="clearFieldError('confirm')"
           @keydown.enter="submit"
-          :aria-describedby="errors.confirm ? 'newPassword2-error' : undefined"
         />
       </BaseFormGroup>
 

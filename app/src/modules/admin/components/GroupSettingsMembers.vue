@@ -6,7 +6,56 @@ import type { GroupMember } from '@/modules/admin/types';
 import { computed, ref } from 'vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
+
+function formatRelativeTime(dateStr: string | undefined): string {
+  if (!dateStr) return '';
+  try {
+    const d = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - d.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+
+    if (diffMins < 1) {
+      return t('auth.sessions.time.just_now');
+    }
+
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) {
+      const rtf = new Intl.RelativeTimeFormat(locale.value, {
+        numeric: 'always',
+      });
+      if (diffHours < 1) {
+        return rtf.format(-diffMins, 'minute');
+      }
+      return rtf.format(-diffHours, 'hour');
+    }
+
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 30) {
+      const rtf = new Intl.RelativeTimeFormat(locale.value, {
+        numeric: 'auto',
+      });
+      return rtf.format(-diffDays, 'day');
+    }
+
+    const diffMonths = Math.floor(diffDays / 30);
+    if (diffMonths < 12) {
+      const rtf = new Intl.RelativeTimeFormat(locale.value, {
+        numeric: 'always',
+      });
+      return rtf.format(-diffMonths, 'month');
+    }
+
+    const diffYears = Math.floor(diffDays / 365);
+    const rtf = new Intl.RelativeTimeFormat(locale.value, {
+      numeric: 'always',
+    });
+    return rtf.format(-diffYears, 'year');
+  } catch {
+    return '';
+  }
+}
 
 const props = defineProps<{
   members: GroupMember[];
@@ -28,15 +77,6 @@ const { checkPermission } = useAppAuth();
 const canModerateMembers = computed(() => checkPermission('moderate_members'));
 
 const canDemoteAdmin = computed(() => props.isOwner);
-
-function roleLabel(role: string): string {
-  const map: Record<string, string> = {
-    admin: 'Admin',
-    moderator: 'Moderator',
-    user: 'Mitglied',
-  };
-  return map[role] || role;
-}
 
 function onRoleChange(member: GroupMember, newRole: string) {
   if (newRole !== member.role) {
@@ -101,10 +141,10 @@ function confirmRemove() {
       <template #action>
         <BaseTooltip :content="t('common.buttons.refresh')">
           <BaseButton
-            @click="emit('refresh')"
             :disabled="loading"
             variant="ghost"
             :icon="RefreshCw"
+            @click="emit('refresh')"
           />
         </BaseTooltip>
       </template>
@@ -124,7 +164,7 @@ function confirmRemove() {
       <div
         v-for="(member, index) in members"
         :key="member.userId"
-        class="flex items-center justify-between p-2 px-3 bg-surface border border-surface-border shadow-input rounded-xl gap-3 animate-fade-up"
+        class="flex max-md:flex-col items-center justify-between p-2 px-3 bg-surface border border-surface-border shadow-input rounded-xl gap-3 animate-fade-up"
         :style="{
           animationDelay: `${index * 0.075}s`,
           animationFillMode: 'both',
@@ -135,16 +175,11 @@ function confirmRemove() {
             class="font-semibold text-base whitespace-nowrap overflow-hidden text-ellipsis"
             >{{ member.generatedName }}</span
           >
-          <span
-            class="text-[0.7rem] font-semibold uppercase tracking-[0.04em]"
-            :class="{
-              'text-[#6366f1]': member.role === 'admin',
-              'text-[#f59e0b]': member.role === 'moderator',
-              'text-on-ghost-muted': member.role === 'user',
-            }"
-          >
-            {{ roleLabel(member.role) }}
-          </span>
+          <span class="text-on-ghost-muted text-sm">{{
+            t('admin.members.joined', {
+              time: formatRelativeTime(member.joinedAt),
+            })
+          }}</span>
         </div>
         <div class="flex items-center gap-2 flex-shrink-0">
           <BaseTooltip
@@ -154,8 +189,8 @@ function confirmRemove() {
           >
             <BaseButton
               variant="ghost"
-              @click="emit('transfer-ownership', member.userId)"
               :icon="Crown"
+              @click="emit('transfer-ownership', member.userId)"
             />
           </BaseTooltip>
           <BaseTooltip
@@ -164,26 +199,26 @@ function confirmRemove() {
           >
             <BaseButton
               variant="ghost"
-              @click="openRemoveModal(member.userId, member.generatedName)"
               :disabled="member.role === 'admin' || !canModerateMembers"
               :icon="UserRoundMinus"
+              @click="openRemoveModal(member.userId, member.generatedName)"
             />
           </BaseTooltip>
 
           <BaseSelect
-            :modelValue="member.role"
-            @update:modelValue="(val: string) => onRoleChange(member, val)"
+            :model-value="member.role"
             :disabled="
               !canModerateMembers ||
               (member.role === 'admin' && !canDemoteAdmin)
             "
             :form="false"
-            classes="w-48!"
+            classes="w-40!"
             :options="[
               { label: 'Mitglied', value: 'user' },
               { label: 'Moderator', value: 'moderator' },
               { label: 'Admin', value: 'admin' },
             ]"
+            @update:model-value="(val: string) => onRoleChange(member, val)"
           />
         </div>
       </div>
@@ -240,9 +275,9 @@ function confirmRemove() {
 
     <BaseModal
       :open="removeModal.isOpen"
-      @cancel="closeRemoveModal"
       :danger="true"
       :submit="confirmRemove"
+      @cancel="closeRemoveModal"
     >
       <template #title>{{ t('admin.members.remove_modal.title') }}</template>
 

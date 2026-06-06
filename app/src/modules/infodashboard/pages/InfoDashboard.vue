@@ -89,10 +89,10 @@ const getSliderStyle = (current: number, max: number) => {
         />
         <input
           v-model="searchQuery"
-          @keydown.enter="triggerSearch"
           type="text"
           placeholder="Suche"
           class="w-full bg-surface border border-surface-border shadow-input text-on-ghost p-2 px-3 pl-[42px] text-[0.95rem] transition-all focus:outline-none focus:border-on-ghost"
+          @keydown.enter="triggerSearch"
         />
       </div>
     </header>
@@ -122,8 +122,8 @@ const getSliderStyle = (current: number, max: number) => {
             {{ minReadTime === 0 ? 'Any' : minReadTime + 'm' }}</label
           >
           <input
-            type="range"
             v-model.number="minReadTime"
+            type="range"
             min="0"
             max="30"
             step="1"
@@ -136,8 +136,8 @@ const getSliderStyle = (current: number, max: number) => {
       <Transition name="fade" mode="out-in">
         <div v-if="currentView === 'home'" class="view-home">
           <section
-            class="grid grid-cols-1 gap-4 mb-16 cursor-pointer"
             v-if="processedArticles.length > 0"
+            class="grid grid-cols-1 gap-4 mb-16 cursor-pointer"
             @click="openArticle(processedArticles[0]!)"
           >
             <div class="aspect-video overflow-hidden rounded-none relative">

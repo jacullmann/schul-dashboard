@@ -105,16 +105,16 @@ defineExpose({
     />
     <template v-else-if="!chip">
       <component
-        v-if="icon && iconPlacement === 'leading'"
         :is="icon"
+        v-if="icon && iconPlacement === 'leading'"
         :size="size === 'sm' ? 18 : 20"
         :fill="fill ? 'currentColor' : 'none'"
         :class="iconClasses"
       />
       <slot></slot>
       <component
-        v-if="icon && iconPlacement === 'trailing'"
         :is="icon"
+        v-if="icon && iconPlacement === 'trailing'"
         :size="size === 'sm' ? 18 : 20"
         :fill="fill ? 'currentColor' : 'none'"
         :class="iconClasses"
@@ -123,8 +123,8 @@ defineExpose({
 
     <template v-else>
       <component
-        v-if="icon"
         :is="icon"
+        v-if="icon"
         :size="size === 'sm' ? 18 : 20"
         :class="iconClasses"
       />

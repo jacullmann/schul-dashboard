@@ -62,19 +62,19 @@ const {
 </script>
 
 <template>
-  <div class="relative flex w-full" ref="root">
+  <div ref="root" class="relative flex w-full">
     <button
-      type="button"
       v-wave
+      type="button"
       class="relative flex items-center p-1 rounded-full w-full bg-transparent hover:bg-ghost-hover transition-hover cursor-pointer text-left touch-target"
       @click="toggle"
     >
       <Avatar
         :name="email"
-        @keydown.enter="toggle"
-        @keydown.space.prevent="toggle"
         :aria-expanded="open"
         title="Account menu"
+        @keydown.enter="toggle"
+        @keydown.space.prevent="toggle"
       />
 
       <span
@@ -97,19 +97,19 @@ const {
     </button>
 
     <BaseMenu
-      :open="open"
-      class="fixed pointer-events-auto z-[var(--z-modal)] origin-top-left min-w-[320px]"
-      :style="popupStyle"
-      @click.stop
-      @cancel="cancel"
-      role="menu"
-      aria-label="Account menu"
       :ref="
         (el: any) => {
           baseMenuRef = el;
           popupInner = el?.menuEl ?? null;
         }
       "
+      :open="open"
+      class="fixed pointer-events-auto z-[var(--z-modal)] origin-top-left min-w-[320px]"
+      :style="popupStyle"
+      role="menu"
+      aria-label="Account menu"
+      @click.stop
+      @cancel="cancel"
     >
       <div
         class="flex justify-center md:justify-start px-4 py-2 md:px-3 md:py-1.5 font-semibold text-base md:text-sm text-on-ghost overflow-hidden text-ellipsis whitespace-nowrap"

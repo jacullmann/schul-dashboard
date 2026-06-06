@@ -43,11 +43,11 @@ function cancel() {
 <template>
   <BaseModal
     :open="open"
-    @cancel="cancel"
     :submit="submit"
     :loading="submitting"
     :error="errorMsg"
     :requirement="password"
+    @cancel="cancel"
   >
     <template #title>{{ t('auth.google_link.title') }}</template>
 
@@ -72,8 +72,8 @@ function cancel() {
         }}</BaseLabel>
         <BaseInput
           id="link-password"
-          type="password"
           v-model="password"
+          type="password"
           :placeholder="t('auth.login.password')"
           autocomplete="current-password"
           autofocus

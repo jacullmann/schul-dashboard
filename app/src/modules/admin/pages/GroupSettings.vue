@@ -169,7 +169,7 @@ function goBack() {
 <template>
   <div class="phone-settings-container">
     <Transition :name="transitionName">
-      <div v-if="!activeTab" class="settings-pane master-pane" key="master">
+      <div v-if="!activeTab" key="master" class="settings-pane master-pane">
         <header
           class="p-4 pt-6 md:pt-8 md:px-6 md:pb-5 bg-canvas border-b border-canvas-border shrink-0"
         >
@@ -218,7 +218,7 @@ function goBack() {
         </div>
       </div>
 
-      <div v-else class="settings-pane detail-pane" :key="activeTab">
+      <div v-else :key="activeTab" class="settings-pane detail-pane">
         <header
           class="flex items-center py-4 md:py-6 h-16 bg-canvas border-b border-canvas-border shrink-0"
         >
@@ -228,9 +228,9 @@ function goBack() {
             <BaseButton
               variant="ghost"
               on="ghost"
-              @click="goBack"
               aria-label="Go Back"
               :icon="ArrowLeft"
+              @click="goBack"
             />
             <h2>{{ activeTabLabel }}</h2>
           </div>
@@ -301,7 +301,7 @@ function goBack() {
               @start-edit="startEditGroupName"
               @cancel-edit="cancelEditGroupName"
               @save-edit="saveGroupName"
-              @update:newGroupName="newGroupName = $event"
+              @update:new-group-name="newGroupName = $event"
             />
           </div>
         </div>

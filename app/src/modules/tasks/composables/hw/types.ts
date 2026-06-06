@@ -6,6 +6,7 @@ export interface HwContext {
   tab: Ref<ItemType>;
   showOldEntries: Ref<boolean>;
   subjectFilter: Ref<string>;
+  hideChecked: Ref<boolean>;
   activeGroupId: Ref<string | null>;
   showPersonalized: Ref<boolean>;
 

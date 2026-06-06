@@ -44,11 +44,11 @@ function selectOption(value: string) {
       :key="option.value"
       class="disabled:opacity-50 disabled:hover:bg-transparent disabled:cursor-not-allowed"
       :icon="option.icon"
-      @click="selectOption(option.value)"
       type="button"
       :disabled="disabled"
-      :isSelect="true"
+      :is-select="true"
       :active="modelValue === option.value"
+      @click="selectOption(option.value)"
     >
       {{ option.label }}
     </BaseMenuButton>

@@ -168,9 +168,9 @@ onMounted(() => {
       <header class="rr-header">
         <h1 class="rr-title">RUSSIAN ROULETTE</h1>
         <button
-          @click="showSettings = !showSettings"
           class="rr-icon-btn"
           :class="{ active: showSettings }"
+          @click="showSettings = !showSettings"
         >
           <Settings class="rr-icon" />
         </button>
@@ -187,11 +187,11 @@ onMounted(() => {
             >
           </div>
           <div class="rr-control">
-            <button @click="adjustSetting('chamber', -1)" class="rr-ctrl-btn">
+            <button class="rr-ctrl-btn" @click="adjustSetting('chamber', -1)">
               <Minus :size="16" />
             </button>
             <span class="rr-ctrl-val">{{ chamberSize }}</span>
-            <button @click="adjustSetting('chamber', 1)" class="rr-ctrl-btn">
+            <button class="rr-ctrl-btn" @click="adjustSetting('chamber', 1)">
               <Plus :size="16" />
             </button>
           </div>
@@ -205,11 +205,11 @@ onMounted(() => {
             }}</span>
           </div>
           <div class="rr-control">
-            <button @click="adjustSetting('bullet', -1)" class="rr-ctrl-btn">
+            <button class="rr-ctrl-btn" @click="adjustSetting('bullet', -1)">
               <Minus :size="16" />
             </button>
             <span class="rr-ctrl-val">{{ bulletCount }}</span>
-            <button @click="adjustSetting('bullet', 1)" class="rr-ctrl-btn">
+            <button class="rr-ctrl-btn" @click="adjustSetting('bullet', 1)">
               <Plus :size="16" />
             </button>
           </div>
@@ -222,7 +222,7 @@ onMounted(() => {
           </div>
           <div class="rr-toggle-wrapper">
             <label class="rr-toggle">
-              <input type="checkbox" v-model="spinAfterShot" />
+              <input v-model="spinAfterShot" type="checkbox" />
               <span class="rr-slider"></span>
             </label>
           </div>
@@ -296,9 +296,9 @@ onMounted(() => {
         <button
           v-if="status === 'playing'"
           class="rr-btn-primary"
-          @click="pullTrigger"
           :disabled="isProcessing"
           :class="{ 'rr-disabled': isProcessing }"
+          @click="pullTrigger"
         >
           <Crosshair
             class="rr-btn-icon"

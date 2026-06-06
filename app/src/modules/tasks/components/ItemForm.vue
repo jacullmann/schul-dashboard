@@ -66,10 +66,10 @@ const {
 <template>
   <BaseModal
     :open="open"
-    @cancel="emit('cancel')"
     :submit="submit"
     :error="submitError"
     :loading="submitting"
+    @cancel="emit('cancel')"
     @dragenter="handleDragEnter"
     @dragleave="handleDragLeave"
     @dragover="handleDragOver"
@@ -111,8 +111,8 @@ const {
           t('tasks.list.item_form.title')
         }}</BaseLabel>
         <BaseInput
-          ref="titleInputRef"
           id="title"
+          ref="titleInputRef"
           v-model="title"
           :aria-describedby="titleError ? 'title-error' : undefined"
         />
@@ -169,9 +169,9 @@ const {
         }}</BaseLabel>
         <BaseInput
           id="description"
+          v-model="description"
           as="textarea"
           rows="4"
-          v-model="description"
           :aria-describedby="descriptionError ? 'description-error' : undefined"
         ></BaseInput>
       </BaseFormGroup>
@@ -182,8 +182,8 @@ const {
         }}</BaseLabel>
         <BaseInput
           id="dueDate"
-          type="date"
           v-model="dueLocal"
+          type="date"
           :aria-describedby="dueDateError ? 'dueDate-error' : undefined"
         />
       </BaseFormGroup>
@@ -218,9 +218,9 @@ const {
             <div class="absolute top-1 right-1">
               <BaseButton
                 type="button"
-                @click="removeImg(img, initial?.id)"
                 variant="danger"
                 :icon="X"
+                @click="removeImg(img, initial?.id)"
               >
                 {{ t('tasks.list.item_form.remove_image') }}
               </BaseButton>
@@ -233,11 +233,11 @@ const {
           >
             <BaseButton
               type="button"
-              @click="uploadImage(!!initial, initial?.id)"
               :disabled="imgUploading"
               variant="ghost"
               :loading="imgUploading"
               :icon="Upload"
+              @click="uploadImage(!!initial, initial?.id)"
             />
           </BaseTooltip>
         </BaseRow>
@@ -282,7 +282,7 @@ const {
           </div>
         </template>
 
-        <template #body v-if="doubleTaskOriginalItem.description">
+        <template v-if="doubleTaskOriginalItem.description" #body>
           <div
             class="text-on-ghost break-words [overflow-wrap:anywhere] hyphens-auto whitespace-pre-wrap select-text cursor-text"
           >
@@ -291,12 +291,12 @@ const {
         </template>
 
         <template
-          #content-after
           v-if="
             (doubleTaskOriginalItem.images &&
               doubleTaskOriginalItem.images.length) ||
             doubleTaskOriginalItem.editorNote
           "
+          #content-after
         >
           <!-- Images block (non-interactive) -->
           <div

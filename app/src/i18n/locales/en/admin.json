@@ -10,6 +10,7 @@
     }
   },
   "members": {
+    "joined": "Joined {time}",
     "ban_list": {
       "title": "Banned Users",
       "empty": "No banned users.",

@@ -43,10 +43,10 @@ const { user } = storeToRefs(userStore);
         >
           <BaseButton
             v-if="user"
-            @click="openPrivateTaskForm"
             variant="action"
             :icon="Plus"
             icon-classes="size-6"
+            @click="openPrivateTaskForm"
           />
         </BaseTooltip>
       </template>

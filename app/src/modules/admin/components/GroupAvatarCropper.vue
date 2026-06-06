@@ -170,9 +170,9 @@ function applyCrop() {
 <template>
   <BaseModal
     :open="open"
-    @cancel="emit('cancel')"
     :submit="applyCrop"
     :loading="processing"
+    @cancel="emit('cancel')"
   >
     <template #title>
       {{ t('common.buttons.edit') || 'Bild anpassen' }}
@@ -219,11 +219,11 @@ function applyCrop() {
         <div class="flex items-center gap-3 w-full max-w-[280px]">
           <ZoomOut class="w-4 h-4 text-on-ghost-muted" />
           <input
+            v-model.number="zoom"
             type="range"
             min="1.0"
             max="4.0"
             step="0.001"
-            v-model.number="zoom"
             class="flex-1 cursor-pointer h-1.5 bg-white/10 hover:bg-white/15 rounded-lg appearance-none accent-action"
           />
           <ZoomIn class="w-4 h-4 text-on-ghost-muted" />

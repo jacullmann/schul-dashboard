@@ -230,36 +230,36 @@ watch(
     <template #menu>
       <Teleport to="body" :disabled="isMobile">
         <BaseMenu
-          :open="isOpenMenu"
-          @close="$emit('close-menu')"
           :ref="
             (el: any) => {
               if (el && isOpenMenu) menuRef = el.menuEl;
             }
           "
+          :open="isOpenMenu"
           :class="!isMobile ? 'fixed! z-[10000]! min-w-[180px]' : ''"
           :style="!isMobile ? itemMenuStyles : undefined"
+          @close="$emit('close-menu')"
           @click.stop
         >
           <BaseMenuButton
-            @click="$emit('menu-action', 'images')"
             :icon="Upload"
+            @click="$emit('menu-action', 'images')"
           >
             {{ t('tasks.list.items.menu.upload_images') }}
           </BaseMenuButton>
 
           <BaseMenuButton
             v-if="canEdit(item.createdBy)"
-            @click="$emit('menu-action', 'edit')"
             :icon="Pencil"
+            @click="$emit('menu-action', 'edit')"
           >
             {{ t('common.buttons.edit') }}
           </BaseMenuButton>
 
           <BaseMenuButton
             v-if="canEditNote && !item.editorNote"
-            @click="$emit('menu-action', 'addNote')"
             :icon="MessageSquarePlus"
+            @click="$emit('menu-action', 'addNote')"
           >
             {{ t('tasks.list.items.menu.add_note') }}
           </BaseMenuButton>
@@ -267,9 +267,9 @@ watch(
           <BaseMenuDivider />
 
           <BaseMenuButton
-            @click="$emit('menu-action', 'pin')"
             :icon="Pin"
-            :iconClasses="isPinned ? 'fill-current' : ''"
+            :icon-classes="isPinned ? 'fill-current' : ''"
+            @click="$emit('menu-action', 'pin')"
           >
             {{
               isPinned
@@ -279,8 +279,8 @@ watch(
           </BaseMenuButton>
 
           <BaseMenuButton
-            @click="$emit('menu-action', 'archive')"
             :icon="showOldEntries ? ArchiveRestore : Archive"
+            @click="$emit('menu-action', 'archive')"
           >
             {{
               showOldEntries
@@ -291,16 +291,16 @@ watch(
 
           <BaseMenuDivider />
 
-          <BaseMenuButton @click="$emit('menu-action', 'share')" :icon="Send">
+          <BaseMenuButton :icon="Send" @click="$emit('menu-action', 'share')">
             {{ t('tasks.list.items.menu.share') }}
           </BaseMenuButton>
 
           <BaseMenuButton
+            :icon="Info"
             @click="
               $emit('close-menu');
               $emit('show-info');
             "
-            :icon="Info"
           >
             {{ t('tasks.list.items.menu.info') }}
           </BaseMenuButton>
@@ -309,17 +309,17 @@ watch(
 
           <BaseMenuButton
             title="Melden"
-            @click="$emit('menu-action', 'report')"
             :icon="Flag"
+            @click="$emit('menu-action', 'report')"
           >
             {{ t('tasks.list.items.menu.report.name') }}
           </BaseMenuButton>
 
           <BaseMenuButton
-            variant="danger"
             v-if="canDelete(item.createdBy)"
-            @click="$emit('menu-action', 'delete')"
+            variant="danger"
             :icon="Trash2"
+            @click="$emit('menu-action', 'delete')"
           >
             {{ t('common.buttons.delete') }}
           </BaseMenuButton>
@@ -327,7 +327,7 @@ watch(
       </Teleport>
     </template>
 
-    <template #body v-if="item.description">
+    <template v-if="item.description" #body>
       <TaskCardDescription
         :description="item.description"
         :is-expanded="isExpanded"
@@ -336,12 +336,12 @@ watch(
     </template>
 
     <template
-      #content-after
       v-if="
         (item.images && item.images.length) ||
         item.editorNote ||
         editingNoteForId === item.id
       "
+      #content-after
     >
       <TaskCardImages
         v-if="item.images && item.images.length"

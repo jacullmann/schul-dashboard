@@ -312,8 +312,8 @@ const updateImageSource = (newSrc: string) => {
           >JPG, PNG, WEBP, AVIF, GIF, BMP</span
         >
         <input
-          type="file"
           ref="fileInputRef"
+          type="file"
           accept="image/*"
           class="hidden"
           @change="handleFileChange"
@@ -344,10 +344,10 @@ const updateImageSource = (newSrc: string) => {
           }}</BaseLabel>
           <input
             id="image-quality-range"
+            v-model.number="settings.quality"
             type="range"
             min="1"
             max="100"
-            v-model.number="settings.quality"
           />
         </div>
         <div class="flex flex-col">
@@ -356,8 +356,8 @@ const updateImageSource = (newSrc: string) => {
           }}</BaseLabel>
           <BaseInput
             id="image-width-input"
-            type="number"
             v-model.number="settings.width"
+            type="number"
             :placeholder="imageMeta.naturalWidth.toString()"
           />
         </div>
@@ -367,29 +367,29 @@ const updateImageSource = (newSrc: string) => {
           }}</BaseLabel>
           <BaseInput
             id="image-height-input"
-            type="number"
             v-model.number="settings.height"
+            type="number"
             :placeholder="imageMeta.naturalHeight.toString()"
           />
         </div>
       </div>
 
       <BaseRow
+        v-if="hasImage"
         justify="end"
         class="mt-8 animate-[fade-up_0.5s_ease-out_both] delay-[0.15s]"
-        v-if="hasImage"
       >
-        <BaseButton @click="openEditor" variant="ghost">{{
+        <BaseButton variant="ghost" @click="openEditor">{{
           t('common.buttons.edit')
         }}</BaseButton>
-        <BaseButton @click="convertAndDownload" variant="action">{{
+        <BaseButton variant="action" @click="convertAndDownload">{{
           t('tools.image.actions.convert')
         }}</BaseButton>
       </BaseRow>
 
       <div
-        class="mt-4 text-center animate-[fade-up_0.5s_ease-out_both] delay-[0.2s]"
         v-show="hasImage"
+        class="mt-4 text-center animate-[fade-up_0.5s_ease-out_both] delay-[0.2s]"
       >
         <div class="mb-2 text-sm text-on-ghost-muted">
           {{ t('tools.image.settings.size') }}: {{ imageMeta.naturalWidth }} x
@@ -403,7 +403,7 @@ const updateImageSource = (newSrc: string) => {
       </div>
     </div>
 
-    <BaseModal :open="isEditorOpen" @cancel="closeEditor" :submit="applyEdits">
+    <BaseModal :open="isEditorOpen" :submit="applyEdits" @cancel="closeEditor">
       <template #title>{{ t('tools.image.title') }}</template>
 
       <template #content>
@@ -411,17 +411,17 @@ const updateImageSource = (newSrc: string) => {
           <BaseTooltip content="Rotate left" placement="top">
             <BaseButton
               class="flex-[0] p-[10px]"
-              @click="rotateImage(-90)"
               variant="ghost"
               :icon="RotateCcw"
+              @click="rotateImage(-90)"
             />
           </BaseTooltip>
           <BaseTooltip content="Rotate right" placement="top">
             <BaseButton
               class="flex-[0] p-[10px]"
-              @click="rotateImage(90)"
               variant="ghost"
               :icon="RotateCw"
+              @click="rotateImage(90)"
             />
           </BaseTooltip>
 
@@ -429,8 +429,8 @@ const updateImageSource = (newSrc: string) => {
             <BaseLabel for="editor-crop-x-input">X:</BaseLabel>
             <BaseInput
               id="editor-crop-x-input"
-              type="number"
               v-model.number="crop.x"
+              type="number"
               @input="updateCropFromInput"
             />
           </BaseFormGroup>
@@ -438,8 +438,8 @@ const updateImageSource = (newSrc: string) => {
             <BaseLabel for="editor-crop-y-input">Y:</BaseLabel>
             <BaseInput
               id="editor-crop-y-input"
-              type="number"
               v-model.number="crop.y"
+              type="number"
               @input="updateCropFromInput"
             />
           </BaseFormGroup>
@@ -447,8 +447,8 @@ const updateImageSource = (newSrc: string) => {
             <BaseLabel for="editor-crop-w-input">W:</BaseLabel>
             <BaseInput
               id="editor-crop-w-input"
-              type="number"
               v-model.number="crop.w"
+              type="number"
               @input="updateCropFromInput"
             />
           </BaseFormGroup>
@@ -456,16 +456,16 @@ const updateImageSource = (newSrc: string) => {
             <BaseLabel for="editor-crop-h-input">H:</BaseLabel>
             <BaseInput
               id="editor-crop-h-input"
-              type="number"
               v-model.number="crop.h"
+              type="number"
               @input="updateCropFromInput"
             />
           </BaseFormGroup>
         </div>
 
         <div
-          class="flex-1 relative bg-canvas overflow-hidden flex justify-center items-center mb-4"
           ref="workspaceRef"
+          class="flex-1 relative bg-canvas overflow-hidden flex justify-center items-center mb-4"
         >
           <img
             ref="editorImageRef"
@@ -474,8 +474,8 @@ const updateImageSource = (newSrc: string) => {
           />
 
           <div
-            class="absolute border-2 border-on-ghost-muted shadow-[0_0_0_9999px_color-mix(in_oklab,var(--color-canvas),transparent_40%)] cursor-move"
             v-show="isCropInitialized"
+            class="absolute border-2 border-on-ghost-muted shadow-[0_0_0_9999px_color-mix(in_oklab,var(--color-canvas),transparent_40%)] cursor-move"
             :style="cropBoxStyle"
             @mousedown.prevent="startDrag($event, false)"
           >

@@ -107,9 +107,8 @@ onClickOutside(
 </script>
 
 <template>
-  <div class="relative" ref="wrapperRef">
+  <div ref="wrapperRef" class="relative">
     <BaseButton
-      @click="toggleMenu"
       class="outline-none"
       :class="{ 'bg-surface-hover! text-on-ghost!': isOpen }"
       aria-haspopup="true"
@@ -121,6 +120,7 @@ onClickOutside(
         'ml-auto shrink-0 transition duration-200 ease-in-out' +
         (isOpen ? ' rotate-180' : '')
       "
+      @click="toggleMenu"
     >
       <span class="truncate">
         {{
@@ -132,18 +132,18 @@ onClickOutside(
 
     <Teleport to="body" :disabled="isMobile">
       <BaseMenu
-        :open="isOpen"
-        @close="isOpen = false"
         ref="floatingComponentRef"
+        :open="isOpen"
         :style="!isMobile ? selectStyles : undefined"
         class="max-h-80 z-[9999] min-w-68!"
+        @close="isOpen = false"
       >
         <BaseMenuButton
           v-for="option in options"
           :key="option.value"
-          @click="selectOption(option.value)"
-          :isSelect="true"
+          :is-select="true"
           :active="modelValue === option.value"
+          @click="selectOption(option.value)"
         >
           {{ option.label }}
           <template #description>{{ option.description }}</template>

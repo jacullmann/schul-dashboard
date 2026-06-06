@@ -142,10 +142,10 @@ async function onPrimary() {
 
 <template>
   <BaseModal
-    @cancel="emit('cancel')"
     :submit="onPrimary"
     :loading="submitting"
     :error="message"
+    @cancel="emit('cancel')"
   >
     <template #title>
       {{ t('auth.login.reset.title') }}
@@ -171,7 +171,7 @@ async function onPrimary() {
             v-model="code"
             :placeholder="t('auth.login.reset.placeholders.code')"
           />
-          <BaseButton @click="onBack" :disabled="submitting" variant="ghost">
+          <BaseButton :disabled="submitting" variant="ghost" @click="onBack">
             {{ t('common.buttons.back') }}
           </BaseButton>
         </div>
@@ -184,8 +184,8 @@ async function onPrimary() {
           <BaseInput
             id="reset-password"
             ref="passwordInputRef"
-            type="password"
             v-model="password"
+            type="password"
             :placeholder="t('auth.login.reset.placeholders.new_password')"
           />
         </BaseFormGroup>
@@ -193,8 +193,8 @@ async function onPrimary() {
         <BaseFormGroup id="reset-password-confirm">
           <BaseInput
             id="reset-password-confirm"
-            type="password"
             v-model="password2"
+            type="password"
             :placeholder="t('auth.login.reset.placeholders.confirm_password')"
           />
         </BaseFormGroup>

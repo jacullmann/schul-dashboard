@@ -48,8 +48,8 @@ function formatDate(iso: string) {
         <BaseButton
           v-if="canManageAnnouncements"
           variant="action"
-          @click="openAnnouncementForm"
           :icon="Plus"
+          @click="openAnnouncementForm"
         >
           {{ t('announcements.list.create_button') }}
         </BaseButton>
@@ -97,8 +97,8 @@ function formatDate(iso: string) {
           <BaseButton
             variant="ghost"
             size="sm"
-            @click="emit('delete', ann.id)"
             :icon="Trash2"
+            @click="emit('delete', ann.id)"
           />
         </BaseTooltip>
       </div>

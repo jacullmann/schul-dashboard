@@ -24,13 +24,13 @@ const options = [
       v-for="option in options"
       :key="option.value"
       type="button"
-      @click="modelValue = option.value"
       class="flex flex-col justify-start text-left px-4 py-3 rounded-2xl border border-surface-border cursor-pointer transition-hover outline-none focus-visible:ring-2 focus-visible:ring-primary"
       :class="[
         modelValue === option.value
           ? 'bg-action'
           : 'bg-surface hover:bg-surface-highlight',
       ]"
+      @click="modelValue = option.value"
     >
       <h3
         class="mb-1"

@@ -15,10 +15,10 @@ const emit = defineEmits<{
     <BaseButton
       v-if="show"
       variant="action"
-      @click="emit('click')"
       class="absolute! bottom-20 right-4 md:bottom-24 md:right-8"
       title="Nach unten"
       :icon="ArrowDown"
+      @click="emit('click')"
     />
   </Transition>
 </template>
