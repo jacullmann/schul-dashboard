@@ -574,7 +574,7 @@ onMounted(() => {
                   <router-link
                     v-if="r.itemId && r.itemTenantId"
                     v-slot="{ navigate, href }"
-                    :to="`/groups/${r.itemTenantId}/items/${r.itemType}/${r.itemId}`"
+                    :to="`/groups/${r.itemTenantId}/tasks/${r.itemType}/${r.itemId}`"
                     custom
                   >
                     <a
@@ -784,7 +784,7 @@ onMounted(() => {
                   <router-link
                     v-if="r.itemId && r.itemTenantId"
                     v-slot="{ navigate, href }"
-                    :to="`/groups/${r.itemTenantId}/items/${r.itemType}/${r.itemId}`"
+                    :to="`/groups/${r.itemTenantId}/tasks/${r.itemType}/${r.itemId}`"
                     custom
                   >
                     <a

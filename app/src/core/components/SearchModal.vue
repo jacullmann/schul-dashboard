@@ -123,7 +123,7 @@ const defaultResults = computed<SearchResult[]>(() => [
     category: 'page',
     icon: ListTodo,
     action: () =>
-      withGroup(() => navigate(`/groups/${activeGroupId.value}/items/all`)),
+      withGroup(() => navigate(`/groups/${activeGroupId.value}/tasks/all`)),
   },
   {
     id: 'schedule',

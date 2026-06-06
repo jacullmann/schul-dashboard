@@ -396,7 +396,7 @@ export function useTaskItemForm(
     showDoubleTaskConfirm.value = false;
     emit('cancel');
     void router.push({
-      name: 'group-items',
+      name: 'group-tasks',
       params: {
         groupId: route.params.groupId as string,
         type: doubleTaskOriginalItem.value.type,

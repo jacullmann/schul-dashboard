@@ -11,7 +11,7 @@ const goBack = () => {
   if (window.history.length > 1) {
     router.back();
   } else {
-    router.push('/items/all');
+    router.push(activeGroupId.value ? `/groups/${activeGroupId.value}/tasks/all` : '/groups');
   }
 };
 </script>
@@ -64,7 +64,7 @@ const goBack = () => {
           </router-link>
 
           <router-link
-            :to="`/groups/${activeGroupId}/items/all`"
+            :to="`/groups/${activeGroupId}/tasks/all`"
             class="flex items-center gap-3 p-3 bg-surface border border-surface-border shadow-input rounded-xl no-underline transition-all duration-150 ease cursor-pointer hover:bg-surface-highlight"
           >
             <div

@@ -90,8 +90,8 @@ const routes: RouteRecordRaw[] = [
             },
           },
           {
-            path: 'items/:type?/:itemId?',
-            name: 'group-items',
+            path: 'tasks/:type?/:itemId?',
+            name: 'group-tasks',
             component: () => import('@/modules/tasks/pages/Tasks.vue'),
             props: true,
             meta: {

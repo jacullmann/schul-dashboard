@@ -210,7 +210,7 @@ function handleGroupClick(groupId: string) {
   ) {
     handleNavigation(currentPath.replace(activeGroupId.value, groupId));
   } else {
-    handleNavigation(`/groups/${groupId}/items/all`);
+    handleNavigation(`/groups/${groupId}/tasks/all`);
   }
 }
 
@@ -316,12 +316,12 @@ onUnmounted(() => {
         <SidebarButton
           :label="t('common.sidebar.tasks')"
           :expanded="isExpanded"
-          :active="$route.path.startsWith(`/groups/${activeGroupId}/items`)"
+          :active="$route.path.startsWith(`/groups/${activeGroupId}/tasks`)"
           :icon="ListTodo"
           :page="true"
           @click="
             withGroup(() =>
-              handleNavigation(`/groups/${activeGroupId}/items/all`),
+              handleNavigation(`/groups/${activeGroupId}/tasks/all`),
             )
           "
         />

@@ -418,7 +418,7 @@ const isScheduleVisible = computed(() => {
                 :icon="ChevronRight"
                 @click="
                   $router.push({
-                    name: 'group-items',
+                    name: 'group-tasks',
                     params: { groupId: activeGroupId, type: 'all' },
                   })
                 "
@@ -469,7 +469,7 @@ const isScheduleVisible = computed(() => {
                       :icon="ArrowUpRight"
                       @click.stop="
                         $router.push({
-                          name: 'group-items',
+                          name: 'group-tasks',
                           params: {
                             groupId: activeGroupId,
                             type: 'all',

@@ -145,7 +145,7 @@ export function useTasks() {
 
   function goTab(t_type: ItemType) {
     router.push({
-      name: 'group-items',
+      name: 'group-tasks',
       params: { ...route.params, type: t_type },
     });
   }
@@ -208,7 +208,7 @@ export function useTasks() {
 
     if (highlightedItemId.value && route.params.itemId) {
       router.replace({
-        name: 'group-items',
+        name: 'group-tasks',
         params: { ...route.params, itemId: '' },
       });
     }
@@ -218,7 +218,7 @@ export function useTasks() {
   watch(subjectFilter, () => {
     if (highlightedItemId.value && route.params.itemId) {
       router.replace({
-        name: 'group-items',
+        name: 'group-tasks',
         params: { ...route.params, itemId: '' },
       });
     }
