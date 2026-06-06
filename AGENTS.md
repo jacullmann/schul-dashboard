@@ -60,6 +60,9 @@ Write **idiomatic, performant, secure code that speaks for itself.**
 - Use TailwindCSS utilities; minimal custom CSS
 - No magic numbers in styles
 
+**Vue Router:**
+- Adhere to Vue Router best practices in the frontend, specifically using named routes instead of hardcoded URLs.
+
 ---
 
 ## General
