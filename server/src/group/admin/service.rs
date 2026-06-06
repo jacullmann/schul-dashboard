@@ -69,7 +69,15 @@ impl GroupAdminService {
 
         let mut members: Vec<Value> = rows
             .into_iter()
-            .map(|r| json!({ "userId": r.user_id, "role": r.role_name, "joinedAt": r.assigned_at }))
+            .map(|r| {
+                let generated_name = crate::common::name_generator::generate_user_name(&r.user_id.to_string());
+                json!({
+                    "userId": r.user_id,
+                    "generatedName": generated_name,
+                    "role": r.role_name,
+                    "joinedAt": r.assigned_at
+                })
+            })
             .collect();
 
         members
@@ -88,7 +96,14 @@ impl GroupAdminService {
 
         Ok(json!(
             rows.into_iter()
-                .map(|r| json!({ "userId": r.user_id, "bannedAt": r.banned_at }))
+                .map(|r| {
+                    let generated_name = crate::common::name_generator::generate_user_name(&r.user_id.to_string());
+                    json!({
+                        "userId": r.user_id,
+                        "generatedName": generated_name,
+                        "bannedAt": r.banned_at
+                    })
+                })
                 .collect::<Vec<_>>()
         ))
     }
