@@ -45,7 +45,7 @@ export function useSubjectAdmin() {
 
   async function updateSubject(
     id: string,
-    updates: { name?: string; isActive?: boolean },
+    updates: { name?: string },
   ) {
     saving.value = true;
     try {
@@ -53,7 +53,6 @@ export function useSubjectAdmin() {
       const subject = subjects.value.find((s) => s.id === id);
       if (subject) {
         if (updates.name !== undefined) subject.name = updates.name.trim();
-        if (updates.isActive !== undefined) subject.isActive = updates.isActive;
       }
       if (updates.name !== undefined) {
         subjects.value.sort((a, b) => a.name.localeCompare(b.name));

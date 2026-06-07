@@ -50,10 +50,7 @@ async function saveRename(id: string) {
   editingName.value = '';
 }
 
-async function handleToggleActive(subject: AdminSubject, event: Event) {
-  const checked = (event.target as HTMLInputElement).checked;
-  await updateSubject(subject.id, { isActive: checked });
-}
+
 
 async function handleCreate() {
   if (!newSubjectName.value.trim()) return;
@@ -132,7 +129,6 @@ onMounted(() => {
           animationDelay: `${index * 0.075}s`,
           animationFillMode: 'both',
         }"
-        :class="{ 'opacity-60': !subject.isActive }"
       >
         <template v-if="editingId !== subject.id">
           <span
@@ -140,11 +136,6 @@ onMounted(() => {
             >{{ subjectLabel(subject) }}</span
           >
           <BaseRow v-if="canEditSubjects" justify="end" class="flex-1">
-            <BaseCheckbox
-              class="m-2"
-              :model-value="subject.isActive"
-              @change="handleToggleActive(subject, $event)"
-            />
             <BaseTooltip
               :content="t('groups.settings.subjects.rename')"
               placement="bottom"

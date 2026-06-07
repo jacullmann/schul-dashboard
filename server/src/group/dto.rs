@@ -65,7 +65,6 @@ pub struct CreateSubjectDto {
 #[serde(rename_all = "camelCase")]
 pub struct UpdateSubjectDto {
     pub name: Option<String>,
-    pub is_active: Option<bool>,
 }
 
 #[derive(Debug, Deserialize)]

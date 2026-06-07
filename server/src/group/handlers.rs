@@ -393,7 +393,6 @@ pub async fn update_subject(
                 tc.user.user_id,
                 id,
                 dto.name.as_deref(),
-                dto.is_active,
             )
             .await?,
     ))
