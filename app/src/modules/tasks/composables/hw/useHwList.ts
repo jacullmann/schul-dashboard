@@ -32,7 +32,7 @@ export function useHwList(ctx: HwContext) {
 
   const filteredItems = computed(() => {
     const pins = ctx.pinnedItems.value;
-    const pinnedList: typeof ctx.items.value = [];
+    let pinnedList: typeof ctx.items.value = [];
     const unpinnedList: typeof ctx.items.value = [];
 
     for (const item of ctx.items.value) {

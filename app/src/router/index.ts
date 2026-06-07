@@ -207,17 +207,40 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/admin',
     component: () => import('@/layouts/DefaultLayout.vue'),
+    meta: {
+      title: 'navigation.super_admin',
+      requiresSuperAdmin: true,
+      fullWidth: true,
+    },
     children: [
       {
         path: '',
-        name: 'super-admin',
         component: () =>
-          import('@/modules/admin/pages/SuperAdminDashboard.vue'),
-        meta: {
-          title: 'navigation.super_admin',
-          requiresSuperAdmin: true,
-          fullWidth: true,
-        },
+            import('@/modules/admin/pages/SuperAdminDashboard.vue'),
+        children: [
+          { path: '', redirect: { name: 'super-admin' } },
+          {
+            path: 'overview',
+            name: 'super-admin',
+            component: () =>
+                import('@/modules/admin/pages/SuperAdminOverview.vue'),
+          },
+          {
+            path: 'users',
+            name: 'admin-users',
+            component: () => import('@/modules/admin/pages/SuperAdminUsers.vue'),
+          },
+          {
+            path: 'reports',
+            name: 'admin-reports',
+            component: () => import('@/modules/admin/pages/SuperAdminReports.vue'),
+          },
+          {
+            path: 'groups',
+            name: 'admin-groups',
+            component: () => import('@/modules/admin/pages/SuperAdminGroups.vue'),
+          },
+        ],
       },
     ],
   },
