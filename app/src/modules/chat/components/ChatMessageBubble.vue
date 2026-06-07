@@ -91,6 +91,40 @@ const bubbleBorderClasses = computed(() => {
   }`;
 });
 
+const getEmojiInfo = computed(() => {
+  const text = props.msg.content || '';
+  if (!text) return { isEmojiOnly: false, count: 0 };
+
+  const emojiRegex =
+    /[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}\u{2600}-\u{27BF}]/u;
+
+  if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+    const segmenter = new Intl.Segmenter('en', { granularity: 'grapheme' });
+    const segments = [...segmenter.segment(text)];
+    if (segments.length === 0) return { isEmojiOnly: false, count: 0 };
+    const allEmojis = segments.every((s) => emojiRegex.test(s.segment));
+    return {
+      isEmojiOnly: allEmojis,
+      count: allEmojis ? segments.length : 0,
+    };
+  } else {
+    const emojiSequenceRegex =
+      /(?:[\u{1F1E6}-\u{1F1FF}]{2}|[\p{Extended_Pictographic}\u{2600}-\u{27BF}])(?:[\u{1F3FB}-\u{1F3FF}]|\u{200D}|\u{FE0F}|\p{Extended_Pictographic}|[\u{2600}-\u{27BF}])*/gu;
+    const matches = text.match(emojiSequenceRegex) || [];
+    const matchedLen = matches.join('').length;
+    const isEmojiOnly = matchedLen === text.length;
+    return { isEmojiOnly, count: isEmojiOnly ? matches.length : 0 };
+  }
+});
+
+const isBgTransparent = computed(() => {
+  return (
+    getEmojiInfo.value.isEmojiOnly &&
+    getEmojiInfo.value.count === 1 &&
+    !(props.msg.parentId && props.msg.parentContent)
+  );
+});
+
 const formatTime = (timestamp: string) => {
   if (!timestamp) return '';
   const date = new Date(timestamp);
@@ -147,9 +181,11 @@ const formatTime = (timestamp: string) => {
         <div
           :class="[
             'p-2 transition-all duration-200 relative group min-w-0 max-w-full',
-            msg.userId === currentUserId
-              ? 'bg-action text-on-action'
-              : 'bg-ghost-hover text-on-ghost',
+            isBgTransparent
+              ? 'bg-transparent text-on-ghost'
+              : msg.userId === currentUserId
+                ? 'bg-action text-on-action'
+                : 'bg-ghost-hover text-on-ghost',
             bubbleBorderClasses,
           ]"
           :style="
@@ -197,13 +233,26 @@ const formatTime = (timestamp: string) => {
           <div
             class="px-2 flex flex-wrap items-end justify-between gap-x-2 gap-y-1"
           >
-            <span class="text-base/relaxed whitespace-pre-wrap break-words">
+            <span
+              :class="[
+                'whitespace-pre-wrap break-words',
+                getEmojiInfo.isEmojiOnly &&
+                getEmojiInfo.count > 0 &&
+                getEmojiInfo.count <= 3
+                  ? getEmojiInfo.count === 1
+                    ? 'text-5xl/none'
+                    : getEmojiInfo.count === 2
+                      ? 'text-3xl/normal'
+                      : 'text-xl/relaxed'
+                  : 'text-base/relaxed',
+              ]"
+            >
               {{ msg.content }}
             </span>
             <span
               :class="[
                 'text-xs select-none font-normal tracking-tight whitespace-nowrap ml-auto self-end',
-                msg.userId === currentUserId
+                msg.userId === currentUserId && !isBgTransparent
                   ? 'text-on-action-muted/70'
                   : 'text-on-ghost-subtle',
               ]"

@@ -11,7 +11,11 @@ const goBack = () => {
   if (window.history.length > 1) {
     router.back();
   } else {
-    router.push(activeGroupId.value ? `/groups/${activeGroupId.value}/tasks/all` : '/groups');
+    router.push(
+      activeGroupId.value
+        ? `/groups/${activeGroupId.value}/tasks/all`
+        : '/groups',
+    );
   }
 };
 </script>
