@@ -235,16 +235,16 @@ const formatTime = (timestamp: string) => {
           >
             <span
               :class="[
-                'whitespace-pre-wrap break-words',
+                'whitespace-pre-wrap break-words leading-snug',
                 getEmojiInfo.isEmojiOnly &&
                 getEmojiInfo.count > 0 &&
                 getEmojiInfo.count <= 3
                   ? getEmojiInfo.count === 1
-                    ? 'text-5xl/none'
+                    ? 'text-5xl'
                     : getEmojiInfo.count === 2
-                      ? 'text-3xl/normal'
-                      : 'text-xl/relaxed'
-                  : 'text-base/relaxed',
+                      ? 'text-3xl'
+                      : 'text-xl'
+                  : 'text-base',
               ]"
             >
               {{ msg.content }}
