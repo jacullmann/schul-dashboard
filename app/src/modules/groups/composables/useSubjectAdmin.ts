@@ -20,7 +20,7 @@ export function useSubjectAdmin() {
       const { data } = await hw.get<AdminSubject[]>('/group-admin/subjects');
       subjects.value = data || [];
     } catch {
-      toastError(t('admin.subjects.errors.load_failed'));
+      toastError(t('groups.settings.subjects.errors.load_failed'));
     } finally {
       loading.value = false;
     }
@@ -35,9 +35,9 @@ export function useSubjectAdmin() {
       });
       subjects.value.push(data);
       subjects.value.sort((a, b) => a.name.localeCompare(b.name));
-      success(t('admin.subjects.errors.create_success'));
+      success(t('groups.settings.subjects.errors.create_success'));
     } catch {
-      toastError(t('admin.subjects.errors.create_failed'));
+      toastError(t('groups.settings.subjects.errors.create_failed'));
     } finally {
       saving.value = false;
     }
@@ -58,11 +58,11 @@ export function useSubjectAdmin() {
       if (updates.name !== undefined) {
         subjects.value.sort((a, b) => a.name.localeCompare(b.name));
       }
-      success(t('admin.subjects.errors.update_success'));
+      success(t('groups.settings.subjects.errors.update_success'));
     } catch (e: unknown) {
       const err = e as { response?: { data?: { message?: string } } };
       toastError(
-        err.response?.data?.message || t('admin.subjects.errors.update_failed'),
+        err.response?.data?.message || t('groups.settings.subjects.errors.update_failed'),
       );
       await loadSubjects();
     } finally {
@@ -72,8 +72,8 @@ export function useSubjectAdmin() {
 
   async function deleteSubject(id: string) {
     const isConfirmed = await modalStore.confirm({
-      title: t('admin.subjects.delete_modal.title'),
-      content: t('admin.subjects.delete_modal.message'),
+      title: t('groups.settings.subjects.delete_modal.title'),
+      content: t('groups.settings.subjects.delete_modal.message'),
       submitText: t('common.buttons.delete'),
       danger: true,
     });
@@ -82,11 +82,11 @@ export function useSubjectAdmin() {
     try {
       await hw.delete(`/group-admin/subjects/${id}`);
       subjects.value = subjects.value.filter((s) => s.id !== id);
-      success(t('admin.subjects.errors.delete_success'));
+      success(t('groups.settings.subjects.errors.delete_success'));
     } catch (e: unknown) {
       const err = e as { response?: { data?: { message?: string } } };
       toastError(
-        err.response?.data?.message || t('admin.subjects.errors.delete_failed'),
+        err.response?.data?.message || t('groups.settings.subjects.errors.delete_failed'),
       );
     }
   }

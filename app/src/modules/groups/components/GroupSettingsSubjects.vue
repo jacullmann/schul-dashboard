@@ -74,7 +74,7 @@ onMounted(() => {
 <template>
   <div class="animate-fade-up">
     <PageHeader>
-      {{ t('admin.subjects.title') }}
+      {{ t('groups.settings.subjects.title') }}
 
       <template #action>
         <BaseTooltip content="Aktualisieren">
@@ -94,7 +94,7 @@ onMounted(() => {
           id="new-subject-name-input"
           v-model="newSubjectName"
           class="flex-1 max-w-[400px]"
-          :placeholder="t('admin.subjects.add_placeholder')"
+          :placeholder="t('groups.settings.subjects.add_placeholder')"
           :disabled="saving"
           @keyup.enter="handleCreate"
         />
@@ -120,7 +120,7 @@ onMounted(() => {
       v-else-if="subjects.length === 0"
       class="text-center p-8 text-on-ghost-muted text-base"
     >
-      {{ t('admin.subjects.list.empty') }}
+      {{ t('groups.settings.subjects.list.empty') }}
     </div>
 
     <div v-else class="flex flex-col gap-1.5">
@@ -146,7 +146,7 @@ onMounted(() => {
               @change="handleToggleActive(subject, $event)"
             />
             <BaseTooltip
-              :content="t('admin.subjects.rename')"
+              :content="t('groups.settings.subjects.rename')"
               placement="bottom"
             >
               <BaseButton

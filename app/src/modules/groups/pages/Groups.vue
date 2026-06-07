@@ -33,10 +33,10 @@ const displayName = computed(() => {
 
 const greeting = computed(() => {
   const h = new Date().getHours();
-  if (h < 6) return 'common.groups.good_night';
-  if (h < 12) return 'common.groups.good_morning';
-  if (h < 18) return 'common.groups.good_day';
-  return 'common.groups.good_evening';
+  if (h < 6) return 'groups.list.good_night';
+  if (h < 12) return 'groups.list.good_morning';
+  if (h < 18) return 'groups.list.good_day';
+  return 'groups.list.good_evening';
 });
 
 const roleColors: Record<string, string> = {
@@ -113,15 +113,15 @@ onMounted(() => {
           <p class="text-base/relaxed text-on-ghost-muted m-0! animate-fade-up">
             {{
               userGroups.length
-                ? t('common.groups.choose_group_prompt')
-                : t('common.groups.join_or_create_prompt')
+                ? t('groups.list.choose_group_prompt')
+                : t('groups.list.join_or_create_prompt')
             }}
           </p>
         </div>
 
         <div v-if="userGroups.length > 0" class="relative">
           <BaseTooltip
-            :content="t('common.groups.tooltip.create_group')"
+            :content="t('groups.list.tooltip.create_group')"
             placement="bottom"
           >
             <BaseButton
@@ -139,7 +139,7 @@ onMounted(() => {
     <section v-if="userGroups.length > 0" class="mb-9">
       <div class="flex items-center gap-2.5 mb-4 max-md:px-4">
         <h2 class="text-2xl font-bold text-on-ghost m-0 animate-fade-up">
-          {{ t('common.groups.your_groups') }}
+          {{ t('groups.list.your_groups') }}
         </h2>
         <span
           class="text-on-ghost-muted bg-ghost-hover rounded-full text-sm font-semibold px-2.5 py-0.5 animate-fade-up"
@@ -193,10 +193,10 @@ onMounted(() => {
         :icon="UsersRound"
         :primary-action="() => modalStore.openCreateGroup()"
       >
-        <template #title>{{ t('common.groups.no_groups') }}</template>
-        <template #message>{{ t('common.groups.join_group_text') }}</template>
+        <template #title>{{ t('groups.list.no_groups') }}</template>
+        <template #message>{{ t('groups.list.join_group_text') }}</template>
         <template #primary-action-label>{{
-          t('common.groups.create_group')
+          t('groups.list.create_group')
         }}</template>
       </BaseEmptyState>
     </section>

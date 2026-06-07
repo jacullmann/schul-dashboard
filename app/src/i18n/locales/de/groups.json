@@ -1,0 +1,253 @@
+{
+  "list": {
+    "create_group": "Gruppe erstellen",
+    "good_day": "Guten Tag",
+    "good_evening": "Guten Abend",
+    "good_morning": "Guten Morgen",
+    "good_night": "Gute Nacht",
+    "join_group": "Gruppe beitreten",
+    "join_group_text": "Tritt einer bestehenden Gruppe bei oder erstelle eine neue, um loszulegen.",
+    "members": "Mitglieder",
+    "no_groups": "Noch keine Gruppen",
+    "title": "Start",
+    "your_groups": "Deine Gruppen",
+    "choose_group_prompt": "Wähle eine Gruppe aus, um loszulegen.",
+    "join_or_create_prompt": "Tritt einer Gruppe bei oder erstelle eine neue.",
+    "tooltip": {
+      "create_group": "Gruppe erstellen"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "tasks_overview": {
+      "title": "Aufgaben",
+      "last_edited": "Zuletzt bearbeitet",
+      "no_tasks": "Keine anstehenden Aufgaben in den nächsten 2 Tagen.",
+      "view_all": "Alle Aufgaben anzeigen",
+      "due_today": "Heute fällig",
+      "due_tomorrow": "Morgen fällig"
+    },
+    "schedule_overview": {
+      "title": "Stundenplan",
+      "next_lesson": "Nächste Stunde",
+      "no_more_lessons": "Keine weiteren Stunden für diese Woche.",
+      "substitutions": "Planänderungen & Vertretungen",
+      "no_substitutions": "Keine Planänderungen in dieser Woche.",
+      "view_full": "Vollständigen Plan anzeigen",
+      "cancelled": "Ausfall",
+      "room_change": "Raumänderung: {room}",
+      "substituted": "Vertretung",
+      "setup_cta": "Es wurde noch kein Stundenplan für diese Gruppe erstellt.",
+      "setup_button": "Stundenplan einrichten"
+    }
+  },
+  "settings": {
+    "general": {
+      "avatar": {
+        "errors": {
+          "invalid_file": "Bitte wählen Sie eine gültige Bilddatei aus.",
+          "read_failed": "Fehler beim Lesen der Datei.",
+          "upload_failed": "Cloudinary Upload fehlgeschlagen",
+          "invalid_response": "Ungültige Antwort von Cloudinary",
+          "save_failed": "Fehler beim Hochladen des Profilbildes.",
+          "delete_failed": "Fehler beim Löschen des Profilbildes.",
+          "update_success": "Group-Bild aktualisiert",
+          "delete_success": "Group-Bild gelöscht"
+        },
+        "delete_modal": {
+          "title": "Gruppenbild löschen",
+          "message": "Sind Sie sicher, dass Sie das Gruppen-Profilbild löschen möchten?"
+        },
+        "actions": {
+          "upload": "Bild hochladen",
+          "capture": "Bild aufnehmen",
+          "delete": "Bild löschen"
+        }
+      },
+      "password": {
+        "errors": {
+          "mismatch": "Passwörter stimmen nicht überein",
+          "generic": "Ein Fehler ist aufgetreten"
+        },
+        "title": "Passwort ändern",
+        "current_label": "Aktuelles Passwort",
+        "new_label": "Neues Passwort",
+        "confirm_label": "Neues Passwort bestätigen"
+      },
+      "delete_group": {
+        "modal": {
+          "title": "Gruppe löschen",
+          "message": "Sind Sie sicher, dass Sie diese Gruppe unwiderruflich löschen möchten?"
+        },
+        "warning_text": "Das Löschen der Gruppe ist endgültig und kann nicht rückgängig gemacht werden. Alle damit verbundenen Daten (Aufgaben, Klausuren, Ankündigungen etc.) werden für alle Benutzer gelöscht.",
+        "confirmation_label_prefix": "Bitte geben Sie ",
+        "confirmation_label_suffix": " ein, um fortzufahren:",
+        "submit_button": "Gruppe unwiderruflich löschen"
+      },
+      "errors": {
+        "unauthorized": "Du hast keine Berechtigung, die Einstellungen zu ändern."
+      },
+      "appearance": {
+        "title": "Erscheinungsbild",
+        "name_label": "Name",
+        "name_placeholder": "Neuer Gruppenname"
+      }
+    },
+    "members": {
+      "joined": "{time} beigetreten",
+      "title": "Mitglieder",
+      "info": {
+        "tooltip": "Übersicht des Mitgliedermenüs",
+        "headline": "Verwalte Mitglieder deiner Gruppe",
+        "list_title": "Mitgliedsliste",
+        "list_text": "Hier siehst du eine Liste aller Mitglieder deiner Gruppe zusammen mit ihren Berechtigungen (Mitglied, Moderator, Admin). Um die Daten der Nutzer zu schützen wird ein automatisch generierter Alias angezeigt. Über das Dropdown-Menü kannst du die Rolle eines Mitglieds ändern.",
+        "role_title": "Rollen ändern",
+        "role_text": "Wenn du die Rolle eines Nutzers ändern willst, um ihm Berechtigungen zu erteilen oder zu entziehen, kannst du dies über das Dropdown-Menü, das neben jedem Mitglied steht, tun.",
+        "remove_title": "Mitglieder entfernen",
+        "remove_text": "Um ein Mitglied aus der Gruppe zu entfernen, klicke auf das entsprechende Symbol neben dem Dropdown-Menü. Admins können nicht entfernt werden."
+      },
+      "list": {
+        "empty": "Keine Mitglieder gefunden."
+      },
+      "actions": {
+        "transfer_ownership": "Eigentümerschaft übertragen",
+        "remove": "Aus Gruppe entfernen"
+      },
+      "ban_list": {
+        "title": "Gesperrte Nutzer",
+        "empty": "Keine gesperrten Nutzer.",
+        "banned_on_prefix": "Gesperrt am ",
+        "actions": {
+          "unban": "Entsperren"
+        }
+      },
+      "remove_modal": {
+        "title": "Mitglied entfernen",
+        "confirm_prefix": "Sind Sie sicher, dass Sie ",
+        "confirm_suffix": " aus der Gruppe entfernen möchten?",
+        "rejoin_info": "Benutzer können jederzeit wieder beitreten, wenn sie die Zugangsdaten für Ihre Gruppe haben. Um dies zu verhindern, können Sie sie sperren.",
+        "ban_checkbox_prefix": "Sperre ",
+        "ban_checkbox_suffix": " dauerhaft",
+        "submit_button": "Entfernen"
+      }
+    },
+    "overview": {
+      "stats": {
+        "active_entries": "Aktive Einträge",
+        "members": "Mitglieder",
+        "schedule_changes": "Stundenplanänderungen",
+        "old_entries": "Alte Einträge (90+ Tage)"
+      },
+      "cleanup": {
+        "info": "{count} Einträge älter als 90 Tage können gelöscht werden.",
+        "action_button": "Bereinigen"
+      }
+    },
+    "permissions": {
+      "errors": {
+        "load_failed": "Fehler beim Laden der Berechtigungen",
+        "update_success": "Berechtigung erfolgreich aktualisiert",
+        "save_failed": "Fehler beim Speichern der Berechtigung"
+      },
+      "title": "Berechtigungen",
+      "info": {
+        "tooltip": "Übersicht des Gruppenberechtigungsmenüs",
+        "headline": "Verwalte die Berechtigungen der Gruppenmitglieder"
+      },
+      "list": {
+        "loading": "Berechtigungen werden geladen...",
+        "admin_only_warning": "Nur Gruppen-Administratoren können Berechtigungen anpassen."
+      },
+      "categories": {
+        "general": "Gruppeneinstellungen",
+        "tasks": "Aufgaben",
+        "chat": "Chat",
+        "info": "Informationen",
+        "moderation": "Moderation"
+      },
+      "items": {
+        "edit_group_general": "Gruppenbild und -name bearbeiten",
+        "invite_members": "Mitglieder einladen",
+        "edit_subjects_courses": "Fächer/Kursliste bearbeiten",
+        "edit_schedule": "Stundenplan bearbeiten",
+        "create_items": "Neue Einträge erstellen",
+        "upload_images": "Bilder hochladen",
+        "manage_notes": "Notizen hinzufügen, bearbeiten und löschen",
+        "send_messages": "Nachrichten senden",
+        "manage_schedule_changes": "Stundenplanänderungen hinzufügen und löschen",
+        "manage_announcements": "Ankündigungen hinzufügen und löschen",
+        "moderate_members": "Mitglieder entfernen und bannen bzw. entbannen",
+        "delete_other_content": "Einträge, Bilder und Nachrichten von Nutzern löschen"
+      },
+      "options": {
+        "all": "Alle",
+        "moderators": "Moderatoren",
+        "admins": "Admins"
+      }
+    },
+    "schedule": {
+      "info": {
+        "tooltip": "Übersicht der Stundenplaneinstellungen"
+      },
+      "config": {
+        "lesson_duration_label": "Stundenlänge (Minuten)",
+        "after_lesson_label": "Nach Stunde",
+        "save_button": "Einstellungen speichern",
+        "instruction_text": "Konfiguriere die globalen Einstellungen für den Stundenplan (Zeiten, Pausen).",
+        "add_break_button": "Pause hinzufügen",
+        "start_time_label": "Startzeit",
+        "slots_per_day_label": "Anzahl Stunden (Pro Tag)",
+        "breaks_title": "Pausen",
+        "no_breaks": "Keine Pausen konfiguriert.",
+        "break_duration_label": "Dauer (Minuten)"
+      },
+      "changes": {
+        "tooltip": "Übersicht des Stundenplanänderungsmenüs",
+        "title": "Stundenplanänderungen",
+        "headline": "Trage Änderungen Live und anschaulich ein",
+        "select_lessons": "Stunden auswählen",
+        "submit_changes": "Änderungen eintragen",
+        "selected_lesson": "Ausgewählte Stunde",
+        "new_subject_label": "Neues Fach",
+        "select_lesson_slot": "Stunde auswählen",
+        "select_instruction": "Klicke in der Stundenplanansicht die Stunden an, die du ändern möchtest.",
+        "submit_instruction": "Schreibe in die passenden Textfelder die neuen Daten. Falls ein Wert gleichbleiben soll, kannst du das Feld freilassen. Mit den entsprechenden Checkboxen kannst du auch markieren ob Stunden ausfallen oder Stunden ganz verbergen.",
+        "select_lesson_warning": "Bitte wählen Sie eine Stunde aus dem Stundenplan.",
+        "new_room_label": "Neuer Raum",
+        "new_slot_label": "Neue Stunde",
+        "new_duration_label": "Neue Dauer",
+        "new_day_label": "Neuer Tag (1 = Mo, 5 = Fr)",
+        "cancelled_label": "Ausfall",
+        "hide_label": "Verstecken",
+        "hidden_label": "Versteckt",
+        "no_changes": "Keine Planänderungen vorhanden.",
+        "replaces_prefix": "Ersetzt:",
+        "lesson_label": "Stunde:",
+        "last_lesson_label": "Letzte Stunde:",
+        "room_label": "Raum:",
+        "day_label": "Tag:"
+      }
+    },
+    "subjects": {
+      "add_placeholder": "Neues Fach hinzufügen...",
+      "errors": {
+        "load_failed": "Fehler beim Laden der Fächer",
+        "create_success": "Fach erstellt",
+        "create_failed": "Fehler beim Erstellen",
+        "update_success": "Fach aktualisiert",
+        "update_failed": "Fehler beim Aktualisieren",
+        "delete_success": "Fach gelöscht",
+        "delete_failed": "Fehler beim Löschen"
+      },
+      "delete_modal": {
+        "title": "Dieses Fach löschen?",
+        "message": "Fach wirklich löschen? Falls es noch referenziert wird, schlage stattdessen eine Deaktivierung vor."
+      },
+      "title": "Fächer",
+      "rename": "Umbenennen",
+      "list": {
+        "empty": "Keine Fächer vorhanden."
+      }
+    }
+  }
+}

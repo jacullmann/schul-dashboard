@@ -66,7 +66,7 @@ function onFileSelected(e: Event) {
 
   if (!file.type.startsWith('image/')) {
     avatarError.value =
-      t('admin.general.avatar.errors.invalid_file') || 'Ungültiges Dateiformat';
+      t('groups.settings.general.avatar.errors.invalid_file') || 'Ungültiges Dateiformat';
     return;
   }
 
@@ -79,7 +79,7 @@ function onFileSelected(e: Event) {
   };
   reader.onerror = () => {
     avatarError.value =
-      t('admin.general.avatar.errors.read_failed') ||
+      t('groups.settings.general.avatar.errors.read_failed') ||
       'Fehler beim Lesen der Datei';
   };
   reader.readAsDataURL(file);
@@ -111,13 +111,13 @@ async function onCropConfirmed(blob: Blob) {
 
     if (!res.ok)
       throw new Error(
-        t('admin.general.avatar.errors.upload_failed') ||
+        t('groups.settings.general.avatar.errors.upload_failed') ||
           'Upload fehlgeschlagen',
       );
     const json = await res.json();
     if (!json.secure_url)
       throw new Error(
-        t('admin.general.avatar.errors.invalid_response') ||
+        t('groups.settings.general.avatar.errors.invalid_response') ||
           'Ungültige Serverantwort',
       );
 
@@ -125,7 +125,7 @@ async function onCropConfirmed(blob: Blob) {
   } catch (err: any) {
     avatarError.value =
       err.message ||
-      t('admin.general.avatar.errors.save_failed') ||
+      t('groups.settings.general.avatar.errors.save_failed') ||
       'Fehler beim Speichern';
   } finally {
     savingAvatar.value = false;
@@ -186,7 +186,7 @@ async function submit() {
     :cancel="undefined"
     @cancel="$emit('cancel')"
   >
-    <template #title>{{ t('common.groups.create_group') }}</template>
+    <template #title>{{ t('groups.list.create_group') }}</template>
 
     <template #content>
       <div class="flex flex-col items-center gap-4 mb-6">
@@ -251,7 +251,7 @@ async function submit() {
           </BaseMenu>
         </div>
         <span class="text-xs text-on-ghost-muted">{{
-          t('admin.general.avatar.description') ||
+          t('groups.settings.general.avatar.description') ||
           'Optionally choose a group picture'
         }}</span>
         <span v-if="avatarError" class="text-xs text-danger font-medium">{{
@@ -265,7 +265,7 @@ async function submit() {
           id="group-name"
           ref="groupNameInputRef"
           v-model="groupName"
-          :placeholder="t('admin.general.appearance.name_placeholder')"
+          :placeholder="t('groups.settings.general.appearance.name_placeholder')"
           type="text"
           autocomplete="off"
           @input="clearError"

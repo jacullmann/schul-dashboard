@@ -44,7 +44,7 @@ async function fetchPermissions() {
       };
     }
   } catch (err) {
-    toast.error(t('admin.permissions.errors.load_failed'));
+    toast.error(t('groups.settings.permissions.errors.load_failed'));
   } finally {
     loading.value = false;
   }
@@ -62,14 +62,14 @@ async function savePermission(key: string, value: string) {
       permissions: permissions.value,
     });
     if (data.ok) {
-      toast.success(t('admin.permissions.errors.update_success'));
+      toast.success(t('groups.settings.permissions.errors.update_success'));
       await checkAuthStatus();
     } else {
       throw new Error();
     }
   } catch (err) {
     permissions.value[key] = originalValue;
-    toast.error(t('admin.permissions.errors.save_failed'));
+    toast.error(t('groups.settings.permissions.errors.save_failed'));
   } finally {
     saving.value = false;
   }
@@ -83,14 +83,14 @@ onMounted(() => {
 <template>
   <div class="animate-fade-up">
     <PageHeader>
-      {{ t('admin.permissions.title') }}
+      {{ t('groups.settings.permissions.title') }}
 
       <template #info>
         <InfoModal
-          tooltip="t('admin.permissions.info.tooltip')"
-          title="t('admin.permissions.title')"
+          tooltip="t('groups.settings.permissions.info.tooltip')"
+          title="t('groups.settings.permissions.title')"
         >
-          <h3>{{ t('admin.permissions.info.headline') }}</h3>
+          <h3>{{ t('groups.settings.permissions.info.headline') }}</h3>
         </InfoModal>
       </template>
     </PageHeader>
@@ -98,7 +98,7 @@ onMounted(() => {
     <div v-if="loading" class="flex flex-col justify-center items-center py-10">
       <BaseSpinner size="32px" />
       <span class="text-sm text-on-ghost-muted mt-2">{{
-        t('admin.permissions.list.loading')
+        t('groups.settings.permissions.list.loading')
       }}</span>
     </div>
 
@@ -114,14 +114,14 @@ onMounted(() => {
         v-if="!isAdmin"
         class="text-xs text-warning bg-warning/10 border border-warning/20 p-3 rounded-lg mb-2"
       >
-        {{ t('admin.permissions.list.admin_only_warning') }}
+        {{ t('groups.settings.permissions.list.admin_only_warning') }}
       </div>
 
-      <h3>{{ t('admin.permissions.categories.general') }}</h3>
+      <h3>{{ t('groups.settings.permissions.categories.general') }}</h3>
 
       <BaseRow justify="between" class="flex-nowrap!">
         <div class="text-base text-on-ghost">
-          {{ t('admin.permissions.items.edit_group_general') }}
+          {{ t('groups.settings.permissions.items.edit_group_general') }}
         </div>
 
         <BaseSelect
@@ -129,12 +129,12 @@ onMounted(() => {
           :model-value="permissions.edit_group_general"
           :disabled="!isAdmin || saving"
           :options="[
-            { label: t('admin.permissions.options.all'), value: 'user' },
+            { label: t('groups.settings.permissions.options.all'), value: 'user' },
             {
-              label: t('admin.permissions.options.moderators'),
+              label: t('groups.settings.permissions.options.moderators'),
               value: 'moderator',
             },
-            { label: t('admin.permissions.options.admins'), value: 'admin' },
+            { label: t('groups.settings.permissions.options.admins'), value: 'admin' },
           ]"
           classes="w-38!"
           @update:model-value="savePermission('edit_group_general', $event)"
@@ -143,7 +143,7 @@ onMounted(() => {
 
       <BaseRow justify="between" class="flex-nowrap!">
         <div class="text-base text-on-ghost">
-          {{ t('admin.permissions.items.invite_members') }}
+          {{ t('groups.settings.permissions.items.invite_members') }}
         </div>
 
         <BaseSelect
@@ -151,12 +151,12 @@ onMounted(() => {
           :model-value="permissions.invite_members"
           :disabled="!isAdmin || saving"
           :options="[
-            { label: t('admin.permissions.options.all'), value: 'user' },
+            { label: t('groups.settings.permissions.options.all'), value: 'user' },
             {
-              label: t('admin.permissions.options.moderators'),
+              label: t('groups.settings.permissions.options.moderators'),
               value: 'moderator',
             },
-            { label: t('admin.permissions.options.admins'), value: 'admin' },
+            { label: t('groups.settings.permissions.options.admins'), value: 'admin' },
           ]"
           classes="w-38!"
           @update:model-value="savePermission('invite_members', $event)"
@@ -165,7 +165,7 @@ onMounted(() => {
 
       <BaseRow justify="between" class="flex-nowrap!">
         <div class="text-base text-on-ghost">
-          {{ t('admin.permissions.items.edit_subjects_courses') }}
+          {{ t('groups.settings.permissions.items.edit_subjects_courses') }}
         </div>
 
         <BaseSelect
@@ -183,7 +183,7 @@ onMounted(() => {
 
       <BaseRow justify="between" class="flex-nowrap!">
         <div class="text-base text-on-ghost">
-          {{ t('admin.permissions.items.edit_schedule') }}
+          {{ t('groups.settings.permissions.items.edit_schedule') }}
         </div>
 
         <BaseSelect
@@ -199,11 +199,11 @@ onMounted(() => {
         />
       </BaseRow>
 
-      <h3>{{ t('admin.permissions.categories.tasks') }}</h3>
+      <h3>{{ t('groups.settings.permissions.categories.tasks') }}</h3>
 
       <BaseRow justify="between" class="flex-nowrap!">
         <div class="text-base text-on-ghost">
-          {{ t('admin.permissions.items.create_items') }}
+          {{ t('groups.settings.permissions.items.create_items') }}
         </div>
 
         <BaseSelect
@@ -222,7 +222,7 @@ onMounted(() => {
 
       <BaseRow justify="between" class="flex-nowrap!">
         <div class="text-base text-on-ghost">
-          {{ t('admin.permissions.items.upload_images') }}
+          {{ t('groups.settings.permissions.items.upload_images') }}
         </div>
 
         <BaseSelect
@@ -241,7 +241,7 @@ onMounted(() => {
 
       <BaseRow justify="between" class="flex-nowrap!">
         <div class="text-base text-on-ghost">
-          {{ t('admin.permissions.items.manage_notes') }}
+          {{ t('groups.settings.permissions.items.manage_notes') }}
         </div>
 
         <BaseSelect
@@ -258,11 +258,11 @@ onMounted(() => {
         />
       </BaseRow>
 
-      <h3>{{ t('admin.permissions.categories.chat') }}</h3>
+      <h3>{{ t('groups.settings.permissions.categories.chat') }}</h3>
 
       <BaseRow justify="between" class="flex-nowrap!">
         <div class="text-base text-on-ghost">
-          {{ t('admin.permissions.items.send_messages') }}
+          {{ t('groups.settings.permissions.items.send_messages') }}
         </div>
 
         <BaseSelect
@@ -279,11 +279,11 @@ onMounted(() => {
         />
       </BaseRow>
 
-      <h3>{{ t('admin.permissions.categories.info') }}</h3>
+      <h3>{{ t('groups.settings.permissions.categories.info') }}</h3>
 
       <BaseRow justify="between" class="flex-nowrap!">
         <div class="text-base text-on-ghost hyphens-auto">
-          {{ t('admin.permissions.items.manage_schedule_changes') }}
+          {{ t('groups.settings.permissions.items.manage_schedule_changes') }}
         </div>
 
         <BaseSelect
@@ -304,7 +304,7 @@ onMounted(() => {
 
       <BaseRow justify="between" class="flex-nowrap!">
         <div class="text-base text-on-ghost">
-          {{ t('admin.permissions.items.manage_announcements') }}
+          {{ t('groups.settings.permissions.items.manage_announcements') }}
         </div>
 
         <BaseSelect
@@ -320,11 +320,11 @@ onMounted(() => {
         />
       </BaseRow>
 
-      <h3>{{ t('admin.permissions.categories.moderation') }}</h3>
+      <h3>{{ t('groups.settings.permissions.categories.moderation') }}</h3>
 
       <BaseRow justify="between" class="flex-nowrap!">
         <div class="text-base text-on-ghost">
-          {{ t('admin.permissions.items.moderate_members') }}
+          {{ t('groups.settings.permissions.items.moderate_members') }}
         </div>
 
         <BaseSelect
@@ -342,7 +342,7 @@ onMounted(() => {
 
       <BaseRow justify="between" class="flex-nowrap!">
         <div class="text-base text-on-ghost">
-          {{ t('admin.permissions.items.delete_other_content') }}
+          {{ t('groups.settings.permissions.items.delete_other_content') }}
         </div>
 
         <BaseSelect

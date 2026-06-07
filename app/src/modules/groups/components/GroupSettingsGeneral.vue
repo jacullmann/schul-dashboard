@@ -91,7 +91,7 @@ function onFileSelected(e: Event) {
   if (!file) return;
 
   if (!file.type.startsWith('image/')) {
-    avatarError.value = t('admin.general.avatar.errors.invalid_file');
+    avatarError.value = t('groups.settings.general.avatar.errors.invalid_file');
     return;
   }
 
@@ -103,7 +103,7 @@ function onFileSelected(e: Event) {
     avatarError.value = '';
   };
   reader.onerror = () => {
-    avatarError.value = t('admin.general.avatar.errors.read_failed');
+    avatarError.value = t('groups.settings.general.avatar.errors.read_failed');
   };
   reader.readAsDataURL(file);
 }
@@ -133,15 +133,15 @@ async function onCropConfirmed(blob: Blob) {
     );
 
     if (!res.ok)
-      throw new Error(t('admin.general.avatar.errors.upload_failed'));
+      throw new Error(t('groups.settings.general.avatar.errors.upload_failed'));
     const json = await res.json();
     if (!json.secure_url)
-      throw new Error(t('admin.general.avatar.errors.invalid_response'));
+      throw new Error(t('groups.settings.general.avatar.errors.invalid_response'));
 
     await saveGroupAvatar(json.secure_url);
   } catch (err: any) {
     avatarError.value =
-      err.message || t('admin.general.avatar.errors.save_failed');
+      err.message || t('groups.settings.general.avatar.errors.save_failed');
   } finally {
     savingAvatar.value = false;
   }
@@ -149,8 +149,8 @@ async function onCropConfirmed(blob: Blob) {
 
 async function deleteAvatar() {
   const isConfirmed = await modalStore.confirm({
-    title: t('admin.general.avatar.delete_modal.title'),
-    content: t('admin.general.avatar.delete_modal.message'),
+    title: t('groups.settings.general.avatar.delete_modal.title'),
+    content: t('groups.settings.general.avatar.delete_modal.message'),
     submitText: t('common.buttons.delete'),
     danger: true,
   });
@@ -163,7 +163,7 @@ async function deleteAvatar() {
     await saveGroupAvatar(null);
   } catch (err: any) {
     avatarError.value =
-      err.message || t('admin.general.avatar.errors.delete_failed');
+      err.message || t('groups.settings.general.avatar.errors.delete_failed');
   } finally {
     savingAvatar.value = false;
   }
@@ -177,8 +177,8 @@ async function confirmDeleteGroup() {
   if (deleteConfirmText.value !== expectedConfirmation) return;
 
   const isConfirmed = await modalStore.confirm({
-    title: t('admin.general.delete_group.modal.title'),
-    content: t('admin.general.delete_group.modal.message'),
+    title: t('groups.settings.general.delete_group.modal.title'),
+    content: t('groups.settings.general.delete_group.modal.message'),
     submitText: t('common.buttons.delete'),
     danger: true,
   });
@@ -202,11 +202,11 @@ async function confirmDeleteGroup() {
       v-if="!canEditSettings"
       class="text-center text-base text-on-ghost-muted"
     >
-      <p class="m-0">{{ t('admin.general.errors.unauthorized') }}</p>
+      <p class="m-0">{{ t('groups.settings.general.errors.unauthorized') }}</p>
     </div>
 
     <div>
-      <PageHeader>{{ t('admin.general.appearance.title') }}</PageHeader>
+      <PageHeader>{{ t('groups.settings.general.appearance.title') }}</PageHeader>
       <div class="flex items-center gap-6">
         <!-- Avatar Preview Circle -->
         <div class="relative flex-shrink-0">
@@ -272,7 +272,7 @@ async function confirmDeleteGroup() {
 
         <div class="flex-1 w-full flex flex-col">
           <BaseLabel for="group-name">{{
-            t('admin.general.appearance.name_label')
+            t('groups.settings.general.appearance.name_label')
           }}</BaseLabel>
           <div v-if="!editingGroupName" class="flex items-center gap-2 h-6">
             <span class="font-semibold text-xl">{{ groupName }}</span>
@@ -295,7 +295,7 @@ async function confirmDeleteGroup() {
                 id="group-name"
                 class="flex-1"
                 :value="newGroupName"
-                :placeholder="t('admin.general.appearance.name_placeholder')"
+                :placeholder="t('groups.settings.general.appearance.name_placeholder')"
                 :disabled="!canEditSettings"
                 @input="
                   emit(
@@ -381,7 +381,7 @@ async function confirmDeleteGroup() {
 
     <div v-if="isOwner">
       <h3 class="text-danger">
-        {{ t('admin.general.delete_group.danger_zone_title') }}
+        {{ t('groups.settings.general.delete_group.danger_zone_title') }}
       </h3>
       <p class="text-base/relaxed text-on-ghost-muted m-0 mb-5">
         Das Löschen der Gruppe ist endgültig und kann nicht rückgängig gemacht
@@ -413,7 +413,7 @@ async function confirmDeleteGroup() {
         </template>
 
         <template #action-text>
-          {{ t('admin.general.delete_group.submit_button') }}
+          {{ t('groups.settings.general.delete_group.submit_button') }}
         </template>
       </BaseForm>
     </div>

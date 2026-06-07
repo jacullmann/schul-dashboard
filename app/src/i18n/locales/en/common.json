@@ -176,22 +176,6 @@
     "location": "Location",
     "title": "Contact"
   },
-  "groups": {
-    "create_group": "Create group",
-    "good_day": "Good day",
-    "good_evening": "Good evening",
-    "good_morning": "Good morning",
-    "good_night": "Good night",
-    "join_group": "Join group",
-    "join_group_text": "Join an existing group or create a new one to get started.",
-    "members": "members",
-    "no_groups": "No groups yet",
-    "title": "Home",
-    "your_groups": "Your groups",
-    "tooltip": {
-      "create_group": "Create group"
-    }
-  },
   "roles": {
     "admin": "Admin",
     "member": "Member",

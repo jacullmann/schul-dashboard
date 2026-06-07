@@ -171,11 +171,11 @@ function handleSaveSub() {
       Stundenplan
       <template #info>
         <InfoModal
-          tooltip="t('admin.schedule.info.tooltip')"
+          tooltip="t('groups.settings.schedule.info.tooltip')"
           title="Stundenplaneinstellungen"
         >
           <h3>
-            {{ t('admin.schedule.config.instruction_text') }}
+            {{ t('groups.settings.schedule.config.instruction_text') }}
           </h3>
         </InfoModal>
       </template>
@@ -204,7 +204,7 @@ function handleSaveSub() {
       </div>
       <div>
         <BaseLabel for="config-duration">{{
-          t('admin.schedule.config.lesson_duration_label')
+          t('groups.settings.schedule.config.lesson_duration_label')
         }}</BaseLabel>
         <BaseInput
           id="config-duration"
@@ -219,14 +219,14 @@ function handleSaveSub() {
 
     <div class="mt-6 mb-4">
       <div class="flex items-center justify-between mb-3">
-        <h3>{{ t('admin.schedule.config.breaks_title') }}</h3>
+        <h3>{{ t('groups.settings.schedule.config.breaks_title') }}</h3>
         <BaseButton
           v-if="canEditScheduleConfig"
           variant="ghost"
           :icon="Plus"
           @click="addBreak"
         >
-          {{ t('admin.schedule.config.add_break_button') }}
+          {{ t('groups.settings.schedule.config.add_break_button') }}
         </BaseButton>
       </div>
 
@@ -234,7 +234,7 @@ function handleSaveSub() {
         v-if="configForm.breaks.length === 0"
         class="text-center p-4 text-on-ghost-muted text-base"
       >
-        {{ t('admin.schedule.config.no_breaks') }}
+        {{ t('groups.settings.schedule.config.no_breaks') }}
       </div>
 
       <div class="flex flex-col gap-2">
@@ -245,7 +245,7 @@ function handleSaveSub() {
         >
           <div class="form-field flex-1 m-0">
             <BaseLabel :for="`break-slot-${brk.id}`">{{
-              t('admin.schedule.config.after_lesson_label')
+              t('groups.settings.schedule.config.after_lesson_label')
             }}</BaseLabel>
             <BaseInput
               :id="`break-slot-${brk.id}`"
@@ -258,7 +258,7 @@ function handleSaveSub() {
           </div>
           <div class="form-field flex-1 m-0">
             <BaseLabel :for="`break-dur-${brk.id}`">{{
-              t('admin.schedule.config.break_duration_label')
+              t('groups.settings.schedule.config.break_duration_label')
             }}</BaseLabel>
             <BaseInput
               :id="`break-dur-${brk.id}`"
@@ -288,29 +288,29 @@ function handleSaveSub() {
         {{
           savingScheduleConfig
             ? t('common.buttons.saving')
-            : t('admin.schedule.config.save_button')
+            : t('groups.settings.schedule.config.save_button')
         }}
       </BaseButton>
     </div>
     <div class="mt-8 border-t border-surface-border pt-6">
       <PageHeader>
-        {{ t('admin.schedule.changes.title') }}
+        {{ t('groups.settings.schedule.changes.title') }}
 
         <template #info>
           <InfoModal
-            tooltip="t('admin.schedule.changes.tooltip')"
-            title="t('admin.schedule.changes.title')"
+            tooltip="t('groups.settings.schedule.changes.tooltip')"
+            title="t('groups.settings.schedule.changes.title')"
           >
-            <h3>{{ t('admin.schedule.changes.headline') }}</h3>
+            <h3>{{ t('groups.settings.schedule.changes.headline') }}</h3>
 
-            <h3>{{ t('admin.schedule.changes.select_lessons') }}</h3>
+            <h3>{{ t('groups.settings.schedule.changes.select_lessons') }}</h3>
             <p>
-              {{ t('admin.schedule.changes.select_instruction') }}
+              {{ t('groups.settings.schedule.changes.select_instruction') }}
             </p>
 
-            <h3>{{ t('admin.schedule.changes.submit_changes') }}</h3>
+            <h3>{{ t('groups.settings.schedule.changes.submit_changes') }}</h3>
             <p>
-              {{ t('admin.schedule.changes.submit_instruction') }}
+              {{ t('groups.settings.schedule.changes.submit_instruction') }}
             </p>
           </InfoModal>
         </template>
@@ -328,31 +328,31 @@ function handleSaveSub() {
       </PageHeader>
 
       <h3 v-if="!selectedLesson" class="text-on-ghost-muted mb-6">
-        {{ t('admin.schedule.changes.select_lesson_warning') }}
+        {{ t('groups.settings.schedule.changes.select_lesson_warning') }}
       </h3>
 
       <div v-if="selectedLesson">
         <h3 class="mt-0 mb-2 text-lg">
-          {{ t('admin.schedule.changes.selected_lesson') }}
+          {{ t('groups.settings.schedule.changes.selected_lesson') }}
         </h3>
         <p class="m-0 mb-4 text-on-ghost-muted text-base">
-          {{ t('admin.schedule.changes.replaces_prefix') }}
+          {{ t('groups.settings.schedule.changes.replaces_prefix') }}
           <strong>{{ getDisplayName(selectedLesson) }}</strong> ({{
-            t('admin.schedule.changes.lesson_label')
+            t('groups.settings.schedule.changes.lesson_label')
           }}
           {{ selectedLesson.slot }},
-          {{ t('admin.schedule.changes.last_lesson_label') }}
+          {{ t('groups.settings.schedule.changes.last_lesson_label') }}
           {{ selectedLesson.slot + selectedLesson.duration - 1 }},
-          {{ t('admin.schedule.changes.room_label') }}
+          {{ t('groups.settings.schedule.changes.room_label') }}
           {{ selectedLesson.room || '-' }},
-          {{ t('admin.schedule.changes.day_label') }} {{ selectedLesson.day }})
+          {{ t('groups.settings.schedule.changes.day_label') }} {{ selectedLesson.day }})
         </p>
 
         <div class="grid grid-cols-2 gap-3 mb-4 sm:grid-cols-1">
           <input v-model="subForm.lessonId" type="hidden" />
           <div class="form-field">
             <BaseLabel for="sub-subject">{{
-              t('admin.schedule.changes.new_subject_label')
+              t('groups.settings.schedule.changes.new_subject_label')
             }}</BaseLabel>
             <BaseInput
               id="sub-subject"
@@ -363,7 +363,7 @@ function handleSaveSub() {
           </div>
           <div class="form-field">
             <BaseLabel for="sub-room">{{
-              t('admin.schedule.changes.new_room_label')
+              t('groups.settings.schedule.changes.new_room_label')
             }}</BaseLabel>
             <BaseInput
               id="sub-room"
@@ -374,7 +374,7 @@ function handleSaveSub() {
           </div>
           <div class="form-field">
             <BaseLabel for="sub-slot">{{
-              t('admin.schedule.changes.new_slot_label')
+              t('groups.settings.schedule.changes.new_slot_label')
             }}</BaseLabel>
             <BaseInput
               id="sub-slot"
@@ -386,7 +386,7 @@ function handleSaveSub() {
           </div>
           <div class="form-field">
             <BaseLabel for="sub-duration">{{
-              t('admin.schedule.changes.new_duration_label')
+              t('groups.settings.schedule.changes.new_duration_label')
             }}</BaseLabel>
             <BaseInput
               id="sub-duration"
@@ -399,7 +399,7 @@ function handleSaveSub() {
           </div>
           <div class="form-field">
             <BaseLabel for="sub-day">{{
-              t('admin.schedule.changes.new_day_label')
+              t('groups.settings.schedule.changes.new_day_label')
             }}</BaseLabel>
             <BaseInput
               id="sub-day"
@@ -418,13 +418,13 @@ function handleSaveSub() {
             v-model="subForm.cancelled"
             :disabled="!canManageScheduleChanges"
           >
-            <span>{{ t('admin.schedule.changes.cancelled_label') }}</span>
+            <span>{{ t('groups.settings.schedule.changes.cancelled_label') }}</span>
           </BaseCheckbox>
           <BaseCheckbox
             v-model="subForm.hide"
             :disabled="!canManageScheduleChanges"
           >
-            <span>{{ t('admin.schedule.changes.hide_label') }}</span>
+            <span>{{ t('groups.settings.schedule.changes.hide_label') }}</span>
           </BaseCheckbox>
         </div>
 
@@ -442,7 +442,7 @@ function handleSaveSub() {
       </div>
 
       <h3 class="p-5 pb-0 text-lg">
-        {{ t('admin.schedule.changes.select_lesson_slot') }}
+        {{ t('groups.settings.schedule.changes.select_lesson_slot') }}
       </h3>
       <div
         v-if="loadingLessons"
@@ -462,7 +462,7 @@ function handleSaveSub() {
         v-if="subs.length === 0 && !loadingSubs"
         class="text-center p-8 text-on-ghost-muted text-base"
       >
-        {{ t('admin.schedule.changes.no_changes') }}
+        {{ t('groups.settings.schedule.changes.no_changes') }}
       </div>
       <div v-else class="flex flex-col gap-1.5">
         <div

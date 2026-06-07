@@ -118,23 +118,23 @@ function confirmRemove() {
 <template>
   <div class="animate-fade-up">
     <PageHeader>
-      {{ t('admin.members.title') }}
+      {{ t('groups.settings.members.title') }}
 
       <template #info>
         <InfoModal
-          tooltip="t('admin.members.info.tooltip')"
-          title="t('admin.members.title')"
+          tooltip="t('groups.settings.members.info.tooltip')"
+          title="t('groups.settings.members.title')"
         >
-          <h3>{{ t('admin.members.info.headline') }}</h3>
+          <h3>{{ t('groups.settings.members.info.headline') }}</h3>
 
-          <h3>{{ t('admin.members.info.list_title') }}</h3>
-          <p>{{ t('admin.members.info.list_text') }}</p>
+          <h3>{{ t('groups.settings.members.info.list_title') }}</h3>
+          <p>{{ t('groups.settings.members.info.list_text') }}</p>
 
-          <h3>{{ t('admin.members.info.role_title') }}</h3>
-          <p>{{ t('admin.members.info.role_text') }}</p>
+          <h3>{{ t('groups.settings.members.info.role_title') }}</h3>
+          <p>{{ t('groups.settings.members.info.role_text') }}</p>
 
-          <h3>{{ t('admin.members.info.remove_title') }}</h3>
-          <p>{{ t('admin.members.info.remove_text') }}</p>
+          <h3>{{ t('groups.settings.members.info.remove_title') }}</h3>
+          <p>{{ t('groups.settings.members.info.remove_text') }}</p>
         </InfoModal>
       </template>
 
@@ -157,7 +157,7 @@ function confirmRemove() {
       v-else-if="members.length === 0"
       class="text-center p-8 text-on-ghost-muted text-base"
     >
-      {{ t('admin.members.list.empty') }}
+      {{ t('groups.settings.members.list.empty') }}
     </div>
 
     <div v-else class="flex flex-col gap-1.5">
@@ -176,7 +176,7 @@ function confirmRemove() {
             >{{ member.generatedName }}</span
           >
           <span class="text-on-ghost-muted text-sm">{{
-            t('admin.members.joined', {
+            t('groups.settings.members.joined', {
               time: formatRelativeTime(member.joinedAt),
             })
           }}</span>
@@ -184,7 +184,7 @@ function confirmRemove() {
         <div class="flex items-center gap-2 flex-shrink-0">
           <BaseTooltip
             v-if="isOwner && member.role === 'admin'"
-            :content="t('admin.members.actions.transfer_ownership')"
+            :content="t('groups.settings.members.actions.transfer_ownership')"
             placement="bottom"
           >
             <BaseButton
@@ -194,7 +194,7 @@ function confirmRemove() {
             />
           </BaseTooltip>
           <BaseTooltip
-            :content="t('admin.members.actions.remove')"
+            :content="t('groups.settings.members.actions.remove')"
             placement="bottom"
           >
             <BaseButton
@@ -225,7 +225,7 @@ function confirmRemove() {
     </div>
 
     <PageHeader class="mt-8">
-      {{ t('admin.members.ban_list.title') }}
+      {{ t('groups.settings.members.ban_list.title') }}
     </PageHeader>
 
     <div
@@ -238,7 +238,7 @@ function confirmRemove() {
       v-else-if="!bannedUsers || bannedUsers.length === 0"
       class="text-center p-8 text-on-ghost-muted text-base"
     >
-      {{ t('admin.members.ban_list.empty') }}
+      {{ t('groups.settings.members.ban_list.empty') }}
     </div>
     <div v-else class="flex flex-col gap-1.5">
       <div
@@ -257,7 +257,7 @@ function confirmRemove() {
           >
           <span
             class="text-[0.7rem] font-semibold uppercase tracking-[0.04em] text-on-ghost-muted"
-            >{{ t('admin.members.ban_list.banned_on_prefix')
+            >{{ t('groups.settings.members.ban_list.banned_on_prefix')
             }}{{ new Date(user.bannedAt).toLocaleDateString('de-DE') }}</span
           >
         </div>
@@ -267,7 +267,7 @@ function confirmRemove() {
             variant="ghost"
             @click="emit('revert-ban', user.userId)"
           >
-            {{ t('admin.members.ban_list.actions.unban') }}
+            {{ t('groups.settings.members.ban_list.actions.unban') }}
           </BaseButton>
         </div>
       </div>
@@ -279,27 +279,27 @@ function confirmRemove() {
       :submit="confirmRemove"
       @cancel="closeRemoveModal"
     >
-      <template #title>{{ t('admin.members.remove_modal.title') }}</template>
+      <template #title>{{ t('groups.settings.members.remove_modal.title') }}</template>
 
       <template #content>
         <p class="m-0!">
-          {{ t('admin.members.remove_modal.confirm_prefix')
-          }}<strong>{{ removeModal.userName }}</strong>{{ t('admin.members.remove_modal.confirm_suffix') }}
+          {{ t('groups.settings.members.remove_modal.confirm_prefix')
+          }}<strong>{{ removeModal.userName }}</strong>{{ t('groups.settings.members.remove_modal.confirm_suffix') }}
         </p>
         <p class="m-0!">
-          {{ t('admin.members.remove_modal.rejoin_info') }}
+          {{ t('groups.settings.members.remove_modal.rejoin_info') }}
         </p>
 
         <BaseCheckbox v-model="removeModal.ban"
-          >{{ t('admin.members.remove_modal.ban_checkbox_prefix')
+          >{{ t('groups.settings.members.remove_modal.ban_checkbox_prefix')
           }}<strong>{{ removeModal.userName }}</strong>{{
-            t('admin.members.remove_modal.ban_checkbox_suffix')
+            t('groups.settings.members.remove_modal.ban_checkbox_suffix')
           }}</BaseCheckbox
         >
       </template>
 
       <template #action-text>
-        {{ t('admin.members.remove_modal.submit_button') }}
+        {{ t('groups.settings.members.remove_modal.submit_button') }}
       </template>
     </BaseModal>
   </div>

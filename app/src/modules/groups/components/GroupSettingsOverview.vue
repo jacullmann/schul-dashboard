@@ -24,7 +24,7 @@ const emit = defineEmits<{
           stats?.itemCount ?? '–'
         }}</span>
         <span class="text-sm text-on-ghost-muted">{{
-          t('admin.overview.stats.active_entries')
+          t('groups.settings.overview.stats.active_entries')
         }}</span>
       </div>
       <div
@@ -34,7 +34,7 @@ const emit = defineEmits<{
           stats?.memberCount ?? '–'
         }}</span>
         <span class="text-sm text-on-ghost-muted">{{
-          t('admin.overview.stats.members')
+          t('groups.settings.overview.stats.members')
         }}</span>
       </div>
       <div
@@ -44,7 +44,7 @@ const emit = defineEmits<{
           stats?.subsCount ?? '–'
         }}</span>
         <span class="text-sm text-on-ghost-muted">{{
-          t('admin.overview.stats.schedule_changes')
+          t('groups.settings.overview.stats.schedule_changes')
         }}</span>
       </div>
       <div
@@ -57,7 +57,7 @@ const emit = defineEmits<{
           stats?.oldItemsCount ?? '–'
         }}</span>
         <span class="text-sm text-on-ghost-muted">{{
-          t('admin.overview.stats.old_entries')
+          t('groups.settings.overview.stats.old_entries')
         }}</span>
       </div>
     </div>
@@ -81,7 +81,7 @@ const emit = defineEmits<{
           {{
             cleaningUp
               ? t('common.buttons.deleting')
-              : t('admin.overview.cleanup.action_button')
+              : t('groups.settings.overview.cleanup.action_button')
           }}
         </BaseButton>
       </BaseRow>

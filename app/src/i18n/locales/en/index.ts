@@ -2,7 +2,7 @@ import auth from './auth.json';
 import schedule from './schedule.json';
 import common from './common.json';
 import chat from './chat.json';
-import admin from './admin.json';
+import groups from './groups.json';
 import announcements from './announcements.json';
 import games from './games.json';
 import infodashboard from './infodashboard.json';
@@ -19,7 +19,7 @@ export default {
   schedule,
   common,
   chat,
-  admin,
+  groups,
   announcements,
   games,
   infodashboard,

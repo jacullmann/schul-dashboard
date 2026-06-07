@@ -90,7 +90,7 @@ async function regenerate() {
       currentToken.value = res.token;
       copied.value = false;
       modalStore.inviteModalToken = res.token;
-      toast.success(t('admin.permissions.errors.update_success'));
+      toast.success(t('groups.settings.permissions.errors.update_success'));
     } else {
       toast.error(res.error || 'Failed to regenerate invite link');
     }

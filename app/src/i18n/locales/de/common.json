@@ -180,24 +180,6 @@
     "location": "Standort",
     "title": "Kontakt"
   },
-  "groups": {
-    "create_group": "Gruppe erstellen",
-    "good_day": "Guten Tag",
-    "good_evening": "Guten Abend",
-    "good_morning": "Guten Morgen",
-    "good_night": "Gute Nacht",
-    "join_group": "Gruppe beitreten",
-    "join_group_text": "Tritt einer bestehenden Gruppe bei oder erstelle eine neue, um loszulegen.",
-    "members": "Mitglieder",
-    "no_groups": "Noch keine Gruppen",
-    "title": "Start",
-    "your_groups": "Deine Gruppen",
-    "choose_group_prompt": "Wähle eine Gruppe aus, um loszulegen.",
-    "join_or_create_prompt": "Tritt einer Gruppe bei oder erstelle eine neue.",
-    "tooltip": {
-      "create_group": "Gruppe erstellen"
-    }
-  },
   "roles": {
     "admin": "Admin",
     "member": "Mitglied",

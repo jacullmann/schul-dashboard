@@ -1,0 +1,254 @@
+{
+  "list": {
+    "create_group": "Create group",
+    "good_day": "Good day",
+    "good_evening": "Good evening",
+    "good_morning": "Good morning",
+    "good_night": "Good night",
+    "join_group": "Join group",
+    "join_group_text": "Join an existing group or create a new one to get started.",
+    "members": "members",
+    "no_groups": "No groups yet",
+    "title": "Home",
+    "your_groups": "Your groups",
+    "choose_group_prompt": "Select a group to get started.",
+    "join_or_create_prompt": "Join a group or create a new one.",
+    "tooltip": {
+      "create_group": "Create group"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "tasks_overview": {
+      "title": "Tasks",
+      "last_edited": "Last edited",
+      "no_tasks": "No upcoming tasks in the next 2 days.",
+      "view_all": "View all tasks",
+      "due_today": "Due today",
+      "due_tomorrow": "Due tomorrow"
+    },
+    "schedule_overview": {
+      "title": "Schedule",
+      "next_lesson": "Next Lesson",
+      "no_more_lessons": "No more lessons for this week.",
+      "substitutions": "Schedule Changes",
+      "no_substitutions": "No schedule changes this week.",
+      "view_full": "View full schedule",
+      "cancelled": "Cancelled",
+      "room_change": "Room change: {room}",
+      "substituted": "Substitution",
+      "setup_cta": "No schedule has been created for this group yet.",
+      "setup_button": "Set Up Schedule"
+    }
+  },
+  "settings": {
+    "general": {
+      "avatar": {
+        "errors": {
+          "invalid_file": "Please select a valid image file.",
+          "read_failed": "Failed to read file.",
+          "upload_failed": "Cloudinary upload failed",
+          "invalid_response": "Invalid response from Cloudinary",
+          "save_failed": "Failed to upload profile picture.",
+          "delete_failed": "Failed to delete profile picture.",
+          "update_success": "Group picture updated",
+          "delete_success": "Group picture deleted"
+        },
+        "delete_modal": {
+          "title": "Delete Group Picture",
+          "message": "Are you sure you want to delete the group profile picture?"
+        },
+        "actions": {
+          "upload": "Upload image",
+          "capture": "Take photo",
+          "delete": "Delete image"
+        }
+      },
+      "password": {
+        "errors": {
+          "mismatch": "Passwords do not match",
+          "generic": "An error occurred"
+        },
+        "title": "Change Password",
+        "current_label": "Current Password",
+        "new_label": "New Password",
+        "confirm_label": "Confirm New Password"
+      },
+      "delete_group": {
+        "modal": {
+          "title": "Delete Group",
+          "message": "Are you sure you want to permanently delete this group?"
+        },
+        "warning_text": "Deleting the group is permanent and cannot be undone. All associated data (tasks, exams, announcements, etc.) will be deleted for all users.",
+        "confirmation_label_prefix": "Please type ",
+        "confirmation_label_suffix": " to proceed:",
+        "submit_button": "Permanently delete group",
+        "danger_zone_title": "Danger Zone"
+      },
+      "errors": {
+        "unauthorized": "You do not have permission to change the settings."
+      },
+      "appearance": {
+        "title": "Appearance",
+        "name_label": "Name",
+        "name_placeholder": "New group name"
+      }
+    },
+    "members": {
+      "joined": "Joined {time}",
+      "title": "Members",
+      "info": {
+        "tooltip": "Overview of the member menu",
+        "headline": "Manage members of your group",
+        "list_title": "Member List",
+        "list_text": "Here you can see a list of all members of your group along with their permissions (Member, Moderator, Admin). To protect user data, an automatically generated alias is displayed. You can change a member's role via the dropdown menu.",
+        "role_title": "Change Roles",
+        "role_text": "If you want to change a user's role to grant or revoke permissions, you can do so via the dropdown menu next to each member.",
+        "remove_title": "Remove Members",
+        "remove_text": "To remove a member from the group, click on the corresponding icon next to the dropdown menu. Admins cannot be removed."
+      },
+      "list": {
+        "empty": "No members found."
+      },
+      "actions": {
+        "transfer_ownership": "Transfer Ownership",
+        "remove": "Remove from group"
+      },
+      "ban_list": {
+        "title": "Banned Users",
+        "empty": "No banned users.",
+        "banned_on_prefix": "Banned on ",
+        "actions": {
+          "unban": "Unban"
+        }
+      },
+      "remove_modal": {
+        "title": "Remove Member",
+        "confirm_prefix": "Are you sure you want to remove ",
+        "confirm_suffix": " from the group?",
+        "rejoin_info": "Users can rejoin at any time if they have the credentials for your group. To block them from doing so, you can ban them.",
+        "ban_checkbox_prefix": "Ban ",
+        "ban_checkbox_suffix": " permanently",
+        "submit_button": "Remove"
+      }
+    },
+    "overview": {
+      "stats": {
+        "active_entries": "Active Entries",
+        "members": "Members",
+        "schedule_changes": "Schedule Changes",
+        "old_entries": "Old Entries (90+ Days)"
+      },
+      "cleanup": {
+        "info": "{count} entries older than 90 days can be deleted.",
+        "action_button": "Clean up"
+      }
+    },
+    "permissions": {
+      "errors": {
+        "load_failed": "Failed to load permissions",
+        "update_success": "Permission successfully updated",
+        "save_failed": "Failed to save permission"
+      },
+      "title": "Permissions",
+      "info": {
+        "tooltip": "Overview of the group permission menu",
+        "headline": "Manage the permissions of group members"
+      },
+      "list": {
+        "loading": "Loading permissions...",
+        "admin_only_warning": "Only group administrators can adjust permissions."
+      },
+      "categories": {
+        "general": "Group Settings",
+        "tasks": "Tasks",
+        "chat": "Chat",
+        "info": "Information",
+        "moderation": "Moderation"
+      },
+      "items": {
+        "edit_group_general": "Edit group picture and name",
+        "invite_members": "Invite members",
+        "edit_subjects_courses": "Edit subject/course list",
+        "edit_schedule": "Edit schedule",
+        "create_items": "Create new entries",
+        "upload_images": "Upload images",
+        "manage_notes": "Add, edit, and delete notes",
+        "send_messages": "Send messages",
+        "manage_schedule_changes": "Add and delete schedule changes",
+        "manage_announcements": "Add and delete announcements",
+        "moderate_members": "Remove and ban/unban members",
+        "delete_other_content": "Delete entries, images, and messages from users"
+      },
+      "options": {
+        "all": "All",
+        "moderators": "Moderators",
+        "admins": "Admins"
+      }
+    },
+    "schedule": {
+      "info": {
+        "tooltip": "Overview of schedule settings"
+      },
+      "config": {
+        "lesson_duration_label": "Lesson Duration (minutes)",
+        "after_lesson_label": "After lesson",
+        "save_button": "Save settings",
+        "instruction_text": "Configure global settings for the schedule (times, breaks).",
+        "add_break_button": "Add break",
+        "start_time_label": "Start time",
+        "slots_per_day_label": "Lessons per day",
+        "breaks_title": "Breaks",
+        "no_breaks": "No breaks configured.",
+        "break_duration_label": "Duration (minutes)"
+      },
+      "changes": {
+        "tooltip": "Overview of the schedule changes menu",
+        "title": "Schedule Changes",
+        "headline": "Enter changes live and clearly",
+        "select_lessons": "Select Lessons",
+        "submit_changes": "Submit changes",
+        "selected_lesson": "Selected Lesson",
+        "new_subject_label": "New Subject",
+        "select_lesson_slot": "Select lesson",
+        "select_instruction": "Click on the lessons in the schedule view that you want to change.",
+        "submit_instruction": "Enter the new data in the appropriate text fields. If a value should remain the same, you can leave the field blank. With the corresponding checkboxes, you can also mark lessons as cancelled or hide them completely.",
+        "select_lesson_warning": "Please select a lesson from the schedule.",
+        "new_room_label": "New Room",
+        "new_slot_label": "New Lesson",
+        "new_duration_label": "New Duration",
+        "new_day_label": "New Day (1 = Mon, 5 = Fri)",
+        "cancelled_label": "Cancelled",
+        "hide_label": "Hide",
+        "hidden_label": "Hidden",
+        "no_changes": "No schedule changes present.",
+        "replaces_prefix": "Replaces:",
+        "lesson_label": "Lesson:",
+        "last_lesson_label": "Last Lesson:",
+        "room_label": "Room:",
+        "day_label": "Day:"
+      }
+    },
+    "subjects": {
+      "add_placeholder": "Add new subject...",
+      "errors": {
+        "load_failed": "Failed to load subjects",
+        "create_success": "Subject created",
+        "create_failed": "Failed to create",
+        "update_success": "Subject updated",
+        "update_failed": "Failed to update",
+        "delete_success": "Subject deleted",
+        "delete_failed": "Failed to delete"
+      },
+      "delete_modal": {
+        "title": "Delete this subject?",
+        "message": "Really delete subject? If it is still referenced, suggest deactivating it instead."
+      },
+      "title": "Subjects",
+      "rename": "Rename",
+      "list": {
+        "empty": "No subjects available."
+      }
+    }
+  }
+}
