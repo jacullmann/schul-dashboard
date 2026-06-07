@@ -86,8 +86,10 @@ const bubbleBorderClasses = computed(() => {
           ? 'rounded-tl-xl rounded-tr-sm'
           : 'rounded-tr-sm'
       : p
-        ? ' rounded-tl-2xl'
-        : ' rounded-tl-sm'
+        ? r
+          ? 'rounded-t-xl'
+          : 'rounded-tl-2xl'
+        : 'rounded-tl-sm'
   }`;
 });
 
