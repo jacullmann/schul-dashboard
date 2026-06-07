@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RefreshCw, UserRoundMinus, Crown } from '@lucide/vue';
+import { RefreshCw, CircleMinus, Crown } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import InfoModal from '@/common/components/InfoModal.vue';
 import type { GroupMember } from '@/modules/groups/types';
@@ -200,7 +200,7 @@ function confirmRemove() {
             <BaseButton
               variant="ghost"
               :disabled="member.role === 'admin' || !canModerateMembers"
-              :icon="UserRoundMinus"
+              :icon="CircleMinus"
               @click="openRemoveModal(member.userId, member.generatedName)"
             />
           </BaseTooltip>

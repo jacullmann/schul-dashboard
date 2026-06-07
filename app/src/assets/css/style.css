@@ -50,6 +50,8 @@
   --color-action-disabled: var(--color-ash);
   --color-on-action-disabled: var(--color-graphite);
 
+  --color-accent: var(--color-blue-600);
+
   --color-danger: var(--color-cinnabar);
   --color-on-danger: var(--color-white);
   --color-on-danger-muted: var(--color-cotton-candy);
@@ -201,6 +203,8 @@
     --color-on-action-muted: var(--color-graphite);
     --color-action-disabled: var(--color-ash);
     --color-on-action-disabled: var(--color-graphite);
+
+    --color-accent: var(--color-blue-500);
 
     --color-danger: var(--color-coral);
     --color-on-danger: var(--color-white);
