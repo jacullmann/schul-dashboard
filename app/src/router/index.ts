@@ -67,7 +67,7 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'groups',
         name: 'groups',
-        component: () => import('@/core/pages/Groups.vue'),
+        component: () => import('@/modules/groups/pages/Groups.vue'),
         meta: { title: 'navigation.home' },
       },
 
@@ -81,7 +81,7 @@ const routes: RouteRecordRaw[] = [
           {
             path: 'dashboard',
             name: 'group-dashboard',
-            component: () => import('@/core/pages/Dashboard.vue'),
+            component: () => import('@/modules/groups/pages/Dashboard.vue'),
             props: true,
             meta: {
               title: 'tasks.list.title',
@@ -123,7 +123,7 @@ const routes: RouteRecordRaw[] = [
           {
             path: 'settings/:tab?',
             name: 'group-admin',
-            component: () => import('@/modules/admin/pages/GroupSettings.vue'),
+            component: () => import('@/modules/groups/pages/GroupSettings.vue'),
             meta: {
               title: 'navigation.group_admin',
               requiresTenant: true,

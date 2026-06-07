@@ -2,8 +2,8 @@
 import { ref, computed, watch } from 'vue';
 import { RefreshCw, Trash2, Plus } from '@lucide/vue';
 import InfoModal from '@/common/components/InfoModal.vue';
-import AdminSchedule from '@/modules/admin/components/AdminSchedule.vue';
-import type { ScheduleSubstitution } from '@/modules/admin/types';
+import AdminSchedule from '@/modules/groups/components/AdminSchedule.vue';
+import type { ScheduleSubstitution } from '@/modules/groups/types';
 import type { Lesson } from '@/modules/schedule/types';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useUserStore } from '@/stores/userStore';

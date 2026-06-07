@@ -2,7 +2,7 @@
 import { RefreshCw, UserRoundMinus, Crown } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import InfoModal from '@/common/components/InfoModal.vue';
-import type { GroupMember } from '@/modules/admin/types';
+import type { GroupMember } from '@/modules/groups/types';
 import { computed, ref } from 'vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 
@@ -284,8 +284,7 @@ function confirmRemove() {
       <template #content>
         <p class="m-0!">
           {{ t('admin.members.remove_modal.confirm_prefix')
-          }}<strong>{{ removeModal.userName }}</strong
-          >{{ t('admin.members.remove_modal.confirm_suffix') }}
+          }}<strong>{{ removeModal.userName }}</strong>{{ t('admin.members.remove_modal.confirm_suffix') }}
         </p>
         <p class="m-0!">
           {{ t('admin.members.remove_modal.rejoin_info') }}
@@ -293,8 +292,7 @@ function confirmRemove() {
 
         <BaseCheckbox v-model="removeModal.ban"
           >{{ t('admin.members.remove_modal.ban_checkbox_prefix')
-          }}<strong>{{ removeModal.userName }}</strong
-          >{{
+          }}<strong>{{ removeModal.userName }}</strong>{{
             t('admin.members.remove_modal.ban_checkbox_suffix')
           }}</BaseCheckbox
         >

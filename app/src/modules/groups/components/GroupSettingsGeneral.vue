@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
-import { useGroupAdmin } from '@/modules/admin/composables/useGroupAdmin';
+import { useGroupAdmin } from '@/modules/groups/composables/useGroupAdmin';
 import { Pencil, Camera, Trash2, Upload, UserRoundPlus } from '@lucide/vue';
 import { useModalStore } from '@/stores/modalStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';

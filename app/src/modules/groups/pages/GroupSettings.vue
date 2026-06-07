@@ -11,18 +11,18 @@ import {
   SlidersHorizontal,
   ArrowLeft,
 } from '@lucide/vue';
-import { useGroupAdmin } from '@/modules/admin/composables/useGroupAdmin';
+import { useGroupAdmin } from '@/modules/groups/composables/useGroupAdmin';
 import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { type AdminNavItem } from '@/layouts/AdminLayout.vue';
 
-import GroupSettingsOverview from '@/modules/admin/components/GroupSettingsOverview.vue';
-import GroupSettingsMembers from '@/modules/admin/components/GroupSettingsMembers.vue';
-import GroupSettingsPermissions from '@/modules/admin/components/GroupSettingsPermissions.vue';
-import GroupSettingsSchedule from '@/modules/admin/components/GroupSettingsSchedule.vue';
-import GroupSettingsAnnouncements from '@/modules/admin/components/GroupSettingsAnnouncements.vue';
-import GroupSettingsSubjects from '@/modules/admin/components/GroupSettingsSubjects.vue';
-import GroupSettingsGeneral from '@/modules/admin/components/GroupSettingsGeneral.vue';
+import GroupSettingsOverview from '@/modules/groups/components/GroupSettingsOverview.vue';
+import GroupSettingsMembers from '@/modules/groups/components/GroupSettingsMembers.vue';
+import GroupSettingsPermissions from '@/modules/groups/components/GroupSettingsPermissions.vue';
+import GroupSettingsSchedule from '@/modules/groups/components/GroupSettingsSchedule.vue';
+import GroupSettingsAnnouncements from '@/modules/groups/components/GroupSettingsAnnouncements.vue';
+import GroupSettingsSubjects from '@/modules/groups/components/GroupSettingsSubjects.vue';
+import GroupSettingsGeneral from '@/modules/groups/components/GroupSettingsGeneral.vue';
 
 const route = useRoute();
 const router = useRouter();

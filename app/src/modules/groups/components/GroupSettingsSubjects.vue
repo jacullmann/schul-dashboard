@@ -2,8 +2,8 @@
 import { ref, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { Pencil, Trash2, Plus, RefreshCw, X, Check } from '@lucide/vue';
-import { useSubjectAdmin } from '@/modules/admin/composables/useSubjectAdmin';
-import type { AdminSubject } from '@/modules/admin/types';
+import { useSubjectAdmin } from '@/modules/groups/composables/useSubjectAdmin';
+import type { AdminSubject } from '@/modules/groups/types';
 import { computed } from 'vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Plus, Trash2 } from '@lucide/vue';
-import type { AdminAnnouncement } from '@/modules/admin/types';
+import type { AdminAnnouncement } from '@/modules/groups/types';
 import { useAnnouncementForm } from '@/core/composables/useAnnouncementForm';
 import { useI18n } from 'vue-i18n';
 import { computed } from 'vue';

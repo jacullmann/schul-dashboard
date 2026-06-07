@@ -5,7 +5,7 @@ import { useRouter } from 'vue-router';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useUserStore } from '@/stores/userStore';
 import { Pencil, Camera, Trash2, Upload } from '@lucide/vue';
-import GroupAvatarCropper from '@/modules/admin/components/GroupAvatarCropper.vue';
+import GroupAvatarCropper from '@/modules/groups/components/GroupAvatarCropper.vue';
 import Avatar from '@/modules/auth/components/Avatar.vue';
 import hw from '@/api/api.ts';
 

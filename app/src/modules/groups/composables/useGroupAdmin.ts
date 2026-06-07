@@ -7,7 +7,7 @@ import type {
   GroupStats,
   ScheduleSubstitution,
   AdminAnnouncement,
-} from '@/modules/admin/types';
+} from '@/modules/groups/types';
 import type { Lesson } from '@/modules/schedule/types';
 import { useToast } from '@/common/composables/useToast';
 import { useModalStore } from '@/stores/modalStore';

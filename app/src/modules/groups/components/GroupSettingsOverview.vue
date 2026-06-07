@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { GroupStats } from '@/modules/admin/types';
+import type { GroupStats } from '@/modules/groups/types';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();

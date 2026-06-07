@@ -6,7 +6,7 @@ import { useUserStore } from '@/stores/userStore';
 import { useModalStore } from '@/stores/modalStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { UserRoundPlus, Plus, UsersRound } from '@lucide/vue';
-import hw from '../../api/api';
+import hw from '@/api/api';
 import { useI18n } from 'vue-i18n';
 import Avatar from '@/modules/auth/components/Avatar.vue';
 
@@ -103,8 +103,8 @@ onMounted(() => {
       <div class="flex justify-between items-start gap-4">
         <div>
           <h2 class="animate-fade-up">
-            {{ t(greeting) }}<span v-if="user">, </span
-            ><span
+            {{ t(greeting) }}<span v-if="user">, </span>
+            <span
               v-if="user"
               class="bg-[image:var(--background-image-bismuth)] bg-clip-text text-transparent"
               >{{ displayName }}</span
