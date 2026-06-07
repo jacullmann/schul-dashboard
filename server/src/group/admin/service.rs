@@ -501,7 +501,7 @@ impl GroupAdminService {
 
     pub async fn get_subjects(&self, tenant_id: Uuid) -> AppResult<Value> {
         let rows = sqlx::query!(
-            r#"SELECT id, name FROM subjects WHERE tenant_id = $1 ORDER BY name"#,
+            r#"SELECT id, name, category FROM subjects WHERE tenant_id = $1 ORDER BY name"#,
             tenant_id
         )
         .fetch_all(&self.db)
@@ -509,7 +509,7 @@ impl GroupAdminService {
 
         Ok(json!(
             rows.into_iter()
-                .map(|s| json!({ "id": s.id, "name": s.name }))
+                .map(|s| json!({ "id": s.id, "name": s.name, "category": s.category }))
                 .collect::<Vec<_>>()
         ))
     }
@@ -519,12 +519,19 @@ impl GroupAdminService {
         tenant_id: Uuid,
         user_id: Uuid,
         name: &str,
+        category: Option<&str>,
     ) -> AppResult<Value> {
+        let cat = category.unwrap_or("core");
+        if cat != "core" && cat != "elective" && cat != "extra" {
+            return Err(AppError::bad_request("Invalid category"));
+        }
+
         let row = sqlx::query!(
-            r#"INSERT INTO subjects (tenant_id, name) VALUES ($1, $2)
-               RETURNING id, name"#,
+            r#"INSERT INTO subjects (tenant_id, name, category) VALUES ($1, $2, $3)
+               RETURNING id, name, category"#,
             tenant_id,
-            name
+            name,
+            cat
         )
         .fetch_one(&self.db)
         .await?;
@@ -538,7 +545,7 @@ impl GroupAdminService {
         .execute(&self.db)
         .await?;
 
-        Ok(json!({ "id": row.id, "name": row.name }))
+        Ok(json!({ "id": row.id, "name": row.name, "category": row.category }))
     }
 
     pub async fn update_subject(
@@ -547,6 +554,7 @@ impl GroupAdminService {
         user_id: Uuid,
         id: Uuid,
         name: Option<&str>,
+        category: Option<&str>,
     ) -> AppResult<Value> {
         sqlx::query!(
             r#"SELECT id FROM subjects WHERE id = $1 AND tenant_id = $2"#,
@@ -556,6 +564,19 @@ impl GroupAdminService {
         .fetch_optional(&self.db)
         .await?
         .ok_or_else(|| AppError::not_found("Subject not found"))?;
+
+        if let Some(cat) = category {
+            if cat != "core" && cat != "elective" && cat != "extra" {
+                return Err(AppError::bad_request("Invalid category"));
+            }
+            sqlx::query!(
+                r#"UPDATE subjects SET category = $1 WHERE id = $2"#,
+                cat,
+                id
+            )
+            .execute(&self.db)
+            .await?;
+        }
 
         if let Some(n) = name {
             sqlx::query!(r#"UPDATE subjects SET name = $1 WHERE id = $2"#, n, id)

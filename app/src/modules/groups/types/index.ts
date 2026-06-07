@@ -43,4 +43,5 @@ export interface AdminAnnouncement {
 export interface AdminSubject {
   id: string;
   name: string;
+  category?: string;
 }

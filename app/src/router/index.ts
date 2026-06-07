@@ -121,7 +121,7 @@ const routes: RouteRecordRaw[] = [
             },
           },
           {
-            path: 'settings/:tab?',
+            path: 'settings/:tab?/:subTab?',
             name: 'group-admin',
             component: () => import('@/modules/groups/pages/GroupSettings.vue'),
             meta: {

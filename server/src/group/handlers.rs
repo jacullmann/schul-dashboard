@@ -375,7 +375,7 @@ pub async fn create_subject(
 ) -> AppResult<Json<Value>> {
     Ok(Json(
         GroupAdminService::from_state(&s)
-            .create_subject(tc.tenant_id, tc.user.user_id, &dto.name)
+            .create_subject(tc.tenant_id, tc.user.user_id, &dto.name, dto.category.as_deref())
             .await?,
     ))
 }
@@ -388,7 +388,13 @@ pub async fn update_subject(
 ) -> AppResult<Json<Value>> {
     Ok(Json(
         GroupAdminService::from_state(&s)
-            .update_subject(tc.tenant_id, tc.user.user_id, id, dto.name.as_deref())
+            .update_subject(
+                tc.tenant_id,
+                tc.user.user_id,
+                id,
+                dto.name.as_deref(),
+                dto.category.as_deref(),
+            )
             .await?,
     ))
 }

@@ -59,12 +59,14 @@ pub struct CreateAnnouncementDto {
 #[serde(rename_all = "camelCase")]
 pub struct CreateSubjectDto {
     pub name: String,
+    pub category: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateSubjectDto {
     pub name: Option<String>,
+    pub category: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]

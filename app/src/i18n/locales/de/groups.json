@@ -206,6 +206,13 @@
     },
     "subjects": {
       "add_placeholder": "Neues Fach hinzufügen...",
+      "create_title": "Neues Fach erstellen",
+      "category_label": "Kategorie",
+      "categories": {
+        "core": "Pflichtfach",
+        "extra": "Zusatzfach",
+        "elective": "Wahlfach"
+      },
       "errors": {
         "load_failed": "Fehler beim Laden der Fächer",
         "create_success": "Fach erstellt",

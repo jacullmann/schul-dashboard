@@ -207,6 +207,13 @@
     },
     "subjects": {
       "add_placeholder": "Add new subject...",
+      "create_title": "Create new subject",
+      "category_label": "Category",
+      "categories": {
+        "core": "Core subject",
+        "extra": "Extra subject",
+        "elective": "Elective subject"
+      },
       "errors": {
         "load_failed": "Failed to load subjects",
         "create_success": "Subject created",
