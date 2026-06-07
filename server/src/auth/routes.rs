@@ -37,6 +37,7 @@ pub fn router() -> Router<AppState> {
         .route("/auth/refresh", post(refresh))
         .route("/auth/logout", post(logout))
         .route("/auth/logout-all", post(logout_all))
+        .route("/auth/logout-others", post(logout_all_others))
         .route("/auth/sessions", get(list_sessions))
         .route("/auth/sessions/{family_id}", delete(revoke_session));
 

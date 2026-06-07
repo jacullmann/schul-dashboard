@@ -70,7 +70,8 @@ impl GroupAdminService {
         let mut members: Vec<Value> = rows
             .into_iter()
             .map(|r| {
-                let generated_name = crate::common::name_generator::generate_user_name(&r.user_id.to_string());
+                let generated_name =
+                    crate::common::name_generator::generate_user_name(&r.user_id.to_string());
                 json!({
                     "userId": r.user_id,
                     "generatedName": generated_name,
@@ -97,7 +98,8 @@ impl GroupAdminService {
         Ok(json!(
             rows.into_iter()
                 .map(|r| {
-                    let generated_name = crate::common::name_generator::generate_user_name(&r.user_id.to_string());
+                    let generated_name =
+                        crate::common::name_generator::generate_user_name(&r.user_id.to_string());
                     json!({
                         "userId": r.user_id,
                         "generatedName": generated_name,

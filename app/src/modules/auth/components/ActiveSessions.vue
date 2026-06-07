@@ -102,11 +102,7 @@ async function logoutAllOtherSessions() {
 
   revokingAll.value = true;
   try {
-    const others = sessions.value.filter((s) => !isCurrentSession(s));
-
-    await Promise.all(
-      others.map((s) => hw.delete(`/auth/sessions/${s.familyId}`)),
-    );
+    await hw.post('/auth/logout-others');
 
     sessions.value = sessions.value.filter((s) => isCurrentSession(s));
   } catch (err) {
