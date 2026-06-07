@@ -12,6 +12,7 @@ import tasks from './tasks.json';
 import welcome from './welcome.json';
 import search from './search.json';
 import tools from './tools.json';
+import dashboard from './dashboard.json';
 
 export default {
   auth,
@@ -28,4 +29,5 @@ export default {
   welcome,
   search,
   tools,
+  dashboard,
 };

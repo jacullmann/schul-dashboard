@@ -81,7 +81,7 @@ const routes: RouteRecordRaw[] = [
           {
             path: 'dashboard',
             name: 'group-dashboard',
-            component: () => import('@/modules/groups/pages/Dashboard.vue'),
+            component: () => import('@/modules/dashboard/pages/Dashboard.vue'),
             props: true,
             meta: {
               title: 'tasks.list.title',
