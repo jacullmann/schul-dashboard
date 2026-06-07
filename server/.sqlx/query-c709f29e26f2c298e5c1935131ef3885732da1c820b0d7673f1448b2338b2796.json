@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, user_id, family_id, used_at, revoked_at, expires_at, role_version\n               FROM refresh_tokens WHERE token_hash = $1",
+  "query": "SELECT id, user_id, family_id, used_at, revoked_at, expires_at, role_version, active_group_id\n               FROM refresh_tokens WHERE token_hash = $1",
   "describe": {
     "columns": [
       {
@@ -79,6 +79,17 @@
             "name": "role_version"
           }
         }
+      },
+      {
+        "ordinal": 7,
+        "name": "active_group_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "refresh_tokens",
+            "name": "active_group_id"
+          }
+        }
       }
     ],
     "parameters": {
@@ -93,8 +104,9 @@
       true,
       true,
       false,
-      false
+      false,
+      true
     ]
   },
-  "hash": "f2fcfb46901ac165f3ca339bdfd79f7d64b12e0157af2f2ad5ea7e7a73193575"
+  "hash": "c709f29e26f2c298e5c1935131ef3885732da1c820b0d7673f1448b2338b2796"
 }

@@ -38,10 +38,15 @@ pub async fn get_invite(
 pub async fn accept_invite(
     State(s): State<AppState>,
     user: AuthUser,
+    cookies: CookieJar,
     ClientIp(ip): ClientIp,
     UserAgent(ua): UserAgent,
     Path(token): Path<String>,
 ) -> AppResult<(CookieJar, Json<Value>)> {
+    let current = cookies
+        .get(crate::config::REFRESH_COOKIE)
+        .map(|c| c.value().to_string());
+
     let (jar, body) = GroupService::from_state(&s)
         .accept_invite(crate::group::service::AcceptInviteParams {
             user_id: user.user_id,
@@ -50,6 +55,7 @@ pub async fn accept_invite(
             token: &token,
             ip: ip.as_deref(),
             ua: ua.as_deref(),
+            current_refresh: current.as_deref(),
         })
         .await?;
 
@@ -59,10 +65,15 @@ pub async fn accept_invite(
 pub async fn create_group(
     State(s): State<AppState>,
     user: AuthUser,
+    cookies: CookieJar,
     ClientIp(ip): ClientIp,
     UserAgent(ua): UserAgent,
     Json(dto): Json<CreateGroupDto>,
 ) -> AppResult<(CookieJar, Json<Value>)> {
+    let current = cookies
+        .get(crate::config::REFRESH_COOKIE)
+        .map(|c| c.value().to_string());
+
     let (jar, body) = GroupService::from_state(&s)
         .create_group(crate::group::service::CreateGroupParams {
             user_id: user.user_id,
@@ -72,6 +83,7 @@ pub async fn create_group(
             avatar_url: dto.avatar_url.as_deref(),
             ip: ip.as_deref(),
             ua: ua.as_deref(),
+            current_refresh: current.as_deref(),
         })
         .await?;
 
@@ -94,10 +106,27 @@ pub async fn get_status(State(s): State<AppState>, opt: OptionalAuth) -> AppResu
 pub async fn switch_group(
     State(s): State<AppState>,
     user: AuthUser,
+    cookies: CookieJar,
+    ClientIp(ip): ClientIp,
+    UserAgent(ua): UserAgent,
     Json(dto): Json<SwitchGroupDto>,
 ) -> AppResult<(CookieJar, Json<Value>)> {
+    let current = cookies
+        .get(crate::config::REFRESH_COOKIE)
+        .map(|c| c.value().to_string());
+
     let (jar, body) = GroupService::from_state(&s)
-        .switch_group(user.user_id, &user.email, &user.global_role, dto.group_id)
+        .switch_group(
+            user.user_id,
+            &user.email,
+            &user.global_role,
+            dto.group_id,
+            crate::group::service::SessionOrigin {
+                current_refresh: current.as_deref(),
+                user_agent: ua.as_deref(),
+                ip_address: ip.as_deref(),
+            },
+        )
         .await?;
 
     Ok((jar, Json(body)))
@@ -106,10 +135,26 @@ pub async fn switch_group(
 pub async fn leave_group(
     State(s): State<AppState>,
     user: AuthUser,
+    cookies: CookieJar,
+    ClientIp(ip): ClientIp,
+    UserAgent(ua): UserAgent,
     Path(group_id): Path<Uuid>,
 ) -> AppResult<(CookieJar, Json<Value>)> {
+    let current = cookies
+        .get(crate::config::REFRESH_COOKIE)
+        .map(|c| c.value().to_string());
+
     let jar = GroupService::from_state(&s)
-        .leave_group(user.user_id, group_id, user.active_group_id)
+        .leave_group(
+            user.user_id,
+            group_id,
+            user.active_group_id,
+            crate::group::service::SessionOrigin {
+                current_refresh: current.as_deref(),
+                user_agent: ua.as_deref(),
+                ip_address: ip.as_deref(),
+            },
+        )
         .await?;
 
     Ok((jar, Json(json!({ "ok": true }))))

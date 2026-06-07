@@ -118,8 +118,8 @@ impl TokenService {
         sqlx::query!(
             r#"INSERT INTO refresh_tokens
                 (user_id, token_hash, family_id, parent_id, expires_at,
-                 user_agent, ip_address, role_version)
-               VALUES ($1, $2, $3, $4, $5, $6, $7::inet, $8)"#,
+                 user_agent, ip_address, role_version, active_group_id)
+               VALUES ($1, $2, $3, $4, $5, $6, $7::inet, $8, $9)"#,
             p.user_id,
             token_hash,
             family_id,
@@ -128,6 +128,7 @@ impl TokenService {
             ua,
             ip_parsed,
             role_version,
+            p.active_group_id,
         )
         .execute(&self.db)
         .await?;
@@ -160,12 +161,12 @@ impl TokenService {
         let hash = hash_token(presented_token);
 
         let row = sqlx::query!(
-            r#"SELECT id, user_id, family_id, used_at, revoked_at, expires_at, role_version
+            r#"SELECT id, user_id, family_id, used_at, revoked_at, expires_at, role_version, active_group_id
                FROM refresh_tokens WHERE token_hash = $1"#,
             hash
         )
-        .fetch_optional(&self.db)
-        .await?;
+            .fetch_optional(&self.db)
+            .await?;
 
         let row = match row {
             None => return Ok(None),
@@ -230,7 +231,74 @@ impl TokenService {
                 user_id: user.user_id,
                 email: &user.email,
                 global_role: &user.global_role,
-                active_group_id: user.active_group_id,
+                // Preserve the group this session was actually using. Falling back
+                // to load_user_claims' "first tenant" silently moved the user to a
+                // different group on every refresh.
+                active_group_id: row.active_group_id,
+                user_agent,
+                ip_address,
+                parent: Some((row.id, row.family_id)),
+            })
+            .await?;
+
+        Ok(Some(issued))
+    }
+
+    pub async fn reissue_for_group(
+        &self,
+        presented_token: &str,
+        active_group_id: Option<Uuid>,
+        user_agent: Option<&str>,
+        ip_address: Option<&str>,
+    ) -> Result<Option<IssuedTokens>, AppError> {
+        let hash = hash_token(presented_token);
+
+        let row = sqlx::query!(
+            r#"SELECT id, user_id, family_id, revoked_at, expires_at
+               FROM refresh_tokens WHERE token_hash = $1"#,
+            hash
+        )
+        .fetch_optional(&self.db)
+        .await?;
+
+        let Some(row) = row else { return Ok(None) };
+
+        // A revoked or expired family cannot be advanced — let the caller start a
+        // fresh family. But a token that is merely already-*used* means a
+        // concurrent switch/refresh consumed it first; in that case we still
+        // advance the SAME family. A transient second live tip is collapsed by
+        // list_active_sessions' DISTINCT ON, whereas forking a new family would
+        // resurface as a phantom session — the exact bug we are fixing. This is
+        // safe because switch reaches us only behind a valid (short-lived) access
+        // token, so it is not the unauthenticated replay surface `rotate` guards.
+        if row.revoked_at.is_some() || row.expires_at < Utc::now() {
+            return Ok(None);
+        }
+
+        // Best-effort consume; ignore the rowcount, since losing the race is the
+        // case we deliberately tolerate above.
+        sqlx::query!(
+            r#"UPDATE refresh_tokens SET used_at = now()
+               WHERE id = $1 AND used_at IS NULL AND revoked_at IS NULL"#,
+            row.id
+        )
+        .execute(&self.db)
+        .await?;
+
+        let user = match self.load_user_claims(row.user_id).await? {
+            Some(u) => u,
+            None => {
+                self.revoke_family(row.family_id, ADMIN_REVOKE).await?;
+                return Ok(None);
+            }
+        };
+
+        let issued = self
+            .issue_pair(IssueTokenParams {
+                user_id: user.user_id,
+                email: &user.email,
+                global_role: &user.global_role,
+                active_group_id,
                 user_agent,
                 ip_address,
                 parent: Some((row.id, row.family_id)),
@@ -322,17 +390,22 @@ impl TokenService {
 
     pub async fn list_active_sessions(&self, user_id: Uuid) -> Result<Vec<SessionInfo>, AppError> {
         let rows = sqlx::query!(
-            r#"SELECT family_id, issued_at, last_used_at, user_agent, host(ip_address) as ip_address
+            r#"SELECT DISTINCT ON (family_id)
+                      family_id, issued_at, last_used_at, user_agent,
+                      host(ip_address) as ip_address
                FROM refresh_tokens
                WHERE user_id = $1
                  AND revoked_at IS NULL
                  AND used_at IS NULL
                  AND expires_at > now()
-               ORDER BY last_used_at DESC"#,
+               ORDER BY family_id, last_used_at DESC"#,
             user_id
         )
         .fetch_all(&self.db)
         .await?;
+
+        let mut rows = rows;
+        rows.sort_by_key(|r| std::cmp::Reverse(r.last_used_at));
 
         let mut sessions = Vec::with_capacity(rows.len());
 
@@ -428,20 +501,10 @@ impl TokenService {
         .map(|r| r.name)
         .unwrap_or_else(|| "user".into());
 
-        let active_group_id = sqlx::query!(
-            r#"SELECT tenant_id FROM user_roles
-               WHERE user_id = $1 AND tenant_id IS NOT NULL LIMIT 1"#,
-            user_id
-        )
-        .fetch_optional(&self.db)
-        .await?
-        .and_then(|r| r.tenant_id);
-
         Ok(Some(UserClaims {
             user_id: user.id,
             email: user.email,
             global_role,
-            active_group_id,
             role_version: user.role_version,
         }))
     }
@@ -452,7 +515,6 @@ struct UserClaims {
     user_id: Uuid,
     email: String,
     global_role: String,
-    active_group_id: Option<Uuid>,
     role_version: i32,
 }
 

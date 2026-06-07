@@ -20,6 +20,7 @@ pub struct CreateGroupParams<'a> {
     pub avatar_url: Option<&'a str>,
     pub ip: Option<&'a str>,
     pub ua: Option<&'a str>,
+    pub current_refresh: Option<&'a str>,
 }
 
 pub struct AcceptInviteParams<'a> {
@@ -29,11 +30,19 @@ pub struct AcceptInviteParams<'a> {
     pub token: &'a str,
     pub ip: Option<&'a str>,
     pub ua: Option<&'a str>,
+    pub current_refresh: Option<&'a str>,
 }
 
 pub struct GroupService {
     db: PgPool,
     state: AppState,
+}
+
+#[derive(Clone, Copy, Default)]
+pub struct SessionOrigin<'a> {
+    pub current_refresh: Option<&'a str>,
+    pub user_agent: Option<&'a str>,
+    pub ip_address: Option<&'a str>,
 }
 
 impl GroupService {
@@ -50,18 +59,26 @@ impl GroupService {
         email: &str,
         global_role: &str,
         active_group_id: Option<Uuid>,
+        origin: SessionOrigin<'_>,
     ) -> AppResult<CookieJar> {
-        let tokens = TokenService::from_state(&self.state)
-            .issue_pair(crate::auth::token::IssueTokenParams {
-                user_id,
-                email,
-                global_role,
-                active_group_id,
-                user_agent: None,
-                ip_address: None,
-                parent: None,
-            })
-            .await?;
+        let svc = TokenService::from_state(&self.state);
+
+        let tokens = match origin.current_refresh.filter(|t| !t.is_empty()) {
+            Some(rt) => match svc
+                .reissue_for_group(rt, active_group_id, origin.user_agent, origin.ip_address)
+                .await?
+            {
+                Some(t) => t,
+                None => {
+                    self.issue_new_family(user_id, email, global_role, active_group_id, origin)
+                        .await?
+                }
+            },
+            None => {
+                self.issue_new_family(user_id, email, global_role, active_group_id, origin)
+                    .await?
+            }
+        };
 
         let opts = self.state.config.base_cookie_options();
 
@@ -71,6 +88,27 @@ impl GroupService {
             .add(access_cookie(tokens.access_token, &opts))
             .add(refresh_cookie(tokens.refresh_token, &opts))
             .add(crate::common::csrf::csrf_cookie(&csrf, &opts)))
+    }
+
+    async fn issue_new_family(
+        &self,
+        user_id: Uuid,
+        email: &str,
+        global_role: &str,
+        active_group_id: Option<Uuid>,
+        origin: SessionOrigin<'_>,
+    ) -> AppResult<crate::auth::token::IssuedTokens> {
+        TokenService::from_state(&self.state)
+            .issue_pair(crate::auth::token::IssueTokenParams {
+                user_id,
+                email,
+                global_role,
+                active_group_id,
+                user_agent: origin.user_agent,
+                ip_address: origin.ip_address,
+                parent: None,
+            })
+            .await
     }
 
     pub async fn create_group(
@@ -128,7 +166,17 @@ impl GroupService {
         ).execute(&self.db).await?;
 
         let jar = self
-            .issue_session_cookie(user_id, email, global_role, Some(group_id))
+            .issue_session_cookie(
+                user_id,
+                email,
+                global_role,
+                Some(group_id),
+                SessionOrigin {
+                    current_refresh: params.current_refresh,
+                    user_agent: ua,
+                    ip_address: ip,
+                },
+            )
             .await?;
         Ok((jar, json!({ "ok": true })))
     }
@@ -233,6 +281,7 @@ impl GroupService {
         email: &str,
         global_role: &str,
         group_id: Uuid,
+        origin: SessionOrigin<'_>,
     ) -> AppResult<(CookieJar, Value)> {
         if global_role == "superadmin" {
             sqlx::query!(r#"SELECT id FROM groups WHERE id = $1"#, group_id)
@@ -254,7 +303,7 @@ impl GroupService {
         }
 
         let jar = self
-            .issue_session_cookie(user_id, email, global_role, Some(group_id))
+            .issue_session_cookie(user_id, email, global_role, Some(group_id), origin)
             .await?;
 
         Ok((jar, json!({ "ok": true })))
@@ -265,6 +314,7 @@ impl GroupService {
         user_id: Uuid,
         group_id: Uuid,
         active_group_id: Option<Uuid>,
+        origin: SessionOrigin<'_>,
     ) -> AppResult<CookieJar> {
         let group = sqlx::query!(r#"SELECT owner_id FROM groups WHERE id = $1"#, group_id)
             .fetch_optional(&self.db)
@@ -331,7 +381,7 @@ impl GroupService {
             .map(|r| r.name)
             .unwrap_or_else(|| "user".into());
 
-            self.issue_session_cookie(user_id, &user.email, &global_role, None)
+            self.issue_session_cookie(user_id, &user.email, &global_role, None, origin)
                 .await?
         } else {
             CookieJar::new()
@@ -498,7 +548,17 @@ impl GroupService {
         tx.commit().await?;
 
         let jar = self
-            .issue_session_cookie(user_id, email, global_role, Some(group_id))
+            .issue_session_cookie(
+                user_id,
+                email,
+                global_role,
+                Some(group_id),
+                SessionOrigin {
+                    current_refresh: params.current_refresh,
+                    user_agent: ua,
+                    ip_address: ip,
+                },
+            )
             .await?;
 
         Ok((jar, json!({ "ok": true, "groupId": group_id })))
