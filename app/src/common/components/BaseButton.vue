@@ -81,7 +81,7 @@ defineExpose({
           ? 'font-normal w-fit'
           : 'font-medium w-fit',
       size === 'sm' ? '' : ' min-h-10 min-w-10',
-      touch ? 'touch-target' : '',
+      touch ? 'touch-target after:min-w-12 after:min-h-12' : '',
       size === 'sm'
         ? 'px-2'
         : !chip && !loading && icon && $slots.default

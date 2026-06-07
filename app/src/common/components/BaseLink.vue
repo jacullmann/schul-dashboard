@@ -16,7 +16,7 @@ const href = computed(() => {
 });
 
 const sharedClasses =
-  'relative underline underline-offset-2 decoration-1.5 decoration-skip-ink font-medium text-on-ghost-muted hover:text-on-ghost transition-hover cursor-pointer touch-target';
+  'relative underline underline-offset-2 decoration-1.5 decoration-skip-ink font-medium text-on-ghost-muted hover:text-on-ghost transition-hover cursor-pointer touch-target after:min-w-12 after:min-h-12';
 </script>
 
 <template>

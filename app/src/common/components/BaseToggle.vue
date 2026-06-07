@@ -22,7 +22,7 @@ const toggle = () => {
 
 const buttonClasses = computed(() => {
   return [
-    'group relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out disabled:cursor-not-allowed disabled:opacity-50',
+    'group relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out disabled:cursor-not-allowed disabled:opacity-50 touch-target after:min-h-12 after:min-w-12',
     model.value ? 'bg-accent' : 'bg-ghost',
   ];
 });

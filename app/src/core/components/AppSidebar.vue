@@ -410,7 +410,7 @@ onUnmounted(() => {
           :key="index"
           v-wave
           :class="activeGroupId === group.id ? 'active' : ''"
-          class="group relative gap-0 items-center flex p-1 text-on-ghost-muted hover:text-on-ghost rounded-full bg-transparent hover:bg-surface-hover transition-hover cursor-pointer outline-none w-full touch-target-x-full touch-target-y"
+          class="group relative gap-0 items-center flex p-1 text-on-ghost-muted hover:text-on-ghost rounded-full bg-transparent hover:bg-surface-hover transition-hover cursor-pointer outline-none w-full touch-target after:min-w-[calc(100%+24px)] after:min-h-12"
           @click="handleGroupClick(group.id)"
         >
           <span

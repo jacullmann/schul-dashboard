@@ -172,7 +172,7 @@ useResizeObserver(navBarRef, () => {
               if (el) itemRefs[index] = el as HTMLElement;
             }
           "
-          class="relative bg-transparent min-h-9 min-w-9 touch-target items-center flex border-0 cursor-pointer py-2 text-sm/4 font-medium text-on-ghost-muted whitespace-nowrap transition-hover hover:text-on-ghost"
+          class="relative bg-transparent min-h-9 min-w-9 touch-target after:min-w-12 after:min-h-12 items-center flex border-0 cursor-pointer py-2 text-sm/4 font-medium text-on-ghost-muted whitespace-nowrap transition-hover hover:text-on-ghost"
           :class="
             isStretched ? 'grow shrink-0 justify-center px-5' : 'shrink-0 px-5'
           "
@@ -191,7 +191,7 @@ useResizeObserver(navBarRef, () => {
 
       <!-- Active Pill Background (z-2) -->
       <div
-        class="absolute top-0 bottom-0 bg-action rounded-full min-h-9 min-w-9 touch-target z-2 pointer-events-none transition-all duration-300 ease-[cubic-bezier(0.075,0.82,0.165,1)]"
+        class="absolute top-0 bottom-0 bg-action rounded-full min-h-9 min-w-9 touch-target after:min-w-12 after:min-h-12 z-2 pointer-events-none transition-all duration-300 ease-[cubic-bezier(0.075,0.82,0.165,1)]"
         :style="pillStyle"
         aria-hidden="true"
       ></div>
@@ -210,7 +210,7 @@ useResizeObserver(navBarRef, () => {
           <span
             v-for="item in items"
             :key="`fg-${item.id}`"
-            class="relative bg-transparent min-h-9 min-w-9 touch-target items-center flex border-0 cursor-pointer py-2 text-sm/4 font-medium text-on-action whitespace-nowrap transition-hover"
+            class="relative bg-transparent min-h-9 min-w-9 touch-target after:min-w-12 after:min-h-12 items-center flex border-0 cursor-pointer py-2 text-sm/4 font-medium text-on-action whitespace-nowrap transition-hover"
             :class="
               isStretched
                 ? 'grow shrink-0 justify-center px-5'
