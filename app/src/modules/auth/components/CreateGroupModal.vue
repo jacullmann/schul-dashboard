@@ -66,7 +66,8 @@ function onFileSelected(e: Event) {
 
   if (!file.type.startsWith('image/')) {
     avatarError.value =
-      t('groups.settings.general.avatar.errors.invalid_file') || 'Ungültiges Dateiformat';
+      t('groups.settings.general.avatar.errors.invalid_file') ||
+      'Ungültiges Dateiformat';
     return;
   }
 
@@ -265,7 +266,9 @@ async function submit() {
           id="group-name"
           ref="groupNameInputRef"
           v-model="groupName"
-          :placeholder="t('groups.settings.general.appearance.name_placeholder')"
+          :placeholder="
+            t('groups.settings.general.appearance.name_placeholder')
+          "
           type="text"
           autocomplete="off"
           @input="clearError"

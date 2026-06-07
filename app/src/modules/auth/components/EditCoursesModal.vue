@@ -5,7 +5,10 @@ import { useI18n } from 'vue-i18n';
 import { useSubjectStore } from '@/stores/subjectStore';
 import { getSubjectKey } from '@/types/subjects';
 
-const { t, te } = useI18n();
+const i18n = useI18n();
+const t = (key: string, named?: Record<string, any>) =>
+  i18n.t(key, named || {});
+const te = (key: string) => i18n.te(key);
 const subjectStore = useSubjectStore();
 
 const getCourseLabel = (courseName: string): string => {
@@ -14,9 +17,7 @@ const getCourseLabel = (courseName: string): string => {
     return t(`common.subjects.${courseKey}`);
   }
 
-  const mr = t('common.titles.abbr.mr');
-  const ms = t('common.titles.abbr.ms');
-  return courseName.replace(/^Herr\s+/, `${mr} `).replace(/^Frau\s+/, `${ms} `);
+  return courseName;
 };
 
 const props = defineProps<{
@@ -52,7 +53,7 @@ watch(
 );
 
 onMounted(() => {
-  subjectStore.loadSubjects().then(() => {
+  void subjectStore.loadSubjects().then(() => {
     for (const subject of subjectStore.electiveSubjects) {
       if (!selections[subject.id]) selections[subject.id] = '';
     }
@@ -144,7 +145,7 @@ async function skip() {
     }}</template>
 
     <template #content>
-      <p class="text-sm text-on-ghost-muted mb-6">
+      <p class="text-sm text-on-ghost-muted m-0!">
         {{
           isSetup
             ? t('auth.courses.description_creation')

@@ -4,7 +4,7 @@ import { Trash2 } from '@lucide/vue';
 import { useSuperAdminStats } from '../composables/useSuperAdminStats';
 
 const { stats, loadingStats, isCleaningUp, loadStats, cleanupOldItems } =
-    useSuperAdminStats();
+  useSuperAdminStats();
 
 onMounted(loadStats);
 </script>
@@ -82,10 +82,10 @@ onMounted(loadStats);
         90 days
       </div>
       <BaseButton
-          :disabled="isCleaningUp"
-          variant="ghost"
-          :icon="Trash2"
-          @click="cleanupOldItems"
+        :disabled="isCleaningUp"
+        variant="ghost"
+        :icon="Trash2"
+        @click="cleanupOldItems"
       >
         {{ isCleaningUp ? 'Deleting…' : 'Clean up' }}
       </BaseButton>

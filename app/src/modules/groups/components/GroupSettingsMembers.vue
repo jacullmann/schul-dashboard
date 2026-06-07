@@ -279,12 +279,15 @@ function confirmRemove() {
       :submit="confirmRemove"
       @cancel="closeRemoveModal"
     >
-      <template #title>{{ t('groups.settings.members.remove_modal.title') }}</template>
+      <template #title>{{
+        t('groups.settings.members.remove_modal.title')
+      }}</template>
 
       <template #content>
         <p class="m-0!">
           {{ t('groups.settings.members.remove_modal.confirm_prefix')
-          }}<strong>{{ removeModal.userName }}</strong>{{ t('groups.settings.members.remove_modal.confirm_suffix') }}
+          }}<strong>{{ removeModal.userName }}</strong
+          >{{ t('groups.settings.members.remove_modal.confirm_suffix') }}
         </p>
         <p class="m-0!">
           {{ t('groups.settings.members.remove_modal.rejoin_info') }}
@@ -292,7 +295,8 @@ function confirmRemove() {
 
         <BaseCheckbox v-model="removeModal.ban"
           >{{ t('groups.settings.members.remove_modal.ban_checkbox_prefix')
-          }}<strong>{{ removeModal.userName }}</strong>{{
+          }}<strong>{{ removeModal.userName }}</strong
+          >{{
             t('groups.settings.members.remove_modal.ban_checkbox_suffix')
           }}</BaseCheckbox
         >

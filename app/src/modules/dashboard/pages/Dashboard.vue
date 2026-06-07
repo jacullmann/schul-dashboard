@@ -52,13 +52,13 @@ onMounted(async () => {
 });
 
 watch(
-    activeGroupId,
-    async (newGroupId) => {
-      if (newGroupId) {
-        await fetchTasks();
-      }
-    },
-    { immediate: true },
+  activeGroupId,
+  async (newGroupId) => {
+    if (newGroupId) {
+      await fetchTasks();
+    }
+  },
+  { immediate: true },
 );
 
 async function fetchTasks() {
@@ -92,8 +92,8 @@ async function toggleCheck(item: any) {
 
   try {
     const config = activeGroupId.value
-        ? { headers: { 'x-tenant-id': activeGroupId.value } }
-        : {};
+      ? { headers: { 'x-tenant-id': activeGroupId.value } }
+      : {};
 
     if (wasChecked) {
       await hw.delete(`/user/items/${id}/check`, config);
@@ -117,9 +117,9 @@ const getSubjectName = (subject: string) => {
 const userSubjects = computed(() => {
   const subjects = new Set<string>();
   if (
-      !user.value?.personalized ||
-      !user.value?.doneSetup ||
-      !Array.isArray(user.value.courses)
+    !user.value?.personalized ||
+    !user.value?.doneSetup ||
+    !Array.isArray(user.value.courses)
   ) {
     return subjects;
   }
@@ -142,20 +142,20 @@ const filteredTasks = computed(() => {
   let list = rawItems.value.filter((item) => !checkedIds.value.has(item.id));
 
   const isPersonalizedActive =
-      user.value?.personalized && user.value?.doneSetup;
+    user.value?.personalized && user.value?.doneSetup;
   if (isPersonalizedActive && userSubjects.value.size > 0) {
     list = list.filter((item) => {
       const subjectLower = item.subject.toLowerCase();
       const subjectName = subjectLower.split(' - ')[0]?.trim();
       const categoryMatch = subjectStore.subjects.find(
-          (s) => s.name.toLowerCase() === subjectName,
+        (s) => s.name.toLowerCase() === subjectName,
       );
 
       if (
-          categoryMatch &&
-          categoryMatch.category !== 'core' &&
-          categoryMatch.courses &&
-          categoryMatch.courses.length > 0
+        categoryMatch &&
+        categoryMatch.category !== 'core' &&
+        categoryMatch.courses &&
+        categoryMatch.courses.length > 0
       ) {
         return userSubjects.value.has(item.subject);
       }
@@ -164,18 +164,18 @@ const filteredTasks = computed(() => {
   }
 
   const startOfToday = new Date(
-      now.value.getFullYear(),
-      now.value.getMonth(),
-      now.value.getDate(),
+    now.value.getFullYear(),
+    now.value.getMonth(),
+    now.value.getDate(),
   );
   const endOfTomorrow = new Date(
-      now.value.getFullYear(),
-      now.value.getMonth(),
-      now.value.getDate() + 2,
-      23,
-      59,
-      59,
-      999,
+    now.value.getFullYear(),
+    now.value.getMonth(),
+    now.value.getDate() + 2,
+    23,
+    59,
+    59,
+    999,
   );
 
   return list.filter((item) => {
@@ -187,22 +187,22 @@ const filteredTasks = computed(() => {
 const sortedTasks = computed(() => {
   const copy = [...filteredTasks.value];
   return copy
-      .sort((a, b) => {
-        const dueDiff =
-            new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
-        if (dueDiff !== 0) {
-          return dueDiff;
-        }
-        const timeA = new Date(a.updatedAt || a.createdAt || 0).getTime();
-        const timeB = new Date(b.updatedAt || b.createdAt || 0).getTime();
-        return timeB - timeA;
-      })
-      .slice(0, 3);
+    .sort((a, b) => {
+      const dueDiff =
+        new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+      if (dueDiff !== 0) {
+        return dueDiff;
+      }
+      const timeA = new Date(a.updatedAt || a.createdAt || 0).getTime();
+      const timeB = new Date(b.updatedAt || b.createdAt || 0).getTime();
+      return timeB - timeA;
+    })
+    .slice(0, 3);
 });
 
 const totalSlots = computed(() => activeScheduleConfig.value?.totalSlots ?? 9);
 const lessonDurationMins = computed(
-    () => activeScheduleConfig.value?.lessonDurationMins ?? 45,
+  () => activeScheduleConfig.value?.lessonDurationMins ?? 45,
 );
 
 const startTimeHour = computed(() => {
@@ -238,23 +238,23 @@ const upcomingLesson = computed(() => {
   const currentTotalWeekMinutes = todayIndex * 24 * 60 + currentMinutes;
 
   const lessonsWithTimes = effectiveLessons.value
-      .filter((l) => !l.cancelled)
-      .map((l) => {
-        const startMinsOfDay = slotStartMinutes.value[l.slot] ?? 0;
-        const startTotal = (l.day - 1) * 24 * 60 + startMinsOfDay;
+    .filter((l) => !l.cancelled)
+    .map((l) => {
+      const startMinsOfDay = slotStartMinutes.value[l.slot] ?? 0;
+      const startTotal = (l.day - 1) * 24 * 60 + startMinsOfDay;
 
-        const maxDuration = l.duration || 1;
-        let endMinsOfDay = startMinsOfDay;
-        for (let d = 0; d < maxDuration; d++) {
-          endMinsOfDay += lessonDurationMins.value;
-          if (d < maxDuration - 1) {
-            endMinsOfDay += breaks.value[l.slot + d] || 0;
-          }
+      const maxDuration = l.duration || 1;
+      let endMinsOfDay = startMinsOfDay;
+      for (let d = 0; d < maxDuration; d++) {
+        endMinsOfDay += lessonDurationMins.value;
+        if (d < maxDuration - 1) {
+          endMinsOfDay += breaks.value[l.slot + d] || 0;
         }
-        const endTotal = (l.day - 1) * 24 * 60 + endMinsOfDay;
+      }
+      const endTotal = (l.day - 1) * 24 * 60 + endMinsOfDay;
 
-        return { lesson: l, startTotal, endTotal };
-      });
+      return { lesson: l, startTotal, endTotal };
+    });
 
   if (!lessonsWithTimes.length) return null;
 
@@ -270,7 +270,7 @@ const upcomingLesson = computed(() => {
   };
 
   let futureLessons = lessonsWithTimes.filter(
-      (l) => l.startTotal > currentTotalWeekMinutes,
+    (l) => l.startTotal > currentTotalWeekMinutes,
   );
 
   if (futureLessons.length > 0) {
@@ -306,7 +306,7 @@ const getDisplayName = (lesson: any): string => {
   }
 
   const subjectName =
-      lesson.subjects?.name || lesson.subject || lesson.subjectAbbr || '';
+    lesson.subjects?.name || lesson.subject || lesson.subjectAbbr || '';
   const normalizedSubject = subjectName.toLowerCase();
 
   if (normalizedSubject === 'wpu1' || normalizedSubject === 'wpu2') {
@@ -350,7 +350,7 @@ const scheduleChanges = computed(() => {
 const formatDayName = (day: number): string => {
   const date = new Date(Date.UTC(2024, 0, day, 12));
   return new Intl.DateTimeFormat(locale.value, { weekday: 'long' }).format(
-      date,
+    date,
   );
 };
 
@@ -385,20 +385,20 @@ const isScheduleVisible = computed(() => {
     </div>
 
     <div
-        class="grid grid-cols-1 gap-8"
-        :class="{ 'md:grid-cols-2': isScheduleVisible }"
+      class="grid grid-cols-1 gap-8"
+      :class="{ 'md:grid-cols-2': isScheduleVisible }"
     >
       <div class="flex flex-col">
         <PageHeader>
           {{ t('dashboard.tasks_overview.title') }}
           <template v-if="activeGroupId" #action>
             <BaseTooltip
-                :content="t('dashboard.tasks_overview.view_all')"
-                placement="bottom"
+              :content="t('dashboard.tasks_overview.view_all')"
+              placement="bottom"
             >
               <BaseButton
-                  :icon="ChevronRight"
-                  @click="
+                :icon="ChevronRight"
+                @click="
                   $router.push({
                     name: 'group-tasks',
                     params: { groupId: activeGroupId, type: 'all' },
@@ -412,26 +412,26 @@ const isScheduleVisible = computed(() => {
         <div class="flex flex-col justify-center">
           <div v-if="loadingTasks" class="space-y-4 animate-pulse">
             <div
-                v-for="i in 3"
-                :key="i"
-                class="h-16 bg-surface-highlight rounded-xl"
+              v-for="i in 3"
+              :key="i"
+              class="h-16 bg-surface-highlight rounded-xl"
             ></div>
           </div>
 
           <template v-else>
             <div v-if="sortedTasks.length > 0" class="flex flex-col gap-3">
               <ItemCard
-                  v-for="(task, index) in sortedTasks"
-                  :key="task.id"
-                  :item="task"
-                  :index="index"
-                  :user="user"
-                  :title="task.title"
+                v-for="(task, index) in sortedTasks"
+                :key="task.id"
+                :item="task"
+                :index="index"
+                :user="user"
+                :title="task.title"
               >
                 <template #checkbox>
                   <BaseCheckbox
-                      :checked="checkedIds.has(task.id)"
-                      @change="toggleCheck(task)"
+                    :checked="checkedIds.has(task.id)"
+                    @change="toggleCheck(task)"
                   />
                 </template>
 
@@ -446,10 +446,10 @@ const isScheduleVisible = computed(() => {
                 <template #actions-pre>
                   <BaseTooltip content="View full task" placement="bottom">
                     <BaseButton
-                        variant="ghost"
-                        size="sm"
-                        :icon="ArrowUpRight"
-                        @click.stop="
+                      variant="ghost"
+                      size="sm"
+                      :icon="ArrowUpRight"
+                      @click.stop="
                         $router.push({
                           name: 'group-tasks',
                           params: {
@@ -467,7 +467,7 @@ const isScheduleVisible = computed(() => {
 
             <div v-else class="text-center py-8 space-y-3">
               <div
-                  class="inline-flex p-3 rounded-full bg-success/10 text-success"
+                class="inline-flex p-3 rounded-full bg-success/10 text-success"
               >
                 <CheckCircle2 class="size-10" />
               </div>
@@ -486,12 +486,12 @@ const isScheduleVisible = computed(() => {
           {{ t('dashboard.schedule_overview.title') }}
           <template v-if="activeGroupId && hasLessons" #action>
             <BaseTooltip
-                :content="t('dashboard.schedule_overview.view_full')"
-                placement="bottom"
+              :content="t('dashboard.schedule_overview.view_full')"
+              placement="bottom"
             >
               <BaseButton
-                  :icon="ChevronRight"
-                  @click="
+                :icon="ChevronRight"
+                @click="
                   $router.push({
                     name: 'group-schedule',
                     params: { groupId: activeGroupId },
@@ -503,15 +503,15 @@ const isScheduleVisible = computed(() => {
         </PageHeader>
 
         <div
-            v-if="loadingLessons || loadingSubs"
-            class="flex-1 flex flex-col gap-5 min-h-[220px]"
+          v-if="loadingLessons || loadingSubs"
+          class="flex-1 flex flex-col gap-5 min-h-[220px]"
         >
           <div class="space-y-2">
             <h3>
               {{ t('dashboard.schedule_overview.next_lesson') }}
             </h3>
             <div
-                class="h-20 bg-surface-highlight rounded-xl animate-pulse"
+              class="h-20 bg-surface-highlight rounded-xl animate-pulse"
             ></div>
           </div>
 
@@ -520,14 +520,14 @@ const isScheduleVisible = computed(() => {
               {{ t('dashboard.schedule_overview.substitutions') }}
             </h3>
             <div
-                class="h-16 bg-surface-highlight rounded-xl animate-pulse"
+              class="h-16 bg-surface-highlight rounded-xl animate-pulse"
             ></div>
           </div>
         </div>
 
         <div
-            v-else-if="hasLessons"
-            class="flex-1 flex flex-col gap-5 min-h-[220px]"
+          v-else-if="hasLessons"
+          class="flex-1 flex flex-col gap-5 min-h-[220px]"
         >
           <div class="space-y-2">
             <h3>
@@ -535,8 +535,8 @@ const isScheduleVisible = computed(() => {
             </h3>
 
             <div
-                v-if="upcomingLesson"
-                class="flex items-center justify-between gap-4 px-3 py-2 rounded-lg border border-surface-border bg-surface"
+              v-if="upcomingLesson"
+              class="flex items-center justify-between gap-4 px-3 py-2 rounded-lg border border-surface-border bg-surface"
             >
               <div class="min-w-0">
                 <div class="text-xs text-on-ghost-muted mb-0.5">
@@ -554,14 +554,14 @@ const isScheduleVisible = computed(() => {
 
               <div class="shrink-0 flex flex-col gap-1.5 items-end">
                 <span
-                    v-if="upcomingLesson.cancelled"
-                    class="px-2 py-0.5 rounded text-xs font-bold bg-danger/15 text-danger border border-danger/20"
+                  v-if="upcomingLesson.cancelled"
+                  class="px-2 py-0.5 rounded text-xs font-bold bg-danger/15 text-danger border border-danger/20"
                 >
                   {{ t('dashboard.schedule_overview.cancelled') }}
                 </span>
                 <span
-                    v-else-if="upcomingLesson.isSubstitutedSubject"
-                    class="px-2 py-0.5 rounded text-xs font-bold bg-bismuth-purple/15 text-bismuth-purple border border-bismuth-purple/20"
+                  v-else-if="upcomingLesson.isSubstitutedSubject"
+                  class="px-2 py-0.5 rounded text-xs font-bold bg-bismuth-purple/15 text-bismuth-purple border border-bismuth-purple/20"
                 >
                   {{ t('dashboard.schedule_overview.substituted') }}
                 </span>
@@ -569,8 +569,8 @@ const isScheduleVisible = computed(() => {
             </div>
 
             <div
-                v-else
-                class="p-4 rounded-xl border border-dashed border-surface-border text-center text-xs text-on-ghost-muted"
+              v-else
+              class="p-4 rounded-xl border border-dashed border-surface-border text-center text-xs text-on-ghost-muted"
             >
               {{ t('dashboard.schedule_overview.no_more_lessons') }}
             </div>
@@ -582,13 +582,13 @@ const isScheduleVisible = computed(() => {
             </h3>
 
             <div
-                v-if="scheduleChanges.length > 0"
-                class="space-y-2 max-h-[120px] overflow-y-auto pr-1"
+              v-if="scheduleChanges.length > 0"
+              class="space-y-2 max-h-[120px] overflow-y-auto pr-1"
             >
               <div
-                  v-for="change in scheduleChanges"
-                  :key="change.id"
-                  class="flex items-center justify-between gap-3 p-3 rounded-lg border border-surface-border bg-surface text-xs"
+                v-for="change in scheduleChanges"
+                :key="change.id"
+                class="flex items-center justify-between gap-3 p-3 rounded-lg border border-surface-border bg-surface text-xs"
               >
                 <div class="min-w-0">
                   <span class="font-semibold text-on-ghost-muted">
@@ -598,8 +598,8 @@ const isScheduleVisible = computed(() => {
                     {{ getDisplayName(change) }}
                   </span>
                   <span
-                      v-if="change.room !== change._original?.room"
-                      class="text-on-ghost-subtle block mt-0.5 font-medium"
+                    v-if="change.room !== change._original?.room"
+                    class="text-on-ghost-subtle block mt-0.5 font-medium"
                   >
                     {{
                       t('dashboard.schedule_overview.room_change', {
@@ -611,20 +611,20 @@ const isScheduleVisible = computed(() => {
                 </div>
 
                 <span
-                    v-if="change.cancelled"
-                    class="px-1.5 py-0.5 rounded text-xs font-bold bg-danger/10 text-danger"
+                  v-if="change.cancelled"
+                  class="px-1.5 py-0.5 rounded text-xs font-bold bg-danger/10 text-danger"
                 >
                   {{ t('dashboard.schedule_overview.cancelled') }}
                 </span>
                 <span
-                    v-else-if="change.isSubstitutedSubject"
-                    class="px-1.5 py-0.5 rounded text-xs font-bold bg-bismuth-purple/10 text-bismuth-purple"
+                  v-else-if="change.isSubstitutedSubject"
+                  class="px-1.5 py-0.5 rounded text-xs font-bold bg-bismuth-purple/10 text-bismuth-purple"
                 >
                   {{ t('dashboard.schedule_overview.substituted') }}
                 </span>
                 <span
-                    v-else
-                    class="px-1.5 py-0.5 rounded text-xs font-bold bg-warn/10 text-on-warn dark:text-yellow"
+                  v-else
+                  class="px-1.5 py-0.5 rounded text-xs font-bold bg-warn/10 text-on-warn dark:text-yellow"
                 >
                   Änderung
                 </span>
@@ -632,8 +632,8 @@ const isScheduleVisible = computed(() => {
             </div>
 
             <div
-                v-else
-                class="flex-1 flex items-center justify-center p-4 rounded-xl border border-dashed border-surface-border text-center text-xs text-on-ghost-muted"
+              v-else
+              class="flex-1 flex items-center justify-center p-4 rounded-xl border border-dashed border-surface-border text-center text-xs text-on-ghost-muted"
             >
               {{ t('dashboard.schedule_overview.no_substitutions') }}
             </div>
@@ -641,25 +641,25 @@ const isScheduleVisible = computed(() => {
         </div>
 
         <div
-            v-else-if="canEditScheduleConfig"
-            class="flex-1 flex items-center justify-center p-6 min-h-[220px]"
+          v-else-if="canEditScheduleConfig"
+          class="flex-1 flex items-center justify-center p-6 min-h-[220px]"
         >
           <BaseEmptyState
-              :primary-action="
+            :primary-action="
               () =>
                 $router.push({
                   name: 'group-admin',
                   params: { groupId: activeGroupId, tab: 'schedule' },
                 })
             "
-              :icon="CalendarDays"
+            :icon="CalendarDays"
           >
             <template #message>{{
-                t('dashboard.schedule_overview.setup_cta')
-              }}</template>
+              t('dashboard.schedule_overview.setup_cta')
+            }}</template>
             <template #primary-action-label>{{
-                t('dashboard.schedule_overview.setup_button')
-              }}</template>
+              t('dashboard.schedule_overview.setup_button')
+            }}</template>
           </BaseEmptyState>
         </div>
       </div>

@@ -18,7 +18,7 @@ import PrivateTaskForm from '@/modules/tasks/components/PrivateTaskForm.vue';
 import ChangePasswordModal from '@/modules/auth/components/ChangePasswordModal.vue';
 import SecurityModal from '@/modules/auth/components/SecurityModal.vue';
 import DeleteAccountModal from '@/modules/auth/components/DeleteAccountModal.vue';
-import CompleteSetup from '@/modules/auth/components/CompleteSetup.vue';
+import EditCoursesModal from '@/modules/auth/components/EditCoursesModal.vue';
 import CreateGroupModal from '@/modules/auth/components/CreateGroupModal.vue';
 import InviteModal from '@/modules/auth/components/InviteModal.vue';
 import AnnouncementForm from '@/modules/announcements/components/AnnouncementForm.vue';
@@ -234,7 +234,7 @@ async function onAuthSuccess() {
     @error="onAccountDeleteError"
   />
 
-  <CompleteSetup
+  <EditCoursesModal
     v-if="user"
     :open="showSetup"
     :is-setup="!user?.doneSetup"

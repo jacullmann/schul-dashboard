@@ -38,79 +38,79 @@ onMounted(loadUsers);
   <div class="table-wrap">
     <table class="data-table">
       <thead>
-      <tr>
-        <th>Email</th>
-        <th>Status</th>
-        <th>Registered</th>
-        <th style="text-align: right">Actions</th>
-      </tr>
+        <tr>
+          <th>Email</th>
+          <th>Status</th>
+          <th>Registered</th>
+          <th style="text-align: right">Actions</th>
+        </tr>
       </thead>
       <tbody>
-      <tr
+        <tr
           v-for="u in users"
           :key="u.id"
           :class="{ 'row-banned': u.isBanned }"
-      >
-        <td>
-          <div class="cell-email">{{ u.email }}</div>
-          <div class="cell-id">{{ u.id }}</div>
-        </td>
-        <td>
+        >
+          <td>
+            <div class="cell-email">{{ u.email }}</div>
+            <div class="cell-id">{{ u.id }}</div>
+          </td>
+          <td>
             <span v-if="u.role === 'superadmin'" class="badge badge-purple"
-            >Admin</span
+              >Admin</span
             >
-          <span v-else-if="u.isBanned" class="badge badge-red">Banned</span>
-          <span v-else class="badge badge-green">Active</span>
-          <span v-if="!u.emailVerified" class="badge badge-yellow"
-          >Unverified</span
-          >
-        </td>
-        <td class="cell-date">{{ fmtDate(u.createdAt) }}</td>
-        <td>
-          <div class="cell-actions">
-            <button
+            <span v-else-if="u.isBanned" class="badge badge-red">Banned</span>
+            <span v-else class="badge badge-green">Active</span>
+            <span v-if="!u.emailVerified" class="badge badge-yellow"
+              >Unverified</span
+            >
+          </td>
+          <td class="cell-date">{{ fmtDate(u.createdAt) }}</td>
+          <td>
+            <div class="cell-actions">
+              <button
                 class="btn-icon"
                 title="Activity log"
                 @click="toggleActivity(u.id)"
-            >
-              <FileText :size="15" />
-            </button>
-            <button
+              >
+                <FileText :size="15" />
+              </button>
+              <button
                 v-if="u.role !== 'superadmin'"
                 class="btn-icon"
                 :title="u.isBanned ? 'Unban' : 'Ban'"
                 @click="toggleBan(u)"
-            >
-              <Lock v-if="!u.isBanned" :size="15" />
-              <Unlock v-else :size="15" />
-            </button>
-            <button
+              >
+                <Lock v-if="!u.isBanned" :size="15" />
+                <Unlock v-else :size="15" />
+              </button>
+              <button
                 class="btn-icon"
                 title="Prune old logs"
                 @click="pruneOldLogs(u)"
-            >
-              <Eraser :size="15" />
-            </button>
-            <button
+              >
+                <Eraser :size="15" />
+              </button>
+              <button
                 v-if="u.role !== 'superadmin'"
                 class="btn-icon danger"
                 title="Delete"
                 @click="deleteUser(u.id)"
-            >
-              <Trash2 :size="15" />
-            </button>
-          </div>
-        </td>
-      </tr>
+              >
+                <Trash2 :size="15" />
+              </button>
+            </div>
+          </td>
+        </tr>
       </tbody>
     </table>
   </div>
 
   <Transition name="drawer">
     <div
-        v-if="showActivityFor"
-        class="drawer-overlay"
-        @click.self="showActivityFor = null"
+      v-if="showActivityFor"
+      class="drawer-overlay"
+      @click.self="showActivityFor = null"
     >
       <div class="drawer-panel">
         <div class="drawer-header">
@@ -125,8 +125,8 @@ onMounted(loadUsers);
         <ul v-else class="log-list">
           <li v-for="(act, i) in activities[showActivityFor]" :key="i">
             <span class="log-time">{{
-                new Date(act.at).toLocaleString()
-              }}</span>
+              new Date(act.at).toLocaleString()
+            }}</span>
             <span class="log-type">{{ act.type }}</span>
             <pre class="log-meta">{{ JSON.stringify(act.meta, null, 2) }}</pre>
           </li>

@@ -4,15 +4,19 @@ import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useUserStore } from '@/stores/userStore';
+import { useSubjectStore } from '@/stores/subjectStore';
+import { useModalStore } from '@/stores/modalStore';
 import { useToast } from '@/common/composables/useToast';
 import Avatar from '@/modules/auth/components/Avatar.vue';
-import { LogIn, UserPlus, LogIn as JoinIcon, AlertCircle } from '@lucide/vue';
+import { AlertCircle } from '@lucide/vue';
 
 const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const auth = useAppAuth();
 const userStore = useUserStore();
+const subjectStore = useSubjectStore();
+const modalStore = useModalStore();
 const toast = useToast();
 
 const token = route.params.token as string;
@@ -67,7 +71,19 @@ async function handleJoin() {
       toast.success(t('auth.groups.invite.success_join'));
       try {
         await userStore.fetchUser();
-      } catch {}
+
+        subjectStore.reset();
+        await subjectStore.loadSubjects();
+
+        if (
+          subjectStore.electiveSubjects.length > 0 ||
+          subjectStore.extraSubjects.length > 0
+        ) {
+          modalStore.openSetup();
+        }
+      } catch (err) {
+        console.error('Failed to load courses check after join:', err);
+      }
       await router.push(`/groups/${res.groupId}/dashboard`);
     } else {
       toast.error(res.error || t('auth.groups.invite.join_failed'));

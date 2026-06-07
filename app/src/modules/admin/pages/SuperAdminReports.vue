@@ -33,16 +33,16 @@ onMounted(loadReports);
       <div class="card-grid">
         <template v-for="r in unprocessedReports" :key="r.id">
           <ItemCard
-              v-if="r.itemType"
-              :title="r.itemTitle"
-              :show-menu-trigger="false"
-              :is-collapsed="false"
+            v-if="r.itemType"
+            :title="r.itemTitle"
+            :show-menu-trigger="false"
+            :is-collapsed="false"
           >
             <template #title>
               <router-link
-                  v-if="r.itemId && r.itemTenantId"
-                  v-slot="{ navigate, href }"
-                  :to="{
+                v-if="r.itemId && r.itemTenantId"
+                v-slot="{ navigate, href }"
+                :to="{
                   name: 'group-tasks',
                   params: {
                     groupId: r.itemTenantId,
@@ -50,21 +50,21 @@ onMounted(loadReports);
                     itemId: r.itemId,
                   },
                 }"
-                  custom
+                custom
               >
                 <a
-                    :href="href"
-                    class="text-lg/6! font-bold text-primary hover:underline hover:text-primary-hover overflow-hidden text-ellipsis whitespace-nowrap -my-[3px]!"
-                    :title="r.itemTitle"
-                    @click="navigate"
+                  :href="href"
+                  class="text-lg/6! font-bold text-primary hover:underline hover:text-primary-hover overflow-hidden text-ellipsis whitespace-nowrap -my-[3px]!"
+                  :title="r.itemTitle"
+                  @click="navigate"
                 >
                   {{ r.itemTitle }}
                 </a>
               </router-link>
               <h3
-                  v-else
-                  class="text-lg/6! overflow-hidden text-ellipsis whitespace-nowrap -my-[3px]!"
-                  :title="r.itemTitle"
+                v-else
+                class="text-lg/6! overflow-hidden text-ellipsis whitespace-nowrap -my-[3px]!"
+                :title="r.itemTitle"
               >
                 {{ r.itemTitle }}
               </h3>
@@ -72,11 +72,11 @@ onMounted(loadReports);
 
             <template #badges>
               <div
-                  class="text-on-ghost-muted text-base flex flex-wrap gap-1 items-center"
+                class="text-on-ghost-muted text-base flex flex-wrap gap-1 items-center"
               >
                 <span
-                    class="badge"
-                    :class="
+                  class="badge"
+                  :class="
                     r.category === 'illegal' ? 'badge-red' : 'badge-yellow'
                   "
                 >
@@ -97,7 +97,7 @@ onMounted(loadReports);
 
             <template v-if="r.itemDescription" #body>
               <div
-                  class="text-on-ghost break-words [overflow-wrap:anywhere] hyphens-auto whitespace-pre-wrap select-text cursor-text"
+                class="text-on-ghost break-words [overflow-wrap:anywhere] hyphens-auto whitespace-pre-wrap select-text cursor-text"
               >
                 {{ r.itemDescription }}
               </div>
@@ -105,37 +105,37 @@ onMounted(loadReports);
 
             <template #content-after>
               <div
-                  v-if="r.itemImages && r.itemImages.length"
-                  class="grid grid-cols-4 gap-2 mt-2 mb-2"
+                v-if="r.itemImages && r.itemImages.length"
+                class="grid grid-cols-4 gap-2 mt-2 mb-2"
               >
                 <div
-                    v-for="img in r.itemImages"
-                    :key="img.publicId"
-                    class="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-md border-none bg-black/[0.12] select-none"
+                  v-for="img in r.itemImages"
+                  :key="img.publicId"
+                  class="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-md border-none bg-black/[0.12] select-none"
                 >
                   <img
-                      :src="makeThumb(img.metadata?.thumbnailId || img.publicId)"
-                      class="block h-full w-full object-cover [pointer-events:none]"
-                      alt="Vorschau"
+                    :src="makeThumb(img.metadata?.thumbnailId || img.publicId)"
+                    class="block h-full w-full object-cover [pointer-events:none]"
+                    alt="Vorschau"
                   />
                 </div>
               </div>
 
               <div
-                  v-if="r.itemEditorNote"
-                  class="note-section mt-2 pt-1 border-t border-surface-border"
+                v-if="r.itemEditorNote"
+                class="note-section mt-2 pt-1 border-t border-surface-border"
               >
                 <div class="text-on-ghost text-base font-bold mb-1">Note:</div>
                 <div
-                    class="text-on-ghost text-base whitespace-pre-wrap break-words"
+                  class="text-on-ghost text-base whitespace-pre-wrap break-words"
                 >
                   {{ r.itemEditorNote }}
                 </div>
               </div>
 
               <div
-                  v-if="r.reason"
-                  class="report-reason-box mt-2 pt-1 border-t border-surface-border"
+                v-if="r.reason"
+                class="report-reason-box mt-2 pt-1 border-t border-surface-border"
               >
                 <div class="text-on-ghost text-base font-bold mb-1">
                   Report Reason:
@@ -147,21 +147,21 @@ onMounted(loadReports);
               </div>
 
               <div
-                  class="report-actions mt-3 pt-2 border-t border-surface-border flex gap-2"
+                class="report-actions mt-3 pt-2 border-t border-surface-border flex gap-2"
               >
                 <BaseButton
-                    class="tiny"
-                    variant="ghost"
-                    :icon="Check"
-                    @click="toggleReportProcessed(r.id, false)"
+                  class="tiny"
+                  variant="ghost"
+                  :icon="Check"
+                  @click="toggleReportProcessed(r.id, false)"
                 >
                   Resolve
                 </BaseButton>
                 <BaseButton
-                    class="tiny"
-                    variant="ghost"
-                    :icon="Trash2"
-                    @click="deleteReport(r.id)"
+                  class="tiny"
+                  variant="ghost"
+                  :icon="Trash2"
+                  @click="deleteReport(r.id)"
                 >
                   Delete
                 </BaseButton>
@@ -170,20 +170,20 @@ onMounted(loadReports);
           </ItemCard>
 
           <ItemCard
-              v-else
-              :title="r.itemTitle + ' (Deleted)'"
-              :show-menu-trigger="false"
-              :is-collapsed="false"
+            v-else
+            :title="r.itemTitle + ' (Deleted)'"
+            :show-menu-trigger="false"
+            :is-collapsed="false"
           >
             <template #badges>
               <div
-                  class="text-on-ghost-muted text-base flex flex-wrap gap-1 items-center"
+                class="text-on-ghost-muted text-base flex flex-wrap gap-1 items-center"
               >
                 <span class="badge badge-red">Deleted Item</span>
                 <span>·</span>
                 <span
-                    class="badge"
-                    :class="
+                  class="badge"
+                  :class="
                     r.category === 'illegal' ? 'badge-red' : 'badge-yellow'
                   "
                 >
@@ -202,21 +202,21 @@ onMounted(loadReports);
                 From: {{ r.reporterEmail }} · {{ fmtDate(r.reportedAt) }}
               </div>
               <div
-                  class="report-actions mt-3 pt-2 border-t border-surface-border flex gap-2"
+                class="report-actions mt-3 pt-2 border-t border-surface-border flex gap-2"
               >
                 <BaseButton
-                    class="tiny"
-                    variant="ghost"
-                    :icon="Check"
-                    @click="toggleReportProcessed(r.id, false)"
+                  class="tiny"
+                  variant="ghost"
+                  :icon="Check"
+                  @click="toggleReportProcessed(r.id, false)"
                 >
                   Resolve
                 </BaseButton>
                 <BaseButton
-                    class="tiny"
-                    variant="ghost"
-                    :icon="Trash2"
-                    @click="deleteReport(r.id)"
+                  class="tiny"
+                  variant="ghost"
+                  :icon="Trash2"
+                  @click="deleteReport(r.id)"
                 >
                   Delete
                 </BaseButton>
@@ -228,8 +228,8 @@ onMounted(loadReports);
     </div>
 
     <div
-        v-if="processedReports.length"
-        class="report-section processed-section"
+      v-if="processedReports.length"
+      class="report-section processed-section"
     >
       <h3 class="sub-heading muted">
         Processed ({{ processedReports.length }})
@@ -237,16 +237,16 @@ onMounted(loadReports);
       <div class="card-grid">
         <template v-for="r in processedReports" :key="r.id">
           <ItemCard
-              v-if="r.itemType"
-              :title="r.itemTitle"
-              :show-menu-trigger="false"
-              :is-collapsed="false"
+            v-if="r.itemType"
+            :title="r.itemTitle"
+            :show-menu-trigger="false"
+            :is-collapsed="false"
           >
             <template #title>
               <router-link
-                  v-if="r.itemId && r.itemTenantId"
-                  v-slot="{ navigate, href }"
-                  :to="{
+                v-if="r.itemId && r.itemTenantId"
+                v-slot="{ navigate, href }"
+                :to="{
                   name: 'group-tasks',
                   params: {
                     groupId: r.itemTenantId,
@@ -254,21 +254,21 @@ onMounted(loadReports);
                     itemId: r.itemId,
                   },
                 }"
-                  custom
+                custom
               >
                 <a
-                    :href="href"
-                    class="text-lg/6! font-bold text-primary hover:underline hover:text-primary-hover overflow-hidden text-ellipsis whitespace-nowrap -my-[3px]!"
-                    :title="r.itemTitle"
-                    @click="navigate"
+                  :href="href"
+                  class="text-lg/6! font-bold text-primary hover:underline hover:text-primary-hover overflow-hidden text-ellipsis whitespace-nowrap -my-[3px]!"
+                  :title="r.itemTitle"
+                  @click="navigate"
                 >
                   {{ r.itemTitle }}
                 </a>
               </router-link>
               <h3
-                  v-else
-                  class="text-lg/6! overflow-hidden text-ellipsis whitespace-nowrap -my-[3px]!"
-                  :title="r.itemTitle"
+                v-else
+                class="text-lg/6! overflow-hidden text-ellipsis whitespace-nowrap -my-[3px]!"
+                :title="r.itemTitle"
               >
                 {{ r.itemTitle }}
               </h3>
@@ -276,7 +276,7 @@ onMounted(loadReports);
 
             <template #badges>
               <div
-                  class="text-on-ghost-muted text-base flex flex-wrap gap-1 items-center"
+                class="text-on-ghost-muted text-base flex flex-wrap gap-1 items-center"
               >
                 <span class="badge badge-green">Resolved</span>
                 <span>·</span>
@@ -294,7 +294,7 @@ onMounted(loadReports);
 
             <template v-if="r.itemDescription" #body>
               <div
-                  class="text-on-ghost break-words [overflow-wrap:anywhere] hyphens-auto whitespace-pre-wrap select-text cursor-text"
+                class="text-on-ghost break-words [overflow-wrap:anywhere] hyphens-auto whitespace-pre-wrap select-text cursor-text"
               >
                 {{ r.itemDescription }}
               </div>
@@ -302,37 +302,37 @@ onMounted(loadReports);
 
             <template #content-after>
               <div
-                  v-if="r.itemImages && r.itemImages.length"
-                  class="grid grid-cols-4 gap-2 mt-2 mb-2"
+                v-if="r.itemImages && r.itemImages.length"
+                class="grid grid-cols-4 gap-2 mt-2 mb-2"
               >
                 <div
-                    v-for="img in r.itemImages"
-                    :key="img.publicId"
-                    class="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-md border-none bg-black/[0.12] select-none"
+                  v-for="img in r.itemImages"
+                  :key="img.publicId"
+                  class="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-md border-none bg-black/[0.12] select-none"
                 >
                   <img
-                      :src="makeThumb(img.metadata?.thumbnailId || img.publicId)"
-                      class="block h-full w-full object-cover [pointer-events:none]"
-                      alt="Vorschau"
+                    :src="makeThumb(img.metadata?.thumbnailId || img.publicId)"
+                    class="block h-full w-full object-cover [pointer-events:none]"
+                    alt="Vorschau"
                   />
                 </div>
               </div>
 
               <div
-                  v-if="r.itemEditorNote"
-                  class="note-section mt-2 pt-1 border-t border-surface-border"
+                v-if="r.itemEditorNote"
+                class="note-section mt-2 pt-1 border-t border-surface-border"
               >
                 <div class="text-on-ghost text-base font-bold mb-1">Note:</div>
                 <div
-                    class="text-on-ghost text-base whitespace-pre-wrap break-words"
+                  class="text-on-ghost text-base whitespace-pre-wrap break-words"
                 >
                   {{ r.itemEditorNote }}
                 </div>
               </div>
 
               <div
-                  v-if="r.reason"
-                  class="report-reason-box mt-2 pt-1 border-t border-surface-border"
+                v-if="r.reason"
+                class="report-reason-box mt-2 pt-1 border-t border-surface-border"
               >
                 <div class="text-on-ghost text-base font-bold mb-1">
                   Report Reason:
@@ -344,21 +344,21 @@ onMounted(loadReports);
               </div>
 
               <div
-                  class="report-actions mt-3 pt-2 border-t border-surface-border flex gap-2"
+                class="report-actions mt-3 pt-2 border-t border-surface-border flex gap-2"
               >
                 <BaseButton
-                    class="tiny"
-                    variant="ghost"
-                    :icon="RotateCcw"
-                    @click="toggleReportProcessed(r.id, true)"
+                  class="tiny"
+                  variant="ghost"
+                  :icon="RotateCcw"
+                  @click="toggleReportProcessed(r.id, true)"
                 >
                   Reopen
                 </BaseButton>
                 <BaseButton
-                    class="tiny"
-                    variant="ghost"
-                    :icon="Trash2"
-                    @click="deleteReport(r.id)"
+                  class="tiny"
+                  variant="ghost"
+                  :icon="Trash2"
+                  @click="deleteReport(r.id)"
                 >
                   Delete
                 </BaseButton>
@@ -367,14 +367,14 @@ onMounted(loadReports);
           </ItemCard>
 
           <ItemCard
-              v-else
-              :title="r.itemTitle + ' (Deleted)'"
-              :show-menu-trigger="false"
-              :is-collapsed="false"
+            v-else
+            :title="r.itemTitle + ' (Deleted)'"
+            :show-menu-trigger="false"
+            :is-collapsed="false"
           >
             <template #badges>
               <div
-                  class="text-on-ghost-muted text-base flex flex-wrap gap-1 items-center"
+                class="text-on-ghost-muted text-base flex flex-wrap gap-1 items-center"
               >
                 <span class="badge badge-green">Resolved</span>
                 <span>·</span>
@@ -392,21 +392,21 @@ onMounted(loadReports);
                 From: {{ r.reporterEmail }} · {{ fmtDate(r.reportedAt) }}
               </div>
               <div
-                  class="report-actions mt-3 pt-2 border-t border-surface-border flex gap-2"
+                class="report-actions mt-3 pt-2 border-t border-surface-border flex gap-2"
               >
                 <BaseButton
-                    class="tiny"
-                    variant="ghost"
-                    :icon="RotateCcw"
-                    @click="toggleReportProcessed(r.id, true)"
+                  class="tiny"
+                  variant="ghost"
+                  :icon="RotateCcw"
+                  @click="toggleReportProcessed(r.id, true)"
                 >
                   Reopen
                 </BaseButton>
                 <BaseButton
-                    class="tiny"
-                    variant="ghost"
-                    :icon="Trash2"
-                    @click="deleteReport(r.id)"
+                  class="tiny"
+                  variant="ghost"
+                  :icon="Trash2"
+                  @click="deleteReport(r.id)"
                 >
                   Delete
                 </BaseButton>

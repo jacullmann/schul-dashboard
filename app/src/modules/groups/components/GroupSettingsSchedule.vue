@@ -345,7 +345,8 @@ function handleSaveSub() {
           {{ selectedLesson.slot + selectedLesson.duration - 1 }},
           {{ t('groups.settings.schedule.changes.room_label') }}
           {{ selectedLesson.room || '-' }},
-          {{ t('groups.settings.schedule.changes.day_label') }} {{ selectedLesson.day }})
+          {{ t('groups.settings.schedule.changes.day_label') }}
+          {{ selectedLesson.day }})
         </p>
 
         <div class="grid grid-cols-2 gap-3 mb-4 sm:grid-cols-1">
@@ -418,7 +419,9 @@ function handleSaveSub() {
             v-model="subForm.cancelled"
             :disabled="!canManageScheduleChanges"
           >
-            <span>{{ t('groups.settings.schedule.changes.cancelled_label') }}</span>
+            <span>{{
+              t('groups.settings.schedule.changes.cancelled_label')
+            }}</span>
           </BaseCheckbox>
           <BaseCheckbox
             v-model="subForm.hide"

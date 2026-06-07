@@ -136,7 +136,9 @@ async function onCropConfirmed(blob: Blob) {
       throw new Error(t('groups.settings.general.avatar.errors.upload_failed'));
     const json = await res.json();
     if (!json.secure_url)
-      throw new Error(t('groups.settings.general.avatar.errors.invalid_response'));
+      throw new Error(
+        t('groups.settings.general.avatar.errors.invalid_response'),
+      );
 
     await saveGroupAvatar(json.secure_url);
   } catch (err: any) {
@@ -206,7 +208,9 @@ async function confirmDeleteGroup() {
     </div>
 
     <div>
-      <PageHeader>{{ t('groups.settings.general.appearance.title') }}</PageHeader>
+      <PageHeader>{{
+        t('groups.settings.general.appearance.title')
+      }}</PageHeader>
       <div class="flex items-center gap-6">
         <!-- Avatar Preview Circle -->
         <div class="relative flex-shrink-0">
@@ -295,7 +299,9 @@ async function confirmDeleteGroup() {
                 id="group-name"
                 class="flex-1"
                 :value="newGroupName"
-                :placeholder="t('groups.settings.general.appearance.name_placeholder')"
+                :placeholder="
+                  t('groups.settings.general.appearance.name_placeholder')
+                "
                 :disabled="!canEditSettings"
                 @input="
                   emit(

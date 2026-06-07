@@ -129,12 +129,18 @@ onMounted(() => {
           :model-value="permissions.edit_group_general"
           :disabled="!isAdmin || saving"
           :options="[
-            { label: t('groups.settings.permissions.options.all'), value: 'user' },
+            {
+              label: t('groups.settings.permissions.options.all'),
+              value: 'user',
+            },
             {
               label: t('groups.settings.permissions.options.moderators'),
               value: 'moderator',
             },
-            { label: t('groups.settings.permissions.options.admins'), value: 'admin' },
+            {
+              label: t('groups.settings.permissions.options.admins'),
+              value: 'admin',
+            },
           ]"
           classes="w-38!"
           @update:model-value="savePermission('edit_group_general', $event)"
@@ -151,12 +157,18 @@ onMounted(() => {
           :model-value="permissions.invite_members"
           :disabled="!isAdmin || saving"
           :options="[
-            { label: t('groups.settings.permissions.options.all'), value: 'user' },
+            {
+              label: t('groups.settings.permissions.options.all'),
+              value: 'user',
+            },
             {
               label: t('groups.settings.permissions.options.moderators'),
               value: 'moderator',
             },
-            { label: t('groups.settings.permissions.options.admins'), value: 'admin' },
+            {
+              label: t('groups.settings.permissions.options.admins'),
+              value: 'admin',
+            },
           ]"
           classes="w-38!"
           @update:model-value="savePermission('invite_members', $event)"

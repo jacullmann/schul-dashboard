@@ -62,7 +62,8 @@ export function useSubjectAdmin() {
     } catch (e: unknown) {
       const err = e as { response?: { data?: { message?: string } } };
       toastError(
-        err.response?.data?.message || t('groups.settings.subjects.errors.update_failed'),
+        err.response?.data?.message ||
+          t('groups.settings.subjects.errors.update_failed'),
       );
       await loadSubjects();
     } finally {
@@ -86,7 +87,8 @@ export function useSubjectAdmin() {
     } catch (e: unknown) {
       const err = e as { response?: { data?: { message?: string } } };
       toastError(
-        err.response?.data?.message || t('groups.settings.subjects.errors.delete_failed'),
+        err.response?.data?.message ||
+          t('groups.settings.subjects.errors.delete_failed'),
       );
     }
   }

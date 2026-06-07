@@ -4,7 +4,8 @@ import { Trash2 } from '@lucide/vue';
 import { useSuperAdminGroups } from '../composables/useSuperAdminGroups';
 import { useSuperAdminFormat } from '../composables/useSuperAdminFormat';
 
-const { groups, loadingGroups, loadGroups, deleteGroup } = useSuperAdminGroups();
+const { groups, loadingGroups, loadGroups, deleteGroup } =
+  useSuperAdminGroups();
 const { fmtDate } = useSuperAdminFormat();
 
 onMounted(loadGroups);
@@ -23,40 +24,40 @@ onMounted(loadGroups);
   <div v-else class="table-wrap">
     <table class="data-table">
       <thead>
-      <tr>
-        <th>Name</th>
-        <th>Owner</th>
-        <th>Members</th>
-        <th>Entries</th>
-        <th>Created</th>
-        <th style="text-align: right">Actions</th>
-      </tr>
+        <tr>
+          <th>Name</th>
+          <th>Owner</th>
+          <th>Members</th>
+          <th>Entries</th>
+          <th>Created</th>
+          <th style="text-align: right">Actions</th>
+        </tr>
       </thead>
       <tbody>
-      <tr v-for="g in groups" :key="g.id">
-        <td>
-          <div class="cell-email">{{ g.name }}</div>
-          <div class="cell-id">{{ g.id }}</div>
-        </td>
-        <td>
-          <div class="cell-email">{{ g.ownerEmail ?? '—' }}</div>
-          <div class="cell-id">{{ g.ownerId }}</div>
-        </td>
-        <td>{{ g.memberCount }}</td>
-        <td>{{ g.itemCount }}</td>
-        <td class="cell-date">{{ fmtDate(g.createdAt) }}</td>
-        <td>
-          <div class="cell-actions">
-            <button
+        <tr v-for="g in groups" :key="g.id">
+          <td>
+            <div class="cell-email">{{ g.name }}</div>
+            <div class="cell-id">{{ g.id }}</div>
+          </td>
+          <td>
+            <div class="cell-email">{{ g.ownerEmail ?? '—' }}</div>
+            <div class="cell-id">{{ g.ownerId }}</div>
+          </td>
+          <td>{{ g.memberCount }}</td>
+          <td>{{ g.itemCount }}</td>
+          <td class="cell-date">{{ fmtDate(g.createdAt) }}</td>
+          <td>
+            <div class="cell-actions">
+              <button
                 class="btn-icon danger"
                 title="Delete group"
                 @click="deleteGroup(g)"
-            >
-              <Trash2 :size="15" />
-            </button>
-          </div>
-        </td>
-      </tr>
+              >
+                <Trash2 :size="15" />
+              </button>
+            </div>
+          </td>
+        </tr>
       </tbody>
     </table>
   </div>

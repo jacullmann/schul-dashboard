@@ -43,7 +43,7 @@ const navItems = computed<(SuperAdminNavItem & { icon: Component })[]>(() => [
 ]);
 
 const activeTab = computed(
-    () => navItems.value.find((i) => i.name === route.name)?.id ?? 'overview',
+  () => navItems.value.find((i) => i.name === route.name)?.id ?? 'overview',
 );
 
 function onTabChange(id: string) {
@@ -56,10 +56,10 @@ onMounted(loadStats);
 
 <template>
   <SuperAdminLayout
-      title="Super Admin"
-      :nav-items="navItems"
-      :active-tab="activeTab"
-      @update:active-tab="onTabChange"
+    title="Super Admin"
+    :nav-items="navItems"
+    :active-tab="activeTab"
+    @update:active-tab="onTabChange"
   >
     <router-view />
   </SuperAdminLayout>
