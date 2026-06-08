@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { RefreshCw, CircleMinus, Crown } from '@lucide/vue';
+import { RefreshCw, CircleMinus, Crown, UserRoundPlus, Copy, Check, Trash } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import InfoModal from '@/common/components/InfoModal.vue';
-import type { GroupMember } from '@/modules/groups/types';
+import type { GroupMember, GroupInviteLog } from '@/modules/groups/types';
 import { computed, ref } from 'vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
+import { useModalStore } from '@/stores/modalStore';
+import { useToast } from '@/common/composables/useToast';
 
 const { t, locale } = useI18n();
 
@@ -63,6 +65,8 @@ const props = defineProps<{
   loading: boolean;
   loadingBanned?: boolean;
   isOwner?: boolean;
+  invites?: GroupInviteLog[];
+  loadingInvites?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -71,9 +75,11 @@ const emit = defineEmits<{
   (e: 'remove', userId: string, name: string, ban: boolean): void;
   (e: 'revert-ban', userId: string): void;
   (e: 'transfer-ownership', userId: string): void;
+  (e: 'revoke-invite', id: string): void;
+  (e: 'refresh-invites'): void;
 }>();
 
-const { checkPermission } = useAppAuth();
+const { checkPermission, createInvite } = useAppAuth();
 const canModerateMembers = computed(() => checkPermission('moderate_members'));
 
 const canDemoteAdmin = computed(() => props.isOwner);
@@ -112,6 +118,78 @@ function confirmRemove() {
     removeModal.value.ban,
   );
   closeRemoveModal();
+}
+
+const toast = useToast();
+const modalStore = useModalStore();
+
+const loadingInvite = ref(false);
+const copiedId = ref<string | null>(null);
+
+async function inviteMember() {
+  loadingInvite.value = true;
+  try {
+    const res = await createInvite();
+    if (res.ok && res.token) {
+      modalStore.openInviteModal(res.token);
+      emit('refresh-invites');
+    } else {
+      toast.error(res.error || 'Failed to generate invite link.');
+    }
+  } catch (err) {
+    console.error('Failed to generate invite link:', err);
+    toast.error('Failed to generate invite link.');
+  } finally {
+    loadingInvite.value = false;
+  }
+}
+
+async function copyLink(inviteId: string, token: string) {
+  const url = `${window.location.origin}/invite/${token}`;
+  try {
+    await navigator.clipboard.writeText(url);
+    copiedId.value = inviteId;
+    toast.success(t('auth.groups.invite.copied'));
+    setTimeout(() => {
+      if (copiedId.value === inviteId) {
+        copiedId.value = null;
+      }
+    }, 3000);
+  } catch (err) {
+    toast.error('Failed to copy to clipboard');
+  }
+}
+
+function isInviteActive(invite: GroupInviteLog): boolean {
+  return (
+    invite.usedAt === null &&
+    invite.revokedAt === null &&
+    new Date(invite.expiresAt) > new Date()
+  );
+}
+
+function getBadgeClass(invite: GroupInviteLog): string {
+  if (invite.usedAt !== null) {
+    return 'bg-blue-500/10 text-blue-500 border border-blue-500/20';
+  }
+  if (invite.revokedAt !== null) {
+    return 'bg-danger/10 text-danger border border-danger/20';
+  }
+  if (new Date(invite.expiresAt) <= new Date()) {
+    return 'bg-orange-500/10 text-orange-500 border border-orange-500/20';
+  }
+  return 'bg-success/10 text-success border border-success/20';
+}
+
+function getBadgeLabel(invite: GroupInviteLog): string {
+  if (invite.usedAt !== null) return 'Verwendet';
+  if (invite.revokedAt !== null) return 'Widerrufen';
+  if (new Date(invite.expiresAt) <= new Date()) return 'Abgelaufen';
+  return 'Aktiv';
+}
+
+function getInviteUrl(token: string): string {
+  return `${window.location.origin}/invite/${token}`;
 }
 </script>
 
@@ -269,6 +347,101 @@ function confirmRemove() {
           >
             {{ t('groups.settings.members.ban_list.actions.unban') }}
           </BaseButton>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="checkPermission('invite_members')" class="mt-8">
+      <div class="flex items-center justify-between gap-4 mb-4">
+        <PageHeader class="m-0!">
+          Einladungslinks
+        </PageHeader>
+        <BaseButton
+          type="button"
+          variant="action"
+          :loading="loadingInvite"
+          :icon="UserRoundPlus"
+          class="gap-2 shrink-0"
+          @click="inviteMember"
+        >
+          Link generieren
+        </BaseButton>
+      </div>
+
+      <div v-if="loadingInvites && (!invites || invites.length === 0)" class="flex justify-center p-8 bg-surface border border-surface-border rounded-xl">
+        <BaseSpinner />
+      </div>
+      <div
+        v-else-if="!invites || invites.length === 0"
+        class="text-center p-8 text-on-ghost-muted text-base bg-surface border border-surface-border rounded-xl"
+      >
+        Keine Einladungslinks vorhanden.
+      </div>
+      <div v-else class="flex flex-col gap-1.5">
+        <div
+          v-for="(invite, index) in invites"
+          :key="invite.id"
+          class="flex max-md:flex-col md:items-center justify-between p-3 px-4 bg-surface border border-surface-border shadow-input rounded-xl gap-3 animate-fade-up"
+          :style="{
+            animationDelay: `${index * 0.05}s`,
+            animationFillMode: 'both',
+          }"
+        >
+          <div class="flex flex-col min-w-0 gap-1.5">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="font-mono text-xs text-on-ghost truncate max-w-60 md:max-w-96 select-all">
+                {{ getInviteUrl(invite.token) }}
+              </span>
+              <span :class="getBadgeClass(invite)" class="text-[0.65rem] font-bold uppercase tracking-[0.04em] px-2 py-0.5 rounded-full">
+                {{ getBadgeLabel(invite) }}
+              </span>
+            </div>
+            
+            <div class="text-xs text-on-ghost-muted flex flex-wrap gap-x-2 gap-y-1 items-center">
+              <span>Erstellt von: <strong>{{ invite.createdByName || 'System' }}</strong></span>
+              <span>•</span>
+              <span>Erstellt am: {{ new Date(invite.createdAt).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) }}</span>
+              <template v-if="invite.usedAt">
+                <span>•</span>
+                <span>Verwendet von: <strong>{{ invite.usedByName || 'Unbekannt' }}</strong> ({{ new Date(invite.usedAt).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) }})</span>
+              </template>
+              <template v-else-if="invite.revokedAt">
+                <span>•</span>
+                <span>Widerrufen von: <strong>{{ invite.revokedByName || 'Unbekannt' }}</strong> ({{ new Date(invite.revokedAt).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) }})</span>
+              </template>
+              <template v-else>
+                <span>•</span>
+                <span>Ablaufdatum: {{ new Date(invite.expiresAt).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) }}</span>
+              </template>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 flex-shrink-0 self-end md:self-center">
+            <BaseTooltip
+              v-if="isInviteActive(invite)"
+              content="Link kopieren"
+              placement="bottom"
+            >
+              <BaseButton
+                variant="ghost"
+                :icon="copiedId === invite.id ? Check : Copy"
+                @click="copyLink(invite.id, invite.token)"
+              />
+            </BaseTooltip>
+            
+            <BaseTooltip
+              v-if="isInviteActive(invite)"
+              content="Widerrufen"
+              placement="bottom"
+            >
+              <BaseButton
+                variant="ghost"
+                class="hover:text-danger!"
+                :icon="Trash"
+                @click="emit('revoke-invite', invite.id)"
+              />
+            </BaseTooltip>
+          </div>
         </div>
       </div>
     </div>

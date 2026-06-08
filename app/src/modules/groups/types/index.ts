@@ -47,3 +47,18 @@ export interface AdminSubject {
   courses?: { id: string; name: string }[];
   coursesCount?: number;
 }
+
+export interface GroupInviteLog {
+  id: string;
+  token: string;
+  createdBy: string | null;
+  createdByName: string | null;
+  createdAt: string;
+  expiresAt: string;
+  usedAt: string | null;
+  usedBy: string | null;
+  usedByName: string | null;
+  revokedAt: string | null;
+  revokedBy: string | null;
+  revokedByName: string | null;
+}

@@ -552,3 +552,25 @@ pub async fn delete_announcement(
             .await?,
     ))
 }
+
+pub async fn get_invites(State(s): State<AppState>, tc: TenantContext) -> AppResult<Json<Value>> {
+    crate::require_permission!(tc, crate::common::permission::Permission::InviteMembers);
+    Ok(Json(
+        GroupAdminService::from_state(&s)
+            .get_invites(tc.tenant_id)
+            .await?,
+    ))
+}
+
+pub async fn revoke_invite(
+    State(s): State<AppState>,
+    tc: TenantContext,
+    Path(invite_id): Path<Uuid>,
+) -> AppResult<Json<Value>> {
+    crate::require_permission!(tc, crate::common::permission::Permission::InviteMembers);
+    Ok(Json(
+        GroupAdminService::from_state(&s)
+            .revoke_invite(tc.tenant_id, tc.user.user_id, invite_id)
+            .await?,
+    ))
+}

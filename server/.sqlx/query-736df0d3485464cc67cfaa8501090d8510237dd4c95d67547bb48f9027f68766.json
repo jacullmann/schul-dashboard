@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE group_invites SET used_at = now(), used_by = $2 WHERE token = $1 AND expires_at > now() AND used_at IS NULL AND revoked_at IS NULL RETURNING tenant_id",
+  "describe": {
+    "columns": [
+      {
+        "name": "tenant_id",
+        "ordinal": 0,
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "736df0d3485464cc67cfaa8501090d8510237dd4c95d67547bb48f9027f68766"
+}

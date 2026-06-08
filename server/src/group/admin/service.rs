@@ -939,4 +939,68 @@ impl GroupAdminService {
 
         Ok(json!({ "ok": true }))
     }
+
+    pub async fn get_invites(&self, tenant_id: Uuid) -> AppResult<Value> {
+        let rows = sqlx::query!(
+            r#"SELECT id, token, created_by, created_at, expires_at, used_at, used_by, revoked_at, revoked_by
+               FROM group_invites
+               WHERE tenant_id = $1
+               ORDER BY created_at DESC"#,
+            tenant_id
+        )
+        .fetch_all(&self.db)
+        .await?;
+
+        let invites: Vec<Value> = rows
+            .into_iter()
+            .map(|r| {
+                let created_by_name = r.created_by.map(|uid| {
+                    crate::common::name_generator::generate_user_name(&uid.to_string())
+                });
+                let used_by_name = r.used_by.map(|uid| {
+                    crate::common::name_generator::generate_user_name(&uid.to_string())
+                });
+                let revoked_by_name = r.revoked_by.map(|uid| {
+                    crate::common::name_generator::generate_user_name(&uid.to_string())
+                });
+
+                json!({
+                    "id": r.id,
+                    "token": r.token,
+                    "createdBy": r.created_by,
+                    "createdByName": created_by_name,
+                    "createdAt": r.created_at,
+                    "expiresAt": r.expires_at,
+                    "usedAt": r.used_at,
+                    "usedBy": r.used_by,
+                    "usedByName": used_by_name,
+                    "revokedAt": r.revoked_at,
+                    "revokedBy": r.revoked_by,
+                    "revokedByName": revoked_by_name,
+                })
+            })
+            .collect();
+
+        Ok(json!(invites))
+    }
+
+    pub async fn revoke_invite(&self, tenant_id: Uuid, user_id: Uuid, invite_id: Uuid) -> AppResult<Value> {
+        let rows_affected = sqlx::query!(
+            r#"UPDATE group_invites
+               SET revoked_at = now(), revoked_by = $1
+               WHERE id = $2 AND tenant_id = $3 AND revoked_at IS NULL AND used_at IS NULL"#,
+            user_id,
+            invite_id,
+            tenant_id
+        )
+        .execute(&self.db)
+        .await?
+        .rows_affected();
+
+        if rows_affected == 0 {
+            return Err(AppError::bad_request("Invite not found or already used/revoked."));
+        }
+
+        Ok(json!({ "ok": true }))
+    }
 }

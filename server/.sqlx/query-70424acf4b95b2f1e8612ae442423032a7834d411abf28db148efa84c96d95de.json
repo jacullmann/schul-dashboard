@@ -1,0 +1,70 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, token, created_by, created_at, expires_at, used_at, used_by, revoked_at, revoked_by\n               FROM group_invites\n               WHERE tenant_id = $1\n               ORDER BY created_at DESC",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Uuid"
+      },
+      {
+        "name": "token",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "created_by",
+        "ordinal": 2,
+        "type_info": "Uuid"
+      },
+      {
+        "name": "created_at",
+        "ordinal": 3,
+        "type_info": "Timestamptz"
+      },
+      {
+        "name": "expires_at",
+        "ordinal": 4,
+        "type_info": "Timestamptz"
+      },
+      {
+        "name": "used_at",
+        "ordinal": 5,
+        "type_info": "Timestamptz"
+      },
+      {
+        "name": "used_by",
+        "ordinal": 6,
+        "type_info": "Uuid"
+      },
+      {
+        "name": "revoked_at",
+        "ordinal": 7,
+        "type_info": "Timestamptz"
+      },
+      {
+        "name": "revoked_by",
+        "ordinal": 8,
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "70424acf4b95b2f1e8612ae442423032a7834d411abf28db148efa84c96d95de"
+}

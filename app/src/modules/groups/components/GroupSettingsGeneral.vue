@@ -3,7 +3,7 @@ import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useGroupAdmin } from '@/modules/groups/composables/useGroupAdmin';
-import { Pencil, Camera, Trash2, Upload, UserRoundPlus } from '@lucide/vue';
+import { Pencil, Camera, Trash2, Upload } from '@lucide/vue';
 import { useModalStore } from '@/stores/modalStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import hw from '../../../api/api';
@@ -12,7 +12,7 @@ import Avatar from '@/modules/auth/components/Avatar.vue';
 
 const modalStore = useModalStore();
 const { t } = useI18n();
-const { activeGroupAvatarUrl, checkPermission, createInvite } = useAppAuth();
+const { activeGroupAvatarUrl, checkPermission } = useAppAuth();
 const canEditSettings = computed(() => checkPermission('edit_group_general'));
 
 const props = defineProps<{
@@ -34,24 +34,6 @@ const emit = defineEmits<{
 const { deleteGroup, saveGroupAvatar } = useGroupAdmin();
 const router = useRouter();
 
-const loadingInvite = ref(false);
-
-async function inviteMember() {
-  loadingInvite.value = true;
-  try {
-    const res = await createInvite();
-    if (res.ok && res.token) {
-      modalStore.openInviteModal(res.token);
-    } else {
-      alert(res.error || 'Failed to generate invite link.');
-    }
-  } catch (err) {
-    console.error('Failed to generate invite link:', err);
-    alert('Failed to generate invite link.');
-  } finally {
-    loadingInvite.value = false;
-  }
-}
 
 // Avatar/Cropper state
 const fileInputRef = ref<HTMLInputElement | null>(null);
@@ -365,25 +347,6 @@ async function confirmDeleteGroup() {
       />
     </div>
 
-    <div v-if="checkPermission('invite_members')">
-      <PageHeader>{{
-        t('auth.groups.invite.invite_button_header')
-      }}</PageHeader>
-      <p class="text-base/relaxed text-on-ghost-muted mt-0! mb-5!">
-        Generieren Sie einen Einladungslink oder QR-Code, damit andere Schüler
-        dieser Gruppe beitreten können.
-      </p>
-      <BaseButton
-        type="button"
-        variant="action"
-        :loading="loadingInvite"
-        :icon="UserRoundPlus"
-        class="gap-2"
-        @click="inviteMember"
-      >
-        {{ t('auth.groups.invite.invite_button_header') }}
-      </BaseButton>
-    </div>
 
     <div v-if="isOwner">
       <h3 class="text-danger">

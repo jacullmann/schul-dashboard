@@ -245,7 +245,7 @@ onMounted(() => {
         {{ t('groups.settings.subjects.list.empty') }}
       </div>
 
-      <div v-else class="flex flex-col max-md:-mx-6">
+      <div v-else class="flex flex-col max-w-200 mx-auto max-md:-mx-6">
         <BaseList
           v-for="(sub, index) in subjects"
           :key="sub.id"
@@ -297,7 +297,7 @@ onMounted(() => {
         </template>
 
         <template #content>
-          <BaseFormGroup id="new-subject-name" class="flex flex-col gap-2">
+          <BaseFormGroup id="new-subject-name">
             <BaseLabel for="new-subject-name">{{
               t('groups.settings.subjects.name_label')
             }}</BaseLabel>
@@ -311,7 +311,6 @@ onMounted(() => {
           <BaseFormGroup
             v-if="selectedSubjectKey === 'custom'"
             id="new-subject-custom"
-            class="flex flex-col gap-2"
           >
             <BaseLabel for="new-subject-custom">{{
               t('groups.settings.subjects.custom_label')
@@ -324,7 +323,7 @@ onMounted(() => {
               :disabled="saving"
             />
           </BaseFormGroup>
-          <BaseFormGroup id="new-subject-category" class="flex flex-col gap-2">
+          <BaseFormGroup id="new-subject-category">
             <BaseLabel for="new-subject-category">{{
               t('groups.settings.subjects.category_label')
             }}</BaseLabel>
@@ -361,8 +360,8 @@ onMounted(() => {
         <PageHeader>{{
           t('groups.settings.general.appearance.title')
         }}</PageHeader>
-        <div class="flex-1 w-full flex flex-col gap-4 max-w-[400px]">
-          <div class="flex flex-col gap-2">
+        <BaseFormContent class="max-w-120">
+          <BaseFormGroup id="subject-name">
             <BaseLabel for="subject-name">{{
               t('groups.settings.general.appearance.name_label')
             }}</BaseLabel>
@@ -373,9 +372,9 @@ onMounted(() => {
               :disabled="saving || !canEditSubjects"
               @keyup.enter="handleSave"
             />
-          </div>
+          </BaseFormGroup>
 
-          <div class="flex flex-col gap-2">
+          <BaseFormGroup id="subject-category">
             <BaseLabel for="subject-category">{{
               t('groups.settings.subjects.category_label')
             }}</BaseLabel>
@@ -386,7 +385,7 @@ onMounted(() => {
               :disabled="saving || !canEditSubjects"
               :options="categoryOptions"
             />
-          </div>
+          </BaseFormGroup>
 
           <BaseRow
             v-if="canEditSubjects"
@@ -415,27 +414,29 @@ onMounted(() => {
               }}
             </BaseButton>
           </BaseRow>
-        </div>
+        </BaseFormContent>
       </div>
 
       <!-- Courses list section for elective/extra subjects -->
       <div
         v-if="subject.category === 'elective' || subject.category === 'extra'"
-        class="border-t border-surface-border pt-6 mt-6 max-w-[600px]"
       >
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-semibold text-on-ghost m-0">
             {{ t('groups.settings.subjects.courses_title') }}
           </h3>
-          <BaseButton
-            v-if="canEditSubjects"
-            variant="action"
-            size="sm"
-            :icon="Plus"
-            @click="openCreateCourseModal"
+          <BaseTooltip
+            :content="t('groups.settings.subjects.course_add_title')"
+            placement="bottom"
           >
-            {{ t('groups.settings.subjects.course_add_title') }}
-          </BaseButton>
+            <BaseButton
+              v-if="canEditSubjects"
+              variant="action"
+              :icon="Plus"
+              icon-classes="size-6"
+              @click="openCreateCourseModal"
+            />
+          </BaseTooltip>
         </div>
 
         <div
@@ -444,7 +445,7 @@ onMounted(() => {
         >
           {{ t('groups.settings.subjects.list.empty') }}
         </div>
-        <div v-else class="flex flex-col gap-2">
+        <div v-else class="flex flex-col gap-2 max-w-200 mx-auto">
           <div
             v-for="course in subject.courses"
             :key="course.id"

@@ -19,6 +19,8 @@ pub fn router() -> Router<AppState> {
         .route("/group-admin/members", get(get_members))
         .route("/group-admin/banned-users", get(get_banned_users))
         .route("/group-admin/banned-users/{userId}", delete(revert_ban))
+        .route("/group-admin/invites", get(get_invites))
+        .route("/group-admin/invites/{id}", delete(revoke_invite))
         .route(
             "/group-admin/members/{userId}/role",
             patch(change_member_role),

@@ -444,7 +444,7 @@ impl GroupService {
                       (SELECT COUNT(*) FROM user_roles WHERE tenant_id = g.id) AS "member_count!"
                FROM group_invites gi
                JOIN groups g ON g.id = gi.tenant_id
-               WHERE gi.token = $1 AND gi.expires_at > now()"#,
+               WHERE gi.token = $1 AND gi.expires_at > now() AND gi.used_at IS NULL AND gi.revoked_at IS NULL"#,
             token
         )
         .fetch_optional(&self.db)
@@ -481,8 +481,9 @@ impl GroupService {
         let mut tx = self.db.begin().await?;
 
         let invite = sqlx::query!(
-            "DELETE FROM group_invites WHERE token = $1 AND expires_at > now() RETURNING tenant_id",
-            token
+            "UPDATE group_invites SET used_at = now(), used_by = $2 WHERE token = $1 AND expires_at > now() AND used_at IS NULL AND revoked_at IS NULL RETURNING tenant_id",
+            token,
+            user_id
         )
         .fetch_optional(&mut *tx)
         .await?;

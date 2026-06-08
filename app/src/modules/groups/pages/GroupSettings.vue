@@ -61,6 +61,10 @@ const {
   cancelEditGroupName,
   saveGroupName,
   transferOwnership,
+  invites,
+  loadingInvites,
+  loadInvites,
+  revokeInvite,
 } = useGroupAdmin();
 
 const activeTab = computed<string>({
@@ -276,11 +280,15 @@ function goBack() {
               :banned-users="bannedUsers"
               :loading-banned="loadingBannedUsers"
               :is-owner="isOwner"
+              :invites="invites"
+              :loading-invites="loadingInvites"
               @refresh="loadMembers"
               @change-role="(userId, role) => changeRole(userId, role)"
               @remove="(userId, name, ban) => removeMember(userId, name, ban)"
               @revert-ban="(userId) => revertBan(userId)"
               @transfer-ownership="transferOwnership"
+              @revoke-invite="revokeInvite"
+              @refresh-invites="loadInvites"
             />
 
             <GroupSettingsSchedule

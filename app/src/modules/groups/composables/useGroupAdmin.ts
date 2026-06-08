@@ -7,6 +7,7 @@ import type {
   GroupStats,
   ScheduleSubstitution,
   AdminAnnouncement,
+  GroupInviteLog,
 } from '@/modules/groups/types';
 import type { Lesson } from '@/modules/schedule/types';
 import { useToast } from '@/common/composables/useToast';
@@ -18,7 +19,7 @@ export function useGroupAdmin() {
   const { t } = useI18n();
 
   const route = useRoute();
-  const { groupName: authGroupName, checkAuthStatus } = useAppAuth();
+  const { groupName: authGroupName, checkAuthStatus, checkPermission } = useAppAuth();
   const { success, error: toastError } = useToast();
 
   const groupId = computed(() => route.params.groupId as string);
@@ -36,6 +37,9 @@ export function useGroupAdmin() {
     { userId: string; generatedName: string; bannedAt: string }[]
   >([]);
   const loadingBannedUsers = ref(false);
+
+  const invites = ref<GroupInviteLog[]>([]);
+  const loadingInvites = ref(false);
 
   const subs = ref<ScheduleSubstitution[]>([]);
   const loadingSubs = ref(false);
@@ -375,6 +379,29 @@ export function useGroupAdmin() {
     }
   }
 
+  async function loadInvites() {
+    if (!checkPermission('invite_members')) return;
+    loadingInvites.value = true;
+    try {
+      const { data } = await hw.get('/group-admin/invites');
+      invites.value = data;
+    } catch {
+      showMessage('Failed to load invites', true);
+    } finally {
+      loadingInvites.value = false;
+    }
+  }
+
+  async function revokeInvite(id: string) {
+    try {
+      await hw.delete(`/group-admin/invites/${id}`);
+      showMessage('Invite revoked');
+      await loadInvites();
+    } catch {
+      showMessage('Failed to revoke invite', true);
+    }
+  }
+
   onMounted(() => {
     void loadStats();
     void loadMembers();
@@ -382,6 +409,9 @@ export function useGroupAdmin() {
     void loadSubs();
     void loadAnnouncements();
     void loadSchedule();
+    if (checkPermission('invite_members')) {
+      void loadInvites();
+    }
   });
 
   return {
@@ -403,6 +433,11 @@ export function useGroupAdmin() {
     loadingBannedUsers,
     loadBannedUsers,
     revertBan,
+
+    invites,
+    loadingInvites,
+    loadInvites,
+    revokeInvite,
 
     subs,
     loadingSubs,

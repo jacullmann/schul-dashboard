@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE group_invites\n               SET revoked_at = now(), revoked_by = $1\n               WHERE id = $2 AND tenant_id = $3 AND revoked_at IS NULL AND used_at IS NULL",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "f790b0b453c1d80ffb59c7b9350f6c3040568f313cf9598e9acc3a7e961b6079"
+}
