@@ -33,7 +33,7 @@ function handleLabelClick(event: MouseEvent) {
 
 <template>
   <label
-    class="group inline-flex items-start gap-2 cursor-pointer select-none relative z-0"
+    class="group inline-flex items-start gap-2 cursor-pointer select-none relative z-0 touch-target after:min-w-12 after:min-h-12"
     :class="{ 'checkbox-checked': modelValue || checked }"
   >
     <input
@@ -43,13 +43,13 @@ function handleLabelClick(event: MouseEvent) {
       @change="handleChange"
     />
     <span
-      class="w-[18px] h-[18px] rounded-sm border-2 border-on-ghost-muted inline-flex items-center justify-center bg-transparent relative group-hover:border-action peer-checked:bg-action peer-checked:border-action"
+      class="relative size-4.5 rounded-sm border-2 border-on-ghost-muted inline-flex items-center justify-center bg-transparentgroup-hover:border-action peer-checked:bg-action peer-checked:border-action"
       aria-hidden="true"
     >
       <span
-        class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[34px] h-[34px] rounded-full bg-transparent transition-hover z-[-1] group-hover:bg-surface-hover"
+        class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[34px] rounded-full bg-transparent scale-50 group-hover:bg-surface-hover group-hover:scale-100 transition duration-150 ease-in-out z-[-1]"
       ></span>
-      <Check class="w-4 h-4 text-on-action check-animate" stroke-width="3" />
+      <Check class="size-4 text-on-action check-animate" stroke-width="3" />
     </span>
     <span
       v-if="$slots.default"
