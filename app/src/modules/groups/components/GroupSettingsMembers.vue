@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import { RefreshCw, CircleMinus, Crown, UserRoundPlus, Copy, Check, Trash } from '@lucide/vue';
+import {
+  RefreshCw,
+  CircleMinus,
+  Crown,
+  UserRoundPlus,
+  Copy,
+  Check,
+  Undo2,
+} from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import InfoModal from '@/common/components/InfoModal.vue';
 import type { GroupMember, GroupInviteLog } from '@/modules/groups/types';
@@ -170,15 +178,15 @@ function isInviteActive(invite: GroupInviteLog): boolean {
 
 function getBadgeClass(invite: GroupInviteLog): string {
   if (invite.usedAt !== null) {
-    return 'bg-blue-500/10 text-blue-500 border border-blue-500/20';
+    return 'text-blue-500';
   }
   if (invite.revokedAt !== null) {
-    return 'bg-danger/10 text-danger border border-danger/20';
+    return 'text-danger';
   }
   if (new Date(invite.expiresAt) <= new Date()) {
-    return 'bg-orange-500/10 text-orange-500 border border-orange-500/20';
+    return 'text-on-ghost-subtle';
   }
-  return 'bg-success/10 text-success border border-success/20';
+  return 'text-success';
 }
 
 function getBadgeLabel(invite: GroupInviteLog): string {
@@ -353,9 +361,7 @@ function getInviteUrl(token: string): string {
 
     <div v-if="checkPermission('invite_members')" class="mt-8">
       <div class="flex items-center justify-between gap-4 mb-4">
-        <PageHeader class="m-0!">
-          Einladungslinks
-        </PageHeader>
+        <PageHeader class="m-0!"> Einladungslinks </PageHeader>
         <BaseButton
           type="button"
           variant="action"
@@ -368,7 +374,10 @@ function getInviteUrl(token: string): string {
         </BaseButton>
       </div>
 
-      <div v-if="loadingInvites && (!invites || invites.length === 0)" class="flex justify-center p-8 bg-surface border border-surface-border rounded-xl">
+      <div
+        v-if="loadingInvites && (!invites || invites.length === 0)"
+        class="flex justify-center p-8 bg-surface border border-surface-border rounded-xl"
+      >
         <BaseSpinner />
       </div>
       <div
@@ -381,7 +390,7 @@ function getInviteUrl(token: string): string {
         <div
           v-for="(invite, index) in invites"
           :key="invite.id"
-          class="flex max-md:flex-col md:items-center justify-between p-3 px-4 bg-surface border border-surface-border shadow-input rounded-xl gap-3 animate-fade-up"
+          class="flex max-md:flex-col md:items-center justify-between p-2 px-3 bg-surface border border-surface-border shadow-input rounded-xl gap-3 animate-fade-up"
           :style="{
             animationDelay: `${index * 0.05}s`,
             animationFillMode: 'both',
@@ -389,34 +398,90 @@ function getInviteUrl(token: string): string {
         >
           <div class="flex flex-col min-w-0 gap-1.5">
             <div class="flex items-center gap-2 flex-wrap">
-              <span class="font-mono text-xs text-on-ghost truncate max-w-60 md:max-w-96 select-all">
+              <span
+                class="text-base font-bold text-on-ghost truncate select-all"
+              >
                 {{ getInviteUrl(invite.token) }}
               </span>
-              <span :class="getBadgeClass(invite)" class="text-[0.65rem] font-bold uppercase tracking-[0.04em] px-2 py-0.5 rounded-full">
+              <span
+                :class="getBadgeClass(invite)"
+                class="text-xs font-bold uppercase tracking-[0.04em]"
+              >
                 {{ getBadgeLabel(invite) }}
               </span>
             </div>
-            
-            <div class="text-xs text-on-ghost-muted flex flex-wrap gap-x-2 gap-y-1 items-center">
-              <span>Erstellt von: <strong>{{ invite.createdByName || 'System' }}</strong></span>
+
+            <div
+              class="text-sm text-on-ghost-muted flex flex-wrap gap-x-2 gap-y-1 items-center"
+            >
+              <span
+                >Erstellt von:
+                <strong>{{ invite.createdByName || 'System' }}</strong></span
+              >
               <span>•</span>
-              <span>Erstellt am: {{ new Date(invite.createdAt).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) }}</span>
+              <span
+                >Erstellt am:
+                {{
+                  new Date(invite.createdAt).toLocaleString('de-DE', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })
+                }}</span
+              >
               <template v-if="invite.usedAt">
                 <span>•</span>
-                <span>Verwendet von: <strong>{{ invite.usedByName || 'Unbekannt' }}</strong> ({{ new Date(invite.usedAt).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) }})</span>
+                <span
+                  >Verwendet von:
+                  <strong>{{ invite.usedByName || 'Unbekannt' }}</strong> ({{
+                    new Date(invite.usedAt).toLocaleString('de-DE', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })
+                  }})</span
+                >
               </template>
               <template v-else-if="invite.revokedAt">
                 <span>•</span>
-                <span>Widerrufen von: <strong>{{ invite.revokedByName || 'Unbekannt' }}</strong> ({{ new Date(invite.revokedAt).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) }})</span>
+                <span
+                  >Widerrufen von:
+                  <strong>{{ invite.revokedByName || 'Unbekannt' }}</strong> ({{
+                    new Date(invite.revokedAt).toLocaleString('de-DE', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })
+                  }})</span
+                >
               </template>
               <template v-else>
                 <span>•</span>
-                <span>Ablaufdatum: {{ new Date(invite.expiresAt).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) }}</span>
+                <span
+                  >Ablaufdatum:
+                  {{
+                    new Date(invite.expiresAt).toLocaleString('de-DE', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })
+                  }}</span
+                >
               </template>
             </div>
           </div>
 
-          <div class="flex items-center gap-2 flex-shrink-0 self-end md:self-center">
+          <div
+            class="flex items-center gap-2 flex-shrink-0 self-end md:self-center"
+          >
             <BaseTooltip
               v-if="isInviteActive(invite)"
               content="Link kopieren"
@@ -428,7 +493,7 @@ function getInviteUrl(token: string): string {
                 @click="copyLink(invite.id, invite.token)"
               />
             </BaseTooltip>
-            
+
             <BaseTooltip
               v-if="isInviteActive(invite)"
               content="Widerrufen"
@@ -436,8 +501,7 @@ function getInviteUrl(token: string): string {
             >
               <BaseButton
                 variant="ghost"
-                class="hover:text-danger!"
-                :icon="Trash"
+                :icon="Undo2"
                 @click="emit('revoke-invite', invite.id)"
               />
             </BaseTooltip>
