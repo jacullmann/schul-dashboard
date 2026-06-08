@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onBeforeUnmount } from 'vue';
-import { X, ChevronLeft, ChevronRight, FileText } from '@lucide/vue';
+import { X, ChevronLeft, ChevronRight } from '@lucide/vue';
 import {
   makeUrl,
   makeRawUrl,
@@ -46,15 +46,6 @@ const isPdf = (img: any) =>
 const isOffice = (img: any) => {
   const format = img?.metadata?.format?.toLowerCase();
   return ['docx', 'pptx', 'xlsx', 'doc', 'ppt', 'xls'].includes(format);
-};
-
-const isLocalUrl = (url: string) => {
-  return (
-    url.includes('localhost') ||
-    url.includes('127.0.0.1') ||
-    url.startsWith('/') ||
-    !url.startsWith('http')
-  );
 };
 
 function getImageSrc(img: any): string {
@@ -140,47 +131,11 @@ watch(
         @click.self="cancel"
       >
         <iframe
-          v-if="
-            currentImage &&
-            isOffice(currentImage) &&
-            !isLocalUrl(getImageSrc(currentImage))
-          "
+          v-if="currentImage && isOffice(currentImage)"
           :src="getOfficeViewerSrc(currentImage)"
           class="w-[90vw] h-[85vh] max-w-5xl rounded-xl border-none bg-white shadow-menu"
           @click.stop
         ></iframe>
-        <div
-          v-else-if="
-            currentImage &&
-            isOffice(currentImage) &&
-            isLocalUrl(getImageSrc(currentImage))
-          "
-          class="w-[90vw] h-[85vh] max-w-5xl rounded-xl bg-slate-900 border border-white/10 text-white flex flex-col items-center justify-center p-8 text-center shadow-menu"
-          @click.stop
-        >
-          <div class="p-4 bg-white/5 rounded-full mb-4 border border-white/10">
-            <FileText :size="48" class="text-blue-400 animate-pulse" />
-          </div>
-          <h3 class="text-xl font-semibold mb-2">
-            Simulierter Office Web Viewer
-          </h3>
-          <p class="text-slate-400 max-w-md text-sm mb-6">
-            Da lokale URLs (<code
-              class="text-blue-300 font-mono text-xs bg-black/40 px-1.5 py-0.5 rounded"
-              >{{ getImageSrc(currentImage) }}</code
-            >) von Microsofts Servern nicht abgerufen werden können, wird der
-            Office-Viewer hier im Entwicklungsmodus simuliert.
-          </p>
-          <div class="flex gap-4">
-            <a
-              :href="getImageSrc(currentImage)"
-              target="_blank"
-              class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors flex items-center gap-2 decoration-none select-none cursor-pointer"
-            >
-              <span>Datei herunterladen</span>
-            </a>
-          </div>
-        </div>
         <iframe
           v-else-if="currentImage && isPdf(currentImage)"
           :src="getImageSrc(currentImage)"
