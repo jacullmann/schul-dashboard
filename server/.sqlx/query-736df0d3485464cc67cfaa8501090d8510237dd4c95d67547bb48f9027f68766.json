@@ -4,9 +4,15 @@
   "describe": {
     "columns": [
       {
-        "name": "tenant_id",
         "ordinal": 0,
-        "type_info": "Uuid"
+        "name": "tenant_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "group_invites",
+            "name": "tenant_id"
+          }
+        }
       }
     ],
     "parameters": {

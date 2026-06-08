@@ -954,15 +954,15 @@ impl GroupAdminService {
         let invites: Vec<Value> = rows
             .into_iter()
             .map(|r| {
-                let created_by_name = r.created_by.map(|uid| {
-                    crate::common::name_generator::generate_user_name(&uid.to_string())
-                });
-                let used_by_name = r.used_by.map(|uid| {
-                    crate::common::name_generator::generate_user_name(&uid.to_string())
-                });
-                let revoked_by_name = r.revoked_by.map(|uid| {
-                    crate::common::name_generator::generate_user_name(&uid.to_string())
-                });
+                let created_by_name = r
+                    .created_by
+                    .map(|uid| crate::common::name_generator::generate_user_name(&uid.to_string()));
+                let used_by_name = r
+                    .used_by
+                    .map(|uid| crate::common::name_generator::generate_user_name(&uid.to_string()));
+                let revoked_by_name = r
+                    .revoked_by
+                    .map(|uid| crate::common::name_generator::generate_user_name(&uid.to_string()));
 
                 json!({
                     "id": r.id,
@@ -984,7 +984,12 @@ impl GroupAdminService {
         Ok(json!(invites))
     }
 
-    pub async fn revoke_invite(&self, tenant_id: Uuid, user_id: Uuid, invite_id: Uuid) -> AppResult<Value> {
+    pub async fn revoke_invite(
+        &self,
+        tenant_id: Uuid,
+        user_id: Uuid,
+        invite_id: Uuid,
+    ) -> AppResult<Value> {
         let rows_affected = sqlx::query!(
             r#"UPDATE group_invites
                SET revoked_at = now(), revoked_by = $1
@@ -998,7 +1003,9 @@ impl GroupAdminService {
         .rows_affected();
 
         if rows_affected == 0 {
-            return Err(AppError::bad_request("Invite not found or already used/revoked."));
+            return Err(AppError::bad_request(
+                "Invite not found or already used/revoked.",
+            ));
         }
 
         Ok(json!({ "ok": true }))

@@ -161,9 +161,9 @@ impl ItemsService {
             .ok_or_else(|| AppError::not_found("Item not found."))?;
 
         let creator_deleted = row.created_by.is_none();
-        let created_by_name = row.created_by.map(|uid| {
-            crate::common::name_generator::generate_user_name(&uid.to_string())
-        });
+        let created_by_name = row
+            .created_by
+            .map(|uid| crate::common::name_generator::generate_user_name(&uid.to_string()));
         Ok(json!({
             "id": row.id, "type": row.r#type, "title": row.title,
             "subject": row.subject, "description": row.description,
@@ -209,9 +209,9 @@ impl ItemsService {
                 .await?;
 
             if let Some(row) = duplicate {
-                let created_by_name = row.created_by.map(|uid| {
-                    crate::common::name_generator::generate_user_name(&uid.to_string())
-                });
+                let created_by_name = row
+                    .created_by
+                    .map(|uid| crate::common::name_generator::generate_user_name(&uid.to_string()));
                 let duplicate_val = json!({
                     "id": row.id,
                     "type": row.r#type,
@@ -560,8 +560,8 @@ impl ItemsService {
             user_id,
             email
         )
-            .execute(&self.db)
-            .await?;
+        .execute(&self.db)
+        .await?;
 
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:report', $2)"#,
