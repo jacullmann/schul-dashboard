@@ -63,38 +63,40 @@ const {
 
 <template>
   <div ref="root" class="relative flex w-full">
-    <button
-      v-wave
-      type="button"
-      class="relative flex items-center p-1 rounded-full w-full bg-transparent hover:bg-ghost-hover transition-hover cursor-pointer text-left touch-target after:min-w-12 after:min-h-12"
-      @click="toggle"
-    >
-      <Avatar
-        :name="email"
-        :aria-expanded="open"
-        title="Account menu"
-        @keydown.enter="toggle"
-        @keydown.space.prevent="toggle"
-      />
-
-      <span
-        class="flex flex-col gap-1 transition-[max-width,opacity,margin-left]"
-        :class="
-          expanded
-            ? 'max-w-44 opacity-100 ml-2 duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)]'
-            : 'max-w-0 opacity-0 ml-0 duration-150 ease-[cubic-bezier(0.32,0,0.67,1)]'
-        "
+    <BaseTooltip :content="email" placement="right" class="w-full">
+      <button
+        v-wave
+        type="button"
+        class="relative flex items-center p-1 rounded-full w-full bg-transparent hover:bg-ghost-hover transition-hover cursor-pointer text-left touch-target after:min-w-12 after:min-h-12"
+        @click="toggle"
       >
-        <span class="text-sm/4 font-medium text-on-ghost truncate">{{
-          email
-        }}</span>
+        <Avatar
+          :name="email"
+          :aria-expanded="open"
+          title="Account menu"
+          @keydown.enter="toggle"
+          @keydown.space.prevent="toggle"
+        />
+
         <span
-          v-if="userData?.username"
-          class="text-xs/3 font-normal text-on-ghost-muted truncate"
-          >{{ userData.username }}</span
+          class="flex flex-col gap-1 transition-[max-width,opacity,margin-left]"
+          :class="
+            expanded
+              ? 'max-w-44 opacity-100 ml-2 duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)]'
+              : 'max-w-0 opacity-0 ml-0 duration-150 ease-[cubic-bezier(0.32,0,0.67,1)]'
+          "
         >
-      </span>
-    </button>
+          <span class="text-sm/4 font-medium text-on-ghost truncate">{{
+            email
+          }}</span>
+          <span
+            v-if="userData?.username"
+            class="text-xs/3 font-normal text-on-ghost-muted truncate"
+            >{{ userData.username }}</span
+          >
+        </span>
+      </button>
+    </BaseTooltip>
 
     <BaseMenu
       :ref="

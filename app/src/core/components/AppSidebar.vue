@@ -405,34 +405,39 @@ onUnmounted(() => {
         :style="{ '--menu-fade-mask': fadeMask }"
         @scroll="handleScroll"
       >
-        <button
+        <BaseTooltip
           v-for="(group, index) in userGroups"
           :key="index"
-          v-wave
-          :class="activeGroupId === group.id ? 'active' : ''"
-          class="group relative gap-0 items-center flex p-1 text-on-ghost-muted hover:text-on-ghost rounded-full bg-transparent hover:bg-surface-hover transition-hover cursor-pointer outline-none w-full touch-target after:min-w-[calc(100%+24px)] after:min-h-12"
-          @click="handleGroupClick(group.id)"
+          :content="group.name"
+          placement="right"
         >
-          <span
-            class="absolute transition-[max-height,width,top,opacity] duration-200 -left-2.5 group-[.active]:top-0 group-hover:top-[25%] top-[45%] bottom-0 w-0.5 opacity-0 group-[.active]:w-1 group-hover:w-1 group-[.active]:opacity-100 group-hover:opacity-100 group-[.active]:max-h-full group-hover:max-h-[50%] max-h-[10%] bg-action rounded-r-full"
-          ></span>
-          <Avatar
-            :name="group.name"
-            :picture="group.avatarUrl"
-            :size="8"
-            :unread="group.hasUnreadContent"
-          />
-          <span
-            class="transition-[max-width,opacity,margin-left] text-sm/5 font-medium whitespace-nowrap overflow-hidden"
-            :class="
-              isExpanded
-                ? 'max-w-40 opacity-100 ml-2 duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)]'
-                : 'max-w-0 opacity-0 ml-0 duration-150 ease-[cubic-bezier(0.32,0,0.67,1)]'
-            "
+          <button
+            v-wave
+            :class="activeGroupId === group.id ? 'active' : ''"
+            class="group relative gap-0 items-center flex p-1 text-on-ghost-muted hover:text-on-ghost rounded-full bg-transparent hover:bg-surface-hover transition-hover cursor-pointer outline-none w-full touch-target after:min-w-[calc(100%+24px)] after:min-h-12"
+            @click="handleGroupClick(group.id)"
           >
-            {{ group.name }}
-          </span>
-        </button>
+            <span
+              class="absolute transition-[max-height,width,top,opacity] duration-200 -left-2.5 group-[.active]:top-0 group-hover:top-[25%] top-[45%] bottom-0 w-0.5 opacity-0 group-[.active]:w-1 group-hover:w-1 group-[.active]:opacity-100 group-hover:opacity-100 group-[.active]:max-h-full group-hover:max-h-[50%] max-h-[10%] bg-action rounded-r-full"
+            ></span>
+            <Avatar
+              :name="group.name"
+              :picture="group.avatarUrl"
+              :size="8"
+              :unread="group.hasUnreadContent"
+            />
+            <span
+              class="transition-[max-width,opacity,margin-left] text-sm/5 font-medium whitespace-nowrap overflow-hidden"
+              :class="
+                isExpanded
+                  ? 'max-w-40 opacity-100 ml-2 duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)]'
+                  : 'max-w-0 opacity-0 ml-0 duration-150 ease-[cubic-bezier(0.32,0,0.67,1)]'
+              "
+            >
+              {{ group.name }}
+            </span>
+          </button>
+        </BaseTooltip>
 
         <SidebarButton
           :label="t('common.sidebar.create')"

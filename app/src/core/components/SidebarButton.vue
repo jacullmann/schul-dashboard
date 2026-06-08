@@ -25,7 +25,12 @@ withDefaults(
 </script>
 
 <template>
-  <BaseTooltip :content="label" :shortcut="shortcut" :disabled="!label">
+  <BaseTooltip
+    :content="label"
+    placement="right"
+    :shortcut="shortcut"
+    :disabled="!label"
+  >
     <button
       v-wave
       v-bind="$attrs"
