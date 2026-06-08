@@ -64,7 +64,7 @@ const showUpdated = computed(() => {
           </dd>
         </div>
 
-        <div v-if="isModOrAdmin" class="flex flex-col gap-1">
+        <div class="flex flex-col gap-1">
           <dt class="text-sm text-on-ghost-muted font-medium">
             {{ t('tasks.list.items.menu.info_modal.created_by') }}
           </dt>

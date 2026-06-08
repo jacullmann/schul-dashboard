@@ -125,11 +125,15 @@ impl ItemsService {
             })
             .map(|r| {
                 let creator_deleted = r.created_by.is_none();
+                let created_by_name = r.created_by.map(|uid| {
+                    crate::common::name_generator::generate_user_name(&uid.to_string())
+                });
                 json!({
                     "id": r.id, "type": r.r#type, "title": r.title,
                     "subject": r.subject, "description": r.description,
                     "images": r.images, "dueDate": r.due_date,
                     "createdBy": r.created_by,
+                    "createdByName": created_by_name,
                     "createdByEmail": r.creator_email.unwrap_or_else(|| "Gelöschter Nutzer".into()),
                     "creatorDeleted": creator_deleted,
                     "timeColor": time_left_color(&r.due_date),
@@ -157,11 +161,15 @@ impl ItemsService {
             .ok_or_else(|| AppError::not_found("Item not found."))?;
 
         let creator_deleted = row.created_by.is_none();
+        let created_by_name = row.created_by.map(|uid| {
+            crate::common::name_generator::generate_user_name(&uid.to_string())
+        });
         Ok(json!({
             "id": row.id, "type": row.r#type, "title": row.title,
             "subject": row.subject, "description": row.description,
             "images": row.images, "dueDate": row.due_date,
             "createdBy": row.created_by,
+            "createdByName": created_by_name,
             "createdByEmail": row.creator_email.unwrap_or_else(|| "Gelöschter Nutzer".into()),
             "creatorDeleted": creator_deleted,
             "timeColor": time_left_color(&row.due_date),
@@ -201,6 +209,9 @@ impl ItemsService {
                 .await?;
 
             if let Some(row) = duplicate {
+                let created_by_name = row.created_by.map(|uid| {
+                    crate::common::name_generator::generate_user_name(&uid.to_string())
+                });
                 let duplicate_val = json!({
                     "id": row.id,
                     "type": row.r#type,
@@ -210,6 +221,7 @@ impl ItemsService {
                     "images": row.images,
                     "dueDate": row.due_date,
                     "createdBy": row.created_by,
+                    "createdByName": created_by_name,
                     "createdByEmail": row.creator_email.unwrap_or_else(|| "Unbekannt".into()),
                     "timeColor": time_left_color(&row.due_date),
                     "editorNote": row.editor_note,
