@@ -154,6 +154,14 @@ function handleItemDoubleClick(event: MouseEvent) {
   emit('toggle-check');
 }
 
+const isOnlyNote = computed(() => {
+  const hasDescription = !!props.item.description;
+  const hasImages = !!(props.item.images && props.item.images.length);
+  const hasNote =
+    !!props.item.editorNote || props.editingNoteForId === props.item.id;
+  return !hasDescription && !hasImages && hasNote;
+});
+
 watch(
   () => props.isOpenMenu,
   (newVal) => {
@@ -173,6 +181,7 @@ watch(
     :title="item.title"
     :swipeable="true"
     :swipe-action="showOldEntries ? 'keep' : 'archive'"
+    :reduced-bottom-margin="isOnlyNote"
     @swiped="$emit('swipe')"
     @dblclick="handleItemDoubleClick($event)"
     @contextmenu.prevent.stop="handleCardContextMenu($event)"
@@ -362,6 +371,7 @@ watch(
         :saving="savingNote"
         :can-edit="canEditNote"
         :model-value="noteEditContent"
+        :reduced-margin="isOnlyNote"
         @update:model-value="$emit('update:noteEditContent', $event)"
         @edit-start="$emit('edit-note-start')"
         @edit-cancel="$emit('edit-note-cancel')"

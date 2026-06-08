@@ -9,6 +9,7 @@ const props = defineProps<{
   saving: boolean;
   canEdit: boolean;
   modelValue: string;
+  reducedMargin?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -50,7 +51,8 @@ watch(
 
 <template>
   <div
-    class="note-section mt-2 pt-1 border-t border-surface-border flex justify-between gap-3"
+    class="note-section pt-1 border-t border-surface-border flex justify-between gap-3"
+    :class="reducedMargin ? 'mt-0' : 'mt-2'"
   >
     <div class="w-full">
       <div class="text-on-ghost text-base font-bold mb-1">

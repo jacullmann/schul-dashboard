@@ -11,6 +11,7 @@ const props = withDefaults(
     showMenuTrigger?: boolean;
     swipeable?: boolean;
     swipeAction?: 'archive' | 'keep';
+    reducedBottomMargin?: boolean;
   }>(),
   {
     isCollapsed: false,
@@ -18,6 +19,7 @@ const props = withDefaults(
     showMenuTrigger: true,
     swipeable: false,
     swipeAction: 'archive',
+    reducedBottomMargin: false,
   },
 );
 
@@ -209,7 +211,11 @@ function onDrop(e: DragEvent) {
       <div class="relative flex justify-between items-start gap-2 select-none">
         <div
           class="flex-1 min-w-0 mt-2 ml-2"
-          :class="$slots.body || $slots['content-after'] ? 'mb-2' : 'mb-1'"
+          :class="
+            ($slots.body || $slots['content-after']) && !reducedBottomMargin
+              ? 'mb-2'
+              : 'mb-1'
+          "
         >
           <div class="flex items-center gap-2">
             <slot name="checkbox"></slot>
