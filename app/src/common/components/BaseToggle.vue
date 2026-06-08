@@ -35,7 +35,7 @@ const dotWrapperClasses = computed(() => {
 });
 
 const hoverClasses = computed(() => {
-  return 'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-8 rounded-full bg-[oklch(1_0_0/40%)] opacity-0 scale-70 group-hover:opacity-100 group-hover:scale-100 group-disabled:opacity-0 transition duration-150 ease-in-out';
+  return 'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-8 rounded-full bg-[oklch(0.8_0_0/40%)] opacity-0 scale-70 group-hover:opacity-100 group-hover:scale-100 group-disabled:opacity-0 transition duration-150 ease-in-out';
 });
 
 const dotClasses = computed(() => {
