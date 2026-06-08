@@ -247,11 +247,11 @@ const formatTime = (timestamp: string) => {
           </div>
 
           <div
-            class="px-2 flex flex-wrap items-end justify-between gap-x-2 gap-y-1"
+            class="px-2 flex flex-wrap items-end justify-between gap-x-2 gap-y-1 min-w-0"
           >
             <span
               :class="[
-                'whitespace-pre-wrap break-words leading-snug py-[calc(var(--spacing)*.25)]',
+                'whitespace-pre-wrap break-words [overflow-wrap:anywhere] leading-snug py-[calc(var(--spacing)*.25)] min-w-0',
                 getEmojiInfo.isEmojiOnly &&
                 getEmojiInfo.count > 0 &&
                 getEmojiInfo.count <= 3
