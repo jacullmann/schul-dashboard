@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { markRaw, computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { useI18n } from 'vue-i18n';
 import {
   // LayoutDashboard,
   CalendarDays,
@@ -16,7 +15,6 @@ import { useGroupAdmin } from '@/modules/groups/composables/useGroupAdmin';
 import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { type AdminNavItem } from '@/layouts/AdminLayout.vue';
-import { useSubjectAdmin } from '@/modules/groups/composables/useSubjectAdmin';
 
 import GroupSettingsOverview from '@/modules/groups/components/GroupSettingsOverview.vue';
 import GroupSettingsMembers from '@/modules/groups/components/GroupSettingsMembers.vue';
@@ -28,8 +26,6 @@ import GroupSettingsGeneral from '@/modules/groups/components/GroupSettingsGener
 
 const route = useRoute();
 const router = useRouter();
-const i18n = useI18n();
-const { subjects } = useSubjectAdmin();
 
 const {
   groupId,
@@ -145,13 +141,7 @@ const transitionName = computed(() =>
 
 const activeTabLabel = computed(() => {
   if (route.params.tab === 'subjects' && route.params.subTab) {
-    const subject = subjects.value.find((s) => s.id === route.params.subTab);
-    if (subject) {
-      return i18n.te(`common.subjects.${subject.name}`)
-        ? i18n.t(`common.subjects.${subject.name}`)
-        : subject.name;
-    }
-    return '';
+    return 'Subject info';
   }
   const item = navItems.find((n) => n.id === activeTab.value);
   return item ? item.label : '';

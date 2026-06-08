@@ -74,3 +74,16 @@ pub struct UpdateSubjectDto {
 pub struct UpdateGroupPermissionsDto {
     pub permissions: serde_json::Value,
 }
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CreateCourseDto {
+    pub name: String,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateCourseDto {
+    pub name: String,
+}
+

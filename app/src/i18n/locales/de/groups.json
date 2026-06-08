@@ -222,17 +222,34 @@
         "update_success": "Fach aktualisiert",
         "update_failed": "Fehler beim Aktualisieren",
         "delete_success": "Fach gelöscht",
-        "delete_failed": "Fehler beim Löschen"
+        "delete_failed": "Fehler beim Löschen",
+        "course_create_success": "Kurs erstellt",
+        "course_create_failed": "Fehler beim Erstellen des Kurses",
+        "course_update_success": "Kurs aktualisiert",
+        "course_update_failed": "Fehler beim Aktualisieren des Kurses",
+        "course_delete_success": "Kurs gelöscht",
+        "course_delete_failed": "Fehler beim Löschen des Kurses"
       },
       "delete_modal": {
         "title": "Dieses Fach löschen?",
         "message": "Fach wirklich löschen? Falls es noch referenziert wird, schlage stattdessen eine Deaktivierung vor."
       },
+      "course_delete_modal": {
+        "title": "Kurs löschen",
+        "message": "Möchtest du diesen Kurs wirklich löschen? Dadurch wird er aus allen Stundenplänen entfernt."
+      },
       "title": "Fächer",
       "rename": "Umbenennen",
       "list": {
         "empty": "Keine Fächer vorhanden."
-      }
+      },
+      "courses_title": "Kurse",
+      "course_name_label": "Kursname",
+      "course_add_title": "Kurs hinzufügen",
+      "course_edit_title": "Kurs bearbeiten",
+      "courses_count_zero": "0 Kurse",
+      "courses_count_singular": "1 Kurs",
+      "courses_count_plural": "{count} Kurse"
     }
   }
 }

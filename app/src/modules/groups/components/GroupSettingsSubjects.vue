@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, watch, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
-import { Plus } from '@lucide/vue';
+import { Plus, Pencil, Trash2 } from '@lucide/vue';
 import { useSubjectAdmin } from '@/modules/groups/composables/useSubjectAdmin';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 
@@ -24,6 +24,9 @@ const {
   createSubject,
   updateSubject,
   deleteSubject,
+  createCourse,
+  updateCourse,
+  deleteCourse,
 } = useSubjectAdmin();
 
 const { checkPermission } = useAppAuth();
@@ -154,6 +157,53 @@ watch(showCreateModal, async (open) => {
   }
 });
 
+const showCreateCourseModal = ref(false);
+const newCourseName = ref('');
+
+const showEditCourseModal = ref(false);
+const editingCourse = ref<{ id: string; name: string } | null>(null);
+const editCourseName = ref('');
+
+function openCreateCourseModal() {
+  newCourseName.value = '';
+  showCreateCourseModal.value = true;
+}
+
+async function handleCreateCourse() {
+  if (!subject.value || !newCourseName.value.trim()) return;
+  const ok = await createCourse(subject.value.id, newCourseName.value);
+  if (ok) {
+    showCreateCourseModal.value = false;
+    newCourseName.value = '';
+  }
+}
+
+function openEditCourseModal(course: { id: string; name: string }) {
+  editingCourse.value = course;
+  editCourseName.value = course.name;
+  showEditCourseModal.value = true;
+}
+
+async function handleEditCourse() {
+  if (!subject.value || !editingCourse.value || !editCourseName.value.trim())
+    return;
+  const ok = await updateCourse(
+    subject.value.id,
+    editingCourse.value.id,
+    editCourseName.value,
+  );
+  if (ok) {
+    showEditCourseModal.value = false;
+    editingCourse.value = null;
+    editCourseName.value = '';
+  }
+}
+
+async function handleDeleteCourse(courseId: string) {
+  if (!subject.value) return;
+  await deleteCourse(subject.value.id, courseId);
+}
+
 onMounted(() => {
   void loadSubjects();
 });
@@ -209,19 +259,28 @@ onMounted(() => {
           @click="goToSubject(sub.id)"
         >
           <template #label>
-            <div class="flex items-center justify-between gap-2">
-              <div class="flex flex-col ml-2">
-                <span
-                  class="font-medium text-base/relaxed text-on-ghost truncate"
-                  >{{ sub.name }}</span
-                >
-                <span
-                  v-if="i18n.te(`common.subjects.${sub.name}`)"
-                  class="font-normal text-sm text-on-ghost-muted"
-                  >{{ t(`common.subjects.${sub.name}`) }}</span
-                >
-              </div>
-            </div>
+            <span
+              class="font-medium text-base/relaxed text-on-ghost truncate"
+              >{{
+                i18n.te(`common.subjects.${sub.name}`)
+                  ? t(`common.subjects.${sub.name}`)
+                  : sub.name
+              }}</span
+            >
+            <span class="font-normal text-sm text-on-ghost-muted">{{
+              t(`groups.settings.subjects.categories.${sub.category}`) +
+              (sub.category === 'elective' || sub.category === 'extra'
+                ? `, ${
+                    (sub.coursesCount || 0) === 0
+                      ? t('groups.settings.subjects.courses_count_zero')
+                      : (sub.coursesCount || 0) === 1
+                        ? t('groups.settings.subjects.courses_count_singular')
+                        : t('groups.settings.subjects.courses_count_plural', {
+                            count: sub.coursesCount,
+                          })
+                  }`
+                : '')
+            }}</span>
           </template>
         </BaseList>
       </div>
@@ -358,6 +417,127 @@ onMounted(() => {
           </BaseRow>
         </div>
       </div>
+
+      <!-- Courses list section for elective/extra subjects -->
+      <div
+        v-if="subject.category === 'elective' || subject.category === 'extra'"
+        class="border-t border-surface-border pt-6 mt-6 max-w-[600px]"
+      >
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-semibold text-on-ghost m-0">
+            {{ t('groups.settings.subjects.courses_title') }}
+          </h3>
+          <BaseButton
+            v-if="canEditSubjects"
+            variant="action"
+            size="sm"
+            :icon="Plus"
+            @click="openCreateCourseModal"
+          >
+            {{ t('groups.settings.subjects.course_add_title') }}
+          </BaseButton>
+        </div>
+
+        <div
+          v-if="!subject.courses || subject.courses.length === 0"
+          class="text-center p-6 bg-surface border border-surface-border rounded-xl text-on-ghost-muted text-base"
+        >
+          {{ t('groups.settings.subjects.list.empty') }}
+        </div>
+        <div v-else class="flex flex-col gap-2">
+          <div
+            v-for="course in subject.courses"
+            :key="course.id"
+            class="flex items-center justify-between p-3 rounded-xl bg-surface border border-surface-border animate-fade-up"
+          >
+            <span class="font-medium text-base text-on-ghost truncate">
+              {{ course.name }}
+            </span>
+            <div v-if="canEditSubjects" class="flex gap-1">
+              <BaseButton
+                variant="ghost"
+                size="sm"
+                :icon="Pencil"
+                @click="openEditCourseModal(course)"
+              />
+              <BaseButton
+                variant="ghost"
+                size="sm"
+                :icon="Trash2"
+                class="text-danger hover:text-danger"
+                @click="handleDeleteCourse(course.id)"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Create Course Modal -->
+      <BaseModal
+        :open="showCreateCourseModal"
+        :submit="handleCreateCourse"
+        :loading="saving"
+        :requirement="!!newCourseName.trim()"
+        @cancel="showCreateCourseModal = false"
+      >
+        <template #title>
+          {{ t('groups.settings.subjects.course_add_title') }}
+        </template>
+
+        <template #content>
+          <BaseFormGroup id="new-course-name" class="flex flex-col gap-2">
+            <BaseLabel for="new-course-name">{{
+              t('groups.settings.subjects.course_name_label')
+            }}</BaseLabel>
+            <BaseInput
+              id="new-course-name"
+              v-model="newCourseName"
+              :placeholder="t('groups.settings.subjects.course_name_label')"
+              :disabled="saving"
+              @keyup.enter="handleCreateCourse"
+            />
+          </BaseFormGroup>
+        </template>
+
+        <template #action-text>
+          {{ t('common.buttons.add') }}
+        </template>
+      </BaseModal>
+
+      <!-- Edit Course Modal -->
+      <BaseModal
+        :open="showEditCourseModal"
+        :submit="handleEditCourse"
+        :loading="saving"
+        :requirement="
+          !!editCourseName.trim() &&
+          editCourseName.trim() !== (editingCourse?.name || '')
+        "
+        @cancel="showEditCourseModal = false"
+      >
+        <template #title>
+          {{ t('groups.settings.subjects.course_edit_title') }}
+        </template>
+
+        <template #content>
+          <BaseFormGroup id="edit-course-name" class="flex flex-col gap-2">
+            <BaseLabel for="edit-course-name">{{
+              t('groups.settings.subjects.course_name_label')
+            }}</BaseLabel>
+            <BaseInput
+              id="edit-course-name"
+              v-model="editCourseName"
+              :placeholder="t('groups.settings.subjects.course_name_label')"
+              :disabled="saving"
+              @keyup.enter="handleEditCourse"
+            />
+          </BaseFormGroup>
+        </template>
+
+        <template #action-text>
+          {{ t('common.buttons.save') }}
+        </template>
+      </BaseModal>
 
       <div v-if="canEditSubjects">
         <h3 class="text-danger mt-6 mb-2">

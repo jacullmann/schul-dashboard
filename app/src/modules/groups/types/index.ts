@@ -44,4 +44,6 @@ export interface AdminSubject {
   id: string;
   name: string;
   category?: string;
+  courses?: { id: string; name: string }[];
+  coursesCount?: number;
 }

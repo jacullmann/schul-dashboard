@@ -223,17 +223,34 @@
         "update_success": "Subject updated",
         "update_failed": "Failed to update",
         "delete_success": "Subject deleted",
-        "delete_failed": "Failed to delete"
+        "delete_failed": "Failed to delete",
+        "course_create_success": "Course created",
+        "course_create_failed": "Failed to create course",
+        "course_update_success": "Course updated",
+        "course_update_failed": "Failed to update course",
+        "course_delete_success": "Course deleted",
+        "course_delete_failed": "Failed to delete course"
       },
       "delete_modal": {
         "title": "Delete this subject?",
         "message": "Really delete subject? If it is still referenced, suggest deactivating it instead."
       },
+      "course_delete_modal": {
+        "title": "Delete Course",
+        "message": "Are you sure you want to delete this course? This will remove it from all schedules."
+      },
       "title": "Subjects",
       "rename": "Rename",
       "list": {
         "empty": "No subjects available."
-      }
+      },
+      "courses_title": "Courses",
+      "course_name_label": "Course Name",
+      "course_add_title": "Add Course",
+      "course_edit_title": "Edit Course",
+      "courses_count_zero": "0 Courses",
+      "courses_count_singular": "1 Course",
+      "courses_count_plural": "{count} Courses"
     }
   }
 }

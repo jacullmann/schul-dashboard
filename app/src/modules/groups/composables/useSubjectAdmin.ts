@@ -99,6 +99,104 @@ export function useSubjectAdmin() {
     }
   }
 
+  async function createCourse(
+    subjectId: string,
+    name: string,
+  ): Promise<boolean> {
+    if (!name.trim()) return false;
+    saving.value = true;
+    try {
+      const { data } = await hw.post<{
+        id: string;
+        name: string;
+        subjectId: string;
+      }>(`/group-admin/subjects/${subjectId}/courses`, { name: name.trim() });
+      const subject = subjects.value.find((s) => s.id === subjectId);
+      if (subject) {
+        if (!subject.courses) subject.courses = [];
+        subject.courses.push({ id: data.id, name: data.name });
+        subject.courses.sort((a, b) => a.name.localeCompare(b.name));
+        subject.coursesCount = (subject.coursesCount || 0) + 1;
+      }
+      success(t('groups.settings.subjects.errors.course_create_success'));
+      return true;
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: { message?: string } } };
+      toastError(
+        err.response?.data?.message ||
+          t('groups.settings.subjects.errors.course_create_failed'),
+      );
+      return false;
+    } finally {
+      saving.value = false;
+    }
+  }
+
+  async function updateCourse(
+    subjectId: string,
+    courseId: string,
+    name: string,
+  ): Promise<boolean> {
+    if (!name.trim()) return false;
+    saving.value = true;
+    try {
+      await hw.patch(`/group-admin/courses/${courseId}`, { name: name.trim() });
+      const subject = subjects.value.find((s) => s.id === subjectId);
+      if (subject && subject.courses) {
+        const course = subject.courses.find((c) => c.id === courseId);
+        if (course) {
+          course.name = name.trim();
+        }
+        subject.courses.sort((a, b) => a.name.localeCompare(b.name));
+      }
+      success(t('groups.settings.subjects.errors.course_update_success'));
+      return true;
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: { message?: string } } };
+      toastError(
+        err.response?.data?.message ||
+          t('groups.settings.subjects.errors.course_update_failed'),
+      );
+      return false;
+    } finally {
+      saving.value = false;
+    }
+  }
+
+  async function deleteCourse(
+    subjectId: string,
+    courseId: string,
+  ): Promise<boolean> {
+    const isConfirmed = await modalStore.confirm({
+      title: t('groups.settings.subjects.course_delete_modal.title'),
+      content: t('groups.settings.subjects.course_delete_modal.message'),
+      submitText: t('common.buttons.delete'),
+      danger: true,
+    });
+
+    if (!isConfirmed) return false;
+    saving.value = true;
+    try {
+      await hw.delete(`/group-admin/courses/${courseId}`);
+      const subject = subjects.value.find((s) => s.id === subjectId);
+      if (subject && subject.courses) {
+        subject.courses = subject.courses.filter((c) => c.id !== courseId);
+        subject.coursesCount = Math.max(0, (subject.coursesCount || 1) - 1);
+      }
+      success(t('groups.settings.subjects.errors.course_delete_success'));
+      return true;
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: { message?: string } } };
+      toastError(
+        err.response?.data?.message ||
+          t('groups.settings.subjects.errors.course_delete_failed'),
+      );
+      return false;
+    } finally {
+      saving.value = false;
+    }
+  }
+
   return {
     subjects,
     loading,
@@ -107,5 +205,8 @@ export function useSubjectAdmin() {
     createSubject,
     updateSubject,
     deleteSubject,
+    createCourse,
+    updateCourse,
+    deleteCourse,
   };
 }

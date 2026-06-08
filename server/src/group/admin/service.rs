@@ -501,7 +501,15 @@ impl GroupAdminService {
 
     pub async fn get_subjects(&self, tenant_id: Uuid) -> AppResult<Value> {
         let rows = sqlx::query!(
-            r#"SELECT id, name, category FROM subjects WHERE tenant_id = $1 ORDER BY name"#,
+            r#"SELECT s.id, s.name, s.category,
+                      COALESCE(
+                          json_agg(json_build_object('id', c.id, 'name', c.name)) FILTER (WHERE c.id IS NOT NULL),
+                          '[]'::json
+                      ) as "courses!"
+               FROM subjects s
+               LEFT JOIN courses c ON c.subject_id = s.id
+               WHERE s.tenant_id = $1
+               GROUP BY s.id ORDER BY s.name"#,
             tenant_id
         )
         .fetch_all(&self.db)
@@ -509,7 +517,13 @@ impl GroupAdminService {
 
         Ok(json!(
             rows.into_iter()
-                .map(|s| json!({ "id": s.id, "name": s.name, "category": s.category }))
+                .map(|s| json!({
+                    "id": s.id,
+                    "name": s.name,
+                    "category": s.category,
+                    "courses": s.courses,
+                    "coursesCount": s.courses.as_array().map(|a| a.len()).unwrap_or(0)
+                }))
                 .collect::<Vec<_>>()
         ))
     }
@@ -789,6 +803,135 @@ impl GroupAdminService {
         sqlx::query!(r#"DELETE FROM announcements WHERE id = $1"#, id)
             .execute(&self.db)
             .await?;
+
+        Ok(json!({ "ok": true }))
+    }
+
+    pub async fn create_course(
+        &self,
+        tenant_id: Uuid,
+        user_id: Uuid,
+        subject_id: Uuid,
+        name: &str,
+    ) -> AppResult<Value> {
+        sqlx::query!(
+            r#"SELECT id FROM subjects WHERE id = $1 AND tenant_id = $2"#,
+            subject_id,
+            tenant_id
+        )
+        .fetch_optional(&self.db)
+        .await?
+        .ok_or_else(|| AppError::not_found("Subject not found"))?;
+
+        let exists = sqlx::query!(
+            r#"SELECT id FROM courses WHERE name = $1 AND subject_id = $2"#,
+            name,
+            subject_id
+        )
+        .fetch_optional(&self.db)
+        .await?;
+        if exists.is_some() {
+            return Err(AppError::bad_request("A course with this name already exists."));
+        }
+
+        let row = sqlx::query!(
+            "INSERT INTO courses (tenant_id, name, subject_id) VALUES ($1, $2, $3) RETURNING id, name, subject_id",
+            tenant_id,
+            name,
+            subject_id
+        )
+        .fetch_one(&self.db)
+        .await?;
+
+        sqlx::query!(
+            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, $2, $3)"#,
+            user_id,
+            "group-admin:course:create",
+            json!({ "courseId": row.id, "subjectId": subject_id })
+        )
+        .execute(&self.db)
+        .await?;
+
+        Ok(json!({
+            "id": row.id,
+            "name": row.name,
+            "subjectId": row.subject_id
+        }))
+    }
+
+    pub async fn update_course(
+        &self,
+        tenant_id: Uuid,
+        user_id: Uuid,
+        course_id: Uuid,
+        name: &str,
+    ) -> AppResult<Value> {
+        let course = sqlx::query!(
+            r#"SELECT subject_id FROM courses WHERE id = $1 AND tenant_id = $2"#,
+            course_id,
+            tenant_id
+        )
+        .fetch_optional(&self.db)
+        .await?
+        .ok_or_else(|| AppError::not_found("Course not found"))?;
+
+        let exists = sqlx::query!(
+            r#"SELECT id FROM courses WHERE name = $1 AND subject_id = $2 AND id != $3"#,
+            name,
+            course.subject_id,
+            course_id
+        )
+        .fetch_optional(&self.db)
+        .await?;
+        if exists.is_some() {
+            return Err(AppError::bad_request("A course with this name already exists."));
+        }
+
+        sqlx::query!(
+            r#"UPDATE courses SET name = $1 WHERE id = $2"#,
+            name,
+            course_id
+        )
+        .execute(&self.db)
+        .await?;
+
+        sqlx::query!(
+            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, $2, $3)"#,
+            user_id,
+            "group-admin:course:update",
+            json!({ "courseId": course_id, "name": name })
+        )
+        .execute(&self.db)
+        .await?;
+
+        Ok(json!({ "ok": true }))
+    }
+
+    pub async fn delete_course(
+        &self,
+        tenant_id: Uuid,
+        user_id: Uuid,
+        course_id: Uuid,
+    ) -> AppResult<Value> {
+        let rows = sqlx::query!(
+            r#"DELETE FROM courses WHERE id = $1 AND tenant_id = $2"#,
+            course_id,
+            tenant_id
+        )
+        .execute(&self.db)
+        .await?;
+        if rows.rows_affected() == 0 {
+            return Err(AppError::not_found("Course not found"));
+        }
+
+        sqlx::query!(
+            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, $2, $3)"#,
+            user_id,
+            "group-admin:course:delete",
+            json!({ "courseId": course_id })
+        )
+        .execute(&self.db)
+        .await?;
 
         Ok(json!({ "ok": true }))
     }
