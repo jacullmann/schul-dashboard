@@ -831,7 +831,9 @@ impl GroupAdminService {
         .fetch_optional(&self.db)
         .await?;
         if exists.is_some() {
-            return Err(AppError::bad_request("A course with this name already exists."));
+            return Err(AppError::bad_request(
+                "A course with this name already exists.",
+            ));
         }
 
         let row = sqlx::query!(
@@ -884,7 +886,9 @@ impl GroupAdminService {
         .fetch_optional(&self.db)
         .await?;
         if exists.is_some() {
-            return Err(AppError::bad_request("A course with this name already exists."));
+            return Err(AppError::bad_request(
+                "A course with this name already exists.",
+            ));
         }
 
         sqlx::query!(

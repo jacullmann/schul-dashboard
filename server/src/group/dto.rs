@@ -86,4 +86,3 @@ pub struct CreateCourseDto {
 pub struct UpdateCourseDto {
     pub name: String,
 }
-

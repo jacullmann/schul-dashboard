@@ -373,7 +373,10 @@ pub async fn create_subject(
     tc: TenantContext,
     Json(dto): Json<CreateSubjectDto>,
 ) -> AppResult<Json<Value>> {
-    crate::require_permission!(tc, crate::common::permission::Permission::EditSubjectsCourses);
+    crate::require_permission!(
+        tc,
+        crate::common::permission::Permission::EditSubjectsCourses
+    );
     Ok(Json(
         GroupAdminService::from_state(&s)
             .create_subject(
@@ -392,7 +395,10 @@ pub async fn update_subject(
     Path(id): Path<Uuid>,
     Json(dto): Json<UpdateSubjectDto>,
 ) -> AppResult<Json<Value>> {
-    crate::require_permission!(tc, crate::common::permission::Permission::EditSubjectsCourses);
+    crate::require_permission!(
+        tc,
+        crate::common::permission::Permission::EditSubjectsCourses
+    );
     Ok(Json(
         GroupAdminService::from_state(&s)
             .update_subject(
@@ -411,7 +417,10 @@ pub async fn delete_subject(
     tc: TenantContext,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<Value>> {
-    crate::require_permission!(tc, crate::common::permission::Permission::EditSubjectsCourses);
+    crate::require_permission!(
+        tc,
+        crate::common::permission::Permission::EditSubjectsCourses
+    );
     Ok(Json(
         GroupAdminService::from_state(&s)
             .delete_subject(tc.tenant_id, tc.user.user_id, id)
@@ -425,7 +434,10 @@ pub async fn create_course(
     Path(subject_id): Path<Uuid>,
     Json(dto): Json<CreateCourseDto>,
 ) -> AppResult<Json<Value>> {
-    crate::require_permission!(tc, crate::common::permission::Permission::EditSubjectsCourses);
+    crate::require_permission!(
+        tc,
+        crate::common::permission::Permission::EditSubjectsCourses
+    );
     Ok(Json(
         GroupAdminService::from_state(&s)
             .create_course(tc.tenant_id, tc.user.user_id, subject_id, &dto.name)
@@ -439,7 +451,10 @@ pub async fn update_course(
     Path(id): Path<Uuid>,
     Json(dto): Json<UpdateCourseDto>,
 ) -> AppResult<Json<Value>> {
-    crate::require_permission!(tc, crate::common::permission::Permission::EditSubjectsCourses);
+    crate::require_permission!(
+        tc,
+        crate::common::permission::Permission::EditSubjectsCourses
+    );
     Ok(Json(
         GroupAdminService::from_state(&s)
             .update_course(tc.tenant_id, tc.user.user_id, id, &dto.name)
@@ -452,7 +467,10 @@ pub async fn delete_course(
     tc: TenantContext,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<Value>> {
-    crate::require_permission!(tc, crate::common::permission::Permission::EditSubjectsCourses);
+    crate::require_permission!(
+        tc,
+        crate::common::permission::Permission::EditSubjectsCourses
+    );
     Ok(Json(
         GroupAdminService::from_state(&s)
             .delete_course(tc.tenant_id, tc.user.user_id, id)
