@@ -34,7 +34,6 @@ const emit = defineEmits<{
 const { deleteGroup, saveGroupAvatar } = useGroupAdmin();
 const router = useRouter();
 
-
 // Avatar/Cropper state
 const fileInputRef = ref<HTMLInputElement | null>(null);
 const cameraInputRef = ref<HTMLInputElement | null>(null);
@@ -346,7 +345,6 @@ async function confirmDeleteGroup() {
         @confirm="onCropConfirmed"
       />
     </div>
-
 
     <div v-if="isOwner">
       <h3 class="text-danger">

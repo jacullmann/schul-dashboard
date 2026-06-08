@@ -91,13 +91,12 @@ export function useMessages() {
   const dismissedNewMessagesDivider = ref(false);
   const isInitialScroll = ref(true);
 
+  const firstNewMessageId = ref<string | null>(null);
+
   const firstNewMessageIndex = computed(() => {
-    if (!lastVisitAt.value) return -1;
-    const visitTime = new Date(lastVisitAt.value).getTime();
+    if (!firstNewMessageId.value) return -1;
     return messages.value.findIndex(
-      (msg) =>
-        msg.userId !== currentUserId.value &&
-        new Date(msg.createdAt).getTime() > visitTime,
+      (msg) => msg.id === firstNewMessageId.value,
     );
   });
 
@@ -121,25 +120,6 @@ export function useMessages() {
     return timeDiff < 90000;
   };
 
-  const getBubbleBorderClasses = (msg: any, index: number) => {
-    const p = isGroupedWithPrevious(msg, index);
-    const r = msg.parentId && msg.parentContent;
-
-    return `rounded-2xl ${
-      msg.userId === currentUserId.value
-        ? p
-          ? r
-            ? 'rounded-t-xl'
-            : ''
-          : r
-            ? 'rounded-tl-xl rounded-tr-sm'
-            : 'rounded-tr-sm'
-        : p
-          ? ' rounded-tl-2xl'
-          : ' rounded-tl-sm'
-    }`;
-  };
-
   const isNearBottom = () => {
     if (!messageContainer.value) return false;
     const c = messageContainer.value;
@@ -147,7 +127,7 @@ export function useMessages() {
   };
 
   const scrollToBottom = (force = false) => {
-    nextTick(() => {
+    void nextTick(() => {
       if (!messageContainer.value) return;
       if (force || isNearBottom()) {
         messageContainer.value.scrollTop = messageContainer.value.scrollHeight;
@@ -187,6 +167,19 @@ export function useMessages() {
       const { data } = await hw.get('/messages');
       messages.value = data.messages;
       lastVisitAt.value = data.lastVisitAt;
+
+      if (data.lastVisitAt && data.messages && data.messages.length > 0) {
+        const visitTime = new Date(data.lastVisitAt).getTime();
+        const firstNew = data.messages.find(
+          (msg: any) =>
+            msg.userId !== currentUserId.value &&
+            new Date(msg.createdAt).getTime() > visitTime,
+        );
+        firstNewMessageId.value = firstNew ? firstNew.id : null;
+      } else {
+        firstNewMessageId.value = null;
+      }
+
       scrollToBottom(true);
       setTimeout(() => {
         isInitialScroll.value = false;
@@ -354,7 +347,7 @@ export function useMessages() {
 
   const startReply = (message: any) => {
     replyParent.value = message;
-    nextTick(() => {
+    void nextTick(() => {
       const input = document.getElementById('chat-input-field');
       if (input) input.focus();
     });
@@ -488,6 +481,7 @@ export function useMessages() {
     }
     dismissedNewMessagesDivider.value = false;
     isInitialScroll.value = true;
+    firstNewMessageId.value = null;
     if (dividerTimeout) {
       clearTimeout(dividerTimeout);
     }
@@ -519,7 +513,6 @@ export function useMessages() {
     showScrollBottomBtn,
     messageContainer,
     isGroupedWithPrevious,
-    getBubbleBorderClasses,
     scrollToBottom,
     handleScroll,
     formatTime,

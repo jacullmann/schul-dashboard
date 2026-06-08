@@ -19,7 +19,11 @@ export function useGroupAdmin() {
   const { t } = useI18n();
 
   const route = useRoute();
-  const { groupName: authGroupName, checkAuthStatus, checkPermission } = useAppAuth();
+  const {
+    groupName: authGroupName,
+    checkAuthStatus,
+    checkPermission,
+  } = useAppAuth();
   const { success, error: toastError } = useToast();
 
   const groupId = computed(() => route.params.groupId as string);

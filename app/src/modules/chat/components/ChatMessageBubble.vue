@@ -26,6 +26,7 @@ const isSwiping = ref(false);
 
 const handleTouchStart = (e: TouchEvent) => {
   const touch = e.touches[0];
+  if (!touch) return;
   touchStartX = touch.clientX;
   touchStartY = touch.clientY;
   isSwiping.value = false;
@@ -34,6 +35,7 @@ const handleTouchStart = (e: TouchEvent) => {
 
 const handleTouchMove = (e: TouchEvent) => {
   const touch = e.touches[0];
+  if (!touch) return;
   const diffX = touch.clientX - touchStartX;
   const diffY = touch.clientY - touchStartY;
 
@@ -65,7 +67,9 @@ const handleTouchEnd = () => {
     if (window.navigator && window.navigator.vibrate) {
       try {
         window.navigator.vibrate(15);
-      } catch (err) {}
+      } catch {
+        // Ignore vibration errors (e.g. if not allowed or not supported)
+      }
     }
   }
   swipeX.value = 0;
@@ -97,25 +101,35 @@ const getEmojiInfo = computed(() => {
   const text = props.msg.content || '';
   if (!text) return { isEmojiOnly: false, count: 0 };
 
-  const emojiRegex =
-    /[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}\u{2600}-\u{27BF}]/u;
+  try {
+    const unicodeProperty = 'Extended_Pictographic';
+    const emojiRegex = new RegExp(
+      `[\\p{${unicodeProperty}}\\u{1F1E6}-\\u{1F1FF}\\u{2600}-\\u{27BF}]`,
+      'u',
+    );
 
-  if (typeof Intl !== 'undefined' && Intl.Segmenter) {
-    const segmenter = new Intl.Segmenter('en', { granularity: 'grapheme' });
-    const segments = [...segmenter.segment(text)];
-    if (segments.length === 0) return { isEmojiOnly: false, count: 0 };
-    const allEmojis = segments.every((s) => emojiRegex.test(s.segment));
-    return {
-      isEmojiOnly: allEmojis,
-      count: allEmojis ? segments.length : 0,
-    };
-  } else {
-    const emojiSequenceRegex =
-      /(?:[\u{1F1E6}-\u{1F1FF}]{2}|[\p{Extended_Pictographic}\u{2600}-\u{27BF}])(?:[\u{1F3FB}-\u{1F3FF}]|\u{200D}|\u{FE0F}|\p{Extended_Pictographic}|[\u{2600}-\u{27BF}])*/gu;
-    const matches = text.match(emojiSequenceRegex) || [];
-    const matchedLen = matches.join('').length;
-    const isEmojiOnly = matchedLen === text.length;
-    return { isEmojiOnly, count: isEmojiOnly ? matches.length : 0 };
+    if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+      const segmenter = new Intl.Segmenter('en', { granularity: 'grapheme' });
+      const segments = [...segmenter.segment(text)];
+      if (segments.length === 0) return { isEmojiOnly: false, count: 0 };
+      const allEmojis = segments.every((s) => emojiRegex.test(s.segment));
+      return {
+        isEmojiOnly: allEmojis,
+        count: allEmojis ? segments.length : 0,
+      };
+    } else {
+      const emojiSequenceRegex = new RegExp(
+        `(?:[\\u{1F1E6}-\\u{1F1FF}]{2}|[\\p{${unicodeProperty}}\\u{2600}-\\u{27BF}])(?:[\\u{1F3FB}-\\u{1F3FF}]|\\u{200D}|\\u{FE0F}|\\p{${unicodeProperty}}|[\\u{2600}-\\u{27BF}])*`,
+        'gu',
+      );
+      const matches = text.match(emojiSequenceRegex) || [];
+      const matchedLen = matches.join('').length;
+      const isEmojiOnly = matchedLen === text.length;
+      return { isEmojiOnly, count: isEmojiOnly ? matches.length : 0 };
+    }
+  } catch {
+    // Safe fallback if RegExp 'u' flag or Unicode property escapes are not supported
+    return { isEmojiOnly: false, count: 0 };
   }
 });
 
