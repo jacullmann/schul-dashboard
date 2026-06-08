@@ -251,7 +251,7 @@ const formatTime = (timestamp: string) => {
           >
             <span
               :class="[
-                'whitespace-pre-wrap break-words leading-snug',
+                'whitespace-pre-wrap break-words leading-snug py-[calc(var(--spacing)*.25)]',
                 getEmojiInfo.isEmojiOnly &&
                 getEmojiInfo.count > 0 &&
                 getEmojiInfo.count <= 3
