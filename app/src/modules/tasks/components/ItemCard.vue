@@ -81,6 +81,11 @@ const transitionEasing = 'cubic-bezier(0.25, 1, 0.5, 1)';
 
 function onEnter(el: Element) {
   const h = el as HTMLElement;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    h.style.height = '';
+    h.style.opacity = '1';
+    return;
+  }
   h.style.height = '0';
   h.style.opacity = '0';
   void h.offsetHeight;
@@ -95,6 +100,11 @@ function onAfterEnter(el: Element) {
 }
 function onLeave(el: Element) {
   const h = el as HTMLElement;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    h.style.height = '0';
+    h.style.opacity = '0';
+    return;
+  }
   h.style.height = h.scrollHeight + 'px';
   void h.offsetHeight;
   h.style.transition = `height ${transitionDuration} ${transitionEasing}, opacity ${transitionDuration} ${transitionEasing}`;
