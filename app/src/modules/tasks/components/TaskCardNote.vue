@@ -1,8 +1,9 @@
 <script setup lang="ts">
+import { ref, watch, nextTick } from 'vue';
 import { Pencil, Trash2 } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 
-defineProps<{
+const props = defineProps<{
   note: string | null;
   editing: boolean;
   saving: boolean;
@@ -10,7 +11,7 @@ defineProps<{
   modelValue: string;
 }>();
 
-defineEmits<{
+const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void;
   (e: 'edit-start'): void;
   (e: 'edit-cancel'): void;
@@ -19,6 +20,32 @@ defineEmits<{
 }>();
 
 const { t } = useI18n();
+
+const textareaRef = ref<HTMLTextAreaElement | null>(null);
+
+function adjustHeight() {
+  if (textareaRef.value) {
+    textareaRef.value.style.height = 'auto';
+    textareaRef.value.style.height = `${textareaRef.value.scrollHeight}px`;
+  }
+}
+
+function handleInput(event: Event) {
+  const target = event.target as HTMLTextAreaElement;
+  emit('update:modelValue', target.value);
+  adjustHeight();
+}
+
+watch(
+  () => props.editing,
+  async (isEditing) => {
+    if (isEditing) {
+      await nextTick();
+      adjustHeight();
+    }
+  },
+  { immediate: true },
+);
 </script>
 
 <template>
@@ -41,14 +68,15 @@ const { t } = useI18n();
       </div>
 
       <div v-else>
-        <BaseInput
+        <textarea
           id="editor-note-input"
-          as="textarea"
-          :model-value="modelValue"
-          rows="3"
-          placeholder="Anmerkung eingeben..."
+          ref="textareaRef"
+          :value="modelValue"
+          rows="1"
+          placeholder="Add a note..."
           maxlength="2000"
-          @update:model-value="$emit('update:modelValue', $event)"
+          class="w-full pb-2 border-b-2 shadow-none outline-none focus:border-b-4 border-on-ghost-subtle focus:border-on-ghost transition-[border,border-color] duration-200 ease-in-out resize-none overflow-hidden"
+          @input="handleInput"
         />
         <BaseRow justify="end" class="mt-2 mb-1">
           <BaseButton
