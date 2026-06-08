@@ -102,7 +102,7 @@
         "title": "Remove Member",
         "confirm_prefix": "Are you sure you want to remove ",
         "confirm_suffix": " from the group?",
-        "rejoin_info": "Users can rejoin at any time if they have the credentials for your group. To block them from doing so, you can ban them.",
+        "rejoin_info": "Users can rejoin at any time if they receive an invite link for your group. To block them from doing so, you can ban them.",
         "ban_checkbox_prefix": "Ban ",
         "ban_checkbox_suffix": " permanently",
         "submit_button": "Remove"
@@ -208,6 +208,8 @@
     "subjects": {
       "add_placeholder": "Add new subject...",
       "create_title": "Create new subject",
+      "name_label": "Name",
+      "custom_label": "Custom name",
       "category_label": "Category",
       "categories": {
         "core": "Core subject",

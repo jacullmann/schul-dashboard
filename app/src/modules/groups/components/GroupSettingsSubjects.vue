@@ -32,9 +32,35 @@ const canEditSubjects = computed(() =>
 );
 
 const newSubjectName = ref('');
+const selectedSubjectKey = ref('');
 const newSubjectCategory = ref('core');
 const showCreateModal = ref(false);
 const newSubjectInputRef = ref<any>(null);
+
+const subjectOptions = computed(() => {
+  const subjectsObj = i18n.tm('common.subjects');
+  const list = Object.entries(subjectsObj || {}).map(([key, label]) => ({
+    value: key,
+    label,
+  }));
+  list.push({
+    value: 'custom',
+    label: t('common.selection.other'),
+  });
+  return list;
+});
+
+watch(selectedSubjectKey, async (newVal) => {
+  if (newVal === 'custom') {
+    newSubjectName.value = '';
+    await nextTick();
+    newSubjectInputRef.value?.focus();
+  } else if (newVal) {
+    newSubjectName.value = newVal;
+  } else {
+    newSubjectName.value = '';
+  }
+});
 
 const groupId = computed(() => route.params.groupId as string);
 const subTabId = computed(() => route.params.subTab as string | undefined);
@@ -103,6 +129,7 @@ function openCreateModal() {
 function closeCreateModal() {
   showCreateModal.value = false;
   newSubjectName.value = '';
+  selectedSubjectKey.value = '';
   newSubjectCategory.value = 'core';
 }
 
@@ -112,6 +139,7 @@ async function handleCreate() {
   await createSubject(newSubjectName.value, newSubjectCategory.value);
   if (subjects.value.length > oldLength) {
     newSubjectName.value = '';
+    selectedSubjectKey.value = '';
     newSubjectCategory.value = 'core';
     showCreateModal.value = false;
   }
@@ -120,7 +148,9 @@ async function handleCreate() {
 watch(showCreateModal, async (open) => {
   if (open) {
     await nextTick();
-    newSubjectInputRef.value?.focus();
+    if (selectedSubjectKey.value === 'custom') {
+      newSubjectInputRef.value?.focus();
+    }
   }
 });
 
@@ -200,6 +230,7 @@ onMounted(() => {
         :open="showCreateModal"
         :submit="handleCreate"
         :loading="saving"
+        :requirement="!!newSubjectName.trim()"
         @cancel="closeCreateModal"
       >
         <template #title>
@@ -207,31 +238,44 @@ onMounted(() => {
         </template>
 
         <template #content>
-          <div class="flex flex-col gap-4">
-            <div class="flex flex-col gap-2">
-              <BaseLabel for="new-subject-name-input">{{
-                t('groups.settings.general.appearance.name_label')
-              }}</BaseLabel>
-              <BaseInput
-                id="new-subject-name-input"
-                ref="newSubjectInputRef"
-                v-model="newSubjectName"
-                :placeholder="t('groups.settings.subjects.add_placeholder')"
-                :disabled="saving"
-              />
-            </div>
-            <div class="flex flex-col gap-2">
-              <BaseLabel for="new-subject-category">{{
-                t('groups.settings.subjects.category_label')
-              }}</BaseLabel>
-              <BaseSelect
-                id="new-subject-category"
-                v-model="newSubjectCategory"
-                :disabled="saving"
-                :options="categoryOptions"
-              />
-            </div>
-          </div>
+          <BaseFormGroup id="new-subject-name" class="flex flex-col gap-2">
+            <BaseLabel for="new-subject-name">{{
+              t('groups.settings.subjects.name_label')
+            }}</BaseLabel>
+            <BaseSelect
+              id="new-subject-name"
+              v-model="selectedSubjectKey"
+              :disabled="saving"
+              :options="subjectOptions"
+            />
+          </BaseFormGroup>
+          <BaseFormGroup
+            v-if="selectedSubjectKey === 'custom'"
+            id="new-subject-custom"
+            class="flex flex-col gap-2"
+          >
+            <BaseLabel for="new-subject-custom">{{
+              t('groups.settings.subjects.custom_label')
+            }}</BaseLabel>
+            <BaseInput
+              id="new-subject-custom"
+              ref="newSubjectInputRef"
+              v-model="newSubjectName"
+              :placeholder="t('groups.settings.subjects.add_placeholder')"
+              :disabled="saving"
+            />
+          </BaseFormGroup>
+          <BaseFormGroup id="new-subject-category" class="flex flex-col gap-2">
+            <BaseLabel for="new-subject-category">{{
+              t('groups.settings.subjects.category_label')
+            }}</BaseLabel>
+            <BaseSelect
+              id="new-subject-category"
+              v-model="newSubjectCategory"
+              :disabled="saving"
+              :options="categoryOptions"
+            />
+          </BaseFormGroup>
         </template>
 
         <template #action-text>

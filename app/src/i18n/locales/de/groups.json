@@ -99,10 +99,10 @@
       },
       "remove_modal": {
         "title": "Mitglied entfernen",
-        "confirm_prefix": "Sind Sie sicher, dass Sie ",
+        "confirm_prefix": "Bist du sicher, dass du ",
         "confirm_suffix": " aus der Gruppe entfernen möchten?",
-        "rejoin_info": "Benutzer können jederzeit wieder beitreten, wenn sie die Zugangsdaten für Ihre Gruppe haben. Um dies zu verhindern, können Sie sie sperren.",
-        "ban_checkbox_prefix": "Sperre ",
+        "rejoin_info": "Benutzer können jederzeit wieder beitreten, wenn sie einen Einladungslink für die Gruppe erhalten. Um dies zu verhindern, kannst du sie bannen.",
+        "ban_checkbox_prefix": "Banne ",
         "ban_checkbox_suffix": " dauerhaft",
         "submit_button": "Entfernen"
       }
@@ -207,6 +207,8 @@
     "subjects": {
       "add_placeholder": "Neues Fach hinzufügen...",
       "create_title": "Neues Fach erstellen",
+      "name_label": "Name",
+      "custom_label": "Benutzerdefinierter Name",
       "category_label": "Kategorie",
       "categories": {
         "core": "Pflichtfach",

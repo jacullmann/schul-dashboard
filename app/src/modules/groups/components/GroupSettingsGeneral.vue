@@ -225,7 +225,7 @@ async function confirmDeleteGroup() {
             variant="action"
             :icon="Pencil"
             size="sm"
-            class="absolute! bottom-0 right-0"
+            class="absolute! bottom-0 right-0 ring-4 ring-canvas"
             :disabled="savingAvatar"
             @click.stop="toggleMenu"
           />
@@ -369,19 +369,19 @@ async function confirmDeleteGroup() {
       <PageHeader>{{
         t('auth.groups.invite.invite_button_header')
       }}</PageHeader>
-      <p class="text-base/relaxed text-on-ghost-muted m-0 mb-5">
+      <p class="text-base/relaxed text-on-ghost-muted mt-0! mb-5!">
         Generieren Sie einen Einladungslink oder QR-Code, damit andere Schüler
         dieser Gruppe beitreten können.
       </p>
       <BaseButton
         type="button"
         variant="action"
-        :disabled="loadingInvite"
+        :loading="loadingInvite"
+        :icon="UserRoundPlus"
         class="gap-2"
         @click="inviteMember"
       >
-        <UserRoundPlus :size="18" />
-        <span>{{ t('auth.groups.invite.invite_button_header') }}</span>
+        {{ t('auth.groups.invite.invite_button_header') }}
       </BaseButton>
     </div>
 

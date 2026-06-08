@@ -135,8 +135,10 @@
     "politics": "Politics",
     "religion": "Religion",
     "theater": "Theater",
+    "wpu": "Elective",
     "wpu1": "Elective 1",
-    "wpu2": "Elective 2"
+    "wpu2": "Elective 2",
+    "wpu3": "Elective 3"
   },
   "theme": {
     "dark": "Dark",

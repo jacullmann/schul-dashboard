@@ -45,14 +45,18 @@ function formatDate(iso: string) {
       {{ t('announcements.list.title') }}
 
       <template #action>
-        <BaseButton
-          v-if="canManageAnnouncements"
-          variant="action"
-          :icon="Plus"
-          @click="openAnnouncementForm"
+        <BaseTooltip
+          :content="t('announcements.list.create_button')"
+          placement="bottom"
         >
-          {{ t('announcements.list.create_button') }}
-        </BaseButton>
+          <BaseButton
+            v-if="canManageAnnouncements"
+            variant="action"
+            :icon="Plus"
+            icon-classes="size-6"
+            @click="openAnnouncementForm"
+          />
+        </BaseTooltip>
       </template>
     </PageHeader>
 

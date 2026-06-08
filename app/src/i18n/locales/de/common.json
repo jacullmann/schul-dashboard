@@ -139,8 +139,10 @@
     "politics": "Politik",
     "religion": "Religion",
     "theater": "Theater",
+    "wpu": "WPU",
     "wpu1": "WPU 1",
-    "wpu2": "WPU 2"
+    "wpu2": "WPU 2",
+    "wpu3": "WPU 3"
   },
   "theme": {
     "dark": "Dunkel",
