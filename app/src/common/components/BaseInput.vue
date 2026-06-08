@@ -52,7 +52,7 @@ defineExpose({
     :id="props.id"
     ref="inputRef"
     v-model="model"
-    class="resize-vertical"
+    class="resize-vertical block!"
     :class="baseClasses"
     :aria-required="props.required"
     v-bind="$attrs"
