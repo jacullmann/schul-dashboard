@@ -382,7 +382,7 @@ impl SuperAdminService {
 
     pub async fn get_reports(&self) -> AppResult<Value> {
         let rows = sqlx::query!(
-            r#"SELECT r.id, r.item_id, r.item_title, r.category, r.reason, r.reporter_id, r.reporter_email,
+            r#"SELECT r.id, r.item_id, r.item_title, r.reason, r.reporter_id, r.reporter_email,
                       r.processed, r.processed_at, r.reported_at,
                       i.type AS "item_type?: String", i.subject AS "item_subject?: String", i.description AS "item_description?: String",
                       i.images AS "item_images?: Value", i.due_date AS "item_due_date?: chrono::DateTime<chrono::Utc>", i.editor_note AS "item_editor_note?: String",
@@ -399,7 +399,7 @@ impl SuperAdminService {
             rows.into_iter()
                 .map(|r| json!({
                     "id": r.id, "itemId": r.item_id, "itemTitle": r.item_title,
-                    "category": r.category, "reason": r.reason,
+                    "reason": r.reason,
                     "reportedBy": r.reporter_id, "reporterEmail": r.reporter_email,
                     "processed": r.processed, "processedAt": r.processed_at,
                     "reportedAt": r.reported_at,

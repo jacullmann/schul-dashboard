@@ -42,7 +42,6 @@ export interface SuperAdminReport {
   reportedAt: string;
   processed: boolean;
   processedAt?: string | null;
-  category?: string;
   reason?: string;
   reporterEmail?: string;
   itemId?: string;

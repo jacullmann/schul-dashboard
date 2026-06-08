@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT r.id, r.item_id, r.item_title, r.category, r.reason, r.reporter_id, r.reporter_email,\n                      r.processed, r.processed_at, r.reported_at,\n                      i.type AS \"item_type?: String\", i.subject AS \"item_subject?: String\", i.description AS \"item_description?: String\",\n                      i.images AS \"item_images?: Value\", i.due_date AS \"item_due_date?: chrono::DateTime<chrono::Utc>\", i.editor_note AS \"item_editor_note?: String\",\n                      i.tenant_id AS \"item_tenant_id?: Uuid\", u.email AS \"creator_email?: String\"\n               FROM reports r\n               LEFT JOIN items i ON i.id = r.item_id\n               LEFT JOIN users u ON u.id = i.created_by\n               ORDER BY r.created_at DESC",
+  "query": "SELECT r.id, r.item_id, r.item_title, r.reason, r.reporter_id, r.reporter_email,\n                      r.processed, r.processed_at, r.reported_at,\n                      i.type AS \"item_type?: String\", i.subject AS \"item_subject?: String\", i.description AS \"item_description?: String\",\n                      i.images AS \"item_images?: Value\", i.due_date AS \"item_due_date?: chrono::DateTime<chrono::Utc>\", i.editor_note AS \"item_editor_note?: String\",\n                      i.tenant_id AS \"item_tenant_id?: Uuid\", u.email AS \"creator_email?: String\"\n               FROM reports r\n               LEFT JOIN items i ON i.id = r.item_id\n               LEFT JOIN users u ON u.id = i.created_by\n               ORDER BY r.created_at DESC",
   "describe": {
     "columns": [
       {
@@ -38,17 +38,6 @@
       },
       {
         "ordinal": 3,
-        "name": "category",
-        "type_info": "Text",
-        "origin": {
-          "Table": {
-            "table": "reports",
-            "name": "category"
-          }
-        }
-      },
-      {
-        "ordinal": 4,
         "name": "reason",
         "type_info": "Text",
         "origin": {
@@ -59,7 +48,7 @@
         }
       },
       {
-        "ordinal": 5,
+        "ordinal": 4,
         "name": "reporter_id",
         "type_info": "Uuid",
         "origin": {
@@ -70,7 +59,7 @@
         }
       },
       {
-        "ordinal": 6,
+        "ordinal": 5,
         "name": "reporter_email",
         "type_info": "Text",
         "origin": {
@@ -81,7 +70,7 @@
         }
       },
       {
-        "ordinal": 7,
+        "ordinal": 6,
         "name": "processed",
         "type_info": "Bool",
         "origin": {
@@ -92,7 +81,7 @@
         }
       },
       {
-        "ordinal": 8,
+        "ordinal": 7,
         "name": "processed_at",
         "type_info": "Timestamptz",
         "origin": {
@@ -103,7 +92,7 @@
         }
       },
       {
-        "ordinal": 9,
+        "ordinal": 8,
         "name": "reported_at",
         "type_info": "Timestamptz",
         "origin": {
@@ -114,7 +103,7 @@
         }
       },
       {
-        "ordinal": 10,
+        "ordinal": 9,
         "name": "item_type?: String",
         "type_info": "Text",
         "origin": {
@@ -125,7 +114,7 @@
         }
       },
       {
-        "ordinal": 11,
+        "ordinal": 10,
         "name": "item_subject?: String",
         "type_info": "Text",
         "origin": {
@@ -136,7 +125,7 @@
         }
       },
       {
-        "ordinal": 12,
+        "ordinal": 11,
         "name": "item_description?: String",
         "type_info": "Text",
         "origin": {
@@ -147,7 +136,7 @@
         }
       },
       {
-        "ordinal": 13,
+        "ordinal": 12,
         "name": "item_images?: Value",
         "type_info": "Jsonb",
         "origin": {
@@ -158,7 +147,7 @@
         }
       },
       {
-        "ordinal": 14,
+        "ordinal": 13,
         "name": "item_due_date?: chrono::DateTime<chrono::Utc>",
         "type_info": "Timestamptz",
         "origin": {
@@ -169,7 +158,7 @@
         }
       },
       {
-        "ordinal": 15,
+        "ordinal": 14,
         "name": "item_editor_note?: String",
         "type_info": "Text",
         "origin": {
@@ -180,7 +169,7 @@
         }
       },
       {
-        "ordinal": 16,
+        "ordinal": 15,
         "name": "item_tenant_id?: Uuid",
         "type_info": "Uuid",
         "origin": {
@@ -191,7 +180,7 @@
         }
       },
       {
-        "ordinal": 17,
+        "ordinal": 16,
         "name": "creator_email?: String",
         "type_info": "Text",
         "origin": {
@@ -206,7 +195,6 @@
       "Left": []
     },
     "nullable": [
-      false,
       false,
       false,
       false,
@@ -226,5 +214,5 @@
       false
     ]
   },
-  "hash": "c378ae5708bb5b5c30976bee9969bb2a83fcb3cab10d8af9439ef51dd207f2fa"
+  "hash": "5abf331c7448045512670812d16aa596ad4a6b24a432487c1ac1a667c2003123"
 }

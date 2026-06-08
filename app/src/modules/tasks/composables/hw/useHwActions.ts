@@ -187,7 +187,7 @@ export function useHwActions(
     showReportConfirm.value = true;
   }
 
-  async function doReport(category: 'illegal' | 'falschinfo') {
+  async function doReport() {
     if (!reportTarget.value) return;
     const item = reportTarget.value;
     const reason = reportReason.value;
@@ -198,7 +198,6 @@ export function useHwActions(
       await hw.post('/items/reports', {
         itemId: item.id,
         itemTitle: item.title,
-        category,
         reason,
       });
       handleSuccessAction('Eintrag gemeldet.');

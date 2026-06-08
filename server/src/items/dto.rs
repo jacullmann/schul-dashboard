@@ -52,7 +52,6 @@ pub struct ReportItemDto {
     pub item_id: Uuid,
     #[validate(length(min = 1, max = 200))]
     pub item_title: String,
-    pub category: String,
     pub reason: Option<String>,
 }
 

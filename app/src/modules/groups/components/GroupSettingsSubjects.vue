@@ -298,7 +298,7 @@ onMounted(() => {
 
         <template #content>
           <BaseFormGroup id="new-subject-name">
-            <BaseLabel for="new-subject-name">{{
+            <BaseLabel for="new-subject-name" :required="true">{{
               t('groups.settings.subjects.name_label')
             }}</BaseLabel>
             <BaseSelect
@@ -312,7 +312,7 @@ onMounted(() => {
             v-if="selectedSubjectKey === 'custom'"
             id="new-subject-custom"
           >
-            <BaseLabel for="new-subject-custom">{{
+            <BaseLabel for="new-subject-custom" :required="true">{{
               t('groups.settings.subjects.custom_label')
             }}</BaseLabel>
             <BaseInput
@@ -324,7 +324,7 @@ onMounted(() => {
             />
           </BaseFormGroup>
           <BaseFormGroup id="new-subject-category">
-            <BaseLabel for="new-subject-category">{{
+            <BaseLabel for="new-subject-category" :required="true">{{
               t('groups.settings.subjects.category_label')
             }}</BaseLabel>
             <BaseSelect
@@ -487,7 +487,7 @@ onMounted(() => {
 
         <template #content>
           <BaseFormGroup id="new-course-name" class="flex flex-col gap-2">
-            <BaseLabel for="new-course-name">{{
+            <BaseLabel for="new-course-name" :required="true">{{
               t('groups.settings.subjects.course_name_label')
             }}</BaseLabel>
             <BaseInput
@@ -522,7 +522,7 @@ onMounted(() => {
 
         <template #content>
           <BaseFormGroup id="edit-course-name" class="flex flex-col gap-2">
-            <BaseLabel for="edit-course-name">{{
+            <BaseLabel for="edit-course-name" :required="true">{{
               t('groups.settings.subjects.course_name_label')
             }}</BaseLabel>
             <BaseInput

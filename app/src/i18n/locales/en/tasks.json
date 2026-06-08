@@ -25,10 +25,6 @@
           "text": "Images can also be uploaded to other people's entries if relevant; click the <strong>3-dot menu</strong>, select <strong>Upload images</strong> and choose the desired images. To remove your own images, <strong>hold</strong> the image <strong>pressed</strong> or <strong>right-click</strong> on your image and select <strong>Delete</strong> from the menu."
         },
         {
-          "title": "Reporting misinformation",
-          "text": "Entries should generally be accurate, but if you discover incorrect information in someone else's entry, you can click \"Report\" in the 3-dot menu and submit a correction under \"Misinformation\". Your message will then be reviewed and attached as a note to the reported entry."
-        },
-        {
           "title": "Tracking completed tasks",
           "text": "If you have an account, you can check off any entry you've completed using the <strong>checkbox</strong>. Your progress is saved in the cloud and the entry is minimized to make room for open tasks. This way you can immediately see what you still need to do."
         },
@@ -90,26 +86,9 @@
         "pin": "Pin",
         "report": {
           "action": "Report Entry",
-          "false_label": "Correction (required)",
-          "false_placeholder": "Correction...",
           "illegal_label": "What exactly is the problem? (optional)",
           "illegal_placeholder": "Description...",
-          "infopop": {
-            "sections": [
-              {
-                "title": "Misinformation",
-                "text": "The information mentioned in the entry or the uploaded images contain false or misleading content? Such entries can have notes with corrections attached, but you must describe what is wrong and/or what the correct information is. Please try to be as brief and clear as possible. Your message will be reviewed and attached to the reported entry once approved."
-              },
-              {
-                "title": "Inappropriate/Illegal Content",
-                "text": "Entries and uploaded images that violate our terms of use or applicable law will be removed immediately. If more detailed knowledge about the background of a statement/image is needed, please describe it as precisely as possible so we can take action. Even if the violation is obvious, you can still help us by describing what is wrong – but we always review the entire entry, even if you don't provide a specific reason."
-              }
-            ],
-            "title": "Reporting entries",
-            "tooltip": "Information about reporting entries"
-          },
           "name": "Report",
-          "select_reason": "Select the reason:",
           "title": "Report this entry?"
         },
         "share": "Share",

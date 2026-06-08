@@ -551,22 +551,11 @@ impl ItemsService {
         email: &str,
         dto: &crate::items::dto::ReportItemDto,
     ) -> AppResult<Value> {
-        if dto.category == "falschinfo"
-            && dto
-                .reason
-                .as_deref()
-                .map(|r| r.trim().is_empty())
-                .unwrap_or(true)
-        {
-            return Err(AppError::bad_request("Please provide a reason."));
-        }
-
         sqlx::query!(
-            r#"INSERT INTO reports (item_id, item_title, category, reason, reporter_id, reporter_email)
-               VALUES ($1, $2, $3, $4, $5, $6)"#,
+            r#"INSERT INTO reports (item_id, item_title, reason, reporter_id, reporter_email)
+               VALUES ($1, $2, $3, $4, $5)"#,
             dto.item_id,
             dto.item_title,
-            dto.category,
             dto.reason.as_deref().map(|r| r.trim()),
             user_id,
             email
@@ -577,7 +566,7 @@ impl ItemsService {
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:report', $2)"#,
             user_id,
-            json!({ "itemId": dto.item_id, "category": dto.category })
+            json!({ "itemId": dto.item_id })
         )
         .execute(&self.db)
         .await?;

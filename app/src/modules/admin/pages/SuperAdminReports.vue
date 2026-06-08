@@ -74,15 +74,6 @@ onMounted(loadReports);
               <div
                 class="text-on-ghost-muted text-base flex flex-wrap gap-1 items-center"
               >
-                <span
-                  class="badge"
-                  :class="
-                    r.category === 'illegal' ? 'badge-red' : 'badge-yellow'
-                  "
-                >
-                  {{ r.category === 'illegal' ? 'Illegal' : 'Misinformation' }}
-                </span>
-                <span>·</span>
                 <span>{{ getTypeLabel(r.itemType) }}</span>
                 <span>·</span>
                 <span>{{ getSubjectName(r.itemSubject) }}</span>
@@ -180,15 +171,6 @@ onMounted(loadReports);
                 class="text-on-ghost-muted text-base flex flex-wrap gap-1 items-center"
               >
                 <span class="badge badge-red">Deleted Item</span>
-                <span>·</span>
-                <span
-                  class="badge"
-                  :class="
-                    r.category === 'illegal' ? 'badge-red' : 'badge-yellow'
-                  "
-                >
-                  {{ r.category === 'illegal' ? 'Illegal' : 'Misinformation' }}
-                </span>
               </div>
             </template>
             <template #content-after>
