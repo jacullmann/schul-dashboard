@@ -26,7 +26,7 @@ withDefaults(
     v-wave
     v-bind="$attrs"
     class="relative group flex items-center w-full gap-2 py-3 px-6 md:p-3.5 md:pr-6 md:rounded-2xl bg-transparent cursor-pointer text-left transition-hover hover:bg-ghost-hover disabled:opacity-50"
-    :class="{ active: active }"
+    :class="{ active, 'md:pl-6': !$slots.icon }"
     :disabled="disabled"
   >
     <span
