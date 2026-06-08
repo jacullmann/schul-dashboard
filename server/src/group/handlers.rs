@@ -375,7 +375,12 @@ pub async fn create_subject(
 ) -> AppResult<Json<Value>> {
     Ok(Json(
         GroupAdminService::from_state(&s)
-            .create_subject(tc.tenant_id, tc.user.user_id, &dto.name, dto.category.as_deref())
+            .create_subject(
+                tc.tenant_id,
+                tc.user.user_id,
+                &dto.name,
+                dto.category.as_deref(),
+            )
             .await?,
     ))
 }

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO subjects (tenant_id, name) VALUES ($1, $2)\n               RETURNING id, name",
+  "query": "SELECT id, name, category FROM subjects WHERE tenant_id = $1 ORDER BY name",
   "describe": {
     "columns": [
       {
@@ -24,18 +24,29 @@
             "name": "name"
           }
         }
+      },
+      {
+        "ordinal": 2,
+        "name": "category",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "subjects",
+            "name": "category"
+          }
+        }
       }
     ],
     "parameters": {
       "Left": [
-        "Uuid",
-        "Text"
+        "Uuid"
       ]
     },
     "nullable": [
       false,
+      false,
       false
     ]
   },
-  "hash": "b6d7866bf0d14161b931387cf2becb0809771c45ecfe7b1762c2334bfd07aee2"
+  "hash": "91787ca3165bd613a59b076811b5dfb95cf4c6e45cb673318cb06df9f998b2df"
 }
