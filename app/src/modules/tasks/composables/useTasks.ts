@@ -102,12 +102,16 @@ export function useTasks() {
 
   async function archiveItem(item: HwItem) {
     dismissedItems.value.add(item.id);
+    dismissedItems.value = new Set(dismissedItems.value);
     const success = await actions.toggleVisibility(
       item,
       showOldEntries.value,
       new Date().toISOString(),
     );
-    if (!success) dismissedItems.value.delete(item.id);
+    if (!success) {
+      dismissedItems.value.delete(item.id);
+      dismissedItems.value = new Set(dismissedItems.value);
+    }
   }
 
   const subjects = computed(() => subjectStore.availableSubjectKeys);

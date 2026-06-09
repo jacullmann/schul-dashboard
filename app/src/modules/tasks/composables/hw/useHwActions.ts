@@ -59,6 +59,7 @@ export function useHwActions(
 
     if (wasChecked) ctx.checkedItems.value.delete(id);
     else ctx.checkedItems.value.add(id);
+    ctx.checkedItems.value = new Set(ctx.checkedItems.value);
 
     try {
       if (wasChecked) await hw.delete(`/user/items/${id}/check`, getConfig());
@@ -66,6 +67,7 @@ export function useHwActions(
     } catch {
       if (wasChecked) ctx.checkedItems.value.add(id);
       else ctx.checkedItems.value.delete(id);
+      ctx.checkedItems.value = new Set(ctx.checkedItems.value);
       handleSuccessAction('Fehler beim Setzen des Status.'); // fallback msg
     }
   }
@@ -88,6 +90,8 @@ export function useHwActions(
     ctx.keptItems.value.delete(id);
     if (newStatus === 'archived') ctx.archivedItems.value.add(id);
     if (newStatus === 'kept') ctx.keptItems.value.add(id);
+    ctx.archivedItems.value = new Set(ctx.archivedItems.value);
+    ctx.keptItems.value = new Set(ctx.keptItems.value);
 
     if (!ctx.user.value) return true;
 
@@ -106,6 +110,8 @@ export function useHwActions(
       ctx.keptItems.value.delete(id);
       if (originalArchived) ctx.archivedItems.value.add(id);
       if (originalKept) ctx.keptItems.value.add(id);
+      ctx.archivedItems.value = new Set(ctx.archivedItems.value);
+      ctx.keptItems.value = new Set(ctx.keptItems.value);
       return false;
     }
   }
@@ -117,6 +123,7 @@ export function useHwActions(
 
     if (wasPinned) ctx.pinnedItems.value.delete(id);
     else ctx.pinnedItems.value.add(id);
+    ctx.pinnedItems.value = new Set(ctx.pinnedItems.value);
 
     try {
       if (wasPinned) await hw.delete(`/user/items/${id}/pin`, getConfig());
@@ -124,6 +131,7 @@ export function useHwActions(
     } catch {
       if (wasPinned) ctx.pinnedItems.value.add(id);
       else ctx.pinnedItems.value.delete(id);
+      ctx.pinnedItems.value = new Set(ctx.pinnedItems.value);
     }
   }
 

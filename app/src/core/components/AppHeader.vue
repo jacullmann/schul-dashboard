@@ -10,6 +10,7 @@ import { Menu, ChevronDown, Plus, LogOut, UserRoundPlus } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import { useModalStore } from '@/stores/modalStore';
 import Avatar from '@/modules/auth/components/Avatar.vue';
+import { useToast } from '@/common/composables/useToast';
 import hw from '../../api/api';
 
 const userStore = useUserStore();
@@ -31,6 +32,7 @@ const route = useRoute();
 
 const modalStore = useModalStore();
 const { sidebarExpanded: isExpanded } = storeToRefs(modalStore);
+const toast = useToast();
 
 function toggleExpanded() {
   modalStore.toggleSidebar();
@@ -88,9 +90,7 @@ async function leaveGroup() {
   });
 
   if (activeGroupOwnerId.value === user.value?.id) {
-    alert(
-      'The owner cannot leave the group. Transfer ownership or delete the group instead.',
-    );
+    toast.error(t('auth.groups.errors.owner_cannot_leave'));
     return;
   }
   if (!isConfirmed) return;
@@ -101,7 +101,7 @@ async function leaveGroup() {
     window.location.reload();
   } catch (err) {
     console.error('Failed to leave group:', err);
-    alert('Failed to leave group.');
+    toast.error(t('auth.groups.errors.leave_failed'));
   } finally {
     loading.value = false;
   }
@@ -115,11 +115,11 @@ async function inviteMember() {
     if (res.ok && res.token) {
       modalStore.openInviteModal(res.token);
     } else {
-      alert(res.error || 'Failed to generate invite link.');
+      toast.error(res.error || t('auth.groups.errors.invite_failed'));
     }
   } catch (err) {
     console.error('Failed to generate invite link:', err);
-    alert('Failed to generate invite link.');
+    toast.error(t('auth.groups.errors.invite_failed'));
   } finally {
     loading.value = false;
   }

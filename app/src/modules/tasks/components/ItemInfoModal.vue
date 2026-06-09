@@ -43,20 +43,20 @@ const showUpdated = computed(() => {
 
     <template #content>
       <dl class="flex flex-col gap-4">
-        <div class="flex flex-col gap-1">
-          <dt class="text-sm text-on-ghost-muted font-medium">
+        <div>
+          <dt class="text-sm text-on-ghost-muted font-normal">
             {{ t('tasks.list.items.menu.info_modal.created_at') }}
           </dt>
-          <dd class="m-0 text-base text-on-ghost font-medium">
+          <dd class="text-base text-on-ghost font-medium">
             {{ formatDate(item?.createdAt) }}
           </dd>
         </div>
 
-        <div class="flex flex-col gap-1">
-          <dt class="text-sm text-on-ghost-muted font-medium">
+        <div>
+          <dt class="text-sm text-on-ghost-muted font-normal">
             {{ t('tasks.list.items.menu.info_modal.updated_at') }}
           </dt>
-          <dd class="m-0 text-base text-on-ghost font-medium">
+          <dd class="text-base text-on-ghost font-medium">
             <span v-if="showUpdated">{{ formatDate(item?.updatedAt) }}</span>
             <span v-else class="text-on-ghost-muted">{{
               t('tasks.list.items.menu.info_modal.not_edited')
@@ -64,11 +64,11 @@ const showUpdated = computed(() => {
           </dd>
         </div>
 
-        <div class="flex flex-col gap-1">
+        <div>
           <dt class="text-sm text-on-ghost-muted font-medium">
             {{ t('tasks.list.items.menu.info_modal.created_by') }}
           </dt>
-          <dd class="m-0 text-base text-on-ghost font-medium">
+          <dd class="text-base text-on-ghost font-medium">
             {{ item?.createdByName || 'Unbekannt' }}
             <span
               v-if="isSuperAdmin && item?.createdByEmail"

@@ -11,6 +11,7 @@ import {
 import hw from '../../../api/api';
 import { useModalStore } from '@/stores/modalStore';
 import { useI18n } from 'vue-i18n';
+import { useToast } from '@/common/composables/useToast';
 
 interface SessionLocation {
   city: string | null;
@@ -41,6 +42,7 @@ const error = ref<string | null>(null);
 
 const { t } = useI18n();
 const modalStore = useModalStore();
+const toast = useToast();
 
 async function fetchSessions() {
   loading.value = true;
@@ -84,7 +86,7 @@ async function revokeSession(session: ActiveSession) {
     );
   } catch (err) {
     console.error('Failed to revoke session:', err);
-    alert(t('auth.sessions.errors.delete_failed'));
+    toast.error(t('auth.sessions.errors.delete_failed'));
   } finally {
     revokingId.value = null;
   }
@@ -107,7 +109,7 @@ async function logoutAllOtherSessions() {
     sessions.value = sessions.value.filter((s) => isCurrentSession(s));
   } catch (err) {
     console.error('Failed to logout other sessions:', err);
-    alert(t('auth.sessions.errors.delete_all_failed'));
+    toast.error(t('auth.sessions.errors.delete_all_failed'));
     await fetchSessions();
   } finally {
     revokingAll.value = false;

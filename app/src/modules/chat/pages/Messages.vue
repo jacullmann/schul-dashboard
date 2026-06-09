@@ -49,7 +49,7 @@ const {
   >
     <div
       ref="messageContainer"
-      class="flex-1 overflow-y-auto py-4 custom-scrollbar scroll-smooth bg-canvas"
+      class="flex-1 overflow-y-auto overflow-x-hidden py-4 custom-scrollbar scroll-smooth bg-canvas"
       @scroll="handleScroll"
     >
       <div
@@ -242,23 +242,6 @@ const {
 .fade-leave-to {
   opacity: 0;
   transform: translateY(3px);
-}
-
-.slide-up-enter-active,
-.slide-up-leave-active {
-  transition:
-    max-height 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 0.2s ease,
-    padding 0.2s ease;
-  max-height: 52px;
-  overflow: hidden;
-}
-.slide-up-enter-from,
-.slide-up-leave-to {
-  max-height: 0;
-  opacity: 0;
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
 }
 
 .scale-fade-enter-active,

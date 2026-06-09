@@ -5,9 +5,15 @@ import { X, SendHorizontal } from '@lucide/vue';
 
 const { t } = useI18n();
 
+interface ReplyParentMessage {
+  id: string;
+  senderName: string;
+  content: string;
+}
+
 const props = defineProps<{
   modelValue: string;
-  replyParent: any | null;
+  replyParent: ReplyParentMessage | null;
   canSend: boolean;
 }>();
 
@@ -46,13 +52,13 @@ const handleInput = (e: Event) => {
         <Transition name="slide-up">
           <div
             v-if="replyParent"
-            class="flex w-full min-w-0 items-center justify-between px-3 py-2 mb-2 rounded-md bg-ghost-hover border-l-4 border-action text-xs text-on-ghost-muted"
+            class="relative overflow-hidden flex mb-2 px-3 py-2 text-sm rounded-md transition-all duration-150 cursor-pointer select-none max-w-full w-full min-w-0 bg-ghost-hover before:content-[''] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-on-ghost-muted text-on-ghost-muted"
           >
-            <div class="flex-1 min-w-0 flex flex-col justify-center">
-              <span class="text-sm font-bold select-none truncate">
+            <div class="flex-1 min-w-0 flex flex-col justify-center pl-1">
+              <span class="text-sm font-bold text-on-ghost truncate">
                 {{ replyParent.senderName }}
               </span>
-              <span class="text-sm font-normal text-on-ghost-subtle truncate">
+              <span class="text-sm font-normal text-on-ghost-muted truncate">
                 {{ replyParent.content }}
               </span>
             </div>
@@ -93,3 +99,26 @@ const handleInput = (e: Event) => {
     </form>
   </div>
 </template>
+
+<style scoped>
+.slide-up-enter-active,
+.slide-up-leave-active {
+  transition:
+    max-height 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.2s ease,
+    padding 0.2s ease,
+    margin 0.2s ease;
+  max-height: 80px;
+  overflow: hidden;
+}
+
+.slide-up-enter-from,
+.slide-up-leave-to {
+  max-height: 0;
+  opacity: 0;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+</style>

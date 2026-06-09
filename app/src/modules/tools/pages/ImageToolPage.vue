@@ -3,6 +3,7 @@ import { RotateCw, RotateCcw } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import { ref, reactive, computed, watch } from 'vue';
 import { useElementBounding, useEventListener } from '@vueuse/core';
+import { useToast } from '@/common/composables/useToast';
 
 interface CropState {
   x: number;
@@ -17,6 +18,7 @@ interface ImageMeta {
 }
 
 const { t } = useI18n();
+const toast = useToast();
 const fileInputRef = ref<HTMLInputElement | null>(null);
 const editorImageRef = ref<HTMLImageElement | null>(null);
 const workspaceRef = ref<HTMLElement | null>(null);
@@ -75,7 +77,7 @@ const handleDrop = (e: DragEvent) => {
 };
 
 const loadFile = (file: File) => {
-  if (!file.type.startsWith('image/')) return alert('Not an image');
+  if (!file.type.startsWith('image/')) return toast.error(t('tools.image.errors.not_an_image'));
 
   const reader = new FileReader();
   reader.onload = (e) => {
@@ -119,7 +121,7 @@ const convertAndDownload = () => {
       link.href = dataUrl;
       link.click();
     } catch (e) {
-      alert('Error converting file.');
+      toast.error(t('tools.image.errors.conversion_failed'));
     }
   };
   img.src = currentImageSrc.value;

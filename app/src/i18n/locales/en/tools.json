@@ -1,1 +1,22 @@
-{}
+{
+  "image": {
+    "title": "Image Tool",
+    "upload_click": "Click to upload",
+    "upload_drag": "or drag & drop",
+    "settings": {
+      "format": "Output format",
+      "quality": "Quality: {quality} %",
+      "width": "Width (px)",
+      "height": "Height (px)",
+      "size": "Size"
+    },
+    "actions": {
+      "convert": "Convert",
+      "apply": "Apply"
+    },
+    "errors": {
+      "not_an_image": "File is not an image.",
+      "conversion_failed": "Error converting file."
+    }
+  }
+}

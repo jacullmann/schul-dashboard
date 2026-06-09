@@ -228,22 +228,24 @@ const formatTime = (timestamp: string) => {
             v-if="msg.parentId && msg.parentContent"
             v-wave
             :class="[
-              'flex flex-col mb-1 px-3 py-2 border-l-4 text-sm rounded-md transition-all duration-150 cursor-pointer select-none max-w-full w-full min-w-0',
+              'relative overflow-hidden flex flex-col mb-1 px-3 py-2 text-sm rounded-md transition-all duration-150 cursor-pointer select-none max-w-full w-full min-w-0 before:content-[\'\'] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1',
               msg.userId === currentUserId
-                ? 'bg-action-hover hover:bg-on-action/20 border-on-action-muted text-on-action-muted'
-                : 'bg-ghost-hover hover:bg-on-ghost/15 border-on-ghost-muted text-on-ghost-muted mt-1',
+                ? 'bg-action-hover hover:bg-on-action/20  before:bg-on-action-muted text-on-action-muted'
+                : 'bg-ghost-hover hover:bg-on-ghost/15 before:bg-on-ghost-muted text-on-ghost-muted mt-1',
             ]"
             :title="t('chat.quote_label')"
             @click="emit('scrollToMessage', msg.parentId)"
           >
-            <span class="font-bold">
-              {{
-                msg.parentUserId === currentUserId
-                  ? t('chat.you')
-                  : msg.parentSenderName
-              }}
-            </span>
-            <span class="truncate">{{ msg.parentContent }}</span>
+            <div class="pl-1 flex flex-col">
+              <span class="font-bold">
+                {{
+                  msg.parentUserId === currentUserId
+                    ? t('chat.you')
+                    : msg.parentSenderName
+                }}
+              </span>
+              <span class="truncate">{{ msg.parentContent }}</span>
+            </div>
           </div>
 
           <div

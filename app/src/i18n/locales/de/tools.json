@@ -13,6 +13,10 @@
     "actions": {
       "convert": "Konvertieren",
       "apply": "Anwenden"
+    },
+    "errors": {
+      "not_an_image": "Datei ist kein Bild.",
+      "conversion_failed": "Fehler beim Konvertieren der Datei."
     }
   }
 }
