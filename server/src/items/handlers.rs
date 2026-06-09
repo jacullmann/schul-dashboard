@@ -1,6 +1,6 @@
 use super::{
     dto::*,
-    service::{DeleteItemParams, ItemsService},
+    service::{DeleteItemParams, GetItemsFilter, ItemsService},
 };
 use crate::{
     common::{
@@ -27,11 +27,13 @@ pub async fn get_items(
         .get_items(
             tc.tenant_id,
             tc.user.user_id,
-            q.r#type.as_deref(),
-            q.filter.as_deref(),
-            q.subject.as_deref(),
-            q.hide_checked.unwrap_or(false),
-            q.personalized.unwrap_or(false),
+            GetItemsFilter {
+                item_type: q.r#type.as_deref(),
+                filter: q.filter.as_deref(),
+                subject: q.subject.as_deref(),
+                hide_checked: q.hide_checked.unwrap_or(false),
+                personalized: q.personalized.unwrap_or(false),
+            },
         )
         .await?;
     Ok(Json(serde_json::json!(items)))

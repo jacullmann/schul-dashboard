@@ -23,6 +23,15 @@ fn time_left_color(due: &chrono::DateTime<Utc>) -> &'static str {
     }
 }
 
+#[derive(Default)]
+pub struct GetItemsFilter<'a> {
+    pub item_type: Option<&'a str>,
+    pub filter: Option<&'a str>,
+    pub subject: Option<&'a str>,
+    pub hide_checked: bool,
+    pub personalized: bool,
+}
+
 pub struct DeleteItemParams {
     pub tenant_id: Uuid,
     pub id: Uuid,
@@ -53,13 +62,9 @@ impl ItemsService {
         &self,
         tenant_id: Uuid,
         user_id: Uuid,
-        item_type: Option<&str>,
-        filter: Option<&str>,
-        subject: Option<&str>,
-        hide_checked: bool,
-        personalized: bool,
+        f: GetItemsFilter<'_>,
     ) -> AppResult<Vec<Value>> {
-        if item_type.is_none() || item_type == Some("all") {
+        if f.item_type.is_none() || f.item_type == Some("all") {
             let db2 = self.db.clone();
 
             tokio::spawn(async move {
@@ -75,8 +80,8 @@ impl ItemsService {
             });
         }
 
-        let old_filter = filter == Some("old");
-        let subject_lower = subject.map(|s| s.to_lowercase());
+        let old_filter = f.filter == Some("old");
+        let subject_lower = f.subject.map(|s| s.to_lowercase());
 
         let rows = sqlx::query!(
             r#"SELECT i.id, i.type, i.title, i.subject, i.description, i.images, i.due_date,
@@ -89,7 +94,7 @@ impl ItemsService {
                  AND ($3::text IS NULL OR $3 = 'all' OR i.type = $3)
                  AND (
                      ($4::boolean AND (i.due_date < now() OR v.status = 'archived') AND v.status IS DISTINCT FROM 'kept')
-                     OR 
+                     OR
                      (NOT $4::boolean AND (i.due_date >= now() OR v.status = 'kept') AND v.status IS DISTINCT FROM 'archived')
                  )
                  AND (
@@ -129,14 +134,14 @@ impl ItemsService {
                ORDER BY i.due_date ASC"#,
             tenant_id,
             user_id,
-            item_type,
+            f.item_type,
             old_filter,
-            hide_checked,
+            f.hide_checked,
             subject_lower,
-            personalized
+            f.personalized
         )
-        .fetch_all(&self.db)
-        .await?;
+            .fetch_all(&self.db)
+            .await?;
 
         let result: Vec<Value> = rows
             .into_iter()
