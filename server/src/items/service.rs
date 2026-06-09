@@ -55,22 +55,10 @@ impl ItemsService {
         user_id: Uuid,
         item_type: Option<&str>,
         filter: Option<&str>,
+        subject: Option<&str>,
+        hide_checked: bool,
+        personalized: bool,
     ) -> AppResult<Vec<Value>> {
-        let now = Utc::now();
-
-        let rows = sqlx::query!(
-            r#"SELECT i.id, i.type, i.title, i.subject, i.description, i.images, i.due_date,
-                      i.created_by as "created_by?: Uuid", i.editor_note, i.created_at, i.updated_at,
-                      u.email as "creator_email?: String"
-               FROM items i
-               LEFT JOIN users u ON u.id = i.created_by
-               WHERE i.tenant_id = $1
-               ORDER BY i.due_date ASC"#,
-            tenant_id
-        )
-            .fetch_all(&self.db)
-            .await?;
-
         if item_type.is_none() || item_type == Some("all") {
             let db2 = self.db.clone();
 
@@ -87,42 +75,71 @@ impl ItemsService {
             });
         }
 
-        let vis = sqlx::query!(
-            r#"SELECT item_id, status FROM user_item_visibility WHERE user_id = $1"#,
-            user_id
+        let old_filter = filter == Some("old");
+        let subject_lower = subject.map(|s| s.to_lowercase());
+
+        let rows = sqlx::query!(
+            r#"SELECT i.id, i.type, i.title, i.subject, i.description, i.images, i.due_date,
+                      i.created_by as "created_by?: Uuid", i.editor_note, i.created_at, i.updated_at,
+                      u.email as "creator_email?: String"
+               FROM items i
+               LEFT JOIN users u ON u.id = i.created_by
+               LEFT JOIN user_item_visibility v ON v.item_id = i.id AND v.user_id = $2
+               WHERE i.tenant_id = $1
+                 AND ($3::text IS NULL OR $3 = 'all' OR i.type = $3)
+                 AND (
+                     ($4::boolean AND (i.due_date < now() OR v.status = 'archived') AND v.status IS DISTINCT FROM 'kept')
+                     OR 
+                     (NOT $4::boolean AND (i.due_date >= now() OR v.status = 'kept') AND v.status IS DISTINCT FROM 'archived')
+                 )
+                 AND (
+                     $5::boolean IS FALSE
+                     OR i.id NOT IN (SELECT item_id FROM keep_checked WHERE user_id = $2)
+                 )
+                 AND (
+                     $6::text IS NULL
+                     OR i.id IN (SELECT item_id FROM pinned_items WHERE user_id = $2)
+                     OR ($6 = 'enrichment' AND LOWER(i.subject) LIKE 'enrichment%')
+                     OR ($6 = 'wpu1' AND LOWER(i.subject) LIKE 'wpu (di)%')
+                     OR ($6 = 'wpu2' AND LOWER(i.subject) LIKE 'wpu (do)%')
+                     OR LOWER(SPLIT_PART(i.subject, ' -', 1)) = LOWER($6)
+                     OR LOWER(i.subject) = LOWER($6)
+                 )
+                 AND (
+                     $7::boolean IS FALSE
+                     OR i.id IN (SELECT item_id FROM pinned_items WHERE user_id = $2)
+                     OR NOT EXISTS (
+                         SELECT 1 FROM subjects s
+                         WHERE LOWER(s.name) = LOWER(SPLIT_PART(i.subject, ' -', 1))
+                           AND s.tenant_id = $1
+                           AND s.category != 'core'
+                           AND (SELECT COUNT(*) FROM courses c2 WHERE c2.subject_id = s.id) > 0
+                           AND NOT EXISTS (
+                               SELECT 1 FROM courses c
+                               JOIN user_courses uc ON uc.course_id = c.id
+                               WHERE c.subject_id = s.id
+                                 AND uc.user_id = $2
+                                 AND (
+                                     i.subject = s.name || ' - ' || c.name
+                                     OR (s.category = 'extra' AND i.subject = s.name AND (SELECT COUNT(*) FROM courses c3 WHERE c3.subject_id = s.id) = 1)
+                                 )
+                           )
+                     )
+                 )
+               ORDER BY i.due_date ASC"#,
+            tenant_id,
+            user_id,
+            item_type,
+            old_filter,
+            hide_checked,
+            subject_lower,
+            personalized
         )
         .fetch_all(&self.db)
         .await?;
 
-        let archived: std::collections::HashSet<Uuid> = vis
-            .iter()
-            .filter(|r| r.status.as_deref() == Some("archived"))
-            .map(|r| r.item_id)
-            .collect();
-
-        let kept: std::collections::HashSet<Uuid> = vis
-            .iter()
-            .filter(|r| r.status.as_deref() == Some("kept"))
-            .map(|r| r.item_id)
-            .collect();
-
-        let result = rows
+        let result: Vec<Value> = rows
             .into_iter()
-            .filter(|r| {
-                if let Some(t) = item_type
-                    && t != "all" && r.r#type != t
-                {
-                    return false;
-                }
-                let is_kept = kept.contains(&r.id);
-
-                let is_archived = archived.contains(&r.id);
-
-                match filter {
-                    Some("old") => (r.due_date < now || is_archived) && !is_kept,
-                    _ => (r.due_date >= now || is_kept) && !is_archived,
-                }
-            })
             .map(|r| {
                 let creator_deleted = r.created_by.is_none();
                 let created_by_name = r.created_by.map(|uid| {

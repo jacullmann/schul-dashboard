@@ -29,6 +29,9 @@ pub async fn get_items(
             tc.user.user_id,
             q.r#type.as_deref(),
             q.filter.as_deref(),
+            q.subject.as_deref(),
+            q.hide_checked.unwrap_or(false),
+            q.personalized.unwrap_or(false),
         )
         .await?;
     Ok(Json(serde_json::json!(items)))

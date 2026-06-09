@@ -225,7 +225,13 @@ export function useTasks() {
   );
 
   watch(
-    () => route.query.type,
+    () => [
+      route.query.type,
+      route.query.archived,
+      route.query.subject,
+      route.query.hideChecked,
+      showPersonalized.value
+    ],
     () => {
       reload();
     },

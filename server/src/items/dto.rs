@@ -60,4 +60,7 @@ pub struct ReportItemDto {
 pub struct ItemsQuery {
     pub r#type: Option<String>,
     pub filter: Option<String>,
+    pub subject: Option<String>,
+    pub hide_checked: Option<bool>,
+    pub personalized: Option<bool>,
 }

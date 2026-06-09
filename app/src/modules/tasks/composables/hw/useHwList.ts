@@ -8,26 +8,7 @@ export function useHwList(ctx: HwContext) {
   const subjectStore = useSubjectStore();
 
   const userSubjects = computed(() => {
-    const subjects = new Set<string>();
-    if (
-      !ctx.showPersonalized.value ||
-      !ctx.user.value?.doneSetup ||
-      !Array.isArray(ctx.user.value.courses)
-    )
-      return subjects;
-
-    ctx.user.value.courses.forEach((c: any) => {
-      const subject = subjectStore.subjects.find((s) => s.id === c.subjectId);
-      if (!subject) return;
-      const course = subject.courses?.find((csc) => csc.id === c.courseId);
-      if (course) {
-        subjects.add(`${subject.name} - ${course.name}`);
-        if (subject.category === 'extra' && subject.courses?.length === 1) {
-          subjects.add(subject.name);
-        }
-      }
-    });
-    return subjects;
+    return new Set<string>();
   });
 
   const filteredItems = computed(() => {
@@ -39,60 +20,7 @@ export function useHwList(ctx: HwContext) {
       (pins.has(item.id) ? pinnedList : unpinnedList).push(item);
     }
 
-    let list = unpinnedList;
-    const filter = ctx.subjectFilter.value;
-
-    if (filter) {
-      const parentCategories = ['enrichment', 'wpu1', 'wpu2'];
-      const filterLower = filter.toLowerCase();
-
-      list = parentCategories.includes(filterLower)
-        ? list.filter((i) => {
-            const subjLower = i.subject.toLowerCase();
-            return (
-              subjLower.startsWith(filterLower) ||
-              (filterLower === 'enrichment' &&
-                subjLower.startsWith('enrichment')) ||
-              (filterLower === 'wpu1' && subjLower.startsWith('wpu (di)')) ||
-              (filterLower === 'wpu2' && subjLower.startsWith('wpu (do)'))
-            );
-          })
-        : list.filter(
-            (i) =>
-              i.subject.toLowerCase() === filterLower ||
-              getSubjectKey(i.subject) === filterLower ||
-              getSubjectKey(i.subject).toLowerCase() === filterLower,
-          );
-    }
-
-    if (ctx.showPersonalized.value && userSubjects.value.size > 0) {
-      list = list.filter((item) => {
-        const subjectLower = item.subject.toLowerCase();
-        const subjectName = subjectLower.split(' - ')[0]?.trim();
-        const categoryMatch = subjectStore.subjects.find(
-          (s) => s.name.toLowerCase() === subjectName,
-        );
-
-        if (
-          categoryMatch &&
-          categoryMatch.category !== 'core' &&
-          categoryMatch.courses &&
-          categoryMatch.courses.length > 0
-        ) {
-          return userSubjects.value.has(item.subject);
-        }
-        return true;
-      });
-    }
-
-    if (ctx.hideChecked.value) {
-      list = list.filter((item) => !ctx.checkedItems.value.has(item.id));
-      pinnedList = pinnedList.filter(
-        (item) => !ctx.checkedItems.value.has(item.id),
-      );
-    }
-
-    return [...pinnedList, ...list];
+    return [...pinnedList, ...unpinnedList];
   });
 
   const limitedItems = computed(() =>
@@ -201,8 +129,11 @@ export function useHwList(ctx: HwContext) {
     }
 
     ctx.loading.value = true;
-    const params: Record<string, string> = { type: ctx.tab.value };
+    const params: Record<string, string | boolean> = { type: ctx.tab.value };
     if (ctx.showOldEntries.value) params.filter = 'old';
+    if (ctx.subjectFilter.value) params.subject = ctx.subjectFilter.value;
+    if (ctx.hideChecked.value) params.hide_checked = true;
+    if (ctx.showPersonalized.value) params.personalized = true;
 
     try {
       const { data } = await hw.get('/items', { params });
