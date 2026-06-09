@@ -397,8 +397,8 @@ export function useTaskItemForm(
     emit('cancel');
     void router.push({
       name: 'group-tasks',
-      params: {
-        groupId: route.params.groupId as string,
+      params: { groupId: route.params.groupId as string },
+      query: {
         type: doubleTaskOriginalItem.value.type,
         itemId: doubleTaskOriginalItem.value.id,
       },

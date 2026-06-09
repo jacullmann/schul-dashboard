@@ -44,8 +44,8 @@ onMounted(loadReports);
                 v-slot="{ navigate, href }"
                 :to="{
                   name: 'group-tasks',
-                  params: {
-                    groupId: r.itemTenantId,
+                  params: { groupId: r.itemTenantId },
+                  query: {
                     type: r.itemType,
                     itemId: r.itemId,
                   },
@@ -230,8 +230,8 @@ onMounted(loadReports);
                 v-slot="{ navigate, href }"
                 :to="{
                   name: 'group-tasks',
-                  params: {
-                    groupId: r.itemTenantId,
+                  params: { groupId: r.itemTenantId },
+                  query: {
                     type: r.itemType,
                     itemId: r.itemId,
                   },

@@ -31,11 +31,11 @@ export function useTasks() {
   const { t, te } = useI18n();
 
   const tab = ref<ItemType>(
-    isValidType(route.params.type) ? route.params.type : 'all',
+    isValidType(route.query.type as string) ? (route.query.type as ItemType) : 'all',
   );
-  const showOldEntries = ref(false);
-  const subjectFilter = ref('');
-  const hideChecked = ref(false);
+  const showOldEntries = ref(route.query.archived === 'true');
+  const subjectFilter = ref((route.query.subject as string) || '');
+  const hideChecked = ref(route.query.hideChecked === 'true');
   const showPersonalized = computed(() => user.value?.personalized ?? false);
   const activeGroupId = computed(
     () => (route.params.groupId as string) || null,
@@ -148,10 +148,7 @@ export function useTasks() {
   ]);
 
   function goTab(t_type: ItemType) {
-    router.push({
-      name: 'group-tasks',
-      params: { ...route.params, type: t_type },
-    });
+    tab.value = t_type;
   }
 
   async function onMenuAction(action: string, item: HwItem) {
@@ -170,7 +167,7 @@ export function useTasks() {
   }
 
   function reload() {
-    return list.reloadList(route.params.itemId as string, () => {
+    return list.reloadList(route.query.itemId as string, () => {
       showOldEntries.value = true;
     });
   }
@@ -186,16 +183,56 @@ export function useTasks() {
     dismissedItems.value.clear();
   });
 
+  // Sync route query -> local state
   watch(
-    () => route.params.type,
-    (v) => {
-      tab.value = isValidType(v) ? v : 'all';
+    () => route.query,
+    (q) => {
+      const newTab = isValidType(q.type as string) ? (q.type as ItemType) : 'all';
+      if (tab.value !== newTab) tab.value = newTab;
+
+      const newArchived = q.archived === 'true';
+      if (showOldEntries.value !== newArchived) showOldEntries.value = newArchived;
+
+      const newSubject = (q.subject as string) || '';
+      if (subjectFilter.value !== newSubject) subjectFilter.value = newSubject;
+
+      const newHideChecked = q.hideChecked === 'true';
+      if (hideChecked.value !== newHideChecked) hideChecked.value = newHideChecked;
+    },
+    { immediate: true }
+  );
+
+  // Sync local state -> route query
+  watch(
+    [tab, showOldEntries, subjectFilter, hideChecked],
+    ([newTab, newArchived, newSubject, newHideChecked]) => {
+      const query = { ...route.query };
+
+      if (newTab === 'all') delete query.type;
+      else query.type = newTab;
+
+      if (!newArchived) delete query.archived;
+      else query.archived = 'true';
+
+      if (!newSubject) delete query.subject;
+      else query.subject = newSubject;
+
+      if (!newHideChecked) delete query.hideChecked;
+      else query.hideChecked = 'true';
+
+      router.replace({ query }).catch(() => {});
+    }
+  );
+
+  watch(
+    () => route.query.type,
+    () => {
       reload();
     },
   );
 
   watch(
-    () => route.params.itemId,
+    () => route.query.itemId,
     async (newId) => {
       if (newId)
         await list.checkAndScrollToItem(newId as string, () => {
@@ -205,31 +242,29 @@ export function useTasks() {
   );
 
   watch(showOldEntries, () => {
-    const targetId = route.params.itemId as string;
+    const targetId = route.query.itemId as string;
     const exists = items.value.some((i) => i.id === targetId);
 
     if (targetId && !exists && showOldEntries.value) return;
 
-    if (highlightedItemId.value && route.params.itemId) {
-      router.replace({
-        name: 'group-tasks',
-        params: { ...route.params, itemId: '' },
-      });
+    if (highlightedItemId.value && route.query.itemId) {
+      const query = { ...route.query };
+      delete query.itemId;
+      router.replace({ query }).catch(() => {});
     }
     reload();
   });
 
   watch(subjectFilter, () => {
-    if (highlightedItemId.value && route.params.itemId) {
-      router.replace({
-        name: 'group-tasks',
-        params: { ...route.params, itemId: '' },
-      });
+    if (highlightedItemId.value && route.query.itemId) {
+      const query = { ...route.query };
+      delete query.itemId;
+      router.replace({ query }).catch(() => {});
     }
   });
 
   watch([subjectFilter, tab, items, hideChecked], () => {
-    if (!route.params.itemId) {
+    if (!route.query.itemId) {
       list.setVisibleCount(Math.min(5, list.filteredItems.value.length || 5));
     }
   });

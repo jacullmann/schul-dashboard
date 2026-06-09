@@ -401,7 +401,8 @@ const isScheduleVisible = computed(() => {
                 @click="
                   $router.push({
                     name: 'group-tasks',
-                    params: { groupId: activeGroupId, type: 'all' },
+                    params: { groupId: activeGroupId },
+                    query: { type: 'all' },
                   })
                 "
               />
@@ -452,8 +453,8 @@ const isScheduleVisible = computed(() => {
                       @click.stop="
                         $router.push({
                           name: 'group-tasks',
-                          params: {
-                            groupId: activeGroupId,
+                          params: { groupId: activeGroupId },
+                          query: {
                             type: 'all',
                             itemId: task.id,
                           },
