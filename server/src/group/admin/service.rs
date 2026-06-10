@@ -326,18 +326,6 @@ impl GroupAdminService {
         avatar_url: Option<&str>,
     ) -> AppResult<Value> {
         if let Some(n) = name {
-            let exists = sqlx::query!(
-                r#"SELECT id FROM groups WHERE name = $1 AND id != $2"#,
-                n,
-                tenant_id
-            )
-            .fetch_optional(&self.db)
-            .await?;
-
-            if exists.is_some() {
-                return Err(AppError::bad_request("This group name is already taken."));
-            }
-
             sqlx::query!(r#"UPDATE groups SET name = $1 WHERE id = $2"#, n, tenant_id)
                 .execute(&self.db)
                 .await?;

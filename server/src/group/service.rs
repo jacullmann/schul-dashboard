@@ -122,21 +122,7 @@ impl GroupService {
         let avatar_url = params.avatar_url;
         let ip = params.ip;
         let ua = params.ua;
-        let exists = sqlx::query!(r#"SELECT id FROM groups WHERE name = $1"#, group_name)
-            .fetch_optional(&self.db)
-            .await?;
-
         let ip_parsed: Option<ipnetwork::IpNetwork> = ip.and_then(|s| s.parse().ok());
-
-        if exists.is_some() {
-            sqlx::query!(
-                r#"INSERT INTO security_events (event_type, event_status, ip_address, user_agent, metadata)
-                 VALUES ('group_create', 'failure', $1::inet, $2, $3)"#,
-                ip_parsed, ua, json!({ "groupName": group_name })
-            ).execute(&self.db).await?;
-
-            return Err(AppError::bad_request("This group name is already taken."));
-        }
 
         let group = sqlx::query!(
             r#"INSERT INTO groups (name, avatar_url, owner_id) VALUES ($1, $2, $3) RETURNING id, name"#,
