@@ -4,9 +4,8 @@ import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useUserStore } from '@/stores/userStore';
-import { Pencil, Camera, Trash2, Upload } from '@lucide/vue';
+import { Pencil, Camera, Trash2, Upload, ImagePlus } from '@lucide/vue';
 import GroupAvatarCropper from '@/modules/groups/components/GroupAvatarCropper.vue';
-import Avatar from '@/modules/auth/components/Avatar.vue';
 import hw from '@/api/api.ts';
 
 const { t } = useI18n();
@@ -190,35 +189,34 @@ async function submit() {
     <template #title>{{ t('groups.list.create_group') }}</template>
 
     <template #content>
-      <div class="flex flex-col items-center gap-4 mb-6">
+      <div class="flex flex-col items-center gap-4">
         <!-- Avatar Preview Circle -->
-        <div class="relative flex-shrink-0 cursor-pointer" @click="toggleMenu">
-          <Avatar
-            :name="groupName || 'Group'"
-            :picture="avatarUrl"
-            :size="24"
-          />
-
-          <BaseButton
-            type="button"
-            variant="action"
-            :icon="Pencil"
-            size="sm"
-            class="absolute! bottom-0 right-0"
-            :disabled="savingAvatar"
-            @click.stop="toggleMenu"
-          />
-
-          <div
-            v-if="savingAvatar"
-            class="absolute inset-0 bg-zinc-950/70 rounded-full flex items-center justify-center z-20"
+        <div class="relative flex-shrink-0">
+          <div 
+            class="w-24 h-24 relative rounded-full flex items-center justify-center cursor-pointer group bg-ghost hover:bg-ghost-hover transition-colors overflow-hidden"
+            @click="toggleMenu"
           >
-            <BaseSpinner />
+            <template v-if="avatarUrl">
+              <img :src="avatarUrl" class="w-full h-full object-cover" alt="Group avatar" />
+              <div class="absolute inset-0 bg-zinc-950/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <Pencil class="w-6 h-6 text-white" />
+              </div>
+            </template>
+            <template v-else>
+              <ImagePlus class="w-8 h-8 text-on-ghost-muted group-hover:text-on-ghost transition-colors" />
+            </template>
+
+            <div
+              v-if="savingAvatar"
+              class="absolute inset-0 bg-zinc-950/70 flex items-center justify-center z-20"
+            >
+              <BaseSpinner />
+            </div>
           </div>
 
           <BaseMenu
             :open="isMenuOpen"
-            class="left-0 mt-2 z-30 min-w-[180px]"
+            class="left-1/2 -translate-x-1/2 mt-2 z-30 min-w-[180px]"
             @close="isMenuOpen = false"
             @click.stop
           >
