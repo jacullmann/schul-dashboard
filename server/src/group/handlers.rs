@@ -174,6 +174,8 @@ pub async fn logout(
 }
 
 pub async fn get_stats(State(s): State<AppState>, tc: TenantContext) -> AppResult<Json<Value>> {
+    crate::require_permission!(tc, crate::common::permission::Permission::EditGroupGeneral);
+
     Ok(Json(
         GroupAdminService::from_state(&s)
             .get_stats(tc.tenant_id)
@@ -182,6 +184,8 @@ pub async fn get_stats(State(s): State<AppState>, tc: TenantContext) -> AppResul
 }
 
 pub async fn get_members(State(s): State<AppState>, tc: TenantContext) -> AppResult<Json<Value>> {
+    crate::require_permission!(tc, crate::common::permission::Permission::ModerateMembers);
+
     Ok(Json(
         GroupAdminService::from_state(&s)
             .get_members(tc.tenant_id)
@@ -193,6 +197,8 @@ pub async fn get_banned_users(
     State(s): State<AppState>,
     tc: TenantContext,
 ) -> AppResult<Json<Value>> {
+    crate::require_permission!(tc, crate::common::permission::Permission::ModerateMembers);
+
     Ok(Json(
         GroupAdminService::from_state(&s)
             .get_banned_users(tc.tenant_id)
@@ -205,6 +211,8 @@ pub async fn revert_ban(
     tc: TenantContext,
     Path(target): Path<Uuid>,
 ) -> AppResult<Json<Value>> {
+    crate::require_permission!(tc, crate::common::permission::Permission::ModerateMembers);
+
     Ok(Json(
         GroupAdminService::from_state(&s)
             .revert_ban(tc.tenant_id, tc.user.user_id, target)
@@ -218,9 +226,17 @@ pub async fn change_member_role(
     Path(target): Path<Uuid>,
     Json(dto): Json<ChangeMemberRoleDto>,
 ) -> AppResult<Json<Value>> {
+    crate::require_permission!(tc, crate::common::permission::Permission::ModerateMembers);
+
     Ok(Json(
         GroupAdminService::from_state(&s)
-            .change_member_role(tc.tenant_id, tc.user.user_id, target, &dto.role)
+            .change_member_role(
+                tc.tenant_id,
+                tc.user.user_id,
+                target,
+                &dto.role,
+                tc.is_owner(),
+            )
             .await?,
     ))
 }
@@ -257,6 +273,8 @@ pub async fn remove_member(
     Path(target): Path<Uuid>,
     Query(q): Query<BanQuery>,
 ) -> AppResult<Json<Value>> {
+    crate::require_permission!(tc, crate::common::permission::Permission::ModerateMembers);
+
     Ok(Json(
         GroupAdminService::from_state(&s)
             .remove_member(
@@ -274,6 +292,8 @@ pub async fn rename_group(
     tc: TenantContext,
     Json(dto): Json<RenameGroupDto>,
 ) -> AppResult<Json<Value>> {
+    crate::require_permission!(tc, crate::common::permission::Permission::EditGroupGeneral);
+
     Ok(Json(
         GroupAdminService::from_state(&s)
             .rename_group(
@@ -290,6 +310,11 @@ pub async fn get_permissions(
     State(s): State<AppState>,
     tc: TenantContext,
 ) -> AppResult<Json<Value>> {
+    if !tc.can_bypass_tenant_checks() {
+        return Err(AppError::forbidden(
+            "Only the group owner or superadmin can view permissions.",
+        ));
+    }
     Ok(Json(
         GroupAdminService::from_state(&s)
             .get_permissions(tc.tenant_id)
@@ -319,6 +344,8 @@ pub async fn update_schedule_config(
     tc: TenantContext,
     Json(dto): Json<UpdateScheduleConfigDto>,
 ) -> AppResult<Json<Value>> {
+    crate::require_permission!(tc, crate::common::permission::Permission::EditSchedule);
+
     Ok(Json(
         GroupAdminService::from_state(&s)
             .update_schedule_config(tc.tenant_id, tc.user.user_id, dto.schedule_config)
@@ -361,6 +388,11 @@ pub async fn get_subjects_admin(
     State(s): State<AppState>,
     tc: TenantContext,
 ) -> AppResult<Json<Value>> {
+    crate::require_permission!(
+        tc,
+        crate::common::permission::Permission::EditSubjectsCourses
+    );
+
     Ok(Json(
         GroupAdminService::from_state(&s)
             .get_subjects(tc.tenant_id)
@@ -482,6 +514,8 @@ pub async fn get_schedule_admin(
     State(s): State<AppState>,
     tc: TenantContext,
 ) -> AppResult<Json<Value>> {
+    crate::require_permission!(tc, crate::common::permission::Permission::EditSchedule);
+
     Ok(Json(
         GroupAdminService::from_state(&s)
             .get_schedule(tc.tenant_id)
@@ -493,6 +527,11 @@ pub async fn get_schedule_subs_admin(
     State(s): State<AppState>,
     tc: TenantContext,
 ) -> AppResult<Json<Value>> {
+    crate::require_permission!(
+        tc,
+        crate::common::permission::Permission::ManageScheduleChanges
+    );
+
     Ok(Json(
         GroupAdminService::from_state(&s)
             .get_schedule_subs(tc.tenant_id)
@@ -505,6 +544,11 @@ pub async fn create_schedule_sub(
     tc: TenantContext,
     Json(dto): Json<CreateScheduleSubDto>,
 ) -> AppResult<Json<Value>> {
+    crate::require_permission!(
+        tc,
+        crate::common::permission::Permission::ManageScheduleChanges
+    );
+
     Ok(Json(
         GroupAdminService::from_state(&s)
             .create_schedule_sub(tc.tenant_id, tc.user.user_id, dto)
@@ -517,6 +561,11 @@ pub async fn delete_schedule_sub(
     tc: TenantContext,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<Value>> {
+    crate::require_permission!(
+        tc,
+        crate::common::permission::Permission::ManageScheduleChanges
+    );
+
     Ok(Json(
         GroupAdminService::from_state(&s)
             .delete_schedule_sub(tc.tenant_id, id)
@@ -529,6 +578,11 @@ pub async fn create_announcement(
     tc: TenantContext,
     Json(dto): Json<CreateAnnouncementDto>,
 ) -> AppResult<Json<Value>> {
+    crate::require_permission!(
+        tc,
+        crate::common::permission::Permission::ManageAnnouncements
+    );
+
     Ok(Json(
         GroupAdminService::from_state(&s)
             .create_announcement(
@@ -546,6 +600,11 @@ pub async fn delete_announcement(
     tc: TenantContext,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<Value>> {
+    crate::require_permission!(
+        tc,
+        crate::common::permission::Permission::ManageAnnouncements
+    );
+
     Ok(Json(
         GroupAdminService::from_state(&s)
             .delete_announcement(tc.tenant_id, id)

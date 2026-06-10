@@ -40,7 +40,7 @@ pub async fn update_preferences(
 
 pub async fn update_setup(
     State(s): State<AppState>,
-    user: AuthUser,
+    tc: TenantContext,
     Json(dto): Json<UpdateSetupDto>,
 ) -> AppResult<Json<Value>> {
     let courses = dto
@@ -51,7 +51,7 @@ pub async fn update_setup(
 
     Ok(Json(
         UserService::from_state(&s)
-            .update_setup(user.user_id, &user.global_role, courses)
+            .update_setup(tc.user.user_id, tc.tenant_id, courses)
             .await?,
     ))
 }

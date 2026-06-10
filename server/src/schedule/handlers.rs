@@ -62,7 +62,7 @@ pub async fn mark_announcement_read(
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<Value>> {
     ScheduleService::from_state(&s)
-        .mark_announcement_read(tc.user.user_id, id)
+        .mark_announcement_read(tc.user.user_id, tc.tenant_id, id)
         .await?;
 
     Ok(Json(json!({ "ok": true })))

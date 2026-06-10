@@ -170,8 +170,21 @@ WHERE s.tenant_id = $1"#,
     pub async fn mark_announcement_read(
         &self,
         user_id: Uuid,
+        tenant_id: Uuid,
         announcement_id: Uuid,
     ) -> AppResult<()> {
+        let announcement = sqlx::query!(
+            r#"SELECT id FROM announcements WHERE id = $1 AND tenant_id = $2"#,
+            announcement_id,
+            tenant_id
+        )
+        .fetch_optional(&self.db)
+        .await?;
+
+        if announcement.is_none() {
+            return Err(crate::error::AppError::not_found("Announcement not found."));
+        }
+
         let exists = sqlx::query!(
             r#"SELECT id FROM user_announcement_read_status WHERE user_id = $1 AND announcement_id = $2"#,
             user_id, announcement_id

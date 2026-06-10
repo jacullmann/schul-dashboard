@@ -1,0 +1,25 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT COUNT(*)\n                   FROM unnest($1::uuid[], $2::uuid[]) AS t(subject_id, course_id)\n                   JOIN courses c ON c.id = t.course_id AND c.subject_id = t.subject_id\n                   JOIN subjects s ON s.id = t.subject_id\n                   WHERE s.tenant_id = $3",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "count",
+        "type_info": "Int8",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "UuidArray",
+        "UuidArray",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "b3f45aed5ee087e104b040efe8ab08f5527318a9fd74d8f0700a78473ed84824"
+}

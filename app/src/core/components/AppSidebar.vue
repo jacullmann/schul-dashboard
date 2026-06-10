@@ -320,8 +320,10 @@ onUnmounted(() => {
           :icon="ListTodo"
           :page="true"
           @click="
-            withGroup(() => handleNavigation(`/groups/${activeGroupId}/tasks`))
-          "
+          withGroup(() =>
+          handleNavigation(`/groups/${activeGroupId}/tasks`),
+          )
+         "
         />
 
         <SidebarButton

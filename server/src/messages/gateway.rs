@@ -1,17 +1,18 @@
 use crate::{common::name_generator::generate_user_name, config::ACCESS_COOKIE, state::AppState};
 use axum::extract::ws::{Message, WebSocket, WebSocketUpgrade};
-use axum::{extract::State, response::Response};
+use axum::{
+    extract::State,
+    response::{IntoResponse, Response},
+};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::{collections::HashMap, sync::Arc};
 use tokio::sync::broadcast;
 use uuid::Uuid;
-
 #[derive(Clone, Default)]
 pub struct MessageBus {
     inner: Arc<tokio::sync::Mutex<HashMap<Uuid, broadcast::Sender<BusEvent>>>>,
 }
-
 #[derive(Clone, Debug, Serialize)]
 #[serde(tag = "type", rename_all = "camelCase")]
 pub enum BusEvent {
@@ -29,7 +30,6 @@ pub enum BusEvent {
         is_typing: bool,
     },
 }
-
 impl MessageBus {
     pub async fn sender_for(&self, tenant_id: Uuid) -> broadcast::Sender<BusEvent> {
         let mut map = self.inner.lock().await;
@@ -37,13 +37,11 @@ impl MessageBus {
             .or_insert_with(|| broadcast::channel(128).0)
             .clone()
     }
-
     pub async fn broadcast(&self, tenant_id: Uuid, event: BusEvent) {
         let tx = self.sender_for(tenant_id).await;
         let _ = tx.send(event);
     }
 }
-
 #[derive(Deserialize)]
 #[serde(tag = "type")]
 enum ClientEvent {
@@ -63,27 +61,35 @@ enum ClientEvent {
         group_id: Uuid,
     },
 }
-
 pub async fn ws_handler(
     ws: WebSocketUpgrade,
     State(state): State<AppState>,
     headers: axum::http::HeaderMap,
 ) -> Response {
+    // Cross-site WebSocket hijacking guard: browsers always send Origin on the
+    // upgrade handshake. The SameSite=Lax access cookie already blocks the
+    // cross-site case, but rejecting a mismatched Origin closes the gap for
+    // browsers that relax SameSite. A missing Origin (non-browser client) falls
+    // through to the cookie/JWT check below.
+    if let Some(origin) = headers
+        .get(axum::http::header::ORIGIN)
+        .and_then(|v| v.to_str().ok())
+        && origin != state.config.cors_origin
+    {
+        return axum::http::StatusCode::FORBIDDEN.into_response();
+    }
     let token = headers
         .get("cookie")
         .and_then(|v| v.to_str().ok())
         .and_then(|cookies| {
             cookies.split(';').find_map(|c| {
                 let c = c.trim();
-
                 c.strip_prefix(&format!("{}=", ACCESS_COOKIE))
                     .map(|v| v.to_string())
             })
         });
-
     ws.on_upgrade(move |socket| handle_socket(socket, state, token))
 }
-
 async fn handle_socket(mut socket: WebSocket, state: AppState, token: Option<String>) {
     let claims = match token
         .as_deref()
@@ -95,18 +101,13 @@ async fn handle_socket(mut socket: WebSocket, state: AppState, token: Option<Str
             return;
         }
     };
-
     let user_id: Uuid = match claims.sub.parse() {
         Ok(id) => id,
         Err(_) => return,
     };
-
     let mut rx: Option<broadcast::Receiver<BusEvent>> = None;
-
     let mut joined_group: Option<Uuid> = None;
-
     let mut sender_name: Option<String> = None;
-
     loop {
         tokio::select! {
             msg = socket.recv() => {
@@ -125,12 +126,10 @@ async fn handle_socket(mut socket: WebSocket, state: AppState, token: Option<Str
                                         .fetch_optional(&state.db)
                                         .await
                                         .unwrap_or(None);
-
                                         if is_member.is_some() {
                                             has_access = true;
                                         }
                                     }
-
                                     if has_access {
                                         let tx = state.message_bus.sender_for(group_id).await;
                                         rx = Some(tx.subscribe());

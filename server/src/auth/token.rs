@@ -110,9 +110,17 @@ impl TokenService {
 
         let expires_at = Utc::now() + Duration::from_std(REFRESH_TOKEN_TTL).unwrap();
 
-        let ua = p
-            .user_agent
-            .map(|s| if s.len() > 512 { &s[..512] } else { s });
+        let ua: Option<String> = p.user_agent.map(|s| {
+            if s.len() > 512 {
+                let mut end = 512;
+                while !s.is_char_boundary(end) {
+                    end -= 1;
+                }
+                s[..end].to_string()
+            } else {
+                s.to_string()
+            }
+        });
         let ip_parsed: Option<ipnetwork::IpNetwork> = p.ip_address.and_then(|s| s.parse().ok());
 
         sqlx::query!(

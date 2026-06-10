@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, user_id, content, tenant_id\n                   FROM group_messages WHERE id = ANY($1)",
+  "query": "SELECT id, user_id, content, tenant_id\n                   FROM group_messages WHERE id = ANY($1) AND tenant_id = $2",
   "describe": {
     "columns": [
       {
@@ -50,7 +50,8 @@
     ],
     "parameters": {
       "Left": [
-        "UuidArray"
+        "UuidArray",
+        "Uuid"
       ]
     },
     "nullable": [
@@ -60,5 +61,5 @@
       false
     ]
   },
-  "hash": "d040788edb022259ab0552b66c8d2bdca5d130e567f181e7da6d86fcdb0aaf38"
+  "hash": "8e11ef4eb3f88b6bdc8d2202ce1c3ef6a6ee5a0de4c292ce6c4f07ea974dfda6"
 }

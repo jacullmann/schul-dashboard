@@ -46,6 +46,7 @@ pub struct ItemsService {
     cloudinary_cloud_name: String,
     cloudinary_api_key: String,
     cloudinary_api_secret: String,
+    cloudinary_folder: String,
 }
 
 impl ItemsService {
@@ -55,6 +56,7 @@ impl ItemsService {
             cloudinary_cloud_name: s.config.cloudinary_cloud_name.clone(),
             cloudinary_api_key: s.config.cloudinary_api_key.clone(),
             cloudinary_api_secret: s.config.cloudinary_api_secret.clone(),
+            cloudinary_folder: s.config.cloudinary_folder.clone(),
         }
     }
 
@@ -63,6 +65,7 @@ impl ItemsService {
         tenant_id: Uuid,
         user_id: Uuid,
         f: GetItemsFilter<'_>,
+        include_creator_email: bool,
     ) -> AppResult<Vec<Value>> {
         if f.item_type.is_none() || f.item_type == Some("all") {
             let db2 = self.db.clone();
@@ -150,13 +153,18 @@ impl ItemsService {
                 let created_by_name = r.created_by.map(|uid| {
                     crate::common::name_generator::generate_user_name(&uid.to_string())
                 });
+                let created_by_email = if include_creator_email {
+                    r.creator_email.unwrap_or_else(|| "Gelöschter Nutzer".into())
+                } else {
+                    String::new()
+                };
                 json!({
                     "id": r.id, "type": r.r#type, "title": r.title,
                     "subject": r.subject, "description": r.description,
                     "images": r.images, "dueDate": r.due_date,
                     "createdBy": r.created_by,
                     "createdByName": created_by_name,
-                    "createdByEmail": r.creator_email.unwrap_or_else(|| "Gelöschter Nutzer".into()),
+                    "createdByEmail": created_by_email,
                     "creatorDeleted": creator_deleted,
                     "timeColor": time_left_color(&r.due_date),
                     "editorNote": r.editor_note, "createdAt": r.created_at, "updatedAt": r.updated_at,
@@ -167,7 +175,12 @@ impl ItemsService {
         Ok(result)
     }
 
-    pub async fn get_item_by_id(&self, tenant_id: Uuid, id: Uuid) -> AppResult<Value> {
+    pub async fn get_item_by_id(
+        &self,
+        tenant_id: Uuid,
+        id: Uuid,
+        include_creator_email: bool,
+    ) -> AppResult<Value> {
         let row = sqlx::query!(
             r#"SELECT i.id, i.type, i.title, i.subject, i.description, i.images, i.due_date as "due_date!",
                       i.created_by as "created_by?: Uuid", i.editor_note, i.created_at, i.updated_at,
@@ -186,13 +199,19 @@ impl ItemsService {
         let created_by_name = row
             .created_by
             .map(|uid| crate::common::name_generator::generate_user_name(&uid.to_string()));
+        let created_by_email = if include_creator_email {
+            row.creator_email
+                .unwrap_or_else(|| "Gelöschter Nutzer".into())
+        } else {
+            String::new()
+        };
         Ok(json!({
             "id": row.id, "type": row.r#type, "title": row.title,
             "subject": row.subject, "description": row.description,
             "images": row.images, "dueDate": row.due_date,
             "createdBy": row.created_by,
             "createdByName": created_by_name,
-            "createdByEmail": row.creator_email.unwrap_or_else(|| "Gelöschter Nutzer".into()),
+            "createdByEmail": created_by_email,
             "creatorDeleted": creator_deleted,
             "timeColor": time_left_color(&row.due_date),
             "editorNote": row.editor_note, "createdAt": row.created_at, "updatedAt": row.updated_at,
@@ -213,10 +232,8 @@ impl ItemsService {
         if !dto.confirm_double_task.unwrap_or(false) {
             let duplicate = sqlx::query!(
                 r#"SELECT i.id, i.type, i.title, i.subject, i.description, i.images, i.due_date,
-                          i.created_by, i.editor_note, i.created_at, i.updated_at,
-                          u.email as "creator_email?: String"
+                          i.created_by, i.editor_note, i.created_at, i.updated_at
                    FROM items i
-                   LEFT JOIN users u ON u.id = i.created_by
                    WHERE i.tenant_id = $1
                      AND i.type = $2
                      AND LOWER(TRIM(i.subject)) = LOWER(TRIM($3))
@@ -244,7 +261,7 @@ impl ItemsService {
                     "dueDate": row.due_date,
                     "createdBy": row.created_by,
                     "createdByName": created_by_name,
-                    "createdByEmail": row.creator_email.unwrap_or_else(|| "Unbekannt".into()),
+                    "createdByEmail": "",
                     "timeColor": time_left_color(&row.due_date),
                     "editorNote": row.editor_note,
                     "createdAt": row.created_at,
@@ -295,14 +312,17 @@ impl ItemsService {
         user_id: Uuid,
         dto: &crate::items::dto::UpdateItemDto,
     ) -> AppResult<Value> {
+        let mut tx = self.db.begin().await?;
+
         let item = sqlx::query!(
-            r#"SELECT id, created_by as "created_by?: Uuid" FROM items WHERE id = $1 AND tenant_id = $2"#,
+            r#"SELECT id, created_by as "created_by?: Uuid" FROM items
+               WHERE id = $1 AND tenant_id = $2 FOR UPDATE"#,
             id,
             tenant_id
         )
-            .fetch_optional(&self.db)
-            .await?
-            .ok_or_else(|| AppError::not_found("Not found."))?;
+        .fetch_optional(&mut *tx)
+        .await?
+        .ok_or_else(|| AppError::not_found("Not found."))?;
 
         if item.created_by != Some(user_id) {
             return Err(AppError::forbidden("Only the creator can edit this item."));
@@ -314,7 +334,7 @@ impl ItemsService {
                 title.trim(),
                 id
             )
-            .execute(&self.db)
+            .execute(&mut *tx)
             .await?;
         }
 
@@ -324,7 +344,7 @@ impl ItemsService {
                 subject.trim(),
                 id
             )
-            .execute(&self.db)
+            .execute(&mut *tx)
             .await?;
         }
 
@@ -334,7 +354,7 @@ impl ItemsService {
                 desc.trim(),
                 id
             )
-            .execute(&self.db)
+            .execute(&mut *tx)
             .await?;
         }
 
@@ -348,7 +368,7 @@ impl ItemsService {
                 parsed,
                 id
             )
-            .execute(&self.db)
+            .execute(&mut *tx)
             .await?;
         }
 
@@ -358,12 +378,12 @@ impl ItemsService {
                 json!(images),
                 id
             )
-            .execute(&self.db)
+            .execute(&mut *tx)
             .await?;
         }
 
         sqlx::query!(r#"UPDATE items SET updated_at = now() WHERE id = $1"#, id)
-            .execute(&self.db)
+            .execute(&mut *tx)
             .await?;
 
         sqlx::query!(
@@ -371,8 +391,10 @@ impl ItemsService {
             user_id,
             json!({ "id": id })
         )
-        .execute(&self.db)
+        .execute(&mut *tx)
         .await?;
+
+        tx.commit().await?;
 
         Ok(json!({ "ok": true }))
     }
@@ -385,14 +407,36 @@ impl ItemsService {
         can_upload: bool,
         dto: &crate::items::dto::AddImageDto,
     ) -> AppResult<Value> {
+        let public_id = dto.image.public_id.as_str();
+
+        let expected_prefix = format!("{}/", self.cloudinary_folder);
+        if !public_id.starts_with(&expected_prefix)
+            || !public_id
+                .chars()
+                .all(|c| c.is_ascii_alphanumeric() || matches!(c, '/' | '_' | '-'))
+        {
+            return Err(AppError::bad_request("Invalid publicId."));
+        }
+
+        if serde_json::to_string(&dto.image.metadata)
+            .map(|s| s.len())
+            .unwrap_or(usize::MAX)
+            > 2048
+        {
+            return Err(AppError::bad_request("Image metadata too large."));
+        }
+
+        let mut tx = self.db.begin().await?;
+
         let item = sqlx::query!(
-            r#"SELECT id, created_by as "created_by?: Uuid", images FROM items WHERE id = $1 AND tenant_id = $2"#,
+            r#"SELECT id, created_by as "created_by?: Uuid", images FROM items
+               WHERE id = $1 AND tenant_id = $2 FOR UPDATE"#,
             item_id,
             tenant_id
         )
-            .fetch_optional(&self.db)
-            .await?
-            .ok_or_else(|| AppError::not_found("Item not found."))?;
+        .fetch_optional(&mut *tx)
+        .await?
+        .ok_or_else(|| AppError::not_found("Item not found."))?;
 
         if (item.created_by != Some(user_id)) && !can_upload {
             return Err(AppError::forbidden("Only the creator can add images."));
@@ -410,7 +454,7 @@ impl ItemsService {
         }
 
         let new_image = json!({
-            "publicId": dto.image.public_id,
+            "publicId": public_id,
             "createdBy": user_id,
             "metadata": dto.image.metadata,
         });
@@ -422,16 +466,18 @@ impl ItemsService {
             json!(images),
             item_id
         )
-        .execute(&self.db)
+        .execute(&mut *tx)
         .await?;
 
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:image:add', $2)"#,
             user_id,
-            json!({ "itemId": item_id, "publicId": dto.image.public_id })
+            json!({ "itemId": item_id, "publicId": public_id })
         )
-        .execute(&self.db)
+        .execute(&mut *tx)
         .await?;
+
+        tx.commit().await?;
 
         Ok(json!({ "ok": true, "image": new_image }))
     }
@@ -444,14 +490,17 @@ impl ItemsService {
         is_superadmin: bool,
         public_id: &str,
     ) -> AppResult<Value> {
+        let mut tx = self.db.begin().await?;
+
         let item = sqlx::query!(
-            r#"SELECT id, created_by as "created_by?: Uuid", images FROM items WHERE id = $1 AND tenant_id = $2"#,
+            r#"SELECT id, created_by as "created_by?: Uuid", images FROM items
+               WHERE id = $1 AND tenant_id = $2 FOR UPDATE"#,
             item_id,
             tenant_id
         )
-            .fetch_optional(&self.db)
-            .await?
-            .ok_or_else(|| AppError::not_found("Item not found."))?;
+        .fetch_optional(&mut *tx)
+        .await?
+        .ok_or_else(|| AppError::not_found("Item not found."))?;
 
         let images: Vec<Value> = match item.images {
             Some(Value::Array(arr)) => arr,
@@ -481,7 +530,7 @@ impl ItemsService {
             json!(updated),
             item_id
         )
-        .execute(&self.db)
+        .execute(&mut *tx)
         .await?;
 
         sqlx::query!(
@@ -489,8 +538,10 @@ impl ItemsService {
             user_id,
             json!({ "itemId": item_id, "publicId": public_id })
         )
-            .execute(&self.db)
+            .execute(&mut *tx)
             .await?;
+
+        tx.commit().await?;
 
         Ok(json!({ "ok": true }))
     }
@@ -569,15 +620,27 @@ impl ItemsService {
 
     pub async fn report_item(
         &self,
+        tenant_id: Uuid,
         user_id: Uuid,
         email: &str,
         dto: &crate::items::dto::ReportItemDto,
     ) -> AppResult<Value> {
+        // Verify the item exists within the reporter's tenant and take the
+        // title from the database – never trust client-supplied titles.
+        let item = sqlx::query!(
+            r#"SELECT id, title FROM items WHERE id = $1 AND tenant_id = $2"#,
+            dto.item_id,
+            tenant_id
+        )
+        .fetch_optional(&self.db)
+        .await?
+        .ok_or_else(|| AppError::not_found("Item not found."))?;
+
         sqlx::query!(
             r#"INSERT INTO reports (item_id, item_title, reason, reporter_id, reporter_email)
                VALUES ($1, $2, $3, $4, $5)"#,
-            dto.item_id,
-            dto.item_title,
+            item.id,
+            item.title,
             dto.reason.as_deref().map(|r| r.trim()),
             user_id,
             email
@@ -588,7 +651,7 @@ impl ItemsService {
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:report', $2)"#,
             user_id,
-            json!({ "itemId": dto.item_id })
+            json!({ "itemId": item.id })
         )
         .execute(&self.db)
         .await?;
@@ -596,7 +659,8 @@ impl ItemsService {
         Ok(json!({ "ok": true, "message": "Item reported successfully." }))
     }
 
-    pub fn create_upload_signature(&self, folder: &str) -> Value {
+    pub fn create_upload_signature(&self) -> Value {
+        let folder = &self.cloudinary_folder;
         let timestamp = Utc::now().timestamp();
 
         let to_sign = format!(

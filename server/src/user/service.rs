@@ -81,28 +81,54 @@ impl UserService {
     pub async fn update_setup(
         &self,
         user_id: Uuid,
-        _global_role: &str,
+        tenant_id: Uuid,
         courses: Vec<(Uuid, Uuid)>,
     ) -> AppResult<Value> {
+        let (subject_ids, course_ids): (Vec<Uuid>, Vec<Uuid>) = courses.iter().copied().unzip();
+
+        if !courses.is_empty() {
+            let valid_count = sqlx::query_scalar!(
+                r#"SELECT COUNT(*)
+                   FROM unnest($1::uuid[], $2::uuid[]) AS t(subject_id, course_id)
+                   JOIN courses c ON c.id = t.course_id AND c.subject_id = t.subject_id
+                   JOIN subjects s ON s.id = t.subject_id
+                   WHERE s.tenant_id = $3"#,
+                &subject_ids,
+                &course_ids,
+                tenant_id
+            )
+            .fetch_one(&self.db)
+            .await?
+            .unwrap_or(0);
+
+            if valid_count != courses.len() as i64 {
+                return Err(AppError::bad_request("Invalid course selection."));
+            }
+        }
+
+        let mut tx = self.db.begin().await?;
+
         sqlx::query!(
             r#"UPDATE users SET done_setup = true WHERE id = $1"#,
             user_id
         )
-        .execute(&self.db)
+        .execute(&mut *tx)
         .await?;
 
         sqlx::query!(r#"DELETE FROM user_courses WHERE user_id = $1"#, user_id)
-            .execute(&self.db)
+            .execute(&mut *tx)
             .await?;
 
-        for (subject_id, course_id) in &courses {
+        if !courses.is_empty() {
             sqlx::query!(
-                r#"INSERT INTO user_courses (user_id, subject_id, course_id) VALUES ($1, $2, $3)"#,
+                r#"INSERT INTO user_courses (user_id, subject_id, course_id)
+                   SELECT $1, t.subject_id, t.course_id
+                   FROM unnest($2::uuid[], $3::uuid[]) AS t(subject_id, course_id)"#,
                 user_id,
-                subject_id,
-                course_id
+                &subject_ids,
+                &course_ids
             )
-            .execute(&self.db)
+            .execute(&mut *tx)
             .await?;
         }
 
@@ -114,7 +140,9 @@ impl UserService {
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'profile:setup:complete', $2)"#,
             user_id, json!({ "courses": courses_json })
-        ).execute(&self.db).await?;
+        ).execute(&mut *tx).await?;
+
+        tx.commit().await?;
 
         Ok(json!({ "ok": true, "doneSetup": true }))
     }
@@ -170,6 +198,10 @@ impl UserService {
         user_id: Uuid,
         status: &str,
     ) -> AppResult<Value> {
+        if !matches!(status, "archived" | "kept") {
+            return Err(AppError::bad_request("Invalid visibility status."));
+        }
+
         sqlx::query!(
             r#"SELECT id FROM items WHERE id = $1 AND tenant_id = $2"#,
             item_id,
@@ -179,12 +211,14 @@ impl UserService {
         .await?
         .ok_or_else(|| AppError::not_found("Item not found."))?;
 
+        let mut tx = self.db.begin().await?;
+
         sqlx::query!(
             r#"DELETE FROM user_item_visibility WHERE item_id = $1 AND user_id = $2"#,
             item_id,
             user_id
         )
-        .execute(&self.db)
+        .execute(&mut *tx)
         .await?;
 
         sqlx::query!(
@@ -193,13 +227,15 @@ impl UserService {
             user_id,
             status
         )
-        .execute(&self.db)
+        .execute(&mut *tx)
         .await?;
 
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:visibility:set', $2)"#,
             user_id, json!({ "itemId": item_id, "status": status })
-        ).execute(&self.db).await?;
+        ).execute(&mut *tx).await?;
+
+        tx.commit().await?;
 
         Ok(json!({ "ok": true }))
     }
@@ -222,7 +258,8 @@ impl UserService {
     }
 
     pub async fn log_page_load(&self, user_id: Uuid, user_agent: &str) -> AppResult<Value> {
-        let ua = &user_agent[..user_agent.len().min(100)];
+        // Byte slicing would panic on a multi-byte UTF-8 boundary.
+        let ua: String = user_agent.chars().take(100).collect();
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'page:load', $2)"#,
             user_id,

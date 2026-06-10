@@ -458,6 +458,17 @@ impl OAuthService {
 
         let email_verified = claims["email_verified"].as_bool().unwrap_or(false);
 
+        let aud = claims["aud"].as_str().unwrap_or("");
+        let expected_aud = self.config.google_client_id.as_deref().unwrap_or("");
+        if expected_aud.is_empty() || aud != expected_aud {
+            return Err(AppError::Unauthorized("ID token audience mismatch.".into()));
+        }
+
+        let iss = claims["iss"].as_str().unwrap_or("");
+        if iss != "accounts.google.com" && iss != "https://accounts.google.com" {
+            return Err(AppError::Unauthorized("ID token issuer mismatch.".into()));
+        }
+
         if !email_verified {
             return Err(AppError::Unauthorized("Google email not verified.".into()));
         }

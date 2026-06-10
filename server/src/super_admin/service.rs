@@ -1,4 +1,5 @@
 use crate::{
+    auth::token::{ADMIN_REVOKE, TokenService},
     common::role::Role,
     error::{AppError, AppResult},
     state::AppState,
@@ -9,11 +10,15 @@ use uuid::Uuid;
 
 pub struct SuperAdminService {
     db: PgPool,
+    tokens: TokenService,
 }
 
 impl SuperAdminService {
     pub fn from_state(s: &AppState) -> Self {
-        Self { db: s.db.clone() }
+        Self {
+            db: s.db.clone(),
+            tokens: TokenService::from_state(s),
+        }
     }
 
     pub async fn get_stats(&self, tenant_id: Uuid) -> AppResult<Value> {
@@ -235,6 +240,10 @@ impl SuperAdminService {
         .execute(&self.db)
         .await?;
 
+        self.tokens
+            .revoke_all_for_user(target_id, ADMIN_REVOKE, None)
+            .await?;
+
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta)
                VALUES ($1, 'admin:ban:user', $2)"#,
@@ -347,6 +356,10 @@ impl SuperAdminService {
         .execute(&self.db)
         .await?;
 
+        self.tokens
+            .revoke_all_for_user(target_id, ADMIN_REVOKE, None)
+            .await?;
+
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta)
                VALUES ($1, 'admin:role_change', $2)"#,
@@ -392,8 +405,8 @@ impl SuperAdminService {
                LEFT JOIN users u ON u.id = i.created_by
                ORDER BY r.created_at DESC"#
         )
-        .fetch_all(&self.db)
-        .await?;
+            .fetch_all(&self.db)
+            .await?;
 
         Ok(json!(
             rows.into_iter()

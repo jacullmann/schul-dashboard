@@ -3,10 +3,7 @@ use super::{
     service::{DeleteItemParams, GetItemsFilter, ItemsService},
 };
 use crate::{
-    common::{
-        extractors::{AuthUser, TenantContext},
-        permission::Permission,
-    },
+    common::{extractors::TenantContext, permission::Permission},
     error::AppResult,
     require_permission,
     state::AppState,
@@ -34,6 +31,7 @@ pub async fn get_items(
                 hide_checked: q.hide_checked.unwrap_or(false),
                 personalized: q.personalized.unwrap_or(false),
             },
+            tc.user.is_superadmin(),
         )
         .await?;
     Ok(Json(serde_json::json!(items)))
@@ -46,7 +44,7 @@ pub async fn get_item_by_id(
 ) -> AppResult<Json<Value>> {
     Ok(Json(
         ItemsService::from_state(&s)
-            .get_item_by_id(tc.tenant_id, id)
+            .get_item_by_id(tc.tenant_id, id, tc.user.is_superadmin())
             .await?,
     ))
 }
@@ -150,19 +148,21 @@ pub async fn remove_image(
 
 pub async fn report_item(
     State(s): State<AppState>,
-    user: AuthUser,
+    tc: TenantContext,
     Json(dto): Json<ReportItemDto>,
 ) -> AppResult<Json<Value>> {
     Ok(Json(
         ItemsService::from_state(&s)
-            .report_item(user.user_id, &user.email, &dto)
+            .report_item(tc.tenant_id, tc.user.user_id, &tc.user.email, &dto)
             .await?,
     ))
 }
 
-pub async fn create_upload_signature(State(s): State<AppState>) -> AppResult<Json<Value>> {
-    let folder = s.config.cloudinary_folder.clone();
-    Ok(Json(
-        ItemsService::from_state(&s).create_upload_signature(&folder),
-    ))
+pub async fn create_upload_signature(
+    State(s): State<AppState>,
+    tc: TenantContext,
+) -> AppResult<Json<Value>> {
+    require_permission!(tc, Permission::UploadImages);
+
+    Ok(Json(ItemsService::from_state(&s).create_upload_signature()))
 }

@@ -22,6 +22,13 @@ use serde_json::json;
 use sqlx::PgPool;
 use uuid::Uuid;
 
+fn constant_time_str_eq(a: &str, b: &str) -> bool {
+    use sha2::{Digest, Sha256};
+    Sha256::digest(a.as_bytes()) == Sha256::digest(b.as_bytes())
+}
+
+static DUMMY_PASSWORD_HASH: tokio::sync::OnceCell<String> = tokio::sync::OnceCell::const_new();
+
 pub struct AuthService {
     db: PgPool,
     tokens: TokenService,
@@ -62,9 +69,9 @@ impl AuthService {
             r#"SELECT tenant_id FROM user_roles WHERE user_id = $1 AND tenant_id IS NOT NULL LIMIT 1"#,
             user_id
         )
-        .fetch_optional(&self.db)
-        .await?
-        .and_then(|r| r.tenant_id);
+            .fetch_optional(&self.db)
+            .await?
+            .and_then(|r| r.tenant_id);
 
         Ok((global_role, active_group_id))
     }
@@ -103,6 +110,20 @@ impl AuthService {
         Ok((jar, csrf))
     }
 
+    async fn equalize_login_timing(&self, password: String) {
+        let dummy = DUMMY_PASSWORD_HASH
+            .get_or_init(|| async {
+                hash_password("argon2-login-timing-equalizer".to_string())
+                    .await
+                    .unwrap_or_default()
+            })
+            .await;
+
+        if !dummy.is_empty() {
+            let _ = verify_password(password, dummy.clone()).await;
+        }
+    }
+
     pub async fn login(
         &self,
         dto: LoginDto,
@@ -119,12 +140,25 @@ impl AuthService {
             email
         )
         .fetch_optional(&self.db)
-        .await?
-        .ok_or_else(|| AppError::Unauthorized("Invalid credentials.".into()))?;
+        .await?;
 
-        let hash = user.password_hash.as_deref().unwrap_or("");
+        let user = match user {
+            Some(u) => u,
+            None => {
+                self.equalize_login_timing(dto.password).await;
+                return Err(AppError::Unauthorized("Invalid credentials.".into()));
+            }
+        };
 
-        let ok = verify_password(dto.password, hash.to_string()).await?;
+        let hash = match user.password_hash.as_deref() {
+            Some(h) if !h.is_empty() => h.to_string(),
+            _ => {
+                self.equalize_login_timing(dto.password).await;
+                return Err(AppError::Unauthorized("Invalid credentials.".into()));
+            }
+        };
+
+        let ok = verify_password(dto.password, hash).await?;
 
         if !ok {
             sqlx::query!(
@@ -244,8 +278,8 @@ impl AuthService {
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'auth:mfa_login', '{}')"#,
             user_id
         )
-        .execute(&self.db)
-        .await?;
+            .execute(&self.db)
+            .await?;
 
         sqlx::query!(
             r#"UPDATE users SET last_login_at = now() WHERE id = $1"#,
@@ -564,33 +598,61 @@ impl AuthService {
         email: &str,
         code: &str,
     ) -> AppResult<serde_json::Value> {
+        const MAX_RESET_CODE_ATTEMPTS: i32 = 5;
+
         let email = email.to_lowercase();
 
         let code = code.trim();
 
+        let mut tx = self.db.begin().await?;
+
         let pr = sqlx::query!(
             r#"
-            SELECT id, expires_at FROM password_resets
-            WHERE email = $1 AND code = $2 AND used = false
-            ORDER BY created_at DESC LIMIT 1
+            UPDATE password_resets SET attempts = attempts + 1
+            WHERE id = (
+                SELECT id FROM password_resets
+                WHERE email = $1 AND used = false
+                ORDER BY created_at DESC LIMIT 1
+            )
+            RETURNING id, code, expires_at, attempts
             "#,
-            email,
-            code
+            email
         )
-        .fetch_optional(&self.db)
+        .fetch_optional(&mut *tx)
         .await?
         .ok_or_else(|| AppError::BadRequest("Invalid reset code.".into()))?;
 
+        if pr.attempts > MAX_RESET_CODE_ATTEMPTS {
+            sqlx::query!(
+                r#"UPDATE password_resets SET used = true WHERE id = $1"#,
+                pr.id
+            )
+            .execute(&mut *tx)
+            .await?;
+            tx.commit().await?;
+            return Err(AppError::BadRequest(
+                "Too many attempts. Please request a new code.".into(),
+            ));
+        }
+
         if pr.expires_at < Utc::now() {
+            tx.commit().await?;
             return Err(AppError::BadRequest("Reset code has expired.".into()));
+        }
+
+        if !constant_time_str_eq(code, &pr.code) {
+            tx.commit().await?;
+            return Err(AppError::BadRequest("Invalid reset code.".into()));
         }
 
         sqlx::query!(
             r#"UPDATE password_resets SET used = true WHERE id = $1"#,
             pr.id
         )
-        .execute(&self.db)
+        .execute(&mut *tx)
         .await?;
+
+        tx.commit().await?;
 
         let reset_token = self
             .jwt
