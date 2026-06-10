@@ -75,10 +75,9 @@ const getSliderStyle = (current: number, max: number) => {
         <span class="font-black text-[1.5rem] tracking-[-1px] font-display">{{
           t('infodashboard.dashboard.title')
         }}</span>
-        <span
-          class="text-[0.8rem] text-on-ghost-muted uppercase tracking-[2px]"
-          >{{ t('infodashboard.dashboard.description') }}</span
-        >
+        <span class="text-base text-on-ghost-muted font-medium">{{
+          t('infodashboard.dashboard.description')
+        }}</span>
       </div>
 
       <div class="relative w-full max-w-[400px]">

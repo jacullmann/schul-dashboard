@@ -5,7 +5,7 @@ import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
 import { useModalStore } from '@/stores/modalStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
-import { UserRoundPlus, Plus, UsersRound } from '@lucide/vue';
+import { Plus, UsersRound } from '@lucide/vue';
 import hw from '@/api/api';
 import { useI18n } from 'vue-i18n';
 import Avatar from '@/modules/auth/components/Avatar.vue';
@@ -38,13 +38,6 @@ const greeting = computed(() => {
   if (h < 18) return 'groups.list.good_day';
   return 'groups.list.good_evening';
 });
-
-const roleColors: Record<string, string> = {
-  admin: 'text-[#6366f1]',
-  moderator: 'text-[#f59e0b]',
-  user: 'text-on-ghost-muted',
-  superadmin: 'text-danger',
-};
 
 function roleLabel(role: string): string {
   const map: Record<string, string> = {
@@ -177,10 +170,7 @@ onMounted(() => {
                 class="max-md:hidden"
               />
             </span>
-            <span
-              class="text-xs font-semibold uppercase tracking-wider"
-              :class="roleColors[group.role]"
-            >
+            <span class="font-normal text-sm text-on-ghost-muted">
               {{ roleLabel(group.role) }}
             </span>
           </template>

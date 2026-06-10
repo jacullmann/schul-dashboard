@@ -521,20 +521,12 @@ function handleSelect(index: number) {
   >
     <template #default="{ selectedIndex, setSelectedIndex }">
       <template v-if="mode === 'group'">
-        <div
-          class="px-4 py-1.5 flex items-center gap-2 text-xs text-on-ghost-muted font-semibold uppercase tracking-wider mb-1"
-        >
-          <button
-            class="hover:text-on-ghost transition-colors inline-flex items-center"
-            :aria-label="t('common.buttons.back')"
-            @click="setMode('default')"
-          >
-            <ArrowLeft :size="14" class="mr-1" />
-            {{ t('common.buttons.back') }}
-          </button>
-          <span class="opacity-50">/</span>
-          <span>{{ t('search.items.switch_group') }}</span>
-        </div>
+        <BaseRow class="m-2">
+          <BaseButton :icon="ArrowLeft" size="sm" @click="setMode('default')" />
+          <span class="text-sm text-on-ghost-muted font-medium">{{
+            t('search.items.switch_group')
+          }}</span>
+        </BaseRow>
         <template v-if="filteredGroups.length">
           <BaseCommandPaletteItem
             v-for="(group, index) in filteredGroups"
@@ -565,20 +557,12 @@ function handleSelect(index: number) {
       </template>
 
       <template v-else-if="mode === 'theme'">
-        <div
-          class="px-4 py-1.5 flex items-center gap-2 text-xs text-on-ghost-muted font-semibold uppercase tracking-wider mb-1"
-        >
-          <button
-            class="hover:text-on-ghost transition-colors inline-flex items-center"
-            :aria-label="t('common.buttons.back')"
-            @click="setMode('default')"
-          >
-            <ArrowLeft :size="14" class="mr-1" />
-            {{ t('common.buttons.back') }}
-          </button>
-          <span class="opacity-50">/</span>
-          <span>{{ t('auth.settings.theme.title') }}</span>
-        </div>
+        <BaseRow class="m-2">
+          <BaseButton :icon="ArrowLeft" size="sm" @click="setMode('default')" />
+          <span class="text-sm text-on-ghost-muted font-medium">{{
+            t('auth.settings.theme.title')
+          }}</span>
+        </BaseRow>
         <template v-if="filteredThemes.length">
           <BaseCommandPaletteItem
             v-for="(opt, index) in filteredThemes"
@@ -600,20 +584,12 @@ function handleSelect(index: number) {
       </template>
 
       <template v-else-if="mode === 'language'">
-        <div
-          class="px-4 py-1.5 flex items-center gap-2 text-xs text-on-ghost-muted font-semibold uppercase tracking-wider mb-1"
-        >
-          <button
-            class="hover:text-on-ghost transition-colors inline-flex items-center"
-            :aria-label="t('common.buttons.back')"
-            @click="setMode('default')"
-          >
-            <ArrowLeft :size="14" class="mr-1" />
-            {{ t('common.buttons.back') }}
-          </button>
-          <span class="opacity-50">/</span>
-          <span>{{ t('auth.settings.language.title') }}</span>
-        </div>
+        <BaseRow class="m-2">
+          <BaseButton :icon="ArrowLeft" size="sm" @click="setMode('default')" />
+          <span class="text-sm text-on-ghost-muted font-medium">{{
+            t('auth.settings.language.title')
+          }}</span>
+        </BaseRow>
         <template v-if="filteredLanguages.length">
           <BaseCommandPaletteItem
             v-for="(opt, index) in filteredLanguages"
@@ -637,9 +613,7 @@ function handleSelect(index: number) {
       <template v-else>
         <template v-if="defaultPageResults.length">
           <div class="px-4 py-1.5">
-            <span
-              class="text-xs text-on-ghost-muted font-semibold uppercase tracking-wider"
-            >
+            <span class="text-sm text-on-ghost-muted font-medium">
               {{ t('search.modal.category_pages') }}
             </span>
           </div>
@@ -667,9 +641,7 @@ function handleSelect(index: number) {
             class="px-4 py-1.5"
             :class="defaultPageResults.length ? 'mt-2' : ''"
           >
-            <span
-              class="text-xs text-on-ghost-muted font-semibold uppercase tracking-wider"
-            >
+            <span class="text-sm text-on-ghost-muted font-medium">
               {{ t('search.modal.category_actions') }}
             </span>
           </div>

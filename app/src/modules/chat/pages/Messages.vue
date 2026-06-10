@@ -93,9 +93,8 @@ const {
                 "
                 class="flex items-center my-6 px-4 md:px-8 select-none"
               >
-                <div class="flex-1 border-t border-danger/30"></div>
                 <span
-                  class="mx-4 text-xs font-bold text-danger tracking-wider uppercase bg-canvas px-2.25 py-0.5 rounded-full border border-danger/20 shadow-sm"
+                  class="mx-auto text-sm font-medium text-on-ghost bg-ghost-hover px-4 py-1.5 rounded-full"
                 >
                   {{
                     messages.length >= 100 && firstNewMessageIndex === 0
@@ -103,7 +102,6 @@ const {
                       : t('chat.new_messages')
                   }}
                 </span>
-                <div class="flex-1 border-t border-danger/30"></div>
               </div>
             </Transition>
 
