@@ -117,7 +117,7 @@ export function useMessages() {
 
     const timeDiff =
       new Date(msg.createdAt).getTime() - new Date(prevMsg.createdAt).getTime();
-    return timeDiff < 90000;
+    return timeDiff < 60 * 60 * 1000;
   };
 
   const isNearBottom = () => {
