@@ -12,9 +12,7 @@ const goBack = () => {
     router.back();
   } else {
     router.push(
-      activeGroupId.value
-        ? `/groups/${activeGroupId.value}/tasks/all`
-        : '/groups',
+      activeGroupId.value ? `/groups/${activeGroupId.value}/tasks` : '/groups',
     );
   }
 };
@@ -59,7 +57,7 @@ const goBack = () => {
             </div>
             <div class="flex-1 text-left">
               <div class="text-[15px] font-semibold text-on-ghost mb-[2px]">
-                Homepage
+                Dashboard
               </div>
               <div class="text-[13px] text-on-ghost-muted">
                 Overview of the group
@@ -68,7 +66,7 @@ const goBack = () => {
           </router-link>
 
           <router-link
-            :to="`/groups/${activeGroupId}/tasks/all`"
+            :to="`/groups/${activeGroupId}/tasks`"
             class="flex items-center gap-3 p-3 bg-surface border border-surface-border shadow-input rounded-xl no-underline transition-all duration-150 ease cursor-pointer hover:bg-surface-highlight"
           >
             <div

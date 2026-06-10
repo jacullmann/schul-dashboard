@@ -210,7 +210,7 @@ function handleGroupClick(groupId: string) {
   ) {
     handleNavigation(currentPath.replace(activeGroupId.value, groupId));
   } else {
-    handleNavigation(`/groups/${groupId}/tasks/all`);
+    handleNavigation(`/groups/${groupId}/tasks`);
   }
 }
 
@@ -320,9 +320,7 @@ onUnmounted(() => {
           :icon="ListTodo"
           :page="true"
           @click="
-            withGroup(() =>
-              handleNavigation(`/groups/${activeGroupId}/tasks/all`),
-            )
+            withGroup(() => handleNavigation(`/groups/${activeGroupId}/tasks`))
           "
         />
 
