@@ -26,7 +26,7 @@ const opacityClass = {
 
 <template>
   <div
-    class="fixed inset-0 z-9999 flex items-center justify-center"
+    class="fixed inset-0 z-(--z-modal-overlay) flex items-center justify-center"
     :class="[blurClass[blurSize], opacityClass[opacity]]"
     aria-hidden="true"
     @click.self="emit('cancel')"

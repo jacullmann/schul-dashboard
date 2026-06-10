@@ -165,16 +165,6 @@ async function onAuthSuccess() {
     </Transition>
   </Teleport>
 
-  <BaseDialog
-    :open="confirmOpen"
-    :title="confirmOptions.title"
-    :submit-text="confirmOptions.submitText ?? 'Confirm'"
-    :danger="confirmOptions.danger"
-    @confirm="modalStore.resolveConfirm(true)"
-    @cancel="modalStore.resolveConfirm(false)"
-  >
-    {{ confirmOptions.content }}
-  </BaseDialog>
 
   <Teleport to="body">
     <Transition name="fade-scale" appear>
@@ -256,6 +246,17 @@ async function onAuthSuccess() {
     :token="inviteModalToken"
     @cancel="modalStore.closeInviteModal()"
   />
+
+  <BaseDialog
+    :open="confirmOpen"
+    :title="confirmOptions.title"
+    :submit-text="confirmOptions.submitText ?? 'Confirm'"
+    :danger="confirmOptions.danger"
+    @confirm="modalStore.resolveConfirm(true)"
+    @cancel="modalStore.resolveConfirm(false)"
+  >
+    {{ confirmOptions.content }}
+  </BaseDialog>
 </template>
 
 <style scoped>
