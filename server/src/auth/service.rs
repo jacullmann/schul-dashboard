@@ -27,7 +27,7 @@ fn constant_time_str_eq(a: &str, b: &str) -> bool {
     Sha256::digest(a.as_bytes()) == Sha256::digest(b.as_bytes())
 }
 
-static DUMMY_PASSWORD_HASH: tokio::sync::OnceCell<String> = tokio::sync::OnceCell::const_new();
+const DUMMY_PASSWORD_HASH: &str = "$argon2id$v=19$m=19456,t=2,p=1$ptEx1UyXW3Vbni4hpQoKFA$CEEsGfXo9ruOgOAeAN4ZGpLiQK8gS+st5w9rVUimJlA";
 
 pub struct AuthService {
     db: PgPool,
@@ -111,17 +111,7 @@ impl AuthService {
     }
 
     async fn equalize_login_timing(&self, password: String) {
-        let dummy = DUMMY_PASSWORD_HASH
-            .get_or_init(|| async {
-                hash_password("argon2-login-timing-equalizer".to_string())
-                    .await
-                    .unwrap_or_default()
-            })
-            .await;
-
-        if !dummy.is_empty() {
-            let _ = verify_password(password, dummy.clone()).await;
-        }
+        let _ = verify_password(password, DUMMY_PASSWORD_HASH.to_string()).await;
     }
 
     pub async fn login(

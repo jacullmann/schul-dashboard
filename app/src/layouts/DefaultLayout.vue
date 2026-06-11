@@ -2,7 +2,7 @@
 import { useAppShortcuts } from '@/core/composables/useAppShortcuts';
 import AppHeader from '@/core/components/AppHeader.vue';
 import AppSidebar from '@/core/components/AppSidebar.vue';
-import GlobalAnnouncements from '@/modules/announcements/components/GlobalAnnouncements.vue';
+import Announcements from '../modules/announcements/components/Announcements.vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useUserStore } from '@/stores/userStore';
 import { storeToRefs } from 'pinia';
@@ -20,7 +20,7 @@ useAppShortcuts();
 
     <div class="flex-1 min-w-0 flex flex-col bg-canvas">
       <AppHeader />
-      <GlobalAnnouncements v-if="activeGroupId" />
+      <Announcements v-if="activeGroupId" />
 
       <main class="full-c flex-1">
         <div
