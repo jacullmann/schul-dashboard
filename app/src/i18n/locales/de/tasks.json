@@ -5,47 +5,47 @@
     "hide_checked": "Erledigte ausblenden",
     "archive": {
       "archive": "Archiv",
-      "archive_note": "Du siehst gerade alte Einträge",
+      "archive_note": "Du siehst gerade alte Aufgaben",
       "close_archive": "Archiv schließen"
     },
-    "create_entry": "Eintrag erstellen",
+    "create_task": "Aufgabe erstellen",
     "infopop": {
       "description": "Arbeite kollaborativ mit anderen und behalte alles im Blick.",
       "sections": [
         {
-          "title": "Einträge",
-          "text": "Jede/r, die/der ein Konto hat, kann einen Eintrag hinzufügen. Ob <strong>Hausaufgabe</strong>, <strong>Daltonauftrag</strong> oder <strong>Prüfung</strong> – alles, was du für die Schule im Überblick haben musst, kann hochgeladen werden. Alle Einträge sind öffentlich und jederzeit einsehbar, du kannst also gemeinsam mit anderen tracken."
+          "title": "Aufgaben",
+          "text": "Jede/r, die/der ein Konto hat, kann eine Aufgabe hinzufügen. Ob <strong>Hausaufgabe</strong>, <strong>Daltonauftrag</strong> oder <strong>Prüfung</strong> – alles, was du für die Schule im Überblick haben musst, kann hochgeladen werden. Alle Aufgaben sind öffentlich und jederzeit einsehbar, du kannst also gemeinsam mit anderen tracken."
         },
         {
-          "title": "Einträge hinzufügen",
-          "text": "Um einen Eintrag hinzuzufügen, klicke auf das <strong>+</strong> und wähle den Typ aus. Hausaufgaben, Daltonaufträge und Prüfungen sind immer öffentlich, Private Einträge sind verschlüsselt und nur für dich sichtbar. Fülle nun das Formular aus und wähle Fach und Abgabedatum aus. Optional können dazugehörige Bilder hochgeladen werden wie Tafelbilder, Musterlösungen, Notizen, Lernzettel o. ä."
+          "title": "Aufgaben hinzufügen",
+          "text": "Um eine Aufgabe hinzuzufügen, klicke auf das <strong>+</strong> und wähle den Typ aus. Hausaufgaben, Daltonaufträge und Prüfungen sind immer öffentlich, Private Aufgaben sind verschlüsselt und nur für dich sichtbar. Fülle nun das Formular aus und wähle Fach und Abgabedatum aus. Optional können dazugehörige Bilder hochgeladen werden wie Tafelbilder, Musterlösungen, Notizen, Lernzettel o. ä."
         },
         {
           "title": "Bilder hochladen",
-          "text": "Bilder können auch bei fremden Einträgen hochgeladen werden, sofern passend; klicke auf das <strong>3-Punkte-Menü</strong>, wähle <strong>Bilder hochladen</strong> aus und wähle die gewünschten Bilder aus. Um eigene Bilder zu entfernen, <strong>halte</strong> das Bild <strong>gedrückt</strong> oder klicke mit der <strong>rechten Maustaste</strong> auf dein Bild und wähle im Menü <strong>Löschen</strong> aus."
+          "text": "Bilder können auch bei fremden Aufgaben hochgeladen werden, sofern passend; klicke auf das <strong>3-Punkte-Menü</strong>, wähle <strong>Bilder hochladen</strong> aus und wähle die gewünschten Bilder aus. Um eigene Bilder zu entfernen, <strong>halte</strong> das Bild <strong>gedrückt</strong> oder klicke mit der <strong>rechten Maustaste</strong> auf dein Bild und wähle im Menü <strong>Löschen</strong> aus."
         },
         {
           "title": "Abgeschlossene Aufgaben tracken",
-          "text": "Wenn du ein Konto hast, kannst du mit der <strong>Checkbox</strong> jeden Eintrag, den du erledigt hast, abhaken. Dein Fortschritt wird in der Cloud gespeichert und der Eintrag verkleinert, um Platz für offene Aufträge zu machen. So hast du gleich im Blick, was du noch erledigen musst."
+          "text": "Wenn du ein Konto hast, kannst du mit der <strong>Checkbox</strong> jede Aufgabe, die du erledigt hast, abhaken. Dein Fortschritt wird in der Cloud gespeichert und die Aufgabe verkleinert, um Platz für offene Aufträge zu machen. So hast du gleich im Blick, was du noch erledigen musst."
         },
         {
           "title": "Personalisierte Kurse",
-          "text": "Wenn du bei deinem Konto hinterlegt hast, welche Kurse/Wahlfächer du belegst, kannst du automatisch Einträge zu anderen Fächern ausblenden lassen. Deine Auswahl kannst du in deinen <strong>Kontoeinstellungen</strong> anpassen. Wenn du trotzdem alle Einträge sehen willst, kannst du diese Option ebenfalls in deinen Kontoeinstellungen deaktivieren."
+          "text": "Wenn du bei deinem Konto hinterlegt hast, welche Kurse/Wahlfächer du belegst, kannst du automatisch Aufgaben zu anderen Fächern ausblenden lassen. Deine Auswahl kannst du in deinen <strong>Kontoeinstellungen</strong> anpassen. Wenn du trotzdem alle Aufgaben sehen willst, kannst du diese Option ebenfalls in deinen Kontoeinstellungen deaktivieren."
         },
         {
           "title": "Archiv",
-          "text": "Einträge, die älter als <strong>24 Stunden</strong> sind, werden automatisch ausgeblendet, um die Ansicht übersichtlich zu halten. Falls du einen älteren Eintrag suchst, kannst du auf den <strong>Archiv</strong>-Button klicken und Einträge einsehen, die bis zu <strong>30 Tage</strong> alt sind."
+          "text": "Aufgaben, die älter als <strong>24 Stunden</strong> sind, werden automatisch ausgeblendet, um die Ansicht übersichtlich zu halten. Falls du eine ältere Aufgabe suchst, kannst du auf den <strong>Archiv</strong>-Button klicken und Aufgaben einsehen, die bis zu <strong>30 Tage</strong> alt sind."
         }
       ],
       "tooltip": "Übersicht und Funktionen für Aufgaben"
     },
-    "item_form": {
+    "task_form": {
       "course": "Kurs",
       "custom_subject": "Benutzerdefiniertes Fach",
       "description": "Beschreibung",
       "drop_to_upload": "Bilder hier ablegen",
       "due_date": "Datum",
-      "edit_entry": "Eintrag bearbeiten",
+      "edit_task": "Aufgabe bearbeiten",
       "errors": {
         "course_missing": "Wähle einen Kurs aus",
         "custom_long": "Das benutzerdefinierte Fach ist zu lang (max. 100 Zeichen)",
@@ -57,39 +57,39 @@
         "title_missing": "Füge einen Titel hinzu"
       },
       "images": "Bilder",
-      "new_entry": "Neuer Eintrag",
+      "new_task": "Neue Aufgabe",
       "subject": "Fach",
-      "success_create": "Eintrag erfolgreich erstellt",
-      "success_edit": "Eintrag erfolgreich bearbeitet",
+      "success_create": "Aufgabe erfolgreich erstellt",
+      "success_edit": "Aufgabe erfolgreich bearbeitet",
       "success_upload": "Bilder erfolgreich hochgeladen",
       "title": "Titel",
       "upload_images": "Bilder hochladen",
       "uploading_image": "Lade Bild hoch..."
     },
-    "items": {
+    "tasks": {
       "menu": {
         "add_note": "Notiz hinzufügen",
         "archive": "Archivieren",
         "delete": {
-          "action": "Eintrag löschen",
-          "description": "Wenn du diesen Eintrag löschst, werden dieser und alle dazugehörigen Bilder unwiderruflich gelöscht.",
-          "title": "Diesen Eintrag löschen?"
+          "action": "Aufgabe löschen",
+          "description": "Wenn du diese Aufgabe löschst, werden diese und alle dazugehörigen Bilder unwiderruflich gelöscht.",
+          "title": "Diese Aufgabe löschen?"
         },
         "info": "Info",
         "info_modal": {
           "created_at": "Erstellt am",
           "created_by": "Erstellt von",
           "not_edited": "–",
-          "title": "Eintrag-Info",
+          "title": "Aufgaben-Info",
           "updated_at": "Zuletzt bearbeitet"
         },
         "pin": "Anheften",
         "report": {
-          "action": "Eintrag melden",
+          "action": "Aufgabe melden",
           "illegal_label": "Was genau ist das Problem? (optional)",
           "illegal_placeholder": "Beschreibung...",
           "name": "Melden",
-          "title": "Diesen Eintrag melden?"
+          "title": "Diese Aufgabe melden?"
         },
         "share": "Teilen",
         "share_confirm": "Link in die Zwischenablage kopiert!",
@@ -98,9 +98,9 @@
         "upload_images": "Bilder hochladen"
       },
       "view": {
-        "no_entries": "Keine Einträge gefunden",
-        "no_entries_in_view_message": "Keine Einträge in der aktuellen Ansicht. Ändere deine Filter oder füge einen neuen Eintrag hinzu",
-        "no_entries_message": "Füge einen neuen Eintrag hinzu oder "
+        "no_entries": "Keine Aufgaben gefunden",
+        "no_entries_in_view_message": "Keine Aufgaben in der aktuellen Ansicht. Ändere deine Filter oder füge eine neue Aufgabe hinzu",
+        "no_entries_message": "Füge eine neue Aufgabe hinzu oder "
       }
     },
     "notes": {
@@ -123,23 +123,23 @@
     },
     "double_task_confirm": {
       "title": "Aufgabe bereits vorhanden?",
-      "message": "Am {date} gibt es bereits eine {type} für das Fach {subject}. Bist du sicher, dass es sich bei deinem Eintrag nicht um dieselbe Aufgabe handelt?",
+      "message": "Am {date} gibt es bereits eine {type} für das Fach {subject}. Bist du sicher, dass es sich bei deiner Aufgabe nicht um dieselbe Aufgabe handelt?",
       "create_anyway": "Trotzdem erstellen",
       "view_existing": "Existierende anzeigen"
     }
   },
   "private_tasks": {
-    "delete_confirm": "Möchtest du diesen privaten Eintrag wirklich löschen?",
-    "entry": "Privater Eintrag",
-    "entry_delete_confirm": "Privater Eintrag erfolgreich gelöscht",
+    "delete_confirm": "Möchtest du diese private Aufgabe wirklich löschen?",
+    "task": "Private Aufgabe",
+    "task_delete_confirm": "Private Aufgabe erfolgreich gelöscht",
     "error_duplicate": "Fehler beim duplizieren",
-    "error_load": "Fehler beim Laden der privaten Einträge",
+    "error_load": "Fehler beim Laden der privaten Aufgaben",
     "infopop": {
       "description": "Verwalte deine private Aufgaben",
       "sections": [
         {
           "title": "Nur für dich sichtbar",
-          "text": "Anders als normale Aufgaben sind diese <strong>verschlüsselt</strong> und nur für dich sichtbar. So kannst du auch persönliche Aufgaben und To-dos tracken – alles mit <strong>einem Programm</strong>."
+          "text": "Anders als normale Aufgaben sind diese <strong>verschlüesselt</strong> und nur für dich sichtbar. So kannst du auch persönliche Aufgaben und To-dos tracken – alles mit <strong>einem Programm</strong>."
         },
         {
           "title": "Reihenfolge",
@@ -147,41 +147,41 @@
         },
         {
           "title": "Sicherheit",
-          "text": "Dank <strong>AES-256 Verschlüsselung</strong> musst du dir keine Sorgen um ungewollte Mitleser machen: Man kann nur mit <strong>deinem Passwort</strong> auf deine privaten Einträge zugreifen."
+          "text": "Dank <strong>AES-256 Verschlüsselung</strong> musst du dir keine Sorgen um ungewollte Mitleser machen: Man kann nur mit <strong>deinem Passwort</strong> auf deine privaten Aufgaben zugreifen."
         }
       ],
-      "tooltip": "Überblick und Funktionen zu privaten Einträgen"
+      "tooltip": "Überblick und Funktionen zu privaten Aufgaben"
     },
-    "loading": "Lade private Einträge...",
+    "loading": "Lade private Aufgaben...",
     "menu": {
       "down": "Nach unten",
       "up": "Nach oben"
     },
-    "new_entry": "Neuer Eintrag",
-    "no_entries_found": "Keine privaten Einträge gefunden.",
+    "new_task": "Neue Aufgabe",
+    "no_entries_found": "Keine privaten Aufgaben gefunden.",
     "only_visible_to_you": "Nur für dich sichtbar",
-    "requires_account": "Du musst angemeldet sein, um private Einträge zu verwenden.",
-    "success_create": "Privater Eintrag erstellt",
-    "success_delete": "Privater Eintrag erfolgreich gelöscht",
-    "success_duplicate": "Privater Eintrag erfolgreich dupliziert",
-    "success_update": "Privater Eintrag aktualisiert",
+    "requires_account": "Du musst angemeldet sein, um private Aufgaben zu verwenden.",
+    "success_create": "Private Aufgabe erstellt",
+    "success_delete": "Private Aufgabe erfolgreich gelöscht",
+    "success_duplicate": "Private Aufgabe erfolgreich dupliziert",
+    "success_update": "Private Aufgabe aktualisiert",
     "title": "Private Aufgaben",
     "todo_form": {
       "description_placeholder": "6 Eier...",
-      "title": "Neuer privater Eintrag",
+      "title": "Neue private Aufgabe",
       "title_placeholder": "Einkaufen gehen..."
     }
   },
   "report": {
     "info_tooltip": "Melden Info",
-    "info_title": "Infos zum Melden von Einträgen"
+    "info_title": "Infos zum Melden von Aufgaben"
   },
   "actions": {
     "delete_modal": {
-      "title": "Diesen Eintrag löschen?",
-      "message": "Wenn du diesen Eintrag löschst, werden dieser und alle dazugehörigen Bilder unwiderruflich gelöscht.",
-      "submit": "Eintrag löschen",
-      "success": "Eintrag gelöscht.",
+      "title": "Diese Aufgabe löschen?",
+      "message": "Wenn du diese Aufgabe löschst, werden diese und alle dazugehörigen Bilder unwiderruflich gelöscht.",
+      "submit": "Aufgabe löschen",
+      "success": "Aufgabe gelöscht.",
       "error": "Fehler beim Löschen."
     }
   },

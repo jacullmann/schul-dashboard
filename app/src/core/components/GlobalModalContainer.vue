@@ -13,7 +13,7 @@ import hw from '../../api/api';
 import GoogleLinkModal from '@/modules/auth/components/GoogleLinkModal.vue';
 import MfaVerifyModal from '@/modules/auth/components/MfaVerifyModal.vue';
 import SearchModal from '@/core/components/SearchModal.vue';
-import ItemForm from '@/modules/tasks/components/ItemForm.vue';
+import TaskForm from '@/modules/tasks/components/TaskForm.vue';
 import PrivateTaskForm from '@/modules/tasks/components/PrivateTaskForm.vue';
 import ChangePasswordModal from '@/modules/auth/components/ChangePasswordModal.vue';
 import SecurityModal from '@/modules/auth/components/SecurityModal.vue';
@@ -68,7 +68,7 @@ const {
 } = storeToRefs(modalStore);
 
 function onItemFormSuccess() {
-  toast.success(t('tasks.list.item_form.success_edit'));
+  toast.success(t('tasks.list.task_form.success_edit'));
   modalStore.notifyItemFormSuccess();
 }
 
@@ -171,7 +171,7 @@ async function onAuthSuccess() {
     </Transition>
   </Teleport>
 
-  <ItemForm
+  <TaskForm
     :key="itemFormKey"
     :open="itemFormOpen"
     :initial-type="itemFormInitialType"

@@ -5,47 +5,47 @@
     "hide_checked": "Hide checked off",
     "archive": {
       "archive": "Archive",
-      "archive_note": "You are currently viewing old entries",
+      "archive_note": "You are currently viewing old tasks",
       "close_archive": "Close Archive"
     },
-    "create_entry": "Create entry",
+    "create_task": "Create task",
     "infopop": {
       "description": "Work collaboratively with others and keep track of everything.",
       "sections": [
         {
-          "title": "Entries",
-          "text": "Anyone with an account can add an entry. Whether it's a <strong>homework assignment</strong>, <strong>Dalton task</strong>, or <strong>exam</strong> – anything you need to keep track of for school can be uploaded. All entries are public and visible at any time, so you can track together with others."
+          "title": "Tasks",
+          "text": "Anyone with an account can add a task. Whether it's a <strong>homework assignment</strong>, <strong>Dalton task</strong>, or <strong>exam</strong> – anything you need to keep track of for school can be uploaded. All tasks are public and visible at any time, so you can track together with others."
         },
         {
-          "title": "Adding entries",
-          "text": "To add an entry, click the <strong>+</strong> and select the type. Homework, Dalton tasks, and exams are always public; private entries are encrypted and only visible to you. Fill out the form and select the subject and due date. Optionally, related images can be uploaded such as board photos, model solutions, notes, study sheets, etc."
+          "title": "Adding tasks",
+          "text": "To add a task, click the <strong>+</strong> and select the type. Homework, Dalton tasks, and exams are always public; private tasks are encrypted and only visible to you. Fill out the form and select the subject and due date. Optionally, related images can be uploaded such as board photos, model solutions, notes, study sheets, etc."
         },
         {
           "title": "Uploading images",
-          "text": "Images can also be uploaded to other people's entries if relevant; click the <strong>3-dot menu</strong>, select <strong>Upload images</strong> and choose the desired images. To remove your own images, <strong>hold</strong> the image <strong>pressed</strong> or <strong>right-click</strong> on your image and select <strong>Delete</strong> from the menu."
+          "text": "Images can also be uploaded to other people's tasks if relevant; click the <strong>3-dot menu</strong>, select <strong>Upload images</strong> and choose the desired images. To remove your own images, <strong>hold</strong> the image <strong>pressed</strong> or <strong>right-click</strong> on your image and select <strong>Delete</strong> from the menu."
         },
         {
           "title": "Tracking completed tasks",
-          "text": "If you have an account, you can check off any entry you've completed using the <strong>checkbox</strong>. Your progress is saved in the cloud and the entry is minimized to make room for open tasks. This way you can immediately see what you still need to do."
+          "text": "If you have an account, you can check off any task you've completed using the <strong>checkbox</strong>. Your progress is saved in the cloud and the task is minimized to make room for open tasks. This way you can immediately see what you still need to do."
         },
         {
           "title": "Personalized courses",
-          "text": "If you've saved which courses/electives you're enrolled in on your account, you can automatically hide entries for other subjects. You can adjust your selection in your <strong>account settings</strong>. If you still want to see all entries, you can also disable this option in your account settings."
+          "text": "If you've saved which courses/electives you're enrolled in on your account, you can automatically hide tasks for other subjects. You can adjust your selection in your <strong>account settings</strong>. If you still want to see all tasks, you can also disable this option in your account settings."
         },
         {
           "title": "Archive",
-          "text": "Entries older than <strong>24 hours</strong> are automatically hidden to keep the view tidy. If you're looking for an older entry, you can click the <strong>Archive</strong> button and view entries up to <strong>30 days</strong> old."
+          "text": "Tasks older than <strong>24 hours</strong> are automatically hidden to keep the view tidy. If you're looking for an older task, you can click the <strong>Archive</strong> button and view tasks up to <strong>30 days</strong> old."
         }
       ],
       "tooltip": "Overview and features for tasks"
     },
-    "item_form": {
+    "task_form": {
       "course": "Course",
       "custom_subject": "Custom Subject",
       "description": "Description",
       "drop_to_upload": "Drop images here",
       "due_date": "Due date",
-      "edit_entry": "Edit Entry",
+      "edit_task": "Edit Task",
       "errors": {
         "course_missing": "Select a course",
         "custom_long": "The custom subject is too long (max. 100 characters)",
@@ -57,39 +57,39 @@
         "title_missing": "Add a title"
       },
       "images": "Images",
-      "new_entry": "New Entry",
+      "new_task": "New Task",
       "subject": "Subject",
-      "success_create": "Entry successfully created",
-      "success_edit": "Entry successfully edited",
+      "success_create": "Task successfully created",
+      "success_edit": "Task successfully edited",
       "success_upload": "Images successfully uploaded",
       "title": "Title",
       "upload_images": "Upload Images",
       "uploading_image": "Uploading image..."
     },
-    "items": {
+    "tasks": {
       "menu": {
         "add_note": "Add note",
         "archive": "Archive",
         "delete": {
-          "action": "Delete Entry",
-          "description": "If you delete this entry, it and all associated images will be permanently deleted.",
-          "title": "Delete this entry?"
+          "action": "Delete Task",
+          "description": "If you delete this task, it and all associated images will be permanently deleted.",
+          "title": "Delete this task?"
         },
         "info": "Info",
         "info_modal": {
           "created_at": "Created on",
           "created_by": "Created by",
           "not_edited": "–",
-          "title": "Entry Info",
+          "title": "Task Info",
           "updated_at": "Last edited"
         },
         "pin": "Pin",
         "report": {
-          "action": "Report Entry",
+          "action": "Report Task",
           "illegal_label": "What exactly is the problem? (optional)",
           "illegal_placeholder": "Description...",
           "name": "Report",
-          "title": "Report this entry?"
+          "title": "Report this task?"
         },
         "share": "Share",
         "share_confirm": "Link copied to clipboard!",
@@ -98,9 +98,9 @@
         "upload_images": "Upload Images"
       },
       "view": {
-        "no_entries": "No entries found",
-        "no_entries_in_view_message": "No entries in the current view. Change your filters or add a new entry",
-        "no_entries_message": "Add a new entry or"
+        "no_entries": "No tasks found",
+        "no_entries_in_view_message": "No tasks in the current view. Change your filters or add a new task",
+        "no_entries_message": "Add a new task or"
       }
     },
     "notes": {
@@ -123,17 +123,17 @@
     },
     "double_task_confirm": {
       "title": "Task Already Exists?",
-      "message": "On {date} there is already a {type} registered for the subject {subject}. Are you sure your entry isn't about the same task?",
+      "message": "On {date} there is already a {type} registered for the subject {subject}. Are you sure your task isn't about the same task?",
       "create_anyway": "Create anyway",
       "view_existing": "View existing"
     }
   },
   "private_tasks": {
-    "delete_confirm": "Do you really want to delete this private entry?",
-    "entry": "Private Entry",
-    "entry_delete_confirm": "Private entry successfully deleted",
-    "error_duplicate": "Failed to duplicate entry",
-    "error_load": "Failed to load private entries",
+    "delete_confirm": "Do you really want to delete this private task?",
+    "task": "Private Task",
+    "task_delete_confirm": "Private task successfully deleted",
+    "error_duplicate": "Failed to duplicate task",
+    "error_load": "Failed to load private tasks",
     "infopop": {
       "description": "Manage your private tasks",
       "sections": [
@@ -143,29 +143,56 @@
         },
         {
           "title": "Security",
-          "text": "Thanks to <strong>AES-256 encryption</strong> you don't need to worry about unwanted readers: only <strong>your password</strong> can be used to access your private entries."
+          "text": "Thanks to <strong>AES-256 encryption</strong> you don't need to worry about unwanted readers: only <strong>your password</strong> can be used to access your private tasks."
         }
       ],
-      "tooltip": "Overview and features for private entries"
+      "tooltip": "Overview and features for private tasks"
     },
-    "loading": "Loading private entries...",
+    "loading": "Loading private tasks...",
     "menu": {
       "down": "Move down",
       "up": "Move up"
     },
-    "new_entry": "New Entry",
-    "no_entries_found": "No private entries found.",
+    "new_task": "New Task",
+    "no_entries_found": "No private tasks found.",
     "only_visible_to_you": "Only visible to you",
-    "requires_account": "You must be logged in to use private entries.",
-    "success_create": "Private entry created",
-    "success_delete": "Private entry deleted successfully",
-    "success_duplicate": "Private entry duplicated successfully",
-    "success_update": "Private entry updated",
+    "requires_account": "You must be logged in to use private tasks.",
+    "success_create": "Private task created",
+    "success_delete": "Private task deleted successfully",
+    "success_duplicate": "Private task duplicated successfully",
+    "success_update": "Private task updated",
     "title": "Private Tasks",
     "todo_form": {
       "description_placeholder": "6 eggs...",
-      "title": "New Private Entry",
+      "title": "New Private Task",
       "title_placeholder": "Go grocery shopping..."
+    }
+  },
+  "actions": {
+    "delete_modal": {
+      "title": "Delete this task?",
+      "message": "If you delete this task, it and all associated images will be permanently deleted.",
+      "submit": "Delete task",
+      "success": "Task deleted.",
+      "error": "Error deleting."
+    }
+  },
+  "notes": {
+    "delete_modal": {
+      "title": "Delete note?",
+      "message": "Are you sure you want to permanently delete this note?",
+      "submit": "Delete note",
+      "success": "Note deleted.",
+      "error": "Error deleting note."
+    }
+  },
+  "images": {
+    "delete_modal": {
+      "title": "Delete this image?",
+      "message": "If you delete this image, it will be permanently removed.",
+      "submit": "Delete image",
+      "success": "Image deleted.",
+      "error": "Error deleting image."
     }
   }
 }

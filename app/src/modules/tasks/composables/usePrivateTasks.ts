@@ -108,7 +108,7 @@ export function usePrivateTasks() {
   const deletePrivateTask = async (id: string) => {
     if (
       !(await modalStore.confirm({
-        title: t('tasks.list.items.menu.delete.title'),
+        title: t('tasks.list.tasks.menu.delete.title'),
         content: t('tasks.private_tasks.delete_confirm'),
         submitText: t('common.buttons.delete'),
         danger: true,

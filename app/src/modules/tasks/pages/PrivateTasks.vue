@@ -38,7 +38,7 @@ const { user } = storeToRefs(userStore);
       </template>
       <template #action>
         <BaseTooltip
-          :content="t('tasks.private_tasks.new_entry')"
+          :content="t('tasks.private_tasks.new_task')"
           placement="bottom"
         >
           <BaseButton

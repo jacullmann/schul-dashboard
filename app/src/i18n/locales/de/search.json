@@ -4,9 +4,9 @@
     "change_language": "Die Sprache der App ändern",
     "change_password": "Dein Kontopasswort aktualisieren",
     "change_theme": "Das Design der App anpassen",
-    "create_entry": "Neuen Eintrag zur Aufgabenliste hinzufügen",
+    "create_task": "Neue Aufgabe zur Aufgabenliste hinzufügen",
     "create_group": "Eine neue Gruppe erstellen",
-    "create_private_entry": "Neuen privaten Eintrag hinzufügen",
+    "create_private_task": "Neue private Aufgabe hinzufügen",
     "edit_courses": "Deine Kursauswahl anpassen",
     "games": "Spiele und Unterhaltung",
     "groups": "Gruppen verwalten",
@@ -24,9 +24,9 @@
     "toggle_sidebar": "Seitenleiste ein- oder ausklappen"
   },
   "items": {
-    "create_entry": "Neuen Eintrag erstellen",
+    "create_task": "Neue Aufgabe erstellen",
     "create_group": "Gruppe erstellen",
-    "create_private_entry": "Neuen privaten Eintrag erstellen",
+    "create_private_task": "Neue private Aufgabe erstellen",
     "games": "Spiele",
     "image_tool": "Bild-Tool",
     "info_dashboard": "Info Dashboard",

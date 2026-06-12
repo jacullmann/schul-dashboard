@@ -222,7 +222,7 @@ watch(
 
     <template #actions-pre>
       <BaseTooltip
-        :content="t('tasks.list.items.menu.unpin')"
+        :content="t('tasks.list.tasks.menu.unpin')"
         placement="bottom"
       >
         <BaseButton
@@ -254,7 +254,7 @@ watch(
             :icon="Upload"
             @click="$emit('menu-action', 'images')"
           >
-            {{ t('tasks.list.items.menu.upload_images') }}
+            {{ t('tasks.list.tasks.menu.upload_images') }}
           </BaseMenuButton>
 
           <BaseMenuButton
@@ -270,7 +270,7 @@ watch(
             :icon="MessageSquarePlus"
             @click="$emit('menu-action', 'addNote')"
           >
-            {{ t('tasks.list.items.menu.add_note') }}
+            {{ t('tasks.list.tasks.menu.add_note') }}
           </BaseMenuButton>
 
           <BaseMenuDivider />
@@ -282,8 +282,8 @@ watch(
           >
             {{
               isPinned
-                ? t('tasks.list.items.menu.unpin')
-                : t('tasks.list.items.menu.pin')
+                ? t('tasks.list.tasks.menu.unpin')
+                : t('tasks.list.tasks.menu.pin')
             }}
           </BaseMenuButton>
 
@@ -293,15 +293,15 @@ watch(
           >
             {{
               showOldEntries
-                ? t('tasks.list.items.menu.unarchive')
-                : t('tasks.list.items.menu.archive')
+                ? t('tasks.list.tasks.menu.unarchive')
+                : t('tasks.list.tasks.menu.archive')
             }}
           </BaseMenuButton>
 
           <BaseMenuDivider />
 
           <BaseMenuButton :icon="Send" @click="$emit('menu-action', 'share')">
-            {{ t('tasks.list.items.menu.share') }}
+            {{ t('tasks.list.tasks.menu.share') }}
           </BaseMenuButton>
 
           <BaseMenuButton
@@ -311,7 +311,7 @@ watch(
               $emit('show-info');
             "
           >
-            {{ t('tasks.list.items.menu.info') }}
+            {{ t('tasks.list.tasks.menu.info') }}
           </BaseMenuButton>
 
           <BaseMenuDivider />
@@ -321,7 +321,7 @@ watch(
             :icon="Flag"
             @click="$emit('menu-action', 'report')"
           >
-            {{ t('tasks.list.items.menu.report.name') }}
+            {{ t('tasks.list.tasks.menu.report.name') }}
           </BaseMenuButton>
 
           <BaseMenuButton

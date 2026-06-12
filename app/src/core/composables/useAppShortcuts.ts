@@ -23,7 +23,7 @@ export function useAppShortcuts() {
     if (e.altKey && !e.ctrlKey && !e.metaKey) {
       e.preventDefault();
       withGroup(() => {
-        modalStore.openItemForm();
+        modalStore.openTaskForm();
       });
     }
   });

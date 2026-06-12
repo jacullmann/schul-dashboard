@@ -3,13 +3,13 @@ import { useI18n } from 'vue-i18n';
 import type { HwItem, ItemType } from '@/modules/tasks/types';
 import hw from '@/api/api.ts';
 import { useToast } from '@/common/composables/useToast';
-import { useItemForm } from '@/core/composables/useItemForm';
+import { useTaskForm } from '@/core/composables/useTaskForm';
 import { useModalStore } from '@/stores/modalStore';
 import type { HwContext } from './types';
 
 export function useHwForms(ctx: HwContext) {
   const { t } = useI18n();
-  const { openItemForm, openEditForm, onFormSuccess } = useItemForm();
+  const { openTaskForm, openEditForm, onFormSuccess } = useTaskForm();
 
   const unregister = onFormSuccess(() => ctx.reloadList());
   onUnmounted(unregister);
@@ -27,7 +27,7 @@ export function useHwForms(ctx: HwContext) {
   }
 
   function openCreateFormByType(type: Exclude<ItemType, 'all'>) {
-    openItemForm(type);
+    openTaskForm(type);
   }
 
   function canEditNote() {

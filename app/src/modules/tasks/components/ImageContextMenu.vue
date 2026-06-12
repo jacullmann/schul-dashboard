@@ -60,7 +60,7 @@ const contextMenuStyles = computed(() => ({
       @close="emit('cancel')"
     >
       <BaseMenuButton :icon="Upload" @click="emit('upload')">
-        {{ t('tasks.list.items.menu.upload_images') }}
+        {{ t('tasks.list.tasks.menu.upload_images') }}
       </BaseMenuButton>
 
       <BaseMenuButton

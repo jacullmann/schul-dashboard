@@ -3,7 +3,7 @@ import { ref, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
-import { useItemForm } from '@/core/composables/useItemForm';
+import { useTaskForm } from '@/core/composables/useTaskForm';
 import { usePrivateTaskForm } from '@/core/composables/usePrivateTaskForm';
 import { useAnnouncementForm } from '@/core/composables/useAnnouncementForm';
 import {
@@ -59,7 +59,7 @@ const {
   checkPermission,
   createInvite,
 } = useAppAuth();
-const { openItemForm } = useItemForm();
+const { openTaskForm } = useTaskForm();
 const { openPrivateTaskForm } = usePrivateTaskForm();
 const { openAnnouncementForm } = useAnnouncementForm();
 const { openSetup, openSecurity, openChangePassword } = useAccountModals();
@@ -207,13 +207,13 @@ const defaultResults = computed<SearchResult[]>(() => [
   },
   {
     id: 'create-entry',
-    label: t('search.items.create_entry'),
-    description: t('search.descriptions.create_entry'),
+    label: t('search.items.create_task'),
+    description: t('search.descriptions.create_task'),
     category: 'action',
     icon: SquarePen,
     action: () => {
       withGroup(() => {
-        openItemForm();
+        openTaskForm();
       });
       emit('cancel');
     },
@@ -221,8 +221,8 @@ const defaultResults = computed<SearchResult[]>(() => [
   },
   {
     id: 'create-private-entry',
-    label: t('search.items.create_private_entry'),
-    description: t('search.descriptions.create_private_entry'),
+    label: t('search.items.create_private_task'),
+    description: t('search.descriptions.create_private_task'),
     category: 'action',
     icon: Lock,
     action: () => {

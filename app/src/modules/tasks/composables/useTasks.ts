@@ -285,7 +285,7 @@ export function useTasks() {
     if (oldVal && !val && images.currentUploadItemId.value) {
       if (imageUpload.uploadSuccess.value) {
         await list.refreshItem(images.currentUploadItemId.value);
-        useToast().success(t('tasks.list.item_form.success_upload'));
+        useToast().success(t('tasks.list.task_form.success_upload'));
       } else if (imageUpload.uploadError.value) {
         useToast().error(imageUpload.uploadError.value);
       }

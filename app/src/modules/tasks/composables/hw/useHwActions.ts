@@ -208,7 +208,7 @@ export function useHwActions(
         itemTitle: item.title,
         reason,
       });
-      handleSuccessAction('Eintrag gemeldet.');
+      handleSuccessAction('Aufgabe gemeldet.');
     } catch (e: any) {
       handleSuccessAction(
         'Fehler beim Melden: ' + (e.response?.data?.error || ''),

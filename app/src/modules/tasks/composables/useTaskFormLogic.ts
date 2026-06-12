@@ -10,7 +10,7 @@ import { getSubjectKey } from '@/types/subjects';
 import { useSubjectStore } from '@/stores/subjectStore';
 import { formatSubjectDisplay } from '@/utils/subject-formatter';
 
-export function useTaskItemForm(
+export function useTaskFormLogic(
   initial: HwItem | null | undefined,
   initialType: Exclude<ItemType, 'all'> | undefined,
   emit: {
@@ -271,24 +271,24 @@ export function useTaskItemForm(
 
     const main = subjectSel.value;
     if (!main) {
-      subjectError.value = t('tasks.list.item_form.errors.custom_missing');
+      subjectError.value = t('tasks.list.task_form.errors.custom_missing');
       hasValidationErrors = true;
     } else if (main === '__OTHER__') {
       finalSubject = subjectOther.value.trim();
       if (!finalSubject) {
         subjectOtherError.value = t(
-          'tasks.list.item_form.errors.custom_missing',
+          'tasks.list.task_form.errors.custom_missing',
         );
         hasValidationErrors = true;
       } else if (finalSubject.length > 100) {
-        subjectOtherError.value = t('tasks.list.item_form.errors.custom_long');
+        subjectOtherError.value = t('tasks.list.task_form.errors.custom_long');
         hasValidationErrors = true;
       }
     } else if (selectedSubjectHasCourses.value) {
       if (!courseSel.value) {
         const translationKey = `common.subjects.${main}`;
         const courseName = te(translationKey) ? t(translationKey) : main;
-        courseError.value = t('tasks.list.item_form.errors.course_missing', {
+        courseError.value = t('tasks.list.task_form.errors.course_missing', {
           course: courseName,
         });
         hasValidationErrors = true;
@@ -301,17 +301,17 @@ export function useTaskItemForm(
 
     const cleanTitle = title.value.trim();
     if (!cleanTitle) {
-      titleError.value = t('tasks.list.item_form.errors.title_missing');
+      titleError.value = t('tasks.list.task_form.errors.title_missing');
       hasValidationErrors = true;
     } else if (cleanTitle.length > 60) {
-      titleError.value = t('tasks.list.item_form.errors.title_long');
+      titleError.value = t('tasks.list.task_form.errors.title_long');
       hasValidationErrors = true;
     }
 
     const cleanDesc = description.value.trim();
     if (cleanDesc.length > 1000) {
       descriptionError.value = t(
-        'tasks.list.item_form.errors.description_long',
+        'tasks.list.task_form.errors.description_long',
       );
       hasValidationErrors = true;
     }
@@ -320,10 +320,10 @@ export function useTaskItemForm(
     selectedDate.setHours(23, 59, 0, 0);
 
     if (selectedDate < minDate) {
-      dueDateError.value = t('tasks.list.item_form.errors.date_old');
+      dueDateError.value = t('tasks.list.task_form.errors.date_old');
       hasValidationErrors = true;
     } else if (selectedDate > maxDate) {
-      dueDateError.value = t('tasks.list.item_form.errors.date_new');
+      dueDateError.value = t('tasks.list.task_form.errors.date_new');
       hasValidationErrors = true;
     }
 

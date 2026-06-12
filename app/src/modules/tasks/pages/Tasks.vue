@@ -5,15 +5,15 @@ import { useWindowSize } from '@vueuse/core';
 import { Plus, ListFilter } from '@lucide/vue';
 
 import { useTasks } from '@/modules/tasks/composables/useTasks';
-import { useItemForm } from '@/core/composables/useItemForm';
+import { useTaskForm } from '@/core/composables/useTaskForm';
 import { useImageViewer } from '@/core/composables/useImageViewer';
 
 import InfoModal from '@/common/components/InfoModal.vue';
-import ItemSkeleton from '@/modules/tasks/components/ItemSkeleton.vue';
+import TaskSkeleton from '@/modules/tasks/components/TaskSkeleton.vue';
 import TaskCard from '@/modules/tasks/components/TaskCard.vue';
 import ImageContextMenu from '@/modules/tasks/components/ImageContextMenu.vue';
 import ReportModal from '@/modules/tasks/components/ReportModal.vue';
-import ItemInfoModal from '@/modules/tasks/components/ItemInfoModal.vue';
+import TaskInfoModal from '@/modules/tasks/components/TaskInfoModal.vue';
 import NotificationDot from '@/common/components/NotificationDot.vue';
 
 import type { HwItem } from '@/modules/tasks/composables/useTasks';
@@ -111,7 +111,7 @@ const hasActiveFilters = computed(
   () => subjectFilter.value !== '' || showOldEntries.value || hideChecked.value,
 );
 
-const { openItemForm } = useItemForm();
+const { openTaskForm } = useTaskForm();
 const { openImageViewer } = useImageViewer();
 
 const animationStartTime = ref(Date.now());
@@ -162,13 +162,13 @@ function openImageViewerForItem(item: HwItem, index: number) {
         </template>
 
         <template #action>
-          <BaseTooltip content="New Entry" placement="bottom">
+          <BaseTooltip content="New Task" placement="bottom">
             <BaseButton
               variant="action"
-              :aria-label="t('tasks.list.item_form.new_entry')"
+              :aria-label="t('tasks.list.task_form.new_task')"
               :icon="Plus"
               icon-classes="size-6"
-              @click="openItemForm()"
+              @click="openTaskForm()"
             />
           </BaseTooltip>
         </template>
@@ -204,7 +204,7 @@ function openImageViewerForItem(item: HwItem, index: number) {
     </div>
 
     <div class="flex flex-col gap-3 mt-4">
-      <ItemSkeleton v-if="loading && initialLoad" :count="5" :image-count="2" />
+      <TaskSkeleton v-if="loading && initialLoad" :count="5" :image-count="2" />
 
       <template v-else>
         <TaskCard
@@ -267,17 +267,17 @@ function openImageViewerForItem(item: HwItem, index: number) {
           animationDelay: `${3 * 0.05 - elapsedLoadTime}s`,
           animationFillMode: 'both',
         }"
-        :primary-action="openItemForm"
+        :primary-action="openTaskForm"
         :secondary-action="resetFilters"
       >
-        <template #title>{{ t('tasks.list.items.view.no_entries') }}</template>
+        <template #title>{{ t('tasks.list.tasks.view.no_entries') }}</template>
         <template #message>{{
           filteredItems.length
-            ? t('tasks.list.items.view.no_entries_in_view_message')
-            : t('tasks.list.items.view.no_entries_message')
+            ? t('tasks.list.tasks.view.no_entries_in_view_message')
+            : t('tasks.list.tasks.view.no_entries_message')
         }}</template>
         <template #primary-action-label>{{
-          t('tasks.list.create_entry')
+          t('tasks.list.create_task')
         }}</template>
         <template #secondary-action-label>{{
           t('tasks.list.reset_filters')
@@ -323,7 +323,7 @@ function openImageViewerForItem(item: HwItem, index: number) {
       @cancel="cancelReport"
     />
 
-    <ItemInfoModal
+    <TaskInfoModal
       :open="!!showInfoItem"
       :item="showInfoItem"
       :is-mod-or-admin="
@@ -348,7 +348,7 @@ function openImageViewerForItem(item: HwItem, index: number) {
         <div class="flex flex-col gap-2">
           <div class="flex items-center justify-between h-12">
             <span class="text-sm font-medium text-on-ghost">
-              {{ t('tasks.list.item_form.subject') }}
+              {{ t('tasks.list.task_form.subject') }}
             </span>
             <BaseSelect
               v-model="subjectFilter"

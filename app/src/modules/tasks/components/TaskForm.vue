@@ -3,7 +3,7 @@ import { useI18n } from 'vue-i18n';
 import type { HwItem } from '@/modules/tasks/composables/useTasks';
 import type { ItemType } from '@/modules/tasks/types';
 import { X, Upload, FileText } from '@lucide/vue';
-import { useTaskItemForm } from '../composables/useTaskItemForm';
+import { useTaskFormLogic } from '../composables/useTaskFormLogic';
 import ItemCard from './ItemCard.vue';
 
 const { t } = useI18n();
@@ -60,7 +60,7 @@ const {
   doubleTaskTypeLabel,
   doubleTaskDueDate,
   doubleTaskConfirmMessage,
-} = useTaskItemForm(props.initial, props.initialType, emit);
+} = useTaskFormLogic(props.initial, props.initialType, emit);
 </script>
 
 <template>
@@ -78,8 +78,8 @@ const {
     <template #title>
       {{
         initial
-          ? t('tasks.list.item_form.edit_entry')
-          : t('tasks.list.item_form.new_entry')
+          ? t('tasks.list.task_form.edit_task')
+          : t('tasks.list.task_form.new_task')
       }}
     </template>
 
@@ -92,7 +92,7 @@ const {
           <div class="text-2xl mb-2">📸</div>
           <div class="text-xl font-bold text-primary">
             {{
-              t('tasks.list.item_form.drop_to_upload') || 'Bilder hier ablegen'
+              t('tasks.list.task_form.drop_to_upload') || 'Bilder hier ablegen'
             }}
           </div>
         </div>
@@ -108,7 +108,7 @@ const {
 
       <BaseFormGroup id="title" :error="titleError">
         <BaseLabel for="title" :required="true">{{
-          t('tasks.list.item_form.title')
+          t('tasks.list.task_form.title')
         }}</BaseLabel>
         <BaseInput
           id="title"
@@ -120,7 +120,7 @@ const {
 
       <BaseFormGroup id="subject" :error="subjectError">
         <BaseLabel for="subject" :required="true">{{
-          t('tasks.list.item_form.subject')
+          t('tasks.list.task_form.subject')
         }}</BaseLabel>
         <BaseSelect
           id="subject"
@@ -136,7 +136,7 @@ const {
         :error="courseError"
       >
         <BaseLabel for="courseSel" :required="true">{{
-          t('tasks.list.item_form.course')
+          t('tasks.list.task_form.course')
         }}</BaseLabel>
         <BaseSelect
           id="courseSel"
@@ -152,7 +152,7 @@ const {
         :error="subjectOtherError"
       >
         <BaseLabel for="subjectOther" :required="true">{{
-          t('tasks.list.item_form.custom_subject')
+          t('tasks.list.task_form.custom_subject')
         }}</BaseLabel>
         <BaseInput
           id="subjectOther"
@@ -165,7 +165,7 @@ const {
 
       <BaseFormGroup id="description" :error="descriptionError">
         <BaseLabel for="description">{{
-          t('tasks.list.item_form.description')
+          t('tasks.list.task_form.description')
         }}</BaseLabel>
         <BaseInput
           id="description"
@@ -178,7 +178,7 @@ const {
 
       <BaseFormGroup id="dueDate" :error="dueDateError">
         <BaseLabel for="dueDate" :required="true">{{
-          t('tasks.list.item_form.due_date')
+          t('tasks.list.task_form.due_date')
         }}</BaseLabel>
         <BaseInput
           id="dueDate"
@@ -190,7 +190,7 @@ const {
 
       <BaseFormGroup id="images" :error="imgUploadError">
         <BaseLabel for="images">{{
-          t('tasks.list.item_form.images')
+          t('tasks.list.task_form.images')
         }}</BaseLabel>
         <BaseRow id="images">
           <div
@@ -222,13 +222,13 @@ const {
                 :icon="X"
                 @click="removeImg(img, initial?.id)"
               >
-                {{ t('tasks.list.item_form.remove_image') }}
+                {{ t('tasks.list.task_form.remove_image') }}
               </BaseButton>
             </div>
           </div>
 
           <BaseTooltip
-            :content="t('tasks.list.items.menu.upload_images')"
+            :content="t('tasks.list.tasks.menu.upload_images')"
             placement="right"
           >
             <BaseButton

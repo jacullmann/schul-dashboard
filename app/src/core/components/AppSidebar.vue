@@ -17,7 +17,7 @@ import {
 } from '@lucide/vue';
 import AccountMenu from '@/modules/auth/components/AccountMenu.vue';
 import { useSearchModal } from '@/core/composables/useSearchModal';
-import { useItemForm } from '@/core/composables/useItemForm';
+import { useTaskForm } from '@/core/composables/useTaskForm';
 import { useAnnouncementForm } from '@/core/composables/useAnnouncementForm';
 import { useModalStore } from '@/stores/modalStore';
 import { storeToRefs } from 'pinia';
@@ -43,7 +43,7 @@ const router = useRouter();
 const modalStore = useModalStore();
 const { sidebarExpanded: isExpanded } = storeToRefs(modalStore);
 const { openSearch } = useSearchModal();
-const { openItemForm } = useItemForm();
+const { openTaskForm } = useTaskForm();
 const { openAnnouncementForm } = useAnnouncementForm();
 const { withGroup } = useGroupAction();
 
@@ -96,7 +96,7 @@ function handleSearch() {
 function handleEntry() {
   collapseIfMobile();
   withGroup(() => {
-    openItemForm();
+    openTaskForm();
   });
 }
 

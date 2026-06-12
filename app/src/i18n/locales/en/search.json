@@ -4,9 +4,9 @@
     "change_language": "Change the app's language",
     "change_password": "Update your account password",
     "change_theme": "Change the app's appearance",
-    "create_entry": "Add a new entry to the task list",
+    "create_task": "Add a new task to the task list",
     "create_group": "Create a new group",
-    "create_private_entry": "Add a new private entry to your tasks",
+    "create_private_task": "Add a new private task to your tasks",
     "edit_courses": "Customize your course selection",
     "games": "Games and entertainment",
     "groups": "Manage your groups",
@@ -24,9 +24,9 @@
     "toggle_sidebar": "Expand/collapse the sidebar"
   },
   "items": {
-    "create_entry": "Create new entry",
+    "create_task": "Create new task",
     "create_group": "Create group",
-    "create_private_entry": "Create new private entry",
+    "create_private_task": "Create new private task",
     "games": "Games",
     "image_tool": "Image Tool",
     "info_dashboard": "Info Dashboard",

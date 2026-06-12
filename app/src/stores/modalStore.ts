@@ -53,39 +53,39 @@ export const useModalStore = defineStore('modals', () => {
     inviteModalToken.value = null;
   }
 
-  const itemFormOpen = ref(false);
-  const itemFormKey = ref(0);
-  const itemToEdit = ref<HwItem | null>(null);
-  const itemFormInitialType = ref<Exclude<ItemType, 'all'>>('homework');
+  const taskFormOpen = ref(false);
+  const taskFormKey = ref(0);
+  const taskToEdit = ref<HwItem | null>(null);
+  const taskFormInitialType = ref<Exclude<ItemType, 'all'>>('homework');
 
-  const _itemFormSuccessCallbacks = new Set<() => void>();
+  const _taskFormSuccessCallbacks = new Set<() => void>();
 
-  function openItemForm(type: Exclude<ItemType, 'all'> = 'homework') {
-    itemToEdit.value = null;
-    itemFormInitialType.value = type;
-    itemFormKey.value += 1;
-    itemFormOpen.value = true;
+  function openTaskForm(type: Exclude<ItemType, 'all'> = 'homework') {
+    taskToEdit.value = null;
+    taskFormInitialType.value = type;
+    taskFormKey.value += 1;
+    taskFormOpen.value = true;
   }
 
   function openEditForm(item: HwItem) {
-    itemToEdit.value = item;
-    itemFormInitialType.value = item.type;
-    itemFormKey.value += 1;
-    itemFormOpen.value = true;
+    taskToEdit.value = item;
+    taskFormInitialType.value = item.type;
+    taskFormKey.value += 1;
+    taskFormOpen.value = true;
   }
 
-  function closeItemForm() {
-    itemFormOpen.value = false;
+  function closeTaskForm() {
+    taskFormOpen.value = false;
   }
 
-  function notifyItemFormSuccess() {
-    _itemFormSuccessCallbacks.forEach((cb) => cb());
-    closeItemForm();
+  function notifyTaskFormSuccess() {
+    _taskFormSuccessCallbacks.forEach((cb) => cb());
+    closeTaskForm();
   }
 
-  function onItemFormSuccess(cb: () => void): () => void {
-    _itemFormSuccessCallbacks.add(cb);
-    return () => _itemFormSuccessCallbacks.delete(cb);
+  function onTaskFormSuccess(cb: () => void): () => void {
+    _taskFormSuccessCallbacks.add(cb);
+    return () => _taskFormSuccessCallbacks.delete(cb);
   }
 
   const privateTaskFormOpen = ref(false);
@@ -250,15 +250,15 @@ export const useModalStore = defineStore('modals', () => {
     openInviteModal,
     closeInviteModal,
 
-    itemFormOpen,
-    itemFormKey,
-    itemToEdit,
-    itemFormInitialType,
-    openItemForm,
+    taskFormOpen,
+    taskFormKey,
+    taskToEdit,
+    taskFormInitialType,
+    openTaskForm,
     openEditForm,
-    closeItemForm,
-    notifyItemFormSuccess,
-    onItemFormSuccess,
+    closeTaskForm,
+    notifyTaskFormSuccess,
+    onTaskFormSuccess,
 
     privateTaskFormOpen,
     privateTaskFormKey,
