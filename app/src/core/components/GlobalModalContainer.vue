@@ -44,10 +44,10 @@ const {
 
 const {
   searchOpen,
-  itemFormOpen,
-  itemFormKey,
-  itemToEdit,
-  itemFormInitialType,
+  taskFormOpen,
+  taskFormKey,
+  taskToEdit,
+  taskFormInitialType,
   showChangePassword,
   showSecurity,
   showSetup,
@@ -67,9 +67,9 @@ const {
   confirmOptions,
 } = storeToRefs(modalStore);
 
-function onItemFormSuccess() {
+function onTaskFormSuccess() {
   toast.success(t('tasks.list.task_form.success_edit'));
-  modalStore.notifyItemFormSuccess();
+  modalStore.notifyTaskFormSuccess();
 }
 
 function onPrivateTaskFormSuccess(task: any) {
@@ -172,12 +172,12 @@ async function onAuthSuccess() {
   </Teleport>
 
   <TaskForm
-    :key="itemFormKey"
-    :open="itemFormOpen"
-    :initial-type="itemFormInitialType"
-    :initial="itemToEdit"
-    @cancel="modalStore.closeItemForm()"
-    @success="onItemFormSuccess"
+    :key="taskFormKey"
+    :open="taskFormOpen"
+    :initial-type="taskFormInitialType"
+    :initial="taskToEdit"
+    @cancel="modalStore.closeTaskForm()"
+    @success="onTaskFormSuccess"
   />
 
   <PrivateTaskForm
