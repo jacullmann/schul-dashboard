@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { Copy, Trash2, Flag } from '@lucide/vue';
+import { Copy, Trash2, Flag, Reply } from '@lucide/vue';
 
 const { t } = useI18n();
 
@@ -14,6 +14,7 @@ defineProps<{
 
 const emit = defineEmits<{
   (e: 'close'): void;
+  (e: 'reply', msg: any): void;
   (e: 'copy', msg: any): void;
   (e: 'report', msg: any): void;
   (e: 'delete', msg: any): void;
@@ -37,6 +38,10 @@ defineExpose({
       @close="emit('close')"
     >
       <template v-if="activeMessage">
+        <BaseMenuButton :icon="Reply" @click="emit('reply', activeMessage)">
+          {{ t('chat.reply') }}
+        </BaseMenuButton>
+
         <BaseMenuButton :icon="Copy" @click="emit('copy', activeMessage)">
           {{ t('common.buttons.copy') }}
         </BaseMenuButton>
@@ -50,8 +55,6 @@ defineExpose({
         >
           {{ t('tasks.list.tasks.menu.report.name') }}
         </BaseMenuButton>
-
-        <BaseMenuDivider v-if="canDelete" />
 
         <BaseMenuButton
           v-if="canDelete"

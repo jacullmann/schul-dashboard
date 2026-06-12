@@ -131,6 +131,7 @@ const {
           :context-menu-styles="contextMenuStyles"
           :is-mobile="isMobile"
           @close="activeMessage = null"
+          @reply="(msg) => { startReply(msg); activeMessage = null; }"
           @copy="copyMessage"
           @report="reportMessage"
           @delete="deleteMessage"
