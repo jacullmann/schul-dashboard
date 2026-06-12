@@ -8,6 +8,7 @@ import ChatMessageBubble from '../components/ChatMessageBubble.vue';
 import ChatContextMenu from '../components/ChatContextMenu.vue';
 import ChatInput from '../components/ChatInput.vue';
 import ChatScrollButton from '../components/ChatScrollButton.vue';
+import ReportModal from '@/modules/tasks/components/ReportModal.vue';
 
 const { t } = useI18n();
 
@@ -40,6 +41,11 @@ const {
   canDeleteMessage,
   copyMessage,
   deleteMessage,
+  showReportConfirm,
+  reportReason,
+  reportMessage,
+  doReport,
+  cancelReport,
 } = useMessages();
 </script>
 
@@ -126,7 +132,17 @@ const {
           :is-mobile="isMobile"
           @close="activeMessage = null"
           @copy="copyMessage"
+          @report="reportMessage"
           @delete="deleteMessage"
+        />
+
+        <ReportModal
+          v-model:reason="reportReason"
+          :open="showReportConfirm"
+          message=""
+          :show-reason-input="true"
+          @confirm="doReport"
+          @cancel="cancelReport"
         />
 
         <div class="px-6 py-1 h-6 mt-4 flex items-center shrink-0 bg-canvas">

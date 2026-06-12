@@ -16,6 +16,8 @@
   "delete_confirm": "Möchtest du diese Nachricht wirklich löschen?",
   "delete_confirm_title": "Nachricht löschen?",
   "delete_success": "Nachricht erfolgreich gelöscht",
+  "report_success": "Nachricht erfolgreich gemeldet",
+  "report_error": "Fehler beim Melden der Nachricht",
   "errors": {
     "send_deactivated": "Das Senden von Nachrichten ist für dich deaktiviert"
   }

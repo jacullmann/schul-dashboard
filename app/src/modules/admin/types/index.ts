@@ -54,6 +54,11 @@ export interface SuperAdminReport {
   itemEditorNote?: string;
   itemTenantId?: string;
   creatorEmail?: string;
+  reportType?: 'task' | 'message';
+  messageId?: string;
+  messageContent?: string;
+  messageSenderEmail?: string;
+  messageTenantId?: string;
 }
 
 export interface SuperAdminGroup {

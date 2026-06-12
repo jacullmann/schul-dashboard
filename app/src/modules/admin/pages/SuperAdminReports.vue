@@ -32,167 +32,235 @@ onMounted(loadReports);
       <h3 class="sub-heading">Open ({{ unprocessedReports.length }})</h3>
       <div class="card-grid">
         <template v-for="r in unprocessedReports" :key="r.id">
-          <ItemCard
-            v-if="r.itemType"
-            :title="r.itemTitle"
-            :show-menu-trigger="false"
-            :is-collapsed="false"
-          >
-            <template #badges>
-              <div
-                class="text-on-ghost-muted text-base flex flex-wrap gap-1 items-center"
-              >
-                <span>{{ getTypeLabel(r.itemType) }}</span>
-                <span>·</span>
-                <span>{{ getSubjectName(r.itemSubject) }}</span>
-                <span>·</span>
-                <span>Due: {{ fmtDate(r.itemDueDate) }}</span>
-                <template v-if="r.creatorEmail">
+          <!-- Task reports -->
+          <template v-if="!r.reportType || r.reportType === 'task'">
+            <ItemCard
+              v-if="r.itemType"
+              :title="r.itemTitle"
+              :show-menu-trigger="false"
+              :is-collapsed="false"
+            >
+              <template #badges>
+                <div
+                  class="text-on-ghost-muted text-base flex flex-wrap gap-1 items-center"
+                >
+                  <span>{{ getTypeLabel(r.itemType) }}</span>
                   <span>·</span>
-                  <span>By: {{ r.creatorEmail }}</span>
-                </template>
-              </div>
-            </template>
+                  <span>{{ getSubjectName(r.itemSubject) }}</span>
+                  <span>·</span>
+                  <span>Due: {{ fmtDate(r.itemDueDate) }}</span>
+                  <template v-if="r.creatorEmail">
+                    <span>·</span>
+                    <span>By: {{ r.creatorEmail }}</span>
+                  </template>
+                </div>
+              </template>
 
-            <template #actions-pre>
-              <BaseTooltip content="View full task" placement="bottom">
-                <BaseButton
-                  variant="ghost"
-                  size="sm"
-                  :icon="ArrowUpRight"
-                  @click.stop="
-                    $router.push({
-                      name: 'group-tasks',
-                      params: { groupId: r.itemTenantId },
-                      query: {
-                        type: r.itemType,
-                        itemId: r.itemId,
-                      },
-                    })
-                  "
-                />
-              </BaseTooltip>
-            </template>
-
-            <template v-if="r.itemDescription" #body>
-              <div
-                class="text-on-ghost break-words [overflow-wrap:anywhere] hyphens-auto whitespace-pre-wrap select-text cursor-text"
-              >
-                {{ r.itemDescription }}
-              </div>
-            </template>
-
-            <template #content-after>
-              <div
-                v-if="r.itemImages && r.itemImages.length"
-                class="grid grid-cols-4 gap-2 mt-2 mb-2"
-              >
-                <div
-                  v-for="img in r.itemImages"
-                  :key="img.publicId"
-                  class="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-md border-none bg-black/[0.12] select-none"
-                >
-                  <img
-                    :src="makeThumb(img.metadata?.thumbnailId || img.publicId)"
-                    class="block h-full w-full object-cover [pointer-events:none]"
-                    alt="Vorschau"
+              <template #actions-pre>
+                <BaseTooltip content="View full task" placement="bottom">
+                  <BaseButton
+                    variant="ghost"
+                    size="sm"
+                    :icon="ArrowUpRight"
+                    @click.stop="
+                      $router.push({
+                        name: 'group-tasks',
+                        params: { groupId: r.itemTenantId },
+                        query: {
+                          type: r.itemType,
+                          itemId: r.itemId,
+                        },
+                      })
+                    "
                   />
-                </div>
-              </div>
+                </BaseTooltip>
+              </template>
 
-              <div
-                v-if="r.itemEditorNote"
-                class="note-section mt-2 pt-1 border-t border-surface-border"
-              >
-                <div class="text-on-ghost text-base font-bold mb-1">Note:</div>
+              <template v-if="r.itemDescription" #body>
                 <div
-                  class="text-on-ghost text-base whitespace-pre-wrap break-words"
+                  class="text-on-ghost break-words [overflow-wrap:anywhere] hyphens-auto whitespace-pre-wrap select-text cursor-text"
                 >
-                  {{ r.itemEditorNote }}
+                  {{ r.itemDescription }}
                 </div>
-              </div>
+              </template>
 
-              <div
-                v-if="r.reason"
-                class="report-reason-box mt-2 pt-1 border-t border-surface-border"
-              >
-                <div class="text-on-ghost text-base font-bold mb-1">
-                  Report Reason:
+              <template #content-after>
+                <div
+                  v-if="r.itemImages && r.itemImages.length"
+                  class="grid grid-cols-4 gap-2 mt-2 mb-2"
+                >
+                  <div
+                    v-for="img in r.itemImages"
+                    :key="img.publicId"
+                    class="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-md border-none bg-black/[0.12] select-none"
+                  >
+                    <img
+                      :src="makeThumb(img.metadata?.thumbnailId || img.publicId)"
+                      class="block h-full w-full object-cover [pointer-events:none]"
+                      alt="Vorschau"
+                    />
+                  </div>
                 </div>
-                <div class="report-reason italic">"{{ r.reason }}"</div>
-              </div>
-              <div class="report-meta mt-1 text-xs text-on-ghost-muted">
-                From: {{ r.reporterEmail }} · {{ fmtDate(r.reportedAt) }}
-              </div>
 
-              <div
-                class="report-actions mt-3 pt-2 border-t border-surface-border flex gap-2"
-              >
-                <BaseButton
-                  class="tiny"
-                  variant="ghost"
-                  :icon="Check"
-                  @click="toggleReportProcessed(r.id, false)"
+                <div
+                  v-if="r.itemEditorNote"
+                  class="note-section mt-2 pt-1 border-t border-surface-border"
                 >
-                  Resolve
-                </BaseButton>
-                <BaseButton
-                  class="tiny"
-                  variant="ghost"
-                  :icon="Trash2"
-                  @click="deleteReport(r.id)"
-                >
-                  Delete
-                </BaseButton>
-              </div>
-            </template>
-          </ItemCard>
-
-          <ItemCard
-            v-else
-            :title="r.itemTitle + ' (Deleted)'"
-            :show-menu-trigger="false"
-            :is-collapsed="false"
-          >
-            <template #badges>
-              <div
-                class="text-on-ghost-muted text-base flex flex-wrap gap-1 items-center"
-              >
-                <span class="badge badge-red">Deleted Item</span>
-              </div>
-            </template>
-            <template #content-after>
-              <div v-if="r.reason" class="report-reason-box mt-2">
-                <div class="text-on-ghost text-base font-bold mb-1">
-                  Report Reason:
+                  <div class="text-on-ghost text-base font-bold mb-1">Note:</div>
+                  <div
+                    class="text-on-ghost text-base whitespace-pre-wrap break-words"
+                  >
+                    {{ r.itemEditorNote }}
+                  </div>
                 </div>
-                <div class="report-reason italic">"{{ r.reason }}"</div>
-              </div>
-              <div class="report-meta mt-1 text-xs text-on-ghost-muted">
-                From: {{ r.reporterEmail }} · {{ fmtDate(r.reportedAt) }}
-              </div>
-              <div
-                class="report-actions mt-3 pt-2 border-t border-surface-border flex gap-2"
-              >
-                <BaseButton
-                  class="tiny"
-                  variant="ghost"
-                  :icon="Check"
-                  @click="toggleReportProcessed(r.id, false)"
+
+                <div
+                  v-if="r.reason"
+                  class="report-reason-box mt-2 pt-1 border-t border-surface-border"
                 >
-                  Resolve
-                </BaseButton>
-                <BaseButton
-                  class="tiny"
-                  variant="ghost"
-                  :icon="Trash2"
-                  @click="deleteReport(r.id)"
+                  <div class="text-on-ghost text-base font-bold mb-1">
+                    Report Reason:
+                  </div>
+                  <div class="report-reason italic">"{{ r.reason }}"</div>
+                </div>
+                <div class="report-meta mt-1 text-xs text-on-ghost-muted">
+                  From: {{ r.reporterEmail }} · {{ fmtDate(r.reportedAt) }}
+                </div>
+
+                <div
+                  class="report-actions mt-3 pt-2 border-t border-surface-border flex gap-2"
                 >
-                  Delete
-                </BaseButton>
-              </div>
-            </template>
-          </ItemCard>
+                  <BaseButton
+                    class="tiny"
+                    variant="ghost"
+                    :icon="Check"
+                    @click="toggleReportProcessed(r.id, false)"
+                  >
+                    Resolve
+                  </BaseButton>
+                  <BaseButton
+                    class="tiny"
+                    variant="ghost"
+                    :icon="Trash2"
+                    @click="deleteReport(r.id)"
+                  >
+                    Delete
+                  </BaseButton>
+                </div>
+              </template>
+            </ItemCard>
+
+            <ItemCard
+              v-else
+              :title="r.itemTitle + ' (Deleted)'"
+              :show-menu-trigger="false"
+              :is-collapsed="false"
+            >
+              <template #badges>
+                <div
+                  class="text-on-ghost-muted text-base flex flex-wrap gap-1 items-center"
+                >
+                  <span class="badge badge-red">Deleted Item</span>
+                </div>
+              </template>
+              <template #content-after>
+                <div v-if="r.reason" class="report-reason-box mt-2">
+                  <div class="text-on-ghost text-base font-bold mb-1">
+                    Report Reason:
+                  </div>
+                  <div class="report-reason italic">"{{ r.reason }}"</div>
+                </div>
+                <div class="report-meta mt-1 text-xs text-on-ghost-muted">
+                  From: {{ r.reporterEmail }} · {{ fmtDate(r.reportedAt) }}
+                </div>
+                <div
+                  class="report-actions mt-3 pt-2 border-t border-surface-border flex gap-2"
+                >
+                  <BaseButton
+                    class="tiny"
+                    variant="ghost"
+                    :icon="Check"
+                    @click="toggleReportProcessed(r.id, false)"
+                  >
+                    Resolve
+                  </BaseButton>
+                  <BaseButton
+                    class="tiny"
+                    variant="ghost"
+                    :icon="Trash2"
+                    @click="deleteReport(r.id)"
+                  >
+                    Delete
+                  </BaseButton>
+                </div>
+              </template>
+            </ItemCard>
+          </template>
+
+          <!-- Message reports -->
+          <template v-else-if="r.reportType === 'message'">
+            <ItemCard
+              :title="r.messageSenderEmail ? `Message by ${r.messageSenderEmail}` : 'Message (Sender Deleted)'"
+              :show-menu-trigger="false"
+              :is-collapsed="false"
+            >
+              <template #badges>
+                <div
+                  class="text-on-ghost-muted text-base flex flex-wrap gap-1 items-center"
+                >
+                  <span class="badge badge-yellow">Chat Message</span>
+                  <template v-if="!r.messageId">
+                    <span>·</span>
+                    <span class="badge badge-red">Deleted</span>
+                  </template>
+                </div>
+              </template>
+
+              <template v-if="r.messageContent" #body>
+                <div
+                  class="text-on-ghost break-words [overflow-wrap:anywhere] hyphens-auto whitespace-pre-wrap select-text cursor-text"
+                >
+                  {{ r.messageContent }}
+                </div>
+              </template>
+
+              <template #content-after>
+                <div
+                  v-if="r.reason"
+                  class="report-reason-box mt-2 pt-1 border-t border-surface-border"
+                >
+                  <div class="text-on-ghost text-base font-bold mb-1">
+                    Report Reason:
+                  </div>
+                  <div class="report-reason italic">"{{ r.reason }}"</div>
+                </div>
+                <div class="report-meta mt-1 text-xs text-on-ghost-muted">
+                  From: {{ r.reporterEmail }} · {{ fmtDate(r.reportedAt) }}
+                </div>
+
+                <div
+                  class="report-actions mt-3 pt-2 border-t border-surface-border flex gap-2"
+                >
+                  <BaseButton
+                    class="tiny"
+                    variant="ghost"
+                    :icon="Check"
+                    @click="toggleReportProcessed(r.id, false)"
+                  >
+                    Resolve
+                  </BaseButton>
+                  <BaseButton
+                    class="tiny"
+                    variant="ghost"
+                    :icon="Trash2"
+                    @click="deleteReport(r.id)"
+                  >
+                    Delete
+                  </BaseButton>
+                </div>
+              </template>
+            </ItemCard>
+          </template>
         </template>
       </div>
     </div>
@@ -203,170 +271,241 @@ onMounted(loadReports);
       </h3>
       <div class="card-grid">
         <template v-for="r in processedReports" :key="r.id">
-          <ItemCard
-            v-if="r.itemType"
-            :title="r.itemTitle"
-            :show-menu-trigger="false"
-            :is-collapsed="false"
-            class="opacity-60 hover:opacity-100"
-          >
-            <template #badges>
-              <div
-                class="text-on-ghost-muted text-base flex flex-wrap gap-1 items-center"
-              >
-                <span>{{ getTypeLabel(r.itemType) }}</span>
-                <span>·</span>
-                <span>{{ getSubjectName(r.itemSubject) }}</span>
-                <span>·</span>
-                <span>Due: {{ fmtDate(r.itemDueDate) }}</span>
-                <template v-if="r.creatorEmail">
+          <!-- Task reports -->
+          <template v-if="!r.reportType || r.reportType === 'task'">
+            <ItemCard
+              v-if="r.itemType"
+              :title="r.itemTitle"
+              :show-menu-trigger="false"
+              :is-collapsed="false"
+              class="opacity-60 hover:opacity-100"
+            >
+              <template #badges>
+                <div
+                  class="text-on-ghost-muted text-base flex flex-wrap gap-1 items-center"
+                >
+                  <span>{{ getTypeLabel(r.itemType) }}</span>
                   <span>·</span>
-                  <span>By: {{ r.creatorEmail }}</span>
-                </template>
-              </div>
-            </template>
+                  <span>{{ getSubjectName(r.itemSubject) }}</span>
+                  <span>·</span>
+                  <span>Due: {{ fmtDate(r.itemDueDate) }}</span>
+                  <template v-if="r.creatorEmail">
+                    <span>·</span>
+                    <span>By: {{ r.creatorEmail }}</span>
+                  </template>
+                </div>
+              </template>
 
-            <template #actions-pre>
-              <BaseTooltip content="View full task" placement="bottom">
-                <BaseButton
-                  variant="ghost"
-                  size="sm"
-                  :icon="ArrowUpRight"
-                  @click.stop="
-                    $router.push({
-                      name: 'group-tasks',
-                      params: { groupId: r.itemTenantId },
-                      query: {
-                        type: r.itemType,
-                        itemId: r.itemId,
-                      },
-                    })
-                  "
-                />
-              </BaseTooltip>
-            </template>
-
-            <template v-if="r.itemDescription" #body>
-              <div
-                class="text-on-ghost break-words [overflow-wrap:anywhere] hyphens-auto whitespace-pre-wrap select-text cursor-text"
-              >
-                {{ r.itemDescription }}
-              </div>
-            </template>
-
-            <template #content-after>
-              <div
-                v-if="r.itemImages && r.itemImages.length"
-                class="grid grid-cols-4 gap-2 mt-2 mb-2"
-              >
-                <div
-                  v-for="img in r.itemImages"
-                  :key="img.publicId"
-                  class="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-md border-none bg-black/[0.12] select-none"
-                >
-                  <img
-                    :src="makeThumb(img.metadata?.thumbnailId || img.publicId)"
-                    class="block h-full w-full object-cover [pointer-events:none]"
-                    alt="Vorschau"
+              <template #actions-pre>
+                <BaseTooltip content="View full task" placement="bottom">
+                  <BaseButton
+                    variant="ghost"
+                    size="sm"
+                    :icon="ArrowUpRight"
+                    @click.stop="
+                      $router.push({
+                        name: 'group-tasks',
+                        params: { groupId: r.itemTenantId },
+                        query: {
+                          type: r.itemType,
+                          itemId: r.itemId,
+                        },
+                      })
+                    "
                   />
-                </div>
-              </div>
+                </BaseTooltip>
+              </template>
 
-              <div
-                v-if="r.itemEditorNote"
-                class="note-section mt-2 pt-1 border-t border-surface-border"
-              >
-                <div class="text-on-ghost text-base font-bold mb-1">Note:</div>
+              <template v-if="r.itemDescription" #body>
                 <div
-                  class="text-on-ghost text-base whitespace-pre-wrap break-words"
+                  class="text-on-ghost break-words [overflow-wrap:anywhere] hyphens-auto whitespace-pre-wrap select-text cursor-text"
                 >
-                  {{ r.itemEditorNote }}
+                  {{ r.itemDescription }}
                 </div>
-              </div>
+              </template>
 
-              <div
-                v-if="r.reason"
-                class="report-reason-box mt-2 pt-1 border-t border-surface-border"
-              >
-                <div class="text-on-ghost text-base font-bold mb-1">
-                  Report Reason:
+              <template #content-after>
+                <div
+                  v-if="r.itemImages && r.itemImages.length"
+                  class="grid grid-cols-4 gap-2 mt-2 mb-2"
+                >
+                  <div
+                    v-for="img in r.itemImages"
+                    :key="img.publicId"
+                    class="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-md border-none bg-black/[0.12] select-none"
+                  >
+                    <img
+                      :src="makeThumb(img.metadata?.thumbnailId || img.publicId)"
+                      class="block h-full w-full object-cover [pointer-events:none]"
+                      alt="Vorschau"
+                    />
+                  </div>
                 </div>
-                <div class="report-reason italic">"{{ r.reason }}"</div>
-              </div>
-              <div class="report-meta mt-1 text-xs text-on-ghost-muted">
-                From: {{ r.reporterEmail }} · {{ fmtDate(r.reportedAt) }}
-              </div>
 
-              <div
-                class="report-actions mt-3 pt-2 border-t border-surface-border flex gap-2"
-              >
-                <BaseButton
-                  class="tiny"
-                  variant="ghost"
-                  :icon="RotateCcw"
-                  @click="toggleReportProcessed(r.id, true)"
+                <div
+                  v-if="r.itemEditorNote"
+                  class="note-section mt-2 pt-1 border-t border-surface-border"
                 >
-                  Reopen
-                </BaseButton>
-                <BaseButton
-                  class="tiny"
-                  variant="ghost"
-                  :icon="Trash2"
-                  @click="deleteReport(r.id)"
-                >
-                  Delete
-                </BaseButton>
-              </div>
-            </template>
-          </ItemCard>
-
-          <ItemCard
-            v-else
-            :title="r.itemTitle + ' (Deleted)'"
-            :show-menu-trigger="false"
-            :is-collapsed="false"
-          >
-            <template #badges>
-              <div
-                class="text-on-ghost-muted text-base flex flex-wrap gap-1 items-center"
-              >
-                <span class="badge badge-green">Resolved</span>
-                <span>·</span>
-                <span class="badge badge-red">Deleted Item</span>
-              </div>
-            </template>
-            <template #content-after>
-              <div v-if="r.reason" class="report-reason-box mt-2">
-                <div class="text-on-ghost text-base font-bold mb-1">
-                  Report Reason:
+                  <div class="text-on-ghost text-base font-bold mb-1">Note:</div>
+                  <div
+                    class="text-on-ghost text-base whitespace-pre-wrap break-words"
+                  >
+                    {{ r.itemEditorNote }}
+                  </div>
                 </div>
-                <div class="report-reason italic">"{{ r.reason }}"</div>
-              </div>
-              <div class="report-meta mt-1 text-xs text-on-ghost-muted">
-                From: {{ r.reporterEmail }} · {{ fmtDate(r.reportedAt) }}
-              </div>
-              <div
-                class="report-actions mt-3 pt-2 border-t border-surface-border flex gap-2"
-              >
-                <BaseButton
-                  class="tiny"
-                  variant="ghost"
-                  :icon="RotateCcw"
-                  @click="toggleReportProcessed(r.id, true)"
+
+                <div
+                  v-if="r.reason"
+                  class="report-reason-box mt-2 pt-1 border-t border-surface-border"
                 >
-                  Reopen
-                </BaseButton>
-                <BaseButton
-                  class="tiny"
-                  variant="ghost"
-                  :icon="Trash2"
-                  @click="deleteReport(r.id)"
+                  <div class="text-on-ghost text-base font-bold mb-1">
+                    Report Reason:
+                  </div>
+                  <div class="report-reason italic">"{{ r.reason }}"</div>
+                </div>
+                <div class="report-meta mt-1 text-xs text-on-ghost-muted">
+                  From: {{ r.reporterEmail }} · {{ fmtDate(r.reportedAt) }}
+                </div>
+
+                <div
+                  class="report-actions mt-3 pt-2 border-t border-surface-border flex gap-2"
                 >
-                  Delete
-                </BaseButton>
-              </div>
-            </template>
-          </ItemCard>
+                  <BaseButton
+                    class="tiny"
+                    variant="ghost"
+                    :icon="RotateCcw"
+                    @click="toggleReportProcessed(r.id, true)"
+                  >
+                    Reopen
+                  </BaseButton>
+                  <BaseButton
+                    class="tiny"
+                    variant="ghost"
+                    :icon="Trash2"
+                    @click="deleteReport(r.id)"
+                  >
+                    Delete
+                  </BaseButton>
+                </div>
+              </template>
+            </ItemCard>
+
+            <ItemCard
+              v-else
+              :title="r.itemTitle + ' (Deleted)'"
+              :show-menu-trigger="false"
+              :is-collapsed="false"
+            >
+              <template #badges>
+                <div
+                  class="text-on-ghost-muted text-base flex flex-wrap gap-1 items-center"
+                >
+                  <span class="badge badge-green">Resolved</span>
+                  <span>·</span>
+                  <span class="badge badge-red">Deleted Item</span>
+                </div>
+              </template>
+              <template #content-after>
+                <div v-if="r.reason" class="report-reason-box mt-2">
+                  <div class="text-on-ghost text-base font-bold mb-1">
+                    Report Reason:
+                  </div>
+                  <div class="report-reason italic">"{{ r.reason }}"</div>
+                </div>
+                <div class="report-meta mt-1 text-xs text-on-ghost-muted">
+                  From: {{ r.reporterEmail }} · {{ fmtDate(r.reportedAt) }}
+                </div>
+                <div
+                  class="report-actions mt-3 pt-2 border-t border-surface-border flex gap-2"
+                >
+                  <BaseButton
+                    class="tiny"
+                    variant="ghost"
+                    :icon="RotateCcw"
+                    @click="toggleReportProcessed(r.id, true)"
+                  >
+                    Reopen
+                  </BaseButton>
+                  <BaseButton
+                    class="tiny"
+                    variant="ghost"
+                    :icon="Trash2"
+                    @click="deleteReport(r.id)"
+                  >
+                    Delete
+                  </BaseButton>
+                </div>
+              </template>
+            </ItemCard>
+          </template>
+
+          <!-- Message reports -->
+          <template v-else-if="r.reportType === 'message'">
+            <ItemCard
+              :title="r.messageSenderEmail ? `Message by ${r.messageSenderEmail}` : 'Message (Sender Deleted)'"
+              :show-menu-trigger="false"
+              :is-collapsed="false"
+              class="opacity-60 hover:opacity-100"
+            >
+              <template #badges>
+                <div
+                  class="text-on-ghost-muted text-base flex flex-wrap gap-1 items-center"
+                >
+                  <span class="badge badge-green">Resolved</span>
+                  <span>·</span>
+                  <span class="badge badge-yellow">Chat Message</span>
+                  <template v-if="!r.messageId">
+                    <span>·</span>
+                    <span class="badge badge-red">Deleted</span>
+                  </template>
+                </div>
+              </template>
+
+              <template v-if="r.messageContent" #body>
+                <div
+                  class="text-on-ghost break-words [overflow-wrap:anywhere] hyphens-auto whitespace-pre-wrap select-text cursor-text"
+                >
+                  {{ r.messageContent }}
+                </div>
+              </template>
+
+              <template #content-after>
+                <div
+                  v-if="r.reason"
+                  class="report-reason-box mt-2 pt-1 border-t border-surface-border"
+                >
+                  <div class="text-on-ghost text-base font-bold mb-1">
+                    Report Reason:
+                  </div>
+                  <div class="report-reason italic">"{{ r.reason }}"</div>
+                </div>
+                <div class="report-meta mt-1 text-xs text-on-ghost-muted">
+                  From: {{ r.reporterEmail }} · {{ fmtDate(r.reportedAt) }}
+                </div>
+
+                <div
+                  class="report-actions mt-3 pt-2 border-t border-surface-border flex gap-2"
+                >
+                  <BaseButton
+                    class="tiny"
+                    variant="ghost"
+                    :icon="RotateCcw"
+                    @click="toggleReportProcessed(r.id, true)"
+                  >
+                    Reopen
+                  </BaseButton>
+                  <BaseButton
+                    class="tiny"
+                    variant="ghost"
+                    :icon="Trash2"
+                    @click="deleteReport(r.id)"
+                  >
+                    Delete
+                  </BaseButton>
+                </div>
+              </template>
+            </ItemCard>
+          </template>
         </template>
       </div>
     </div>

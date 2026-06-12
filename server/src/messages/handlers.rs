@@ -71,3 +71,16 @@ pub async fn delete_message(
 
     Ok(Json(json!({ "ok": true })))
 }
+
+pub async fn report_message(
+    State(s): State<AppState>,
+    tc: TenantContext,
+    Json(dto): Json<ReportMessageDto>,
+) -> AppResult<Json<Value>> {
+    Ok(Json(
+        MessagesService::from_state(&s)
+            .report_message(tc.tenant_id, tc.user.user_id, &tc.user.email, &dto)
+            .await?,
+    ))
+}
+

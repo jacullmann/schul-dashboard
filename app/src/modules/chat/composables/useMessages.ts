@@ -416,6 +416,43 @@ export function useMessages() {
     }
   };
 
+  const showReportConfirm = ref(false);
+  const reportReason = ref('');
+  const reportTarget = ref<any>(null);
+
+  const reportMessage = (msg: any) => {
+    activeMessage.value = null;
+    reportTarget.value = msg;
+    reportReason.value = '';
+    showReportConfirm.value = true;
+  };
+
+  const doReport = async () => {
+    if (!reportTarget.value) return;
+    const msg = reportTarget.value;
+    const reason = reportReason.value;
+    cancelReport();
+
+    try {
+      await hw.post('/messages/reports', {
+        messageId: msg.id,
+        reason: reason || undefined,
+      });
+      toast.success(t('chat.report_success') || 'Nachricht erfolgreich gemeldet');
+    } catch (err: any) {
+      console.error('Failed to report message:', err);
+      toast.error(
+        (t('chat.report_error') || 'Fehler beim Melden: ') + (err.response?.data?.error || ''),
+      );
+    }
+  };
+
+  const cancelReport = () => {
+    showReportConfirm.value = false;
+    reportTarget.value = null;
+    reportReason.value = '';
+  };
+
   let dividerTimeout: any = null;
 
   const triggerMarkRead = async () => {
@@ -525,5 +562,10 @@ export function useMessages() {
     canDeleteMessage,
     copyMessage,
     deleteMessage,
+    showReportConfirm,
+    reportReason,
+    reportMessage,
+    doReport,
+    cancelReport,
   };
 }

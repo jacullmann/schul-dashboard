@@ -396,13 +396,16 @@ impl SuperAdminService {
     pub async fn get_reports(&self) -> AppResult<Value> {
         let rows = sqlx::query!(
             r#"SELECT r.id, r.item_id, r.item_title, r.reason, r.reporter_id, r.reporter_email,
-                      r.processed, r.processed_at, r.reported_at,
+                      r.processed, r.processed_at, r.reported_at, r.report_type, r.message_id, r.message_content,
                       i.type AS "item_type?: String", i.subject AS "item_subject?: String", i.description AS "item_description?: String",
                       i.images AS "item_images?: Value", i.due_date AS "item_due_date?: chrono::DateTime<chrono::Utc>", i.editor_note AS "item_editor_note?: String",
-                      i.tenant_id AS "item_tenant_id?: Uuid", u.email AS "creator_email?: String"
+                      i.tenant_id AS "item_tenant_id?: Uuid", u.email AS "creator_email?: String",
+                      mu.email AS "message_sender_email?: String", m.tenant_id AS "message_tenant_id?: Uuid"
                FROM reports r
                LEFT JOIN items i ON i.id = r.item_id
                LEFT JOIN users u ON u.id = i.created_by
+               LEFT JOIN group_messages m ON m.id = r.message_id
+               LEFT JOIN users mu ON mu.id = m.user_id
                ORDER BY r.created_at DESC"#
         )
             .fetch_all(&self.db)
@@ -416,6 +419,9 @@ impl SuperAdminService {
                     "reportedBy": r.reporter_id, "reporterEmail": r.reporter_email,
                     "processed": r.processed, "processedAt": r.processed_at,
                     "reportedAt": r.reported_at,
+                    "reportType": r.report_type,
+                    "messageId": r.message_id,
+                    "messageContent": r.message_content,
                     "itemType": r.item_type,
                     "itemSubject": r.item_subject,
                     "itemDescription": r.item_description,
@@ -424,6 +430,8 @@ impl SuperAdminService {
                     "itemEditorNote": r.item_editor_note,
                     "itemTenantId": r.item_tenant_id,
                     "creatorEmail": r.creator_email,
+                    "messageSenderEmail": r.message_sender_email,
+                    "messageTenantId": r.message_tenant_id,
                 }))
                 .collect::<Vec<_>>()
         ))
