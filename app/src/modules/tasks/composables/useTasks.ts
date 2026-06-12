@@ -31,7 +31,9 @@ export function useTasks() {
   const { t, te } = useI18n();
 
   const tab = ref<ItemType>(
-    isValidType(route.query.type as string) ? (route.query.type as ItemType) : 'all',
+    isValidType(route.query.type as string)
+      ? (route.query.type as ItemType)
+      : 'all',
   );
   const showOldEntries = ref(route.query.archived === 'true');
   const subjectFilter = ref((route.query.subject as string) || '');
@@ -187,19 +189,23 @@ export function useTasks() {
   watch(
     () => route.query,
     (q) => {
-      const newTab = isValidType(q.type as string) ? (q.type as ItemType) : 'all';
+      const newTab = isValidType(q.type as string)
+        ? (q.type as ItemType)
+        : 'all';
       if (tab.value !== newTab) tab.value = newTab;
 
       const newArchived = q.archived === 'true';
-      if (showOldEntries.value !== newArchived) showOldEntries.value = newArchived;
+      if (showOldEntries.value !== newArchived)
+        showOldEntries.value = newArchived;
 
       const newSubject = (q.subject as string) || '';
       if (subjectFilter.value !== newSubject) subjectFilter.value = newSubject;
 
       const newHideChecked = q.hideChecked === 'true';
-      if (hideChecked.value !== newHideChecked) hideChecked.value = newHideChecked;
+      if (hideChecked.value !== newHideChecked)
+        hideChecked.value = newHideChecked;
     },
-    { immediate: true }
+    { immediate: true },
   );
 
   // Sync local state -> route query
@@ -221,7 +227,7 @@ export function useTasks() {
       else query.hideChecked = 'true';
 
       router.replace({ query }).catch(() => {});
-    }
+    },
   );
 
   watch(
@@ -230,7 +236,7 @@ export function useTasks() {
       route.query.archived,
       route.query.subject,
       route.query.hideChecked,
-      showPersonalized.value
+      showPersonalized.value,
     ],
     () => {
       reload();

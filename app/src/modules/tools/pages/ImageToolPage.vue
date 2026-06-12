@@ -77,7 +77,8 @@ const handleDrop = (e: DragEvent) => {
 };
 
 const loadFile = (file: File) => {
-  if (!file.type.startsWith('image/')) return toast.error(t('tools.image.errors.not_an_image'));
+  if (!file.type.startsWith('image/'))
+    return toast.error(t('tools.image.errors.not_an_image'));
 
   const reader = new FileReader();
   reader.onload = (e) => {

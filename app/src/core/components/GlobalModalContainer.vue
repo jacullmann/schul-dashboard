@@ -165,7 +165,6 @@ async function onAuthSuccess() {
     </Transition>
   </Teleport>
 
-
   <Teleport to="body">
     <Transition name="fade-scale" appear>
       <SearchModal v-if="searchOpen" @cancel="modalStore.closeSearch()" />

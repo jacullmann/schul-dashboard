@@ -341,8 +341,7 @@ function getInviteUrl(token: string): string {
             class="font-semibold text-base whitespace-nowrap overflow-hidden text-ellipsis"
             >{{ user.generatedName }}</span
           >
-          <span
-            class="text-xs font-medium text-on-ghost-muted"
+          <span class="text-xs font-medium text-on-ghost-muted"
             >{{ t('groups.settings.members.ban_list.banned_on_prefix')
             }}{{ new Date(user.bannedAt).toLocaleDateString('de-DE') }}</span
           >
@@ -403,10 +402,7 @@ function getInviteUrl(token: string): string {
               >
                 {{ getInviteUrl(invite.token) }}
               </span>
-              <span
-                :class="getBadgeClass(invite)"
-                class="text-sm font-bold"
-              >
+              <span :class="getBadgeClass(invite)" class="text-sm font-bold">
                 {{ getBadgeLabel(invite) }}
               </span>
             </div>

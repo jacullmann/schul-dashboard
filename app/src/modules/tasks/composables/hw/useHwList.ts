@@ -16,7 +16,7 @@ export function useHwList(ctx: HwContext) {
     const checks = ctx.checkedItems.value;
     const hideChecked = ctx.hideChecked.value;
 
-    let pinnedList: typeof ctx.items.value = [];
+    const pinnedList: typeof ctx.items.value = [];
     const unpinnedList: typeof ctx.items.value = [];
 
     for (const item of ctx.items.value) {

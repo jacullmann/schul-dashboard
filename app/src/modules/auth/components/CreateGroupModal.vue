@@ -192,18 +192,26 @@ async function submit() {
       <div class="flex flex-col items-center gap-4">
         <!-- Avatar Preview Circle -->
         <div class="relative flex-shrink-0">
-          <div 
+          <div
             class="w-24 h-24 relative rounded-full flex items-center justify-center cursor-pointer group bg-ghost hover:bg-ghost-hover transition-colors overflow-hidden"
             @click="toggleMenu"
           >
             <template v-if="avatarUrl">
-              <img :src="avatarUrl" class="w-full h-full object-cover" alt="Group avatar" />
-              <div class="absolute inset-0 bg-zinc-950/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <img
+                :src="avatarUrl"
+                class="w-full h-full object-cover"
+                alt="Group avatar"
+              />
+              <div
+                class="absolute inset-0 bg-zinc-950/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+              >
                 <Pencil class="w-6 h-6 text-white" />
               </div>
             </template>
             <template v-else>
-              <ImagePlus class="w-8 h-8 text-on-ghost-muted group-hover:text-on-ghost transition-colors" />
+              <ImagePlus
+                class="w-8 h-8 text-on-ghost-muted group-hover:text-on-ghost transition-colors"
+              />
             </template>
 
             <div

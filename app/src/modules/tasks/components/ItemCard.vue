@@ -257,9 +257,8 @@ function onDrop(e: DragEvent) {
         <slot name="actions-pre"></slot>
 
         <slot name="menu-trigger">
-          <BaseTooltip content="More" placement="bottom">
+          <BaseTooltip v-if="showMenuTrigger" content="More" placement="bottom">
             <BaseButton
-              v-if="showMenuTrigger"
               variant="ghost"
               size="sm"
               :icon="Ellipsis"
