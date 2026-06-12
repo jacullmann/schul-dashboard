@@ -27,7 +27,7 @@ export function useSuperAdminStats() {
   async function cleanupOldItems() {
     const confirmed = await modalStore.confirm({
       title: 'Cleanup?',
-      content: 'Delete all entries older than 90 days?',
+      content: 'Delete all tasks older than 90 days?',
       submitText: 'Confirm',
       danger: true,
     });

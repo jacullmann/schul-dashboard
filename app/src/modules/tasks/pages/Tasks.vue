@@ -270,11 +270,11 @@ function openImageViewerForItem(item: HwItem, index: number) {
         :primary-action="openTaskForm"
         :secondary-action="resetFilters"
       >
-        <template #title>{{ t('tasks.list.tasks.view.no_entries') }}</template>
+        <template #title>{{ t('tasks.list.tasks.view.no_tasks') }}</template>
         <template #message>{{
           filteredItems.length
-            ? t('tasks.list.tasks.view.no_entries_in_view_message')
-            : t('tasks.list.tasks.view.no_entries_message')
+            ? t('tasks.list.tasks.view.no_tasks_in_view_message')
+            : t('tasks.list.tasks.view.no_tasks_message')
         }}</template>
         <template #primary-action-label>{{
           t('tasks.list.create_task')

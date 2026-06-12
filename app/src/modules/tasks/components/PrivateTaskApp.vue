@@ -237,7 +237,7 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
         v-else-if="privateTasks.length === 0"
         class="p-12 text-center text-on-ghost-muted"
       >
-        <p>{{ t('tasks.private_tasks.no_entries_found') }}</p>
+        <p>{{ t('tasks.private_tasks.no_tasks_found') }}</p>
       </div>
 
       <div v-else class="private-tasks-container">

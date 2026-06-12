@@ -24,7 +24,7 @@ const emit = defineEmits<{
           stats?.itemCount ?? '–'
         }}</span>
         <span class="text-sm text-on-ghost-muted">{{
-          t('groups.settings.overview.stats.active_entries')
+          t('groups.settings.overview.stats.active_tasks')
         }}</span>
       </div>
       <div
@@ -57,7 +57,7 @@ const emit = defineEmits<{
           stats?.oldItemsCount ?? '–'
         }}</span>
         <span class="text-sm text-on-ghost-muted">{{
-          t('groups.settings.overview.stats.old_entries')
+          t('groups.settings.overview.stats.old_tasks')
         }}</span>
       </div>
     </div>
@@ -68,7 +68,7 @@ const emit = defineEmits<{
     >
       <div class="flex items-center gap-2 text-base text-on-ghost-muted">
         <span
-          >{{ stats?.oldItemsCount }} Einträge älter als 90 Tage können gelöscht
+          >{{ stats?.oldItemsCount }} Aufgaben älter als 90 Tage können gelöscht
           werden.</span
         >
       </div>

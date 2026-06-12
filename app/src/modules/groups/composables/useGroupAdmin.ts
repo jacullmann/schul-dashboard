@@ -268,8 +268,8 @@ export function useGroupAdmin() {
 
   async function cleanupOldItems() {
     const isConfirmed = await modalStore.confirm({
-      title: 'Cleanup old items?',
-      content: 'Delete all entries older than 90 days?',
+      title: 'Cleanup old tasks?',
+      content: 'Delete all tasks older than 90 days?',
       submitText: 'Confirm',
       danger: true,
     });

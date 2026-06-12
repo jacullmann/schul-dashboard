@@ -110,13 +110,13 @@
     },
     "overview": {
       "stats": {
-        "active_entries": "Active Entries",
+        "active_tasks": "Active Tasks",
         "members": "Members",
         "schedule_changes": "Schedule Changes",
-        "old_entries": "Old Entries (90+ Days)"
+        "old_tasks": "Old Tasks (90+ Days)"
       },
       "cleanup": {
-        "info": "{count} entries older than 90 days can be deleted.",
+        "info": "{count} tasks older than 90 days can be deleted.",
         "action_button": "Clean up"
       }
     },
@@ -147,14 +147,14 @@
         "invite_members": "Invite members",
         "edit_subjects_courses": "Edit subject/course list",
         "edit_schedule": "Edit schedule",
-        "create_items": "Create new entries",
+        "create_items": "Create new tasks",
         "upload_images": "Upload images",
         "manage_notes": "Add, edit, and delete notes",
         "send_messages": "Send messages",
         "manage_schedule_changes": "Add and delete schedule changes",
         "manage_announcements": "Add and delete announcements",
         "moderate_members": "Remove and ban/unban members",
-        "delete_other_content": "Delete entries, images, and messages from users"
+        "delete_other_content": "Delete tasks, images, and messages from users"
       },
       "options": {
         "all": "All",

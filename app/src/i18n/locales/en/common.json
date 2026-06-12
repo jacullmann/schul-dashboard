@@ -158,7 +158,7 @@
   "sidebar": {
     "admin": "Group Settings",
     "collapse": "Collapse",
-    "entry": "New Entry",
+    "task": "New Task",
     "announcement": "New Announcement",
     "expand": "Expand",
     "groups": "Groups",

@@ -93,7 +93,7 @@ function handleSearch() {
   collapseIfMobile();
 }
 
-function handleEntry() {
+function handleTask() {
   collapseIfMobile();
   withGroup(() => {
     openTaskForm();
@@ -271,12 +271,12 @@ onUnmounted(() => {
 
       <div class="flex flex-col gap-0 w-full">
         <SidebarButton
-          :label="t('common.sidebar.entry')"
+          :label="t('common.sidebar.task')"
           :shortcut="['alt', 'n']"
           :expanded="isExpanded"
           :icon="SquarePen"
           :page="false"
-          @click="handleEntry"
+          @click="handleTask"
         />
 
         <SidebarButton

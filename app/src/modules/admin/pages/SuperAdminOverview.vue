@@ -23,7 +23,7 @@ onMounted(loadStats);
       </div>
       <div class="stat-card">
         <div class="stat-val">{{ stats.itemCount }}</div>
-        <div class="stat-lbl">Entries</div>
+        <div class="stat-lbl">Tasks</div>
       </div>
       <div class="stat-card" :class="{ alert: (stats.reportCount ?? 0) > 0 }">
         <div class="stat-val">{{ stats.reportCount }}</div>
@@ -62,7 +62,7 @@ onMounted(loadStats);
         <div class="sub-stats-grid">
           <div class="sub-stat">
             <span class="sub-val">{{ stats.newItemsThisWeek }}</span>
-            <span class="sub-lbl">New Entries</span>
+            <span class="sub-lbl">New Tasks</span>
           </div>
           <div class="sub-stat">
             <span class="sub-val">{{ stats.reportCountTotal }}</span>
@@ -78,7 +78,7 @@ onMounted(loadStats);
 
     <div v-if="(stats.oldItemsCount ?? 0) > 0" class="cleanup-card">
       <div>
-        <strong>Cleanup:</strong> {{ stats.oldItemsCount }} entries older than
+        <strong>Cleanup:</strong> {{ stats.oldItemsCount }} tasks older than
         90 days
       </div>
       <BaseButton

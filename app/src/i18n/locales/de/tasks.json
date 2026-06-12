@@ -98,9 +98,9 @@
         "upload_images": "Bilder hochladen"
       },
       "view": {
-        "no_entries": "Keine Aufgaben gefunden",
-        "no_entries_in_view_message": "Keine Aufgaben in der aktuellen Ansicht. Ändere deine Filter oder füge eine neue Aufgabe hinzu",
-        "no_entries_message": "Füge eine neue Aufgabe hinzu oder "
+        "no_tasks": "Keine Aufgaben gefunden",
+        "no_tasks_in_view_message": "Keine Aufgaben in der aktuellen Ansicht. Ändere deine Filter oder füge eine neue Aufgabe hinzu",
+        "no_tasks_message": "Füge eine neue Aufgabe hinzu oder "
       }
     },
     "notes": {
@@ -158,7 +158,7 @@
       "up": "Nach oben"
     },
     "new_task": "Neue Aufgabe",
-    "no_entries_found": "Keine privaten Aufgaben gefunden.",
+    "no_tasks_found": "Keine privaten Aufgaben gefunden.",
     "only_visible_to_you": "Nur für dich sichtbar",
     "requires_account": "Du musst angemeldet sein, um private Aufgaben zu verwenden.",
     "success_create": "Private Aufgabe erstellt",

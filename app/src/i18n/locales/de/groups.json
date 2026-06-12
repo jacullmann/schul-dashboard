@@ -109,13 +109,13 @@
     },
     "overview": {
       "stats": {
-        "active_entries": "Aktive Einträge",
+        "active_tasks": "Aktive Aufgaben",
         "members": "Mitglieder",
         "schedule_changes": "Stundenplanänderungen",
-        "old_entries": "Alte Einträge (90+ Tage)"
+        "old_tasks": "Alte Aufgaben (90+ Tage)"
       },
       "cleanup": {
-        "info": "{count} Einträge älter als 90 Tage können gelöscht werden.",
+        "info": "{count} Aufgaben älter als 90 Tage können gelöscht werden.",
         "action_button": "Bereinigen"
       }
     },
@@ -146,14 +146,14 @@
         "invite_members": "Mitglieder einladen",
         "edit_subjects_courses": "Fächer/Kursliste bearbeiten",
         "edit_schedule": "Stundenplan bearbeiten",
-        "create_items": "Neue Einträge erstellen",
+        "create_items": "Neue Aufgaben erstellen",
         "upload_images": "Bilder hochladen",
         "manage_notes": "Notizen hinzufügen, bearbeiten und löschen",
         "send_messages": "Nachrichten senden",
         "manage_schedule_changes": "Stundenplanänderungen hinzufügen und löschen",
         "manage_announcements": "Ankündigungen hinzufügen und löschen",
         "moderate_members": "Mitglieder entfernen und bannen bzw. entbannen",
-        "delete_other_content": "Einträge, Bilder und Nachrichten von Nutzern löschen"
+        "delete_other_content": "Aufgaben, Bilder und Nachrichten von Nutzern löschen"
       },
       "options": {
         "all": "Alle",

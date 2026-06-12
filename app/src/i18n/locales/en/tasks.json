@@ -98,9 +98,9 @@
         "upload_images": "Upload Images"
       },
       "view": {
-        "no_entries": "No tasks found",
-        "no_entries_in_view_message": "No tasks in the current view. Change your filters or add a new task",
-        "no_entries_message": "Add a new task or"
+        "no_tasks": "No tasks found",
+        "no_tasks_in_view_message": "No tasks in the current view. Change your filters or add a new task",
+        "no_tasks_message": "Add a new task or"
       }
     },
     "notes": {
@@ -154,7 +154,7 @@
       "up": "Move up"
     },
     "new_task": "New Task",
-    "no_entries_found": "No private tasks found.",
+    "no_tasks_found": "No private tasks found.",
     "only_visible_to_you": "Only visible to you",
     "requires_account": "You must be logged in to use private tasks.",
     "success_create": "Private task created",

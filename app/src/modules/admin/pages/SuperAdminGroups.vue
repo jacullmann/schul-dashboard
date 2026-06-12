@@ -28,7 +28,7 @@ onMounted(loadGroups);
           <th>Name</th>
           <th>Owner</th>
           <th>Members</th>
-          <th>Entries</th>
+          <th>Tasks</th>
           <th>Created</th>
           <th style="text-align: right">Actions</th>
         </tr>
