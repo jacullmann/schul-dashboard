@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from 'vue';
-import { Check, RotateCcw, Trash2 } from '@lucide/vue';
+import { ArrowUpRight, Check, RotateCcw, Trash2 } from '@lucide/vue';
 import ItemCard from '@/modules/tasks/components/ItemCard.vue';
 import { makeThumb } from '@/modules/tasks/composables/useImageUpload';
 import { useSuperAdminReports } from '../composables/useSuperAdminReports';
@@ -38,38 +38,6 @@ onMounted(loadReports);
             :show-menu-trigger="false"
             :is-collapsed="false"
           >
-            <template #title>
-              <router-link
-                v-if="r.itemId && r.itemTenantId"
-                v-slot="{ navigate, href }"
-                :to="{
-                  name: 'group-tasks',
-                  params: { groupId: r.itemTenantId },
-                  query: {
-                    type: r.itemType,
-                    itemId: r.itemId,
-                  },
-                }"
-                custom
-              >
-                <a
-                  :href="href"
-                  class="text-lg/6! font-bold text-primary hover:underline hover:text-primary-hover overflow-hidden text-ellipsis whitespace-nowrap -my-[3px]!"
-                  :title="r.itemTitle"
-                  @click="navigate"
-                >
-                  {{ r.itemTitle }}
-                </a>
-              </router-link>
-              <h3
-                v-else
-                class="text-lg/6! overflow-hidden text-ellipsis whitespace-nowrap -my-[3px]!"
-                :title="r.itemTitle"
-              >
-                {{ r.itemTitle }}
-              </h3>
-            </template>
-
             <template #badges>
               <div
                 class="text-on-ghost-muted text-base flex flex-wrap gap-1 items-center"
@@ -84,6 +52,26 @@ onMounted(loadReports);
                   <span>By: {{ r.creatorEmail }}</span>
                 </template>
               </div>
+            </template>
+
+            <template #actions-pre>
+              <BaseTooltip content="View full task" placement="bottom">
+                <BaseButton
+                  variant="ghost"
+                  size="sm"
+                  :icon="ArrowUpRight"
+                  @click.stop="
+                    $router.push({
+                      name: 'group-tasks',
+                      params: { groupId: r.itemTenantId },
+                      query: {
+                        type: r.itemType,
+                        itemId: r.itemId,
+                      },
+                    })
+                  "
+                />
+              </BaseTooltip>
             </template>
 
             <template v-if="r.itemDescription" #body>
@@ -209,10 +197,7 @@ onMounted(loadReports);
       </div>
     </div>
 
-    <div
-      v-if="processedReports.length"
-      class="report-section processed-section"
-    >
+    <div v-if="processedReports.length" class="report-section">
       <h3 class="sub-heading muted">
         Processed ({{ processedReports.length }})
       </h3>
@@ -223,45 +208,12 @@ onMounted(loadReports);
             :title="r.itemTitle"
             :show-menu-trigger="false"
             :is-collapsed="false"
+            class="opacity-60 hover:opacity-100"
           >
-            <template #title>
-              <router-link
-                v-if="r.itemId && r.itemTenantId"
-                v-slot="{ navigate, href }"
-                :to="{
-                  name: 'group-tasks',
-                  params: { groupId: r.itemTenantId },
-                  query: {
-                    type: r.itemType,
-                    itemId: r.itemId,
-                  },
-                }"
-                custom
-              >
-                <a
-                  :href="href"
-                  class="text-lg/6! font-bold text-primary hover:underline hover:text-primary-hover overflow-hidden text-ellipsis whitespace-nowrap -my-[3px]!"
-                  :title="r.itemTitle"
-                  @click="navigate"
-                >
-                  {{ r.itemTitle }}
-                </a>
-              </router-link>
-              <h3
-                v-else
-                class="text-lg/6! overflow-hidden text-ellipsis whitespace-nowrap -my-[3px]!"
-                :title="r.itemTitle"
-              >
-                {{ r.itemTitle }}
-              </h3>
-            </template>
-
             <template #badges>
               <div
                 class="text-on-ghost-muted text-base flex flex-wrap gap-1 items-center"
               >
-                <span class="badge badge-green">Resolved</span>
-                <span>·</span>
                 <span>{{ getTypeLabel(r.itemType) }}</span>
                 <span>·</span>
                 <span>{{ getSubjectName(r.itemSubject) }}</span>
@@ -272,6 +224,26 @@ onMounted(loadReports);
                   <span>By: {{ r.creatorEmail }}</span>
                 </template>
               </div>
+            </template>
+
+            <template #actions-pre>
+              <BaseTooltip content="View full task" placement="bottom">
+                <BaseButton
+                  variant="ghost"
+                  size="sm"
+                  :icon="ArrowUpRight"
+                  @click.stop="
+                    $router.push({
+                      name: 'group-tasks',
+                      params: { groupId: r.itemTenantId },
+                      query: {
+                        type: r.itemType,
+                        itemId: r.itemId,
+                      },
+                    })
+                  "
+                />
+              </BaseTooltip>
             </template>
 
             <template v-if="r.itemDescription" #body>
@@ -430,13 +402,6 @@ onMounted(loadReports);
 
 .report-section {
   margin-bottom: 32px;
-}
-.processed-section {
-  opacity: 0.7;
-}
-.processed-section:hover {
-  opacity: 1;
-  transition: opacity 0.2s;
 }
 
 .card-grid {

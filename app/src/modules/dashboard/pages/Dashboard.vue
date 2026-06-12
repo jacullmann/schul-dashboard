@@ -428,6 +428,7 @@ const isScheduleVisible = computed(() => {
                 :index="index"
                 :user="user"
                 :title="task.title"
+                :show-menu-trigger="false"
               >
                 <template #checkbox>
                   <BaseCheckbox
