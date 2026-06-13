@@ -4,9 +4,10 @@ import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useUserStore } from '@/stores/userStore';
-import { Pencil, Camera, Trash2, Upload, ImagePlus } from '@lucide/vue';
+import { Camera, Trash2, Upload, ImagePlus } from '@lucide/vue';
 import GroupAvatarCropper from '@/modules/groups/components/GroupAvatarCropper.vue';
 import hw from '@/api/api.ts';
+import Avatar from '@/modules/auth/components/Avatar.vue';
 
 const { t } = useI18n();
 
@@ -192,27 +193,16 @@ async function submit() {
       <div class="flex flex-col items-center gap-4">
         <!-- Avatar Preview Circle -->
         <div class="relative flex-shrink-0">
+          <Avatar v-if="avatarUrl" :picture="avatarUrl"></Avatar>
           <div
-            class="w-24 h-24 relative rounded-full flex items-center justify-center cursor-pointer group bg-ghost hover:bg-ghost-hover transition-colors overflow-hidden"
+            v-else
+            class="w-24 h-24 relative rounded-full flex items-center justify-center cursor-pointer group bg-surface hover:bg-surface-highlight transition-colors overflow-hidden touch-target"
             @click="toggleMenu"
           >
-            <template v-if="avatarUrl">
-              <img
-                :src="avatarUrl"
-                class="w-full h-full object-cover"
-                alt="Group avatar"
-              />
-              <div
-                class="absolute inset-0 bg-zinc-950/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-              >
-                <Pencil class="w-6 h-6 text-white" />
-              </div>
-            </template>
-            <template v-else>
-              <ImagePlus
-                class="w-8 h-8 text-on-ghost-muted group-hover:text-on-ghost transition-colors"
-              />
-            </template>
+            <ImagePlus
+              class="text-on-ghost-muted group-hover:text-on-ghost transition-colors"
+              :size="32"
+            />
 
             <div
               v-if="savingAvatar"
