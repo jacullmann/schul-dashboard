@@ -78,8 +78,8 @@ onMounted(loadStats);
 
     <div v-if="(stats.oldItemsCount ?? 0) > 0" class="cleanup-card">
       <div>
-        <strong>Cleanup:</strong> {{ stats.oldItemsCount }} tasks older than
-        90 days
+        <strong>Cleanup:</strong> {{ stats.oldItemsCount }} tasks older than 90
+        days
       </div>
       <BaseButton
         :disabled="isCleaningUp"

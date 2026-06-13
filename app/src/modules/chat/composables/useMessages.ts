@@ -438,11 +438,14 @@ export function useMessages() {
         messageId: msg.id,
         reason: reason || undefined,
       });
-      toast.success(t('chat.report_success') || 'Nachricht erfolgreich gemeldet');
+      toast.success(
+        t('chat.report_success') || 'Nachricht erfolgreich gemeldet',
+      );
     } catch (err: any) {
       console.error('Failed to report message:', err);
       toast.error(
-        (t('chat.report_error') || 'Fehler beim Melden: ') + (err.response?.data?.error || ''),
+        (t('chat.report_error') || 'Fehler beim Melden: ') +
+          (err.response?.data?.error || ''),
       );
     }
   };
