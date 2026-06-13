@@ -618,47 +618,6 @@ impl ItemsService {
         Ok(json!({ "ok": true, "editorNote": trimmed }))
     }
 
-    pub async fn report_item(
-        &self,
-        tenant_id: Uuid,
-        user_id: Uuid,
-        email: &str,
-        dto: &crate::items::dto::ReportItemDto,
-    ) -> AppResult<Value> {
-        // Verify the item exists within the reporter's tenant and take the
-        // title from the database – never trust client-supplied titles.
-        let item = sqlx::query!(
-            r#"SELECT id, title FROM items WHERE id = $1 AND tenant_id = $2"#,
-            dto.item_id,
-            tenant_id
-        )
-        .fetch_optional(&self.db)
-        .await?
-        .ok_or_else(|| AppError::not_found("Item not found."))?;
-
-        sqlx::query!(
-            r#"INSERT INTO reports (item_id, item_title, reason, reporter_id, reporter_email)
-               VALUES ($1, $2, $3, $4, $5)"#,
-            item.id,
-            item.title,
-            dto.reason.as_deref().map(|r| r.trim()),
-            user_id,
-            email
-        )
-        .execute(&self.db)
-        .await?;
-
-        sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:report', $2)"#,
-            user_id,
-            json!({ "itemId": item.id })
-        )
-        .execute(&self.db)
-        .await?;
-
-        Ok(json!({ "ok": true, "message": "Item reported successfully." }))
-    }
-
     pub fn create_upload_signature(&self) -> Value {
         let folder = &self.cloudinary_folder;
         let timestamp = Utc::now().timestamp();

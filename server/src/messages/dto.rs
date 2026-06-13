@@ -16,4 +16,3 @@ pub struct ReportMessageDto {
     pub message_id: Uuid,
     pub reason: Option<String>,
 }
-

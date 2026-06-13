@@ -2,6 +2,7 @@ use super::{dto::*, gateway::BusEvent, service::MessagesService};
 use crate::{
     common::{extractors::TenantContext, permission::Permission},
     error::AppResult,
+    reports::service::ReportsService,
     require_permission,
     state::AppState,
 };
@@ -78,9 +79,14 @@ pub async fn report_message(
     Json(dto): Json<ReportMessageDto>,
 ) -> AppResult<Json<Value>> {
     Ok(Json(
-        MessagesService::from_state(&s)
-            .report_message(tc.tenant_id, tc.user.user_id, &tc.user.email, &dto)
+        ReportsService::from_state(&s)
+            .report_message(
+                tc.tenant_id,
+                tc.user.user_id,
+                &tc.user.email,
+                dto.message_id,
+                dto.reason.as_deref(),
+            )
             .await?,
     ))
 }
-

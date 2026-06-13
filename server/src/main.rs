@@ -7,6 +7,7 @@ mod items;
 mod messages;
 mod mfa;
 mod oauth;
+mod reports;
 mod schedule;
 mod state;
 mod super_admin;

@@ -4,6 +4,7 @@ use crate::{
     error::{AppError, AppResult},
     group::admin::service::GroupAdminService,
     group::dto::CreateScheduleSubDto,
+    reports::service::ReportsService,
     state::AppState,
 };
 use axum::{
@@ -156,7 +157,7 @@ pub async fn prune_activity(
 pub async fn get_reports(State(s): State<AppState>, user: AuthUser) -> AppResult<Json<Value>> {
     require_superadmin(&user)?;
 
-    Ok(Json(SuperAdminService::from_state(&s).get_reports().await?))
+    Ok(Json(ReportsService::from_state(&s).list().await?))
 }
 
 pub async fn process_report(
@@ -168,8 +169,8 @@ pub async fn process_report(
     require_superadmin(&user)?;
 
     Ok(Json(
-        SuperAdminService::from_state(&s)
-            .process_report(id, user.user_id, dto.processed)
+        ReportsService::from_state(&s)
+            .set_processed(id, user.user_id, dto.processed)
             .await?,
     ))
 }
@@ -182,8 +183,8 @@ pub async fn delete_report(
     require_superadmin(&user)?;
 
     Ok(Json(
-        SuperAdminService::from_state(&s)
-            .delete_report(id, user.user_id)
+        ReportsService::from_state(&s)
+            .delete(id, user.user_id)
             .await?,
     ))
 }

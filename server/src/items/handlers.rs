@@ -5,6 +5,7 @@ use super::{
 use crate::{
     common::{extractors::TenantContext, permission::Permission},
     error::AppResult,
+    reports::service::ReportsService,
     require_permission,
     state::AppState,
 };
@@ -152,8 +153,14 @@ pub async fn report_item(
     Json(dto): Json<ReportItemDto>,
 ) -> AppResult<Json<Value>> {
     Ok(Json(
-        ItemsService::from_state(&s)
-            .report_item(tc.tenant_id, tc.user.user_id, &tc.user.email, &dto)
+        ReportsService::from_state(&s)
+            .report_task(
+                tc.tenant_id,
+                tc.user.user_id,
+                &tc.user.email,
+                dto.item_id,
+                dto.reason.as_deref(),
+            )
             .await?,
     ))
 }

@@ -44,19 +44,20 @@ export interface SuperAdminReport {
   processedAt?: string | null;
   reason?: string;
   reporterEmail?: string;
+  reportType?: 'task' | 'message';
   itemId?: string;
   itemTitle?: string;
   itemType?: string;
   itemSubject?: string;
   itemDescription?: string;
-  itemImages?: AdminReportImage[];
+  itemImages?: SuperAdminReportImage[];
   itemDueDate?: string;
   itemEditorNote?: string;
   itemTenantId?: string;
   creatorEmail?: string;
-  reportType?: 'task' | 'message';
   messageId?: string;
   messageContent?: string;
+  messageSenderId?: string;
   messageSenderEmail?: string;
   messageTenantId?: string;
 }

@@ -194,45 +194,4 @@ impl MessagesService {
             .await?;
         Ok(())
     }
-
-    pub async fn report_message(
-        &self,
-        tenant_id: Uuid,
-        user_id: Uuid,
-        email: &str,
-        dto: &crate::messages::dto::ReportMessageDto,
-    ) -> AppResult<Value> {
-        // Verify the message exists within the reporter's tenant and take the
-        // content from the database.
-        let msg = sqlx::query!(
-            r#"SELECT id, content FROM group_messages WHERE id = $1 AND tenant_id = $2"#,
-            dto.message_id,
-            tenant_id
-        )
-        .fetch_optional(&self.db)
-        .await?
-        .ok_or_else(|| AppError::not_found("Nachricht nicht gefunden."))?;
-
-        sqlx::query!(
-            r#"INSERT INTO reports (message_id, message_content, reason, reporter_id, reporter_email, report_type)
-               VALUES ($1, $2, $3, $4, $5, 'message')"#,
-            msg.id,
-            msg.content,
-            dto.reason.as_deref().map(|r| r.trim()),
-            user_id,
-            email
-        )
-        .execute(&self.db)
-        .await?;
-
-        sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'message:report', $2)"#,
-            user_id,
-            json!({ "messageId": msg.id })
-        )
-        .execute(&self.db)
-        .await?;
-
-        Ok(json!({ "ok": true, "message": "Nachricht gemeldet." }))
-    }
 }
