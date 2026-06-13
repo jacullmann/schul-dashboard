@@ -193,7 +193,7 @@ async function submit() {
       <div class="flex flex-col items-center gap-4">
         <!-- Avatar Preview Circle -->
         <div class="relative flex-shrink-0">
-          <Avatar v-if="avatarUrl" :picture="avatarUrl"></Avatar>
+          <Avatar v-if="avatarUrl" :picture="avatarUrl" :size="24"></Avatar>
           <div
             v-else
             class="w-24 h-24 relative rounded-full flex items-center justify-center cursor-pointer group bg-surface hover:bg-surface-highlight transition-colors overflow-hidden touch-target"
