@@ -167,6 +167,18 @@ impl ReportsService {
         .fetch_all(&self.db)
         .await?;
 
+        let existing_items: std::collections::HashSet<Uuid> = sqlx::query_scalar!(r#"SELECT id FROM items"#)
+            .fetch_all(&self.db)
+            .await?
+            .into_iter()
+            .collect();
+
+        let existing_messages: std::collections::HashSet<Uuid> = sqlx::query_scalar!(r#"SELECT id FROM group_messages"#)
+            .fetch_all(&self.db)
+            .await?
+            .into_iter()
+            .collect();
+
         let reports: Vec<Value> = rows
             .into_iter()
             .map(|r| {
@@ -183,6 +195,29 @@ impl ReportsService {
                     map.insert("processed".into(), json!(r.processed));
                     map.insert("processedAt".into(), json!(r.processed_at));
                     map.insert("reportedAt".into(), json!(r.reported_at));
+
+                    let report_type = r.report_type.as_str();
+                    if report_type == "task" {
+                        if let Some(item_id_val) = map.get("itemId") {
+                            if let Some(item_id_str) = item_id_val.as_str() {
+                                if let Ok(item_uuid) = Uuid::parse_str(item_id_str) {
+                                    if !existing_items.contains(&item_uuid) {
+                                        map.insert("itemType".into(), Value::Null);
+                                    }
+                                }
+                            }
+                        }
+                    } else if report_type == "message" {
+                        if let Some(message_id_val) = map.get("messageId") {
+                            if let Some(message_id_str) = message_id_val.as_str() {
+                                if let Ok(message_uuid) = Uuid::parse_str(message_id_str) {
+                                    if !existing_messages.contains(&message_uuid) {
+                                        map.insert("messageId".into(), Value::Null);
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
                 obj
             })

@@ -214,7 +214,7 @@ onMounted(loadReports);
               :show-menu-trigger="false"
               :is-collapsed="false"
             >
-              <template v-if="r.messageId" #badges>
+              <template v-if="!r.messageId" #badges>
                 <div class="text-base text-danger font-bold">Deleted</div>
               </template>
 
