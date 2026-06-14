@@ -215,14 +215,7 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
 
     <div v-if="user" class="private-task-list">
       <div v-if="loading" class="flex flex-col gap-8 pt-4">
-        <div
-          v-for="n in 10"
-          class="animate-fade-up"
-          :style="{
-            animationDelay: `${(n + 2) * 0.05}s`,
-            animationFillMode: 'both',
-          }"
-        >
+        <div v-for="n in 10" class="animate-fade-up">
           <BaseSkeleton width="60" height="20px" class="mb-3" />
           <BaseSkeleton width="full" height="16px" class="mb-2" />
           <BaseSkeleton
@@ -262,10 +255,6 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
             v-for="(privateTask, index) in displayPrivateTasks"
             :key="privateTask.id"
             class="animate-fade-up"
-            :style="{
-              animationDelay: `${(index + 3) * 0.05}s`,
-              animationFillMode: 'both',
-            }"
             :is-collapsed="privateTask.completed"
             :title="privateTask.title"
             @dblclick="user ? togglePrivateTaskCompletion(privateTask) : null"

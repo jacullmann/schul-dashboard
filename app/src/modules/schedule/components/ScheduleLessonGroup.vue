@@ -31,13 +31,7 @@ defineEmits<{
       'min-[501px]:[grid-column:var(--col-desktop)]',
       'max-[500px]:![grid-column:var(--col-mobile)] max-[500px]:[scroll-snap-align:start] max-[500px]:[scroll-margin-left:0]',
     ]"
-    :style="[
-      getGroupStyle(group),
-      {
-        animationDelay: `${((dayIndex ?? 0) + 1 + (group[0]?.slot ?? 0)) * 0.05 - (elapsedLoadTime ?? 0)}s`,
-        animationFillMode: 'both',
-      },
-    ]"
+    :style="getGroupStyle(group)"
   >
     <ScheduleLessonItem
       v-for="(lesson, index) in group"
