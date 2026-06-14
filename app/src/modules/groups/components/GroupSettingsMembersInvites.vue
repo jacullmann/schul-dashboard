@@ -127,10 +127,6 @@ function getInviteUrl(token: string): string {
         v-for="(invite, index) in invites"
         :key="invite.id"
         class="flex max-md:flex-col md:items-center justify-between p-2 px-3 bg-surface border border-surface-border shadow-input rounded-xl gap-3 animate-fade-up"
-        :style="{
-          animationDelay: `${index * 0.05}s`,
-          animationFillMode: 'both',
-        }"
       >
         <div class="flex flex-col min-w-0 gap-1.5">
           <div class="flex items-center gap-2 flex-wrap">

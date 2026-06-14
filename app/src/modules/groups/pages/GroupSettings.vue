@@ -231,10 +231,6 @@ function goBack() {
               v-for="(item, index) in navItems"
               :key="item.id"
               class="animate-fade-up"
-              :style="{
-                animationDelay: `${index * 0.075}s`,
-                animationFillMode: 'both',
-              }"
               :separator="index !== navItems.length - 1"
               :chevron="true"
               @click="selectTab(item.id)"

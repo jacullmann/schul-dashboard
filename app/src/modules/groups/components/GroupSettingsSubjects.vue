@@ -256,10 +256,6 @@ onMounted(() => {
           v-for="(sub, index) in subjects"
           :key="sub.id"
           class="animate-fade-up cursor-pointer"
-          :style="{
-            animationDelay: `${index * 0.075}s`,
-            animationFillMode: 'both',
-          }"
           :separator="index !== subjects.length - 1"
           :chevron="true"
           @click="goToSubject(sub.id)"
