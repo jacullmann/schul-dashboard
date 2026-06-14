@@ -173,7 +173,7 @@ export function useTasks() {
   }
 
   function reload() {
-    return list.reloadList(route.query.itemId as string, () => {
+    return list.reloadList(route.query.highlightedTask as string, () => {
       showOldEntries.value = true;
     });
   }
@@ -249,7 +249,7 @@ export function useTasks() {
   );
 
   watch(
-    () => route.query.itemId,
+    () => route.query.highlightedTask,
     async (newId) => {
       if (newId)
         await list.checkAndScrollToItem(newId as string, () => {
@@ -259,29 +259,29 @@ export function useTasks() {
   );
 
   watch(showOldEntries, () => {
-    const targetId = route.query.itemId as string;
+    const targetId = route.query.highlightedTask as string;
     const exists = items.value.some((i) => i.id === targetId);
 
     if (targetId && !exists && showOldEntries.value) return;
 
-    if (highlightedItemId.value && route.query.itemId) {
+    if (highlightedItemId.value && route.query.highlightedTask) {
       const query = { ...route.query };
-      delete query.itemId;
+      delete query.highlightedTask;
       router.replace({ query }).catch(() => {});
     }
     reload();
   });
 
   watch(subjectFilter, () => {
-    if (highlightedItemId.value && route.query.itemId) {
+    if (highlightedItemId.value && route.query.highlightedTask) {
       const query = { ...route.query };
-      delete query.itemId;
+      delete query.highlightedTask;
       router.replace({ query }).catch(() => {});
     }
   });
 
   watch([subjectFilter, tab, items, hideChecked], () => {
-    if (!route.query.itemId) {
+    if (!route.query.highlightedTask) {
       list.setVisibleCount(Math.min(5, list.filteredItems.value.length || 5));
     }
   });

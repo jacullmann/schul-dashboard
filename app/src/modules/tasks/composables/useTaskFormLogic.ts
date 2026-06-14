@@ -400,7 +400,7 @@ export function useTaskFormLogic(
       params: { groupId: route.params.groupId as string },
       query: {
         type: doubleTaskOriginalItem.value.type,
-        itemId: doubleTaskOriginalItem.value.id,
+        highlightedTask: doubleTaskOriginalItem.value.id,
       },
     });
   }

@@ -285,8 +285,8 @@ export function useHwActions(
   async function shareItem(item: HwItem) {
     const groupId = window.location.pathname.match(/\/groups\/([^/]+)/)?.[1];
     const shareUrl = groupId
-      ? `${window.location.origin}/groups/${groupId}/tasks?type=${item.type}&itemId=${item.id}`
-      : `${window.location.origin}/tasks?type=${item.type}&itemId=${item.id}`;
+      ? `${window.location.origin}/groups/${groupId}/tasks?type=${item.type}&highlightedTask=${item.id}`
+      : `${window.location.origin}/tasks?type=${item.type}&highlightedTask=${item.id}`;
 
     if (navigator.share) {
       try {

@@ -137,6 +137,23 @@ function openImageViewerForItem(item: HwItem, index: number) {
   openImageViewerLocal(item, index);
   openImageViewer(item.images, index);
 }
+
+function beforeLeave(el: Element) {
+  const h = el as HTMLElement;
+  const rect = h.getBoundingClientRect();
+  const parent = h.offsetParent as HTMLElement | null;
+  const parentRect = parent?.getBoundingClientRect();
+
+  if (parentRect) {
+    h.style.left = `${rect.left - parentRect.left}px`;
+    h.style.top = `${rect.top - parentRect.top}px`;
+  } else {
+    h.style.left = `${h.offsetLeft}px`;
+    h.style.top = `${h.offsetTop}px`;
+  }
+  h.style.width = `${rect.width}px`;
+  h.style.position = 'absolute';
+}
 </script>
 
 <template>
@@ -214,6 +231,7 @@ function openImageViewerForItem(item: HwItem, index: number) {
         name="task-list"
         tag="div"
         class="flex flex-col gap-3 relative"
+        @before-leave="beforeLeave"
       >
         <TaskCard
           v-for="(item, index) in visibleItems"
@@ -385,6 +403,7 @@ function openImageViewerForItem(item: HwItem, index: number) {
   transition:
     transform 0.5s cubic-bezier(0.25, 1, 0.5, 1),
     opacity 0.4s ease;
+  animation: none !important;
 }
 
 .task-list-move {
@@ -402,7 +421,7 @@ function openImageViewerForItem(item: HwItem, index: number) {
 }
 
 .task-list-leave-active {
-  position: absolute !important;
-  width: 100%;
+  /* position: absolute is set dynamically by beforeLeave hook,
+     but we still keep this class for other leave transition styles if needed */
 }
 </style>

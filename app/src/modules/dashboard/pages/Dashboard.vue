@@ -457,7 +457,7 @@ const isScheduleVisible = computed(() => {
                           params: { groupId: activeGroupId },
                           query: {
                             type: 'all',
-                            itemId: task.id,
+                            highlightedTask: task.id,
                           },
                         })
                       "
