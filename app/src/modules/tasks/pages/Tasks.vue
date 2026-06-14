@@ -154,6 +154,28 @@ function beforeLeave(el: Element) {
   h.style.width = `${rect.width}px`;
   h.style.position = 'absolute';
 }
+
+const animatedCardIds = ref(new Set<string>());
+const rawVisibleIds = computed(() => visibleItems.value.map((item) => item.id));
+
+watch(
+  rawVisibleIds,
+  (newIds, oldIds) => {
+    const oldSet = new Set(oldIds || []);
+    for (const id of newIds) {
+      if (!oldSet.has(id)) {
+        animatedCardIds.value.add(id);
+      }
+    }
+    animatedCardIds.value = new Set(animatedCardIds.value);
+  },
+  { immediate: true, deep: true },
+);
+
+function handleAnimationEnd(itemId: string) {
+  animatedCardIds.value.delete(itemId);
+  animatedCardIds.value = new Set(animatedCardIds.value);
+}
 </script>
 
 <template>
@@ -237,11 +259,15 @@ function beforeLeave(el: Element) {
           v-for="(item, index) in visibleItems"
           :key="item.id"
           v-model:note-edit-content="noteEditContent"
-          class="animate-fade-up"
-          :style="{
-            animationDelay: `${(index + 3) * 0.05 - elapsedLoadTime}s`,
-            animationFillMode: 'both',
-          }"
+          :class="{ 'animate-fade-up': animatedCardIds.has(item.id) }"
+          :style="
+            animatedCardIds.has(item.id)
+              ? {
+                  animationDelay: `${(index + 3) * 0.05 - elapsedLoadTime}s`,
+                  animationFillMode: 'both',
+                }
+              : undefined
+          "
           :item="item"
           :index="index"
           :user="user"
@@ -283,6 +309,7 @@ function beforeLeave(el: Element) {
           @edit-note-cancel="cancelEditNote()"
           @edit-note-save="saveNote(item.id)"
           @edit-note-delete="deleteNote(item.id)"
+          @animationend="handleAnimationEnd(item.id)"
         />
       </TransitionGroup>
 
@@ -398,7 +425,6 @@ function beforeLeave(el: Element) {
 </template>
 
 <style scoped>
-.task-list-enter-active,
 .task-list-leave-active {
   transition:
     transform 0.5s cubic-bezier(0.25, 1, 0.5, 1),
@@ -410,18 +436,8 @@ function beforeLeave(el: Element) {
   transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-.task-list-enter-from {
-  opacity: 0;
-  transform: translateX(-30px);
-}
-
 .task-list-leave-to {
   opacity: 0;
   transform: translateX(100px);
-}
-
-.task-list-leave-active {
-  /* position: absolute is set dynamically by beforeLeave hook,
-     but we still keep this class for other leave transition styles if needed */
 }
 </style>
