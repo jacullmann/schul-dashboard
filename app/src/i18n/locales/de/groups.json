@@ -91,11 +91,18 @@
       },
       "ban_list": {
         "title": "Gesperrte Nutzer",
-        "empty": "Keine gesperrten Nutzer.",
+        "description": "Bans einsehen und aufheben",
+        "empty": "Keine gesperrten Nutzer",
         "banned_on_prefix": "Gesperrt am ",
         "actions": {
           "unban": "Entsperren"
         }
+      },
+      "invite_links": {
+        "title": "Einladungslinks",
+        "description": "Links erstellen und verwalten",
+        "empty": "Keine Einladungslinks vorhanden.",
+        "generate_button": "Link generieren"
       },
       "remove_modal": {
         "title": "Mitglied entfernen",

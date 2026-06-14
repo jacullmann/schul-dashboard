@@ -19,7 +19,7 @@ defineProps<{
     <h3>
       <slot name="title"></slot>
     </h3>
-    <p class="max-w-96">
+    <p class="mt-1! mb-6! max-w-96">
       <slot name="message"></slot>
     </p>
     <BaseRow justify="center">

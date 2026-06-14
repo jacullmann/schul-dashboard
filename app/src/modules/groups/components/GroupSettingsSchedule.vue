@@ -444,7 +444,7 @@ function handleSaveSub() {
         </BaseButton>
       </div>
 
-      <h3 class="p-5 pb-0 text-lg">
+      <h3>
         {{ t('groups.settings.schedule.changes.select_lesson_slot') }}
       </h3>
       <div
@@ -457,7 +457,7 @@ function handleSaveSub() {
         v-else
         :lessons="lessons"
         :selected-lesson-id="subForm.lessonId"
-        class="p-5"
+        class="py-4"
         @select-lesson="onLessonSelected"
       />
 

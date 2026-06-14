@@ -117,12 +117,18 @@ async function handleDelete() {
   if (!subject.value) return;
   const ok = await deleteSubject(subject.value.id);
   if (ok) {
-    void router.push(`/groups/${groupId.value}/settings/subjects`);
+    void router.push({
+      name: 'group-admin',
+      params: { groupId: groupId.value, tab: 'subjects' },
+    });
   }
 }
 
 function goToSubject(id: string) {
-  void router.push(`/groups/${groupId.value}/settings/subjects/${id}`);
+  void router.push({
+    name: 'group-admin',
+    params: { groupId: groupId.value, tab: 'subjects', subTab: id },
+  });
 }
 
 function openCreateModal() {

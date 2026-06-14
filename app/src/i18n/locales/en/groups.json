@@ -92,11 +92,18 @@
       },
       "ban_list": {
         "title": "Banned Users",
-        "empty": "No banned users.",
+        "description": "View and revoke banned users",
+        "empty": "No banned users",
         "banned_on_prefix": "Banned on ",
         "actions": {
           "unban": "Unban"
         }
+      },
+      "invite_links": {
+        "title": "Invite Links",
+        "description": "Create and manage invite links",
+        "empty": "No invite links available.",
+        "generate_button": "Generate link"
       },
       "remove_modal": {
         "title": "Remove Member",

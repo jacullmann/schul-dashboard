@@ -86,7 +86,7 @@ onMounted(() => {
     class="overflow-x-auto w-full max-[500px]:overflow-visible [webkit-overflow-scrolling:touch]"
   >
     <div
-      class="grid grid-cols-[80px_repeat(5,1fr)] grid-rows-[auto_repeat(9,auto)] gap-2 items-stretch max-[500px]:flex max-[500px]:overflow-hidden max-[500px]:grid-cols-none max-[500px]:grid-rows-none p-2 pt-0"
+      class="grid grid-cols-[80px_repeat(5,1fr)] grid-rows-[auto_repeat(9,auto)] gap-2 items-stretch max-[500px]:flex max-[500px]:overflow-hidden max-[500px]:grid-cols-none max-[500px]:grid-rows-none"
     >
       <div ref="timeColWrapperRef" class="min-[501px]:contents">
         <ScheduleTimeColumn :time-slots="timeSlots" />

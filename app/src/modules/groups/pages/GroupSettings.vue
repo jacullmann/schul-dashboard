@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { markRaw, computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import {
   // LayoutDashboard,
   CalendarDays,
@@ -18,6 +19,8 @@ import { type AdminNavItem } from '@/layouts/AdminLayout.vue';
 
 import GroupSettingsOverview from '@/modules/groups/components/GroupSettingsOverview.vue';
 import GroupSettingsMembers from '@/modules/groups/components/GroupSettingsMembers.vue';
+import GroupSettingsMembersBanned from '@/modules/groups/components/GroupSettingsMembersBanned.vue';
+import GroupSettingsMembersInvites from '@/modules/groups/components/GroupSettingsMembersInvites.vue';
 import GroupSettingsPermissions from '@/modules/groups/components/GroupSettingsPermissions.vue';
 import GroupSettingsSchedule from '@/modules/groups/components/GroupSettingsSchedule.vue';
 import GroupSettingsAnnouncements from '@/modules/groups/components/GroupSettingsAnnouncements.vue';
@@ -26,6 +29,7 @@ import GroupSettingsGeneral from '@/modules/groups/components/GroupSettingsGener
 
 const route = useRoute();
 const router = useRouter();
+const { t } = useI18n();
 
 const {
   groupId,
@@ -73,9 +77,15 @@ const activeTab = computed<string>({
   },
   set(val) {
     if (val) {
-      void router.push(`/groups/${groupId.value}/settings/${val}`);
+      void router.push({
+        name: 'group-admin',
+        params: { groupId: groupId.value, tab: val },
+      });
     } else {
-      void router.push(`/groups/${groupId.value}/settings`);
+      void router.push({
+        name: 'group-admin',
+        params: { groupId: groupId.value },
+      });
     }
   },
 });
@@ -147,6 +157,12 @@ const activeTabLabel = computed(() => {
   if (route.params.tab === 'subjects' && route.params.subTab) {
     return 'Subject info';
   }
+  if (route.params.tab === 'members' && route.params.subTab === 'banned') {
+    return t('groups.settings.members.ban_list.title');
+  }
+  if (route.params.tab === 'members' && route.params.subTab === 'invites') {
+    return t('groups.settings.members.invite_links.title');
+  }
   const item = navItems.find((n) => n.id === activeTab.value);
   return item ? item.label : '';
 });
@@ -181,7 +197,10 @@ function selectTab(id: string) {
 function goBack() {
   transitionDirection.value = 'backward';
   if (route.params.subTab) {
-    void router.push(`/groups/${groupId.value}/settings/${activeTab.value}`);
+    void router.push({
+      name: 'group-admin',
+      params: { groupId: groupId.value, tab: activeTab.value },
+    });
   } else {
     activeTab.value = '';
   }
@@ -193,7 +212,7 @@ function goBack() {
     <Transition :name="transitionName">
       <div v-if="!activeTab" key="master" class="settings-pane master-pane">
         <header
-          class="p-4 pt-6 md:pt-8 md:px-6 md:pb-5 bg-canvas border-b border-canvas-border shrink-0"
+          class="p-4 pt-2 md:px-6 bg-canvas border-b border-canvas-border shrink-0"
         >
           <div class="w-full max-w-200 mx-auto">
             <h1>Gruppen Verwaltung</h1>
@@ -274,19 +293,27 @@ function goBack() {
             />
 
             <GroupSettingsMembers
-              v-if="activeTab === 'members'"
+              v-if="activeTab === 'members' && !route.params.subTab"
               :members="members"
               :loading="loadingMembers"
-              :banned-users="bannedUsers"
-              :loading-banned="loadingBannedUsers"
               :is-owner="isOwner"
-              :invites="invites"
-              :loading-invites="loadingInvites"
               @refresh="loadMembers"
               @change-role="(userId, role) => changeRole(userId, role)"
               @remove="(userId, name, ban) => removeMember(userId, name, ban)"
-              @revert-ban="(userId) => revertBan(userId)"
               @transfer-ownership="transferOwnership"
+            />
+
+            <GroupSettingsMembersBanned
+              v-else-if="activeTab === 'members' && route.params.subTab === 'banned'"
+              :banned-users="bannedUsers"
+              :loading="loadingBannedUsers"
+              @revert-ban="revertBan"
+            />
+
+            <GroupSettingsMembersInvites
+              v-else-if="activeTab === 'members' && route.params.subTab === 'invites'"
+              :invites="invites"
+              :loading="loadingInvites"
               @revoke-invite="revokeInvite"
               @refresh-invites="loadInvites"
             />
