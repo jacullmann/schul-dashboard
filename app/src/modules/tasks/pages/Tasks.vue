@@ -252,7 +252,7 @@ function handleAnimationEnd(itemId: string) {
         v-else
         name="task-list"
         tag="div"
-        class="flex flex-col gap-3 relative"
+        class="flex flex-col gap-3 relative overflow-x-clip"
         @before-leave="beforeLeave"
       >
         <TaskCard
@@ -426,9 +426,7 @@ function handleAnimationEnd(itemId: string) {
 
 <style scoped>
 .task-list-leave-active {
-  transition:
-    transform 0.5s cubic-bezier(0.25, 1, 0.5, 1),
-    opacity 0.4s ease;
+  transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
   animation: none !important;
 }
 
@@ -436,8 +434,12 @@ function handleAnimationEnd(itemId: string) {
   transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
+/* Delay the moving animation only when an item is leaving */
+.relative:has(.task-list-leave-active) .task-list-move {
+  transition-delay: 0.2s;
+}
+
 .task-list-leave-to {
-  opacity: 0;
-  transform: translateX(100px);
+  transform: translateX(110%);
 }
 </style>
