@@ -73,6 +73,7 @@ const {
   onMenuAction,
   archiveItem,
   dismissedItems,
+  useListTransitions,
   canEdit,
   canDelete,
   canDeleteImage,
@@ -180,10 +181,7 @@ function handleAnimationEnd(itemId: string) {
 
 <template>
   <div class="card">
-    <div
-      class="animate-fade-up"
-      style="animation-delay: 0s; animation-fill-mode: both"
-    >
+    <div class="animate-fade-up">
       <PageHeader>
         {{ t('tasks.list.title') }}
         <template #info>
@@ -217,10 +215,7 @@ function handleAnimationEnd(itemId: string) {
     </div>
 
     <div class="flex max-md:flex-col gap-y-4 gap-x-2 md:justify-between">
-      <div
-        class="animate-fade-up"
-        style="animation-delay: 0.05s; animation-fill-mode: both"
-      >
+      <div class="animate-fade-up">
         <BaseTabs
           :items="tabItems"
           :active-id="tab"
@@ -228,10 +223,7 @@ function handleAnimationEnd(itemId: string) {
         />
       </div>
 
-      <div
-        class="animate-fade-up"
-        style="animation-delay: 0.1s; animation-fill-mode: both"
-      >
+      <div class="animate-fade-up">
         <BaseRow>
           <BaseButton
             variant="ghost"
@@ -250,6 +242,7 @@ function handleAnimationEnd(itemId: string) {
 
       <TransitionGroup
         v-else
+        :css="useListTransitions"
         name="task-list"
         tag="div"
         class="flex flex-col gap-3 relative overflow-x-clip"
@@ -308,10 +301,6 @@ function handleAnimationEnd(itemId: string) {
       <BaseEmptyState
         v-if="!loading && !limitedItems.length"
         class="animate-fade-up"
-        :style="{
-          animationDelay: `${3 * 0.05 - elapsedLoadTime}s`,
-          animationFillMode: 'both',
-        }"
         :primary-action="openTaskForm"
         :secondary-action="resetFilters"
       >

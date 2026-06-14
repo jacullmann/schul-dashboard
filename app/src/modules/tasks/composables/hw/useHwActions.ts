@@ -82,6 +82,12 @@ export function useHwActions(
       const needsHideCheckedFiltering = ctx.hideChecked.value;
 
       if (needsOldFiltering || needsHideCheckedFiltering) {
+        if (needsOldFiltering) {
+          ctx.useListTransitions.value = true;
+          window.setTimeout(() => {
+            ctx.useListTransitions.value = false;
+          }, 1200);
+        }
         if (needsHideCheckedFiltering) {
           ctx.pendingCheckRemovals.value.add(id);
           ctx.pendingCheckRemovals.value = new Set(

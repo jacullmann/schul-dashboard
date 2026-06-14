@@ -58,6 +58,7 @@ export function useTasks() {
   const keptItems = ref(new Set<string>());
   const dismissedItems = ref(new Set<string>());
   const pendingCheckRemovals = ref(new Set<string>());
+  const useListTransitions = ref(false);
 
   const expandedDescriptions = ref(new Set<string>());
   const revealedImages = ref(new Set<string>());
@@ -88,6 +89,7 @@ export function useTasks() {
     keptItems,
     dismissedItems,
     pendingCheckRemovals,
+    useListTransitions,
     expandedDescriptions,
     revealedImages,
     openMenuId,
@@ -107,8 +109,12 @@ export function useTasks() {
   const images = useHwImages(ctx, imageUpload);
 
   async function archiveItem(item: HwItem) {
+    useListTransitions.value = true;
     dismissedItems.value.add(item.id);
     dismissedItems.value = new Set(dismissedItems.value);
+    setTimeout(() => {
+      useListTransitions.value = false;
+    }, 1200);
     const success = await actions.toggleVisibility(
       item,
       showOldEntries.value,
@@ -377,6 +383,7 @@ export function useTasks() {
     keptItems,
     dismissedItems,
     pendingCheckRemovals,
+    useListTransitions,
     makeThumb: images.makeThumb,
     isRevealed: ui.isRevealed,
     revealImages: ui.revealImages,

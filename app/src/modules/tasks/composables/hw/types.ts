@@ -23,6 +23,7 @@ export interface HwContext {
   keptItems: Ref<Set<string>>;
   dismissedItems: Ref<Set<string>>;
   pendingCheckRemovals: Ref<Set<string>>;
+  useListTransitions: Ref<boolean>;
 
   expandedDescriptions: Ref<Set<string>>;
   revealedImages: Ref<Set<string>>;
