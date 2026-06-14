@@ -177,35 +177,36 @@ function openImageViewerForItem(item: HwItem, index: number) {
       </PageHeader>
     </div>
 
-    <div
-      class="animate-fade-up"
-      style="animation-delay: 0.05s; animation-fill-mode: both"
-    >
-      <BaseTabs
-        :items="tabItems"
-        :active-id="tab"
-        class="mb-4"
-        @change="(id) => goTab(id as any)"
-      />
+    <div class="flex max-md:flex-col gap-y-4 gap-x-2 md:justify-between">
+      <div
+        class="animate-fade-up"
+        style="animation-delay: 0.05s; animation-fill-mode: both"
+      >
+        <BaseTabs
+          :items="tabItems"
+          :active-id="tab"
+          @change="(id) => goTab(id as any)"
+        />
+      </div>
+
+      <div
+        class="animate-fade-up"
+        style="animation-delay: 0.1s; animation-fill-mode: both"
+      >
+        <BaseRow>
+          <BaseButton
+            variant="ghost"
+            :icon="ListFilter"
+            @click="showFilterModal = true"
+          >
+            {{ t('tasks.list.filter') }}
+            <NotificationDot v-if="hasActiveFilters" :size="1.5" class="ml-1" />
+          </BaseButton>
+        </BaseRow>
+      </div>
     </div>
 
-    <div
-      class="animate-fade-up"
-      style="animation-delay: 0.1s; animation-fill-mode: both"
-    >
-      <BaseRow>
-        <BaseButton
-          variant="ghost"
-          :icon="ListFilter"
-          @click="showFilterModal = true"
-        >
-          {{ t('tasks.list.filter') }}
-          <NotificationDot v-if="hasActiveFilters" :size="1.5" class="ml-1" />
-        </BaseButton>
-      </BaseRow>
-    </div>
-
-    <div class="flex flex-col gap-3 mt-4 max-w-160 mx-auto">
+    <div class="flex flex-col gap-3 mt-8 max-w-192 mx-auto">
       <TaskSkeleton v-if="loading && initialLoad" :count="5" :image-count="2" />
 
       <template v-else>
@@ -328,11 +329,6 @@ function openImageViewerForItem(item: HwItem, index: number) {
     <TaskInfoModal
       :open="!!showInfoItem"
       :item="showInfoItem"
-      :is-mod-or-admin="
-        user?.role === 'superadmin' ||
-        user?.tenantRole === 'admin' ||
-        user?.tenantRole === 'moderator'
-      "
       :is-super-admin="user?.role === 'superadmin'"
       @cancel="showInfoItem = null"
     />

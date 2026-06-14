@@ -6,7 +6,6 @@ import type { HwItem } from '@/modules/tasks/types';
 const props = defineProps<{
   open: boolean;
   item: HwItem | null;
-  isModOrAdmin: boolean;
   isSuperAdmin?: boolean;
 }>();
 

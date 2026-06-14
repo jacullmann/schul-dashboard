@@ -30,6 +30,7 @@ const containerRef = ref<HTMLElement | null>(null);
 const measureRef = ref<HTMLElement | null>(null);
 const resizeTrigger = ref(0);
 const isStretched = ref(false);
+const navBarWidth = ref(0);
 
 const selectedIndex = ref(
   props.items.findIndex((item) => item.id === props.activeId),
@@ -63,21 +64,23 @@ const pillStyle = computed(() => {
   };
 });
 
-const clipStyle = computed(() => {
-  if (resizeTrigger.value < 0) return { clipPath: 'inset(0px 100% 0px 0px)' };
+const inversePillStyle = computed(() => {
+  if (resizeTrigger.value < 0)
+    return { transform: 'translateX(0px)', width: '0px' };
   const targetElement = itemRefs.value[selectedIndex.value];
-  if (!targetElement) return { clipPath: 'inset(0px 100% 0px 0px)' };
-
-  const left = targetElement.offsetLeft;
-  const width = targetElement.offsetWidth;
+  if (!targetElement) return { transform: 'translateX(0px)', width: '0px' };
 
   return {
-    clipPath: `inset(0px calc(100% - ${left + width}px) 0px ${left}px round 9999px)`,
+    transform: `translateX(${-targetElement.offsetLeft}px)`,
+    width: `${navBarWidth.value}px`,
   };
 });
 
 const updateMetrics = () => {
   resizeTrigger.value++;
+  if (navBarRef.value) {
+    navBarWidth.value = navBarRef.value.offsetWidth;
+  }
 };
 
 const checkStretch = () => {
@@ -189,36 +192,34 @@ useResizeObserver(navBarRef, () => {
         </label>
       </div>
 
-      <!-- Active Pill Background (z-2) -->
+      <!-- Active Pill Background (z-2) & Text Overlay -->
       <div
-        class="absolute top-0 bottom-0 bg-action rounded-full min-h-9 min-w-9 touch-target after:min-w-12 after:min-h-12 z-2 pointer-events-none transition-all duration-300 ease-[cubic-bezier(0.075,0.82,0.165,1)]"
+        class="absolute top-0 bottom-0 bg-action rounded-full min-h-9 min-w-9 touch-target after:min-w-12 after:min-h-12 z-2 overflow-hidden pointer-events-none transition-all duration-300 ease-[cubic-bezier(0.075,0.82,0.165,1)]"
         :style="pillStyle"
         aria-hidden="true"
-      ></div>
-
-      <!-- White Text Spans Overlay (z-3) -->
-      <div
-        class="absolute top-0 left-0 bottom-0 z-3 pointer-events-none transition-all duration-300 ease-[cubic-bezier(0.075,0.82,0.165,1)]"
-        :class="isStretched ? 'w-full' : 'w-max'"
-        :style="clipStyle"
-        aria-hidden="true"
       >
+        <!-- Stationary Text Overlay (nested to inherit clipping) -->
         <div
-          class="flex items-center h-full"
-          :class="isStretched ? 'w-full' : 'w-max'"
+          class="absolute top-0 left-0 bottom-0 pointer-events-none transition-all duration-300 ease-[cubic-bezier(0.075,0.82,0.165,1)]"
+          :style="inversePillStyle"
         >
-          <span
-            v-for="item in items"
-            :key="`fg-${item.id}`"
-            class="relative bg-transparent min-h-9 min-w-9 touch-target after:min-w-12 after:min-h-12 items-center flex border-0 cursor-pointer py-2 text-sm/4 font-medium text-on-action whitespace-nowrap transition-hover"
-            :class="
-              isStretched
-                ? 'grow shrink-0 justify-center px-5'
-                : 'shrink-0 px-5'
-            "
+          <div
+            class="flex items-center h-full"
+            :class="isStretched ? 'w-full' : 'w-max'"
           >
-            {{ item.label }}
-          </span>
+            <span
+              v-for="item in items"
+              :key="`fg-${item.id}`"
+              class="relative bg-transparent min-h-9 min-w-9 touch-target after:min-w-12 after:min-h-12 items-center flex border-0 cursor-pointer py-2 text-sm/4 font-medium text-on-action whitespace-nowrap"
+              :class="
+                isStretched
+                  ? 'grow shrink-0 justify-center px-5'
+                  : 'shrink-0 px-5'
+              "
+            >
+              {{ item.label }}
+            </span>
+          </div>
         </div>
       </div>
     </div>
