@@ -1,11 +1,5 @@
 <script setup lang="ts">
-import {
-  RefreshCw,
-  CircleMinus,
-  Crown,
-  UserRoundPlus,
-  Ban,
-} from '@lucide/vue';
+import { RefreshCw, CircleMinus, Crown, UserRoundPlus, Ban } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import { computed, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -163,11 +157,7 @@ function confirmRemove() {
         </template>
       </BaseList>
 
-      <BaseList
-        :chevron="true"
-        :separator="false"
-        @click="goToBanned"
-      >
+      <BaseList :chevron="true" :separator="false" @click="goToBanned">
         <template #icon>
           <span class="flex size-10 justify-center items-center text-on-ghost">
             <Ban :size="24" />

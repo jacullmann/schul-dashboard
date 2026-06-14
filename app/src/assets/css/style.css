@@ -421,10 +421,21 @@ p {
   .check-animate {
     stroke-dasharray: 24;
     stroke-dashoffset: 24;
-    transition: stroke-dashoffset 0.3s cubic-bezier(0.25, 1, 0.5, 1);
   }
   .checkbox-checked .check-animate {
     stroke-dashoffset: 48;
+    transition: stroke-dashoffset 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+    transition-delay: 0.05s;
+  }
+
+  .checkbox-bg-clip {
+    clip-path: circle(10% at 50% 50%);
+    opacity: 0;
+  }
+  .checkbox-checked .checkbox-bg-clip {
+    clip-path: circle(100% at 50% 50%);
+    opacity: 1;
+    transition: clip-path 0.4s cubic-bezier(0.25, 1, 0.5, 1);
   }
 
   .fade-scale-enter-active {

@@ -1,10 +1,5 @@
 <script setup lang="ts">
-import {
-  UserRoundPlus,
-  Copy,
-  Check,
-  Undo2,
-} from '@lucide/vue';
+import { UserRoundPlus, Copy, Check, Undo2 } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import { computed, ref } from 'vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
@@ -139,9 +134,7 @@ function getInviteUrl(token: string): string {
       >
         <div class="flex flex-col min-w-0 gap-1.5">
           <div class="flex items-center gap-2 flex-wrap">
-            <span
-              class="text-base font-bold text-on-ghost truncate select-all"
-            >
+            <span class="text-base font-bold text-on-ghost truncate select-all">
               {{ getInviteUrl(invite.token) }}
             </span>
             <span :class="getBadgeClass(invite)" class="text-sm font-bold">

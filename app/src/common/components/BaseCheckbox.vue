@@ -43,13 +43,17 @@ function handleLabelClick(event: MouseEvent) {
       @change="handleChange"
     />
     <span
-      class="relative size-4.5 rounded-sm border-2 border-on-ghost-muted inline-flex items-center justify-center bg-transparentgroup-hover:border-action peer-checked:bg-action peer-checked:border-action"
+      class="relative size-4.5 rounded-sm border-2 border-on-ghost-muted inline-flex items-center justify-center bg-transparent group-hover:border-action peer-checked:border-action transition-colors duration-300 ease-out"
       aria-hidden="true"
     >
       <span
         class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[34px] rounded-full bg-transparent scale-50 group-hover:bg-surface-hover group-hover:scale-100 transition duration-150 ease-in-out z-[-1]"
       ></span>
-      <Check class="size-4 text-on-action check-animate" stroke-width="3" />
+      <span
+        class="absolute inset-0 bg-action flex items-center justify-center rounded-[1px] checkbox-bg-clip"
+      >
+        <Check class="size-4 text-on-action check-animate" stroke-width="3" />
+      </span>
     </span>
     <span
       v-if="$slots.default"

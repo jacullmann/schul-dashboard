@@ -304,14 +304,18 @@ function goBack() {
             />
 
             <GroupSettingsMembersBanned
-              v-else-if="activeTab === 'members' && route.params.subTab === 'banned'"
+              v-else-if="
+                activeTab === 'members' && route.params.subTab === 'banned'
+              "
               :banned-users="bannedUsers"
               :loading="loadingBannedUsers"
               @revert-ban="revertBan"
             />
 
             <GroupSettingsMembersInvites
-              v-else-if="activeTab === 'members' && route.params.subTab === 'invites'"
+              v-else-if="
+                activeTab === 'members' && route.params.subTab === 'invites'
+              "
               :invites="invites"
               :loading="loadingInvites"
               @revoke-invite="revokeInvite"

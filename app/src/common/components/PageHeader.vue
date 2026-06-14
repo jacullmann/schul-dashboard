@@ -1,6 +1,6 @@
 <script setup lang="ts"></script>
 <template>
-  <BaseRow justify="between" class="mb-4">
+  <BaseRow justify="between" class="mb-4 flex-nowrap!">
     <BaseRow>
       <h2>
         <slot></slot>
