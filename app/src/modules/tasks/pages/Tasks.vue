@@ -260,14 +260,6 @@ function handleAnimationEnd(itemId: string) {
           :key="item.id"
           v-model:note-edit-content="noteEditContent"
           :class="{ 'animate-fade-up': animatedCardIds.has(item.id) }"
-          :style="
-            animatedCardIds.has(item.id)
-              ? {
-                  animationDelay: `${(index + 3) * 0.05 - elapsedLoadTime}s`,
-                  animationFillMode: 'both',
-                }
-              : undefined
-          "
           :item="item"
           :index="index"
           :user="user"
