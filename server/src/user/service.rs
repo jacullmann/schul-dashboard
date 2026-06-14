@@ -303,6 +303,14 @@ impl UserService {
         .await?;
 
         sqlx::query!(
+            r#"DELETE FROM user_item_visibility WHERE item_id = $1 AND user_id = $2"#,
+            item_id,
+            user_id
+        )
+        .execute(&self.db)
+        .await?;
+
+        sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:check', $2)"#,
             user_id,
             json!({ "itemId": item_id })

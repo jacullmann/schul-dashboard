@@ -86,7 +86,7 @@ impl ItemsService {
         let old_filter = f.filter == Some("old");
         let subject_lower = f.subject.map(|s| s.to_lowercase());
 
-        let rows = sqlx::query!(
+        let mut rows = sqlx::query!(
             r#"SELECT i.id, i.type, i.title, i.subject, i.description, i.images, i.due_date,
                       i.created_by as "created_by?: Uuid", i.editor_note, i.created_at, i.updated_at,
                       u.email as "creator_email?: String"
@@ -96,9 +96,9 @@ impl ItemsService {
                WHERE i.tenant_id = $1
                  AND ($3::text IS NULL OR $3 = 'all' OR i.type = $3)
                  AND (
-                     ($4::boolean AND (v.status = 'archived' OR (i.due_date < now() AND i.id IN (SELECT item_id FROM keep_checked WHERE user_id = $2))) AND v.status IS DISTINCT FROM 'kept')
+                     ($4::boolean AND (v.status = 'archived' OR (i.due_date < now() AND i.id IN (SELECT item_id FROM keep_checked WHERE user_id = $2) AND i.id NOT IN (SELECT item_id FROM pinned_items WHERE user_id = $2))) AND v.status IS DISTINCT FROM 'kept')
                      OR
-                     (NOT $4::boolean AND (v.status = 'kept' OR ((i.due_date >= now() OR i.id NOT IN (SELECT item_id FROM keep_checked WHERE user_id = $2)) AND v.status IS DISTINCT FROM 'archived')))
+                     (NOT $4::boolean AND (v.status = 'kept' OR ((i.due_date >= now() OR i.id NOT IN (SELECT item_id FROM keep_checked WHERE user_id = $2) OR i.id IN (SELECT item_id FROM pinned_items WHERE user_id = $2)) AND v.status IS DISTINCT FROM 'archived')))
                  )
                  AND (
                      $5::boolean IS FALSE
@@ -145,6 +145,10 @@ impl ItemsService {
         )
             .fetch_all(&self.db)
             .await?;
+
+        if old_filter {
+            rows.sort_by(|a, b| b.due_date.cmp(&a.due_date));
+        }
 
         let result: Vec<Value> = rows
             .into_iter()

@@ -1,0 +1,166 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT i.id, i.type, i.title, i.subject, i.description, i.images, i.due_date,\r\n                      i.created_by as \"created_by?: Uuid\", i.editor_note, i.created_at, i.updated_at,\r\n                      u.email as \"creator_email?: String\"\r\n               FROM items i\r\n               LEFT JOIN users u ON u.id = i.created_by\r\n               LEFT JOIN user_item_visibility v ON v.item_id = i.id AND v.user_id = $2\r\n               WHERE i.tenant_id = $1\r\n                 AND ($3::text IS NULL OR $3 = 'all' OR i.type = $3)\r\n                 AND (\r\n                     ($4::boolean AND (v.status = 'archived' OR (i.due_date < now() AND i.id IN (SELECT item_id FROM keep_checked WHERE user_id = $2) AND i.id NOT IN (SELECT item_id FROM pinned_items WHERE user_id = $2))) AND v.status IS DISTINCT FROM 'kept')\r\n                     OR\r\n                     (NOT $4::boolean AND (v.status = 'kept' OR ((i.due_date >= now() OR i.id NOT IN (SELECT item_id FROM keep_checked WHERE user_id = $2) OR i.id IN (SELECT item_id FROM pinned_items WHERE user_id = $2)) AND v.status IS DISTINCT FROM 'archived')))\r\n                 )\r\n                 AND (\r\n                     $5::boolean IS FALSE\r\n                     OR i.id NOT IN (SELECT item_id FROM keep_checked WHERE user_id = $2)\r\n                 )\r\n                 AND (\r\n                     $6::text IS NULL\r\n                     OR i.id IN (SELECT item_id FROM pinned_items WHERE user_id = $2)\r\n                     OR ($6 = 'enrichment' AND LOWER(i.subject) LIKE 'enrichment%')\r\n                     OR ($6 = 'wpu1' AND LOWER(i.subject) LIKE 'wpu (di)%')\r\n                     OR ($6 = 'wpu2' AND LOWER(i.subject) LIKE 'wpu (do)%')\r\n                     OR LOWER(SPLIT_PART(i.subject, ' -', 1)) = LOWER($6)\r\n                     OR LOWER(i.subject) = LOWER($6)\r\n                 )\r\n                 AND (\r\n                     $7::boolean IS FALSE\r\n                     OR i.id IN (SELECT item_id FROM pinned_items WHERE user_id = $2)\r\n                     OR NOT EXISTS (\r\n                         SELECT 1 FROM subjects s\r\n                         WHERE LOWER(s.name) = LOWER(SPLIT_PART(i.subject, ' -', 1))\r\n                           AND s.tenant_id = $1\r\n                           AND s.category != 'core'\r\n                           AND (SELECT COUNT(*) FROM courses c2 WHERE c2.subject_id = s.id) > 0\r\n                           AND NOT EXISTS (\r\n                               SELECT 1 FROM courses c\r\n                               JOIN user_courses uc ON uc.course_id = c.id\r\n                               WHERE c.subject_id = s.id\r\n                                 AND uc.user_id = $2\r\n                                 AND (\r\n                                     i.subject = s.name || ' - ' || c.name\r\n                                     OR (s.category = 'extra' AND i.subject = s.name AND (SELECT COUNT(*) FROM courses c3 WHERE c3.subject_id = s.id) = 1)\r\n                                 )\r\n                           )\r\n                     )\r\n                 )\r\n               ORDER BY i.due_date ASC",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "items",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "type",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "items",
+            "name": "type"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "title",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "items",
+            "name": "title"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "subject",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "items",
+            "name": "subject"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "description",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "items",
+            "name": "description"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "images",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "items",
+            "name": "images"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "due_date",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "items",
+            "name": "due_date"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "created_by?: Uuid",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "items",
+            "name": "created_by"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "editor_note",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "items",
+            "name": "editor_note"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "items",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "ordinal": 10,
+        "name": "updated_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "items",
+            "name": "updated_at"
+          }
+        }
+      },
+      {
+        "ordinal": 11,
+        "name": "creator_email?: String",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "users",
+            "name": "email"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Bool",
+        "Bool",
+        "Text",
+        "Bool"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      true,
+      true,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "6fc0edf185cada51baac218af876c757965b88c599a5b04d44d14b3866c66b8f"
+}

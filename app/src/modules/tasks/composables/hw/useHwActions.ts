@@ -58,6 +58,8 @@ export function useHwActions(
     if (!ctx.user.value) return;
     const id = item.id;
     const wasChecked = isChecked(id);
+    const isPinned = ctx.pinnedItems.value.has(id);
+    const wasKeptBefore = ctx.keptItems.value.has(id);
 
     if (wasChecked) {
       ctx.checkedItems.value.delete(id);
@@ -78,8 +80,13 @@ export function useHwActions(
       ctx.checkedItems.value.add(id);
 
       const isOld = new Date(item.dueDate) < new Date();
-      const needsOldFiltering = !ctx.showOldEntries.value && isOld;
+      const needsOldFiltering = !ctx.showOldEntries.value && isOld && !isPinned;
       const needsHideCheckedFiltering = ctx.hideChecked.value;
+
+      if (wasKeptBefore) {
+        ctx.keptItems.value.delete(id);
+        ctx.keptItems.value = new Set(ctx.keptItems.value);
+      }
 
       if (needsOldFiltering || needsHideCheckedFiltering) {
         if (needsOldFiltering) {
@@ -120,7 +127,7 @@ export function useHwActions(
       if (wasChecked) {
         ctx.checkedItems.value.add(id);
         const isOld = new Date(item.dueDate) < new Date();
-        if (!ctx.showOldEntries.value && isOld) {
+        if (!ctx.showOldEntries.value && isOld && !isPinned) {
           ctx.dismissedItems.value.add(id);
           ctx.dismissedItems.value = new Set(ctx.dismissedItems.value);
         }
@@ -132,6 +139,10 @@ export function useHwActions(
         );
         ctx.dismissedItems.value.delete(id);
         ctx.dismissedItems.value = new Set(ctx.dismissedItems.value);
+        if (wasKeptBefore) {
+          ctx.keptItems.value.add(id);
+          ctx.keptItems.value = new Set(ctx.keptItems.value);
+        }
       }
       ctx.checkedItems.value = new Set(ctx.checkedItems.value);
       handleSuccessAction('Fehler beim Setzen des Status.'); // fallback msg
