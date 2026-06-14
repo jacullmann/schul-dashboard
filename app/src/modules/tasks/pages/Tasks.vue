@@ -209,7 +209,12 @@ function openImageViewerForItem(item: HwItem, index: number) {
     <div class="flex flex-col gap-3 mt-8 max-w-192 mx-auto">
       <TaskSkeleton v-if="loading && initialLoad" :count="5" :image-count="2" />
 
-      <template v-else>
+      <TransitionGroup
+        v-else
+        name="task-list"
+        tag="div"
+        class="flex flex-col gap-3 relative"
+      >
         <TaskCard
           v-for="(item, index) in visibleItems"
           :key="item.id"
@@ -261,7 +266,7 @@ function openImageViewerForItem(item: HwItem, index: number) {
           @edit-note-save="saveNote(item.id)"
           @edit-note-delete="deleteNote(item.id)"
         />
-      </template>
+      </TransitionGroup>
 
       <BaseEmptyState
         v-if="!loading && !limitedItems.length"
@@ -373,3 +378,31 @@ function openImageViewerForItem(item: HwItem, index: number) {
     </BaseModal>
   </div>
 </template>
+
+<style scoped>
+.task-list-enter-active,
+.task-list-leave-active {
+  transition:
+    transform 0.5s cubic-bezier(0.25, 1, 0.5, 1),
+    opacity 0.4s ease;
+}
+
+.task-list-move {
+  transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.task-list-enter-from {
+  opacity: 0;
+  transform: translateX(-30px);
+}
+
+.task-list-leave-to {
+  opacity: 0;
+  transform: translateX(100px);
+}
+
+.task-list-leave-active {
+  position: absolute !important;
+  width: 100%;
+}
+</style>

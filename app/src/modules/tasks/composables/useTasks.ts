@@ -28,7 +28,9 @@ export function useTasks() {
   const modalStore = useModalStore();
   const imageUpload = useImageUpload();
   const { user } = storeToRefs(userStore);
-  const { t, te } = useI18n();
+  const i18n = useI18n();
+  const t = i18n.t.bind(i18n);
+  const te = i18n.te.bind(i18n);
 
   const tab = ref<ItemType>(
     isValidType(route.query.type as string)
@@ -55,6 +57,7 @@ export function useTasks() {
   const archivedItems = ref(new Set<string>());
   const keptItems = ref(new Set<string>());
   const dismissedItems = ref(new Set<string>());
+  const pendingCheckRemovals = ref(new Set<string>());
 
   const expandedDescriptions = ref(new Set<string>());
   const revealedImages = ref(new Set<string>());
@@ -84,6 +87,7 @@ export function useTasks() {
     archivedItems,
     keptItems,
     dismissedItems,
+    pendingCheckRemovals,
     expandedDescriptions,
     revealedImages,
     openMenuId,
@@ -183,6 +187,7 @@ export function useTasks() {
 
   watch([showOldEntries, tab, subjectFilter, hideChecked], () => {
     dismissedItems.value.clear();
+    pendingCheckRemovals.value.clear();
   });
 
   // Sync route query -> local state
@@ -371,6 +376,7 @@ export function useTasks() {
     archivedItems,
     keptItems,
     dismissedItems,
+    pendingCheckRemovals,
     makeThumb: images.makeThumb,
     isRevealed: ui.isRevealed,
     revealImages: ui.revealImages,

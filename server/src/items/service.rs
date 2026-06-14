@@ -96,9 +96,9 @@ impl ItemsService {
                WHERE i.tenant_id = $1
                  AND ($3::text IS NULL OR $3 = 'all' OR i.type = $3)
                  AND (
-                     ($4::boolean AND (i.due_date < now() OR v.status = 'archived') AND v.status IS DISTINCT FROM 'kept')
+                     ($4::boolean AND (v.status = 'archived' OR (i.due_date < now() AND i.id IN (SELECT item_id FROM keep_checked WHERE user_id = $2))) AND v.status IS DISTINCT FROM 'kept')
                      OR
-                     (NOT $4::boolean AND (i.due_date >= now() OR v.status = 'kept') AND v.status IS DISTINCT FROM 'archived')
+                     (NOT $4::boolean AND (v.status = 'kept' OR ((i.due_date >= now() OR i.id NOT IN (SELECT item_id FROM keep_checked WHERE user_id = $2)) AND v.status IS DISTINCT FROM 'archived')))
                  )
                  AND (
                      $5::boolean IS FALSE

@@ -52,21 +52,81 @@ export function useHwActions(
     return ctx.keptItems.value.has(itemId);
   }
 
+  const checkTimeouts = new Map<string, number>();
+
   async function toggleCheck(item: HwItem) {
     if (!ctx.user.value) return;
     const id = item.id;
     const wasChecked = isChecked(id);
 
-    if (wasChecked) ctx.checkedItems.value.delete(id);
-    else ctx.checkedItems.value.add(id);
+    if (wasChecked) {
+      ctx.checkedItems.value.delete(id);
+
+      const timeoutId = checkTimeouts.get(id);
+      if (timeoutId !== undefined) {
+        clearTimeout(timeoutId);
+        checkTimeouts.delete(id);
+      }
+
+      ctx.pendingCheckRemovals.value.delete(id);
+      ctx.pendingCheckRemovals.value = new Set(ctx.pendingCheckRemovals.value);
+      if (ctx.dismissedItems.value.has(id)) {
+        ctx.dismissedItems.value.delete(id);
+        ctx.dismissedItems.value = new Set(ctx.dismissedItems.value);
+      }
+    } else {
+      ctx.checkedItems.value.add(id);
+
+      const isOld = new Date(item.dueDate) < new Date();
+      const needsOldFiltering = !ctx.showOldEntries.value && isOld;
+      const needsHideCheckedFiltering = ctx.hideChecked.value;
+
+      if (needsOldFiltering || needsHideCheckedFiltering) {
+        if (needsHideCheckedFiltering) {
+          ctx.pendingCheckRemovals.value.add(id);
+          ctx.pendingCheckRemovals.value = new Set(
+            ctx.pendingCheckRemovals.value,
+          );
+        }
+
+        const timeoutId = window.setTimeout(() => {
+          if (needsHideCheckedFiltering) {
+            ctx.pendingCheckRemovals.value.delete(id);
+            ctx.pendingCheckRemovals.value = new Set(
+              ctx.pendingCheckRemovals.value,
+            );
+          }
+          if (needsOldFiltering) {
+            ctx.dismissedItems.value.add(id);
+            ctx.dismissedItems.value = new Set(ctx.dismissedItems.value);
+          }
+          checkTimeouts.delete(id);
+        }, 400);
+        checkTimeouts.set(id, timeoutId);
+      }
+    }
     ctx.checkedItems.value = new Set(ctx.checkedItems.value);
 
     try {
       if (wasChecked) await hw.delete(`/user/items/${id}/check`, getConfig());
       else await hw.post(`/user/items/${id}/check`, {}, getConfig());
     } catch {
-      if (wasChecked) ctx.checkedItems.value.add(id);
-      else ctx.checkedItems.value.delete(id);
+      if (wasChecked) {
+        ctx.checkedItems.value.add(id);
+        const isOld = new Date(item.dueDate) < new Date();
+        if (!ctx.showOldEntries.value && isOld) {
+          ctx.dismissedItems.value.add(id);
+          ctx.dismissedItems.value = new Set(ctx.dismissedItems.value);
+        }
+      } else {
+        ctx.checkedItems.value.delete(id);
+        ctx.pendingCheckRemovals.value.delete(id);
+        ctx.pendingCheckRemovals.value = new Set(
+          ctx.pendingCheckRemovals.value,
+        );
+        ctx.dismissedItems.value.delete(id);
+        ctx.dismissedItems.value = new Set(ctx.dismissedItems.value);
+      }
       ctx.checkedItems.value = new Set(ctx.checkedItems.value);
       handleSuccessAction('Fehler beim Setzen des Status.'); // fallback msg
     }

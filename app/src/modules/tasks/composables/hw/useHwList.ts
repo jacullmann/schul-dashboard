@@ -15,12 +15,13 @@ export function useHwList(ctx: HwContext) {
     const pins = ctx.pinnedItems.value;
     const checks = ctx.checkedItems.value;
     const hideChecked = ctx.hideChecked.value;
+    const pendingRemovals = ctx.pendingCheckRemovals.value;
 
     const pinnedList: typeof ctx.items.value = [];
     const unpinnedList: typeof ctx.items.value = [];
 
     for (const item of ctx.items.value) {
-      if (hideChecked && checks.has(item.id)) {
+      if (hideChecked && checks.has(item.id) && !pendingRemovals.has(item.id)) {
         continue;
       }
       (pins.has(item.id) ? pinnedList : unpinnedList).push(item);

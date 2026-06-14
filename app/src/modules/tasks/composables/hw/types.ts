@@ -22,6 +22,7 @@ export interface HwContext {
   archivedItems: Ref<Set<string>>;
   keptItems: Ref<Set<string>>;
   dismissedItems: Ref<Set<string>>;
+  pendingCheckRemovals: Ref<Set<string>>;
 
   expandedDescriptions: Ref<Set<string>>;
   revealedImages: Ref<Set<string>>;
