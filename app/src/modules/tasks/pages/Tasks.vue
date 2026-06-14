@@ -21,7 +21,9 @@ import type { HwItem } from '@/modules/tasks/composables/useTasks';
 const showInfoItem = ref<HwItem | null>(null);
 const showFilterModal = ref(false);
 
-const { t, tm } = useI18n();
+const i18n = useI18n();
+const t = i18n.t.bind(i18n);
+const tm = i18n.tm.bind(i18n);
 const { width: windowWidth } = useWindowSize();
 
 const tabItems = computed(() => [
@@ -203,7 +205,7 @@ function openImageViewerForItem(item: HwItem, index: number) {
       </BaseRow>
     </div>
 
-    <div class="flex flex-col gap-3 mt-4">
+    <div class="flex flex-col gap-3 mt-4 max-w-160 mx-auto">
       <TaskSkeleton v-if="loading && initialLoad" :count="5" :image-count="2" />
 
       <template v-else>
