@@ -196,7 +196,7 @@ const {
           <div
             v-for="img in imgImages"
             :key="img.publicId"
-            class="relative w-30 h-30 rounded-md overflow-hidden bg-[rgba(26, 26, 26, 0.5)] backdrop-blur-sm"
+            class="relative w-32 h-32 rounded-xl overflow-hidden bg-[rgba(26, 26, 26, 0.5)] backdrop-blur-sm"
           >
             <BaseLink :to="makeUrl(img.publicId)">
               <img
@@ -220,10 +220,9 @@ const {
                 type="button"
                 variant="danger"
                 :icon="X"
+                size="sm"
                 @click="removeImg(img, initial?.id)"
-              >
-                {{ t('tasks.list.task_form.remove_image') }}
-              </BaseButton>
+              />
             </div>
           </div>
 
