@@ -215,7 +215,7 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
 
     <div v-if="user" class="private-task-list">
       <div v-if="loading" class="flex flex-col gap-8 pt-4">
-        <div v-for="n in 10" class="animate-fade-up">
+        <div v-for="n in 10" :key="n" class="animate-fade-up">
           <BaseSkeleton width="60" height="20px" class="mb-3" />
           <BaseSkeleton width="full" height="16px" class="mb-2" />
           <BaseSkeleton
@@ -236,7 +236,7 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
       <div v-else class="private-tasks-container">
         <draggable
           :list="displayPrivateTasks"
-          class="flex flex-col gap-3"
+          class="flex flex-col gap-3 max-w-192 mx-auto"
           item-key="id"
           handle=".item-card"
           :animation="200"
