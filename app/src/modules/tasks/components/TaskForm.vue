@@ -5,6 +5,7 @@ import type { ItemType } from '@/modules/tasks/types';
 import { X, Upload, FileText } from '@lucide/vue';
 import { useTaskFormLogic } from '../composables/useTaskFormLogic';
 import ItemCard from './ItemCard.vue';
+import TaskCardDescription from './TaskCardDescription.vue';
 
 const { t } = useI18n();
 
@@ -54,8 +55,6 @@ const {
   doubleTaskOriginalItem,
   confirmDoubleTaskSubmit,
   viewExisting,
-  getSubjectName,
-  getTypeLabel,
   doubleTaskSubjectName,
   doubleTaskTypeLabel,
   doubleTaskDueDate,
@@ -282,11 +281,10 @@ const {
         </template>
 
         <template v-if="doubleTaskOriginalItem.description" #body>
-          <div
-            class="text-on-ghost break-words [overflow-wrap:anywhere] hyphens-auto whitespace-pre-wrap select-text cursor-text"
-          >
-            {{ doubleTaskOriginalItem.description }}
-          </div>
+          <TaskCardDescription
+            :description="doubleTaskOriginalItem.description"
+            :is-expanded="true"
+          />
         </template>
 
         <template

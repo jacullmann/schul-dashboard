@@ -429,7 +429,7 @@ p {
   }
 
   .checkbox-bg-clip {
-    clip-path: circle(10% at 50% 50%);
+    clip-path: circle(20% at 50% 50%);
     opacity: 0;
   }
   .checkbox-checked .checkbox-bg-clip {
