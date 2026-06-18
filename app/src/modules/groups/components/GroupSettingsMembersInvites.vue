@@ -136,18 +136,59 @@ function getInviteUrl(token: string): string {
         </tr>
       </thead>
       <tbody>
-        <template v-for="invite in invites" :key="invite.id">
-          <tr class="border-t border-canvas-border">
-            <td class="truncate select-all">
-              {{ getInviteUrl(invite.token) }}
-            </td>
-            <td :class="getBadgeClass(invite)" class="text-sm font-bold">
-              {{ getBadgeLabel(invite) }}
-            </td>
-            <td>{{ invite.createdByName || 'System' }}</td>
-            <td>
+        <tr
+          v-for="invite in invites"
+          :key="invite.id"
+          class="border-t border-canvas-border"
+        >
+          <td class="truncate select-all">
+            {{ getInviteUrl(invite.token) }}
+          </td>
+          <td :class="getBadgeClass(invite)" class="text-sm font-bold">
+            {{ getBadgeLabel(invite) }}
+          </td>
+          <td>{{ invite.createdByName || 'System' }}</td>
+          <td>
+            {{
+              new Date(invite.createdAt).toLocaleString('de-DE', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+              })
+            }}
+          </td>
+          <td>
+            <template v-if="invite.usedAt"
+              >Used by
+              <strong>{{ invite.usedByName || 'Unbekannt' }}</strong>
+              ({{
+                new Date(invite.usedAt).toLocaleString('de-DE', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })
+              }})
+            </template>
+            <template v-else-if="invite.revokedAt"
+              >Revoked by
+              <strong>{{ invite.revokedByName || 'Unbekannt' }}</strong>
+              ({{
+                new Date(invite.revokedAt).toLocaleString('de-DE', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })
+              }})
+            </template>
+            <template v-else>
               {{
-                new Date(invite.createdAt).toLocaleString('de-DE', {
+                new Date(invite.expiresAt).toLocaleString('de-DE', {
                   day: '2-digit',
                   month: '2-digit',
                   year: 'numeric',
@@ -155,76 +196,37 @@ function getInviteUrl(token: string): string {
                   minute: '2-digit',
                 })
               }}
-            </td>
-            <td>
-              <template v-if="invite.usedAt"
-                >Used by
-                <strong>{{ invite.usedByName || 'Unbekannt' }}</strong>
-                ({{
-                  new Date(invite.usedAt).toLocaleString('de-DE', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })
-                }})
-              </template>
-              <template v-else-if="invite.revokedAt"
-                >Revoked by
-                <strong>{{ invite.revokedByName || 'Unbekannt' }}</strong>
-                ({{
-                  new Date(invite.revokedAt).toLocaleString('de-DE', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })
-                }})
-              </template>
-              <template v-else>
-                {{
-                  new Date(invite.expiresAt).toLocaleString('de-DE', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })
-                }}
-              </template>
-            </td>
+            </template>
+          </td>
 
-            <td class="py-0! px-2! min-w-0! space-x-2">
-              <BaseTooltip
-                v-if="isInviteActive(invite)"
-                content="Link kopieren"
-                placement="bottom"
-              >
-                <BaseButton
-                  variant="ghost"
-                  size="sm"
-                  :icon="copiedId === invite.id ? Check : Copy"
-                  @click="copyLink(invite.id, invite.token)"
-                />
-              </BaseTooltip>
+          <td class="py-0! px-2! min-w-0! space-x-2">
+            <BaseTooltip
+              v-if="isInviteActive(invite)"
+              content="Link kopieren"
+              placement="bottom"
+            >
+              <BaseButton
+                variant="ghost"
+                size="sm"
+                :icon="copiedId === invite.id ? Check : Copy"
+                @click="copyLink(invite.id, invite.token)"
+              />
+            </BaseTooltip>
 
-              <BaseTooltip
-                v-if="isInviteActive(invite)"
-                content="Widerrufen"
-                placement="bottom"
-              >
-                <BaseButton
-                  variant="ghost"
-                  size="sm"
-                  :icon="Undo2"
-                  @click="emit('revoke-invite', invite.id)"
-                />
-              </BaseTooltip>
-            </td>
-          </tr>
-        </template>
+            <BaseTooltip
+              v-if="isInviteActive(invite)"
+              content="Widerrufen"
+              placement="bottom"
+            >
+              <BaseButton
+                variant="ghost"
+                size="sm"
+                :icon="Undo2"
+                @click="emit('revoke-invite', invite.id)"
+              />
+            </BaseTooltip>
+          </td>
+        </tr>
       </tbody>
     </table>
   </div>

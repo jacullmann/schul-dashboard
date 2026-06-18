@@ -39,9 +39,9 @@ const canModerateMembers = computed(() => checkPermission('moderate_members'));
 
       <template #message>Banned users will appear here</template>
     </BaseEmptyState>
-    <div v-else class="flex flex-col gap-1.5">
+    <div v-else class="flex flex-col gap-2">
       <div
-        v-for="(user, index) in bannedUsers"
+        v-for="user in bannedUsers"
         :key="user.userId"
         class="flex items-center justify-between p-2 px-3 bg-surface border border-surface-border shadow-input rounded-xl gap-3 animate-fade-up"
       >

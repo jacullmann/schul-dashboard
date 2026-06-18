@@ -467,53 +467,50 @@ function handleSaveSub() {
       >
         {{ t('groups.settings.schedule.changes.no_changes') }}
       </div>
-      <div v-else class="flex flex-col gap-1.5">
-        <div
-          v-for="sub in subs"
-          :key="sub.id"
-          class="flex items-center justify-between p-2 px-3.5 bg-surface border border-surface-border shadow-input rounded-[10px] gap-2"
-        >
-          <div class="flex items-center gap-2 flex-wrap min-w-0">
-            <span
-              v-if="sub.subject"
-              class="text-[0.7rem] font-semibold px-2 py-0.5 rounded bg-surface-hover text-on-ghost"
-              >{{ sub.subject }}</span
-            >
-            <span
-              v-else
-              class="text-[0.7rem] font-semibold px-2 py-0.5 rounded bg-surface-hover text-on-ghost"
-              >Unbekannt</span
-            >
-            <span v-if="sub.slot" class="text-sm text-on-ghost-muted"
-              >Stunde: {{ sub.slot }}</span
-            >
-            <span v-if="sub.day" class="text-sm text-on-ghost-muted"
-              >Tag: {{ sub.day }}</span
-            >
-            <span
-              v-if="sub.cancelled"
-              class="text-[0.7rem] font-semibold px-2 py-0.5 rounded bg-[rgba(239,68,68,0.15)] text-[#ef4444]"
-              >Ausfall</span
-            >
-            <span
-              v-if="sub.hide"
-              class="text-[0.7rem] font-semibold px-2 py-0.5 rounded bg-surface-hover text-on-ghost-muted"
-              >Versteckt</span
-            >
-            <span v-if="sub.room" class="text-sm text-on-ghost-muted"
-              >Raum: {{ sub.room }}</span
-            >
-          </div>
-          <BaseTooltip :content="t('common.buttons.delete')" placement="bottom">
-            <BaseButton
-              :disabled="!canManageScheduleChanges"
-              variant="ghost"
-              :icon="Trash2"
-              @click="emit('delete-sub', sub.id)"
-            />
-          </BaseTooltip>
-        </div>
-      </div>
+      <table
+        class="w-full min-w-max table-auto text-left [&_td]:p-3 [&_th]:p-3 [&_th]:font-bold [&_th]:text-base [&_td]:min-w-24 [&_td]:max-w-48"
+      >
+        <thead>
+          <tr>
+            <th>Subject</th>
+            <th>Room</th>
+            <th>Day</th>
+            <th>Slot</th>
+            <th>Cancelled</th>
+            <th>Hidden</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="sub in subs"
+            :key="sub.id"
+            class="border-t border-canvas-border"
+          >
+            <td>{{ sub.subject || 'Unbekannt' }}</td>
+            <td>{{ sub.room || '-' }}</td>
+            <td>{{ sub.day || '-' }}</td>
+            <td>{{ sub.slot || '-' }}</td>
+            <td class="text-danger">
+              {{ sub.cancelled ? 'Ausfall' : '-' }}
+            </td>
+            <td>{{ sub.hide ? 'Versteckt' : '-' }}</td>
+            <td class="py-0! px-2! min-w-0!">
+              <BaseTooltip
+                :content="t('common.buttons.delete')"
+                placement="bottom"
+              >
+                <BaseButton
+                  :disabled="!canManageScheduleChanges"
+                  variant="ghost"
+                  size="sm"
+                  :icon="Trash2"
+                  @click="emit('delete-sub', sub.id)"
+                />
+              </BaseTooltip>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </template>
