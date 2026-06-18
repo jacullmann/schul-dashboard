@@ -184,5 +184,13 @@
     "moderator": "Moderator",
     "owner": "Owner",
     "superadmin": "Superadmin"
+  },
+  "date": {
+    "seconds": "{n}s ago",
+    "minutes": "{n}m ago",
+    "hours": "{n}h ago",
+    "days": "{n}d ago",
+    "formatMD": "{month}-{day}",
+    "formatYMD": "{year}-{month}-{day}"
   }
 }

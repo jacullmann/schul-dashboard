@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
@@ -19,7 +19,10 @@ import { formatSubjectDisplay } from '@/utils/subject-formatter';
 import hw from '@/api/api.ts';
 import ItemCard from '@/modules/tasks/components/ItemCard.vue';
 
-const { t, te, locale } = useI18n();
+const i18n = useI18n();
+const t = i18n.t.bind(i18n);
+const te = i18n.te.bind(i18n);
+const locale = i18n.locale;
 const router = useRouter();
 const userStore = useUserStore();
 const subjectStore = useSubjectStore();
@@ -42,6 +45,10 @@ const checkedIds = ref<Set<string>>(new Set());
 const loadingTasks = ref(false);
 const now = ref(new Date());
 
+const pendingCheckRemovals = ref<Set<string>>(new Set());
+const useListTransitions = ref(false);
+const checkTimeouts = new Map<string, number>();
+
 let timerInterval: number | undefined;
 
 onMounted(async () => {
@@ -50,6 +57,31 @@ onMounted(async () => {
     now.value = new Date();
   }, 30000);
 });
+
+onUnmounted(() => {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+  }
+  checkTimeouts.forEach((timeoutId) => clearTimeout(timeoutId));
+  checkTimeouts.clear();
+});
+
+function beforeLeave(el: Element) {
+  const h = el as HTMLElement;
+  const rect = h.getBoundingClientRect();
+  const parent = h.offsetParent as HTMLElement | null;
+  const parentRect = parent?.getBoundingClientRect();
+
+  if (parentRect) {
+    h.style.left = `${rect.left - parentRect.left}px`;
+    h.style.top = `${rect.top - parentRect.top}px`;
+  } else {
+    h.style.left = `${h.offsetLeft}px`;
+    h.style.top = `${h.offsetTop}px`;
+  }
+  h.style.width = `${rect.width}px`;
+  h.style.position = 'absolute';
+}
 
 watch(
   activeGroupId,
@@ -64,6 +96,13 @@ watch(
 async function fetchTasks() {
   if (!activeGroupId.value) return;
   loadingTasks.value = true;
+
+  // Clear any pending check timeouts and states
+  checkTimeouts.forEach((timeoutId) => clearTimeout(timeoutId));
+  checkTimeouts.clear();
+  pendingCheckRemovals.value.clear();
+  useListTransitions.value = false;
+
   try {
     const config = { headers: { 'x-tenant-id': activeGroupId.value } };
     const [itemsRes, checksRes] = await Promise.all([
@@ -86,8 +125,36 @@ async function toggleCheck(item: any) {
 
   if (wasChecked) {
     checkedIds.value.delete(id);
+    checkedIds.value = new Set(checkedIds.value);
+
+    const timeoutId = checkTimeouts.get(id);
+    if (timeoutId !== undefined) {
+      clearTimeout(timeoutId);
+      checkTimeouts.delete(id);
+    }
+    pendingCheckRemovals.value.delete(id);
+    pendingCheckRemovals.value = new Set(pendingCheckRemovals.value);
   } else {
     checkedIds.value.add(id);
+    checkedIds.value = new Set(checkedIds.value);
+
+    useListTransitions.value = true;
+    pendingCheckRemovals.value.add(id);
+    pendingCheckRemovals.value = new Set(pendingCheckRemovals.value);
+
+    const timeoutId = window.setTimeout(() => {
+      pendingCheckRemovals.value.delete(id);
+      pendingCheckRemovals.value = new Set(pendingCheckRemovals.value);
+      checkTimeouts.delete(id);
+
+      // Keep useListTransitions true for another 800ms (total 1200ms) to let the slide transition finish
+      window.setTimeout(() => {
+        if (pendingCheckRemovals.value.size === 0) {
+          useListTransitions.value = false;
+        }
+      }, 800);
+    }, 400);
+    checkTimeouts.set(id, timeoutId);
   }
 
   try {
@@ -103,8 +170,18 @@ async function toggleCheck(item: any) {
   } catch (err) {
     if (wasChecked) {
       checkedIds.value.add(id);
+      checkedIds.value = new Set(checkedIds.value);
     } else {
       checkedIds.value.delete(id);
+      checkedIds.value = new Set(checkedIds.value);
+
+      const timeoutId = checkTimeouts.get(id);
+      if (timeoutId !== undefined) {
+        clearTimeout(timeoutId);
+        checkTimeouts.delete(id);
+      }
+      pendingCheckRemovals.value.delete(id);
+      pendingCheckRemovals.value = new Set(pendingCheckRemovals.value);
     }
     console.error('Error toggling check status:', err);
   }
@@ -139,7 +216,11 @@ const userSubjects = computed(() => {
 });
 
 const filteredTasks = computed(() => {
-  let list = rawItems.value.filter((item) => !checkedIds.value.has(item.id));
+  let list = rawItems.value.filter((item) => {
+    const isChecked = checkedIds.value.has(item.id);
+    const isPending = pendingCheckRemovals.value.has(item.id);
+    return !isChecked || isPending;
+  });
 
   const isPersonalizedActive =
     user.value?.personalized && user.value?.doneSetup;
@@ -163,25 +244,7 @@ const filteredTasks = computed(() => {
     });
   }
 
-  const startOfToday = new Date(
-    now.value.getFullYear(),
-    now.value.getMonth(),
-    now.value.getDate(),
-  );
-  const endOfTomorrow = new Date(
-    now.value.getFullYear(),
-    now.value.getMonth(),
-    now.value.getDate() + 2,
-    23,
-    59,
-    59,
-    999,
-  );
-
-  return list.filter((item) => {
-    const due = new Date(item.dueDate);
-    return due >= startOfToday && due <= endOfTomorrow;
-  });
+  return list;
 });
 
 const sortedTasks = computed(() => {
@@ -420,7 +483,13 @@ const isScheduleVisible = computed(() => {
           </div>
 
           <template v-else>
-            <div v-if="sortedTasks.length > 0" class="flex flex-col gap-3">
+            <TransitionGroup
+              :css="useListTransitions"
+              name="task-list"
+              tag="div"
+              class="flex flex-col gap-3 relative overflow-x-clip"
+              @before-leave="beforeLeave"
+            >
               <ItemCard
                 v-for="(task, index) in sortedTasks"
                 :key="task.id"
@@ -465,9 +534,12 @@ const isScheduleVisible = computed(() => {
                   </BaseTooltip>
                 </template>
               </ItemCard>
-            </div>
+            </TransitionGroup>
 
-            <div v-else class="text-center py-8 space-y-3">
+            <div
+              v-if="sortedTasks.length === 0"
+              class="text-center py-8 space-y-3 animate-fade-up"
+            >
               <div
                 class="inline-flex p-3 rounded-full bg-success/10 text-success"
               >
@@ -675,5 +747,23 @@ const isScheduleVisible = computed(() => {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.task-list-leave-active {
+  transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+  animation: none !important;
+}
+
+.task-list-move {
+  transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* Delay the moving animation only when an item is leaving */
+.relative:has(.task-list-leave-active) .task-list-move {
+  transition-delay: 0.2s;
+}
+
+.task-list-leave-to {
+  transform: translateX(110%);
 }
 </style>

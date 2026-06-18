@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-const { t, tm } = useI18n();
+const i18n = useI18n();
 
 const randomIndex = ref<number | null>(null);
 const isVisible = ref(false);
@@ -31,13 +31,13 @@ const getDaysToBerlinBreak = (): number | null => {
 
 const displayQuote = computed(() => {
   if (randomIndex.value === null) return '';
-  return t(`common.footer.quotes.${randomIndex.value}`, {
+  return i18n.t(`common.footer.quotes.${randomIndex.value}`, {
     daysToHoliday: getDaysToBerlinBreak() ?? '?',
   });
 });
 
 onMounted(() => {
-  const quotes = tm('common.footer.quotes');
+  const quotes = i18n.tm('common.footer.quotes');
 
   if (quotes && quotes.length > 0) {
     randomIndex.value = Math.floor(Math.random() * quotes.length);
@@ -51,9 +51,16 @@ onMounted(() => {
 
 <template>
   <p
-    v-if="isVisible"
-    class="text-on-ghost-muted text-base font-sans italic font-medium m-0!"
+    class="text-on-ghost-muted text-base font-sans italic font-medium m-0! min-h-6"
   >
-    {{ displayQuote }}
+    <span
+      v-for="(char, index) in displayQuote"
+      :key="index"
+      class="transition-[opacity,filter,transform] duration-250"
+      :class="isVisible ? 'opacity-100 blur-none' : 'opacity-0 blur-[3px]'"
+      :style="{ transitionDelay: `${index * 6}ms` }"
+    >
+      {{ char }}
+    </span>
   </p>
 </template>

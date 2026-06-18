@@ -2,6 +2,7 @@
 import { useI18n } from 'vue-i18n';
 import { computed } from 'vue';
 import type { HwItem } from '@/modules/tasks/types';
+import { formatDate as formatRelativeDate } from '@/utils/date-formatter';
 
 const props = defineProps<{
   open: boolean;
@@ -11,17 +12,11 @@ const props = defineProps<{
 
 defineEmits(['cancel']);
 
-const { t, locale } = useI18n();
+const { t } = useI18n();
 
 function formatDate(iso: string | undefined): string {
   if (!iso) return t('tasks.list.tasks.menu.info_modal.not_edited');
-  return new Date(iso).toLocaleString(locale.value, {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  return formatRelativeDate(iso, t);
 }
 
 const showUpdated = computed(() => {

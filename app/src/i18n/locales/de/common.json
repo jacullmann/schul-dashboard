@@ -211,5 +211,13 @@
   },
   "actions": {
     "close_aria_label": "Schließen"
+  },
+  "date": {
+    "seconds": "vor {n}s",
+    "minutes": "vor {n}m",
+    "hours": "vor {n}h",
+    "days": "vor {n}d",
+    "formatMD": "{day}-{month}",
+    "formatYMD": "{year}-{month}-{day}"
   }
 }
