@@ -186,7 +186,7 @@ function onDrop(e: DragEvent) {
 
     <div
       ref="cardRef"
-      class="relative bg-surface border border-ghost-hover rounded-xl p-1 shadow-input overflow-visible cursor-default touch-pan-y"
+      class="relative bg-surface border border-ghost-border rounded-xl p-1 shadow-input overflow-visible cursor-default touch-pan-y"
       :class="{
         'transition-[padding,max-height] duration-[300ms] ease-[cubic-bezier(0.78,0,0.22,1)]':
           isCollapsed,

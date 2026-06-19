@@ -3,7 +3,8 @@
 
 @theme {
   --color-black: oklch(0 0 0);
-  --color-smoke: oklch(0 0 0 / 7%);
+  --color-vapor: oklch(0 0 0 / 7%);
+  --color-smoke: oklch(0 0 0 / 13%);
   --color-onyx: oklch(0.1684 0 0);
   --color-charcoal: oklch(0.2768 0 0);
   --color-charcoal-highlight: oklch(0.3171 0 0);
@@ -32,12 +33,12 @@
   --color-canvas: var(--color-white);
 
   --color-surface: var(--color-white);
-  --color-surface-hover: var(--color-smoke);
+  --color-surface-hover: var(--color-vapor);
   --color-surface-highlight: oklch(0.9702 0 0);
   --color-surface-hover-border: oklch(0.7921 0 0);
 
   --color-ghost-border: var(--color-smoke);
-  --color-ghost-hover: var(--color-smoke);
+  --color-ghost-hover: var(--color-vapor);
   --color-on-ghost: var(--color-black);
   --color-on-ghost-muted: var(--color-graphite);
   --color-on-ghost-subtle: var(--color-ghost);
@@ -110,10 +111,11 @@
 
   --z-dropdown: 100;
   --z-sticky: 200;
-  --z-modal-overlay: 298;
-  --z-mobile-nav: 299;
   --z-header: 300;
-  --z-modal: 1000;
+  --z-mobile-nav-backdrop: 400;
+  --z-mobile-nav: 401;
+  --z-modal-overlay: 1000;
+  --z-modal: 1100;
   --z-toast: 5000;
   --z-auth-loading: 9000;
   --z-critical: 10000;

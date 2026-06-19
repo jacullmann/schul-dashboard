@@ -625,21 +625,6 @@ const isScheduleVisible = computed(() => {
                   {{ upcomingLesson.room || 'Kein Raum' }}
                 </div>
               </div>
-
-              <div class="shrink-0 flex flex-col gap-1.5 items-end">
-                <span
-                  v-if="upcomingLesson.cancelled"
-                  class="px-2 py-0.5 rounded text-xs font-bold bg-danger/15 text-danger border border-danger/20"
-                >
-                  {{ t('dashboard.schedule_overview.cancelled') }}
-                </span>
-                <span
-                  v-else-if="upcomingLesson.isSubstitutedSubject"
-                  class="px-2 py-0.5 rounded text-xs font-bold bg-bismuth-purple/15 text-bismuth-purple border border-bismuth-purple/20"
-                >
-                  {{ t('dashboard.schedule_overview.substituted') }}
-                </span>
-              </div>
             </div>
 
             <div
