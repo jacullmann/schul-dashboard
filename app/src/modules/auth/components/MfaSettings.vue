@@ -14,7 +14,7 @@ import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 
-const props = defineProps<{
+defineProps<{
   mfaEnabled: boolean;
 }>();
 
@@ -213,9 +213,12 @@ onUnmounted(() => {
 
 <template>
   <BaseFormContent>
-    <div class="flex items-center gap-3 p-3 mx-auto">
-      <div class="flex items-center justify-center size-11 text-on-ghost-muted">
-        <component :is="mfaEnabled ? ShieldCheck : ShieldOff" :size="24" />
+    <div class="flex items-center gap-2 p-3 mx-auto">
+      <div
+        class="flex items-center justify-center size-11 text-on-ghost-muted"
+        :class="mfaEnabled ? 'text-success' : 'text-on-ghost-muted'"
+      >
+        <component :is="mfaEnabled ? ShieldCheck : ShieldOff" :size="32" />
       </div>
       <div class="flex flex-col">
         <span class="text-sm text-on-ghost-muted"
@@ -299,7 +302,7 @@ onUnmounted(() => {
         </div>
 
         <div v-if="manualSecret" class="flex flex-col gap-2 items-center">
-          <p class="text-sm text-on-ghost-muted m-0">
+          <p class="text-sm text-on-ghost-muted m-0!">
             Oder gib diesen Code manuell ein:
           </p>
           <div
@@ -368,7 +371,7 @@ onUnmounted(() => {
           v-if="verifyError"
           class="flex items-center justify-center gap-1.5 text-sm text-danger"
         >
-          <AlertCircle :size="14" />
+          <AlertCircle :size="20" />
           {{ verifyError }}
         </div>
 
@@ -399,8 +402,8 @@ onUnmounted(() => {
       <div
         class="flex gap-3 p-3 px-4 bg-danger-hover border border-danger rounded-lg text-danger"
       >
-        <AlertTriangle :size="20" class="flex-shrink-0 mt-0.5" />
-        <p class="m-0 text-sm/[1.4]">
+        <AlertTriangle :size="24" class="flex-shrink-0 my-auto" />
+        <p class="m-0! text-on-danger! text-sm/[1.4]">
           {{ t('auth.mfa.deactivate.warning_prefix') }}
           {{ t('auth.mfa.deactivate.warning_suffix') }}
           korrekten Code eingeben
@@ -416,7 +419,7 @@ onUnmounted(() => {
           pattern="[0-9]*"
           maxlength="6"
           placeholder="000000"
-          class="w-[180px] p-3 text-3xl font-mono text-center bg-surface border border-ghost-border shadow-input rounded-xl text-on-ghost transition-colors focus:outline-none focus:border-on-ghost"
+          class="w-48 p-3 text-3xl font-mono tracking-wider text-center bg-surface border-2 border-ghost-border shadow-input rounded-xl text-on-ghost transition-colors focus:outline-none focus:border-on-ghost"
           :class="{ '!border-danger': deactivateError }"
           @input="handleDeactivateCodeInput"
           @keyup.enter="confirmDeactivate"
@@ -427,11 +430,11 @@ onUnmounted(() => {
         v-if="deactivateError"
         class="flex items-center justify-center gap-1.5 text-sm text-danger"
       >
-        <AlertCircle :size="14" />
+        <AlertCircle :size="20" />
         {{ deactivateError }}
       </div>
 
-      <div class="flex justify-end gap-3 mt-2">
+      <BaseRow justify="end">
         <BaseButton variant="ghost" @click="cancelDeactivate"
           >Abbrechen</BaseButton
         >
@@ -443,7 +446,7 @@ onUnmounted(() => {
         >
           Deaktivieren
         </BaseButton>
-      </div>
+      </BaseRow>
     </div>
   </BaseFormContent>
 </template>
