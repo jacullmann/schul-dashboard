@@ -17,7 +17,6 @@
     "view_full": "View full schedule",
     "cancelled": "Cancelled",
     "room_change": "Room change: {room}",
-    "substituted": "Substitution",
     "setup_cta": "No schedule has been created for this group yet.",
     "setup_button": "Set Up Schedule"
   }

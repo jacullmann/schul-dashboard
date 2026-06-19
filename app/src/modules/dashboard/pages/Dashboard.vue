@@ -447,10 +447,7 @@ const isScheduleVisible = computed(() => {
       </PageHeader>
     </div>
 
-    <div
-      class="grid grid-cols-1 gap-8"
-      :class="{ 'md:grid-cols-2': isScheduleVisible }"
-    >
+    <div class="flex flex-col gap-8">
       <div class="flex flex-col">
         <PageHeader>
           {{ t('dashboard.tasks_overview.title') }}
@@ -474,11 +471,14 @@ const isScheduleVisible = computed(() => {
         </PageHeader>
 
         <div class="flex flex-col justify-center">
-          <div v-if="loadingTasks" class="space-y-4 animate-pulse">
+          <div
+            v-if="loadingTasks"
+            class="flex flex-col gap-3 animate-pulse max-w-192 mx-auto"
+          >
             <div
               v-for="i in 3"
               :key="i"
-              class="h-16 bg-surface-highlight rounded-xl"
+              class="h-17 bg-surface-highlight rounded-xl"
             ></div>
           </div>
 
@@ -487,7 +487,7 @@ const isScheduleVisible = computed(() => {
               :css="useListTransitions"
               name="task-list"
               tag="div"
-              class="flex flex-col gap-3 relative overflow-x-clip"
+              class="flex flex-col gap-3 relative overflow-x-clip w-full max-w-192 mx-auto"
               @before-leave="beforeLeave"
             >
               <ItemCard
@@ -578,19 +578,19 @@ const isScheduleVisible = computed(() => {
 
         <div
           v-if="loadingLessons || loadingSubs"
-          class="flex-1 flex flex-col gap-5 min-h-[220px]"
+          class="flex-1 flex flex-col gap-6 min-h-[220px]"
         >
-          <div class="space-y-2">
-            <h3>
+          <div>
+            <h3 class="mb-1!">
               {{ t('dashboard.schedule_overview.next_lesson') }}
             </h3>
             <div
-              class="h-20 bg-surface-highlight rounded-xl animate-pulse"
+              class="h-20 bg-surface-highlight rounded-xl animate-pulse max-w-192 mx-auto"
             ></div>
           </div>
 
-          <div class="space-y-2 flex-1 flex flex-col">
-            <h3>
+          <div class="flex-1 flex flex-col">
+            <h3 class="mb-1!">
               {{ t('dashboard.schedule_overview.substitutions') }}
             </h3>
             <div
@@ -601,16 +601,16 @@ const isScheduleVisible = computed(() => {
 
         <div
           v-else-if="hasLessons"
-          class="flex-1 flex flex-col gap-5 min-h-[220px]"
+          class="flex-1 flex flex-col gap-6 min-h-[220px]"
         >
-          <div class="space-y-2">
-            <h3>
+          <div>
+            <h3 class="mb-1!">
               {{ t('dashboard.schedule_overview.next_lesson') }}
             </h3>
 
             <div
               v-if="upcomingLesson"
-              class="flex items-center justify-between gap-4 px-3 py-2 rounded-lg border border-ghost-border bg-surface"
+              class="flex items-center justify-between gap-4 px-3 py-2 rounded-lg border border-ghost-border bg-surface max-w-192 mx-auto"
             >
               <div class="min-w-0">
                 <div class="text-xs text-on-ghost-muted mb-0.5">
@@ -650,57 +650,49 @@ const isScheduleVisible = computed(() => {
             </div>
           </div>
 
-          <div class="space-y-2 flex-1 flex flex-col">
-            <h3>
+          <div class="flex-1 flex flex-col">
+            <h3 class="mb-1!">
               {{ t('dashboard.schedule_overview.substitutions') }}
             </h3>
 
             <div
               v-if="scheduleChanges.length > 0"
-              class="space-y-2 max-h-[120px] overflow-y-auto pr-1"
+              class="flex flex-col max-h-48 overflow-y-auto w-full max-w-192 mx-auto"
             >
               <div
-                v-for="change in scheduleChanges"
+                v-for="(change, index) in scheduleChanges"
                 :key="change.id"
-                class="flex items-center justify-between gap-3 p-3 rounded-lg border border-ghost-border bg-surface text-xs"
+                class="flex max-sm:flex-col sm:items-center sm:justify-between sm:gap-3 py-3"
+                :class="
+                  index !== scheduleChanges.length - 1
+                    ? 'border-b border-ghost-border'
+                    : ''
+                "
               >
                 <div class="min-w-0">
-                  <span class="font-semibold text-on-ghost-muted">
-                    {{ formatDayName(change.day) }}, {{ change.slot }}. Stunde:
-                  </span>
-                  <span class="font-bold text-on-ghost ml-1">
-                    {{ getDisplayName(change) }}
-                  </span>
-                  <span
-                    v-if="change.room !== change._original?.room"
-                    class="text-on-ghost-subtle block mt-0.5 font-medium"
-                  >
-                    {{
-                      t('dashboard.schedule_overview.room_change', {
-                        room: change.room,
-                      })
-                    }}
-                    (war: {{ change._original?.room || '?' }})
+                  <span class="text-base text-on-ghost font-medium">
+                    {{ change.slot }}. Stunde {{ getDisplayName(change) }},
+                    {{ formatDayName(change.day) }}
                   </span>
                 </div>
 
-                <span
-                  v-if="change.cancelled"
-                  class="px-1.5 py-0.5 rounded text-xs font-bold bg-danger/10 text-danger"
+                <i18n-t
+                  v-if="change.room !== change._original?.room"
+                  keypath="dashboard.schedule_overview.room_change"
+                  tag="span"
+                  class="text-on-ghost-muted block"
                 >
+                  <template #room>
+                    <strong>{{ change.room }}</strong>
+                  </template>
+
+                  <template #original>
+                    {{ change._original?.room || '?' }}
+                  </template>
+                </i18n-t>
+
+                <span v-if="change.cancelled" class="font-bold text-danger">
                   {{ t('dashboard.schedule_overview.cancelled') }}
-                </span>
-                <span
-                  v-else-if="change.isSubstitutedSubject"
-                  class="px-1.5 py-0.5 rounded text-xs font-bold bg-bismuth-purple/10 text-bismuth-purple"
-                >
-                  {{ t('dashboard.schedule_overview.substituted') }}
-                </span>
-                <span
-                  v-else
-                  class="px-1.5 py-0.5 rounded text-xs font-bold bg-warn/10 text-on-warn dark:text-yellow"
-                >
-                  Änderung
                 </span>
               </div>
             </div>

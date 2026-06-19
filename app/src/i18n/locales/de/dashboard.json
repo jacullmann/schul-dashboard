@@ -16,8 +16,7 @@
     "no_substitutions": "Keine Planänderungen in dieser Woche.",
     "view_full": "Vollständigen Plan anzeigen",
     "cancelled": "Ausfall",
-    "room_change": "Raumänderung: {room}",
-    "substituted": "Vertretung",
+    "room_change": "In {room} statt {original}",
     "setup_cta": "Es wurde noch kein Stundenplan für diese Gruppe erstellt.",
     "setup_button": "Stundenplan einrichten"
   }
