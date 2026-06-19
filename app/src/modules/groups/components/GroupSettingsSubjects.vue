@@ -443,7 +443,7 @@ onMounted(() => {
 
         <div
           v-if="!subject.courses || subject.courses.length === 0"
-          class="text-center p-6 bg-surface border border-surface-border rounded-xl text-on-ghost-muted text-base"
+          class="text-center p-6 bg-surface border border-ghost-border rounded-xl text-on-ghost-muted text-base"
         >
           {{ t('groups.settings.subjects.list.empty') }}
         </div>
@@ -451,7 +451,7 @@ onMounted(() => {
           <div
             v-for="course in subject.courses"
             :key="course.id"
-            class="flex items-center justify-between p-3 rounded-xl bg-surface border border-surface-border animate-fade-up"
+            class="flex items-center justify-between p-3 rounded-xl bg-surface border border-ghost-border animate-fade-up"
           >
             <span class="font-medium text-base text-on-ghost truncate">
               {{ course.name }}

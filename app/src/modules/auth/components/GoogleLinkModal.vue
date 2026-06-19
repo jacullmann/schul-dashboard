@@ -54,7 +54,7 @@ function cancel() {
     <template #content>
       <div class="flex flex-col items-center gap-3 mb-4">
         <div
-          class="w-12 h-12 rounded-xl bg-surface border border-surface-border flex items-center justify-center"
+          class="w-12 h-12 rounded-xl bg-surface border border-ghost-border flex items-center justify-center"
           aria-hidden="true"
         >
           <GoogleIcon :size="24" />

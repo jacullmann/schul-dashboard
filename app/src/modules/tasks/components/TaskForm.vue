@@ -319,7 +319,7 @@ const {
           <!-- Notes block (non-interactive) -->
           <div
             v-if="doubleTaskOriginalItem.editorNote"
-            class="note-section mt-2 pt-1 border-t border-surface-border"
+            class="note-section mt-2 pt-1 border-t border-ghost-border"
           >
             <div class="text-on-ghost text-base font-bold mb-1">
               {{ t('tasks.list.notes.note') }}

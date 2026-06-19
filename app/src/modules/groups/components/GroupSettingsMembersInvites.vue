@@ -112,20 +112,17 @@ function getInviteUrl(token: string): string {
 
     <div
       v-if="loading && invites.length === 0"
-      class="flex justify-center p-8 bg-surface border border-surface-border rounded-xl"
+      class="flex justify-center p-8 bg-surface border border-ghost-border rounded-xl"
     >
       <BaseSpinner />
     </div>
     <div
       v-else-if="invites.length === 0"
-      class="text-center p-8 text-on-ghost-muted text-base bg-surface border border-surface-border rounded-xl"
+      class="text-center p-8 text-on-ghost-muted text-base bg-surface border border-ghost-border rounded-xl"
     >
       {{ t('groups.settings.members.invite_links.empty') }}
     </div>
-    <table
-      v-else
-      class="w-full min-w-max table-auto text-left [&_td]:p-3 [&_th]:p-3 [&_th]:font-bold [&_th]:text-base [&_td]:min-w-40 [&_td]:max-w-80"
-    >
+    <table>
       <thead>
         <tr>
           <th>Link</th>
@@ -133,14 +130,11 @@ function getInviteUrl(token: string): string {
           <th>Erstellt von</th>
           <th>Erstellt am</th>
           <th>Ablaufdatum</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
-        <tr
-          v-for="invite in invites"
-          :key="invite.id"
-          class="border-t border-canvas-border"
-        >
+        <tr v-for="invite in invites" :key="invite.id">
           <td class="truncate select-all">
             {{ getInviteUrl(invite.token) }}
           </td>

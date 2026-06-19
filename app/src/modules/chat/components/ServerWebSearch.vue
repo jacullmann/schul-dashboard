@@ -74,10 +74,10 @@ onMounted(() => {
       <div class="fixed w-full h-full md:p-4 md:h-fit md:w-[640px] z-[20000]">
         <!-- Header: Search Bar -->
         <div
-          class="w-full h-full bg-canvas md:border border-canvas-border md:rounded-2xl overflow-hidden flex flex-col"
+          class="w-full h-full bg-canvas md:border border-ghost-border md:rounded-2xl overflow-hidden flex flex-col"
         >
           <div
-            class="flex items-center gap-3 p-4 border-b border-canvas-border"
+            class="flex items-center gap-3 p-4 border-b border-ghost-border"
           >
             <Search :size="20" class="text-on-ghost-subtle flex-shrink-0" />
             <input
@@ -167,7 +167,7 @@ onMounted(() => {
                     {{ articleTitle }}
                   </h1>
                   <div
-                    class="text-on-ghost leading-relaxed [&_p]:mb-4 [&_h1]:font-bold [&_h1]:mt-6 [&_h1]:mb-3 [&_h2]:font-bold [&_h2]:mt-6 [&_h2]:mb-3 [&_h3]:font-bold [&_h3]:mt-6 [&_h3]:mb-3 [&_h2]:text-[1.25rem] [&_h2]:border-b [&_h2]:border-surface-border [&_h2]:pb-2 [&_h3]:text-[1.125rem] [&_ul]:mb-4 [&_ul]:pl-6 [&_ol]:mb-4 [&_ol]:pl-6 [&_li]:mb-1 [&_a]:text-primary [&_a]:no-underline hover:[&_a]:underline [&_.mw-editsection]:hidden [&_.navbox]:hidden [&_.ambox]:hidden [&_.infobox]:hidden [&_.metadata]:hidden [&_.searchmatch]:font-bold [&_.searchmatch]:text-on-ghost"
+                    class="text-on-ghost leading-relaxed [&_p]:mb-4 [&_h1]:font-bold [&_h1]:mt-6 [&_h1]:mb-3 [&_h2]:font-bold [&_h2]:mt-6 [&_h2]:mb-3 [&_h3]:font-bold [&_h3]:mt-6 [&_h3]:mb-3 [&_h2]:text-[1.25rem] [&_h2]:border-b [&_h2]:border-ghost-border [&_h2]:pb-2 [&_h3]:text-[1.125rem] [&_ul]:mb-4 [&_ul]:pl-6 [&_ol]:mb-4 [&_ol]:pl-6 [&_li]:mb-1 [&_a]:text-primary [&_a]:no-underline hover:[&_a]:underline [&_.mw-editsection]:hidden [&_.navbox]:hidden [&_.ambox]:hidden [&_.infobox]:hidden [&_.metadata]:hidden [&_.searchmatch]:font-bold [&_.searchmatch]:text-on-ghost"
                     v-html="articleContent"
                   ></div>
                 </div>
@@ -176,7 +176,7 @@ onMounted(() => {
           </div>
 
           <div
-            class="px-4 py-2.5 border-t border-canvas-border flex items-center gap-4 text-xs text-on-ghost-muted"
+            class="px-4 py-2.5 border-t border-ghost-border flex items-center gap-4 text-xs text-on-ghost-muted"
           >
             <BaseRow>
               <BaseKbd>↑</BaseKbd>

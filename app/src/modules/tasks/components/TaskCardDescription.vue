@@ -100,12 +100,10 @@ function renderToken(token: any): VNode | string {
         );
       });
       return h(TableWrapper, {}, () =>
-        h('table', { class: 'w-full border-collapse' }, [
-          h('thead', {}, [headerRow]),
-          h('tbody', {}, bodyRows),
-        ]),
+        h('table', {}, [h('thead', {}, [headerRow]), h('tbody', {}, bodyRows)]),
       );
     }
+
     default:
       return token.text || '';
   }
@@ -275,7 +273,7 @@ watch(
     >
       <div
         ref="contentRef"
-        class="description-content min-h-0 overflow-hidden whitespace-normal prose-custom [&_p]:mt-0! [&_p]:mb-2! [&_p]:text-on-ghost! [&_p]:whitespace-pre-wrap! [&_p:last-child]:mb-0! [&_ul]:mt-0! [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-2! [&_ol]:mt-0! [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-2! [&_li]:mb-1 [&_strong]:font-semibold [&_strong]:text-on-ghost [&_a]:text-primary [&_a]:underline [&_code]:bg-surface-elevated [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs [&_pre]:mt-0! [&_pre]:bg-surface-elevated [&_pre]:p-2 [&_pre]:rounded [&_pre]:overflow-x-auto [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_h1]:mt-0! [&_h1]:text-xl [&_h1]:font-bold [&_h1]:mb-2 [&_h2]:mt-0! [&_h2]:text-lg [&_h2]:font-bold [&_h2]:mb-2 [&_h3]:mt-0! [&_h3]:text-base [&_h3]:font-bold [&_h3]:mb-1 [&_blockquote]:border-l-4 [&_blockquote]:border-surface-border [&_blockquote]:pl-3 [&_blockquote]:italic [&_blockquote]:my-2 [&_thead]:space-x-2 [&_th]:p-3 [&_th]:font-semibold [&_th]:text-on-ghost [&_th]:text-left! [&_th]:max-w-80 [&_td]:border-t [&_td]:border-surface-border [&_td]:p-3 [&_td]:text-left! [&_td]:min-w-40 [&_td]:max-w-80 [&_>_*:first-child]:mt-0! [&_>_*:last-child]:mb-0! inline-block w-full align-top"
+        class="description-content min-h-0 overflow-hidden whitespace-normal prose-custom [&_p]:mt-0! [&_p]:mb-2! [&_p]:text-on-ghost! [&_p]:whitespace-pre-wrap! [&_p:last-child]:mb-0! [&_ul]:mt-0! [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-2! [&_ol]:mt-0! [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-2! [&_li]:mb-1 [&_strong]:font-semibold [&_strong]:text-on-ghost [&_a]:text-primary [&_a]:underline [&_code]:bg-surface-elevated [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs [&_pre]:mt-0! [&_pre]:bg-surface-elevated [&_pre]:p-2 [&_pre]:rounded [&_pre]:overflow-x-auto [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_h1]:mt-0! [&_h1]:text-xl [&_h1]:font-bold [&_h1]:mb-2 [&_h2]:mt-0! [&_h2]:text-lg [&_h2]:font-bold [&_h2]:mb-2 [&_h3]:mt-0! [&_h3]:text-base [&_h3]:font-bold [&_h3]:mb-1 [&_blockquote]:border-l-4 [&_blockquote]:border-ghost-border [&_blockquote]:pl-3 [&_blockquote]:italic [&_blockquote]:my-2 [&_>_*:first-child]:mt-0! [&_>_*:last-child]:mb-0! inline-block w-full align-top"
       >
         <MarkdownRenderer :tokens="tokens" :is-expanded="isExpanded" />
       </div>

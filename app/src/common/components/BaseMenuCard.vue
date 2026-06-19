@@ -33,7 +33,7 @@ defineExpose({ menuEl });
       v-if="open"
       ref="menuEl"
       v-bind="$attrs"
-      class="absolute flex flex-col items-stretch bg-surface border border-surface-border rounded-xl min-w-[180px] shadow-menu overflow-hidden gap-0 z-[1000]"
+      class="absolute flex flex-col items-stretch bg-surface border border-ghost-border rounded-xl min-w-[180px] shadow-menu overflow-hidden gap-0 z-[1000]"
     >
       <slot></slot>
     </div>

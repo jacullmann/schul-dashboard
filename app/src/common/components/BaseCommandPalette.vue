@@ -92,10 +92,10 @@ function setSelectedIndex(idx: number) {
       role="dialog"
       aria-modal="true"
       :aria-label="title"
-      class="bg-surface border border-surface-border rounded-2xl w-[calc(100%-32px)] max-w-140 overflow-hidden fixed text-left z-100001"
+      class="bg-surface border border-ghost-border rounded-2xl w-[calc(100%-32px)] max-w-140 overflow-hidden fixed text-left z-100001"
       @keydown="handleKeydown"
     >
-      <div class="flex items-center gap-3 p-4 border-b border-surface-border">
+      <div class="flex items-center gap-3 p-4 border-b border-ghost-border">
         <Search :size="20" class="text-on-ghost-subtle shrink-0" />
         <input
           :id="`${idPrefix}input`"
@@ -119,7 +119,7 @@ function setSelectedIndex(idx: number) {
       </div>
 
       <div
-        class="hidden sm:flex px-4 py-2.5 border-t border-surface-border items-center gap-4 text-xs text-on-ghost-muted"
+        class="hidden sm:flex px-4 py-2.5 border-t border-ghost-border items-center gap-4 text-xs text-on-ghost-muted"
       >
         <BaseRow>
           <BaseKbd>↑</BaseKbd>

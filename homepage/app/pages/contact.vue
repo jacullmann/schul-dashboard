@@ -28,7 +28,7 @@ const contactMethods = [
 
 <template>
   <div class="w-full">
-    <section class="w-full py-20 md:py-14 border-b border-surface-border">
+    <section class="w-full py-20 md:py-14 border-b border-ghost-border">
       <div class="max-w-[1300px] w-full mx-auto px-4 lg:px-6 text-center">
         <h1
           class="text-[clamp(2rem,5vw,3.5rem)] font-bold font-display text-on-ghost leading-[1.15] mb-5"
@@ -50,10 +50,10 @@ const contactMethods = [
             :href="method.href"
             target="_blank"
             rel="noopener noreferrer"
-            class="group bg-surface border border-surface-border rounded-xl p-8 flex flex-col gap-5 no-underline transition-all hover:border-surface-hover-border hover:bg-surface-highlight hover:-translate-y-px"
+            class="group bg-surface border border-ghost-border rounded-xl p-8 flex flex-col gap-5 no-underline transition-all hover:border-surface-hover-border hover:bg-surface-highlight hover:-translate-y-px"
           >
             <div
-              class="w-12 h-12 rounded-xl bg-canvas border border-surface-border flex items-center justify-center text-on-ghost-muted group-hover:text-on-ghost transition-colors"
+              class="w-12 h-12 rounded-xl bg-canvas border border-ghost-border flex items-center justify-center text-on-ghost-muted group-hover:text-on-ghost transition-colors"
             >
               <component :is="method.icon" :size="22" aria-hidden="true" />
             </div>

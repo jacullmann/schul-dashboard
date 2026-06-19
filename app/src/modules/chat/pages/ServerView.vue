@@ -364,7 +364,7 @@ const toggleSpeechRecognition = () => {
 <template>
   <div class="h-dvh w-full flex flex-col overflow-hidden bg-canvas">
     <div
-      class="absolute top-2 left-2 bg-surface border border-surface-border z-1 rounded-full p-1"
+      class="absolute top-2 left-2 bg-surface border border-ghost-border z-1 rounded-full p-1"
     >
       <BaseTooltip content="New Chat" placement="bottom">
         <BaseButton
@@ -399,7 +399,7 @@ const toggleSpeechRecognition = () => {
           <div v-if="message.role === 'human'" class="w-full group">
             <div class="flex">
               <div
-                class="bg-surface border border-surface-border py-3 px-4 rounded-2xl rounded-tl-md max-w-[75%] wrap-break-word text-left"
+                class="bg-surface border border-ghost-border py-3 px-4 rounded-2xl rounded-tl-md max-w-[75%] wrap-break-word text-left"
               >
                 {{ message.content }}
               </div>
@@ -528,7 +528,7 @@ const toggleSpeechRecognition = () => {
 
         <form novalidate class="relative w-full z-20" @submit.prevent="send">
           <div
-            class="p-3 rounded-3xl flex flex-col gap-2 bg-surface border border-surface-border w-full shadow-sm"
+            class="p-3 rounded-3xl flex flex-col gap-2 bg-surface border border-ghost-border w-full shadow-sm"
           >
             <textarea
               id="user-input"

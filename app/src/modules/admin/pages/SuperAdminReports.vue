@@ -114,7 +114,7 @@ onMounted(loadReports);
 
                 <div
                   v-if="r.itemEditorNote"
-                  class="note-section mt-2 pt-1 border-t border-surface-border"
+                  class="note-section mt-2 pt-1 border-t border-ghost-border"
                 >
                   <div class="text-on-ghost text-base font-bold mb-1">
                     {{ t('tasks.list.notes.note') }}
@@ -128,7 +128,7 @@ onMounted(loadReports);
 
                 <div
                   v-if="r.reason"
-                  class="report-reason-box mt-2 pt-1 border-t border-surface-border"
+                  class="report-reason-box mt-2 pt-1 border-t border-ghost-border"
                 >
                   <div class="text-on-ghost text-base font-bold mb-1">
                     Reason
@@ -139,7 +139,7 @@ onMounted(loadReports);
                   From: {{ r.reporterEmail }} · {{ fmtDate(r.reportedAt) }}
                 </div>
 
-                <BaseRow class="mt-2 pt-2 border-t border-surface-border">
+                <BaseRow class="mt-2 pt-2 border-t border-ghost-border">
                   <BaseButton
                     variant="ghost"
                     :icon="Check"
@@ -183,7 +183,7 @@ onMounted(loadReports);
                 <div class="report-meta mt-1 text-xs text-on-ghost-muted">
                   From: {{ r.reporterEmail }} · {{ fmtDate(r.reportedAt) }}
                 </div>
-                <BaseRow class="mt-2 pt-2 border-t border-surface-border">
+                <BaseRow class="mt-2 pt-2 border-t border-ghost-border">
                   <BaseButton
                     variant="ghost"
                     :icon="Check"
@@ -229,7 +229,7 @@ onMounted(loadReports);
               <template #content-after>
                 <div
                   v-if="r.reason"
-                  class="report-reason-box mt-2 pt-1 border-t border-surface-border"
+                  class="report-reason-box mt-2 pt-1 border-t border-ghost-border"
                 >
                   <div class="text-on-ghost text-base font-bold mb-1">
                     Reason
@@ -240,7 +240,7 @@ onMounted(loadReports);
                   From: {{ r.reporterEmail }} · {{ fmtDate(r.reportedAt) }}
                 </div>
 
-                <BaseRow class="mt-2 pt-2 border-t border-surface-border">
+                <BaseRow class="mt-2 pt-2 border-t border-ghost-border">
                   <BaseButton
                     variant="ghost"
                     :icon="Check"
@@ -348,7 +348,7 @@ onMounted(loadReports);
 
                 <div
                   v-if="r.itemEditorNote"
-                  class="note-section mt-2 pt-1 border-t border-surface-border"
+                  class="note-section mt-2 pt-1 border-t border-ghost-border"
                 >
                   <div class="text-on-ghost text-base font-bold mb-1">
                     {{ t('tasks.list.notes.note') }}
@@ -362,7 +362,7 @@ onMounted(loadReports);
 
                 <div
                   v-if="r.reason"
-                  class="report-reason-box mt-2 pt-1 border-t border-surface-border"
+                  class="report-reason-box mt-2 pt-1 border-t border-ghost-border"
                 >
                   <div class="text-on-ghost text-base font-bold mb-1">
                     Reason
@@ -373,7 +373,7 @@ onMounted(loadReports);
                   From: {{ r.reporterEmail }} · {{ fmtDate(r.reportedAt) }}
                 </div>
 
-                <BaseRow class="mt-2 pt-2 border-t border-surface-border">
+                <BaseRow class="mt-2 pt-2 border-t border-ghost-border">
                   <BaseButton
                     variant="ghost"
                     :icon="RotateCcw"
@@ -412,7 +412,7 @@ onMounted(loadReports);
                 <div class="report-meta mt-1 text-xs text-on-ghost-muted">
                   From: {{ r.reporterEmail }} · {{ fmtDate(r.reportedAt) }}
                 </div>
-                <BaseRow class="mt-2 pt-2 border-t border-surface-border">
+                <BaseRow class="mt-2 pt-2 border-t border-ghost-border">
                   <BaseButton
                     variant="ghost"
                     :icon="RotateCcw"
@@ -459,7 +459,7 @@ onMounted(loadReports);
               <template #content-after>
                 <div
                   v-if="r.reason"
-                  class="report-reason-box mt-2 pt-1 border-t border-surface-border"
+                  class="report-reason-box mt-2 pt-1 border-t border-ghost-border"
                 >
                   <div class="text-on-ghost text-base font-bold mb-1">
                     Reason
@@ -470,7 +470,7 @@ onMounted(loadReports);
                   From: {{ r.reporterEmail }} · {{ fmtDate(r.reportedAt) }}
                 </div>
 
-                <BaseRow class="mt-2 pt-2 border-t border-surface-border">
+                <BaseRow class="mt-2 pt-2 border-t border-ghost-border">
                   <BaseButton
                     variant="ghost"
                     :icon="RotateCcw"

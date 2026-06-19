@@ -45,7 +45,7 @@ const handleInput = (e: Event) => {
       @submit.prevent="emit('submit')"
     >
       <div
-        class="flex-1 min-w-0 relative flex flex-col items-stretch py-2.25 px-2.25 min-h-10 bg-surface border border-surface-border focus-within:border-focus focus-within:shadow-focus-ring rounded-2xl transition-all duration-200"
+        class="flex-1 min-w-0 relative flex flex-col items-stretch py-2.25 px-2.25 min-h-10 bg-surface border border-ghost-border focus-within:border-focus focus-within:shadow-focus-ring rounded-2xl transition-all duration-200"
         :class="replyParent ? 'rounded-t-xl' : ''"
       >
         <!-- Quoted message reply header -->

@@ -48,7 +48,7 @@ const goBack = () => {
         >
           <router-link
             :to="`/groups/${activeGroupId}/dashboard`"
-            class="flex items-center gap-3 p-3 bg-surface border border-surface-border shadow-input rounded-xl no-underline transition-all duration-150 ease cursor-pointer hover:bg-surface-highlight"
+            class="flex items-center gap-3 p-3 bg-surface border border-ghost-border shadow-input rounded-xl no-underline transition-all duration-150 ease cursor-pointer hover:bg-surface-highlight"
           >
             <div
               class="shrink-0 w-10 h-10 flex items-center justify-center text-on-ghost-muted"
@@ -67,7 +67,7 @@ const goBack = () => {
 
           <router-link
             :to="`/groups/${activeGroupId}/tasks`"
-            class="flex items-center gap-3 p-3 bg-surface border border-surface-border shadow-input rounded-xl no-underline transition-all duration-150 ease cursor-pointer hover:bg-surface-highlight"
+            class="flex items-center gap-3 p-3 bg-surface border border-ghost-border shadow-input rounded-xl no-underline transition-all duration-150 ease cursor-pointer hover:bg-surface-highlight"
           >
             <div
               class="shrink-0 w-10 h-10 flex items-center justify-center text-on-ghost-muted"
@@ -86,7 +86,7 @@ const goBack = () => {
 
           <router-link
             :to="`/groups/${activeGroupId}/schedule`"
-            class="flex items-center gap-3 p-3 bg-surface border border-surface-border shadow-input rounded-xl no-underline transition-all duration-150 ease cursor-pointer hover:bg-surface-highlight"
+            class="flex items-center gap-3 p-3 bg-surface border border-ghost-border shadow-input rounded-xl no-underline transition-all duration-150 ease cursor-pointer hover:bg-surface-highlight"
           >
             <div
               class="shrink-0 w-10 h-10 flex items-center justify-center text-on-ghost-muted"
@@ -105,7 +105,7 @@ const goBack = () => {
 
           <router-link
             to="/private"
-            class="flex items-center gap-3 p-3 bg-surface border border-surface-border shadow-input rounded-xl no-underline transition-all duration-150 ease cursor-pointer hover:bg-surface-highlight"
+            class="flex items-center gap-3 p-3 bg-surface border border-ghost-border shadow-input rounded-xl no-underline transition-all duration-150 ease cursor-pointer hover:bg-surface-highlight"
           >
             <div
               class="shrink-0 w-10 h-10 flex items-center justify-center text-on-ghost-muted"

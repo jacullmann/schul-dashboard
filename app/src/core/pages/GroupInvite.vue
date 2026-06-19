@@ -224,7 +224,7 @@ function handleRegister() {
 .spinner {
   width: 48px;
   height: 48px;
-  border: 3.5px solid var(--color-surface-border);
+  border: 3.5px solid var(--color-ghost-border);
   border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: spin 0.8s cubic-bezier(0.4, 0.15, 0.3, 0.9) infinite;

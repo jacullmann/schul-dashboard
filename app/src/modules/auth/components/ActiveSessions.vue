@@ -243,7 +243,7 @@ onMounted(() => {
       <div
         v-for="i in 2"
         :key="i"
-        class="p-3 bg-surface border border-surface-border rounded-xl flex gap-3 items-center"
+        class="p-3 bg-surface border border-ghost-border rounded-xl flex gap-3 items-center"
       >
         <BaseSkeleton class="w-10 h-10 rounded-lg shrink-0" />
         <div class="flex flex-col gap-2 flex-1">
@@ -271,7 +271,7 @@ onMounted(() => {
         <div
           v-for="session in sessions"
           :key="session.familyId"
-          class="group relative flex gap-3 items-center p-3.5 bg-surface border border-surface-border shadow-input rounded-xl transition-all duration-200"
+          class="group relative flex gap-3 items-center p-3.5 bg-surface border border-ghost-border shadow-input rounded-xl transition-all duration-200"
           :class="{
             'border-[var(--special--green)]/40 bg-success-surface/10':
               isCurrentSession(session),

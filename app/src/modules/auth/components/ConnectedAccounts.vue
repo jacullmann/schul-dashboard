@@ -58,7 +58,7 @@ function handleLink() {
 
     <template v-else>
       <div
-        class="flex items-center justify-between gap-3 p-3 bg-surface border border-surface-border rounded-xl"
+        class="flex items-center justify-between gap-3 p-3 bg-surface border border-ghost-border rounded-xl"
       >
         <div class="flex items-center gap-3">
           <div

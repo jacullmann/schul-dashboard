@@ -50,7 +50,7 @@ const classes = computed(() => {
   const variantClasses: Record<NonNullable<Props['variant']>, string> = {
     ghost: ['bg-transparent', onClasses[props.on]].join(' '),
     input: [
-      'bg-surface text-on-ghost border border-surface-border',
+      'bg-surface text-on-ghost border border-ghost-border',
       'shadow-input rounded-lg! px-3! py-2! w-full',
       'hover:bg-surface-highlight',
     ].join(' '),

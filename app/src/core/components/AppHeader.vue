@@ -138,7 +138,7 @@ onUnmounted(() => {
 
 <template>
   <header
-    class="sticky flex w-full justify-center items-center bg-canvas text-on-ghost border-b border-canvas-border font-display p-0 top-0 h-(--header-height) z-(--z-header)"
+    class="sticky flex w-full justify-center items-center bg-canvas text-on-ghost border-b border-ghost-border font-display p-0 top-0 h-(--header-height) z-(--z-header)"
   >
     <div class="relative h-full w-full flex items-center gap-4 px-4 max-w-325">
       <BaseButton

@@ -223,7 +223,7 @@ function confirmRemove() {
       <div
         v-for="(member, index) in members"
         :key="member.userId"
-        class="flex max-md:flex-col items-center justify-between p-2 px-3 bg-surface border border-surface-border shadow-input rounded-xl gap-3 animate-fade-up"
+        class="flex max-md:flex-col items-center justify-between p-2 px-3 bg-surface border border-ghost-border shadow-input rounded-xl gap-3 animate-fade-up"
       >
         <div class="flex items-center gap-2.5 min-w-0">
           <span

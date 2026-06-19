@@ -18,7 +18,7 @@ const emit = defineEmits<{
   <div class="animate-fade-up">
     <div class="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-3 mb-5">
       <div
-        class="bg-surface border border-surface-border shadow-input rounded-xl p-4.5 flex flex-col gap-1"
+        class="bg-surface border border-ghost-border shadow-input rounded-xl p-4.5 flex flex-col gap-1"
       >
         <span class="text-[1.5rem]/4 font-bold">{{
           stats?.itemCount ?? '–'
@@ -28,7 +28,7 @@ const emit = defineEmits<{
         }}</span>
       </div>
       <div
-        class="bg-surface border border-surface-border shadow-input rounded-xl p-4.5 flex flex-col gap-1"
+        class="bg-surface border border-ghost-border shadow-input rounded-xl p-4.5 flex flex-col gap-1"
       >
         <span class="text-[1.5rem]/4 font-bold">{{
           stats?.memberCount ?? '–'
@@ -38,7 +38,7 @@ const emit = defineEmits<{
         }}</span>
       </div>
       <div
-        class="bg-surface border border-surface-border shadow-input rounded-xl p-4.5 flex flex-col gap-1"
+        class="bg-surface border border-ghost-border shadow-input rounded-xl p-4.5 flex flex-col gap-1"
       >
         <span class="text-[1.5rem]/4 font-bold">{{
           stats?.subsCount ?? '–'
@@ -48,7 +48,7 @@ const emit = defineEmits<{
         }}</span>
       </div>
       <div
-        class="bg-surface border border-surface-border shadow-input rounded-xl p-4.5 flex flex-col gap-1"
+        class="bg-surface border border-ghost-border shadow-input rounded-xl p-4.5 flex flex-col gap-1"
         :class="{
           'border-[rgba(245,158,11,0.3)]': (stats?.oldItemsCount ?? 0) > 0,
         }"
@@ -64,7 +64,7 @@ const emit = defineEmits<{
 
     <div
       v-if="(stats?.oldItemsCount ?? 0) === 0"
-      class="flex items-center justify-between bg-surface border border-surface-border rounded-2xl p-4 gap-4 mb-6 sm:flex-col sm:items-start"
+      class="flex items-center justify-between bg-surface border border-ghost-border rounded-2xl p-4 gap-4 mb-6 sm:flex-col sm:items-start"
     >
       <div class="flex items-center gap-2 text-base text-on-ghost-muted">
         <span

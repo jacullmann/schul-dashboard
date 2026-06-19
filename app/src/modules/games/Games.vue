@@ -55,7 +55,7 @@ const filteredGames = computed(() => {
           }"
         >
           <div
-            class="bg-surface rounded-xl overflow-hidden h-full flex flex-col border border-surface-border"
+            class="bg-surface rounded-xl overflow-hidden h-full flex flex-col border border-ghost-border"
           >
             <img
               :src="game.previewImage"

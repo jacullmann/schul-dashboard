@@ -69,7 +69,7 @@ function closeMobileMenu() {
     </nav>
 
     <Transition name="slide-down">
-      <div v-if="mobileMenuOpen" class="lg:hidden border-t border-surface-border bg-canvas">
+      <div v-if="mobileMenuOpen" class="lg:hidden border-t border-ghost-border bg-canvas">
         <div class="max-w-[1300px] w-full mx-auto px-4 py-3 flex flex-col gap-1">
           <BaseLink
             v-for="link in navLinks"
@@ -79,7 +79,7 @@ function closeMobileMenu() {
           >
             {{ t(link.labelKey) }}
           </BaseLink>
-          <div class="border-t border-surface-border my-2" />
+          <div class="border-t border-ghost-border my-2" />
           <BaseButton
             :href="config.public.loginUrl || 'https://app.schul-dashboard.com'"
             variant="ghost"

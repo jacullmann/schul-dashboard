@@ -40,7 +40,7 @@ const features = [
 
 <template>
   <div class="w-full">
-    <section class="w-full py-20 md:py-14 border-b border-surface-border">
+    <section class="w-full py-20 md:py-14 border-b border-ghost-border">
       <div class="max-w-[1300px] w-full mx-auto px-4 lg:px-6 text-center">
         <h1
           class="text-[clamp(2rem,5vw,3.5rem)] font-bold font-display text-on-ghost leading-[1.15] mb-5 max-w-2xl mx-auto"

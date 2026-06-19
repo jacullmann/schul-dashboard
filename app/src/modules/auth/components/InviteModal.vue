@@ -136,7 +136,7 @@ async function regenerate() {
               type="text"
               readonly
               :model-value="inviteUrl"
-              class="w-full bg-ghost/30 pr-10 font-mono text-xs select-all border border-canvas-border focus:border-primary!"
+              class="w-full bg-ghost/30 pr-10 font-mono text-xs select-all border border-ghost-border focus:border-primary!"
             />
           </div>
           <BaseButton

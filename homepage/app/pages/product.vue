@@ -25,10 +25,10 @@ const allFeatures = [
 
 <template>
   <div class="w-full">
-    <section class="w-full py-20 md:py-14 border-b border-surface-border">
+    <section class="w-full py-20 md:py-14 border-b border-ghost-border">
       <div class="max-w-[1300px] w-full mx-auto px-4 lg:px-6 text-center">
         <div
-          class="inline-block px-3.5 py-1 rounded-full bg-surface border border-surface-border text-xs font-semibold text-on-ghost-muted uppercase tracking-wider mb-5"
+          class="inline-block px-3.5 py-1 rounded-full bg-surface border border-ghost-border text-xs font-semibold text-on-ghost-muted uppercase tracking-wider mb-5"
         >
           {{ t('pages.product.badge') }}
         </div>
@@ -66,7 +66,7 @@ const allFeatures = [
           <div
             v-for="key in allFeatures"
             :key="key"
-            class="flex px-4 py-2 rounded-xl bg-surface border border-surface-border text-on-ghost text-base/[1.6]"
+            class="flex px-4 py-2 rounded-xl bg-surface border border-ghost-border text-on-ghost text-base/[1.6]"
           >
             • <span class="ml-2">{{ t(key) }}</span>
           </div>

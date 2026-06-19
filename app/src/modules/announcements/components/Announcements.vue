@@ -132,7 +132,7 @@ onUnmounted(() => {
           colorFor(currentAnnouncement.color).replace('is-', 'bg-'),
           currentAnnouncement.color === 'danger'
             ? 'border-danger-highlight'
-            : 'border-surface-border',
+            : 'border-ghost-border',
         ]"
         @click="nextAnnouncement"
       >

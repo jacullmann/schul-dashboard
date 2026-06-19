@@ -19,7 +19,7 @@ defineProps<{
       <h1 class="text-h1 font-bold font-display text-on-ghost mb-3">{{ title }}</h1>
       <p v-if="description" class="text-on-ghost-muted leading-[1.65] mb-12">{{ description }}</p>
 
-      <div class="flex flex-col divide-y divide-surface-border">
+      <div class="flex flex-col divide-y divide-ghost-border">
         <slot />
       </div>
     </div>

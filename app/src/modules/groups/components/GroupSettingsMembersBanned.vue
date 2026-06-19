@@ -25,7 +25,7 @@ const canModerateMembers = computed(() => checkPermission('moderate_members'));
 
     <div
       v-if="loading && bannedUsers.length === 0"
-      class="flex justify-center p-8 bg-surface border border-surface-border rounded-xl"
+      class="flex justify-center p-8 bg-surface border border-ghost-border rounded-xl"
     >
       <BaseSpinner />
     </div>
@@ -43,7 +43,7 @@ const canModerateMembers = computed(() => checkPermission('moderate_members'));
       <div
         v-for="user in bannedUsers"
         :key="user.userId"
-        class="flex items-center justify-between p-2 px-3 bg-surface border border-surface-border shadow-input rounded-xl gap-3 animate-fade-up"
+        class="flex items-center justify-between p-2 px-3 bg-surface border border-ghost-border shadow-input rounded-xl gap-3 animate-fade-up"
       >
         <div class="flex items-center gap-2.5 min-w-0">
           <span

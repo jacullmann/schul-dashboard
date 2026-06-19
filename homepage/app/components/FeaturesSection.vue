@@ -31,7 +31,7 @@ const features = [
         <article
           v-for="feature in features"
           :key="feature.key"
-          class="bg-surface border border-surface-border rounded-2xl px-6 py-5 flex flex-col gap-4"
+          class="bg-surface border border-ghost-border rounded-2xl px-6 py-5 flex flex-col gap-4"
         >
           <div>
             <div class="flex gap-4 items-center">

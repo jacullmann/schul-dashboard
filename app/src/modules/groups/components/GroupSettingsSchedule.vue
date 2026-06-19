@@ -292,7 +292,7 @@ function handleSaveSub() {
         }}
       </BaseButton>
     </div>
-    <div class="mt-8 border-t border-surface-border pt-6">
+    <div class="mt-8 border-t border-ghost-border pt-6">
       <PageHeader>
         {{ t('groups.settings.schedule.changes.title') }}
 
@@ -467,9 +467,7 @@ function handleSaveSub() {
       >
         {{ t('groups.settings.schedule.changes.no_changes') }}
       </div>
-      <table
-        class="w-full min-w-max table-auto text-left [&_td]:p-3 [&_th]:p-3 [&_th]:font-bold [&_th]:text-base [&_td]:min-w-24 [&_td]:max-w-48"
-      >
+      <table>
         <thead>
           <tr>
             <th>Subject</th>
@@ -478,14 +476,11 @@ function handleSaveSub() {
             <th>Slot</th>
             <th>Cancelled</th>
             <th>Hidden</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
-          <tr
-            v-for="sub in subs"
-            :key="sub.id"
-            class="border-t border-canvas-border"
-          >
+          <tr v-for="sub in subs" :key="sub.id">
             <td>{{ sub.subject || 'Unbekannt' }}</td>
             <td>{{ sub.room || '-' }}</td>
             <td>{{ sub.day || '-' }}</td>

@@ -193,7 +193,7 @@ onMounted(() => {
 
     <div v-if="loading" class="flex justify-center p-10">
       <div
-        class="w-7 h-7 border-2 border-canvas-border border-t-on-ghost rounded-full animate-spin"
+        class="w-7 h-7 border-2 border-ghost-border border-t-on-ghost rounded-full animate-spin"
       ></div>
     </div>
   </div>

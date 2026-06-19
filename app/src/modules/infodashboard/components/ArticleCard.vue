@@ -59,7 +59,7 @@ const formatDate = (dateStr: string) => {
   flex-direction: row;
   align-items: stretch;
   padding-bottom: 32px;
-  border-bottom: 1px solid var(--color-canvas-border);
+  border-bottom: 1px solid var(--color-ghost-border);
 }
 
 .card:hover .card-image {

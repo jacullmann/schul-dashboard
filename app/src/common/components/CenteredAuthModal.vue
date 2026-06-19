@@ -34,7 +34,7 @@ function handleBackdropClick() {
       role="dialog"
       aria-modal="true"
       :aria-labelledby="title"
-      class="w-full max-w-[420px] bg-canvas border border-canvas-border rounded-lg p-6 shadow-lg"
+      class="w-full max-w-[420px] bg-canvas border border-ghost-border rounded-lg p-6 shadow-lg"
     >
       <div class="mb-6">
         <h2 :id="title" class="text-xl font-semibold text-on-ghost m-0">

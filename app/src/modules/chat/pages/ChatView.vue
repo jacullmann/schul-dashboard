@@ -458,7 +458,7 @@ function formatDuration(ms?: number): string {
 <template>
   <div class="h-dvh w-full flex flex-col overflow-hidden bg-canvas">
     <div
-      class="absolute top-2 left-2 bg-surface border border-surface-border z-1 rounded-full p-1"
+      class="absolute top-2 left-2 bg-surface border border-ghost-border z-1 rounded-full p-1"
     >
       <BaseTooltip content="New Chat" placement="bottom">
         <BaseButton
@@ -522,7 +522,7 @@ function formatDuration(ms?: number): string {
             >
               <div
                 v-if="isMessageStepsExpanded(message.id)"
-                class="flex flex-col gap-1 py-1 pl-4 border-l-[1.5px] border-canvas-border ml-5.5"
+                class="flex flex-col gap-1 py-1 pl-4 border-l-[1.5px] border-ghost-border ml-5.5"
               >
                 <div
                   v-for="(step, idx) in message.steps"
@@ -553,7 +553,7 @@ function formatDuration(ms?: number): string {
             class="flex flex-col items-end max-w-[75%] mb-2"
           >
             <div
-              class="bg-surface border border-surface-border flex px-4 rounded-2xl wrap-break-word text-left relative overflow-hidden transition-all duration-300"
+              class="bg-surface border border-ghost-border flex px-4 rounded-2xl wrap-break-word text-left relative overflow-hidden transition-all duration-300"
               :class="
                 overflowingHumanMessages[message.id] ? 'py-3 pr-1' : 'py-3'
               "
@@ -667,7 +667,7 @@ function formatDuration(ms?: number): string {
               >
                 <div
                   v-if="isStepHistoryExpanded"
-                  class="flex flex-col gap-1 py-1 pl-4 border-l-[1.5px] border-canvas-border ml-5.5"
+                  class="flex flex-col gap-1 py-1 pl-4 border-l-[1.5px] border-ghost-border ml-5.5"
                 >
                   <div
                     v-for="(step, idx) in liveSteps"
@@ -761,7 +761,7 @@ function formatDuration(ms?: number): string {
 
         <form novalidate class="relative w-full z-20" @submit.prevent="send">
           <div
-            class="p-3 rounded-3xl flex flex-col gap-2 bg-surface border border-surface-border w-full shadow-sm"
+            class="p-3 rounded-3xl flex flex-col gap-2 bg-surface border border-ghost-border w-full shadow-sm"
           >
             <textarea
               id="user-input"

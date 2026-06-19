@@ -26,7 +26,7 @@ const values = [
 
 <template>
   <div class="w-full">
-    <section class="w-full py-20 md:py-14 border-b border-surface-border">
+    <section class="w-full py-20 md:py-14 border-b border-ghost-border">
       <div class="max-w-[1300px] w-full mx-auto px-4 lg:px-6 text-center">
         <h1
           class="text-[clamp(2rem,5vw,3.5rem)] font-bold font-display text-on-ghost leading-[1.15] mb-5 max-w-2xl mx-auto"
@@ -39,7 +39,7 @@ const values = [
       </div>
     </section>
 
-    <section class="w-full py-20 md:py-14 border-b border-surface-border">
+    <section class="w-full py-20 md:py-14 border-b border-ghost-border">
       <div class="max-w-[1300px] w-full mx-auto px-4 lg:px-6">
         <div class="max-w-2xl mx-auto text-center">
           <h2
@@ -54,7 +54,7 @@ const values = [
       </div>
     </section>
 
-    <section class="w-full py-20 md:py-14 border-b border-surface-border">
+    <section class="w-full py-20 md:py-14 border-b border-ghost-border">
       <div class="max-w-[1300px] w-full mx-auto px-4 lg:px-6">
         <h2
           class="text-[clamp(1.5rem,3vw,2.25rem)] font-bold font-display text-on-ghost leading-[1.2] mb-12 text-center"
@@ -65,10 +65,10 @@ const values = [
           <div
             v-for="value in values"
             :key="value.key"
-            class="bg-surface border border-surface-border rounded-xl p-6 flex flex-col gap-4"
+            class="bg-surface border border-ghost-border rounded-xl p-6 flex flex-col gap-4"
           >
             <div
-              class="w-10 h-10 rounded-lg bg-canvas border border-surface-border flex items-center justify-center text-on-ghost-muted flex-shrink-0"
+              class="w-10 h-10 rounded-lg bg-canvas border border-ghost-border flex items-center justify-center text-on-ghost-muted flex-shrink-0"
             >
               <component :is="value.icon" :size="20" aria-hidden="true" />
             </div>

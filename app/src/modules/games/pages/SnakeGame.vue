@@ -177,7 +177,7 @@ p {
 .board {
   position: relative;
   background-color: var(--color-surface);
-  border: 2px solid var(--color-canvas-border);
+  border: 2px solid var(--color-ghost-border);
   border-radius: 4px;
   overflow: hidden;
 }

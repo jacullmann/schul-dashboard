@@ -37,7 +37,7 @@ const togglePassword = () => {
 };
 
 const baseClasses =
-  'relative w-full px-3 py-2 min-h-10 touch-target after:min-w-12 after:min-h-12 rounded-lg bg-surface text-on-ghost border border-surface-border text-base/5 outline-none shadow-input transition-focus focus:border-focus focus:shadow-focus-ring placeholder:text-on-ghost-subtle';
+  'relative w-full px-3 py-2 min-h-10 touch-target after:min-w-12 after:min-h-12 rounded-lg bg-surface text-on-ghost border border-ghost-border text-base/5 outline-none shadow-input transition-focus focus:border-focus focus:shadow-focus-ring placeholder:text-on-ghost-subtle';
 
 defineExpose({
   focus: () => inputRef.value?.focus(),

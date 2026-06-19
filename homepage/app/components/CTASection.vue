@@ -8,7 +8,7 @@ const config = useRuntimeConfig();
 <template>
   <section class="w-full py-24 md:py-16">
     <div class="max-w-[1300px] w-full mx-auto px-4 lg:px-6">
-      <div class="rounded-2xl border border-surface-border px-8 py-16 md:py-12 text-center">
+      <div class="rounded-2xl border border-ghost-border px-8 py-16 md:py-12 text-center">
         <h2
           class="text-[clamp(1.75rem,4vw,2.75rem)] font-bold text-on-ghost font-display leading-[1.2] mb-4 max-w-2xl mx-auto"
         >

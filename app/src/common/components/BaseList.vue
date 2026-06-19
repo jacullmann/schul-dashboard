@@ -51,6 +51,6 @@ withDefaults(
   <div
     v-if="separator"
     v-bind="$attrs"
-    class="border-b border-canvas-border mx-6 max-md:hidden"
+    class="border-b border-ghost-border mx-6 max-md:hidden"
   ></div>
 </template>

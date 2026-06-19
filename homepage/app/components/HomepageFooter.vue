@@ -6,7 +6,7 @@ const localePath = useLocalePath();
 </script>
 
 <template>
-  <footer class="w-full bg-canvas border-t border-surface-border">
+  <footer class="w-full bg-canvas border-t border-ghost-border">
     <div class="max-w-[1300px] w-full mx-auto px-4 lg:px-6 py-14 md:py-10">
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
 
@@ -73,7 +73,7 @@ const localePath = useLocalePath();
       </div>
 
       <div
-        class="border-t border-surface-border pt-8 flex flex-col md:flex-row items-center justify-between gap-4"
+        class="border-t border-ghost-border pt-8 flex flex-col md:flex-row items-center justify-between gap-4"
       >
         <p class="text-xs text-on-ghost-muted m-0">
           &copy; {{ new Date().getFullYear() }} schul-dashboard. {{ t('footer.rights') }}

@@ -157,7 +157,7 @@ onMounted(loadUsers);
 
 .table-wrap {
   overflow-x: auto;
-  border: 1px solid var(--color-surface-border);
+  border: 1px solid var(--color-ghost-border);
   box-shadow: var(--shadow-input);
   border-radius: 12px;
 }
@@ -170,7 +170,7 @@ onMounted(loadUsers);
 .data-table td {
   padding: 11px 14px;
   text-align: left;
-  border-bottom: 1px solid var(--color-canvas-border);
+  border-bottom: 1px solid var(--color-ghost-border);
 }
 .data-table th {
   background: var(--color-surface);
@@ -265,7 +265,7 @@ onMounted(loadUsers);
   width: 400px;
   max-width: 90vw;
   background: var(--color-canvas);
-  border-left: 1px solid var(--color-canvas-border);
+  border-left: 1px solid var(--color-ghost-border);
   padding: 20px;
   height: 100%;
   overflow-y: auto;
@@ -312,7 +312,7 @@ onMounted(loadUsers);
   margin: 0;
 }
 .log-list li {
-  border-bottom: 1px solid var(--color-canvas-border);
+  border-bottom: 1px solid var(--color-ghost-border);
   padding: 10px 0;
 }
 .log-time {

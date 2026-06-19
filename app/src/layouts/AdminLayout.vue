@@ -46,7 +46,7 @@ const activeTab = computed({
 
     <div class="adm-body">
       <aside
-        class="adm-sidebar p-3.5 w-full md:w-60 shrink-0 bg-surface border-b md:border-b-0 md:border-r border-surface-border overflow-x-auto md:overflow-y-auto flex md:flex-col gap-3.5 scrollbar-hide"
+        class="adm-sidebar p-3.5 w-full md:w-60 shrink-0 bg-surface border-b md:border-b-0 md:border-r border-ghost-border overflow-x-auto md:overflow-y-auto flex md:flex-col gap-3.5 scrollbar-hide"
       >
         <nav class="flex flex-row md:flex-col w-full">
           <SidebarButton
@@ -86,7 +86,7 @@ const activeTab = computed({
 
 .adm-header {
   height: 56px;
-  border-bottom: 1px solid var(--color-canvas-border);
+  border-bottom: 1px solid var(--color-ghost-border);
   background: var(--color-canvas);
   flex-shrink: 0;
   position: sticky;
@@ -177,7 +177,7 @@ const activeTab = computed({
   .adm-sidebar {
     width: 100%;
     border-right: none;
-    border-bottom: 1px solid var(--color-canvas-border);
+    border-bottom: 1px solid var(--color-ghost-border);
     padding: 8px;
     overflow-x: auto;
     overflow-y: visible;

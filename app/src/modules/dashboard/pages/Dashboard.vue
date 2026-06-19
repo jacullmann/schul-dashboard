@@ -610,7 +610,7 @@ const isScheduleVisible = computed(() => {
 
             <div
               v-if="upcomingLesson"
-              class="flex items-center justify-between gap-4 px-3 py-2 rounded-lg border border-surface-border bg-surface"
+              class="flex items-center justify-between gap-4 px-3 py-2 rounded-lg border border-ghost-border bg-surface"
             >
               <div class="min-w-0">
                 <div class="text-xs text-on-ghost-muted mb-0.5">
@@ -644,7 +644,7 @@ const isScheduleVisible = computed(() => {
 
             <div
               v-else
-              class="p-4 rounded-xl border border-dashed border-surface-border text-center text-xs text-on-ghost-muted"
+              class="p-4 rounded-xl border border-dashed border-ghost-border text-center text-xs text-on-ghost-muted"
             >
               {{ t('dashboard.schedule_overview.no_more_lessons') }}
             </div>
@@ -662,7 +662,7 @@ const isScheduleVisible = computed(() => {
               <div
                 v-for="change in scheduleChanges"
                 :key="change.id"
-                class="flex items-center justify-between gap-3 p-3 rounded-lg border border-surface-border bg-surface text-xs"
+                class="flex items-center justify-between gap-3 p-3 rounded-lg border border-ghost-border bg-surface text-xs"
               >
                 <div class="min-w-0">
                   <span class="font-semibold text-on-ghost-muted">
@@ -707,7 +707,7 @@ const isScheduleVisible = computed(() => {
 
             <div
               v-else
-              class="flex-1 flex items-center justify-center p-4 rounded-xl border border-dashed border-surface-border text-center text-xs text-on-ghost-muted"
+              class="flex-1 flex items-center justify-center p-4 rounded-xl border border-dashed border-ghost-border text-center text-xs text-on-ghost-muted"
             >
               {{ t('dashboard.schedule_overview.no_substitutions') }}
             </div>

@@ -21,7 +21,7 @@ const { t } = useI18n();
     class="shrink-0 flex flex-col justify-center max-[500px]:px-2.5 max-[500px]:py-1.5 px-2 py-1"
     :class="[
       hasBorder
-        ? 'border-b border-surface-border min-[501px]:group-[.current-day]:border-surface-hover-border! group-[.highlight-active]:border-on-ghost-muted!'
+        ? 'border-b border-ghost-border min-[501px]:group-[.current-day]:border-surface-hover-border! group-[.highlight-active]:border-on-ghost-muted!'
         : '',
       isClickable
         ? 'cursor-pointer transition-colors duration-150 hover:bg-surface-hover'

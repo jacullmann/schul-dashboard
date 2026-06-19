@@ -159,11 +159,11 @@ function navigateToLogin() {
       </BaseForm>
 
       <div class="flex items-center gap-3 mb-6">
-        <div class="flex-1 h-px bg-canvas-border" />
+        <div class="flex-1 h-px bg-ghost-border" />
         <span class="text-xs text-on-ghost-muted">
           {{ t('auth.login.or_continue_with') }}
         </span>
-        <div class="flex-1 h-px bg-canvas-border" />
+        <div class="flex-1 h-px bg-ghost-border" />
       </div>
 
       <BaseButton

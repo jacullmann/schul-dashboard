@@ -212,7 +212,7 @@ function goBack() {
     <Transition :name="transitionName">
       <div v-if="!activeTab" key="master" class="settings-pane master-pane">
         <header
-          class="p-4 pt-2 md:px-6 bg-canvas border-b border-canvas-border shrink-0"
+          class="p-4 pt-2 md:px-6 bg-canvas border-b border-ghost-border shrink-0"
         >
           <div class="w-full max-w-200 mx-auto">
             <h1>Gruppen Verwaltung</h1>
@@ -263,7 +263,7 @@ function goBack() {
         class="settings-pane detail-pane"
       >
         <header
-          class="flex items-center py-4 md:py-6 h-16 bg-canvas border-b border-canvas-border shrink-0"
+          class="flex items-center py-4 md:py-6 h-16 bg-canvas border-b border-ghost-border shrink-0"
         >
           <div
             class="header-left max-w-250 my-0 mx-auto flex items-center w-full gap-2"

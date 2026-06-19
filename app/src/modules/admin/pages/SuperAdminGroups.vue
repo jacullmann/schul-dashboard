@@ -89,7 +89,7 @@ onMounted(loadGroups);
 
 .table-wrap {
   overflow-x: auto;
-  border: 1px solid var(--color-surface-border);
+  border: 1px solid var(--color-ghost-border);
   box-shadow: var(--shadow-input);
   border-radius: 12px;
 }
@@ -102,7 +102,7 @@ onMounted(loadGroups);
 .data-table td {
   padding: 11px 14px;
   text-align: left;
-  border-bottom: 1px solid var(--color-canvas-border);
+  border-bottom: 1px solid var(--color-ghost-border);
 }
 .data-table th {
   background: var(--color-surface);

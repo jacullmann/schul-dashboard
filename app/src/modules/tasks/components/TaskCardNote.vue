@@ -51,7 +51,7 @@ watch(
 
 <template>
   <div
-    class="note-section pt-1 border-t border-surface-border flex justify-between gap-3"
+    class="note-section pt-1 border-t border-ghost-border flex justify-between gap-3"
     :class="reducedMargin ? 'mt-0' : 'mt-2'"
   >
     <div class="w-full">

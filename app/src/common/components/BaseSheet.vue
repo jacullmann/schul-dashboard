@@ -230,7 +230,7 @@ defineExpose({ sheetEl });
         v-if="open"
         ref="sheetEl"
         v-bind="$attrs"
-        class="fixed bottom-0 left-0 right-0 z-[var(--z-tooltip)] bg-surface border-t border-surface-border rounded-t-2xl shadow-menu max-h-[85dvh] overflow-y-auto overscroll-contain"
+        class="fixed bottom-0 left-0 right-0 z-[var(--z-tooltip)] bg-surface border-t border-ghost-border rounded-t-2xl shadow-menu max-h-[85dvh] overflow-y-auto overscroll-contain"
         @click.stop
         @touchstart="onTouchStart"
         @touchmove="onTouchMove"

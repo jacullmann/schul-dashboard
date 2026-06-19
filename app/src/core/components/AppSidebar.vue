@@ -240,7 +240,7 @@ onUnmounted(() => {
   </Transition>
 
   <aside
-    class="sidebar flex flex-col justify-between shrink-0 overflow-hidden h-dvh p-2.5 bg-surface border-r border-surface-border z-9998"
+    class="sidebar flex flex-col justify-between shrink-0 overflow-hidden h-dvh p-2.5 bg-surface border-r border-ghost-border z-9998"
     :class="[
       'md:sticky md:top-0 md:transition-[width]',
       isExpanded

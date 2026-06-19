@@ -70,7 +70,7 @@ function formatDate(iso: string) {
       <div
         v-for="(ann, index) in announcements"
         :key="ann.id"
-        class="flex justify-between gap-2 p-1 rounded-xl bg-surface border border-surface-border border-l-[3px] animate-fade-up"
+        class="flex justify-between gap-2 p-1 rounded-xl bg-surface border border-ghost-border border-l-[3px] animate-fade-up"
         :class="[
           ann.color === 'info'
             ? 'border-l-action'
@@ -78,7 +78,7 @@ function formatDate(iso: string) {
               ? 'border-l-warn'
               : ann.color === 'danger'
                 ? 'border-l-danger'
-                : 'border-l-canvas-border',
+                : 'border-l-ghost-border',
         ]"
       >
         <div class="flex flex-col ml-3 my-1">

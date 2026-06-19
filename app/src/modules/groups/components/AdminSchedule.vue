@@ -103,7 +103,7 @@ onMounted(() => {
           <div
             v-for="day in days"
             :key="day"
-            class="day-header bg-surface text-on-ghost p-2 border border-surface-border text-center font-bold rounded-md text-base shadow-input min-w-[150px] min-[501px]:[grid-row:1] max-[500px]:snap-start max-[500px]:scroll-ml-0"
+            class="day-header bg-surface text-on-ghost p-2 border border-ghost-border text-center font-bold rounded-md text-base shadow-input min-w-[150px] min-[501px]:[grid-row:1] max-[500px]:snap-start max-[500px]:scroll-ml-0"
           >
             {{ formatDayName(day) }}
           </div>

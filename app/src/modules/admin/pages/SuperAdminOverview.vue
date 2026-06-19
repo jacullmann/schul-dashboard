@@ -115,7 +115,7 @@ onMounted(loadStats);
 
 .stat-card {
   background: var(--color-surface);
-  border: 1px solid var(--color-surface-border);
+  border: 1px solid var(--color-ghost-border);
   box-shadow: var(--shadow-input);
   border-radius: 12px;
   padding: 18px 16px;
@@ -159,7 +159,7 @@ onMounted(loadStats);
 
 .sub-stat {
   background: var(--color-surface);
-  border: 1px solid var(--color-surface-border);
+  border: 1px solid var(--color-ghost-border);
   box-shadow: var(--shadow-input);
   border-radius: 10px;
   padding: 12px;

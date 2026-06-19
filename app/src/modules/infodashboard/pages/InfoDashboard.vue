@@ -69,7 +69,7 @@ const getSliderStyle = (current: number, max: number) => {
     class="font-sans bg-canvas text-on-ghost min-h-screen w-full flex flex-col"
   >
     <header
-      class="flex justify-between items-center p-4 border-b border-canvas-border bg-canvas sticky top-0 z-[100]"
+      class="flex justify-between items-center p-4 border-b border-ghost-border bg-canvas sticky top-0 z-[100]"
     >
       <div class="cursor-pointer flex flex-col" @click="goHome">
         <span class="font-black text-[1.5rem] tracking-[-1px] font-display">{{
@@ -90,7 +90,7 @@ const getSliderStyle = (current: number, max: number) => {
           v-model="searchQuery"
           type="text"
           placeholder="Suche"
-          class="w-full bg-surface border border-surface-border shadow-input text-on-ghost p-2 px-3 pl-[42px] text-[0.95rem] transition-all focus:outline-none focus:border-on-ghost"
+          class="w-full bg-surface border border-ghost-border shadow-input text-on-ghost p-2 px-3 pl-[42px] text-[0.95rem] transition-all focus:outline-none focus:border-on-ghost"
           @keydown.enter="triggerSearch"
         />
       </div>
@@ -99,7 +99,7 @@ const getSliderStyle = (current: number, max: number) => {
     <main class="flex-1 max-w-[1200px] w-full mx-auto p-4">
       <div
         v-if="currentView === 'search'"
-        class="flex gap-4 pb-4 border-b border-canvas-border mb-4 flex-wrap"
+        class="flex gap-4 pb-4 border-b border-ghost-border mb-4 flex-wrap"
       >
         <div class="flex flex-col gap-2">
           <label class="text-[0.8rem] text-on-ghost">{{
@@ -279,7 +279,7 @@ const getSliderStyle = (current: number, max: number) => {
             </div>
 
             <div
-              class="text-[1.25rem]/[1.6] text-on-ghost font-serif [&_p]:mb-6 [&_h2]:text-[1.8rem] [&_h2]:mt-10 [&_h2]:mb-4 [&_h2]:text-on-ghost [&_blockquote]:border-l-4 [&_blockquote]:border-canvas-border [&_blockquote]:my-8 [&_blockquote]:pl-6 [&_blockquote]:italic [&_blockquote]:text-[1.5rem] [&_img]:w-full [&_img]:h-auto [&_img]:my-8 [&_img]:block [&_video]:w-full [&_video]:h-auto [&_video]:my-8 [&_video]:block [&_strong]:text-on-ghost [&_strong]:font-bold"
+              class="text-[1.25rem]/[1.6] text-on-ghost font-serif [&_p]:mb-6 [&_h2]:text-[1.8rem] [&_h2]:mt-10 [&_h2]:mb-4 [&_h2]:text-on-ghost [&_blockquote]:border-l-4 [&_blockquote]:border-ghost-border [&_blockquote]:my-8 [&_blockquote]:pl-6 [&_blockquote]:italic [&_blockquote]:text-[1.5rem] [&_img]:w-full [&_img]:h-auto [&_img]:my-8 [&_img]:block [&_video]:w-full [&_video]:h-auto [&_video]:my-8 [&_video]:block [&_strong]:text-on-ghost [&_strong]:font-bold"
               v-html="
                 activeArticle.contentKey
                   ? renderMarkdown(activeArticle.contentKey)
@@ -288,7 +288,7 @@ const getSliderStyle = (current: number, max: number) => {
             ></div>
           </article>
 
-          <div class="mt-16 pt-8 border-t border-surface-border">
+          <div class="mt-16 pt-8 border-t border-ghost-border">
             <h3 class="font-display">
               {{ t('infodashboard.dashboard.recommendations') }}
             </h3>

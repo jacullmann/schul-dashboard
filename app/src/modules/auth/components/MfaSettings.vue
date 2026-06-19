@@ -214,7 +214,7 @@ onUnmounted(() => {
 <template>
   <div class="flex flex-col gap-5">
     <div
-      class="flex items-center gap-3 p-3 bg-surface border border-surface-border shadow-input rounded-xl"
+      class="flex items-center gap-3 p-3 bg-surface border border-ghost-border shadow-input rounded-xl"
       :class="{
         '!border-[var(--special--green)] !bg-success-surface': mfaEnabled,
       }"
@@ -270,7 +270,7 @@ onUnmounted(() => {
             >QR-Code scannen</span
           >
         </div>
-        <div class="w-10 h-0.5 bg-surface-border"></div>
+        <div class="w-10 h-0.5 bg-ghost-border"></div>
         <div
           class="flex items-center gap-2 opacity-50"
           :class="{ '!opacity-100': setupStep === 2 }"
@@ -308,7 +308,7 @@ onUnmounted(() => {
             Oder gib diesen Code manuell ein:
           </p>
           <div
-            class="flex items-center gap-2 p-1 bg-surface border border-surface-border shadow-input rounded-lg"
+            class="flex items-center gap-2 p-1 bg-surface border border-ghost-border shadow-input rounded-lg"
           >
             <code
               class="font-mono text-sm text-on-ghost tracking-[4px] pl-2 py-1.5"
@@ -362,7 +362,7 @@ onUnmounted(() => {
             pattern="[0-9]*"
             maxlength="6"
             placeholder="000000"
-            class="w-[180px] p-3 text-3xl font-mono text-center bg-surface border border-surface-border shadow-input rounded-xl text-on-ghost transition-colors focus:outline-none focus:border-on-ghost"
+            class="w-[180px] p-3 text-3xl font-mono text-center bg-surface border border-ghost-border shadow-input rounded-xl text-on-ghost transition-colors focus:outline-none focus:border-on-ghost"
             :class="{ '!border-danger': verifyError }"
             @input="handleCodeInput"
             @keyup.enter="activateMfa"
@@ -422,7 +422,7 @@ onUnmounted(() => {
           pattern="[0-9]*"
           maxlength="6"
           placeholder="000000"
-          class="w-[180px] p-3 text-3xl font-mono text-center bg-surface border border-surface-border shadow-input rounded-xl text-on-ghost transition-colors focus:outline-none focus:border-on-ghost"
+          class="w-[180px] p-3 text-3xl font-mono text-center bg-surface border border-ghost-border shadow-input rounded-xl text-on-ghost transition-colors focus:outline-none focus:border-on-ghost"
           :class="{ '!border-danger': deactivateError }"
           @input="handleDeactivateCodeInput"
           @keyup.enter="confirmDeactivate"

@@ -300,8 +300,8 @@ const updateImageSource = (newSrc: string) => {
       </h2>
 
       <div
-        class="border-2 border-dashed border-canvas-border rounded-md p-4 text-center cursor-pointer transition-all duration-200 mb-8 animate-[fade-up_0.5s_ease-out_both] delay-[0.05s]"
-        :class="{ 'border-surface-border': isDraggingFile }"
+        class="border-2 border-dashed border-ghost-border rounded-md p-4 text-center cursor-pointer transition-all duration-200 mb-8 animate-[fade-up_0.5s_ease-out_both] delay-[0.05s]"
+        :class="{ 'border-ghost-border': isDraggingFile }"
         @click="triggerUpload"
         @dragover.prevent="isDraggingFile = true"
         @dragleave.prevent="isDraggingFile = false"

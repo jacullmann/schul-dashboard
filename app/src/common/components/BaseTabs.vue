@@ -158,7 +158,7 @@ useResizeObserver(navBarRef, () => {
   <div ref="containerRef" class="flex items-center justify-start w-full">
     <div
       ref="navBarRef"
-      class="relative bg-surface border border-surface-border p-0 rounded-full flex isolation-isolate max-w-full overflow-x-auto overflow-y-hidden scrollbar-hide shadow-input"
+      class="relative bg-surface border border-ghost-border p-0 rounded-full flex isolation-isolate max-w-full overflow-x-auto overflow-y-hidden scrollbar-hide shadow-input"
       :class="isStretched ? 'w-full' : 'w-max'"
     >
       <!-- Main Labels (z-1) -->
