@@ -76,9 +76,7 @@ onMounted(() => {
         <div
           class="w-full h-full bg-canvas md:border border-ghost-border md:rounded-2xl overflow-hidden flex flex-col"
         >
-          <div
-            class="flex items-center gap-3 p-4 border-b border-ghost-border"
-          >
+          <div class="flex items-center gap-3 p-4 border-b border-ghost-border">
             <Search :size="20" class="text-on-ghost-subtle flex-shrink-0" />
             <input
               id="search-input"

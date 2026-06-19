@@ -28,6 +28,7 @@ declare module 'vue' {
     BaseLabel: typeof import('./src/common/components/BaseLabel.vue')['default']
     BaseLink: typeof import('./src/common/components/BaseLink.vue')['default']
     BaseList: typeof import('./src/common/components/BaseList.vue')['default']
+    BaseMarkdownTextarea: typeof import('./src/common/components/BaseMarkdownTextarea.vue')['default']
     BaseMenu: typeof import('./src/common/components/BaseMenu.vue')['default']
     BaseMenuButton: typeof import('./src/common/components/BaseMenuButton.vue')['default']
     BaseMenuCard: typeof import('./src/common/components/BaseMenuCard.vue')['default']

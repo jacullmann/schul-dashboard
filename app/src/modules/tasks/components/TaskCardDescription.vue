@@ -26,7 +26,23 @@ defineEmits<{
 }>();
 
 const contentRef = ref<HTMLElement | null>(null);
-const hasOverflow = ref(false);
+
+const estimateHasOverflow = (text: string): boolean => {
+  if (!text) return false;
+  const width = typeof window !== 'undefined' ? window.innerWidth : 1024;
+  const cardWidth = Math.min(width, 768) - 16;
+  const charsPerLine = Math.max(15, Math.floor(cardWidth / 8.5));
+
+  const paragraphs = text.split('\n');
+  let totalLines = 0;
+  for (const p of paragraphs) {
+    totalLines += Math.max(1, Math.ceil(p.length / charsPerLine));
+  }
+
+  return totalLines >= 4;
+};
+
+const hasOverflow = ref(estimateHasOverflow(props.description));
 
 const tokens = computed(() => {
   if (!props.description) return [];
@@ -218,7 +234,8 @@ const MarkdownRenderer = defineComponent({
 const contentHeight = ref(0);
 
 const containerStyle = computed(() => {
-  if (!hasOverflow.value) return undefined;
+  if (!hasOverflow.value && contentHeight.value > 0) return undefined;
+  if (props.isExpanded && contentHeight.value === 0) return undefined;
   return {
     maxHeight: props.isExpanded ? `${contentHeight.value}px` : '5rem',
   };
@@ -226,7 +243,9 @@ const containerStyle = computed(() => {
 
 const checkOverflow = () => {
   if (contentRef.value) {
-    contentHeight.value = contentRef.value.scrollHeight;
+    const scrollHeight = contentRef.value.scrollHeight;
+    if (scrollHeight === 0) return;
+    contentHeight.value = scrollHeight;
     const rootFontSize =
       parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
     const maxCollapsedHeight = 5 * rootFontSize;
@@ -257,7 +276,9 @@ onUnmounted(() => {
 
 watch(
   () => props.description,
-  () => {
+  (newVal) => {
+    contentHeight.value = 0;
+    hasOverflow.value = estimateHasOverflow(newVal);
     void nextTick(() => {
       checkOverflow();
     });

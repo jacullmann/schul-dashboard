@@ -37,9 +37,7 @@ const goBack = () => {
         The page you're looking for doesn't exist or isn't available.
       </p>
 
-      <div
-        class="w-full mb-8 animate-fade-up"
-      >
+      <div class="w-full mb-8 animate-fade-up">
         <div
           class="grid w-full gap-3 grid-cols-[repeat(auto-fit,minmax(280px,1fr))] max-md:grid-cols-1"
         >
@@ -121,9 +119,7 @@ const goBack = () => {
         </div>
       </div>
 
-      <div
-        class="mt-4 animate-fade-up"
-      >
+      <div class="mt-4 animate-fade-up">
         <BaseButton variant="ghost" :icon="ArrowLeft" @click="goBack">
           Go back
         </BaseButton>

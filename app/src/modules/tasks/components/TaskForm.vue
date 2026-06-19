@@ -166,13 +166,12 @@ const {
         <BaseLabel for="description">{{
           t('tasks.list.task_form.description')
         }}</BaseLabel>
-        <BaseInput
+        <BaseMarkdownTextarea
           id="description"
           v-model="description"
-          as="textarea"
           rows="4"
           :aria-describedby="descriptionError ? 'description-error' : undefined"
-        ></BaseInput>
+        ></BaseMarkdownTextarea>
       </BaseFormGroup>
 
       <BaseFormGroup id="dueDate" :error="dueDateError">
