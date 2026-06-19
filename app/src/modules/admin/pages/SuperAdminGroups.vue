@@ -21,41 +21,36 @@ onMounted(loadGroups);
     <BaseSpinner on="ghost" size="24px" />
   </div>
   <div v-else-if="!groups.length" class="empty-msg">No groups found.</div>
-  <div v-else class="table-wrap">
-    <table class="data-table">
+  <div v-else class="overflow-x-auto">
+    <table>
       <thead>
         <tr>
           <th>Name</th>
+          <th>ID</th>
           <th>Owner</th>
           <th>Members</th>
           <th>Tasks</th>
           <th>Created</th>
-          <th style="text-align: right">Actions</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="g in groups" :key="g.id">
-          <td>
-            <div class="cell-email">{{ g.name }}</div>
-            <div class="cell-id">{{ g.id }}</div>
-          </td>
-          <td>
-            <div class="cell-email">{{ g.ownerEmail ?? '—' }}</div>
-            <div class="cell-id">{{ g.ownerId }}</div>
-          </td>
+          <td>{{ g.name }}</td>
+          <td>{{ g.id }}</td>
+          <td>{{ g.ownerEmail ?? '—' }}</td>
           <td>{{ g.memberCount }}</td>
           <td>{{ g.itemCount }}</td>
-          <td class="cell-date">{{ fmtDate(g.createdAt) }}</td>
-          <td>
-            <div class="cell-actions">
-              <button
-                class="btn-icon danger"
-                title="Delete group"
+          <td>{{ fmtDate(g.createdAt) }}</td>
+          <td class="py-0! px-2! min-w-0!">
+            <BaseTooltip content="Delete group">
+              <BaseButton
+                variant="ghost"
+                size="sm"
+                :icon="Trash2"
                 @click="deleteGroup(g)"
-              >
-                <Trash2 :size="15" />
-              </button>
-            </div>
+              />
+            </BaseTooltip>
           </td>
         </tr>
       </tbody>
@@ -87,35 +82,6 @@ onMounted(loadGroups);
   padding: 40px;
 }
 
-.table-wrap {
-  overflow-x: auto;
-  border: 1px solid var(--color-ghost-border);
-  box-shadow: var(--shadow-input);
-  border-radius: 12px;
-}
-
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-.data-table th,
-.data-table td {
-  padding: 11px 14px;
-  text-align: left;
-  border-bottom: 1px solid var(--color-ghost-border);
-}
-.data-table th {
-  background: var(--color-surface);
-  color: var(--color-on-ghost-muted);
-  font-weight: 500;
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-.data-table tr:last-child td {
-  border-bottom: none;
-}
-
 .cell-email {
   font-weight: 500;
 }
@@ -128,11 +94,6 @@ onMounted(loadGroups);
   font-size: var(--text-sm);
   color: var(--color-on-ghost-muted);
   white-space: nowrap;
-}
-.cell-actions {
-  display: flex;
-  gap: 2px;
-  justify-content: flex-end;
 }
 
 .btn-icon {

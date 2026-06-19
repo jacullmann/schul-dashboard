@@ -144,10 +144,6 @@ onMounted(() => {
           v-for="(group, index) in userGroups"
           :key="group.id"
           class="animate-fade-up"
-          :style="{
-            animationDelay: `${index * 0.075}s`,
-            animationFillMode: 'both',
-          }"
           :active="group.id === activeGroupId"
           :separator="index !== userGroups.length - 1"
           :disabled="navigatingGroupId === group.id"

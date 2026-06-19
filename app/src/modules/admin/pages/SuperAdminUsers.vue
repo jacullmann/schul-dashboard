@@ -35,14 +35,15 @@ onMounted(loadUsers);
     <BaseButton variant="ghost" @click="loadUsers">Refresh</BaseButton>
   </div>
 
-  <div class="table-wrap">
-    <table class="data-table">
+  <div class="overflow-x-auto">
+    <table>
       <thead>
         <tr>
           <th>Email</th>
+          <th>ID</th>
           <th>Status</th>
           <th>Registered</th>
-          <th style="text-align: right">Actions</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -51,10 +52,8 @@ onMounted(loadUsers);
           :key="u.id"
           :class="{ 'row-banned': u.isBanned }"
         >
-          <td>
-            <div class="cell-email">{{ u.email }}</div>
-            <div class="cell-id">{{ u.id }}</div>
-          </td>
+          <td>{{ u.email }}</td>
+          <td>{{ u.id }}</td>
           <td>
             <span v-if="u.role === 'superadmin'" class="badge badge-purple"
               >Admin</span
@@ -66,39 +65,37 @@ onMounted(loadUsers);
             >
           </td>
           <td class="cell-date">{{ fmtDate(u.createdAt) }}</td>
-          <td>
+          <td class="py-0! px-2! min-w-0!">
             <div class="cell-actions">
-              <button
-                class="btn-icon"
-                title="Activity log"
-                @click="toggleActivity(u.id)"
+              <BaseTooltip content="Activity log" placement="bottom">
+                <BaseButton
+                  size="sm"
+                  :icon="FileText"
+                  @click="toggleActivity(u.id)"
+                />
+              </BaseTooltip>
+              <BaseTooltip
+                :content="u.isBanned ? 'Unban' : 'Ban'"
+                placement="bottom"
               >
-                <FileText :size="15" />
-              </button>
-              <button
-                v-if="u.role !== 'superadmin'"
-                class="btn-icon"
-                :title="u.isBanned ? 'Unban' : 'Ban'"
-                @click="toggleBan(u)"
-              >
-                <Lock v-if="!u.isBanned" :size="15" />
-                <Unlock v-else :size="15" />
-              </button>
-              <button
-                class="btn-icon"
-                title="Prune old logs"
-                @click="pruneOldLogs(u)"
-              >
-                <Eraser :size="15" />
-              </button>
-              <button
-                v-if="u.role !== 'superadmin'"
-                class="btn-icon danger"
-                title="Delete"
-                @click="deleteUser(u.id)"
-              >
-                <Trash2 :size="15" />
-              </button>
+                <BaseButton
+                  v-if="u.role !== 'superadmin'"
+                  size="sm"
+                  :icon="u.isBanned ? Unlock : Lock"
+                  @click="toggleBan(u)"
+                />
+              </BaseTooltip>
+              <BaseTooltip content="Prune old logs" placement="bottom">
+                <BaseButton size="sm" :icon="Eraser" @click="pruneOldLogs(u)" />
+              </BaseTooltip>
+              <BaseTooltip content="Delete" placement="bottom">
+                <BaseButton
+                  v-if="u.role !== 'superadmin'"
+                  size="sm"
+                  :icon="Trash2"
+                  @click="deleteUser(u.id)"
+                />
+              </BaseTooltip>
             </div>
           </td>
         </tr>
@@ -183,8 +180,9 @@ onMounted(loadUsers);
 .data-table tr:last-child td {
   border-bottom: none;
 }
-.row-banned {
-  opacity: 0.6;
+.row-banned td {
+  text-decoration: line-through;
+  color: var(--color-on-ghost-muted) !important;
 }
 
 .cell-email {
@@ -207,26 +205,21 @@ onMounted(loadUsers);
 }
 
 .badge {
-  padding: 2px 7px;
-  border-radius: 4px;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 600;
-  margin-right: 4px;
+  margin-right: 12px;
+  text-decoration: none;
 }
 .badge-green {
-  background: rgba(16, 185, 129, 0.15);
   color: #10b981;
 }
 .badge-yellow {
-  background: rgba(245, 158, 11, 0.15);
   color: #f59e0b;
 }
 .badge-red {
-  background: rgba(239, 68, 68, 0.15);
   color: #ef4444;
 }
 .badge-purple {
-  background: rgba(99, 102, 241, 0.15);
   color: #6366f1;
 }
 

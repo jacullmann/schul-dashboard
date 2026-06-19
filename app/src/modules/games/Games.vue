@@ -32,7 +32,6 @@ const filteredGames = computed(() => {
     </div>
     <div
       class="flex flex-col items-center justify-center content-center overflow-hidden animate-fade-up"
-      style="animation-delay: 0.05s; animation-fill-mode: both"
     >
       <BaseInput
         id="search-input"
@@ -49,10 +48,6 @@ const filteredGames = computed(() => {
           :key="game.id"
           :to="`/games/${game.id}`"
           class="no-underline color-inherit animate-fade-up"
-          :style="{
-            animationDelay: `${(index + 2) * 0.05}s`,
-            animationFillMode: 'both',
-          }"
         >
           <div
             class="bg-surface rounded-xl overflow-hidden h-full flex flex-col border border-ghost-border"

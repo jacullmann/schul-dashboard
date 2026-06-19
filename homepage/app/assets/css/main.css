@@ -29,15 +29,14 @@
   --color-bismuth-violet: oklch(0.4898 0.295776 280.2478);
 
   --color-canvas: var(--color-white);
-  --color-canvas-border: var(--color-cloud);
 
   --color-surface: var(--color-white);
   --color-surface-hover: var(--color-smoke);
   --color-surface-highlight: oklch(0.9702 0 0);
-  --color-surface-border: var(--color-cloud);
   --color-surface-hover-border: oklch(0.7921 0 0);
 
   --color-ghost-hover: var(--color-smoke);
+  --color-ghost-border: var(--color-smoke);
   --color-on-ghost: var(--color-black);
   --color-on-ghost-muted: var(--color-graphite);
   --color-on-ghost-subtle: var(--color-ghost);
@@ -171,15 +170,14 @@
 @layer base {
   html.dark {
     --color-canvas: var(--color-onyx);
-    --color-canvas-border: var(--color-charcoal);
 
     --color-surface: var(--color-charcoal);
     --color-surface-hover: var(--color-mist);
     --color-surface-highlight: var(--color-charcoal-highlight);
-    --color-surface-border: var(--color-graphite);
     --color-surface-hover-border: var(--color-steel);
 
     --color-ghost-hover: var(--color-mist);
+    --color-ghost-border: var(--color-mist);
     --color-on-ghost: var(--color-white);
     --color-on-ghost-muted: var(--color-ash);
     --color-on-ghost-subtle: var(--color-ghost);

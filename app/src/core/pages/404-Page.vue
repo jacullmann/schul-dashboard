@@ -28,20 +28,17 @@ const goBack = () => {
       </div>
       <h1
         class="font-display text-[32px] font-semibold text-on-ghost m-0 mb-3 max-md:text-[24px] animate-fade-up"
-        style="animation-delay: 0.05s; animation-fill-mode: both"
       >
         Page not found
       </h1>
       <p
         class="text-base text-on-ghost-muted m-0 mb-12 max-w-[500px] max-md:text-sm max-md:mb-8 animate-fade-up"
-        style="animation-delay: 0.1s; animation-fill-mode: both"
       >
         The page you're looking for doesn't exist or isn't available.
       </p>
 
       <div
         class="w-full mb-8 animate-fade-up"
-        style="animation-delay: 0.15s; animation-fill-mode: both"
       >
         <div
           class="grid w-full gap-3 grid-cols-[repeat(auto-fit,minmax(280px,1fr))] max-md:grid-cols-1"
@@ -126,7 +123,6 @@ const goBack = () => {
 
       <div
         class="mt-4 animate-fade-up"
-        style="animation-delay: 0.2s; animation-fill-mode: both"
       >
         <BaseButton variant="ghost" :icon="ArrowLeft" @click="goBack">
           Go back
