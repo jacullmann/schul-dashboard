@@ -212,46 +212,41 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-5">
-    <div
-      class="flex items-center gap-3 p-3 bg-surface border border-ghost-border shadow-input rounded-xl"
-      :class="{
-        '!border-[var(--special--green)] !bg-success-surface': mfaEnabled,
-      }"
-    >
-      <div
-        class="flex items-center justify-center w-11 h-11 rounded-lg bg-surface-hover text-on-ghost-muted"
-        :class="{
-          '!bg-success-surface !text-[var(--special--green)]': mfaEnabled,
-        }"
-      >
+  <BaseFormContent>
+    <div class="flex items-center gap-3 p-3 mx-auto">
+      <div class="flex items-center justify-center size-11 text-on-ghost-muted">
         <component :is="mfaEnabled ? ShieldCheck : ShieldOff" :size="24" />
       </div>
-      <div class="flex flex-col gap-0.5">
+      <div class="flex flex-col">
         <span class="text-sm text-on-ghost-muted"
           >Zwei-Faktor-Authentifizierung</span
         >
         <span
-          class="text-base font-semibold text-on-ghost-muted"
-          :class="{ '!text-[var(--special--green)]': mfaEnabled }"
+          class="text-base font-bold"
+          :class="mfaEnabled ? 'text-on-ghost' : 'text-on-ghost-muted'"
         >
           {{ mfaEnabled ? 'Aktiviert' : 'Deaktiviert' }}
         </span>
       </div>
     </div>
-    <p class="text-sm/relaxed text-on-ghost-muted m-0 font-sans">
+    <p class="text-sm/relaxed text-on-ghost-muted m-0! font-sans">
       {{ t('auth.mfa.setup.description_prefix') }}
       {{ t('auth.mfa.setup.description_suffix') }}
       Authenticator.
     </p>
-    <div v-if="!mfaEnabled && !setupMode" class="flex justify-start">
-      <BaseButton :disabled="loading" variant="action" @click="startSetup">
-        2FA aktivieren
-      </BaseButton>
-    </div>
 
-    <div v-if="setupMode" class="flex flex-col gap-5">
-      <div class="flex items-center justify-center gap-3">
+    <BaseButton
+      v-if="!mfaEnabled && !setupMode"
+      :disabled="loading"
+      variant="action"
+      :full="true"
+      @click="startSetup"
+    >
+      Aktivieren
+    </BaseButton>
+
+    <div v-if="setupMode" class="flex flex-col gap-4">
+      <div class="flex items-center justify-center gap-2">
         <div
           class="flex items-center gap-2 opacity-50"
           :class="{ '!opacity-100': setupStep === 1 || setupStep > 1 }"
@@ -290,7 +285,7 @@ onUnmounted(() => {
 
       <div v-if="setupStep === 1" class="flex flex-col gap-4">
         <p
-          class="text-sm/relaxed text-on-ghost-muted m-0 text-center font-sans"
+          class="text-sm/relaxed text-on-ghost-muted m-0! text-center font-sans"
         >
           Bitte scanne den QR-Code mit deiner Authenticator-App (z.B. Google
           Authenticator).
@@ -335,19 +330,19 @@ onUnmounted(() => {
           }}</span>
         </div>
 
-        <div class="flex justify-end gap-3 mt-2">
+        <BaseRow justify="end">
           <BaseButton variant="ghost" @click="cancelSetup"
             >Abbrechen</BaseButton
           >
           <BaseButton variant="action" @click="setupStep = 2"
             >Weiter</BaseButton
           >
-        </div>
+        </BaseRow>
       </div>
 
       <div v-if="setupStep === 2" class="flex flex-col gap-4">
         <p
-          class="text-sm/relaxed text-on-ghost-muted m-0 text-center font-sans"
+          class="text-sm/relaxed text-on-ghost-muted m-0! text-center font-sans"
         >
           Gib den 6-stelligen Code aus deiner Authenticator-App ein, um die
           {{ t('auth.mfa.setup.complete_instruction') }}
@@ -362,7 +357,7 @@ onUnmounted(() => {
             pattern="[0-9]*"
             maxlength="6"
             placeholder="000000"
-            class="w-[180px] p-3 text-3xl font-mono text-center bg-surface border border-ghost-border shadow-input rounded-xl text-on-ghost transition-colors focus:outline-none focus:border-on-ghost"
+            class="w-48 p-3 text-3xl font-mono tracking-wider text-center bg-surface border-2 border-ghost-border shadow-input rounded-xl text-on-ghost transition-colors focus:outline-none focus:border-on-ghost-muted"
             :class="{ '!border-danger': verifyError }"
             @input="handleCodeInput"
             @keyup.enter="activateMfa"
@@ -377,7 +372,7 @@ onUnmounted(() => {
           {{ verifyError }}
         </div>
 
-        <div class="flex justify-end gap-3 mt-2">
+        <BaseRow justify="end">
           <BaseButton variant="ghost" @click="setupStep = 1">Zurück</BaseButton>
           <BaseButton
             :disabled="verifyCode.length !== 6 || loading"
@@ -387,19 +382,18 @@ onUnmounted(() => {
           >
             Aktivieren
           </BaseButton>
-        </div>
+        </BaseRow>
       </div>
     </div>
 
-    <div v-if="mfaEnabled && !deactivateMode" class="flex justify-start">
-      <BaseButton
-        class="border border-danger text-danger hover:bg-danger-hover"
-        :icon="ShieldOff"
-        @click="startDeactivate"
-      >
-        2FA deaktivieren
-      </BaseButton>
-    </div>
+    <BaseButton
+      v-if="mfaEnabled && !deactivateMode"
+      variant="danger"
+      :full="true"
+      @click="startDeactivate"
+    >
+      Deaktivieren
+    </BaseButton>
 
     <div v-if="deactivateMode" class="flex flex-col gap-4">
       <div
@@ -451,5 +445,5 @@ onUnmounted(() => {
         </BaseButton>
       </div>
     </div>
-  </div>
+  </BaseFormContent>
 </template>

@@ -67,7 +67,7 @@ function handleLink() {
           >
             <GoogleIcon :size="24" />
           </div>
-          <div class="flex flex-col gap-0.5">
+          <div class="flex flex-col">
             <span class="text-base font-semibold text-on-ghost">Google</span>
             <span class="text-sm text-on-ghost-muted">{{
               googleLinked()
@@ -77,31 +77,23 @@ function handleLink() {
           </div>
         </div>
 
-        <div class="flex items-center gap-2 flex-shrink-0">
-          <span
-            v-if="googleLinked()"
-            class="text-[0.75rem] text-success bg-success-surface px-2 py-0.5 rounded-full font-medium"
-            >Verknüpft</span
-          >
+        <BaseButton
+          v-if="googleLinked()"
+          variant="ghost"
+          :loading="actionLoading"
+          @click="handleUnlink"
+        >
+          Trennen
+        </BaseButton>
 
-          <BaseButton
-            v-if="googleLinked()"
-            variant="ghost"
-            :loading="actionLoading"
-            @click="handleUnlink"
-          >
-            Trennen
-          </BaseButton>
-
-          <BaseButton
-            v-else
-            variant="action"
-            :loading="actionLoading"
-            @click="handleLink"
-          >
-            Verknüpfen
-          </BaseButton>
-        </div>
+        <BaseButton
+          v-else
+          variant="action"
+          :loading="actionLoading"
+          @click="handleLink"
+        >
+          Verknüpfen
+        </BaseButton>
       </div>
 
       <div
