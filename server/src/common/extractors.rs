@@ -8,12 +8,15 @@ use crate::{
     state::AppState,
 };
 use axum::{
-    extract::{FromRef, FromRequestParts},
+    Json,
+    extract::{FromRef, FromRequest, FromRequestParts, Request, rejection::JsonRejection},
     http::request::Parts,
 };
 use axum_extra::extract::CookieJar;
+use serde::de::DeserializeOwned;
 use std::convert::Infallible;
 use uuid::Uuid;
+use validator::Validate;
 
 #[derive(Debug, Clone)]
 pub struct AuthUser {
@@ -280,5 +283,27 @@ where
             .map(String::from);
 
         Ok(UserAgent(ua))
+    }
+}
+
+pub struct ValidatedJson<T>(pub T);
+
+impl<T, S> FromRequest<S> for ValidatedJson<T>
+where
+    T: DeserializeOwned + Validate,
+    S: Send + Sync,
+{
+    type Rejection = AppError;
+
+    async fn from_request(req: Request, state: &S) -> Result<Self, Self::Rejection> {
+        let Json(value) = Json::<T>::from_request(req, state)
+            .await
+            .map_err(|e: JsonRejection| AppError::BadRequest(e.body_text()))?;
+
+        value
+            .validate()
+            .map_err(|e| AppError::BadRequest(format!("Validation failed: {e}")))?;
+
+        Ok(ValidatedJson(value))
     }
 }

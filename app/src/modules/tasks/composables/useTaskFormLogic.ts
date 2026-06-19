@@ -309,7 +309,7 @@ export function useTaskFormLogic(
     }
 
     const cleanDesc = description.value.trim();
-    if (cleanDesc.length > 10000000000000000000000000000000) {
+    if (cleanDesc.length > 1000) {
       descriptionError.value = t(
         'tasks.list.task_form.errors.description_long',
       );
