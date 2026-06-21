@@ -28,14 +28,20 @@ interface MarkdownToken {
 }
 
 // Reconstruct syntax markers and content using marked's lexer tokens character-for-character
-function processTokens(tokensList: any[], parentType: string = 'text'): MarkdownToken[] {
+function processTokens(
+  tokensList: any[],
+  parentType: string = 'text',
+): MarkdownToken[] {
   const result: MarkdownToken[] = [];
   if (!tokensList) return [];
 
   for (const token of tokensList) {
     switch (token.type) {
       case 'strong': {
-        const nextType = parentType === 'italic' || parentType === 'bold-italic' ? 'bold-italic' : 'bold';
+        const nextType =
+          parentType === 'italic' || parentType === 'bold-italic'
+            ? 'bold-italic'
+            : 'bold';
         if (token.tokens && token.tokens.length > 0) {
           const childrenRaw = token.tokens.map((t: any) => t.raw).join('');
           const raw = token.raw;
@@ -66,7 +72,10 @@ function processTokens(tokensList: any[], parentType: string = 'text'): Markdown
         break;
       }
       case 'em': {
-        const nextType = parentType === 'bold' || parentType === 'bold-italic' ? 'bold-italic' : 'italic';
+        const nextType =
+          parentType === 'bold' || parentType === 'bold-italic'
+            ? 'bold-italic'
+            : 'italic';
         if (token.tokens && token.tokens.length > 0) {
           const childrenRaw = token.tokens.map((t: any) => t.raw).join('');
           const raw = token.raw;
@@ -98,7 +107,9 @@ function processTokens(tokensList: any[], parentType: string = 'text'): Markdown
       }
       case 'link': {
         const raw = token.raw;
-        const linkTextRaw = token.tokens ? token.tokens.map((t: any) => t.raw).join('') : token.text;
+        const linkTextRaw = token.tokens
+          ? token.tokens.map((t: any) => t.raw).join('')
+          : token.text;
         const textIndex = raw.indexOf(linkTextRaw);
         if (textIndex !== -1) {
           const prefix = raw.slice(0, textIndex);
@@ -128,7 +139,10 @@ function processTokens(tokensList: any[], parentType: string = 'text'): Markdown
         if (token.tokens) {
           result.push(...processTokens(token.tokens, parentType));
         } else {
-          result.push({ text: token.raw || token.text || '', type: parentType });
+          result.push({
+            text: token.raw || token.text || '',
+            type: parentType,
+          });
         }
         break;
       }
@@ -287,11 +301,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
       newCursorEnd = end - marker.length;
     } else {
       newText =
-        text.slice(0, start) +
-        marker +
-        selectedText +
-        marker +
-        text.slice(end);
+        text.slice(0, start) + marker + selectedText + marker + text.slice(end);
       newCursorStart = start + marker.length;
       newCursorEnd = end + marker.length;
     }
@@ -330,8 +340,11 @@ defineExpose({
         v-for="(token, index) in tokens"
         :key="index"
         :class="tokenClass(token.type)"
-        :data-marker="token.type === 'list-number-char' ? token.text : undefined"
-      >{{ token.text }}</span>
+        :data-marker="
+          token.type === 'list-number-char' ? token.text : undefined
+        "
+        >{{ token.text }}</span
+      >
     </div>
 
     <!-- Textarea input overlay (placed in front of the backdrop) -->
@@ -368,7 +381,12 @@ defineExpose({
   overflow-wrap: break-word !important;
   word-break: break-word !important;
   font-variant-ligatures: none !important;
-  font-feature-settings: "liga" 0, "clig" 0, "dlig" 0, "hlig" 0, "calt" 0 !important;
+  font-feature-settings:
+    'liga' 0,
+    'clig' 0,
+    'dlig' 0,
+    'hlig' 0,
+    'calt' 0 !important;
   font-kerning: none !important;
 }
 

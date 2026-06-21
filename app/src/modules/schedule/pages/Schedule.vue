@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue';
+import type { ComponentPublicInstance } from 'vue';
 import { useResizeObserver, useWindowSize } from '@vueuse/core';
 import { useSchedule } from '@/modules/schedule/composables/useSchedule';
 
@@ -13,7 +14,6 @@ const {
   loadingSubs,
   loadingLessons,
   days,
-  weekDates,
   timeSlots,
   groupedLessons,
   currentDay,
@@ -25,7 +25,7 @@ const {
 } = useSchedule();
 
 const scrollContainerRef = ref<HTMLElement | null>(null);
-const timeColWrapperRef = ref<HTMLElement | null>(null);
+const timeColRef = ref<ComponentPublicInstance | null>(null);
 const daysGridWrapperRef = ref<HTMLElement | null>(null);
 
 const { width: windowWidth } = useWindowSize();
@@ -34,15 +34,16 @@ const animationStartTime = ref(Date.now());
 const elapsedLoadTime = ref(0);
 
 const syncRowHeights = () => {
+  const el = timeColRef.value?.$el as HTMLElement | undefined;
   if (windowWidth.value >= 501) {
-    if (timeColWrapperRef.value) {
-      timeColWrapperRef.value.style.gridTemplateRows = '';
+    if (el) {
+      el.style.gridTemplateRows = '';
     }
     return;
   }
-  if (daysGridWrapperRef.value && timeColWrapperRef.value) {
+  if (daysGridWrapperRef.value && el) {
     const styles = window.getComputedStyle(daysGridWrapperRef.value);
-    timeColWrapperRef.value.style.gridTemplateRows = styles.gridTemplateRows;
+    el.style.gridTemplateRows = styles.gridTemplateRows;
   }
 };
 
@@ -109,9 +110,7 @@ const skeletonCells = computed(() => {
         gridTemplateRows: `auto repeat(${timeSlots.length || 9}, auto)`,
       }"
     >
-      <div ref="timeColWrapperRef" class="min-[501px]:contents">
-        <ScheduleTimeColumn :time-slots="timeSlots" />
-      </div>
+      <ScheduleTimeColumn ref="timeColRef" :time-slots="timeSlots" />
 
       <div
         ref="scrollContainerRef"
