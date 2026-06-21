@@ -18,6 +18,7 @@ export function useSwipeToDismiss(
 
   let gestureLockedHorizontal = false;
   let gestureDecided = false;
+  let hasVibrated = false;
 
   const { width: elementWidth } = useElementBounding(target);
 
@@ -28,6 +29,7 @@ export function useSwipeToDismiss(
       gestureLockedHorizontal = false;
       gestureDecided = false;
       isSwiping.value = false;
+      hasVibrated = false;
     },
     onSwipe() {
       if (isDismissing.value) return;
@@ -49,6 +51,26 @@ export function useSwipeToDismiss(
       }
 
       swipeOffset.value = Math.max(0, dx);
+
+      const thresholdPx = elementWidth.value * threshold;
+      if (swipeOffset.value >= thresholdPx) {
+        if (!hasVibrated) {
+          if (
+            typeof window !== 'undefined' &&
+            window.navigator &&
+            window.navigator.vibrate
+          ) {
+            try {
+              window.navigator.vibrate(10);
+            } catch {
+              // Ignore vibration errors (e.g. if not allowed or not supported by browser/device)
+            }
+          }
+          hasVibrated = true;
+        }
+      } else {
+        hasVibrated = false;
+      }
     },
     onSwipeEnd() {
       if (isDismissing.value) return;
