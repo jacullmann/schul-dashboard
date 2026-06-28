@@ -10,5 +10,6 @@
   "private_todos": "Private Tasks",
   "super_admin": "Super Admin",
   "update_history": "Update History",
-  "verify_email": "Email Verification"
+  "verify_email": "Email Verification",
+  "ai_chat": "AI Chat"
 }

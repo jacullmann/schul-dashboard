@@ -3,14 +3,14 @@ import { computed } from 'vue';
 
 const props = withDefaults(
   defineProps<{
-    radius?: 'full' | 'md' | 'lg' | 'xl';
+    radius?: 'full' | 'md' | 'lg' | 'xl' | '2xl';
     width?: string;
     height?: string;
   }>(),
   {
     radius: 'full',
     width: 'full',
-    height: '6',
+    height: '',
   },
 );
 

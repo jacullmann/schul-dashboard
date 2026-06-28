@@ -143,7 +143,12 @@ onClickOutside(
           :key="option.value"
           :is-select="true"
           :active="modelValue === option.value"
-          @click="selectOption(option.value)"
+          :class="
+            option.value === 'ultra'
+              ? 'opacity-60 bg-transparent! cursor-not-allowed!'
+              : ''
+          "
+          @click="option.value !== 'ultra' ? selectOption(option.value) : null"
         >
           {{ option.label }}
           <template #description>{{ option.description }}</template>

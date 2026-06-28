@@ -18,5 +18,15 @@
   "delete_confirm_title": "Delete Message?",
   "delete_success": "Message successfully deleted",
   "report_success": "Message successfully reported",
-  "report_error": "Failed to report message"
+  "report_error": "Failed to report message",
+  "status": {
+    "connecting": "Connecting",
+    "thinking": "Thinking",
+    "searching": "Searching",
+    "generating": "Generating",
+    "pondering": "Pondering",
+    "reading": "Reading",
+    "creating_image": "Generating Image",
+    "executing_terminal": "Running Terminal"
+  }
 }

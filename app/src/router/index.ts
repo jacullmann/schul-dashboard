@@ -274,6 +274,18 @@ const routes: RouteRecordRaw[] = [
   },
 
   {
+    path: '/ai',
+    name: 'ai-chat',
+    component: () => import('@/modules/chat/pages/AiChatView.vue'),
+    meta: { title: 'navigation.ai_chat' },
+  },
+
+  {
+    path: '/server',
+    redirect: '/natural-intelligence/server',
+  },
+
+  {
     path: '/:pathMatch(.*)*',
     component: () => import('@/layouts/DefaultLayout.vue'),
     children: [
@@ -316,7 +328,9 @@ router.beforeEach(async (to, from, next) => {
     to.path === '/forgot-password' ||
     to.path.startsWith('/verify') ||
     to.path.startsWith('/invite') ||
-    to.path.startsWith('/natural-intelligence');
+    to.path.startsWith('/natural-intelligence') ||
+    to.path.startsWith('/ai') ||
+    to.path === '/server';
 
   if (!isPublicRoute && !isLoggedIn.value) {
     try {

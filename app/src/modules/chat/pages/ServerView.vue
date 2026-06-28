@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+import {
+  computed,
+  nextTick,
+  onMounted,
+  onUnmounted,
+  onBeforeUnmount,
+  ref,
+  watch,
+} from 'vue';
 import {
   ArrowUp,
   AudioLines,
@@ -33,7 +41,7 @@ const router = useRouter();
 const windowWidth = useWindowSize().width;
 const toast = useToast();
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const dots = useAnimatedEllipsis();
 
 const { user, profile, joinGame, initializeAuth } = useAuth();
@@ -212,7 +220,10 @@ const calculateSpacer = () => {
 useResizeObserver(chatContainer, calculateSpacer);
 useResizeObserver(innerContainerEl, calculateSpacer);
 
-const handleInput = async () => {
+const handleInput = async (e?: Event) => {
+  if (e) {
+    userInput.value = (e.target as HTMLTextAreaElement).value;
+  }
   await nextTick();
 
   const textarea = textareaRef.value;
@@ -314,6 +325,12 @@ async function handleReport(message: UIMessage, reason: string) {
 const isListening = ref(false);
 let recognition: any = null;
 
+onBeforeUnmount(() => {
+  if (recognition && isListening.value) {
+    recognition.stop();
+  }
+});
+
 const toggleSpeechRecognition = () => {
   const SpeechRecognition =
     (window as any).SpeechRecognition ||
@@ -330,7 +347,7 @@ const toggleSpeechRecognition = () => {
   }
 
   recognition = new SpeechRecognition();
-  recognition.lang = 'en-US';
+  recognition.lang = locale.value.startsWith('de') ? 'de-DE' : 'en-US';
   recognition.interimResults = true;
   recognition.continuous = false;
 
@@ -533,7 +550,7 @@ const toggleSpeechRecognition = () => {
             <textarea
               id="user-input"
               ref="textareaRef"
-              v-model="userInput"
+              :value="userInput"
               rows="1"
               placeholder="Respond to the user"
               class="w-full py-2 px-3 bg-transparent rounded-none border-none outline-none shadow-none text-on-ghost text-base/6 placeholder:text-on-ghost-subtle resize-none overflow-y-auto max-h-60 block box-border m-0 custom-scrollbar"
@@ -593,7 +610,7 @@ const toggleSpeechRecognition = () => {
                     />
                   </BaseTooltip>
                   <BaseTooltip
-                    v-else-if="!userInput"
+                    v-else-if="!userInput || isListening"
                     key="voice"
                     content="Use voice"
                     placement="bottom"
@@ -614,6 +631,7 @@ const toggleSpeechRecognition = () => {
                       :icon="ArrowUp"
                       variant="action"
                       type="submit"
+                      @click.prevent="send"
                     />
                   </BaseTooltip>
                 </Transition>

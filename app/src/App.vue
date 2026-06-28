@@ -38,7 +38,9 @@ async function handleAuthExpired() {
     currentPath.startsWith('/forgot') ||
     currentPath.startsWith('/verify') ||
     currentPath.startsWith('/auth') ||
-    currentPath.startsWith('/natural-intelligence');
+    currentPath.startsWith('/natural-intelligence') ||
+    currentPath.startsWith('/ai') ||
+    currentPath === '/server';
 
   if (!isPublicRoute) {
     await router.push('/login');
@@ -104,7 +106,7 @@ onMounted(() => {
       </div>
     </template>
 
-    <template v-else key="content">
+    <template v-else>
       <router-view v-slot="{ Component }">
         <component :is="Component" />
       </router-view>

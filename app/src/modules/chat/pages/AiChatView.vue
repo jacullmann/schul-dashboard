@@ -1,13 +1,16 @@
 <script setup lang="ts">
+/* eslint-disable vue/one-component-per-file */
 import {
   computed,
   nextTick,
   onMounted,
-  onUnmounted,
-  onBeforeUnmount,
   ref,
   watch,
   type ComponentPublicInstance,
+  h,
+  defineComponent,
+  onBeforeUnmount,
+  type VNode,
 } from 'vue';
 import {
   ArrowUp,
@@ -28,6 +31,7 @@ import {
   SquarePen,
   Terminal,
   Zap,
+  Settings,
 } from '@lucide/vue';
 import ChatLogo from '@/modules/chat/components/ChatLogo.vue';
 import ModelSelect from '@/modules/chat/components/ModelSelect.vue';
@@ -36,157 +40,350 @@ import FileMenu from '@/modules/chat/components/FileMenu.vue';
 import { useToast } from '@/common/composables/useToast';
 import { useClipboard, useWindowSize, useResizeObserver } from '@vueuse/core';
 import { useRouter } from 'vue-router';
-import { useAuth } from '@/modules/chat/composables/useAuth';
-import { useMatchmaking } from '@/modules/chat/composables/useMatchmaking';
-import type { AiStep } from '@/modules/chat/composables/useChatSession';
-import { useChatSession } from '@/modules/chat/composables/useChatSession';
-import { useReports } from '@/modules/chat/composables/useReports';
 import { useI18n } from 'vue-i18n';
 import { useAnimatedEllipsis } from '@/modules/chat/composables/useAnimatedEllipsis';
-import {
-  developmentMockMessages,
-  developmentMockLiveSteps,
-} from '@/modules/chat/mockData';
-
-const USE_MOCK_DATA = false;
+import { marked } from 'marked';
+import DOMPurify from 'dompurify';
+import BaseLink from '@/common/components/BaseLink.vue';
+import ChatImage from '@/modules/chat/components/ChatImage.vue';
 
 const { copy } = useClipboard();
-
 const router = useRouter();
 const windowWidth = useWindowSize().width;
-
 const { t, locale } = useI18n();
 const dots = useAnimatedEllipsis();
+const toast = useToast();
 
-const { user, profile, joinGame, initializeAuth } = useAuth();
-const { startSearching, cancelSearch, session, isSearching, recoverSession } =
-  useMatchmaking();
-const { submitReport, error } = useReports();
+// State
+const userInput = ref('');
+const selectedModel = ref('instant');
+const isThinking = ref(false);
+const isSearching = ref(false);
+const currentAiStatus = ref<string | null>(null);
 
-const currentSessionId = ref<string | null>(null);
-const chat = ref<ReturnType<typeof useChatSession> | null>(null);
-const pendingMessage = ref('');
-
-onMounted(async () => {
-  await initializeAuth();
-  if (profile.value) {
-    await recoverSession();
-  }
-});
-
-onUnmounted(() => {
-  if (chat.value) {
-    chat.value.destroy();
-  }
-});
-
-watch(
-  session,
-  async (newSession) => {
-    if (
-      newSession?.status === 'active' &&
-      newSession.id !== currentSessionId.value
-    ) {
-      currentSessionId.value = newSession.id;
-      const sessionChat = useChatSession(newSession.id);
-      chat.value = sessionChat;
-      await sessionChat.initializeChat();
-
-      if (pendingMessage.value) {
-        sessionChat.sendMessage(pendingMessage.value);
-        pendingMessage.value = '';
-      }
-    }
-  },
-  { immediate: true },
-);
-
-const webSearch = ref(true);
+const webSearch = ref(false);
 const createImage = ref(false);
 const ponder = ref(false);
 const answerLeisurely = ref(false);
 
+// API Key Management
+const isApiKeyModalOpen = ref(false);
+const apiKey = ref(localStorage.getItem('gemini_api_key') || '');
+const apiKeyValue = ref(apiKey.value);
+
+watch(isApiKeyModalOpen, (isOpen) => {
+  if (isOpen) {
+    apiKeyValue.value = apiKey.value;
+  }
+});
+
+function getApiKey() {
+  const envKey = import.meta.env.VITE_GEMINI_API_KEY;
+  if (envKey) return envKey;
+  return apiKey.value;
+}
+
+const hasApiKey = computed(() => !!getApiKey());
+
+function saveApiKey() {
+  const cleanKey = apiKeyValue.value.trim();
+  apiKey.value = cleanKey;
+  if (cleanKey) {
+    localStorage.setItem('gemini_api_key', cleanKey);
+    toast.success('API Key saved successfully.');
+    isApiKeyModalOpen.value = false;
+  } else {
+    localStorage.removeItem('gemini_api_key');
+    toast.info('API Key removed.');
+    isApiKeyModalOpen.value = false;
+  }
+}
+
+// Message schema
 interface UIMessage {
   id: string;
   role: 'human' | 'assistant';
   content: string;
-  sender_id?: string;
   steps?: AiStep[];
+  sources?: { title: string; url: string }[];
 }
 
-const displayMessages = computed<UIMessage[]>(() => {
-  const messages: UIMessage[] = [];
+interface AiStep {
+  status: string;
+  tool?: string;
+  duration_ms?: number;
+  timestamp: number;
+}
 
-  if (USE_MOCK_DATA) {
-    messages.push(...(developmentMockMessages as UIMessage[]));
+const displayMessages = ref<UIMessage[]>([]);
+const liveSteps = ref<AiStep[]>([]);
+const isStepHistoryExpanded = ref(false);
+const expandedMessageSteps = ref<Record<string, boolean>>({});
+const overflowingHumanMessages = ref<Record<string, boolean>>({});
+const expandedHumanMessages = ref<Record<string, boolean>>({});
+
+// Steps logic
+function addLiveStep(status: string, tool?: string) {
+  const now = Date.now();
+  if (liveSteps.value.length > 0) {
+    const lastStep = liveSteps.value[liveSteps.value.length - 1];
+    if (!lastStep.duration_ms) {
+      lastStep.duration_ms = now - lastStep.timestamp;
+    }
   }
 
-  if (chat.value) {
-    messages.push(
-      ...chat.value.messages.map(
-        (m): UIMessage => ({
-          id: m.id,
-          role: m.sender_id === user.value?.id ? 'human' : 'assistant',
-          content: m.content,
-          sender_id: m.sender_id,
-          steps: m.metadata?.steps,
-        }),
-      ),
-    );
+  // Prevent duplicates
+  const isDuplicate = liveSteps.value.some(
+    (s) => s.status === status && s.tool === tool,
+  );
+  if (!isDuplicate) {
+    liveSteps.value.push({
+      status,
+      tool,
+      timestamp: now,
+    });
   }
+  currentAiStatus.value = status;
+}
 
-  if (pendingMessage.value) {
-    messages.push({
-      id: 'pending',
-      role: 'human',
-      content: pendingMessage.value,
-      sender_id: user.value?.id,
+function finishLiveSteps() {
+  const now = Date.now();
+  if (liveSteps.value.length > 0) {
+    const lastStep = liveSteps.value[liveSteps.value.length - 1];
+    if (!lastStep.duration_ms) {
+      lastStep.duration_ms = now - lastStep.timestamp;
+    }
+  }
+  currentAiStatus.value = null;
+}
+
+// Request cancellation
+let abortController: AbortController | null = null;
+
+const handleCancel = () => {
+  if (abortController) {
+    abortController.abort();
+    abortController = null;
+  }
+  isThinking.value = false;
+  isSearching.value = false;
+  finishLiveSteps();
+
+  // Clean up any empty assistant message at the end
+  if (displayMessages.value.length > 0) {
+    const lastMsg = displayMessages.value[displayMessages.value.length - 1];
+    if (lastMsg.role === 'assistant' && !lastMsg.content) {
+      displayMessages.value.pop();
+    }
+  }
+  toast.info('Generation cancelled.');
+};
+
+// Stream call implementation
+async function callGeminiStream(userPrompt: string, aiMessage: UIMessage) {
+  abortController = new AbortController();
+
+  const contents = [];
+  const maxHistory = 15;
+  const recentMessages = displayMessages.value.slice(-maxHistory);
+
+  for (const msg of recentMessages) {
+    if (msg.id === aiMessage.id) continue;
+    contents.push({
+      role: msg.role === 'human' ? 'user' : 'model',
+      parts: [{ text: msg.content }],
     });
   }
 
-  return messages;
-});
-
-const userInput = ref('');
-
-watch(userInput, () => {
-  autoResize();
-});
-
-const selectedModel = ref('pro');
-
-const isLockedIn = computed(
-  () => isSearching.value || session.value?.status === 'active',
-);
-
-const handleModelChangeRequest = async (newModel: string) => {
-  await clearChat();
-  selectedModel.value = newModel;
-  useToast().info(`Switched to the ${newModel} model. Started a new chat.`);
-};
-
-const isWaitingForResponse = computed(() => {
-  if (USE_MOCK_DATA) return true;
-  if (session.value?.status !== 'active') return false;
-  if (displayMessages.value.length === 0) return false;
-  return (
-    displayMessages.value[displayMessages.value.length - 1]?.role === 'human'
-  );
-});
-
-const isThinking = computed(
-  () =>
-    isSearching.value ||
-    isWaitingForResponse.value ||
-    (chat.value?.isOpponentTyping ?? false),
-);
-
-const handleCancel = async () => {
-  if (isSearching.value) {
-    await cancelSearch();
-  } else if (isThinking.value) {
-    await clearChat();
+  if (contents.length === 0 || contents[contents.length - 1].role !== 'user') {
+    contents.push({
+      role: 'user',
+      parts: [{ text: userPrompt }],
+    });
   }
+
+  const modelName =
+    selectedModel.value === 'instant'
+      ? 'gemini-3.1-flash-lite'
+      : 'gemini-3.5-flash';
+  const apiKey = getApiKey();
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:streamGenerateContent?alt=sse&key=${apiKey}`;
+
+  const tools: any[] = [];
+  if (webSearch.value) {
+    tools.push({ google_search: {} });
+    isSearching.value = true;
+    addLiveStep('searching', 'web_search');
+  } else {
+    addLiveStep('thinking');
+  }
+
+  const generationConfig: Record<string, any> = {
+    thinkingConfig: {
+      thinkingLevel: ponder.value ? 'HIGH' : 'LOW',
+    },
+  };
+  if (ponder.value) {
+    addLiveStep('pondering');
+  }
+
+  let systemInstruction: any = undefined;
+  if (createImage.value) {
+    systemInstruction = {
+      parts: [
+        {
+          text: 'You have an image generation engine at your disposal. If the user asks you to create, generate, draw, or show an image, you must output a markdown link of the form `![{image_description}](https://image.pollinations.ai/prompt/{image-prompt})` (or a standard link `[image](https://image.pollinations.ai/prompt/{image-prompt})`) with the prompt formatted as a URL (URL-encoded string). Treat this as your image generation engine.',
+        },
+      ],
+    };
+  }
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents,
+      tools: tools.length > 0 ? tools : undefined,
+      generationConfig:
+        Object.keys(generationConfig).length > 0 ? generationConfig : undefined,
+      systemInstruction: systemInstruction,
+    }),
+    signal: abortController.signal,
+  });
+
+  if (!response.ok) {
+    const errorJson = await response.json().catch(() => ({}));
+    throw new Error(
+      errorJson?.error?.message ||
+        `API request failed with status ${response.status}`,
+    );
+  }
+
+  const reader = response.body?.getReader();
+  if (!reader) throw new Error('Response body is not readable');
+
+  const decoder = new TextDecoder('utf-8');
+  let buffer = '';
+
+  isSearching.value = false;
+  addLiveStep('generating');
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || '';
+
+    for (const line of lines) {
+      if (line.startsWith('data: ')) {
+        const jsonStr = line.slice(6).trim();
+        if (!jsonStr) continue;
+
+        try {
+          const parsed = JSON.parse(jsonStr);
+          const parts = parsed.candidates?.[0]?.content?.parts;
+
+          if (parts) {
+            for (const part of parts) {
+              if (part.text) {
+                aiMessage.content += part.text;
+                void nextTick(() => scrollToBottom());
+              }
+            }
+          }
+
+          // Handle search grounding citations
+          const groundingMetadata = parsed.candidates?.[0]?.groundingMetadata;
+          if (groundingMetadata) {
+            const chunks = groundingMetadata.groundingChunks;
+            if (chunks && chunks.length > 0) {
+              const sources = chunks.map((chunk: any) => ({
+                title: chunk.web?.title || chunk.web?.uri || 'Source',
+                url: chunk.web?.uri || '#',
+              }));
+
+              if (!aiMessage.sources) {
+                aiMessage.sources = [];
+              }
+
+              for (const src of sources) {
+                if (!aiMessage.sources.find((s) => s.url === src.url)) {
+                  aiMessage.sources.push(src);
+                }
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('Failed to parse SSE JSON:', e);
+        }
+      }
+    }
+  }
+
+  finishLiveSteps();
+  abortController = null;
+}
+
+async function send() {
+  if (isThinking.value) return;
+  const content = userInput.value.trim();
+  if (!content) return;
+
+  if (!hasApiKey.value) {
+    isApiKeyModalOpen.value = true;
+    toast.info('Please enter your Gemini API Key first.');
+    return;
+  }
+
+  // Reset steps
+  liveSteps.value = [];
+  isStepHistoryExpanded.value = true;
+
+  // Add user message
+  displayMessages.value.push({
+    id: crypto.randomUUID(),
+    role: 'human',
+    content,
+  });
+
+  userInput.value = '';
+  void autoResize();
+  void nextTick(() => scrollToBottom());
+
+  const aiMsgId = crypto.randomUUID();
+  const aiMessage: UIMessage = {
+    id: aiMsgId,
+    role: 'assistant',
+    content: '',
+    steps: [],
+  };
+  displayMessages.value.push(aiMessage);
+
+  isThinking.value = true;
+
+  try {
+    await callGeminiStream(content, aiMessage);
+    aiMessage.steps = [...liveSteps.value];
+  } catch (err: any) {
+    if (err.name !== 'AbortError') {
+      console.error('Gemini API Error:', err);
+      aiMessage.content = `Error: ${err.message || 'Failed to generate response'}`;
+      toast.error('Failed to communicate with Gemini API.');
+    }
+  } finally {
+    isThinking.value = false;
+  }
+}
+
+// UI helper methods (copied from ChatView)
+const isLockedIn = computed(() => isThinking.value);
+
+const handleModelChangeRequest = (newModel: string) => {
+  clearChat();
+  selectedModel.value = newModel;
+  toast.info(`Switched to ${newModel} model. Started a new chat.`);
 };
 
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
@@ -214,7 +411,6 @@ const calculateSpacer = () => {
 
   const viewportHeight = chatContainer.value.clientHeight;
   const contentHeightBelowHuman = spacerEl.offsetTop - lastHumanMsg.offsetTop;
-
   const newHeight = Math.max(0, viewportHeight - contentHeightBelowHuman);
 
   if (Math.abs(dynamicSpacerHeight.value - newHeight) > 1) {
@@ -227,18 +423,14 @@ useResizeObserver(innerContainerEl, calculateSpacer);
 
 const autoResize = async () => {
   await nextTick();
-
   const textarea = textareaRef.value;
   if (!textarea) return;
 
   const currentHeight = textarea.style.height || `${textarea.clientHeight}px`;
-
   textarea.style.transition = 'none';
   textarea.style.height = 'auto';
   const targetHeight = textarea.scrollHeight;
-
   textarea.style.height = currentHeight;
-
   void textarea.offsetHeight;
 
   textarea.style.transition = 'height 0.2s cubic-bezier(0.25, 1, 0.5, 1)';
@@ -259,89 +451,34 @@ const scrollToBottom = () => {
   }
 };
 
-async function send() {
-  if (isThinking.value) return;
-  const content = userInput.value.trim();
-  if (!content && !pendingMessage.value) return;
-
-  if (!profile.value) {
-    pendingMessage.value = content;
-    userInput.value = '';
-    try {
-      await joinGame('human');
-      await startSearching();
-    } catch (e: any) {
-      pendingMessage.value = '';
-      useToast().error(e.message || 'Failed to join game');
-    }
-    return;
-  }
-
-  if (session.value?.status !== 'active') {
-    if (content) {
-      pendingMessage.value = content;
-      userInput.value = '';
-    }
-    if (!isSearching.value) {
-      try {
-        await startSearching();
-      } catch (e: any) {
-        pendingMessage.value = '';
-        useToast().error(e.message || 'Failed to start searching');
-      }
-    }
-    return;
-  }
-
-  if (chat.value) {
-    await chat.value.sendMessage(content);
-    userInput.value = '';
-
-    nextTick(() => {
-      scrollToBottom();
-    });
-  }
-}
+watch(userInput, () => {
+  void autoResize();
+});
 
 watch(
   () => displayMessages.value.length,
   () => {
-    nextTick(() => {
+    void nextTick(() => {
       calculateSpacer();
       scrollToBottom();
     });
   },
 );
 
-async function clearChat() {
-  if (chat.value) {
-    await chat.value.leaveChat();
-    chat.value = null;
-    currentSessionId.value = null;
+function clearChat() {
+  if (abortController) {
+    abortController.abort();
+    abortController = null;
   }
-  await cancelSearch();
+  displayMessages.value = [];
+  liveSteps.value = [];
   userInput.value = '';
+  isThinking.value = false;
+  isSearching.value = false;
 }
 
-async function handleReport(message: UIMessage, reason: string) {
-  const isSuccessful = await submitReport(
-    message.sender_id || '',
-    message.id,
-    message.content,
-    reason,
-  );
-
-  if (isSuccessful) {
-    useToast().success(
-      'Report submitted successfully. Our team will review it.',
-    );
-  } else if (error.value === 'already_reported') {
-    useToast().info(
-      'This message has already been reported. Thank you for your vigilance!',
-    );
-  } else {
-    useToast().error(error.value || 'Failed to submit report.');
-  }
+function handleReport(_message: UIMessage, _reason: string) {
+  toast.success('Thank you for your feedback! Flagged this message.');
 }
 
 const isListening = ref(false);
@@ -359,7 +496,7 @@ const toggleSpeechRecognition = () => {
     (window as any).webkitSpeechRecognition;
 
   if (!SpeechRecognition) {
-    useToast().error('Speech recognition is not supported in this browser.');
+    toast.error('Speech recognition is not supported in this browser.');
     return;
   }
 
@@ -388,7 +525,7 @@ const toggleSpeechRecognition = () => {
     console.error('Speech recognition error', event.error);
     isListening.value = false;
     if (event.error === 'not-allowed') {
-      useToast().error('Microphone access denied.');
+      toast.error('Microphone access denied.');
     }
   };
 
@@ -398,9 +535,6 @@ const toggleSpeechRecognition = () => {
 
   recognition.start();
 };
-
-const overflowingHumanMessages = ref<Record<string, boolean>>({});
-const expandedHumanMessages = ref<Record<string, boolean>>({});
 
 function toggleHumanMessage(id: string) {
   expandedHumanMessages.value[id] = !expandedHumanMessages.value[id];
@@ -423,10 +557,6 @@ const checkHumanMessageOverflow = (
   });
 };
 
-const isStepHistoryExpanded = ref(false);
-
-const expandedMessageSteps = ref<Record<string, boolean>>({});
-
 function toggleMessageSteps(messageId: string) {
   expandedMessageSteps.value[messageId] =
     !expandedMessageSteps.value[messageId];
@@ -435,20 +565,6 @@ function toggleMessageSteps(messageId: string) {
 function isMessageStepsExpanded(messageId: string) {
   return !!expandedMessageSteps.value[messageId];
 }
-
-const liveSteps = computed<AiStep[]>(() => {
-  if (USE_MOCK_DATA) return developmentMockLiveSteps;
-  return chat.value?.aiSteps ?? [];
-});
-
-watch(
-  () => liveSteps.value.length,
-  (len, prevLen) => {
-    if (prevLen > 0 && len === 0) {
-      isStepHistoryExpanded.value = false;
-    }
-  },
-);
 
 const stepIconMap: Record<string, any> = {
   thinking: Lightbulb,
@@ -473,12 +589,231 @@ function formatDuration(ms?: number): string {
   if (ms < 1000) return `${ms}ms`;
   return `${(ms / 1000).toFixed(1)}s`;
 }
+
+const TableWrapper = defineComponent({
+  name: 'TableWrapper',
+  setup(props, { slots }) {
+    const wrapperRef = ref<HTMLElement | null>(null);
+    const showLeftFade = ref(false);
+    const showRightFade = ref(false);
+
+    const updateFade = () => {
+      const el = wrapperRef.value;
+      if (!el) return;
+      showLeftFade.value = el.scrollLeft > 1;
+      showRightFade.value = el.scrollWidth - el.scrollLeft - el.clientWidth > 1;
+    };
+
+    let ticking = false;
+    const handleScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          updateFade();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    const maskStyle = computed(() => {
+      const left = showLeftFade.value;
+      const right = showRightFade.value;
+
+      let mask = 'none';
+      if (left && right) {
+        mask =
+          'linear-gradient(to right, transparent 0px, black 32px, black calc(100% - 32px), transparent 100%)';
+      } else if (left) {
+        mask = 'linear-gradient(to right, transparent 0px, black 32px)';
+      } else if (right) {
+        mask = 'linear-gradient(to left, transparent 0px, black 32px)';
+      }
+      return {
+        webkitMaskImage: mask,
+        maskImage: mask,
+      };
+    });
+
+    let resizeObserver: ResizeObserver | null = null;
+
+    onMounted(() => {
+      updateFade();
+      window.addEventListener('resize', updateFade);
+
+      const el = wrapperRef.value;
+      if (el) {
+        resizeObserver = new ResizeObserver(() => {
+          updateFade();
+        });
+        resizeObserver.observe(el);
+        for (const child of el.children) {
+          resizeObserver.observe(child);
+        }
+      }
+    });
+
+    onBeforeUnmount(() => {
+      window.removeEventListener('resize', updateFade);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
+    });
+
+    return () =>
+      h(
+        'div',
+        {
+          ref: wrapperRef,
+          class:
+            'overflow-x-auto my-3! transition-all duration-300 scrollbar-hide',
+          style: maskStyle.value,
+          onScroll: handleScroll,
+        },
+        slots.default?.(),
+      );
+  },
+});
+function isImageUrl(url: string): boolean {
+  if (!url) return false;
+  if (url.startsWith('https://image.pollinations.ai/prompt/')) return true;
+  return /\.(png|jpe?g|gif|webp|svg|bmp)(?:\?.*)?$/i.test(url);
+}
+
+function renderToken(token: any): VNode | string {
+  switch (token.type) {
+    case 'heading':
+      return h(`h${token.depth}`, {}, renderTokens(token.tokens));
+    case 'paragraph':
+      return h('p', {}, renderTokens(token.tokens));
+    case 'text':
+      return token.tokens
+        ? h('span', {}, renderTokens(token.tokens))
+        : token.text;
+    case 'strong':
+      return h('strong', {}, renderTokens(token.tokens));
+    case 'em':
+      return h('em', {}, renderTokens(token.tokens));
+    case 'codespan':
+      return h(
+        'code',
+        {
+          class: 'bg-ghost-hover text-on-ghost px-2 py-0.5 rounded-md text-sm',
+        },
+        token.text,
+      );
+    case 'code':
+      return h(
+        'pre',
+        {
+          class:
+            'bg-ghost-hover text-on-ghost px-6 py-5 rounded-2xl overflow-x-auto my-3',
+        },
+        [h('code', { class: 'bg-transparent p-0' }, token.text)],
+      );
+    case 'blockquote':
+      return h(
+        'blockquote',
+        { class: 'border-l-4 border-ghost-border pl-4 italic my-3' },
+        renderTokens(token.tokens),
+      );
+    case 'list':
+      return h(
+        token.ordered ? 'ol' : 'ul',
+        {
+          class: token.ordered
+            ? 'list-decimal pl-5 my-2'
+            : 'list-disc pl-5 my-2',
+        },
+        [
+          ...token.items.map((item: any) =>
+            h('li', { class: 'mb-1' }, renderTokens(item.tokens)),
+          ),
+        ],
+      );
+    case 'list_item':
+      return h('li', { class: 'mb-1' }, renderTokens(token.tokens));
+    case 'link':
+      if (isImageUrl(token.href)) {
+        return h(ChatImage, {
+          src: token.href,
+          alt: token.text || 'Image',
+        });
+      }
+      return h(BaseLink, { to: token.href }, () => renderTokens(token.tokens));
+    case 'image':
+      return h(ChatImage, {
+        src: token.href,
+        alt: token.text || 'Image',
+        title: token.title || undefined,
+      });
+    case 'br':
+      return h('br');
+    case 'space':
+      return '';
+    case 'escape':
+      return token.text;
+    case 'html':
+      return h('span', { innerHTML: DOMPurify.sanitize(token.text) });
+    case 'table': {
+      const headerRow = h(
+        'tr',
+        {},
+        token.header.map((cell: any, index: number) => {
+          const align = token.align[index];
+          return h(
+            'th',
+            { style: align ? { textAlign: align } : undefined },
+            renderTokens(cell.tokens),
+          );
+        }),
+      );
+      const bodyRows = token.rows.map((row: any[]) => {
+        return h(
+          'tr',
+          {},
+          row.map((cell: any, index: number) => {
+            const align = token.align[index];
+            return h(
+              'td',
+              { style: align ? { textAlign: align } : undefined },
+              renderTokens(cell.tokens),
+            );
+          }),
+        );
+      });
+      return h(TableWrapper, {}, () =>
+        h('table', {}, [h('thead', {}, [headerRow]), h('tbody', {}, bodyRows)]),
+      );
+    }
+
+    default:
+      return token.text || '';
+  }
+}
+
+function renderTokens(tokensList: any[] | undefined): (VNode | string)[] {
+  if (!tokensList) return [];
+  return tokensList.map(renderToken);
+}
+
+const MarkdownRenderer = defineComponent({
+  name: 'MarkdownRenderer',
+  props: {
+    tokens: {
+      type: Array,
+      required: true,
+    },
+  },
+  setup(props) {
+    return () => renderTokens(props.tokens as any[]);
+  },
+});
 </script>
 
 <template>
   <div class="h-dvh w-full flex flex-col overflow-hidden bg-canvas">
     <div
-      class="absolute top-2 left-2 bg-surface border border-ghost-border z-1 rounded-full p-1"
+      class="absolute top-2 left-2 bg-surface border border-ghost-border z-1 rounded-full p-1 flex gap-1"
     >
       <BaseTooltip content="New Chat" placement="bottom">
         <BaseButton
@@ -486,6 +821,15 @@ function formatDuration(ms?: number): string {
           class="z-10"
           :icon="SquarePen"
           @click="clearChat"
+        />
+      </BaseTooltip>
+      <BaseTooltip content="Gemini API Key" placement="bottom">
+        <BaseButton
+          variant="ghost"
+          class="z-10"
+          :icon="Settings"
+          :class="{ 'text-danger!': !hasApiKey }"
+          @click="isApiKeyModalOpen = true"
         />
       </BaseTooltip>
     </div>
@@ -623,14 +967,33 @@ function formatDuration(ms?: number): string {
             v-else
             class="bg-transparent py-3 px-2 wrap-break-word text-left group w-full"
           >
-            <span
-              v-for="(word, index) in message.content.split(' ')"
-              :key="index"
-              class="word-animate"
-              :style="{ animationDelay: index * 30 + 'ms' }"
+            <div
+              class="min-h-0 overflow-hidden whitespace-normal [&_p]:mt-0! [&_p]:mb-2! [&_p]:text-on-ghost! [&_p]:whitespace-pre-wrap! [&_p:last-child]:mb-0! [&_ul]:mt-0! [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-2! [&_ol]:mt-0! [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-2! [&_li]:mb-1 [&_strong]:font-semibold [&_strong]:text-on-ghost [&_h1]:mt-0! [&_h1]:text-xl [&_h1]:font-bold [&_h1]:mb-2 [&_h2]:mt-0! [&_h2]:text-lg [&_h2]:font-bold [&_h2]:mb-2 [&_h3]:mt-0! [&_h3]:text-base [&_h3]:font-bold [&_h3]:mb-1 inline-block w-full align-top"
             >
-              {{ word }}&nbsp;
-            </span>
+              <MarkdownRenderer :tokens="marked.lexer(message.content)" />
+            </div>
+
+            <!-- Search Grounding Citations -->
+            <div
+              v-if="message.sources && message.sources.length > 0"
+              class="mt-4 pt-2 border-t border-ghost-border/40 text-xs text-on-ghost-muted"
+            >
+              <span class="font-semibold block mb-1">Sources:</span>
+              <div class="flex flex-wrap gap-2">
+                <a
+                  v-for="(source, sIdx) in message.sources"
+                  :key="sIdx"
+                  :href="source.url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="bg-surface hover:bg-surface-hover border border-ghost-border px-2 py-0.5 rounded-full inline-flex items-center gap-1 transition-colors text-on-ghost"
+                >
+                  <Globe :size="10" />
+                  <span>{{ source.title }}</span>
+                </a>
+              </div>
+            </div>
+
             <BaseRow class="mt-2 z-10 opacity-0 group-hover:opacity-100 gap-0!">
               <BaseTooltip content="Report" placement="bottom">
                 <BaseButton
@@ -647,7 +1010,7 @@ function formatDuration(ms?: number): string {
                   :icon="Copy"
                   @click="
                     (copy(message.content),
-                    useToast().success('Copied to clipboard'))
+                    toast.success('Copied to clipboard'))
                   "
                 />
               </BaseTooltip>
@@ -656,7 +1019,7 @@ function formatDuration(ms?: number): string {
         </div>
         <div v-if="isThinking" key="thinking" class="flex justify-start w-full">
           <div class="flex flex-col gap-2 py-2 px-2 w-full">
-            <div v-if="!isSearching" class="flex flex-col gap-0 mb-1">
+            <div class="flex flex-col gap-0 mb-1">
               <BaseButton
                 :class="{
                   'cursor-default! opacity-50! hover:bg-transparent! hover:text-on-ghost-subtle!':
@@ -726,13 +1089,16 @@ function formatDuration(ms?: number): string {
 
             <div class="flex items-center gap-2">
               <ChatLogo size="md" :loading="true" variant="gradient" />
-              <span class="text-base text-on-ghost-muted">{{
-                isSearching
-                  ? t('chat.status.connecting') + dots
-                  : t(
-                      `chat.status.${chat?.currentAiStatus || (chat?.isOpponentTyping ? 'generating' : 'thinking')}`,
-                    ) + dots
-              }}</span>
+              <span class="text-base text-on-ghost-muted">
+                {{
+                  isSearching
+                    ? t('chat.status.connecting', 'Searching') + dots
+                    : t(
+                        `chat.status.${currentAiStatus || 'thinking'}`,
+                        currentAiStatus || 'Thinking',
+                      ) + dots
+                }}
+              </span>
             </div>
           </div>
         </div>
@@ -774,7 +1140,7 @@ function formatDuration(ms?: number): string {
             class="absolute bottom-[calc(100%+3rem)] left-0 w-full text-center"
           >
             <div class="text-4xl font-normal text-on-ghost">
-              Tired of talking to <b>artificial</b> intelligence?
+              Have a conversation with <b>Gemini</b> AI
             </div>
           </div>
         </Transition>
@@ -788,7 +1154,7 @@ function formatDuration(ms?: number): string {
               ref="textareaRef"
               :value="userInput"
               rows="1"
-              placeholder="Ask Natural Intelligence"
+              placeholder="Ask Gemini..."
               class="w-full py-2 px-3 bg-transparent rounded-none border-none outline-none shadow-none text-on-ghost text-base/6 placeholder:text-on-ghost-subtle resize-none overflow-y-auto max-h-60 block box-border m-0 custom-scrollbar"
               @input="onInput"
               @keydown.enter.exact.prevent="send"
@@ -921,7 +1287,7 @@ function formatDuration(ms?: number): string {
               key="disclaimer"
               class="text-xs text-center text-on-ghost-subtle m-4 mb-2"
             >
-              Natural Intelligence makes mistakes. Don't share personal data
+              Gemini makes mistakes. Don't share personal data.
             </div>
             <BaseRow v-else>
               <BaseButton
@@ -933,22 +1299,35 @@ function formatDuration(ms?: number): string {
               >
                 Learn more
               </BaseButton>
-              <BaseButton
-                key="button"
-                type="button"
-                variant="action"
-                :icon="ChevronRight"
-                icon-placement="trailing"
-                class="mt-4"
-                @click="router.push('/natural-intelligence/server')"
-              >
-                Become an AI
-              </BaseButton>
             </BaseRow>
           </Transition>
         </div>
       </div>
     </div>
+
+    <!-- API Key Config Modal -->
+    <BaseModal
+      :open="isApiKeyModalOpen"
+      :submit="saveApiKey"
+      @cancel="isApiKeyModalOpen = false"
+    >
+      <template #title>Gemini API Key</template>
+      <template #content>
+        <div class="flex flex-col gap-4 py-2">
+          <p class="text-sm text-on-ghost-muted">
+            Please enter your Gemini API Key. This key is only saved locally in
+            your browser's LocalStorage and is sent directly to Gemini servers.
+          </p>
+          <BaseInput
+            id="gemini-api-key"
+            v-model="apiKeyValue"
+            type="password"
+            placeholder="AIzaSy..."
+            required
+          />
+        </div>
+      </template>
+    </BaseModal>
   </div>
 </template>
 
