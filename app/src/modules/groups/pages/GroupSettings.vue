@@ -51,8 +51,12 @@ const {
   saveSub,
   deleteSub,
   updateScheduleConfig,
+  saveScheduleBatch,
   lessons,
   loadingLessons,
+  savingLesson,
+  saveLesson,
+  deleteLesson,
   announcements,
   loadAnnouncements,
   deleteAnnouncement,
@@ -326,10 +330,14 @@ function goBack() {
               :loading-lessons="loadingLessons"
               :saving-sub="savingSub"
               :saving-schedule-config="savingScheduleConfig"
+              :saving-lesson="savingLesson"
               @refresh="loadSubs"
               @save-sub="saveSub"
               @delete-sub="deleteSub"
               @update-schedule-config="updateScheduleConfig"
+              @save-schedule-batch="saveScheduleBatch"
+              @save-lesson="saveLesson"
+              @delete-lesson="deleteLesson"
             />
 
             <GroupSettingsAnnouncements

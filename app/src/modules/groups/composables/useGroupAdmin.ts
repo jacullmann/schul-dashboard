@@ -153,6 +153,8 @@ export function useGroupAdmin() {
     }
   }
 
+  const savingLesson = ref(false);
+
   async function loadSchedule() {
     loadingLessons.value = true;
     try {
@@ -162,6 +164,44 @@ export function useGroupAdmin() {
       showMessage('Failed to load schedule', true);
     } finally {
       loadingLessons.value = false;
+    }
+  }
+
+  async function saveLesson(lessonData: Record<string, unknown>): Promise<boolean> {
+    savingLesson.value = true;
+    try {
+      await hw.post('/group-admin/schedule', lessonData);
+      await loadSchedule();
+      showMessage(t('groups.settings.schedule.editor.success_save_lesson'));
+      return true;
+    } catch {
+      showMessage('Failed to save lesson', true);
+      return false;
+    } finally {
+      savingLesson.value = false;
+    }
+  }
+
+  async function deleteLesson(lessonId: string): Promise<boolean> {
+    const isConfirmed = await modalStore.confirm({
+      title: t('groups.settings.schedule.editor.delete_confirm_title'),
+      content: t('groups.settings.schedule.editor.delete_confirm_message'),
+      submitText: t('common.buttons.delete'),
+      danger: true,
+    });
+
+    if (!isConfirmed) return false;
+    savingLesson.value = true;
+    try {
+      await hw.delete(`/group-admin/schedule/${lessonId}`);
+      await loadSchedule();
+      showMessage(t('groups.settings.schedule.editor.success_delete_lesson'));
+      return true;
+    } catch {
+      showMessage('Failed to delete lesson', true);
+      return false;
+    } finally {
+      savingLesson.value = false;
     }
   }
 
@@ -192,6 +232,30 @@ export function useGroupAdmin() {
   }
 
   const savingScheduleConfig = ref(false);
+
+  async function saveScheduleBatch(
+    updatedLessons: Lesson[],
+    configPayload?: Record<string, any>,
+  ): Promise<boolean> {
+    savingScheduleConfig.value = true;
+    try {
+      if (configPayload) {
+        await hw.patch('/group-admin/schedule-config', {
+          scheduleConfig: configPayload,
+        });
+      }
+      await hw.post('/group-admin/schedule', { lessons: updatedLessons });
+      await useAppAuth().checkAuthStatus();
+      await loadSchedule();
+      showMessage(t('groups.settings.schedule.editor.success_save_all'));
+      return true;
+    } catch {
+      showMessage('Fehler beim Speichern des Stundenplans', true);
+      return false;
+    } finally {
+      savingScheduleConfig.value = false;
+    }
+  }
 
   async function updateScheduleConfig(scheduleConfig: Record<string, any>) {
     savingScheduleConfig.value = true;
@@ -450,11 +514,15 @@ export function useGroupAdmin() {
     loadSubs,
     saveSub,
     updateScheduleConfig,
+    saveScheduleBatch,
     deleteSub,
 
     lessons,
     loadingLessons,
+    savingLesson,
     loadSchedule,
+    saveLesson,
+    deleteLesson,
 
     announcements,
     creatingAnn,

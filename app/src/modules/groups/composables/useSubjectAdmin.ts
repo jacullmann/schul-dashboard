@@ -16,7 +16,6 @@ export function useSubjectAdmin() {
 
   async function loadSubjects() {
     loading.value = true;
-    subjects.value = [];
     try {
       const { data } = await hw.get<AdminSubject[]>('/group-admin/subjects');
       subjects.value = data || [];
