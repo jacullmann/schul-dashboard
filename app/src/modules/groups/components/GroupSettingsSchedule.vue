@@ -16,8 +16,10 @@ import type { Lesson } from '@/modules/schedule/types';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useSubjectAdmin } from '@/modules/groups/composables/useSubjectAdmin';
 import { useI18n } from 'vue-i18n';
+import { useWindowSize } from '@vueuse/core';
 
 const { t } = useI18n();
+const { width: windowWidth } = useWindowSize();
 
 const props = defineProps<{
   subs: ScheduleSubstitution[];
@@ -38,6 +40,7 @@ const emit = defineEmits<{
     e: 'save-schedule-batch',
     updatedLessons: Lesson[],
     configPayload?: Record<string, unknown>,
+    onSuccess?: () => void,
   ): void;
   (e: 'save-lesson', payload: Record<string, unknown>): void;
   (e: 'delete-lesson', id: string): void;
@@ -125,8 +128,9 @@ function handleSaveAll() {
     breaks: breaksObj,
   };
 
-  emit('save-schedule-batch', draftLessons.value, configPayload);
-  isEditMode.value = false;
+  emit('save-schedule-batch', draftLessons.value, configPayload, () => {
+    isEditMode.value = false;
+  });
 }
 
 // Config Breaks Logic for Draft
@@ -244,6 +248,13 @@ const daysList = computed(() => [
     short: 'Fr',
   },
 ]);
+
+const dayTabItems = computed(() =>
+  daysList.value.map((d) => ({
+    id: String(d.day),
+    label: d.short,
+  })),
+);
 
 const activeMobileDay = ref(1);
 
@@ -375,8 +386,7 @@ watch(subjects, (newSubjects) => {
     if (editingLessonRef.value) {
       const matchedSub = newSubjects.find(
         (s) =>
-          (editingLessonRef.value?.subjects?.id &&
-            s.id === editingLessonRef.value.subjects.id) ||
+          s.id === editingLessonRef.value?.subjects?.id ||
           (editingLessonRef.value?.subjectId &&
             s.id === editingLessonRef.value.subjectId) ||
           s.name.toLowerCase() ===
@@ -413,7 +423,7 @@ function openEditLessonModal(lesson: Lesson) {
 
   const matchedSub = subjects.value.find(
     (s) =>
-      (lesson.subjects?.id && s.id === lesson.subjects.id) ||
+      s.id === lesson.subjects?.id ||
       (lesson.subjectId && s.id === lesson.subjectId) ||
       s.name.toLowerCase() === (lesson.subject || '').toLowerCase(),
   );
@@ -425,7 +435,7 @@ function openEditLessonModal(lesson: Lesson) {
     const matchedCrs = matchedSub.courses.find(
       (c) =>
         (lesson.courseId && c.id === lesson.courseId) ||
-        (lesson.courses?.id && c.id === lesson.courses.id) ||
+        c.id === lesson.courses?.id ||
         c.name.toLowerCase() === (lesson.courseName || '').toLowerCase(),
     );
     if (matchedCrs) {
@@ -531,20 +541,43 @@ onMounted(() => {
             />
           </BaseTooltip>
 
-          <BaseButton
-            v-if="!isEditMode && canEditScheduleConfig"
-            variant="ghost"
-            :icon="Pencil"
-            @click="enterEditMode"
+          <BaseTooltip
+            :content="t('groups.settings.schedule.editor.edit_schedule_button')"
+            placement="bottom"
           >
-            {{ t('groups.settings.schedule.editor.edit_schedule_button') }}
-          </BaseButton>
+            <BaseButton
+              v-if="!isEditMode && canEditScheduleConfig"
+              variant="ghost"
+              :icon="Pencil"
+              @click="enterEditMode"
+            />
+          </BaseTooltip>
 
           <template v-if="isEditMode">
-            <BaseButton variant="ghost" :icon="X" @click="cancelEditMode">
+            <BaseButton
+              v-if="windowWidth <= 768"
+              variant="ghost"
+              :icon="X"
+              @click="cancelEditMode"
+            />
+            <BaseButton
+              v-else
+              variant="ghost"
+              :icon="X"
+              @click="cancelEditMode"
+            >
               {{ t('groups.settings.schedule.editor.cancel_button') }}
             </BaseButton>
+
             <BaseButton
+              v-if="windowWidth <= 768"
+              variant="action"
+              :icon="Check"
+              :disabled="savingScheduleConfig"
+              @click="handleSaveAll"
+            />
+            <BaseButton
+              v-else
               variant="action"
               :icon="Check"
               :disabled="savingScheduleConfig"
@@ -562,28 +595,19 @@ onMounted(() => {
     </PageHeader>
 
     <div v-if="isEditMode" class="flex flex-col gap-6">
-      <div class="p-4 sm:p-6">
+      <div class="sm:p-6">
         <!--div class="flex items-center justify-between mb-4">
           <h3 class="text-base font-semibold text-on-ghost">
             {{ t('groups.settings.schedule.editor.grid_title') }}
           </h3>
         </div-->
 
-        <div class="flex sm:hidden gap-1 mb-4 bg-ghost-hover/30 p-1 rounded-lg">
-          <button
-            v-for="d in daysList"
-            :key="d.day"
-            type="button"
-            class="flex-1 py-1.5 px-2 text-xs font-semibold rounded-md transition-all text-center"
-            :class="
-              activeMobileDay === d.day
-                ? 'bg-action text-on-action shadow-xs'
-                : 'text-on-ghost-muted hover:text-on-ghost'
-            "
-            @click="activeMobileDay = d.day"
-          >
-            {{ d.short }}
-          </button>
+        <div class="sm:hidden mb-4">
+          <BaseTabs
+            :items="dayTabItems"
+            :active-id="String(activeMobileDay)"
+            @change="(id) => (activeMobileDay = Number(id))"
+          />
         </div>
 
         <BaseTableWrapper>
@@ -620,49 +644,107 @@ onMounted(() => {
                       !lessonGridMap.coveredSet.has(`${d.day}-${sObj.slot}`)
                     "
                   >
+                    <template
+                      v-for="lesson in [
+                        lessonGridMap.map[`${d.day}-${sObj.slot}`],
+                      ]"
+                    >
+                      <div
+                        v-if="lesson"
+                        class="relative group rounded-md max-[500px]:px-2.5 max-[500px]:py-1.5 px-2 py-1 border border-ghost-border bg-surface text-on-ghost hover:bg-surface-hover hover:border-ghost-hover-border transition-all cursor-pointer shadow-input flex flex-col justify-between"
+                        :style="{
+                          gridRow: `span ${lesson.duration}`,
+                        }"
+                        @click.stop="openEditLessonModal(lesson)"
+                      >
+                        <div>
+                          <div class="font-bold text-base truncate">
+                            {{ getDisplayName(lesson) }}
+                          </div>
+                          <div
+                            v-if="lesson.room"
+                            class="text-sm text-on-ghost-muted truncate"
+                          >
+                            {{ lesson.room }}
+                          </div>
+                          <div
+                            v-if="lesson.courseName || lesson.courses?.name"
+                            class="text-[9px] inline-block px-1.5 py-0.5 rounded bg-ghost-hover text-on-ghost-muted mt-1 font-semibold truncate"
+                          >
+                            {{ lesson.courses?.name || lesson.courseName }}
+                          </div>
+                        </div>
+                      </div>
+
+                      <button
+                        v-else
+                        type="button"
+                        class="h-[54px] border border-dashed border-ghost-border hover:border-action/50 hover:bg-action/5 rounded-xl transition-all flex items-center justify-center group cursor-pointer"
+                        @click.stop="openAddLessonModal(d.day, sObj.slot)"
+                      >
+                        <Plus
+                          class="text-on-ghost-muted group-hover:text-action transition-transform group-hover:scale-110"
+                          :size="20"
+                        />
+                      </button>
+                    </template>
+                  </template>
+                </template>
+              </template>
+            </div>
+
+            <div
+              class="sm:hidden grid grid-cols-[85px_1fr] gap-2 items-stretch"
+            >
+              <div
+                v-for="sObj in slotTimes"
+                :key="`time-${sObj.slot}`"
+                class="flex flex-col justify-center items-center text-center min-h-[58px]"
+                :style="{ gridColumn: '1', gridRow: `${sObj.slot}` }"
+              >
+                <span class="font-bold text-lg text-on-ghost">{{
+                  sObj.slot
+                }}</span>
+                <span class="text-xs text-on-ghost-muted">{{ sObj.time }}</span>
+              </div>
+
+              <template v-for="sObj in slotTimes" :key="`content-${sObj.slot}`">
+                <template
+                  v-if="
+                    !lessonGridMap.coveredSet.has(
+                      `${activeMobileDay}-${sObj.slot}`,
+                    )
+                  "
+                >
+                  <template
+                    v-for="lesson in [
+                      lessonGridMap.map[`${activeMobileDay}-${sObj.slot}`],
+                    ]"
+                  >
                     <div
-                      v-if="lessonGridMap.map[`${d.day}-${sObj.slot}`]"
-                      class="relative group rounded-md max-[500px]:px-2.5 max-[500px]:py-1.5 px-2 py-1 border border-ghost-border bg-surface text-on-ghost hover:bg-surface-hover hover:border-ghost-hover-border transition-all cursor-pointer shadow-input flex flex-col justify-between"
+                      v-if="lesson"
+                      class="px-2.5 py-1.5 rounded-lg border border-ghost-border bg-surface text-on-ghost hover:bg-surface-hover hover:border-ghost-hover-border transition-all cursor-pointer shadow-input flex flex-col justify-between h-full min-h-[54px]"
                       :style="{
-                        gridRow: `span ${
-                          lessonGridMap.map[`${d.day}-${sObj.slot}`].duration
-                        }`,
+                        gridColumn: '2',
+                        gridRow: `${sObj.slot} / span ${lesson.duration}`,
                       }"
-                      @click.stop="
-                        openEditLessonModal(
-                          lessonGridMap.map[`${d.day}-${sObj.slot}`],
-                        )
-                      "
+                      @click.stop="openEditLessonModal(lesson)"
                     >
                       <div>
                         <div class="font-bold text-base truncate">
-                          {{
-                            getDisplayName(
-                              lessonGridMap.map[`${d.day}-${sObj.slot}`],
-                            )
-                          }}
+                          {{ getDisplayName(lesson) }}
                         </div>
                         <div
-                          v-if="lessonGridMap.map[`${d.day}-${sObj.slot}`].room"
+                          v-if="lesson.room"
                           class="text-sm text-on-ghost-muted truncate"
                         >
-                          {{ lessonGridMap.map[`${d.day}-${sObj.slot}`].room }}
+                          {{ lesson.room }}
                         </div>
                         <div
-                          v-if="
-                            lessonGridMap.map[`${d.day}-${sObj.slot}`]
-                              .courseName ||
-                            lessonGridMap.map[`${d.day}-${sObj.slot}`].courses
-                              ?.name
-                          "
+                          v-if="lesson.courseName || lesson.courses?.name"
                           class="text-[9px] inline-block px-1.5 py-0.5 rounded bg-ghost-hover text-on-ghost-muted mt-1 font-semibold truncate"
                         >
-                          {{
-                            lessonGridMap.map[`${d.day}-${sObj.slot}`].courses
-                              ?.name ||
-                            lessonGridMap.map[`${d.day}-${sObj.slot}`]
-                              .courseName
-                          }}
+                          {{ lesson.courses?.name || lesson.courseName }}
                         </div>
                       </div>
                     </div>
@@ -670,8 +752,12 @@ onMounted(() => {
                     <button
                       v-else
                       type="button"
-                      class="h-12 border border-dashed border-ghost-border hover:border-action/50 hover:bg-action/5 rounded-xl transition-all flex items-center justify-center group cursor-pointer"
-                      @click.stop="openAddLessonModal(d.day, sObj.slot)"
+                      class="w-full h-full h-[58px] border border-dashed border-ghost-border hover:border-action/50 hover:bg-action/5 rounded-xl transition-all flex items-center justify-center group cursor-pointer"
+                      :style="{
+                        gridColumn: '2',
+                        gridRow: `${sObj.slot} / span 1`,
+                      }"
+                      @click.stop="openAddLessonModal(activeMobileDay, sObj.slot)"
                     >
                       <Plus
                         class="text-on-ghost-muted group-hover:text-action transition-transform group-hover:scale-110"
@@ -682,115 +768,18 @@ onMounted(() => {
                 </template>
               </template>
             </div>
-
-            <div class="sm:hidden flex flex-col gap-2">
-              <div
-                v-for="sObj in slotTimes"
-                :key="sObj.slot"
-                class="flex items-stretch gap-2"
-              >
-                <div
-                  class="w-20 shrink-0 bg-ghost-hover/20 p-2 rounded-xl border border-ghost-border flex flex-col justify-center text-center"
-                >
-                  <span class="text-xs font-bold text-on-ghost">{{
-                    sObj.slot
-                  }}</span>
-                  <span class="text-[10px] text-on-ghost-muted">{{
-                    sObj.time
-                  }}</span>
-                </div>
-
-                <div class="flex-1 min-w-0">
-                  <template
-                    v-if="
-                      !lessonGridMap.coveredSet.has(
-                        `${activeMobileDay}-${sObj.slot}`,
-                      )
-                    "
-                  >
-                    <div
-                      v-if="
-                        lessonGridMap.map[`${activeMobileDay}-${sObj.slot}`]
-                      "
-                      class="p-3 rounded-xl border border-ghost-border bg-surface text-on-ghost hover:bg-surface-hover hover:border-ghost-hover-border transition-all cursor-pointer shadow-input flex items-center justify-between"
-                      @click.stop="
-                        openEditLessonModal(
-                          lessonGridMap.map[`${activeMobileDay}-${sObj.slot}`],
-                        )
-                      "
-                    >
-                      <div>
-                        <div class="font-bold text-sm">
-                          {{
-                            getDisplayName(
-                              lessonGridMap.map[
-                                `${activeMobileDay}-${sObj.slot}`
-                              ],
-                            )
-                          }}
-                        </div>
-                        <div class="text-xs opacity-90">
-                          <span
-                            v-if="
-                              lessonGridMap.map[
-                                `${activeMobileDay}-${sObj.slot}`
-                              ].room
-                            "
-                          >
-                            {{
-                              lessonGridMap.map[
-                                `${activeMobileDay}-${sObj.slot}`
-                              ].room
-                            }}
-                          </span>
-                          <span
-                            v-if="
-                              lessonGridMap.map[
-                                `${activeMobileDay}-${sObj.slot}`
-                              ].duration > 1
-                            "
-                            class="ml-2 font-semibold"
-                          >
-                            ({{
-                              lessonGridMap.map[
-                                `${activeMobileDay}-${sObj.slot}`
-                              ].duration
-                            }}
-                            Std)
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <button
-                      v-else
-                      type="button"
-                      class="w-full h-12 border border-dashed border-ghost-border hover:border-action/50 rounded-xl transition-all flex items-center justify-between px-3 text-xs text-on-ghost-muted hover:text-action cursor-pointer"
-                      @click.stop="
-                        openAddLessonModal(activeMobileDay, sObj.slot)
-                      "
-                    >
-                      <span>{{
-                        t('groups.settings.schedule.editor.add_lesson_slot')
-                      }}</span>
-                      <Plus class="size-4" />
-                    </button>
-                  </template>
-                </div>
-              </div>
-            </div>
           </div>
         </BaseTableWrapper>
       </div>
 
-      <div class="p-4 sm:p-6">
+      <div class="sm:p-6">
         <h3
           class="mt-0 mb-4 text-base font-semibold text-on-ghost flex items-center gap-2"
         >
           {{ t('groups.settings.schedule.editor.plan_config_title') }}
         </h3>
 
-        <div class="grid grid-cols-3 gap-4 mb-4 sm:grid-cols-1">
+        <div class="flex flex-col gap-4 mb-4">
           <div>
             <BaseLabel for="config-start">{{
               t('groups.settings.schedule.config.start_time_label')
@@ -904,7 +893,7 @@ onMounted(() => {
     </div>
 
     <div v-else class="flex flex-col gap-6">
-      <div class="p-4 sm:p-6">
+      <div class="sm:p-6">
         <div
           v-if="loadingLessons"
           class="text-center p-8 text-on-ghost-muted text-base"
@@ -919,7 +908,7 @@ onMounted(() => {
         />
       </div>
 
-      <div v-if="selectedLesson" class="p-4 sm:p-6 animate-fade-down">
+      <div v-if="selectedLesson" class="sm:p-6 animate-fade-down">
         <h3 class="mt-0 mb-2 text-lg text-action font-semibold">
           {{ t('groups.settings.schedule.changes.selected_lesson') }}
         </h3>
@@ -1037,7 +1026,7 @@ onMounted(() => {
         </div>
       </div>
 
-      <div class="p-4 sm:p-6">
+      <div class="sm:p-6">
         <h3>Eingetragene Planänderungen</h3>
 
         <div

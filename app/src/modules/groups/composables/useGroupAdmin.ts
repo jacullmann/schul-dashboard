@@ -167,7 +167,9 @@ export function useGroupAdmin() {
     }
   }
 
-  async function saveLesson(lessonData: Record<string, unknown>): Promise<boolean> {
+  async function saveLesson(
+    lessonData: Record<string, unknown>,
+  ): Promise<boolean> {
     savingLesson.value = true;
     try {
       await hw.post('/group-admin/schedule', lessonData);
@@ -236,6 +238,7 @@ export function useGroupAdmin() {
   async function saveScheduleBatch(
     updatedLessons: Lesson[],
     configPayload?: Record<string, any>,
+    onSuccess?: () => void,
   ): Promise<boolean> {
     savingScheduleConfig.value = true;
     try {
@@ -248,6 +251,7 @@ export function useGroupAdmin() {
       await useAppAuth().checkAuthStatus();
       await loadSchedule();
       showMessage(t('groups.settings.schedule.editor.success_save_all'));
+      if (onSuccess) onSuccess();
       return true;
     } catch {
       showMessage('Fehler beim Speichern des Stundenplans', true);
