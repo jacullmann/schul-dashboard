@@ -6,7 +6,6 @@ import {
   Plus,
   Pencil,
   Check,
-  Clock,
   Calendar,
   X,
   BookOpen,
@@ -34,11 +33,11 @@ const emit = defineEmits<{
   (e: 'refresh'): void;
   (e: 'save-sub', payload: Record<string, unknown>): void;
   (e: 'delete-sub', id: string): void;
-  (e: 'update-schedule-config', payload: Record<string, any>): void;
+  (e: 'update-schedule-config', payload: Record<string, unknown>): void;
   (
     e: 'save-schedule-batch',
     updatedLessons: Lesson[],
-    configPayload?: Record<string, any>,
+    configPayload?: Record<string, unknown>,
   ): void;
   (e: 'save-lesson', payload: Record<string, unknown>): void;
   (e: 'delete-lesson', id: string): void;
@@ -100,7 +99,7 @@ watch(
 function enterEditMode() {
   if (!canEditScheduleConfig.value) return;
   void loadSubjects();
-  draftLessons.value = JSON.parse(JSON.stringify(props.lessons));
+  draftLessons.value = JSON.parse(JSON.stringify(props.lessons || []));
   draftConfigForm.value = JSON.parse(JSON.stringify(configForm.value));
   isEditMode.value = true;
 }
@@ -108,6 +107,7 @@ function enterEditMode() {
 function cancelEditMode() {
   isEditMode.value = false;
   draftLessons.value = [];
+  draftConfigForm.value = JSON.parse(JSON.stringify(configForm.value));
 }
 
 function handleSaveAll() {
@@ -172,7 +172,7 @@ const selectedLesson = ref<Lesson | null>(null);
 function getDisplayName(lesson: Lesson): string {
   const subjectName =
     lesson.subjects?.name || lesson.subject || lesson.subjectAbbr || '';
-  return subjectName ? subjectName : 'Unbekannt';
+  return subjectName || 'Unbekannt';
 }
 
 function onLessonSelected(lesson: Lesson) {
@@ -267,8 +267,8 @@ const slotTimes = computed(() => {
   const duration = draftConfigForm.value.lessonDurationMins || 45;
 
   for (let s = 1; s <= draftConfigForm.value.totalSlots; s++) {
-    const startM = currentMins;
-    const endM = startM + duration;
+    const slotStartM = currentMins;
+    const endM = slotStartM + duration;
 
     const format = (mins: number) => {
       const h = Math.floor(mins / 60)
@@ -280,8 +280,8 @@ const slotTimes = computed(() => {
 
     slots.push({
       slot: s,
-      time: `${format(startM)} - ${format(endM)}`,
-      startMins: startM,
+      time: `${format(slotStartM)} - ${format(endM)}`,
+      startMins: slotStartM,
       endMins: endM,
     });
 
@@ -511,7 +511,7 @@ onMounted(() => {
 
       <template #info>
         <InfoModal
-          tooltip="t('groups.settings.schedule.info.tooltip')"
+          :tooltip="t('groups.settings.schedule.info.tooltip')"
           title="Stundenplaneinstellungen"
         >
           <h3>
@@ -563,17 +563,11 @@ onMounted(() => {
 
     <div v-if="isEditMode" class="flex flex-col gap-6">
       <div class="p-4 sm:p-6">
-        <div class="flex items-center justify-between mb-4">
-          <h3
-            class="m-0 text-base font-semibold text-on-ghost flex items-center gap-2"
-          >
-            <Calendar class="size-4 text-action" />
+        <!--div class="flex items-center justify-between mb-4">
+          <h3 class="text-base font-semibold text-on-ghost">
             {{ t('groups.settings.schedule.editor.grid_title') }}
           </h3>
-          <span class="text-xs text-on-ghost-muted">
-            Klicke auf einen Slot, um Stunden einzutragen oder zu bearbeiten.
-          </span>
-        </div>
+        </div-->
 
         <div class="flex sm:hidden gap-1 mb-4 bg-ghost-hover/30 p-1 rounded-lg">
           <button
@@ -596,27 +590,27 @@ onMounted(() => {
           <div class="w-full min-w-[300px]">
             <div class="hidden sm:grid grid-cols-[80px_repeat(5,1fr)] gap-2">
               <div
-                class="text-xs text-on-ghost-muted font-medium p-2 text-center"
+                class="bg-surface text-on-ghost px-3 py-2 border border-ghost-border text-center font-bold rounded-md max-[500px]:rounded-lg text-base shadow-input max-[500px]:static min-[501px]:[grid-column:1] min-[501px]:[grid-row:1]"
               >
-                Zeit
+                {{ t('schedule.lesson') }}
               </div>
               <div
                 v-for="d in daysList"
                 :key="d.day"
-                class="bg-ghost-hover/40 text-on-ghost font-semibold text-sm p-2 text-center rounded-lg border border-ghost-border"
+                class="bg-surface text-on-ghost font-bold text-base p-2 text-center rounded-md border border-ghost-border"
               >
                 {{ d.label }}
               </div>
 
               <template v-for="sObj in slotTimes" :key="sObj.slot">
-                <div
-                  class="text-[11px] text-on-ghost-muted font-mono flex items-center justify-center p-1 text-center"
-                >
+                <div class="flex items-center justify-center text-center">
                   <div>
-                    <div class="font-bold text-on-ghost">
-                      Std {{ sObj.slot }}
+                    <div class="text-lg font-bold text-on-ghost">
+                      {{ sObj.slot }}
                     </div>
-                    <div class="text-[10px] opacity-80">{{ sObj.time }}</div>
+                    <div class="text-xs text-on-ghost-muted">
+                      {{ sObj.time }}
+                    </div>
                   </div>
                 </div>
 
@@ -698,9 +692,9 @@ onMounted(() => {
                 <div
                   class="w-20 shrink-0 bg-ghost-hover/20 p-2 rounded-xl border border-ghost-border flex flex-col justify-center text-center"
                 >
-                  <span class="text-xs font-bold text-on-ghost"
-                    >Std {{ sObj.slot }}</span
-                  >
+                  <span class="text-xs font-bold text-on-ghost">{{
+                    sObj.slot
+                  }}</span>
                   <span class="text-[10px] text-on-ghost-muted">{{
                     sObj.time
                   }}</span>
@@ -793,7 +787,6 @@ onMounted(() => {
         <h3
           class="mt-0 mb-4 text-base font-semibold text-on-ghost flex items-center gap-2"
         >
-          <Clock class="size-4 text-action" />
           {{ t('groups.settings.schedule.editor.plan_config_title') }}
         </h3>
 
@@ -912,15 +905,6 @@ onMounted(() => {
 
     <div v-else class="flex flex-col gap-6">
       <div class="p-4 sm:p-6">
-        <h3
-          class="mt-0 mb-4 text-base font-semibold text-on-ghost flex items-center justify-between"
-        >
-          <span>Stundenplan Übersicht</span>
-          <span class="text-xs font-normal text-on-ghost-muted">
-            Klicke auf eine Stunde, um eine Planänderung einzutragen.
-          </span>
-        </h3>
-
         <div
           v-if="loadingLessons"
           class="text-center p-8 text-on-ghost-muted text-base"
@@ -931,7 +915,6 @@ onMounted(() => {
           v-else
           :lessons="lessons"
           :selected-lesson-id="subForm.lessonId"
-          class="py-2"
           @select-lesson="onLessonSelected"
         />
       </div>
@@ -1054,12 +1037,8 @@ onMounted(() => {
         </div>
       </div>
 
-      <div
-        class="bg-surface border border-ghost-border rounded-xl p-4 sm:p-6 shadow-sm"
-      >
-        <h3 class="mt-0 mb-4 text-base font-semibold text-on-ghost">
-          Eingetragene Planänderungen
-        </h3>
+      <div class="p-4 sm:p-6">
+        <h3>Eingetragene Planänderungen</h3>
 
         <div
           v-if="subs.length === 0 && !loadingSubs"
@@ -1110,7 +1089,6 @@ onMounted(() => {
         </BaseTableWrapper>
       </div>
     </div>
-
 
     <BaseModal
       :open="isLessonModalOpen"

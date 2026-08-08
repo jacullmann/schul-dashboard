@@ -21,7 +21,7 @@ const { t } = useI18n();
     <div
       v-for="ts in timeSlots"
       :key="ts.slot"
-      class="flex flex-col justify-center items-center bg-transparent text-sm text-on-ghost-muted whitespace-nowrap max-[500px]:static min-[501px]:[grid-column:1] animate-fade-up"
+      class="flex flex-col justify-center items-center bg-transparent text-sm text-on-ghost-muted min-h-12 whitespace-nowrap max-[500px]:static min-[501px]:[grid-column:1] animate-fade-up"
       :style="{
         gridRow: ts.slot + 1,
       }"
