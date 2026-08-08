@@ -523,6 +523,34 @@ pub async fn get_schedule_admin(
     ))
 }
 
+pub async fn save_schedule_admin(
+    State(s): State<AppState>,
+    tc: TenantContext,
+    Json(body): Json<Value>,
+) -> AppResult<Json<Value>> {
+    crate::require_permission!(tc, crate::common::permission::Permission::EditSchedule);
+
+    Ok(Json(
+        GroupAdminService::from_state(&s)
+            .save_schedule(tc.tenant_id, tc.user.user_id, body)
+            .await?,
+    ))
+}
+
+pub async fn delete_schedule_admin(
+    State(s): State<AppState>,
+    tc: TenantContext,
+    Path(id): Path<Uuid>,
+) -> AppResult<Json<Value>> {
+    crate::require_permission!(tc, crate::common::permission::Permission::EditSchedule);
+
+    Ok(Json(
+        GroupAdminService::from_state(&s)
+            .delete_schedule_lesson(tc.tenant_id, id)
+            .await?,
+    ))
+}
+
 pub async fn get_schedule_subs_admin(
     State(s): State<AppState>,
     tc: TenantContext,

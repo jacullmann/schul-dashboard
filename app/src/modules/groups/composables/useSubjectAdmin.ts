@@ -20,7 +20,12 @@ export function useSubjectAdmin() {
       const { data } = await hw.get<AdminSubject[]>('/group-admin/subjects');
       subjects.value = data || [];
     } catch {
-      toastError(t('groups.settings.subjects.errors.load_failed'));
+      try {
+        const { data } = await hw.get<AdminSubject[]>('/schedule/subjects');
+        subjects.value = data || [];
+      } catch {
+        toastError(t('groups.settings.subjects.errors.load_failed'));
+      }
     } finally {
       loading.value = false;
     }

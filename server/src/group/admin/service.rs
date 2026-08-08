@@ -694,6 +694,159 @@ impl GroupAdminService {
         ))
     }
 
+    pub async fn save_schedule(
+        &self,
+        tenant_id: Uuid,
+        user_id: Uuid,
+        body: Value,
+    ) -> AppResult<Value> {
+        let mut tx = self.db.begin().await?;
+
+        if let Some(lessons_arr) = body.get("lessons").and_then(|v| v.as_array()) {
+            sqlx::query!(
+                r#"DELETE FROM schedules WHERE tenant_id = $1"#,
+                tenant_id
+            )
+            .execute(&mut *tx)
+            .await?;
+
+            for item in lessons_arr {
+                let day = item.get("day").and_then(|v| v.as_i64()).unwrap_or(1) as i32;
+                let slot = item.get("slot").and_then(|v| v.as_i64()).unwrap_or(1) as i32;
+                let duration = item.get("duration").and_then(|v| v.as_i64()).unwrap_or(1) as i32;
+                let room = item.get("room").and_then(|v| v.as_str());
+
+                let subject_id = item
+                    .get("subjectId")
+                    .or_else(|| item.get("subject_id"))
+                    .and_then(|v| v.as_str())
+                    .and_then(|s| Uuid::parse_str(s).ok())
+                    .or_else(|| {
+                        item.get("subjects")
+                            .and_then(|s| s.get("id"))
+                            .and_then(|v| v.as_str())
+                            .and_then(|s| Uuid::parse_str(s).ok())
+                    });
+
+                let course_id = item
+                    .get("courseId")
+                    .or_else(|| item.get("course_id"))
+                    .and_then(|v| v.as_str())
+                    .and_then(|s| Uuid::parse_str(s).ok())
+                    .or_else(|| {
+                        item.get("courses")
+                            .and_then(|c| c.get("id"))
+                            .and_then(|v| v.as_str())
+                            .and_then(|s| Uuid::parse_str(s).ok())
+                    });
+
+                let id = item
+                    .get("id")
+                    .and_then(|v| v.as_str())
+                    .and_then(|s| Uuid::parse_str(s).ok())
+                    .unwrap_or_else(Uuid::new_v4);
+
+                sqlx::query!(
+                    r#"INSERT INTO schedules (id, tenant_id, day, slot, duration, room, subject_id, course_id)
+                       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)"#,
+                    id,
+                    tenant_id,
+                    day,
+                    slot,
+                    duration,
+                    room,
+                    subject_id,
+                    course_id
+                )
+                .execute(&mut *tx)
+                .await?;
+            }
+        } else {
+            let day = body.get("day").and_then(|v| v.as_i64()).unwrap_or(1) as i32;
+            let slot = body.get("slot").and_then(|v| v.as_i64()).unwrap_or(1) as i32;
+            let duration = body.get("duration").and_then(|v| v.as_i64()).unwrap_or(1) as i32;
+            let room = body.get("room").and_then(|v| v.as_str());
+
+            let subject_id = body
+                .get("subjectId")
+                .or_else(|| body.get("subject_id"))
+                .and_then(|v| v.as_str())
+                .and_then(|s| Uuid::parse_str(s).ok())
+                .or_else(|| {
+                    body.get("subjects")
+                        .and_then(|s| s.get("id"))
+                        .and_then(|v| v.as_str())
+                        .and_then(|s| Uuid::parse_str(s).ok())
+                });
+
+            let course_id = body
+                .get("courseId")
+                .or_else(|| body.get("course_id"))
+                .and_then(|v| v.as_str())
+                .and_then(|s| Uuid::parse_str(s).ok())
+                .or_else(|| {
+                    body.get("courses")
+                        .and_then(|c| c.get("id"))
+                        .and_then(|v| v.as_str())
+                        .and_then(|s| Uuid::parse_str(s).ok())
+                });
+
+            let id = body
+                .get("id")
+                .and_then(|v| v.as_str())
+                .and_then(|s| Uuid::parse_str(s).ok())
+                .unwrap_or_else(Uuid::new_v4);
+
+            sqlx::query!(
+                r#"INSERT INTO schedules (id, tenant_id, day, slot, duration, room, subject_id, course_id)
+                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                   ON CONFLICT (id) DO UPDATE SET
+                     day = EXCLUDED.day,
+                     slot = EXCLUDED.slot,
+                     duration = EXCLUDED.duration,
+                     room = EXCLUDED.room,
+                     subject_id = EXCLUDED.subject_id,
+                     course_id = EXCLUDED.course_id,
+                     updated_at = now()"#,
+                id,
+                tenant_id,
+                day,
+                slot,
+                duration,
+                room,
+                subject_id,
+                course_id
+            )
+            .execute(&mut *tx)
+            .await?;
+        }
+
+        sqlx::query!(
+            r#"INSERT INTO user_activity (user_id, type, meta)
+               VALUES ($1, 'group-admin:schedule:save', $2)"#,
+            user_id,
+            json!({ "tenantId": tenant_id })
+        )
+        .execute(&mut *tx)
+        .await?;
+
+        tx.commit().await?;
+
+        Ok(json!({ "ok": true }))
+    }
+
+    pub async fn delete_schedule_lesson(&self, tenant_id: Uuid, id: Uuid) -> AppResult<Value> {
+        sqlx::query!(
+            r#"DELETE FROM schedules WHERE id = $1 AND tenant_id = $2"#,
+            id,
+            tenant_id
+        )
+        .execute(&self.db)
+        .await?;
+
+        Ok(json!({ "ok": true }))
+    }
+
     pub async fn get_schedule_subs(&self, tenant_id: Uuid) -> AppResult<Value> {
         let rows = sqlx::query!(
             r#"SELECT id, lesson_id, day, slot, duration, subject, room,
