@@ -35,7 +35,7 @@ onMounted(loadUsers);
     <BaseButton variant="ghost" @click="loadUsers">Refresh</BaseButton>
   </div>
 
-  <div class="overflow-x-auto">
+  <BaseTableWrapper>
     <table>
       <thead>
         <tr>
@@ -101,7 +101,7 @@ onMounted(loadUsers);
         </tr>
       </tbody>
     </table>
-  </div>
+  </BaseTableWrapper>
 
   <Transition name="drawer">
     <div

@@ -71,13 +71,13 @@ onMounted(() => {
 <template>
   <form novalidate @submit.prevent="search">
     <BaseBackdrop @cancel="emit('cancel')">
-      <div class="fixed w-full h-full md:p-4 md:h-fit md:w-[640px] z-[20000]">
+      <div class="fixed w-full h-full md:p-4 md:h-fit md:w-160 z-[20000]">
         <!-- Header: Search Bar -->
         <div
           class="w-full h-full bg-canvas md:border border-ghost-border md:rounded-2xl overflow-hidden flex flex-col"
         >
           <div class="flex items-center gap-3 p-4 border-b border-ghost-border">
-            <Search :size="20" class="text-on-ghost-subtle flex-shrink-0" />
+            <Search :size="20" class="text-on-ghost-subtle shrink-0" />
             <input
               id="search-input"
               ref="inputRef"
@@ -97,7 +97,7 @@ onMounted(() => {
             />
           </div>
 
-          <div class="flex-1 overflow-y-auto max-h-[640px] custom-scrollbar">
+          <div class="flex-1 overflow-y-auto max-h-160 custom-scrollbar">
             <template v-if="currentView === 'results'">
               <div v-if="loading" class="p-8 text-center text-on-ghost-subtle">
                 <BaseSpinner on="ghost" size="24" />

@@ -6,12 +6,12 @@ import {
   onMounted,
   ref,
   watch,
-  type ComponentPublicInstance,
   h,
   defineComponent,
   onBeforeUnmount,
   type VNode,
 } from 'vue';
+import BaseTableWrapper from '@/common/components/BaseTableWrapper.vue';
 import {
   ArrowUp,
   AudioLines,
@@ -590,89 +590,6 @@ function formatDuration(ms?: number): string {
   return `${(ms / 1000).toFixed(1)}s`;
 }
 
-const TableWrapper = defineComponent({
-  name: 'TableWrapper',
-  setup(props, { slots }) {
-    const wrapperRef = ref<HTMLElement | null>(null);
-    const showLeftFade = ref(false);
-    const showRightFade = ref(false);
-
-    const updateFade = () => {
-      const el = wrapperRef.value;
-      if (!el) return;
-      showLeftFade.value = el.scrollLeft > 1;
-      showRightFade.value = el.scrollWidth - el.scrollLeft - el.clientWidth > 1;
-    };
-
-    let ticking = false;
-    const handleScroll = () => {
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          updateFade();
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-
-    const maskStyle = computed(() => {
-      const left = showLeftFade.value;
-      const right = showRightFade.value;
-
-      let mask = 'none';
-      if (left && right) {
-        mask =
-          'linear-gradient(to right, transparent 0px, black 32px, black calc(100% - 32px), transparent 100%)';
-      } else if (left) {
-        mask = 'linear-gradient(to right, transparent 0px, black 32px)';
-      } else if (right) {
-        mask = 'linear-gradient(to left, transparent 0px, black 32px)';
-      }
-      return {
-        webkitMaskImage: mask,
-        maskImage: mask,
-      };
-    });
-
-    let resizeObserver: ResizeObserver | null = null;
-
-    onMounted(() => {
-      updateFade();
-      window.addEventListener('resize', updateFade);
-
-      const el = wrapperRef.value;
-      if (el) {
-        resizeObserver = new ResizeObserver(() => {
-          updateFade();
-        });
-        resizeObserver.observe(el);
-        for (const child of el.children) {
-          resizeObserver.observe(child);
-        }
-      }
-    });
-
-    onBeforeUnmount(() => {
-      window.removeEventListener('resize', updateFade);
-      if (resizeObserver) {
-        resizeObserver.disconnect();
-      }
-    });
-
-    return () =>
-      h(
-        'div',
-        {
-          ref: wrapperRef,
-          class:
-            'overflow-x-auto my-3! transition-all duration-300 scrollbar-hide',
-          style: maskStyle.value,
-          onScroll: handleScroll,
-        },
-        slots.default?.(),
-      );
-  },
-});
 function isImageUrl(url: string): boolean {
   if (!url) return false;
   if (url.startsWith('https://image.pollinations.ai/prompt/')) return true;
@@ -781,7 +698,7 @@ function renderToken(token: any): VNode | string {
           }),
         );
       });
-      return h(TableWrapper, {}, () =>
+      return h(BaseTableWrapper, { class: 'my-3!' }, () =>
         h('table', {}, [h('thead', {}, [headerRow]), h('tbody', {}, bodyRows)]),
       );
     }

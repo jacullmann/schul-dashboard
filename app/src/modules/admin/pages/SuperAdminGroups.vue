@@ -21,7 +21,7 @@ onMounted(loadGroups);
     <BaseSpinner on="ghost" size="24px" />
   </div>
   <div v-else-if="!groups.length" class="empty-msg">No groups found.</div>
-  <div v-else class="overflow-x-auto">
+  <BaseTableWrapper v-else>
     <table>
       <thead>
         <tr>
@@ -55,7 +55,7 @@ onMounted(loadGroups);
         </tr>
       </tbody>
     </table>
-  </div>
+  </BaseTableWrapper>
 </template>
 
 <style scoped>

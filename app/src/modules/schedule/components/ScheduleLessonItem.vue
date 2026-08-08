@@ -32,7 +32,8 @@ const { t } = useI18n();
   >
     <div v-if="lesson.cancelled">
       <div
-        class="font-bold text-base text-on-ghost whitespace-nowrap overflow-hidden text-ellipsis line-through text-on-ghost-muted group-[.highlight-active]:text-on-action-muted!"
+        class="font-bold text-base whitespace-nowrap overflow-hidden text-ellipsis line-through group-[.highlight-active]:text-on-action-muted!"
+        :class="isSelected ? 'text-on-action-muted' : 'text-on-ghost-muted'"
       >
         {{ getDisplayName(lesson) }}
       </div>
@@ -42,7 +43,8 @@ const { t } = useI18n();
         {{ t('schedule.cancelled') }}
       </div>
       <div
-        class="flex justify-between text-sm text-on-ghost-muted group-[.highlight-active]:text-surface-hover!"
+        class="flex justify-between text-sm group-[.highlight-active]:text-on-action-muted!"
+        :class="isSelected ? 'text-on-action-muted' : 'text-on-ghost-muted'"
       >
         <span class="line-through">{{ lesson.room }}</span>
       </div>
@@ -60,14 +62,14 @@ const { t } = useI18n();
           "
         >
           <span
-            class="line-through text-on-ghost-muted mr-1 font-normal group-[.highlight-active]:text-surface-hover-border!"
-            :class="isSelected && 'text-surface-hover-border'"
+            class="line-through font-normal group-[.highlight-active]:text-on-action-muted! mr-1"
+            :class="isSelected ? 'text-on-action-muted' : 'text-on-ghost-muted'"
           >
             {{ getDisplayName(lesson._original) }}
           </span>
           <span
-            class="font-bold text-on-ghost group-[.highlight-active]:text-on-action!"
-            :class="isSelected && 'text-on-action'"
+            class="font-bold group-[.highlight-active]:text-on-action!"
+            :class="isSelected ? 'text-on-action' : 'text-on-ghost'"
           >
             {{ getDisplayName(lesson) }}
           </span>
@@ -79,21 +81,23 @@ const { t } = useI18n();
 
       <div
         class="flex justify-between text-sm group-[.highlight-active]:text-on-action-muted!"
-        :class="isSelected ? 'text-surface-hover' : 'text-on-ghost-muted'"
+        :class="isSelected ? 'text-on-action-muted' : 'text-on-ghost-muted'"
       >
         <span class="inline-flex gap-1 items-center">
           <template
             v-if="lesson._original && lesson.room !== lesson._original.room"
           >
             <span
-              class="line-through text-on-ghost-muted mr-1 font-normal group-[.highlight-active]:text-surface-hover-border!"
-              :class="isSelected && 'text-surface-hover-border'"
+              class="line-through font-normal group-[.highlight-active]:text-on-action-muted! mr-1"
+              :class="
+                isSelected ? 'text-on-action-muted' : 'text-on-ghost-muted'
+              "
             >
               {{ lesson._original.room }}
             </span>
             <span
-              class="font-bold text-on-ghost group-[.highlight-active]:text-on-action!"
-              :class="isSelected && 'text-on-action'"
+              class="font-bold group-[.highlight-active]:text-on-action!"
+              :class="isSelected ? 'text-on-action' : 'text-on-ghost'"
             >
               {{ lesson.room }}
             </span>

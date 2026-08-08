@@ -6,12 +6,11 @@ import AdminSchedule from '@/modules/groups/components/AdminSchedule.vue';
 import type { ScheduleSubstitution } from '@/modules/groups/types';
 import type { Lesson } from '@/modules/schedule/types';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
-import { useUserStore } from '@/stores/userStore';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 
-const props = defineProps<{
+defineProps<{
   subs: ScheduleSubstitution[];
   loadingSubs: boolean;
   lessons: Lesson[];
@@ -28,12 +27,6 @@ const emit = defineEmits<{
 }>();
 
 const { activeScheduleConfig, checkPermission } = useAppAuth();
-const userStore = useUserStore();
-const isAdmin = computed(
-  () =>
-    userStore.user?.tenantRole === 'admin' ||
-    userStore.user?.role === 'superadmin',
-);
 
 const canEditScheduleConfig = computed(() => checkPermission('edit_schedule'));
 const canManageScheduleChanges = computed(() =>
@@ -467,45 +460,47 @@ function handleSaveSub() {
       >
         {{ t('groups.settings.schedule.changes.no_changes') }}
       </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Subject</th>
-            <th>Room</th>
-            <th>Day</th>
-            <th>Slot</th>
-            <th>Cancelled</th>
-            <th>Hidden</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="sub in subs" :key="sub.id">
-            <td>{{ sub.subject || 'Unbekannt' }}</td>
-            <td>{{ sub.room || '-' }}</td>
-            <td>{{ sub.day || '-' }}</td>
-            <td>{{ sub.slot || '-' }}</td>
-            <td class="text-danger">
-              {{ sub.cancelled ? 'Ausfall' : '-' }}
-            </td>
-            <td>{{ sub.hide ? 'Versteckt' : '-' }}</td>
-            <td class="py-0! px-2! min-w-0!">
-              <BaseTooltip
-                :content="t('common.buttons.delete')"
-                placement="bottom"
-              >
-                <BaseButton
-                  :disabled="!canManageScheduleChanges"
-                  variant="ghost"
-                  size="sm"
-                  :icon="Trash2"
-                  @click="emit('delete-sub', sub.id)"
-                />
-              </BaseTooltip>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <BaseTableWrapper v-else>
+        <table>
+          <thead>
+            <tr>
+              <th>Subject</th>
+              <th>Room</th>
+              <th>Day</th>
+              <th>Slot</th>
+              <th>Cancelled</th>
+              <th>Hidden</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="sub in subs" :key="sub.id">
+              <td>{{ sub.subject || 'Unbekannt' }}</td>
+              <td>{{ sub.room || '-' }}</td>
+              <td>{{ sub.day || '-' }}</td>
+              <td>{{ sub.slot || '-' }}</td>
+              <td class="text-danger">
+                {{ sub.cancelled ? 'Ausfall' : '-' }}
+              </td>
+              <td>{{ sub.hide ? 'Versteckt' : '-' }}</td>
+              <td class="py-0! px-2! min-w-0!">
+                <BaseTooltip
+                  :content="t('common.buttons.delete')"
+                  placement="bottom"
+                >
+                  <BaseButton
+                    :disabled="!canManageScheduleChanges"
+                    variant="ghost"
+                    size="sm"
+                    :icon="Trash2"
+                    @click="emit('delete-sub', sub.id)"
+                  />
+                </BaseTooltip>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </BaseTableWrapper>
     </div>
   </div>
 </template>

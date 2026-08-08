@@ -42,6 +42,7 @@ declare module 'vue' {
     BaseSkeleton: typeof import('./src/common/components/BaseSkeleton.vue')['default']
     BaseSpinner: typeof import('./src/common/components/BaseSpinner.vue')['default']
     BaseSubmenu: typeof import('./src/common/components/BaseSubmenu.vue')['default']
+    BaseTableWrapper: typeof import('./src/common/components/BaseTableWrapper.vue')['default']
     BaseTabs: typeof import('./src/common/components/BaseTabs.vue')['default']
     BaseToast: typeof import('./src/common/components/BaseToast.vue')['default']
     BaseToggle: typeof import('./src/common/components/BaseToggle.vue')['default']
