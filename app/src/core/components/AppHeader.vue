@@ -142,7 +142,7 @@ onUnmounted(() => {
   >
     <div class="relative h-full w-full flex items-center gap-4 px-4 max-w-325">
       <BaseButton
-        class="md:hidden -ml-1"
+        class="md:hidden -ml-1 shrink-0"
         variant="ghost"
         on="ghost"
         :aria-expanded="isExpanded"
@@ -151,32 +151,39 @@ onUnmounted(() => {
         @click="toggleExpanded"
       />
 
-      <router-link :to="logoLink" class="logo-group hidden! !md:flex">
+      <router-link :to="logoLink" class="logo-group hidden! !md:flex shrink-0">
         <AppLogo class="logo-img" aria-hidden="true" />
       </router-link>
       <router-link
         v-if="!(activeGroupId && groupName)"
         :to="logoLink"
-        class="logo-group"
+        class="logo-group min-w-0"
       >
-        <span class="logo-text">schul-dashboard</span>
+        <span class="logo-text truncate">schul-dashboard</span>
       </router-link>
       <div
         v-if="activeGroupId && groupName"
         ref="groupMenuRef"
-        class="relative flex items-center"
+        class="relative flex items-center min-w-0 max-w-full"
       >
         <button
           v-wave
-          class="flex items-center gap-2 group cursor-pointer hover:bg-ghost-hover transition-hover rounded-full -m-1 p-1"
+          class="flex items-center gap-2 group cursor-pointer hover:bg-ghost-hover transition-hover rounded-full -m-1 p-1 min-w-0 max-w-full"
           @click="toggleGroupMenu"
         >
-          <Avatar :name="groupName" :picture="activeGroupAvatarUrl" :size="8" />
+          <Avatar
+            :name="groupName"
+            :picture="activeGroupAvatarUrl"
+            :size="8"
+            class="shrink-0"
+          />
 
-          <span class="logo-text leading-8">{{ groupName }}</span>
+          <span class="logo-text leading-8 truncate min-w-0">{{
+            groupName
+          }}</span>
           <ChevronDown
             :size="16"
-            class="transform transition-transform duration-200 ease-in-out text-on-ghost-muted group-hover:text-on-ghost transition-hover mr-2"
+            class="transform transition-transform duration-200 ease-in-out text-on-ghost-muted group-hover:text-on-ghost transition-hover mr-2 shrink-0"
             :class="groupMenuOpen ? 'rotate-180' : ''"
           />
         </button>

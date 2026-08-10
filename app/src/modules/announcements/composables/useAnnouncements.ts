@@ -73,7 +73,9 @@ export function useAnnouncements() {
         ? t('announcements.notifications.new_single', { preview })
         : t('announcements.notifications.new_plural', { count, preview });
 
-    const hasDanger = unread.some((a) => a.color === 'danger');
+    const hasDanger = unread.some(
+      (a) => a.color === 'danger' || a.priority === 'high',
+    );
     const hasWarn = unread.some((a) => a.color === 'warn');
     const duration = Math.min(10000, 5000 + count * 1000);
 
@@ -108,10 +110,11 @@ export function useAnnouncements() {
     }
   }
 
-  function colorFor(color: string): string {
-    if (color === 'info') return 'is-surface';
+  function colorFor(color?: string, priority?: string): string {
+    const resolvedColor = color || (priority === 'high' ? 'danger' : 'info');
+    if (resolvedColor === 'info') return 'is-surface';
     const list = ['warn', 'danger'];
-    return list.includes(color) ? `is-${color}` : 'is-default';
+    return list.includes(resolvedColor) ? `is-${resolvedColor}` : 'is-surface';
   }
 
   return {

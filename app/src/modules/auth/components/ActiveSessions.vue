@@ -241,14 +241,14 @@ onMounted(() => {
 
     <div v-else-if="loading" class="flex flex-col gap-3">
       <div
-        v-for="i in 2"
+        v-for="i in 3"
         :key="i"
         class="p-3 bg-surface border border-ghost-border rounded-xl flex gap-3 items-center"
       >
-        <BaseSkeleton class="w-10 h-10 rounded-lg shrink-0" />
+        <BaseSkeleton width="10" height="10" class="shrink-0" />
         <div class="flex flex-col gap-2 flex-1">
-          <BaseSkeleton class="w-32 h-4 rounded" />
-          <BaseSkeleton class="w-48 h-3 rounded" />
+          <BaseSkeleton height="4" class="max-w-32" />
+          <BaseSkeleton height="3" class="max-w-48" />
         </div>
       </div>
     </div>

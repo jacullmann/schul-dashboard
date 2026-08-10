@@ -58,9 +58,9 @@ function handleLink() {
 
     <template v-else>
       <div
-        class="flex items-center justify-between gap-3 p-3 bg-surface border border-ghost-border rounded-xl"
+        class="flex max-sm:flex-col items-center justify-between gap-3 p-3 bg-surface border border-ghost-border rounded-xl"
       >
-        <div class="flex items-center gap-3">
+        <div class="flex items-center max-sm:w-full gap-3">
           <div
             class="size-10 flex items-center justify-center flex-shrink-0"
             aria-hidden="true"
@@ -81,6 +81,7 @@ function handleLink() {
           v-if="googleLinked()"
           variant="ghost"
           :loading="actionLoading"
+          class="max-sm:w-full"
           @click="handleUnlink"
         >
           Trennen
@@ -90,6 +91,7 @@ function handleLink() {
           v-else
           variant="action"
           :loading="actionLoading"
+          class="max-sm:w-full"
           @click="handleLink"
         >
           Verknüpfen

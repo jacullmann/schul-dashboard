@@ -1,8 +1,11 @@
 export interface Announcement {
   id: string;
   content: string;
-  color: AnnouncementColor;
-  createdBy: string;
+  title?: string;
+  color?: AnnouncementColor;
+  priority?: string;
+  createdBy?: string;
+  authorName?: string;
   createdAt: string;
 }
 

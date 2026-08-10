@@ -213,30 +213,32 @@ onUnmounted(() => {
 
 <template>
   <BaseFormContent>
-    <div class="flex items-center gap-2 p-3 mx-auto">
-      <div
-        class="flex items-center justify-center size-11 text-on-ghost-muted"
-        :class="mfaEnabled ? 'text-success' : 'text-on-ghost-muted'"
-      >
-        <component :is="mfaEnabled ? ShieldCheck : ShieldOff" :size="32" />
-      </div>
-      <div class="flex flex-col">
-        <span class="text-sm text-on-ghost-muted"
-          >Zwei-Faktor-Authentifizierung</span
+    <template v-if="!setupMode">
+      <div class="flex items-center gap-2 p-3 mx-auto">
+        <div
+          class="flex items-center justify-center size-11 text-on-ghost-muted"
+          :class="mfaEnabled ? 'text-success' : 'text-on-ghost-muted'"
         >
-        <span
-          class="text-base font-bold"
-          :class="mfaEnabled ? 'text-on-ghost' : 'text-on-ghost-muted'"
-        >
-          {{ mfaEnabled ? 'Aktiviert' : 'Deaktiviert' }}
-        </span>
+          <component :is="mfaEnabled ? ShieldCheck : ShieldOff" :size="32" />
+        </div>
+        <div class="flex flex-col">
+          <span class="text-sm text-on-ghost-muted"
+            >Zwei-Faktor-Authentifizierung</span
+          >
+          <span
+            class="text-base font-bold"
+            :class="mfaEnabled ? 'text-on-ghost' : 'text-on-ghost-muted'"
+          >
+            {{ mfaEnabled ? 'Aktiviert' : 'Deaktiviert' }}
+          </span>
+        </div>
       </div>
-    </div>
-    <p class="text-sm/relaxed text-on-ghost-muted m-0! font-sans">
-      {{ t('auth.mfa.setup.description_prefix') }}
-      {{ t('auth.mfa.setup.description_suffix') }}
-      Authenticator.
-    </p>
+      <p class="text-sm/relaxed text-on-ghost-muted m-0! font-sans">
+        {{ t('auth.mfa.setup.description_prefix') }}
+        {{ t('auth.mfa.setup.description_suffix') }}
+        Authenticator.
+      </p>
+    </template>
 
     <BaseButton
       v-if="!mfaEnabled && !setupMode"

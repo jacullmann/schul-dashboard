@@ -23,6 +23,12 @@ const currentAnnouncement = computed(
     },
 );
 
+const isDanger = computed(
+  () =>
+    currentAnnouncement.value.color === 'danger' ||
+    currentAnnouncement.value.priority === 'high',
+);
+
 function toggleMenu() {
   showMenu.value = !showMenu.value;
 }
@@ -108,7 +114,7 @@ onUnmounted(() => {
         >
           <div
             class="w-2 h-2 rounded-full flex-shrink-0"
-            :class="colorFor(ann.color).replace('is-', 'bg-')"
+            :class="colorFor(ann.color, ann.priority).replace('is-', 'bg-')"
           ></div>
           <span class="truncate">{{ ann.content }}</span>
         </BaseButton>
@@ -129,31 +135,24 @@ onUnmounted(() => {
         ref="announcementEl"
         class="p-0 text-on-ghost text-sm flex items-center justify-center shadow-menu border-b cursor-pointer"
         :class="[
-          colorFor(currentAnnouncement.color).replace('is-', 'bg-'),
-          currentAnnouncement.color === 'danger'
-            ? 'border-danger-highlight'
-            : 'border-ghost-border',
+          colorFor(
+            currentAnnouncement.color,
+            currentAnnouncement.priority,
+          ).replace('is-', 'bg-'),
+          isDanger ? 'border-danger-highlight' : 'border-ghost-border',
         ]"
         @click="nextAnnouncement"
       >
         <span
           class="whitespace-normal mx-3 my-1 flex-1 text-center"
-          :class="
-            currentAnnouncement.color === 'danger'
-              ? 'text-on-danger'
-              : 'text-on-ghost'
-          "
+          :class="isDanger ? 'text-on-danger' : 'text-on-ghost'"
           >{{ currentAnnouncement.content }}</span
         >
 
         <span
           v-if="announcements.length > 1"
           class="text-xs mr-1 flex-shrink-0"
-          :class="
-            currentAnnouncement.color === 'danger'
-              ? 'text-on-danger-muted'
-              : 'text-on-ghost-muted'
-          "
+          :class="isDanger ? 'text-on-danger-muted' : 'text-on-ghost-muted'"
         >
           {{ currentIndex + 1 }}/{{ announcements.length }}
         </span>
@@ -161,7 +160,7 @@ onUnmounted(() => {
         <BaseTooltip content="More" placement="bottom">
           <BaseButton
             variant="ghost"
-            :on="currentAnnouncement.color === 'danger' ? 'danger' : 'ghost'"
+            :on="isDanger ? 'danger' : 'ghost'"
             size="sm"
             :icon="Ellipsis"
             :touch="false"
