@@ -1,9 +1,11 @@
 export interface Lesson {
   id: string;
+  _originalId?: string;
   day: number;
   slot: number;
   duration: number;
   room: string | null;
+  subjectId?: string | null;
   courseId?: string | null;
   subjects?: {
     id: string;
@@ -24,6 +26,7 @@ export interface Lesson {
 export interface Substitution {
   id: string;
   lessonId: string;
+  courseId?: string | null;
   day?: number;
   slot?: number;
   duration?: number;

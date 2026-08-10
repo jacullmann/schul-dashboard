@@ -19,6 +19,7 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
   });
 
   const lessons = ref<Lesson[]>([]);
+  const subjects = ref<any[]>([]);
   const substitutions = ref<Substitution[]>([]);
   const loadingSubs = ref(true);
   const loadingLessons = ref(true);
@@ -135,15 +136,89 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
   async function loadSchedule() {
     loadingLessons.value = true;
     try {
-      const { data } = await hw.get('/schedule');
-      lessons.value = data;
+      const [{ data: lessonData }, subjectRes] = await Promise.all([
+        hw.get('/schedule'),
+        hw.get('/schedule/subjects').catch(() => ({ data: [] })),
+      ]);
+      lessons.value = lessonData;
+      subjects.value = subjectRes.data || [];
     } catch (error) {
       console.error('Error loading schedule:', error);
       lessons.value = [];
+      subjects.value = [];
     } finally {
       loadingLessons.value = false;
     }
   }
+
+  const expandedLessons = computed<Lesson[]>(() => {
+    if (!lessons.value || lessons.value.length === 0) return [];
+    const result: Lesson[] = [];
+
+    const subjectMap = new Map<string, any>();
+    subjects.value.forEach((sub) => {
+      if (sub && sub.id) subjectMap.set(sub.id, sub);
+    });
+
+    const userCourses = userStore.user?.courses || [];
+    const userCourseIds = new Set(userCourses.map((c: any) => c.courseId));
+
+    lessons.value.forEach((lesson) => {
+      const subId = lesson.subjectId || lesson.subjects?.id;
+      const subObj = subId ? subjectMap.get(subId) : null;
+      const courses: Array<{ id: string; name: string }> =
+        subObj?.courses || [];
+
+      if (!isPersonalized.value) {
+        result.push({
+          ...lesson,
+          _originalId: lesson.id,
+          subjects:
+            lesson.subjects ||
+            (subObj ? { id: subObj.id, name: subObj.name } : null),
+        });
+        return;
+      }
+
+      if (courses.length > 0) {
+        let matched = false;
+        courses.forEach((c) => {
+          if (userCourseIds.has(c.id)) {
+            matched = true;
+            result.push({
+              ...lesson,
+              id: `${lesson.id}_${c.id}`,
+              _originalId: lesson.id,
+              courseId: c.id,
+              courseName: c.name,
+              courses: { id: c.id, name: c.name },
+              subjectId: subId || lesson.subjectId,
+              subjects:
+                lesson.subjects ||
+                (subObj ? { id: subObj.id, name: subObj.name } : null),
+            });
+          }
+        });
+
+        if (!matched && lesson.courseId && userCourseIds.has(lesson.courseId)) {
+          result.push({
+            ...lesson,
+            _originalId: lesson.id,
+            subjects:
+              lesson.subjects ||
+              (subObj ? { id: subObj.id, name: subObj.name } : null),
+          });
+        }
+      } else {
+        result.push({
+          ...lesson,
+          _originalId: lesson.id,
+        });
+      }
+    });
+
+    return result;
+  });
 
   const effectiveLessons = computed<Lesson[]>(() => {
     const result: Lesson[] = [];
@@ -154,8 +229,14 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
       subMap.get(sub.lessonId)!.push(sub);
     });
 
-    lessons.value.forEach((original) => {
-      const subs = subMap.get(original.id);
+    expandedLessons.value.forEach((original) => {
+      const origId = original._originalId || original.id;
+      const allSubs = subMap.get(origId) || [];
+
+      const subs = allSubs.filter((sub) => {
+        if (!sub.courseId) return true;
+        return original.courseId && sub.courseId === original.courseId;
+      });
 
       if (!subs || subs.length === 0) {
         result.push({ ...original, _original: original });
@@ -177,7 +258,7 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
             sub[typedKey] !== undefined &&
             sub[typedKey] !== ''
           ) {
-            // @ts-expect-error
+            // @ts-expect-error Dynamic property assignment from substitution fields
             merged[typedKey] = sub[typedKey];
 
             if (typedKey === 'subject') {
@@ -237,15 +318,19 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
     if (!groupLessons.length) return {};
     const firstLesson = groupLessons[0];
     if (!firstLesson) return {};
-    const maxDuration = Math.max(...groupLessons.map((l) => l.duration));
+    const maxDuration = Math.max(
+      ...groupLessons.map((l) => Math.max(1, Number(l.duration || 1))),
+    );
     const dayIndex = days.indexOf(firstLesson.day);
     const colStart = dayIndex + 2;
     const rowStart = firstLesson.slot + 1;
+    const minHeight = Math.max(58, groupLessons.length * 54);
     return {
       '--col-desktop': `${colStart} / span 1`,
       '--col-mobile': `${colStart - 1} / span 1`,
       gridColumn: `var(--col-desktop)`,
       gridRow: `${rowStart} / span ${maxDuration}`,
+      minHeight: `${minHeight}px`,
     } as Record<string, string>;
   };
 
@@ -259,8 +344,8 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
   onMounted(() => {
     timer = window.setInterval(updateTime, 1000 * 60);
     if (options.autoLoad) {
-      loadSchedule();
-      loadSubstitutions();
+      void loadSchedule();
+      void loadSubstitutions();
     }
   });
 
@@ -272,7 +357,7 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
         oldVal !== undefined &&
         JSON.stringify(newVal) !== JSON.stringify(oldVal)
       ) {
-        loadSchedule();
+        void loadSchedule();
       }
     },
     { deep: false },

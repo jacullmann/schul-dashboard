@@ -1,19 +1,39 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
+import { useWindowSize } from '@vueuse/core';
 
-defineProps<{
-  timeSlots: Array<{ slot: number; time: string }>;
-}>();
+const { width: windowWidth } = useWindowSize();
+
+const props = withDefaults(
+  defineProps<{
+    timeSlots: Array<{ slot: number; time: string }>;
+    animated?: boolean;
+    gridTemplateRows?: string;
+  }>(),
+  {
+    animated: true,
+  },
+);
 
 const { t } = useI18n();
 </script>
 
 <template>
   <div
-    class="max-[500px]:grid max-[500px]:grid-rows-[auto_repeat(9,auto)] max-[500px]:w-[85px] max-[500px]:shrink-0 max-[500px]:gap-2 max-[500px]:z-10 max-[500px]:bg-transparent min-[501px]:contents"
+    class="max-[500px]:grid max-[500px]:w-[85px] max-[500px]:shrink-0 max-[500px]:gap-2 max-[500px]:z-10 max-[500px]:bg-transparent min-[501px]:contents"
+    :style="
+      windowWidth < 501
+        ? {
+            gridTemplateRows:
+              props.gridTemplateRows ||
+              `auto repeat(${props.timeSlots.length || 9}, minmax(58px, auto))`,
+          }
+        : {}
+    "
   >
     <div
-      class="bg-surface text-on-ghost px-3 py-2 border border-ghost-border text-center font-bold rounded-md max-[500px]:rounded-lg text-base shadow-input max-[500px]:static min-[501px]:[grid-column:1] min-[501px]:[grid-row:1] animate-fade-up"
+      class="bg-surface text-on-ghost px-3 py-2 border border-ghost-border text-center font-bold rounded-md max-[500px]:rounded-lg text-base shadow-input max-[500px]:static min-[501px]:[grid-column:1] min-[501px]:[grid-row:1] flex items-center justify-center h-full"
+      :class="{ 'animate-fade-up': animated }"
     >
       {{ t('schedule.lesson') }}
     </div>
@@ -21,7 +41,8 @@ const { t } = useI18n();
     <div
       v-for="ts in timeSlots"
       :key="ts.slot"
-      class="flex flex-col justify-center items-center bg-transparent text-sm text-on-ghost-muted min-h-12 whitespace-nowrap max-[500px]:static min-[501px]:[grid-column:1] animate-fade-up"
+      class="flex flex-col justify-center items-center bg-transparent text-sm text-on-ghost-muted h-full min-h-[58px] whitespace-nowrap max-[500px]:static min-[501px]:[grid-column:1]"
+      :class="{ 'animate-fade-up': animated }"
       :style="{
         gridRow: ts.slot + 1,
       }"

@@ -666,12 +666,10 @@ impl GroupAdminService {
 
     pub async fn get_schedule(&self, tenant_id: Uuid) -> AppResult<Value> {
         let rows = sqlx::query!(
-            r#"SELECT s.id, s.day, s.slot, s.duration, s.room, s.course_id,
-                  sub.id as "sid?", sub.name as "sname?",
-                  c.id as "cid?", c.name as "cname?"
+            r#"SELECT s.id, s.day, s.slot, s.duration, s.room,
+                  sub.id as "sid?", sub.name as "sname?"
            FROM schedules s
            LEFT JOIN subjects sub ON sub.id = s.subject_id
-           LEFT JOIN courses c ON c.id = s.course_id
            WHERE s.tenant_id = $1"#,
             tenant_id
         )
@@ -686,9 +684,8 @@ impl GroupAdminService {
                     "slot": l.slot,
                     "duration": l.duration,
                     "room": l.room,
-                    "courseId": l.course_id,
+                    "subjectId": l.sid,
                     "subjects": l.sid.map(|id| json!({ "id": id, "name": l.sname })),
-                    "courses": l.cid.map(|id| json!({ "id": id, "name": l.cname })),
                 }))
                 .collect::<Vec<_>>()
         ))
@@ -728,18 +725,6 @@ impl GroupAdminService {
                             .and_then(|s| Uuid::parse_str(s).ok())
                     });
 
-                let course_id = item
-                    .get("courseId")
-                    .or_else(|| item.get("course_id"))
-                    .and_then(|v| v.as_str())
-                    .and_then(|s| Uuid::parse_str(s).ok())
-                    .or_else(|| {
-                        item.get("courses")
-                            .and_then(|c| c.get("id"))
-                            .and_then(|v| v.as_str())
-                            .and_then(|s| Uuid::parse_str(s).ok())
-                    });
-
                 let id = item
                     .get("id")
                     .and_then(|v| v.as_str())
@@ -747,16 +732,15 @@ impl GroupAdminService {
                     .unwrap_or_else(Uuid::new_v4);
 
                 sqlx::query!(
-                    r#"INSERT INTO schedules (id, tenant_id, day, slot, duration, room, subject_id, course_id)
-                       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)"#,
+                    r#"INSERT INTO schedules (id, tenant_id, day, slot, duration, room, subject_id)
+                       VALUES ($1, $2, $3, $4, $5, $6, $7)"#,
                     id,
                     tenant_id,
                     day,
                     slot,
                     duration,
                     room,
-                    subject_id,
-                    course_id
+                    subject_id
                 )
                 .execute(&mut *tx)
                 .await?;
@@ -779,18 +763,6 @@ impl GroupAdminService {
                         .and_then(|s| Uuid::parse_str(s).ok())
                 });
 
-            let course_id = body
-                .get("courseId")
-                .or_else(|| body.get("course_id"))
-                .and_then(|v| v.as_str())
-                .and_then(|s| Uuid::parse_str(s).ok())
-                .or_else(|| {
-                    body.get("courses")
-                        .and_then(|c| c.get("id"))
-                        .and_then(|v| v.as_str())
-                        .and_then(|s| Uuid::parse_str(s).ok())
-                });
-
             let id = body
                 .get("id")
                 .and_then(|v| v.as_str())
@@ -798,15 +770,14 @@ impl GroupAdminService {
                 .unwrap_or_else(Uuid::new_v4);
 
             sqlx::query!(
-                r#"INSERT INTO schedules (id, tenant_id, day, slot, duration, room, subject_id, course_id)
-                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                r#"INSERT INTO schedules (id, tenant_id, day, slot, duration, room, subject_id)
+                   VALUES ($1, $2, $3, $4, $5, $6, $7)
                    ON CONFLICT (id) DO UPDATE SET
                      day = EXCLUDED.day,
                      slot = EXCLUDED.slot,
                      duration = EXCLUDED.duration,
                      room = EXCLUDED.room,
                      subject_id = EXCLUDED.subject_id,
-                     course_id = EXCLUDED.course_id,
                      updated_at = now()"#,
                 id,
                 tenant_id,
@@ -814,8 +785,7 @@ impl GroupAdminService {
                 slot,
                 duration,
                 room,
-                subject_id,
-                course_id
+                subject_id
             )
             .execute(&mut *tx)
             .await?;
@@ -849,7 +819,7 @@ impl GroupAdminService {
 
     pub async fn get_schedule_subs(&self, tenant_id: Uuid) -> AppResult<Value> {
         let rows = sqlx::query!(
-            r#"SELECT id, lesson_id, day, slot, duration, subject, room,
+            r#"SELECT id, lesson_id, course_id, day, slot, duration, subject, room,
                       cancelled, hide, created_at
                FROM schedule_subs WHERE tenant_id = $1"#,
             tenant_id
@@ -860,7 +830,7 @@ impl GroupAdminService {
         Ok(json!(
             rows.into_iter()
                 .map(|s| json!({
-                    "id": s.id, "lessonId": s.lesson_id, "day": s.day, "slot": s.slot,
+                    "id": s.id, "lessonId": s.lesson_id, "courseId": s.course_id, "day": s.day, "slot": s.slot,
                     "duration": s.duration, "subject": s.subject, "room": s.room,
                     "cancelled": s.cancelled, "hide": s.hide, "createdAt": s.created_at,
                 }))
@@ -878,12 +848,13 @@ impl GroupAdminService {
 
         let row = sqlx::query!(
             r#"INSERT INTO schedule_subs
-                (tenant_id, lesson_id, day, slot, duration, subject, room, cancelled, hide)
-               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-               RETURNING id, lesson_id, day, slot, duration, subject, room,
+                (tenant_id, lesson_id, course_id, day, slot, duration, subject, room, cancelled, hide)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+               RETURNING id, lesson_id, course_id, day, slot, duration, subject, room,
                          cancelled, hide, created_at"#,
             tenant_id,
             dto.lesson_id,
+            dto.course_id,
             day_str.as_deref(),
             dto.slot,
             dto.duration,
@@ -899,13 +870,13 @@ impl GroupAdminService {
             r#"INSERT INTO user_activity (user_id, type, meta)
                VALUES ($1, 'schedule:sub:create', $2)"#,
             user_id,
-            json!({ "lessonId": dto.lesson_id })
+            json!({ "lessonId": dto.lesson_id, "courseId": dto.course_id })
         )
         .execute(&self.db)
         .await?;
 
         Ok(json!({
-            "id": row.id, "lessonId": row.lesson_id, "day": row.day, "slot": row.slot,
+            "id": row.id, "lessonId": row.lesson_id, "courseId": row.course_id, "day": row.day, "slot": row.slot,
             "duration": row.duration, "subject": row.subject, "room": row.room,
             "cancelled": row.cancelled, "hide": row.hide, "createdAt": row.created_at,
         }))

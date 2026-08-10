@@ -22,6 +22,7 @@ export interface GroupMember {
 export interface ScheduleSubstitution {
   id: string;
   lessonId: string;
+  courseId?: string | null;
   day?: string;
   slot?: number;
   duration?: number;

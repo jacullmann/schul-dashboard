@@ -1,16 +1,26 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue';
+import {
+  ref,
+  computed,
+  watch,
+  onMounted,
+  onBeforeUnmount,
+  nextTick,
+} from 'vue';
 import {
   RefreshCw,
   Trash2,
   Plus,
   Pencil,
   Check,
-  Calendar,
   X,
   BookOpen,
+  Undo2,
+  Redo2,
 } from '@lucide/vue';
 import AdminSchedule from '@/modules/groups/components/AdminSchedule.vue';
+import BaseMenu from '@/common/components/BaseMenu.vue';
+import BaseMenuButton from '@/common/components/BaseMenuButton.vue';
 import type { ScheduleSubstitution } from '@/modules/groups/types';
 import type { Lesson } from '@/modules/schedule/types';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
@@ -58,7 +68,9 @@ const canManageScheduleChanges = computed(() =>
 // Editor Mode & Draft Transaction State
 // ----------------------------------------------------
 const isEditMode = ref(false);
+const showToolbar = ref(false);
 const draftLessons = ref<Lesson[]>([]);
+const hasSwitchedFromEditor = ref(false);
 
 const configForm = ref({
   startTime: '08:00',
@@ -101,16 +113,31 @@ watch(
 
 function enterEditMode() {
   if (!canEditScheduleConfig.value) return;
+  hasSwitchedFromEditor.value = true;
   void loadSubjects();
   draftLessons.value = JSON.parse(JSON.stringify(props.lessons || []));
   draftConfigForm.value = JSON.parse(JSON.stringify(configForm.value));
+  clearSelection();
+  historyStack.value = [];
+  historyIndex.value = -1;
+  pushHistoryState(draftLessons.value);
+  showToolbar.value = false;
   isEditMode.value = true;
+  void nextTick(() => {
+    requestAnimationFrame(() => {
+      showToolbar.value = true;
+    });
+  });
 }
 
 function cancelEditMode() {
-  isEditMode.value = false;
-  draftLessons.value = [];
-  draftConfigForm.value = JSON.parse(JSON.stringify(configForm.value));
+  showToolbar.value = false;
+  setTimeout(() => {
+    isEditMode.value = false;
+    draftLessons.value = [];
+    draftConfigForm.value = JSON.parse(JSON.stringify(configForm.value));
+    clearSelection();
+  }, 300);
 }
 
 function handleSaveAll() {
@@ -129,7 +156,10 @@ function handleSaveAll() {
   };
 
   emit('save-schedule-batch', draftLessons.value, configPayload, () => {
-    isEditMode.value = false;
+    showToolbar.value = false;
+    setTimeout(() => {
+      isEditMode.value = false;
+    }, 300);
   });
 }
 
@@ -162,6 +192,7 @@ function removeBreak(id: string) {
 // Substitution Form State
 const subForm = ref({
   lessonId: '',
+  courseId: null as string | null,
   subject: '',
   room: '',
   slot: null as number | null,
@@ -173,6 +204,42 @@ const subForm = ref({
 
 const selectedLesson = ref<Lesson | null>(null);
 
+const selectedLessonSubject = computed(() => {
+  if (!selectedLesson.value) return null;
+  const subId =
+    selectedLesson.value.subjectId || selectedLesson.value.subjects?.id;
+  return (
+    subjects.value.find(
+      (s) =>
+        s.id === subId ||
+        s.name.toLowerCase() ===
+          (selectedLesson.value?.subject || '').toLowerCase(),
+    ) || null
+  );
+});
+
+const targetCourseOptions = computed(() => {
+  const sub = selectedLessonSubject.value;
+  const opts = [{ label: 'Alle Kurse des Fachs', value: '' }];
+  if (sub && sub.courses && sub.courses.length > 0) {
+    sub.courses.forEach((c: { id: string; name: string }) => {
+      opts.push({ label: c.name, value: c.id });
+    });
+  }
+  return opts;
+});
+
+function getSubCourseName(courseId?: string | null): string {
+  if (!courseId) return 'Alle Kurse';
+  for (const s of subjects.value) {
+    if (s.courses) {
+      const c = s.courses.find((crs: any) => crs.id === courseId);
+      if (c) return c.name;
+    }
+  }
+  return 'Spezifischer Kurs';
+}
+
 function getDisplayName(lesson: Lesson): string {
   const subjectName =
     lesson.subjects?.name || lesson.subject || lesson.subjectAbbr || '';
@@ -181,7 +248,8 @@ function getDisplayName(lesson: Lesson): string {
 
 function onLessonSelected(lesson: Lesson) {
   selectedLesson.value = lesson;
-  subForm.value.lessonId = lesson.id;
+  subForm.value.lessonId = lesson._originalId || lesson.id;
+  subForm.value.courseId = lesson.courseId || null;
   subForm.value.subject = '';
   subForm.value.room = '';
   subForm.value.slot = null;
@@ -193,7 +261,10 @@ function onLessonSelected(lesson: Lesson) {
 }
 
 function handleSaveSub() {
-  const payload: Record<string, unknown> = { lessonId: subForm.value.lessonId };
+  const payload: Record<string, unknown> = {
+    lessonId: subForm.value.lessonId,
+  };
+  if (subForm.value.courseId) payload.courseId = subForm.value.courseId;
   if (subForm.value.subject) payload.subject = subForm.value.subject;
   if (subForm.value.room) payload.room = subForm.value.room;
   if (subForm.value.slot !== null) payload.slot = subForm.value.slot;
@@ -206,6 +277,7 @@ function handleSaveSub() {
   emit('save-sub', payload);
   subForm.value = {
     lessonId: '',
+    courseId: null,
     subject: '',
     room: '',
     slot: null,
@@ -258,6 +330,66 @@ const dayTabItems = computed(() =>
 
 const activeMobileDay = ref(1);
 
+const timeCellRefs = new Map<number, HTMLElement>();
+function setTimeCellRef(slot: number, el: unknown) {
+  if (el) {
+    timeCellRefs.set(slot, el as HTMLElement);
+  } else {
+    timeCellRefs.delete(slot);
+  }
+}
+
+const contentCellRefs = new Map<number, HTMLElement>();
+function setContentCellRef(slot: number, el: unknown) {
+  if (el) {
+    contentCellRefs.set(slot, el as HTMLElement);
+  } else {
+    contentCellRefs.delete(slot);
+  }
+}
+
+watch(activeMobileDay, async () => {
+  if (
+    typeof window !== 'undefined' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  ) {
+    return;
+  }
+
+  const oldHeights = new Map<number, number>();
+  timeCellRefs.forEach((el, slot) => {
+    const rect = el.getBoundingClientRect();
+    if (rect.height > 0) {
+      oldHeights.set(slot, rect.height);
+    }
+  });
+
+  await nextTick();
+
+  timeCellRefs.forEach((timeEl, slot) => {
+    const oldH = oldHeights.get(slot);
+    const newRect = timeEl.getBoundingClientRect();
+    const newH = newRect.height;
+
+    if (oldH && newH > 0 && Math.abs(oldH - newH) > 0.5) {
+      timeEl.getAnimations().forEach((a) => a.cancel());
+      timeEl.animate([{ height: `${oldH}px` }, { height: `${newH}px` }], {
+        duration: 250,
+        easing: 'cubic-bezier(0.2, 0, 0, 1)',
+      });
+
+      const contentEl = contentCellRefs.get(slot);
+      if (contentEl) {
+        contentEl.getAnimations().forEach((a) => a.cancel());
+        contentEl.animate([{ height: `${oldH}px` }, { height: `${newH}px` }], {
+          duration: 250,
+          easing: 'cubic-bezier(0.2, 0, 0, 1)',
+        });
+      }
+    }
+  });
+});
+
 const slotTimes = computed(() => {
   const [startH, startM] = (draftConfigForm.value.startTime || '08:00')
     .split(':')
@@ -303,13 +435,15 @@ const slotTimes = computed(() => {
 });
 
 const lessonGridMap = computed(() => {
-  const map: Record<string, Lesson> = {};
+  const map: Record<string, Lesson[]> = {};
   const coveredSet = new Set<string>();
 
   draftLessons.value.forEach((l) => {
     const d = Number(l.day);
     const s = Number(l.slot);
-    map[`${d}-${s}`] = l;
+    const key = `${d}-${s}`;
+    if (!map[key]) map[key] = [];
+    map[key].push(l);
     for (let i = 1; i < l.duration; i++) {
       coveredSet.add(`${d}-${s + i}`);
     }
@@ -317,6 +451,297 @@ const lessonGridMap = computed(() => {
 
   return { map, coveredSet };
 });
+
+// ----------------------------------------------------
+// Undo / Redo History System State
+// ----------------------------------------------------
+const historyStack = ref<Lesson[][]>([]);
+const historyIndex = ref<number>(-1);
+const MAX_HISTORY = 50;
+
+function pushHistoryState(lessons: Lesson[]) {
+  const currentStack = historyStack.value.slice(0, historyIndex.value + 1);
+  const snapshot = JSON.parse(JSON.stringify(lessons));
+  currentStack.push(snapshot);
+  if (currentStack.length > MAX_HISTORY) {
+    currentStack.shift();
+  }
+  historyStack.value = currentStack;
+  historyIndex.value = currentStack.length - 1;
+}
+
+const canUndo = computed(() => historyIndex.value > 0);
+const canRedo = computed(
+  () => historyIndex.value < historyStack.value.length - 1,
+);
+
+function undo() {
+  if (!canUndo.value) return;
+  historyIndex.value--;
+  draftLessons.value = JSON.parse(
+    JSON.stringify(historyStack.value[historyIndex.value]),
+  );
+  clearSelection();
+}
+
+function redo() {
+  if (!canRedo.value) return;
+  historyIndex.value++;
+  draftLessons.value = JSON.parse(
+    JSON.stringify(historyStack.value[historyIndex.value]),
+  );
+  clearSelection();
+}
+
+// ----------------------------------------------------
+// Lesson Selection & Context Menu Action State
+// ----------------------------------------------------
+const selectedLessonIds = ref<string[]>([]);
+const lastSelectedLessonId = ref<string | null>(null);
+const mobileMenuOpen = ref(false);
+
+function isLessonSelected(id: string): boolean {
+  return selectedLessonIds.value.includes(id);
+}
+
+function clearSelection() {
+  selectedLessonIds.value = [];
+  lastSelectedLessonId.value = null;
+  mobileMenuOpen.value = false;
+}
+
+function selectSingleLesson(id: string) {
+  selectedLessonIds.value = [id];
+  lastSelectedLessonId.value = id;
+}
+
+function toggleLessonSelection(id: string) {
+  if (isLessonSelected(id)) {
+    selectedLessonIds.value = selectedLessonIds.value.filter((i) => i !== id);
+  } else {
+    selectedLessonIds.value.push(id);
+  }
+  lastSelectedLessonId.value = id;
+}
+
+function selectRangeToLesson(targetId: string, isCtrlPressed = false) {
+  if (!lastSelectedLessonId.value) {
+    selectSingleLesson(targetId);
+    return;
+  }
+
+  const anchorLesson = draftLessons.value.find(
+    (l) => l.id === lastSelectedLessonId.value,
+  );
+  const targetLesson = draftLessons.value.find((l) => l.id === targetId);
+
+  if (!anchorLesson || !targetLesson) {
+    selectSingleLesson(targetId);
+    return;
+  }
+
+  const dayMin = Math.min(Number(anchorLesson.day), Number(targetLesson.day));
+  const dayMax = Math.max(Number(anchorLesson.day), Number(targetLesson.day));
+
+  const anchorEndSlot =
+    Number(anchorLesson.slot) +
+    Math.max(1, Number(anchorLesson.duration || 1)) -
+    1;
+  const targetEndSlot =
+    Number(targetLesson.slot) +
+    Math.max(1, Number(targetLesson.duration || 1)) -
+    1;
+
+  const slotMin = Math.min(
+    Number(anchorLesson.slot),
+    Number(targetLesson.slot),
+  );
+  const slotMax = Math.max(anchorEndSlot, targetEndSlot);
+
+  const rangeLessons = draftLessons.value.filter((l) => {
+    const lDay = Number(l.day);
+    const lStart = Number(l.slot);
+    const lEnd = lStart + Math.max(1, Number(l.duration || 1)) - 1;
+
+    const dayMatches = lDay >= dayMin && lDay <= dayMax;
+    const slotMatches = lStart <= slotMax && lEnd >= slotMin;
+
+    return dayMatches && slotMatches;
+  });
+
+  const rangeIds = rangeLessons.map((l) => l.id);
+
+  if (isCtrlPressed) {
+    const set = new Set([...selectedLessonIds.value, ...rangeIds]);
+    selectedLessonIds.value = Array.from(set);
+  } else {
+    selectedLessonIds.value = rangeIds;
+  }
+}
+
+function selectDayColumn(dayNumber: number, event?: MouseEvent) {
+  if (!isEditMode.value) return;
+
+  const dayLessons = draftLessons.value.filter(
+    (l) => Number(l.day) === dayNumber,
+  );
+  if (dayLessons.length === 0) return;
+
+  const dayLessonIds = dayLessons.map((l) => l.id);
+  const isCtrlPressed = event ? event.ctrlKey || event.metaKey : false;
+  const isAllDaySelected = dayLessonIds.every((id) =>
+    selectedLessonIds.value.includes(id),
+  );
+
+  if (isCtrlPressed) {
+    if (isAllDaySelected) {
+      const daySet = new Set(dayLessonIds);
+      selectedLessonIds.value = selectedLessonIds.value.filter(
+        (id) => !daySet.has(id),
+      );
+    } else {
+      const set = new Set([...selectedLessonIds.value, ...dayLessonIds]);
+      selectedLessonIds.value = Array.from(set);
+    }
+  } else {
+    if (
+      isAllDaySelected &&
+      selectedLessonIds.value.length === dayLessonIds.length
+    ) {
+      clearSelection();
+    } else {
+      selectedLessonIds.value = dayLessonIds;
+    }
+  }
+
+  if (dayLessons.length > 0) {
+    lastSelectedLessonId.value = dayLessons[0].id;
+  }
+}
+
+// Native contextmenu handling (Hold on Mobile / Right-click on Desktop)
+function handleContextMenu(lesson: Lesson, event?: UIEvent) {
+  if (event) {
+    event.preventDefault();
+  }
+  if (!isEditMode.value) return;
+
+  if (typeof navigator !== 'undefined' && navigator.vibrate) {
+    try {
+      navigator.vibrate(40);
+    } catch {
+      // Ignore vibration errors if not supported/permitted
+    }
+  }
+
+  selectSingleLesson(lesson.id);
+  mobileMenuOpen.value = true;
+}
+
+function handleLessonClick(lesson: Lesson, event: MouseEvent) {
+  // On Mobile: Tapping an existing lesson directly opens edit modal
+  if (windowWidth.value < 768) {
+    openEditLessonModal(lesson);
+    return;
+  }
+
+  // On Desktop: Perform selection logic
+  if (event.shiftKey) {
+    selectRangeToLesson(lesson.id, event.ctrlKey || event.metaKey);
+  } else if (event.ctrlKey || event.metaKey) {
+    toggleLessonSelection(lesson.id);
+  } else {
+    selectSingleLesson(lesson.id);
+  }
+}
+
+function handleAddLessonFromSelection() {
+  if (selectedLessonIds.value.length !== 1) return;
+  const selId = selectedLessonIds.value[0];
+  const targetLesson = draftLessons.value.find((l) => l.id === selId);
+  if (!targetLesson) return;
+  mobileMenuOpen.value = false;
+  openAddLessonModal(targetLesson.day, targetLesson.slot);
+}
+
+function handleEditLessonFromSelection() {
+  if (selectedLessonIds.value.length !== 1) return;
+  const selId = selectedLessonIds.value[0];
+  const targetLesson = draftLessons.value.find((l) => l.id === selId);
+  if (!targetLesson) return;
+  mobileMenuOpen.value = false;
+  openEditLessonModal(targetLesson);
+}
+
+function handleDeleteSelection() {
+  if (selectedLessonIds.value.length === 0) return;
+  const toDelete = new Set(selectedLessonIds.value);
+  draftLessons.value = draftLessons.value.filter((l) => !toDelete.has(l.id));
+  clearSelection();
+  pushHistoryState(draftLessons.value);
+}
+
+function handleWindowKeyDown(e: KeyboardEvent) {
+  if (!isEditMode.value) return;
+  const activeEl = document.activeElement;
+  if (
+    activeEl &&
+    (activeEl.tagName === 'INPUT' ||
+      activeEl.tagName === 'TEXTAREA' ||
+      activeEl.tagName === 'SELECT' ||
+      isLessonModalOpen.value)
+  ) {
+    return;
+  }
+
+  const isCtrlCmd = e.ctrlKey || e.metaKey;
+  if (isCtrlCmd && e.key.toLowerCase() === 'z') {
+    e.preventDefault();
+    if (e.shiftKey) {
+      redo();
+    } else {
+      undo();
+    }
+    return;
+  }
+
+  if (isCtrlCmd && e.key.toLowerCase() === 'y') {
+    e.preventDefault();
+    redo();
+    return;
+  }
+
+  if (e.key === 'Escape') {
+    if (selectedLessonIds.value.length > 0) {
+      clearSelection();
+    }
+  } else if (e.key === 'Delete' || e.key === 'Backspace') {
+    if (selectedLessonIds.value.length > 0) {
+      handleDeleteSelection();
+    }
+  }
+}
+
+function handleGlobalClick(e: MouseEvent) {
+  if (
+    !isEditMode.value ||
+    selectedLessonIds.value.length === 0 ||
+    isLessonModalOpen.value
+  ) {
+    return;
+  }
+  const target = e.target as HTMLElement | null;
+  if (!target) return;
+
+  const isLessonCard = !!target.closest('.js-lesson-card');
+  const isInteractive = !!target.closest(
+    'button, a, input, select, textarea, [role="button"], label, [role="dialog"]',
+  );
+
+  if (!isLessonCard && !isInteractive) {
+    clearSelection();
+  }
+}
 
 // ----------------------------------------------------
 // Lesson Edit / Add Modal (Relational Schema Best Practices)
@@ -329,7 +754,6 @@ const lessonForm = ref({
   duration: 1,
   room: '',
   subjectId: '',
-  courseId: '',
 });
 
 // Subject Options directly from group subjects table
@@ -349,30 +773,70 @@ const selectedSubjectObj = computed(() => {
   );
 });
 
-// Course Options derived from selected subject's courses
-const courseOptions = computed(() => {
-  const sub = selectedSubjectObj.value;
-  const opts = [
-    {
-      label: t('groups.settings.schedule.editor.select_course_prompt'),
-      value: '',
-    },
-  ];
-  if (sub && sub.courses && sub.courses.length > 0) {
-    sub.courses.forEach((c) => {
-      opts.push({ label: c.name, value: c.id });
-    });
+function getSlotTimeRange(startSlot: number, endSlot: number): string {
+  const [startH, startM] = (draftConfigForm.value.startTime || '08:00')
+    .split(':')
+    .map(Number);
+  let currentMins = (startH || 8) * 60 + (startM || 0);
+
+  const breaksMap: Record<number, number> = {};
+  draftConfigForm.value.breaks.forEach((b) => {
+    if (b.slot) {
+      breaksMap[Number(b.slot)] = Number(b.duration || 0);
+    }
+  });
+
+  const lessonDur = Number(draftConfigForm.value.lessonDurationMins || 45);
+
+  let rangeStartTime = '';
+  let rangeEndTime = '';
+
+  for (let s = 1; s <= endSlot; s++) {
+    const slotStartM = currentMins;
+    const endM = slotStartM + lessonDur;
+
+    if (s === startSlot) {
+      const h = Math.floor(slotStartM / 60)
+        .toString()
+        .padStart(2, '0');
+      const m = (slotStartM % 60).toString().padStart(2, '0');
+      rangeStartTime = `${h}:${m}`;
+    }
+
+    if (s === endSlot) {
+      const h = Math.floor(endM / 60)
+        .toString()
+        .padStart(2, '0');
+      const m = (endM % 60).toString().padStart(2, '0');
+      rangeEndTime = `${h}:${m}`;
+    }
+
+    const breakTime = breaksMap[s] || 0;
+    currentMins = endM + breakTime;
   }
-  return opts;
-});
+
+  if (rangeStartTime && rangeEndTime) {
+    return `${rangeStartTime} - ${rangeEndTime}`;
+  }
+  return '';
+}
 
 // Summary text for selected day & slot at top of modal
 const selectedSlotSummary = computed(() => {
   const dObj = daysList.value.find((d) => d.day === lessonForm.value.day);
-  const sObj = slotTimes.value.find((s) => s.slot === lessonForm.value.slot);
   const dayName = dObj ? dObj.label : `Tag ${lessonForm.value.day}`;
-  const timeStr = sObj ? ` (${sObj.time})` : '';
-  return `${dayName} • ${lessonForm.value.slot}. Stunde${timeStr}`;
+
+  const startSlot = Number(lessonForm.value.slot);
+  const duration = Math.max(1, Number(lessonForm.value.duration || 1));
+  const endSlot = startSlot + duration - 1;
+
+  const timeRange = getSlotTimeRange(startSlot, endSlot);
+  const timeStr = timeRange ? ` (${timeRange})` : '';
+
+  const slotRangeStr =
+    duration > 1 ? `${startSlot}.-${endSlot}.` : `${startSlot}.`;
+
+  return `${dayName}, ${slotRangeStr} Stunde${timeStr}`;
 });
 
 const editingLessonRef = ref<Lesson | null>(null);
@@ -409,7 +873,6 @@ function openAddLessonModal(day: number, slot: number) {
     duration: 1,
     room: '',
     subjectId: '',
-    courseId: '',
   };
   isLessonModalOpen.value = true;
 }
@@ -430,19 +893,6 @@ function openEditLessonModal(lesson: Lesson) {
 
   const matchedSubId = matchedSub ? matchedSub.id : '';
 
-  let matchedCourseId = '';
-  if (matchedSub && matchedSub.courses) {
-    const matchedCrs = matchedSub.courses.find(
-      (c) =>
-        (lesson.courseId && c.id === lesson.courseId) ||
-        c.id === lesson.courses?.id ||
-        c.name.toLowerCase() === (lesson.courseName || '').toLowerCase(),
-    );
-    if (matchedCrs) {
-      matchedCourseId = matchedCrs.id;
-    }
-  }
-
   lessonForm.value = {
     id: lesson.id,
     day: Number(lesson.day),
@@ -450,7 +900,6 @@ function openEditLessonModal(lesson: Lesson) {
     duration: Number(lesson.duration || 1),
     room: lesson.room || '',
     subjectId: matchedSubId,
-    courseId: matchedCourseId,
   };
   isLessonModalOpen.value = true;
 }
@@ -463,10 +912,6 @@ function closeLessonModal() {
 function submitLessonForm() {
   const subObj = selectedSubjectObj.value;
   if (!subObj) return;
-
-  const crsObj = subObj.courses?.find(
-    (c) => c.id === lessonForm.value.courseId,
-  );
 
   const targetId =
     lessonForm.value.id ||
@@ -482,9 +927,6 @@ function submitLessonForm() {
     subject: subObj.name,
     subjectAbbr: subObj.name.substring(0, 3).toUpperCase(),
     subjects: { id: subObj.id, name: subObj.name },
-    courseId: crsObj ? crsObj.id : null,
-    courseName: crsObj ? crsObj.name : undefined,
-    courses: crsObj ? { id: crsObj.id, name: crsObj.name } : null,
   };
 
   const existingIdx = draftLessons.value.findIndex((l) => l.id === targetId);
@@ -494,19 +936,24 @@ function submitLessonForm() {
     draftLessons.value.push(newLesson);
   }
 
-  closeLessonModal();
-}
-
-function handleDeleteLessonFromModal() {
-  if (!lessonForm.value.id) return;
-  draftLessons.value = draftLessons.value.filter(
-    (l) => l.id !== lessonForm.value.id,
-  );
+  pushHistoryState(draftLessons.value);
   closeLessonModal();
 }
 
 onMounted(() => {
   void loadSubjects();
+  window.addEventListener('keydown', handleWindowKeyDown);
+  window.addEventListener('click', handleGlobalClick);
+  if (isEditMode.value) {
+    showToolbar.value = true;
+  }
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleWindowKeyDown);
+  window.removeEventListener('click', handleGlobalClick);
+  timeCellRefs.clear();
+  contentCellRefs.clear();
 });
 </script>
 
@@ -602,174 +1049,96 @@ onMounted(() => {
           </h3>
         </div-->
 
-        <div class="sm:hidden mb-4">
-          <BaseTabs
-            :items="dayTabItems"
-            :active-id="String(activeMobileDay)"
-            @change="(id) => (activeMobileDay = Number(id))"
-          />
-        </div>
-
-        <BaseTableWrapper>
-          <div class="w-full min-w-[300px]">
-            <div class="hidden sm:grid grid-cols-[80px_repeat(5,1fr)] gap-2">
+        <div
+          class="grid transition-[grid-template-rows,opacity] duration-500 ease-out"
+          :class="
+            showToolbar
+              ? 'grid-rows-[1fr] opacity-100'
+              : 'grid-rows-[0fr] opacity-0 pointer-events-none'
+          "
+        >
+          <div class="overflow-hidden min-h-0">
+            <div class="pb-4">
               <div
-                class="bg-surface text-on-ghost px-3 py-2 border border-ghost-border text-center font-bold rounded-md max-[500px]:rounded-lg text-base shadow-input max-[500px]:static min-[501px]:[grid-column:1] min-[501px]:[grid-row:1]"
+                class="flex flex-wrap items-center justify-between gap-2 sm:p-1 sm:rounded-2xl sm:border border-ghost-border sm:bg-surface sm:shadow-input"
               >
-                {{ t('schedule.lesson') }}
-              </div>
-              <div
-                v-for="d in daysList"
-                :key="d.day"
-                class="bg-surface text-on-ghost font-bold text-base p-2 text-center rounded-md border border-ghost-border"
-              >
-                {{ d.label }}
-              </div>
+                <div class="flex items-center gap-2">
+                  <BaseTooltip content="Rückgängig (Strg+Z)" placement="bottom">
+                    <BaseButton
+                      variant="ghost"
+                      :icon="Undo2"
+                      :disabled="!canUndo"
+                      @click="undo"
+                    />
+                  </BaseTooltip>
 
-              <template v-for="sObj in slotTimes" :key="sObj.slot">
-                <div class="flex items-center justify-center text-center">
-                  <div>
-                    <div class="text-lg font-bold text-on-ghost">
-                      {{ sObj.slot }}
-                    </div>
-                    <div class="text-xs text-on-ghost-muted">
-                      {{ sObj.time }}
-                    </div>
-                  </div>
+                  <BaseTooltip
+                    content="Wiederholen (Strg+Y)"
+                    placement="bottom"
+                  >
+                    <BaseButton
+                      variant="ghost"
+                      :icon="Redo2"
+                      :disabled="!canRedo"
+                      @click="redo"
+                    />
+                  </BaseTooltip>
+
+                  <div
+                    class="hidden sm:block h-4 w-px bg-ghost-border mx-1"
+                  ></div>
+
+                  <span
+                    class="hidden sm:inline-block text-sm font-semibold text-on-ghost"
+                    >{{ selectedLessonIds.length }} ausgewählt
+                  </span>
                 </div>
 
-                <template v-for="d in daysList" :key="`${d.day}-${sObj.slot}`">
-                  <template
-                    v-if="
-                      !lessonGridMap.coveredSet.has(`${d.day}-${sObj.slot}`)
-                    "
+                <div class="hidden sm:flex flex-wrap items-center gap-2">
+                  <BaseButton
+                    variant="ghost"
+                    :icon="Plus"
+                    :disabled="selectedLessonIds.length !== 1"
+                    @click="handleAddLessonFromSelection"
                   >
-                    <template
-                      v-for="lesson in [
-                        lessonGridMap.map[`${d.day}-${sObj.slot}`],
-                      ]"
-                    >
-                      <div
-                        v-if="lesson"
-                        class="relative group rounded-md max-[500px]:px-2.5 max-[500px]:py-1.5 px-2 py-1 border border-ghost-border bg-surface text-on-ghost hover:bg-surface-hover hover:border-ghost-hover-border transition-all cursor-pointer shadow-input flex flex-col justify-between"
-                        :style="{
-                          gridRow: `span ${lesson.duration}`,
-                        }"
-                        @click.stop="openEditLessonModal(lesson)"
-                      >
-                        <div>
-                          <div class="font-bold text-base truncate">
-                            {{ getDisplayName(lesson) }}
-                          </div>
-                          <div
-                            v-if="lesson.room"
-                            class="text-sm text-on-ghost-muted truncate"
-                          >
-                            {{ lesson.room }}
-                          </div>
-                          <div
-                            v-if="lesson.courseName || lesson.courses?.name"
-                            class="text-[9px] inline-block px-1.5 py-0.5 rounded bg-ghost-hover text-on-ghost-muted mt-1 font-semibold truncate"
-                          >
-                            {{ lesson.courses?.name || lesson.courseName }}
-                          </div>
-                        </div>
-                      </div>
-
-                      <button
-                        v-else
-                        type="button"
-                        class="h-[54px] border border-dashed border-ghost-border hover:border-action/50 hover:bg-action/5 rounded-xl transition-all flex items-center justify-center group cursor-pointer"
-                        @click.stop="openAddLessonModal(d.day, sObj.slot)"
-                      >
-                        <Plus
-                          class="text-on-ghost-muted group-hover:text-action transition-transform group-hover:scale-110"
-                          :size="20"
-                        />
-                      </button>
-                    </template>
-                  </template>
-                </template>
-              </template>
-            </div>
-
-            <div
-              class="sm:hidden grid grid-cols-[85px_1fr] gap-2 items-stretch"
-            >
-              <div
-                v-for="sObj in slotTimes"
-                :key="`time-${sObj.slot}`"
-                class="flex flex-col justify-center items-center text-center min-h-[58px]"
-                :style="{ gridColumn: '1', gridRow: `${sObj.slot}` }"
-              >
-                <span class="font-bold text-lg text-on-ghost">{{
-                  sObj.slot
-                }}</span>
-                <span class="text-xs text-on-ghost-muted">{{ sObj.time }}</span>
+                    {{ t('groups.settings.schedule.editor.add_lesson_slot') }}
+                  </BaseButton>
+                  <BaseButton
+                    variant="ghost"
+                    :icon="Pencil"
+                    :disabled="selectedLessonIds.length !== 1"
+                    @click="handleEditLessonFromSelection"
+                  >
+                    {{ t('groups.settings.schedule.editor.edit_lesson_title') }}
+                  </BaseButton>
+                  <BaseButton
+                    variant="ghost"
+                    :icon="Trash2"
+                    :disabled="selectedLessonIds.length === 0"
+                    @click="handleDeleteSelection"
+                  >
+                    {{
+                      t('groups.settings.schedule.editor.delete_lesson_button')
+                    }}
+                  </BaseButton>
+                </div>
               </div>
-
-              <template v-for="sObj in slotTimes" :key="`content-${sObj.slot}`">
-                <template
-                  v-if="
-                    !lessonGridMap.coveredSet.has(
-                      `${activeMobileDay}-${sObj.slot}`,
-                    )
-                  "
-                >
-                  <template
-                    v-for="lesson in [
-                      lessonGridMap.map[`${activeMobileDay}-${sObj.slot}`],
-                    ]"
-                  >
-                    <div
-                      v-if="lesson"
-                      class="px-2.5 py-1.5 rounded-lg border border-ghost-border bg-surface text-on-ghost hover:bg-surface-hover hover:border-ghost-hover-border transition-all cursor-pointer shadow-input flex flex-col justify-between h-full min-h-[54px]"
-                      :style="{
-                        gridColumn: '2',
-                        gridRow: `${sObj.slot} / span ${lesson.duration}`,
-                      }"
-                      @click.stop="openEditLessonModal(lesson)"
-                    >
-                      <div>
-                        <div class="font-bold text-base truncate">
-                          {{ getDisplayName(lesson) }}
-                        </div>
-                        <div
-                          v-if="lesson.room"
-                          class="text-sm text-on-ghost-muted truncate"
-                        >
-                          {{ lesson.room }}
-                        </div>
-                        <div
-                          v-if="lesson.courseName || lesson.courses?.name"
-                          class="text-[9px] inline-block px-1.5 py-0.5 rounded bg-ghost-hover text-on-ghost-muted mt-1 font-semibold truncate"
-                        >
-                          {{ lesson.courses?.name || lesson.courseName }}
-                        </div>
-                      </div>
-                    </div>
-
-                    <button
-                      v-else
-                      type="button"
-                      class="w-full h-full h-[58px] border border-dashed border-ghost-border hover:border-action/50 hover:bg-action/5 rounded-xl transition-all flex items-center justify-center group cursor-pointer"
-                      :style="{
-                        gridColumn: '2',
-                        gridRow: `${sObj.slot} / span 1`,
-                      }"
-                      @click.stop="openAddLessonModal(activeMobileDay, sObj.slot)"
-                    >
-                      <Plus
-                        class="text-on-ghost-muted group-hover:text-action transition-transform group-hover:scale-110"
-                        :size="20"
-                      />
-                    </button>
-                  </template>
-                </template>
-              </template>
             </div>
           </div>
-        </BaseTableWrapper>
+        </div>
+
+        <AdminSchedule
+          :lessons="draftLessons"
+          :subjects="subjects"
+          :is-editable="true"
+          :selected-lesson-ids="selectedLessonIds"
+          :time-slots="slotTimes"
+          :animated="false"
+          @select-lesson="handleLessonClick"
+          @select-day="selectDayColumn"
+          @add-lesson="({ day, slot }) => openAddLessonModal(day, slot)"
+          @contextmenu-lesson="handleContextMenu"
+        />
       </div>
 
       <div class="sm:p-6">
@@ -903,7 +1272,9 @@ onMounted(() => {
         <AdminSchedule
           v-else
           :lessons="lessons"
+          :subjects="subjects"
           :selected-lesson-id="subForm.lessonId"
+          :animated="!hasSwitchedFromEditor"
           @select-lesson="onLessonSelected"
         />
       </div>
@@ -928,6 +1299,23 @@ onMounted(() => {
 
         <div class="grid grid-cols-2 gap-3 mb-4 sm:grid-cols-1">
           <input v-model="subForm.lessonId" type="hidden" />
+          <div
+            v-if="
+              selectedLessonSubject &&
+              selectedLessonSubject.courses &&
+              selectedLessonSubject.courses.length > 0
+            "
+            class="form-field col-span-2 sm:col-span-1"
+          >
+            <BaseLabel for="sub-course-select">Betroffener Kurs</BaseLabel>
+            <BaseSelect
+              id="sub-course-select"
+              v-model="subForm.courseId"
+              :options="targetCourseOptions"
+              classes="w-full"
+              :disabled="!canManageScheduleChanges"
+            />
+          </div>
           <div class="form-field">
             <BaseLabel for="sub-subject">{{
               t('groups.settings.schedule.changes.new_subject_label')
@@ -1040,6 +1428,7 @@ onMounted(() => {
             <thead>
               <tr>
                 <th>Subject</th>
+                <th>Course</th>
                 <th>Room</th>
                 <th>Day</th>
                 <th>Slot</th>
@@ -1051,6 +1440,7 @@ onMounted(() => {
             <tbody>
               <tr v-for="sub in subs" :key="sub.id">
                 <td>{{ sub.subject || 'Unbekannt' }}</td>
+                <td>{{ getSubCourseName(sub.courseId) }}</td>
                 <td>{{ sub.room || '-' }}</td>
                 <td>{{ sub.day || '-' }}</td>
                 <td>{{ sub.slot || '-' }}</td>
@@ -1094,11 +1484,8 @@ onMounted(() => {
       </template>
 
       <template #content>
-        <div
-          class="flex items-center gap-2 p-3 bg-action/10 border border-action/20 rounded-xl text-action font-semibold text-sm"
-        >
-          <Calendar class="size-4 shrink-0" />
-          <span>{{ selectedSlotSummary }}</span>
+        <div class="text-base text-on-ghost-muted">
+          {{ selectedSlotSummary }}
         </div>
 
         <div
@@ -1121,25 +1508,6 @@ onMounted(() => {
               id="lesson-subject-select"
               v-model="lessonForm.subjectId"
               :options="subjectOptions"
-              classes="w-full"
-            />
-          </BaseFormGroup>
-
-          <BaseFormGroup
-            v-if="
-              selectedSubjectObj &&
-              selectedSubjectObj.courses &&
-              selectedSubjectObj.courses.length > 0
-            "
-            id="lesson-course"
-          >
-            <BaseLabel for="lesson-course-select">{{
-              t('groups.settings.schedule.editor.course_label')
-            }}</BaseLabel>
-            <BaseSelect
-              id="lesson-course-select"
-              v-model="lessonForm.courseId"
-              :options="courseOptions"
               classes="w-full"
             />
           </BaseFormGroup>
@@ -1170,20 +1538,41 @@ onMounted(() => {
             />
           </BaseFormGroup>
         </template>
-        <BaseButton
-          v-if="lessonForm.id"
-          type="button"
-          variant="ghost"
-          :icon="Trash2"
-          @click="handleDeleteLessonFromModal"
-        >
-          {{ t('groups.settings.schedule.editor.delete_lesson_button') }}
-        </BaseButton>
       </template>
 
       <template #action-text>
         {{ t('groups.settings.schedule.editor.save_lesson_button') }}
       </template>
     </BaseModal>
+
+    <BaseMenu
+      v-if="isEditMode"
+      :open="mobileMenuOpen"
+      @close="mobileMenuOpen = false"
+      @cancel="mobileMenuOpen = false"
+    >
+      <BaseMenuButton
+        :icon="Plus"
+        :disabled="selectedLessonIds.length !== 1"
+        @click="handleAddLessonFromSelection"
+      >
+        {{ t('groups.settings.schedule.editor.add_lesson_slot') }}
+      </BaseMenuButton>
+      <BaseMenuButton
+        :icon="Pencil"
+        :disabled="selectedLessonIds.length !== 1"
+        @click="handleEditLessonFromSelection"
+      >
+        {{ t('groups.settings.schedule.editor.edit_lesson_title') }}
+      </BaseMenuButton>
+      <BaseMenuButton
+        variant="danger"
+        :icon="Trash2"
+        :disabled="selectedLessonIds.length === 0"
+        @click="handleDeleteSelection"
+      >
+        {{ t('groups.settings.schedule.editor.delete_lesson_button') }}
+      </BaseMenuButton>
+    </BaseMenu>
   </div>
 </template>

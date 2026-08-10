@@ -39,6 +39,7 @@ pub struct UpdateScheduleConfigDto {
 #[serde(rename_all = "camelCase")]
 pub struct CreateScheduleSubDto {
     pub lesson_id: Uuid,
+    pub course_id: Option<Uuid>,
     pub day: Option<i32>,
     pub slot: Option<i32>,
     pub duration: Option<i32>,
