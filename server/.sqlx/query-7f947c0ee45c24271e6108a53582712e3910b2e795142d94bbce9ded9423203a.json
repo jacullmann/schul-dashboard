@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT s.id, s.day, s.slot, s.duration, s.room, s.course_id,\n                  sub.id as \"sid?\", sub.name as \"sname?\",\n                  c.id as \"cid?\", c.name as \"cname?\"\n           FROM schedules s\n           LEFT JOIN subjects sub ON sub.id = s.subject_id\n           LEFT JOIN courses c ON c.id = s.course_id\n           WHERE s.tenant_id = $1",
+  "query": "SELECT s.id, s.day, s.slot, s.duration, s.room,\n       sub.id as \"subject_id: Option<Uuid>\", sub.name as \"subject_name?\"\nFROM schedules s\nLEFT JOIN subjects sub ON sub.id = s.subject_id\nWHERE s.tenant_id = $1",
   "describe": {
     "columns": [
       {
@@ -60,55 +60,22 @@
       },
       {
         "ordinal": 5,
-        "name": "course_id",
+        "name": "subject_id: Option<Uuid>",
         "type_info": "Uuid",
         "origin": {
           "Table": {
-            "table": "schedules",
-            "name": "course_id"
+            "table": "subjects",
+            "name": "id"
           }
         }
       },
       {
         "ordinal": 6,
-        "name": "sid?",
-        "type_info": "Uuid",
-        "origin": {
-          "Table": {
-            "table": "subjects",
-            "name": "id"
-          }
-        }
-      },
-      {
-        "ordinal": 7,
-        "name": "sname?",
+        "name": "subject_name?",
         "type_info": "Text",
         "origin": {
           "Table": {
             "table": "subjects",
-            "name": "name"
-          }
-        }
-      },
-      {
-        "ordinal": 8,
-        "name": "cid?",
-        "type_info": "Uuid",
-        "origin": {
-          "Table": {
-            "table": "courses",
-            "name": "id"
-          }
-        }
-      },
-      {
-        "ordinal": 9,
-        "name": "cname?",
-        "type_info": "Text",
-        "origin": {
-          "Table": {
-            "table": "courses",
             "name": "name"
           }
         }
@@ -120,17 +87,14 @@
       ]
     },
     "nullable": [
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true,
       false,
-      false
+      false,
+      false,
+      false,
+      true,
+      true,
+      true
     ]
   },
-  "hash": "644aa43aafc1a61dea3626531766c9e93316a6f285aa7e5656887545ebb6e19b"
+  "hash": "7f947c0ee45c24271e6108a53582712e3910b2e795142d94bbce9ded9423203a"
 }

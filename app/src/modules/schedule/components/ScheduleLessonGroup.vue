@@ -8,6 +8,7 @@ withDefaults(
     isActive?: boolean;
     isCurrentDay?: boolean;
     isClickable?: boolean;
+    hasContextMenu?: boolean;
     selectedLessonId?: string;
     selectedLessonIds?: string[];
     dayIndex?: number;
@@ -18,6 +19,7 @@ withDefaults(
   }>(),
   {
     animated: true,
+    hasContextMenu: false,
     selectedLessonId: undefined,
     selectedLessonIds: () => [],
     dayIndex: undefined,
@@ -52,6 +54,7 @@ const emit = defineEmits<{
       :lesson="lesson"
       :has-border="index < group.length - 1"
       :is-clickable="isClickable"
+      :has-context-menu="hasContextMenu"
       :is-selected="
         (Boolean(selectedLessonId) &&
           (selectedLessonId === lesson.id ||

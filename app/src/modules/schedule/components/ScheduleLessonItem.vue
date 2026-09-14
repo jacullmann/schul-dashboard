@@ -1,25 +1,40 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
+import { useLongPress } from '@/common/composables/useLongPress';
 
-defineEmits<{
+const emit = defineEmits<{
   (e: 'select', lesson: any, event?: MouseEvent): void;
   (e: 'contextmenu', lesson: any, event: UIEvent): void;
 }>();
 
-defineProps<{
-  lesson: any;
-  hasBorder: boolean;
-  isClickable?: boolean;
-  isSelected?: boolean;
-  getDisplayName: (l: any) => string;
-}>();
+const props = withDefaults(
+  defineProps<{
+    lesson: any;
+    hasBorder: boolean;
+    isClickable?: boolean;
+    isSelected?: boolean;
+    hasContextMenu?: boolean;
+    getDisplayName: (l: any) => string;
+  }>(),
+  { hasContextMenu: false },
+);
 
 const { t } = useI18n();
+
+const { handlers } = useLongPress((event) =>
+  emit('contextmenu', props.lesson, event),
+);
+
+function onClick(event: MouseEvent) {
+  if (!props.isClickable) return;
+
+  emit('select', props.lesson, event);
+}
 </script>
 
 <template>
   <div
-    class="js-lesson-card flex-1 flex flex-col justify-start h-full max-[500px]:px-2.5 max-[500px]:py-1.5 px-2 py-1 select-none"
+    class="js-lesson-card flex-1 flex flex-col justify-start h-full max-[500px]:px-2.5 max-[500px]:py-1.5 px-2 py-1 select-none [-webkit-touch-callout:none]"
     :class="[
       hasBorder
         ? 'border-b border-ghost-border min-[501px]:group-[.current-day]:border-surface-hover-border! group-[.highlight-active]:border-on-ghost-muted!'
@@ -29,8 +44,8 @@ const { t } = useI18n();
         : '',
       isSelected ? 'min-[501px]:bg-action! min-[501px]:text-on-action!' : '',
     ]"
-    @contextmenu.prevent.stop="$emit('contextmenu', lesson, $event)"
-    @click.stop="isClickable ? $emit('select', lesson, $event) : undefined"
+    v-on="hasContextMenu ? handlers : {}"
+    @click.stop="onClick"
   >
     <div v-if="lesson.cancelled">
       <div

@@ -203,6 +203,7 @@ onMounted(() => {
             :group="group"
             :group-key="String(key)"
             :is-clickable="true"
+            :has-context-menu="isEditable"
             :selected-lesson-id="selectedLessonId"
             :selected-lesson-ids="selectedLessonIds"
             :animated="animated"
