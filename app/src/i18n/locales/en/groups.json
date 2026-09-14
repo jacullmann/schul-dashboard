@@ -241,6 +241,8 @@
         "save_all_button": "Save Changes",
         "cancel_button": "Cancel",
         "success_save_all": "Schedule saved successfully",
+        "save_all_failed": "The schedule could not be saved. No changes were applied.",
+        "save_service_unavailable": "The schedule save service is currently unavailable. No changes were applied. Please try again later.",
         "add_lesson_slot": "Add lesson",
         "empty_slot": "Free slot",
         "day_monday": "Monday",

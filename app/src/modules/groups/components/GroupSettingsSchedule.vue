@@ -22,7 +22,7 @@ import AdminSchedule from '@/modules/groups/components/AdminSchedule.vue';
 import BaseMenu from '@/common/components/BaseMenu.vue';
 import BaseMenuButton from '@/common/components/BaseMenuButton.vue';
 import type { ScheduleSubstitution } from '@/modules/groups/types';
-import type { Lesson } from '@/modules/schedule/types';
+import type { Lesson, ScheduleConfig } from '@/modules/schedule/types';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useSubjectAdmin } from '@/modules/groups/composables/useSubjectAdmin';
 import { useI18n } from 'vue-i18n';
@@ -49,7 +49,7 @@ const emit = defineEmits<{
   (
     e: 'save-schedule-batch',
     updatedLessons: Lesson[],
-    configPayload?: Record<string, unknown>,
+    configPayload: ScheduleConfig,
     onSuccess?: () => void,
   ): void;
   (e: 'save-lesson', payload: Record<string, unknown>): void;

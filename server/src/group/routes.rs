@@ -56,12 +56,11 @@ pub fn router() -> Router<AppState> {
         )
         .route(
             "/group-admin/schedule",
-            get(get_schedule_admin).post(save_schedule_admin),
+            get(get_schedule_admin)
+                .post(save_schedule_admin)
+                .put(replace_schedule_admin),
         )
-        .route(
-            "/group-admin/schedule/{id}",
-            delete(delete_schedule_admin),
-        )
+        .route("/group-admin/schedule/{id}", delete(delete_schedule_admin))
         .route(
             "/group-admin/schedule/subs",
             get(get_schedule_subs_admin).post(create_schedule_sub),

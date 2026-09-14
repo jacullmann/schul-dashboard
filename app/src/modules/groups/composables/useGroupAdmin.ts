@@ -1,5 +1,6 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
+import axios from 'axios';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import hw from '@/api/api.ts';
 import type {
@@ -9,7 +10,7 @@ import type {
   AdminAnnouncement,
   GroupInviteLog,
 } from '@/modules/groups/types';
-import type { Lesson } from '@/modules/schedule/types';
+import type { Lesson, ScheduleConfig } from '@/modules/schedule/types';
 import { useToast } from '@/common/composables/useToast';
 import { useModalStore } from '@/stores/modalStore';
 import { useI18n } from 'vue-i18n';
@@ -235,33 +236,70 @@ export function useGroupAdmin() {
 
   const savingScheduleConfig = ref(false);
 
+  type ScheduleLessonPayload = {
+    id?: string;
+    day: number;
+    slot: number;
+    duration: number;
+    room: string | null;
+    subjectId: string | null;
+  };
+
+  const uuidPattern =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+  function createScheduleLessonPayload(lesson: Lesson): ScheduleLessonPayload {
+    const subjectId = lesson.subjectId ?? lesson.subjects?.id ?? null;
+
+    return {
+      ...(uuidPattern.test(lesson.id) ? { id: lesson.id } : {}),
+      day: Number(lesson.day),
+      slot: Number(lesson.slot),
+      duration: Number(lesson.duration),
+      room: lesson.room?.trim() || null,
+      subjectId,
+    };
+  }
+
+  function getScheduleSaveError(error: unknown): string {
+    if (!axios.isAxiosError<{ error?: string }>(error)) {
+      return t('groups.settings.schedule.editor.save_all_failed');
+    }
+
+    if (error.response?.status === 405) {
+      return t('groups.settings.schedule.editor.save_service_unavailable');
+    }
+
+    return (
+      error.response?.data?.error ??
+      t('groups.settings.schedule.editor.save_all_failed')
+    );
+  }
+
   async function saveScheduleBatch(
     updatedLessons: Lesson[],
-    configPayload?: Record<string, any>,
+    configPayload: ScheduleConfig,
     onSuccess?: () => void,
   ): Promise<boolean> {
     savingScheduleConfig.value = true;
     try {
-      if (configPayload) {
-        await hw.patch('/group-admin/schedule-config', {
-          scheduleConfig: configPayload,
-        });
-      }
-      await hw.post('/group-admin/schedule', { lessons: updatedLessons });
-      await useAppAuth().checkAuthStatus();
-      await loadSchedule();
+      await hw.put('/group-admin/schedule', {
+        lessons: updatedLessons.map(createScheduleLessonPayload),
+        scheduleConfig: configPayload,
+      });
+      await Promise.all([checkAuthStatus(), loadSchedule()]);
       showMessage(t('groups.settings.schedule.editor.success_save_all'));
       if (onSuccess) onSuccess();
       return true;
-    } catch {
-      showMessage('Fehler beim Speichern des Stundenplans', true);
+    } catch (error: unknown) {
+      showMessage(getScheduleSaveError(error), true);
       return false;
     } finally {
       savingScheduleConfig.value = false;
     }
   }
 
-  async function updateScheduleConfig(scheduleConfig: Record<string, any>) {
+  async function updateScheduleConfig(scheduleConfig: ScheduleConfig) {
     savingScheduleConfig.value = true;
     try {
       await hw.patch('/group-admin/schedule-config', { scheduleConfig });

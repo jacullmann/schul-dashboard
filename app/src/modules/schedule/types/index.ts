@@ -23,6 +23,13 @@ export interface Lesson {
   isSubstitutedSubject?: boolean;
 }
 
+export interface ScheduleConfig {
+  startTime: string;
+  totalSlots: number;
+  lessonDurationMins: number;
+  breaks: Record<number, number>;
+}
+
 export interface Substitution {
   id: string;
   lessonId: string;

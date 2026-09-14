@@ -1,11 +1,13 @@
 use crate::{
     common::{permission::GroupPermissions, role::Role},
     error::{AppError, AppResult},
-    group::dto::CreateScheduleSubDto,
+    group::dto::{CreateScheduleSubDto, ReplaceScheduleDto},
     state::AppState,
 };
+use chrono::NaiveTime;
 use serde_json::{Value, json};
 use sqlx::PgPool;
+use std::collections::HashSet;
 use uuid::Uuid;
 
 pub struct GroupAdminService {
@@ -700,12 +702,9 @@ impl GroupAdminService {
         let mut tx = self.db.begin().await?;
 
         if let Some(lessons_arr) = body.get("lessons").and_then(|v| v.as_array()) {
-            sqlx::query!(
-                r#"DELETE FROM schedules WHERE tenant_id = $1"#,
-                tenant_id
-            )
-            .execute(&mut *tx)
-            .await?;
+            sqlx::query!(r#"DELETE FROM schedules WHERE tenant_id = $1"#, tenant_id)
+                .execute(&mut *tx)
+                .await?;
 
             for item in lessons_arr {
                 let day = item.get("day").and_then(|v| v.as_i64()).unwrap_or(1) as i32;
@@ -794,6 +793,170 @@ impl GroupAdminService {
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta)
                VALUES ($1, 'group-admin:schedule:save', $2)"#,
+            user_id,
+            json!({ "tenantId": tenant_id })
+        )
+        .execute(&mut *tx)
+        .await?;
+
+        tx.commit().await?;
+
+        Ok(json!({ "ok": true }))
+    }
+
+    pub async fn replace_schedule(
+        &self,
+        tenant_id: Uuid,
+        user_id: Uuid,
+        dto: ReplaceScheduleDto,
+    ) -> AppResult<Value> {
+        if NaiveTime::parse_from_str(&dto.schedule_config.start_time, "%H:%M").is_err() {
+            return Err(AppError::bad_request(
+                "Start time must use the HH:MM format.",
+            ));
+        }
+
+        if !(1..=15).contains(&dto.schedule_config.total_slots) {
+            return Err(AppError::bad_request(
+                "The schedule must contain between 1 and 15 slots.",
+            ));
+        }
+
+        if !(10..=120).contains(&dto.schedule_config.lesson_duration_mins) {
+            return Err(AppError::bad_request(
+                "Lesson duration must be between 10 and 120 minutes.",
+            ));
+        }
+
+        if dto.schedule_config.breaks.iter().any(|(slot, duration)| {
+            !(1..=dto.schedule_config.total_slots).contains(slot) || !(1..=180).contains(duration)
+        }) {
+            return Err(AppError::bad_request(
+                "Breaks must belong to a valid slot and last between 1 and 180 minutes.",
+            ));
+        }
+
+        if dto.lessons.len() > 250 {
+            return Err(AppError::bad_request(
+                "A schedule may not contain more than 250 lessons.",
+            ));
+        }
+
+        let mut lesson_ids = HashSet::new();
+        let mut subject_ids = HashSet::new();
+
+        for lesson in &dto.lessons {
+            if !(1..=5).contains(&lesson.day) || lesson.slot < 1 || lesson.duration < 1 {
+                return Err(AppError::bad_request(
+                    "Every lesson must fit within the configured school week.",
+                ));
+            }
+
+            let end_slot = lesson
+                .slot
+                .checked_add(lesson.duration - 1)
+                .ok_or_else(|| {
+                    AppError::bad_request(
+                        "Every lesson must fit within the configured school week.",
+                    )
+                })?;
+
+            if end_slot > dto.schedule_config.total_slots {
+                return Err(AppError::bad_request(
+                    "Every lesson must fit within the configured school week.",
+                ));
+            }
+
+            if lesson.room.as_deref().is_some_and(|room| room.len() > 100) {
+                return Err(AppError::bad_request(
+                    "Room names may not exceed 100 characters.",
+                ));
+            }
+
+            if let Some(id) = lesson.id {
+                if !lesson_ids.insert(id) {
+                    return Err(AppError::bad_request(
+                        "Duplicate lesson IDs are not allowed.",
+                    ));
+                }
+            }
+
+            if let Some(subject_id) = lesson.subject_id {
+                subject_ids.insert(subject_id);
+            }
+        }
+
+        let lesson_ids: Vec<_> = lesson_ids.into_iter().collect();
+        if !lesson_ids.is_empty() {
+            let existing_count = sqlx::query_scalar!(
+                r#"SELECT COUNT(*) FROM schedules WHERE tenant_id = $1 AND id = ANY($2)"#,
+                tenant_id,
+                &lesson_ids
+            )
+            .fetch_one(&self.db)
+            .await?
+            .unwrap_or(0);
+
+            if existing_count != lesson_ids.len() as i64 {
+                return Err(AppError::bad_request(
+                    "An existing lesson does not belong to this group.",
+                ));
+            }
+        }
+
+        let subject_ids: Vec<_> = subject_ids.into_iter().collect();
+        if !subject_ids.is_empty() {
+            let existing_count = sqlx::query_scalar!(
+                r#"SELECT COUNT(*) FROM subjects WHERE tenant_id = $1 AND id = ANY($2)"#,
+                tenant_id,
+                &subject_ids
+            )
+            .fetch_one(&self.db)
+            .await?
+            .unwrap_or(0);
+
+            if existing_count != subject_ids.len() as i64 {
+                return Err(AppError::bad_request(
+                    "A lesson references a subject outside this group.",
+                ));
+            }
+        }
+
+        let schedule_config = serde_json::to_value(&dto.schedule_config)
+            .map_err(|_| AppError::internal("Failed to serialize the schedule configuration."))?;
+        let mut tx = self.db.begin().await?;
+
+        sqlx::query!(
+            r#"UPDATE groups SET schedule_config = $1 WHERE id = $2"#,
+            schedule_config,
+            tenant_id
+        )
+        .execute(&mut *tx)
+        .await?;
+
+        sqlx::query!(r#"DELETE FROM schedules WHERE tenant_id = $1"#, tenant_id)
+            .execute(&mut *tx)
+            .await?;
+
+        for lesson in dto.lessons {
+            sqlx::query!(
+                r#"INSERT INTO schedules (id, tenant_id, day, slot, duration, room, subject_id)
+                   VALUES ($1, $2, $3, $4, $5, $6, $7)"#,
+                lesson.id.unwrap_or_else(Uuid::new_v4),
+                tenant_id,
+                lesson.day,
+                lesson.slot,
+                lesson.duration,
+                lesson.room,
+                lesson.subject_id
+            )
+            .execute(&mut *tx)
+            .await?;
+        }
+
+        sqlx::query!(
+            r#"INSERT INTO user_activity (user_id, type, meta)
+               VALUES ($1, 'group-admin:schedule:replace', $2)"#,
             user_id,
             json!({ "tenantId": tenant_id })
         )

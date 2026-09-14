@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue';
 import hw, { ensureCsrf } from '@/api/api.ts';
 import { useUserStore } from '@/stores/userStore';
+import type { ScheduleConfig } from '@/modules/schedule/types';
 
 const STATUS_ENDPOINT = '/groups/status';
 
@@ -24,7 +25,7 @@ type UserGroup = {
   generatedName?: string;
   ownerId?: string;
   hasUnreadContent?: boolean;
-  scheduleConfig?: Record<string, any>;
+  scheduleConfig?: ScheduleConfig;
   avatarUrl?: string;
 };
 

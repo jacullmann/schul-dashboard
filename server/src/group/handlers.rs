@@ -537,6 +537,20 @@ pub async fn save_schedule_admin(
     ))
 }
 
+pub async fn replace_schedule_admin(
+    State(s): State<AppState>,
+    tc: TenantContext,
+    Json(dto): Json<ReplaceScheduleDto>,
+) -> AppResult<Json<Value>> {
+    crate::require_permission!(tc, crate::common::permission::Permission::EditSchedule);
+
+    Ok(Json(
+        GroupAdminService::from_state(&s)
+            .replace_schedule(tc.tenant_id, tc.user.user_id, dto)
+            .await?,
+    ))
+}
+
 pub async fn delete_schedule_admin(
     State(s): State<AppState>,
     tc: TenantContext,

@@ -1,4 +1,6 @@
-use serde::Deserialize;
+use std::collections::BTreeMap;
+
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use validator::Validate;
 
@@ -33,6 +35,34 @@ pub struct RenameGroupDto {
 #[serde(rename_all = "camelCase")]
 pub struct UpdateScheduleConfigDto {
     pub schedule_config: serde_json::Value,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ReplaceScheduleDto {
+    pub lessons: Vec<ScheduleLessonDto>,
+    pub schedule_config: ScheduleConfigDto,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ScheduleLessonDto {
+    pub id: Option<Uuid>,
+    pub day: i32,
+    pub slot: i32,
+    pub duration: i32,
+    pub room: Option<String>,
+    pub subject_id: Option<Uuid>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ScheduleConfigDto {
+    pub start_time: String,
+    pub total_slots: i32,
+    pub lesson_duration_mins: i32,
+    #[serde(default)]
+    pub breaks: BTreeMap<i32, i32>,
 }
 
 #[derive(Debug, Deserialize)]
