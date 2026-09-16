@@ -34,7 +34,7 @@ function onClick(event: MouseEvent) {
 
 <template>
   <div
-    class="js-lesson-card flex-1 flex flex-col justify-start h-full max-[500px]:px-2.5 max-[500px]:py-1.5 px-2 py-1 select-none [-webkit-touch-callout:none]"
+    class="js-lesson-card flex-1 flex flex-col justify-start h-full max-[500px]:px-2.5 max-[500px]:py-1.5 px-2 py-1 select-none"
     :class="[
       hasBorder
         ? 'border-b border-ghost-border min-[501px]:group-[.current-day]:border-surface-hover-border! group-[.highlight-active]:border-on-ghost-muted!'
@@ -43,6 +43,7 @@ function onClick(event: MouseEvent) {
         ? 'cursor-pointer transition-colors duration-150 hover:bg-surface-hover'
         : '',
       isSelected ? 'min-[501px]:bg-action! min-[501px]:text-on-action!' : '',
+      hasContextMenu ? 'long-press-target' : '',
     ]"
     v-on="hasContextMenu ? handlers : {}"
     @click.stop="onClick"

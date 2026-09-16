@@ -643,6 +643,21 @@ p {
   }
 }
 
+@utility long-press-target {
+  /* Opts out of double-tap zoom, and with it Safari's ~350ms delay before the
+     trailing click — long enough to outlive any click-suppression window. */
+  touch-action: manipulation;
+
+  /* WebKit answers a hold with its own callout and selection UI, and takes the
+     touch away from the page while doing it. Only touch input is held, so
+     pointer devices keep their text selection. */
+  @media (pointer: coarse) {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+}
+
 @utility transition-hover {
   transition:
     color var(--duration-hover) var(--ease-hover),

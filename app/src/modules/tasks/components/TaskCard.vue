@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue';
 import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/vue';
 import { useI18n } from 'vue-i18n';
+import { useLongPress } from '@/common/composables/useLongPress';
 import type { HwItem } from '@/modules/tasks/composables/useTasks';
 import ItemCard from './ItemCard.vue';
 import TaskCardDescription from './TaskCardDescription.vue';
@@ -130,29 +131,38 @@ function handleCardContextMenu(event: MouseEvent) {
   emit('open-menu');
 }
 
+/**
+ * Controls and regions that answer a press themselves — the images row runs a
+ * menu of its own, a field wants the caret — so neither the card's hold nor its
+ * double click may speak for them.
+ */
+const IGNORED_REGIONS = [
+  'button',
+  'a',
+  'input',
+  'textarea',
+  '.item-menu-trigger',
+  '.note-section',
+  '.images-row',
+  '.unpin-trigger',
+  '[role=menu]',
+  '.checkbox',
+].join(', ');
+
 function handleItemDoubleClick(event: MouseEvent) {
   if (!props.user) return;
   const target = event.target as HTMLElement;
-  const ignoreSelectors = [
-    'button',
-    'a',
-    'input',
-    'textarea',
-    '.item-menu-trigger',
-    '.note-section',
-    '.img-clickable',
-    '.img-overlay',
-    '.unpin-trigger',
-    '[role=menu]',
-    '.checkbox',
-  ].join(', ');
 
-  if (target.closest(ignoreSelectors)) {
+  if (target.closest(IGNORED_REGIONS)) {
     return;
   }
 
   emit('toggle-check');
 }
+
+const { handlers: longPressHandlers } = useLongPress(handleCardContextMenu, {
+  ignore: IGNORED_REGIONS,
+});
 
 const isOnlyNote = computed(() => {
   const hasDescription = !!props.item.description;
@@ -176,6 +186,7 @@ watch(
 <template>
   <ItemCard
     :id="'item-' + item.id"
+    class="long-press-target"
     :is-collapsed="isChecked"
     :highlighted="highlighted"
     :title="item.title"
@@ -183,8 +194,8 @@ watch(
     :swipe-action="showOldEntries ? 'keep' : 'archive'"
     :reduced-bottom-margin="isOnlyNote"
     @swiped="$emit('swipe')"
+    v-on="longPressHandlers"
     @dblclick="handleItemDoubleClick($event)"
-    @contextmenu.prevent.stop="handleCardContextMenu($event)"
     @menu-click="handleCardMenuClick($event)"
     @files-dropped="(files: File[]) => $emit('image-drop', files)"
   >

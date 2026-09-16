@@ -3,6 +3,7 @@ import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { Reply, Ellipsis } from '@lucide/vue';
 import Avatar from '@/modules/auth/components/Avatar.vue';
+import { useLongPress } from '@/common/composables/useLongPress';
 
 const { t } = useI18n();
 
@@ -141,6 +142,12 @@ const isBgTransparent = computed(() => {
   );
 });
 
+const { handlers: longPressHandlers } = useLongPress(
+  (event) => emit('menu', event, props.msg),
+  // Links and the bubble's own menu trigger answer a press themselves.
+  { ignore: 'a, button, [role=menu]' },
+);
+
 const formatTime = (timestamp: string) => {
   if (!timestamp) return '';
   const date = new Date(timestamp);
@@ -151,9 +158,9 @@ const formatTime = (timestamp: string) => {
 <template>
   <div
     :id="`msg-${msg.id}`"
-    class="group/msg w-full px-2 md:px-8"
+    class="group/msg long-press-target w-full px-2 md:px-8"
     :class="isGrouped ? 'mt-1' : 'mt-4'"
-    @contextmenu.prevent.stop="emit('menu', $event, msg)"
+    v-on="longPressHandlers"
   >
     <div
       :class="[

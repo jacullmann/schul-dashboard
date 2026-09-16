@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { FileText, PieChart, Table } from '@lucide/vue';
 import { computed } from 'vue';
+import { useLongPress } from '@/common/composables/useLongPress';
 
 const props = defineProps<{
   images: any[];
@@ -65,15 +66,33 @@ const displayedImages = computed(() => {
   }
   return props.images.slice(0, props.imagesPerRow);
 });
+
+// One hold is tracked for the whole row and resolved to a tile from the event
+// target, so the tiles stay plain markup instead of a component each.
+const { handlers: longPressHandlers } = useLongPress(
+  (event) => {
+    const tile = (event.target as HTMLElement | null)?.closest<HTMLElement>(
+      '[data-image-index]',
+    );
+
+    if (!tile) return;
+
+    const img = displayedImages.value[Number(tile.dataset.imageIndex)];
+
+    if (img) emit('context-menu', event, img);
+  },
+  // The "+N more" overlay covers a tile but stands for the whole row.
+  { ignore: '.img-overlay' },
+);
 </script>
 
 <template>
-  <div class="images-row mt-2 mb-2">
+  <div class="images-row mt-2 mb-2" v-on="longPressHandlers">
     <div
       v-for="(img, idx) in displayedImages"
       :key="img.publicId"
-      class="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-md border-none bg-black/[0.12] select-none"
-      @contextmenu.prevent.stop="$emit('context-menu', $event, img)"
+      :data-image-index="idx"
+      class="long-press-target relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-md border-none bg-black/[0.12] select-none"
     >
       <button
         type="button"
@@ -129,7 +148,6 @@ const displayedImages = computed(() => {
         "
         class="img-overlay absolute flex inset-0 items-center justify-center rounded-md cursor-pointer z-10"
         @click.stop.prevent="$emit('reveal')"
-        @contextmenu.stop.prevent
       >
         <span
           class="overlay-blur absolute inset-0 bg-[#8886] rounded-md backdrop-blur-sm"
