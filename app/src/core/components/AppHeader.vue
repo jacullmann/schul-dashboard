@@ -168,7 +168,7 @@ onUnmounted(() => {
       >
         <button
           v-wave
-          class="flex items-center gap-2 group cursor-pointer hover:bg-ghost-hover transition-hover rounded-full -m-1 p-1 min-w-0 max-w-full"
+          class="flex items-center gap-2 group cursor-pointer hover:bg-ghost-hover transition-hover rounded-full -m-1 p-1 min-w-0"
           @click="toggleGroupMenu"
         >
           <Avatar
