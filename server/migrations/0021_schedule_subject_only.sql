@@ -7,8 +7,10 @@ WHERE s.course_id = c.id AND s.subject_id IS NULL;
 -- Step 2: Consolidate duplicate schedule rows (same tenant, day, slot, duration, room, subject_id)
 WITH duplicates AS (
     SELECT id,
-           MIN(id) OVER (
+           -- Postgres has no min(uuid) aggregate, so pick the lowest id by ordering instead.
+           FIRST_VALUE(id) OVER (
                PARTITION BY tenant_id, day, slot, duration, COALESCE(room, ''), COALESCE(subject_id, '00000000-0000-0000-0000-000000000000'::uuid)
+               ORDER BY id
            ) as canonical_id
     FROM public.schedules
 ),
