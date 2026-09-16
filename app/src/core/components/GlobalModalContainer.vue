@@ -8,6 +8,7 @@ import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useOAuth } from '@/modules/auth/composables/useOAuth';
 import { useMfa } from '@/modules/auth/composables/useMfa';
+import { consumePendingInviteRoute } from '@/modules/auth/utils/pendingInvite';
 import hw from '../../api/api';
 
 import GoogleLinkModal from '@/modules/auth/components/GoogleLinkModal.vue';
@@ -31,7 +32,7 @@ const toast = useToast();
 const modalStore = useModalStore();
 const userStore = useUserStore();
 const { user } = storeToRefs(userStore);
-const { logout: appAuthLogout } = useAppAuth();
+const { logout: appAuthLogout, checkAuthStatus } = useAppAuth();
 const { resetMfaState } = useMfa();
 const {
   showLinkModal,
@@ -124,7 +125,11 @@ function onAccountDeleteError(msg: string) {
 }
 
 async function onAuthSuccess() {
+  await checkAuthStatus();
   await userStore.fetchUser();
+
+  const inviteRoute = consumePendingInviteRoute();
+  if (inviteRoute) await router.replace(inviteRoute);
 }
 </script>
 

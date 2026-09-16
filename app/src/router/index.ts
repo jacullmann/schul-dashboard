@@ -5,6 +5,7 @@ import { useLoadingBar } from '@/common/composables/loadingState';
 import { useUserStore } from '@/stores/userStore';
 import i18n from '@/i18n';
 import { refreshSession } from '@/api/api';
+import { consumePendingInviteRoute } from '@/modules/auth/utils/pendingInvite';
 
 const routes: RouteRecordRaw[] = [
   {
@@ -344,6 +345,16 @@ router.beforeEach(async (to, from, next) => {
     return next({ path: '/login', replace: true });
   }
 
+  // Resume an invite that was opened before signing in, regardless of which
+  // auth flow (password, MFA, OAuth, registration) brought the user back.
+  if (isLoggedIn.value && to.name !== 'group-invite') {
+    const inviteRoute = consumePendingInviteRoute();
+    if (inviteRoute) {
+      finish();
+      return next({ path: inviteRoute, replace: true });
+    }
+  }
+
   if (
     (to.path === '/' ||
       to.path === '/auth' ||
@@ -355,11 +366,6 @@ router.beforeEach(async (to, from, next) => {
     isLoggedIn.value
   ) {
     finish();
-    const pendingInvite = sessionStorage.getItem('pending_invite_token');
-    if (pendingInvite) {
-      sessionStorage.removeItem('pending_invite_token');
-      return next({ path: `/invite/${pendingInvite}`, replace: true });
-    }
     return next({
       path: activeGroupId.value
         ? `/groups/${activeGroupId.value}/dashboard`

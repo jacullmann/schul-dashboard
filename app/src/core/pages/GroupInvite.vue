@@ -9,6 +9,10 @@ import { useModalStore } from '@/stores/modalStore';
 import { useToast } from '@/common/composables/useToast';
 import Avatar from '@/modules/auth/components/Avatar.vue';
 import { AlertCircle } from '@lucide/vue';
+import {
+  clearPendingInvite,
+  savePendingInvite,
+} from '@/modules/auth/utils/pendingInvite';
 
 const { t } = useI18n();
 const route = useRoute();
@@ -45,17 +49,18 @@ onMounted(async () => {
       memberCount.value = res.memberCount || 0;
       ok.value = true;
 
-      // If not logged in, save the token for after-login redirect
-      if (!auth.isLoggedIn.value) {
-        sessionStorage.setItem('pending_invite_token', token);
-      }
+      // Remember the invite so the user returns here right after signing in.
+      if (auth.isLoggedIn.value) clearPendingInvite();
+      else savePendingInvite(token);
     } else {
       ok.value = false;
       errorMsg.value = res.error || t('auth.groups.invite.invalid_desc');
+      clearPendingInvite();
     }
   } catch (err) {
     ok.value = false;
     errorMsg.value = t('auth.groups.invite.invalid_desc');
+    clearPendingInvite();
   } finally {
     loading.value = false;
   }
@@ -96,11 +101,19 @@ async function handleJoin() {
 }
 
 function handleLogin() {
-  router.push('/login');
+  savePendingInvite(token);
+  void router.push({ name: 'login' });
 }
 
-function handleRegister() {
-  router.push('/register');
+function handleCancel() {
+  if (!ok.value) return;
+  if (auth.isLoggedIn.value) {
+    clearPendingInvite();
+    void router.push({ name: 'groups' });
+  } else {
+    savePendingInvite(token);
+    void router.push({ name: 'register' });
+  }
 }
 </script>
 
@@ -112,13 +125,7 @@ function handleRegister() {
       ok ? (auth.isLoggedIn.value ? handleJoin : handleLogin) : undefined
     "
     :loading="joining"
-    @cancel="
-      ok
-        ? auth.isLoggedIn.value
-          ? $router.push('/groups')
-          : handleRegister
-        : undefined
-    "
+    @cancel="handleCancel"
   >
     <template #title>
       {{ t('auth.groups.invite.card_title') }}
