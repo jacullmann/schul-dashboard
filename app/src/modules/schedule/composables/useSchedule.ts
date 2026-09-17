@@ -13,11 +13,15 @@ export interface UseScheduleOptions {
 export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
   const { t, locale } = useI18n();
   const userStore = useUserStore();
-  const { activeScheduleConfig } = useAppAuth();
+  const { activeScheduleConfig, activeGroupType } = useAppAuth();
 
   const isPersonalized = computed(() => {
     return userStore.user?.personalized && userStore.user?.doneSetup;
   });
+
+  const schedulesCoursesIndividually = computed(
+    () => activeGroupType.value === 'abitur',
+  );
 
   const lessons = ref<Lesson[]>([]);
   const subjects = ref<any[]>([]);
@@ -165,53 +169,60 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
       const subObj = subId ? subjectMap.get(subId) : null;
       const courses: Array<{ id: string; name: string }> =
         subObj?.courses || [];
+      const subjectRef =
+        lesson.subjects ||
+        (subObj ? { id: subObj.id, name: subObj.name } : null);
 
-      if (!isPersonalized.value) {
+      const ownCourseId = lesson.courseId || lesson.courses?.id || null;
+
+      // A lesson scheduled for one course is already personal — Abitur groups
+      // schedule nearly all of them that way.
+      if (ownCourseId) {
+        const course =
+          lesson.courses ?? courses.find((c) => c.id === ownCourseId) ?? null;
+
         result.push({
           ...lesson,
           _originalId: lesson.id,
-          subjects:
-            lesson.subjects ||
-            (subObj ? { id: subObj.id, name: subObj.name } : null),
+          courseId: ownCourseId,
+          courseName: lesson.courseName ?? course?.name,
+          courses: course,
+          subjects: subjectRef,
         });
         return;
       }
 
-      if (courses.length > 0) {
-        let matched = false;
-        courses.forEach((c) => {
-          if (userCourseIds.has(c.id)) {
-            matched = true;
-            result.push({
-              ...lesson,
-              id: `${lesson.id}_${c.id}`,
-              _originalId: lesson.id,
-              courseId: c.id,
-              courseName: c.name,
-              courses: { id: c.id, name: c.name },
-              subjectId: subId || lesson.subjectId,
-              subjects:
-                lesson.subjects ||
-                (subObj ? { id: subObj.id, name: subObj.name } : null),
-            });
-          }
-        });
-
-        if (!matched && lesson.courseId && userCourseIds.has(lesson.courseId)) {
-          result.push({
-            ...lesson,
-            _originalId: lesson.id,
-            subjects:
-              lesson.subjects ||
-              (subObj ? { id: subObj.id, name: subObj.name } : null),
-          });
-        }
-      } else {
+      // Without a course the lesson covers the whole group. In an Abitur group
+      // that is what it means; a regular group splits it into the member's own
+      // course of that subject.
+      if (!isPersonalized.value || schedulesCoursesIndividually.value) {
         result.push({
           ...lesson,
           _originalId: lesson.id,
+          subjects: subjectRef,
         });
+        return;
       }
+
+      if (courses.length === 0) {
+        result.push({ ...lesson, _originalId: lesson.id });
+        return;
+      }
+
+      courses
+        .filter((c) => userCourseIds.has(c.id))
+        .forEach((c) => {
+          result.push({
+            ...lesson,
+            id: `${lesson.id}_${c.id}`,
+            _originalId: lesson.id,
+            courseId: c.id,
+            courseName: c.name,
+            courses: { id: c.id, name: c.name },
+            subjectId: subId || lesson.subjectId,
+            subjects: subjectRef,
+          });
+        });
     });
 
     return result;

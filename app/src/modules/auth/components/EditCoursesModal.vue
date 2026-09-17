@@ -45,14 +45,14 @@ function initSelections() {
   }
 
   const allowedSubjects = [
-    ...subjectStore.electiveSubjects,
-    ...subjectStore.extraSubjects,
+    ...subjectStore.requiredCourseSubjects,
+    ...subjectStore.optionalCourseSubjects,
   ];
 
-  for (const subject of subjectStore.electiveSubjects) {
+  for (const subject of subjectStore.requiredCourseSubjects) {
     selections[subject.id] = '';
   }
-  for (const subject of subjectStore.extraSubjects) {
+  for (const subject of subjectStore.optionalCourseSubjects) {
     selections[subject.id] = 'NONE';
   }
 
@@ -95,7 +95,10 @@ watch(
 );
 
 watch(
-  () => [subjectStore.electiveSubjects, subjectStore.extraSubjects],
+  () => [
+    subjectStore.requiredCourseSubjects,
+    subjectStore.optionalCourseSubjects,
+  ],
   () => {
     if (props.open) {
       initSelections();
@@ -111,20 +114,30 @@ onMounted(() => {
   }
 });
 
-const getOptionsForSubject = (subjectId: string, isExtra: boolean) => {
+const getOptionsForSubject = (subjectId: string, isOptional: boolean) => {
   const subject = subjectStore.subjects.find((s) => s.id === subjectId);
   const opts = (subject?.courses || []).map((c) => ({
     label: getCourseLabel(c.name),
     value: c.id,
   }));
-  if (isExtra) {
+  if (isOptional) {
     opts.unshift({ label: t('common.selection.no'), value: 'NONE' });
   }
   return opts;
 };
 
+// In Abitur groups the category (GK/LK/ZK) tells courses of the same subject
+// apart, so it belongs next to the subject name.
+const getSubjectLabel = (subject: { name: string; category: string }) => {
+  const name = getCourseLabel(subject.name);
+  if (subjectStore.groupType !== 'abitur') return name;
+
+  const categoryKey = `groups.settings.subjects.categories_short.${subject.category}`;
+  return te(categoryKey) ? `${name} (${t(categoryKey)})` : name;
+};
+
 const isValid = computed(() => {
-  for (const subject of subjectStore.electiveSubjects) {
+  for (const subject of subjectStore.requiredCourseSubjects) {
     if (!selections[subject.id]) return false;
   }
   return true;
@@ -167,8 +180,8 @@ async function save() {
   submitting.value = true;
 
   const allowedSubjects = [
-    ...subjectStore.electiveSubjects,
-    ...subjectStore.extraSubjects,
+    ...subjectStore.requiredCourseSubjects,
+    ...subjectStore.optionalCourseSubjects,
   ];
 
   const validCourses: { subjectId: string; courseId: string }[] = [];
@@ -220,12 +233,12 @@ async function skip() {
       </div>
       <div v-else class="flex flex-col gap-5">
         <BaseFormGroup
-          v-for="subject in subjectStore.electiveSubjects"
+          v-for="subject in subjectStore.requiredCourseSubjects"
           :id="subject.id"
           :key="subject.id"
         >
           <BaseLabel :for="subject.id">{{
-            getCourseLabel(subject.name)
+            getSubjectLabel(subject)
           }}</BaseLabel>
           <BaseSelect
             :id="subject.id"
@@ -236,12 +249,12 @@ async function skip() {
         </BaseFormGroup>
 
         <BaseFormGroup
-          v-for="subject in subjectStore.extraSubjects"
+          v-for="subject in subjectStore.optionalCourseSubjects"
           :id="subject.id"
           :key="subject.id"
         >
           <BaseLabel :for="subject.id">{{
-            getCourseLabel(subject.name)
+            getSubjectLabel(subject)
           }}</BaseLabel>
           <BaseSelect
             :id="subject.id"

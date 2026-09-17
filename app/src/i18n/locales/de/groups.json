@@ -67,6 +67,26 @@
         "title": "Erscheinungsbild",
         "name_label": "Name",
         "name_placeholder": "Neuer Gruppenname"
+      },
+      "group_type": {
+        "title": "Gruppentyp",
+        "label": "Typ",
+        "description": "Der Gruppentyp bestimmt, wie Fächer und der Stundenplan funktionieren.",
+        "options": {
+          "regular": "Reguläre Gruppe",
+          "abitur": "Abitur-Gruppe"
+        },
+        "hints": {
+          "regular": "Eine Klasse, die ihre Fächer gemeinsam hat. Fächer sind Pflicht-, Wahl- oder Zusatzfächer.",
+          "abitur": "Ein ganzer Jahrgang. Jedes Fach ist GK, LK oder ZK und jeder Kurs wird einzeln eingeplant."
+        },
+        "modal": {
+          "title": "Gruppentyp ändern?",
+          "message_regular": "Stunden behalten ihren Kurs, neue Fächer nutzen aber wieder die Kategorien Pflicht-, Wahl- und Zusatzfach. Bestehende Fächer behalten ihre Kategorie, bis du sie bearbeitest.",
+          "message_abitur": "Fächer werden zu GK, LK oder ZK und Stunden können einzelnen Kursen zugeordnet werden. Bestehende Fächer und Stunden bleiben unverändert, bis du sie bearbeitest."
+        },
+        "success": "Gruppentyp aktualisiert",
+        "failed": "Gruppentyp konnte nicht geändert werden"
       }
     },
     "members": {
@@ -208,7 +228,8 @@
         "lesson_label": "Stunde:",
         "last_lesson_label": "Letzte Stunde:",
         "room_label": "Raum:",
-        "day_label": "Tag:"
+        "day_label": "Tag:",
+        "affected_course_label": "Betroffener Kurs"
       },
       "editor": {
         "edit_schedule_button": "Stundenplan bearbeiten",
@@ -248,7 +269,8 @@
         "day_tuesday": "Dienstag",
         "day_wednesday": "Mittwoch",
         "day_thursday": "Donnerstag",
-        "day_friday": "Freitag"
+        "day_friday": "Freitag",
+        "course_hint": "Ohne Kurs gilt die Stunde für die ganze Gruppe."
       }
     },
     "subjects": {
@@ -260,7 +282,10 @@
       "categories": {
         "core": "Pflichtfach",
         "extra": "Zusatzfach",
-        "elective": "Wahlfach"
+        "elective": "Wahlfach",
+        "gk": "Grundkurs (GK)",
+        "lk": "Leistungskurs (LK)",
+        "zk": "Zusatzkurs (ZK)"
       },
       "errors": {
         "load_failed": "Fehler beim Laden der Fächer",
@@ -296,7 +321,16 @@
       "course_edit_title": "Kurs bearbeiten",
       "courses_count_zero": "0 Kurse",
       "courses_count_singular": "1 Kurs",
-      "courses_count_plural": "{count} Kurse"
+      "courses_count_plural": "{count} Kurse",
+      "categories_short": {
+        "core": "Pflicht",
+        "elective": "Wahl",
+        "extra": "Zusatz",
+        "gk": "GK",
+        "lk": "LK",
+        "zk": "ZK"
+      },
+      "category_mismatch": "Dieses Fach ist noch als „{category}“ gespeichert – eine Kategorie des anderen Gruppentyps. Beim Speichern wird die ausgewählte Kategorie übernommen."
     }
   }
 }

@@ -2,6 +2,8 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { useEventListener } from '@vueuse/core';
 import hw from '@/api/api.ts';
+import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
+import { courseSelectionFor, type SubjectCategory } from '@/types/subjects';
 
 export interface Course {
   id: string;
@@ -11,11 +13,13 @@ export interface Course {
 export interface Subject {
   id: string;
   name: string;
-  category: 'core' | 'elective' | 'extra';
+  category: SubjectCategory;
   courses?: Course[];
 }
 
 export const useSubjectStore = defineStore('subjectStore', () => {
+  const { activeGroupType } = useAppAuth();
+
   const subjects = ref<Subject[]>([]);
   const loading = ref(false);
   const loaded = ref(false);
@@ -44,17 +48,20 @@ export const useSubjectStore = defineStore('subjectStore', () => {
     return subjects.value.map((s) => s.name);
   });
 
-  const electiveSubjects = computed(() => {
-    return subjects.value.filter(
-      (s) => s.category === 'elective' && s.courses && s.courses.length >= 1,
+  const withCourses = (selection: 'required' | 'optional') =>
+    subjects.value.filter(
+      (s) =>
+        courseSelectionFor(s.category) === selection &&
+        (s.courses?.length ?? 0) >= 1,
     );
-  });
 
-  const extraSubjects = computed(() => {
-    return subjects.value.filter(
-      (s) => s.category === 'extra' && s.courses && s.courses.length >= 1,
-    );
-  });
+  /** Subjects whose course a member has to pick. */
+  const requiredCourseSubjects = computed(() => withCourses('required'));
+
+  /** Subjects where a member picks one course or none — all Abitur subjects. */
+  const optionalCourseSubjects = computed(() => withCourses('optional'));
+
+  const groupType = computed(() => activeGroupType.value);
 
   function onTenantChanged() {
     reset();
@@ -69,7 +76,8 @@ export const useSubjectStore = defineStore('subjectStore', () => {
     loadSubjects,
     reset,
     availableSubjectKeys,
-    electiveSubjects,
-    extraSubjects,
+    groupType,
+    requiredCourseSubjects,
+    optionalCourseSubjects,
   };
 });

@@ -11,6 +11,7 @@ import type {
   GroupInviteLog,
 } from '@/modules/groups/types';
 import type { Lesson, ScheduleConfig } from '@/modules/schedule/types';
+import type { GroupType } from '@/types/groups';
 import { useToast } from '@/common/composables/useToast';
 import { useModalStore } from '@/stores/modalStore';
 import { useI18n } from 'vue-i18n';
@@ -62,6 +63,7 @@ export function useGroupAdmin() {
   const editingGroupName = ref(false);
   const newGroupName = ref('');
   const savingGroupName = ref(false);
+  const savingGroupType = ref(false);
 
   function showMessage(msg: string, isError = false) {
     if (isError) {
@@ -242,6 +244,7 @@ export function useGroupAdmin() {
     duration: number;
     room: string | null;
     subjectId: string | null;
+    courseId: string | null;
   };
 
   const uuidPattern =
@@ -249,6 +252,7 @@ export function useGroupAdmin() {
 
   function createScheduleLessonPayload(lesson: Lesson): ScheduleLessonPayload {
     const subjectId = lesson.subjectId ?? lesson.subjects?.id ?? null;
+    const courseId = lesson.courseId ?? lesson.courses?.id ?? null;
 
     return {
       ...(uuidPattern.test(lesson.id) ? { id: lesson.id } : {}),
@@ -257,6 +261,7 @@ export function useGroupAdmin() {
       duration: Number(lesson.duration),
       room: lesson.room?.trim() || null,
       subjectId,
+      courseId,
     };
   }
 
@@ -441,6 +446,24 @@ export function useGroupAdmin() {
     }
   }
 
+  async function saveGroupType(groupType: GroupType): Promise<boolean> {
+    savingGroupType.value = true;
+    try {
+      await hw.patch('/group-admin/settings', { groupType });
+      await checkAuthStatus();
+      showMessage(t('groups.settings.general.group_type.success'));
+      return true;
+    } catch (e: unknown) {
+      showMessage(
+        apiErrorMessage(e, t('groups.settings.general.group_type.failed')),
+        true,
+      );
+      return false;
+    } finally {
+      savingGroupType.value = false;
+    }
+  }
+
   async function deleteGroup() {
     try {
       await hw.delete('/group-admin');
@@ -578,6 +601,8 @@ export function useGroupAdmin() {
     cancelEditGroupName,
     saveGroupName,
     saveGroupAvatar,
+    savingGroupType,
+    saveGroupType,
     deleteGroup,
     transferOwnership,
 

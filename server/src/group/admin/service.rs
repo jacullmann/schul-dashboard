@@ -1,5 +1,5 @@
 use crate::{
-    common::{permission::GroupPermissions, role::Role},
+    common::{group_type::GroupType, permission::GroupPermissions, role::Role},
     error::{AppError, AppResult},
     group::dto::{CreateScheduleSubDto, ReplaceScheduleDto},
     state::AppState,
@@ -24,9 +24,123 @@ fn json_i32(value: &Value, key: &str, default: i32) -> i32 {
         .unwrap_or(default)
 }
 
+/// The category a new subject gets when the client does not send one.
+const fn default_category(group_type: GroupType) -> &'static str {
+    match group_type {
+        GroupType::Regular => "core",
+        GroupType::Abitur => "gk",
+    }
+}
+
+/// Categories belong to exactly one kind of group, so a group that switched its
+/// type keeps its old subjects but can only assign categories that fit now.
+fn validate_category(group_type: GroupType, category: &str) -> AppResult<()> {
+    if group_type.allows_category(category) {
+        return Ok(());
+    }
+
+    Err(AppError::bad_request(format!(
+        "Category '{category}' is not available in this group. Allowed: {}.",
+        group_type.subject_categories().join(", ")
+    )))
+}
+
+/// Reads a UUID that clients may send either flat (`subjectId`/`subject_id`) or
+/// nested inside the joined object (`subjects: { id }`).
+fn json_uuid(value: &Value, camel: &str, snake: &str, nested: &str) -> Option<Uuid> {
+    let parse = |v: &Value| v.as_str().and_then(|s| Uuid::parse_str(s).ok());
+
+    value
+        .get(camel)
+        .or_else(|| value.get(snake))
+        .and_then(parse)
+        .or_else(|| value.get(nested).and_then(|n| n.get("id")).and_then(parse))
+}
+
 impl GroupAdminService {
     pub fn from_state(s: &AppState) -> Self {
         Self { db: s.db.clone() }
+    }
+
+    async fn group_type(&self, tenant_id: Uuid) -> AppResult<GroupType> {
+        let row = sqlx::query_scalar!(r#"SELECT group_type FROM groups WHERE id = $1"#, tenant_id)
+            .fetch_optional(&self.db)
+            .await?
+            .ok_or_else(|| AppError::not_found("Group not found"))?;
+
+        Ok(GroupType::from_str_or_regular(&row))
+    }
+
+    /// Ensures every lesson only points at subjects and courses of this group,
+    /// and that a lesson's course really belongs to its subject.
+    async fn validate_lesson_references(
+        &self,
+        tenant_id: Uuid,
+        lessons: &[(Option<Uuid>, Option<Uuid>)],
+    ) -> AppResult<()> {
+        let subject_ids: Vec<Uuid> = lessons
+            .iter()
+            .filter_map(|(subject_id, _)| *subject_id)
+            .collect::<HashSet<_>>()
+            .into_iter()
+            .collect();
+
+        if !subject_ids.is_empty() {
+            let known = sqlx::query_scalar!(
+                r#"SELECT COUNT(*) FROM subjects WHERE tenant_id = $1 AND id = ANY($2)"#,
+                tenant_id,
+                &subject_ids
+            )
+            .fetch_one(&self.db)
+            .await?
+            .unwrap_or(0);
+
+            if known != subject_ids.len() as i64 {
+                return Err(AppError::bad_request(
+                    "A lesson references a subject outside this group.",
+                ));
+            }
+        }
+
+        let course_ids: Vec<Uuid> = lessons
+            .iter()
+            .filter_map(|(_, course_id)| *course_id)
+            .collect::<HashSet<_>>()
+            .into_iter()
+            .collect();
+
+        if course_ids.is_empty() {
+            return Ok(());
+        }
+
+        let course_subjects: std::collections::HashMap<Uuid, Uuid> = sqlx::query!(
+            r#"SELECT id, subject_id FROM courses WHERE tenant_id = $1 AND id = ANY($2)"#,
+            tenant_id,
+            &course_ids
+        )
+        .fetch_all(&self.db)
+        .await?
+        .into_iter()
+        .map(|row| (row.id, row.subject_id))
+        .collect();
+
+        for (subject_id, course_id) in lessons {
+            let Some(course_id) = course_id else { continue };
+
+            let Some(course_subject) = course_subjects.get(course_id) else {
+                return Err(AppError::bad_request(
+                    "A lesson references a course outside this group.",
+                ));
+            };
+
+            if subject_id.is_some_and(|subject_id| subject_id != *course_subject) {
+                return Err(AppError::bad_request(
+                    "A lesson references a course that belongs to a different subject.",
+                ));
+            }
+        }
+
+        Ok(())
     }
 
     pub async fn get_stats(&self, tenant_id: Uuid) -> AppResult<Value> {
@@ -353,7 +467,18 @@ impl GroupAdminService {
         user_id: Uuid,
         name: Option<&str>,
         avatar_url: Option<&str>,
+        group_type: Option<GroupType>,
     ) -> AppResult<Value> {
+        if let Some(gt) = group_type {
+            sqlx::query!(
+                r#"UPDATE groups SET group_type = $1 WHERE id = $2"#,
+                gt.as_str(),
+                tenant_id
+            )
+            .execute(&self.db)
+            .await?;
+        }
+
         if let Some(n) = name {
             sqlx::query!(r#"UPDATE groups SET name = $1 WHERE id = $2"#, n, tenant_id)
                 .execute(&self.db)
@@ -375,7 +500,11 @@ impl GroupAdminService {
             r#"INSERT INTO user_activity (user_id, type, meta)
                VALUES ($1, 'group-admin:rename', $2)"#,
             user_id,
-            json!({ "name": name, "avatarUrl": avatar_url })
+            json!({
+                "name": name,
+                "avatarUrl": avatar_url,
+                "groupType": group_type.map(GroupType::as_str),
+            })
         )
         .execute(&self.db)
         .await?;
@@ -552,10 +681,9 @@ impl GroupAdminService {
         name: &str,
         category: Option<&str>,
     ) -> AppResult<Value> {
-        let cat = category.unwrap_or("core");
-        if cat != "core" && cat != "elective" && cat != "extra" {
-            return Err(AppError::bad_request("Invalid category"));
-        }
+        let group_type = self.group_type(tenant_id).await?;
+        let cat = category.unwrap_or(default_category(group_type));
+        validate_category(group_type, cat)?;
 
         let row = sqlx::query!(
             r#"INSERT INTO subjects (tenant_id, name, category) VALUES ($1, $2, $3)
@@ -597,9 +725,7 @@ impl GroupAdminService {
         .ok_or_else(|| AppError::not_found("Subject not found"))?;
 
         if let Some(cat) = category {
-            if cat != "core" && cat != "elective" && cat != "extra" {
-                return Err(AppError::bad_request("Invalid category"));
-            }
+            validate_category(self.group_type(tenant_id).await?, cat)?;
             sqlx::query!(
                 r#"UPDATE subjects SET category = $1 WHERE id = $2"#,
                 cat,
@@ -678,10 +804,12 @@ impl GroupAdminService {
 
     pub async fn get_schedule(&self, tenant_id: Uuid) -> AppResult<Value> {
         let rows = sqlx::query!(
-            r#"SELECT s.id, s.day, s.slot, s.duration, s.room,
-                  sub.id as "sid?", sub.name as "sname?"
+            r#"SELECT s.id, s.day, s.slot, s.duration, s.room, s.course_id,
+                  sub.id as "sid?", sub.name as "sname?",
+                  c.name as "cname?"
            FROM schedules s
            LEFT JOIN subjects sub ON sub.id = s.subject_id
+           LEFT JOIN courses c ON c.id = s.course_id
            WHERE s.tenant_id = $1"#,
             tenant_id
         )
@@ -698,6 +826,8 @@ impl GroupAdminService {
                     "room": l.room,
                     "subjectId": l.sid,
                     "subjects": l.sid.map(|id| json!({ "id": id, "name": l.sname })),
+                    "courseId": l.course_id,
+                    "courses": l.course_id.map(|id| json!({ "id": id, "name": l.cname })),
                 }))
                 .collect::<Vec<_>>()
         ))
@@ -709,6 +839,24 @@ impl GroupAdminService {
         user_id: Uuid,
         body: Value,
     ) -> AppResult<Value> {
+        let items: Vec<&Value> = match body.get("lessons").and_then(|v| v.as_array()) {
+            Some(lessons) => lessons.iter().collect(),
+            None => vec![&body],
+        };
+
+        let references: Vec<(Option<Uuid>, Option<Uuid>)> = items
+            .iter()
+            .map(|item| {
+                (
+                    json_uuid(item, "subjectId", "subject_id", "subjects"),
+                    json_uuid(item, "courseId", "course_id", "courses"),
+                )
+            })
+            .collect();
+
+        self.validate_lesson_references(tenant_id, &references)
+            .await?;
+
         let mut tx = self.db.begin().await?;
 
         if let Some(lessons_arr) = body.get("lessons").and_then(|v| v.as_array()) {
@@ -722,17 +870,9 @@ impl GroupAdminService {
                 let duration = json_i32(item, "duration", 1);
                 let room = item.get("room").and_then(|v| v.as_str());
 
-                let subject_id = item
-                    .get("subjectId")
-                    .or_else(|| item.get("subject_id"))
-                    .and_then(|v| v.as_str())
-                    .and_then(|s| Uuid::parse_str(s).ok())
-                    .or_else(|| {
-                        item.get("subjects")
-                            .and_then(|s| s.get("id"))
-                            .and_then(|v| v.as_str())
-                            .and_then(|s| Uuid::parse_str(s).ok())
-                    });
+                let subject_id = json_uuid(item, "subjectId", "subject_id", "subjects");
+
+                let course_id = json_uuid(item, "courseId", "course_id", "courses");
 
                 let id = item
                     .get("id")
@@ -741,15 +881,16 @@ impl GroupAdminService {
                     .unwrap_or_else(Uuid::new_v4);
 
                 sqlx::query!(
-                    r#"INSERT INTO schedules (id, tenant_id, day, slot, duration, room, subject_id)
-                       VALUES ($1, $2, $3, $4, $5, $6, $7)"#,
+                    r#"INSERT INTO schedules (id, tenant_id, day, slot, duration, room, subject_id, course_id)
+                       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)"#,
                     id,
                     tenant_id,
                     day,
                     slot,
                     duration,
                     room,
-                    subject_id
+                    subject_id,
+                    course_id
                 )
                 .execute(&mut *tx)
                 .await?;
@@ -760,17 +901,9 @@ impl GroupAdminService {
             let duration = json_i32(&body, "duration", 1);
             let room = body.get("room").and_then(|v| v.as_str());
 
-            let subject_id = body
-                .get("subjectId")
-                .or_else(|| body.get("subject_id"))
-                .and_then(|v| v.as_str())
-                .and_then(|s| Uuid::parse_str(s).ok())
-                .or_else(|| {
-                    body.get("subjects")
-                        .and_then(|s| s.get("id"))
-                        .and_then(|v| v.as_str())
-                        .and_then(|s| Uuid::parse_str(s).ok())
-                });
+            let subject_id = json_uuid(&body, "subjectId", "subject_id", "subjects");
+
+            let course_id = json_uuid(&body, "courseId", "course_id", "courses");
 
             let id = body
                 .get("id")
@@ -779,22 +912,25 @@ impl GroupAdminService {
                 .unwrap_or_else(Uuid::new_v4);
 
             sqlx::query!(
-                r#"INSERT INTO schedules (id, tenant_id, day, slot, duration, room, subject_id)
-                   VALUES ($1, $2, $3, $4, $5, $6, $7)
+                r#"INSERT INTO schedules (id, tenant_id, day, slot, duration, room, subject_id, course_id)
+                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
                    ON CONFLICT (id) DO UPDATE SET
                      day = EXCLUDED.day,
                      slot = EXCLUDED.slot,
                      duration = EXCLUDED.duration,
                      room = EXCLUDED.room,
                      subject_id = EXCLUDED.subject_id,
-                     updated_at = now()"#,
+                     course_id = EXCLUDED.course_id,
+                     updated_at = now()
+                   WHERE schedules.tenant_id = EXCLUDED.tenant_id"#,
                 id,
                 tenant_id,
                 day,
                 slot,
                 duration,
                 room,
-                subject_id
+                subject_id,
+                course_id
             )
             .execute(&mut *tx)
             .await?;
@@ -853,7 +989,7 @@ impl GroupAdminService {
         }
 
         let mut lesson_ids = HashSet::new();
-        let mut subject_ids = HashSet::new();
+        let mut references = Vec::with_capacity(dto.lessons.len());
 
         for lesson in &dto.lessons {
             if !(1..=5).contains(&lesson.day) || lesson.slot < 1 || lesson.duration < 1 {
@@ -891,9 +1027,7 @@ impl GroupAdminService {
                 ));
             }
 
-            if let Some(subject_id) = lesson.subject_id {
-                subject_ids.insert(subject_id);
-            }
+            references.push((lesson.subject_id, lesson.course_id));
         }
 
         let lesson_ids: Vec<_> = lesson_ids.into_iter().collect();
@@ -914,23 +1048,8 @@ impl GroupAdminService {
             }
         }
 
-        let subject_ids: Vec<_> = subject_ids.into_iter().collect();
-        if !subject_ids.is_empty() {
-            let existing_count = sqlx::query_scalar!(
-                r#"SELECT COUNT(*) FROM subjects WHERE tenant_id = $1 AND id = ANY($2)"#,
-                tenant_id,
-                &subject_ids
-            )
-            .fetch_one(&self.db)
-            .await?
-            .unwrap_or(0);
-
-            if existing_count != subject_ids.len() as i64 {
-                return Err(AppError::bad_request(
-                    "A lesson references a subject outside this group.",
-                ));
-            }
-        }
+        self.validate_lesson_references(tenant_id, &references)
+            .await?;
 
         let schedule_config = serde_json::to_value(&dto.schedule_config)
             .map_err(|_| AppError::internal("Failed to serialize the schedule configuration."))?;
@@ -950,15 +1069,16 @@ impl GroupAdminService {
 
         for lesson in dto.lessons {
             sqlx::query!(
-                r#"INSERT INTO schedules (id, tenant_id, day, slot, duration, room, subject_id)
-                   VALUES ($1, $2, $3, $4, $5, $6, $7)"#,
+                r#"INSERT INTO schedules (id, tenant_id, day, slot, duration, room, subject_id, course_id)
+                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8)"#,
                 lesson.id.unwrap_or_else(Uuid::new_v4),
                 tenant_id,
                 lesson.day,
                 lesson.slot,
                 lesson.duration,
                 lesson.room,
-                lesson.subject_id
+                lesson.subject_id,
+                lesson.course_id
             )
             .execute(&mut *tx)
             .await?;

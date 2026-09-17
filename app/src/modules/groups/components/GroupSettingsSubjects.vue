@@ -5,6 +5,13 @@ import { useRoute, useRouter } from 'vue-router';
 import { Plus, Pencil, Trash2 } from '@lucide/vue';
 import { useSubjectAdmin } from '@/modules/groups/composables/useSubjectAdmin';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
+import {
+  categoryBelongsTo,
+  courseSelectionFor,
+  defaultSubjectCategory,
+  normalizeSubjectCategory,
+  subjectCategoriesFor,
+} from '@/types/subjects';
 
 const i18n = useI18n();
 const { t } = i18n;
@@ -29,14 +36,14 @@ const {
   deleteCourse,
 } = useSubjectAdmin();
 
-const { checkPermission } = useAppAuth();
+const { checkPermission, activeGroupType } = useAppAuth();
 const canEditSubjects = computed(() =>
   checkPermission('edit_subjects_courses'),
 );
 
 const newSubjectName = ref('');
 const selectedSubjectKey = ref('');
-const newSubjectCategory = ref('core');
+const newSubjectCategory = ref(defaultSubjectCategory(activeGroupType.value));
 const showCreateModal = ref(false);
 const newSubjectInputRef = ref<any>(null);
 
@@ -73,16 +80,49 @@ const subject = computed(() => {
 });
 
 const subjectNameInput = ref('');
-const subjectCategoryInput = ref('core');
+const subjectCategoryInput = ref(defaultSubjectCategory(activeGroupType.value));
 
-const categoryOptions = computed(() => [
-  { value: 'core', label: t('groups.settings.subjects.categories.core') },
-  {
-    value: 'elective',
-    label: t('groups.settings.subjects.categories.elective'),
-  },
-  { value: 'extra', label: t('groups.settings.subjects.categories.extra') },
-]);
+function categoryLabel(category: string): string {
+  const key = `groups.settings.subjects.categories.${category}`;
+  return i18n.te(key) ? t(key) : category.toUpperCase();
+}
+
+const categoryOptions = computed(() =>
+  subjectCategoriesFor(activeGroupType.value).map((category) => ({
+    value: category,
+    label: categoryLabel(category),
+  })),
+);
+
+// A group that switched its type keeps subjects categorised for the old type
+// until they are saved again; the form offers the closest current category.
+const storedCategory = computed(() => subject.value?.category ?? '');
+const categoryNeedsMigration = computed(
+  () =>
+    !!storedCategory.value &&
+    !categoryBelongsTo(storedCategory.value, activeGroupType.value),
+);
+
+function subjectHasCourses(category: string | undefined): boolean {
+  return courseSelectionFor(category) !== 'none';
+}
+
+function toCategory(value: string) {
+  return normalizeSubjectCategory(value, activeGroupType.value);
+}
+
+// Keep both forms on categories the group currently offers, even when the type
+// is switched in another tab while this one stays mounted.
+watch(activeGroupType, (groupType) => {
+  newSubjectCategory.value = normalizeSubjectCategory(
+    newSubjectCategory.value,
+    groupType,
+  );
+  subjectCategoryInput.value = normalizeSubjectCategory(
+    subject.value?.category ?? subjectCategoryInput.value,
+    groupType,
+  );
+});
 
 // Sync subject name and category inputs when subject loads or changes
 watch(
@@ -90,7 +130,10 @@ watch(
   (newSub) => {
     if (newSub) {
       subjectNameInput.value = newSub.name;
-      subjectCategoryInput.value = newSub.category || 'core';
+      subjectCategoryInput.value = normalizeSubjectCategory(
+        newSub.category,
+        activeGroupType.value,
+      );
     }
   },
   { immediate: true },
@@ -99,7 +142,10 @@ watch(
 function resetSubjectName() {
   if (subject.value) {
     subjectNameInput.value = subject.value.name;
-    subjectCategoryInput.value = subject.value.category || 'core';
+    subjectCategoryInput.value = normalizeSubjectCategory(
+      subject.value.category,
+      activeGroupType.value,
+    );
   }
 }
 
@@ -139,7 +185,7 @@ function closeCreateModal() {
   showCreateModal.value = false;
   newSubjectName.value = '';
   selectedSubjectKey.value = '';
-  newSubjectCategory.value = 'core';
+  newSubjectCategory.value = defaultSubjectCategory(activeGroupType.value);
 }
 
 async function handleCreate() {
@@ -149,7 +195,7 @@ async function handleCreate() {
   if (subjects.value.length > oldLength) {
     newSubjectName.value = '';
     selectedSubjectKey.value = '';
-    newSubjectCategory.value = 'core';
+    newSubjectCategory.value = defaultSubjectCategory(activeGroupType.value);
     showCreateModal.value = false;
   }
 }
@@ -270,8 +316,8 @@ onMounted(() => {
               }}</span
             >
             <span class="font-normal text-sm text-on-ghost-muted">{{
-              t(`groups.settings.subjects.categories.${sub.category}`) +
-              (sub.category === 'elective' || sub.category === 'extra'
+              categoryLabel(sub.category || '') +
+              (subjectHasCourses(sub.category)
                 ? `, ${
                     (sub.coursesCount || 0) === 0
                       ? t('groups.settings.subjects.courses_count_zero')
@@ -331,9 +377,12 @@ onMounted(() => {
             }}</BaseLabel>
             <BaseSelect
               id="new-subject-category"
-              v-model="newSubjectCategory"
+              :model-value="newSubjectCategory"
               :disabled="saving"
               :options="categoryOptions"
+              @update:model-value="
+                (value) => (newSubjectCategory = toCategory(value))
+              "
             />
           </BaseFormGroup>
         </template>
@@ -382,11 +431,24 @@ onMounted(() => {
             }}</BaseLabel>
             <BaseSelect
               id="subject-category"
-              v-model="subjectCategoryInput"
+              :model-value="subjectCategoryInput"
               class="w-full"
               :disabled="saving || !canEditSubjects"
               :options="categoryOptions"
+              @update:model-value="
+                (value) => (subjectCategoryInput = toCategory(value))
+              "
             />
+            <span
+              v-if="categoryNeedsMigration"
+              class="text-xs text-warning mt-1"
+            >
+              {{
+                t('groups.settings.subjects.category_mismatch', {
+                  category: categoryLabel(storedCategory),
+                })
+              }}
+            </span>
           </BaseFormGroup>
 
           <BaseRow
@@ -406,7 +468,7 @@ onMounted(() => {
                 saving ||
                 !subjectNameInput.trim() ||
                 (subjectNameInput.trim() === subject.name &&
-                  subjectCategoryInput === (subject.category || 'core'))
+                  subjectCategoryInput === storedCategory)
               "
               variant="action"
               @click="handleSave"
@@ -420,9 +482,7 @@ onMounted(() => {
       </div>
 
       <!-- Courses list section for elective/extra subjects -->
-      <div
-        v-if="subject.category === 'elective' || subject.category === 'extra'"
-      >
+      <div v-if="subjectHasCourses(subject.category)">
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-semibold text-on-ghost m-0">
             {{ t('groups.settings.subjects.courses_title') }}

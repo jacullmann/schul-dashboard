@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useGroupAdmin } from '@/modules/groups/composables/useGroupAdmin';
@@ -9,11 +9,21 @@ import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import hw from '../../../api/api';
 import GroupAvatarCropper from './GroupAvatarCropper.vue';
 import Avatar from '@/modules/auth/components/Avatar.vue';
+import { GROUP_TYPES, toGroupType, type GroupType } from '@/types/groups';
 
 const modalStore = useModalStore();
 const { t } = useI18n();
-const { activeGroupAvatarUrl, checkPermission } = useAppAuth();
+const { activeGroupAvatarUrl, activeGroupType, checkPermission } = useAppAuth();
 const canEditSettings = computed(() => checkPermission('edit_group_general'));
+
+// Switching the type rewires subject categories and the schedule, so it takes
+// the rights for both on top of the general settings permission.
+const canEditGroupType = computed(
+  () =>
+    canEditSettings.value &&
+    checkPermission('edit_subjects_courses') &&
+    checkPermission('edit_schedule'),
+);
 
 const props = defineProps<{
   isAdmin: boolean;
@@ -31,8 +41,45 @@ const emit = defineEmits<{
   (e: 'update:newGroupName', value: string): void;
 }>();
 
-const { deleteGroup, saveGroupAvatar } = useGroupAdmin();
+const { deleteGroup, saveGroupAvatar, saveGroupType, savingGroupType } =
+  useGroupAdmin();
 const router = useRouter();
+
+const groupTypeInput = ref<GroupType>(activeGroupType.value);
+
+watch(activeGroupType, (type) => {
+  groupTypeInput.value = type;
+});
+
+const groupTypeOptions = computed(() =>
+  GROUP_TYPES.map((type) => ({
+    value: type,
+    label: t(`groups.settings.general.group_type.options.${type}`),
+  })),
+);
+
+const groupTypeChanged = computed(
+  () => groupTypeInput.value !== activeGroupType.value,
+);
+
+async function confirmGroupTypeChange() {
+  if (!groupTypeChanged.value) return;
+
+  const target = groupTypeInput.value;
+  const isConfirmed = await modalStore.confirm({
+    title: t('groups.settings.general.group_type.modal.title'),
+    content: t(`groups.settings.general.group_type.modal.message_${target}`),
+    submitText: t('common.buttons.save'),
+  });
+
+  if (!isConfirmed) {
+    groupTypeInput.value = activeGroupType.value;
+    return;
+  }
+
+  const ok = await saveGroupType(target);
+  if (!ok) groupTypeInput.value = activeGroupType.value;
+}
 
 // Avatar/Cropper state
 const fileInputRef = ref<HTMLInputElement | null>(null);
@@ -344,6 +391,63 @@ async function confirmDeleteGroup() {
         @cancel="cropperOpen = false"
         @confirm="onCropConfirmed"
       />
+    </div>
+
+    <div>
+      <PageHeader>{{
+        t('groups.settings.general.group_type.title')
+      }}</PageHeader>
+      <p class="text-base/relaxed text-on-ghost-muted m-0 mb-4 max-w-160">
+        {{ t('groups.settings.general.group_type.description') }}
+      </p>
+
+      <BaseFormContent class="max-w-120">
+        <BaseFormGroup id="group-type">
+          <BaseLabel for="group-type">{{
+            t('groups.settings.general.group_type.label')
+          }}</BaseLabel>
+          <BaseSelect
+            id="group-type"
+            :model-value="groupTypeInput"
+            class="w-full"
+            :disabled="!canEditGroupType || savingGroupType"
+            :options="groupTypeOptions"
+            @update:model-value="
+              (value) => (groupTypeInput = toGroupType(value))
+            "
+          />
+          <span class="text-xs text-on-ghost-muted mt-1">
+            {{
+              t(`groups.settings.general.group_type.hints.${groupTypeInput}`)
+            }}
+          </span>
+        </BaseFormGroup>
+
+        <BaseRow
+          v-if="canEditGroupType"
+          justify="end"
+          class="w-full mt-2 gap-2"
+        >
+          <BaseButton
+            variant="ghost"
+            :disabled="!groupTypeChanged || savingGroupType"
+            @click="groupTypeInput = activeGroupType"
+          >
+            {{ t('common.buttons.cancel') }}
+          </BaseButton>
+          <BaseButton
+            variant="action"
+            :disabled="!groupTypeChanged || savingGroupType"
+            @click="confirmGroupTypeChange"
+          >
+            {{
+              savingGroupType
+                ? t('common.buttons.saving')
+                : t('common.buttons.save')
+            }}
+          </BaseButton>
+        </BaseRow>
+      </BaseFormContent>
     </div>
 
     <div v-if="isOwner">

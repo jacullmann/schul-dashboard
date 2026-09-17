@@ -6,7 +6,7 @@ import type { HwItem } from '@/modules/tasks/composables/useTasks';
 import type { ItemType } from '@/modules/tasks/types';
 import { useImageUpload } from '@/modules/tasks/composables/useImageUpload';
 import { useI18n } from 'vue-i18n';
-import { getSubjectKey } from '@/types/subjects';
+import { getSubjectKey, subjectNeedsCourseChoice } from '@/types/subjects';
 import { useSubjectStore } from '@/stores/subjectStore';
 import { useEnrolledCourses } from '@/common/composables/useEnrolledCourses';
 import { formatSubjectDisplay } from '@/utils/subject-formatter';
@@ -255,10 +255,8 @@ export function useTaskFormLogic(
     const match = subjectStore.subjects.find(
       (s) => s.name === subjectSel.value,
     );
-    if (!match || !match.courses) return false;
-    if (match.category === 'core') return false;
-    if (match.category === 'extra') return match.courses.length >= 2;
-    return match.courses.length >= 1;
+    if (!match?.courses) return false;
+    return subjectNeedsCourseChoice(match.category, match.courses.length);
   });
 
   const courseOptions = computed(() => {

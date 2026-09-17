@@ -9,6 +9,7 @@ import GroupAvatarCropper from '@/modules/groups/components/GroupAvatarCropper.v
 import hw from '@/api/api.ts';
 import Avatar from '@/modules/auth/components/Avatar.vue';
 import { apiErrorMessage } from '@/api/errors';
+import { GROUP_TYPES, toGroupType, type GroupType } from '@/types/groups';
 
 const { t } = useI18n();
 
@@ -28,8 +29,16 @@ const { activeGroupId } = useAppAuth();
 const groupNameInputRef = ref<HTMLInputElement | null>(null);
 
 const groupName = ref('');
+const groupType = ref<GroupType>('regular');
 const submitting = ref(false);
 const errorMsg = ref('');
+
+const groupTypeOptions = computed(() =>
+  GROUP_TYPES.map((type) => ({
+    value: type,
+    label: t(`groups.settings.general.group_type.options.${type}`),
+  })),
+);
 
 // Avatar/Cropper state
 const fileInputRef = ref<HTMLInputElement | null>(null);
@@ -158,6 +167,7 @@ async function submit() {
     const res = await auth.createGroup(
       groupName.value.trim(),
       avatarUrl.value || undefined,
+      groupType.value,
     );
 
     if (res.ok) {
@@ -277,6 +287,21 @@ async function submit() {
           autocomplete="off"
           @input="clearError"
         />
+      </BaseFormGroup>
+
+      <BaseFormGroup id="group-type">
+        <BaseLabel for="group-type">{{
+          t('groups.settings.general.group_type.label')
+        }}</BaseLabel>
+        <BaseSelect
+          id="group-type"
+          :model-value="groupType"
+          :options="groupTypeOptions"
+          @update:model-value="(value) => (groupType = toGroupType(value))"
+        />
+        <span class="text-xs text-on-ghost-muted mt-1">
+          {{ t(`groups.settings.general.group_type.hints.${groupType}`) }}
+        </span>
       </BaseFormGroup>
 
       <input

@@ -1,6 +1,7 @@
 use super::{dto::*, service::GroupService};
 use crate::{
     common::extractors::{AuthUser, ClientIp, OptionalAuth, TenantContext, UserAgent},
+    common::group_type::GroupType,
     error::{AppError, AppResult},
     state::AppState,
 };
@@ -62,6 +63,15 @@ pub async fn accept_invite(
     Ok((jar, Json(body)))
 }
 
+/// Rejects unknown group types instead of silently storing a regular group.
+fn parse_group_type(raw: Option<&str>) -> AppResult<Option<GroupType>> {
+    raw.map(|value| {
+        GroupType::from_str(value)
+            .ok_or_else(|| AppError::bad_request("Unknown group type. Use 'regular' or 'abitur'."))
+    })
+    .transpose()
+}
+
 pub async fn create_group(
     State(s): State<AppState>,
     user: AuthUser,
@@ -74,6 +84,8 @@ pub async fn create_group(
         .get(crate::config::REFRESH_COOKIE)
         .map(|c| c.value().to_string());
 
+    let group_type = parse_group_type(dto.group_type.as_deref())?.unwrap_or_default();
+
     let (jar, body) = GroupService::from_state(&s)
         .create_group(crate::group::service::CreateGroupParams {
             user_id: user.user_id,
@@ -81,6 +93,7 @@ pub async fn create_group(
             global_role: &user.global_role,
             group_name: &dto.group_name,
             avatar_url: dto.avatar_url.as_deref(),
+            group_type,
             ip: ip.as_deref(),
             ua: ua.as_deref(),
             current_refresh: current.as_deref(),
@@ -294,6 +307,18 @@ pub async fn rename_group(
 ) -> AppResult<Json<Value>> {
     crate::require_permission!(tc, crate::common::permission::Permission::EditGroupGeneral);
 
+    let group_type = parse_group_type(dto.group_type.as_deref())?;
+
+    // The group type decides which subject categories exist and whether the
+    // schedule is kept per course, so changing it needs both of those rights.
+    if group_type.is_some() {
+        crate::require_permission!(
+            tc,
+            crate::common::permission::Permission::EditSubjectsCourses
+        );
+        crate::require_permission!(tc, crate::common::permission::Permission::EditSchedule);
+    }
+
     Ok(Json(
         GroupAdminService::from_state(&s)
             .rename_group(
@@ -301,6 +326,7 @@ pub async fn rename_group(
                 tc.user.user_id,
                 dto.name.as_deref(),
                 dto.avatar_url.as_deref(),
+                group_type,
             )
             .await?,
     ))

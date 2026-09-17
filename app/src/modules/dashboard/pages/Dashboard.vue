@@ -15,6 +15,7 @@ import { useSubjectStore } from '@/stores/subjectStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useSchedule } from '@/modules/schedule/composables/useSchedule';
 import { formatSubjectDisplay } from '@/utils/subject-formatter';
+import { courseSelectionFor } from '@/types/subjects';
 import hw from '@/api/api.ts';
 import ItemCard from '@/modules/tasks/components/ItemCard.vue';
 import { parseTimeOfDay } from '@/utils/time';
@@ -199,7 +200,11 @@ const userSubjects = computed(() => {
     const course = subject.courses?.find((csc) => csc.id === c.courseId);
     if (course) {
       subjects.add(`${subject.name} - ${course.name}`);
-      if (subject.category === 'extra' && subject.courses?.length === 1) {
+      // A subject with a single optional course is named without its course.
+      if (
+        courseSelectionFor(subject.category) === 'optional' &&
+        subject.courses?.length === 1
+      ) {
         subjects.add(subject.name);
       }
     }
@@ -226,9 +231,8 @@ const filteredTasks = computed(() => {
 
       if (
         categoryMatch &&
-        categoryMatch.category !== 'core' &&
-        categoryMatch.courses &&
-        categoryMatch.courses.length > 0
+        courseSelectionFor(categoryMatch.category) !== 'none' &&
+        (categoryMatch.courses?.length ?? 0) > 0
       ) {
         return userSubjects.value.has(item.subject);
       }

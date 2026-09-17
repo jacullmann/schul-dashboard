@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO groups (name, avatar_url, owner_id) VALUES ($1, $2, $3) RETURNING id, name",
+  "query": "INSERT INTO groups (name, avatar_url, owner_id, group_type)\n               VALUES ($1, $2, $3, $4) RETURNING id, name",
   "describe": {
     "columns": [
       {
@@ -30,7 +30,8 @@
       "Left": [
         "Text",
         "Text",
-        "Uuid"
+        "Uuid",
+        "Text"
       ]
     },
     "nullable": [
@@ -38,5 +39,5 @@
       false
     ]
   },
-  "hash": "187561680af7d457dd691a346d94c943a65904d819cbbebc9d34f0380fb75f33"
+  "hash": "7bb7fd9ff5db83e37eb035697b6f2f01f7de5a00a7e1009f3dc3267ab7d1b156"
 }

@@ -26,11 +26,13 @@ const props = withDefaults(
     selectedLessonIds?: string[];
     isEditable?: boolean;
     animated?: boolean;
+    individualCourses?: boolean;
     timeSlots?: Array<{ slot: number; time: string }>;
   }>(),
   {
     animated: true,
     isEditable: false,
+    individualCourses: false,
     selectedLessonIds: () => [],
   },
 );
@@ -62,17 +64,41 @@ const displayLessons = computed(() => {
     const subjects =
       lesson.subjects || (subObj ? { id: subObj.id, name: subObj.name } : null);
 
-    if (courses.length > 1) {
-      return { ...lesson, courseCount: courses.length, subjects };
+    const ownCourse =
+      lesson.courses ??
+      (lesson.courseId
+        ? (courses.find((c) => c.id === lesson.courseId) ?? null)
+        : null);
+
+    // A lesson bound to a course speaks for itself; only lessons that stand for
+    // every course of their subject get the summarised course info.
+    if (ownCourse) {
+      return {
+        ...lesson,
+        courseId: ownCourse.id,
+        courseName: ownCourse.name,
+        courses: ownCourse,
+        subjects,
+      };
+    }
+
+    if (props.individualCourses || courses.length > 1) {
+      return {
+        ...lesson,
+        ...(courses.length > 1 && !props.individualCourses
+          ? { courseCount: courses.length }
+          : {}),
+        subjects,
+      };
     }
 
     const [c] = courses;
     if (c) {
       return {
         ...lesson,
-        courseId: lesson.courseId || c.id,
-        courseName: lesson.courseName || c.name,
-        courses: lesson.courses || { id: c.id, name: c.name },
+        courseId: c.id,
+        courseName: c.name,
+        courses: { id: c.id, name: c.name },
         subjects,
       };
     }
@@ -109,6 +135,14 @@ const coveredSlots = computed(() => {
 
 const onSelectLesson = (lesson: Lesson, event?: MouseEvent) => {
   emit('select-lesson', lesson, event);
+};
+
+// Adds another lesson to a slot that is already taken, which in an Abitur
+// group is how a second course of the same hour gets scheduled.
+const onAddToGroup = (group: Lesson[]) => {
+  const [first] = group;
+  if (!first) return;
+  emit('add-lesson', { day: Number(first.day), slot: Number(first.slot) });
 };
 
 const onSelectDay = (day: number, event?: MouseEvent) => {
@@ -198,10 +232,12 @@ onMounted(() => {
             :selected-lesson-id="selectedLessonId"
             :selected-lesson-ids="selectedLessonIds"
             :animated="animated"
+            :can-add-lesson="isEditable && individualCourses"
             :get-display-name="getDisplayName"
             :get-group-style="getGroupStyle"
             @select-lesson="onSelectLesson"
             @contextmenu-lesson="(l, ev) => emit('contextmenu-lesson', l, ev)"
+            @add-lesson="onAddToGroup(group)"
           />
 
           <template v-if="isEditable">

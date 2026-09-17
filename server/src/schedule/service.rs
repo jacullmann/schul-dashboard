@@ -1,6 +1,7 @@
 use crate::{error::AppResult, state::AppState};
 use serde_json::{Value, json};
 use sqlx::PgPool;
+use std::collections::HashSet;
 use uuid::Uuid;
 
 pub struct ScheduleService {
@@ -14,17 +15,42 @@ impl ScheduleService {
 
     pub async fn get_schedule(&self, tenant_id: Uuid, user_id: Option<Uuid>) -> AppResult<Value> {
         let lessons = sqlx::query!(
-            r#"SELECT s.id, s.day, s.slot, s.duration, s.room,
-       sub.id as "subject_id: Option<Uuid>", sub.name as "subject_name?"
+            r#"SELECT s.id, s.day, s.slot, s.duration, s.room, s.course_id,
+       sub.id as "subject_id: Option<Uuid>", sub.name as "subject_name?",
+       c.name as "course_name?"
 FROM schedules s
 LEFT JOIN subjects sub ON sub.id = s.subject_id
+LEFT JOIN courses c ON c.id = s.course_id
 WHERE s.tenant_id = $1"#,
             tenant_id
         )
         .fetch_all(&self.db)
         .await?;
 
+        let mut enrolled_course_ids: Option<HashSet<Uuid>> = None;
+
         if let Some(uid) = user_id {
+            // A lesson bound to a course is only that course's lesson, which
+            // matters most for Abitur groups where nearly every lesson is.
+            let personalized = sqlx::query!(
+                r#"SELECT personalized, done_setup FROM users WHERE id = $1"#,
+                uid
+            )
+            .fetch_optional(&self.db)
+            .await?
+            .is_some_and(|u| u.personalized && u.done_setup);
+
+            if personalized {
+                let rows = sqlx::query_scalar!(
+                    r#"SELECT course_id FROM user_courses WHERE user_id = $1"#,
+                    uid
+                )
+                .fetch_all(&self.db)
+                .await?;
+
+                enrolled_course_ids = Some(rows.into_iter().collect());
+            }
+
             let db2 = self.db.clone();
             tokio::spawn(async move {
                 let _ = sqlx::query!(
@@ -36,11 +62,20 @@ WHERE s.tenant_id = $1"#,
             });
         }
 
-        let result: Vec<Value> = lessons.into_iter().map(|l| json!({
-            "id": l.id, "day": l.day, "slot": l.slot, "duration": l.duration, "room": l.room,
-            "subjectId": l.subject_id,
-            "subjects": l.subject_id.map(|id| json!({ "id": id, "name": l.subject_name })),
-        })).collect();
+        let result: Vec<Value> = lessons
+            .into_iter()
+            .filter(|l| match (&enrolled_course_ids, l.course_id) {
+                (Some(enrolled), Some(course_id)) => enrolled.contains(&course_id),
+                _ => true,
+            })
+            .map(|l| json!({
+                "id": l.id, "day": l.day, "slot": l.slot, "duration": l.duration, "room": l.room,
+                "subjectId": l.subject_id,
+                "subjects": l.subject_id.map(|id| json!({ "id": id, "name": l.subject_name })),
+                "courseId": l.course_id,
+                "courses": l.course_id.map(|id| json!({ "id": id, "name": l.course_name })),
+            }))
+            .collect();
 
         Ok(json!(result))
     }

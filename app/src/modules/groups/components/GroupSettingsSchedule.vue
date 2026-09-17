@@ -59,8 +59,13 @@ const emit = defineEmits<{
   (e: 'delete-lesson', id: string): void;
 }>();
 
-const { activeScheduleConfig, checkPermission } = useAppAuth();
+const { activeScheduleConfig, activeGroupType, checkPermission } = useAppAuth();
 const { subjects, loadSubjects } = useSubjectAdmin();
+
+// Abitur groups schedule each course on its own, so lessons carry a course.
+const schedulesCoursesIndividually = computed(
+  () => activeGroupType.value === 'abitur',
+);
 
 const canEditScheduleConfig = computed(() => checkPermission('edit_schedule'));
 const canManageScheduleChanges = computed(() =>
@@ -668,6 +673,7 @@ const lessonForm = ref({
   duration: 1,
   room: '',
   subjectId: '',
+  courseId: '',
 });
 
 // Subject Options directly from group subjects table
@@ -686,6 +692,41 @@ const selectedSubjectObj = computed(() => {
     subjects.value.find((s) => s.id === lessonForm.value.subjectId) || null
   );
 });
+
+const lessonCourseOptions = computed(() => {
+  const opts = [
+    {
+      label: t('groups.settings.schedule.editor.select_course_prompt'),
+      value: '',
+    },
+  ];
+  selectedSubjectObj.value?.courses?.forEach(
+    (c: { id: string; name: string }) =>
+      opts.push({ label: c.name, value: c.id }),
+  );
+  return opts;
+});
+
+// The course field stays visible for a lesson that still carries one after the
+// group switched back to regular, so it can be cleared there too.
+const showLessonCourseField = computed(
+  () =>
+    (schedulesCoursesIndividually.value || !!lessonForm.value.courseId) &&
+    (selectedSubjectObj.value?.courses?.length ?? 0) > 0,
+);
+
+// A course of another subject cannot stay selected when the subject changes.
+watch(
+  () => lessonForm.value.subjectId,
+  () => {
+    const courses = selectedSubjectObj.value?.courses ?? [];
+    if (
+      !courses.some((c: { id: string }) => c.id === lessonForm.value.courseId)
+    ) {
+      lessonForm.value.courseId = '';
+    }
+  },
+);
 
 function getSlotTimeRange(startSlot: number, endSlot: number): string {
   let currentMins = minutesSinceMidnight(draftConfigForm.value.startTime);
@@ -784,6 +825,7 @@ function openAddLessonModal(day: number, slot: number) {
     duration: 1,
     room: '',
     subjectId: '',
+    courseId: '',
   };
   isLessonModalOpen.value = true;
 }
@@ -804,6 +846,13 @@ function openEditLessonModal(lesson: Lesson) {
 
   const matchedSubId = matchedSub ? matchedSub.id : '';
 
+  const lessonCourseId = lesson.courseId || lesson.courses?.id || '';
+  const matchedCourseId = matchedSub?.courses?.some(
+    (c: { id: string }) => c.id === lessonCourseId,
+  )
+    ? lessonCourseId
+    : '';
+
   lessonForm.value = {
     id: lesson.id,
     day: Number(lesson.day),
@@ -811,6 +860,7 @@ function openEditLessonModal(lesson: Lesson) {
     duration: Number(lesson.duration || 1),
     room: lesson.room || '',
     subjectId: matchedSubId,
+    courseId: matchedCourseId,
   };
   isLessonModalOpen.value = true;
 }
@@ -828,6 +878,11 @@ function submitLessonForm() {
     lessonForm.value.id ||
     `les_draft_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
 
+  const courseObj =
+    subObj.courses?.find(
+      (c: { id: string }) => c.id === lessonForm.value.courseId,
+    ) ?? null;
+
   const newLesson: Lesson = {
     id: targetId,
     day: Number(lessonForm.value.day),
@@ -838,6 +893,9 @@ function submitLessonForm() {
     subject: subObj.name,
     subjectAbbr: subObj.name.substring(0, 3).toUpperCase(),
     subjects: { id: subObj.id, name: subObj.name },
+    courseId: courseObj?.id ?? null,
+    courseName: courseObj?.name,
+    courses: courseObj ? { id: courseObj.id, name: courseObj.name } : null,
   };
 
   const existingIdx = draftLessons.value.findIndex((l) => l.id === targetId);
@@ -1040,6 +1098,7 @@ onBeforeUnmount(() => {
           :lessons="draftLessons"
           :subjects="subjects"
           :is-editable="true"
+          :individual-courses="schedulesCoursesIndividually"
           :selected-lesson-ids="selectedLessonIds"
           :time-slots="slotTimes"
           :animated="false"
@@ -1182,6 +1241,7 @@ onBeforeUnmount(() => {
           v-else
           :lessons="lessons"
           :subjects="subjects"
+          :individual-courses="schedulesCoursesIndividually"
           :selected-lesson-id="subForm.lessonId"
           :animated="!hasSwitchedFromEditor"
           @select-lesson="onLessonSelected"
@@ -1210,13 +1270,16 @@ onBeforeUnmount(() => {
           <input v-model="subForm.lessonId" type="hidden" />
           <div
             v-if="
+              !selectedLesson.courseId &&
               selectedLessonSubject &&
               selectedLessonSubject.courses &&
               selectedLessonSubject.courses.length > 0
             "
             class="form-field col-span-2 sm:col-span-1"
           >
-            <BaseLabel for="sub-course-select">Betroffener Kurs</BaseLabel>
+            <BaseLabel for="sub-course-select">{{
+              t('groups.settings.schedule.changes.affected_course_label')
+            }}</BaseLabel>
             <BaseSelect
               id="sub-course-select"
               v-model="subForm.courseId"
@@ -1419,6 +1482,21 @@ onBeforeUnmount(() => {
               :options="subjectOptions"
               classes="w-full"
             />
+          </BaseFormGroup>
+
+          <BaseFormGroup v-if="showLessonCourseField" id="lesson-course">
+            <BaseLabel for="lesson-course-select">{{
+              t('groups.settings.schedule.editor.course_label')
+            }}</BaseLabel>
+            <BaseSelect
+              id="lesson-course-select"
+              v-model="lessonForm.courseId"
+              :options="lessonCourseOptions"
+              classes="w-full"
+            />
+            <span class="text-xs text-on-ghost-muted mt-1">
+              {{ t('groups.settings.schedule.editor.course_hint') }}
+            </span>
           </BaseFormGroup>
 
           <BaseFormGroup id="lesson-room">

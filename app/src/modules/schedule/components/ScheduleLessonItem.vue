@@ -107,7 +107,7 @@ function onClick(event: MouseEvent) {
             : 'text-on-ghost'
         "
       >
-        <span class="truncate">
+        <span class="flex-1 min-w-0 truncate">
           <template
             v-if="
               lesson._original &&
@@ -153,7 +153,7 @@ function onClick(event: MouseEvent) {
         </span>
         <span
           v-else-if="lesson.courseName || lesson.courses?.name"
-          class="font-normal truncate ml-1 max-w-full"
+          class="font-normal truncate ml-1 min-w-0 max-w-[55%]"
           :class="
             isSelected
               ? 'min-[501px]:text-on-action-muted text-on-ghost-muted'

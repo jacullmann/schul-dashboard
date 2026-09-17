@@ -2,6 +2,7 @@ import { ref, computed } from 'vue';
 import hw, { ensureCsrf } from '@/api/api.ts';
 import { useUserStore } from '@/stores/userStore';
 import type { ScheduleConfig } from '@/modules/schedule/types';
+import { toGroupType, type GroupType } from '@/types/groups';
 
 const STATUS_ENDPOINT = '/groups/status';
 
@@ -13,6 +14,7 @@ const activeGroupId = ref<string | null>(null);
 const activeGroupOwnerId = ref<string | null>(null);
 const activeGroupAvatarUrl = ref<string | null>(null);
 const activeGroupPermissions = ref<Record<string, string>>({});
+const activeGroupType = ref<GroupType>('regular');
 
 import type { PermissionKey } from '@/types/permissions.ts';
 
@@ -27,6 +29,7 @@ type UserGroup = {
   hasUnreadContent?: boolean;
   scheduleConfig?: ScheduleConfig;
   avatarUrl?: string;
+  groupType?: GroupType;
 };
 
 const userGroups = ref<UserGroup[]>([]);
@@ -57,6 +60,7 @@ function clearAuthState(): void {
   activeGroupOwnerId.value = null;
   activeGroupAvatarUrl.value = null;
   activeGroupPermissions.value = {};
+  activeGroupType.value = 'regular';
   activePermissions.value = new Set();
   userGroups.value = [];
   statusPromise = null;
@@ -75,6 +79,7 @@ function applyStatusData(data: {
     ownerId?: string;
     avatarUrl?: string;
     permissions?: Record<string, string>;
+    groupType?: string;
   } | null;
   groups?: UserGroup[];
   activePermissions?: string[];
@@ -86,7 +91,11 @@ function applyStatusData(data: {
   activeGroupOwnerId.value = data.group?.ownerId ?? null;
   activeGroupAvatarUrl.value = data.group?.avatarUrl ?? null;
   activeGroupPermissions.value = data.group?.permissions ?? {};
-  userGroups.value = data.groups ?? [];
+  activeGroupType.value = toGroupType(data.group?.groupType);
+  userGroups.value = (data.groups ?? []).map((group) => ({
+    ...group,
+    groupType: toGroupType(group.groupType),
+  }));
 
   activePermissions.value = new Set<PermissionKey>(
     (data.activePermissions ?? []).filter(isPermissionKey),
@@ -208,11 +217,13 @@ export function useAppAuth() {
   async function createGroup(
     name: string,
     avatarUrl?: string,
+    groupType: GroupType = 'regular',
   ): Promise<AuthResult> {
     try {
       const { status, data } = await hw.post('/groups/create', {
         groupName: name,
         avatarUrl,
+        groupType,
       });
       if ((status === 200 || status === 201) && data.ok) {
         await checkAuthStatus();
@@ -383,6 +394,7 @@ export function useAppAuth() {
     activeGroupOwnerId,
     activeGroupAvatarUrl,
     activeGroupPermissions,
+    activeGroupType,
     activePermissions,
     activeScheduleConfig,
     userGroups,

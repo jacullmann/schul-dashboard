@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Plus } from '@lucide/vue';
 import ScheduleLessonItem from './ScheduleLessonItem.vue';
 
 withDefaults(
@@ -14,12 +15,14 @@ withDefaults(
     dayIndex?: number;
     elapsedLoadTime?: number;
     animated?: boolean;
+    canAddLesson?: boolean;
     getDisplayName: (l: any) => string;
     getGroupStyle: (g: any[]) => any;
   }>(),
   {
     animated: true,
     hasContextMenu: false,
+    canAddLesson: false,
     selectedLessonId: undefined,
     selectedLessonIds: () => [],
     dayIndex: undefined,
@@ -30,6 +33,7 @@ withDefaults(
 const emit = defineEmits<{
   (e: 'select-lesson', lesson: any, event?: MouseEvent): void;
   (e: 'contextmenu-lesson', lesson: any, event: UIEvent): void;
+  (e: 'add-lesson'): void;
 }>();
 </script>
 
@@ -68,5 +72,15 @@ const emit = defineEmits<{
       @select="(l, ev) => emit('select-lesson', l, ev)"
       @contextmenu="(l, ev) => emit('contextmenu-lesson', l, ev)"
     />
+
+    <!-- Courses of a year run in parallel, so a taken slot still takes more. -->
+    <button
+      v-if="canAddLesson"
+      type="button"
+      class="flex items-center justify-center gap-1 py-1 border-t border-dashed border-ghost-border text-on-ghost-muted hover:text-action hover:bg-action/5 transition-colors cursor-pointer"
+      @click.stop="emit('add-lesson')"
+    >
+      <Plus :size="16" />
+    </button>
   </div>
 </template>

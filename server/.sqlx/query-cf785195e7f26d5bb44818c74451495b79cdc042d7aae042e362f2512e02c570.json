@@ -1,0 +1,21 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO schedules (id, tenant_id, day, slot, duration, room, subject_id, course_id)\n                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Int4",
+        "Int4",
+        "Int4",
+        "Text",
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "cf785195e7f26d5bb44818c74451495b79cdc042d7aae042e362f2512e02c570"
+}

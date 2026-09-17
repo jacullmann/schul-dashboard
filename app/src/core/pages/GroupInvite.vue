@@ -81,8 +81,8 @@ async function handleJoin() {
         await subjectStore.loadSubjects();
 
         if (
-          subjectStore.electiveSubjects.length > 0 ||
-          subjectStore.extraSubjects.length > 0
+          subjectStore.requiredCourseSubjects.length > 0 ||
+          subjectStore.optionalCourseSubjects.length > 0
         ) {
           modalStore.openSetup();
         }

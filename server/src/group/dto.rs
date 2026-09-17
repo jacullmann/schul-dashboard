@@ -10,6 +10,7 @@ pub struct CreateGroupDto {
     #[validate(length(min = 1, max = 100))]
     pub group_name: String,
     pub avatar_url: Option<String>,
+    pub group_type: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -29,6 +30,7 @@ pub struct ChangeMemberRoleDto {
 pub struct RenameGroupDto {
     pub name: Option<String>,
     pub avatar_url: Option<String>,
+    pub group_type: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -53,6 +55,7 @@ pub struct ScheduleLessonDto {
     pub duration: i32,
     pub room: Option<String>,
     pub subject_id: Option<Uuid>,
+    pub course_id: Option<Uuid>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
