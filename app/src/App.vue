@@ -43,7 +43,7 @@ async function handleAuthExpired() {
     currentPath === '/server';
 
   if (!isPublicRoute) {
-    await router.push('/login');
+    await router.push({ name: 'login' });
   }
 }
 

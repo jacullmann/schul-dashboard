@@ -17,7 +17,7 @@ const loadGame = (gameId: string) => {
     game.value = foundGame;
   } else {
     console.error(`Spiel mit ID "${gameId}" nicht gefunden.`);
-    void router.replace('/spiele');
+    void router.replace({ name: 'games' });
   }
 };
 
@@ -47,7 +47,7 @@ watch(
         variant="ghost"
         on="ghost"
         :icon="ChevronLeft"
-        @click="router.push('/games')"
+        @click="router.push({ name: 'games' })"
       >
         {{ t('games.detail.back_button') }}
       </BaseButton>

@@ -929,7 +929,7 @@ function formatDuration(ms?: number): string {
                 type="button"
                 variant="ghost"
                 class="mt-4"
-                @click="router.push('/natural-intelligence')"
+                @click="router.push({ name: 'natural-intelligence' })"
               >
                 Learn more
               </BaseButton>
@@ -940,7 +940,7 @@ function formatDuration(ms?: number): string {
                 :icon="ChevronRight"
                 icon-placement="trailing"
                 class="mt-4"
-                @click="router.push('/natural-intelligence/server')"
+                @click="router.push({ name: 'natural-intelligence-server' })"
               >
                 Become an AI
               </BaseButton>

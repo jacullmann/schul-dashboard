@@ -22,7 +22,7 @@ const {
   clearFieldError,
   submit: submitRegister,
 } = useRegister(async () => {
-  await router.push('/login');
+  await router.push({ name: 'login' });
 });
 
 async function handleSubmit() {
@@ -30,7 +30,7 @@ async function handleSubmit() {
 }
 
 function navigateToLogin() {
-  void router.push('/login');
+  void router.push({ name: 'login' });
 }
 </script>
 

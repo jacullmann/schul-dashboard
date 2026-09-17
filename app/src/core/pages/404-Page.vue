@@ -42,7 +42,10 @@ const goBack = () => {
           class="grid w-full gap-3 grid-cols-[repeat(auto-fit,minmax(280px,1fr))] max-md:grid-cols-1"
         >
           <router-link
-            :to="`/groups/${activeGroupId}/dashboard`"
+            :to="{
+              name: 'group-dashboard',
+              params: { groupId: activeGroupId },
+            }"
             class="flex items-center gap-3 p-3 bg-surface border border-ghost-border shadow-input rounded-xl no-underline transition-all duration-150 ease cursor-pointer hover:bg-surface-highlight"
           >
             <div
@@ -61,7 +64,7 @@ const goBack = () => {
           </router-link>
 
           <router-link
-            :to="`/groups/${activeGroupId}/tasks`"
+            :to="{ name: 'group-tasks', params: { groupId: activeGroupId } }"
             class="flex items-center gap-3 p-3 bg-surface border border-ghost-border shadow-input rounded-xl no-underline transition-all duration-150 ease cursor-pointer hover:bg-surface-highlight"
           >
             <div
@@ -80,7 +83,7 @@ const goBack = () => {
           </router-link>
 
           <router-link
-            :to="`/groups/${activeGroupId}/schedule`"
+            :to="{ name: 'group-schedule', params: { groupId: activeGroupId } }"
             class="flex items-center gap-3 p-3 bg-surface border border-ghost-border shadow-input rounded-xl no-underline transition-all duration-150 ease cursor-pointer hover:bg-surface-highlight"
           >
             <div
@@ -99,7 +102,7 @@ const goBack = () => {
           </router-link>
 
           <router-link
-            to="/private"
+            :to="{ name: 'private-todos' }"
             class="flex items-center gap-3 p-3 bg-surface border border-ghost-border shadow-input rounded-xl no-underline transition-all duration-150 ease cursor-pointer hover:bg-surface-highlight"
           >
             <div

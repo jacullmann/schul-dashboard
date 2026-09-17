@@ -39,7 +39,7 @@ const {
     await router.push(target);
   },
   async () => {
-    await router.push('/verify-mfa');
+    await router.push({ name: 'verify-mfa' });
   },
 );
 
@@ -48,7 +48,7 @@ async function handleSubmit() {
 }
 
 function navigateToRegister() {
-  void router.push('/register');
+  void router.push({ name: 'register' });
 }
 
 onMounted(() => {
@@ -119,7 +119,7 @@ onMounted(() => {
           </BaseFormGroup>
 
           <div class="flex justify-end">
-            <BaseLink to="/forgot-password">
+            <BaseLink :to="{ name: 'forgot-password' }">
               {{ t('auth.login.forgot') }}
             </BaseLink>
           </div>

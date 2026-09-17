@@ -22,7 +22,7 @@ const router = useRouter();
         <BaseRow justify="center">
           <BaseButton
             variant="action"
-            @click="router.push('/natural-intelligence/chat')"
+            @click="router.push({ name: 'natural-intelligence-chat' })"
             >Try Natural Intelligence now</BaseButton
           >
         </BaseRow>

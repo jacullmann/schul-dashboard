@@ -24,7 +24,7 @@ async function handleMfaVerified() {
 }
 
 async function handleMfaCancelled() {
-  await router.push('/login');
+  await router.push({ name: 'login' });
 }
 </script>
 

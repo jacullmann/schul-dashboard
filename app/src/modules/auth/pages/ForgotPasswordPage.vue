@@ -61,7 +61,7 @@ function goBack() {
 }
 
 function goBackToLogin() {
-  void router.push('/login');
+  void router.push({ name: 'login' });
 }
 
 async function handleNext() {
@@ -128,7 +128,7 @@ async function handleNext() {
       });
       const msg = data.message || t('auth.login.reset_success');
       useToast().success(msg);
-      await router.push('/login');
+      await router.push({ name: 'login' });
     } catch (e: unknown) {
       setMessage(
         apiErrorMessage(e, t('auth.login.reset.errors.reset_failed')),

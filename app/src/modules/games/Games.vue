@@ -46,7 +46,7 @@ const filteredGames = computed(() => {
         <router-link
           v-for="game in filteredGames"
           :key="game.id"
-          :to="`/games/${game.id}`"
+          :to="{ name: 'GameDetail', params: { id: game.id } }"
           class="no-underline color-inherit animate-fade-up"
         >
           <div

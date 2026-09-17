@@ -171,7 +171,7 @@ async function confirmDeleteGroup() {
   deletingGroup.value = true;
   try {
     await deleteGroup();
-    void router.push('/groups');
+    void router.push({ name: 'groups' });
   } catch {
     // TODO: Add toast
     deletingGroup.value = false;

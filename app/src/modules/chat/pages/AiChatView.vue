@@ -1205,7 +1205,7 @@ const MarkdownRenderer = defineComponent({
                 type="button"
                 variant="ghost"
                 class="mt-4"
-                @click="router.push('/natural-intelligence')"
+                @click="router.push({ name: 'natural-intelligence' })"
               >
                 Learn more
               </BaseButton>
