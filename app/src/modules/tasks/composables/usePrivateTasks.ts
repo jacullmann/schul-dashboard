@@ -8,6 +8,40 @@ import { useI18n } from 'vue-i18n';
 import type { PrivateTask } from '@/modules/tasks/types';
 import { useToast } from '@/common/composables/useToast';
 
+/**
+ * A key that sorts strictly between two positions, so a moved task lands in
+ * its slot straight away instead of wherever a guessed key happens to sort
+ * until the server answers with the real one. Appending a character, as the
+ * obvious shortcut, sorts after the key it extends and can overshoot the
+ * neighbour on the other side.
+ */
+function positionBetween(prev: string | null, next: string | null): string {
+  const lower = prev ?? '';
+  let upper = next;
+  let key = '';
+
+  for (let i = 0; i < lower.length + (upper?.length ?? 0) + 1; i++) {
+    const lo = i < lower.length ? lower.charCodeAt(i) : 0;
+    const hi =
+      upper !== null && i < upper.length ? upper.charCodeAt(i) : 0x10000;
+
+    if (lo === hi) {
+      key += String.fromCharCode(lo);
+      continue;
+    }
+
+    const mid = (lo + hi) >> 1;
+    if (mid > lo) return key + String.fromCharCode(mid);
+
+    // Adjacent characters leave no room here; anything after `lower` at this
+    // depth already sorts below `upper`.
+    key += String.fromCharCode(lo);
+    upper = null;
+  }
+
+  return key;
+}
+
 export function usePrivateTasks() {
   const { t } = useI18n();
   const userStore = useUserStore();
@@ -146,8 +180,9 @@ export function usePrivateTasks() {
     const task = privateTasks.value[idx];
     if (!task) return;
 
-    if (prevPosition) task.position = prevPosition + 'z';
-    else if (nextPosition) task.position = nextPosition + '0';
+    if (prevPosition || nextPosition) {
+      task.position = positionBetween(prevPosition, nextPosition);
+    }
 
     syncState();
 

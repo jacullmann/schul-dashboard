@@ -11,10 +11,13 @@ import InfoModal from '@/common/components/InfoModal.vue';
 import { useI18n } from 'vue-i18n';
 import type { PrivateTask } from '@/modules/tasks/types';
 import { usePrivateTasks } from '@/modules/tasks/composables/usePrivateTasks';
-import { VueDraggableNext as draggable } from 'vue-draggable-next';
+import {
+  useDragReorder,
+  REORDER_ITEM_ATTR,
+} from '@/modules/tasks/composables/useDragReorder';
 import ItemCard from '@/modules/tasks/components/ItemCard.vue';
 import { usePrivateTaskForm } from '@/core/composables/usePrivateTaskForm';
-import { computed, ref, onUnmounted, watch } from 'vue';
+import { computed, reactive, ref, onUnmounted, watch } from 'vue';
 import { useWindowSize } from '@vueuse/core';
 import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/vue';
 import BaseSkeleton from '@/common/components/BaseSkeleton.vue';
@@ -120,78 +123,40 @@ onUnmounted(
   }),
 );
 
-const emptyImage = new Image();
-emptyImage.src =
-  'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+function moveTask(from: number, to: number) {
+  const order = [...displayPrivateTasks.value];
+  const [moved] = order.splice(from, 1);
+  if (!moved) return;
+  order.splice(to, 0, moved);
 
-function setDragImage(dataTransfer: DataTransfer) {
-  if (dataTransfer && dataTransfer.setDragImage) {
-    dataTransfer.setDragImage(emptyImage, 0, 0);
-  }
-}
-
-function onDragEnd(event: { newIndex: number; oldIndex: number }) {
-  const { newIndex, oldIndex } = event;
-  if (newIndex === oldIndex) return;
-
-  const movedItem = displayPrivateTasks.value[newIndex];
-  if (!movedItem) return;
-
-  const prevDisplay =
-    newIndex > 0 ? displayPrivateTasks.value[newIndex - 1] : null;
-  const nextDisplay =
-    newIndex < displayPrivateTasks.value.length - 1
-      ? displayPrivateTasks.value[newIndex + 1]
+  const realPosition = (item: { id: string } | undefined) =>
+    item
+      ? privateTasks.value.find((t) => t.id === item.id)?.position || null
       : null;
 
-  const realPosition = (item: { id: string } | null | undefined) => {
-    if (!item) return null;
-    const real = privateTasks.value.find((t) => t.id === item.id);
-    return real?.position || null;
-  };
-
-  reorderPrivateTask(
-    movedItem.id,
-    realPosition(prevDisplay),
-    realPosition(nextDisplay),
+  void reorderPrivateTask(
+    moved.id,
+    realPosition(order[to - 1]),
+    realPosition(order[to + 1]),
   );
 }
 
-function moveItemUp(index: number) {
-  if (index <= 0) return;
-  const item = displayPrivateTasks.value[index];
-  const itemAbove = displayPrivateTasks.value[index - 1];
-  if (!item || !itemAbove) return;
+const listRef = ref<HTMLElement | null>(null);
 
-  const realPos = (id: string) =>
-    privateTasks.value.find((t) => t.id === id)?.position || null;
+const reorder = useDragReorder(listRef, {
+  onMove: moveTask,
+  ignore:
+    ".item-menu-trigger, input, textarea, button, a, .checkbox, [role='button'], [role='menu']",
+});
 
-  const twoAbove = index - 2 >= 0 ? displayPrivateTasks.value[index - 2] : null;
-  reorderPrivateTask(
-    item.id,
-    twoAbove ? realPos(twoAbove.id) : null,
-    realPos(itemAbove.id),
-  );
-}
+/**
+ * Cards whose entrance has already played. Reordering moves the card's node,
+ * and a node put back into the document starts its animations over.
+ */
+const enteredIds = reactive(new Set<string>());
 
-function moveItemDown(index: number) {
-  if (index >= displayPrivateTasks.value.length - 1) return;
-  const item = displayPrivateTasks.value[index];
-  const itemBelow = displayPrivateTasks.value[index + 1];
-  if (!item || !itemBelow) return;
-
-  const realPos = (id: string) =>
-    privateTasks.value.find((t) => t.id === id)?.position || null;
-
-  const twoBelow =
-    index + 2 < displayPrivateTasks.value.length
-      ? displayPrivateTasks.value[index + 2]
-      : null;
-  reorderPrivateTask(
-    item.id,
-    realPos(itemBelow.id),
-    twoBelow ? realPos(twoBelow.id) : null,
-  );
+function onCardAnimationEnd(event: AnimationEvent, id: string) {
+  if (event.animationName === 'fade-up') enteredIds.add(id);
 }
 
 defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
@@ -234,125 +199,114 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
       </div>
 
       <div v-else class="private-tasks-container">
-        <draggable
-          :list="displayPrivateTasks"
-          class="flex flex-col gap-3 max-w-192 mx-auto"
-          item-key="id"
-          handle=".item-card"
-          :animation="200"
-          easing="cubic-bezier(0.3, 0, 0.14, 1)"
-          ghost-class="ghost-drag"
-          drag-class="hidden-drag"
-          fallback-class="hidden-drag"
-          :set-data="setDragImage"
-          :delay="100"
-          :delay-on-touch-only="true"
-          :support-pointer="false"
-          filter=".item-menu-trigger, input, button, .checkbox, [role='button']"
-          :prevent-on-filter="false"
-          @end="onDragEnd"
-        >
-          <ItemCard
+        <div ref="listRef" class="flex flex-col gap-3 max-w-192 mx-auto">
+          <div
             v-for="(privateTask, index) in displayPrivateTasks"
             :key="privateTask.id"
-            class="animate-fade-up"
-            :is-collapsed="privateTask.completed"
-            :title="privateTask.title"
-            @dblclick="user ? togglePrivateTaskCompletion(privateTask) : null"
-            @contextmenu.prevent.stop="
-              handleCardContextMenu(privateTask, $event)
-            "
-            @menu-click="handleCardMenuClick(privateTask, $event)"
+            v-bind="{ [REORDER_ITEM_ATTR]: '' }"
+            class="reorder-item long-press-target relative rounded-xl"
+            @animationend="onCardAnimationEnd($event, privateTask.id)"
           >
-            <template #checkbox>
-              <BaseCheckbox
-                :checked="privateTask.completed"
-                @change="togglePrivateTaskCompletion(privateTask)"
-              />
-            </template>
+            <ItemCard
+              :class="{ 'animate-fade-up': !enteredIds.has(privateTask.id) }"
+              :is-collapsed="privateTask.completed"
+              :title="privateTask.title"
+              @dblclick="user ? togglePrivateTaskCompletion(privateTask) : null"
+              @contextmenu.prevent.stop="
+                handleCardContextMenu(privateTask, $event)
+              "
+              @menu-click="handleCardMenuClick(privateTask, $event)"
+            >
+              <template #checkbox>
+                <BaseCheckbox
+                  :checked="privateTask.completed"
+                  @change="togglePrivateTaskCompletion(privateTask)"
+                />
+              </template>
 
-            <template #menu>
-              <Teleport to="body" :disabled="isMobile">
-                <BaseMenu
-                  :ref="
-                    (el: any) => {
-                      if (el && openMenuId === privateTask.id)
-                        menuRef = el.menuEl;
-                    }
-                  "
-                  :open="openMenuId === privateTask.id"
-                  :class="!isMobile ? 'fixed! z-[10000]! min-w-[180px]' : ''"
-                  :style="!isMobile ? itemMenuStyles : undefined"
-                  @close="openMenuId = null"
-                  @click.stop
-                >
-                  <BaseMenuButton
-                    :icon="Pencil"
-                    @click="
-                      openEditPrivateTaskForm(privateTask);
-                      openMenuId = null;
+              <template #menu>
+                <Teleport to="body" :disabled="isMobile">
+                  <BaseMenu
+                    :ref="
+                      (el: any) => {
+                        if (el && openMenuId === privateTask.id)
+                          menuRef = el.menuEl;
+                      }
                     "
+                    :open="openMenuId === privateTask.id"
+                    :class="!isMobile ? 'fixed! z-[10000]! min-w-[180px]' : ''"
+                    :style="!isMobile ? itemMenuStyles : undefined"
+                    @close="openMenuId = null"
+                    @click.stop
                   >
-                    {{ t('common.buttons.edit') }}
-                  </BaseMenuButton>
+                    <BaseMenuButton
+                      :icon="Pencil"
+                      @click="
+                        openEditPrivateTaskForm(privateTask);
+                        openMenuId = null;
+                      "
+                    >
+                      {{ t('common.buttons.edit') }}
+                    </BaseMenuButton>
 
-                  <BaseMenuButton
-                    :icon="Copy"
-                    @click="
-                      duplicatePrivateTask(privateTask);
-                      openMenuId = null;
-                    "
-                  >
-                    {{ t('common.buttons.duplicate') }}
-                  </BaseMenuButton>
+                    <BaseMenuButton
+                      :icon="Copy"
+                      @click="
+                        duplicatePrivateTask(privateTask);
+                        openMenuId = null;
+                      "
+                    >
+                      {{ t('common.buttons.duplicate') }}
+                    </BaseMenuButton>
 
-                  <BaseMenuDivider />
+                    <BaseMenuDivider />
 
-                  <BaseMenuButton
-                    v-if="index > 0"
-                    :icon="ChevronUp"
-                    @click="
-                      moveItemUp(index);
-                      openMenuId = null;
-                    "
-                  >
-                    {{ t('tasks.private_tasks.menu.up') }}
-                  </BaseMenuButton>
+                    <BaseMenuButton
+                      v-if="index > 0"
+                      :icon="ChevronUp"
+                      @click="
+                        reorder.move(index, index - 1);
+                        openMenuId = null;
+                      "
+                    >
+                      {{ t('tasks.private_tasks.menu.up') }}
+                    </BaseMenuButton>
 
-                  <BaseMenuButton
-                    v-if="index < displayPrivateTasks.length - 1"
-                    :icon="ChevronDown"
-                    @click="
-                      moveItemDown(index);
-                      openMenuId = null;
-                    "
-                  >
-                    {{ t('tasks.private_tasks.menu.down') }}
-                  </BaseMenuButton>
+                    <BaseMenuButton
+                      v-if="index < displayPrivateTasks.length - 1"
+                      :icon="ChevronDown"
+                      @click="
+                        reorder.move(index, index + 1);
+                        openMenuId = null;
+                      "
+                    >
+                      {{ t('tasks.private_tasks.menu.down') }}
+                    </BaseMenuButton>
 
-                  <BaseMenuDivider
-                    v-if="index > 0 || index < displayPrivateTasks.length - 1"
-                  />
+                    <BaseMenuDivider
+                      v-if="index > 0 || index < displayPrivateTasks.length - 1"
+                    />
 
-                  <BaseMenuButton
-                    :icon="Trash2"
-                    variant="danger"
-                    @click="
-                      deletePrivateTask(privateTask.id);
-                      openMenuId = null;
-                    "
-                  >
-                    {{ t('common.buttons.delete') }}
-                  </BaseMenuButton>
-                </BaseMenu>
-              </Teleport>
-            </template>
+                    <BaseMenuButton
+                      :icon="Trash2"
+                      variant="danger"
+                      @click="
+                        deletePrivateTask(privateTask.id);
+                        openMenuId = null;
+                      "
+                    >
+                      {{ t('common.buttons.delete') }}
+                    </BaseMenuButton>
+                  </BaseMenu>
+                </Teleport>
+              </template>
 
-            <template v-if="privateTask.description" #body>
-              <span>{{ privateTask.description }}</span>
-            </template>
-          </ItemCard>
-        </draggable>
+              <template v-if="privateTask.description" #body>
+                <span>{{ privateTask.description }}</span>
+              </template>
+            </ItemCard>
+          </div>
+        </div>
       </div>
     </div>
   </div>

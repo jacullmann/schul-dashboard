@@ -315,30 +315,27 @@
     }
   }
 }
-.ghost-drag .item-card {
-  /* The card is opaque so the blurred glow below it stays behind the card. */
-  background: var(--color-surface);
-  will-change: transform, filter;
-}
-
-.ghost-drag .item-card::before {
+/* A private task picked up for reordering. The brand gradient glows under the
+   card, and fades in and out with how far it is lifted. */
+.reorder-item.is-lifted::before {
   content: '';
   position: absolute;
-  top: 2px;
-  left: 2px;
-  right: 2px;
-  bottom: 2px;
+  inset: 2px;
   z-index: -1;
+  border-radius: inherit;
   background: var(--background-image-bismuth);
   filter: blur(12px);
-  opacity: 0.9;
-  display: block !important;
+  opacity: calc(var(--lift, 0) * 0.9);
+  pointer-events: none;
 }
 
-.hidden-drag,
-.sortable-drag,
-.sortable-fallback {
-  opacity: 0 !important;
+html.is-reordering {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+html.is-reordering * {
+  cursor: grabbing !important;
 }
 
 ::selection {
