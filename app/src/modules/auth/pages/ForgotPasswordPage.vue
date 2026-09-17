@@ -6,6 +6,7 @@ import { useI18n } from 'vue-i18n';
 import hw from '../../../api/api';
 import { useToast } from '@/common/composables/useToast';
 import CenteredAuthModal from '@/common/components/CenteredAuthModal.vue';
+import { apiErrorMessage } from '@/api/errors';
 
 const router = useRouter();
 const { t } = useI18n();
@@ -76,10 +77,8 @@ async function handleNext() {
       setMessage(t('auth.login.reset.errors.code_sent'), false);
       step.value = 2;
     } catch (e: unknown) {
-      const err = e as { response?: { data?: { error?: string } } };
       setMessage(
-        err?.response?.data?.error ||
-          t('auth.login.reset.errors.request_failed'),
+        apiErrorMessage(e, t('auth.login.reset.errors.request_failed')),
         true,
       );
     } finally {
@@ -100,9 +99,8 @@ async function handleNext() {
       setMessage(t('auth.login.reset.errors.code_verified'), false);
       step.value = 3;
     } catch (e: unknown) {
-      const err = e as { response?: { data?: { error?: string } } };
       setMessage(
-        err?.response?.data?.error || t('auth.login.reset.errors.code_expired'),
+        apiErrorMessage(e, t('auth.login.reset.errors.code_expired')),
         true,
       );
     } finally {
@@ -132,9 +130,8 @@ async function handleNext() {
       useToast().success(msg);
       await router.push('/login');
     } catch (e: unknown) {
-      const err = e as { response?: { data?: { error?: string } } };
       setMessage(
-        err?.response?.data?.error || t('auth.login.reset.errors.reset_failed'),
+        apiErrorMessage(e, t('auth.login.reset.errors.reset_failed')),
         true,
       );
     } finally {

@@ -1,6 +1,7 @@
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import hw from '@/api/api.ts';
+import { apiErrorMessage } from '@/api/errors';
 
 const showLinkModal = ref(false);
 const showMfaModal = ref(false);
@@ -74,7 +75,7 @@ export function useOAuth() {
       const e = err as { response?: { data?: { error?: string } } };
       return {
         ok: false,
-        error: e.response?.data?.error ?? t('auth.google_link.errors.failed'),
+        error: apiErrorMessage(e, t('auth.google_link.errors.failed')),
       };
     }
   }
@@ -89,7 +90,7 @@ export function useOAuth() {
       const e = err as { response?: { data?: { error?: string } } };
       return {
         ok: false,
-        error: e.response?.data?.error ?? 'Trennen fehlgeschlagen.',
+        error: apiErrorMessage(e, 'Trennen fehlgeschlagen.'),
       };
     }
   }

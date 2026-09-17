@@ -3,6 +3,7 @@ import { useI18n } from 'vue-i18n';
 import hw from '@/api/api.ts';
 import type { ChangePasswordErrors } from '@/modules/auth/types';
 import { useToast } from '@/common/composables/useToast';
+import { apiErrorMessage } from '@/api/errors';
 
 export function useChangePassword(emit: {
   (e: 'cancel'): void;
@@ -90,9 +91,10 @@ export function useChangePassword(emit: {
       emit('success');
       emit('cancel');
     } catch (e: unknown) {
-      const err = e as { response?: { data?: { error?: string } } };
-      const errorMsg =
-        err.response?.data?.error || t('auth.change_password.errors.failed');
+      const errorMsg = apiErrorMessage(
+        e,
+        t('auth.change_password.errors.failed'),
+      );
       setMessage(errorMsg, true);
 
       if (errorMsg.includes('falsch')) {

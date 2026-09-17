@@ -2,6 +2,7 @@ import { ref, reactive, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import hw from '@/api/api.ts';
 import { usePreferences } from '@/common/composables/usePreferences';
+import { apiErrorMessage } from '@/api/errors';
 
 /** Subset of `BaseInput`'s exposed API that these forms rely on. */
 interface FocusableInput {
@@ -110,8 +111,7 @@ export function useRegister(onRegistered: () => void | Promise<void>) {
       isError.value = false;
       void onRegistered();
     } catch (e: unknown) {
-      const err = e as { response?: { data?: { error?: string } } };
-      message.value = err.response?.data?.error || t('common.errors.unknown');
+      message.value = apiErrorMessage(e, t('common.errors.unknown'));
       isError.value = true;
     } finally {
       submitting.value = false;

@@ -14,6 +14,7 @@ import type { Lesson, ScheduleConfig } from '@/modules/schedule/types';
 import { useToast } from '@/common/composables/useToast';
 import { useModalStore } from '@/stores/modalStore';
 import { useI18n } from 'vue-i18n';
+import { apiErrorMessage } from '@/api/errors';
 
 export function useGroupAdmin() {
   const modalStore = useModalStore();
@@ -113,8 +114,7 @@ export function useGroupAdmin() {
       if (member) member.role = newRole;
       showMessage('Role updated');
     } catch (e: unknown) {
-      const err = e as { response?: { data?: { error?: string } } };
-      showMessage(err.response?.data?.error || 'Failed to change role', true);
+      showMessage(apiErrorMessage(e, 'Failed to change role'), true);
       await loadMembers();
     }
   }
@@ -127,8 +127,7 @@ export function useGroupAdmin() {
       await loadStats();
       if (ban) await loadBannedUsers();
     } catch (e: unknown) {
-      const err = e as { response?: { data?: { error?: string } } };
-      showMessage(err.response?.data?.error || 'Failed to remove member', true);
+      showMessage(apiErrorMessage(e, 'Failed to remove member'), true);
     }
   }
 
@@ -270,9 +269,9 @@ export function useGroupAdmin() {
       return t('groups.settings.schedule.editor.save_service_unavailable');
     }
 
-    return (
-      error.response?.data?.error ??
-      t('groups.settings.schedule.editor.save_all_failed')
+    return apiErrorMessage(
+      error,
+      t('groups.settings.schedule.editor.save_all_failed'),
     );
   }
 
@@ -416,11 +415,7 @@ export function useGroupAdmin() {
       editingGroupName.value = false;
       await checkAuthStatus();
     } catch (e: unknown) {
-      const err = e as { response?: { data?: { error?: string } } };
-      showMessage(
-        err.response?.data?.error || 'Failed to save group name',
-        true,
-      );
+      showMessage(apiErrorMessage(e, 'Failed to save group name'), true);
     } finally {
       savingGroupName.value = false;
     }
@@ -438,9 +433,8 @@ export function useGroupAdmin() {
       );
       await checkAuthStatus();
     } catch (e: unknown) {
-      const err = e as { response?: { data?: { error?: string } } };
       showMessage(
-        err.response?.data?.error || 'Fehler beim Speichern des Gruppenbildes',
+        apiErrorMessage(e, 'Fehler beim Speichern des Gruppenbildes'),
         true,
       );
       throw e;

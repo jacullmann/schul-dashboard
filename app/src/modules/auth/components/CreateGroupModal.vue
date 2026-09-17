@@ -8,6 +8,7 @@ import { Camera, Trash2, Upload, ImagePlus } from '@lucide/vue';
 import GroupAvatarCropper from '@/modules/groups/components/GroupAvatarCropper.vue';
 import hw from '@/api/api.ts';
 import Avatar from '@/modules/auth/components/Avatar.vue';
+import { apiErrorMessage } from '@/api/errors';
 
 const { t } = useI18n();
 
@@ -173,7 +174,7 @@ async function submit() {
     }
   } catch (err: unknown) {
     const e = err as { response?: { data?: { error?: string } } };
-    errorMsg.value = e.response?.data?.error || t('common.errors.unknown');
+    errorMsg.value = apiErrorMessage(e, t('common.errors.unknown'));
   } finally {
     submitting.value = false;
   }

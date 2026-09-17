@@ -2,6 +2,7 @@ import { ref, reactive, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import hw from '@/api/api.ts';
 import { useMfa } from '@/modules/auth/composables/useMfa';
+import { apiErrorMessage } from '@/api/errors';
 
 /** Subset of `BaseInput`'s exposed API that these forms rely on. */
 interface FocusableInput {
@@ -90,8 +91,7 @@ export function useLogin(
         }
       }
     } catch (e: unknown) {
-      const err = e as { response?: { data?: { error?: string } } };
-      message.value = err.response?.data?.error || t('common.errors.unknown');
+      message.value = apiErrorMessage(e, t('common.errors.unknown'));
       isError.value = true;
     } finally {
       submitting.value = false;

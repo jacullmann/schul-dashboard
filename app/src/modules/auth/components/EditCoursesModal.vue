@@ -6,6 +6,7 @@ import { useSubjectStore } from '@/stores/subjectStore';
 import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { getSubjectKey } from '@/types/subjects';
+import { apiErrorMessage } from '@/api/errors';
 
 const i18n = useI18n();
 const t = (key: string, named?: Record<string, any>) =>
@@ -152,8 +153,7 @@ async function submitData(dataToSend: {
     emit('cancel');
   } catch (e: unknown) {
     console.error('Setup failed:', e);
-    const err = e as { response?: { data?: { error?: string } } };
-    error.value = err.response?.data?.error || 'Speichern fehlgeschlagen.';
+    error.value = apiErrorMessage(e, 'Speichern fehlgeschlagen.');
   } finally {
     submitting.value = false;
     skipping.value = false;

@@ -10,6 +10,7 @@ import { getSubjectKey } from '@/types/subjects';
 import { useSubjectStore } from '@/stores/subjectStore';
 import { useEnrolledCourses } from '@/common/composables/useEnrolledCourses';
 import { formatSubjectDisplay } from '@/utils/subject-formatter';
+import { apiErrorMessage } from '@/api/errors';
 
 export function useTaskFormLogic(
   initial: HwItem | null | undefined,
@@ -389,8 +390,10 @@ export function useTaskFormLogic(
         submitting.value = false;
         return;
       } else if (err.response?.status === 400) {
-        submitError.value =
-          err.response?.data?.error || 'Bitte überprüfe deine Eingaben.';
+        submitError.value = apiErrorMessage(
+          err,
+          'Bitte überprüfe deine Eingaben.',
+        );
       } else {
         submitError.value =
           err.message ||

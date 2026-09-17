@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue';
 import hw from '../../../api/api';
 import { useI18n } from 'vue-i18n';
+import { apiErrorMessage } from '@/api/errors';
 
 const { t } = useI18n();
 
@@ -52,8 +53,10 @@ async function submit() {
       response?: { data?: { error?: string } };
       message?: string;
     };
-    submitError.value =
-      err.response?.data?.error ?? err.message ?? t('common.errors.unknown');
+    submitError.value = apiErrorMessage(
+      err,
+      err.message ?? t('common.errors.unknown'),
+    );
   } finally {
     submitting.value = false;
   }

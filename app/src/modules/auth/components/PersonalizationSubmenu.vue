@@ -5,6 +5,7 @@ import BaseMenuSelect from '@/common/components/BaseMenuSelect.vue';
 import hw from '../../../api/api';
 import { useI18n } from 'vue-i18n';
 import { useToast } from '@/common/composables/useToast';
+import { apiErrorMessage } from '@/api/errors';
 
 const { t } = useI18n();
 
@@ -53,8 +54,7 @@ async function setPersonalization(value: boolean) {
       );
     }
   } catch (e: unknown) {
-    const err = e as { response?: { data?: { error?: string } } };
-    useToast().error(err.response?.data?.error || 'Fehler beim Aktualisieren');
+    useToast().error(apiErrorMessage(e, 'Fehler beim Aktualisieren'));
   } finally {
     updating.value = false;
   }

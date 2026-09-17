@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue';
 import hw from '../../../api/api';
 import type { PrivateTask } from '@/modules/tasks/types';
 import BaseFormGroup from '@/common/components/BaseFormGroup.vue';
+import { apiErrorMessage } from '@/api/errors';
 
 const props = defineProps<{
   initial?: PrivateTask;
@@ -67,10 +68,10 @@ async function submit() {
       response?: { data?: { error?: string } };
       message?: string;
     };
-    submitError.value =
-      err.response?.data?.error ??
-      err.message ??
-      'An unexpected error occurred.';
+    submitError.value = apiErrorMessage(
+      err,
+      err.message ?? 'An unexpected error occurred.',
+    );
   } finally {
     submitting.value = false;
   }

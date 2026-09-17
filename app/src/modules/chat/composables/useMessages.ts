@@ -9,6 +9,7 @@ import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useToast } from '@/common/composables/useToast';
 import { useModalStore } from '@/stores/modalStore';
 import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/vue';
+import { apiErrorMessage } from '@/api/errors';
 
 export function useMessages() {
   const i18n = useI18n();
@@ -444,7 +445,7 @@ export function useMessages() {
       console.error('Failed to report message:', err);
       toast.error(
         (t('chat.report_error') || 'Fehler beim Melden: ') +
-          (err.response?.data?.error || ''),
+          apiErrorMessage(err, ''),
       );
     }
   };

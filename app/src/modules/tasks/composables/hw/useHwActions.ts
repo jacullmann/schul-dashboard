@@ -4,6 +4,7 @@ import { useModalStore } from '@/stores/modalStore';
 import type { HwItem } from '@/modules/tasks/types';
 import hw from '@/api/api.ts';
 import type { HwContext } from './types';
+import { apiErrorMessage } from '@/api/errors';
 
 export function useHwActions(
   ctx: HwContext,
@@ -259,7 +260,7 @@ export function useHwActions(
       handleSuccessAction(t('tasks.actions.delete_modal.success'));
     } catch (e: any) {
       handleSuccessAction(
-        e.response?.data?.error || t('tasks.actions.delete_modal.error'),
+        apiErrorMessage(e, t('tasks.actions.delete_modal.error')),
       );
     } finally {
       deletingEntry.value = false;
@@ -287,9 +288,7 @@ export function useHwActions(
       });
       handleSuccessAction('Aufgabe gemeldet.');
     } catch (e: any) {
-      handleSuccessAction(
-        'Fehler beim Melden: ' + (e.response?.data?.error || ''),
-      );
+      handleSuccessAction('Fehler beim Melden: ' + apiErrorMessage(e, ''));
     }
   }
 

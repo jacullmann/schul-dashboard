@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue';
 import hw from '@/api/api.ts';
 import type { MfaSetupResponse, MfaStatusResponse } from '@/modules/auth/types';
+import { apiErrorMessage } from '@/api/errors';
 
 const mfaEnabled = ref(false);
 const mfaLoading = ref(false);
@@ -17,8 +18,7 @@ export function useMfa() {
       return data.mfaEnabled;
     } catch (err: unknown) {
       const e = err as { response?: { data?: { error?: string } } };
-      mfaError.value =
-        e.response?.data?.error || 'Fehler beim Abrufen des MFA-Status';
+      mfaError.value = apiErrorMessage(e, 'Fehler beim Abrufen des MFA-Status');
       return false;
     } finally {
       mfaLoading.value = false;
@@ -34,8 +34,7 @@ export function useMfa() {
       return data;
     } catch (err: unknown) {
       const e = err as { response?: { data?: { error?: string } } };
-      mfaError.value =
-        e.response?.data?.error || 'Fehler beim Starten des MFA-Setups';
+      mfaError.value = apiErrorMessage(e, 'Fehler beim Starten des MFA-Setups');
       return null;
     } finally {
       mfaLoading.value = false;
@@ -54,8 +53,7 @@ export function useMfa() {
       return { ok: true };
     } catch (err: unknown) {
       const e = err as { response?: { data?: { error?: string } } };
-      const errorMsg =
-        e.response?.data?.error || 'Authentifizierung fehlgeschlagen';
+      const errorMsg = apiErrorMessage(e, 'Authentifizierung fehlgeschlagen');
       mfaError.value = errorMsg;
       return { ok: false, error: errorMsg };
     } finally {
@@ -75,8 +73,7 @@ export function useMfa() {
       return { ok: true };
     } catch (err: unknown) {
       const e = err as { response?: { data?: { error?: string } } };
-      const errorMsg =
-        e.response?.data?.error || 'Authentifizierung fehlgeschlagen';
+      const errorMsg = apiErrorMessage(e, 'Authentifizierung fehlgeschlagen');
       mfaError.value = errorMsg;
       return { ok: false, error: errorMsg };
     } finally {
@@ -95,8 +92,7 @@ export function useMfa() {
       return { ok: true };
     } catch (err: unknown) {
       const e = err as { response?: { data?: { error?: string } } };
-      const errorMsg =
-        e.response?.data?.error || 'Authentifizierung fehlgeschlagen';
+      const errorMsg = apiErrorMessage(e, 'Authentifizierung fehlgeschlagen');
       mfaError.value = errorMsg;
       return { ok: false, error: errorMsg };
     } finally {

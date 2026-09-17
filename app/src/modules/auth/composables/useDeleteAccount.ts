@@ -1,6 +1,7 @@
 import { ref } from 'vue';
 import hw from '@/api/api.ts';
 import { useI18n } from 'vue-i18n';
+import { apiErrorMessage } from '@/api/errors';
 
 export function useDeleteAccount(emit: {
   (e: 'cancel'): void;
@@ -28,8 +29,7 @@ export function useDeleteAccount(emit: {
         emit('error', err);
       }
     } catch (e: unknown) {
-      const err = e as { response?: { data?: { error?: string } } };
-      const msg = err?.response?.data?.error || t('common.errors.delete');
+      const msg = apiErrorMessage(e, t('common.errors.delete'));
       errorMsg.value = msg;
       emit('error', msg);
     } finally {

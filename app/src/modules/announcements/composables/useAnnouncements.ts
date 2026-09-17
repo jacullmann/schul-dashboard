@@ -6,6 +6,7 @@ import { useModalStore } from '@/stores/modalStore';
 import hw from '@/api/api.ts';
 import { useToast } from '@/common/composables/useToast';
 import type { Announcement } from '@/modules/announcements/types';
+import { apiErrorMessage } from '@/api/errors';
 
 const modalStore = useModalStore();
 
@@ -105,10 +106,7 @@ export function useAnnouncements() {
       await hw.delete(`/group-admin/announcements/${id}`);
       announcements.value = announcements.value.filter((a) => a.id !== id);
     } catch (e: unknown) {
-      const err = e as { response?: { data?: { error?: string } } };
-      toast.error(
-        err.response?.data?.error || t('announcements.errors.delete_failed'),
-      );
+      toast.error(apiErrorMessage(e, t('announcements.errors.delete_failed')));
     }
   }
 

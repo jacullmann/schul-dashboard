@@ -6,6 +6,7 @@ import { useToast } from '@/common/composables/useToast';
 import { useTaskForm } from '@/core/composables/useTaskForm';
 import { useModalStore } from '@/stores/modalStore';
 import type { HwContext } from './types';
+import { apiErrorMessage } from '@/api/errors';
 
 export function useHwForms(ctx: HwContext) {
   const { t } = useI18n();
@@ -66,7 +67,7 @@ export function useHwForms(ctx: HwContext) {
       noteEditContent.value = '';
     } catch (e: any) {
       useToast().error(
-        e.response?.data?.error || 'Fehler beim Speichern der Anmerkung.',
+        apiErrorMessage(e, 'Fehler beim Speichern der Anmerkung.'),
       );
     } finally {
       savingNote.value = false;
@@ -97,9 +98,7 @@ export function useHwForms(ctx: HwContext) {
 
       useToast().success(t('tasks.notes.delete_modal.success'));
     } catch (e: any) {
-      useToast().error(
-        e.response?.data?.error || t('tasks.notes.delete_modal.error'),
-      );
+      useToast().error(apiErrorMessage(e, t('tasks.notes.delete_modal.error')));
     } finally {
       savingNote.value = false;
     }

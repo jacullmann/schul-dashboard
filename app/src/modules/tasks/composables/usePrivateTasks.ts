@@ -7,6 +7,7 @@ import { useModalStore } from '@/stores/modalStore';
 import { useI18n } from 'vue-i18n';
 import type { PrivateTask } from '@/modules/tasks/types';
 import { useToast } from '@/common/composables/useToast';
+import { apiErrorMessage } from '@/api/errors';
 
 /**
  * A key that sorts strictly between two positions, so a moved task lands in
@@ -116,7 +117,7 @@ export function usePrivateTasks() {
       updatePrivateTask({ ...task, updatedAt: data.updatedAt });
     } catch (e: any) {
       task.completed = previous;
-      useToast().error(e.response?.data?.error || t('common.errors.update'));
+      useToast().error(apiErrorMessage(e, t('common.errors.update')));
     }
   };
 
@@ -132,7 +133,7 @@ export function usePrivateTasks() {
       useToast().success(t('tasks.private_tasks.success_duplicate'));
     } catch (e: any) {
       useToast().error(
-        e.response?.data?.error || t('tasks.private_tasks.error_duplicate'),
+        apiErrorMessage(e, t('tasks.private_tasks.error_duplicate')),
       );
     } finally {
       loading.value = false;
@@ -165,7 +166,7 @@ export function usePrivateTasks() {
     } catch (e: any) {
       privateTasks.value.splice(idx, 0, backup);
       syncState();
-      useToast().error(e.response?.data?.error || t('common.errors.delete'));
+      useToast().error(apiErrorMessage(e, t('common.errors.delete')));
     }
   };
 
@@ -198,7 +199,7 @@ export function usePrivateTasks() {
       });
     } catch (e: any) {
       void loadPrivateTasks();
-      useToast().error(e.response?.data?.error || t('common.errors.update'));
+      useToast().error(apiErrorMessage(e, t('common.errors.update')));
     }
   };
 
