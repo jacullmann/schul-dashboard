@@ -129,7 +129,7 @@ impl ItemsService {
                                  AND uc.user_id = $2
                                  AND (
                                      i.subject = s.name || ' - ' || c.name
-                                     OR (s.category IN ('extra', 'gk', 'lk', 'zk') AND i.subject = s.name AND (SELECT COUNT(*) FROM courses c3 WHERE c3.subject_id = s.id) = 1)
+                                     OR (s.category IN ('extra', 'optional', 'zk') AND i.subject = s.name AND (SELECT COUNT(*) FROM courses c3 WHERE c3.subject_id = s.id) = 1)
                                  )
                            )
                      )

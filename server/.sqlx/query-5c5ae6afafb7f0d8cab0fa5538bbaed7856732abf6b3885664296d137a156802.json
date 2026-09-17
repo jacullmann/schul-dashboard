@@ -1,16 +1,16 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT subject_id FROM courses WHERE id = $1 AND tenant_id = $2",
+  "query": "SELECT category FROM subjects WHERE id = $1 AND tenant_id = $2",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
-        "name": "subject_id",
-        "type_info": "Uuid",
+        "name": "category",
+        "type_info": "Text",
         "origin": {
           "Table": {
-            "table": "courses",
-            "name": "subject_id"
+            "table": "subjects",
+            "name": "category"
           }
         }
       }
@@ -25,5 +25,5 @@
       false
     ]
   },
-  "hash": "42f0f6dfa05943a85052e633e827fbc36b8c9e10647651025f22f839e976f5fa"
+  "hash": "5c5ae6afafb7f0d8cab0fa5538bbaed7856732abf6b3885664296d137a156802"
 }

@@ -114,27 +114,26 @@ onMounted(() => {
   }
 });
 
+// GK/LK/ZK belongs to the course, so two courses of the same subject stay
+// distinguishable in the list.
 const getOptionsForSubject = (subjectId: string, isOptional: boolean) => {
   const subject = subjectStore.subjects.find((s) => s.id === subjectId);
-  const opts = (subject?.courses || []).map((c) => ({
-    label: getCourseLabel(c.name),
-    value: c.id,
-  }));
+  const opts = (subject?.courses || []).map((c) => {
+    const name = getCourseLabel(c.name);
+    const typeKey = `groups.settings.subjects.course_types_short.${c.courseType}`;
+    return {
+      label: c.courseType && te(typeKey) ? `${name} (${t(typeKey)})` : name,
+      value: c.id,
+    };
+  });
   if (isOptional) {
     opts.unshift({ label: t('common.selection.no'), value: 'NONE' });
   }
   return opts;
 };
 
-// In Abitur groups the category (GK/LK/ZK) tells courses of the same subject
-// apart, so it belongs next to the subject name.
-const getSubjectLabel = (subject: { name: string; category: string }) => {
-  const name = getCourseLabel(subject.name);
-  if (subjectStore.groupType !== 'abitur') return name;
-
-  const categoryKey = `groups.settings.subjects.categories_short.${subject.category}`;
-  return te(categoryKey) ? `${name} (${t(categoryKey)})` : name;
-};
+const getSubjectLabel = (subject: { name: string }) =>
+  getCourseLabel(subject.name);
 
 const isValid = computed(() => {
   for (const subject of subjectStore.requiredCourseSubjects) {

@@ -3,11 +3,17 @@ import { ref, computed } from 'vue';
 import { useEventListener } from '@vueuse/core';
 import hw from '@/api/api.ts';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
-import { courseSelectionFor, type SubjectCategory } from '@/types/subjects';
+import {
+  courseSelectionFor,
+  type CourseType,
+  type SubjectCategory,
+} from '@/types/subjects';
 
 export interface Course {
   id: string;
   name: string;
+  /** GK/LK/ZK in an Abitur group, absent everywhere else. */
+  courseType?: CourseType | null;
 }
 
 export interface Subject {

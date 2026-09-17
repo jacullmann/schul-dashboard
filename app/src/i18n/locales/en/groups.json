@@ -79,12 +79,12 @@
         },
         "hints": {
           "regular": "One class that attends its subjects together. Subjects are core, elective or extra subjects.",
-          "abitur": "A whole year. Every subject is a GK, LK or ZK and each course is scheduled on its own."
+          "abitur": "A whole year. Subjects are core, elective or additional subjects, every one of them has courses, and each course is a GK or an LK and is scheduled on its own."
         },
         "modal": {
           "title": "Change group type?",
-          "message_regular": "Lessons keep the course they are scheduled for, but new subjects use the core, elective and extra categories again. Existing subjects keep their category until you edit them.",
-          "message_abitur": "Subjects become GK, LK or ZK and lessons can be scheduled for a single course. Existing subjects and lessons stay as they are until you edit them."
+          "message_regular": "Lessons keep the course they are scheduled for, but new subjects use the core, elective and extra categories again and courses lose their GK/LK/ZK type. Existing subjects keep their category until you edit them.",
+          "message_abitur": "Every subject becomes course-based and each course gets a GK or LK type, or ZK below an additional subject. Existing subjects and lessons stay as they are until you edit them."
         },
         "success": "Group type updated",
         "failed": "Failed to update the group type"
@@ -284,10 +284,22 @@
         "core": "Core subject",
         "extra": "Extra subject",
         "elective": "Elective subject",
+        "mandatory": "Core subject",
+        "optional": "Elective subject",
+        "zk": "Additional subject (ZK)"
+      },
+      "course_types": {
         "gk": "Basic course (GK)",
         "lk": "Advanced course (LK)",
         "zk": "Additional course (ZK)"
       },
+      "course_types_short": {
+        "gk": "GK",
+        "lk": "LK",
+        "zk": "ZK"
+      },
+      "course_type_label": "Course type",
+      "course_type_forced_zk": "Every course of an additional subject is a ZK.",
       "errors": {
         "load_failed": "Failed to load subjects",
         "create_success": "Subject created",
@@ -327,8 +339,8 @@
         "core": "Core",
         "elective": "Elective",
         "extra": "Extra",
-        "gk": "GK",
-        "lk": "LK",
+        "mandatory": "Core",
+        "optional": "Elective",
         "zk": "ZK"
       },
       "category_mismatch": "This subject is still saved as \"{category}\", a category of the other group type. Saving moves it to the selected category."

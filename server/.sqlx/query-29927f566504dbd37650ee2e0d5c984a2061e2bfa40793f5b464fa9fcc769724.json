@@ -1,15 +1,16 @@
 {
   "db_name": "PostgreSQL",
-  "query": "UPDATE courses SET name = $1 WHERE id = $2",
+  "query": "UPDATE courses SET name = $1, course_type = $2 WHERE id = $3",
   "describe": {
     "columns": [],
     "parameters": {
       "Left": [
+        "Text",
         "Text",
         "Uuid"
       ]
     },
     "nullable": []
   },
-  "hash": "a9f89b7e1a41d00601c09e2612a132071f87cde3ab56e0641e49f12e9567f83b"
+  "hash": "29927f566504dbd37650ee2e0d5c984a2061e2bfa40793f5b464fa9fcc769724"
 }

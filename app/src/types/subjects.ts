@@ -1,14 +1,31 @@
 import type { GroupType } from '@/types/groups';
 
 export type RegularSubjectCategory = 'core' | 'elective' | 'extra';
-export type AbiturSubjectCategory = 'gk' | 'lk' | 'zk';
+export type AbiturSubjectCategory = 'mandatory' | 'optional' | 'zk';
 export type SubjectCategory = RegularSubjectCategory | AbiturSubjectCategory;
 
 export const SUBJECT_CATEGORIES: Record<GroupType, readonly SubjectCategory[]> =
   {
     regular: ['core', 'elective', 'extra'],
-    abitur: ['gk', 'lk', 'zk'],
+    abitur: ['mandatory', 'optional', 'zk'],
   } as const;
+
+/**
+ * GK, LK and ZK describe a single course, not the subject above it: one subject
+ * can offer an LK and two GK courses at the same time.
+ */
+export type CourseType = 'gk' | 'lk' | 'zk';
+
+/** ZK is missing on purpose — it follows from the subject category. */
+export const SELECTABLE_COURSE_TYPES: readonly CourseType[] = [
+  'gk',
+  'lk',
+] as const;
+
+export const DEFAULT_COURSE_TYPE: CourseType = 'gk';
+
+/** The category whose courses are all Zusatzkurse. */
+export const ZUSATZKURS_CATEGORY: SubjectCategory = 'zk';
 
 /**
  * How a subject's courses are offered to a member:
@@ -22,19 +39,19 @@ const COURSE_SELECTION: Record<SubjectCategory, CourseSelection> = {
   core: 'none',
   elective: 'required',
   extra: 'optional',
-  // Every Abitur subject is course-based and may be skipped.
-  gk: 'optional',
-  lk: 'optional',
+  // An Abitur Pflichtfach is course-based, unlike a regular one.
+  mandatory: 'required',
+  optional: 'optional',
   zk: 'optional',
 };
 
 /** Categories of the other group type stay readable after a type switch. */
 const CATEGORY_EQUIVALENTS: Record<SubjectCategory, SubjectCategory> = {
-  core: 'gk',
-  elective: 'gk',
-  extra: 'zk',
-  gk: 'elective',
-  lk: 'elective',
+  core: 'mandatory',
+  elective: 'mandatory',
+  extra: 'optional',
+  mandatory: 'elective',
+  optional: 'extra',
   zk: 'extra',
 };
 
@@ -42,8 +59,12 @@ export function isSubjectCategory(value: unknown): value is SubjectCategory {
   return typeof value === 'string' && value in COURSE_SELECTION;
 }
 
+export function isCourseType(value: unknown): value is CourseType {
+  return value === 'gk' || value === 'lk' || value === 'zk';
+}
+
 export function defaultSubjectCategory(groupType: GroupType): SubjectCategory {
-  return groupType === 'abitur' ? 'gk' : 'core';
+  return groupType === 'abitur' ? 'mandatory' : 'core';
 }
 
 export function subjectCategoriesFor(
@@ -78,6 +99,38 @@ export function normalizeSubjectCategory(
   return categoryBelongsTo(equivalent, groupType)
     ? equivalent
     : defaultSubjectCategory(groupType);
+}
+
+/** Only Abitur courses carry a type. */
+export function usesCourseTypes(groupType: GroupType): boolean {
+  return groupType === 'abitur';
+}
+
+/**
+ * True when an editor picks the type of a course themselves. A Zusatzkurs
+ * subject decides it for all of its courses, and a regular group has no types.
+ */
+export function courseTypeIsSelectable(
+  category: unknown,
+  groupType: GroupType,
+): boolean {
+  return usesCourseTypes(groupType) && category !== ZUSATZKURS_CATEGORY;
+}
+
+/**
+ * The type a course of this subject ends up with, mirroring what the server
+ * stores so a freshly edited course is labelled correctly right away.
+ */
+export function resolveCourseType(
+  category: unknown,
+  groupType: GroupType,
+  requested: unknown,
+): CourseType | null {
+  if (!usesCourseTypes(groupType)) return null;
+  if (category === ZUSATZKURS_CATEGORY) return 'zk';
+  return isCourseType(requested) && requested !== 'zk'
+    ? requested
+    : DEFAULT_COURSE_TYPE;
 }
 
 export function courseSelectionFor(category: unknown): CourseSelection {

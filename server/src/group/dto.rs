@@ -113,10 +113,12 @@ pub struct UpdateGroupPermissionsDto {
 #[serde(rename_all = "camelCase")]
 pub struct CreateCourseDto {
     pub name: String,
+    pub course_type: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateCourseDto {
     pub name: String,
+    pub course_type: Option<String>,
 }

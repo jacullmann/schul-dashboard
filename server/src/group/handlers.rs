@@ -498,7 +498,13 @@ pub async fn create_course(
     );
     Ok(Json(
         GroupAdminService::from_state(&s)
-            .create_course(tc.tenant_id, tc.user.user_id, subject_id, &dto.name)
+            .create_course(
+                tc.tenant_id,
+                tc.user.user_id,
+                subject_id,
+                &dto.name,
+                dto.course_type.as_deref(),
+            )
             .await?,
     ))
 }
@@ -515,7 +521,13 @@ pub async fn update_course(
     );
     Ok(Json(
         GroupAdminService::from_state(&s)
-            .update_course(tc.tenant_id, tc.user.user_id, id, &dto.name)
+            .update_course(
+                tc.tenant_id,
+                tc.user.user_id,
+                id,
+                &dto.name,
+                dto.course_type.as_deref(),
+            )
             .await?,
     ))
 }

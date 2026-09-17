@@ -1,3 +1,5 @@
+import type { CourseType } from '@/types/subjects';
+
 export type GroupAdminTab =
   | 'overview'
   | 'members'
@@ -41,11 +43,18 @@ export interface AdminAnnouncement {
   createdAt: string;
 }
 
+export interface AdminCourse {
+  id: string;
+  name: string;
+  /** GK/LK/ZK in an Abitur group, absent everywhere else. */
+  courseType?: CourseType | null;
+}
+
 export interface AdminSubject {
   id: string;
   name: string;
   category?: string;
-  courses?: { id: string; name: string }[];
+  courses?: AdminCourse[];
   coursesCount?: number;
 }
 

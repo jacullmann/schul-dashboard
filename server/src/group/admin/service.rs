@@ -1,5 +1,11 @@
 use crate::{
-    common::{group_type::GroupType, permission::GroupPermissions, role::Role},
+    common::{
+        group_type::{
+            DEFAULT_COURSE_TYPE, GroupType, ZUSATZKURS_CATEGORY, resolve_course_type,
+        },
+        permission::GroupPermissions,
+        role::Role,
+    },
     error::{AppError, AppResult},
     group::dto::{CreateScheduleSubDto, ReplaceScheduleDto},
     state::AppState,
@@ -28,7 +34,7 @@ fn json_i32(value: &Value, key: &str, default: i32) -> i32 {
 const fn default_category(group_type: GroupType) -> &'static str {
     match group_type {
         GroupType::Regular => "core",
-        GroupType::Abitur => "gk",
+        GroupType::Abitur => "mandatory",
     }
 }
 
@@ -649,7 +655,7 @@ impl GroupAdminService {
         let rows = sqlx::query!(
             r#"SELECT s.id, s.name, s.category,
                       COALESCE(
-                          json_agg(json_build_object('id', c.id, 'name', c.name)) FILTER (WHERE c.id IS NOT NULL),
+                          json_agg(json_build_object('id', c.id, 'name', c.name, 'courseType', c.course_type) ORDER BY c.name) FILTER (WHERE c.id IS NOT NULL),
                           '[]'::json
                       ) as "courses!"
                FROM subjects s
@@ -707,6 +713,52 @@ impl GroupAdminService {
         Ok(json!({ "id": row.id, "name": row.name, "category": row.category }))
     }
 
+    /// Keeps the courses of a subject consistent with its category: a
+    /// Zusatzkurs subject makes all of them ZK, a regular group strips the type
+    /// entirely, and any other Abitur subject keeps the GK/LK picks it already
+    /// has while giving untyped courses the default.
+    async fn realign_course_types(
+        &self,
+        subject_id: Uuid,
+        group_type: GroupType,
+        category: &str,
+    ) -> AppResult<()> {
+        if !group_type.uses_course_types() {
+            sqlx::query!(
+                r#"UPDATE courses SET course_type = NULL
+                   WHERE subject_id = $1 AND course_type IS NOT NULL"#,
+                subject_id
+            )
+            .execute(&self.db)
+            .await?;
+
+            return Ok(());
+        }
+
+        if category == ZUSATZKURS_CATEGORY {
+            sqlx::query!(
+                r#"UPDATE courses SET course_type = 'zk'
+                   WHERE subject_id = $1 AND course_type IS DISTINCT FROM 'zk'"#,
+                subject_id
+            )
+            .execute(&self.db)
+            .await?;
+
+            return Ok(());
+        }
+
+        sqlx::query!(
+            r#"UPDATE courses SET course_type = $2
+               WHERE subject_id = $1 AND (course_type IS NULL OR course_type = 'zk')"#,
+            subject_id,
+            DEFAULT_COURSE_TYPE
+        )
+        .execute(&self.db)
+        .await?;
+
+        Ok(())
+    }
+
     pub async fn update_subject(
         &self,
         tenant_id: Uuid,
@@ -725,7 +777,8 @@ impl GroupAdminService {
         .ok_or_else(|| AppError::not_found("Subject not found"))?;
 
         if let Some(cat) = category {
-            validate_category(self.group_type(tenant_id).await?, cat)?;
+            let group_type = self.group_type(tenant_id).await?;
+            validate_category(group_type, cat)?;
             sqlx::query!(
                 r#"UPDATE subjects SET category = $1 WHERE id = $2"#,
                 cat,
@@ -733,6 +786,8 @@ impl GroupAdminService {
             )
             .execute(&self.db)
             .await?;
+
+            self.realign_course_types(id, group_type, cat).await?;
         }
 
         if let Some(n) = name {
@@ -1229,21 +1284,38 @@ impl GroupAdminService {
         Ok(json!({ "ok": true }))
     }
 
-    pub async fn create_course(
+    /// The type a course of this subject has to get, which only a GK/LK subject
+    /// in an Abitur group leaves up to the client.
+    async fn course_type_for_subject(
         &self,
         tenant_id: Uuid,
-        user_id: Uuid,
         subject_id: Uuid,
-        name: &str,
-    ) -> AppResult<Value> {
-        sqlx::query!(
-            r#"SELECT id FROM subjects WHERE id = $1 AND tenant_id = $2"#,
+        requested: Option<&str>,
+    ) -> AppResult<Option<&'static str>> {
+        let category = sqlx::query_scalar!(
+            r#"SELECT category FROM subjects WHERE id = $1 AND tenant_id = $2"#,
             subject_id,
             tenant_id
         )
         .fetch_optional(&self.db)
         .await?
         .ok_or_else(|| AppError::not_found("Subject not found"))?;
+
+        let group_type = self.group_type(tenant_id).await?;
+        resolve_course_type(group_type, &category, requested).map_err(AppError::bad_request)
+    }
+
+    pub async fn create_course(
+        &self,
+        tenant_id: Uuid,
+        user_id: Uuid,
+        subject_id: Uuid,
+        name: &str,
+        course_type: Option<&str>,
+    ) -> AppResult<Value> {
+        let course_type = self
+            .course_type_for_subject(tenant_id, subject_id, course_type)
+            .await?;
 
         let exists = sqlx::query!(
             r#"SELECT id FROM courses WHERE name = $1 AND subject_id = $2"#,
@@ -1259,10 +1331,11 @@ impl GroupAdminService {
         }
 
         let row = sqlx::query!(
-            "INSERT INTO courses (tenant_id, name, subject_id) VALUES ($1, $2, $3) RETURNING id, name, subject_id",
+            "INSERT INTO courses (tenant_id, name, subject_id, course_type) VALUES ($1, $2, $3, $4) RETURNING id, name, subject_id, course_type",
             tenant_id,
             name,
-            subject_id
+            subject_id,
+            course_type
         )
             .fetch_one(&self.db)
             .await?;
@@ -1279,7 +1352,8 @@ impl GroupAdminService {
         Ok(json!({
             "id": row.id,
             "name": row.name,
-            "subjectId": row.subject_id
+            "subjectId": row.subject_id,
+            "courseType": row.course_type
         }))
     }
 
@@ -1289,15 +1363,26 @@ impl GroupAdminService {
         user_id: Uuid,
         course_id: Uuid,
         name: &str,
+        course_type: Option<&str>,
     ) -> AppResult<Value> {
         let course = sqlx::query!(
-            r#"SELECT subject_id FROM courses WHERE id = $1 AND tenant_id = $2"#,
+            r#"SELECT subject_id, course_type FROM courses WHERE id = $1 AND tenant_id = $2"#,
             course_id,
             tenant_id
         )
         .fetch_optional(&self.db)
         .await?
         .ok_or_else(|| AppError::not_found("Course not found"))?;
+
+        // A request that only renames the course keeps the type it has. A stale
+        // 'zk' under a GK/LK subject is not a valid pick, so it falls back.
+        let requested = course_type.or(course
+            .course_type
+            .as_deref()
+            .filter(|t| *t != ZUSATZKURS_CATEGORY));
+        let course_type = self
+            .course_type_for_subject(tenant_id, course.subject_id, requested)
+            .await?;
 
         let exists = sqlx::query!(
             r#"SELECT id FROM courses WHERE name = $1 AND subject_id = $2 AND id != $3"#,
@@ -1314,8 +1399,9 @@ impl GroupAdminService {
         }
 
         sqlx::query!(
-            r#"UPDATE courses SET name = $1 WHERE id = $2"#,
+            r#"UPDATE courses SET name = $1, course_type = $2 WHERE id = $3"#,
             name,
+            course_type,
             course_id
         )
         .execute(&self.db)
@@ -1330,7 +1416,7 @@ impl GroupAdminService {
         .execute(&self.db)
         .await?;
 
-        Ok(json!({ "ok": true }))
+        Ok(json!({ "ok": true, "courseType": course_type }))
     }
 
     pub async fn delete_course(

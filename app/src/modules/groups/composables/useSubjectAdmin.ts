@@ -1,7 +1,8 @@
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import hw from '@/api/api.ts';
-import type { AdminSubject } from '@/modules/groups/types';
+import type { AdminCourse, AdminSubject } from '@/modules/groups/types';
+import type { CourseType } from '@/types/subjects';
 import { useToast } from '@/common/composables/useToast';
 import { useModalStore } from '@/stores/modalStore';
 
@@ -57,6 +58,9 @@ export function useSubjectAdmin() {
     try {
       await hw.patch(`/group-admin/subjects/${id}`, updates);
       const subject = subjects.value.find((s) => s.id === id);
+      const categoryChanged =
+        updates.category !== undefined &&
+        updates.category !== subject?.category;
       if (subject) {
         if (updates.name !== undefined) subject.name = updates.name.trim();
         if (updates.category !== undefined) subject.category = updates.category;
@@ -64,6 +68,8 @@ export function useSubjectAdmin() {
       if (updates.name !== undefined) {
         subjects.value.sort((a, b) => a.name.localeCompare(b.name));
       }
+      // A new category can rewrite the type of every course below the subject.
+      if (categoryChanged) await loadSubjects();
       success(t('groups.settings.subjects.errors.update_success'));
       return true;
     } catch (e: unknown) {
@@ -106,19 +112,24 @@ export function useSubjectAdmin() {
   async function createCourse(
     subjectId: string,
     name: string,
+    courseType?: CourseType | null,
   ): Promise<boolean> {
     if (!name.trim()) return false;
     saving.value = true;
     try {
-      const { data } = await hw.post<{
-        id: string;
-        name: string;
-        subjectId: string;
-      }>(`/group-admin/subjects/${subjectId}/courses`, { name: name.trim() });
+      const { data } = await hw.post<AdminCourse & { subjectId: string }>(
+        `/group-admin/subjects/${subjectId}/courses`,
+        { name: name.trim(), courseType },
+      );
       const subject = subjects.value.find((s) => s.id === subjectId);
       if (subject) {
         if (!subject.courses) subject.courses = [];
-        subject.courses.push({ id: data.id, name: data.name });
+        // The server decides the final type: a Zusatzkurs subject overrides it.
+        subject.courses.push({
+          id: data.id,
+          name: data.name,
+          courseType: data.courseType,
+        });
         subject.courses.sort((a, b) => a.name.localeCompare(b.name));
         subject.coursesCount = (subject.coursesCount || 0) + 1;
       }
@@ -140,16 +151,21 @@ export function useSubjectAdmin() {
     subjectId: string,
     courseId: string,
     name: string,
+    courseType?: CourseType | null,
   ): Promise<boolean> {
     if (!name.trim()) return false;
     saving.value = true;
     try {
-      await hw.patch(`/group-admin/courses/${courseId}`, { name: name.trim() });
+      const { data } = await hw.patch<{ courseType?: CourseType | null }>(
+        `/group-admin/courses/${courseId}`,
+        { name: name.trim(), courseType },
+      );
       const subject = subjects.value.find((s) => s.id === subjectId);
       if (subject && subject.courses) {
         const course = subject.courses.find((c) => c.id === courseId);
         if (course) {
           course.name = name.trim();
+          course.courseType = data?.courseType ?? courseType;
         }
         subject.courses.sort((a, b) => a.name.localeCompare(b.name));
       }

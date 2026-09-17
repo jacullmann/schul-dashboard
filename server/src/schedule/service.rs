@@ -104,7 +104,7 @@ WHERE s.tenant_id = $1"#,
         let subjects = sqlx::query!(
             r#"SELECT s.id, s.name, s.category,
                       COALESCE(
-                          json_agg(json_build_object('id', c.id, 'name', c.name)) FILTER (WHERE c.id IS NOT NULL),
+                          json_agg(json_build_object('id', c.id, 'name', c.name, 'courseType', c.course_type) ORDER BY c.name) FILTER (WHERE c.id IS NOT NULL),
                           '[]'::json
                       ) as "courses!"
                FROM subjects s

@@ -78,12 +78,12 @@
         },
         "hints": {
           "regular": "Eine Klasse, die ihre Fächer gemeinsam hat. Fächer sind Pflicht-, Wahl- oder Zusatzfächer.",
-          "abitur": "Ein ganzer Jahrgang. Jedes Fach ist GK, LK oder ZK und jeder Kurs wird einzeln eingeplant."
+          "abitur": "Ein ganzer Jahrgang. Fächer sind Pflichtfächer, Wahlfächer oder Zusatzkurse, jedes hat Kurse, und jeder Kurs ist ein GK oder LK und wird einzeln eingeplant."
         },
         "modal": {
           "title": "Gruppentyp ändern?",
-          "message_regular": "Stunden behalten ihren Kurs, neue Fächer nutzen aber wieder die Kategorien Pflicht-, Wahl- und Zusatzfach. Bestehende Fächer behalten ihre Kategorie, bis du sie bearbeitest.",
-          "message_abitur": "Fächer werden zu GK, LK oder ZK und Stunden können einzelnen Kursen zugeordnet werden. Bestehende Fächer und Stunden bleiben unverändert, bis du sie bearbeitest."
+          "message_regular": "Stunden behalten ihren Kurs, neue Fächer nutzen aber wieder die Kategorien Pflicht-, Wahl- und Zusatzfach und Kurse verlieren ihren GK/LK/ZK-Typ. Bestehende Fächer behalten ihre Kategorie, bis du sie bearbeitest.",
+          "message_abitur": "Jedes Fach wird kursbasiert und jeder Kurs bekommt den Typ GK oder LK – unter einem Zusatzkurs ZK. Bestehende Fächer und Stunden bleiben unverändert, bis du sie bearbeitest."
         },
         "success": "Gruppentyp aktualisiert",
         "failed": "Gruppentyp konnte nicht geändert werden"
@@ -283,10 +283,22 @@
         "core": "Pflichtfach",
         "extra": "Zusatzfach",
         "elective": "Wahlfach",
+        "mandatory": "Pflichtfach",
+        "optional": "Wahlfach",
+        "zk": "Zusatzkurs (ZK)"
+      },
+      "course_types": {
         "gk": "Grundkurs (GK)",
         "lk": "Leistungskurs (LK)",
         "zk": "Zusatzkurs (ZK)"
       },
+      "course_types_short": {
+        "gk": "GK",
+        "lk": "LK",
+        "zk": "ZK"
+      },
+      "course_type_label": "Kursart",
+      "course_type_forced_zk": "Jeder Kurs eines Zusatzkurs-Fachs ist ein ZK.",
       "errors": {
         "load_failed": "Fehler beim Laden der Fächer",
         "create_success": "Fach erstellt",
@@ -326,8 +338,8 @@
         "core": "Pflicht",
         "elective": "Wahl",
         "extra": "Zusatz",
-        "gk": "GK",
-        "lk": "LK",
+        "mandatory": "Pflicht",
+        "optional": "Wahl",
         "zk": "ZK"
       },
       "category_mismatch": "Dieses Fach ist noch als „{category}“ gespeichert – eine Kategorie des anderen Gruppentyps. Beim Speichern wird die ausgewählte Kategorie übernommen."

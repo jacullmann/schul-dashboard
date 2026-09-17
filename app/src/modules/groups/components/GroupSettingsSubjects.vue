@@ -8,10 +8,18 @@ import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import {
   categoryBelongsTo,
   courseSelectionFor,
+  courseTypeIsSelectable,
+  DEFAULT_COURSE_TYPE,
   defaultSubjectCategory,
   normalizeSubjectCategory,
+  resolveCourseType,
+  SELECTABLE_COURSE_TYPES,
   subjectCategoriesFor,
+  usesCourseTypes,
+  ZUSATZKURS_CATEGORY,
+  type CourseType,
 } from '@/types/subjects';
+import type { AdminCourse } from '@/modules/groups/types';
 
 const i18n = useI18n();
 const { t } = i18n;
@@ -105,6 +113,44 @@ const categoryNeedsMigration = computed(
 
 function subjectHasCourses(category: string | undefined): boolean {
   return courseSelectionFor(category) !== 'none';
+}
+
+function courseTypeLabel(courseType: string): string {
+  const key = `groups.settings.subjects.course_types.${courseType}`;
+  return i18n.te(key) ? t(key) : courseType.toUpperCase();
+}
+
+function courseTypeShortLabel(courseType: string): string {
+  const key = `groups.settings.subjects.course_types_short.${courseType}`;
+  return i18n.te(key) ? t(key) : courseType.toUpperCase();
+}
+
+const courseTypeOptions = computed(() =>
+  SELECTABLE_COURSE_TYPES.map((courseType) => ({
+    value: courseType,
+    label: courseTypeLabel(courseType),
+  })),
+);
+
+// A Zusatzkurs subject types its courses itself, and a regular group has no
+// course types at all — only then does the form offer the choice.
+const showCourseTypeField = computed(() =>
+  courseTypeIsSelectable(subjectCategoryInput.value, activeGroupType.value),
+);
+
+const coursesAreForcedZk = computed(
+  () =>
+    usesCourseTypes(activeGroupType.value) &&
+    subjectCategoryInput.value === ZUSATZKURS_CATEGORY,
+);
+
+/** The type a course of the subject currently being edited would get. */
+function effectiveCourseType(requested: unknown): CourseType | null {
+  return resolveCourseType(
+    subjectCategoryInput.value,
+    activeGroupType.value,
+    requested,
+  );
 }
 
 function toCategory(value: string) {
@@ -211,30 +257,49 @@ watch(showCreateModal, async (open) => {
 
 const showCreateCourseModal = ref(false);
 const newCourseName = ref('');
+const newCourseType = ref<CourseType>(DEFAULT_COURSE_TYPE);
 
 const showEditCourseModal = ref(false);
-const editingCourse = ref<{ id: string; name: string } | null>(null);
+const editingCourse = ref<AdminCourse | null>(null);
 const editCourseName = ref('');
+const editCourseType = ref<CourseType>(DEFAULT_COURSE_TYPE);
 
 function openCreateCourseModal() {
   newCourseName.value = '';
+  newCourseType.value = DEFAULT_COURSE_TYPE;
   showCreateCourseModal.value = true;
 }
 
 async function handleCreateCourse() {
   if (!subject.value || !newCourseName.value.trim()) return;
-  const ok = await createCourse(subject.value.id, newCourseName.value);
+  const ok = await createCourse(
+    subject.value.id,
+    newCourseName.value,
+    effectiveCourseType(newCourseType.value),
+  );
   if (ok) {
     showCreateCourseModal.value = false;
     newCourseName.value = '';
+    newCourseType.value = DEFAULT_COURSE_TYPE;
   }
 }
 
-function openEditCourseModal(course: { id: string; name: string }) {
+function openEditCourseModal(course: AdminCourse) {
   editingCourse.value = course;
   editCourseName.value = course.name;
+  editCourseType.value =
+    course.courseType && course.courseType !== 'zk'
+      ? course.courseType
+      : DEFAULT_COURSE_TYPE;
   showEditCourseModal.value = true;
 }
+
+const editCourseChanged = computed(
+  () =>
+    editCourseName.value.trim() !== (editingCourse.value?.name || '') ||
+    effectiveCourseType(editCourseType.value) !==
+      (editingCourse.value?.courseType ?? null),
+);
 
 async function handleEditCourse() {
   if (!subject.value || !editingCourse.value || !editCourseName.value.trim())
@@ -243,11 +308,13 @@ async function handleEditCourse() {
     subject.value.id,
     editingCourse.value.id,
     editCourseName.value,
+    effectiveCourseType(editCourseType.value),
   );
   if (ok) {
     showEditCourseModal.value = false;
     editingCourse.value = null;
     editCourseName.value = '';
+    editCourseType.value = DEFAULT_COURSE_TYPE;
   }
 }
 
@@ -483,10 +550,15 @@ onMounted(() => {
 
       <!-- Courses list section for elective/extra subjects -->
       <div v-if="subjectHasCourses(subject.category)">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="text-lg font-semibold text-on-ghost m-0">
-            {{ t('groups.settings.subjects.courses_title') }}
-          </h3>
+        <div class="flex items-center justify-between mb-4 gap-4">
+          <div class="flex flex-col">
+            <h3 class="text-lg font-semibold text-on-ghost m-0">
+              {{ t('groups.settings.subjects.courses_title') }}
+            </h3>
+            <span v-if="coursesAreForcedZk" class="text-sm text-on-ghost-muted">
+              {{ t('groups.settings.subjects.course_type_forced_zk') }}
+            </span>
+          </div>
           <BaseTooltip
             :content="t('groups.settings.subjects.course_add_title')"
             placement="bottom"
@@ -515,6 +587,11 @@ onMounted(() => {
           >
             <span class="font-medium text-base text-on-ghost truncate">
               {{ course.name }}
+              <span
+                v-if="course.courseType"
+                class="font-normal text-sm text-on-ghost-muted"
+                >({{ courseTypeShortLabel(course.courseType) }})</span
+              >
             </span>
             <div v-if="canEditSubjects" class="flex gap-1">
               <BaseButton
@@ -560,6 +637,21 @@ onMounted(() => {
               @keyup.enter="handleCreateCourse"
             />
           </BaseFormGroup>
+          <BaseFormGroup
+            v-if="showCourseTypeField"
+            id="new-course-type"
+            class="flex flex-col gap-2"
+          >
+            <BaseLabel for="new-course-type" :required="true">{{
+              t('groups.settings.subjects.course_type_label')
+            }}</BaseLabel>
+            <BaseSelect
+              id="new-course-type"
+              v-model="newCourseType"
+              :disabled="saving"
+              :options="courseTypeOptions"
+            />
+          </BaseFormGroup>
         </template>
 
         <template #action-text>
@@ -572,10 +664,7 @@ onMounted(() => {
         :open="showEditCourseModal"
         :submit="handleEditCourse"
         :loading="saving"
-        :requirement="
-          !!editCourseName.trim() &&
-          editCourseName.trim() !== (editingCourse?.name || '')
-        "
+        :requirement="!!editCourseName.trim() && editCourseChanged"
         @cancel="showEditCourseModal = false"
       >
         <template #title>
@@ -593,6 +682,21 @@ onMounted(() => {
               :placeholder="t('groups.settings.subjects.course_name_label')"
               :disabled="saving"
               @keyup.enter="handleEditCourse"
+            />
+          </BaseFormGroup>
+          <BaseFormGroup
+            v-if="showCourseTypeField"
+            id="edit-course-type"
+            class="flex flex-col gap-2"
+          >
+            <BaseLabel for="edit-course-type" :required="true">{{
+              t('groups.settings.subjects.course_type_label')
+            }}</BaseLabel>
+            <BaseSelect
+              id="edit-course-type"
+              v-model="editCourseType"
+              :disabled="saving"
+              :options="courseTypeOptions"
             />
           </BaseFormGroup>
         </template>

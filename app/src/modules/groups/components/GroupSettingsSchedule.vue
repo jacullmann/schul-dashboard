@@ -21,7 +21,7 @@ import {
 import AdminSchedule from '@/modules/groups/components/AdminSchedule.vue';
 import BaseMenu from '@/common/components/BaseMenu.vue';
 import BaseMenuButton from '@/common/components/BaseMenuButton.vue';
-import type { ScheduleSubstitution } from '@/modules/groups/types';
+import type { AdminCourse, ScheduleSubstitution } from '@/modules/groups/types';
 import type { Lesson, ScheduleConfig } from '@/modules/schedule/types';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useSubjectAdmin } from '@/modules/groups/composables/useSubjectAdmin';
@@ -30,7 +30,9 @@ import { useWindowSize } from '@vueuse/core';
 import { useIsMobileViewport } from '@/common/composables/useViewport';
 import { minutesSinceMidnight } from '@/utils/time';
 
-const { t } = useI18n();
+const i18n = useI18n();
+const { t } = i18n;
+const te = (key: string) => i18n.te(key);
 const { width: windowWidth } = useWindowSize();
 const isMobile = useIsMobileViewport();
 
@@ -226,12 +228,21 @@ const selectedLessonSubject = computed(() => {
   );
 });
 
+// A course carries its own GK/LK/ZK type, so it goes into the label that tells
+// two courses of the same subject apart.
+function courseOptionLabel(course: AdminCourse): string {
+  const typeKey = `groups.settings.subjects.course_types_short.${course.courseType}`;
+  return course.courseType && te(typeKey)
+    ? `${course.name} (${t(typeKey)})`
+    : course.name;
+}
+
 const targetCourseOptions = computed(() => {
   const sub = selectedLessonSubject.value;
   const opts = [{ label: 'Alle Kurse des Fachs', value: '' }];
   if (sub && sub.courses && sub.courses.length > 0) {
-    sub.courses.forEach((c: { id: string; name: string }) => {
-      opts.push({ label: c.name, value: c.id });
+    sub.courses.forEach((c: AdminCourse) => {
+      opts.push({ label: courseOptionLabel(c), value: c.id });
     });
   }
   return opts;
@@ -700,9 +711,8 @@ const lessonCourseOptions = computed(() => {
       value: '',
     },
   ];
-  selectedSubjectObj.value?.courses?.forEach(
-    (c: { id: string; name: string }) =>
-      opts.push({ label: c.name, value: c.id }),
+  selectedSubjectObj.value?.courses?.forEach((c: AdminCourse) =>
+    opts.push({ label: courseOptionLabel(c), value: c.id }),
   );
   return opts;
 });
