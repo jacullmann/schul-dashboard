@@ -8,7 +8,7 @@ import {
   onMounted,
   onBeforeUnmount,
 } from 'vue';
-import { useWindowSize, onClickOutside } from '@vueuse/core';
+import { useWindowSize, useEventListener } from '@vueuse/core';
 import { ChevronLeft } from '@lucide/vue';
 import { MENU_SHEET_KEY } from '@/common/composables/useMenuContext';
 import { useI18n } from 'vue-i18n';
@@ -48,11 +48,41 @@ function startClose() {
   emit('close');
 }
 
-onClickOutside(desktopMenuEl, () => {
-  if (props.open && !isMobile.value) {
+useEventListener(window, 'pointerdown', (e: PointerEvent) => {
+  if (!props.open || isMobile.value || !desktopMenuEl.value) return;
+
+  const target = e.target as Node | null;
+  if (target && !desktopMenuEl.value.contains(target)) {
     startClose();
   }
 });
+
+useEventListener(window, 'contextmenu', (e: MouseEvent) => {
+  if (
+    props.open &&
+    !isMobile.value &&
+    desktopMenuEl.value &&
+    !desktopMenuEl.value.contains(e.target as Node)
+  ) {
+    startClose();
+  }
+});
+
+useEventListener(
+  window,
+  'scroll',
+  (e: Event) => {
+    if (!props.open || isMobile.value) return;
+
+    // Ignore scroll events originating from within the menu itself
+    if (desktopMenuEl.value && desktopMenuEl.value.contains(e.target as Node)) {
+      return;
+    }
+
+    startClose();
+  },
+  { capture: true, passive: true },
+);
 
 interface StackEntry {
   id: string;
