@@ -2,12 +2,14 @@ import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import hw from '@/api/api.ts';
 import { processImageBeforeUpload } from '@/modules/tasks/composables/useConvertImage';
+import { useToast } from '@/common/composables/useToast';
 import type { ImageItem } from '@/modules/tasks/types';
 import JSZip from 'jszip';
 
 export type { ImageItem };
 
 const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME as string;
+const MAX_DOCUMENT_BYTES = 5 * 1024 * 1024;
 
 const images = ref<ImageItem[]>([]);
 const uploading = ref(false);
@@ -113,6 +115,13 @@ export function makeRawUrl(input?: string): string {
 
 export function useImageUpload() {
   const { t } = useI18n();
+  const toast = useToast();
+
+  function failUpload(message: string) {
+    uploadError.value = message;
+    uploading.value = false;
+    toast.error(message);
+  }
 
   function init(initialImages: ImageItem[] = []) {
     images.value = [...initialImages];
@@ -139,8 +148,7 @@ export function useImageUpload() {
     const remaining = MAX_IMAGES - (images.value || []).length;
 
     if (remaining <= 0) {
-      uploadError.value = `Limit erreicht. Maximale Bilder: ${MAX_IMAGES}`;
-      uploading.value = false;
+      failUpload(t('tasks.images.upload.limit_reached', { max: MAX_IMAGES }));
       return;
     }
 
@@ -149,9 +157,8 @@ export function useImageUpload() {
       if (f.type.startsWith('image/')) {
         validFilesList.push(f);
       } else if (f.type === 'application/pdf') {
-        if (f.size > 5 * 1024 * 1024) {
-          uploadError.value = 'PDF-Dateien dürfen maximal 5 MB groß sein.';
-          uploading.value = false;
+        if (f.size > MAX_DOCUMENT_BYTES) {
+          failUpload(t('tasks.images.upload.pdf_too_large'));
           return;
         }
         validFilesList.push(f);
@@ -164,9 +171,8 @@ export function useImageUpload() {
           'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
         /\.(docx|pptx|xlsx)$/i.test(f.name)
       ) {
-        if (f.size > 5 * 1024 * 1024) {
-          uploadError.value = 'Office-Dateien dürfen maximal 5 MB groß sein.';
-          uploading.value = false;
+        if (f.size > MAX_DOCUMENT_BYTES) {
+          failUpload(t('tasks.images.upload.office_too_large'));
           return;
         }
         validFilesList.push(f);
@@ -181,13 +187,19 @@ export function useImageUpload() {
     }
 
     if (slicedFiles.length > PER_USER_MAX_IMAGES) {
-      uploadError.value = `Maximal ${PER_USER_MAX_IMAGES} Bilder pro Upload erlaubt.`;
-      uploading.value = false;
+      failUpload(
+        t('tasks.images.upload.max_per_upload', { max: PER_USER_MAX_IMAGES }),
+      );
       return;
     }
 
+    const progressToast = toast.progress(
+      t('tasks.images.upload.progress'),
+      slicedFiles.length,
+    );
+
     try {
-      const uploadTasks = slicedFiles.map(async (file) => {
+      const uploadFile = async (file: File) => {
         const isOffice = /\.(docx|pptx|xlsx)$/i.test(file.name);
 
         if (isOffice) {
@@ -358,18 +370,32 @@ export function useImageUpload() {
             });
           }
         }
-      });
+      };
 
-      const results = await Promise.allSettled(uploadTasks);
-      const failures = results.filter((r) => r.status === 'rejected');
+      const results = await Promise.allSettled(
+        slicedFiles.map((file) =>
+          uploadFile(file).finally(() => progressToast.increment()),
+        ),
+      );
 
-      if (failures.length > 0) {
-        uploadError.value = 'Einige Bilder konnten nicht hochgeladen werden.';
-      } else {
+      const uploaded = results.filter((r) => r.status === 'fulfilled').length;
+
+      if (uploaded === slicedFiles.length) {
         uploadSuccess.value = true;
+        progressToast.settle(t('tasks.images.upload.success'));
+      } else if (uploaded > 0) {
+        uploadError.value = t('tasks.images.upload.partial', {
+          uploaded,
+          total: slicedFiles.length,
+        });
+        progressToast.settle(uploadError.value, { type: 'warning' });
+      } else {
+        uploadError.value = t('tasks.images.upload.failed');
+        progressToast.settle(uploadError.value, { type: 'error' });
       }
     } catch (e: any) {
-      uploadError.value = e.message || 'Fehler beim Upload.';
+      uploadError.value = e.message || t('tasks.images.upload.failed');
+      progressToast.settle(uploadError.value, { type: 'error' });
     } finally {
       uploading.value = false;
     }

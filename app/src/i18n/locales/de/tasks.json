@@ -201,6 +201,16 @@
       "submit": "Bild löschen",
       "success": "Bild gelöscht.",
       "error": "Fehler beim Löschen des Bildes."
+    },
+    "upload": {
+      "failed": "Bilder konnten nicht hochgeladen werden",
+      "limit_reached": "Limit erreicht. Maximal {max} Bilder.",
+      "max_per_upload": "Maximal {max} Bilder pro Upload erlaubt.",
+      "office_too_large": "Office-Dateien dürfen maximal 5 MB groß sein.",
+      "partial": "{uploaded} von {total} Bildern hochgeladen",
+      "pdf_too_large": "PDF-Dateien dürfen maximal 5 MB groß sein.",
+      "progress": "Bilder werden hochgeladen",
+      "success": "Bilder erfolgreich hochgeladen"
     }
   }
 }

@@ -193,6 +193,16 @@
       "submit": "Delete image",
       "success": "Image deleted.",
       "error": "Error deleting image."
+    },
+    "upload": {
+      "failed": "Images could not be uploaded",
+      "limit_reached": "Limit reached. Maximum {max} images.",
+      "max_per_upload": "A maximum of {max} images per upload is allowed.",
+      "office_too_large": "Office files may be no larger than 5 MB.",
+      "partial": "{uploaded} of {total} images uploaded",
+      "pdf_too_large": "PDF files may be no larger than 5 MB.",
+      "progress": "Uploading images",
+      "success": "Images uploaded successfully"
     }
   }
 }

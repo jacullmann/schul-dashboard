@@ -292,15 +292,12 @@ export function useTasks() {
     }
   });
 
+  // Feedback lives in the upload progress toast; refresh so partial uploads show up too.
   watch(imageUpload.uploading, async (val, oldVal) => {
     if (oldVal && !val && images.currentUploadItemId.value) {
-      if (imageUpload.uploadSuccess.value) {
-        await list.refreshItem(images.currentUploadItemId.value);
-        useToast().success(t('tasks.list.task_form.success_upload'));
-      } else if (imageUpload.uploadError.value) {
-        useToast().error(imageUpload.uploadError.value);
-      }
+      const itemId = images.currentUploadItemId.value;
       images.currentUploadItemId.value = null;
+      await list.refreshItem(itemId);
     }
   });
 

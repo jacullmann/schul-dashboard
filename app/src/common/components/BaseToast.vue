@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { useToast } from '@/common/composables/useToast';
+import { useToast, type Toast } from '@/common/composables/useToast';
 import { Check, AlertTriangle, CircleX, Info, X } from '@lucide/vue';
 
 const { toasts, dismiss, setIsHovered } = useToast();
@@ -21,6 +21,11 @@ const ICON_COLORS: Record<string, string> = {
 
 const isHovered = ref(false);
 const heights = ref<Map<number, number>>(new Map());
+
+function progressPercent(toast: Toast) {
+  if (!toast.progress?.total) return 0;
+  return (toast.progress.current / toast.progress.total) * 100;
+}
 
 function updateHeight(id: number, el: any) {
   if (el) {
@@ -136,23 +141,52 @@ const hitBoxHeight = computed(() => {
             class="toast-card w-full flex items-start gap-2 p-1 rounded-full text-base/none overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.12)] origin-top"
             :class="ICON_COLORS[toast.type]"
             :style="getToastStyle(index)"
-            role="alert"
+            :role="toast.progress ? 'status' : 'alert'"
             :aria-atomic="true"
           >
             <span
-              class="ml-2.5 my-2.5 shrink-0 flex items-center justify-center"
+              class="ml-2.5 my-2.5 shrink-0 flex items-center justify-center size-5"
             >
-              <component :is="ICONS[toast.type]" :size="20" />
+              <BaseSpinner
+                v-if="toast.progress"
+                size="20px"
+                color="currentColor"
+              />
+              <component :is="ICONS[toast.type]" v-else :size="20" />
             </span>
 
+            <div
+              v-if="toast.progress"
+              class="my-2.5 flex-1 min-w-0 flex items-center gap-2.5"
+              role="progressbar"
+              :aria-label="toast.message"
+              :aria-valuemin="0"
+              :aria-valuemax="toast.progress.total"
+              :aria-valuenow="toast.progress.current"
+            >
+              <span
+                class="h-1.5 flex-1 min-w-0 rounded-full bg-current/15 overflow-hidden"
+              >
+                <span
+                  class="block h-full rounded-full bg-current transition-[width] duration-400 ease-out-expo"
+                  :style="{ width: progressPercent(toast) + '%' }"
+                ></span>
+              </span>
+              <span class="shrink-0 text-sm leading-5 tabular-nums">
+                {{ toast.progress.current }}/{{ toast.progress.total }}
+              </span>
+            </div>
+
             <span
+              v-else
               class="my-2.5 flex-1 min-w-0 break-words text-base leading-5 truncate"
             >
               {{ toast.message }}
             </span>
 
+            <span v-if="!toast.dismissible" class="w-2.5 shrink-0"></span>
             <BaseButton
-              v-if="toast.dismissible"
+              v-else
               :icon="X"
               :on="
                 toast.type === 'success'
