@@ -656,6 +656,16 @@ p {
   }
 }
 
+/* Set by useLongPress for as long as a finger holds a long-press target.
+   Opting the target out is not enough on iOS: a hold that starts on
+   unselectable content makes WebKit reach for the nearest selectable block
+   instead, and that selection can swallow half the page. */
+html.is-long-pressing {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
 @utility transition-hover {
   transition:
     color var(--duration-hover) var(--ease-hover),

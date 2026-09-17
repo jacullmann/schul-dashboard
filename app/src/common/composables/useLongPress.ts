@@ -23,6 +23,62 @@ const MIN_HOLD_BEFORE_TAKEOVER = 300;
 const CAPTURE = { capture: true } as const;
 const CAPTURE_ACTIVE = { capture: true, passive: false } as const;
 
+const SELECTION_LOCK_CLASS = 'is-long-pressing';
+
+/**
+ * Holds in progress across every instance, so one lifted finger of two doesn't
+ * hand selection back while the other is still down.
+ */
+let selectionLocks = 0;
+
+function lockSelection() {
+  selectionLocks += 1;
+
+  if (selectionLocks === 1) {
+    document.documentElement.classList.add(SELECTION_LOCK_CLASS);
+  }
+}
+
+function unlockSelection() {
+  if (selectionLocks === 0) return;
+
+  selectionLocks -= 1;
+
+  if (selectionLocks === 0) {
+    document.documentElement.classList.remove(SELECTION_LOCK_CLASS);
+  }
+}
+
+function isEditable(node: Node | null) {
+  const element = node instanceof Element ? node : node?.parentElement;
+
+  return Boolean(
+    element?.closest(
+      'input, textarea, select, [contenteditable=""], [contenteditable="true"]',
+    ),
+  );
+}
+
+/**
+ * A hold must never select text. `user-select` is the primary guard; this
+ * covers engines that start the selection before the style applies.
+ */
+function preventSelectStart(event: Event) {
+  if (isEditable(event.target as Node | null)) return;
+
+  event.preventDefault();
+}
+
+/** Drops a selection that slipped through, but never a caret in a field. */
+function clearStraySelection() {
+  const selection = window.getSelection();
+
+  if (!selection || selection.isCollapsed) return;
+  if (isEditable(selection.anchorNode)) return;
+
+  selection.removeAllRanges();
+}
+
 /**
  * Long press that reaches Safari on iOS, where a menu bound to `contextmenu`
  * alone is unreachable: WebKit never dispatches that event for a touch hold.
@@ -37,6 +93,10 @@ const CAPTURE_ACTIVE = { capture: true, passive: false } as const;
  *
  * The gesture is tracked on `window` rather than on the element, so a hold
  * survives the element being re-rendered or moved underneath the finger.
+ *
+ * While a finger is down the whole document is made unselectable, because
+ * WebKit answers a hold on unselectable content by selecting the nearest
+ * selectable block around it instead.
  *
  * Targets need the `long-press-target` utility class: without
  * `-webkit-touch-callout`/`user-select` WebKit shows its own callout over the
@@ -106,6 +166,7 @@ export function useLongPress(
     if (openedByHold || !source) return;
 
     openedByHold = true;
+    clearStraySelection();
     trigger(source);
   }
 
@@ -187,6 +248,12 @@ export function useLongPress(
     startedAt = Date.now();
     travelled = false;
 
+    lockSelection();
+    document.addEventListener(
+      'selectstart',
+      preventSelectStart,
+      CAPTURE_ACTIVE,
+    );
     window.addEventListener('touchstart', onWindowTouchStart, CAPTURE);
     window.addEventListener('pointermove', onWindowPointerMove, CAPTURE);
     window.addEventListener('pointerup', onWindowPointerUp, CAPTURE);
@@ -207,6 +274,12 @@ export function useLongPress(
     origin = undefined;
     source = undefined;
 
+    unlockSelection();
+    document.removeEventListener(
+      'selectstart',
+      preventSelectStart,
+      CAPTURE_ACTIVE,
+    );
     window.removeEventListener('touchstart', onWindowTouchStart, CAPTURE);
     window.removeEventListener('pointermove', onWindowPointerMove, CAPTURE);
     window.removeEventListener('pointerup', onWindowPointerUp, CAPTURE);
