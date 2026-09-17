@@ -22,6 +22,13 @@ export interface UseLongPressOptions {
 /** How long after the gesture ends a trailing compatibility click may arrive. */
 const CLICK_SUPPRESS_WINDOW = 700;
 
+/**
+ * How far from the lifted finger a click may land and still be that finger's
+ * own trailing click. Anything further is a new tap the user means, and
+ * swallowing it makes the menu feel dead for the rest of the window.
+ */
+const CLICK_SUPPRESS_RADIUS = 24;
+
 /** A takeover this soon after touch-down is not a hold, whatever caused it. */
 const MIN_HOLD_BEFORE_TAKEOVER = 300;
 
@@ -120,6 +127,8 @@ export function useLongPress(
   let source: PointerEvent | undefined;
   let pointerId: number | undefined;
   let pointerType = '';
+  let lastPoint: { x: number; y: number } | undefined;
+  let suppressOrigin: { x: number; y: number } | undefined;
   let startedAt = 0;
   let travelled = false;
   let openedByHold = false;
@@ -141,14 +150,35 @@ export function useLongPress(
     holdTimer = undefined;
   }
 
+  /**
+   * The compatibility click is synthesised under the finger that produced it.
+   * A click that lands elsewhere belongs to a new tap, so it passes through —
+   * and ends the window, because the trailing click can no longer be ahead of
+   * it.
+   */
+  function isTrailingClick(event: MouseEvent) {
+    if (!suppressOrigin) return true;
+
+    const distance = Math.hypot(
+      event.clientX - suppressOrigin.x,
+      event.clientY - suppressOrigin.y,
+    );
+
+    return distance <= CLICK_SUPPRESS_RADIUS;
+  }
+
   function swallowClick(event: MouseEvent) {
-    event.preventDefault();
-    event.stopPropagation();
+    if (isTrailingClick(event)) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
     endSuppression();
   }
 
   function endSuppression() {
     window.removeEventListener('click', swallowClick, CAPTURE);
+    suppressOrigin = undefined;
 
     if (suppressTimer === undefined) return;
 
@@ -159,9 +189,12 @@ export function useLongPress(
   /**
    * The menu is open, so the click the lifted finger still produces must reach
    * nothing: it would re-select the card underneath, or dismiss the menu by
-   * landing on its own backdrop.
+   * landing on its own backdrop. Only that one click is blocked — `point` is
+   * where the finger left the screen, and a tap anywhere else stays live while
+   * the menu animates in.
    */
-  function startSuppression() {
+  function startSuppression(point: { x: number; y: number } | undefined) {
+    suppressOrigin = point;
     window.addEventListener('click', swallowClick, CAPTURE);
     suppressTimer = setTimeout(endSuppression, CLICK_SUPPRESS_WINDOW);
   }
@@ -184,6 +217,8 @@ export function useLongPress(
       event.clientY - origin.y,
     );
 
+    lastPoint = { x: event.clientX, y: event.clientY };
+
     if (distance <= moveThreshold) return;
 
     travelled = true;
@@ -193,6 +228,7 @@ export function useLongPress(
   function onWindowPointerUp(event: PointerEvent) {
     if (event.pointerId !== pointerId) return;
 
+    lastPoint = { x: event.clientX, y: event.clientY };
     stopHold();
 
     // A touch ends on `touchend`, one event later, where the compatibility
@@ -250,6 +286,7 @@ export function useLongPress(
     pointerId = event.pointerId;
     pointerType = event.pointerType;
     origin = { x: event.clientX, y: event.clientY };
+    lastPoint = origin;
     source = event;
     startedAt = Date.now();
     travelled = false;
@@ -274,10 +311,13 @@ export function useLongPress(
 
     if (!tracking) return;
 
+    const liftedAt = lastPoint ?? origin;
+
     tracking = false;
     pointerId = undefined;
     pointerType = '';
     origin = undefined;
+    lastPoint = undefined;
     source = undefined;
 
     unlockSelection();
@@ -294,7 +334,7 @@ export function useLongPress(
     window.removeEventListener('touchcancel', onWindowTouchCancel, CAPTURE);
     window.removeEventListener('scroll', onWindowScroll, CAPTURE);
 
-    if (openedByHold) startSuppression();
+    if (openedByHold) startSuppression(liftedAt);
   }
 
   function onPointerDown(event: PointerEvent) {
