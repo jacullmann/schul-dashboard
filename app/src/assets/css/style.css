@@ -489,11 +489,11 @@ p {
   }
 
   .fade-scale-enter-active {
-    transition: opacity 250ms linear;
+    transition: opacity 250ms ease-out;
     opacity: 1;
   }
   .fade-scale-leave-active {
-    transition: opacity 150ms linear;
+    transition: opacity 150ms ease-out;
     opacity: 1;
   }
   .fade-scale-enter-from,
@@ -648,7 +648,8 @@ p {
     color var(--duration-hover) var(--ease-hover),
     background-color var(--duration-hover) var(--ease-hover),
     border-color var(--duration-hover) var(--ease-hover),
-    box-shadow var(--duration-hover) var(--ease-hover);
+    box-shadow var(--duration-hover) var(--ease-hover),
+    scale 300ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @utility transition-focus {
