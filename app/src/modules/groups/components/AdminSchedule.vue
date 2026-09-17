@@ -151,7 +151,7 @@ onMounted(() => {
 <template>
   <BaseTableWrapper class="max-[500px]:overflow-visible">
     <div
-      class="grid grid-cols-[80px_repeat(5,1fr)] grid-rows-[auto_repeat(9,auto)] gap-2 items-stretch max-[500px]:flex max-[500px]:overflow-hidden max-[500px]:grid-cols-none max-[500px]:grid-rows-none"
+      class="grid grid-cols-[80px_repeat(5,minmax(9rem,1fr))] grid-rows-[auto_repeat(9,auto)] gap-2 items-stretch max-[500px]:flex max-[500px]:overflow-hidden max-[500px]:grid-cols-none max-[500px]:grid-rows-none"
     >
       <ScheduleTimeColumn
         :time-slots="effectiveTimeSlots"
@@ -177,7 +177,7 @@ onMounted(() => {
           <div
             v-for="day in days"
             :key="day"
-            class="day-header bg-surface text-on-ghost p-2 border border-ghost-border text-center font-bold rounded-md max-[500px]:rounded-lg text-base shadow-input min-w-[150px] min-[501px]:[grid-row:1] max-[500px]:snap-start max-[500px]:scroll-ml-0"
+            class="day-header bg-surface text-on-ghost p-2 border border-ghost-border text-center font-bold rounded-md max-[500px]:rounded-lg text-base shadow-input min-[501px]:[grid-row:1] max-[500px]:snap-start max-[500px]:scroll-ml-0"
             :class="[
               isEditable
                 ? 'cursor-pointer hover:bg-surface-highlight select-none transition-colors'

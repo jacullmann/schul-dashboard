@@ -97,7 +97,7 @@ const skeletonCells = computed(() => {
 
     <BaseTableWrapper class="max-[500px]:overflow-visible">
       <div
-        class="grid grid-cols-[80px_repeat(5,1fr)] gap-2 items-stretch max-[500px]:flex max-[500px]:overflow-hidden max-[500px]:grid-cols-none max-[500px]:grid-rows-none"
+        class="grid grid-cols-[80px_repeat(5,minmax(9rem,1fr))] gap-2 items-stretch max-[500px]:flex max-[500px]:overflow-hidden max-[500px]:grid-cols-none max-[500px]:grid-rows-none"
         :style="{
           gridTemplateRows: `auto repeat(${timeSlots.length || 9}, auto)`,
         }"
@@ -125,7 +125,7 @@ const skeletonCells = computed(() => {
             <div
               v-for="day in days"
               :key="day"
-              class="day-header bg-surface border border-ghost-border text-on-ghost p-2 text-center font-bold rounded-md max-[500px]:rounded-lg text-base shadow-input min-w-[150px] min-[501px]:[grid-row:1] max-[500px]:snap-start max-[500px]:scroll-ml-0 animate-fade-up"
+              class="day-header bg-surface border border-ghost-border text-on-ghost p-2 text-center font-bold rounded-md max-[500px]:rounded-lg text-base shadow-input min-[501px]:[grid-row:1] max-[500px]:snap-start max-[500px]:scroll-ml-0 animate-fade-up"
               :class="
                 day === currentDay
                   ? 'min-[501px]:bg-ghost-border! min-[501px]:border-surface-hover-border!'
