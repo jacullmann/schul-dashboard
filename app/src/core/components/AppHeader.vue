@@ -216,7 +216,7 @@ onUnmounted(() => {
               modalStore.openCreateGroup();
             "
           >
-            Create group
+            {{ t('common.sidebar.create') }}
           </BaseMenuButton>
 
           <BaseMenuButton

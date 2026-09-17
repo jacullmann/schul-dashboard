@@ -22,7 +22,7 @@ const submitting = ref(false);
 const contentError = ref('');
 const submitError = ref('');
 
-const contentInputRef = ref<HTMLTextAreaElement | null>(null);
+const contentInputRef = ref<{ focus: () => void } | null>(null);
 
 onMounted(() => {
   contentInputRef.value?.focus();
@@ -82,9 +82,7 @@ async function submit() {
             id="announcement-content-input"
             ref="contentInputRef"
             v-model="annContent"
-            as="textarea"
             placeholder="Verfasse deine Nachricht..."
-            rows="3"
             maxlength="1000"
             :aria-describedby="
               contentError ? 'announcement-content-input-error' : undefined
