@@ -28,6 +28,11 @@ const PRESS: SpringConfig = { response: 0.22, dampingRatio: 1 };
 const PRESS_INSET = 2;
 /** How long a touch rests before the pill gives way, so a scroll never flashes it. */
 const PRESS_DELAY = 80;
+/**
+ * How far across a press must travel to become a drag, in px. Only the
+ * horizontal distance counts: a pan that starts sideways is the pill's, and
+ * once it holds the pill no amount of vertical travel takes it back.
+ */
 const TOUCH_SLOP = 8;
 const MOUSE_SLOP = 5;
 /**
@@ -162,7 +167,6 @@ interface Gesture {
   pointerId: number;
   pointerType: string;
   startX: number;
-  startY: number;
   clientX: number;
   /** Where across the pill the press landed, from 0 to 1; null beside it. */
   grip: number | null;
@@ -686,7 +690,6 @@ function onPointerDown(event: PointerEvent) {
     pointerId: event.pointerId,
     pointerType: event.pointerType,
     startX: event.clientX,
-    startY: event.clientY,
     clientX: event.clientX,
     grip: onPill ? (right > left ? (x - left) / (right - left) : 0.5) : null,
     stops: null,
@@ -720,17 +723,10 @@ function onPointerMove(event: PointerEvent) {
 
   if (!g.stops) {
     const dx = Math.abs(event.clientX - g.startX);
-    const dy = Math.abs(event.clientY - g.startY);
-    const isMouse = g.pointerType === 'mouse';
+    const slop = g.pointerType === 'mouse' ? MOUSE_SLOP : TOUCH_SLOP;
 
-    if (isMouse ? dx < MOUSE_SLOP : Math.hypot(dx, dy) < TOUCH_SLOP) {
+    if (dx < slop) {
       record(g, now);
-      return;
-    }
-
-    // Mostly vertical is the page scrolling, and the browser takes it from here.
-    if (!isMouse && dy > dx) {
-      end(true);
       return;
     }
 
