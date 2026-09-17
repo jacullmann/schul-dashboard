@@ -121,8 +121,8 @@ impl TodoService {
                VALUES ($1, $2, $3, $4)
                RETURNING id, completed, position, created_at, updated_at"#,
             user_id,
-            serde_json::to_value(&enc_title).unwrap(),
-            serde_json::to_value(&enc_desc).unwrap(),
+            enc_title.to_json(),
+            enc_desc.to_json(),
             new_pos_str,
         )
             .fetch_one(&self.db)
@@ -177,8 +177,8 @@ impl TodoService {
                SET encrypted_title = $1, encrypted_description = $2
                WHERE id = $3
                RETURNING id, completed, position, created_at, updated_at"#,
-            serde_json::to_value(&enc_title).unwrap(),
-            serde_json::to_value(&enc_desc).unwrap(),
+            enc_title.to_json(),
+            enc_desc.to_json(),
             id,
         )
         .fetch_one(&self.db)

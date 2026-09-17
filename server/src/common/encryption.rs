@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::{
     collections::HashMap,
-    sync::{Arc, Mutex},
+    sync::{Arc, Mutex, PoisonError},
     time::{Duration, Instant},
 };
 
@@ -16,6 +16,13 @@ pub struct EncryptedPayload {
     pub iv: String,
     pub data: String,
     pub auth_tag: String,
+}
+
+impl EncryptedPayload {
+    /// Serializing three owned `String`s cannot fail, so this is total.
+    pub fn to_json(&self) -> serde_json::Value {
+        serde_json::to_value(self).expect("EncryptedPayload is always serializable")
+    }
 }
 
 const KEY_CACHE_TTL: Duration = Duration::from_secs(5 * 60);
@@ -44,7 +51,7 @@ impl EncryptionService {
 
     async fn derive_key(&self, user_id: &str) -> Result<[u8; 32], AppError> {
         {
-            let cache = self.cache.lock().unwrap();
+            let cache = self.cache.lock().unwrap_or_else(PoisonError::into_inner);
 
             if let Some(entry) = cache.get(user_id)
                 && entry.at.elapsed() < KEY_CACHE_TTL
@@ -60,8 +67,6 @@ impl EncryptionService {
             .chain_update(user_id.as_bytes())
             .finalize();
 
-        let key_material = key_material.clone();
-
         let salt = salt.to_vec();
 
         let derived = tokio::task::spawn_blocking(move || {
@@ -76,7 +81,7 @@ impl EncryptionService {
         .await
         .map_err(|e| AppError::internal(format!("Key derivation spawn failed: {e}")))?;
 
-        let mut cache = self.cache.lock().unwrap();
+        let mut cache = self.cache.lock().unwrap_or_else(PoisonError::into_inner);
 
         if cache.len() >= KEY_CACHE_MAX
             && let Some(oldest) = cache

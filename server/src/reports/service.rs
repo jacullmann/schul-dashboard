@@ -4,7 +4,27 @@ use crate::{
 };
 use serde_json::{Value, json};
 use sqlx::PgPool;
+use std::collections::HashSet;
 use uuid::Uuid;
+
+/// Blanks out a reference to content that has since been deleted, so the
+/// admin UI does not link to a row that no longer exists.
+fn null_field_if_missing(
+    map: &mut serde_json::Map<String, Value>,
+    id_field: &str,
+    target_field: &str,
+    existing: &HashSet<Uuid>,
+) {
+    let dangling = map
+        .get(id_field)
+        .and_then(Value::as_str)
+        .and_then(|raw| Uuid::parse_str(raw).ok())
+        .is_some_and(|id| !existing.contains(&id));
+
+    if dangling {
+        map.insert(target_field.into(), Value::Null);
+    }
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum ReportType {
@@ -167,13 +187,13 @@ impl ReportsService {
         .fetch_all(&self.db)
         .await?;
 
-        let existing_items: std::collections::HashSet<Uuid> = sqlx::query_scalar!(r#"SELECT id FROM items"#)
+        let existing_items: HashSet<Uuid> = sqlx::query_scalar!("SELECT id FROM items")
             .fetch_all(&self.db)
             .await?
             .into_iter()
             .collect();
 
-        let existing_messages: std::collections::HashSet<Uuid> = sqlx::query_scalar!(r#"SELECT id FROM group_messages"#)
+        let existing_messages: HashSet<Uuid> = sqlx::query_scalar!("SELECT id FROM group_messages")
             .fetch_all(&self.db)
             .await?
             .into_iter()
@@ -196,27 +216,19 @@ impl ReportsService {
                     map.insert("processedAt".into(), json!(r.processed_at));
                     map.insert("reportedAt".into(), json!(r.reported_at));
 
-                    let report_type = r.report_type.as_str();
-                    if report_type == "task" {
-                        if let Some(item_id_val) = map.get("itemId") {
-                            if let Some(item_id_str) = item_id_val.as_str() {
-                                if let Ok(item_uuid) = Uuid::parse_str(item_id_str) {
-                                    if !existing_items.contains(&item_uuid) {
-                                        map.insert("itemType".into(), Value::Null);
-                                    }
-                                }
-                            }
+                    match r.report_type.as_str() {
+                        t if t == ReportType::Task.as_str() => {
+                            null_field_if_missing(map, "itemId", "itemType", &existing_items);
                         }
-                    } else if report_type == "message" {
-                        if let Some(message_id_val) = map.get("messageId") {
-                            if let Some(message_id_str) = message_id_val.as_str() {
-                                if let Ok(message_uuid) = Uuid::parse_str(message_id_str) {
-                                    if !existing_messages.contains(&message_uuid) {
-                                        map.insert("messageId".into(), Value::Null);
-                                    }
-                                }
-                            }
+                        t if t == ReportType::Message.as_str() => {
+                            null_field_if_missing(
+                                map,
+                                "messageId",
+                                "messageId",
+                                &existing_messages,
+                            );
                         }
+                        _ => {}
                     }
                 }
                 obj

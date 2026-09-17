@@ -81,7 +81,7 @@ impl MfaService {
             r#"INSERT INTO mfa_pending_secrets (user_id, encrypted_secret, expires_at) VALUES ($1, $2, $3)
                ON CONFLICT (user_id) DO UPDATE SET encrypted_secret = $2, expires_at = $3"#,
             user_id,
-            serde_json::to_value(&enc).unwrap(),
+            enc.to_json(),
             expires_at,
         )
             .execute(&self.db)
@@ -155,7 +155,7 @@ impl MfaService {
 
         sqlx::query!(
             r#"UPDATE users SET mfa_enabled = true, mfa_secret = $1 WHERE id = $2"#,
-            serde_json::to_value(&enc_for_storage).unwrap(),
+            enc_for_storage.to_json(),
             user_id
         )
         .execute(&self.db)
@@ -196,15 +196,15 @@ impl MfaService {
         .await?
         .ok_or_else(|| AppError::not_found("User not found."))?;
 
-        if !user.mfa_enabled || user.mfa_secret.is_none() {
+        let Some(mfa_secret) = user.mfa_secret.filter(|_| user.mfa_enabled) else {
             tokio::time::sleep(std::time::Duration::from_millis(100)).await;
             return Err(AppError::bad_request("Authentication failed."));
-        }
+        };
 
         let uid = user_id.to_string();
 
         let enc: crate::common::encryption::EncryptedPayload =
-            serde_json::from_value(user.mfa_secret.unwrap())
+            serde_json::from_value(mfa_secret)
                 .map_err(|_| AppError::internal("Invalid encrypted secret"))?;
 
         let secret_b32 = self.enc.decrypt(&enc, &uid).await?;

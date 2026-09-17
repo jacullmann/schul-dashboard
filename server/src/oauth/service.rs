@@ -1,6 +1,6 @@
 use crate::{
     auth::{cookies::*, token::TokenService},
-    common::{csrf::generate_csrf_token, password::verify_password},
+    common::{csrf::generate_csrf_token, jwt::now_secs, password::verify_password},
     config::Config,
     error::{AppError, AppResult},
     state::AppState,
@@ -14,6 +14,12 @@ use uuid::Uuid;
 
 const OAUTH_STATE_COOKIE: &str = "oauth_state_token";
 pub const OAUTH_PENDING_COOKIE: &str = "oauth_pending_token";
+
+/// The cookie and the JWT inside it expire together.
+const STATE_COOKIE_TTL_MINS: i64 = 10;
+const PENDING_COOKIE_TTL_MINS: i64 = 15;
+const STATE_COOKIE_TTL_SECS: u64 = STATE_COOKIE_TTL_MINS as u64 * 60;
+const PENDING_COOKIE_TTL_SECS: u64 = PENDING_COOKIE_TTL_MINS as u64 * 60;
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 struct OAuthStateClaims {
@@ -68,7 +74,7 @@ impl OAuthService {
         c.set_secure(opts.secure);
         c.set_path("/");
         c.set_same_site(SameSite::Lax);
-        c.set_max_age(Duration::minutes(10));
+        c.set_max_age(Duration::minutes(STATE_COOKIE_TTL_MINS));
 
         let client_id = self.config.google_client_id.as_deref().unwrap_or("");
 
@@ -192,7 +198,7 @@ impl OAuthService {
                     c.set_secure(opts.secure);
                     c.set_path("/");
                     c.set_same_site(SameSite::Lax);
-                    c.set_max_age(Duration::minutes(15));
+                    c.set_max_age(Duration::minutes(PENDING_COOKIE_TTL_MINS));
 
                     let jar = CookieJar::new().add(c);
 
@@ -310,8 +316,7 @@ impl OAuthService {
         )
         .fetch_optional(&self.db)
         .await?
-        .map(|r| r.name)
-        .unwrap_or_else(|| "user".into());
+        .map_or_else(|| "user".into(), |r| r.name);
 
         let active_group = sqlx::query!(
             r#"SELECT tenant_id FROM user_roles WHERE user_id = $1 AND tenant_id IS NOT NULL LIMIT 1"#,
@@ -485,25 +490,10 @@ impl OAuthService {
         Ok((sub, email))
     }
 
-    fn sign_state_cookie(&self, state: &str, nonce: &str) -> AppResult<String> {
-        use std::time::{SystemTime, UNIX_EPOCH};
-
-        let now = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_secs();
-
-        let claims = OAuthStateClaims {
-            state: state.to_string(),
-            nonce: nonce.to_string(),
-            purpose: "oauth_state".into(),
-            iat: now,
-            exp: now + 600,
-        };
-
+    fn sign_oauth_cookie<T: serde::Serialize>(&self, claims: &T) -> AppResult<String> {
         jsonwebtoken::encode(
             &jsonwebtoken::Header::default(),
-            &claims,
+            claims,
             &jsonwebtoken::EncodingKey::from_secret(
                 self.config.oauth_pending_jwt_secret.as_bytes(),
             ),
@@ -511,29 +501,28 @@ impl OAuthService {
         .map_err(|e| AppError::internal(e.to_string()))
     }
 
-    fn sign_pending_cookie(&self, google_id: &str, google_email: &str) -> AppResult<String> {
-        use std::time::{SystemTime, UNIX_EPOCH};
-        let now = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_secs();
+    fn sign_state_cookie(&self, state: &str, nonce: &str) -> AppResult<String> {
+        let now = now_secs();
 
-        let claims = OAuthPendingClaims {
+        self.sign_oauth_cookie(&OAuthStateClaims {
+            state: state.to_string(),
+            nonce: nonce.to_string(),
+            purpose: "oauth_state".into(),
+            iat: now,
+            exp: now + STATE_COOKIE_TTL_SECS,
+        })
+    }
+
+    fn sign_pending_cookie(&self, google_id: &str, google_email: &str) -> AppResult<String> {
+        let now = now_secs();
+
+        self.sign_oauth_cookie(&OAuthPendingClaims {
             google_id: google_id.to_string(),
             google_email: google_email.to_string(),
             purpose: "oauth_pending".into(),
             iat: now,
-            exp: now + 900,
-        };
-
-        jsonwebtoken::encode(
-            &jsonwebtoken::Header::default(),
-            &claims,
-            &jsonwebtoken::EncodingKey::from_secret(
-                self.config.oauth_pending_jwt_secret.as_bytes(),
-            ),
-        )
-        .map_err(|e| AppError::internal(e.to_string()))
+            exp: now + PENDING_COOKIE_TTL_SECS,
+        })
     }
 
     fn verify_state_cookie(&self, cookie: Option<&str>, state_param: &str) -> AppResult<String> {

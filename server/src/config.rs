@@ -108,6 +108,12 @@ pub const PASSWORD_RESET_TTL: Duration = Duration::from_secs(15 * 60);
 pub const PASSWORD_RESET_CODE_TTL: Duration = Duration::from_secs(30 * 60);
 pub const EMAIL_VERIFY_TTL: Duration = Duration::from_secs(2 * 24 * 60 * 60);
 
+/// `chrono` arithmetic counterpart of the TTL constants above. The values are
+/// small, fixed multiples of a second, so the conversion is always in range.
+pub fn chrono_ttl(ttl: Duration) -> chrono::TimeDelta {
+    chrono::TimeDelta::try_seconds(ttl.as_secs() as i64).unwrap_or(chrono::TimeDelta::MAX)
+}
+
 pub const ACCESS_COOKIE: &str = "access_token";
 pub const REFRESH_COOKIE: &str = "refresh_token";
 pub const MFA_PENDING_COOKIE: &str = "mfa_pending_token";

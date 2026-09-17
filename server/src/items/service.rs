@@ -84,7 +84,7 @@ impl ItemsService {
         }
 
         let old_filter = f.filter == Some("old");
-        let subject_lower = f.subject.map(|s| s.to_lowercase());
+        let subject_lower = f.subject.map(str::to_lowercase);
 
         let mut rows = sqlx::query!(
             r#"SELECT i.id, i.type, i.title, i.subject, i.description, i.images, i.due_date,

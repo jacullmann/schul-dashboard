@@ -323,7 +323,7 @@ impl SuperAdminService {
                 r#"SELECT id FROM user_roles
                    WHERE user_id = $1 AND role_id = $2 AND tenant_id IS NULL"#,
                 target_id,
-                Role::Superadmin.db_id() as i32,
+                Role::Superadmin.db_id_i32(),
             )
             .fetch_optional(&self.db)
             .await?;
@@ -333,7 +333,7 @@ impl SuperAdminService {
                     r#"INSERT INTO user_roles (user_id, role_id, tenant_id)
                        VALUES ($1, $2, NULL)"#,
                     target_id,
-                    Role::Superadmin.db_id() as i32,
+                    Role::Superadmin.db_id_i32(),
                 )
                 .execute(&self.db)
                 .await?;
@@ -343,7 +343,7 @@ impl SuperAdminService {
                 r#"DELETE FROM user_roles
                    WHERE user_id = $1 AND role_id = $2 AND tenant_id IS NULL"#,
                 target_id,
-                Role::Superadmin.db_id() as i32,
+                Role::Superadmin.db_id_i32(),
             )
             .execute(&self.db)
             .await?;

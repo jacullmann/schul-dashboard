@@ -84,8 +84,8 @@ async fn main() -> anyhow::Result<()> {
         .allow_headers(AllowHeaders::list([
             axum::http::header::CONTENT_TYPE,
             axum::http::header::AUTHORIZATION,
-            "x-csrf-token".parse().unwrap(),
-            "x-tenant-id".parse().unwrap(),
+            axum::http::HeaderName::from_static("x-csrf-token"),
+            axum::http::HeaderName::from_static("x-tenant-id"),
         ]));
 
     let global_governor = Arc::new(

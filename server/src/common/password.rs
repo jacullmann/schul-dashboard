@@ -37,7 +37,7 @@ pub fn validate_password_strength(password: &str) -> Result<(), &'static str> {
         return Err("Password must be at least 8 characters long and contain letters and numbers.");
     }
 
-    let has_letter = password.chars().any(|c| c.is_alphabetic());
+    let has_letter = password.chars().any(char::is_alphabetic);
 
     let has_digit = password.chars().any(|c| c.is_ascii_digit());
 

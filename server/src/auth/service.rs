@@ -12,12 +12,13 @@ use crate::{
     },
     config::{
         Config, EMAIL_VERIFY_TTL, MFA_PENDING_TTL, PASSWORD_RESET_CODE_TTL, PASSWORD_RESET_TTL,
+        chrono_ttl,
     },
     error::{AppError, AppResult},
     state::AppState,
 };
 use axum_extra::extract::cookie::CookieJar;
-use chrono::{Duration, Utc};
+use chrono::Utc;
 use serde_json::json;
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -62,8 +63,7 @@ impl AuthService {
         )
         .fetch_optional(&self.db)
         .await?
-        .map(|r| r.name)
-        .unwrap_or_else(|| "user".into());
+        .map_or_else(|| "user".into(), |r| r.name);
 
         let active_group_id = sqlx::query!(
             r#"SELECT tenant_id FROM user_roles WHERE user_id = $1 AND tenant_id IS NOT NULL LIMIT 1"#,
@@ -132,12 +132,9 @@ impl AuthService {
         .fetch_optional(&self.db)
         .await?;
 
-        let user = match user {
-            Some(u) => u,
-            None => {
-                self.equalize_login_timing(dto.password).await;
-                return Err(AppError::Unauthorized("Invalid credentials.".into()));
-            }
+        let Some(user) = user else {
+            self.equalize_login_timing(dto.password).await;
+            return Err(AppError::Unauthorized("Invalid credentials.".into()));
         };
 
         let hash = match user.password_hash.as_deref() {
@@ -226,12 +223,12 @@ impl AuthService {
         .await?
         .ok_or_else(|| AppError::Unauthorized("Authentication failed.".into()))?;
 
-        if !user.mfa_enabled || user.mfa_secret.is_none() {
+        let Some(mfa_secret) = user.mfa_secret.filter(|_| user.mfa_enabled) else {
             return Err(AppError::Unauthorized("Authentication failed.".into()));
-        }
+        };
 
         let encrypted: crate::common::encryption::EncryptedPayload =
-            serde_json::from_value(user.mfa_secret.unwrap())
+            serde_json::from_value(mfa_secret)
                 .map_err(|_| AppError::internal("Invalid MFA secret format"))?;
 
         let uid = user_id.to_string();
@@ -349,7 +346,7 @@ impl AuthService {
 
         let token = hex::encode(rand::random::<[u8; 32]>());
 
-        let expires_at = Utc::now() + Duration::from_std(EMAIL_VERIFY_TTL).unwrap();
+        let expires_at = Utc::now() + chrono_ttl(EMAIL_VERIFY_TTL);
 
         sqlx::query!(
             r#"INSERT INTO verifications (email, token, expires_at) VALUES ($1, $2, $3)"#,
@@ -409,8 +406,7 @@ impl AuthService {
         )
         .fetch_optional(&self.db)
         .await?
-        .map(|r| r.name)
-        .unwrap_or_else(|| "user".into());
+        .map_or_else(|| "user".into(), |r| r.name);
 
         let tenant_role = if let Some(gid) = active_group_id {
             sqlx::query!(
@@ -557,7 +553,7 @@ impl AuthService {
 
         let code = hex::encode_upper(rand::random::<[u8; 3]>());
 
-        let expires_at = Utc::now() + Duration::from_std(PASSWORD_RESET_CODE_TTL).unwrap();
+        let expires_at = Utc::now() + chrono_ttl(PASSWORD_RESET_CODE_TTL);
 
         sqlx::query!(
             r#"UPDATE password_resets SET used = true WHERE email = $1 AND used = false"#,

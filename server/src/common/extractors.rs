@@ -148,8 +148,7 @@ pub struct TenantContext {
 impl TenantContext {
     pub fn is_owner(&self) -> bool {
         self.group_owner_id
-            .map(|id| id == self.user.user_id)
-            .unwrap_or(false)
+            .is_some_and(|id| id == self.user.user_id)
     }
 
     pub fn can(&self, permission: Permission) -> bool {
@@ -170,7 +169,10 @@ impl TenantContext {
     #[allow(dead_code)]
     pub fn effective_permission_keys(&self) -> Vec<&'static str> {
         if self.can_bypass_tenant_checks() {
-            return Permission::ALL.iter().map(|p| p.as_str()).collect();
+            return Permission::ALL
+                .iter()
+                .map(super::permission::Permission::as_str)
+                .collect();
         }
         self.group_permissions
             .allowed_keys_for_role(self.tenant_role)
@@ -286,6 +288,8 @@ where
     }
 }
 
+/// `Json<T>` that runs the DTO's `validate()` before the handler sees it, so
+/// handlers never carry validation boilerplate.
 pub struct ValidatedJson<T>(pub T);
 
 impl<T, S> FromRequest<S> for ValidatedJson<T>
@@ -300,9 +304,9 @@ where
             .await
             .map_err(|e: JsonRejection| AppError::BadRequest(e.body_text()))?;
 
-        value
-            .validate()
-            .map_err(|e| AppError::BadRequest(format!("Validation failed: {e}")))?;
+        value.validate().map_err(|e| {
+            AppError::Validation(e.field_errors().keys().map(ToString::to_string).collect())
+        })?;
 
         Ok(ValidatedJson(value))
     }

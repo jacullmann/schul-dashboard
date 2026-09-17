@@ -66,12 +66,12 @@ impl EmailService {
             to,
             "Passwort zurücksetzen",
             &format!(
-                r#"
+                r"
                 <h3>Bestätigungscode</h3>
                 <p>Gib folgenden Code auf der schul-dashboard Seite ein:</p>
                 <p><strong>{code}</strong></p>
                 <p>Dieser Code ist für 30 Minuten gültig.</p>
-            "#
+            "
             ),
         )
         .await
@@ -81,11 +81,11 @@ impl EmailService {
         self.send(
             to,
             "Dein Passwort wurde zurückgesetzt",
-            r#"
+            r"
             <h3>Wichtige Sicherheitsmeldung</h3>
             <p>Soeben wurde erfolgreich das Passwort deines Kontos zurückgesetzt.</p>
             <p>Falls du dies nicht warst, kontaktiere sofort den Support.</p>
-            "#,
+            ",
         )
         .await
     }

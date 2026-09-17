@@ -1,10 +1,10 @@
 use crate::{
     common::jwt::{AccessClaims, JwtService},
-    config::{ACCESS_TOKEN_TTL, REFRESH_TOKEN_TTL},
+    config::{ACCESS_TOKEN_TTL, REFRESH_TOKEN_TTL, chrono_ttl},
     error::AppError,
     state::AppState,
 };
-use chrono::{Duration, Utc};
+use chrono::Utc;
 use sha2::{Digest, Sha256};
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -104,11 +104,11 @@ impl TokenService {
 
         let token_hash = hash_token(&refresh_token);
 
-        let family_id = p.parent.map(|(_, fid)| fid).unwrap_or_else(Uuid::new_v4);
+        let family_id = p.parent.map_or_else(Uuid::new_v4, |(_, fid)| fid);
 
         let parent_id = p.parent.map(|(pid, _)| pid);
 
-        let expires_at = Utc::now() + Duration::from_std(REFRESH_TOKEN_TTL).unwrap();
+        let expires_at = Utc::now() + chrono_ttl(REFRESH_TOKEN_TTL);
 
         let ua: Option<String> = p.user_agent.map(|s| {
             if s.len() > 512 {
@@ -147,7 +147,7 @@ impl TokenService {
             p.global_role.to_string(),
             p.active_group_id,
             ACCESS_TOKEN_TTL,
-            role_version as u32,
+            u32::try_from(role_version).unwrap_or(0),
         );
         let access_token = self
             .jwt
@@ -293,12 +293,9 @@ impl TokenService {
         .execute(&self.db)
         .await?;
 
-        let user = match self.load_user_claims(row.user_id).await? {
-            Some(u) => u,
-            None => {
-                self.revoke_family(row.family_id, ADMIN_REVOKE).await?;
-                return Ok(None);
-            }
+        let Some(user) = self.load_user_claims(row.user_id).await? else {
+            self.revoke_family(row.family_id, ADMIN_REVOKE).await?;
+            return Ok(None);
         };
 
         let issued = self
@@ -506,8 +503,7 @@ impl TokenService {
         )
         .fetch_optional(&self.db)
         .await?
-        .map(|r| r.name)
-        .unwrap_or_else(|| "user".into());
+        .map_or_else(|| "user".into(), |r| r.name);
 
         Ok(Some(UserClaims {
             user_id: user.id,

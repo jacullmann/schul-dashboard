@@ -3,7 +3,11 @@ use crate::{
         cookies::*,
         token::{LOGOUT, TokenService},
     },
-    common::{csrf::generate_csrf_token, permission::GroupPermissions, role::Role},
+    common::{
+        csrf::generate_csrf_token,
+        permission::{GroupPermissions, Permission},
+        role::Role,
+    },
     error::{AppError, AppResult},
     state::AppState,
 };
@@ -139,7 +143,7 @@ impl GroupService {
         sqlx::query!(
             r#"INSERT INTO user_roles (user_id, role_id, tenant_id) VALUES ($1, $2, $3)"#,
             user_id,
-            Role::Admin.db_id() as i32,
+            Role::Admin.db_id_i32(),
             group_id
         )
         .execute(&self.db)
@@ -233,15 +237,11 @@ impl GroupService {
             let is_owner = g["ownerId"].as_str() == Some(&uid.to_string());
 
             if is_superadmin || is_owner {
-                crate::common::permission::Permission::ALL
-                    .iter()
-                    .map(|p| p.as_str())
-                    .collect()
+                Permission::ALL.iter().map(Permission::as_str).collect()
             } else {
                 let tenant_role = g["role"]
                     .as_str()
-                    .map(Role::from_str_or_user)
-                    .unwrap_or(Role::User);
+                    .map_or(Role::User, Role::from_str_or_user);
                 let raw_perms = g.get("permissions").cloned().unwrap_or(json!({}));
                 let perms = GroupPermissions::from_json_with_defaults(&raw_perms);
                 perms.allowed_keys_for_role(tenant_role)
@@ -364,8 +364,7 @@ impl GroupService {
             )
             .fetch_optional(&self.db)
             .await?
-            .map(|r| r.name)
-            .unwrap_or_else(|| "user".into());
+            .map_or_else(|| "user".into(), |r| r.name);
 
             self.issue_session_cookie(user_id, &user.email, &global_role, None, origin)
                 .await?

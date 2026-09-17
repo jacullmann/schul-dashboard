@@ -48,6 +48,11 @@ impl Role {
         *self as i64
     }
 
+    /// The same discriminant as [`Self::db_id`], for the columns typed `int4`.
+    pub const fn db_id_i32(&self) -> i32 {
+        *self as i32
+    }
+
     pub fn dominates(self, required: Role) -> bool {
         self <= required
     }
@@ -73,7 +78,7 @@ impl From<Role> for i64 {
 
 impl From<Role> for i32 {
     fn from(r: Role) -> Self {
-        r.db_id() as i32
+        r.db_id_i32()
     }
 }
 

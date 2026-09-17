@@ -84,22 +84,19 @@ pub async fn ws_handler(
         .and_then(|cookies| {
             cookies.split(';').find_map(|c| {
                 let c = c.trim();
-                c.strip_prefix(&format!("{}=", ACCESS_COOKIE))
-                    .map(|v| v.to_string())
+                c.strip_prefix(&format!("{ACCESS_COOKIE}="))
+                    .map(str::to_string)
             })
         });
     ws.on_upgrade(move |socket| handle_socket(socket, state, token))
 }
 async fn handle_socket(mut socket: WebSocket, state: AppState, token: Option<String>) {
-    let claims = match token
+    let Some(claims) = token
         .as_deref()
         .and_then(|t| state.jwt.verify_access(t).ok())
-    {
-        Some(c) => c,
-        None => {
-            let _ = socket.send(Message::Close(None)).await;
-            return;
-        }
+    else {
+        let _ = socket.send(Message::Close(None)).await;
+        return;
     };
     let user_id: Uuid = match claims.sub.parse() {
         Ok(id) => id,

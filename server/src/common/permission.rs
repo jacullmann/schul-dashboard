@@ -183,7 +183,7 @@ impl GroupPermissions {
         Permission::ALL
             .iter()
             .filter(|&&p| role.dominates(self.required_role(p)))
-            .map(|p| p.as_str())
+            .map(Permission::as_str)
             .collect()
     }
 }

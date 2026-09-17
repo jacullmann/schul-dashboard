@@ -5,15 +5,25 @@ use serde::{Deserialize, Serialize};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use uuid::Uuid;
 
-fn now_secs() -> u64 {
+/// Seconds since the Unix epoch. A clock set before 1970 yields 0 rather
+/// than panicking.
+pub(crate) fn now_secs() -> u64 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
-        .unwrap()
+        .unwrap_or_default()
         .as_secs()
 }
 
-fn exp_secs(ttl: Duration) -> u64 {
+pub(crate) fn exp_secs(ttl: Duration) -> u64 {
     now_secs() + ttl.as_secs()
+}
+
+/// The project signs every token with HS256; `Validation::default()` would
+/// also accept other HMAC variants advertised in the token header.
+fn hs256_validation() -> Validation {
+    let mut v = Validation::default();
+    v.algorithms = vec![jsonwebtoken::Algorithm::HS256];
+    v
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -95,11 +105,7 @@ impl JwtService {
     }
 
     pub fn verify_access(&self, token: &str) -> Result<AccessClaims, AppError> {
-        let mut v = Validation::default();
-
-        v.algorithms = vec![jsonwebtoken::Algorithm::HS256];
-
-        decode::<AccessClaims>(token, &self.user_dec, &v)
+        decode::<AccessClaims>(token, &self.user_dec, &hs256_validation())
             .map(|d| d.claims)
             .map_err(|_| AppError::TokenExpired)
     }
@@ -123,11 +129,7 @@ impl JwtService {
     }
 
     pub fn verify_mfa_pending(&self, token: &str) -> Result<MfaPendingClaims, AppError> {
-        let mut v = Validation::default();
-
-        v.algorithms = vec![jsonwebtoken::Algorithm::HS256];
-
-        decode::<MfaPendingClaims>(token, &self.mfa_dec, &v)
+        decode::<MfaPendingClaims>(token, &self.mfa_dec, &hs256_validation())
             .map(|d| d.claims)
             .map_err(|_| AppError::Unauthorized("Authentication failed.".into()))
     }
@@ -145,11 +147,7 @@ impl JwtService {
     }
 
     pub fn verify_password_reset(&self, token: &str) -> Result<PasswordResetClaims, AppError> {
-        let mut v = Validation::default();
-
-        v.algorithms = vec![jsonwebtoken::Algorithm::HS256];
-
-        decode::<PasswordResetClaims>(token, &self.reset_dec, &v)
+        decode::<PasswordResetClaims>(token, &self.reset_dec, &hs256_validation())
             .map(|d| d.claims)
             .map_err(|_| AppError::BadRequest("Invalid or expired reset token.".into()))
     }

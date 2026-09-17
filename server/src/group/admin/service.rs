@@ -14,6 +14,16 @@ pub struct GroupAdminService {
     db: PgPool,
 }
 
+/// Reads an `int4`-bound field from client JSON. Missing, non-integer and
+/// out-of-range values all fall back to `default` rather than wrapping.
+fn json_i32(value: &Value, key: &str, default: i32) -> i32 {
+    value
+        .get(key)
+        .and_then(Value::as_i64)
+        .and_then(|n| i32::try_from(n).ok())
+        .unwrap_or(default)
+}
+
 impl GroupAdminService {
     pub fn from_state(s: &AppState) -> Self {
         Self { db: s.db.clone() }
@@ -174,7 +184,7 @@ impl GroupAdminService {
 
         sqlx::query!(
             r#"UPDATE user_roles SET role_id = $1 WHERE id = $2"#,
-            role_enum.db_id() as i32,
+            role_enum.db_id_i32(),
             existing.id
         )
         .execute(&self.db)
@@ -306,7 +316,7 @@ impl GroupAdminService {
         sqlx::query!(
             r#"UPDATE user_roles SET role_id = $1
                WHERE user_id = $2 AND tenant_id = $3"#,
-            Role::Admin.db_id() as i32,
+            Role::Admin.db_id_i32(),
             current_user_id,
             tenant_id
         )
@@ -316,7 +326,7 @@ impl GroupAdminService {
         sqlx::query!(
             r#"UPDATE user_roles SET role_id = $1
                WHERE user_id = $2 AND tenant_id = $3"#,
-            Role::Admin.db_id() as i32,
+            Role::Admin.db_id_i32(),
             target,
             tenant_id
         )
@@ -529,7 +539,7 @@ impl GroupAdminService {
                     "name": s.name,
                     "category": s.category,
                     "courses": s.courses,
-                    "coursesCount": s.courses.as_array().map(|a| a.len()).unwrap_or(0)
+                    "coursesCount": s.courses.as_array().map_or(0, std::vec::Vec::len)
                 }))
                 .collect::<Vec<_>>()
         ))
@@ -707,9 +717,9 @@ impl GroupAdminService {
                 .await?;
 
             for item in lessons_arr {
-                let day = item.get("day").and_then(|v| v.as_i64()).unwrap_or(1) as i32;
-                let slot = item.get("slot").and_then(|v| v.as_i64()).unwrap_or(1) as i32;
-                let duration = item.get("duration").and_then(|v| v.as_i64()).unwrap_or(1) as i32;
+                let day = json_i32(item, "day", 1);
+                let slot = json_i32(item, "slot", 1);
+                let duration = json_i32(item, "duration", 1);
                 let room = item.get("room").and_then(|v| v.as_str());
 
                 let subject_id = item
@@ -745,9 +755,9 @@ impl GroupAdminService {
                 .await?;
             }
         } else {
-            let day = body.get("day").and_then(|v| v.as_i64()).unwrap_or(1) as i32;
-            let slot = body.get("slot").and_then(|v| v.as_i64()).unwrap_or(1) as i32;
-            let duration = body.get("duration").and_then(|v| v.as_i64()).unwrap_or(1) as i32;
+            let day = json_i32(&body, "day", 1);
+            let slot = json_i32(&body, "slot", 1);
+            let duration = json_i32(&body, "duration", 1);
             let room = body.get("room").and_then(|v| v.as_str());
 
             let subject_id = body
@@ -873,12 +883,12 @@ impl GroupAdminService {
                 ));
             }
 
-            if let Some(id) = lesson.id {
-                if !lesson_ids.insert(id) {
-                    return Err(AppError::bad_request(
-                        "Duplicate lesson IDs are not allowed.",
-                    ));
-                }
+            if let Some(id) = lesson.id
+                && !lesson_ids.insert(id)
+            {
+                return Err(AppError::bad_request(
+                    "Duplicate lesson IDs are not allowed.",
+                ));
             }
 
             if let Some(subject_id) = lesson.subject_id {

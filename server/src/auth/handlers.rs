@@ -5,7 +5,7 @@ use crate::{
         service::{AuthService, LoginResult},
         token::{TokenService, *},
     },
-    common::extractors::{AuthUser, ClientIp, MfaPending, OptionalAuth, UserAgent},
+    common::extractors::{AuthUser, ClientIp, MfaPending, OptionalAuth, UserAgent, ValidatedJson},
     error::{AppError, AppResult},
     state::AppState,
 };
@@ -16,18 +16,13 @@ use axum::{
 use axum_extra::extract::CookieJar;
 use serde::Deserialize;
 use serde_json::{Value, json};
-use validator::Validate;
 
 pub async fn login(
     State(state): State<AppState>,
     ClientIp(ip): ClientIp,
     UserAgent(ua): UserAgent,
-    Json(dto): Json<LoginDto>,
+    ValidatedJson(dto): ValidatedJson<LoginDto>,
 ) -> AppResult<(CookieJar, Json<Value>)> {
-    dto.validate().map_err(|e| {
-        AppError::Validation(e.field_errors().keys().map(|k| k.to_string()).collect())
-    })?;
-
     let svc = AuthService::from_state(&state);
 
     match svc.login(dto, ua.as_deref(), ip.as_deref()).await? {
@@ -44,12 +39,8 @@ pub async fn verify_mfa(
     pending: MfaPending,
     ClientIp(ip): ClientIp,
     UserAgent(ua): UserAgent,
-    Json(dto): Json<VerifyMfaDto>,
+    ValidatedJson(dto): ValidatedJson<VerifyMfaDto>,
 ) -> AppResult<(CookieJar, Json<Value>)> {
-    dto.validate().map_err(|e| {
-        AppError::Validation(e.field_errors().keys().map(|k| k.to_string()).collect())
-    })?;
-
     let svc = AuthService::from_state(&state);
 
     let jar = svc
@@ -78,12 +69,8 @@ pub async fn cancel_mfa(
 
 pub async fn register(
     State(state): State<AppState>,
-    Json(dto): Json<RegisterDto>,
+    ValidatedJson(dto): ValidatedJson<RegisterDto>,
 ) -> AppResult<Json<Value>> {
-    dto.validate().map_err(|e| {
-        AppError::Validation(e.field_errors().keys().map(|k| k.to_string()).collect())
-    })?;
-
     let svc = AuthService::from_state(&state);
 
     Ok(Json(svc.register(dto).await?))
@@ -126,12 +113,8 @@ pub async fn verify_email(
 
 pub async fn forgot_password(
     State(state): State<AppState>,
-    Json(dto): Json<ForgotPasswordDto>,
+    ValidatedJson(dto): ValidatedJson<ForgotPasswordDto>,
 ) -> AppResult<Json<Value>> {
-    dto.validate().map_err(|e| {
-        AppError::Validation(e.field_errors().keys().map(|k| k.to_string()).collect())
-    })?;
-
     let svc = AuthService::from_state(&state);
 
     Ok(Json(svc.forgot_password(&dto.email).await?))
@@ -139,12 +122,8 @@ pub async fn forgot_password(
 
 pub async fn verify_reset_token(
     State(state): State<AppState>,
-    Json(dto): Json<ResetPasswordVerifyDto>,
+    ValidatedJson(dto): ValidatedJson<ResetPasswordVerifyDto>,
 ) -> AppResult<Json<Value>> {
-    dto.validate().map_err(|e| {
-        AppError::Validation(e.field_errors().keys().map(|k| k.to_string()).collect())
-    })?;
-
     let svc = AuthService::from_state(&state);
 
     Ok(Json(svc.verify_reset_token(&dto.email, &dto.code).await?))
@@ -166,12 +145,8 @@ pub async fn change_password(
     user: AuthUser,
     ClientIp(ip): ClientIp,
     UserAgent(ua): UserAgent,
-    Json(dto): Json<ChangePasswordDto>,
+    ValidatedJson(dto): ValidatedJson<ChangePasswordDto>,
 ) -> AppResult<(CookieJar, Json<Value>)> {
-    dto.validate().map_err(|e| {
-        AppError::Validation(e.field_errors().keys().map(|k| k.to_string()).collect())
-    })?;
-
     let svc = AuthService::from_state(&state);
 
     let (jar, body) = svc
