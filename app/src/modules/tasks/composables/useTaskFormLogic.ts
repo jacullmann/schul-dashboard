@@ -8,6 +8,7 @@ import { useImageUpload } from '@/modules/tasks/composables/useImageUpload';
 import { useI18n } from 'vue-i18n';
 import { getSubjectKey } from '@/types/subjects';
 import { useSubjectStore } from '@/stores/subjectStore';
+import { useEnrolledCourses } from '@/common/composables/useEnrolledCourses';
 import { formatSubjectDisplay } from '@/utils/subject-formatter';
 
 export function useTaskFormLogic(
@@ -26,6 +27,7 @@ export function useTaskFormLogic(
   const te = (key: string) => i18n.te(key);
 
   const subjectStore = useSubjectStore();
+  const { enrolledCourseForSubjectName } = useEnrolledCourses();
 
   const typeTabItems = computed(() => [
     { id: 'homework', label: t('tasks.list.types.homework') },
@@ -171,9 +173,23 @@ export function useTaskFormLogic(
     });
   });
 
-  watch(subjectSel, () => {
-    courseSel.value = '';
+  const enrolledCourseName = (subjectName: string) =>
+    enrolledCourseForSubjectName(subjectName)?.name ?? '';
+
+  watch(subjectSel, (subjectName) => {
+    courseSel.value = enrolledCourseName(subjectName);
   });
+
+  // Subjects can still be loading while the form is open, so the preselection
+  // is retried once they arrive - without overwriting an existing choice.
+  watch(
+    () => subjectStore.subjects,
+    () => {
+      if (!courseSel.value) {
+        courseSel.value = enrolledCourseName(subjectSel.value);
+      }
+    },
+  );
 
   const now = new Date();
   const minDate = new Date();

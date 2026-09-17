@@ -55,12 +55,16 @@ function initSelections() {
     selections[subject.id] = 'NONE';
   }
 
-  if (props.initialData?.courses) {
-    for (const c of props.initialData.courses) {
-      const subject = allowedSubjects.find((s) => s.id === c.subjectId);
-      if (subject?.courses?.some((course) => course.id === c.courseId)) {
-        selections[c.subjectId] = c.courseId;
-      }
+  // Opened from the account menu the prop can lag behind the store, so the
+  // user's own enrollment acts as the fallback.
+  const enrolled = props.initialData?.courses?.length
+    ? props.initialData.courses
+    : (userStore.user?.courses ?? []);
+
+  for (const c of enrolled) {
+    const subject = allowedSubjects.find((s) => s.id === c.subjectId);
+    if (subject?.courses?.some((course) => course.id === c.courseId)) {
+      selections[c.subjectId] = c.courseId;
     }
   }
 }
