@@ -21,23 +21,22 @@ import { useTaskForm } from '@/core/composables/useTaskForm';
 import { useAnnouncementForm } from '@/core/composables/useAnnouncementForm';
 import { useModalStore } from '@/stores/modalStore';
 import { storeToRefs } from 'pinia';
-import hw from '../../api/api';
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
+import { useLogout } from '@/core/composables/useLogout';
 import { useRouter } from 'vue-router';
-import { useMfa } from '@/modules/auth/composables/useMfa';
 import SidebarButton from '@/core/components/SidebarButton.vue';
 import { useI18n } from 'vue-i18n';
 import { useGroupAction } from '@/core/composables/useGroupAction';
 import Avatar from '@/modules/auth/components/Avatar.vue';
 
 const { t } = useI18n();
-const { resetMfaState } = useMfa();
+const performLogout = useLogout();
 
 const userStore = useUserStore();
 const { user, isGroupAdmin, isSuperadmin } = storeToRefs(userStore);
 
-const { activeGroupId, userGroups, logout: appAuthLogout } = useAppAuth();
+const { activeGroupId, userGroups } = useAppAuth();
 const router = useRouter();
 
 const modalStore = useModalStore();
@@ -64,17 +63,8 @@ function onPersonalizationChanged(value: boolean) {
 }
 
 async function logout() {
-  try {
-    await hw.post('/auth/logout');
-  } catch (err) {
-    console.error('Logout failed:', err);
-  } finally {
-    userStore.clearUser();
-    resetMfaState();
-    await appAuthLogout();
-    await router.push('/');
-    collapseIfMobile();
-  }
+  await performLogout();
+  collapseIfMobile();
 }
 
 function collapseIfMobile() {

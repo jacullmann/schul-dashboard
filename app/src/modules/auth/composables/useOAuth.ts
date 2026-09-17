@@ -72,10 +72,9 @@ export function useOAuth() {
       }
       return { ok: false, error: t('auth.google_link.errors.failed') };
     } catch (err: unknown) {
-      const e = err as { response?: { data?: { error?: string } } };
       return {
         ok: false,
-        error: apiErrorMessage(e, t('auth.google_link.errors.failed')),
+        error: apiErrorMessage(err, t('auth.google_link.errors.failed')),
       };
     }
   }
@@ -87,10 +86,9 @@ export function useOAuth() {
       await hw.delete('/auth/google/unlink');
       return { ok: true };
     } catch (err: unknown) {
-      const e = err as { response?: { data?: { error?: string } } };
       return {
         ok: false,
-        error: apiErrorMessage(e, 'Trennen fehlgeschlagen.'),
+        error: apiErrorMessage(err, 'Trennen fehlgeschlagen.'),
       };
     }
   }

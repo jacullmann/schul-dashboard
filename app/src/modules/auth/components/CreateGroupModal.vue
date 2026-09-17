@@ -173,8 +173,7 @@ async function submit() {
       errorMsg.value = res.error || t('auth.groups.errors.create_failed');
     }
   } catch (err: unknown) {
-    const e = err as { response?: { data?: { error?: string } } };
-    errorMsg.value = apiErrorMessage(e, t('common.errors.unknown'));
+    errorMsg.value = apiErrorMessage(err, t('common.errors.unknown'));
   } finally {
     submitting.value = false;
   }

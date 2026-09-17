@@ -6,10 +6,9 @@ import { storeToRefs } from 'pinia';
 import { useModalStore } from '@/stores/modalStore';
 import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
+import { useLogout } from '@/core/composables/useLogout';
 import { useOAuth } from '@/modules/auth/composables/useOAuth';
-import { useMfa } from '@/modules/auth/composables/useMfa';
 import { consumePendingInviteRoute } from '@/modules/auth/utils/pendingInvite';
-import hw from '../../api/api';
 
 import GoogleLinkModal from '@/modules/auth/components/GoogleLinkModal.vue';
 import MfaVerifyModal from '@/modules/auth/components/MfaVerifyModal.vue';
@@ -32,8 +31,8 @@ const toast = useToast();
 const modalStore = useModalStore();
 const userStore = useUserStore();
 const { user } = storeToRefs(userStore);
-const { logout: appAuthLogout, checkAuthStatus } = useAppAuth();
-const { resetMfaState } = useMfa();
+const { checkAuthStatus } = useAppAuth();
+const performLogout = useLogout();
 const {
   showLinkModal,
   showMfaModal,
@@ -103,16 +102,7 @@ function onSetupSuccess(updatedUser: any) {
 }
 
 async function logout() {
-  try {
-    await hw.post('/auth/logout');
-  } catch (err) {
-    console.error('Logout failed:', err);
-  } finally {
-    userStore.clearUser();
-    resetMfaState();
-    await appAuthLogout();
-    void router.push('/');
-  }
+  await performLogout();
 }
 
 async function onAccountDeleted() {

@@ -3,6 +3,7 @@ import { ref, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
+import { useLogout } from '@/core/composables/useLogout';
 import { useTaskForm } from '@/core/composables/useTaskForm';
 import { usePrivateTaskForm } from '@/core/composables/usePrivateTaskForm';
 import { useAnnouncementForm } from '@/core/composables/useAnnouncementForm';
@@ -38,11 +39,9 @@ import {
 } from '@lucide/vue';
 import { useModalStore } from '@/stores/modalStore';
 import { useAccountModals } from '@/modules/auth/composables/useAccountModals';
-import { useMfa } from '@/modules/auth/composables/useMfa';
 import { useUserStore } from '@/stores/userStore';
 import { usePreferences } from '@/common/composables/usePreferences';
 import type { ThemeMode } from '@/common/composables/useTheme';
-import hw from '../../api/api';
 import { useGroupAction } from '@/core/composables/useGroupAction';
 import Avatar from '@/modules/auth/components/Avatar.vue';
 
@@ -55,7 +54,6 @@ const {
   activeGroupId,
   userGroups,
   switchActiveGroup,
-  logout: appAuthLogout,
   checkPermission,
   createInvite,
 } = useAppAuth();
@@ -64,7 +62,7 @@ const { openPrivateTaskForm } = usePrivateTaskForm();
 const { openAnnouncementForm } = useAnnouncementForm();
 const { openSetup, openSecurity, openChangePassword } = useAccountModals();
 const userStore = useUserStore();
-const { resetMfaState } = useMfa();
+const performLogout = useLogout();
 const modalStore = useModalStore();
 const { currentTheme, currentLanguage, setPreference } = usePreferences();
 const { withGroup } = useGroupAction();
@@ -346,16 +344,7 @@ const defaultResults = computed<SearchResult[]>(() => [
 
 async function logout() {
   emit('cancel');
-  try {
-    await hw.post('/auth/logout');
-  } catch (err) {
-    console.error('Logout failed:', err);
-  } finally {
-    userStore.clearUser();
-    resetMfaState();
-    await appAuthLogout();
-    void router.push('/');
-  }
+  await performLogout();
 }
 
 function navigate(path: string) {
