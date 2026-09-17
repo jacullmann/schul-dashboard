@@ -1,12 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import {
-  Trash2,
-  LogOut,
-  LucideGraduationCap,
-  LucideKeyRound,
-  Shield,
-} from '@lucide/vue';
+import { LogOut, LucideGraduationCap, Settings } from '@lucide/vue';
 import PersonalizationSubmenu from '@/modules/auth/components/PersonalizationSubmenu.vue';
 import ThemeSubmenu from '@/modules/auth/components/ThemeSubmenu.vue';
 import LocaleSubmenu from '@/modules/auth/components/LocaleSubmenu.vue';
@@ -48,9 +42,7 @@ const {
   popupStyle,
   handleLogout,
   openSetup,
-  openChangePassword,
-  openSecurity,
-  startDelete,
+  openAccountSettings,
   toggle,
   cancel,
 } = useAccountMenu(props, emit, {
@@ -122,15 +114,15 @@ const {
 
       <BaseMenuDivider />
 
-      <ThemeSubmenu />
-
-      <LocaleSubmenu />
-
       <BaseMenuButton
         ref="firstMenuBtnRef"
-        :icon="LucideGraduationCap"
-        @click="openSetup"
+        :icon="Settings"
+        @click="openAccountSettings"
       >
+        {{ t('auth.account_settings.title') }}
+      </BaseMenuButton>
+
+      <BaseMenuButton :icon="LucideGraduationCap" @click="openSetup">
         {{ t('auth.courses.title') }}
       </BaseMenuButton>
 
@@ -141,22 +133,14 @@ const {
 
       <BaseMenuDivider />
 
-      <BaseMenuButton :icon="Shield" @click="openSecurity">
-        {{ t('auth.security.title') }}
-      </BaseMenuButton>
+      <ThemeSubmenu />
 
-      <BaseMenuButton :icon="LucideKeyRound" @click="openChangePassword">
-        {{ t('auth.change_password.title') }}
-      </BaseMenuButton>
-
-      <BaseMenuButton :icon="LogOut" @click="handleLogout">
-        {{ t('auth.actions.logout') }}
-      </BaseMenuButton>
+      <LocaleSubmenu />
 
       <BaseMenuDivider />
 
-      <BaseMenuButton :icon="Trash2" variant="danger" @click="startDelete">
-        {{ t('auth.delete_account.title') }}
+      <BaseMenuButton :icon="LogOut" @click="handleLogout">
+        {{ t('auth.actions.logout') }}
       </BaseMenuButton>
     </BaseMenu>
   </div>

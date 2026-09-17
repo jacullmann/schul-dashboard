@@ -168,15 +168,11 @@ export const useModalStore = defineStore('modals', () => {
   }
 
   const showChangePassword = ref(false);
-  const showSecurity = ref(false);
   const showSetup = ref(false);
   const showDeleteAccount = ref(false);
 
   function openChangePassword() {
     showChangePassword.value = true;
-  }
-  function openSecurity() {
-    showSecurity.value = true;
   }
   function openSetup() {
     showSetup.value = true;
@@ -229,7 +225,6 @@ export const useModalStore = defineStore('modals', () => {
 
   function closeAllAccountModals() {
     showChangePassword.value = false;
-    showSecurity.value = false;
     showSetup.value = false;
     showDeleteAccount.value = false;
   }
@@ -283,11 +278,9 @@ export const useModalStore = defineStore('modals', () => {
     closeImageViewer,
 
     showChangePassword,
-    showSecurity,
     showSetup,
     showDeleteAccount,
     openChangePassword,
-    openSecurity,
     openSetup,
     openDeleteAccount,
     closeAllAccountModals,

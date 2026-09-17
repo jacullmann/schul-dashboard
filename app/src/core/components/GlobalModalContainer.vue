@@ -16,7 +16,6 @@ import SearchModal from '@/core/components/SearchModal.vue';
 import TaskForm from '@/modules/tasks/components/TaskForm.vue';
 import PrivateTaskForm from '@/modules/tasks/components/PrivateTaskForm.vue';
 import ChangePasswordModal from '@/modules/auth/components/ChangePasswordModal.vue';
-import SecurityModal from '@/modules/auth/components/SecurityModal.vue';
 import DeleteAccountModal from '@/modules/auth/components/DeleteAccountModal.vue';
 import EditCoursesModal from '@/modules/auth/components/EditCoursesModal.vue';
 import CreateGroupModal from '@/modules/auth/components/CreateGroupModal.vue';
@@ -49,7 +48,6 @@ const {
   taskToEdit,
   taskFormInitialType,
   showChangePassword,
-  showSecurity,
   showSetup,
   showDeleteAccount,
   createGroupOpen,
@@ -88,10 +86,6 @@ function onAnnouncementFormSuccess() {
 function onPasswordChanged() {
   toast.success(t('auth.change_password.success_toast'));
   modalStore.showChangePassword = false;
-}
-
-function onMfaChanged(enabled: boolean) {
-  userStore.setMfaEnabled(enabled);
 }
 
 function onSetupSuccess(updatedUser: any) {
@@ -201,13 +195,6 @@ async function onAuthSuccess() {
     :open="showChangePassword"
     @cancel="modalStore.showChangePassword = false"
     @success="onPasswordChanged"
-  />
-
-  <SecurityModal
-    :open="showSecurity"
-    :initial-mfa-enabled="user?.mfaEnabled"
-    @cancel="modalStore.showSecurity = false"
-    @mfa-changed="onMfaChanged"
   />
 
   <DeleteAccountModal

@@ -60,7 +60,7 @@ const {
 const { openTaskForm } = useTaskForm();
 const { openPrivateTaskForm } = usePrivateTaskForm();
 const { openAnnouncementForm } = useAnnouncementForm();
-const { openSetup, openSecurity, openChangePassword } = useAccountModals();
+const { openSetup, openChangePassword } = useAccountModals();
 const userStore = useUserStore();
 const performLogout = useLogout();
 const modalStore = useModalStore();
@@ -316,10 +316,7 @@ const defaultResults = computed<SearchResult[]>(() => [
     description: t('search.descriptions.security'),
     category: 'action',
     icon: Shield,
-    action: () => {
-      openSecurity();
-      emit('cancel');
-    },
+    action: () => navigate('/account/security'),
   },
   {
     id: 'change-password',

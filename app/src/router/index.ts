@@ -136,6 +136,13 @@ const routes: RouteRecordRaw[] = [
       },
 
       {
+        path: 'account/:tab?',
+        name: 'account-settings',
+        component: () => import('@/modules/auth/pages/AccountSettings.vue'),
+        meta: { title: 'navigation.account_settings', fullWidth: true },
+      },
+
+      {
         path: 'private',
         name: 'private-todos',
         component: () => import('@/modules/tasks/pages/PrivateTasks.vue'),

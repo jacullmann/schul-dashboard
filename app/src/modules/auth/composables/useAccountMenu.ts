@@ -1,4 +1,5 @@
 import { ref, computed, nextTick, type Ref, type CSSProperties } from 'vue';
+import { useRouter } from 'vue-router';
 import { useEventListener, useElementBounding } from '@vueuse/core';
 import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/vue';
 import { useIsMobileViewport } from '@/common/composables/useViewport';
@@ -16,6 +17,7 @@ export function useAccountMenu(
   },
 ) {
   const accountModals = useAccountModals();
+  const router = useRouter();
 
   const personalizationSetting = computed({
     get: () => props.userData?.personalized ?? true,
@@ -78,18 +80,8 @@ export function useAccountMenu(
     closeAnimated();
   }
 
-  function openChangePassword() {
-    accountModals.openChangePassword();
-    closeAnimated();
-  }
-
-  function openSecurity() {
-    accountModals.openSecurity();
-    closeAnimated();
-  }
-
-  function startDelete() {
-    accountModals.openDeleteAccount();
+  function openAccountSettings() {
+    void router.push({ name: 'account-settings' });
     closeAnimated();
   }
 
@@ -136,9 +128,7 @@ export function useAccountMenu(
     popupStyle,
     handleLogout,
     openSetup,
-    openChangePassword,
-    openSecurity,
-    startDelete,
+    openAccountSettings,
     toggle,
     cancel,
   };
