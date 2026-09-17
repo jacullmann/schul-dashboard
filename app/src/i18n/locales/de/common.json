@@ -220,6 +220,8 @@
     "hours": "vor {n}h",
     "days": "vor {n}d",
     "formatMD": "{day}-{month}",
-    "formatYMD": "{year}-{month}-{day}"
+    "formatYMD": "{year}-{month}-{day}",
+    "previous_month": "Vorheriger Monat",
+    "next_month": "Nächster Monat"
   }
 }

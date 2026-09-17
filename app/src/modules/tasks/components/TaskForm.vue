@@ -44,6 +44,8 @@ const {
   descriptionError,
   dueDateError,
   dueLocal,
+  minDateKey,
+  maxDateKey,
   submitting,
   submitError,
   subjectOptions,
@@ -178,10 +180,11 @@ const {
         <BaseLabel for="dueDate" :required="true">{{
           t('tasks.list.task_form.due_date')
         }}</BaseLabel>
-        <BaseInput
+        <BaseDatePicker
           id="dueDate"
           v-model="dueLocal"
-          type="date"
+          :min="minDateKey"
+          :max="maxDateKey"
           :aria-describedby="dueDateError ? 'dueDate-error' : undefined"
         />
       </BaseFormGroup>

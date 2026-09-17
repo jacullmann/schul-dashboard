@@ -214,10 +214,10 @@ export function useTaskFormLogic(
   }
 
   const dueLocal = ref(
-    initial?.dueDate
-      ? isoDateOnlyFromIso(initial.dueDate)
-      : new Date().toISOString().slice(0, 10),
+    isoDateOnlyFromIso(initial?.dueDate ?? new Date().toISOString()),
   );
+  const minDateKey = isoDateOnlyFromIso(minDate.toISOString());
+  const maxDateKey = isoDateOnlyFromIso(maxDate.toISOString());
 
   watch([activeType, subjectSel, subjectOther, courseSel, dueLocal], () => {
     doubleCheckPassed.value = false;
@@ -473,6 +473,8 @@ export function useTaskFormLogic(
     descriptionError,
     dueDateError,
     dueLocal,
+    minDateKey,
+    maxDateKey,
     submitting,
     submitError,
     subjectOptions,

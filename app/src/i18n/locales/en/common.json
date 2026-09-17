@@ -193,6 +193,8 @@
     "hours": "{n}h ago",
     "days": "{n}d ago",
     "formatMD": "{month}-{day}",
-    "formatYMD": "{year}-{month}-{day}"
+    "formatYMD": "{year}-{month}-{day}",
+    "previous_month": "Previous month",
+    "next_month": "Next month"
   }
 }
