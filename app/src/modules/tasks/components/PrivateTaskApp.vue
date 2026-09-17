@@ -247,6 +247,7 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
           :set-data="setDragImage"
           :delay="100"
           :delay-on-touch-only="true"
+          :support-pointer="false"
           filter=".item-menu-trigger, input, button, .checkbox, [role='button']"
           :prevent-on-filter="false"
           @end="onDragEnd"

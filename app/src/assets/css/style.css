@@ -316,7 +316,8 @@
   }
 }
 .ghost-drag .item-card {
-  background: white;
+  /* The card is opaque so the blurred glow below it stays behind the card. */
+  background: var(--color-surface);
   will-change: transform, filter;
 }
 
