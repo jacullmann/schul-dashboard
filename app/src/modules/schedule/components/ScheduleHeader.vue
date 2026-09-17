@@ -7,7 +7,9 @@ defineProps<{
   isPersonalized: boolean;
 }>();
 
-const { t, tm } = useI18n();
+const i18n = useI18n();
+const t = i18n.t.bind(i18n);
+const tm = i18n.tm.bind(i18n);
 </script>
 
 <template>

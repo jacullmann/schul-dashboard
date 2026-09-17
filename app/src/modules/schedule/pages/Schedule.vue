@@ -152,7 +152,7 @@ const skeletonCells = computed(() => {
                 :group-key="String(key)"
                 :is-active="key === activeOrNextGroupKey"
                 :is-current-day="group[0]?.day === currentDay"
-                :day-index="days.indexOf(group[0]?.day)"
+                :day-index="group[0] ? days.indexOf(group[0].day) : -1"
                 :elapsed-load-time="elapsedLoadTime"
                 :get-display-name="getDisplayName"
                 :get-group-style="getGroupStyle"

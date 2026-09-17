@@ -26,7 +26,7 @@ export function useScheduleRowSync(sourceRef: Ref<HTMLElement | null>) {
   let observer: MutationObserver | null = null;
 
   onMounted(() => {
-    nextTick(() => {
+    void nextTick(() => {
       syncRowHeights();
       requestAnimationFrame(syncRowHeights);
       setTimeout(syncRowHeights, 50);
@@ -35,7 +35,7 @@ export function useScheduleRowSync(sourceRef: Ref<HTMLElement | null>) {
 
     if (sourceRef.value && typeof MutationObserver !== 'undefined') {
       observer = new MutationObserver(() => {
-        nextTick(() => {
+        void nextTick(() => {
           syncRowHeights();
           requestAnimationFrame(syncRowHeights);
         });
@@ -50,7 +50,7 @@ export function useScheduleRowSync(sourceRef: Ref<HTMLElement | null>) {
   });
 
   watch(windowWidth, () => {
-    nextTick(syncRowHeights);
+    void nextTick(syncRowHeights);
   });
 
   onUnmounted(() => {

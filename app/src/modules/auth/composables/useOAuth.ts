@@ -14,7 +14,7 @@ interface LinkedProvider {
 export function useOAuth() {
   const { t } = useI18n();
 
-  const ERROR_MESSAGES: Record<string, string> = {
+  const ERROR_MESSAGES: Record<string, string> & { server_error: string } = {
     access_denied: 'Google-Anmeldung abgebrochen.',
     invalid_state: 'Sicherheitsfehler. Bitte erneut versuchen.',
     token_invalid: t('auth.google_link.errors.token_invalid'),
@@ -31,7 +31,7 @@ export function useOAuth() {
     window.location.href = `${base}/auth/google`;
   }
 
-  function handleOAuthReturn(onSuccess: () => void): void {
+  function handleOAuthReturn(onSuccess: () => void | Promise<void>): void {
     const params = new URLSearchParams(window.location.search);
     const auth = params.get('auth');
     if (!auth) return;
@@ -41,7 +41,7 @@ export function useOAuth() {
 
     switch (auth) {
       case 'success':
-        onSuccess();
+        void onSuccess();
         break;
 
       case 'link-required':
@@ -55,7 +55,7 @@ export function useOAuth() {
       case 'error': {
         const reason = params.get('reason') ?? 'server_error';
         oauthError.value =
-          ERROR_MESSAGES[reason] ?? ERROR_MESSAGES['server_error'];
+          ERROR_MESSAGES[reason] ?? ERROR_MESSAGES.server_error;
         break;
       }
     }

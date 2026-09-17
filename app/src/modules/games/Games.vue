@@ -44,7 +44,7 @@ const filteredGames = computed(() => {
         class="grid w-full gap-4 grid-cols-[repeat(auto-fill,minmax(320px,1fr))]"
       >
         <router-link
-          v-for="(game, index) in filteredGames"
+          v-for="game in filteredGames"
           :key="game.id"
           :to="`/games/${game.id}`"
           class="no-underline color-inherit animate-fade-up"

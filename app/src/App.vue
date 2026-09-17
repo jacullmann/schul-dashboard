@@ -79,8 +79,8 @@ onMounted(() => {
     await userStore.fetchUser();
   });
 
-  useEventListener(window, 'auth-expired', handleAuthExpired);
-  useEventListener(window, 'tenant-changed', handleTenantChanged);
+  useEventListener(window, 'auth-expired', () => void handleAuthExpired());
+  useEventListener(window, 'tenant-changed', () => void handleTenantChanged());
 });
 </script>
 

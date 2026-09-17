@@ -7,13 +7,15 @@ import {
   type CSSProperties,
 } from 'vue';
 
+type Placement = 'top' | 'bottom' | 'left' | 'right';
+
 const props = withDefaults(
   defineProps<{
     content?: string;
     shortcut?: string[];
     disabled?: boolean;
     debounce?: 'slow' | 'fast';
-    placement?: 'top' | 'bottom' | 'left' | 'right';
+    placement?: Placement;
   }>(),
   {
     debounce: 'fast',
@@ -38,7 +40,7 @@ const updatePosition = () => {
 
   const rect = triggerRef.value.getBoundingClientRect();
   const offset = 8;
-  const pos: Record<string, CSSProperties> = {
+  const pos: Record<Placement, CSSProperties> = {
     top: {
       top: `${rect.top - offset}px`,
       left: `${rect.left + rect.width / 2}px`,

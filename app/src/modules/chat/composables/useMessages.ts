@@ -3,7 +3,7 @@ import { useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
 import { useI18n } from 'vue-i18n';
-import { useWindowSize } from '@vueuse/core';
+import { useIsMobileViewport } from '@/common/composables/useViewport';
 import hw from '../../../api/api';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useToast } from '@/common/composables/useToast';
@@ -26,8 +26,7 @@ export function useMessages() {
     return checkPermission('send_messages');
   });
 
-  const { width: windowWidth } = useWindowSize();
-  const isMobile = computed(() => windowWidth.value < 768);
+  const isMobile = useIsMobileViewport();
 
   const activeMessage = ref<any>(null);
   const menuPosition = ref({ x: 0, y: 0 });
@@ -200,8 +199,8 @@ export function useMessages() {
 
   const initSocket = () => {
     const apiUrl = import.meta.env.VITE_API_URL || window.location.origin;
-    const wsUrl = apiUrl.replace(/^https?/, (p) =>
-      p === 'https' ? 'wss' : 'ws',
+    const wsUrl = apiUrl.replace(/^https?/, (scheme: string) =>
+      scheme === 'https' ? 'wss' : 'ws',
     );
 
     ws = new WebSocket(`${wsUrl}/messages/ws`);

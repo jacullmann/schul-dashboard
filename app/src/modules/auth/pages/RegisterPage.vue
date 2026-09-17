@@ -30,7 +30,7 @@ async function handleSubmit() {
 }
 
 function navigateToLogin() {
-  router.push('/login');
+  void router.push('/login');
 }
 </script>
 

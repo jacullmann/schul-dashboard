@@ -36,7 +36,7 @@ export function useServerStatusBroadcaster(
       if (newVal === oldVal) return;
 
       if (chat.value && newVal.trim().length > 0) {
-        chat.value.setTyping(true);
+        void chat.value.setTyping(true);
       }
 
       isActivelyTyping.value = true;
@@ -64,7 +64,7 @@ export function useServerStatusBroadcaster(
     [currentStatus, () => chat.value] as const,
     ([newStatus, currentChat]) => {
       if (currentChat) {
-        currentChat.setAiStatus(newStatus.key, newStatus.tool);
+        void currentChat.setAiStatus(newStatus.key, newStatus.tool);
       }
     },
     { immediate: true },

@@ -5,7 +5,7 @@ import GeneratedAvatar from '@/modules/auth/components/GeneratedAvatar.vue';
 const props = withDefaults(
   defineProps<{
     name?: string;
-    picture?: string;
+    picture?: string | null;
     size?: number;
     unread?: boolean;
   }>(),

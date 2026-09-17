@@ -57,12 +57,12 @@ function handleKeydown(e: KeyboardEvent) {
   if (e.key === 'ArrowDown') {
     e.preventDefault();
     selectedIndex.value = (selectedIndex.value + 1) % props.itemCount;
-    scrollToSelected();
+    void scrollToSelected();
   } else if (e.key === 'ArrowUp') {
     e.preventDefault();
     selectedIndex.value =
       (selectedIndex.value - 1 + props.itemCount) % props.itemCount;
-    scrollToSelected();
+    void scrollToSelected();
   } else if (e.key === 'Enter') {
     e.preventDefault();
     emit('select', selectedIndex.value);

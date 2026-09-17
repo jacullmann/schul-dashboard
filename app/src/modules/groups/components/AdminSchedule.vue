@@ -12,7 +12,7 @@ import ScheduleLessonGroup from '@/modules/schedule/components/ScheduleLessonGro
 const {
   formatDayName,
   days,
-  timeSlots,
+  timeSlots: fallbackTimeSlots,
   getGroupStyle,
   getDisplayName,
   defaultDayIndex,
@@ -42,12 +42,9 @@ const emit = defineEmits<{
   (e: 'contextmenu-lesson', lesson: Lesson, event: UIEvent): void;
 }>();
 
-const effectiveTimeSlots = computed(() => {
-  if (props.timeSlots && props.timeSlots.length > 0) {
-    return props.timeSlots;
-  }
-  return timeSlots.value;
-});
+const effectiveTimeSlots = computed(() =>
+  props.timeSlots?.length ? props.timeSlots : fallbackTimeSlots.value,
+);
 
 const displayLessons = computed(() => {
   if (!props.lessons || props.lessons.length === 0) return [];
@@ -62,33 +59,27 @@ const displayLessons = computed(() => {
     const subId = lesson.subjectId || lesson.subjects?.id;
     const subObj = subId ? subjectMap.get(subId) : null;
     const courses: Array<{ id: string; name: string }> = subObj?.courses || [];
+    const subjects =
+      lesson.subjects || (subObj ? { id: subObj.id, name: subObj.name } : null);
 
     if (courses.length > 1) {
-      return {
-        ...lesson,
-        courseCount: courses.length,
-        subjects:
-          lesson.subjects ||
-          (subObj ? { id: subObj.id, name: subObj.name } : null),
-      };
-    } else if (courses.length === 1) {
-      const c = courses[0];
+      return { ...lesson, courseCount: courses.length, subjects };
+    }
+
+    const [c] = courses;
+    if (c) {
       return {
         ...lesson,
         courseId: lesson.courseId || c.id,
         courseName: lesson.courseName || c.name,
         courses: lesson.courses || { id: c.id, name: c.name },
-        subjects:
-          lesson.subjects ||
-          (subObj ? { id: subObj.id, name: subObj.name } : null),
+        subjects,
       };
     }
 
     return {
       ...lesson,
-      subjects:
-        lesson.subjects ||
-        (subObj ? { id: subObj.id, name: subObj.name } : null),
+      subjects,
     };
   });
 });
@@ -148,7 +139,7 @@ const scrollToDefaultDay = () => {
 };
 
 onMounted(() => {
-  nextTick(() => {
+  void nextTick(() => {
     syncRowHeights();
     requestAnimationFrame(syncRowHeights);
     setTimeout(syncRowHeights, 100);

@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useAnnouncements } from '@/modules/announcements/composables/useAnnouncements';
 import { Ellipsis } from '@lucide/vue';
+import type { Announcement } from '@/modules/announcements/types';
 
 const { t } = useI18n();
 
@@ -14,13 +15,15 @@ const { announcements, colorFor, checkAndNotifyUnread } = useAnnouncements();
 const currentIndex = ref<number>(0);
 const showMenu = ref<boolean>(false);
 
-const currentAnnouncement = computed(
-  () =>
-    announcements.value[currentIndex.value] ?? {
-      id: '',
-      content: '',
-      color: 'info',
-    },
+const EMPTY_ANNOUNCEMENT: Announcement = {
+  id: '',
+  content: '',
+  color: 'info',
+  createdAt: '',
+};
+
+const currentAnnouncement = computed<Announcement>(
+  () => announcements.value[currentIndex.value] ?? EMPTY_ANNOUNCEMENT,
 );
 
 const isDanger = computed(

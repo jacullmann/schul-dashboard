@@ -59,7 +59,7 @@ function triggerCameraCaptureAndClose() {
 
 function deleteAvatarAndClose() {
   isMenuOpen.value = false;
-  deleteAvatar();
+  void deleteAvatar();
 }
 
 function triggerAvatarUpload() {
@@ -171,8 +171,8 @@ async function confirmDeleteGroup() {
   deletingGroup.value = true;
   try {
     await deleteGroup();
-    router.push('/groups');
-  } catch (err) {
+    void router.push('/groups');
+  } catch {
     // TODO: Add toast
     deletingGroup.value = false;
   }

@@ -10,7 +10,7 @@ import {
   CalendarDays,
   Settings,
   Crown,
-  Lock,
+  Lock as LockIcon,
   Search,
   MessageCircle,
   Plus,
@@ -84,7 +84,7 @@ function collapseIfMobile() {
 }
 
 function handleNavigation(path: string) {
-  router.push(path);
+  void router.push(path);
   collapseIfMobile();
 }
 
@@ -197,7 +197,7 @@ watch(
 
 onMounted(() => {
   if (!userStore.initialized) {
-    userStore.fetchUser();
+    void userStore.fetchUser();
   }
   setupObserver();
 });
@@ -389,7 +389,7 @@ onUnmounted(() => {
           :label="t('common.sidebar.private')"
           :expanded="isExpanded"
           :active="$route.path.startsWith('/private')"
-          :icon="Lock"
+          :icon="LockIcon"
           :page="true"
           @click="handleNavigation('/private')"
         />

@@ -13,6 +13,7 @@ const emit = defineEmits<{
   (e: 'cancel'): void;
 }>();
 
+const { t } = useI18n();
 const { linkGoogleAccount } = useOAuth();
 
 const password = ref('');
@@ -46,7 +47,7 @@ function cancel() {
     :submit="submit"
     :loading="submitting"
     :error="errorMsg"
-    :requirement="password"
+    :requirement="!!password"
     @cancel="cancel"
   >
     <template #title>{{ t('auth.google_link.title') }}</template>

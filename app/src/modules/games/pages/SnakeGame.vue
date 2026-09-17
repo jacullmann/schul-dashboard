@@ -6,7 +6,12 @@ import { useEventListener } from '@vueuse/core';
 const gridSize = 20;
 const cellSize = 20;
 
-const snake = ref([{ x: 10, y: 10 }]);
+interface Point {
+  x: number;
+  y: number;
+}
+
+const snake = ref<Point[]>([{ x: 10, y: 10 }]);
 const food = ref({ x: 15, y: 15 });
 const direction = ref({ x: 0, y: -1 });
 const { t } = useI18n();
@@ -15,20 +20,17 @@ const isGameOver = ref(false);
 const gameLoop = ref<number | null>(null);
 
 const generateFood = () => {
-  let newFood;
-  while (true) {
+  let newFood: Point;
+  do {
     newFood = {
       x: Math.floor(Math.random() * gridSize),
       y: Math.floor(Math.random() * gridSize),
     };
-    if (
-      !snake.value.some(
-        (segment) => segment.x === newFood.x && segment.y === newFood.y,
-      )
-    ) {
-      break;
-    }
-  }
+  } while (
+    snake.value.some(
+      (segment) => segment.x === newFood.x && segment.y === newFood.y,
+    )
+  );
   food.value = newFood;
 };
 
@@ -45,9 +47,13 @@ const initGame = () => {
 const update = () => {
   if (isGameOver.value) return;
 
-  const head = { ...snake.value[0] };
-  head.x += direction.value.x;
-  head.y += direction.value.y;
+  const first = snake.value[0];
+  if (!first) return;
+
+  const head: Point = {
+    x: first.x + direction.value.x,
+    y: first.y + direction.value.y,
+  };
 
   if (head.x < 0 || head.x >= gridSize || head.y < 0 || head.y >= gridSize) {
     gameOver();

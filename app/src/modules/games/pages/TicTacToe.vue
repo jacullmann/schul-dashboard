@@ -9,7 +9,7 @@ const currentPlayer = ref(PLAYER_X);
 const isGameOver = ref(false);
 const winningCombination = ref<number[]>([]);
 
-const WINNING_COMBOS = [
+const WINNING_COMBOS: [number, number, number][] = [
   [0, 1, 2],
   [3, 4, 5],
   [6, 7, 8],

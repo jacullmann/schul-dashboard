@@ -3,7 +3,7 @@ import { ref, watch } from 'vue';
 
 defineOptions({ inheritAttrs: false });
 
-const props = withDefaults(
+withDefaults(
   defineProps<{
     open?: boolean;
   }>(),

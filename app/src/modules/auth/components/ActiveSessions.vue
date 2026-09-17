@@ -188,31 +188,8 @@ function formatDate(dateStr: string): string {
   }
 }
 
-function formatRelativeTime(dateStr: string): string {
-  try {
-    const d = new Date(dateStr);
-    const now = new Date();
-    const diffMs = now.getTime() - d.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-
-    if (diffMins < 1) return t('auth.sessions.time.just_now');
-    if (diffMins < 60)
-      return t('auth.sessions.time.minutes_ago', { mins: diffMins });
-
-    const diffHours = Math.floor(diffMins / 60);
-    if (diffHours < 24)
-      return t('auth.sessions.time.hours_ago', { hours: diffHours });
-
-    const diffDays = Math.floor(diffHours / 24);
-    if (diffDays === 1) return t('auth.sessions.time.yesterday');
-    return t('auth.sessions.time.days_ago', { days: diffDays });
-  } catch {
-    return '';
-  }
-}
-
 onMounted(() => {
-  fetchSessions();
+  void fetchSessions();
 });
 </script>
 

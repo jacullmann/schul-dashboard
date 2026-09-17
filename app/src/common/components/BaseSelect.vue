@@ -14,7 +14,7 @@ export interface UnitOption {
 
 const props = withDefaults(
   defineProps<{
-    modelValue: string;
+    modelValue: string | null;
     options: UnitOption[];
     disabled?: boolean;
     form?: boolean;

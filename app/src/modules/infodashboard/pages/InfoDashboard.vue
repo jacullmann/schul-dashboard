@@ -278,6 +278,7 @@ const getSliderStyle = (current: number, max: number) => {
               </div>
             </div>
 
+            <!-- eslint-disable vue/no-v-html -- sanitized with DOMPurify above -->
             <div
               class="text-[1.25rem]/[1.6] text-on-ghost font-serif [&_p]:mb-6 [&_h2]:text-[1.8rem] [&_h2]:mt-10 [&_h2]:mb-4 [&_h2]:text-on-ghost [&_blockquote]:border-l-4 [&_blockquote]:border-ghost-border [&_blockquote]:my-8 [&_blockquote]:pl-6 [&_blockquote]:italic [&_blockquote]:text-[1.5rem] [&_img]:w-full [&_img]:h-auto [&_img]:my-8 [&_img]:block [&_video]:w-full [&_video]:h-auto [&_video]:my-8 [&_video]:block [&_strong]:text-on-ghost [&_strong]:font-bold"
               v-html="
@@ -286,6 +287,7 @@ const getSliderStyle = (current: number, max: number) => {
                   : ''
               "
             ></div>
+            <!-- eslint-enable vue/no-v-html -->
           </article>
 
           <div class="mt-16 pt-8 border-t border-ghost-border">

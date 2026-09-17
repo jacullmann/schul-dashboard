@@ -1,8 +1,13 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { Settings2, Globe, Image, Brain, CalendarFold } from '@lucide/vue';
-import { onClickOutside, useEventListener, useWindowSize } from '@vueuse/core';
-import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/vue';
+import {
+  Settings2,
+  Globe,
+  Image as ImageIcon,
+  Brain,
+  CalendarFold,
+} from '@lucide/vue';
+import { useFloatingMenu } from '@/common/composables/useFloatingMenu';
+import { useIsMobileViewport } from '@/common/composables/useViewport';
 
 const webSearch = defineModel<boolean>('webSearch', { default: true });
 const createImage = defineModel<boolean>('createImage', { default: false });
@@ -11,52 +16,16 @@ const answerLeisurely = defineModel<boolean>('answerLeisurely', {
   default: false,
 });
 
-const isOpen = ref(false);
-const triggerRef = ref<HTMLElement | null>(null);
-const menuComponentRef = ref<any>(null);
-const menuRef = computed(() => menuComponentRef.value?.menuEl || null);
+const { isOpen, triggerRef, menuComponentRef, menuStyles, toggle, close } =
+  useFloatingMenu();
 
-const { width: windowWidth } = useWindowSize();
-const isMobile = computed(() => windowWidth.value < 768);
-
-const { floatingStyles, isPositioned } = useFloating(triggerRef, menuRef, {
-  strategy: 'fixed',
-  placement: 'bottom-start',
-  whileElementsMounted: autoUpdate,
-  transform: false,
-  middleware: [offset(8), flip(), shift({ padding: 8 })],
-});
-
-const menuStyles = computed(() => ({
-  ...floatingStyles.value,
-  opacity: isPositioned.value ? undefined : 0,
-}));
-
-function toggle() {
-  isOpen.value = !isOpen.value;
-}
-
-function close() {
-  isOpen.value = false;
-}
-
-onClickOutside(
-  triggerRef,
-  () => {
-    close();
-  },
-  { ignore: [menuRef] },
-);
-
-useEventListener(document, 'keydown', (e) => {
-  if (e.key === 'Escape') close();
-});
+const isMobile = useIsMobileViewport();
 </script>
 
 <template>
   <div ref="triggerRef" class="relative inline-block">
     <BaseButton
-      v-if="windowWidth >= 768"
+      v-if="!isMobile"
       :icon="Settings2"
       :class="{ 'bg-surface-hover! text-on-ghost!': isOpen }"
       aria-haspopup="true"
@@ -96,7 +65,7 @@ useEventListener(document, 'keydown', (e) => {
           >
         </BaseMenuButton>
         <BaseMenuButton
-          :icon="Image"
+          :icon="ImageIcon"
           is-select
           :active="createImage"
           @click="((createImage = !createImage), close())"

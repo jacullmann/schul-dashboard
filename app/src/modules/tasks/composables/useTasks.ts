@@ -250,7 +250,7 @@ export function useTasks() {
       showPersonalized.value,
     ],
     () => {
-      reload();
+      void reload();
     },
   );
 
@@ -275,7 +275,7 @@ export function useTasks() {
       delete query.highlightedTask;
       router.replace({ query }).catch(() => {});
     }
-    reload();
+    void reload();
   });
 
   watch(subjectFilter, () => {
@@ -310,14 +310,14 @@ export function useTasks() {
           actions.loadPinnedForMe(),
           list.loadVisibilityForMe(),
         ]);
-        reload();
+        void reload();
       }
       if (!newUser && oldUser) {
         checkedItems.value = new Set();
         pinnedItems.value = new Set();
         archivedItems.value = new Set();
         keptItems.value = new Set();
-        reload();
+        void reload();
       }
     },
     { deep: true },

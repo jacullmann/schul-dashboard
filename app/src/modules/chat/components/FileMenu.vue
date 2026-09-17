@@ -1,49 +1,21 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
 import { Plus, Brush } from '@lucide/vue';
-import { onClickOutside, useEventListener, useWindowSize } from '@vueuse/core';
-import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/vue';
+import { useFloatingMenu } from '@/common/composables/useFloatingMenu';
+import { useIsMobileViewport } from '@/common/composables/useViewport';
 
-const { width: windowWidth } = useWindowSize();
-const isMobile = computed(() => windowWidth.value < 768);
+const emit = defineEmits<{
+  (e: 'drawImage'): void;
+}>();
 
-const isOpen = ref(false);
-const triggerRef = ref<HTMLElement | null>(null);
-const menuComponentRef = ref<any>(null);
-const menuRef = computed(() => menuComponentRef.value?.menuEl || null);
+const { isOpen, triggerRef, menuComponentRef, menuStyles, toggle, close } =
+  useFloatingMenu();
 
-const { floatingStyles, isPositioned } = useFloating(triggerRef, menuRef, {
-  strategy: 'fixed',
-  placement: 'bottom-start',
-  whileElementsMounted: autoUpdate,
-  transform: false,
-  middleware: [offset(8), flip(), shift({ padding: 8 })],
-});
-
-const menuStyles = computed(() => ({
-  ...floatingStyles.value,
-  opacity: isPositioned.value ? undefined : 0,
-}));
-
-function toggle() {
-  isOpen.value = !isOpen.value;
+function drawImage() {
+  emit('drawImage');
+  close();
 }
 
-function close() {
-  isOpen.value = false;
-}
-
-onClickOutside(
-  triggerRef,
-  () => {
-    close();
-  },
-  { ignore: [menuRef] },
-);
-
-useEventListener(document, 'keydown', (e) => {
-  if (e.key === 'Escape') close();
-});
+const isMobile = useIsMobileViewport();
 </script>
 
 <template>
@@ -66,7 +38,7 @@ useEventListener(document, 'keydown', (e) => {
         class="min-w-56!"
         @close="close"
       >
-        <BaseMenuButton :icon="Brush" @click="(drawImage, close())">
+        <BaseMenuButton :icon="Brush" @click="drawImage">
           Draw Image
         </BaseMenuButton>
       </BaseMenu>

@@ -27,9 +27,12 @@ import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useSubjectAdmin } from '@/modules/groups/composables/useSubjectAdmin';
 import { useI18n } from 'vue-i18n';
 import { useWindowSize } from '@vueuse/core';
+import { useIsMobileViewport } from '@/common/composables/useViewport';
+import { minutesSinceMidnight } from '@/utils/time';
 
 const { t } = useI18n();
 const { width: windowWidth } = useWindowSize();
+const isMobile = useIsMobileViewport();
 
 const props = defineProps<{
   subs: ScheduleSubstitution[];
@@ -45,7 +48,7 @@ const emit = defineEmits<{
   (e: 'refresh'): void;
   (e: 'save-sub', payload: Record<string, unknown>): void;
   (e: 'delete-sub', id: string): void;
-  (e: 'update-schedule-config', payload: Record<string, unknown>): void;
+  (e: 'update-schedule-config', payload: ScheduleConfig): void;
   (
     e: 'save-schedule-batch',
     updatedLessons: Lesson[],
@@ -321,80 +324,8 @@ const daysList = computed(() => [
   },
 ]);
 
-const dayTabItems = computed(() =>
-  daysList.value.map((d) => ({
-    id: String(d.day),
-    label: d.short,
-  })),
-);
-
-const activeMobileDay = ref(1);
-
-const timeCellRefs = new Map<number, HTMLElement>();
-function setTimeCellRef(slot: number, el: unknown) {
-  if (el) {
-    timeCellRefs.set(slot, el as HTMLElement);
-  } else {
-    timeCellRefs.delete(slot);
-  }
-}
-
-const contentCellRefs = new Map<number, HTMLElement>();
-function setContentCellRef(slot: number, el: unknown) {
-  if (el) {
-    contentCellRefs.set(slot, el as HTMLElement);
-  } else {
-    contentCellRefs.delete(slot);
-  }
-}
-
-watch(activeMobileDay, async () => {
-  if (
-    typeof window !== 'undefined' &&
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  ) {
-    return;
-  }
-
-  const oldHeights = new Map<number, number>();
-  timeCellRefs.forEach((el, slot) => {
-    const rect = el.getBoundingClientRect();
-    if (rect.height > 0) {
-      oldHeights.set(slot, rect.height);
-    }
-  });
-
-  await nextTick();
-
-  timeCellRefs.forEach((timeEl, slot) => {
-    const oldH = oldHeights.get(slot);
-    const newRect = timeEl.getBoundingClientRect();
-    const newH = newRect.height;
-
-    if (oldH && newH > 0 && Math.abs(oldH - newH) > 0.5) {
-      timeEl.getAnimations().forEach((a) => a.cancel());
-      timeEl.animate([{ height: `${oldH}px` }, { height: `${newH}px` }], {
-        duration: 250,
-        easing: 'cubic-bezier(0.2, 0, 0, 1)',
-      });
-
-      const contentEl = contentCellRefs.get(slot);
-      if (contentEl) {
-        contentEl.getAnimations().forEach((a) => a.cancel());
-        contentEl.animate([{ height: `${oldH}px` }, { height: `${newH}px` }], {
-          duration: 250,
-          easing: 'cubic-bezier(0.2, 0, 0, 1)',
-        });
-      }
-    }
-  });
-});
-
 const slotTimes = computed(() => {
-  const [startH, startM] = (draftConfigForm.value.startTime || '08:00')
-    .split(':')
-    .map(Number);
-  let currentMins = (startH || 8) * 60 + (startM || 0);
+  let currentMins = minutesSinceMidnight(draftConfigForm.value.startTime);
 
   const breaksMap: Record<number, number> = {};
   draftConfigForm.value.breaks.forEach((b) => {
@@ -432,24 +363,6 @@ const slotTimes = computed(() => {
     currentMins = endM + breakTime;
   }
   return slots;
-});
-
-const lessonGridMap = computed(() => {
-  const map: Record<string, Lesson[]> = {};
-  const coveredSet = new Set<string>();
-
-  draftLessons.value.forEach((l) => {
-    const d = Number(l.day);
-    const s = Number(l.slot);
-    const key = `${d}-${s}`;
-    if (!map[key]) map[key] = [];
-    map[key].push(l);
-    for (let i = 1; i < l.duration; i++) {
-      coveredSet.add(`${d}-${s + i}`);
-    }
-  });
-
-  return { map, coveredSet };
 });
 
 // ----------------------------------------------------
@@ -614,8 +527,9 @@ function selectDayColumn(dayNumber: number, event?: MouseEvent) {
     }
   }
 
-  if (dayLessons.length > 0) {
-    lastSelectedLessonId.value = dayLessons[0].id;
+  const firstDayLesson = dayLessons[0];
+  if (firstDayLesson) {
+    lastSelectedLessonId.value = firstDayLesson.id;
   }
 }
 
@@ -638,9 +552,9 @@ function handleContextMenu(lesson: Lesson, event?: UIEvent) {
   mobileMenuOpen.value = true;
 }
 
-function handleLessonClick(lesson: Lesson, event: MouseEvent) {
+function handleLessonClick(lesson: Lesson, event?: MouseEvent) {
   // On Mobile: Tapping an existing lesson directly opens edit modal
-  if (windowWidth.value < 768) {
+  if (isMobile.value || !event) {
     openEditLessonModal(lesson);
     return;
   }
@@ -774,10 +688,7 @@ const selectedSubjectObj = computed(() => {
 });
 
 function getSlotTimeRange(startSlot: number, endSlot: number): string {
-  const [startH, startM] = (draftConfigForm.value.startTime || '08:00')
-    .split(':')
-    .map(Number);
-  let currentMins = (startH || 8) * 60 + (startM || 0);
+  let currentMins = minutesSinceMidnight(draftConfigForm.value.startTime);
 
   const breaksMap: Record<number, number> = {};
   draftConfigForm.value.breaks.forEach((b) => {
@@ -952,8 +863,6 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', handleWindowKeyDown);
   window.removeEventListener('click', handleGlobalClick);
-  timeCellRefs.clear();
-  contentCellRefs.clear();
 });
 </script>
 

@@ -30,7 +30,9 @@ const {
     try {
       await checkAuthStatus();
       await userStore.fetchUser();
-    } catch {}
+    } catch {
+      // Login succeeded; navigate anyway and let the route guard re-sync.
+    }
     const target = activeGroupId.value
       ? `/groups/${activeGroupId.value}/dashboard`
       : '/groups';
@@ -46,7 +48,7 @@ async function handleSubmit() {
 }
 
 function navigateToRegister() {
-  router.push('/register');
+  void router.push('/register');
 }
 
 onMounted(() => {
@@ -54,7 +56,9 @@ onMounted(() => {
     try {
       await checkAuthStatus();
       await userStore.fetchUser();
-    } catch {}
+    } catch {
+      // Login succeeded; navigate anyway and let the route guard re-sync.
+    }
     const target = activeGroupId.value
       ? `/groups/${activeGroupId.value}/dashboard`
       : '/groups';

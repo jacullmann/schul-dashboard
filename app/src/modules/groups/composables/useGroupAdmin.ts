@@ -334,7 +334,9 @@ export function useGroupAdmin() {
     try {
       const { data } = await hw.get('/schedule/announcements');
       announcements.value = data;
-    } catch {}
+    } catch {
+      // Announcements are supplementary; keep the previously loaded list.
+    }
   }
 
   async function createAnnouncement(content: string, color: string) {

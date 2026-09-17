@@ -121,7 +121,7 @@ const convertAndDownload = () => {
       link.download = `converted_${Date.now()}.${ext}`;
       link.href = dataUrl;
       link.click();
-    } catch (e) {
+    } catch {
       toast.error(t('tools.image.errors.conversion_failed'));
     }
   };

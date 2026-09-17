@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import {
   CheckCircle2,
@@ -18,27 +17,20 @@ import { useSchedule } from '@/modules/schedule/composables/useSchedule';
 import { formatSubjectDisplay } from '@/utils/subject-formatter';
 import hw from '@/api/api.ts';
 import ItemCard from '@/modules/tasks/components/ItemCard.vue';
+import { parseTimeOfDay } from '@/utils/time';
 
 const i18n = useI18n();
 const t = i18n.t.bind(i18n);
 const te = i18n.te.bind(i18n);
 const locale = i18n.locale;
-const router = useRouter();
 const userStore = useUserStore();
 const subjectStore = useSubjectStore();
 const { user } = storeToRefs(userStore);
 const { activeGroupId, activeScheduleConfig, checkPermission } = useAppAuth();
 
-const {
-  lessons,
-  substitutions,
-  groupedLessons,
-  effectiveLessons,
-  timeSlots,
-  loadingLessons,
-  loadingSubs,
-  isPersonalized,
-} = useSchedule({ autoLoad: true });
+const { lessons, effectiveLessons, loadingLessons, loadingSubs } = useSchedule({
+  autoLoad: true,
+});
 
 const rawItems = ref<any[]>([]);
 const checkedIds = ref<Set<string>>(new Set());
@@ -268,15 +260,11 @@ const lessonDurationMins = computed(
   () => activeScheduleConfig.value?.lessonDurationMins ?? 45,
 );
 
-const startTimeHour = computed(() => {
-  const time = activeScheduleConfig.value?.startTime ?? '08:00';
-  return parseInt(time.split(':')[0], 10);
-});
-
-const startTimeMinute = computed(() => {
-  const time = activeScheduleConfig.value?.startTime ?? '08:00';
-  return parseInt(time.split(':')[1], 10);
-});
+const startTime = computed(() =>
+  parseTimeOfDay(activeScheduleConfig.value?.startTime),
+);
+const startTimeHour = computed(() => startTime.value.hour);
+const startTimeMinute = computed(() => startTime.value.minute);
 
 const breaks = computed<Record<number, number>>(() => {
   return activeScheduleConfig.value?.breaks ?? { 2: 25, 3: 5, 5: 40, 7: 10 };

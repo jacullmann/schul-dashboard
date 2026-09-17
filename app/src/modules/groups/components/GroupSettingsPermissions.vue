@@ -5,6 +5,7 @@ import InfoModal from '@/common/components/InfoModal.vue';
 import hw from '../../../api/api';
 import { useToast } from '@/common/composables/useToast';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
+import type { PermissionKey } from '@/types/permissions';
 
 const { t } = useI18n();
 
@@ -15,7 +16,7 @@ const props = defineProps<{
 const toast = useToast();
 const { checkAuthStatus } = useAppAuth();
 
-const permissions = ref<Record<string, string>>({
+const permissions = ref<Record<PermissionKey, string>>({
   edit_group_general: 'moderator',
   edit_subjects_courses: 'admin',
   edit_schedule: 'admin',
@@ -43,14 +44,14 @@ async function fetchPermissions() {
         ...data.permissions,
       };
     }
-  } catch (err) {
+  } catch {
     toast.error(t('groups.settings.permissions.errors.load_failed'));
   } finally {
     loading.value = false;
   }
 }
 
-async function savePermission(key: string, value: string) {
+async function savePermission(key: PermissionKey, value: string) {
   if (!props.isAdmin) return;
 
   saving.value = true;
@@ -67,7 +68,7 @@ async function savePermission(key: string, value: string) {
     } else {
       throw new Error();
     }
-  } catch (err) {
+  } catch {
     permissions.value[key] = originalValue;
     toast.error(t('groups.settings.permissions.errors.save_failed'));
   } finally {
@@ -87,8 +88,8 @@ onMounted(() => {
 
       <template #info>
         <InfoModal
-          tooltip="t('groups.settings.permissions.info.tooltip')"
-          title="t('groups.settings.permissions.title')"
+          :tooltip="t('groups.settings.permissions.info.tooltip')"
+          :title="t('groups.settings.permissions.title')"
         >
           <h3>{{ t('groups.settings.permissions.info.headline') }}</h3>
         </InfoModal>

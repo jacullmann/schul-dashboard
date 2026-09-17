@@ -28,6 +28,31 @@ interface MarkdownToken {
 }
 
 // Reconstruct syntax markers and content using marked's lexer tokens character-for-character
+function emphasisTokens(token: any, type: string): MarkdownToken[] {
+  const raw: string = token.raw;
+  const children: any[] | undefined = token.tokens?.length
+    ? token.tokens
+    : undefined;
+  const inner: string = children
+    ? children.map((t: any) => t.raw).join('')
+    : token.text;
+  const body = children
+    ? processTokens(children, type)
+    : [{ text: inner, type }];
+
+  const index = raw.indexOf(inner);
+  if (index === -1) return body;
+
+  const prefix = raw.slice(0, index);
+  const suffix = raw.slice(index + inner.length);
+
+  return [
+    ...(prefix ? [{ text: prefix, type: 'marker' }] : []),
+    ...body,
+    ...(suffix ? [{ text: suffix, type: 'marker' }] : []),
+  ];
+}
+
 function processTokens(
   tokensList: any[],
   parentType: string = 'text',
@@ -38,71 +63,25 @@ function processTokens(
   for (const token of tokensList) {
     switch (token.type) {
       case 'strong': {
-        const nextType =
-          parentType === 'italic' || parentType === 'bold-italic'
-            ? 'bold-italic'
-            : 'bold';
-        if (token.tokens && token.tokens.length > 0) {
-          const childrenRaw = token.tokens.map((t: any) => t.raw).join('');
-          const raw = token.raw;
-          const index = raw.indexOf(childrenRaw);
-          if (index !== -1) {
-            const prefix = raw.slice(0, index);
-            const suffix = raw.slice(index + childrenRaw.length);
-            if (prefix) result.push({ text: prefix, type: 'marker' });
-            result.push(...processTokens(token.tokens, nextType));
-            if (suffix) result.push({ text: suffix, type: 'marker' });
-          } else {
-            result.push(...processTokens(token.tokens, nextType));
-          }
-        } else {
-          const raw = token.raw;
-          const text = token.text;
-          const index = raw.indexOf(text);
-          if (index !== -1) {
-            const prefix = raw.slice(0, index);
-            const suffix = raw.slice(index + text.length);
-            if (prefix) result.push({ text: prefix, type: 'marker' });
-            result.push({ text, type: nextType });
-            if (suffix) result.push({ text: suffix, type: 'marker' });
-          } else {
-            result.push({ text: raw, type: nextType });
-          }
-        }
+        result.push(
+          ...emphasisTokens(
+            token,
+            parentType === 'italic' || parentType === 'bold-italic'
+              ? 'bold-italic'
+              : 'bold',
+          ),
+        );
         break;
       }
       case 'em': {
-        const nextType =
-          parentType === 'bold' || parentType === 'bold-italic'
-            ? 'bold-italic'
-            : 'italic';
-        if (token.tokens && token.tokens.length > 0) {
-          const childrenRaw = token.tokens.map((t: any) => t.raw).join('');
-          const raw = token.raw;
-          const index = raw.indexOf(childrenRaw);
-          if (index !== -1) {
-            const prefix = raw.slice(0, index);
-            const suffix = raw.slice(index + childrenRaw.length);
-            if (prefix) result.push({ text: prefix, type: 'marker' });
-            result.push(...processTokens(token.tokens, nextType));
-            if (suffix) result.push({ text: suffix, type: 'marker' });
-          } else {
-            result.push(...processTokens(token.tokens, nextType));
-          }
-        } else {
-          const raw = token.raw;
-          const text = token.text;
-          const index = raw.indexOf(text);
-          if (index !== -1) {
-            const prefix = raw.slice(0, index);
-            const suffix = raw.slice(index + text.length);
-            if (prefix) result.push({ text: prefix, type: 'marker' });
-            result.push({ text, type: nextType });
-            if (suffix) result.push({ text: suffix, type: 'marker' });
-          } else {
-            result.push({ text: raw, type: nextType });
-          }
-        }
+        result.push(
+          ...emphasisTokens(
+            token,
+            parentType === 'bold' || parentType === 'bold-italic'
+              ? 'bold-italic'
+              : 'italic',
+          ),
+        );
         break;
       }
       case 'link': {
@@ -156,7 +135,7 @@ function parseText(text: string, parentType: string = 'text'): MarkdownToken[] {
   const blocks = marked.lexer(text);
   const inlineTokens: any[] = [];
   for (const block of blocks) {
-    if (block.tokens) {
+    if ('tokens' in block && block.tokens) {
       inlineTokens.push(...block.tokens);
     } else if (block.type === 'space') {
       inlineTokens.push({ type: 'text', raw: block.raw, text: block.raw });
@@ -171,10 +150,13 @@ function parseLine(line: string): { text: string; type: string }[] {
   // Check if line is a list item: e.g. - item or * item
   const bulletMatch = line.match(/^(\s*)([-*])(\s+)(.*)$/);
   if (bulletMatch) {
-    const leadingSpaces = bulletMatch[1];
-    const markerChar = bulletMatch[2];
-    const trailingSpaces = bulletMatch[3];
-    const content = bulletMatch[4];
+    const [
+      ,
+      leadingSpaces = '',
+      markerChar = '',
+      trailingSpaces = '',
+      content = '',
+    ] = bulletMatch;
 
     const result: { text: string; type: string }[] = [];
     if (leadingSpaces) {
@@ -189,10 +171,13 @@ function parseLine(line: string): { text: string; type: string }[] {
   // Numbered list item: e.g. 1. item
   const numberMatch = line.match(/^(\s*)(\d+\.)(\s+)(.*)$/);
   if (numberMatch) {
-    const leadingSpaces = numberMatch[1];
-    const numberMarker = numberMatch[2];
-    const trailingSpaces = numberMatch[3];
-    const content = numberMatch[4];
+    const [
+      ,
+      leadingSpaces = '',
+      numberMarker = '',
+      trailingSpaces = '',
+      content = '',
+    ] = numberMatch;
 
     const result: { text: string; type: string }[] = [];
     if (leadingSpaces) {
@@ -212,13 +197,13 @@ const tokens = computed(() => {
   const lines = text.split('\n');
   const result: { text: string; type: string }[] = [];
 
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
+  for (const [i, line] of lines.entries()) {
     const suffix = i < lines.length - 1 ? '\n' : '';
     const lineTokens = parseLine(line);
+    const last = lineTokens.at(-1);
 
-    if (lineTokens.length > 0) {
-      lineTokens[lineTokens.length - 1].text += suffix;
+    if (last) {
+      last.text += suffix;
       result.push(...lineTokens);
     } else {
       result.push({ text: suffix, type: 'text' });

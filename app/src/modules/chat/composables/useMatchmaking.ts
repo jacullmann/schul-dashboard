@@ -1,6 +1,9 @@
-import { ref, readonly, onUnmounted } from 'vue';
+import { ref, onUnmounted } from 'vue';
 import { supabase } from '@/lib/supabase';
-import type { RealtimeChannel } from '@supabase/supabase-js';
+import {
+  REALTIME_SUBSCRIBE_STATES,
+  type RealtimeChannel,
+} from '@supabase/supabase-js';
 import { useAuth } from '@/modules/chat/composables/useAuth';
 
 export interface GameSession {
@@ -21,7 +24,7 @@ export function useMatchmaking() {
 
   const cleanupSubscription = () => {
     if (matchSubscription) {
-      supabase.removeChannel(matchSubscription);
+      void supabase.removeChannel(matchSubscription);
       matchSubscription = null;
     }
   };
@@ -96,13 +99,13 @@ export function useMatchmaking() {
         }, 10000);
 
         channel.subscribe((status, err) => {
-          if (status === 'SUBSCRIBED') {
+          if (status === REALTIME_SUBSCRIBE_STATES.SUBSCRIBED) {
             clearTimeout(timeout);
             resolve();
-          } else if (status === 'CHANNEL_ERROR') {
+          } else if (status === REALTIME_SUBSCRIBE_STATES.CHANNEL_ERROR) {
             clearTimeout(timeout);
             reject(new Error(err?.message || 'Channel error'));
-          } else if (status === 'TIMED_OUT') {
+          } else if (status === REALTIME_SUBSCRIBE_STATES.TIMED_OUT) {
             clearTimeout(timeout);
             reject(new Error('Subscription timed out'));
           }

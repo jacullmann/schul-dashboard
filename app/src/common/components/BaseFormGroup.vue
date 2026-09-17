@@ -11,7 +11,7 @@ const props = withDefaults(
   },
 );
 
-const slots = defineSlots<{
+defineSlots<{
   default(): unknown;
 }>();
 

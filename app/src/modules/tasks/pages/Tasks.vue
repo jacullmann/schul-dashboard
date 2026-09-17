@@ -2,6 +2,7 @@
 import { computed, ref, watch, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useWindowSize } from '@vueuse/core';
+import { useIsMobileViewport } from '@/common/composables/useViewport';
 import { Plus, ListFilter } from '@lucide/vue';
 
 import { useTasks } from '@/modules/tasks/composables/useTasks';
@@ -109,7 +110,7 @@ const {
   resetFilters,
 } = useTasks();
 
-const isMobile = computed(() => windowWidth.value < 768);
+const isMobile = useIsMobileViewport();
 const hasActiveFilters = computed(
   () => subjectFilter.value !== '' || showOldEntries.value || hideChecked.value,
 );
@@ -194,7 +195,9 @@ function handleAnimationEnd(itemId: string) {
               v-for="(section, index) in tm('tasks.list.infopop.sections')"
               :key="index"
             >
+              <!-- eslint-disable-next-line vue/no-v-html -- bundled translation markup, not user input -->
               <h3 v-html="section.title"></h3>
+              <!-- eslint-disable-next-line vue/no-v-html -- bundled translation markup, not user input -->
               <p v-html="section.text"></p>
             </template>
           </InfoModal>

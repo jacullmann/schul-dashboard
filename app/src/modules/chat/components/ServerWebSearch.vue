@@ -1,7 +1,8 @@
 <script lang="ts" setup>
-import { ref, onMounted } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import { Search, ChevronLeft, X } from '@lucide/vue';
 import { useEventListener } from '@vueuse/core';
+import DOMPurify from 'dompurify';
 
 const inputRef = ref<HTMLInputElement | null>(null);
 const searchQuery = ref('');
@@ -10,6 +11,18 @@ const loading = ref(false);
 
 const currentView = ref<'results' | 'article'>('results');
 const articleContent = ref('');
+
+// Wikipedia returns rendered third-party HTML, so it is sanitized before
+// it ever reaches v-html.
+const safeArticleContent = computed(() =>
+  DOMPurify.sanitize(articleContent.value),
+);
+const safeResults = computed(() =>
+  searchResults.value.map((result) => ({
+    ...result,
+    snippet: DOMPurify.sanitize(String(result.snippet ?? '')),
+  })),
+);
 const articleTitle = ref('');
 const articleLoading = ref(false);
 
@@ -34,7 +47,7 @@ async function search() {
       )}&format=json&origin=*`,
     );
     const data = await response.json();
-    searchResults.value = data.query?.search || [];
+    searchResults.value = data.query?.search ?? [];
   } catch (error) {
     console.error('Search error:', error);
   } finally {
@@ -116,7 +129,7 @@ onMounted(() => {
                 class="p-2 flex flex-col gap-1"
               >
                 <button
-                  v-for="result in searchResults"
+                  v-for="result in safeResults"
                   :key="result.pageid"
                   type="button"
                   class="p-3 rounded-lg hover:bg-surface-hover transition-colors group text-left"
@@ -130,10 +143,12 @@ onMounted(() => {
                       >{{ result.wordcount }} words</span
                     >
                   </div>
+                  <!-- eslint-disable vue/no-v-html -- sanitized with DOMPurify above -->
                   <div
                     class="text-on-ghost-muted text-sm line-clamp-2"
                     v-html="result.snippet"
                   ></div>
+                  <!-- eslint-enable vue/no-v-html -->
                 </button>
               </div>
 
@@ -164,10 +179,12 @@ onMounted(() => {
                   >
                     {{ articleTitle }}
                   </h1>
+                  <!-- eslint-disable vue/no-v-html -- sanitized with DOMPurify above -->
                   <div
                     class="text-on-ghost leading-relaxed [&_p]:mb-4 [&_h1]:font-bold [&_h1]:mt-6 [&_h1]:mb-3 [&_h2]:font-bold [&_h2]:mt-6 [&_h2]:mb-3 [&_h3]:font-bold [&_h3]:mt-6 [&_h3]:mb-3 [&_h2]:text-[1.25rem] [&_h2]:border-b [&_h2]:border-ghost-border [&_h2]:pb-2 [&_h3]:text-[1.125rem] [&_ul]:mb-4 [&_ul]:pl-6 [&_ol]:mb-4 [&_ol]:pl-6 [&_li]:mb-1 [&_a]:text-primary [&_a]:no-underline hover:[&_a]:underline [&_.mw-editsection]:hidden [&_.navbox]:hidden [&_.ambox]:hidden [&_.infobox]:hidden [&_.metadata]:hidden [&_.searchmatch]:font-bold [&_.searchmatch]:text-on-ghost"
-                    v-html="articleContent"
+                    v-html="safeArticleContent"
                   ></div>
+                  <!-- eslint-enable vue/no-v-html -->
                 </div>
               </div>
             </template>

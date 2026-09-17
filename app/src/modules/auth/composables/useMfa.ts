@@ -107,7 +107,9 @@ export function useMfa() {
   async function cancelMfaLogin(): Promise<void> {
     try {
       await hw.post('/auth/mfa/cancel');
-    } catch {}
+    } catch {
+      // Best-effort cleanup; the pending token expires on its own.
+    }
   }
 
   function resetMfaState(): void {

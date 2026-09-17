@@ -1,4 +1,4 @@
-import { ref, readonly } from 'vue';
+import { ref } from 'vue';
 import { supabase } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
 

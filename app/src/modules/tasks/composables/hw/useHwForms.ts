@@ -11,7 +11,7 @@ export function useHwForms(ctx: HwContext) {
   const { t } = useI18n();
   const { openTaskForm, openEditForm, onFormSuccess } = useTaskForm();
 
-  const unregister = onFormSuccess(() => ctx.reloadList());
+  const unregister = onFormSuccess(() => void ctx.reloadList());
   onUnmounted(unregister);
 
   const editingNoteForId = ref<string | null>(null);

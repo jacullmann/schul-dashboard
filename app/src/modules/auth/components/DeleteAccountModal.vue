@@ -4,7 +4,7 @@ import { useDeleteAccount } from '@/modules/auth/composables/useDeleteAccount';
 
 const { t } = useI18n();
 
-const props = defineProps<{
+defineProps<{
   email: string;
   open: boolean;
 }>();
@@ -42,10 +42,12 @@ const { understoodChecked, submitting, errorMsg, successMsg, confirmDelete } =
           {{ t('common.contact.email') }}: {{ email }}
         </div>
         <br />
+        <!-- eslint-disable vue/no-v-html -- bundled translation markup, not user input -->
         <div
           class="text-sm/relaxed text-on-ghost"
           v-html="t('auth.delete_account.warn_box.text')"
         ></div>
+        <!-- eslint-enable vue/no-v-html -->
       </div>
 
       <BaseCheckbox v-model="understoodChecked">

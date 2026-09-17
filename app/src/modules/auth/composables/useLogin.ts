@@ -2,9 +2,16 @@ import { ref, reactive, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import hw from '@/api/api.ts';
 import { useMfa } from '@/modules/auth/composables/useMfa';
-import type BaseInput from '@/common/components/BaseInput.vue';
 
-export function useLogin(onLoggedIn: () => void, onMfaRequired: () => void) {
+/** Subset of `BaseInput`'s exposed API that these forms rely on. */
+interface FocusableInput {
+  focus: () => void;
+}
+
+export function useLogin(
+  onLoggedIn: () => void | Promise<void>,
+  onMfaRequired: () => void | Promise<void>,
+) {
   const { t } = useI18n();
   const { resetMfaState } = useMfa();
 
@@ -14,7 +21,7 @@ export function useLogin(onLoggedIn: () => void, onMfaRequired: () => void) {
   const message = ref('');
   const isError = ref(false);
 
-  const emailInputRef = ref<InstanceType<typeof BaseInput> | null>(null);
+  const emailInputRef = ref<FocusableInput | null>(null);
 
   const errors = reactive<{
     email?: string;
@@ -77,9 +84,9 @@ export function useLogin(onLoggedIn: () => void, onMfaRequired: () => void) {
       if (data.ok) {
         if (data.requiresMfa) {
           resetMfaState();
-          onMfaRequired();
+          void onMfaRequired();
         } else {
-          onLoggedIn();
+          void onLoggedIn();
         }
       }
     } catch (e: unknown) {

@@ -7,7 +7,9 @@ import { useI18n } from 'vue-i18n';
 import { usePrivateTaskForm } from '@/core/composables/usePrivateTaskForm';
 import InfoModal from '@/common/components/InfoModal.vue';
 
-const { t, tm } = useI18n();
+const i18n = useI18n();
+const t = i18n.t.bind(i18n);
+const tm = i18n.tm.bind(i18n);
 
 const { openPrivateTaskForm } = usePrivateTaskForm();
 
@@ -24,6 +26,7 @@ const { user } = storeToRefs(userStore);
           :tooltip="t('tasks.private_tasks.infopop.tooltip')"
           :title="t('tasks.private_tasks.title')"
         >
+          <!-- eslint-disable-next-line vue/no-v-html -- bundled translation markup, not user input -->
           <p v-html="t('tasks.private_tasks.infopop.description')"></p>
           <template
             v-for="(section, index) in tm(
@@ -31,7 +34,9 @@ const { user } = storeToRefs(userStore);
             )"
             :key="index"
           >
+            <!-- eslint-disable-next-line vue/no-v-html -- bundled translation markup, not user input -->
             <h3 v-html="section.title"></h3>
+            <!-- eslint-disable-next-line vue/no-v-html -- bundled translation markup, not user input -->
             <p v-html="section.text"></p>
           </template>
         </InfoModal>

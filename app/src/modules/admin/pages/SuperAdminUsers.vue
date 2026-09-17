@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { Lock, Unlock, Eraser, Trash2, FileText, X } from '@lucide/vue';
+import {
+  Lock as LockIcon,
+  Unlock,
+  Eraser,
+  Trash2,
+  FileText,
+  X,
+} from '@lucide/vue';
 import { useSuperAdminUsers } from '../composables/useSuperAdminUsers';
 import { useSuperAdminFormat } from '../composables/useSuperAdminFormat';
 
@@ -81,7 +88,7 @@ onMounted(loadUsers);
                 <BaseButton
                   v-if="u.role !== 'superadmin'"
                   size="sm"
-                  :icon="u.isBanned ? Unlock : Lock"
+                  :icon="u.isBanned ? Unlock : LockIcon"
                   @click="toggleBan(u)"
                 />
               </BaseTooltip>

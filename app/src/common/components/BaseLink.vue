@@ -3,7 +3,7 @@ import { computed } from 'vue';
 import type { RouteLocationRaw } from 'vue-router';
 
 const props = defineProps<{
-  to?: RouteLocationRaw;
+  to: RouteLocationRaw;
 }>();
 
 const isExternal = computed(() => {

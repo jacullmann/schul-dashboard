@@ -1,16 +1,8 @@
 import { computed, nextTick } from 'vue';
 import type { HwContext } from './types';
 import hw from '@/api/api.ts';
-import { useSubjectStore } from '@/stores/subjectStore';
-import { getSubjectKey } from '@/types/subjects';
 
 export function useHwList(ctx: HwContext) {
-  const subjectStore = useSubjectStore();
-
-  const userSubjects = computed(() => {
-    return new Set<string>();
-  });
-
   const filteredItems = computed(() => {
     const pins = ctx.pinnedItems.value;
     const checks = ctx.checkedItems.value;

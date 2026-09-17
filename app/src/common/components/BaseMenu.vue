@@ -8,7 +8,8 @@ import {
   onMounted,
   onBeforeUnmount,
 } from 'vue';
-import { useWindowSize, useEventListener } from '@vueuse/core';
+import { useEventListener } from '@vueuse/core';
+import { useIsMobileViewport } from '@/common/composables/useViewport';
 import { ChevronLeft } from '@lucide/vue';
 import { MENU_SHEET_KEY } from '@/common/composables/useMenuContext';
 import { useI18n } from 'vue-i18n';
@@ -34,8 +35,7 @@ const emit = defineEmits<{
   (e: 'after-leave'): void;
 }>();
 
-const { width: vw } = useWindowSize();
-const isMobile = computed(() => vw.value < 768);
+const isMobile = useIsMobileViewport();
 
 const desktopMenuCardRef = ref<{ menuEl: HTMLElement | null } | null>(null);
 const sheetComponentRef = ref<{ sheetEl: HTMLElement | null } | null>(null);
@@ -91,7 +91,6 @@ interface StackEntry {
 
 const viewStack = ref<StackEntry[]>([{ id: 'root', label: '' }]);
 const activeViewId = computed(() => viewStack.value.at(-1)!.id);
-const activeLabel = computed(() => viewStack.value.at(-1)!.label);
 const isAtRoot = computed(() => viewStack.value.length <= 1);
 const submenuTarget = ref<HTMLElement | null>(null);
 
@@ -199,14 +198,14 @@ function handleKeydown(e: KeyboardEvent) {
       currentIndex === -1 || currentIndex === focusableElements.length - 1
         ? 0
         : currentIndex + 1;
-    focusableElements[nextIndex].focus();
+    focusableElements[nextIndex]?.focus();
   } else if (e.key === 'ArrowUp') {
     e.preventDefault();
     const nextIndex =
       currentIndex === -1 || currentIndex === 0
         ? focusableElements.length - 1
         : currentIndex - 1;
-    focusableElements[nextIndex].focus();
+    focusableElements[nextIndex]?.focus();
   }
 }
 

@@ -11,7 +11,7 @@ export function useGroupAction() {
     if (activeGroupId.value) {
       action();
     } else if (userGroups.value.length === 0) {
-      router.push('/groups');
+      void router.push('/groups');
     } else {
       modalStore.openSearch('group');
     }

@@ -57,7 +57,7 @@ onMounted(async () => {
       errorMsg.value = res.error || t('auth.groups.invite.invalid_desc');
       clearPendingInvite();
     }
-  } catch (err) {
+  } catch {
     ok.value = false;
     errorMsg.value = t('auth.groups.invite.invalid_desc');
     clearPendingInvite();

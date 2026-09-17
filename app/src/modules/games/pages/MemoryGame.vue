@@ -25,14 +25,16 @@ const initGame = () => {
 };
 
 const flipCard = (index: number) => {
+  const card = cards.value[index];
   if (
+    !card ||
     flippedCards.value.length === 2 ||
-    cards.value[index].isFlipped ||
-    cards.value[index].isMatched
+    card.isFlipped ||
+    card.isMatched
   )
     return;
 
-  cards.value[index].isFlipped = true;
+  card.isFlipped = true;
   flippedCards.value.push(index);
 
   if (flippedCards.value.length === 2) {
@@ -43,17 +45,21 @@ const flipCard = (index: number) => {
 
 const checkMatch = () => {
   const [idx1, idx2] = flippedCards.value;
-  if (cards.value[idx1].emoji === cards.value[idx2].emoji) {
-    cards.value[idx1].isMatched = true;
-    cards.value[idx2].isMatched = true;
+  const first = idx1 === undefined ? undefined : cards.value[idx1];
+  const second = idx2 === undefined ? undefined : cards.value[idx2];
+  if (!first || !second) return;
+
+  if (first.emoji === second.emoji) {
+    first.isMatched = true;
+    second.isMatched = true;
     flippedCards.value = [];
     if (cards.value.every((card) => card.isMatched)) {
       isGameOver.value = true;
     }
   } else {
     setTimeout(() => {
-      cards.value[idx1].isFlipped = false;
-      cards.value[idx2].isFlipped = false;
+      first.isFlipped = false;
+      second.isFlipped = false;
       flippedCards.value = [];
     }, 1000);
   }

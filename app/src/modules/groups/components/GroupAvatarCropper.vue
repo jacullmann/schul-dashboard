@@ -109,7 +109,9 @@ function onPointerUp(e: PointerEvent) {
   const el = e.currentTarget as HTMLElement;
   try {
     el.releasePointerCapture(e.pointerId);
-  } catch {}
+  } catch {
+    // Capture is already released when the pointer left the element.
+  }
 }
 
 function onWheel(e: WheelEvent) {

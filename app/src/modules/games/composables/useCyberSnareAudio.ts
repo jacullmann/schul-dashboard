@@ -6,7 +6,7 @@ function getCtx(): AudioContext {
       window.AudioContext || (window as any).webkitAudioContext
     )();
   }
-  if (audioCtx.state === 'suspended') audioCtx.resume();
+  if (audioCtx.state === 'suspended') void audioCtx.resume();
   return audioCtx;
 }
 

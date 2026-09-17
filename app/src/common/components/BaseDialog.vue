@@ -1,4 +1,9 @@
 <script setup lang="ts">
+defineEmits<{
+  confirm: [];
+  cancel: [];
+}>();
+
 withDefaults(
   defineProps<{
     title: string;

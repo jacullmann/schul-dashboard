@@ -19,7 +19,6 @@ import {
   Newspaper,
   Crop,
   SquarePen,
-  LogIn,
   UserRoundPlus,
   Plus,
   Search,
@@ -42,6 +41,7 @@ import { useAccountModals } from '@/modules/auth/composables/useAccountModals';
 import { useMfa } from '@/modules/auth/composables/useMfa';
 import { useUserStore } from '@/stores/userStore';
 import { usePreferences } from '@/common/composables/usePreferences';
+import type { ThemeMode } from '@/common/composables/useTheme';
 import hw from '../../api/api';
 import { useGroupAction } from '@/core/composables/useGroupAction';
 import Avatar from '@/modules/auth/components/Avatar.vue';
@@ -101,7 +101,7 @@ interface SearchResult {
   description?: string;
   category: ResultCategory;
   icon: any;
-  action: () => void;
+  action: () => void | Promise<void>;
   shortcut?: string[];
   condition?: boolean;
 }
@@ -354,12 +354,12 @@ async function logout() {
     userStore.clearUser();
     resetMfaState();
     await appAuthLogout();
-    router.push('/');
+    void router.push('/');
   }
 }
 
 function navigate(path: string) {
-  router.push(path);
+  void router.push(path);
   emit('cancel');
 }
 
@@ -439,7 +439,7 @@ const filteredThemes = computed(() => {
 });
 
 function onSwitchTheme(id: string) {
-  setPreference('theme', id as any);
+  setPreference('theme', id as ThemeMode);
   emit('cancel');
 }
 
@@ -455,7 +455,7 @@ const filteredLanguages = computed(() => {
 });
 
 function onSwitchLanguage(id: string) {
-  setPreference('language', id as any);
+  setPreference('language', id);
   emit('cancel');
 }
 
@@ -495,7 +495,7 @@ const paletteProps = computed(() => {
 function handleSelect(index: number) {
   if (mode.value === 'group') {
     const group = filteredGroups.value[index];
-    if (group) onSwitchGroup(group.id);
+    if (group) void onSwitchGroup(group.id);
   } else if (mode.value === 'theme') {
     const theme = filteredThemes.value[index];
     if (theme) onSwitchTheme(theme.id);
@@ -503,7 +503,7 @@ function handleSelect(index: number) {
     const lang = filteredLanguages.value[index];
     if (lang) onSwitchLanguage(lang.id);
   } else {
-    filteredDefaultResults.value[index]?.action();
+    void filteredDefaultResults.value[index]?.action();
   }
 }
 </script>
@@ -625,7 +625,7 @@ function handleSelect(index: number) {
             :label="item.label"
             :description="item.description"
             :icon="item.icon"
-            @click="item.action()"
+            @click="void item.action()"
             @mouseenter="setSelectedIndex(globalIndex(item))"
           >
             <ArrowUpRight
@@ -653,7 +653,7 @@ function handleSelect(index: number) {
             :label="item.label"
             :description="item.description"
             :icon="item.icon"
-            @click="item.action()"
+            @click="void item.action()"
             @mouseenter="setSelectedIndex(globalIndex(item))"
           >
             <span class="flex items-center gap-2 shrink-0">

@@ -48,7 +48,7 @@ const activeTab = computed(
 
 function onTabChange(id: string) {
   const item = navItems.value.find((i) => i.id === id);
-  if (item && item.name !== route.name) router.push({ name: item.name });
+  if (item && item.name !== route.name) void router.push({ name: item.name });
 }
 
 onMounted(loadStats);

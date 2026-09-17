@@ -469,7 +469,6 @@ export function useCyberSnare() {
   let persistentWalls: { points: Point[]; timer: number; maxTimer: number }[] =
     [];
   let diffMult = 1;
-  let _mouseDown = false;
 
   let ENERGY_MAX_INT = 30;
   let ENERGY_REGEN = 0.15;
@@ -586,7 +585,6 @@ export function useCyberSnare() {
 
         trail = [];
         isDrawing = false;
-        _mouseDown = false;
         syncRefs();
         break;
       }
@@ -876,7 +874,6 @@ export function useCyberSnare() {
     if (e.cancelable) e.preventDefault();
     if (gameState.value !== 'PLAYING') return;
     updatePos(e);
-    _mouseDown = true;
     if (playerEnergy > 10) {
       isDrawing = true;
       trail = [{ x: playerX, y: playerY }];
@@ -892,7 +889,6 @@ export function useCyberSnare() {
 
   function onEnd(e: MouseEvent | TouchEvent) {
     if (e.cancelable) e.preventDefault();
-    _mouseDown = false;
     if (isDrawing) {
       isDrawing = false;
       const fwPersist = meta.upgrades.fw_persist;

@@ -86,7 +86,7 @@ async function loadAllGroups() {
 }
 
 onMounted(() => {
-  loadAllGroups();
+  void loadAllGroups();
 });
 </script>
 

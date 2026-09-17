@@ -15,14 +15,14 @@ export function useVideoPlayer(
   const isFastForwarding = ref(false);
   const wasPlayingBeforeFastForward = ref(false);
   const showVolumeSlider = ref(false);
-  let volumeTimeout: number;
+  let volumeTimeout: ReturnType<typeof setTimeout>;
 
-  let controlsTimeout: number;
+  let controlsTimeout: ReturnType<typeof setTimeout>;
   let animationFrameId: number;
 
   let ffStartTime = 0;
   let ignoreNextClick = false;
-  let ffTimer: number;
+  let ffTimer: ReturnType<typeof setTimeout>;
 
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
@@ -62,7 +62,7 @@ export function useVideoPlayer(
     if (e) e.stopPropagation();
     if (!videoRef.value) return;
     if (videoRef.value.paused) {
-      videoRef.value.play();
+      void videoRef.value.play();
     } else {
       videoRef.value.pause();
     }
@@ -101,9 +101,9 @@ export function useVideoPlayer(
   const toggleFullscreen = () => {
     if (!videoRef.value) return;
     if (!document.fullscreenElement) {
-      videoRef.value.parentElement?.requestFullscreen();
+      void videoRef.value.parentElement?.requestFullscreen();
     } else {
-      document.exitFullscreen();
+      void document.exitFullscreen();
     }
   };
 
@@ -133,7 +133,7 @@ export function useVideoPlayer(
       if (!videoRef.value) return;
 
       if (videoRef.value.paused) {
-        videoRef.value.play();
+        void videoRef.value.play();
       }
 
       videoRef.value.playbackRate = 2.0;
@@ -165,7 +165,7 @@ export function useVideoPlayer(
       if (!wasPlayingBeforeFastForward.value) {
         videoRef.value.pause();
       } else {
-        videoRef.value.play();
+        void videoRef.value.play();
       }
     }
 

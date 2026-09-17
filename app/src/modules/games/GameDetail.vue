@@ -17,7 +17,7 @@ const loadGame = (gameId: string) => {
     game.value = foundGame;
   } else {
     console.error(`Spiel mit ID "${gameId}" nicht gefunden.`);
-    router.replace('/spiele');
+    void router.replace('/spiele');
   }
 };
 

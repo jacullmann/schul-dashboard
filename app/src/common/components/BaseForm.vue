@@ -3,11 +3,11 @@ import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 
-const emit = defineEmits<{
+defineEmits<{
   cancel: [];
 }>();
 
-const props = withDefaults(
+withDefaults(
   defineProps<{
     submit: () => void;
     cancel?: () => void;

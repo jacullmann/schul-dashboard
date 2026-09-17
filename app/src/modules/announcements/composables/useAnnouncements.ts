@@ -50,7 +50,9 @@ export function useAnnouncements() {
     seenIds.value.add(announcementId);
     try {
       await hw.post(`/schedule/announcements/${announcementId}/read`);
-    } catch {}
+    } catch {
+      // Already marked locally; a failed sync retries on the next load.
+    }
   }
 
   async function checkAndNotifyUnread(): Promise<void> {

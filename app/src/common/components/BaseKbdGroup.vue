@@ -5,40 +5,38 @@ const props = withDefaults(
   defineProps<{
     keys: string[];
     separator?: string;
-    on?: 'canvas' | 'surface' | 'action';
+    on?: 'ghost' | 'action';
     flat?: boolean;
   }>(),
   {
     separator: '+',
     flat: false,
-    on: 'surface',
+    on: 'ghost',
   },
 );
 
 const { isMac, shortcutSymbol, optionSymbol, shiftSymbol } = usePlatform();
 
+const KEY_SYMBOLS: Record<string, string> = {
+  control: shortcutSymbol,
+  ctrl: shortcutSymbol,
+  meta: isMac ? '⌘' : 'Win',
+  cmd: '⌘',
+  command: '⌘',
+  alt: optionSymbol,
+  option: optionSymbol,
+  shift: shiftSymbol,
+
+  enter: '↵',
+  return: '↵',
+  backspace: '⌫',
+  escape: 'Esc',
+  esc: 'Esc',
+  tab: '⇥',
+};
+
 const getDisplayKey = (key: string): string => {
-  const k = key.toLowerCase();
-
-  const mapping: Record<string, string> = {
-    control: shortcutSymbol,
-    ctrl: shortcutSymbol,
-    meta: isMac ? '⌘' : 'Win',
-    cmd: '⌘',
-    command: '⌘',
-    alt: optionSymbol,
-    option: optionSymbol,
-    shift: shiftSymbol,
-
-    enter: '↵',
-    return: '↵',
-    backspace: '⌫',
-    escape: 'Esc',
-    esc: 'Esc',
-    tab: '⇥',
-  };
-
-  const val = mapping[k] || key;
+  const val = KEY_SYMBOLS[key.toLowerCase()] || key;
   return val.length === 1 ? val.toUpperCase() : val;
 };
 </script>

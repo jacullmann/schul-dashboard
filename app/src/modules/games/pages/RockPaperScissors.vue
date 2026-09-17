@@ -2,17 +2,20 @@
 import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-type Choice = 'Schere' | 'Stein' | 'Papier' | null;
+const { t } = useI18n();
+
+type Move = 'Schere' | 'Stein' | 'Papier';
+type Choice = Move | null;
 type Result = 'Gewonnen' | 'Verloren' | 'Unentschieden' | null;
 
-const choices: Choice[] = ['Schere', 'Stein', 'Papier'];
+const choices: Move[] = ['Schere', 'Stein', 'Papier'];
 
 const playerChoice = ref<Choice>(null);
 const computerChoice = ref<Choice>(null);
 const gameResult = ref<Result>(null);
 const isGameOver = ref(false);
 
-const choiceEmojis = {
+const choiceEmojis: Record<Move, string> = {
   Schere: '✂️',
   Stein: '🪨',
   Papier: '📄',
@@ -47,15 +50,15 @@ const resultClass = computed(() => {
   return '';
 });
 
-const makeMove = (choice: Choice) => {
-  if (isGameOver.value || !choice) return;
+const makeMove = (choice: Move) => {
+  if (isGameOver.value) return;
 
   playerChoice.value = choice;
   computerChoice.value = null;
 
   setTimeout(() => {
-    const randomIdx = Math.floor(Math.random() * 3);
-    computerChoice.value = choices[randomIdx];
+    const randomIdx = Math.floor(Math.random() * choices.length);
+    computerChoice.value = choices[randomIdx] ?? null;
 
     gameResult.value = determineWinner(
       playerChoice.value,

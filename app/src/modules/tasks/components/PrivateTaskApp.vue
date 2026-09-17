@@ -7,7 +7,6 @@ import {
   ChevronUp,
   ChevronDown,
 } from '@lucide/vue';
-import InfoModal from '@/common/components/InfoModal.vue';
 import { useI18n } from 'vue-i18n';
 import type { PrivateTask } from '@/modules/tasks/types';
 import { usePrivateTasks } from '@/modules/tasks/composables/usePrivateTasks';
@@ -18,7 +17,7 @@ import {
 import ItemCard from '@/modules/tasks/components/ItemCard.vue';
 import { usePrivateTaskForm } from '@/core/composables/usePrivateTaskForm';
 import { computed, reactive, ref, onUnmounted, watch } from 'vue';
-import { useWindowSize } from '@vueuse/core';
+import { useIsMobileViewport } from '@/common/composables/useViewport';
 import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/vue';
 import BaseSkeleton from '@/common/components/BaseSkeleton.vue';
 
@@ -35,15 +34,13 @@ const {
   loadPrivateTasks,
   addPrivateTask,
   updatePrivateTask,
-  toggleMenu,
   togglePrivateTaskCompletion,
   duplicatePrivateTask,
   deletePrivateTask,
   reorderPrivateTask,
 } = usePrivateTasks();
 
-const { width: windowWidth } = useWindowSize();
-const isMobile = computed(() => windowWidth.value < 768);
+const isMobile = useIsMobileViewport();
 
 const menuCoords = ref<{ x: number; y: number } | null>(null);
 const menuRef = ref<HTMLElement | null>(null);

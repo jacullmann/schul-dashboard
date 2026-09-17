@@ -29,7 +29,7 @@ function onKeyDown(e: KeyboardEvent) {
     goBackToLogin();
   }
   if (e.key === 'Enter' && !submitting.value) {
-    handleNext();
+    void handleNext();
   }
 }
 
@@ -60,7 +60,7 @@ function goBack() {
 }
 
 function goBackToLogin() {
-  router.push('/login');
+  void router.push('/login');
 }
 
 async function handleNext() {

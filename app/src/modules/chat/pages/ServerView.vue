@@ -15,7 +15,7 @@ import {
   Copy,
   Flag,
   Globe,
-  Image,
+  Image as ImageIcon,
   Search,
   Square,
   SquarePen,
@@ -25,7 +25,7 @@ import ServerToolSelect from '@/modules/chat/components/ServerToolSelect.vue';
 import FileMenu from '@/modules/chat/components/FileMenu.vue';
 import ServerWebSearch from '@/modules/chat/components/ServerWebSearch.vue';
 import { useToast } from '@/common/composables/useToast';
-import { useClipboard, useWindowSize, useResizeObserver } from '@vueuse/core';
+import { useClipboard, useResizeObserver } from '@vueuse/core';
 import { useRouter } from 'vue-router';
 import { useAuth } from '@/modules/chat/composables/useAuth';
 import { useMatchmaking } from '@/modules/chat/composables/useMatchmaking';
@@ -38,7 +38,6 @@ import { useServerStatusBroadcaster } from '@/modules/chat/composables/useServer
 const { copy } = useClipboard();
 
 const router = useRouter();
-const windowWidth = useWindowSize().width;
 const toast = useToast();
 
 const { t, locale } = useI18n();
@@ -79,7 +78,7 @@ watch(
       await sessionChat.initializeChat();
 
       if (pendingMessage.value) {
-        sessionChat.sendMessage(pendingMessage.value);
+        void sessionChat.sendMessage(pendingMessage.value);
         pendingMessage.value = '';
       }
     }
@@ -106,9 +105,6 @@ watch(webSearch, (isOpen) => {
 
 const createImage = ref(false);
 const createImageEnabled = ref(false);
-
-const ponder = ref(false);
-const ponderEnabled = ref(false);
 
 const terminal = ref(false);
 
@@ -137,7 +133,7 @@ const displayMessages = computed<UIMessage[]>(() => {
 const userInput = ref('');
 
 watch(userInput, () => {
-  handleInput();
+  void handleInput();
 });
 
 const selectedModel = ref('pro');
@@ -277,7 +273,7 @@ async function send() {
     });
     userInput.value = '';
 
-    nextTick(() => {
+    void nextTick(() => {
       scrollToBottom();
     });
   }
@@ -286,7 +282,7 @@ async function send() {
 watch(
   () => displayMessages.value.length,
   () => {
-    nextTick(() => {
+    void nextTick(() => {
       calculateSpacer();
       scrollToBottom();
     });
@@ -505,6 +501,7 @@ const toggleSpeechRecognition = () => {
             v-if="displayMessages.length === 0"
             class="absolute bottom-[calc(100%+3rem)] left-0 w-full text-center"
           >
+            <!-- eslint-disable vue/no-v-html -- static literal markup -->
             <div
               class="text-4xl font-normal text-on-ghost mb-2"
               v-html="
@@ -513,6 +510,7 @@ const toggleSpeechRecognition = () => {
                   : 'Choose what <b>model</b> to play as'
               "
             ></div>
+            <!-- eslint-enable vue/no-v-html -->
           </div>
         </Transition>
 
@@ -535,7 +533,7 @@ const toggleSpeechRecognition = () => {
           <BaseTooltip content="Draw a picture" placement="top">
             <BaseButton
               v-if="createImageEnabled"
-              :icon="Image"
+              :icon="ImageIcon"
               variant="ghost"
               @click="createImage = !createImage"
               >Create image</BaseButton

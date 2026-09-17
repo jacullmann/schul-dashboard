@@ -1,6 +1,9 @@
 import { ref } from 'vue';
 import { supabase } from '@/lib/supabase';
-import type { RealtimeChannel } from '@supabase/supabase-js';
+import {
+  REALTIME_SUBSCRIBE_STATES,
+  type RealtimeChannel,
+} from '@supabase/supabase-js';
 import { useAuth } from './useAuth';
 
 export interface ChatMessage {
@@ -162,23 +165,30 @@ export function useChatSession(sessionId: string) {
     await fetchHistory();
 
     await new Promise<void>((resolve) => {
-      chatChannel!.subscribe(async (status, err) => {
-        if (status === 'SUBSCRIBED') {
+      const onSubscribeStatus = async (
+        status: REALTIME_SUBSCRIBE_STATES,
+        err?: Error,
+      ): Promise<void> => {
+        if (status === REALTIME_SUBSCRIBE_STATES.SUBSCRIBED) {
           isSubscribed = true;
           await chatChannel?.track({ online_at: new Date().toISOString() });
 
           await fetchHistory();
           resolve();
         } else if (
-          status === 'CHANNEL_ERROR' ||
-          status === 'TIMED_OUT' ||
-          status === 'CLOSED'
+          status === REALTIME_SUBSCRIBE_STATES.CHANNEL_ERROR ||
+          status === REALTIME_SUBSCRIBE_STATES.TIMED_OUT ||
+          status === REALTIME_SUBSCRIBE_STATES.CLOSED
         ) {
           console.error(`Channel subscription failed: ${status}`, err);
           isSubscribed = false;
           resolve();
         }
-      });
+      };
+
+      chatChannel!.subscribe(
+        (status, err) => void onSubscribeStatus(status, err),
+      );
     });
   };
 
@@ -241,8 +251,8 @@ export function useChatSession(sessionId: string) {
     };
     messages.value.push(optimisticMessage);
 
-    setTyping(false);
-    setAiStatus(null);
+    void setTyping(false);
+    void setAiStatus(null);
     aiSteps.value = [];
 
     const { error } = await supabase.from('messages').insert({
@@ -284,7 +294,7 @@ export function useChatSession(sessionId: string) {
       .catch((err) => console.warn('Typing broadcast failed:', err));
 
     if (isTyping) {
-      typingTimeout = setTimeout(() => setTyping(false), 3000);
+      typingTimeout = setTimeout(() => void setTyping(false), 3000);
     }
   };
 
@@ -299,7 +309,7 @@ export function useChatSession(sessionId: string) {
   const destroy = () => {
     if (typingTimeout) clearTimeout(typingTimeout);
     if (chatChannel) {
-      supabase.removeChannel(chatChannel);
+      void supabase.removeChannel(chatChannel);
       chatChannel = null;
     }
   };

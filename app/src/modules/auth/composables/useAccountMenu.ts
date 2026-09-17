@@ -1,10 +1,7 @@
 import { ref, computed, nextTick, type Ref, type CSSProperties } from 'vue';
-import {
-  useEventListener,
-  useElementBounding,
-  useWindowSize,
-} from '@vueuse/core';
+import { useEventListener, useElementBounding } from '@vueuse/core';
 import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/vue';
+import { useIsMobileViewport } from '@/common/composables/useViewport';
 import type { UserData } from '@/stores/userStore';
 import { useAccountModals } from '@/modules/auth/composables/useAccountModals';
 
@@ -43,9 +40,8 @@ export function useAccountMenu(
   });
 
   const { width: popupW } = useElementBounding(refs.popupInner);
-  const { width: vw } = useWindowSize();
 
-  const isMobile = computed(() => vw.value < 768);
+  const isMobile = useIsMobileViewport();
 
   const popupStyle = computed<CSSProperties>(() => {
     if (!open.value) return {};

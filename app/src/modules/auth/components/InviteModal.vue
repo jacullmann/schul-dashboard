@@ -75,7 +75,7 @@ async function copyLink() {
     setTimeout(() => {
       copied.value = false;
     }, 3000);
-  } catch (err) {
+  } catch {
     toast.error('Failed to copy to clipboard');
   }
 }
@@ -94,7 +94,7 @@ async function regenerate() {
     } else {
       toast.error(res.error || 'Failed to regenerate invite link');
     }
-  } catch (err) {
+  } catch {
     toast.error('Failed to regenerate invite link');
   } finally {
     regenerating.value = false;

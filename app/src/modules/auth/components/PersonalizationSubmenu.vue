@@ -23,7 +23,7 @@ const currentPersonalized = computed(() => props.modelValue);
 
 const dropdownValue = computed({
   get: () => (currentPersonalized.value ? 'yes' : 'no'),
-  set: (val: string) => setPersonalization(val === 'yes'),
+  set: (val: string) => void setPersonalization(val === 'yes'),
 });
 
 const options = computed(() => [

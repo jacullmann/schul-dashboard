@@ -62,7 +62,9 @@ function clearAuthState(): void {
   statusPromise = null;
   try {
     localStorage.removeItem('active_tenant_id');
-  } catch {}
+  } catch {
+    // Storage may be unavailable; in-memory state is already cleared.
+  }
 }
 
 function applyStatusData(data: {
@@ -253,6 +255,7 @@ export function useAppAuth() {
     try {
       await hw.post('/auth/logout');
     } catch {
+      // Local state is cleared regardless of what the server replies.
     } finally {
       clearAuthState();
     }
@@ -262,6 +265,7 @@ export function useAppAuth() {
     try {
       await hw.post('/auth/logout-all');
     } catch {
+      // Local state is cleared regardless of what the server replies.
     } finally {
       clearAuthState();
     }

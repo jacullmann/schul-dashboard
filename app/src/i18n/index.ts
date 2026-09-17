@@ -24,7 +24,9 @@ function getInitialLocale(): SupportedLocale {
 
   try {
     localStorage.setItem(LOCALE_KEY, 'en');
-  } catch {}
+  } catch {
+    // Private mode or blocked storage: fall through to the default locale.
+  }
   return 'en';
 }
 

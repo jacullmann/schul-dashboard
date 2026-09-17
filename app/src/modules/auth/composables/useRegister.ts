@@ -2,9 +2,13 @@ import { ref, reactive, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import hw from '@/api/api.ts';
 import { usePreferences } from '@/common/composables/usePreferences';
-import type BaseInput from '@/common/components/BaseInput.vue';
 
-export function useRegister(onRegistered: () => void) {
+/** Subset of `BaseInput`'s exposed API that these forms rely on. */
+interface FocusableInput {
+  focus: () => void;
+}
+
+export function useRegister(onRegistered: () => void | Promise<void>) {
   const { t } = useI18n();
   const { currentTheme, currentLanguage } = usePreferences();
 
@@ -16,7 +20,7 @@ export function useRegister(onRegistered: () => void) {
   const message = ref('');
   const isError = ref(false);
 
-  const emailInputRef = ref<InstanceType<typeof BaseInput> | null>(null);
+  const emailInputRef = ref<FocusableInput | null>(null);
 
   const errors = reactive<{
     email?: string;
@@ -104,7 +108,7 @@ export function useRegister(onRegistered: () => void) {
 
       message.value = t('auth.login.success_register');
       isError.value = false;
-      onRegistered();
+      void onRegistered();
     } catch (e: unknown) {
       const err = e as { response?: { data?: { error?: string } } };
       message.value = err.response?.data?.error || t('common.errors.unknown');

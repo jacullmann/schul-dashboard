@@ -30,7 +30,7 @@ watch(
     if (val) {
       currentIndex.value = props.initialIndex;
       showControls();
-      nextTick(() => overlayRef.value?.focus());
+      void nextTick(() => overlayRef.value?.focus());
     }
   },
 );
@@ -64,14 +64,14 @@ function getOfficeViewerSrc(img: any): string {
 function next() {
   if (hasNext.value) {
     currentIndex.value++;
-    nextTick(() => overlayRef.value?.focus());
+    void nextTick(() => overlayRef.value?.focus());
   }
 }
 
 function prev() {
   if (hasPrev.value) {
     currentIndex.value--;
-    nextTick(() => overlayRef.value?.focus());
+    void nextTick(() => overlayRef.value?.focus());
   }
 }
 

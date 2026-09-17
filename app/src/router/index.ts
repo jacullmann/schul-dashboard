@@ -337,7 +337,9 @@ router.beforeEach(async (to, from, next) => {
     try {
       await refreshSession({ silent: true });
       await checkAuthStatus();
-    } catch {}
+    } catch {
+      // No valid session: fall through to the unauthenticated redirect below.
+    }
   }
 
   if (!isPublicRoute && !isLoggedIn.value) {
@@ -390,7 +392,9 @@ router.beforeEach(async (to, from, next) => {
   if (isLoggedIn.value && !isPublicRoute && !userStore.initialized) {
     try {
       await userStore.fetchUser();
-    } catch {}
+    } catch {
+      // Navigation must not be blocked by a failed profile fetch.
+    }
   }
 
   if (to.meta.requiresSuperAdmin) {

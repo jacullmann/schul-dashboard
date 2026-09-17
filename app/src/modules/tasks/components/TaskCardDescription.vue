@@ -5,7 +5,6 @@ import {
   watch,
   onMounted,
   onUnmounted,
-  onBeforeUnmount,
   nextTick,
   h,
   defineComponent,
@@ -13,6 +12,7 @@ import {
 } from 'vue';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
+import BaseLink from '@/common/components/BaseLink.vue';
 import BaseTableWrapper from '@/common/components/BaseTableWrapper.vue';
 
 const props = defineProps<{

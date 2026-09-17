@@ -68,7 +68,7 @@ function formatDate(iso: string) {
     </div>
     <div v-else class="flex flex-col gap-2">
       <div
-        v-for="(ann, index) in announcements"
+        v-for="ann in announcements"
         :key="ann.id"
         class="flex justify-between gap-2 p-1 rounded-xl bg-surface border border-ghost-border border-l-[3px] animate-fade-up"
         :class="[

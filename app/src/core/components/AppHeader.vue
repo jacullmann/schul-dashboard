@@ -127,7 +127,7 @@ async function inviteMember() {
 
 onMounted(() => {
   if (!userStore.initialized) {
-    userStore.fetchUser();
+    void userStore.fetchUser();
   }
 });
 

@@ -4,6 +4,7 @@ import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import type { Lesson, Substitution, TimeSlot } from '@/modules/schedule/types';
 import { useI18n } from 'vue-i18n';
+import { parseTimeOfDay } from '@/utils/time';
 
 export interface UseScheduleOptions {
   autoLoad?: boolean;
@@ -67,15 +68,11 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
     () => activeScheduleConfig.value?.lessonDurationMins ?? 45,
   );
 
-  const startTimeHour = computed(() => {
-    const time = activeScheduleConfig.value?.startTime ?? '08:00';
-    return parseInt(time.split(':')[0], 10);
-  });
-
-  const startTimeMinute = computed(() => {
-    const time = activeScheduleConfig.value?.startTime ?? '08:00';
-    return parseInt(time.split(':')[1], 10);
-  });
+  const startTime = computed(() =>
+    parseTimeOfDay(activeScheduleConfig.value?.startTime),
+  );
+  const startTimeHour = computed(() => startTime.value.hour);
+  const startTimeMinute = computed(() => startTime.value.minute);
 
   const breaks = computed<Record<number, number>>(
     () =>

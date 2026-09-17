@@ -1,16 +1,12 @@
 <script setup lang="ts">
 import { ref, nextTick, computed } from 'vue';
-import {
-  onClickOutside,
-  useElementBounding,
-  useWindowSize,
-} from '@vueuse/core';
+import { onClickOutside, useElementBounding } from '@vueuse/core';
 import { ChevronDown } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/vue';
+import { useIsMobileViewport } from '@/common/composables/useViewport';
 
-const { width: windowWidth } = useWindowSize();
-const isMobile = computed(() => windowWidth.value < 768);
+const isMobile = useIsMobileViewport();
 
 const { t } = useI18n();
 

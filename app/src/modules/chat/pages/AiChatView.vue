@@ -2,12 +2,12 @@
 import {
   computed,
   nextTick,
-  onMounted,
   ref,
   watch,
   h,
   defineComponent,
   onBeforeUnmount,
+  type ComponentPublicInstance,
   type VNode,
 } from 'vue';
 import BaseTableWrapper from '@/common/components/BaseTableWrapper.vue';
@@ -22,7 +22,7 @@ import {
   Copy,
   Flag,
   Globe,
-  Image,
+  Image as ImageIcon,
   Lightbulb,
   Search,
   Sparkles,
@@ -122,14 +122,16 @@ const overflowingHumanMessages = ref<Record<string, boolean>>({});
 const expandedHumanMessages = ref<Record<string, boolean>>({});
 
 // Steps logic
+function closeLastStep(now: number) {
+  const lastStep = liveSteps.value.at(-1);
+  if (lastStep && !lastStep.duration_ms) {
+    lastStep.duration_ms = now - lastStep.timestamp;
+  }
+}
+
 function addLiveStep(status: string, tool?: string) {
   const now = Date.now();
-  if (liveSteps.value.length > 0) {
-    const lastStep = liveSteps.value[liveSteps.value.length - 1];
-    if (!lastStep.duration_ms) {
-      lastStep.duration_ms = now - lastStep.timestamp;
-    }
-  }
+  closeLastStep(now);
 
   // Prevent duplicates
   const isDuplicate = liveSteps.value.some(
@@ -146,13 +148,7 @@ function addLiveStep(status: string, tool?: string) {
 }
 
 function finishLiveSteps() {
-  const now = Date.now();
-  if (liveSteps.value.length > 0) {
-    const lastStep = liveSteps.value[liveSteps.value.length - 1];
-    if (!lastStep.duration_ms) {
-      lastStep.duration_ms = now - lastStep.timestamp;
-    }
-  }
+  closeLastStep(Date.now());
   currentAiStatus.value = null;
 }
 
@@ -169,11 +165,9 @@ const handleCancel = () => {
   finishLiveSteps();
 
   // Clean up any empty assistant message at the end
-  if (displayMessages.value.length > 0) {
-    const lastMsg = displayMessages.value[displayMessages.value.length - 1];
-    if (lastMsg.role === 'assistant' && !lastMsg.content) {
-      displayMessages.value.pop();
-    }
+  const lastMsg = displayMessages.value.at(-1);
+  if (lastMsg?.role === 'assistant' && !lastMsg.content) {
+    displayMessages.value.pop();
   }
   toast.info('Generation cancelled.');
 };
@@ -194,7 +188,7 @@ async function callGeminiStream(userPrompt: string, aiMessage: UIMessage) {
     });
   }
 
-  if (contents.length === 0 || contents[contents.length - 1].role !== 'user') {
+  if (contents.at(-1)?.role !== 'user') {
     contents.push({
       role: 'user',
       parts: [{ text: userPrompt }],
@@ -1104,7 +1098,7 @@ const MarkdownRenderer = defineComponent({
                 >
                   <BaseButton
                     :chip="true"
-                    :icon="Image"
+                    :icon="ImageIcon"
                     @click="createImage = false"
                   />
                 </BaseTooltip>

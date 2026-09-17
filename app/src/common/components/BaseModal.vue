@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { useEventListener, useWindowSize } from '@vueuse/core';
+import { useEventListener } from '@vueuse/core';
+import { useIsMobileViewport } from '@/common/composables/useViewport';
 import { X } from '@lucide/vue';
 
 const emit = defineEmits<{
@@ -35,7 +36,7 @@ const handleCancel = () => {
   }
 };
 
-const { width: windowWidth } = useWindowSize();
+const isMobile = useIsMobileViewport();
 
 useEventListener(window, 'keydown', (e: KeyboardEvent) => {
   if (e.key === 'Escape') handleCancel();
@@ -46,7 +47,7 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
   <Teleport to="body">
     <Transition name="fade-scale" appear>
       <BaseModalCard
-        v-if="open && (windowWidth > 768 || !sheet)"
+        v-if="open && (!isMobile || !sheet)"
         @cancel="handleCancel"
       >
         <BaseRow justify="between" class="items-start h-[30px] mb-4">
@@ -86,11 +87,7 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
     </Transition>
   </Teleport>
 
-  <BaseSheet
-    v-if="sheet && windowWidth < 768"
-    :open="open"
-    @cancel="handleCancel"
-  >
+  <BaseSheet v-if="sheet && isMobile" :open="open" @cancel="handleCancel">
     <div class="px-4 pb-4">
       <BaseRow class="mb-4"
         ><h3 id="modal-title">

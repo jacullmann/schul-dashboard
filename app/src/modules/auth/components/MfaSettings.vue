@@ -172,7 +172,7 @@ function startDeactivate() {
   deactivateCode.value = '';
   deactivateError.value = null;
 
-  nextTick(() => {
+  void nextTick(() => {
     deactivateCodeInput.value?.focus();
   });
 }

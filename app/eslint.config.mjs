@@ -59,7 +59,12 @@ export default tseslint.config(
       ],
       '@typescript-eslint/require-await': 'warn',
       'no-empty': 'warn',
-      'vue/multi-word-component-names': 'warn',
+      // Routed views and single-concept display components are named after
+      // the thing they render, per the project's existing convention.
+      'vue/multi-word-component-names': 'off',
+      // Type-based `defineProps` already expresses optionality; an omitted
+      // prop is legitimately `undefined` rather than a missing default.
+      'vue/require-default-prop': 'off',
       'prettier/prettier': ['error', { endOfLine: 'auto' }],
     },
   },

@@ -11,7 +11,7 @@ const hw = axios.create({
 
 const getCsrfFromCookie = (): string | null => {
   const match = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]*)/);
-  return match ? decodeURIComponent(match[1]) : null;
+  return match?.[1] ? decodeURIComponent(match[1]) : null;
 };
 
 hw.interceptors.request.use((config) => {
@@ -66,7 +66,9 @@ hw.interceptors.response.use(
         refreshFailedListeners.forEach((fn) => {
           try {
             fn();
-          } catch {}
+          } catch {
+            // A listener must not stop the others from being notified.
+          }
         });
       }
       return Promise.reject(error);

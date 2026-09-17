@@ -20,7 +20,7 @@ import {
   Copy,
   Flag,
   Globe,
-  Image,
+  Image as ImageIcon,
   Lightbulb,
   Search,
   Sparkles,
@@ -93,7 +93,7 @@ watch(
       await sessionChat.initializeChat();
 
       if (pendingMessage.value) {
-        sessionChat.sendMessage(pendingMessage.value);
+        void sessionChat.sendMessage(pendingMessage.value);
         pendingMessage.value = '';
       }
     }
@@ -150,7 +150,7 @@ const displayMessages = computed<UIMessage[]>(() => {
 const userInput = ref('');
 
 watch(userInput, () => {
-  autoResize();
+  void autoResize();
 });
 
 const selectedModel = ref('pro');
@@ -297,7 +297,7 @@ async function send() {
     await chat.value.sendMessage(content);
     userInput.value = '';
 
-    nextTick(() => {
+    void nextTick(() => {
       scrollToBottom();
     });
   }
@@ -306,7 +306,7 @@ async function send() {
 watch(
   () => displayMessages.value.length,
   () => {
-    nextTick(() => {
+    void nextTick(() => {
       calculateSpacer();
       scrollToBottom();
     });
@@ -822,7 +822,7 @@ function formatDuration(ms?: number): string {
                 >
                   <BaseButton
                     :chip="true"
-                    :icon="Image"
+                    :icon="ImageIcon"
                     @click="createImage = false"
                   />
                 </BaseTooltip>

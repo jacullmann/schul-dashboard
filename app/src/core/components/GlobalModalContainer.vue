@@ -111,7 +111,7 @@ async function logout() {
     userStore.clearUser();
     resetMfaState();
     await appAuthLogout();
-    router.push('/');
+    void router.push('/');
   }
 }
 

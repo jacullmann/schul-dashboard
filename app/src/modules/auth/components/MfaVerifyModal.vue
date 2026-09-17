@@ -27,7 +27,7 @@ function handleInput(event: Event) {
   code.value = input.value;
   error.value = null;
   if (code.value.length === 6) {
-    verify();
+    void verify();
   }
 }
 
@@ -68,7 +68,7 @@ async function cancel() {
 }
 
 onMounted(() => {
-  nextTick(() => {
+  void nextTick(() => {
     codeInputRef.value?.focus();
   });
 });

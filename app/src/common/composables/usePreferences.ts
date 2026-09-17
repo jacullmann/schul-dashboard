@@ -4,6 +4,14 @@ import { useTheme, type ThemeMode } from '@/common/composables/useTheme';
 import { useUserStore } from '@/stores/userStore';
 import i18n, { type SupportedLocale, LOCALE_KEY } from '@/i18n';
 
+type PreferenceKey = 'theme' | 'language';
+
+function applyLanguage(language: string): void {
+  i18n.global.locale.value = language as SupportedLocale;
+  localStorage.setItem(LOCALE_KEY, language);
+  document.documentElement.setAttribute('lang', language);
+}
+
 export function usePreferences() {
   const { applyTheme, selectedThemeMode } = useTheme();
   const userStore = useUserStore();
@@ -11,28 +19,23 @@ export function usePreferences() {
   const currentTheme = computed(() => selectedThemeMode.value);
   const currentLanguage = computed(() => i18n.global.locale.value);
 
-  async function setPreference(key: 'theme' | 'language', value: string) {
+  function setPreference(key: PreferenceKey, value: string): void {
     if (key === 'theme') {
       applyTheme(value as ThemeMode);
-    } else if (key === 'language') {
-      i18n.global.locale.value = value as SupportedLocale;
-      localStorage.setItem(LOCALE_KEY, value);
-      document.documentElement.setAttribute('lang', value);
+    } else {
+      applyLanguage(value);
     }
 
-    if (userStore.isLoggedIn) {
-      try {
-        hw.patch('/user/preferences', { [key]: value }).catch((err) => {
-          console.error(`Failed to sync preference ${key} to backend`, err);
-        });
-      } catch (err) {
-        console.error(`Error initiating patch for ${key}`, err);
-      }
-    }
+    if (!userStore.isLoggedIn) return;
+
+    // Applied locally first, so a failed sync must not block the UI.
+    void hw.patch('/user/preferences', { [key]: value }).catch((err) => {
+      console.error(`Failed to sync preference ${key} to backend`, err);
+    });
   }
 
-  async function syncFromBackend(preferences: Record<string, any>) {
-    if (!preferences) return;
+  function syncFromBackend(preferences: Record<string, any>): boolean {
+    if (!preferences) return false;
 
     let hasChanges = false;
 
@@ -45,9 +48,7 @@ export function usePreferences() {
       preferences.language &&
       preferences.language !== currentLanguage.value
     ) {
-      i18n.global.locale.value = preferences.language as SupportedLocale;
-      localStorage.setItem(LOCALE_KEY, preferences.language);
-      document.documentElement.setAttribute('lang', preferences.language);
+      applyLanguage(preferences.language);
       hasChanges = true;
     }
 

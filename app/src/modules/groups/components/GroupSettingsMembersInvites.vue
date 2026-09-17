@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { UserRoundPlus, Copy, Check, Undo2 } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useModalStore } from '@/stores/modalStore';
 import { useToast } from '@/common/composables/useToast';
@@ -54,7 +54,7 @@ async function copyLink(inviteId: string, token: string) {
         copiedId.value = null;
       }
     }, 3000);
-  } catch (err) {
+  } catch {
     toast.error('Failed to copy to clipboard');
   }
 }

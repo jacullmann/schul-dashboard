@@ -54,8 +54,8 @@ function getToastStyle(index: number) {
   let expandedOffset = 0;
   if (isHovered.value) {
     for (let i = toasts.length - 1; i > index; i--) {
-      const id = toasts[i].id;
-      expandedOffset += (heights.value.get(id) || 48) + GAP;
+      const toast = toasts[i];
+      if (toast) expandedOffset += (heights.value.get(toast.id) || 48) + GAP;
     }
   }
 
@@ -104,8 +104,8 @@ const totalHeight = computed(() => {
 const hitBoxHeight = computed(() => {
   if (toasts.length === 0) return 0;
   if (isHovered.value) return totalHeight.value;
-  const frontId = toasts[toasts.length - 1].id;
-  const frontHeight = heights.value.get(frontId) || 48;
+  const front = toasts.at(-1);
+  const frontHeight = (front && heights.value.get(front.id)) || 48;
   const visibleStacks = Math.min(toasts.length - 1, VISIBLE_COUNT - 1);
   return frontHeight + visibleStacks * GAP;
 });

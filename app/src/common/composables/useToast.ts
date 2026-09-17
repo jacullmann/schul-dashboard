@@ -184,14 +184,14 @@ function progress(
 
 function dismiss(id: number): void {
   const index = state.toasts.findIndex((t) => t.id === id);
-  if (index !== -1) {
-    const toast = state.toasts[index];
-    if (toast.timerId) {
-      clearTimeout(toast.timerId);
-    }
-    state.toasts.splice(index, 1);
-    updateTimers();
+  if (index === -1) return;
+
+  const toast = state.toasts[index];
+  if (toast?.timerId) {
+    clearTimeout(toast.timerId);
   }
+  state.toasts.splice(index, 1);
+  updateTimers();
 }
 
 function clear(): void {

@@ -162,7 +162,9 @@ async function submit() {
     if (res.ok) {
       try {
         await userStore.fetchUser();
-      } catch {}
+      } catch {
+        // The group was created; a stale profile refreshes on next navigation.
+      }
 
       emit('cancel');
       await router.push(`/groups/${activeGroupId.value}/dashboard`);
