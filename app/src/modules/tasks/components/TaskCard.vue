@@ -132,9 +132,10 @@ function handleCardContextMenu(event: MouseEvent) {
 }
 
 /**
- * Controls and regions that answer a press themselves — the images row runs a
+ * Controls and regions that answer a press themselves — an image tile runs a
  * menu of its own, a field wants the caret — so neither the card's hold nor its
- * double click may speak for them.
+ * double click may speak for them. The empty space around the tiles stays the
+ * card's.
  */
 const IGNORED_REGIONS = [
   'button',
@@ -143,7 +144,7 @@ const IGNORED_REGIONS = [
   'textarea',
   '.item-menu-trigger',
   '.note-section',
-  '.images-row',
+  '[data-image-index]',
   '.unpin-trigger',
   '[role=menu]',
   '.checkbox',

@@ -12,6 +12,11 @@ export interface UseLongPressOptions {
    * such as a nested menu of their own or a field the caret belongs in.
    */
   ignore?: string;
+  /**
+   * Selector the press must land inside to count. Anything outside it — such
+   * as the gaps between tiles — passes through untouched to the ancestors.
+   */
+  within?: string;
 }
 
 /** How long after the gesture ends a trailing compatibility click may arrive. */
@@ -107,7 +112,7 @@ export function useLongPress(
   trigger: LongPressTrigger,
   options: UseLongPressOptions = {},
 ) {
-  const { delay = 450, moveThreshold = 10, ignore } = options;
+  const { delay = 450, moveThreshold = 10, ignore, within } = options;
 
   let holdTimer: ReturnType<typeof setTimeout> | undefined;
   let suppressTimer: ReturnType<typeof setTimeout> | undefined;
@@ -121,9 +126,10 @@ export function useLongPress(
   let tracking = false;
 
   function isIgnored(event: Event) {
-    if (!ignore) return false;
-
     const target = event.target as Element | null;
+
+    if (within && !target?.closest?.(within)) return true;
+    if (!ignore) return false;
 
     return Boolean(target?.closest?.(ignore));
   }

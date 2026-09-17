@@ -81,8 +81,12 @@ const { handlers: longPressHandlers } = useLongPress(
 
     if (img) emit('context-menu', event, img);
   },
-  // The "+N more" overlay covers a tile but stands for the whole row.
-  { ignore: '.img-overlay' },
+  {
+    // Only tiles own a menu; the gaps between them belong to the card.
+    within: '[data-image-index]',
+    // The "+N more" overlay covers a tile but stands for the whole row.
+    ignore: '.img-overlay',
+  },
 );
 </script>
 
