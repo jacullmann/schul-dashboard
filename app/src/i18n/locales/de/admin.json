@@ -1,5 +1,34 @@
 {
+  "nav": {
+    "overview": "Übersicht",
+    "users": "Benutzer",
+    "reports": "Meldungen",
+    "groups": "Gruppen"
+  },
+  "errors": {
+    "action_failed": "Aktion fehlgeschlagen."
+  },
   "overview": {
+    "title": "Dashboard Übersicht",
+    "stats": {
+      "users": "Benutzer",
+      "tasks": "Aufgaben",
+      "open_reports": "Offene Meldungen",
+      "banned": "Gebannt"
+    },
+    "user_stats": {
+      "title": "Benutzerstatistiken",
+      "verified": "Verifiziert",
+      "unverified": "Nicht verifiziert",
+      "admins": "Admins",
+      "new_this_week": "Neu (7 Tage)"
+    },
+    "activity": {
+      "title": "Aktivität (7 Tage)",
+      "new_tasks": "Neue Aufgaben",
+      "total_reports": "Gesamtmeldungen",
+      "processed": "Verarbeitet"
+    },
     "cleanup": {
       "old_tasks": "{count} Einträge älter als 90 Tage",
       "deleting": "Löschen...",
@@ -24,10 +53,12 @@
       "unverified": "Nicht verifiziert"
     },
     "actions": {
+      "activity_log": "Aktivitätsprotokoll",
       "ban": "Bannen",
       "unban": "Entbannen",
       "prune_logs": "Alte Protokolle bereinigen"
     },
+    "activity_log_title": "Aktivitätsprotokoll",
     "ban_success": "Benutzer gebannt.",
     "unban_success": "Benutzer entbannt",
     "delete_modal": {
@@ -37,11 +68,13 @@
     "delete_success": "Benutzer gelöscht.",
     "prune_modal": {
       "title": "Protokolle bereinigen?",
+      "content": "Aktivitätsprotokolle älter als 30 Tage für {email} löschen?",
       "submit": "Bereinigen"
     },
     "prune_success": "Protokolle bereinigt."
   },
   "reports": {
+    "title": "Gemeldete Inhalte",
     "empty": "Keine Meldungen gefunden.",
     "open": "Offen",
     "processed": "Verarbeitet",
@@ -78,7 +111,7 @@
     "delete_tooltip": "Gruppe löschen",
     "delete_modal": {
       "title": "Gruppe löschen?",
-      "content": "Gruppe \"{name}\" löschem?\n\nDies wird die Gruppe und alle damit verbundenen Daten unwiderruflich löschen."
+      "content": "Gruppe \"{name}\" löschen?\n\nDies wird die Gruppe und alle damit verbundenen Daten unwiderruflich löschen."
     },
     "delete_success": "Gruppe \"{name}\" gelöscht."
   }

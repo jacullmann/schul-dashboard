@@ -40,6 +40,7 @@
           "capture": "Bild aufnehmen",
           "delete": "Bild löschen"
         },
+        "description": "Wähle optional ein Gruppenbild",
         "cropper": {
           "title": "Bild anpassen",
           "hint": "Ziehen Sie das Bild zum Ausrichten. Benutzen Sie das Mausrad oder den Schieberegler zum Zoomen."
@@ -121,7 +122,8 @@
         "banned_on_prefix": "Gesperrt am ",
         "actions": {
           "unban": "Entsperren"
-        }
+        },
+        "empty_message": "Gebannte Benutzer werden hier erscheinen"
       },
       "invite_links": {
         "title": "Einladungslinks",
@@ -142,7 +144,9 @@
         "system": "System",
         "actions": {
           "revoke": "Widerrufen"
-        }
+        },
+        "used_by": "Verwendet von",
+        "revoked_by": "Widerrufen von"
       },
       "remove_modal": {
         "title": "Mitglied entfernen",
@@ -152,6 +156,11 @@
         "ban_checkbox_prefix": "Banne ",
         "ban_checkbox_suffix": " dauerhaft",
         "submit_button": "Entfernen"
+      },
+      "transfer_modal": {
+        "title": "Besitz übertragen?",
+        "message": "Bist du dir sicher, dass du den Besitz übertragen willst? Du wirst deine Besitzerrechte verlieren.",
+        "submit": "Übertragen"
       }
     },
     "overview": {
@@ -163,7 +172,10 @@
       },
       "cleanup": {
         "info": "{count} Aufgaben älter als 90 Tage können gelöscht werden.",
-        "action_button": "Bereinigen"
+        "action_button": "Bereinigen",
+        "modal": {
+          "message": "Alle Aufgaben älter als 90 Tage löschen?"
+        }
       }
     },
     "permissions": {
@@ -256,6 +268,16 @@
         "specific_course": "Spezifischer Kurs",
         "selected_count": "{count} ausgewählt",
         "new_subject_placeholder": "Deutsch",
+        "delete_modal": {
+          "title": "Stundenplanänderung löschen?"
+        },
+        "table": {
+          "subject": "Fach",
+          "course": "Kurs",
+          "room": "Raum",
+          "day": "Tag",
+          "slot": "Slot"
+        },
         "list_title": "Eingetragene Planänderungen"
       },
       "editor": {
@@ -375,6 +397,42 @@
       },
       "category_mismatch": "Dieses Fach ist noch als „{category}“ gespeichert – eine Kategorie des anderen Gruppentyps. Beim Speichern wird die ausgewählte Kategorie übernommen."
     },
-    "title": "Gruppen Verwaltung"
+    "title": "Gruppen Verwaltung",
+    "messages": {
+      "role_updated": "Rolle aktualisiert",
+      "member_removed_banned": "Mitglied entfernt und gebannt",
+      "member_removed": "Mitglied entfernt",
+      "announcement_created": "Ankündigung erstellt",
+      "announcement_deleted": "Ankündigung gelöscht",
+      "group_name_updated": "Gruppenname aktualisiert",
+      "group_deleted": "Gruppe erfolgreich gelöscht",
+      "ownership_transferred": "Besitz erfolgreich übertragen",
+      "ownership_transfer_failed": "Übertragung fehlgeschlagen",
+      "invite_revoked": "Einladung widerrufen"
+    },
+    "group_fallback": "Gruppe",
+    "announcements": {
+      "delete_modal": {
+        "title": "Ankündigung löschen?"
+      }
+    },
+    "nav": {
+      "members": {
+        "label": "Mitglieder"
+      },
+      "permissions": {
+        "label": "Berechtigungen"
+      },
+      "schedule": {
+        "label": "Stundenplan"
+      },
+      "subjects": {
+        "label": "Fächer"
+      },
+      "announcements": {
+        "label": "Ankündigungen"
+      }
+    },
+    "go_back": "Zurück"
   }
 }

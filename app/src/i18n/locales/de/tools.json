@@ -12,7 +12,9 @@
     },
     "actions": {
       "convert": "Konvertieren",
-      "apply": "Anwenden"
+      "apply": "Anwenden",
+      "rotate_left": "Nach links drehen",
+      "rotate_right": "Nach rechts drehen"
     },
     "errors": {
       "not_an_image": "Datei ist kein Bild.",

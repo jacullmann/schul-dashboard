@@ -28,7 +28,8 @@
           "save_failed": "Failed to upload profile picture.",
           "delete_failed": "Failed to delete profile picture.",
           "update_success": "Group picture updated",
-          "delete_success": "Group picture deleted"
+          "delete_success": "Group picture deleted",
+          "save_group_picture": "Error while saving group picture"
         },
         "delete_modal": {
           "title": "Delete Group Picture",
@@ -129,6 +130,21 @@
         "description": "Create and manage invite links",
         "empty": "No invite links available.",
         "generate_button": "Generate link",
+        "status": {
+          "used": "Used",
+          "revoked": "Revoke",
+          "expired": "Expired",
+          "active": "Active"
+        },
+        "table": {
+          "link": "Link",
+          "status": "Status",
+          "expires_at": "Expires at"
+        },
+        "system": "System",
+        "actions": {
+          "revoke": "Revoke"
+        },
         "used_by": "Used by",
         "revoked_by": "Revoked by"
       },
@@ -207,7 +223,8 @@
     },
     "schedule": {
       "info": {
-        "tooltip": "Overview of schedule settings"
+        "tooltip": "Overview of schedule settings",
+        "title": "Schedule Settings"
       },
       "config": {
         "lesson_duration_label": "Lesson Duration (minutes)",
@@ -247,6 +264,11 @@
         "room_label": "Room:",
         "day_label": "Day:",
         "affected_course_label": "Affected course",
+        "all_subject_courses": "All courses of the subject",
+        "all_courses": "All courses",
+        "specific_course": "Specific course",
+        "selected_count": "{count} selected",
+        "new_subject_placeholder": "German",
         "delete_modal": {
           "title": "Delete Schedule Change?",
           "message": "If you delete this change, it will be removed permanently"
@@ -298,7 +320,10 @@
         "day_wednesday": "Wednesday",
         "day_thursday": "Thursday",
         "day_friday": "Friday",
-        "course_hint": "Without a course the lesson applies to the whole group."
+        "course_hint": "Without a course the lesson applies to the whole group.",
+        "day_fallback": "Day {day}",
+        "undo": "Undo (Ctrl+Z)",
+        "redo": "Redo (Ctrl+Y)"
       }
     },
     "subjects": {
@@ -372,6 +397,7 @@
       },
       "category_mismatch": "This subject is still saved as \"{category}\", a category of the other group type. Saving moves it to the selected category."
     },
+    "title": "Group Management",
     "messages": {
       "load_stats_failed": "Failed to load statistics",
       "load_members_failed": "Failed to load members",
