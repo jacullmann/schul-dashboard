@@ -1,5 +1,6 @@
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useEventListener } from '@vueuse/core';
 import { useModalStore } from '@/stores/modalStore';
 import type { HwItem } from '@/modules/tasks/types';
 import hw from '@/api/api.ts';
@@ -55,7 +56,7 @@ export function useHwActions(
 
   const checkTimeouts = new Map<string, number>();
 
-  async function toggleCheck(item: HwItem) {
+  function toggleCheck(item: HwItem) {
     if (!ctx.user.value) return;
     const id = item.id;
     const wasChecked = isChecked(id);
@@ -121,34 +122,121 @@ export function useHwActions(
     }
     ctx.checkedItems.value = new Set(ctx.checkedItems.value);
 
+    scheduleCheckSync(item, wasChecked, wasKeptBefore);
+  }
+
+  // The UI updates instantly; the API call is debounced per item so rapid
+  // check/uncheck toggles collapse into at most one request, and requests
+  // for the same item never run in parallel (no out-of-order POST/DELETE).
+  const CHECK_SYNC_DELAY = 400;
+
+  interface CheckSyncEntry {
+    item: HwItem;
+    serverChecked: boolean;
+    // keptItems state before the first toggle, restored if the sync fails
+    wasKept: boolean;
+    timer?: number;
+    inFlight: boolean;
+  }
+
+  const checkSync = new Map<string, CheckSyncEntry>();
+
+  function scheduleCheckSync(
+    item: HwItem,
+    wasChecked: boolean,
+    wasKept: boolean,
+  ) {
+    let entry = checkSync.get(item.id);
+    if (!entry) {
+      entry = { item, serverChecked: wasChecked, wasKept, inFlight: false };
+      checkSync.set(item.id, entry);
+    }
+    entry.item = item;
+    clearTimeout(entry.timer);
+    entry.timer = window.setTimeout(
+      () => void flushCheckSync(item.id),
+      CHECK_SYNC_DELAY,
+    );
+  }
+
+  async function flushCheckSync(id: string) {
+    const entry = checkSync.get(id);
+    if (!entry) return;
+    clearTimeout(entry.timer);
+    entry.timer = undefined;
+    // The running request re-checks the desired state when it finishes
+    if (entry.inFlight) return;
+
+    if (!ctx.user.value) {
+      checkSync.delete(id);
+      return;
+    }
+
+    const desired = isChecked(id);
+    if (desired === entry.serverChecked) {
+      checkSync.delete(id);
+      return;
+    }
+
+    entry.inFlight = true;
+    let failed = false;
     try {
-      if (wasChecked) await hw.delete(`/user/items/${id}/check`, getConfig());
-      else await hw.post(`/user/items/${id}/check`, {}, getConfig());
+      if (desired) await hw.post(`/user/items/${id}/check`, {}, getConfig());
+      else await hw.delete(`/user/items/${id}/check`, getConfig());
+      entry.serverChecked = desired;
     } catch {
-      if (wasChecked) {
-        ctx.checkedItems.value.add(id);
-        const isOld = new Date(item.dueDate) < new Date();
-        if (!ctx.showOldEntries.value && isOld && !isPinned) {
-          ctx.dismissedItems.value.add(id);
-          ctx.dismissedItems.value = new Set(ctx.dismissedItems.value);
-        }
-      } else {
-        ctx.checkedItems.value.delete(id);
-        ctx.pendingCheckRemovals.value.delete(id);
-        ctx.pendingCheckRemovals.value = new Set(
-          ctx.pendingCheckRemovals.value,
-        );
-        ctx.dismissedItems.value.delete(id);
-        ctx.dismissedItems.value = new Set(ctx.dismissedItems.value);
-        if (wasKeptBefore) {
-          ctx.keptItems.value.add(id);
-          ctx.keptItems.value = new Set(ctx.keptItems.value);
-        }
-      }
-      ctx.checkedItems.value = new Set(ctx.checkedItems.value);
+      failed = true;
+    } finally {
+      entry.inFlight = false;
+    }
+
+    // User toggled again during the request; the new timer takes over
+    if (entry.timer !== undefined) return;
+
+    if (failed) {
+      checkSync.delete(id);
+      revertCheck(entry);
       handleSuccessAction('Fehler beim Setzen des Status.'); // fallback msg
+    } else if (isChecked(id) !== entry.serverChecked) {
+      await flushCheckSync(id);
+    } else {
+      checkSync.delete(id);
     }
   }
+
+  function revertCheck(entry: CheckSyncEntry) {
+    const { item, serverChecked, wasKept } = entry;
+    const id = item.id;
+    if (isChecked(id) === serverChecked) return;
+
+    if (serverChecked) {
+      ctx.checkedItems.value.add(id);
+      const isOld = new Date(item.dueDate) < new Date();
+      if (!ctx.showOldEntries.value && isOld && !isPinned(id)) {
+        ctx.dismissedItems.value.add(id);
+        ctx.dismissedItems.value = new Set(ctx.dismissedItems.value);
+      }
+    } else {
+      ctx.checkedItems.value.delete(id);
+      ctx.pendingCheckRemovals.value.delete(id);
+      ctx.pendingCheckRemovals.value = new Set(ctx.pendingCheckRemovals.value);
+      ctx.dismissedItems.value.delete(id);
+      ctx.dismissedItems.value = new Set(ctx.dismissedItems.value);
+      if (wasKept) {
+        ctx.keptItems.value.add(id);
+        ctx.keptItems.value = new Set(ctx.keptItems.value);
+      }
+    }
+    ctx.checkedItems.value = new Set(ctx.checkedItems.value);
+  }
+
+  // Send pending syncs right away when the page is hidden (tab switch/close)
+  useEventListener(document, 'visibilitychange', () => {
+    if (document.visibilityState !== 'hidden') return;
+    for (const [id, entry] of checkSync) {
+      if (entry.timer !== undefined) void flushCheckSync(id);
+    }
+  });
 
   async function toggleVisibility(
     item: HwItem,
