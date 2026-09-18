@@ -18,5 +18,6 @@
   "lesson": "Lesson",
   "loading": "Loading schedule...",
   "personalized": "Personalized",
-  "title": "Schedule"
+  "title": "Schedule",
+  "course_count": "{count} Courses"
 }

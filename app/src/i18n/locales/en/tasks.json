@@ -54,7 +54,9 @@
         "date_old": "The due date is too far in the past",
         "description_long": "The description is too long (max. 1000 characters)",
         "title_long": "The title is too long (max. 60 characters)",
-        "title_missing": "Add a title"
+        "title_missing": "Add a title",
+        "check_input": "Please check your input.",
+        "unexpected": "An unexpected error occurred. Please try again."
       },
       "images": "Images",
       "new_task": "New Task",
@@ -89,23 +91,32 @@
           "illegal_label": "What exactly is the problem? (optional)",
           "illegal_placeholder": "Description...",
           "name": "Report",
-          "title": "Report this task?"
+          "title": "Report this task?",
+          "success": "Task reported.",
+          "error": "Error while reporting: {error}"
         },
         "share": "Share",
         "share_confirm": "Link copied to clipboard!",
         "unarchive": "Unarchive",
         "unpin": "Unpin",
-        "upload_images": "Upload Images"
+        "upload_images": "Upload Images",
+        "share_copied": "Copied link to clipboard!",
+        "share_failed": "Sharing failed."
       },
       "view": {
         "no_tasks": "No tasks found",
         "no_tasks_in_view_message": "No tasks in the current view. Change your filters or add a new task",
         "no_tasks_message": "Add a new task or"
+      },
+      "errors": {
+        "status_failed": "Error while setting the status."
       }
     },
     "notes": {
       "no_notes": "No notes",
       "note": "Note",
+      "saved": "Saved note.",
+      "save_failed": "Error while saving note.",
       "placeholder": "Add a note..."
     },
     "reset_filters": "Reset filters",
@@ -127,6 +138,9 @@
       "message": "On {date} there is already a {type} registered for the subject {subject}. Are you sure your task isn't about the same task?",
       "create_anyway": "Create anyway",
       "view_existing": "View existing"
+    },
+    "description": {
+      "more": "more"
     }
   },
   "private_tasks": {
@@ -190,8 +204,8 @@
       "title_placeholder": "Go grocery shopping..."
     },
     "form": {
-      "new_title": "New Private Entry",
-      "edit_title": "Edit Private Entry",
+      "new_title": "New Private Task",
+      "edit_title": "Edit Private Task",
       "errors": {
         "title_missing": "A title is required.",
         "title_long": "Title is too long (max. 100 characters).",
@@ -199,6 +213,10 @@
         "unexpected": "An unexpected error occurred."
       }
     }
+  },
+  "report": {
+    "info_tooltip": "Report Info",
+    "info_title": "Information About Reporting Tasks"
   },
   "actions": {
     "delete_modal": {
@@ -235,6 +253,8 @@
       "pdf_too_large": "PDF files may be no larger than 5 MB.",
       "progress": "Uploading images",
       "success": "Images uploaded successfully"
-    }
+    },
+    "drop_to_upload": "Drop images to upload",
+    "document": "Document"
   }
 }

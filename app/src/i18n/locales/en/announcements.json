@@ -1,1 +1,39 @@
-{}
+{
+  "actions": {
+    "create": "Create announcement"
+  },
+  "list": {
+    "title": "Announcements",
+    "create_button": "New announcement",
+    "empty_state": "No announcements found."
+  },
+  "form": {
+    "errors": {
+      "empty": "An announcement can't be empty.",
+      "too_long": "The announcement is too long (max. 1000 characters)."
+    },
+    "title": "New Announcement",
+    "content_label": "Announcement",
+    "options": {
+      "info": "Info",
+      "warning": "Warning",
+      "important": "Important"
+    },
+    "content_placeholder": "Compose your message...",
+    "importance_label": "Importance"
+  },
+  "all": {
+    "title": "All announcements"
+  },
+  "notifications": {
+    "new_single": "New Announcement: {preview}",
+    "new_plural": "{count} new Announcements: {preview}"
+  },
+  "delete_modal": {
+    "title": "Delete this announcement?",
+    "message": "If you delete this announcement, it will be removed permanently."
+  },
+  "errors": {
+    "delete_failed": "Announcement couldn't be deleted."
+  }
+}

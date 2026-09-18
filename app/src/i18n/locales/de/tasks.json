@@ -116,7 +116,8 @@
       "no_notes": "Keine Notiz vorhanden",
       "note": "Notiz",
       "saved": "Anmerkung gespeichert.",
-      "save_failed": "Fehler beim Speichern der Anmerkung."
+      "save_failed": "Fehler beim Speichern der Anmerkung.",
+      "placeholder": "Anmerkung hinzufügen..."
     },
     "reset_filters": "Filter zurücksetzen",
     "tabs": {
@@ -211,6 +212,16 @@
       "description_placeholder": "6 Eier...",
       "title": "Neue private Aufgabe",
       "title_placeholder": "Einkaufen gehen..."
+    },
+    "form": {
+      "new_title": "Neue private Aufgabe",
+      "edit_title": "Private Aufgabe bearbeiten",
+      "errors": {
+        "title_missing": "Ein Titel ist erforderlich.",
+        "title_long": "Titel ist zu lang (max. 100 Zeichen).",
+        "description_long": "Beschreibung ist zu lang (max. 2000 Zeichen).",
+        "unexpected": "Ein unerwarteter Fehler ist aufgetreten"
+      }
     }
   },
   "report": {

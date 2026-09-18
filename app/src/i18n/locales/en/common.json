@@ -14,7 +14,9 @@
     "show_less": "Show less",
     "show_more": "Show more",
     "skip": "Skip",
-    "refresh": "Refresh"
+    "saving": "Saving...",
+    "refresh": "Refresh",
+    "deleting": "Deleting..."
   },
   "cookies": {
     "banner": {
@@ -113,7 +115,8 @@
     "no": "No",
     "other": "Other...",
     "placeholder": "Please select",
-    "yes": "Yes"
+    "yes": "Yes",
+    "unknown": "Unknown"
   },
   "subjects": {
     "art": "Art",
@@ -188,6 +191,29 @@
     "owner": "Owner",
     "superadmin": "Superadmin"
   },
+  "video_player": {
+    "seek_slider": {
+      "aria_label": "Seek"
+    },
+    "play_button": {
+      "pause_aria_label": "Pause",
+      "play_aria_label": "Play"
+    },
+    "volume_button": {
+      "unmute_aria_label": "Unmute",
+      "mute_aria_label": "Mute"
+    },
+    "volume_slider": {
+      "aria_label": "Volume"
+    },
+    "fullscreen_button": {
+      "exit_aria_label": "Exit fullscreen",
+      "enter_aria_label": "Fullscreen"
+    }
+  },
+  "actions": {
+    "close_aria_label": "Close"
+  },
   "date": {
     "seconds": "{n}s ago",
     "minutes": "{n}m ago",
@@ -221,5 +247,6 @@
     "go_back": "Go back"
   },
   "preview": "Preview",
+  "image": "Image",
   "more": "More"
 }

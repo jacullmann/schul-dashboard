@@ -224,6 +224,28 @@
     "previous_month": "Vorheriger Monat",
     "next_month": "Nächster Monat"
   },
+  "loading": "Laden...",
+  "notifications": "Benachrichtigungen",
+  "header": {
+    "toggle_navigation": "Navigationsmenü umschalten",
+    "leave_group": "Gruppe verlassen",
+    "leave_group_confirm": {
+      "title": "Gruppe verlassen?",
+      "content": "Bist du dir sicher, dass du die Gruppe \"{group}\" verlassen willst?",
+      "submit": "Verlassen"
+    }
+  },
+  "not_found": {
+    "title": "Seite nicht gefunden",
+    "description": "Die Seite, die du suchst, existiert nicht oder ist nicht verfügbar.",
+    "links": {
+      "dashboard": "Übersicht der Gruppe",
+      "tasks": "Hausaufgaben, Aufträge und Prüfungen",
+      "schedule": "All deine Unterrichtsstunden",
+      "private": "Deine private Liste von Aufgaben"
+    },
+    "go_back": "Zurück"
+  },
   "preview": "Vorschau",
   "image": "Bild",
   "more": "Mehr"
