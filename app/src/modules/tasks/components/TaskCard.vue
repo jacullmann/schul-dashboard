@@ -203,6 +203,7 @@ watch(
     <template #checkbox>
       <BaseCheckbox
         v-if="user"
+        class="checkbox"
         :checked="isChecked"
         @change="$emit('toggle-check')"
       />
