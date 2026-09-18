@@ -130,7 +130,7 @@ function parseUserAgent(ua: string | null): {
   }
 
   const uaLower = ua.toLowerCase();
-  let browser = 'Unbekannter Browser';
+  let browser = t('auth.sessions.browser.unknown');
   let os = t('auth.sessions.os.unknown');
   let isMobile = false;
 
@@ -212,7 +212,7 @@ onMounted(() => {
         variant="ghost"
         class="!border-danger/30 hover:!bg-danger/10"
         @click="fetchSessions"
-        >Erneut versuchen</BaseButton
+        >{{ t('auth.sessions.actions.retry') }}</BaseButton
       >
     </div>
 

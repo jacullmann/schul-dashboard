@@ -239,7 +239,12 @@ function courseOptionLabel(course: AdminCourse): string {
 
 const targetCourseOptions = computed(() => {
   const sub = selectedLessonSubject.value;
-  const opts = [{ label: 'Alle Kurse des Fachs', value: '' }];
+  const opts = [
+    {
+      label: t('groups.settings.schedule.changes.all_subject_courses'),
+      value: '',
+    },
+  ];
   if (sub && sub.courses && sub.courses.length > 0) {
     sub.courses.forEach((c: AdminCourse) => {
       opts.push({ label: courseOptionLabel(c), value: c.id });
@@ -249,20 +254,20 @@ const targetCourseOptions = computed(() => {
 });
 
 function getSubCourseName(courseId?: string | null): string {
-  if (!courseId) return 'Alle Kurse';
+  if (!courseId) return t('groups.settings.schedule.changes.all_courses');
   for (const s of subjects.value) {
     if (s.courses) {
       const c = s.courses.find((crs: any) => crs.id === courseId);
       if (c) return c.name;
     }
   }
-  return 'Spezifischer Kurs';
+  return t('groups.settings.schedule.changes.specific_course');
 }
 
 function getDisplayName(lesson: Lesson): string {
   const subjectName =
     lesson.subjects?.name || lesson.subject || lesson.subjectAbbr || '';
-  return subjectName || 'Unbekannt';
+  return subjectName || t('common.selection.unknown');
 }
 
 function onLessonSelected(lesson: Lesson) {
@@ -786,7 +791,11 @@ function getSlotTimeRange(startSlot: number, endSlot: number): string {
 // Summary text for selected day & slot at top of modal
 const selectedSlotSummary = computed(() => {
   const dObj = daysList.value.find((d) => d.day === lessonForm.value.day);
-  const dayName = dObj ? dObj.label : `Tag ${lessonForm.value.day}`;
+  const dayName = dObj
+    ? dObj.label
+    : t('groups.settings.schedule.editor.day_fallback', {
+        day: lessonForm.value.day,
+      });
 
   const startSlot = Number(lessonForm.value.slot);
   const duration = Math.max(1, Number(lessonForm.value.duration || 1));
@@ -946,7 +955,7 @@ onBeforeUnmount(() => {
       <template #info>
         <InfoModal
           :tooltip="t('groups.settings.schedule.info.tooltip')"
-          title="Stundenplaneinstellungen"
+          :title="t('groups.settings.schedule.info.title')"
         >
           <h3>
             {{ t('groups.settings.schedule.config.instruction_text') }}
@@ -956,7 +965,10 @@ onBeforeUnmount(() => {
 
       <template #action>
         <div class="flex items-center gap-2">
-          <BaseTooltip v-if="!isEditMode" content="Aktualisieren">
+          <BaseTooltip
+            v-if="!isEditMode"
+            :content="t('common.buttons.refresh')"
+          >
             <BaseButton
               :disabled="loadingLessons || loadingSubs"
               variant="ghost"
@@ -1040,7 +1052,10 @@ onBeforeUnmount(() => {
                 class="flex flex-wrap items-center justify-between gap-2 sm:p-1 sm:rounded-2xl sm:border border-ghost-border sm:bg-surface sm:shadow-input"
               >
                 <div class="flex items-center gap-2">
-                  <BaseTooltip content="Rückgängig (Strg+Z)" placement="bottom">
+                  <BaseTooltip
+                    :content="t('groups.settings.schedule.editor.undo')"
+                    placement="bottom"
+                  >
                     <BaseButton
                       variant="ghost"
                       :icon="Undo2"
@@ -1050,7 +1065,7 @@ onBeforeUnmount(() => {
                   </BaseTooltip>
 
                   <BaseTooltip
-                    content="Wiederholen (Strg+Y)"
+                    :content="t('groups.settings.schedule.editor.redo')"
                     placement="bottom"
                   >
                     <BaseButton
@@ -1067,7 +1082,11 @@ onBeforeUnmount(() => {
 
                   <span
                     class="hidden sm:inline-block text-sm font-semibold text-on-ghost"
-                    >{{ selectedLessonIds.length }} ausgewählt
+                    >{{
+                      t('groups.settings.schedule.changes.selected_count', {
+                        count: selectedLessonIds.length,
+                      })
+                    }}
                   </span>
                 </div>
 
@@ -1245,7 +1264,7 @@ onBeforeUnmount(() => {
           v-if="loadingLessons"
           class="text-center p-8 text-on-ghost-muted text-base"
         >
-          Lade Stundenplan...
+          {{ t('schedule.loading') }}
         </div>
         <AdminSchedule
           v-else
@@ -1305,7 +1324,9 @@ onBeforeUnmount(() => {
             <BaseInput
               id="sub-subject"
               v-model="subForm.subject"
-              placeholder="Deutsch"
+              :placeholder="
+                t('groups.settings.schedule.changes.new_subject_placeholder')
+              "
               :disabled="!canManageScheduleChanges"
             />
           </div>
@@ -1397,7 +1418,7 @@ onBeforeUnmount(() => {
       </div>
 
       <div class="sm:p-6">
-        <h3>Eingetragene Planänderungen</h3>
+        <h3>{{ t('groups.settings.schedule.changes.list_title') }}</h3>
 
         <div
           v-if="subs.length === 0 && !loadingSubs"
@@ -1409,27 +1430,45 @@ onBeforeUnmount(() => {
           <table>
             <thead>
               <tr>
-                <th>Subject</th>
-                <th>Course</th>
-                <th>Room</th>
-                <th>Day</th>
-                <th>Slot</th>
-                <th>Cancelled</th>
-                <th>Hidden</th>
+                <th>
+                  {{ t('groups.settings.schedule.changes.table.subject') }}
+                </th>
+                <th>
+                  {{ t('groups.settings.schedule.changes.table.course') }}
+                </th>
+                <th>{{ t('groups.settings.schedule.changes.table.room') }}</th>
+                <th>{{ t('groups.settings.schedule.changes.table.day') }}</th>
+                <th>{{ t('groups.settings.schedule.changes.table.slot') }}</th>
+                <th>
+                  {{ t('groups.settings.schedule.changes.cancelled_label') }}
+                </th>
+                <th>
+                  {{ t('groups.settings.schedule.changes.hidden_label') }}
+                </th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="sub in subs" :key="sub.id">
-                <td>{{ sub.subject || 'Unbekannt' }}</td>
+                <td>{{ sub.subject || t('common.selection.unknown') }}</td>
                 <td>{{ getSubCourseName(sub.courseId) }}</td>
                 <td>{{ sub.room || '-' }}</td>
                 <td>{{ sub.day || '-' }}</td>
                 <td>{{ sub.slot || '-' }}</td>
                 <td class="text-danger">
-                  {{ sub.cancelled ? 'Ausfall' : '-' }}
+                  {{
+                    sub.cancelled
+                      ? t('groups.settings.schedule.changes.cancelled_label')
+                      : '-'
+                  }}
                 </td>
-                <td>{{ sub.hide ? 'Versteckt' : '-' }}</td>
+                <td>
+                  {{
+                    sub.hide
+                      ? t('groups.settings.schedule.changes.hidden_label')
+                      : '-'
+                  }}
+                </td>
                 <td class="py-0! px-2! min-w-0!">
                   <BaseTooltip
                     :content="t('common.buttons.delete')"
@@ -1476,8 +1515,7 @@ onBeforeUnmount(() => {
         >
           <BookOpen class="size-4 shrink-0" />
           <span>
-            Es sind noch keine Fächer in dieser Gruppe vorhanden. Bitte erstelle
-            zuerst Fächer unter "Fächer" in den Gruppeneinstellungen.
+            {{ t('groups.settings.schedule.editor.no_subjects') }}
           </span>
         </div>
 

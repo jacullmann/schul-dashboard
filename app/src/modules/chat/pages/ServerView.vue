@@ -90,7 +90,7 @@ watch(
   () => chat.value?.isOpponentConnected,
   (isConnected) => {
     if (isConnected === false && session.value?.status === 'active') {
-      toast.info('The user has disconnected from the chat.');
+      toast.info(t('chat.natural_intelligence.server.user_disconnected'));
     }
   },
 );
@@ -153,7 +153,7 @@ const isLockedIn = computed(
 const handleModelChangeRequest = async (newModel: string) => {
   await clearChat();
   selectedModel.value = newModel;
-  toast.info(`Switched to the ${newModel} model. Started a new chat.`);
+  toast.info(t('chat.model_switched', { model: newModel }));
 };
 
 const isWaitingForResponse = computed(() => {
@@ -253,7 +253,10 @@ async function handleFindUser() {
     }
     await startSearching();
   } catch (e: any) {
-    toast.error(e.message || 'Failed to find user');
+    toast.error(
+      e.message ||
+        t('chat.natural_intelligence.server.errors.find_user_failed'),
+    );
   }
 }
 
@@ -263,7 +266,7 @@ async function send() {
   if (!content && !pendingMessage.value) return;
 
   if (session.value?.status !== 'active') {
-    toast.error('You must find a user before sending a message.');
+    toast.error(t('chat.natural_intelligence.server.errors.no_user'));
     return;
   }
 
@@ -308,13 +311,11 @@ async function handleReport(message: UIMessage, reason: string) {
   );
 
   if (isSuccessful) {
-    toast.success('Report submitted successfully. Our team will review it.');
+    toast.success(t('chat.report.submitted'));
   } else if (error.value === 'already_reported') {
-    toast.info(
-      'This message has already been reported. Thank you for your vigilance!',
-    );
+    toast.info(t('chat.report.already_reported'));
   } else {
-    toast.error(error.value || 'Failed to submit report.');
+    toast.error(error.value || t('chat.report.failed'));
   }
 }
 
@@ -333,7 +334,7 @@ const toggleSpeechRecognition = () => {
     (window as any).webkitSpeechRecognition;
 
   if (!SpeechRecognition) {
-    toast.error('Speech recognition is not supported in this browser.');
+    toast.error(t('chat.speech.unsupported'));
     return;
   }
 
@@ -362,7 +363,7 @@ const toggleSpeechRecognition = () => {
     console.error('Speech recognition error', event.error);
     isListening.value = false;
     if (event.error === 'not-allowed') {
-      toast.error('Microphone access denied.');
+      toast.error(t('chat.speech.denied'));
     }
   };
 
@@ -379,7 +380,7 @@ const toggleSpeechRecognition = () => {
     <div
       class="absolute top-2 left-2 bg-surface border border-ghost-border z-1 rounded-full p-1"
     >
-      <BaseTooltip content="New Chat" placement="bottom">
+      <BaseTooltip :content="t('chat.actions.new_chat')" placement="bottom">
         <BaseButton
           variant="ghost"
           class="z-10"
@@ -418,7 +419,10 @@ const toggleSpeechRecognition = () => {
               </div>
             </div>
             <BaseRow class="mt-2 z-10 opacity-0 group-hover:opacity-100 gap-0!">
-              <BaseTooltip content="Report" placement="bottom">
+              <BaseTooltip
+                :content="t('chat.actions.report')"
+                placement="bottom"
+              >
                 <BaseButton
                   variant="ghost"
                   size="sm"
@@ -426,14 +430,17 @@ const toggleSpeechRecognition = () => {
                   @click="handleReport(message, 'Inappropriate content')"
                 />
               </BaseTooltip>
-              <BaseTooltip content="Copy" placement="bottom">
+              <BaseTooltip
+                :content="t('common.buttons.copy')"
+                placement="bottom"
+              >
                 <BaseButton
                   variant="ghost"
                   size="sm"
                   :icon="Copy"
                   @click="
                     (copy(message.content),
-                    toast.success('Copied to clipboard'))
+                    toast.success(t('chat.actions.copied')))
                   "
                 />
               </BaseTooltip>
@@ -501,25 +508,34 @@ const toggleSpeechRecognition = () => {
             v-if="displayMessages.length === 0"
             class="absolute bottom-[calc(100%+3rem)] left-0 w-full text-center"
           >
-            <!-- eslint-disable vue/no-v-html -- static literal markup -->
-            <div
-              class="text-4xl font-normal text-on-ghost mb-2"
-              v-html="
+            <i18n-t
+              :keypath="
                 isLockedIn
-                  ? 'Want to try being an <b>LLM</b>?'
-                  : 'Choose what <b>model</b> to play as'
+                  ? 'chat.natural_intelligence.server.heading_locked'
+                  : 'chat.natural_intelligence.server.heading'
               "
-            ></div>
-            <!-- eslint-enable vue/no-v-html -->
+              tag="div"
+              class="text-4xl font-normal text-on-ghost mb-2"
+            >
+              <template #word>
+                <b>{{
+                  isLockedIn
+                    ? t('chat.natural_intelligence.server.heading_locked_word')
+                    : t('chat.natural_intelligence.server.heading_word')
+                }}</b>
+              </template>
+            </i18n-t>
           </div>
         </Transition>
 
-        <BaseLabel v-if="webSearchEnabled || createImageEnabled" for="tools"
-          >Available Tools:</BaseLabel
-        >
+        <BaseLabel v-if="webSearchEnabled || createImageEnabled" for="tools">{{
+          t('chat.natural_intelligence.server.available_tools')
+        }}</BaseLabel>
         <BaseRow id="tools" class="mb-2">
           <BaseTooltip
-            content="Search Wikipedia for additional information"
+            :content="
+              t('chat.natural_intelligence.server.tools.web_search_description')
+            "
             placement="top"
           >
             <BaseButton
@@ -527,16 +543,23 @@ const toggleSpeechRecognition = () => {
               :icon="Globe"
               variant="ghost"
               @click="webSearch = !webSearch"
-              >Web search</BaseButton
+              >{{ t('chat.tools.web_search') }}</BaseButton
             >
           </BaseTooltip>
-          <BaseTooltip content="Draw a picture" placement="top">
+          <BaseTooltip
+            :content="
+              t(
+                'chat.natural_intelligence.server.tools.create_image_description',
+              )
+            "
+            placement="top"
+          >
             <BaseButton
               v-if="createImageEnabled"
               :icon="ImageIcon"
               variant="ghost"
               @click="createImage = !createImage"
-              >Create image</BaseButton
+              >{{ t('chat.tools.create_image_short') }}</BaseButton
             >
           </BaseTooltip>
         </BaseRow>
@@ -550,7 +573,7 @@ const toggleSpeechRecognition = () => {
               ref="textareaRef"
               :value="userInput"
               rows="1"
-              placeholder="Respond to the user"
+              :placeholder="t('chat.natural_intelligence.server.placeholder')"
               class="w-full py-2 px-3 bg-transparent rounded-none border-none outline-none shadow-none text-on-ghost text-base/6 placeholder:text-on-ghost-subtle resize-none overflow-y-auto max-h-60 block box-border m-0 custom-scrollbar"
               @input="handleInput"
               @keydown.enter.exact.prevent="send"
@@ -592,12 +615,12 @@ const toggleSpeechRecognition = () => {
                     :disabled="isSearching"
                     @click.prevent="handleFindUser"
                   >
-                    Find User
+                    {{ t('chat.natural_intelligence.server.find_user') }}
                   </BaseButton>
                   <BaseTooltip
                     v-else-if="isThinking"
                     key="cancel"
-                    content="Cancel"
+                    :content="t('common.buttons.cancel')"
                     placement="bottom"
                   >
                     <BaseButton
@@ -610,7 +633,7 @@ const toggleSpeechRecognition = () => {
                   <BaseTooltip
                     v-else-if="!userInput || isListening"
                     key="voice"
-                    content="Use voice"
+                    :content="t('chat.actions.use_voice')"
                     placement="bottom"
                   >
                     <BaseButton
@@ -622,7 +645,7 @@ const toggleSpeechRecognition = () => {
                   <BaseTooltip
                     v-else
                     key="submit"
-                    content="Submit"
+                    :content="t('chat.actions.submit')"
                     placement="bottom"
                   >
                     <BaseButton
@@ -651,7 +674,7 @@ const toggleSpeechRecognition = () => {
               key="disclaimer"
               class="text-xs text-center text-on-ghost-subtle m-4 mb-2"
             >
-              Natural Intelligence makes mistakes. Don't share personal data
+              {{ t('chat.natural_intelligence.disclaimer') }}
             </div>
             <BaseRow v-else justify="center">
               <BaseButton
@@ -661,7 +684,7 @@ const toggleSpeechRecognition = () => {
                 class="mt-4"
                 @click="router.push({ name: 'natural-intelligence' })"
               >
-                Learn more
+                {{ t('chat.actions.learn_more') }}
               </BaseButton>
               <BaseButton
                 key="button"
@@ -672,7 +695,7 @@ const toggleSpeechRecognition = () => {
                 class="mt-4"
                 @click="router.push({ name: 'natural-intelligence-chat' })"
               >
-                Talk to an "AI"
+                {{ t('chat.natural_intelligence.server.talk_to_ai') }}
               </BaseButton>
             </BaseRow>
           </Transition>

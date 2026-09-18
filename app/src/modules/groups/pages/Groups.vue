@@ -41,10 +41,10 @@ const greeting = computed(() => {
 
 function roleLabel(role: string): string {
   const map: Record<string, string> = {
-    admin: 'Admin',
-    moderator: 'Moderator',
-    user: 'Member',
-    superadmin: 'Super Admin',
+    admin: t('common.roles.admin'),
+    moderator: t('common.roles.moderator'),
+    user: t('common.roles.member'),
+    superadmin: t('navigation.super_admin'),
   };
   return map[role] || role;
 }

@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const PLAYER_X = 'X';
 const PLAYER_O = 'O';
@@ -23,11 +26,13 @@ const WINNING_COMBOS: [number, number, number][] = [
 const status = computed(() => {
   if (isGameOver.value) {
     if (winningCombination.value.length > 0) {
-      return `Spieler ${currentPlayer.value === PLAYER_X ? PLAYER_O : PLAYER_X} hat gewonnen!`;
+      return t('games.tic_tac_toe.winner', {
+        player: currentPlayer.value === PLAYER_X ? PLAYER_O : PLAYER_X,
+      });
     }
-    return 'Unentschieden!';
+    return t('games.tic_tac_toe.draw');
   }
-  return `Spieler ${currentPlayer.value} ist an der Reihe.`;
+  return t('games.tic_tac_toe.turn', { player: currentPlayer.value });
 });
 
 const checkWinner = (currentBoard: (string | null)[]): boolean => {
@@ -127,7 +132,7 @@ const resetGame = () => {
     </div>
 
     <BaseButton variant="ghost" @click="resetGame">
-      Neues Spiel starten
+      {{ t('games.common.new_game') }}
     </BaseButton>
   </div>
 </template>

@@ -177,7 +177,7 @@ function applyCrop() {
     @cancel="emit('cancel')"
   >
     <template #title>
-      {{ t('common.buttons.edit') || 'Bild anpassen' }}
+      {{ t('groups.settings.general.avatar.cropper.title') }}
     </template>
 
     <template #content>
@@ -192,7 +192,7 @@ function applyCrop() {
         >
           <img
             :src="imageSrc"
-            alt="Crop source"
+            :alt="t('groups.settings.general.avatar.cropper.image_alt')"
             class="absolute pointer-events-none origin-top-left"
             :style="imgStyle"
           />
@@ -232,8 +232,7 @@ function applyCrop() {
         </div>
 
         <p class="text-xs text-on-ghost-muted text-center m-0">
-          Ziehen Sie das Bild zum Ausrichten. Benutzen Sie das Mausrad oder den
-          Schieberegler zum Zoomen.
+          {{ t('groups.settings.general.avatar.cropper.hint') }}
         </p>
       </div>
     </template>

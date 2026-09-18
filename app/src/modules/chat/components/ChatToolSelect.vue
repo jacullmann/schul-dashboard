@@ -6,6 +6,7 @@ import {
   Brain,
   CalendarFold,
 } from '@lucide/vue';
+import { useI18n } from 'vue-i18n';
 import { useFloatingMenu } from '@/common/composables/useFloatingMenu';
 import { useIsMobileViewport } from '@/common/composables/useViewport';
 
@@ -20,6 +21,7 @@ const { isOpen, triggerRef, menuComponentRef, menuStyles, toggle, close } =
   useFloatingMenu();
 
 const isMobile = useIsMobileViewport();
+const { t } = useI18n();
 </script>
 
 <template>
@@ -32,10 +34,10 @@ const isMobile = useIsMobileViewport();
       :aria-expanded="isOpen"
       @click="toggle"
     >
-      Tools
+      {{ t('chat.tools.title') }}
     </BaseButton>
 
-    <BaseTooltip v-else content="Tools" placement="bottom">
+    <BaseTooltip v-else :content="t('chat.tools.title')" placement="bottom">
       <BaseButton
         :icon="Settings2"
         :class="{ 'bg-surface-hover! text-on-ghost!': isOpen }"
@@ -59,10 +61,10 @@ const isMobile = useIsMobileViewport();
           :active="webSearch"
           @click="((webSearch = !webSearch), close())"
         >
-          Web search
-          <template #description
-            >Search the Internet for additional information</template
-          >
+          {{ t('chat.tools.web_search') }}
+          <template #description>{{
+            t('chat.tools.web_search_description')
+          }}</template>
         </BaseMenuButton>
         <BaseMenuButton
           :icon="ImageIcon"
@@ -70,8 +72,10 @@ const isMobile = useIsMobileViewport();
           :active="createImage"
           @click="((createImage = !createImage), close())"
         >
-          Create Image
-          <template #description>Design anything you can imagine</template>
+          {{ t('chat.tools.create_image') }}
+          <template #description>{{
+            t('chat.tools.create_image_description')
+          }}</template>
         </BaseMenuButton>
         <BaseMenuButton
           :icon="Brain"
@@ -79,10 +83,10 @@ const isMobile = useIsMobileViewport();
           :active="ponder"
           @click="((ponder = !ponder), close())"
         >
-          Ponder
-          <template #description
-            >Think longer for more profound answers</template
-          >
+          {{ t('chat.tools.ponder') }}
+          <template #description>{{
+            t('chat.tools.ponder_description')
+          }}</template>
         </BaseMenuButton>
         <!-- TODO: Choose Icon: CalendarFold or Coffee -->
         <BaseMenuButton
@@ -91,10 +95,10 @@ const isMobile = useIsMobileViewport();
           :active="answerLeisurely"
           @click="((answerLeisurely = !answerLeisurely), close())"
         >
-          Answer leisurely
-          <template #description
-            >Queue your requests, if you aren't in a hurry</template
-          >
+          {{ t('chat.tools.answer_leisurely') }}
+          <template #description>{{
+            t('chat.tools.answer_leisurely_description')
+          }}</template>
         </BaseMenuButton>
       </BaseMenu>
     </Teleport>

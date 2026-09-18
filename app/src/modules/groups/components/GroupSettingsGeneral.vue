@@ -277,7 +277,7 @@ async function confirmDeleteGroup() {
               :disabled="savingAvatar"
               @click="triggerUploadAndClose"
             >
-              Bild hochladen
+              {{ t('groups.settings.general.avatar.actions.upload') }}
             </BaseMenuButton>
 
             <BaseMenuButton
@@ -285,7 +285,7 @@ async function confirmDeleteGroup() {
               :disabled="savingAvatar"
               @click="triggerCameraCaptureAndClose"
             >
-              Bild aufnehmen
+              {{ t('groups.settings.general.avatar.actions.capture') }}
             </BaseMenuButton>
 
             <BaseMenuDivider v-if="activeGroupAvatarUrl" />
@@ -297,7 +297,7 @@ async function confirmDeleteGroup() {
               :disabled="savingAvatar"
               @click="deleteAvatarAndClose"
             >
-              Bild löschen
+              {{ t('groups.settings.general.avatar.actions.delete') }}
             </BaseMenuButton>
           </BaseMenu>
         </div>
@@ -455,9 +455,7 @@ async function confirmDeleteGroup() {
         {{ t('groups.settings.general.delete_group.danger_zone_title') }}
       </h3>
       <p class="text-base/relaxed text-on-ghost-muted m-0 mb-5">
-        Das Löschen der Gruppe ist endgültig und kann nicht rückgängig gemacht
-        werden. Alle damit verbundenen Daten (Aufgaben, Klausuren, Ankündigungen
-        etc.) werden für alle Benutzer gelöscht.
+        {{ t('groups.settings.general.delete_group.warning_text') }}
       </p>
 
       <BaseForm
@@ -470,8 +468,16 @@ async function confirmDeleteGroup() {
         <template #content>
           <BaseFormGroup id="delete-confirm">
             <BaseLabel for="delete-confirm"
-              >Bitte geben Sie <strong>delete {{ groupName }}</strong> ein, um
-              fortzufahren:
+              >{{
+                t(
+                  'groups.settings.general.delete_group.confirmation_label_prefix',
+                )
+              }}<strong>delete {{ groupName }}</strong
+              >{{
+                t(
+                  'groups.settings.general.delete_group.confirmation_label_suffix',
+                )
+              }}
             </BaseLabel>
             <BaseInput
               id="delete-confirm"

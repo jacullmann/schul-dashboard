@@ -13,6 +13,7 @@ import welcome from './welcome.json';
 import search from './search.json';
 import tools from './tools.json';
 import dashboard from './dashboard.json';
+import admin from './admin.json';
 
 export default {
   auth,
@@ -30,4 +31,5 @@ export default {
   search,
   tools,
   dashboard,
+  admin,
 };

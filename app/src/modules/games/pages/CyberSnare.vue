@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useCyberSnare } from '@/modules/games/composables/useCyberSnare';
+
+const { t } = useI18n();
 
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 const monitorRef = ref<HTMLElement | null>(null);
@@ -38,7 +41,7 @@ onBeforeUnmount(() => destroy());
     <div v-if="gameState === 'PLAYING'" id="ui-layer">
       <div id="top-hud">
         <div class="hud-text">
-          SCORE: <span>{{ score }}</span>
+          {{ t('games.cyber_snare.hud.score') }} <span>{{ score }}</span>
         </div>
         <div
           class="hud-text"
@@ -47,10 +50,12 @@ onBeforeUnmount(() => destroy());
             text-shadow: 0 0 5px var(--neon-yellow);
           "
         >
-          FREE SPACE: <span>{{ driveSpace }}</span> KB
+          {{ t('games.cyber_snare.hud.free_space') }}
+          <span>{{ driveSpace }}</span>
+          {{ t('games.cyber_snare.kb') }}
         </div>
         <div class="hud-text">
-          INTEGRITY: <span>{{ lives }}</span>
+          {{ t('games.cyber_snare.hud.integrity') }} <span>{{ lives }}</span>
         </div>
       </div>
       <div id="energy-container">
@@ -69,22 +74,25 @@ onBeforeUnmount(() => destroy());
     <div v-if="gameState === 'START'" class="screen">
       <h1>CYBER_SNARE</h1>
       <p>
-        System infiltrated. You are the anti-virus.<br /><br />
-        <strong>HOLD LEFT CLICK / TOUCH</strong> to draw an energy tether.<br />
-        <strong>CROSS YOUR OWN TETHER</strong> to close a loop and execute a
-        Snare.<br />
-        Trap viruses inside the Snare to destroy them.<br /><br />
-        <em>WARNING:</em> If a virus touches your tether before you close it,
-        your integrity drops.
+        {{ t('games.cyber_snare.start.intro') }}<br /><br />
+        <strong>{{ t('games.cyber_snare.start.hold') }}</strong>
+        {{ t('games.cyber_snare.start.hold_text') }}<br />
+        <strong>{{ t('games.cyber_snare.start.cross') }}</strong>
+        {{ t('games.cyber_snare.start.cross_text') }}<br />
+        {{ t('games.cyber_snare.start.trap') }}<br /><br />
+        <em>{{ t('games.cyber_snare.start.warning') }}</em>
+        {{ t('games.cyber_snare.start.warning_text') }}
       </p>
-      <button class="cs-btn" @click="startGame">INITIALIZE</button>
+      <button class="cs-btn" @click="startGame">
+        {{ t('games.cyber_snare.start.initialize') }}
+      </button>
     </div>
 
     <!-- Game Over Screen -->
     <div v-if="gameState === 'GAMEOVER'" class="screen">
-      <h1>SYSTEM FAILURE</h1>
-      <h2>FINAL SCORE: {{ score }}</h2>
-      <p>Integrity compromised. Sector overrun.</p>
+      <h1>{{ t('games.cyber_snare.game_over.title') }}</h1>
+      <h2>{{ t('games.cyber_snare.game_over.final_score', { score }) }}</h2>
+      <p>{{ t('games.cyber_snare.game_over.text') }}</p>
       <div style="display: flex; gap: 20px">
         <button
           class="cs-btn"
@@ -95,29 +103,45 @@ onBeforeUnmount(() => destroy());
           "
           @click="openUpgrades"
         >
-          ACCESS UPGRADES
+          {{ t('games.cyber_snare.game_over.upgrades') }}
         </button>
-        <button class="cs-btn" @click="restartGame">REBOOT SYSTEM</button>
+        <button class="cs-btn" @click="restartGame">
+          {{ t('games.cyber_snare.game_over.reboot') }}
+        </button>
       </div>
     </div>
 
     <!-- Upgrade Screen -->
     <div v-if="gameState === 'UPGRADE'" class="screen" style="padding: 40px">
-      <h1 style="font-size: 3rem">TERMINAL ROOT ACCESS</h1>
-      <div class="stat-header">AVAILABLE FREE SPACE: {{ driveSpace }} KB</div>
+      <h1 style="font-size: 3rem">
+        {{ t('games.cyber_snare.upgrades.title') }}
+      </h1>
+      <div class="stat-header">
+        {{ t('games.cyber_snare.upgrades.available', { space: driveSpace }) }}
+      </div>
       <div class="upgrade-container">
         <div v-for="(u, key) in meta.upgrades" :key="key" class="upgrade-card">
           <div>
             <h3>
-              {{ u.name }} {{ key === 'heal' ? '' : `(LVL ${u.lvl}/${u.max})` }}
+              {{ t(u.name) }}
+              {{
+                key === 'heal'
+                  ? ''
+                  : t('games.cyber_snare.upgrades.level', {
+                      lvl: u.lvl,
+                      max: u.max,
+                    })
+              }}
             </h3>
-            <p>{{ u.desc }}</p>
+            <p>{{ t(u.desc) }}</p>
           </div>
           <div class="card-footer">
             <span class="cost">{{
               isUpgradeMaxed(key as string)
                 ? '---'
-                : getUpgradeCost(key as string) + ' KB'
+                : getUpgradeCost(key as string) +
+                  ' ' +
+                  t('games.cyber_snare.kb')
             }}</span>
             <button
               class="dl-btn"
@@ -130,16 +154,16 @@ onBeforeUnmount(() => destroy());
               {{
                 isUpgradeMaxed(key as string)
                   ? key === 'heal'
-                    ? 'FULL'
-                    : 'MAXED'
-                  : 'DOWNLOAD'
+                    ? t('games.cyber_snare.upgrades.full')
+                    : t('games.cyber_snare.upgrades.maxed')
+                  : t('games.cyber_snare.upgrades.download')
               }}
             </button>
           </div>
         </div>
       </div>
       <button class="cs-btn" style="margin-top: 20px" @click="closeUpgrades">
-        CLOSE TERMINAL
+        {{ t('games.cyber_snare.upgrades.close') }}
       </button>
     </div>
   </div>

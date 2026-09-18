@@ -92,7 +92,9 @@ onMounted(initGame);
     <div v-if="isGameOver" class="game-over">
       <h3>{{ t('games.memory.victory_title') }}</h3>
       <p>{{ t('games.memory.victory_message', { moves }) }}</p>
-      <BaseButton @click="initGame">Nochmal spielen</BaseButton>
+      <BaseButton @click="initGame">{{
+        t('games.common.play_again')
+      }}</BaseButton>
     </div>
   </div>
 </template>

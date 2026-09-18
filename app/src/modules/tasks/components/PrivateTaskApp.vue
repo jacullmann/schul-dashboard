@@ -131,7 +131,7 @@ function moveTask(from: number, to: number) {
       ? privateTasks.value.find((t) => t.id === item.id)?.position || null
       : null;
 
-  void reorderPrivateTask(
+  reorderPrivateTask(
     moved.id,
     realPosition(order[to - 1]),
     realPosition(order[to + 1]),

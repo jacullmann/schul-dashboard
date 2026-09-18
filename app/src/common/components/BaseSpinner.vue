@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = withDefaults(
   defineProps<{
@@ -39,7 +42,7 @@ const center = computed(() => sizeNum.value / 2);
     class="premium-spinner"
     role="status"
     aria-live="polite"
-    aria-label="Loading..."
+    :aria-label="t('common.loading')"
   >
     <circle
       :cx="center"

@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import GeneratedAvatar from '@/modules/auth/components/GeneratedAvatar.vue';
+
+const { t } = useI18n();
 
 const props = withDefaults(
   defineProps<{
@@ -32,7 +35,7 @@ const avatarStyle = computed(() => {
     <img
       v-if="picture"
       :src="picture"
-      alt="Profile Picture"
+      :alt="t('auth.avatar.alt')"
       class="w-full h-full object-cover rounded-full"
     />
 

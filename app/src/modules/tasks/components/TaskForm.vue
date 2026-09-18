@@ -205,7 +205,7 @@ const {
                 class="block w-full h-full object-cover"
                 loading="lazy"
                 decoding="async"
-                alt="Vorschau"
+                :alt="t('common.preview')"
               />
             </BaseLink>
 
@@ -313,7 +313,7 @@ const {
               <img
                 :src="makeThumb(img.metadata?.thumbnailId || img.publicId)"
                 class="block h-full w-full object-cover [pointer-events:none]"
-                alt="Vorschau"
+                :alt="t('common.preview')"
               />
             </div>
           </div>

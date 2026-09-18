@@ -41,7 +41,7 @@ defineExpose({
     ref="buttonEl"
     v-wave
     type="button"
-    class="group flex justify-between items-center w-full text-left border-0 py-2 gap-4 cursor-pointer transition-hover user-select-none"
+    class="flex justify-between items-center w-full text-left border-0 py-2 gap-4 cursor-pointer transition-hover user-select-none"
     :class="[
       variant === 'danger'
         ? 'text-danger hover:bg-danger-hover'
@@ -110,12 +110,7 @@ defineExpose({
       <ChevronRight
         v-if="isSubmenu"
         :size="18"
-        class="shrink-0 transition-hover"
-        :class="
-          forceHover
-            ? 'text-on-ghost '
-            : 'text-on-ghost-muted group-hover:text-on-ghost'
-        "
+        class="shrink-0 transition-hover text-on-ghost-muted"
       />
     </span>
 

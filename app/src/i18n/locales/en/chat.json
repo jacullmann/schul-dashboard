@@ -28,5 +28,146 @@
     "reading": "Reading",
     "creating_image": "Generating Image",
     "executing_terminal": "Running Terminal"
+  },
+  "actions": {
+    "new_chat": "New Chat",
+    "report": "Report",
+    "use_voice": "Use voice",
+    "submit": "Submit",
+    "copied": "Copied to clipboard",
+    "learn_more": "Learn more"
+  },
+  "steps": "{n} step | {n} steps",
+  "speech": {
+    "unsupported": "Speech recognition is not supported in this browser.",
+    "denied": "Microphone access denied."
+  },
+  "report": {
+    "submitted": "Report submitted successfully. Our team will review it.",
+    "already_reported": "This message has already been reported. Thank you for your vigilance!",
+    "failed": "Failed to submit report.",
+    "errors": {
+      "unauthenticated": "You must be authenticated to submit a report.",
+      "missing_fields": "Missing required report fields.",
+      "generic": "An error occurred while submitting the report."
+    }
+  },
+  "model_switched": "Switched to the {model} model. Started a new chat.",
+  "tools": {
+    "title": "Tools",
+    "web_search": "Web search",
+    "web_search_description": "Search the Internet for additional information",
+    "create_image": "Create Image",
+    "create_image_short": "Create image",
+    "create_image_description": "Design anything you can imagine",
+    "ponder": "Ponder",
+    "ponder_description": "Think longer for more profound answers",
+    "answer_leisurely": "Answer leisurely",
+    "answer_leisurely_description": "Queue your requests, if you aren't in a hurry"
+  },
+  "files": {
+    "add": "Add files",
+    "draw_image": "Draw Image"
+  },
+  "models": {
+    "instant_description": "Swift answers for simple tasks",
+    "pro_description": "Thinking for everyday tasks",
+    "ultra_description": "Deep reasoning for complex tasks"
+  },
+  "ai": {
+    "model_switched": "Switched to {model} model. Started a new chat.",
+    "api_key": {
+      "title": "Gemini API Key",
+      "description": "Please enter your Gemini API Key. This key is only saved locally in your browser's LocalStorage and is sent directly to Gemini servers.",
+      "saved": "API Key saved successfully.",
+      "removed": "API Key removed.",
+      "missing": "Please enter your Gemini API Key first."
+    },
+    "generation_cancelled": "Generation cancelled.",
+    "errors": {
+      "message": "Error: {message}",
+      "generate_failed": "Failed to generate response",
+      "api_failed": "Failed to communicate with Gemini API."
+    },
+    "report_success": "Thank you for your feedback! Flagged this message.",
+    "sources": "Sources:",
+    "heading": "Have a conversation with {name} AI",
+    "placeholder": "Ask Gemini...",
+    "disclaimer": "Gemini makes mistakes. Don't share personal data.",
+    "source_fallback": "Source",
+    "image_alt": "Image"
+  },
+  "natural_intelligence": {
+    "title": "Natural Intelligence",
+    "disclaimer": "Natural Intelligence makes mistakes. Don't share personal data",
+    "errors": {
+      "join_failed": "Failed to join game",
+      "search_failed": "Failed to start searching",
+      "join_first": "You must join the game first."
+    },
+    "chat": {
+      "heading": "Tired of talking to {word} intelligence?",
+      "heading_word": "artificial",
+      "placeholder": "Ask Natural Intelligence",
+      "become_ai": "Become an AI"
+    },
+    "server": {
+      "user_disconnected": "The user has disconnected from the chat.",
+      "errors": {
+        "find_user_failed": "Failed to find user",
+        "no_user": "You must find a user before sending a message."
+      },
+      "heading_locked": "Want to try being an {word}?",
+      "heading_locked_word": "LLM",
+      "heading": "Choose what {word} to play as",
+      "heading_word": "model",
+      "available_tools": "Available Tools:",
+      "placeholder": "Respond to the user",
+      "find_user": "Find User",
+      "talk_to_ai": "Talk to an \"AI\"",
+      "tools": {
+        "web_search_description": "Search Wikipedia for additional information",
+        "create_image_description": "Draw a picture",
+        "terminal": "Terminal",
+        "terminal_description": "Perform basic commands",
+        "reasoning": "Give Reasoning",
+        "reasoning_description": "Show your chain of thought"
+      },
+      "wikipedia": {
+        "placeholder": "Search Wikipedia...",
+        "searching": "Searching Wikipedia...",
+        "no_results": "No results found for \"{query}\"",
+        "words": "{count} words",
+        "empty": "Type something to search on Wikipedia",
+        "back": "Back to results",
+        "hint_navigate": "to navigate",
+        "hint_open": "to open",
+        "hint_close": "to close",
+        "article_unavailable": "Could not load article content.",
+        "article_failed": "Failed to load article content."
+      }
+    },
+    "landing": {
+      "heading": "Tired of {word} intelligence?",
+      "heading_word": "artificial",
+      "description": "Can machines replace humans? Experience natural intelligence or try working as an AI model and compete against artificial intelligence.",
+      "cta": "Try Natural Intelligence now",
+      "no_signup": "No sign up required!",
+      "how_it_works": {
+        "title": "How it works",
+        "intro": "Natural Intelligence works as the interface between two humans. It features two modes:",
+        "chat": {
+          "title": "Chat",
+          "text": "The user sees a normal chat interface and sends a request. Once another human player is found, the user has to wait until he receives an answer upon which he can keep chatting or start a new chat. The user can manage different settings which dictate what tools the other player has access to and how long he can think about the answer."
+        },
+        "server": {
+          "title": "Server",
+          "text": "The user sees an interface which simulates the tools and information an LLM can access. The goal is to answer the requests send by the other as good as possible. To achieve this, the user can use tools to search the web or use a drawing pad."
+        }
+      }
+    }
+  },
+  "errors": {
+    "send_failed": "Failed to send message."
   }
 }

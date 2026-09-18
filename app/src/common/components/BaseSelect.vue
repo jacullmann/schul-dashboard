@@ -10,6 +10,7 @@ const { t } = useI18n();
 export interface UnitOption {
   label: string;
   value: string;
+  hint?: string;
 }
 
 const props = withDefaults(
@@ -82,6 +83,10 @@ const toggleMenu = async () => {
   }
 };
 
+const selectedOption = computed(() =>
+  props.options.find((o) => o.value === props.modelValue),
+);
+
 const selectOption = (value: string) => {
   emit('update:modelValue', value);
   isOpen.value = false;
@@ -120,16 +125,16 @@ onClickOutside(
       :icon="ChevronDown"
       icon-placement="trailing"
       :icon-classes="
-        'ml-auto shrink-0 transition duration-200 ease-in-out' +
+        'text-on-ghost-muted ml-auto shrink-0 transition duration-200 ease-in-out' +
         (isOpen ? ' rotate-180' : '')
       "
       @click="toggleMenu"
     >
       <span class="truncate">
-        {{
-          options.find((o) => o.value === modelValue)?.label ||
-          t('common.selection.placeholder')
-        }}
+        {{ selectedOption?.label || t('common.selection.placeholder') }}
+        <span v-if="selectedOption?.hint" class="text-on-ghost-muted">{{
+          selectedOption.hint
+        }}</span>
       </span>
     </BaseButton>
 
@@ -150,6 +155,9 @@ onClickOutside(
           @click="selectOption(option.value)"
         >
           {{ option.label }}
+          <span v-if="option.hint" class="text-on-ghost-muted">{{
+            option.hint
+          }}</span>
         </BaseMenuButton>
       </BaseMenu>
     </Teleport>

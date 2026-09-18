@@ -31,5 +31,7 @@
     "reading": "Lesen",
     "creating_image": "Bild erstellen",
     "executing_terminal": "Terminal ausführen"
-  }
+  },
+  "scroll_down": "Nach unten",
+  "reload": "Erneut laden"
 }

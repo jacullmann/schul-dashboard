@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { House, ListTodo, CalendarDays, Lock, ArrowLeft } from '@lucide/vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 
 const router = useRouter();
+const { t } = useI18n();
 
 const { activeGroupId } = useAppAuth();
 
@@ -29,12 +31,12 @@ const goBack = () => {
       <h1
         class="font-display text-[32px] font-semibold text-on-ghost m-0 mb-3 max-md:text-[24px] animate-fade-up"
       >
-        Page not found
+        {{ t('common.not_found.title') }}
       </h1>
       <p
         class="text-base text-on-ghost-muted m-0 mb-12 max-w-[500px] max-md:text-sm max-md:mb-8 animate-fade-up"
       >
-        The page you're looking for doesn't exist or isn't available.
+        {{ t('common.not_found.description') }}
       </p>
 
       <div class="w-full mb-8 animate-fade-up">
@@ -55,10 +57,10 @@ const goBack = () => {
             </div>
             <div class="flex-1 text-left">
               <div class="text-[15px] font-semibold text-on-ghost mb-[2px]">
-                Dashboard
+                {{ t('common.sidebar.dashboard') }}
               </div>
               <div class="text-[13px] text-on-ghost-muted">
-                Overview of the group
+                {{ t('common.not_found.links.dashboard') }}
               </div>
             </div>
           </router-link>
@@ -74,10 +76,10 @@ const goBack = () => {
             </div>
             <div class="flex-1 text-left">
               <div class="text-[15px] font-semibold text-on-ghost mb-[2px]">
-                Tasks
+                {{ t('common.sidebar.tasks') }}
               </div>
               <div class="text-[13px] text-on-ghost-muted">
-                Homework, assignments and exams
+                {{ t('common.not_found.links.tasks') }}
               </div>
             </div>
           </router-link>
@@ -93,10 +95,10 @@ const goBack = () => {
             </div>
             <div class="flex-1 text-left">
               <div class="text-[15px] font-semibold text-on-ghost mb-[2px]">
-                Schedule
+                {{ t('common.sidebar.schedule') }}
               </div>
               <div class="text-[13px] text-on-ghost-muted">
-                All of your lessons
+                {{ t('common.not_found.links.schedule') }}
               </div>
             </div>
           </router-link>
@@ -112,10 +114,10 @@ const goBack = () => {
             </div>
             <div class="flex-1 text-left">
               <div class="text-[15px] font-semibold text-on-ghost mb-[2px]">
-                Private Tasks
+                {{ t('common.sidebar.private') }}
               </div>
               <div class="text-[13px] text-on-ghost-muted">
-                Your private list of tasks
+                {{ t('common.not_found.links.private') }}
               </div>
             </div>
           </router-link>
@@ -124,7 +126,7 @@ const goBack = () => {
 
       <div class="mt-4 animate-fade-up">
         <BaseButton variant="ghost" :icon="ArrowLeft" @click="goBack">
-          Go back
+          {{ t('common.not_found.go_back') }}
         </BaseButton>
       </div>
     </div>

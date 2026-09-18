@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { ArrowDown } from '@lucide/vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 defineProps<{
   show: boolean;
@@ -16,7 +19,7 @@ const emit = defineEmits<{
       v-if="show"
       variant="action"
       class="row-start-1 col-start-1 z-10 self-end justify-self-end mb-8 mr-4 md:mb-12 md:mr-8"
-      title="Nach unten"
+      :title="t('chat.scroll_down')"
       :icon="ArrowDown"
       @click="emit('click')"
     />

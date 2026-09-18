@@ -67,10 +67,11 @@ const emit = defineEmits<{
       class="flex items-center justify-between bg-surface border border-ghost-border rounded-2xl p-4 gap-4 mb-6 sm:flex-col sm:items-start"
     >
       <div class="flex items-center gap-2 text-base text-on-ghost-muted">
-        <span
-          >{{ stats?.oldItemsCount }} Aufgaben älter als 90 Tage können gelöscht
-          werden.</span
-        >
+        <span>{{
+          t('groups.settings.overview.cleanup.info', {
+            count: stats?.oldItemsCount,
+          })
+        }}</span>
       </div>
       <BaseRow justify="end" class="w-full">
         <BaseButton

@@ -10,6 +10,18 @@ type Result = 'Gewonnen' | 'Verloren' | 'Unentschieden' | null;
 
 const choices: Move[] = ['Schere', 'Stein', 'Papier'];
 
+const moveKeys: Record<Move, string> = {
+  Schere: 'scissors',
+  Stein: 'rock',
+  Papier: 'paper',
+};
+
+const resultKeys: Record<NonNullable<Result>, string> = {
+  Gewonnen: 'won',
+  Verloren: 'lost',
+  Unentschieden: 'draw',
+};
+
 const playerChoice = ref<Choice>(null);
 const computerChoice = ref<Choice>(null);
 const gameResult = ref<Result>(null);
@@ -40,7 +52,11 @@ const status = computed(() => {
   if (!isGameOver.value) {
     return t('games.rps.computer_thinking');
   }
-  return `Ergebnis: ${gameResult.value}!`;
+  return t('games.rps.result', {
+    result: gameResult.value
+      ? t(`games.rps.results.${resultKeys[gameResult.value]}`)
+      : '',
+  });
 });
 
 const resultClass = computed(() => {
@@ -92,7 +108,7 @@ const resetGame = () => {
       <div class="vs-text">VS</div>
 
       <div class="choice-card computer-choice">
-        <h3>Computer</h3>
+        <h3>{{ t('games.rps.computer') }}</h3>
         <div class="icon-box">
           <span v-if="computerChoice" class="icon-emoji">{{
             choiceEmojis[computerChoice]
@@ -113,12 +129,13 @@ const resetGame = () => {
         class="btn-choice"
         @click="makeMove(choice)"
       >
-        {{ choiceEmojis[choice] }} {{ choice }}
+        {{ choiceEmojis[choice] }}
+        {{ t(`games.rps.moves.${moveKeys[choice]}`) }}
       </BaseButton>
     </div>
 
     <BaseButton v-if="isGameOver" class="btn-reset" @click="resetGame">
-      Neues Spiel starten
+      {{ t('games.common.new_game') }}
     </BaseButton>
   </div>
 </template>

@@ -198,6 +198,7 @@ export function usePrivateTasks() {
     for (const [id, entry] of toggleSync) {
       if (entry.timer !== undefined) void flushToggleSync(id);
     }
+    if (reorderTimer !== undefined) void flushReorders();
   });
 
   const duplicatePrivateTask = async (task: PrivateTask) => {
@@ -249,15 +250,29 @@ export function usePrivateTasks() {
     }
   };
 
-  const reorderPrivateTask = async (
+  // A drop reorders the list instantly; the API calls wait until the user
+  // stops rearranging, then go out one at a time. Each request names its
+  // neighbours by server-issued keys only: the keys guessed locally for moved
+  // tasks are not in the server's format and would be rejected. The server
+  // keys are applied once the whole batch is through, so the list never
+  // re-sorts halfway through against a mix of guessed and real keys.
+  const REORDER_SYNC_DELAY = 1000;
+
+  // Ids waiting to be sent, in the order they were first moved
+  const reorderQueue = new Set<string>();
+  const reorderConfirmed = new Map<
+    string,
+    { position: string; updatedAt: string }
+  >();
+  let reorderTimer: number | undefined;
+  let reorderInFlight: string | null = null;
+
+  const reorderPrivateTask = (
     id: string,
     prevPosition: string | null,
     nextPosition: string | null,
   ) => {
-    const idx = privateTasks.value.findIndex((t) => t.id === id);
-    if (idx === -1) return;
-
-    const task = privateTasks.value[idx];
+    const task = findPrivateTask(id);
     if (!task) return;
 
     if (prevPosition || nextPosition) {
@@ -266,20 +281,75 @@ export function usePrivateTasks() {
 
     syncState();
 
+    reorderQueue.add(id);
+    clearTimeout(reorderTimer);
+    reorderTimer = window.setTimeout(
+      () => void flushReorders(),
+      REORDER_SYNC_DELAY,
+    );
+  };
+
+  const isReorderPending = (id: string) =>
+    reorderQueue.has(id) || reorderInFlight === id;
+
+  // Nearest task in `step` direction whose server key is known
+  const confirmedNeighbourPosition = (index: number, step: 1 | -1) => {
+    const list = displayPrivateTasks.value;
+    for (let i = index + step; i >= 0 && i < list.length; i += step) {
+      const task = list[i];
+      if (!task || isReorderPending(task.id)) continue;
+      return reorderConfirmed.get(task.id)?.position ?? (task.position || null);
+    }
+    return null;
+  };
+
+  const flushReorders = async () => {
+    clearTimeout(reorderTimer);
+    reorderTimer = undefined;
+    if (reorderInFlight) return;
+
     try {
-      const { data } = await hw.patch(`/todos/${id}/reorder`, {
-        prevPosition,
-        nextPosition,
-      });
-      updatePrivateTask({
-        ...task,
-        position: data.position,
-        updatedAt: data.updatedAt,
-      });
-    } catch (e: any) {
+      // A new drop restarts the timer and pauses the batch until it fires
+      while (reorderTimer === undefined) {
+        const id = reorderQueue.values().next().value;
+        if (id === undefined) break;
+        reorderQueue.delete(id);
+
+        const index = displayPrivateTasks.value.findIndex((t) => t.id === id);
+        if (index === -1) continue;
+
+        reorderInFlight = id;
+        const { data } = await hw.patch(`/todos/${id}/reorder`, {
+          prevPosition: confirmedNeighbourPosition(index, -1),
+          nextPosition: confirmedNeighbourPosition(index, 1),
+        });
+        reorderInFlight = null;
+        reorderConfirmed.set(id, {
+          position: data.position,
+          updatedAt: data.updatedAt,
+        });
+      }
+    } catch (e) {
+      reorderInFlight = null;
+      reorderQueue.clear();
+      reorderConfirmed.clear();
+      clearTimeout(reorderTimer);
+      reorderTimer = undefined;
       void loadPrivateTasks();
       useToast().error(apiErrorMessage(e, t('common.errors.update')));
+      return;
     }
+
+    if (reorderQueue.size || reorderTimer !== undefined) return;
+
+    for (const [id, confirmed] of reorderConfirmed) {
+      const task = findPrivateTask(id);
+      if (!task) continue;
+      task.position = confirmed.position;
+      task.updatedAt = confirmed.updatedAt;
+    }
+    reorderConfirmed.clear();
+    syncState();
   };
 
   onMounted(() => {

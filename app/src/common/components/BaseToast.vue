@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useToast, type Toast } from '@/common/composables/useToast';
 import { Check, AlertTriangle, CircleX, Info, X } from '@lucide/vue';
 
 const { toasts, dismiss, setIsHovered } = useToast();
+const { t } = useI18n();
 
 const ICONS = {
   success: Check,
@@ -116,7 +118,7 @@ const hitBoxHeight = computed(() => {
     <div
       class="fixed top-6 right-6 z-(--z-toast) max-w-[min(400px,calc(100vw-48px))] w-full max-sm:top-4 max-sm:right-0 max-sm:left-0 max-sm:max-w-[calc(100vw-32px)] max-sm:mx-auto"
       role="region"
-      aria-label="Notifications"
+      :aria-label="t('common.notifications')"
       aria-live="polite"
       style="pointer-events: none"
     >

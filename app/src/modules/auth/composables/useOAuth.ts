@@ -16,12 +16,12 @@ export function useOAuth() {
   const { t } = useI18n();
 
   const ERROR_MESSAGES: Record<string, string> & { server_error: string } = {
-    access_denied: 'Google-Anmeldung abgebrochen.',
-    invalid_state: 'Sicherheitsfehler. Bitte erneut versuchen.',
+    access_denied: t('auth.google_link.errors.access_denied'),
+    invalid_state: t('auth.google_link.errors.invalid_state'),
     token_invalid: t('auth.google_link.errors.token_invalid'),
-    token_exchange_failed: 'Verbindung zu Google fehlgeschlagen.',
+    token_exchange_failed: t('auth.google_link.errors.token_exchange_failed'),
     invalid_request: t('auth.google_link.errors.invalid_request'),
-    server_error: 'Ein Serverfehler ist aufgetreten.',
+    server_error: t('auth.google_link.errors.server_error'),
   };
 
   function initiateGoogleLogin(): void {
@@ -88,7 +88,10 @@ export function useOAuth() {
     } catch (err: unknown) {
       return {
         ok: false,
-        error: apiErrorMessage(err, 'Trennen fehlgeschlagen.'),
+        error: apiErrorMessage(
+          err,
+          t('auth.connected_accounts.errors.unlink_failed'),
+        ),
       };
     }
   }

@@ -18,6 +18,8 @@
     "cancelled": "Ausfall",
     "room_change": "In {room} statt {original}",
     "setup_cta": "Es wurde noch kein Stundenplan für diese Gruppe erstellt.",
-    "setup_button": "Stundenplan einrichten"
+    "setup_button": "Stundenplan einrichten",
+    "slot": "{slot}. Stunde",
+    "no_room": "Kein Raum"
   }
 }

@@ -6,6 +6,7 @@ import {
   Terminal,
   Lightbulb,
 } from '@lucide/vue';
+import { useI18n } from 'vue-i18n';
 import { useFloatingMenu } from '@/common/composables/useFloatingMenu';
 import { useIsMobileViewport } from '@/common/composables/useViewport';
 
@@ -18,6 +19,7 @@ const { isOpen, triggerRef, menuComponentRef, menuStyles, toggle, close } =
   useFloatingMenu();
 
 const isMobile = useIsMobileViewport();
+const { t } = useI18n();
 </script>
 
 <template>
@@ -30,10 +32,10 @@ const isMobile = useIsMobileViewport();
       :aria-expanded="isOpen"
       @click="toggle"
     >
-      Tools
+      {{ t('chat.tools.title') }}
     </BaseButton>
 
-    <BaseTooltip v-else content="Tools" placement="bottom">
+    <BaseTooltip v-else :content="t('chat.tools.title')" placement="bottom">
       <BaseButton
         :icon="Settings2"
         :class="{ 'bg-surface-hover! text-on-ghost!': isOpen }"
@@ -55,32 +57,38 @@ const isMobile = useIsMobileViewport();
           :icon="Globe"
           @click="((webSearch = !webSearch), close())"
         >
-          Web search
-          <template #description
-            >Search Wikipedia for additional information</template
-          >
+          {{ t('chat.tools.web_search') }}
+          <template #description>{{
+            t('chat.natural_intelligence.server.tools.web_search_description')
+          }}</template>
         </BaseMenuButton>
         <BaseMenuButton
           :icon="ImageIcon"
           @click="((createImage = !createImage), close())"
         >
-          Create Image
-          <template #description>Draw a picture</template>
+          {{ t('chat.tools.create_image') }}
+          <template #description>{{
+            t('chat.natural_intelligence.server.tools.create_image_description')
+          }}</template>
         </BaseMenuButton>
         <BaseMenuButton
           :icon="Terminal"
           @click="((terminal = !terminal), close())"
         >
-          Terminal
-          <template #description>Perform basic commands</template>
+          {{ t('chat.natural_intelligence.server.tools.terminal') }}
+          <template #description>{{
+            t('chat.natural_intelligence.server.tools.terminal_description')
+          }}</template>
         </BaseMenuButton>
         <!-- TODO: Choose Icon: CalendarFold or Coffee -->
         <BaseMenuButton
           :icon="Lightbulb"
           @click="((reasoning = !reasoning), close())"
         >
-          Give Reasoning
-          <template #description>Show your chain of thought</template>
+          {{ t('chat.natural_intelligence.server.tools.reasoning') }}
+          <template #description>{{
+            t('chat.natural_intelligence.server.tools.reasoning_description')
+          }}</template>
         </BaseMenuButton>
       </BaseMenu>
     </Teleport>

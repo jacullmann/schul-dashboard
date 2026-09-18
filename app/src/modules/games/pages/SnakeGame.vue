@@ -117,7 +117,7 @@ onUnmounted(() => {
 <template>
   <div class="snake-container">
     <h2>Snake</h2>
-    <p>Score: {{ score }}</p>
+    <p>{{ t('games.snake.score', { score }) }}</p>
 
     <div
       class="board"

@@ -23,16 +23,18 @@ onMounted(loadReports);
 </script>
 
 <template>
-  <PageHeader>Reported Content</PageHeader>
+  <PageHeader>{{ t('admin.reports.title') }}</PageHeader>
 
   <div v-if="loadingReports" class="center-loader">
     <BaseSpinner on="ghost" size="24px" />
   </div>
-  <div v-else-if="!reports.length" class="empty-msg">No reports found.</div>
+  <div v-else-if="!reports.length" class="empty-msg">
+    {{ t('admin.reports.empty') }}
+  </div>
   <template v-else>
     <div v-if="unprocessedReports.length" class="mb-8">
       <div class="flex items-center gap-2.5 mb-4">
-        <h3>Open</h3>
+        <h3>{{ t('admin.reports.open') }}</h3>
         <span
           class="text-on-ghost-muted bg-ghost-hover rounded-full text-sm font-semibold px-2.5 py-0.5"
           >{{ unprocessedReports.length }}</span
@@ -65,7 +67,10 @@ onMounted(loadReports);
               </template>
 
               <template #actions-pre>
-                <BaseTooltip content="View full task" placement="bottom">
+                <BaseTooltip
+                  :content="t('admin.reports.view_task')"
+                  placement="bottom"
+                >
                   <BaseButton
                     variant="ghost"
                     size="sm"
@@ -107,7 +112,7 @@ onMounted(loadReports);
                         makeThumb(img.metadata?.thumbnailId || img.publicId)
                       "
                       class="block h-full w-full object-cover [pointer-events:none]"
-                      alt="Vorschau"
+                      :alt="t('common.preview')"
                     />
                   </div>
                 </div>
@@ -131,12 +136,17 @@ onMounted(loadReports);
                   class="report-reason-box mt-2 pt-1 border-t border-ghost-border"
                 >
                   <div class="text-on-ghost text-base font-bold mb-1">
-                    Reason
+                    {{ t('admin.reports.reason') }}
                   </div>
                   <div class="report-reason italic">"{{ r.reason }}"</div>
                 </div>
                 <div class="report-meta mt-1 text-xs text-on-ghost-muted">
-                  From: {{ r.reporterEmail }} · {{ fmtDate(r.reportedAt) }}
+                  {{
+                    t('admin.reports.from', {
+                      email: r.reporterEmail,
+                      date: fmtDate(r.reportedAt),
+                    })
+                  }}
                 </div>
 
                 <BaseRow class="mt-2 pt-2 border-t border-ghost-border">
@@ -145,14 +155,14 @@ onMounted(loadReports);
                     :icon="Check"
                     @click="toggleReportProcessed(r.id, false)"
                   >
-                    Resolve
+                    {{ t('admin.reports.resolve') }}
                   </BaseButton>
                   <BaseButton
                     variant="ghost"
                     :icon="Trash2"
                     @click="deleteReport(r.id)"
                   >
-                    Delete
+                    {{ t('common.buttons.delete') }}
                   </BaseButton>
                 </BaseRow>
               </template>
@@ -160,7 +170,7 @@ onMounted(loadReports);
 
             <ItemCard
               v-else
-              :title="r.itemTitle + ' (Deleted)'"
+              :title="t('admin.reports.deleted_title', { title: r.itemTitle })"
               :show-menu-trigger="false"
               :is-collapsed="false"
             >
@@ -168,20 +178,25 @@ onMounted(loadReports);
                 <div
                   class="text-on-ghost-muted text-base flex flex-wrap gap-1 items-center"
                 >
-                  <span class="text-base text-danger font-bold"
-                    >Deleted Item</span
-                  >
+                  <span class="text-base text-danger font-bold">{{
+                    t('admin.reports.deleted_item')
+                  }}</span>
                 </div>
               </template>
               <template #content-after>
                 <div v-if="r.reason" class="report-reason-box mt-2">
                   <div class="text-on-ghost text-base font-bold mb-1">
-                    Reason
+                    {{ t('admin.reports.reason') }}
                   </div>
                   <div class="report-reason italic">"{{ r.reason }}"</div>
                 </div>
                 <div class="report-meta mt-1 text-xs text-on-ghost-muted">
-                  From: {{ r.reporterEmail }} · {{ fmtDate(r.reportedAt) }}
+                  {{
+                    t('admin.reports.from', {
+                      email: r.reporterEmail,
+                      date: fmtDate(r.reportedAt),
+                    })
+                  }}
                 </div>
                 <BaseRow class="mt-2 pt-2 border-t border-ghost-border">
                   <BaseButton
@@ -189,14 +204,14 @@ onMounted(loadReports);
                     :icon="Check"
                     @click="toggleReportProcessed(r.id, false)"
                   >
-                    Resolve
+                    {{ t('admin.reports.resolve') }}
                   </BaseButton>
                   <BaseButton
                     variant="ghost"
                     :icon="Trash2"
                     @click="deleteReport(r.id)"
                   >
-                    Delete
+                    {{ t('common.buttons.delete') }}
                   </BaseButton>
                 </BaseRow>
               </template>
@@ -208,14 +223,18 @@ onMounted(loadReports);
             <ItemCard
               :title="
                 r.messageSenderEmail
-                  ? `Message by ${r.messageSenderEmail}`
-                  : 'Message (Sender Deleted)'
+                  ? t('admin.reports.message_by', {
+                      email: r.messageSenderEmail,
+                    })
+                  : t('admin.reports.message_sender_deleted')
               "
               :show-menu-trigger="false"
               :is-collapsed="false"
             >
               <template v-if="!r.messageId" #badges>
-                <div class="text-base text-danger font-bold">Deleted</div>
+                <div class="text-base text-danger font-bold">
+                  {{ t('admin.reports.deleted') }}
+                </div>
               </template>
 
               <template v-if="r.messageContent" #body>
@@ -232,12 +251,17 @@ onMounted(loadReports);
                   class="report-reason-box mt-2 pt-1 border-t border-ghost-border"
                 >
                   <div class="text-on-ghost text-base font-bold mb-1">
-                    Reason
+                    {{ t('admin.reports.reason') }}
                   </div>
                   <div class="report-reason italic">"{{ r.reason }}"</div>
                 </div>
                 <div class="report-meta mt-1 text-xs text-on-ghost-muted">
-                  From: {{ r.reporterEmail }} · {{ fmtDate(r.reportedAt) }}
+                  {{
+                    t('admin.reports.from', {
+                      email: r.reporterEmail,
+                      date: fmtDate(r.reportedAt),
+                    })
+                  }}
                 </div>
 
                 <BaseRow class="mt-2 pt-2 border-t border-ghost-border">
@@ -246,14 +270,14 @@ onMounted(loadReports);
                     :icon="Check"
                     @click="toggleReportProcessed(r.id, false)"
                   >
-                    Resolve
+                    {{ t('admin.reports.resolve') }}
                   </BaseButton>
                   <BaseButton
                     variant="ghost"
                     :icon="Trash2"
                     @click="deleteReport(r.id)"
                   >
-                    Delete
+                    {{ t('common.buttons.delete') }}
                   </BaseButton>
                 </BaseRow>
               </template>
@@ -265,7 +289,7 @@ onMounted(loadReports);
 
     <div v-if="processedReports.length" class="mb-8">
       <div class="flex items-center gap-2.5 mb-4">
-        <h3>Processed</h3>
+        <h3>{{ t('admin.reports.processed') }}</h3>
         <span
           class="text-on-ghost-muted bg-ghost-hover rounded-full text-sm font-semibold px-2.5 py-0.5"
           >{{ processedReports.length }}</span
@@ -299,7 +323,10 @@ onMounted(loadReports);
               </template>
 
               <template #actions-pre>
-                <BaseTooltip content="View full task" placement="bottom">
+                <BaseTooltip
+                  :content="t('admin.reports.view_task')"
+                  placement="bottom"
+                >
                   <BaseButton
                     variant="ghost"
                     size="sm"
@@ -341,7 +368,7 @@ onMounted(loadReports);
                         makeThumb(img.metadata?.thumbnailId || img.publicId)
                       "
                       class="block h-full w-full object-cover [pointer-events:none]"
-                      alt="Vorschau"
+                      :alt="t('common.preview')"
                     />
                   </div>
                 </div>
@@ -365,12 +392,17 @@ onMounted(loadReports);
                   class="report-reason-box mt-2 pt-1 border-t border-ghost-border"
                 >
                   <div class="text-on-ghost text-base font-bold mb-1">
-                    Reason
+                    {{ t('admin.reports.reason') }}
                   </div>
                   <div class="report-reason italic">"{{ r.reason }}"</div>
                 </div>
                 <div class="report-meta mt-1 text-xs text-on-ghost-muted">
-                  From: {{ r.reporterEmail }} · {{ fmtDate(r.reportedAt) }}
+                  {{
+                    t('admin.reports.from', {
+                      email: r.reporterEmail,
+                      date: fmtDate(r.reportedAt),
+                    })
+                  }}
                 </div>
 
                 <BaseRow class="mt-2 pt-2 border-t border-ghost-border">
@@ -379,14 +411,14 @@ onMounted(loadReports);
                     :icon="RotateCcw"
                     @click="toggleReportProcessed(r.id, true)"
                   >
-                    Reopen
+                    {{ t('admin.reports.reopen') }}
                   </BaseButton>
                   <BaseButton
                     variant="ghost"
                     :icon="Trash2"
                     @click="deleteReport(r.id)"
                   >
-                    Delete
+                    {{ t('common.buttons.delete') }}
                   </BaseButton>
                 </BaseRow>
               </template>
@@ -394,23 +426,30 @@ onMounted(loadReports);
 
             <ItemCard
               v-else
-              :title="r.itemTitle + ' (Deleted)'"
+              :title="t('admin.reports.deleted_title', { title: r.itemTitle })"
               :show-menu-trigger="false"
               :is-collapsed="false"
               class="opacity-60 hover:opacity-100 transition-opacity duration-200"
             >
               <template #badges>
-                <div class="text-base text-danger font-bold">Deleted Item</div>
+                <div class="text-base text-danger font-bold">
+                  {{ t('admin.reports.deleted_item') }}
+                </div>
               </template>
               <template #content-after>
                 <div v-if="r.reason" class="report-reason-box mt-2">
                   <div class="text-on-ghost text-base font-bold mb-1">
-                    Reason
+                    {{ t('admin.reports.reason') }}
                   </div>
                   <div class="report-reason italic">"{{ r.reason }}"</div>
                 </div>
                 <div class="report-meta mt-1 text-xs text-on-ghost-muted">
-                  From: {{ r.reporterEmail }} · {{ fmtDate(r.reportedAt) }}
+                  {{
+                    t('admin.reports.from', {
+                      email: r.reporterEmail,
+                      date: fmtDate(r.reportedAt),
+                    })
+                  }}
                 </div>
                 <BaseRow class="mt-2 pt-2 border-t border-ghost-border">
                   <BaseButton
@@ -418,14 +457,14 @@ onMounted(loadReports);
                     :icon="RotateCcw"
                     @click="toggleReportProcessed(r.id, true)"
                   >
-                    Reopen
+                    {{ t('admin.reports.reopen') }}
                   </BaseButton>
                   <BaseButton
                     variant="ghost"
                     :icon="Trash2"
                     @click="deleteReport(r.id)"
                   >
-                    Delete
+                    {{ t('common.buttons.delete') }}
                   </BaseButton>
                 </BaseRow>
               </template>
@@ -437,15 +476,19 @@ onMounted(loadReports);
             <ItemCard
               :title="
                 r.messageSenderEmail
-                  ? `Message by ${r.messageSenderEmail}`
-                  : 'Message (Sender Deleted)'
+                  ? t('admin.reports.message_by', {
+                      email: r.messageSenderEmail,
+                    })
+                  : t('admin.reports.message_sender_deleted')
               "
               :show-menu-trigger="false"
               :is-collapsed="false"
               class="opacity-60 hover:opacity-100 transition-opacity duration-200"
             >
               <template v-if="!r.messageId" #badges>
-                <div class="text-base text-danger font-bold">Deleted</div>
+                <div class="text-base text-danger font-bold">
+                  {{ t('admin.reports.deleted') }}
+                </div>
               </template>
 
               <template v-if="r.messageContent" #body>
@@ -462,12 +505,17 @@ onMounted(loadReports);
                   class="report-reason-box mt-2 pt-1 border-t border-ghost-border"
                 >
                   <div class="text-on-ghost text-base font-bold mb-1">
-                    Reason
+                    {{ t('admin.reports.reason') }}
                   </div>
                   <div class="report-reason italic">"{{ r.reason }}"</div>
                 </div>
                 <div class="report-meta mt-1 text-xs text-on-ghost-muted">
-                  From: {{ r.reporterEmail }} · {{ fmtDate(r.reportedAt) }}
+                  {{
+                    t('admin.reports.from', {
+                      email: r.reporterEmail,
+                      date: fmtDate(r.reportedAt),
+                    })
+                  }}
                 </div>
 
                 <BaseRow class="mt-2 pt-2 border-t border-ghost-border">
@@ -476,14 +524,14 @@ onMounted(loadReports);
                     :icon="RotateCcw"
                     @click="toggleReportProcessed(r.id, true)"
                   >
-                    Reopen
+                    {{ t('admin.reports.reopen') }}
                   </BaseButton>
                   <BaseButton
                     variant="ghost"
                     :icon="Trash2"
                     @click="deleteReport(r.id)"
                   >
-                    Delete
+                    {{ t('common.buttons.delete') }}
                   </BaseButton>
                 </BaseRow>
               </template>

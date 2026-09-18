@@ -400,7 +400,7 @@ const updateImageSource = (newSrc: string) => {
         </div>
         <img
           :src="currentImageSrc"
-          alt="Preview"
+          :alt="t('common.preview')"
           class="max-w-full rounded-xl"
         />
       </div>
@@ -411,7 +411,10 @@ const updateImageSource = (newSrc: string) => {
 
       <template #content>
         <div class="flex gap-2 mb-4 flex-wrap">
-          <BaseTooltip content="Rotate left" placement="top">
+          <BaseTooltip
+            :content="t('tools.image.actions.rotate_left')"
+            placement="top"
+          >
             <BaseButton
               class="flex-[0] p-[10px]"
               variant="ghost"
@@ -419,7 +422,10 @@ const updateImageSource = (newSrc: string) => {
               @click="rotateImage(-90)"
             />
           </BaseTooltip>
-          <BaseTooltip content="Rotate right" placement="top">
+          <BaseTooltip
+            :content="t('tools.image.actions.rotate_right')"
+            placement="top"
+          >
             <BaseButton
               class="flex-[0] p-[10px]"
               variant="ghost"

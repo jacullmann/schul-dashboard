@@ -63,7 +63,7 @@ const showUpdated = computed(() => {
             {{ t('tasks.list.tasks.menu.info_modal.created_by') }}
           </dt>
           <dd class="text-base text-on-ghost font-medium">
-            {{ item?.createdByName || 'Unbekannt' }}
+            {{ item?.createdByName || t('common.selection.unknown') }}
             <span
               v-if="isSuperAdmin && item?.createdByEmail"
               class="text-on-ghost-muted text-sm ml-0.5"

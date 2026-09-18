@@ -95,7 +95,6 @@ const shortcuts = computed(() => {
   const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
   const now = new Date();
   return [
-    { label: cap(rtf.format(0, 'day')), key: todayKey },
     { label: cap(rtf.format(1, 'day')), key: toKey(addDays(now, 1)) },
     { label: cap(rtf.format(1, 'week')), key: toKey(addDays(now, 7)) },
   ].filter((s) => !isDisabled(s.key));
@@ -205,7 +204,7 @@ const onGridKeydown = (e: KeyboardEvent) => {
         @close="isOpen = false"
       >
         <!-- Stop Escape here so it closes only the picker, not a parent modal -->
-        <div class="flex flex-col gap-3 p-2 md:w-80" @keydown.esc.stop="close">
+        <div class="flex flex-col gap-2 p-1" @keydown.esc.stop="close">
           <div v-if="shortcuts.length" class="flex flex-wrap gap-1.5">
             <button
               v-for="s in shortcuts"
@@ -226,7 +225,6 @@ const onGridKeydown = (e: KeyboardEvent) => {
 
           <div class="flex items-center justify-between">
             <BaseButton
-              size="sm"
               :icon="ChevronLeft"
               :aria-label="t('common.date.previous_month')"
               @click="shiftMonth(-1)"
@@ -237,7 +235,6 @@ const onGridKeydown = (e: KeyboardEvent) => {
               >{{ monthLabel }}</span
             >
             <BaseButton
-              size="sm"
               :icon="ChevronRight"
               :aria-label="t('common.date.next_month')"
               @click="shiftMonth(1)"
@@ -248,13 +245,13 @@ const onGridKeydown = (e: KeyboardEvent) => {
             ref="gridRef"
             role="grid"
             :aria-label="monthLabel"
-            class="grid grid-cols-7 gap-0.5 text-center"
+            class="grid grid-cols-7 text-center"
             @keydown="onGridKeydown"
           >
             <span
               v-for="(w, i) in weekdays"
               :key="i"
-              class="pb-1 text-xs font-medium text-on-ghost-subtle"
+              class="pb-1 text-xs font-medium text-on-ghost-muted"
               aria-hidden="true"
               >{{ w }}</span
             >
@@ -268,7 +265,7 @@ const onGridKeydown = (e: KeyboardEvent) => {
               :disabled="isDisabled(d.key)"
               :aria-selected="d.key === model"
               :aria-current="d.key === todayKey ? 'date' : undefined"
-              class="relative aspect-square rounded-lg text-sm tabular-nums cursor-pointer outline-none transition-hover focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-30 disabled:cursor-not-allowed"
+              class="relative mx-auto aspect-square size-10 rounded-full text-sm tabular-nums cursor-pointer outline-none transition-hover focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-30 disabled:cursor-not-allowed"
               :class="[
                 d.key === model
                   ? 'bg-action text-on-action font-semibold'

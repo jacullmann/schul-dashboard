@@ -25,7 +25,9 @@ const emit = defineEmits(['confirm', 'cancel', 'update:reason']);
     :danger="true"
     @cancel="emit('cancel')"
   >
-    <template #title> Diese Aufgabe melden? </template>
+    <template #title>
+      {{ t('tasks.list.tasks.menu.report.title') }}
+    </template>
 
     <template #title-infopop>
       <InfoModal
@@ -33,13 +35,7 @@ const emit = defineEmits(['confirm', 'cancel', 'update:reason']);
         :title="t('tasks.report.info_title')"
       >
         <p class="text-on-ghost-muted text-base mb-4">
-          Aufgaben und hochgeladene Bilder, die gegen unsere Nutzungsbedingungen
-          oder geltendes Recht verstoßen, werden umgehend entfernt. Falls
-          genaueres Wissen über den Hintergrund einer Aussage/eines Bildes nötig
-          ist, beschreibe es bitte möglichst genau, sodass wir etwas unternehmen
-          können. Wenn der Verstoß offensichtlich ist, kannst du uns trotzdem
-          helfen, indem du beschreibst, was nicht stimmt, aber wir untersuchen
-          immer den ganzen Artikel, auch wenn du keinen konkreten Grund nennst.
+          {{ t('tasks.report.info_text') }}
         </p>
       </InfoModal>
     </template>
@@ -61,6 +57,8 @@ const emit = defineEmits(['confirm', 'cancel', 'update:reason']);
       </BaseFormGroup>
     </template>
 
-    <template #action-text>Aufgabe melden</template>
+    <template #action-text>{{
+      t('tasks.list.tasks.menu.report.action')
+    }}</template>
   </BaseModal>
 </template>

@@ -89,11 +89,11 @@ function saveApiKey() {
   apiKey.value = cleanKey;
   if (cleanKey) {
     localStorage.setItem('gemini_api_key', cleanKey);
-    toast.success('API Key saved successfully.');
+    toast.success(t('chat.ai.api_key.saved'));
     isApiKeyModalOpen.value = false;
   } else {
     localStorage.removeItem('gemini_api_key');
-    toast.info('API Key removed.');
+    toast.info(t('chat.ai.api_key.removed'));
     isApiKeyModalOpen.value = false;
   }
 }
@@ -169,7 +169,7 @@ const handleCancel = () => {
   if (lastMsg?.role === 'assistant' && !lastMsg.content) {
     displayMessages.value.pop();
   }
-  toast.info('Generation cancelled.');
+  toast.info(t('chat.ai.generation_cancelled'));
 };
 
 // Stream call implementation
@@ -293,7 +293,10 @@ async function callGeminiStream(userPrompt: string, aiMessage: UIMessage) {
             const chunks = groundingMetadata.groundingChunks;
             if (chunks && chunks.length > 0) {
               const sources = chunks.map((chunk: any) => ({
-                title: chunk.web?.title || chunk.web?.uri || 'Source',
+                title:
+                  chunk.web?.title ||
+                  chunk.web?.uri ||
+                  t('chat.ai.source_fallback'),
                 url: chunk.web?.uri || '#',
               }));
 
@@ -326,7 +329,7 @@ async function send() {
 
   if (!hasApiKey.value) {
     isApiKeyModalOpen.value = true;
-    toast.info('Please enter your Gemini API Key first.');
+    toast.info(t('chat.ai.api_key.missing'));
     return;
   }
 
@@ -362,8 +365,10 @@ async function send() {
   } catch (err: any) {
     if (err.name !== 'AbortError') {
       console.error('Gemini API Error:', err);
-      aiMessage.content = `Error: ${err.message || 'Failed to generate response'}`;
-      toast.error('Failed to communicate with Gemini API.');
+      aiMessage.content = t('chat.ai.errors.message', {
+        message: err.message || t('chat.ai.errors.generate_failed'),
+      });
+      toast.error(t('chat.ai.errors.api_failed'));
     }
   } finally {
     isThinking.value = false;
@@ -376,7 +381,7 @@ const isLockedIn = computed(() => isThinking.value);
 const handleModelChangeRequest = (newModel: string) => {
   clearChat();
   selectedModel.value = newModel;
-  toast.info(`Switched to ${newModel} model. Started a new chat.`);
+  toast.info(t('chat.ai.model_switched', { model: newModel }));
 };
 
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
@@ -471,7 +476,7 @@ function clearChat() {
 }
 
 function handleReport(_message: UIMessage, _reason: string) {
-  toast.success('Thank you for your feedback! Flagged this message.');
+  toast.success(t('chat.ai.report_success'));
 }
 
 const isListening = ref(false);
@@ -489,7 +494,7 @@ const toggleSpeechRecognition = () => {
     (window as any).webkitSpeechRecognition;
 
   if (!SpeechRecognition) {
-    toast.error('Speech recognition is not supported in this browser.');
+    toast.error(t('chat.speech.unsupported'));
     return;
   }
 
@@ -518,7 +523,7 @@ const toggleSpeechRecognition = () => {
     console.error('Speech recognition error', event.error);
     isListening.value = false;
     if (event.error === 'not-allowed') {
-      toast.error('Microphone access denied.');
+      toast.error(t('chat.speech.denied'));
     }
   };
 
@@ -646,14 +651,14 @@ function renderToken(token: any): VNode | string {
       if (isImageUrl(token.href)) {
         return h(ChatImage, {
           src: token.href,
-          alt: token.text || 'Image',
+          alt: token.text || t('chat.ai.image_alt'),
         });
       }
       return h(BaseLink, { to: token.href }, () => renderTokens(token.tokens));
     case 'image':
       return h(ChatImage, {
         src: token.href,
-        alt: token.text || 'Image',
+        alt: token.text || t('chat.ai.image_alt'),
         title: token.title || undefined,
       });
     case 'br':
@@ -725,7 +730,7 @@ const MarkdownRenderer = defineComponent({
     <div
       class="absolute top-2 left-2 bg-surface border border-ghost-border z-1 rounded-full p-1 flex gap-1"
     >
-      <BaseTooltip content="New Chat" placement="bottom">
+      <BaseTooltip :content="t('chat.actions.new_chat')" placement="bottom">
         <BaseButton
           variant="ghost"
           class="z-10"
@@ -733,7 +738,7 @@ const MarkdownRenderer = defineComponent({
           @click="clearChat"
         />
       </BaseTooltip>
-      <BaseTooltip content="Gemini API Key" placement="bottom">
+      <BaseTooltip :content="t('chat.ai.api_key.title')" placement="bottom">
         <BaseButton
           variant="ghost"
           class="z-10"
@@ -782,9 +787,7 @@ const MarkdownRenderer = defineComponent({
               @click="toggleMessageSteps(message.id)"
             >
               <span class="font-medium tracking-tight">
-                {{ message.steps.length }} step{{
-                  message.steps.length === 1 ? '' : 's'
-                }}
+                {{ t('chat.steps', message.steps.length) }}
               </span>
             </BaseButton>
 
@@ -855,8 +858,8 @@ const MarkdownRenderer = defineComponent({
                 <BaseTooltip
                   :content="
                     expandedHumanMessages[message.id]
-                      ? 'Show less'
-                      : 'Show more'
+                      ? t('common.buttons.show_less')
+                      : t('common.buttons.show_more')
                   "
                   placement="top"
                 >
@@ -888,7 +891,9 @@ const MarkdownRenderer = defineComponent({
               v-if="message.sources && message.sources.length > 0"
               class="mt-4 pt-2 border-t border-ghost-border/40 text-xs text-on-ghost-muted"
             >
-              <span class="font-semibold block mb-1">Sources:</span>
+              <span class="font-semibold block mb-1">{{
+                t('chat.ai.sources')
+              }}</span>
               <div class="flex flex-wrap gap-2">
                 <a
                   v-for="(source, sIdx) in message.sources"
@@ -905,7 +910,10 @@ const MarkdownRenderer = defineComponent({
             </div>
 
             <BaseRow class="mt-2 z-10 opacity-0 group-hover:opacity-100 gap-0!">
-              <BaseTooltip content="Report" placement="bottom">
+              <BaseTooltip
+                :content="t('chat.actions.report')"
+                placement="bottom"
+              >
                 <BaseButton
                   variant="ghost"
                   size="sm"
@@ -913,14 +921,17 @@ const MarkdownRenderer = defineComponent({
                   @click="handleReport(message, 'Inappropriate content')"
                 />
               </BaseTooltip>
-              <BaseTooltip content="Copy" placement="bottom">
+              <BaseTooltip
+                :content="t('common.buttons.copy')"
+                placement="bottom"
+              >
                 <BaseButton
                   variant="ghost"
                   size="sm"
                   :icon="Copy"
                   @click="
                     (copy(message.content),
-                    toast.success('Copied to clipboard'))
+                    toast.success(t('chat.actions.copied')))
                   "
                 />
               </BaseTooltip>
@@ -946,9 +957,7 @@ const MarkdownRenderer = defineComponent({
                 "
               >
                 <span class="font-medium tracking-tight">
-                  {{ liveSteps.length }} step{{
-                    liveSteps.length === 1 ? '' : 's'
-                  }}
+                  {{ t('chat.steps', liveSteps.length) }}
                 </span>
               </BaseButton>
 
@@ -1050,7 +1059,11 @@ const MarkdownRenderer = defineComponent({
             class="absolute bottom-[calc(100%+3rem)] left-0 w-full text-center"
           >
             <div class="text-4xl font-normal text-on-ghost">
-              Have a conversation with <b>Gemini</b> AI
+              <i18n-t keypath="chat.ai.heading">
+                <template #name>
+                  <b>Gemini</b>
+                </template>
+              </i18n-t>
             </div>
           </div>
         </Transition>
@@ -1064,7 +1077,7 @@ const MarkdownRenderer = defineComponent({
               ref="textareaRef"
               :value="userInput"
               rows="1"
-              placeholder="Ask Gemini..."
+              :placeholder="t('chat.ai.placeholder')"
               class="w-full py-2 px-3 bg-transparent rounded-none border-none outline-none shadow-none text-on-ghost text-base/6 placeholder:text-on-ghost-subtle resize-none overflow-y-auto max-h-60 block box-border m-0 custom-scrollbar"
               @input="onInput"
               @keydown.enter.exact.prevent="send"
@@ -1082,7 +1095,7 @@ const MarkdownRenderer = defineComponent({
 
                 <BaseTooltip
                   v-if="webSearch && windowWidth > 660"
-                  content="Web search"
+                  :content="t('chat.tools.web_search')"
                   placement="bottom"
                 >
                   <BaseButton
@@ -1093,7 +1106,7 @@ const MarkdownRenderer = defineComponent({
                 </BaseTooltip>
                 <BaseTooltip
                   v-if="createImage && windowWidth > 660"
-                  content="Create image"
+                  :content="t('chat.tools.create_image_short')"
                   placement="bottom"
                 >
                   <BaseButton
@@ -1104,7 +1117,7 @@ const MarkdownRenderer = defineComponent({
                 </BaseTooltip>
                 <BaseTooltip
                   v-if="ponder && windowWidth > 660"
-                  content="Ponder"
+                  :content="t('chat.tools.ponder')"
                   placement="bottom"
                 >
                   <BaseButton
@@ -1115,7 +1128,7 @@ const MarkdownRenderer = defineComponent({
                 </BaseTooltip>
                 <BaseTooltip
                   v-if="answerLeisurely && windowWidth > 660"
-                  content="Answer leisurely"
+                  :content="t('chat.tools.answer_leisurely')"
                   placement="bottom"
                 >
                   <BaseButton
@@ -1142,7 +1155,7 @@ const MarkdownRenderer = defineComponent({
                   <BaseTooltip
                     v-if="isThinking"
                     key="cancel"
-                    content="Cancel"
+                    :content="t('common.buttons.cancel')"
                     placement="bottom"
                   >
                     <BaseButton
@@ -1156,7 +1169,7 @@ const MarkdownRenderer = defineComponent({
                   <BaseTooltip
                     v-else-if="!userInput || isListening"
                     key="voice"
-                    content="Use voice"
+                    :content="t('chat.actions.use_voice')"
                     placement="bottom"
                   >
                     <BaseButton
@@ -1168,7 +1181,7 @@ const MarkdownRenderer = defineComponent({
                   <BaseTooltip
                     v-else
                     key="submit"
-                    content="Submit"
+                    :content="t('chat.actions.submit')"
                     placement="bottom"
                   >
                     <BaseButton
@@ -1197,7 +1210,7 @@ const MarkdownRenderer = defineComponent({
               key="disclaimer"
               class="text-xs text-center text-on-ghost-subtle m-4 mb-2"
             >
-              Gemini makes mistakes. Don't share personal data.
+              {{ t('chat.ai.disclaimer') }}
             </div>
             <BaseRow v-else>
               <BaseButton
@@ -1207,7 +1220,7 @@ const MarkdownRenderer = defineComponent({
                 class="mt-4"
                 @click="router.push({ name: 'natural-intelligence' })"
               >
-                Learn more
+                {{ t('chat.actions.learn_more') }}
               </BaseButton>
             </BaseRow>
           </Transition>
@@ -1221,12 +1234,11 @@ const MarkdownRenderer = defineComponent({
       :submit="saveApiKey"
       @cancel="isApiKeyModalOpen = false"
     >
-      <template #title>Gemini API Key</template>
+      <template #title>{{ t('chat.ai.api_key.title') }}</template>
       <template #content>
         <div class="flex flex-col gap-4 py-2">
           <p class="text-sm text-on-ghost-muted">
-            Please enter your Gemini API Key. This key is only saved locally in
-            your browser's LocalStorage and is sent directly to Gemini servers.
+            {{ t('chat.ai.api_key.description') }}
           </p>
           <BaseInput
             id="gemini-api-key"

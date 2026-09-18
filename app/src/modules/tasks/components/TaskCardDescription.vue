@@ -11,6 +11,7 @@ import {
   type VNode,
 } from 'vue';
 import { marked } from 'marked';
+import { useI18n } from 'vue-i18n';
 import DOMPurify from 'dompurify';
 import BaseLink from '@/common/components/BaseLink.vue';
 import BaseTableWrapper from '@/common/components/BaseTableWrapper.vue';
@@ -23,6 +24,8 @@ const props = defineProps<{
 defineEmits<{
   (e: 'toggle'): void;
 }>();
+
+const { t } = useI18n();
 
 const contentRef = ref<HTMLElement | null>(null);
 
@@ -237,6 +240,10 @@ watch(
     :class="isExpanded ? 'mt-2' : 'mt-1'"
     @click="$emit('toggle')"
   >
-    {{ isExpanded ? 'Weniger anzeigen' : 'mehr' }}
+    {{
+      isExpanded
+        ? t('common.buttons.show_less')
+        : t('tasks.list.description.more')
+    }}
   </button>
 </template>

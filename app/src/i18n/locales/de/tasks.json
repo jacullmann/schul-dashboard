@@ -54,7 +54,9 @@
         "date_old": "Das Datum liegt zu weit in der Vergangenheit",
         "description_long": "Die Beschreibung ist zu lang (max. 1000 Zeichen)",
         "title_long": "Der Titel ist zu lang (max. 60 Zeichen)",
-        "title_missing": "Füge einen Titel hinzu"
+        "title_missing": "Füge einen Titel hinzu",
+        "check_input": "Bitte überprüfe deine Eingaben.",
+        "unexpected": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es erneut."
       },
       "images": "Bilder",
       "new_task": "Neue Aufgabe",
@@ -89,23 +91,32 @@
           "illegal_label": "Was genau ist das Problem? (optional)",
           "illegal_placeholder": "Beschreibung...",
           "name": "Melden",
-          "title": "Diese Aufgabe melden?"
+          "title": "Diese Aufgabe melden?",
+          "success": "Aufgabe gemeldet.",
+          "error": "Fehler beim Melden: {error}"
         },
         "share": "Teilen",
         "share_confirm": "Link in die Zwischenablage kopiert!",
         "unarchive": "Wiederherstellen",
         "unpin": "Lösen",
-        "upload_images": "Bilder hochladen"
+        "upload_images": "Bilder hochladen",
+        "share_copied": "Link in die Zwischenablage kopiert!",
+        "share_failed": "Teilen fehlgeschlagen."
       },
       "view": {
         "no_tasks": "Keine Aufgaben gefunden",
         "no_tasks_in_view_message": "Keine Aufgaben in der aktuellen Ansicht. Ändere deine Filter oder füge eine neue Aufgabe hinzu",
         "no_tasks_message": "Füge eine neue Aufgabe hinzu oder "
+      },
+      "errors": {
+        "status_failed": "Fehler beim Setzen des Status."
       }
     },
     "notes": {
       "no_notes": "Keine Notiz vorhanden",
-      "note": "Notiz"
+      "note": "Notiz",
+      "saved": "Anmerkung gespeichert.",
+      "save_failed": "Fehler beim Speichern der Anmerkung."
     },
     "reset_filters": "Filter zurücksetzen",
     "tabs": {
@@ -126,6 +137,9 @@
       "message": "Am {date} gibt es bereits eine {type} für das Fach {subject}. Bist du sicher, dass es sich bei deiner Aufgabe nicht um dieselbe Aufgabe handelt?",
       "create_anyway": "Trotzdem erstellen",
       "view_existing": "Existierende anzeigen"
+    },
+    "description": {
+      "more": "mehr"
     }
   },
   "private_tasks": {
@@ -134,6 +148,33 @@
     "task_delete_confirm": "Private Aufgabe erfolgreich gelöscht",
     "error_duplicate": "Fehler beim duplizieren",
     "error_load": "Fehler beim Laden der privaten Aufgaben",
+    "form_placeholders": [
+      { "title": "Einkaufen gehen…", "description": "6 Eier, Milch, Brot…" },
+      {
+        "title": "Oma anrufen…",
+        "description": "Nach ihren Geburtstagsplänen fragen…"
+      },
+      {
+        "title": "Zimmer aufräumen…",
+        "description": "Staubsaugen, Regale abstauben…"
+      },
+      { "title": "Ein Buch lesen…", "description": "Mindestens 30 Seiten…" },
+      { "title": "Joggen gehen…", "description": "5 km durch den Park…" },
+      {
+        "title": "Pflanzen gießen…",
+        "description": "Den Kaktus nicht vergessen…"
+      },
+      { "title": "Wochenende planen…", "description": "Samstag ins Kino…" },
+      {
+        "title": "Geburtstagsgeschenk kaufen…",
+        "description": "Etwas für Lena…"
+      },
+      { "title": "Gitarre üben…", "description": "Die neuen Akkorde lernen…" },
+      {
+        "title": "Sporttasche packen…",
+        "description": "Handtuch, Schuhe, Trinkflasche…"
+      }
+    ],
     "infopop": {
       "description": "Verwalte deine private Aufgaben",
       "sections": [
@@ -174,7 +215,8 @@
   },
   "report": {
     "info_tooltip": "Melden Info",
-    "info_title": "Infos zum Melden von Aufgaben"
+    "info_title": "Infos zum Melden von Aufgaben",
+    "info_text": "Aufgaben und hochgeladene Bilder, die gegen unsere Nutzungsbedingungen oder geltendes Recht verstoßen, werden umgehend entfernt. Falls genaueres Wissen über den Hintergrund einer Aussage/eines Bildes nötig ist, beschreibe es bitte möglichst genau, sodass wir etwas unternehmen können. Wenn der Verstoß offensichtlich ist, kannst du uns trotzdem helfen, indem du beschreibst, was nicht stimmt, aber wir untersuchen immer den ganzen Artikel, auch wenn du keinen konkreten Grund nennst."
   },
   "actions": {
     "delete_modal": {
@@ -211,6 +253,8 @@
       "pdf_too_large": "PDF-Dateien dürfen maximal 5 MB groß sein.",
       "progress": "Bilder werden hochgeladen",
       "success": "Bilder erfolgreich hochgeladen"
-    }
+    },
+    "drop_to_upload": "Bilder ablegen zum Hochladen",
+    "document": "Dokument"
   }
 }

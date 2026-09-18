@@ -43,7 +43,9 @@ const formatDate = (dateStr: string) => {
           ' ' +
           (article.type === 'video'
             ? article.duration
-            : article.readTime + ' Min')
+            : t('infodashboard.article.read_time', {
+                minutes: article.readTime,
+              }))
         }}
       </div>
     </div>

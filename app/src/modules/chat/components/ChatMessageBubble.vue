@@ -295,11 +295,11 @@ const formatTime = (timestamp: string) => {
                 : 'right-[-96px] flex-row',
             ]"
           >
-            <BaseTooltip content="Antworten" placement="bottom">
+            <BaseTooltip :content="t('chat.reply')" placement="bottom">
               <BaseButton :icon="Reply" @click="emit('reply', msg)" />
             </BaseTooltip>
 
-            <BaseTooltip content="Mehr" placement="bottom">
+            <BaseTooltip :content="t('common.more')" placement="bottom">
               <BaseButton
                 :icon="Ellipsis"
                 @click.stop="emit('menu', $event, msg)"

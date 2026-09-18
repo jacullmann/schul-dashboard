@@ -162,7 +162,7 @@ const isLockedIn = computed(
 const handleModelChangeRequest = async (newModel: string) => {
   await clearChat();
   selectedModel.value = newModel;
-  useToast().info(`Switched to the ${newModel} model. Started a new chat.`);
+  useToast().info(t('chat.model_switched', { model: newModel }));
 };
 
 const isWaitingForResponse = computed(() => {
@@ -272,7 +272,9 @@ async function send() {
       await startSearching();
     } catch (e: any) {
       pendingMessage.value = '';
-      useToast().error(e.message || 'Failed to join game');
+      useToast().error(
+        e.message || t('chat.natural_intelligence.errors.join_failed'),
+      );
     }
     return;
   }
@@ -287,7 +289,9 @@ async function send() {
         await startSearching();
       } catch (e: any) {
         pendingMessage.value = '';
-        useToast().error(e.message || 'Failed to start searching');
+        useToast().error(
+          e.message || t('chat.natural_intelligence.errors.search_failed'),
+        );
       }
     }
     return;
@@ -332,15 +336,11 @@ async function handleReport(message: UIMessage, reason: string) {
   );
 
   if (isSuccessful) {
-    useToast().success(
-      'Report submitted successfully. Our team will review it.',
-    );
+    useToast().success(t('chat.report.submitted'));
   } else if (error.value === 'already_reported') {
-    useToast().info(
-      'This message has already been reported. Thank you for your vigilance!',
-    );
+    useToast().info(t('chat.report.already_reported'));
   } else {
-    useToast().error(error.value || 'Failed to submit report.');
+    useToast().error(error.value || t('chat.report.failed'));
   }
 }
 
@@ -359,7 +359,7 @@ const toggleSpeechRecognition = () => {
     (window as any).webkitSpeechRecognition;
 
   if (!SpeechRecognition) {
-    useToast().error('Speech recognition is not supported in this browser.');
+    useToast().error(t('chat.speech.unsupported'));
     return;
   }
 
@@ -388,7 +388,7 @@ const toggleSpeechRecognition = () => {
     console.error('Speech recognition error', event.error);
     isListening.value = false;
     if (event.error === 'not-allowed') {
-      useToast().error('Microphone access denied.');
+      useToast().error(t('chat.speech.denied'));
     }
   };
 
@@ -480,7 +480,7 @@ function formatDuration(ms?: number): string {
     <div
       class="absolute top-2 left-2 bg-surface border border-ghost-border z-1 rounded-full p-1"
     >
-      <BaseTooltip content="New Chat" placement="bottom">
+      <BaseTooltip :content="t('chat.actions.new_chat')" placement="bottom">
         <BaseButton
           variant="ghost"
           class="z-10"
@@ -528,9 +528,7 @@ function formatDuration(ms?: number): string {
               @click="toggleMessageSteps(message.id)"
             >
               <span class="font-medium tracking-tight">
-                {{ message.steps.length }} step{{
-                  message.steps.length === 1 ? '' : 's'
-                }}
+                {{ t('chat.steps', message.steps.length) }}
               </span>
             </BaseButton>
 
@@ -601,8 +599,8 @@ function formatDuration(ms?: number): string {
                 <BaseTooltip
                   :content="
                     expandedHumanMessages[message.id]
-                      ? 'Show less'
-                      : 'Show more'
+                      ? t('common.buttons.show_less')
+                      : t('common.buttons.show_more')
                   "
                   placement="top"
                 >
@@ -632,7 +630,10 @@ function formatDuration(ms?: number): string {
               {{ word }}&nbsp;
             </span>
             <BaseRow class="mt-2 z-10 opacity-0 group-hover:opacity-100 gap-0!">
-              <BaseTooltip content="Report" placement="bottom">
+              <BaseTooltip
+                :content="t('chat.actions.report')"
+                placement="bottom"
+              >
                 <BaseButton
                   variant="ghost"
                   size="sm"
@@ -640,14 +641,17 @@ function formatDuration(ms?: number): string {
                   @click="handleReport(message, 'Inappropriate content')"
                 />
               </BaseTooltip>
-              <BaseTooltip content="Copy" placement="bottom">
+              <BaseTooltip
+                :content="t('common.buttons.copy')"
+                placement="bottom"
+              >
                 <BaseButton
                   variant="ghost"
                   size="sm"
                   :icon="Copy"
                   @click="
                     (copy(message.content),
-                    useToast().success('Copied to clipboard'))
+                    useToast().success(t('chat.actions.copied')))
                   "
                 />
               </BaseTooltip>
@@ -673,9 +677,7 @@ function formatDuration(ms?: number): string {
                 "
               >
                 <span class="font-medium tracking-tight">
-                  {{ liveSteps.length }} step{{
-                    liveSteps.length === 1 ? '' : 's'
-                  }}
+                  {{ t('chat.steps', liveSteps.length) }}
                 </span>
               </BaseButton>
 
@@ -774,7 +776,11 @@ function formatDuration(ms?: number): string {
             class="absolute bottom-[calc(100%+3rem)] left-0 w-full text-center"
           >
             <div class="text-4xl font-normal text-on-ghost">
-              Tired of talking to <b>artificial</b> intelligence?
+              <i18n-t keypath="chat.natural_intelligence.chat.heading">
+                <template #word>
+                  <b>{{ t('chat.natural_intelligence.chat.heading_word') }}</b>
+                </template>
+              </i18n-t>
             </div>
           </div>
         </Transition>
@@ -788,7 +794,7 @@ function formatDuration(ms?: number): string {
               ref="textareaRef"
               :value="userInput"
               rows="1"
-              placeholder="Ask Natural Intelligence"
+              :placeholder="t('chat.natural_intelligence.chat.placeholder')"
               class="w-full py-2 px-3 bg-transparent rounded-none border-none outline-none shadow-none text-on-ghost text-base/6 placeholder:text-on-ghost-subtle resize-none overflow-y-auto max-h-60 block box-border m-0 custom-scrollbar"
               @input="onInput"
               @keydown.enter.exact.prevent="send"
@@ -806,7 +812,7 @@ function formatDuration(ms?: number): string {
 
                 <BaseTooltip
                   v-if="webSearch && windowWidth > 660"
-                  content="Web search"
+                  :content="t('chat.tools.web_search')"
                   placement="bottom"
                 >
                   <BaseButton
@@ -817,7 +823,7 @@ function formatDuration(ms?: number): string {
                 </BaseTooltip>
                 <BaseTooltip
                   v-if="createImage && windowWidth > 660"
-                  content="Create image"
+                  :content="t('chat.tools.create_image_short')"
                   placement="bottom"
                 >
                   <BaseButton
@@ -828,7 +834,7 @@ function formatDuration(ms?: number): string {
                 </BaseTooltip>
                 <BaseTooltip
                   v-if="ponder && windowWidth > 660"
-                  content="Ponder"
+                  :content="t('chat.tools.ponder')"
                   placement="bottom"
                 >
                   <BaseButton
@@ -839,7 +845,7 @@ function formatDuration(ms?: number): string {
                 </BaseTooltip>
                 <BaseTooltip
                   v-if="answerLeisurely && windowWidth > 660"
-                  content="Answer leisurely"
+                  :content="t('chat.tools.answer_leisurely')"
                   placement="bottom"
                 >
                   <BaseButton
@@ -866,7 +872,7 @@ function formatDuration(ms?: number): string {
                   <BaseTooltip
                     v-if="isThinking"
                     key="cancel"
-                    content="Cancel"
+                    :content="t('common.buttons.cancel')"
                     placement="bottom"
                   >
                     <BaseButton
@@ -880,7 +886,7 @@ function formatDuration(ms?: number): string {
                   <BaseTooltip
                     v-else-if="!userInput || isListening"
                     key="voice"
-                    content="Use voice"
+                    :content="t('chat.actions.use_voice')"
                     placement="bottom"
                   >
                     <BaseButton
@@ -892,7 +898,7 @@ function formatDuration(ms?: number): string {
                   <BaseTooltip
                     v-else
                     key="submit"
-                    content="Submit"
+                    :content="t('chat.actions.submit')"
                     placement="bottom"
                   >
                     <BaseButton
@@ -921,7 +927,7 @@ function formatDuration(ms?: number): string {
               key="disclaimer"
               class="text-xs text-center text-on-ghost-subtle m-4 mb-2"
             >
-              Natural Intelligence makes mistakes. Don't share personal data
+              {{ t('chat.natural_intelligence.disclaimer') }}
             </div>
             <BaseRow v-else>
               <BaseButton
@@ -931,7 +937,7 @@ function formatDuration(ms?: number): string {
                 class="mt-4"
                 @click="router.push({ name: 'natural-intelligence' })"
               >
-                Learn more
+                {{ t('chat.actions.learn_more') }}
               </BaseButton>
               <BaseButton
                 key="button"
@@ -942,7 +948,7 @@ function formatDuration(ms?: number): string {
                 class="mt-4"
                 @click="router.push({ name: 'natural-intelligence-server' })"
               >
-                Become an AI
+                {{ t('chat.natural_intelligence.chat.become_ai') }}
               </BaseButton>
             </BaseRow>
           </Transition>

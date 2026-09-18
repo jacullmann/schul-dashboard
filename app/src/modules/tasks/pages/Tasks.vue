@@ -204,7 +204,7 @@ function handleAnimationEnd(itemId: string) {
         </template>
 
         <template #action>
-          <BaseTooltip content="New Task" placement="bottom">
+          <BaseTooltip :content="t('common.sidebar.task')" placement="bottom">
             <BaseButton
               variant="action"
               :aria-label="t('tasks.list.task_form.new_task')"

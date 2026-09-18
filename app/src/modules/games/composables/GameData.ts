@@ -10,13 +10,20 @@ export const games: Game[] = [
       return i18n.global.t('games.list.tic_tac_toe.description');
     },
     component: defineAsyncComponent(() => import('../pages/TicTacToe.vue')),
-    tags: ['Strategie', '2-Spieler'],
+    get tags() {
+      return [
+        i18n.global.t('games.list.tic_tac_toe.tags.strategy'),
+        i18n.global.t('games.list.tic_tac_toe.tags.two_player'),
+      ];
+    },
     previewImage:
       'https://images.unsplash.com/photo-1668901382969-8c73e450a1f5?q=80&w=1160&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
   },
   {
     id: 'russisch-roulette',
-    name: 'Russisch Roulette',
+    get name() {
+      return i18n.global.t('games.list.russian_roulette.name');
+    },
     get description() {
       return i18n.global.t('games.list.russian_roulette.description');
     },
@@ -36,23 +43,39 @@ export const games: Game[] = [
   },
   {
     id: 'rock-paper-scissors',
-    name: 'Schere, Stein, Papier',
+    get name() {
+      return i18n.global.t('games.list.rock_paper_scissors.name');
+    },
     get description() {
       return i18n.global.t('games.list.rock_paper_scissors.description');
     },
     component: defineAsyncComponent(
       () => import('../pages/RockPaperScissors.vue'),
     ),
-    tags: ['Klassiker', 'Duell', 'Solo'],
+    get tags() {
+      return [
+        i18n.global.t('games.list.rock_paper_scissors.tags.classic'),
+        i18n.global.t('games.list.rock_paper_scissors.tags.duel'),
+        i18n.global.t('games.list.rock_paper_scissors.tags.solo'),
+      ];
+    },
     previewImage:
       'https://images.unsplash.com/photo-1605126511476-3284bef5af50?q=80&w=872&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
   },
   {
     id: 'cyber-snare',
     name: 'CYBER_SNARE',
-    description: 'Draw energy tethers to trap viruses in a neon CRT world.',
+    get description() {
+      return i18n.global.t('games.list.cyber_snare.description');
+    },
     component: defineAsyncComponent(() => import('../pages/CyberSnare.vue')),
-    tags: ['Action', 'Arcade', 'Solo'],
+    get tags() {
+      return [
+        i18n.global.t('games.list.cyber_snare.tags.action'),
+        i18n.global.t('games.list.cyber_snare.tags.arcade'),
+        i18n.global.t('games.list.cyber_snare.tags.solo'),
+      ];
+    },
     previewImage:
       'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
   },
@@ -63,7 +86,13 @@ export const games: Game[] = [
       return i18n.global.t('games.list.memory_game.description');
     },
     component: defineAsyncComponent(() => import('../pages/MemoryGame.vue')),
-    tags: ['Klassiker', 'Gehirntraining', 'Solo'],
+    get tags() {
+      return [
+        i18n.global.t('games.list.memory_game.tags.classic'),
+        i18n.global.t('games.list.memory_game.tags.brain_training'),
+        i18n.global.t('games.list.memory_game.tags.solo'),
+      ];
+    },
     previewImage:
       'https://images.unsplash.com/photo-1601987177651-8edfe6c20009?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60',
   },
@@ -74,7 +103,13 @@ export const games: Game[] = [
       return i18n.global.t('games.list.snake_game.description');
     },
     component: defineAsyncComponent(() => import('../pages/SnakeGame.vue')),
-    tags: ['Arcade', 'Klassiker', 'Action'],
+    get tags() {
+      return [
+        i18n.global.t('games.list.snake_game.tags.arcade'),
+        i18n.global.t('games.list.snake_game.tags.classic'),
+        i18n.global.t('games.list.snake_game.tags.action'),
+      ];
+    },
     previewImage:
       'https://images.unsplash.com/photo-1472645977521-95bbf4f0a748?q=80&w=774&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
   },

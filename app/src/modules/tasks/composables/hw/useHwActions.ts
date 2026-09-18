@@ -196,7 +196,7 @@ export function useHwActions(
     if (failed) {
       checkSync.delete(id);
       revertCheck(entry);
-      handleSuccessAction('Fehler beim Setzen des Status.'); // fallback msg
+      handleSuccessAction(t('tasks.list.tasks.errors.status_failed')); // fallback msg
     } else if (isChecked(id) !== entry.serverChecked) {
       await flushCheckSync(id);
     } else {
@@ -374,9 +374,13 @@ export function useHwActions(
         itemTitle: item.title,
         reason,
       });
-      handleSuccessAction('Aufgabe gemeldet.');
+      handleSuccessAction(t('tasks.list.tasks.menu.report.success'));
     } catch (e: any) {
-      handleSuccessAction('Fehler beim Melden: ' + apiErrorMessage(e, ''));
+      handleSuccessAction(
+        t('tasks.list.tasks.menu.report.error', {
+          error: apiErrorMessage(e, ''),
+        }),
+      );
     }
   }
 
@@ -405,9 +409,9 @@ export function useHwActions(
     } else {
       try {
         await navigator.clipboard.writeText(shareUrl);
-        handleSuccessAction('Link in die Zwischenablage kopiert!');
+        handleSuccessAction(t('tasks.list.tasks.menu.share_copied'));
       } catch {
-        handleSuccessAction('Teilen fehlgeschlagen.');
+        handleSuccessAction(t('tasks.list.tasks.menu.share_failed'));
       }
     }
   }

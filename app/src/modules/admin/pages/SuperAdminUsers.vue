@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import {
   Lock as LockIcon,
   Unlock,
@@ -22,6 +23,7 @@ const {
   pruneOldLogs,
 } = useSuperAdminUsers();
 const { fmtDate } = useSuperAdminFormat();
+const { t } = useI18n();
 
 const showActivityFor = ref<string | null>(null);
 
@@ -38,19 +40,21 @@ onMounted(loadUsers);
 
 <template>
   <div class="page-header">
-    <h2 class="page-title">User Management</h2>
-    <BaseButton variant="ghost" @click="loadUsers">Refresh</BaseButton>
+    <h2 class="page-title">{{ t('admin.users.title') }}</h2>
+    <BaseButton variant="ghost" @click="loadUsers">{{
+      t('common.buttons.refresh')
+    }}</BaseButton>
   </div>
 
   <BaseTableWrapper>
     <table>
       <thead>
         <tr>
-          <th>Email</th>
-          <th>ID</th>
-          <th>Status</th>
-          <th>Registered</th>
-          <th>Actions</th>
+          <th>{{ t('admin.users.table.email') }}</th>
+          <th>{{ t('admin.users.table.id') }}</th>
+          <th>{{ t('admin.users.table.status') }}</th>
+          <th>{{ t('admin.users.table.registered') }}</th>
+          <th>{{ t('admin.users.table.actions') }}</th>
         </tr>
       </thead>
       <tbody>
@@ -62,19 +66,26 @@ onMounted(loadUsers);
           <td>{{ u.email }}</td>
           <td>{{ u.id }}</td>
           <td>
-            <span v-if="u.role === 'superadmin'" class="badge badge-purple"
-              >Admin</span
-            >
-            <span v-else-if="u.isBanned" class="badge badge-red">Banned</span>
-            <span v-else class="badge badge-green">Active</span>
-            <span v-if="!u.emailVerified" class="badge badge-yellow"
-              >Unverified</span
-            >
+            <span v-if="u.role === 'superadmin'" class="badge badge-purple">{{
+              t('admin.users.status.admin')
+            }}</span>
+            <span v-else-if="u.isBanned" class="badge badge-red">{{
+              t('admin.users.status.banned')
+            }}</span>
+            <span v-else class="badge badge-green">{{
+              t('admin.users.status.active')
+            }}</span>
+            <span v-if="!u.emailVerified" class="badge badge-yellow">{{
+              t('admin.users.status.unverified')
+            }}</span>
           </td>
           <td class="cell-date">{{ fmtDate(u.createdAt) }}</td>
           <td class="py-0! px-2! min-w-0!">
             <div class="cell-actions">
-              <BaseTooltip content="Activity log" placement="bottom">
+              <BaseTooltip
+                :content="t('admin.users.actions.activity_log')"
+                placement="bottom"
+              >
                 <BaseButton
                   size="sm"
                   :icon="FileText"
@@ -82,7 +93,11 @@ onMounted(loadUsers);
                 />
               </BaseTooltip>
               <BaseTooltip
-                :content="u.isBanned ? 'Unban' : 'Ban'"
+                :content="
+                  u.isBanned
+                    ? t('admin.users.actions.unban')
+                    : t('admin.users.actions.ban')
+                "
                 placement="bottom"
               >
                 <BaseButton
@@ -92,10 +107,16 @@ onMounted(loadUsers);
                   @click="toggleBan(u)"
                 />
               </BaseTooltip>
-              <BaseTooltip content="Prune old logs" placement="bottom">
+              <BaseTooltip
+                :content="t('admin.users.actions.prune_logs')"
+                placement="bottom"
+              >
                 <BaseButton size="sm" :icon="Eraser" @click="pruneOldLogs(u)" />
               </BaseTooltip>
-              <BaseTooltip content="Delete" placement="bottom">
+              <BaseTooltip
+                :content="t('common.buttons.delete')"
+                placement="bottom"
+              >
                 <BaseButton
                   v-if="u.role !== 'superadmin'"
                   size="sm"
@@ -118,7 +139,7 @@ onMounted(loadUsers);
     >
       <div class="drawer-panel">
         <div class="drawer-header">
-          <h3>Activity Log</h3>
+          <h3>{{ t('admin.users.activity_log_title') }}</h3>
           <button class="btn-icon" @click="showActivityFor = null">
             <X :size="18" />
           </button>

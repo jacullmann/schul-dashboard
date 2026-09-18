@@ -1,5 +1,6 @@
 import { ref, onUnmounted } from 'vue';
 import { supabase } from '@/lib/supabase';
+import i18n from '@/i18n';
 import {
   REALTIME_SUBSCRIBE_STATES,
   type RealtimeChannel,
@@ -31,7 +32,9 @@ export function useMatchmaking() {
 
   const startSearching = async () => {
     if (!profile.value) {
-      matchError.value = 'You must join the game first.';
+      matchError.value = i18n.global.t(
+        'chat.natural_intelligence.errors.join_first',
+      );
       return;
     }
 

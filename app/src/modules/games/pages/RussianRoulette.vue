@@ -75,7 +75,7 @@ const probabilityPercentage = computed(() => {
 });
 
 const oddsDisplay = computed(() => {
-  if (status.value === 'dead') return 'Gestorben';
+  if (status.value === 'dead') return t('games.roulette.status.dead');
   if (status.value === 'won') return t('games.roulette.status.won');
   return spinAfterShot.value
     ? `${bulletCount.value} / ${chamberSize.value}`
@@ -84,9 +84,9 @@ const oddsDisplay = computed(() => {
 
 const gameStatusText = computed(() => {
   if (status.value === 'dead') return '*PANG* ...';
-  if (status.value === 'won') return 'Trommel geleert. Du lebst.';
+  if (status.value === 'won') return t('games.roulette.status.emptied');
   if (shotsFired.value > 0) return t('games.roulette.status.click');
-  return `Waffe geladen.`;
+  return t('games.roulette.status.loaded');
 });
 
 const cylinderStyle = computed(() => {
@@ -166,7 +166,7 @@ onMounted(() => {
       "
     >
       <header class="rr-header">
-        <h1 class="rr-title">RUSSIAN ROULETTE</h1>
+        <h1 class="rr-title">{{ t('games.roulette.title') }}</h1>
         <button
           class="rr-icon-btn"
           :class="{ active: showSettings }"
@@ -182,9 +182,9 @@ onMounted(() => {
             <span class="rr-setting-label">{{
               t('games.roulette.settings.chamber_size_label')
             }}</span>
-            <span class="rr-setting-desc"
-              >Kammern in der Trommel (Max: 12)</span
-            >
+            <span class="rr-setting-desc">{{
+              t('games.roulette.settings.chamber_size_description')
+            }}</span>
           </div>
           <div class="rr-control">
             <button class="rr-ctrl-btn" @click="adjustSetting('chamber', -1)">
@@ -199,7 +199,9 @@ onMounted(() => {
 
         <div class="rr-setting-row">
           <div class="rr-setting-info">
-            <span class="rr-setting-label">Patronen</span>
+            <span class="rr-setting-label">{{
+              t('games.roulette.settings.bullet_count_title')
+            }}</span>
             <span class="rr-setting-desc">{{
               t('games.roulette.settings.bullet_count_label')
             }}</span>
@@ -217,8 +219,12 @@ onMounted(() => {
 
         <div class="rr-setting-row">
           <div class="rr-setting-info">
-            <span class="rr-setting-label">Zylinder drehen</span>
-            <span class="rr-setting-desc">Neu mischen nach Klickvorgang</span>
+            <span class="rr-setting-label">{{
+              t('games.roulette.settings.spin_label')
+            }}</span>
+            <span class="rr-setting-desc">{{
+              t('games.roulette.settings.spin_description')
+            }}</span>
           </div>
           <div class="rr-toggle-wrapper">
             <label class="rr-toggle">

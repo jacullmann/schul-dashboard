@@ -1,5 +1,6 @@
 import { ref } from 'vue';
 import { supabase } from '@/lib/supabase';
+import i18n from '@/i18n';
 import { useAuth } from '@/modules/chat/composables/useAuth';
 
 export function useReports() {
@@ -16,12 +17,12 @@ export function useReports() {
     reason: string,
   ): Promise<boolean> => {
     if (!user.value) {
-      reportError.value = 'You must be authenticated to submit a report.';
+      reportError.value = i18n.global.t('chat.report.errors.unauthenticated');
       return false;
     }
 
     if (!reportedId || !reason || !messageContentSnapshot) {
-      reportError.value = 'Missing required report fields.';
+      reportError.value = i18n.global.t('chat.report.errors.missing_fields');
       return false;
     }
 
@@ -49,7 +50,7 @@ export function useReports() {
         return false;
       }
       reportError.value =
-        err.message || 'An error occurred while submitting the report.';
+        err.message || i18n.global.t('chat.report.errors.generic');
       console.error('Report Error:', err);
       return false;
     } finally {

@@ -2,8 +2,10 @@
 import { computed, ref, onMounted } from 'vue';
 import { Search, ChevronLeft, X } from '@lucide/vue';
 import { useEventListener } from '@vueuse/core';
+import { useI18n } from 'vue-i18n';
 import DOMPurify from 'dompurify';
 
+const { t } = useI18n();
 const inputRef = ref<HTMLInputElement | null>(null);
 const searchQuery = ref('');
 const searchResults = ref<any[]>([]);
@@ -67,10 +69,13 @@ async function viewArticle(pageid: number, title: string) {
     );
     const data = await response.json();
     articleContent.value =
-      data.parse?.text['*'] || 'Could not load article content.';
+      data.parse?.text['*'] ||
+      t('chat.natural_intelligence.server.wikipedia.article_unavailable');
   } catch (error) {
     console.error('Error fetching article:', error);
-    articleContent.value = 'Failed to load article content.';
+    articleContent.value = t(
+      'chat.natural_intelligence.server.wikipedia.article_failed',
+    );
   } finally {
     articleLoading.value = false;
   }
@@ -96,7 +101,9 @@ onMounted(() => {
               ref="inputRef"
               v-model="searchQuery"
               type="text"
-              placeholder="Search Wikipedia..."
+              :placeholder="
+                t('chat.natural_intelligence.server.wikipedia.placeholder')
+              "
               autocomplete="off"
               spellcheck="false"
               class="flex-1 w-full p-0 rounded-none bg-transparent border-none outline-none shadow-none text-on-ghost text-base/4 placeholder:text-on-ghost-subtle"
@@ -114,14 +121,22 @@ onMounted(() => {
             <template v-if="currentView === 'results'">
               <div v-if="loading" class="p-8 text-center text-on-ghost-subtle">
                 <BaseSpinner on="ghost" size="24" />
-                <p>Searching Wikipedia...</p>
+                <p>
+                  {{
+                    t('chat.natural_intelligence.server.wikipedia.searching')
+                  }}
+                </p>
               </div>
 
               <div
                 v-else-if="searchResults.length === 0 && searchQuery"
                 class="p-8 text-center text-on-ghost-subtle"
               >
-                No results found for "{{ searchQuery }}"
+                {{
+                  t('chat.natural_intelligence.server.wikipedia.no_results', {
+                    query: searchQuery,
+                  })
+                }}
               </div>
 
               <div
@@ -139,8 +154,13 @@ onMounted(() => {
                     class="text-on-ghost font-medium mb-1 group-hover:text-primary transition-colors flex items-center justify-between"
                   >
                     <span>{{ result.title }}</span>
-                    <span class="text-xs text-on-ghost-muted italic font-normal"
-                      >{{ result.wordcount }} words</span
+                    <span
+                      class="text-xs text-on-ghost-muted italic font-normal"
+                      >{{
+                        t('chat.natural_intelligence.server.wikipedia.words', {
+                          count: result.wordcount,
+                        })
+                      }}</span
                     >
                   </div>
                   <!-- eslint-disable vue/no-v-html -- sanitized with DOMPurify above -->
@@ -153,7 +173,7 @@ onMounted(() => {
               </div>
 
               <div v-else class="p-8 text-center text-on-ghost-subtle">
-                Type something to search on Wikipedia
+                {{ t('chat.natural_intelligence.server.wikipedia.empty') }}
               </div>
             </template>
 
@@ -163,7 +183,8 @@ onMounted(() => {
                   class="mb-4 text-primary hover:text-primary-hover flex items-center gap-1 text-sm font-medium transition-colors"
                   @click="currentView = 'results'"
                 >
-                  <ChevronLeft :size="16" /> Back to results
+                  <ChevronLeft :size="16" />
+                  {{ t('chat.natural_intelligence.server.wikipedia.back') }}
                 </button>
 
                 <div
@@ -196,15 +217,17 @@ onMounted(() => {
             <BaseRow>
               <BaseKbd>↑</BaseKbd>
               <BaseKbd>↓</BaseKbd>
-              to navigate
+              {{
+                t('chat.natural_intelligence.server.wikipedia.hint_navigate')
+              }}
             </BaseRow>
             <BaseRow>
               <BaseKbd>↵</BaseKbd>
-              to open
+              {{ t('chat.natural_intelligence.server.wikipedia.hint_open') }}
             </BaseRow>
             <BaseRow>
               <BaseKbd>Esc</BaseKbd>
-              to close
+              {{ t('chat.natural_intelligence.server.wikipedia.hint_close') }}
             </BaseRow>
           </div>
         </div>

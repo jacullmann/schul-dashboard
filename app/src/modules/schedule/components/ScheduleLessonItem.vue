@@ -67,7 +67,7 @@ function onClick(event: MouseEvent) {
               : ''
           "
         >
-          {{ lesson.courseCount }} Kurse
+          {{ t('schedule.course_count', { count: lesson.courseCount }) }}
         </span>
         <span
           v-else-if="lesson.courseName || lesson.courses?.name"

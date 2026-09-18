@@ -13,7 +13,8 @@
     "save": "Save",
     "show_less": "Show less",
     "show_more": "Show more",
-    "skip": "Skip"
+    "skip": "Skip",
+    "refresh": "Refresh"
   },
   "cookies": {
     "banner": {
@@ -196,5 +197,29 @@
     "formatYMD": "{year}-{month}-{day}",
     "previous_month": "Previous month",
     "next_month": "Next month"
-  }
+  },
+  "loading": "Loading...",
+  "notifications": "Notifications",
+  "header": {
+    "toggle_navigation": "Toggle navigation menu",
+    "leave_group": "Leave group",
+    "leave_group_confirm": {
+      "title": "Leave Group?",
+      "content": "Are you sure you want to leave the group \"{group}\"?",
+      "submit": "Leave"
+    }
+  },
+  "not_found": {
+    "title": "Page not found",
+    "description": "The page you're looking for doesn't exist or isn't available.",
+    "links": {
+      "dashboard": "Overview of the group",
+      "tasks": "Homework, assignments and exams",
+      "schedule": "All of your lessons",
+      "private": "Your private list of tasks"
+    },
+    "go_back": "Go back"
+  },
+  "preview": "Preview",
+  "more": "More"
 }

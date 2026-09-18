@@ -33,11 +33,11 @@ async function inviteMember() {
       modalStore.openInviteModal(res.token);
       emit('refresh-invites');
     } else {
-      toast.error(res.error || 'Failed to generate invite link.');
+      toast.error(res.error || t('auth.groups.errors.invite_failed'));
     }
   } catch (err) {
     console.error('Failed to generate invite link:', err);
-    toast.error('Failed to generate invite link.');
+    toast.error(t('auth.groups.errors.invite_failed'));
   } finally {
     loadingInvite.value = false;
   }
@@ -55,7 +55,7 @@ async function copyLink(inviteId: string, token: string) {
       }
     }, 3000);
   } catch {
-    toast.error('Failed to copy to clipboard');
+    toast.error(t('auth.groups.errors.copy_failed'));
   }
 }
 
@@ -81,10 +81,13 @@ function getBadgeClass(invite: GroupInviteLog): string {
 }
 
 function getBadgeLabel(invite: GroupInviteLog): string {
-  if (invite.usedAt !== null) return 'Verwendet';
-  if (invite.revokedAt !== null) return 'Widerrufen';
-  if (new Date(invite.expiresAt) <= new Date()) return 'Abgelaufen';
-  return 'Aktiv';
+  if (invite.usedAt !== null)
+    return t('groups.settings.members.invite_links.status.used');
+  if (invite.revokedAt !== null)
+    return t('groups.settings.members.invite_links.status.revoked');
+  if (new Date(invite.expiresAt) <= new Date())
+    return t('groups.settings.members.invite_links.status.expired');
+  return t('groups.settings.members.invite_links.status.active');
 }
 
 function getInviteUrl(token: string): string {
@@ -126,11 +129,15 @@ function getInviteUrl(token: string): string {
       <table>
         <thead>
           <tr>
-            <th>Link</th>
-            <th>Status</th>
-            <th>Erstellt von</th>
-            <th>Erstellt am</th>
-            <th>Ablaufdatum</th>
+            <th>{{ t('groups.settings.members.invite_links.table.link') }}</th>
+            <th>
+              {{ t('groups.settings.members.invite_links.table.status') }}
+            </th>
+            <th>{{ t('tasks.list.tasks.menu.info_modal.created_by') }}</th>
+            <th>{{ t('tasks.list.tasks.menu.info_modal.created_at') }}</th>
+            <th>
+              {{ t('groups.settings.members.invite_links.table.expires_at') }}
+            </th>
             <th></th>
           </tr>
         </thead>
@@ -142,7 +149,12 @@ function getInviteUrl(token: string): string {
             <td :class="getBadgeClass(invite)" class="text-sm font-bold">
               {{ getBadgeLabel(invite) }}
             </td>
-            <td>{{ invite.createdByName || 'System' }}</td>
+            <td>
+              {{
+                invite.createdByName ||
+                t('groups.settings.members.invite_links.system')
+              }}
+            </td>
             <td>
               {{
                 new Date(invite.createdAt).toLocaleString('de-DE', {
@@ -156,8 +168,10 @@ function getInviteUrl(token: string): string {
             </td>
             <td>
               <template v-if="invite.usedAt"
-                >Used by
-                <strong>{{ invite.usedByName || 'Unbekannt' }}</strong>
+                >{{ t('groups.settings.members.invite_links.used_by') }}
+                <strong>{{
+                  invite.usedByName || t('common.selection.unknown')
+                }}</strong>
                 ({{
                   new Date(invite.usedAt).toLocaleString('de-DE', {
                     day: '2-digit',
@@ -169,8 +183,10 @@ function getInviteUrl(token: string): string {
                 }})
               </template>
               <template v-else-if="invite.revokedAt"
-                >Revoked by
-                <strong>{{ invite.revokedByName || 'Unbekannt' }}</strong>
+                >{{ t('groups.settings.members.invite_links.revoked_by') }}
+                <strong>{{
+                  invite.revokedByName || t('common.selection.unknown')
+                }}</strong>
                 ({{
                   new Date(invite.revokedAt).toLocaleString('de-DE', {
                     day: '2-digit',
@@ -197,7 +213,7 @@ function getInviteUrl(token: string): string {
             <td class="py-0! px-2! min-w-0! space-x-2">
               <BaseTooltip
                 v-if="isInviteActive(invite)"
-                content="Link kopieren"
+                :content="t('auth.groups.invite.copy_button')"
                 placement="bottom"
               >
                 <BaseButton
@@ -210,7 +226,9 @@ function getInviteUrl(token: string): string {
 
               <BaseTooltip
                 v-if="isInviteActive(invite)"
-                content="Widerrufen"
+                :content="
+                  t('groups.settings.members.invite_links.actions.revoke')
+                "
                 placement="bottom"
               >
                 <BaseButton

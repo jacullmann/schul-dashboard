@@ -390,12 +390,11 @@ export function useTaskFormLogic(
       } else if (err.response?.status === 400) {
         submitError.value = apiErrorMessage(
           err,
-          'Bitte überprüfe deine Eingaben.',
+          t('tasks.list.task_form.errors.check_input'),
         );
       } else {
         submitError.value =
-          err.message ||
-          'Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es erneut.';
+          err.message || t('tasks.list.task_form.errors.unexpected');
       }
     } finally {
       submitting.value = false;

@@ -57,12 +57,12 @@ async function setPersonalization(value: boolean) {
       emit('change', data.personalized);
       useToast().success(
         value
-          ? 'Personalisierte Kurse aktiviert'
-          : 'Personalisierte Kurse deaktiviert',
+          ? t('auth.personalization.enabled_toast')
+          : t('auth.personalization.disabled_toast'),
       );
     }
   } catch (e: unknown) {
-    useToast().error(apiErrorMessage(e, 'Fehler beim Aktualisieren'));
+    useToast().error(apiErrorMessage(e, t('common.errors.update')));
   } finally {
     updating.value = false;
   }

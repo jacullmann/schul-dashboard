@@ -62,13 +62,11 @@ export function useHwForms(ctx: HwContext) {
       const item = ctx.items.value.find((i) => i.id === itemId);
       if (item) item.editorNote = noteEditContent.value;
 
-      useToast().success('Anmerkung gespeichert.');
+      useToast().success(t('tasks.list.notes.saved'));
       editingNoteForId.value = null;
       noteEditContent.value = '';
     } catch (e: any) {
-      useToast().error(
-        apiErrorMessage(e, 'Fehler beim Speichern der Anmerkung.'),
-      );
+      useToast().error(apiErrorMessage(e, t('tasks.list.notes.save_failed')));
     } finally {
       savingNote.value = false;
     }

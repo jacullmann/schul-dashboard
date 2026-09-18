@@ -1,4 +1,5 @@
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import hw from '@/api/api';
 import { useToast } from '@/common/composables/useToast';
 import { useModalStore } from '@/stores/modalStore';
@@ -13,6 +14,7 @@ const loadingActivities = ref<Record<string, boolean>>({});
 export function useSuperAdminUsers() {
   const toast = useToast();
   const modalStore = useModalStore();
+  const { t } = useI18n();
   const { loadStats } = useSuperAdminStats();
 
   async function loadUsers() {
@@ -21,7 +23,7 @@ export function useSuperAdminUsers() {
       const { data } = await hw.get('/admin/all-users');
       users.value = data;
     } catch {
-      toast.error('Failed to load users.');
+      toast.error(t('admin.users.errors.load'));
     } finally {
       loadingUsers.value = false;
     }
@@ -34,7 +36,7 @@ export function useSuperAdminUsers() {
       activities.value[userId] = data;
       return true;
     } catch {
-      toast.error('Failed to load activity.');
+      toast.error(t('admin.users.errors.load_activity'));
       return false;
     } finally {
       loadingActivities.value[userId] = false;
@@ -47,49 +49,49 @@ export function useSuperAdminUsers() {
       if (u.isBanned) {
         await hw.delete(`/admin/users/${u.id}/ban`);
         u.isBanned = false;
-        toast.success('User unbanned.');
+        toast.success(t('admin.users.unban_success'));
       } else {
         await hw.post(`/admin/users/${u.id}/ban`);
         u.isBanned = true;
-        toast.success('User banned.');
+        toast.success(t('admin.users.ban_success'));
       }
       await loadStats();
     } catch {
-      toast.error('Action failed.');
+      toast.error(t('admin.errors.action_failed'));
     }
   }
 
   async function deleteUser(id: string) {
     const confirmed = await modalStore.confirm({
-      title: 'Delete User?',
-      content: 'Are you sure you want to delete this user?',
-      submitText: 'Delete',
+      title: t('admin.users.delete_modal.title'),
+      content: t('admin.users.delete_modal.content'),
+      submitText: t('common.buttons.delete'),
       danger: true,
     });
     if (!confirmed) return;
     try {
       await hw.delete(`/admin/users/${id}`);
       users.value = users.value.filter((u) => u.id !== id);
-      toast.success('User deleted.');
+      toast.success(t('admin.users.delete_success'));
       await loadStats();
     } catch {
-      toast.error('Failed to delete user.');
+      toast.error(t('admin.users.errors.delete'));
     }
   }
 
   async function pruneOldLogs(u: SuperAdminUser) {
     const confirmed = await modalStore.confirm({
-      title: 'Prune logs?',
-      content: `Delete activity logs older than 30 days for ${u.email}?`,
-      submitText: 'Prune',
+      title: t('admin.users.prune_modal.title'),
+      content: t('admin.users.prune_modal.content', { email: u.email }),
+      submitText: t('admin.users.prune_modal.submit'),
       danger: true,
     });
     if (!confirmed) return;
     try {
       await hw.delete(`/admin/users/${u.id}/activity/prune`);
-      toast.success('Logs pruned.');
+      toast.success(t('admin.users.prune_success'));
     } catch {
-      toast.error('Failed to prune logs.');
+      toast.error(t('admin.users.errors.prune'));
     }
   }
 

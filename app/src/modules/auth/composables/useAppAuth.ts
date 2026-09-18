@@ -1,5 +1,6 @@
 import { ref, computed } from 'vue';
 import hw, { ensureCsrf } from '@/api/api.ts';
+import i18n from '@/i18n';
 import { useUserStore } from '@/stores/userStore';
 import type { ScheduleConfig } from '@/modules/schedule/types';
 import { toGroupType, type GroupType } from '@/types/groups';
@@ -159,7 +160,7 @@ async function doSwitchGroup(
         err.response?.data?.message ??
         err.response?.data?.error ??
         err.message ??
-        'Group switch failed.',
+        i18n.global.t('auth.groups.errors.switch_failed'),
     };
   } finally {
     switchPromise = null;
@@ -229,7 +230,10 @@ export function useAppAuth() {
         await checkAuthStatus();
         return { ok: true };
       }
-      return { ok: false, error: 'Group creation failed.' };
+      return {
+        ok: false,
+        error: i18n.global.t('auth.groups.errors.creation_failed'),
+      };
     } catch (error: unknown) {
       const err = error as {
         response?: { data?: { message?: string; error?: string } };
@@ -239,7 +243,7 @@ export function useAppAuth() {
         error:
           err.response?.data?.message ??
           err.response?.data?.error ??
-          'An error occurred.',
+          i18n.global.t('auth.groups.errors.generic'),
       };
     }
   }
@@ -314,7 +318,10 @@ export function useAppAuth() {
       if (status === 200 || status === 201) {
         return { ok: true, token: data.token };
       }
-      return { ok: false, error: 'Failed to create invite.' };
+      return {
+        ok: false,
+        error: i18n.global.t('auth.groups.errors.invite_create_failed'),
+      };
     } catch (error: unknown) {
       const err = error as {
         response?: { data?: { message?: string; error?: string } };
@@ -324,7 +331,7 @@ export function useAppAuth() {
         error:
           err.response?.data?.message ??
           err.response?.data?.error ??
-          'An error occurred.',
+          i18n.global.t('auth.groups.errors.generic'),
       };
     }
   }
@@ -346,7 +353,10 @@ export function useAppAuth() {
           memberCount: data.memberCount,
         };
       }
-      return { ok: false, error: 'Failed to get invite details.' };
+      return {
+        ok: false,
+        error: i18n.global.t('auth.groups.errors.invite_details_failed'),
+      };
     } catch (error: unknown) {
       const err = error as {
         response?: { data?: { message?: string; error?: string } };
@@ -356,7 +366,7 @@ export function useAppAuth() {
         error:
           err.response?.data?.message ??
           err.response?.data?.error ??
-          'An error occurred.',
+          i18n.global.t('auth.groups.errors.generic'),
       };
     }
   }
@@ -370,7 +380,10 @@ export function useAppAuth() {
         await checkAuthStatus();
         return { ok: true, groupId: data.groupId };
       }
-      return { ok: false, error: 'Failed to accept invite.' };
+      return {
+        ok: false,
+        error: i18n.global.t('auth.groups.errors.invite_accept_failed'),
+      };
     } catch (error: unknown) {
       const err = error as {
         response?: { data?: { message?: string; error?: string } };
@@ -380,7 +393,7 @@ export function useAppAuth() {
         error:
           err.response?.data?.message ??
           err.response?.data?.error ??
-          'An error occurred.',
+          i18n.global.t('auth.groups.errors.generic'),
       };
     }
   }

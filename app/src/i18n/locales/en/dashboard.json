@@ -6,7 +6,8 @@
     "no_tasks": "No upcoming tasks in the next 2 days.",
     "view_all": "View all tasks",
     "due_today": "Due today",
-    "due_tomorrow": "Due tomorrow"
+    "due_tomorrow": "Due tomorrow",
+    "view_task": "View full task"
   },
   "schedule_overview": {
     "title": "Schedule",
@@ -19,5 +20,6 @@
     "room_change": "Room change: {room}",
     "setup_cta": "No schedule has been created for this group yet.",
     "setup_button": "Set Up Schedule"
-  }
+  },
+  "edit_layout": "Edit Layout"
 }

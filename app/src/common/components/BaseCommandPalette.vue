@@ -14,7 +14,7 @@ const props = withDefaults(
   }>(),
   {
     placeholder: '',
-    title: 'Search',
+    title: undefined,
     idPrefix: 'command-result-',
   },
 );
@@ -91,7 +91,7 @@ function setSelectedIndex(idx: number) {
     <div
       role="dialog"
       aria-modal="true"
-      :aria-label="title"
+      :aria-label="title ?? t('common.sidebar.search')"
       class="bg-surface border border-ghost-border rounded-2xl w-[calc(100%-32px)] max-w-140 overflow-hidden fixed text-left z-100001"
       @keydown="handleKeydown"
     >

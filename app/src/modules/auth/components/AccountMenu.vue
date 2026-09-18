@@ -65,7 +65,7 @@ const {
         <Avatar
           :name="email"
           :aria-expanded="open"
-          title="Account menu"
+          :title="t('auth.account_menu.label')"
           @keydown.enter="toggle"
           @keydown.space.prevent="toggle"
         />
@@ -101,7 +101,7 @@ const {
       class="fixed pointer-events-auto z-[var(--z-modal)] origin-top-left min-w-[320px]"
       :style="popupStyle"
       role="menu"
-      aria-label="Account menu"
+      :aria-label="t('auth.account_menu.label')"
       @click.stop
       @cancel="cancel"
     >

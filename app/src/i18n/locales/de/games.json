@@ -4,7 +4,11 @@
   },
   "list": {
     "tic_tac_toe": {
-      "description": "Wer drei in einer Reihe hat, gewinnt!"
+      "description": "Wer drei in einer Reihe hat, gewinnt!",
+      "tags": {
+        "strategy": "Strategie",
+        "two_player": "2-Spieler"
+      }
     },
     "russian_roulette": {
       "description": "Dies ist nur ein Spiel!",
@@ -13,16 +17,33 @@
         "no_gambling": "Kein Glückspiel",
         "classic": "Klassiker",
         "russian": "Russisch"
-      }
+      },
+      "name": "Russisch Roulette"
     },
     "rock_paper_scissors": {
-      "description": "Spiele Schere-Stein-Papier gegen einen Computer."
+      "description": "Spiele Schere-Stein-Papier gegen einen Computer.",
+      "name": "Schere, Stein, Papier",
+      "tags": {
+        "classic": "Klassiker",
+        "duel": "Duell",
+        "solo": "Solo"
+      }
     },
     "memory_game": {
-      "description": "Finde alle Paare! Ein klassisches Gedächtnisspiel."
+      "description": "Finde alle Paare! Ein klassisches Gedächtnisspiel.",
+      "tags": {
+        "classic": "Klassiker",
+        "brain_training": "Gehirntraining",
+        "solo": "Solo"
+      }
     },
     "snake_game": {
-      "description": "Friss die Äpfel und lass die Schlange wachsen, aber beiße dich nicht selbst!"
+      "description": "Friss die Äpfel und lass die Schlange wachsen, aber beiße dich nicht selbst!",
+      "tags": {
+        "arcade": "Arcade",
+        "classic": "Klassiker",
+        "action": "Action"
+      }
     },
     "whack_a_mole": {
       "description": "Hau den Maulwurf! Teste deine Reaktionsgeschwindigkeit.",
@@ -31,7 +52,11 @@
         "fun": "Spaß",
         "solo": "Solo"
       }
-    }
+    },
+    "title": "Spiele",
+    "search_placeholder": "Suchen",
+    "preview_alt": "Vorschau von {name}",
+    "empty": "Keine Spiele gefunden"
   },
   "memory": {
     "moves_count": "Züge: {moves}",
@@ -41,16 +66,35 @@
   "rps": {
     "choose_prompt": "Wähle Schere, Stein oder Papier!",
     "computer_thinking": "Der Computer wählt...",
-    "you": "Du"
+    "you": "Du",
+    "result": "Ergebnis: {result}!",
+    "results": {
+      "won": "Gewonnen",
+      "lost": "Verloren",
+      "draw": "Unentschieden"
+    },
+    "computer": "Computer",
+    "moves": {
+      "scissors": "Schere",
+      "rock": "Stein",
+      "paper": "Papier"
+    }
   },
   "roulette": {
     "status": {
       "won": "Überlebt",
-      "click": "*Klick* - Nächster Versuch."
+      "click": "*Klick* - Nächster Versuch.",
+      "dead": "Gestorben",
+      "emptied": "Trommel geleert. Du lebst.",
+      "loaded": "Waffe geladen."
     },
     "settings": {
       "chamber_size_label": "Trommelgröße",
-      "bullet_count_label": "Anzahl der geladenen Schüsse"
+      "bullet_count_label": "Anzahl der geladenen Schüsse",
+      "chamber_size_description": "Kammern in der Trommel (Max: 12)",
+      "bullet_count_title": "Patronen",
+      "spin_label": "Zylinder drehen",
+      "spin_description": "Neu mischen nach Klickvorgang"
     },
     "stats": {
       "mortality_label": "Mortalität"
@@ -65,5 +109,20 @@
     "game_over": "Game Over! 💥",
     "restart": "Neu starten",
     "instruction": "Nutze die Pfeiltasten zum Steuern."
+  },
+  "common": {
+    "play_again": "Nochmal spielen",
+    "new_game": "Neues Spiel starten"
+  },
+  "tic_tac_toe": {
+    "winner": "Spieler {player} hat gewonnen!",
+    "draw": "Unentschieden!",
+    "turn": "Spieler {player} ist an der Reihe."
+  },
+  "whack_a_mole": {
+    "score": "Punkte: {score}",
+    "time": "Zeit: {time}s",
+    "time_up": "Zeit abgelaufen! ⏰",
+    "result": "Du hast {score} Punkte erreicht."
   }
 }

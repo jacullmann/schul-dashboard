@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
+
 defineEmits<{
   confirm: [];
   cancel: [];
@@ -7,7 +11,7 @@ defineEmits<{
 withDefaults(
   defineProps<{
     title: string;
-    submitText: string;
+    submitText?: string;
     loading?: boolean;
     danger?: boolean;
     open: boolean;
@@ -15,7 +19,7 @@ withDefaults(
   {
     loading: false,
     danger: false,
-    submitText: 'Confirm',
+    submitText: undefined,
   },
 );
 </script>
@@ -35,6 +39,8 @@ withDefaults(
       <p class="m-0!"><slot></slot></p>
     </template>
 
-    <template #action-text>{{ submitText }}</template>
+    <template #action-text>{{
+      submitText ?? t('common.buttons.confirm')
+    }}</template>
   </BaseModal>
 </template>

@@ -1,4 +1,5 @@
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import hw from '@/api/api';
 import { useToast } from '@/common/composables/useToast';
 import { useModalStore } from '@/stores/modalStore';
@@ -11,6 +12,7 @@ const isCleaningUp = ref(false);
 export function useSuperAdminStats() {
   const toast = useToast();
   const modalStore = useModalStore();
+  const { t } = useI18n();
 
   async function loadStats() {
     loadingStats.value = true;
@@ -26,9 +28,9 @@ export function useSuperAdminStats() {
 
   async function cleanupOldItems() {
     const confirmed = await modalStore.confirm({
-      title: 'Cleanup?',
-      content: 'Delete all tasks older than 90 days?',
-      submitText: 'Confirm',
+      title: t('admin.overview.cleanup.modal.title'),
+      content: t('admin.overview.cleanup.modal.content'),
+      submitText: t('common.buttons.confirm'),
       danger: true,
     });
     if (!confirmed) return;
@@ -36,10 +38,10 @@ export function useSuperAdminStats() {
     isCleaningUp.value = true;
     try {
       const { data } = await hw.delete('/admin/cleanup/old-items');
-      toast.success(data.message || 'Cleanup complete.');
+      toast.success(data.message || t('admin.overview.cleanup.success'));
       await loadStats();
     } catch {
-      toast.error('Cleanup failed.');
+      toast.error(t('admin.overview.cleanup.error'));
     } finally {
       isCleaningUp.value = false;
     }

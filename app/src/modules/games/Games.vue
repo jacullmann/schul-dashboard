@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { games } from '@/modules/games/composables/GameData';
 import { LucideFrown } from '@lucide/vue';
+
+const { t } = useI18n();
 
 const searchTag = ref('');
 
@@ -28,7 +31,9 @@ const filteredGames = computed(() => {
 <template>
   <div class="card">
     <div class="animate-fade-up">
-      <PageHeader class="mt-0 flex items-center gap-2">Spiele</PageHeader>
+      <PageHeader class="mt-0 flex items-center gap-2">{{
+        t('games.list.title')
+      }}</PageHeader>
     </div>
     <div
       class="flex flex-col items-center justify-center content-center overflow-hidden animate-fade-up"
@@ -37,7 +42,7 @@ const filteredGames = computed(() => {
         id="search-input"
         v-model="searchTag"
         class="mt-2 mb-16 mx-auto max-w-100"
-        placeholder="Suchen"
+        :placeholder="t('games.list.search_placeholder')"
       />
 
       <div
@@ -54,7 +59,7 @@ const filteredGames = computed(() => {
           >
             <img
               :src="game.previewImage"
-              :alt="`Vorschau von ${game.name}`"
+              :alt="t('games.list.preview_alt', { name: game.name })"
               class="w-full h-[200px] object-cover"
             />
             <div class="px-4 py-3 flex-grow flex flex-col">
@@ -84,7 +89,7 @@ const filteredGames = computed(() => {
         class="text-on-ghost-muted text-center text-[1.2em] mt-10 flex items-center justify-center gap-2"
       >
         <LucideFrown :size="20" />
-        Keine Spiele gefunden
+        {{ t('games.list.empty') }}
       </div>
     </div>
   </div>

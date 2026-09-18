@@ -269,9 +269,9 @@ function confirmRemove() {
             :form="false"
             classes="w-40!"
             :options="[
-              { label: 'Mitglied', value: 'user' },
-              { label: 'Moderator', value: 'moderator' },
-              { label: 'Admin', value: 'admin' },
+              { label: t('common.roles.member'), value: 'user' },
+              { label: t('common.roles.moderator'), value: 'moderator' },
+              { label: t('common.roles.admin'), value: 'admin' },
             ]"
             @update:model-value="(val: string) => onRoleChange(member, val)"
           />

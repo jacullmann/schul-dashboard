@@ -241,7 +241,7 @@ async function submit() {
               :disabled="savingAvatar"
               @click="triggerUploadAndClose"
             >
-              Bild hochladen
+              {{ t('groups.settings.general.avatar.actions.upload') }}
             </BaseMenuButton>
 
             <BaseMenuButton
@@ -249,7 +249,7 @@ async function submit() {
               :disabled="savingAvatar"
               @click="triggerCameraCaptureAndClose"
             >
-              Bild aufnehmen
+              {{ t('groups.settings.general.avatar.actions.capture') }}
             </BaseMenuButton>
 
             <BaseMenuDivider v-if="avatarUrl" />
@@ -261,7 +261,7 @@ async function submit() {
               :disabled="savingAvatar"
               @click="deleteAvatar"
             >
-              Bild löschen
+              {{ t('groups.settings.general.avatar.actions.delete') }}
             </BaseMenuButton>
           </BaseMenu>
         </div>
@@ -275,7 +275,9 @@ async function submit() {
       </div>
 
       <BaseFormGroup id="group-name">
-        <BaseLabel for="group-name">Gruppenname</BaseLabel>
+        <BaseLabel for="group-name">{{
+          t('auth.create_group.name_label')
+        }}</BaseLabel>
         <BaseInput
           id="group-name"
           ref="groupNameInputRef"

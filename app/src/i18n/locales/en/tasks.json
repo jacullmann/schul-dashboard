@@ -105,7 +105,8 @@
     },
     "notes": {
       "no_notes": "No notes",
-      "note": "Note"
+      "note": "Note",
+      "placeholder": "Add a note..."
     },
     "reset_filters": "Reset filters",
     "tabs": {
@@ -134,6 +135,27 @@
     "task_delete_confirm": "Private task successfully deleted",
     "error_duplicate": "Failed to duplicate task",
     "error_load": "Failed to load private tasks",
+    "form_placeholders": [
+      { "title": "Go shopping…", "description": "6 eggs, milk, bread…" },
+      {
+        "title": "Call grandma…",
+        "description": "Ask about her birthday plans…"
+      },
+      { "title": "Clean my room…", "description": "Vacuum, dust the shelves…" },
+      { "title": "Read a book…", "description": "At least 30 pages…" },
+      { "title": "Go for a run…", "description": "5 km around the park…" },
+      {
+        "title": "Water the plants…",
+        "description": "Don't forget the cactus…"
+      },
+      { "title": "Plan the weekend…", "description": "Cinema on Saturday…" },
+      { "title": "Buy a birthday gift…", "description": "Something for Lena…" },
+      { "title": "Practice guitar…", "description": "Learn the new chords…" },
+      {
+        "title": "Pack my sports bag…",
+        "description": "Towel, shoes, water bottle…"
+      }
+    ],
     "infopop": {
       "description": "Manage your private tasks",
       "sections": [
@@ -166,6 +188,16 @@
       "description_placeholder": "6 eggs...",
       "title": "New Private Task",
       "title_placeholder": "Go grocery shopping..."
+    },
+    "form": {
+      "new_title": "New Private Entry",
+      "edit_title": "Edit Private Entry",
+      "errors": {
+        "title_missing": "A title is required.",
+        "title_long": "Title is too long (max. 100 characters).",
+        "description_long": "Description is too long (max. 2000 characters).",
+        "unexpected": "An unexpected error occurred."
+      }
     }
   },
   "actions": {

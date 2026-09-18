@@ -186,8 +186,14 @@ onMounted(() => {
           :model-value="permissions.edit_subjects_courses"
           :disabled="!isAdmin || saving"
           :options="[
-            { label: 'Moderatoren', value: 'moderator' },
-            { label: 'Admins', value: 'admin' },
+            {
+              label: t('groups.settings.permissions.options.moderators'),
+              value: 'moderator',
+            },
+            {
+              label: t('groups.settings.permissions.options.admins'),
+              value: 'admin',
+            },
           ]"
           classes="w-38!"
           @update:model-value="savePermission('edit_subjects_courses', $event)"
@@ -204,8 +210,14 @@ onMounted(() => {
           :model-value="permissions.edit_schedule"
           :disabled="!isAdmin || saving"
           :options="[
-            { label: 'Moderatoren', value: 'moderator' },
-            { label: 'Admins', value: 'admin' },
+            {
+              label: t('groups.settings.permissions.options.moderators'),
+              value: 'moderator',
+            },
+            {
+              label: t('groups.settings.permissions.options.admins'),
+              value: 'admin',
+            },
           ]"
           classes="w-38!"
           @update:model-value="savePermission('edit_schedule', $event)"
@@ -224,9 +236,18 @@ onMounted(() => {
           :model-value="permissions.create_items"
           :disabled="!isAdmin || saving"
           :options="[
-            { label: 'Alle', value: 'user' },
-            { label: 'Moderatoren', value: 'moderator' },
-            { label: 'Admins', value: 'admin' },
+            {
+              label: t('groups.settings.permissions.options.all'),
+              value: 'user',
+            },
+            {
+              label: t('groups.settings.permissions.options.moderators'),
+              value: 'moderator',
+            },
+            {
+              label: t('groups.settings.permissions.options.admins'),
+              value: 'admin',
+            },
           ]"
           classes="w-38!"
           @update:model-value="savePermission('create_items', $event)"
@@ -243,9 +264,18 @@ onMounted(() => {
           :model-value="permissions.upload_images"
           :disabled="!isAdmin || saving"
           :options="[
-            { label: 'Alle', value: 'user' },
-            { label: 'Moderatoren', value: 'moderator' },
-            { label: 'Admins', value: 'admin' },
+            {
+              label: t('groups.settings.permissions.options.all'),
+              value: 'user',
+            },
+            {
+              label: t('groups.settings.permissions.options.moderators'),
+              value: 'moderator',
+            },
+            {
+              label: t('groups.settings.permissions.options.admins'),
+              value: 'admin',
+            },
           ]"
           classes="w-38!"
           @update:model-value="savePermission('upload_images', $event)"
@@ -262,9 +292,18 @@ onMounted(() => {
           :model-value="permissions.manage_notes"
           :disabled="!isAdmin || saving"
           :options="[
-            { label: 'Alle', value: 'user' },
-            { label: 'Moderatoren', value: 'moderator' },
-            { label: 'Admins', value: 'admin' },
+            {
+              label: t('groups.settings.permissions.options.all'),
+              value: 'user',
+            },
+            {
+              label: t('groups.settings.permissions.options.moderators'),
+              value: 'moderator',
+            },
+            {
+              label: t('groups.settings.permissions.options.admins'),
+              value: 'admin',
+            },
           ]"
           classes="w-38!"
           @update:model-value="savePermission('manage_notes', $event)"
@@ -283,9 +322,18 @@ onMounted(() => {
           :model-value="permissions.send_messages"
           :disabled="!isAdmin || saving"
           :options="[
-            { label: 'Alle', value: 'user' },
-            { label: 'Moderatoren', value: 'moderator' },
-            { label: 'Admins', value: 'admin' },
+            {
+              label: t('groups.settings.permissions.options.all'),
+              value: 'user',
+            },
+            {
+              label: t('groups.settings.permissions.options.moderators'),
+              value: 'moderator',
+            },
+            {
+              label: t('groups.settings.permissions.options.admins'),
+              value: 'admin',
+            },
           ]"
           classes="w-38!"
           @update:model-value="savePermission('send_messages', $event)"
@@ -304,9 +352,18 @@ onMounted(() => {
           :model-value="permissions.manage_schedule_changes"
           :disabled="!isAdmin || saving"
           :options="[
-            { label: 'Alle', value: 'user' },
-            { label: 'Moderatoren', value: 'moderator' },
-            { label: 'Admins', value: 'admin' },
+            {
+              label: t('groups.settings.permissions.options.all'),
+              value: 'user',
+            },
+            {
+              label: t('groups.settings.permissions.options.moderators'),
+              value: 'moderator',
+            },
+            {
+              label: t('groups.settings.permissions.options.admins'),
+              value: 'admin',
+            },
           ]"
           classes="w-38!"
           @update:model-value="
@@ -325,8 +382,14 @@ onMounted(() => {
           :model-value="permissions.manage_announcements"
           :disabled="!isAdmin || saving"
           :options="[
-            { label: 'Moderatoren', value: 'moderator' },
-            { label: 'Admins', value: 'admin' },
+            {
+              label: t('groups.settings.permissions.options.moderators'),
+              value: 'moderator',
+            },
+            {
+              label: t('groups.settings.permissions.options.admins'),
+              value: 'admin',
+            },
           ]"
           classes="w-38!"
           @update:model-value="savePermission('manage_announcements', $event)"
@@ -345,8 +408,14 @@ onMounted(() => {
           :model-value="permissions.moderate_members"
           :disabled="!isAdmin || saving"
           :options="[
-            { label: 'Moderatoren', value: 'moderator' },
-            { label: 'Admins', value: 'admin' },
+            {
+              label: t('groups.settings.permissions.options.moderators'),
+              value: 'moderator',
+            },
+            {
+              label: t('groups.settings.permissions.options.admins'),
+              value: 'admin',
+            },
           ]"
           classes="w-38!"
           @update:model-value="savePermission('moderate_members', $event)"
@@ -363,8 +432,14 @@ onMounted(() => {
           :model-value="permissions.delete_other_content"
           :disabled="!isAdmin || saving"
           :options="[
-            { label: 'Moderatoren', value: 'moderator' },
-            { label: 'Admins', value: 'admin' },
+            {
+              label: t('groups.settings.permissions.options.moderators'),
+              value: 'moderator',
+            },
+            {
+              label: t('groups.settings.permissions.options.admins'),
+              value: 'admin',
+            },
           ]"
           classes="w-38!"
           @update:model-value="savePermission('delete_other_content', $event)"

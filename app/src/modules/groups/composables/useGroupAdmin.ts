@@ -30,7 +30,9 @@ export function useGroupAdmin() {
   const { success, error: toastError } = useToast();
 
   const groupId = computed(() => route.params.groupId as string);
-  const groupName = computed(() => authGroupName.value || 'Group');
+  const groupName = computed(
+    () => authGroupName.value || t('groups.settings.group_fallback'),
+  );
 
   const activeTab = ref('overview');
 
@@ -89,7 +91,7 @@ export function useGroupAdmin() {
       const { data } = await hw.get('/group-admin/stats');
       stats.value = data;
     } catch {
-      showMessage('Failed to load statistics', true);
+      showMessage(t('groups.settings.messages.load_stats_failed'), true);
     } finally {
       loadingStats.value = false;
     }
@@ -101,7 +103,7 @@ export function useGroupAdmin() {
       const { data } = await hw.get('/group-admin/members');
       members.value = data;
     } catch {
-      showMessage('Failed to load members', true);
+      showMessage(t('groups.settings.messages.load_members_failed'), true);
     } finally {
       loadingMembers.value = false;
     }
@@ -114,9 +116,12 @@ export function useGroupAdmin() {
       });
       const member = members.value.find((m) => m.userId === userId);
       if (member) member.role = newRole;
-      showMessage('Role updated');
+      showMessage(t('groups.settings.messages.role_updated'));
     } catch (e: unknown) {
-      showMessage(apiErrorMessage(e, 'Failed to change role'), true);
+      showMessage(
+        apiErrorMessage(e, t('groups.settings.messages.role_update_failed')),
+        true,
+      );
       await loadMembers();
     }
   }
@@ -125,11 +130,18 @@ export function useGroupAdmin() {
     try {
       await hw.delete(`/group-admin/members/${userId}?ban=${ban}`);
       members.value = members.value.filter((m) => m.userId !== userId);
-      showMessage(ban ? 'Member removed and banned' : 'Member removed');
+      showMessage(
+        ban
+          ? t('groups.settings.messages.member_removed_banned')
+          : t('groups.settings.messages.member_removed'),
+      );
       await loadStats();
       if (ban) await loadBannedUsers();
     } catch (e: unknown) {
-      showMessage(apiErrorMessage(e, 'Failed to remove member'), true);
+      showMessage(
+        apiErrorMessage(e, t('groups.settings.messages.member_remove_failed')),
+        true,
+      );
     }
   }
 
@@ -139,7 +151,7 @@ export function useGroupAdmin() {
       const { data } = await hw.get('/group-admin/banned-users');
       bannedUsers.value = data;
     } catch {
-      showMessage('Failed to load banned users', true);
+      showMessage(t('groups.settings.messages.load_banned_failed'), true);
     } finally {
       loadingBannedUsers.value = false;
     }
@@ -149,9 +161,9 @@ export function useGroupAdmin() {
     try {
       await hw.delete(`/group-admin/banned-users/${userId}`);
       bannedUsers.value = bannedUsers.value.filter((u) => u.userId !== userId);
-      showMessage('Ban reverted');
+      showMessage(t('groups.settings.messages.ban_reverted'));
     } catch {
-      showMessage('Failed to revert ban', true);
+      showMessage(t('groups.settings.messages.ban_revert_failed'), true);
     }
   }
 
@@ -163,7 +175,7 @@ export function useGroupAdmin() {
       const { data } = await hw.get('/group-admin/schedule');
       lessons.value = data;
     } catch {
-      showMessage('Failed to load schedule', true);
+      showMessage(t('groups.settings.messages.load_schedule_failed'), true);
     } finally {
       loadingLessons.value = false;
     }
@@ -179,7 +191,7 @@ export function useGroupAdmin() {
       showMessage(t('groups.settings.schedule.editor.success_save_lesson'));
       return true;
     } catch {
-      showMessage('Failed to save lesson', true);
+      showMessage(t('groups.settings.messages.lesson_save_failed'), true);
       return false;
     } finally {
       savingLesson.value = false;
@@ -202,7 +214,7 @@ export function useGroupAdmin() {
       showMessage(t('groups.settings.schedule.editor.success_delete_lesson'));
       return true;
     } catch {
-      showMessage('Failed to delete lesson', true);
+      showMessage(t('groups.settings.messages.lesson_delete_failed'), true);
       return false;
     } finally {
       savingLesson.value = false;
@@ -215,7 +227,10 @@ export function useGroupAdmin() {
       const { data } = await hw.get('/group-admin/schedule/subs');
       subs.value = data;
     } catch {
-      showMessage('Failed to load substitutions', true);
+      showMessage(
+        t('groups.settings.messages.load_substitutions_failed'),
+        true,
+      );
     } finally {
       loadingSubs.value = false;
     }
@@ -227,9 +242,9 @@ export function useGroupAdmin() {
     try {
       await hw.post('/group-admin/schedule/subs', subData);
       await loadSubs();
-      showMessage('Substitution saved');
+      showMessage(t('groups.settings.messages.substitution_saved'));
     } catch {
-      showMessage('Failed to save substitution', true);
+      showMessage(t('groups.settings.messages.substitution_save_failed'), true);
     } finally {
       savingSub.value = false;
     }
@@ -308,9 +323,12 @@ export function useGroupAdmin() {
     try {
       await hw.patch('/group-admin/schedule-config', { scheduleConfig });
       await useAppAuth().checkAuthStatus();
-      showMessage('Schedule config updated');
+      showMessage(t('groups.settings.messages.schedule_config_updated'));
     } catch {
-      showMessage('Failed to update schedule config', true);
+      showMessage(
+        t('groups.settings.messages.schedule_config_update_failed'),
+        true,
+      );
     } finally {
       savingScheduleConfig.value = false;
     }
@@ -318,8 +336,8 @@ export function useGroupAdmin() {
 
   async function deleteSub(id: string) {
     const isConfirmed = await modalStore.confirm({
-      title: 'Delete Schedule Change?',
-      content: 'If you delete this change, it will be removed permanently',
+      title: t('groups.settings.schedule.changes.delete_modal.title'),
+      content: t('groups.settings.schedule.changes.delete_modal.message'),
       submitText: t('common.buttons.delete'),
       danger: true,
     });
@@ -328,9 +346,12 @@ export function useGroupAdmin() {
     try {
       await hw.delete(`/group-admin/schedule/subs/${id}`);
       subs.value = subs.value.filter((s) => s.id !== id);
-      showMessage('Substitution deleted');
+      showMessage(t('groups.settings.messages.substitution_deleted'));
     } catch {
-      showMessage('Failed to delete substitution', true);
+      showMessage(
+        t('groups.settings.messages.substitution_delete_failed'),
+        true,
+      );
     }
   }
 
@@ -352,9 +373,12 @@ export function useGroupAdmin() {
         color,
       });
       await loadAnnouncements();
-      showMessage('Announcement created');
+      showMessage(t('groups.settings.messages.announcement_created'));
     } catch {
-      showMessage('Failed to create announcement', true);
+      showMessage(
+        t('groups.settings.messages.announcement_create_failed'),
+        true,
+      );
     } finally {
       creatingAnn.value = false;
     }
@@ -362,8 +386,8 @@ export function useGroupAdmin() {
 
   async function deleteAnnouncement(id: string) {
     const isConfirmed = await modalStore.confirm({
-      title: 'Delete Announcement?',
-      content: 'Are you sure you want to delete this announcement?',
+      title: t('groups.settings.announcements.delete_modal.title'),
+      content: t('groups.settings.announcements.delete_modal.message'),
       submitText: t('common.buttons.delete'),
       danger: true,
     });
@@ -372,17 +396,20 @@ export function useGroupAdmin() {
     try {
       await hw.delete(`/group-admin/announcements/${id}`);
       announcements.value = announcements.value.filter((a) => a.id !== id);
-      showMessage('Announcement deleted');
+      showMessage(t('groups.settings.messages.announcement_deleted'));
     } catch {
-      showMessage('Failed to delete announcement', true);
+      showMessage(
+        t('groups.settings.messages.announcement_delete_failed'),
+        true,
+      );
     }
   }
 
   async function cleanupOldItems() {
     const isConfirmed = await modalStore.confirm({
-      title: 'Cleanup old tasks?',
-      content: 'Delete all tasks older than 90 days?',
-      submitText: 'Confirm',
+      title: t('groups.settings.overview.cleanup.modal.title'),
+      content: t('groups.settings.overview.cleanup.modal.message'),
+      submitText: t('common.buttons.confirm'),
       danger: true,
     });
 
@@ -390,10 +417,12 @@ export function useGroupAdmin() {
     cleaningUp.value = true;
     try {
       const { data } = await hw.delete('/group-admin/cleanup/old-items');
-      showMessage(data.message || 'Cleanup completed');
+      showMessage(
+        data.message || t('groups.settings.messages.cleanup_completed'),
+      );
       await loadStats();
     } catch {
-      showMessage('Cleanup failed', true);
+      showMessage(t('groups.settings.messages.cleanup_failed'), true);
     } finally {
       cleaningUp.value = false;
     }
@@ -416,11 +445,17 @@ export function useGroupAdmin() {
       await hw.patch('/group-admin/settings', {
         name: newGroupName.value.trim(),
       });
-      showMessage('Group name updated');
+      showMessage(t('groups.settings.messages.group_name_updated'));
       editingGroupName.value = false;
       await checkAuthStatus();
     } catch (e: unknown) {
-      showMessage(apiErrorMessage(e, 'Failed to save group name'), true);
+      showMessage(
+        apiErrorMessage(
+          e,
+          t('groups.settings.messages.group_name_save_failed'),
+        ),
+        true,
+      );
     } finally {
       savingGroupName.value = false;
     }
@@ -439,7 +474,10 @@ export function useGroupAdmin() {
       await checkAuthStatus();
     } catch (e: unknown) {
       showMessage(
-        apiErrorMessage(e, 'Fehler beim Speichern des Gruppenbildes'),
+        apiErrorMessage(
+          e,
+          t('groups.settings.general.avatar.errors.save_group_picture'),
+        ),
         true,
       );
       throw e;
@@ -467,7 +505,7 @@ export function useGroupAdmin() {
   async function deleteGroup() {
     try {
       await hw.delete('/group-admin');
-      showMessage('Group deleted successfully');
+      showMessage(t('groups.settings.messages.group_deleted'));
       return true;
     } catch (e: unknown) {
       const err = e as {
@@ -476,7 +514,7 @@ export function useGroupAdmin() {
       const msg =
         err.response?.data?.message ||
         err.response?.data?.error ||
-        'Failed to delete group';
+        t('groups.settings.messages.group_delete_failed');
       showMessage(msg, true);
       throw new Error(msg);
     }
@@ -484,17 +522,16 @@ export function useGroupAdmin() {
 
   async function transferOwnership(targetUserId: string) {
     const isConfirmed = await modalStore.confirm({
-      title: 'Transfer Ownership?',
-      content:
-        'Are you sure you want to transfer ownership? You will lose your owner rights.',
-      submitText: 'Transfer',
+      title: t('groups.settings.members.transfer_modal.title'),
+      content: t('groups.settings.members.transfer_modal.message'),
+      submitText: t('groups.settings.members.transfer_modal.submit'),
       danger: true,
     });
 
     if (!isConfirmed) return;
     try {
       await hw.post('/group-admin/transfer-ownership', { targetUserId });
-      showMessage('Ownership transferred successfully');
+      showMessage(t('groups.settings.messages.ownership_transferred'));
       await checkAuthStatus();
     } catch (e: unknown) {
       const err = e as {
@@ -503,7 +540,7 @@ export function useGroupAdmin() {
       const msg =
         err.response?.data?.message ||
         err.response?.data?.error ||
-        'Transfer failed';
+        t('groups.settings.messages.ownership_transfer_failed');
       showMessage(msg, true);
     }
   }
@@ -515,7 +552,7 @@ export function useGroupAdmin() {
       const { data } = await hw.get('/group-admin/invites');
       invites.value = data;
     } catch {
-      showMessage('Failed to load invites', true);
+      showMessage(t('groups.settings.messages.load_invites_failed'), true);
     } finally {
       loadingInvites.value = false;
     }
@@ -524,10 +561,10 @@ export function useGroupAdmin() {
   async function revokeInvite(id: string) {
     try {
       await hw.delete(`/group-admin/invites/${id}`);
-      showMessage('Invite revoked');
+      showMessage(t('groups.settings.messages.invite_revoked'));
       await loadInvites();
     } catch {
-      showMessage('Failed to revoke invite', true);
+      showMessage(t('groups.settings.messages.invite_revoke_failed'), true);
     }
   }
 

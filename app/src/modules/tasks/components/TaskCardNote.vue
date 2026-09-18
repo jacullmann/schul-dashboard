@@ -75,7 +75,7 @@ watch(
           ref="textareaRef"
           :value="modelValue"
           rows="1"
-          placeholder="Add a note..."
+          :placeholder="t('tasks.list.notes.placeholder')"
           maxlength="2000"
           class="w-full pb-2 border-b-2 shadow-none outline-none focus:border-b-4 border-on-ghost-subtle focus:border-on-ghost transition-[border,border-color] duration-200 ease-in-out resize-none overflow-hidden"
           @input="handleInput"

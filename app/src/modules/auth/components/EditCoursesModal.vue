@@ -7,6 +7,7 @@ import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { getSubjectKey } from '@/types/subjects';
 import { apiErrorMessage } from '@/api/errors';
+  import type { UnitOption } from '@/common/components/BaseSelect.vue';
 
 const i18n = useI18n();
 const t = (key: string, named?: Record<string, any>) =>
@@ -118,12 +119,13 @@ onMounted(() => {
 // distinguishable in the list.
 const getOptionsForSubject = (subjectId: string, isOptional: boolean) => {
   const subject = subjectStore.subjects.find((s) => s.id === subjectId);
-  const opts = (subject?.courses || []).map((c) => {
+  const opts = (subject?.courses || []).map((c): UnitOption => {
     const name = getCourseLabel(c.name);
     const typeKey = `groups.settings.subjects.course_types_short.${c.courseType}`;
     return {
-      label: c.courseType && te(typeKey) ? `${name} (${t(typeKey)})` : name,
+      label: name,
       value: c.id,
+      hint: c.courseType && te(typeKey) ? t(typeKey) : undefined,
     };
   });
   if (isOptional) {
@@ -165,7 +167,7 @@ async function submitData(dataToSend: {
     emit('cancel');
   } catch (e: unknown) {
     console.error('Setup failed:', e);
-    error.value = apiErrorMessage(e, 'Speichern fehlgeschlagen.');
+    error.value = apiErrorMessage(e, t('auth.courses.errors.save_failed'));
   } finally {
     submitting.value = false;
     skipping.value = false;

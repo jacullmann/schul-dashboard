@@ -26,9 +26,17 @@
       "shortest": "Kürzeste Lesezeit"
     },
     "title": "Info Dashboard",
-    "topic": "Thema:"
+    "topic": "Thema:",
+    "search_placeholder": "Suche",
+    "results": "{n} Ergebnis | {n} Ergebnisse"
   },
   "kanye": {
     "footnote": "Die Abbildungen der Albumcover dienen ausschließlich der Identifizierung. Das Urheberrecht liegt bei den jeweiligen Eigentümern, Labels und Künstlern."
+  },
+  "article": {
+    "video_by": "Video von",
+    "by": "Von",
+    "on_date": "am",
+    "read_time": "{minutes} Min"
   }
 }

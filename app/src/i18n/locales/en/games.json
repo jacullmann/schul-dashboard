@@ -1,1 +1,83 @@
-{}
+{
+  "list": {
+    "cyber_snare": {
+      "description": "Draw energy tethers to trap viruses in a neon CRT world.",
+      "tags": {
+        "action": "Action",
+        "arcade": "Arcade",
+        "solo": "Solo"
+      }
+    }
+  },
+  "roulette": {
+    "title": "RUSSIAN ROULETTE"
+  },
+  "snake": {
+    "score": "Score: {score}"
+  },
+  "cyber_snare": {
+    "kb": "KB",
+    "hud": {
+      "score": "SCORE:",
+      "free_space": "FREE SPACE:",
+      "integrity": "INTEGRITY:"
+    },
+    "start": {
+      "intro": "System infiltrated. You are the anti-virus.",
+      "hold": "HOLD LEFT CLICK / TOUCH",
+      "hold_text": "to draw an energy tether.",
+      "cross": "CROSS YOUR OWN TETHER",
+      "cross_text": "to close a loop and execute a Snare.",
+      "trap": "Trap viruses inside the Snare to destroy them.",
+      "warning": "WARNING:",
+      "warning_text": "If a virus touches your tether before you close it, your integrity drops.",
+      "initialize": "INITIALIZE"
+    },
+    "game_over": {
+      "title": "SYSTEM FAILURE",
+      "final_score": "FINAL SCORE: {score}",
+      "text": "Integrity compromised. Sector overrun.",
+      "upgrades": "ACCESS UPGRADES",
+      "reboot": "REBOOT SYSTEM"
+    },
+    "upgrades": {
+      "title": "TERMINAL ROOT ACCESS",
+      "available": "AVAILABLE FREE SPACE: {space} KB",
+      "level": "(LVL {lvl}/{max})",
+      "full": "FULL",
+      "maxed": "MAXED",
+      "download": "DOWNLOAD",
+      "close": "CLOSE TERMINAL",
+      "items": {
+        "regen": {
+          "name": "BANDWIDTH",
+          "description": "Increases energy regeneration speed significantly."
+        },
+        "energy": {
+          "name": "BATTERY CAPACITY",
+          "description": "Increases max energy reserve by +20 per level."
+        },
+        "loot": {
+          "name": "DATA EXTRACTION",
+          "description": "Doubles the amount of Free Space (KB) dropped by viruses."
+        },
+        "lives": {
+          "name": "REDUNDANCY",
+          "description": "Increases maximum system Integrity (Extra Lives)."
+        },
+        "fw_persist": {
+          "name": "FIREWALL LINGER",
+          "description": "Firewall remains active on screen as a trap for +1s after drawing."
+        },
+        "emp_cascade": {
+          "name": "EMP CASCADE",
+          "description": "EMP triggers multiple secondary blasts separated by delays."
+        },
+        "heal": {
+          "name": "EMERGENCY REPAIR",
+          "description": "Consumable: Instantly restores 1 missing Integrity (Life)."
+        }
+      }
+    }
+  }
+}

@@ -38,6 +38,10 @@
           "upload": "Upload image",
           "capture": "Take photo",
           "delete": "Delete image"
+        },
+        "description": "Optionally choose a group picture",
+        "cropper": {
+          "image_alt": "Crop source"
         }
       },
       "password": {
@@ -117,13 +121,16 @@
         "banned_on_prefix": "Banned on ",
         "actions": {
           "unban": "Unban"
-        }
+        },
+        "empty_message": "Banned users will appear here"
       },
       "invite_links": {
         "title": "Invite Links",
         "description": "Create and manage invite links",
         "empty": "No invite links available.",
-        "generate_button": "Generate link"
+        "generate_button": "Generate link",
+        "used_by": "Used by",
+        "revoked_by": "Revoked by"
       },
       "remove_modal": {
         "title": "Remove Member",
@@ -133,6 +140,11 @@
         "ban_checkbox_prefix": "Ban ",
         "ban_checkbox_suffix": " permanently",
         "submit_button": "Remove"
+      },
+      "transfer_modal": {
+        "title": "Transfer Ownership?",
+        "message": "Are you sure you want to transfer ownership? You will lose your owner rights.",
+        "submit": "Transfer"
       }
     },
     "overview": {
@@ -144,7 +156,11 @@
       },
       "cleanup": {
         "info": "{count} tasks older than 90 days can be deleted.",
-        "action_button": "Clean up"
+        "action_button": "Clean up",
+        "modal": {
+          "title": "Cleanup old tasks?",
+          "message": "Delete all tasks older than 90 days?"
+        }
       }
     },
     "permissions": {
@@ -230,7 +246,18 @@
         "last_lesson_label": "Last Lesson:",
         "room_label": "Room:",
         "day_label": "Day:",
-        "affected_course_label": "Affected course"
+        "affected_course_label": "Affected course",
+        "delete_modal": {
+          "title": "Delete Schedule Change?",
+          "message": "If you delete this change, it will be removed permanently"
+        },
+        "table": {
+          "subject": "Subject",
+          "course": "Course",
+          "room": "Room",
+          "day": "Day",
+          "slot": "Slot"
+        }
       },
       "editor": {
         "edit_schedule_button": "Edit Schedule",
@@ -344,6 +371,78 @@
         "zk": "ZK"
       },
       "category_mismatch": "This subject is still saved as \"{category}\", a category of the other group type. Saving moves it to the selected category."
-    }
+    },
+    "messages": {
+      "load_stats_failed": "Failed to load statistics",
+      "load_members_failed": "Failed to load members",
+      "role_updated": "Role updated",
+      "role_update_failed": "Failed to change role",
+      "member_removed_banned": "Member removed and banned",
+      "member_removed": "Member removed",
+      "member_remove_failed": "Failed to remove member",
+      "load_banned_failed": "Failed to load banned users",
+      "ban_reverted": "Ban reverted",
+      "ban_revert_failed": "Failed to revert ban",
+      "load_schedule_failed": "Failed to load schedule",
+      "lesson_save_failed": "Failed to save lesson",
+      "lesson_delete_failed": "Failed to delete lesson",
+      "load_substitutions_failed": "Failed to load substitutions",
+      "substitution_saved": "Substitution saved",
+      "substitution_save_failed": "Failed to save substitution",
+      "schedule_config_updated": "Schedule config updated",
+      "schedule_config_update_failed": "Failed to update schedule config",
+      "substitution_deleted": "Substitution deleted",
+      "substitution_delete_failed": "Failed to delete substitution",
+      "announcement_created": "Announcement created",
+      "announcement_create_failed": "Failed to create announcement",
+      "announcement_deleted": "Announcement deleted",
+      "announcement_delete_failed": "Failed to delete announcement",
+      "cleanup_completed": "Cleanup completed",
+      "cleanup_failed": "Cleanup failed",
+      "group_name_updated": "Group name updated",
+      "group_name_save_failed": "Failed to save group name",
+      "group_deleted": "Group deleted successfully",
+      "group_delete_failed": "Failed to delete group",
+      "ownership_transferred": "Ownership transferred successfully",
+      "ownership_transfer_failed": "Transfer failed",
+      "load_invites_failed": "Failed to load invites",
+      "invite_revoked": "Invite revoked",
+      "invite_revoke_failed": "Failed to revoke invite"
+    },
+    "group_fallback": "Group",
+    "announcements": {
+      "delete_modal": {
+        "title": "Delete Announcement?",
+        "message": "Are you sure you want to delete this announcement?"
+      }
+    },
+    "nav": {
+      "general": {
+        "label": "General",
+        "description": "Appearance • Password • Deletion"
+      },
+      "members": {
+        "label": "Members",
+        "description": "Roles • Bans • Ownership"
+      },
+      "permissions": {
+        "label": "Permissions",
+        "description": "Permissions • Roles • Security"
+      },
+      "schedule": {
+        "label": "Schedule",
+        "description": "Lessons • Schedule changes"
+      },
+      "subjects": {
+        "label": "Subjects",
+        "description": "Subjects • Courses"
+      },
+      "announcements": {
+        "label": "Announcements",
+        "description": "Manage Announcements"
+      },
+      "subject_info": "Subject info"
+    },
+    "go_back": "Go Back"
   }
 }

@@ -283,7 +283,9 @@ export function useDragReorder(
     el.style.setProperty('--recede', Math.max(0, recede.value).toFixed(3));
 
     if (entry.raised) {
-      el.style.zIndex = '50';
+      // A card still landing from the last drop stays above its neighbours,
+      // but never above the one in hand.
+      el.style.zIndex = held ? '51' : '50';
       el.style.setProperty('--lift', Math.min(1, amount).toFixed(3));
       el.classList.add('is-lifted');
     }

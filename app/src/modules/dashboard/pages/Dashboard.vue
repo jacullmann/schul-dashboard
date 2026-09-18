@@ -432,7 +432,7 @@ const isScheduleVisible = computed(() => {
         <Tagline />
         <template #info></template>
         <template #action>
-          <BaseTooltip content="Edit Layout" placement="bottom">
+          <BaseTooltip :content="t('dashboard.edit_layout')" placement="bottom">
             <BaseButton :icon="Pencil" />
           </BaseTooltip>
         </template>
@@ -507,7 +507,10 @@ const isScheduleVisible = computed(() => {
                 </template>
 
                 <template #actions-pre>
-                  <BaseTooltip content="View full task" placement="bottom">
+                  <BaseTooltip
+                    :content="t('dashboard.tasks_overview.view_task')"
+                    placement="bottom"
+                  >
                     <BaseButton
                       variant="ghost"
                       size="sm"
@@ -606,7 +609,11 @@ const isScheduleVisible = computed(() => {
             >
               <div class="min-w-0">
                 <div class="text-xs text-on-ghost-muted mb-0.5">
-                  {{ upcomingLesson.slot }}. Stunde
+                  {{
+                    t('dashboard.schedule_overview.slot', {
+                      slot: upcomingLesson.slot,
+                    })
+                  }}
                 </div>
 
                 <div class="text-base font-bold text-on-ghost truncate m-0">
@@ -614,7 +621,10 @@ const isScheduleVisible = computed(() => {
                 </div>
 
                 <div class="text-sm text-on-ghost-muted">
-                  {{ upcomingLesson.room || 'Kein Raum' }}
+                  {{
+                    upcomingLesson.room ||
+                    t('dashboard.schedule_overview.no_room')
+                  }}
                 </div>
               </div>
             </div>
@@ -648,7 +658,12 @@ const isScheduleVisible = computed(() => {
               >
                 <div class="min-w-0">
                   <span class="text-base text-on-ghost font-medium">
-                    {{ change.slot }}. Stunde {{ getDisplayName(change) }},
+                    {{
+                      t('dashboard.schedule_overview.slot', {
+                        slot: change.slot,
+                      })
+                    }}
+                    {{ getDisplayName(change) }},
                     {{ formatDayName(change.day) }}
                   </span>
                 </div>

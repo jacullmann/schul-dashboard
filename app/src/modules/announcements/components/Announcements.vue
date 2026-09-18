@@ -160,7 +160,7 @@ onUnmounted(() => {
           {{ currentIndex + 1 }}/{{ announcements.length }}
         </span>
 
-        <BaseTooltip content="More" placement="bottom">
+        <BaseTooltip :content="t('common.more')" placement="bottom">
           <BaseButton
             variant="ghost"
             :on="isDanger ? 'danger' : 'ghost'"

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { FileText, PieChart, Table } from '@lucide/vue';
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useLongPress } from '@/common/composables/useLongPress';
 
 const props = defineProps<{
@@ -16,6 +17,8 @@ const emit = defineEmits<{
   (e: 'context-menu', event: MouseEvent, img: any): void;
   (e: 'reveal'): void;
 }>();
+
+const { t } = useI18n();
 
 const getFileBadge = (img: any) => {
   const format = img.metadata?.format?.toLowerCase();
@@ -119,7 +122,7 @@ const { handlers: longPressHandlers } = useLongPress(
           <span
             class="text-xs text-white opacity-75 max-w-full truncate px-1"
             :title="img.metadata?.name"
-            >{{ img.metadata?.name || 'Dokument' }}</span
+            >{{ img.metadata?.name || t('tasks.images.document') }}</span
           >
         </span>
         <img
@@ -128,7 +131,7 @@ const { handlers: longPressHandlers } = useLongPress(
           class="block h-full w-full object-cover [pointer-events:none]"
           loading="lazy"
           draggable="false"
-          alt="Vorschau"
+          :alt="t('common.preview')"
         />
       </button>
 

@@ -39,7 +39,7 @@ async function handleUnlink() {
 
   if (result.ok) {
     providers.value = providers.value.filter((p) => p.provider !== 'google');
-    successMsg.value = 'Google-Konto getrennt.';
+    successMsg.value = t('auth.connected_accounts.unlinked');
   } else {
     errorMsg.value = result.error;
   }
@@ -84,7 +84,7 @@ function handleLink() {
           class="max-sm:w-full"
           @click="handleUnlink"
         >
-          Trennen
+          {{ t('auth.connected_accounts.actions.unlink') }}
         </BaseButton>
 
         <BaseButton
@@ -94,7 +94,7 @@ function handleLink() {
           class="max-sm:w-full"
           @click="handleLink"
         >
-          Verknüpfen
+          {{ t('auth.connected_accounts.actions.link') }}
         </BaseButton>
       </div>
 

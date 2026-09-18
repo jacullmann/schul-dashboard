@@ -89,7 +89,7 @@ const getSliderStyle = (current: number, max: number) => {
         <input
           v-model="searchQuery"
           type="text"
-          placeholder="Suche"
+          :placeholder="t('infodashboard.dashboard.search_placeholder')"
           class="w-full bg-surface border border-ghost-border shadow-input text-on-ghost p-2 px-3 pl-[42px] text-[0.95rem] transition-all focus:outline-none focus:border-on-ghost"
           @keydown.enter="triggerSearch"
         />
@@ -118,7 +118,11 @@ const getSliderStyle = (current: number, max: number) => {
         <div class="flex flex-col gap-2">
           <label class="text-[0.8rem] text-on-ghost"
             >{{ t('infodashboard.dashboard.max_time') }}
-            {{ minReadTime === 0 ? 'Any' : minReadTime + 'm' }}</label
+            {{
+              minReadTime === 0
+                ? t('infodashboard.dashboard.any_time')
+                : minReadTime + 'm'
+            }}</label
           >
           <input
             v-model.number="minReadTime"
@@ -142,7 +146,7 @@ const getSliderStyle = (current: number, max: number) => {
             <div class="aspect-video overflow-hidden rounded-none relative">
               <img
                 :src="processedArticles[0]!.imageUrl"
-                alt="Featured"
+                :alt="t('infodashboard.dashboard.featured_alt')"
                 class="w-full h-full object-cover transition-[0.5s]"
               />
               <div
@@ -195,9 +199,7 @@ const getSliderStyle = (current: number, max: number) => {
 
         <div v-else-if="currentView === 'search'" class="view-search">
           <h2 class="m-0 mb-4 font-display">
-            {{ processedArticles.length }} Ergebnis{{
-              processedArticles.length !== 1 ? 'se' : ''
-            }}
+            {{ t('infodashboard.dashboard.results', processedArticles.length) }}
           </h2>
 
           <div
@@ -235,11 +237,11 @@ const getSliderStyle = (current: number, max: number) => {
                 {{ t(activeArticle.titleKey) }}
               </h1>
               <div class="text-[0.9rem] text-on-ghost-muted mt-4">
-                Video von
+                {{ t('infodashboard.article.video_by') }}
                 <span class="text-on-ghost underline">{{
                   activeArticle.author
                 }}</span>
-                am
+                {{ t('infodashboard.article.on_date') }}
                 {{ formatDate(activeArticle.date) }}
               </div>
               <p class="text-[1.25rem]/relaxed text-on-ghost-muted mt-4">
@@ -257,14 +259,18 @@ const getSliderStyle = (current: number, max: number) => {
                 {{ t(activeArticle.titleKey) }}
               </h1>
               <div class="text-[0.9rem] text-on-ghost-muted mt-4">
-                Von
+                {{ t('infodashboard.article.by') }}
                 <span class="text-on-ghost underline">{{
                   activeArticle.author
                 }}</span>
-                am
+                {{ t('infodashboard.article.on_date') }}
                 {{ formatDate(activeArticle.date) }}
                 <span class="mx-2">|</span>
-                {{ activeArticle.readTime }} Min
+                {{
+                  t('infodashboard.article.read_time', {
+                    minutes: activeArticle.readTime,
+                  })
+                }}
               </div>
             </header>
 

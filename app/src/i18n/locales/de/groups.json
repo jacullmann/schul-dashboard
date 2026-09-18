@@ -28,7 +28,8 @@
           "save_failed": "Fehler beim Hochladen des Profilbildes.",
           "delete_failed": "Fehler beim Löschen des Profilbildes.",
           "update_success": "Group-Bild aktualisiert",
-          "delete_success": "Group-Bild gelöscht"
+          "delete_success": "Group-Bild gelöscht",
+          "save_group_picture": "Fehler beim Speichern des Gruppenbildes"
         },
         "delete_modal": {
           "title": "Gruppenbild löschen",
@@ -38,6 +39,10 @@
           "upload": "Bild hochladen",
           "capture": "Bild aufnehmen",
           "delete": "Bild löschen"
+        },
+        "cropper": {
+          "title": "Bild anpassen",
+          "hint": "Ziehen Sie das Bild zum Ausrichten. Benutzen Sie das Mausrad oder den Schieberegler zum Zoomen."
         }
       },
       "password": {
@@ -122,7 +127,22 @@
         "title": "Einladungslinks",
         "description": "Links erstellen und verwalten",
         "empty": "Keine Einladungslinks vorhanden.",
-        "generate_button": "Link generieren"
+        "generate_button": "Link generieren",
+        "status": {
+          "used": "Verwendet",
+          "revoked": "Widerrufen",
+          "expired": "Abgelaufen",
+          "active": "Aktiv"
+        },
+        "table": {
+          "link": "Link",
+          "status": "Status",
+          "expires_at": "Ablaufdatum"
+        },
+        "system": "System",
+        "actions": {
+          "revoke": "Widerrufen"
+        }
       },
       "remove_modal": {
         "title": "Mitglied entfernen",
@@ -190,7 +210,8 @@
     },
     "schedule": {
       "info": {
-        "tooltip": "Übersicht der Stundenplaneinstellungen"
+        "tooltip": "Übersicht der Stundenplaneinstellungen",
+        "title": "Stundenplaneinstellungen"
       },
       "config": {
         "lesson_duration_label": "Stundenlänge (Minuten)",
@@ -229,7 +250,13 @@
         "last_lesson_label": "Letzte Stunde:",
         "room_label": "Raum:",
         "day_label": "Tag:",
-        "affected_course_label": "Betroffener Kurs"
+        "affected_course_label": "Betroffener Kurs",
+        "all_subject_courses": "Alle Kurse des Fachs",
+        "all_courses": "Alle Kurse",
+        "specific_course": "Spezifischer Kurs",
+        "selected_count": "{count} ausgewählt",
+        "new_subject_placeholder": "Deutsch",
+        "list_title": "Eingetragene Planänderungen"
       },
       "editor": {
         "edit_schedule_button": "Stundenplan bearbeiten",
@@ -270,7 +297,11 @@
         "day_wednesday": "Mittwoch",
         "day_thursday": "Donnerstag",
         "day_friday": "Freitag",
-        "course_hint": "Ohne Kurs gilt die Stunde für die ganze Gruppe."
+        "course_hint": "Ohne Kurs gilt die Stunde für die ganze Gruppe.",
+        "day_fallback": "Tag {day}",
+        "no_subjects": "Es sind noch keine Fächer in dieser Gruppe vorhanden. Bitte erstelle zuerst Fächer unter \"Fächer\" in den Gruppeneinstellungen.",
+        "undo": "Rückgängig (Strg+Z)",
+        "redo": "Wiederholen (Strg+Y)"
       }
     },
     "subjects": {
@@ -343,6 +374,7 @@
         "zk": "ZK"
       },
       "category_mismatch": "Dieses Fach ist noch als „{category}“ gespeichert – eine Kategorie des anderen Gruppentyps. Beim Speichern wird die ausgewählte Kategorie übernommen."
-    }
+    },
+    "title": "Gruppen Verwaltung"
   }
 }

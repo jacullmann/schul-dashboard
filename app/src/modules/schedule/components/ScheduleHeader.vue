@@ -33,7 +33,7 @@ const tm = i18n.tm.bind(i18n);
         </div>
         <div class="w-full flex items-center justify-center mt-4">
           <img
-            alt="Bild"
+            :alt="t('common.image')"
             src="https://res.cloudinary.com/dwysdpvcm/image/upload/v1765474359/Stundenplan_Ausfall_Grafik_b34pcq.webp"
             class="w-full h-full rounded-lg"
           />

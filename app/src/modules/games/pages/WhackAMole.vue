@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const holes = ref(new Array(9).fill(false));
 const score = ref(0);
@@ -73,8 +76,8 @@ onUnmounted(() => {
   <div class="mole-container">
     <h2>Whack-a-Mole</h2>
     <div class="stats">
-      <p>Punkte: {{ score }}</p>
-      <p>Zeit: {{ timeLeft }}s</p>
+      <p>{{ t('games.whack_a_mole.score', { score }) }}</p>
+      <p>{{ t('games.whack_a_mole.time', { time: timeLeft }) }}</p>
     </div>
 
     <div class="grid">
@@ -90,9 +93,11 @@ onUnmounted(() => {
     </div>
 
     <div v-if="isGameOver" class="game-over">
-      <h3>Zeit abgelaufen! ⏰</h3>
-      <p>Du hast {{ score }} Punkte erreicht.</p>
-      <BaseButton @click="startGame">Nochmal spielen</BaseButton>
+      <h3>{{ t('games.whack_a_mole.time_up') }}</h3>
+      <p>{{ t('games.whack_a_mole.result', { score }) }}</p>
+      <BaseButton @click="startGame">{{
+        t('games.common.play_again')
+      }}</BaseButton>
     </div>
   </div>
 </template>

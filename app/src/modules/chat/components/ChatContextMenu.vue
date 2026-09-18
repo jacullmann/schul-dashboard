@@ -49,7 +49,7 @@ defineExpose({
         <BaseMenuDivider />
 
         <BaseMenuButton
-          title="Melden"
+          :title="t('tasks.list.tasks.menu.report.name')"
           :icon="Flag"
           @click="emit('report', activeMessage)"
         >

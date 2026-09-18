@@ -1,0 +1,137 @@
+{
+  "nav": {
+    "overview": "Overview",
+    "users": "Users",
+    "reports": "Reports",
+    "groups": "Groups"
+  },
+  "errors": {
+    "action_failed": "Action failed."
+  },
+  "overview": {
+    "title": "Dashboard Overview",
+    "stats": {
+      "users": "Users",
+      "tasks": "Tasks",
+      "open_reports": "Open Reports",
+      "banned": "Banned"
+    },
+    "user_stats": {
+      "title": "User Statistics",
+      "verified": "Verified",
+      "unverified": "Unverified",
+      "admins": "Admins",
+      "new_this_week": "New (7 days)"
+    },
+    "activity": {
+      "title": "Activity (7 days)",
+      "new_tasks": "New Tasks",
+      "total_reports": "Total Reports",
+      "processed": "Processed"
+    },
+    "cleanup": {
+      "label": "Cleanup:",
+      "old_tasks": "{count} tasks older than 90 days",
+      "deleting": "Deleting…",
+      "action": "Clean up",
+      "modal": {
+        "title": "Cleanup?",
+        "content": "Delete all tasks older than 90 days?"
+      },
+      "success": "Cleanup complete.",
+      "error": "Cleanup failed."
+    }
+  },
+  "users": {
+    "title": "User Management",
+    "table": {
+      "email": "Email",
+      "id": "ID",
+      "status": "Status",
+      "registered": "Registered",
+      "actions": "Actions"
+    },
+    "status": {
+      "admin": "Admin",
+      "banned": "Banned",
+      "active": "Active",
+      "unverified": "Unverified"
+    },
+    "actions": {
+      "activity_log": "Activity log",
+      "ban": "Ban",
+      "unban": "Unban",
+      "prune_logs": "Prune old logs"
+    },
+    "activity_log_title": "Activity Log",
+    "ban_success": "User banned.",
+    "unban_success": "User unbanned.",
+    "delete_modal": {
+      "title": "Delete User?",
+      "content": "Are you sure you want to delete this user?"
+    },
+    "delete_success": "User deleted.",
+    "prune_modal": {
+      "title": "Prune logs?",
+      "content": "Delete activity logs older than 30 days for {email}?",
+      "submit": "Prune"
+    },
+    "prune_success": "Logs pruned.",
+    "errors": {
+      "load": "Failed to load users.",
+      "load_activity": "Failed to load activity.",
+      "delete": "Failed to delete user.",
+      "prune": "Failed to prune logs."
+    }
+  },
+  "reports": {
+    "title": "Reported Content",
+    "empty": "No reports found.",
+    "open": "Open",
+    "processed": "Processed",
+    "view_task": "View full task",
+    "reason": "Reason",
+    "from": "From: {email} · {date}",
+    "resolve": "Resolve",
+    "reopen": "Reopen",
+    "deleted": "Deleted",
+    "deleted_item": "Deleted Item",
+    "deleted_title": "{title} (Deleted)",
+    "message_by": "Message by {email}",
+    "message_sender_deleted": "Message (Sender Deleted)",
+    "resolved_success": "Marked as resolved.",
+    "reopened_success": "Reopened.",
+    "delete_modal": {
+      "title": "Delete Report?",
+      "content": "Are you sure you want to delete this report?"
+    },
+    "delete_success": "Report deleted.",
+    "errors": {
+      "load": "Failed to load reports.",
+      "delete": "Failed to delete report."
+    }
+  },
+  "groups": {
+    "title": "Group Management",
+    "empty": "No groups found.",
+    "table": {
+      "name": "Name",
+      "id": "ID",
+      "owner": "Owner",
+      "members": "Members",
+      "tasks": "Tasks",
+      "created": "Created",
+      "actions": "Actions"
+    },
+    "delete_tooltip": "Delete group",
+    "delete_modal": {
+      "title": "Delete Group?",
+      "content": "Delete group \"{name}\"?\n\nThis will permanently delete the group and all associated data. This cannot be undone."
+    },
+    "delete_success": "Group \"{name}\" deleted.",
+    "errors": {
+      "load": "Failed to load groups.",
+      "delete": "Failed to delete group."
+    }
+  }
+}

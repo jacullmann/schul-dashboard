@@ -83,9 +83,11 @@ async function leaveGroup() {
   if (!activeGroupId.value) return;
 
   const isConfirmed = await modalStore.confirm({
-    title: 'Leave Group?',
-    content: `Are you sure you want to leave the group "${groupName.value}"?`,
-    submitText: 'Leave',
+    title: t('common.header.leave_group_confirm.title'),
+    content: t('common.header.leave_group_confirm.content', {
+      group: groupName.value,
+    }),
+    submitText: t('common.header.leave_group_confirm.submit'),
     danger: true,
   });
 
@@ -146,7 +148,7 @@ onUnmounted(() => {
         variant="ghost"
         on="ghost"
         :aria-expanded="isExpanded"
-        aria-label="Toggle navigation menu"
+        :aria-label="t('common.header.toggle_navigation')"
         :icon="Menu"
         @click="toggleExpanded"
       />
@@ -168,7 +170,7 @@ onUnmounted(() => {
       >
         <button
           v-wave
-          class="flex items-center gap-2 group cursor-pointer hover:bg-ghost-hover transition-hover rounded-full -m-1 p-1 min-w-0"
+          class="flex items-center gap-2 cursor-pointer hover:bg-ghost-hover transition-hover rounded-full -m-1 p-1 min-w-0"
           @click="toggleGroupMenu"
         >
           <Avatar
@@ -183,7 +185,7 @@ onUnmounted(() => {
           }}</span>
           <ChevronDown
             :size="16"
-            class="transform transition-transform duration-200 ease-in-out text-on-ghost-muted group-hover:text-on-ghost transition-hover mr-2 shrink-0"
+            class="transform transition-transform duration-200 ease-in-out text-on-ghost-muted transition-hover mr-2 shrink-0"
             :class="groupMenuOpen ? 'rotate-180' : ''"
           />
         </button>
@@ -234,7 +236,7 @@ onUnmounted(() => {
             :disabled="loading"
             @click="leaveGroup"
           >
-            Leave group
+            {{ t('common.header.leave_group') }}
           </BaseMenuButton>
         </BaseMenu>
       </div>

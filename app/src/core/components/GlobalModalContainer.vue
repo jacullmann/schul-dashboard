@@ -231,7 +231,7 @@ async function onAuthSuccess() {
   <BaseDialog
     :open="confirmOpen"
     :title="confirmOptions.title"
-    :submit-text="confirmOptions.submitText ?? 'Confirm'"
+    :submit-text="confirmOptions.submitText ?? t('common.buttons.confirm')"
     :danger="confirmOptions.danger"
     @confirm="modalStore.resolveConfirm(true)"
     @cancel="modalStore.resolveConfirm(false)"

@@ -12,7 +12,9 @@
     },
     "actions": {
       "convert": "Convert",
-      "apply": "Apply"
+      "apply": "Apply",
+      "rotate_left": "Rotate left",
+      "rotate_right": "Rotate right"
     },
     "errors": {
       "not_an_image": "File is not an image.",

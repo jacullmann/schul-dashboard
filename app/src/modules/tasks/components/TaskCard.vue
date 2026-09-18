@@ -222,7 +222,7 @@ watch(
             user?.tenantRole === 'moderator'
           "
         >
-          • {{ item.createdByName || 'Unbekannt' }}</template
+          • {{ item.createdByName || t('common.selection.unknown') }}</template
         >
       </div>
       <div
@@ -330,7 +330,7 @@ watch(
           <BaseMenuDivider />
 
           <BaseMenuButton
-            title="Melden"
+            :title="t('tasks.list.tasks.menu.report.name')"
             :icon="Flag"
             @click="$emit('menu-action', 'report')"
           >

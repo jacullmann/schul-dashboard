@@ -1,56 +1,59 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 
 const router = useRouter();
+const { t } = useI18n();
 </script>
 
 <template>
   <div class="h-[100dvh] w-full flex flex-col bg-canvas">
-    <h1 class="mx-4! my-2!">Natural Intelligence</h1>
+    <h1 class="mx-4! my-2!">{{ t('chat.natural_intelligence.title') }}</h1>
     <div
       class="w-full max-w-[800px] mx-auto flex flex-col gap-2 min-h-full items-center"
     >
       <div class="h-[calc(100dvh-40dvh)] flex flex-col px-4 justify-center">
         <div class="text-center text-5xl! my-8 text-on-ghost">
-          Tired of <b>artifical</b> intelligence?
+          <i18n-t keypath="chat.natural_intelligence.landing.heading">
+            <template #word>
+              <b>{{ t('chat.natural_intelligence.landing.heading_word') }}</b>
+            </template>
+          </i18n-t>
         </div>
         <div class="text-lg mb-8 text-on-ghost-muted">
-          Can machines replace humans? Experience natural intelligence or try
-          working as an AI model and compete against artificial intelligence.
+          {{ t('chat.natural_intelligence.landing.description') }}
         </div>
 
         <BaseRow justify="center">
           <BaseButton
             variant="action"
             @click="router.push({ name: 'natural-intelligence-chat' })"
-            >Try Natural Intelligence now</BaseButton
+            >{{ t('chat.natural_intelligence.landing.cta') }}</BaseButton
           >
         </BaseRow>
         <div class="text-sm mt-2 text-center text-on-ghost-muted font-medium">
-          No sign up required!
+          {{ t('chat.natural_intelligence.landing.no_signup') }}
         </div>
       </div>
 
       <div class="prose p-4">
-        <h2 class="mt-32!">How it works</h2>
+        <h2 class="mt-32!">
+          {{ t('chat.natural_intelligence.landing.how_it_works.title') }}
+        </h2>
         <p>
-          Natural Intelligence works as the interface between two humans. It
-          features two modes:
+          {{ t('chat.natural_intelligence.landing.how_it_works.intro') }}
         </p>
-        <h3>Chat</h3>
+        <h3>
+          {{ t('chat.natural_intelligence.landing.how_it_works.chat.title') }}
+        </h3>
         <p>
-          The user sees a normal chat interface and sends a request. Once
-          another human player is found, the user has to wait until he receives
-          an answer upon which he can keep chatting or start a new chat. The
-          user can manage different settings which dictate what tools the other
-          player has access to and how long he can think about the answer.
+          {{ t('chat.natural_intelligence.landing.how_it_works.chat.text') }}
         </p>
-        <h3>Server</h3>
+        <h3>
+          {{ t('chat.natural_intelligence.landing.how_it_works.server.title') }}
+        </h3>
         <p>
-          The user sees an interface which simulates the tools and information
-          an LLM can access. The goal is to answer the requests send by the
-          other as good as possible. To achieve this, the user can use tools to
-          search the web or use a drawing pad.
+          {{ t('chat.natural_intelligence.landing.how_it_works.server.text') }}
         </p>
       </div>
     </div>

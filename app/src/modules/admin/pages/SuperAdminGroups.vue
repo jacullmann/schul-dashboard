@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { Trash2 } from '@lucide/vue';
 import { useSuperAdminGroups } from '../composables/useSuperAdminGroups';
 import { useSuperAdminFormat } from '../composables/useSuperAdminFormat';
@@ -7,31 +8,36 @@ import { useSuperAdminFormat } from '../composables/useSuperAdminFormat';
 const { groups, loadingGroups, loadGroups, deleteGroup } =
   useSuperAdminGroups();
 const { fmtDate } = useSuperAdminFormat();
+const { t } = useI18n();
 
 onMounted(loadGroups);
 </script>
 
 <template>
   <div class="page-header">
-    <h2 class="page-title">Group Management</h2>
-    <BaseButton variant="ghost" @click="loadGroups">Refresh</BaseButton>
+    <h2 class="page-title">{{ t('admin.groups.title') }}</h2>
+    <BaseButton variant="ghost" @click="loadGroups">{{
+      t('common.buttons.refresh')
+    }}</BaseButton>
   </div>
 
   <div v-if="loadingGroups" class="center-loader">
     <BaseSpinner on="ghost" size="24px" />
   </div>
-  <div v-else-if="!groups.length" class="empty-msg">No groups found.</div>
+  <div v-else-if="!groups.length" class="empty-msg">
+    {{ t('admin.groups.empty') }}
+  </div>
   <BaseTableWrapper v-else>
     <table>
       <thead>
         <tr>
-          <th>Name</th>
-          <th>ID</th>
-          <th>Owner</th>
-          <th>Members</th>
-          <th>Tasks</th>
-          <th>Created</th>
-          <th>Actions</th>
+          <th>{{ t('admin.groups.table.name') }}</th>
+          <th>{{ t('admin.groups.table.id') }}</th>
+          <th>{{ t('admin.groups.table.owner') }}</th>
+          <th>{{ t('admin.groups.table.members') }}</th>
+          <th>{{ t('admin.groups.table.tasks') }}</th>
+          <th>{{ t('admin.groups.table.created') }}</th>
+          <th>{{ t('admin.groups.table.actions') }}</th>
         </tr>
       </thead>
       <tbody>
@@ -43,7 +49,7 @@ onMounted(loadGroups);
           <td>{{ g.itemCount }}</td>
           <td>{{ fmtDate(g.createdAt) }}</td>
           <td class="py-0! px-2! min-w-0!">
-            <BaseTooltip content="Delete group">
+            <BaseTooltip :content="t('admin.groups.delete_tooltip')">
               <BaseButton
                 variant="ghost"
                 size="sm"

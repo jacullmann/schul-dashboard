@@ -223,5 +223,8 @@
     "formatYMD": "{year}-{month}-{day}",
     "previous_month": "Vorheriger Monat",
     "next_month": "Nächster Monat"
-  }
+  },
+  "preview": "Vorschau",
+  "image": "Bild",
+  "more": "Mehr"
 }

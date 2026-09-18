@@ -22,13 +22,13 @@ const options = [
   {
     value: 'instant',
     label: 'Instant',
-    description: 'Swift answers for simple tasks',
+    description: 'chat.models.instant_description',
   },
-  { value: 'pro', label: 'Pro', description: 'Thinking for everyday tasks' },
+  { value: 'pro', label: 'Pro', description: 'chat.models.pro_description' },
   {
     value: 'ultra',
     label: 'Ultra',
-    description: 'Deep reasoning for complex tasks',
+    description: 'chat.models.ultra_description',
   },
 ];
 
@@ -147,7 +147,7 @@ onClickOutside(
           @click="option.value !== 'ultra' ? selectOption(option.value) : null"
         >
           {{ option.label }}
-          <template #description>{{ option.description }}</template>
+          <template #description>{{ t(option.description) }}</template>
         </BaseMenuButton>
       </BaseMenu>
     </Teleport>

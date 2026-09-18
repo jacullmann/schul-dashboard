@@ -63,8 +63,8 @@ function updateTimer() {
   const diff = expiresAt.value.getTime() - now.getTime();
 
   if (diff <= 0) {
-    remainingTime.value = 'Abgelaufen';
-    verifyError.value = 'Setup-Zeit abgelaufen. Bitte starte erneut.';
+    remainingTime.value = t('auth.mfa.setup.time_expired');
+    verifyError.value = t('auth.mfa.setup.expired');
     setTimeout(() => cancelSetup(), 2000);
     return;
   }
@@ -158,7 +158,7 @@ async function activateMfa() {
     cancelSetup();
     emit('mfaChanged', true);
   } else {
-    verifyError.value = result.error || 'Authentifizierung fehlgeschlagen';
+    verifyError.value = result.error || t('auth.mfa.verify.errors.failed');
     verifyCode.value = '';
     await nextTick();
     codeInput.value?.focus();
@@ -195,7 +195,7 @@ async function confirmDeactivate() {
     cancelDeactivate();
     emit('mfaChanged', false);
   } else {
-    deactivateError.value = result.error || 'Authentifizierung fehlgeschlagen';
+    deactivateError.value = result.error || t('auth.mfa.verify.errors.failed');
     deactivateCode.value = '';
     await nextTick();
     deactivateCodeInput.value?.focus();
@@ -222,21 +222,25 @@ onUnmounted(() => {
           <component :is="mfaEnabled ? ShieldCheck : ShieldOff" :size="32" />
         </div>
         <div class="flex flex-col">
-          <span class="text-sm text-on-ghost-muted"
-            >Zwei-Faktor-Authentifizierung</span
-          >
+          <span class="text-sm text-on-ghost-muted">{{
+            t('auth.security.2fa')
+          }}</span>
           <span
             class="text-base font-bold"
             :class="mfaEnabled ? 'text-on-ghost' : 'text-on-ghost-muted'"
           >
-            {{ mfaEnabled ? 'Aktiviert' : 'Deaktiviert' }}
+            {{
+              mfaEnabled
+                ? t('auth.security.activated')
+                : t('auth.security.deactivated')
+            }}
           </span>
         </div>
       </div>
       <p class="text-sm/relaxed text-on-ghost-muted m-0! font-sans">
         {{ t('auth.mfa.setup.description_prefix') }}
         {{ t('auth.mfa.setup.description_suffix') }}
-        Authenticator.
+        {{ t('auth.mfa.setup.description_end') }}
       </p>
     </template>
 
@@ -247,7 +251,7 @@ onUnmounted(() => {
       :full="true"
       @click="startSetup"
     >
-      Aktivieren
+      {{ t('auth.mfa.actions.activate') }}
     </BaseButton>
 
     <div v-if="setupMode" class="flex flex-col gap-4">
@@ -267,7 +271,7 @@ onUnmounted(() => {
           <span
             class="text-sm text-on-ghost-muted"
             :class="{ '!text-on-ghost': setupStep === 1 }"
-            >QR-Code scannen</span
+            >{{ t('auth.mfa.setup.steps.scan') }}</span
           >
         </div>
         <div class="w-10 h-0.5 bg-ghost-border"></div>
@@ -283,7 +287,7 @@ onUnmounted(() => {
           <span
             class="text-sm text-on-ghost-muted"
             :class="{ '!text-on-ghost': setupStep === 2 }"
-            >Code eingeben</span
+            >{{ t('auth.mfa.setup.steps.enter_code') }}</span
           >
         </div>
       </div>
@@ -292,20 +296,23 @@ onUnmounted(() => {
         <p
           class="text-sm/relaxed text-on-ghost-muted m-0! text-center font-sans"
         >
-          Bitte scanne den QR-Code mit deiner Authenticator-App (z.B. Google
-          Authenticator).
+          {{ t('auth.mfa.setup.scan_instruction') }}
         </p>
 
         <div
           v-if="qrCodeUrl"
           class="flex justify-center p-2 bg-white rounded-xl mx-auto"
         >
-          <img :src="qrCodeUrl" alt="MFA QR-Code" class="w-[200px] h-[200px]" />
+          <img
+            :src="qrCodeUrl"
+            :alt="t('auth.mfa.setup.qr_alt')"
+            class="w-[200px] h-[200px]"
+          />
         </div>
 
         <div v-if="manualSecret" class="flex flex-col gap-2 items-center">
           <p class="text-sm text-on-ghost-muted m-0!">
-            Oder gib diesen Code manuell ein:
+            {{ t('auth.mfa.setup.manual_instruction') }}
           </p>
           <div
             class="flex items-center gap-2 p-1 bg-surface border border-ghost-border shadow-input rounded-lg"
@@ -317,7 +324,9 @@ onUnmounted(() => {
             <button
               type="button"
               class="flex items-center justify-center p-2 bg-none border-none text-on-ghost-muted cursor-pointer rounded-lg transition-all hover:bg-surface-hover hover:text-on-ghost"
-              :title="copied ? 'Kopiert!' : 'Kopieren'"
+              :title="
+                copied ? t('auth.mfa.setup.copied') : t('common.buttons.copy')
+              "
               @click="copySecret"
             >
               <component :is="copied ? Check : Copy" :size="16" />
@@ -336,12 +345,12 @@ onUnmounted(() => {
         </div>
 
         <BaseRow justify="end">
-          <BaseButton variant="ghost" @click="cancelSetup"
-            >Abbrechen</BaseButton
-          >
-          <BaseButton variant="action" @click="setupStep = 2"
-            >Weiter</BaseButton
-          >
+          <BaseButton variant="ghost" @click="cancelSetup">{{
+            t('common.buttons.cancel')
+          }}</BaseButton>
+          <BaseButton variant="action" @click="setupStep = 2">{{
+            t('auth.mfa.actions.next')
+          }}</BaseButton>
         </BaseRow>
       </div>
 
@@ -349,7 +358,7 @@ onUnmounted(() => {
         <p
           class="text-sm/relaxed text-on-ghost-muted m-0! text-center font-sans"
         >
-          Gib den 6-stelligen Code aus deiner Authenticator-App ein, um die
+          {{ t('auth.mfa.setup.complete_instruction_prefix') }}
           {{ t('auth.mfa.setup.complete_instruction') }}
         </p>
 
@@ -378,14 +387,16 @@ onUnmounted(() => {
         </div>
 
         <BaseRow justify="end">
-          <BaseButton variant="ghost" @click="setupStep = 1">Zurück</BaseButton>
+          <BaseButton variant="ghost" @click="setupStep = 1">{{
+            t('common.buttons.back')
+          }}</BaseButton>
           <BaseButton
             :disabled="verifyCode.length !== 6 || loading"
             variant="action"
             :loading="loading"
             @click="activateMfa"
           >
-            Aktivieren
+            {{ t('auth.mfa.actions.activate') }}
           </BaseButton>
         </BaseRow>
       </div>
@@ -397,7 +408,7 @@ onUnmounted(() => {
       :full="true"
       @click="startDeactivate"
     >
-      Deaktivieren
+      {{ t('auth.mfa.actions.deactivate') }}
     </BaseButton>
 
     <div v-if="deactivateMode" class="flex flex-col gap-4">
@@ -408,7 +419,7 @@ onUnmounted(() => {
         <p class="m-0! text-on-danger! text-sm/[1.4]">
           {{ t('auth.mfa.deactivate.warning_prefix') }}
           {{ t('auth.mfa.deactivate.warning_suffix') }}
-          korrekten Code eingeben
+          {{ t('auth.mfa.deactivate.warning_end') }}
         </p>
       </div>
 
@@ -437,16 +448,16 @@ onUnmounted(() => {
       </div>
 
       <BaseRow justify="end">
-        <BaseButton variant="ghost" @click="cancelDeactivate"
-          >Abbrechen</BaseButton
-        >
+        <BaseButton variant="ghost" @click="cancelDeactivate">{{
+          t('common.buttons.cancel')
+        }}</BaseButton>
         <BaseButton
           :disabled="deactivateCode.length !== 6 || loading"
           variant="danger"
           :loading="loading"
           @click="confirmDeactivate"
         >
-          Deaktivieren
+          {{ t('auth.mfa.actions.deactivate') }}
         </BaseButton>
       </BaseRow>
     </div>

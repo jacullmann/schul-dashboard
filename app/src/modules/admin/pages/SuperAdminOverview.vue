@@ -1,16 +1,18 @@
 <script setup lang="ts">
 import { onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { Trash2 } from '@lucide/vue';
 import { useSuperAdminStats } from '../composables/useSuperAdminStats';
 
 const { stats, loadingStats, isCleaningUp, loadStats, cleanupOldItems } =
   useSuperAdminStats();
+const { t } = useI18n();
 
 onMounted(loadStats);
 </script>
 
 <template>
-  <h2 class="page-title">Dashboard Overview</h2>
+  <h2 class="page-title">{{ t('admin.overview.title') }}</h2>
 
   <div v-if="loadingStats" class="center-loader">
     <BaseSpinner on="ghost" size="24px" />
@@ -19,58 +21,74 @@ onMounted(loadStats);
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-val">{{ stats.userCount }}</div>
-        <div class="stat-lbl">Users</div>
+        <div class="stat-lbl">{{ t('admin.overview.stats.users') }}</div>
       </div>
       <div class="stat-card">
         <div class="stat-val">{{ stats.itemCount }}</div>
-        <div class="stat-lbl">Tasks</div>
+        <div class="stat-lbl">{{ t('admin.overview.stats.tasks') }}</div>
       </div>
       <div class="stat-card" :class="{ alert: (stats.reportCount ?? 0) > 0 }">
         <div class="stat-val">{{ stats.reportCount }}</div>
-        <div class="stat-lbl">Open Reports</div>
+        <div class="stat-lbl">
+          {{ t('admin.overview.stats.open_reports') }}
+        </div>
       </div>
       <div class="stat-card" :class="{ warn: (stats.bannedCount ?? 0) > 0 }">
         <div class="stat-val">{{ stats.bannedCount }}</div>
-        <div class="stat-lbl">Banned</div>
+        <div class="stat-lbl">{{ t('admin.overview.stats.banned') }}</div>
       </div>
     </div>
 
     <div class="sub-stats">
       <div class="sub-stat-group">
-        <h3>User Statistics</h3>
+        <h3>{{ t('admin.overview.user_stats.title') }}</h3>
         <div class="sub-stats-grid">
           <div class="sub-stat">
             <span class="sub-val">{{ stats.verifiedUsers }}</span>
-            <span class="sub-lbl">Verified</span>
+            <span class="sub-lbl">{{
+              t('admin.overview.user_stats.verified')
+            }}</span>
           </div>
           <div class="sub-stat">
             <span class="sub-val">{{ stats.unverifiedUsers }}</span>
-            <span class="sub-lbl">Unverified</span>
+            <span class="sub-lbl">{{
+              t('admin.overview.user_stats.unverified')
+            }}</span>
           </div>
           <div class="sub-stat">
             <span class="sub-val">{{ stats.adminCount }}</span>
-            <span class="sub-lbl">Admins</span>
+            <span class="sub-lbl">{{
+              t('admin.overview.user_stats.admins')
+            }}</span>
           </div>
           <div class="sub-stat">
             <span class="sub-val">{{ stats.newUsersThisWeek }}</span>
-            <span class="sub-lbl">New (7 days)</span>
+            <span class="sub-lbl">{{
+              t('admin.overview.user_stats.new_this_week')
+            }}</span>
           </div>
         </div>
       </div>
       <div class="sub-stat-group">
-        <h3>Activity (7 days)</h3>
+        <h3>{{ t('admin.overview.activity.title') }}</h3>
         <div class="sub-stats-grid">
           <div class="sub-stat">
             <span class="sub-val">{{ stats.newItemsThisWeek }}</span>
-            <span class="sub-lbl">New Tasks</span>
+            <span class="sub-lbl">{{
+              t('admin.overview.activity.new_tasks')
+            }}</span>
           </div>
           <div class="sub-stat">
             <span class="sub-val">{{ stats.reportCountTotal }}</span>
-            <span class="sub-lbl">Total Reports</span>
+            <span class="sub-lbl">{{
+              t('admin.overview.activity.total_reports')
+            }}</span>
           </div>
           <div class="sub-stat">
             <span class="sub-val">{{ stats.reportCountProcessed }}</span>
-            <span class="sub-lbl">Processed</span>
+            <span class="sub-lbl">{{
+              t('admin.overview.activity.processed')
+            }}</span>
           </div>
         </div>
       </div>
@@ -78,8 +96,12 @@ onMounted(loadStats);
 
     <div v-if="(stats.oldItemsCount ?? 0) > 0" class="cleanup-card">
       <div>
-        <strong>Cleanup:</strong> {{ stats.oldItemsCount }} tasks older than 90
-        days
+        <strong>{{ t('admin.overview.cleanup.label') }}</strong>
+        {{
+          t('admin.overview.cleanup.old_tasks', {
+            count: stats.oldItemsCount,
+          })
+        }}
       </div>
       <BaseButton
         :disabled="isCleaningUp"
@@ -87,7 +109,11 @@ onMounted(loadStats);
         :icon="Trash2"
         @click="cleanupOldItems"
       >
-        {{ isCleaningUp ? 'Deleting…' : 'Clean up' }}
+        {{
+          isCleaningUp
+            ? t('admin.overview.cleanup.deleting')
+            : t('admin.overview.cleanup.action')
+        }}
       </BaseButton>
     </div>
   </template>

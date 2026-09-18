@@ -106,7 +106,7 @@ const isOwner = computed(
     !!(userStore.user?.id && activeGroupOwnerId.value === userStore.user.id),
 );
 
-const navItems: AdminNavItem[] = [
+const navItems = computed<AdminNavItem[]>(() => [
   /* {
     id: 'overview',
     label: 'Overview',
@@ -115,41 +115,41 @@ const navItems: AdminNavItem[] = [
   }, */
   {
     id: 'general',
-    label: 'General',
+    label: t('groups.settings.nav.general.label'),
     icon: markRaw(SlidersHorizontal),
-    description: 'Appearance • Password • Deletion',
+    description: t('groups.settings.nav.general.description'),
   },
   {
     id: 'members',
-    label: 'Members',
+    label: t('groups.settings.nav.members.label'),
     icon: markRaw(UsersRound),
-    description: 'Roles • Bans • Ownership',
+    description: t('groups.settings.nav.members.description'),
   },
   {
     id: 'permissions',
-    label: 'Permissions',
+    label: t('groups.settings.nav.permissions.label'),
     icon: markRaw(Key),
-    description: 'Permissions • Roles • Security',
+    description: t('groups.settings.nav.permissions.description'),
   },
   {
     id: 'schedule',
-    label: 'Schedule',
+    label: t('groups.settings.nav.schedule.label'),
     icon: markRaw(CalendarDays),
-    description: 'Lessons • Schedule changes',
+    description: t('groups.settings.nav.schedule.description'),
   },
   {
     id: 'subjects',
-    label: 'Subjects',
+    label: t('groups.settings.nav.subjects.label'),
     icon: markRaw(BookOpen),
-    description: 'Subjects • Courses',
+    description: t('groups.settings.nav.subjects.description'),
   },
   {
     id: 'announcements',
-    label: 'Announcements',
+    label: t('groups.settings.nav.announcements.label'),
     icon: markRaw(Megaphone),
-    description: 'Manage Announcements',
+    description: t('groups.settings.nav.announcements.description'),
   },
-];
+]);
 
 const transitionDirection = ref<'forward' | 'backward'>('forward');
 
@@ -159,7 +159,7 @@ const transitionName = computed(() =>
 
 const activeTabLabel = computed(() => {
   if (route.params.tab === 'subjects' && route.params.subTab) {
-    return 'Subject info';
+    return t('groups.settings.nav.subject_info');
   }
   if (route.params.tab === 'members' && route.params.subTab === 'banned') {
     return t('groups.settings.members.ban_list.title');
@@ -167,7 +167,7 @@ const activeTabLabel = computed(() => {
   if (route.params.tab === 'members' && route.params.subTab === 'invites') {
     return t('groups.settings.members.invite_links.title');
   }
-  const item = navItems.find((n) => n.id === activeTab.value);
+  const item = navItems.value.find((n) => n.id === activeTab.value);
   return item ? item.label : '';
 });
 
@@ -219,7 +219,7 @@ function goBack() {
           class="p-4 pt-2 md:px-6 bg-canvas border-b border-ghost-border shrink-0"
         >
           <div class="w-full max-w-200 mx-auto">
-            <h1>Gruppen Verwaltung</h1>
+            <h1>{{ t('groups.settings.title') }}</h1>
             <div
               v-if="groupName"
               class="text-on-ghost-muted font-semibold text-base"
@@ -275,7 +275,7 @@ function goBack() {
             <BaseButton
               variant="ghost"
               on="ghost"
-              aria-label="Go Back"
+              :aria-label="t('groups.settings.go_back')"
               :icon="ArrowLeft"
               @click="goBack"
             />

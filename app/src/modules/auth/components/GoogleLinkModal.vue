@@ -63,7 +63,7 @@ function cancel() {
       </div>
 
       <p class="m-0 mb-4 text-sm/relaxed text-on-ghost-muted text-center">
-        Ein Konto mit dieser E-Mail-Adresse existiert bereits. Gib dein Passwort
+        {{ t('auth.google_link.account_exists') }}
         {{ t('auth.google_link.description') }}
       </p>
 

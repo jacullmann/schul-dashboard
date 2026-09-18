@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import hw from '../../../api/api';
 import type { PrivateTask } from '@/modules/tasks/types';
 import BaseFormGroup from '@/common/components/BaseFormGroup.vue';
@@ -13,6 +14,22 @@ const emit = defineEmits<{
   (e: 'cancel'): void;
   (e: 'success', task: PrivateTask): void;
 }>();
+
+const { t, tm, rt } = useI18n();
+
+type PlaceholderMessage = { title: string; description: string };
+
+// Pick one title/description pair per form instance so both fields match.
+const placeholders = computed(
+  () => tm('tasks.private_tasks.form_placeholders') as PlaceholderMessage[],
+);
+const placeholderIndex = Math.floor(Math.random() * placeholders.value.length);
+const placeholder = computed(() => {
+  const entry = placeholders.value[placeholderIndex];
+  return entry
+    ? { title: rt(entry.title), description: rt(entry.description) }
+    : { title: '', description: '' };
+});
 
 const title = ref(props.initial?.title || '');
 const description = ref(props.initial?.description || '');
@@ -33,15 +50,17 @@ async function submit() {
   submitError.value = '';
 
   if (!title.value.trim()) {
-    titleError.value = 'A title is required.';
+    titleError.value = t('tasks.private_tasks.form.errors.title_missing');
     return;
   }
   if (title.value.trim().length > 100) {
-    titleError.value = 'Title is too long (max. 100 characters).';
+    titleError.value = t('tasks.private_tasks.form.errors.title_long');
     return;
   }
   if (description.value.trim().length > 2000) {
-    descriptionError.value = 'Description is too long (max. 2000 characters).';
+    descriptionError.value = t(
+      'tasks.private_tasks.form.errors.description_long',
+    );
     return;
   }
 
@@ -70,7 +89,7 @@ async function submit() {
     };
     submitError.value = apiErrorMessage(
       err,
-      err.message ?? 'An unexpected error occurred.',
+      err.message ?? t('tasks.private_tasks.form.errors.unexpected'),
     );
   } finally {
     submitting.value = false;
@@ -86,20 +105,24 @@ async function submit() {
     @cancel="$emit('cancel')"
   >
     <template #title>
-      {{ initial ? 'Edit Private Entry' : 'New Private Entry' }}
+      {{
+        initial
+          ? t('tasks.private_tasks.form.edit_title')
+          : t('tasks.private_tasks.form.new_title')
+      }}
     </template>
 
     <template #content>
       <BaseFormContent :error="submitError">
         <BaseFormGroup id="private-task-title-input" :error="titleError">
-          <BaseLabel for="private-task-title-input" :required="true"
-            >Title</BaseLabel
-          >
+          <BaseLabel for="private-task-title-input" :required="true">{{
+            t('tasks.list.task_form.title')
+          }}</BaseLabel>
           <BaseInput
             id="private-task-title-input"
             ref="titleInputRef"
             v-model="title"
-            placeholder="Go shopping…"
+            :placeholder="placeholder.title"
             maxlength="100"
           />
         </BaseFormGroup>
@@ -108,15 +131,15 @@ async function submit() {
           id="private-task-description-input"
           :error="descriptionError"
         >
-          <BaseLabel for="private-task-description-input" :required="false"
-            >Description</BaseLabel
-          >
+          <BaseLabel for="private-task-description-input" :required="false">{{
+            t('tasks.list.task_form.description')
+          }}</BaseLabel>
           <BaseInput
             id="private-task-description-input"
             v-model="description"
             as="textarea"
             rows="4"
-            placeholder="6 eggs…"
+            :placeholder="placeholder.description"
             maxlength="2000"
           />
         </BaseFormGroup>
@@ -124,7 +147,7 @@ async function submit() {
     </template>
 
     <template #action-text>
-      {{ initial ? 'Save' : 'Create' }}
+      {{ initial ? t('common.buttons.save') : t('common.buttons.create') }}
     </template>
   </BaseModal>
 </template>

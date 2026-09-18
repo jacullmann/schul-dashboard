@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
+import i18n from '@/i18n';
 import type { HwItem, PrivateTask } from '@/modules/tasks/types';
 import type { ItemType } from '@/modules/tasks/types';
 import type { ImageItem } from '@/modules/tasks/types';
@@ -185,7 +186,7 @@ export const useModalStore = defineStore('modals', () => {
   const confirmOptions = ref<ConfirmOptions>({
     title: '',
     content: '',
-    submitText: 'Confirm',
+    submitText: i18n.global.t('common.buttons.confirm'),
     danger: false,
   });
 
@@ -195,7 +196,7 @@ export const useModalStore = defineStore('modals', () => {
     confirmOptions.value = {
       title: options.title,
       content: options.content,
-      submitText: options.submitText ?? 'Confirm',
+      submitText: options.submitText ?? i18n.global.t('common.buttons.confirm'),
       danger: options.danger ?? false,
     };
     confirmOpen.value = true;

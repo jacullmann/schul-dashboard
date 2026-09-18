@@ -1,5 +1,6 @@
 import { ref } from 'vue';
 import { supabase } from '@/lib/supabase';
+import i18n from '@/i18n';
 import {
   REALTIME_SUBSCRIBE_STATES,
   type RealtimeChannel,
@@ -264,7 +265,7 @@ export function useChatSession(sessionId: string) {
     });
 
     if (error) {
-      chatError.value = 'Failed to send message.';
+      chatError.value = i18n.global.t('chat.errors.send_failed');
       console.error(error);
       return;
     }

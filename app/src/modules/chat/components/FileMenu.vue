@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Plus, Brush } from '@lucide/vue';
+import { useI18n } from 'vue-i18n';
 import { useFloatingMenu } from '@/common/composables/useFloatingMenu';
 import { useIsMobileViewport } from '@/common/composables/useViewport';
 
@@ -16,11 +17,12 @@ function drawImage() {
 }
 
 const isMobile = useIsMobileViewport();
+const { t } = useI18n();
 </script>
 
 <template>
   <div ref="triggerRef" class="relative inline-block">
-    <BaseTooltip content="Add files" placement="bottom">
+    <BaseTooltip :content="t('chat.files.add')" placement="bottom">
       <BaseButton
         :icon="Plus"
         :class="{ 'bg-surface-hover! text-on-ghost!': isOpen }"
@@ -39,7 +41,7 @@ const isMobile = useIsMobileViewport();
         @close="close"
       >
         <BaseMenuButton :icon="Brush" @click="drawImage">
-          Draw Image
+          {{ t('chat.files.draw_image') }}
         </BaseMenuButton>
       </BaseMenu>
     </Teleport>

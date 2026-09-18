@@ -76,7 +76,7 @@ async function copyLink() {
       copied.value = false;
     }, 3000);
   } catch {
-    toast.error('Failed to copy to clipboard');
+    toast.error(t('auth.groups.errors.copy_failed'));
   }
 }
 
@@ -92,10 +92,10 @@ async function regenerate() {
       modalStore.inviteModalToken = res.token;
       toast.success(t('groups.settings.permissions.errors.update_success'));
     } else {
-      toast.error(res.error || 'Failed to regenerate invite link');
+      toast.error(res.error || t('auth.groups.errors.regenerate_failed'));
     }
   } catch {
-    toast.error('Failed to regenerate invite link');
+    toast.error(t('auth.groups.errors.regenerate_failed'));
   } finally {
     regenerating.value = false;
   }

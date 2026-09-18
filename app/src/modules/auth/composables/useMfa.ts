@@ -1,5 +1,6 @@
 import { ref, computed } from 'vue';
 import hw from '@/api/api.ts';
+import i18n from '@/i18n';
 import type { MfaSetupResponse, MfaStatusResponse } from '@/modules/auth/types';
 import { apiErrorMessage } from '@/api/errors';
 
@@ -24,7 +25,7 @@ export function useMfa() {
     } catch (err: unknown) {
       mfaError.value = apiErrorMessage(
         err,
-        'Fehler beim Abrufen des MFA-Status',
+        i18n.global.t('auth.mfa.errors.status_failed'),
       );
       return false;
     } finally {
@@ -42,7 +43,7 @@ export function useMfa() {
     } catch (err: unknown) {
       mfaError.value = apiErrorMessage(
         err,
-        'Fehler beim Starten des MFA-Setups',
+        i18n.global.t('auth.mfa.errors.setup_failed'),
       );
       return null;
     } finally {
@@ -64,7 +65,10 @@ export function useMfa() {
       onSuccess?.();
       return { ok: true };
     } catch (err: unknown) {
-      const errorMsg = apiErrorMessage(err, 'Authentifizierung fehlgeschlagen');
+      const errorMsg = apiErrorMessage(
+        err,
+        i18n.global.t('auth.mfa.verify.errors.failed'),
+      );
       mfaError.value = errorMsg;
       return { ok: false, error: errorMsg };
     } finally {

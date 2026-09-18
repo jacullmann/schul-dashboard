@@ -37,7 +37,9 @@ const canModerateMembers = computed(() => checkPermission('moderate_members'));
         {{ t('groups.settings.members.ban_list.empty') }}
       </template>
 
-      <template #message>Banned users will appear here</template>
+      <template #message>{{
+        t('groups.settings.members.ban_list.empty_message')
+      }}</template>
     </BaseEmptyState>
     <div v-else class="flex flex-col gap-2">
       <div

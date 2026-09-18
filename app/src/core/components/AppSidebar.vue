@@ -356,7 +356,7 @@ onUnmounted(() => {
 
         <SidebarButton
           v-if="isSuperadmin"
-          label="Superadmin"
+          :label="t('common.roles.superadmin')"
           :expanded="isExpanded"
           :active="$route.path.startsWith('/admin')"
           :icon="Crown"

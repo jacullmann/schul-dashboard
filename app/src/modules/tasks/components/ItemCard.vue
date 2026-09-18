@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { Ellipsis, Archive, ArchiveRestore, UploadCloud } from '@lucide/vue';
 import { useSwipeToDismiss } from '@/modules/tasks/composables/useSwipeToDismiss';
+
+const { t } = useI18n();
 
 const props = withDefaults(
   defineProps<{
@@ -214,7 +217,7 @@ function onDrop(e: DragEvent) {
       >
         <div class="flex flex-col items-center gap-2 font-medium text-base">
           <UploadCloud :size="32" />
-          <span>Bilder ablegen zum Hochladen</span>
+          <span>{{ t('tasks.images.drop_to_upload') }}</span>
         </div>
       </div>
 
@@ -257,7 +260,11 @@ function onDrop(e: DragEvent) {
         <slot name="actions-pre"></slot>
 
         <slot name="menu-trigger">
-          <BaseTooltip v-if="showMenuTrigger" content="More" placement="bottom">
+          <BaseTooltip
+            v-if="showMenuTrigger"
+            :content="t('common.more')"
+            placement="bottom"
+          >
             <BaseButton
               variant="ghost"
               size="sm"

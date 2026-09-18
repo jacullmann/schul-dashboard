@@ -75,14 +75,14 @@ async function submit() {
     <template #content>
       <BaseFormContent :error="submitError">
         <BaseFormGroup id="announcement-content-input" :error="contentError">
-          <BaseLabel for="announcement-content-input" :required="true"
-            >Ankündigung</BaseLabel
-          >
+          <BaseLabel for="announcement-content-input" :required="true">{{
+            t('announcements.form.content_label')
+          }}</BaseLabel>
           <BaseInput
             id="announcement-content-input"
             ref="contentInputRef"
             v-model="annContent"
-            placeholder="Verfasse deine Nachricht..."
+            :placeholder="t('announcements.form.content_placeholder')"
             maxlength="1000"
             :aria-describedby="
               contentError ? 'announcement-content-input-error' : undefined
@@ -91,9 +91,9 @@ async function submit() {
         </BaseFormGroup>
 
         <BaseFormGroup id="announcement-importance-input">
-          <BaseLabel for="announcement-importance-input" :required="true"
-            >Wichtigkeit</BaseLabel
-          >
+          <BaseLabel for="announcement-importance-input" :required="true">{{
+            t('announcements.form.importance_label')
+          }}</BaseLabel>
           <BaseSelect
             id="announcement-importance-input"
             v-model="annColor"

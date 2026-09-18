@@ -20,7 +20,9 @@
       "info": "Info",
       "warning": "Warnung",
       "important": "Wichtig"
-    }
+    },
+    "content_placeholder": "Verfasse deine Nachricht...",
+    "importance_label": "Wichtigkeit"
   },
   "all": {
     "title": "Alle Ankündigungen"

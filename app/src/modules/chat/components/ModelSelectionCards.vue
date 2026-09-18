@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { defineModel } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const modelValue = defineModel<string>({ required: true });
 
@@ -7,13 +10,13 @@ const options = [
   {
     value: 'instant',
     label: 'Instant',
-    description: 'Swift answers for simple tasks',
+    description: 'chat.models.instant_description',
   },
-  { value: 'pro', label: 'Pro', description: 'Thinking for everyday tasks' },
+  { value: 'pro', label: 'Pro', description: 'chat.models.pro_description' },
   {
     value: 'ultra',
     label: 'Ultra',
-    description: 'Deep reasoning for complex tasks',
+    description: 'chat.models.ultra_description',
   },
 ];
 </script>
@@ -48,7 +51,7 @@ const options = [
             : 'text-on-ghost-muted'
         "
       >
-        {{ option.description }}
+        {{ t(option.description) }}
       </div>
     </button>
   </div>

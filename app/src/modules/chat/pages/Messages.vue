@@ -77,7 +77,7 @@ const {
         <Info :size="40" />
         <span class="text-sm font-semibold tracking-tight">{{ error }}</span>
         <BaseButton variant="ghost" on="ghost" @click="fetchMessages">
-          Erneut laden
+          {{ t('chat.reload') }}
         </BaseButton>
       </div>
 

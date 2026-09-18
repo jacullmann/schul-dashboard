@@ -1,4 +1,5 @@
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import hw from '@/api/api';
 import { useToast } from '@/common/composables/useToast';
 import { useModalStore } from '@/stores/modalStore';
@@ -18,6 +19,7 @@ const processedReports = computed(() =>
 export function useSuperAdminReports() {
   const toast = useToast();
   const modalStore = useModalStore();
+  const { t } = useI18n();
   const { loadStats } = useSuperAdminStats();
 
   async function loadReports() {
@@ -26,7 +28,7 @@ export function useSuperAdminReports() {
       const { data } = await hw.get('/admin/reports');
       reports.value = data;
     } catch {
-      toast.error('Failed to load reports.');
+      toast.error(t('admin.reports.errors.load'));
     } finally {
       loadingReports.value = false;
     }
@@ -42,28 +44,32 @@ export function useSuperAdminReports() {
         r.processed = !currentProcessed;
         r.processedAt = !currentProcessed ? new Date().toISOString() : null;
       }
-      toast.success(!currentProcessed ? 'Marked as resolved.' : 'Reopened.');
+      toast.success(
+        !currentProcessed
+          ? t('admin.reports.resolved_success')
+          : t('admin.reports.reopened_success'),
+      );
       await loadStats();
     } catch {
-      toast.error('Action failed.');
+      toast.error(t('admin.errors.action_failed'));
     }
   }
 
   async function deleteReport(id: string) {
     const confirmed = await modalStore.confirm({
-      title: 'Delete Report?',
-      content: 'Are you sure you want to delete this report?',
-      submitText: 'Delete',
+      title: t('admin.reports.delete_modal.title'),
+      content: t('admin.reports.delete_modal.content'),
+      submitText: t('common.buttons.delete'),
       danger: true,
     });
     if (!confirmed) return;
     try {
       await hw.delete(`/admin/reports/${id}`);
       reports.value = reports.value.filter((r) => r.id !== id);
-      toast.success('Report deleted.');
+      toast.success(t('admin.reports.delete_success'));
       await loadStats();
     } catch {
-      toast.error('Failed to delete report.');
+      toast.error(t('admin.reports.errors.delete'));
     }
   }
 
