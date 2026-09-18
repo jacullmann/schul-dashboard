@@ -138,13 +138,21 @@ function moveTask(from: number, to: number) {
   );
 }
 
+const IGNORED_REGIONS =
+  ".item-menu-trigger, input, textarea, button, a, .checkbox, [role='button'], [role='menu']";
+
 const listRef = ref<HTMLElement | null>(null);
 
 const reorder = useDragReorder(listRef, {
   onMove: moveTask,
-  ignore:
-    ".item-menu-trigger, input, textarea, button, a, .checkbox, [role='button'], [role='menu']",
+  ignore: IGNORED_REGIONS,
 });
+
+function handleItemDoubleClick(task: PrivateTask, event: MouseEvent) {
+  if (!user.value) return;
+  if ((event.target as HTMLElement).closest(IGNORED_REGIONS)) return;
+  togglePrivateTaskCompletion(task);
+}
 
 /**
  * Cards whose entrance has already played. Reordering moves the card's node,
@@ -208,7 +216,7 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
               :class="{ 'animate-fade-up': !enteredIds.has(privateTask.id) }"
               :is-collapsed="privateTask.completed"
               :title="privateTask.title"
-              @dblclick="user ? togglePrivateTaskCompletion(privateTask) : null"
+              @dblclick="handleItemDoubleClick(privateTask, $event)"
               @contextmenu.prevent.stop="
                 handleCardContextMenu(privateTask, $event)
               "
@@ -216,6 +224,7 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
             >
               <template #checkbox>
                 <BaseCheckbox
+                  class="checkbox"
                   :checked="privateTask.completed"
                   @change="togglePrivateTaskCompletion(privateTask)"
                 />
