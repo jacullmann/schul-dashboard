@@ -289,9 +289,9 @@ export function usePrivateTasks() {
   });
 
   watch(
-    user,
-    (u) => {
-      if (u) {
+    () => user.value?.id,
+    (id) => {
+      if (id) {
         void loadPrivateTasks();
       } else {
         privateTasks.value = [];
