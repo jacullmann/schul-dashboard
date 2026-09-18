@@ -556,19 +556,101 @@ p {
   .fade-dropdown-side-enter-active {
     transition:
       transform 250ms cubic-bezier(0.16, 1, 0.3, 1),
-      opacity 0.25s linear;
+      opacity 0.25s linear,
+      filter 250ms cubic-bezier(0.25, 0.5, 0.75, 1),
+      -webkit-filter 250ms cubic-bezier(0.25, 0.5, 0.75, 1);
     opacity: 1;
   }
   .fade-dropdown-side-leave-active {
     transition:
       transform 150ms cubic-bezier(0.5, 0, 1, 1),
-      opacity 0.15s linear;
+      opacity 0.15s linear,
+      filter 150ms cubic-bezier(0.25, 0, 0.3, 1),
+      -webkit-filter 150ms cubic-bezier(0.25, 0, 0.3, 1);
     opacity: 1;
   }
   .fade-dropdown-side-enter-from,
   .fade-dropdown-side-leave-to {
     transform: translateX(-10px) scale(0.98);
     opacity: 0;
+    filter: blur(5px);
+    -webkit-filter: blur(5px);
+  }
+
+  /* Stacks old and new content in one cell so a swap crossfades in place */
+  .swap-stack {
+    display: inline-grid;
+    grid-template-columns: minmax(0, 1fr);
+    min-width: 0;
+    max-width: 100%;
+    vertical-align: top;
+  }
+  .swap-stack > * {
+    grid-area: 1 / 1;
+    min-width: 0;
+  }
+
+  /* Let swapping text blur and slide past the line box instead of being clipped;
+     the stacked children truncate themselves */
+  .truncate:has(> .swap-stack) {
+    overflow: visible;
+    min-width: 0;
+  }
+
+  /* Ellipsis needs a clipping box, and the compositor layer clips to the box too,
+     so the box gets vertical room for descenders (g, y) without changing layout.
+     Kept on its own compositor layer at rest too: the text then renders the same
+     during and after the transition instead of snapping when the layer is dropped. */
+  .swap-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding-block: 0.3em;
+    margin-block: -0.3em;
+    will-change: transform, opacity, filter;
+  }
+
+  /* Picker-wheel roll: old and new text slide together along the menu direction.
+     "down" = new option sits lower in the menu, so it rolls in from below. */
+  .swap-wheel-up-enter-active,
+  .swap-wheel-up-leave-active,
+  .swap-wheel-down-enter-active,
+  .swap-wheel-down-leave-active {
+    transition:
+      transform 450ms cubic-bezier(0.32, 0.72, 0, 1),
+      opacity 300ms cubic-bezier(0.32, 0.72, 0, 1),
+      filter 300ms cubic-bezier(0.32, 0.72, 0, 1);
+  }
+  .swap-wheel-down-enter-from,
+  .swap-wheel-up-leave-to {
+    transform: translateY(0.75em);
+    opacity: 0;
+    filter: blur(3px);
+  }
+  .swap-wheel-down-leave-to,
+  .swap-wheel-up-enter-from {
+    transform: translateY(-0.75em);
+    opacity: 0;
+    filter: blur(3px);
+  }
+
+  .swap-icon-enter-active {
+    transition:
+      transform 450ms cubic-bezier(0.34, 1.4, 0.64, 1),
+      opacity 250ms cubic-bezier(0.25, 0.5, 0.75, 1),
+      filter 300ms cubic-bezier(0.25, 0.5, 0.75, 1);
+  }
+  .swap-icon-leave-active {
+    transition:
+      transform 200ms cubic-bezier(0.5, 0, 1, 1),
+      opacity 150ms linear,
+      filter 200ms cubic-bezier(0.25, 0, 0.3, 1);
+  }
+  .swap-icon-enter-from,
+  .swap-icon-leave-to {
+    transform: scale(0.4);
+    opacity: 0;
+    filter: blur(4px);
   }
 
   .player-range {

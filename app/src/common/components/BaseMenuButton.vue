@@ -67,13 +67,15 @@ defineExpose({
       class="flex items-center"
       :class="isMobile || $slots.description ? 'gap-3' : 'gap-2'"
     >
-      <component
-        :is="icon"
-        v-if="icon"
-        :size="isMobile || $slots.description ? 20 : 18"
-        class="shrink-0"
-        :class="iconClasses"
-      />
+      <slot name="icon" :size="isMobile || $slots.description ? 20 : 18">
+        <component
+          :is="icon"
+          v-if="icon"
+          :size="isMobile || $slots.description ? 20 : 18"
+          class="shrink-0"
+          :class="iconClasses"
+        />
+      </slot>
       <span class="flex flex-col">
         <span
           class="truncate"
@@ -95,16 +97,27 @@ defineExpose({
       </span>
     </span>
 
-    <ChevronRight
-      v-if="isSubmenu"
-      :size="18"
-      class="ml-auto shrink-0 transition-hover"
-      :class="
-        forceHover
-          ? 'text-on-ghost '
-          : 'text-on-ghost-muted group-hover:text-on-ghost'
-      "
-    />
+    <span
+      v-if="isSubmenu || $slots.value"
+      class="ml-auto flex items-center gap-1.5 min-w-0"
+    >
+      <span
+        v-if="$slots.value"
+        class="truncate text-on-ghost-muted font-normal"
+        :class="isMobile ? 'text-sm/6' : 'text-sm/4'"
+        ><slot name="value"></slot
+      ></span>
+      <ChevronRight
+        v-if="isSubmenu"
+        :size="18"
+        class="shrink-0 transition-hover"
+        :class="
+          forceHover
+            ? 'text-on-ghost '
+            : 'text-on-ghost-muted group-hover:text-on-ghost'
+        "
+      />
+    </span>
 
     <span v-if="isSelect" aria-hidden="true">
       <Check v-if="active" :size="18" class="text-on-ghost shrink-0" />

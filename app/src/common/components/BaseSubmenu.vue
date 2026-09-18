@@ -15,6 +15,7 @@ import { MENU_SHEET_KEY } from '@/common/composables/useMenuContext';
 
 const props = defineProps<{
   label?: string;
+  value?: string;
   icon?: Component;
   disabled?: boolean;
 }>();
@@ -122,7 +123,14 @@ const submenuStyles = computed(() => ({
         :aria-expanded="isMobile ? isMobileActive : isOpen"
         @click="isMobile ? drillDown() : undefined"
       >
+        <template v-if="$slots.icon" #icon="{ size }">
+          <slot name="icon" :size="size"></slot>
+        </template>
         <slot name="label">{{ label }}</slot>
+        <template v-if="$slots.value" #value
+          ><slot name="value"></slot
+        ></template>
+        <template v-else-if="value" #value>{{ value }}</template>
       </BaseMenuButton>
     </div>
 

@@ -3,7 +3,11 @@ import { useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
 import { useI18n } from 'vue-i18n';
-import { useIsMobileViewport } from '@/common/composables/useViewport';
+import { useResizeObserver } from '@vueuse/core';
+import {
+  useIsMobileViewport,
+  useVisualViewportHeight,
+} from '@/common/composables/useViewport';
 import hw from '../../../api/api';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useToast } from '@/common/composables/useToast';
@@ -28,6 +32,7 @@ export function useMessages() {
   });
 
   const isMobile = useIsMobileViewport();
+  const viewportHeight = useVisualViewportHeight();
 
   const activeMessage = ref<any>(null);
   const menuPosition = ref({ x: 0, y: 0 });
@@ -102,6 +107,10 @@ export function useMessages() {
 
   const showScrollBottomBtn = ref(false);
   const messageContainer = ref<HTMLElement | null>(null);
+  const messageContent = ref<HTMLElement | null>(null);
+  // Whether the list should stay pinned to the newest message when its size changes
+  // (keyboard opening, textarea growing, images loading, new messages arriving).
+  let stickToBottom = true;
 
   let ws: WebSocket | null = null;
   let typingTimeout: any = null;
@@ -120,26 +129,30 @@ export function useMessages() {
     return timeDiff < 60 * 60 * 1000;
   };
 
-  const isNearBottom = () => {
-    if (!messageContainer.value) return false;
-    const c = messageContainer.value;
-    return c.scrollHeight - c.scrollTop - c.clientHeight < 180;
-  };
+  const distanceFromBottom = (c: HTMLElement) =>
+    c.scrollHeight - c.scrollTop - c.clientHeight;
 
-  const scrollToBottom = (force = false) => {
+  const scrollToBottom = (force = false, smooth = false) => {
     void nextTick(() => {
-      if (!messageContainer.value) return;
-      if (force || isNearBottom()) {
-        messageContainer.value.scrollTop = messageContainer.value.scrollHeight;
-      }
+      const c = messageContainer.value;
+      if (!c || (!force && !stickToBottom)) return;
+      stickToBottom = true;
+      c.scrollTo({ top: c.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
     });
   };
 
+  const keepPinned = () => {
+    const c = messageContainer.value;
+    if (c && stickToBottom) c.scrollTop = c.scrollHeight;
+  };
+  useResizeObserver(messageContainer, keepPinned);
+  useResizeObserver(messageContent, keepPinned);
+
   const handleScroll = () => {
     if (!messageContainer.value) return;
-    const c = messageContainer.value;
-    showScrollBottomBtn.value =
-      c.scrollHeight - c.scrollTop - c.clientHeight > 300;
+    const distance = distanceFromBottom(messageContainer.value);
+    stickToBottom = distance < 180;
+    showScrollBottomBtn.value = distance > 300;
 
     if (
       !dismissedNewMessagesDivider.value &&
@@ -163,6 +176,7 @@ export function useMessages() {
     loading.value = true;
     error.value = null;
     isInitialScroll.value = true;
+    stickToBottom = true;
     try {
       const { data } = await hw.get('/messages');
       messages.value = data.messages;
@@ -552,6 +566,8 @@ export function useMessages() {
     firstNewMessageIndex,
     showScrollBottomBtn,
     messageContainer,
+    messageContent,
+    viewportHeight,
     isGroupedWithPrevious,
     scrollToBottom,
     handleScroll,

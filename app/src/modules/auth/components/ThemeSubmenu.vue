@@ -26,7 +26,7 @@ function updateTheme(mode: string) {
   <BaseMenuSelect
     :model-value="currentTheme"
     :options="themeOptions"
-    :prefix="t('common.theme.theme') + ':'"
+    :prefix="t('common.theme.theme')"
     @update:model-value="updateTheme"
   />
 </template>

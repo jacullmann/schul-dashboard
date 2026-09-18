@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { Filter, FilterX } from '@lucide/vue';
+import { Filter, LayoutGrid } from '@lucide/vue';
 import BaseMenuSelect from '@/common/components/BaseMenuSelect.vue';
 import hw from '../../../api/api';
 import { useI18n } from 'vue-i18n';
@@ -28,8 +28,16 @@ const dropdownValue = computed({
 });
 
 const options = computed(() => [
-  { value: 'yes', label: t('common.selection.yes'), icon: Filter },
-  { value: 'no', label: t('common.selection.no'), icon: FilterX },
+  {
+    value: 'yes',
+    label: t('auth.settings.personalization_options.mine'),
+    icon: Filter,
+  },
+  {
+    value: 'no',
+    label: t('auth.settings.personalization_options.all'),
+    icon: LayoutGrid,
+  },
 ]);
 
 async function setPersonalization(value: boolean) {
@@ -65,7 +73,7 @@ async function setPersonalization(value: boolean) {
   <BaseMenuSelect
     v-model="dropdownValue"
     :options="options"
-    :prefix="t('auth.settings.personalization') + ':'"
+    :prefix="t('auth.settings.personalization')"
     :disabled="updating"
   />
 </template>

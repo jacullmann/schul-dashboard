@@ -15,10 +15,22 @@ const emit = defineEmits<{
     <BaseButton
       v-if="show"
       variant="action"
-      class="absolute! bottom-20 right-4 md:bottom-24 md:right-8"
+      class="row-start-1 col-start-1 z-10 self-end justify-self-end mb-8 mr-4 md:mb-12 md:mr-8"
       title="Nach unten"
       :icon="ArrowDown"
       @click="emit('click')"
     />
   </Transition>
 </template>
+
+<style scoped>
+.scale-fade-enter-active,
+.scale-fade-leave-active {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.scale-fade-enter-from,
+.scale-fade-leave-to {
+  opacity: 0;
+  transform: scale(0.75) translateY(8px);
+}
+</style>

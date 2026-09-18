@@ -24,7 +24,7 @@ function updateLocale(loc: string) {
   <BaseMenuSelect
     :model-value="currentLanguage"
     :options="localeOptions"
-    :prefix="t('common.language') + ':'"
+    :prefix="t('common.language')"
     @update:model-value="updateLocale"
   />
 </template>

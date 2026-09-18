@@ -29,6 +29,8 @@ const {
   firstNewMessageIndex,
   showScrollBottomBtn,
   messageContainer,
+  messageContent,
+  viewportHeight,
   isGroupedWithPrevious,
   scrollToBottom,
   handleScroll,
@@ -50,18 +52,21 @@ const {
 </script>
 
 <template>
+  <!-- Grid: the message list and the scroll button share the first row, the input sits in the second. -->
   <div
-    class="chat-container min-h-0 flex flex-col overflow-hidden relative p-0 animate-fade-up"
+    class="chat-container grid grid-rows-[minmax(0,1fr)_auto] overflow-hidden animate-fade-up"
+    :style="
+      viewportHeight
+        ? { '--chat-viewport-height': `${viewportHeight}px` }
+        : undefined
+    "
   >
     <div
       ref="messageContainer"
-      class="flex-1 overflow-y-auto overflow-x-hidden py-4 custom-scrollbar scroll-smooth bg-canvas"
-      @scroll="handleScroll"
+      class="row-start-1 col-start-1 overflow-y-auto overflow-x-hidden overscroll-contain py-4 custom-scrollbar bg-canvas"
+      @scroll.passive="handleScroll"
     >
-      <div
-        v-if="loading"
-        class="h-full flex flex-col justify-center items-center"
-      >
+      <div v-if="loading" class="h-full flex justify-center items-center">
         <BaseSpinner size="32px" />
       </div>
 
@@ -76,7 +81,7 @@ const {
         </BaseButton>
       </div>
 
-      <template v-else>
+      <div v-else ref="messageContent">
         <BaseEmptyState
           v-if="messages.length === 0"
           :icon="MessageCircle"
@@ -89,15 +94,14 @@ const {
           <div
             v-for="(msg, index) in messages"
             :key="msg.id"
-            class="w-full flex flex-col items-stretch"
+            class="flex flex-col"
           >
-            <!-- New Messages Divider -->
             <Transition name="fade">
               <div
                 v-if="
                   index === firstNewMessageIndex && !dismissedNewMessagesDivider
                 "
-                class="flex items-center my-6 px-4 md:px-8 select-none"
+                class="flex my-6 px-4 md:px-8 select-none"
               >
                 <span
                   class="mx-auto text-sm font-medium text-on-ghost bg-ghost-hover px-4 py-1.5 rounded-full"
@@ -111,7 +115,6 @@ const {
               </div>
             </Transition>
 
-            <!-- Refactored Message Bubble -->
             <ChatMessageBubble
               :msg="msg"
               :is-grouped="isGroupedWithPrevious(msg, index)"
@@ -123,35 +126,7 @@ const {
           </div>
         </TransitionGroup>
 
-        <!-- Refactored Message Context Menu -->
-        <ChatContextMenu
-          ref="menuRef"
-          :active-message="activeMessage"
-          :can-delete="activeMessage ? canDeleteMessage(activeMessage) : false"
-          :context-menu-styles="contextMenuStyles"
-          :is-mobile="isMobile"
-          @close="activeMessage = null"
-          @reply="
-            (msg) => {
-              startReply(msg);
-              activeMessage = null;
-            }
-          "
-          @copy="copyMessage"
-          @report="reportMessage"
-          @delete="deleteMessage"
-        />
-
-        <ReportModal
-          v-model:reason="reportReason"
-          :open="showReportConfirm"
-          message=""
-          :show-reason-input="true"
-          @confirm="doReport"
-          @cancel="cancelReport"
-        />
-
-        <div class="px-6 py-1 h-6 mt-4 flex items-center shrink-0 bg-canvas">
+        <div class="px-6 py-1 h-6 mt-4 flex items-center">
           <Transition name="fade">
             <div
               v-if="typingDisplay"
@@ -159,12 +134,8 @@ const {
             >
               <div class="flex items-center gap-0.75 h-2">
                 <span
-                  class="w-1.5 h-1.5 bg-action rounded-full typing-dot"
-                ></span>
-                <span
-                  class="w-1.5 h-1.5 bg-action rounded-full typing-dot"
-                ></span>
-                <span
+                  v-for="i in 3"
+                  :key="i"
                   class="w-1.5 h-1.5 bg-action rounded-full typing-dot"
                 ></span>
               </div>
@@ -172,35 +143,64 @@ const {
             </div>
           </Transition>
         </div>
-      </template>
+      </div>
     </div>
 
-    <!-- Refactored Scroll-to-Bottom Arrow Button -->
+    <!-- Placed over the bottom-right of the message list (first grid row). -->
     <ChatScrollButton
       :show="showScrollBottomBtn"
-      @click="scrollToBottom(true)"
+      @click="scrollToBottom(true, true)"
     />
 
-    <!-- Refactored Message Input Area -->
     <ChatInput
       v-model="messageInput"
+      class="row-start-2"
       :reply-parent="replyParent"
       :can-send="canSend"
       @submit="sendMessage"
       @input="handleInput"
       @cancel-reply="replyParent = null"
     />
+
+    <!-- Overlays render into <body>, so they do not take part in the grid. -->
+    <ChatContextMenu
+      ref="menuRef"
+      :active-message="activeMessage"
+      :can-delete="activeMessage ? canDeleteMessage(activeMessage) : false"
+      :context-menu-styles="contextMenuStyles"
+      :is-mobile="isMobile"
+      @close="activeMessage = null"
+      @reply="
+        (msg) => {
+          startReply(msg);
+          activeMessage = null;
+        }
+      "
+      @copy="copyMessage"
+      @report="reportMessage"
+      @delete="deleteMessage"
+    />
+
+    <ReportModal
+      v-model:reason="reportReason"
+      :open="showReportConfirm"
+      message=""
+      :show-reason-input="true"
+      @confirm="doReport"
+      @cancel="cancelReport"
+    />
   </div>
 </template>
 
 <style scoped>
+/*
+ * Fill the space below the header. `--chat-viewport-height` follows the visual
+ * viewport so the input stays above the on-screen keyboard; `100dvh` is the fallback.
+ */
 .chat-container {
   height: calc(
-    100dvh - var(--header-height, 65px) - var(--announcement-height, 0px) - 8px
-  );
-  height: calc(
-    100dvh - var(--header-height, 65px) - var(--announcement-height, 0px) -
-      8px - env(safe-area-inset-bottom, 0px)
+    var(--chat-viewport-height, 100dvh) - var(--header-height, 65px) -
+      var(--announcement-height, 0px) - 8px - env(safe-area-inset-bottom, 0px)
   );
 }
 
@@ -262,15 +262,5 @@ const {
 .fade-leave-to {
   opacity: 0;
   transform: translateY(3px);
-}
-
-.scale-fade-enter-active,
-.scale-fade-leave-active {
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.scale-fade-enter-from,
-.scale-fade-leave-to {
-  opacity: 0;
-  transform: scale(0.75) translateY(8px);
 }
 </style>
