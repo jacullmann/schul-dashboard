@@ -315,18 +315,73 @@
     }
   }
 }
-/* A private task picked up for reordering. The brand gradient glows under the
-   card, and fades in and out with how far it is lifted. */
-.reorder-item.is-lifted::before {
-  content: '';
-  position: absolute;
-  inset: 2px;
-  z-index: -1;
-  border-radius: inherit;
-  background: var(--background-image-bismuth);
-  filter: blur(12px);
-  opacity: calc(var(--lift, 0) * 0.9);
-  pointer-events: none;
+/* Reordering private tasks. The held card rises off the page: a tight contact
+   shadow under a wide soft one, and an edge that firms up so it reads against
+   the list in both themes. The rest of the list steps back and quiets down, so
+   the difference is depth, not decoration. --lift and --recede run 0 to 1 and
+   are driven by the springs in useDragReorder. */
+.reorder-item {
+  --reorder-shadow: oklch(0 0 0);
+  --reorder-edge: var(--color-surface-hover-border);
+  --reorder-lift-surface: var(--color-surface);
+
+  opacity: calc(1 - var(--recede, 0) * 0.38);
+}
+
+html.dark .reorder-item {
+  --reorder-edge: var(--color-graphite);
+  --reorder-lift-surface: var(--color-surface-highlight);
+}
+
+.reorder-item.is-lifted {
+  box-shadow:
+    0 calc(var(--lift, 0) * 1px) calc(var(--lift, 0) * 2px)
+      color-mix(
+        in oklab,
+        var(--reorder-shadow) calc(var(--lift, 0) * 8%),
+        transparent
+      ),
+    0 calc(var(--lift, 0) * 6px) calc(var(--lift, 0) * 14px) -4px
+      color-mix(
+        in oklab,
+        var(--reorder-shadow) calc(var(--lift, 0) * 10%),
+        transparent
+      ),
+    0 calc(var(--lift, 0) * 22px) calc(var(--lift, 0) * 44px) -12px
+      color-mix(
+        in oklab,
+        var(--reorder-shadow) calc(var(--lift, 0) * 22%),
+        transparent
+      );
+}
+
+html.dark .reorder-item.is-lifted {
+  box-shadow:
+    0 calc(var(--lift, 0) * 2px) calc(var(--lift, 0) * 4px)
+      color-mix(
+        in oklab,
+        var(--reorder-shadow) calc(var(--lift, 0) * 30%),
+        transparent
+      ),
+    0 calc(var(--lift, 0) * 24px) calc(var(--lift, 0) * 48px) -10px
+      color-mix(
+        in oklab,
+        var(--reorder-shadow) calc(var(--lift, 0) * 60%),
+        transparent
+      );
+}
+
+.reorder-item.is-lifted .item-card {
+  border-color: color-mix(
+    in oklab,
+    var(--reorder-edge) calc(var(--lift, 0) * 100%),
+    var(--color-ghost-border)
+  );
+  background-color: color-mix(
+    in oklab,
+    var(--reorder-lift-surface) calc(var(--lift, 0) * 100%),
+    var(--color-surface)
+  );
 }
 
 html.is-reordering {

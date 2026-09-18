@@ -37,8 +37,11 @@ const SETTLE = springConfig(0.42, 0.8);
 const LIFT = springConfig(0.24, 0.6);
 /** Setting the card down, without bouncing back up. */
 const LOWER = springConfig(0.3, 1);
+/** The rest of the list stepping back while a card is held, and returning. */
+const RECEDE = springConfig(0.34, 1);
 
 const LIFT_SCALE = 0.03;
+const RECEDE_SCALE = 0.015;
 const MOUSE_DRAG_THRESHOLD = 4;
 const TOUCH_SLOP = 8;
 const AUTOSCROLL_EDGE = 72;
@@ -86,6 +89,8 @@ interface Entry {
   x: Spring;
   y: Spring;
   lift: Spring;
+  /** How far the card has stepped back behind the one being held. */
+  recede: Spring;
   /** Stays above its neighbours until it has fully landed. */
   raised: boolean;
 }
@@ -191,6 +196,7 @@ export function useDragReorder(
         x: new Spring(0, SETTLE, 0.05),
         y: new Spring(0, SHIFT, 0.05),
         lift: new Spring(0, LIFT, 0.001),
+        recede: new Spring(0, RECEDE, 0.001),
         raised: false,
       };
       entries.set(el, entry);
@@ -219,7 +225,9 @@ export function useDragReorder(
 
     for (const entry of entries.values()) {
       const held = gesture?.entry === entry;
-      const springs = held ? [entry.lift] : [entry.x, entry.y, entry.lift];
+      const springs = held
+        ? [entry.lift]
+        : [entry.x, entry.y, entry.lift, entry.recede];
 
       for (const spring of springs) {
         if (reducedMotion.matches) {
@@ -243,23 +251,25 @@ export function useDragReorder(
 
   /** Paints one card, and reports whether it still has somewhere to go. */
   function render(entry: Entry, held: boolean): boolean {
-    const { el, x, y, lift } = entry;
+    const { el, x, y, lift, recede } = entry;
     const atRest =
       !held &&
       x.resting &&
       y.resting &&
       lift.resting &&
+      recede.resting &&
       x.value === 0 &&
       y.value === 0 &&
-      lift.value === 0;
+      lift.value === 0 &&
+      recede.value === 0;
 
     if (atRest) {
       // A lingering transform would make every card its own stacking context
       // and trap the menus rendered inside it.
       el.style.transform = '';
       el.style.zIndex = '';
-      el.style.boxShadow = '';
       el.style.removeProperty('--lift');
+      el.style.removeProperty('--recede');
       el.classList.remove('is-lifted');
       entry.raised = false;
       // A gesture still holds on to its neighbours' springs.
@@ -268,13 +278,13 @@ export function useDragReorder(
     }
 
     const amount = Math.max(0, lift.value);
-    const scale = 1 + lift.value * LIFT_SCALE;
+    const scale = 1 + lift.value * LIFT_SCALE - recede.value * RECEDE_SCALE;
     el.style.transform = `translate3d(${x.value}px, ${y.value}px, 0) scale(${scale})`;
+    el.style.setProperty('--recede', Math.max(0, recede.value).toFixed(3));
 
     if (entry.raised) {
       el.style.zIndex = '50';
       el.style.setProperty('--lift', Math.min(1, amount).toFixed(3));
-      el.style.boxShadow = `0 ${amount * 12}px ${amount * 32}px -8px rgb(0 0 0 / ${Math.min(0.3, amount * 0.26)})`;
       el.classList.add('is-lifted');
     }
 
@@ -369,7 +379,9 @@ export function useDragReorder(
     entry.lift.config = LIFT;
     entry.lift.target = 1;
     for (const slot of slots) {
-      if (slot !== self) slot.entry.y.config = SHIFT;
+      if (slot === self) continue;
+      slot.entry.y.config = SHIFT;
+      slot.entry.recede.target = 1;
     }
 
     gesture = {
@@ -428,6 +440,7 @@ export function useDragReorder(
     entry.y.velocity = Math.max(-4000, Math.min(4000, velocity));
     entry.lift.config = LOWER;
     entry.lift.target = 0;
+    for (const slot of g.slots) slot.entry.recede.target = 0;
 
     const to = cancelled ? g.from : g.to;
     const stillInPlace = items()[g.from] === entry.el;
@@ -676,8 +689,8 @@ export function useDragReorder(
     for (const { el } of entries.values()) {
       el.style.transform = '';
       el.style.zIndex = '';
-      el.style.boxShadow = '';
       el.style.removeProperty('--lift');
+      el.style.removeProperty('--recede');
       el.classList.remove('is-lifted');
     }
     entries.clear();
