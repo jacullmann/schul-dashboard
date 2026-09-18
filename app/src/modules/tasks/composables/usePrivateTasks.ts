@@ -109,17 +109,96 @@ export function usePrivateTasks() {
     }
   };
 
-  const togglePrivateTaskCompletion = async (task: PrivateTask) => {
-    const previous = task.completed;
-    task.completed = !task.completed;
+  // The checkbox flips instantly; the API call is debounced per task so rapid
+  // toggles collapse into at most one request. The endpoint flips the stored
+  // value instead of setting it, so requests for one task must never overlap.
+  const TOGGLE_SYNC_DELAY = 400;
+
+  interface ToggleSyncEntry {
+    serverCompleted: boolean;
+    updatedAt?: string;
+    timer?: number;
+    inFlight: boolean;
+  }
+
+  const toggleSync = new Map<string, ToggleSyncEntry>();
+
+  const findPrivateTask = (id: string) =>
+    privateTasks.value.find((t) => t.id === id);
+
+  const togglePrivateTaskCompletion = (task: PrivateTask) => {
+    const current = findPrivateTask(task.id) ?? task;
+    let entry = toggleSync.get(current.id);
+    if (!entry) {
+      entry = { serverCompleted: current.completed, inFlight: false };
+      toggleSync.set(current.id, entry);
+    }
+    current.completed = !current.completed;
+
+    clearTimeout(entry.timer);
+    entry.timer = window.setTimeout(
+      () => void flushToggleSync(current.id),
+      TOGGLE_SYNC_DELAY,
+    );
+  };
+
+  const flushToggleSync = async (id: string): Promise<void> => {
+    const entry = toggleSync.get(id);
+    if (!entry) return;
+    clearTimeout(entry.timer);
+    entry.timer = undefined;
+    // The running request re-checks the desired state when it finishes
+    if (entry.inFlight) return;
+
+    const task = findPrivateTask(id);
+    if (!task || task.completed === entry.serverCompleted) {
+      toggleSync.delete(id);
+      return;
+    }
+
+    entry.inFlight = true;
+    let error: unknown = null;
     try {
-      const { data } = await hw.patch(`/todos/${task.id}/toggle`);
-      updatePrivateTask({ ...task, updatedAt: data.updatedAt });
-    } catch (e: any) {
-      task.completed = previous;
-      useToast().error(apiErrorMessage(e, t('common.errors.update')));
+      const { data } = await hw.patch(`/todos/${id}/toggle`);
+      entry.serverCompleted = data.completed;
+      entry.updatedAt = data.updatedAt;
+    } catch (e) {
+      error = e ?? new Error();
+    } finally {
+      entry.inFlight = false;
+    }
+
+    // User toggled again during the request; the new timer takes over
+    if (entry.timer !== undefined) return;
+
+    const current = findPrivateTask(id);
+    if (!current) {
+      toggleSync.delete(id);
+      return;
+    }
+
+    if (error) {
+      toggleSync.delete(id);
+      current.completed = entry.serverCompleted;
+      useToast().error(apiErrorMessage(error, t('common.errors.update')));
+    } else if (current.completed !== entry.serverCompleted) {
+      await flushToggleSync(id);
+    } else {
+      toggleSync.delete(id);
+      updatePrivateTask({
+        ...current,
+        updatedAt: entry.updatedAt ?? current.updatedAt,
+      });
     }
   };
+
+  // Send pending syncs right away when the page is hidden (tab switch/close)
+  useEventListener(document, 'visibilitychange', () => {
+    if (document.visibilityState !== 'hidden') return;
+    for (const [id, entry] of toggleSync) {
+      if (entry.timer !== undefined) void flushToggleSync(id);
+    }
+  });
 
   const duplicatePrivateTask = async (task: PrivateTask) => {
     loading.value = true;
