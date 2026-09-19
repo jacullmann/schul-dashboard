@@ -29,11 +29,15 @@ const PRESS_INSET = 2;
 /** How long a touch rests before the pill gives way, so a scroll never flashes it. */
 const PRESS_DELAY = 80;
 /**
- * How far across a press must travel to become a drag, in px. Only the
- * horizontal distance counts: a pan that starts sideways is the pill's, and
- * once it holds the pill no amount of vertical travel takes it back.
+ * How far a press must travel to stop being a press, in px. Whichever axis
+ * crosses it first settles the pan: sideways and it is the pill's, up or down
+ * and it stays the page's to scroll. Shorter than the distance a browser lets a
+ * touch wander before it starts scrolling on its own, so a sideways pan is
+ * claimed — and from then on every touch move taken — while a scroll can still
+ * be called off. Once the pill is held, no amount of vertical travel takes it
+ * back.
  */
-const TOUCH_SLOP = 8;
+const TOUCH_SLOP = 6;
 const MOUSE_SLOP = 5;
 /**
  * How far ahead a release's momentum is projected when picking the tab it
@@ -167,6 +171,7 @@ interface Gesture {
   pointerId: number;
   pointerType: string;
   startX: number;
+  startY: number;
   clientX: number;
   /** Where across the pill the press landed, from 0 to 1; null beside it. */
   grip: number | null;
@@ -690,6 +695,7 @@ function onPointerDown(event: PointerEvent) {
     pointerId: event.pointerId,
     pointerType: event.pointerType,
     startX: event.clientX,
+    startY: event.clientY,
     clientX: event.clientX,
     grip: onPill ? (right > left ? (x - left) / (right - left) : 0.5) : null,
     stops: null,
@@ -723,11 +729,25 @@ function onPointerMove(event: PointerEvent) {
 
   if (!g.stops) {
     const dx = Math.abs(event.clientX - g.startX);
-    const slop = g.pointerType === 'mouse' ? MOUSE_SLOP : TOUCH_SLOP;
+    const dy = Math.abs(event.clientY - g.startY);
 
-    if (dx < slop) {
-      record(g, now);
-      return;
+    if (g.pointerType === 'mouse') {
+      if (dx < MOUSE_SLOP) {
+        record(g, now);
+        return;
+      }
+    } else {
+      // A pan that sets off up or down is the page's: bowing out now, before a
+      // single touch move has been taken, leaves the browser free to scroll it.
+      if (dy > dx && dy >= TOUCH_SLOP) {
+        end(true);
+        return;
+      }
+
+      if (dx < TOUCH_SLOP) {
+        record(g, now);
+        return;
+      }
     }
 
     pickUp(g, now);
@@ -803,7 +823,12 @@ function onPointerCancel(event: PointerEvent) {
   if (gesture && event.pointerId === gesture.pointerId) end(true);
 }
 
-/** Once the pill is held, the page must not scroll out from under it. */
+/**
+ * Every move a held pill makes is taken, whichever direction it goes in. A
+ * browser that has had one move cancelled starts no scroll for the rest of the
+ * gesture, so a finger is free to wander as far up or down as it likes: the
+ * pill stays tied to it, and the page stays put, until it lets go.
+ */
 function onTouchMove(event: TouchEvent) {
   if (gesture?.stops && event.cancelable) event.preventDefault();
 }
