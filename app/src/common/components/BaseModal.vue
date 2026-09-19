@@ -2,6 +2,7 @@
 import { useEventListener } from '@vueuse/core';
 import { useIsMobileViewport } from '@/common/composables/useViewport';
 import { X } from '@lucide/vue';
+import { useId } from 'vue';
 
 const emit = defineEmits<{
   cancel: [];
@@ -37,6 +38,7 @@ const handleCancel = () => {
 };
 
 const isMobile = useIsMobileViewport();
+const titleId = useId();
 
 useEventListener(window, 'keydown', (e: KeyboardEvent) => {
   if (e.key === 'Escape') handleCancel();
@@ -48,25 +50,30 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
     <Transition name="fade-scale" appear>
       <BaseModalCard
         v-if="open && (!isMobile || !sheet)"
+        :labelledby="titleId"
         @cancel="handleCancel"
       >
-        <BaseRow justify="between" class="items-start h-[30px] mb-4">
+        <!-- pr-12 reserves the close button's width plus gap -->
+        <BaseRow class="sticky top-0 z-10 items-start h-[30px] mb-4 pr-12">
+          <BaseScrollFade class="-inset-x-4 -top-4 -bottom-4" />
+
           <BaseRow>
-            <h3 id="modal-title">
+            <h3 :id="titleId">
               <slot name="title"></slot>
             </h3>
 
             <slot name="title-infopop"></slot>
           </BaseRow>
+        </BaseRow>
 
+        <template #corner>
           <BaseButton
             type="button"
             variant="ghost"
             :icon="X"
-            class="absolute -top-3 -right-3"
             @click="handleCancel"
           />
-        </BaseRow>
+        </template>
 
         <BaseForm
           v-if="submit"
@@ -89,10 +96,19 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
 
   <BaseSheet v-if="sheet && isMobile" :open="open" @cancel="handleCancel">
     <div class="px-4 pb-4">
-      <BaseRow class="mb-4"
-        ><h3 id="modal-title">
-          <slot name="title"></slot></h3
-      ></BaseRow>
+      <!-- Sticks below the drag handle. The fade reaches up under the handle,
+           like the modal's fade covers its padding, and rounds its top
+           corners to match the sheet's. -->
+      <BaseRow class="sticky top-0 z-10 mb-4">
+        <BaseScrollFade
+          color="var(--color-surface)"
+          class="-inset-x-4 -top-6 -bottom-4 rounded-t-2xl"
+        />
+
+        <h3 :id="titleId">
+          <slot name="title"></slot>
+        </h3>
+      </BaseRow>
 
       <BaseForm
         v-if="submit"

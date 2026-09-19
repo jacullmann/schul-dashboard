@@ -18,6 +18,7 @@ const emit = defineEmits<{
 }>();
 
 const sheetEl = ref<HTMLElement | null>(null);
+const scrollEl = ref<HTMLElement | null>(null);
 const backdropComponent = ref<any>(null);
 
 let dragStartX = 0;
@@ -57,8 +58,10 @@ function onTouchStart(e: TouchEvent) {
   isDragFromHandle = !!target.closest('[data-drag-handle]');
   const isInsideSheet = sheetEl.value.contains(target);
 
-  const scrollEl = target.closest('.overflow-y-auto');
-  const scrollTop = scrollEl ? scrollEl.scrollTop : sheetEl.value.scrollTop;
+  const scroller = target.closest('.overflow-y-auto');
+  const scrollTop = scroller
+    ? scroller.scrollTop
+    : (scrollEl.value?.scrollTop ?? 0);
   if (isInsideSheet && !isDragFromHandle && scrollTop > 0) return;
 
   dragHandled = false;
@@ -195,7 +198,7 @@ function onBackdropClick() {
   emit('cancel');
 }
 
-defineExpose({ sheetEl });
+defineExpose({ sheetEl, scrollEl });
 </script>
 
 <template>
@@ -226,19 +229,25 @@ defineExpose({ sheetEl });
       "
       @after-leave="emit('after-leave')"
     >
+      <!-- No overflow clipping here: Chromium drops the masks of backdrop
+           filters (BaseScrollFade) under a rounded overflow clip, leaving a
+           hard edge. The scroller clips its content; a sticky fade rounds its
+           own corners. -->
       <div
         v-if="open"
         ref="sheetEl"
         v-bind="$attrs"
-        class="fixed bottom-0 left-0 right-0 z-[var(--z-tooltip)] pb-4 bg-surface border-t border-ghost-border rounded-t-2xl shadow-menu max-h-[85dvh] overflow-y-auto overscroll-contain"
+        class="fixed bottom-0 left-0 right-0 z-[var(--z-tooltip)] flex flex-col bg-surface border-t border-ghost-border rounded-t-2xl shadow-menu max-h-[85dvh]"
         @click.stop
         @touchstart="onTouchStart"
         @touchmove="onTouchMove"
         @touchend="onTouchEnd"
         @touchcancel="onTouchEnd"
       >
+        <!-- Overlays the scroller's top padding, so it always stays in place
+             while sticky headers can still fade out underneath it. -->
         <div
-          class="flex justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing touch-none select-none"
+          class="absolute top-0 inset-x-0 z-20 flex justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing touch-none select-none"
           data-drag-handle
         >
           <div
@@ -246,7 +255,12 @@ defineExpose({ sheetEl });
           />
         </div>
 
-        <slot></slot>
+        <div
+          ref="scrollEl"
+          class="min-h-0 pt-6 pb-4 overflow-y-auto overscroll-contain"
+        >
+          <slot></slot>
+        </div>
       </div>
     </Transition>
   </Teleport>
