@@ -257,7 +257,7 @@ defineExpose({ sheetEl, scrollEl });
 
         <div
           ref="scrollEl"
-          class="min-h-0 pt-6 pb-4 overflow-y-auto overscroll-contain"
+          class="min-h-0 pt-6 pb-4 overflow-x-hidden overflow-y-auto overscroll-contain"
         >
           <slot></slot>
         </div>
