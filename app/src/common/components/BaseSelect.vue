@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, nextTick, computed } from 'vue';
+import { ref, nextTick, computed, useAttrs } from 'vue';
 import { onClickOutside, useElementBounding } from '@vueuse/core';
 import { ChevronDown } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
@@ -21,6 +21,8 @@ const props = withDefaults(
     form?: boolean;
     on?: 'ghost' | 'action';
     classes?: string;
+    /** Mobile sheet title; defaults to the text of the select's label. */
+    title?: string;
   }>(),
   {
     disabled: false,
@@ -56,11 +58,29 @@ const selectStyles = computed(() => ({
   opacity: isPositioned.value ? undefined : 0,
 }));
 
+const attrs = useAttrs();
+const sheetTitle = ref<string>();
+
+// Text of the <label for="id"> pointing at this select, without decorations
+// like BaseLabel's aria-hidden required asterisk.
+function getLabelText(): string | undefined {
+  const id = attrs.id;
+  if (typeof id !== 'string') return undefined;
+
+  const label = document.querySelector(`label[for="${CSS.escape(id)}"]`);
+  if (!label) return undefined;
+
+  const clone = label.cloneNode(true) as HTMLElement;
+  clone.querySelectorAll('[aria-hidden="true"]').forEach((el) => el.remove());
+  return clone.textContent?.trim() || undefined;
+}
+
 const toggleMenu = async () => {
   if (!props.disabled) {
     isOpen.value = !isOpen.value;
 
     if (isOpen.value) {
+      sheetTitle.value = props.title ?? getLabelText();
       await nextTick();
 
       if (floatingRef.value) {
@@ -142,6 +162,7 @@ onClickOutside(
       <BaseMenu
         ref="floatingRef"
         :open="isOpen"
+        :title="sheetTitle"
         :style="selectStyles"
         class="max-h-80 z-[9999]"
         @close="isOpen = false"

@@ -237,13 +237,21 @@ defineExpose({ sheetEl, scrollEl });
         v-if="open"
         ref="sheetEl"
         v-bind="$attrs"
-        class="fixed bottom-0 left-0 right-0 z-[var(--z-tooltip)] flex flex-col bg-surface border-t border-ghost-border rounded-t-2xl shadow-menu max-h-[85dvh]"
+        class="fixed bottom-0 left-0 right-0 z-[var(--z-tooltip)] flex flex-col bg-surface rounded-t-2xl shadow-menu max-h-[85dvh]"
         @click.stop
         @touchstart="onTouchStart"
         @touchmove="onTouchMove"
         @touchend="onTouchEnd"
         @touchcancel="onTouchEnd"
       >
+        <!-- Top border drawn above the content: sticky fades reach up to the
+             sheet's edge and would otherwise paint over the border where it
+             curves around the rounded corners. -->
+        <div
+          aria-hidden="true"
+          class="pointer-events-none absolute inset-0 z-30 rounded-t-2xl border-t border-ghost-border"
+        />
+
         <!-- Overlays the scroller's top padding, so it always stays in place
              while sticky headers can still fade out underneath it. -->
         <div

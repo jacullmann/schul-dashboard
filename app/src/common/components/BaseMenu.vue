@@ -22,6 +22,8 @@ const props = withDefaults(
   defineProps<{
     open?: boolean;
     desktopTransition?: string;
+    /** Shown as a sticky heading at the top of the mobile sheet. */
+    title?: string;
   }>(),
   {
     open: true,
@@ -342,64 +344,90 @@ defineExpose({ menuEl: desktopMenuEl, startClose });
     v-if="isMobile"
     ref="sheetComponentRef"
     :open="open"
-    class="!overflow-hidden"
     role="menu"
+    :aria-label="title"
     aria-orientation="vertical"
     tabindex="-1"
     @cancel="startClose"
     @after-leave="emit('after-leave')"
   >
-    <div
-      class="transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden"
-      :class="
-        !isAtRoot
-          ? 'max-h-[44px] opacity-100 pointer-events-auto mt-1'
-          : 'max-h-0 opacity-0 pointer-events-none mt-0'
-      "
-    >
-      <BaseButton
-        variant="ghost"
-        on="ghost"
-        :icon="ChevronLeft"
-        class="ml-1 w-fit"
-        @click="popView"
-        >{{ t('common.buttons.back') }}</BaseButton
-      >
-    </div>
-
+    <!-- Pulled up over the sheet scroller's top padding, so content scrolls
+         up under the drag handle like in BaseModal's sheet. The sticky header
+         then sits below the handle, thanks to the matching pt-6. -->
     <div
       ref="mobileScrollEl"
-      class="relative overflow-y-auto overflow-x-hidden transition-[height] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] will-change-[height] max-h-[70vh] list-fade"
-      :style="{
-        height: menuHeight === 'auto' ? 'auto' : `${menuHeight}px`,
-        '--menu-fade-mask': fadeMask,
-      }"
+      class="-mt-6 pt-6 overflow-y-auto overflow-x-hidden max-h-[70vh]"
       @scroll="handleScroll"
     >
-      <div
-        ref="rootViewEl"
-        class="w-full transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
-        :class="
-          activeViewId === 'root'
-            ? 'relative translate-x-0 opacity-100 pointer-events-auto'
-            : 'absolute top-0 left-0 -translate-x-8 opacity-0 pointer-events-none'
-        "
-      >
-        <div class="p-1">
-          <slot></slot>
+      <!-- Fade reaches up under the handle and rounds its top corners to
+           match the sheet's; see BaseModal's sheet header for the 1px
+           overshoot. Below the header it only covers the views' empty p-1
+           padding, so nothing is blurred until the content is scrolled.
+           Only rendered once scrolled, sparing the backdrop filters when
+           there is nothing underneath. -->
+      <div class="sticky top-0 z-10">
+        <BaseScrollFade
+          v-show="showTopFade"
+          color="var(--color-surface)"
+          class="-inset-x-px -top-[25px] -bottom-1 rounded-t-[calc(var(--radius-2xl)+1px)_var(--radius-2xl)]"
+        />
+
+        <!-- Styled like the email heading of AccountMenu's sheet. -->
+        <div
+          v-if="title"
+          class="px-4 pb-2 text-center font-semibold text-base text-on-ghost truncate"
+        >
+          {{ title }}
+        </div>
+
+        <div
+          class="transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden"
+          :class="
+            !isAtRoot
+              ? 'max-h-[44px] opacity-100 pointer-events-auto mt-1'
+              : 'max-h-0 opacity-0 pointer-events-none mt-0'
+          "
+        >
+          <BaseButton
+            variant="ghost"
+            on="ghost"
+            :icon="ChevronLeft"
+            class="ml-1 w-fit"
+            @click="popView"
+            >{{ t('common.buttons.back') }}</BaseButton
+          >
         </div>
       </div>
 
       <div
-        ref="subViewEl"
-        class="w-full transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
-        :class="
-          activeViewId !== 'root'
-            ? 'relative translate-x-0 opacity-100 pointer-events-auto'
-            : 'absolute top-0 left-0 translate-x-8 opacity-0 pointer-events-none'
-        "
+        class="relative overflow-hidden transition-[height] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] will-change-[height]"
+        :style="{ height: menuHeight === 'auto' ? 'auto' : `${menuHeight}px` }"
       >
-        <div ref="submenuTarget" class="p-1"></div>
+        <div
+          ref="rootViewEl"
+          class="w-full transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
+          :class="
+            activeViewId === 'root'
+              ? 'relative translate-x-0 opacity-100 pointer-events-auto'
+              : 'absolute top-0 left-0 -translate-x-8 opacity-0 pointer-events-none'
+          "
+        >
+          <div class="p-1">
+            <slot></slot>
+          </div>
+        </div>
+
+        <div
+          ref="subViewEl"
+          class="w-full transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
+          :class="
+            activeViewId !== 'root'
+              ? 'relative translate-x-0 opacity-100 pointer-events-auto'
+              : 'absolute top-0 left-0 translate-x-8 opacity-0 pointer-events-none'
+          "
+        >
+          <div ref="submenuTarget" class="p-1"></div>
+        </div>
       </div>
     </div>
   </BaseSheet>
