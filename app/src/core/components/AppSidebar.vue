@@ -29,6 +29,7 @@ import SidebarButton from '@/core/components/SidebarButton.vue';
 import { useI18n } from 'vue-i18n';
 import { useGroupAction } from '@/core/composables/useGroupAction';
 import Avatar from '@/modules/auth/components/Avatar.vue';
+import { MOBILE_BREAKPOINT } from '@/common/composables/useViewport';
 
 const { t } = useI18n();
 const performLogout = useLogout();
@@ -68,7 +69,7 @@ async function logout() {
 }
 
 function collapseIfMobile() {
-  if (window.innerWidth < 768) {
+  if (window.innerWidth < MOBILE_BREAKPOINT) {
     modalStore.setSidebarExpanded(false);
   }
 }
@@ -102,6 +103,187 @@ function handleCreate() {
   withGroup(() => {
     modalStore.openCreateGroup();
   });
+}
+
+/* Swipe to dismiss - the drawer's equivalent of BaseSheet's downward drag. */
+
+const sidebarEl = ref<HTMLElement | null>(null);
+const backdropEl = ref<HTMLElement | null>(null);
+
+/** Distance in px past which a release dismisses the drawer whatever its speed. */
+const DISMISS_THRESHOLD = 80;
+/** Speed in px/ms that dismisses a short but decisive flick. */
+const VELOCITY_THRESHOLD = 0.5;
+/** Movement in px before the gesture commits to an axis. */
+const AXIS_LOCK_THRESHOLD = 5;
+/** Resistance on a pull towards the open side, which has nowhere left to go. */
+const RUBBER_BAND = 0.1;
+/** How far the backdrop dims across a full dismiss drag. */
+const BACKDROP_FADE = 0.6;
+
+let dragStartX = 0;
+let dragStartY = 0;
+let dragStartTime = 0;
+let currentDragX = 0;
+let isDragging = false;
+let dragAxis: 'none' | 'x' | 'y' = 'none';
+let dragHandled = false;
+/** Whether the gesture has moved the drawer and owes it a settle. */
+let hasDragStyles = false;
+let settleTimer: ReturnType<typeof setTimeout> | null = null;
+
+/** Suppresses the backdrop's own fade-out while the drag animates it instead. */
+const isSwipeDismissing = ref(false);
+
+/**
+ * Drives the same `translate` property Tailwind's `-translate-x-full` sets, so
+ * the inline offset and the class the drag hands back to never stack.
+ */
+function setSidebarStyle(translate: string, transition = 'none') {
+  if (!sidebarEl.value) return;
+  sidebarEl.value.style.translate = translate;
+  sidebarEl.value.style.transition = transition;
+}
+
+function setBackdropStyle(opacity: string, transition = 'none') {
+  if (!backdropEl.value) return;
+  backdropEl.value.style.opacity = opacity;
+  backdropEl.value.style.transition = transition;
+}
+
+function clearSidebarStyles() {
+  if (!sidebarEl.value) return;
+  sidebarEl.value.style.translate = '';
+  sidebarEl.value.style.transition = '';
+}
+
+function clearBackdropStyles() {
+  if (!backdropEl.value) return;
+  backdropEl.value.style.opacity = '';
+  backdropEl.value.style.transition = '';
+}
+
+function onSwipeStart(e: TouchEvent) {
+  // Above the breakpoint the sidebar is a docked column, not a drawer.
+  if (!isExpanded.value || window.innerWidth >= MOBILE_BREAKPOINT) return;
+  if (e.touches.length !== 1) return;
+
+  const touch = e.touches[0];
+  if (!touch) return;
+
+  if (settleTimer) {
+    clearTimeout(settleTimer);
+    settleTimer = null;
+  }
+
+  dragHandled = false;
+  dragStartX = touch.clientX;
+  dragStartY = touch.clientY;
+  dragStartTime = Date.now();
+  currentDragX = 0;
+  isDragging = true;
+  dragAxis = 'none';
+  hasDragStyles = false;
+}
+
+function onSwipeMove(e: TouchEvent) {
+  if (!isDragging) return;
+
+  const touch = e.touches[0];
+  if (!touch) return;
+
+  const deltaX = touch.clientX - dragStartX;
+  const deltaY = touch.clientY - dragStartY;
+
+  if (dragAxis === 'none') {
+    if (Math.max(Math.abs(deltaX), Math.abs(deltaY)) < AXIS_LOCK_THRESHOLD) {
+      return;
+    }
+    // A vertical intent belongs to the group list's scroller.
+    dragAxis = Math.abs(deltaX) > Math.abs(deltaY) ? 'x' : 'y';
+    if (dragAxis === 'y') {
+      isDragging = false;
+      return;
+    }
+  }
+
+  if (deltaX > 0) {
+    // Already fully open: follow the finger, but only just.
+    currentDragX = 0;
+    hasDragStyles = true;
+    setSidebarStyle(`${deltaX * RUBBER_BAND}px`);
+    setBackdropStyle('1');
+    return;
+  }
+
+  if (e.cancelable) {
+    e.preventDefault();
+  }
+
+  currentDragX = deltaX;
+  hasDragStyles = true;
+  const progress = Math.min(-deltaX / DISMISS_THRESHOLD, 1);
+  setSidebarStyle(`${deltaX}px`);
+  setBackdropStyle(String(1 - progress * BACKDROP_FADE));
+}
+
+function onSwipeEnd() {
+  if (!isDragging) return;
+  isDragging = false;
+
+  // A tap never moved the drawer, so it owns no inline offset to settle.
+  // Leaving one behind would outrank the collapsed class and hold the drawer
+  // in place while the rest of the close animates.
+  if (!hasDragStyles) return;
+
+  if (Math.abs(currentDragX) > AXIS_LOCK_THRESHOLD) {
+    dragHandled = true;
+  }
+
+  const distance = -currentDragX;
+  const velocity = distance / Math.max(Date.now() - dragStartTime, 1);
+  const shouldDismiss =
+    distance > DISMISS_THRESHOLD ||
+    (velocity > VELOCITY_THRESHOLD && distance > 20);
+
+  if (!shouldDismiss) {
+    setSidebarStyle('0px', 'translate 200ms cubic-bezier(0.22,1,0.36,1)');
+    setBackdropStyle('1', 'opacity 200ms ease');
+    settleTimer = setTimeout(() => {
+      settleTimer = null;
+      clearSidebarStyles();
+      clearBackdropStyles();
+      dragHandled = false;
+    }, 220);
+    return;
+  }
+
+  isSwipeDismissing.value = true;
+  setSidebarStyle('-100%', 'translate 150ms cubic-bezier(0.32,0,0.67,1)');
+  setBackdropStyle('0', 'opacity 150ms ease');
+
+  settleTimer = setTimeout(() => {
+    settleTimer = null;
+    modalStore.setSidebarExpanded(false);
+    // The collapsed classes park the drawer where the drag already left it,
+    // so the inline offset can go once the DOM has caught up. The backdrop
+    // keeps its faded-out style until it unmounts: restoring it here would
+    // flash it back to full strength for the rest of its leave.
+    void nextTick(() => {
+      isSwipeDismissing.value = false;
+      clearSidebarStyles();
+      dragHandled = false;
+    });
+  }, 150);
+}
+
+function onBackdropClick() {
+  // The tap that ends a drag must not count as a second dismiss.
+  if (dragHandled) {
+    dragHandled = false;
+    return;
+  }
+  modalStore.setSidebarExpanded(false);
 }
 
 const sidebarScrollEl = ref<HTMLElement | null>(null);
@@ -209,6 +391,9 @@ onUnmounted(() => {
   if (resizeObserver) {
     resizeObserver.disconnect();
   }
+  if (settleTimer) {
+    clearTimeout(settleTimer);
+  }
 });
 </script>
 
@@ -218,19 +403,27 @@ onUnmounted(() => {
     enter-active-class="transition-opacity duration-200 ease-out"
     enter-from-class="opacity-0"
     enter-to-class="opacity-100"
-    leave-active-class="transition-opacity duration-[280ms] ease-in"
+    :leave-active-class="
+      isSwipeDismissing ? '' : 'transition-opacity duration-[280ms] ease-in'
+    "
     leave-from-class="opacity-100"
     leave-to-class="opacity-0"
   >
     <div
       v-if="isExpanded"
-      class="md:hidden fixed inset-0 bg-black/25 backdrop-blur-sm z-(--z-mobile-nav-backdrop)"
-      @click="isExpanded = false"
+      ref="backdropEl"
+      class="md:hidden fixed inset-0 bg-black/25 backdrop-blur-sm z-(--z-mobile-nav-backdrop) touch-pan-y"
+      @click="onBackdropClick"
+      @touchstart.passive="onSwipeStart"
+      @touchmove="onSwipeMove"
+      @touchend="onSwipeEnd"
+      @touchcancel="onSwipeEnd"
     ></div>
   </Transition>
 
   <aside
-    class="sidebar flex flex-col justify-between shrink-0 overflow-hidden h-dvh p-2.5 bg-surface border-r border-ghost-border z-(--z-mobile-nav) md:z-(--z-header)"
+    ref="sidebarEl"
+    class="sidebar flex flex-col justify-between shrink-0 overflow-hidden h-dvh p-2.5 bg-surface border-r border-ghost-border z-(--z-mobile-nav) md:z-(--z-header) max-md:touch-pan-y"
     :class="[
       'md:sticky md:top-0 md:transition-[width]',
       isExpanded
@@ -242,6 +435,10 @@ onUnmounted(() => {
         ? 'max-md:translate-x-0 max-md:duration-[400ms] max-md:ease-[cubic-bezier(0.22,1,0.36,1)]'
         : 'max-md:-translate-x-full max-md:duration-150 max-md:ease-[cubic-bezier(0.32,0,0.67,1)]',
     ]"
+    @touchstart.passive="onSwipeStart"
+    @touchmove="onSwipeMove"
+    @touchend="onSwipeEnd"
+    @touchcancel="onSwipeEnd"
   >
     <div class="flex flex-col gap-4 w-full flex-1 min-h-0">
       <div class="hidden md:flex flex flex-col w-full">
