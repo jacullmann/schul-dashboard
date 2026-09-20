@@ -82,11 +82,7 @@ const {
       </div>
 
       <div v-else ref="messageContent">
-        <BaseEmptyState
-          v-if="messages.length === 0"
-          :icon="MessageCircle"
-          class="animate-fade-up"
-        >
+        <BaseEmptyState v-if="messages.length === 0" :icon="MessageCircle">
           <template #title>{{ t('chat.no_messages') }}</template>
         </BaseEmptyState>
 

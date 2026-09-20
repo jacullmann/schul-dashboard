@@ -178,6 +178,12 @@ function handleAnimationEnd(itemId: string) {
   animatedCardIds.value.delete(itemId);
   animatedCardIds.value = new Set(animatedCardIds.value);
 }
+
+const emptyStateAnimated = ref(false);
+
+function handleEmptyStateAnimationEnd(event: AnimationEvent) {
+  if (event.animationName === 'fade-up') emptyStateAnimated.value = true;
+}
 </script>
 
 <template>
@@ -303,9 +309,10 @@ function handleAnimationEnd(itemId: string) {
 
       <BaseEmptyState
         v-if="!loading && !limitedItems.length"
-        class="animate-fade-up"
+        :class="{ 'animate-fade-up': !emptyStateAnimated }"
         :primary-action="openTaskForm"
         :secondary-action="resetFilters"
+        @animationend="handleEmptyStateAnimationEnd"
       >
         <template #title>{{ t('tasks.list.tasks.view.no_tasks') }}</template>
         <template #message>{{
