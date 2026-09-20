@@ -135,9 +135,18 @@ onMounted(() => {
   }
 });
 
+// The viewer grows out of the tile it was opened from and shrinks back into
+// it, so it has to find that tile again, also after paging to another image.
+function imageOriginForItem(item: HwItem) {
+  return (index: number) =>
+    document.querySelector<HTMLElement>(
+      `[data-task-images="${CSS.escape(item.id)}"] [data-image-index="${index}"]`,
+    );
+}
+
 function openImageViewerForItem(item: HwItem, index: number) {
   openImageViewerLocal(item, index);
-  openImageViewer(item.images, index);
+  openImageViewer(item.images, index, imageOriginForItem(item));
 }
 
 function beforeLeave(el: Element) {

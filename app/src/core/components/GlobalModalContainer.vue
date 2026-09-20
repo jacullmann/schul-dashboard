@@ -61,6 +61,7 @@ const {
   imageViewerOpen,
   imageViewerImages,
   imageViewerInitialIndex,
+  imageViewerOrigin,
   confirmOpen,
   confirmOptions,
 } = storeToRefs(modalStore);
@@ -188,6 +189,7 @@ async function onAuthSuccess() {
     :visible="imageViewerOpen"
     :images="imageViewerImages"
     :initial-index="imageViewerInitialIndex"
+    :origin="imageViewerOrigin"
     @cancel="modalStore.closeImageViewer()"
   />
 

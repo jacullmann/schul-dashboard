@@ -12,8 +12,11 @@ export function useImageViewer() {
       typeof store.imageViewerImages
     >,
     imageViewerInitialIndex: store.imageViewerInitialIndex,
-    openImageViewer: (images: ImageItem[], initialIndex?: number) =>
-      store.openImageViewer(images, initialIndex),
+    openImageViewer: (
+      images: ImageItem[],
+      initialIndex?: number,
+      origin?: ((index: number) => HTMLElement | null) | null,
+    ) => store.openImageViewer(images, initialIndex, origin),
     closeImageViewer: store.closeImageViewer,
   };
 }

@@ -94,7 +94,11 @@ const { handlers: longPressHandlers } = useLongPress(
 </script>
 
 <template>
-  <div class="images-row mt-2 mb-2" v-on="longPressHandlers">
+  <div
+    class="images-row mt-2 mb-2"
+    :data-task-images="itemId"
+    v-on="longPressHandlers"
+  >
     <div
       v-for="(img, idx) in displayedImages"
       :key="img.publicId"

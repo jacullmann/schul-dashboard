@@ -152,20 +152,33 @@ export const useModalStore = defineStore('modals', () => {
   const imageViewerOpen = ref(false);
   const imageViewerImages = ref<ImageItem[]>([]);
   const imageViewerInitialIndex = ref(0);
+  // Resolves the grid tile an image was opened from, so the viewer can grow
+  // out of it. Set by the page that owns the tiles.
+  const imageViewerOrigin = ref<((index: number) => HTMLElement | null) | null>(
+    null,
+  );
 
-  function openImageViewer(images: ImageItem[], initialIndex = 0) {
+  function openImageViewer(
+    images: ImageItem[],
+    initialIndex = 0,
+    origin: ((index: number) => HTMLElement | null) | null = null,
+  ) {
     imageViewerImages.value = images;
     imageViewerInitialIndex.value = initialIndex;
+    imageViewerOrigin.value = origin;
     imageViewerOpen.value = true;
   }
 
   function closeImageViewer() {
     imageViewerOpen.value = false;
 
+    // The delay outlasts the viewer's close animation, which still reads the
+    // images and the origin tile while it shrinks back into the grid.
     setTimeout(() => {
       imageViewerImages.value = [];
       imageViewerInitialIndex.value = 0;
-    }, 300);
+      imageViewerOrigin.value = null;
+    }, 500);
   }
 
   const showChangePassword = ref(false);
@@ -275,6 +288,7 @@ export const useModalStore = defineStore('modals', () => {
     imageViewerOpen,
     imageViewerImages,
     imageViewerInitialIndex,
+    imageViewerOrigin,
     openImageViewer,
     closeImageViewer,
 
