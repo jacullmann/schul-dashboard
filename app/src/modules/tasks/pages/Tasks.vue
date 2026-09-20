@@ -144,9 +144,23 @@ function imageOriginForItem(item: HwItem) {
     );
 }
 
+// The viewer carries no context of its own, so it is handed the same menu the
+// tiles open on a right click, bound to the image it is showing.
+function imageMenuForItem(item: HwItem) {
+  return (event: MouseEvent, index: number) => {
+    const img = item.images[index];
+    if (img) handleImageContextMenu(event, item, img);
+  };
+}
+
 function openImageViewerForItem(item: HwItem, index: number) {
   openImageViewerLocal(item, index);
-  openImageViewer(item.images, index, imageOriginForItem(item));
+  openImageViewer(
+    item.images,
+    index,
+    imageOriginForItem(item),
+    imageMenuForItem(item),
+  );
 }
 
 function beforeLeave(el: Element) {

@@ -6,9 +6,17 @@ defineOptions({ inheritAttrs: false });
 const props = withDefaults(
   defineProps<{
     open?: boolean;
+    /**
+     * Lifts the sheet and its backdrop over a fullscreen overlay that already
+     * sits above the normal layers, such as the image viewer. Without it the
+     * sheet opens underneath that overlay, and its backdrop never gets the
+     * taps that dismiss it.
+     */
+    elevated?: boolean;
   }>(),
   {
     open: true,
+    elevated: false,
   },
 );
 
@@ -215,6 +223,7 @@ defineExpose({ sheetEl, scrollEl });
         ref="backdropComponent"
         blur-size="sm"
         opacity="light"
+        :class="elevated ? 'z-[100003]!' : ''"
         @cancel="onBackdropClick"
       />
     </Transition>
@@ -237,7 +246,8 @@ defineExpose({ sheetEl, scrollEl });
         v-if="open"
         ref="sheetEl"
         v-bind="$attrs"
-        class="fixed bottom-0 left-0 right-0 z-[var(--z-tooltip)] flex flex-col bg-surface rounded-t-2xl shadow-menu max-h-[85dvh]"
+        class="fixed bottom-0 left-0 right-0 flex flex-col bg-surface rounded-t-2xl shadow-menu max-h-[85dvh]"
+        :class="elevated ? 'z-[100004]' : 'z-[var(--z-tooltip)]'"
         @click.stop
         @touchstart="onTouchStart"
         @touchmove="onTouchMove"

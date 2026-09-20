@@ -52,10 +52,14 @@ const contextMenuStyles = computed(() => ({
 
 <template>
   <Teleport to="body">
+    <!-- Above the image viewer, which opens this same menu from its own
+         button. On a phone that menu is a sheet, which has its own backdrop to
+         lift along, so it takes the elevation as a prop. -->
     <BaseMenu
       :ref="(el: any) => (menuRef = el?.menuEl)"
       :open="visible"
-      class="fixed! z-[10001]! min-w-[180px]"
+      elevated
+      class="fixed! z-[100003]! min-w-[180px]"
       :style="contextMenuStyles"
       @close="emit('cancel')"
     >

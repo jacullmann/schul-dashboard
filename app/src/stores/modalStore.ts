@@ -157,15 +157,35 @@ export const useModalStore = defineStore('modals', () => {
   const imageViewerOrigin = ref<((index: number) => HTMLElement | null) | null>(
     null,
   );
+  // Opens the context menu of the image on show. Set by the page that owns the
+  // images, because the viewer only knows the picture, not what can be done
+  // with it.
+  const imageViewerMenu = ref<
+    ((event: MouseEvent, index: number) => void) | null
+  >(null);
+
+  let imageViewerResetTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  function cancelImageViewerReset() {
+    if (imageViewerResetTimeout) {
+      clearTimeout(imageViewerResetTimeout);
+      imageViewerResetTimeout = null;
+    }
+  }
 
   function openImageViewer(
     images: ImageItem[],
     initialIndex = 0,
     origin: ((index: number) => HTMLElement | null) | null = null,
+    menu: ((event: MouseEvent, index: number) => void) | null = null,
   ) {
+    // A close that is still waiting to clear the state would otherwise empty
+    // the viewer that is opening right now.
+    cancelImageViewerReset();
     imageViewerImages.value = images;
     imageViewerInitialIndex.value = initialIndex;
     imageViewerOrigin.value = origin;
+    imageViewerMenu.value = menu;
     imageViewerOpen.value = true;
   }
 
@@ -174,10 +194,13 @@ export const useModalStore = defineStore('modals', () => {
 
     // The delay outlasts the viewer's close animation, which still reads the
     // images and the origin tile while it shrinks back into the grid.
-    setTimeout(() => {
+    cancelImageViewerReset();
+    imageViewerResetTimeout = setTimeout(() => {
+      imageViewerResetTimeout = null;
       imageViewerImages.value = [];
       imageViewerInitialIndex.value = 0;
       imageViewerOrigin.value = null;
+      imageViewerMenu.value = null;
     }, 500);
   }
 
@@ -289,6 +312,7 @@ export const useModalStore = defineStore('modals', () => {
     imageViewerImages,
     imageViewerInitialIndex,
     imageViewerOrigin,
+    imageViewerMenu,
     openImageViewer,
     closeImageViewer,
 

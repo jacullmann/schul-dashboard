@@ -16,7 +16,8 @@ export function useImageViewer() {
       images: ImageItem[],
       initialIndex?: number,
       origin?: ((index: number) => HTMLElement | null) | null,
-    ) => store.openImageViewer(images, initialIndex, origin),
+      menu?: ((event: MouseEvent, index: number) => void) | null,
+    ) => store.openImageViewer(images, initialIndex, origin, menu),
     closeImageViewer: store.closeImageViewer,
   };
 }

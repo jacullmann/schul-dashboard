@@ -24,10 +24,13 @@ const props = withDefaults(
     desktopTransition?: string;
     /** Shown as a sticky heading at the top of the mobile sheet. */
     title?: string;
+    /** Opens the mobile sheet above a fullscreen overlay; see BaseSheet. */
+    elevated?: boolean;
   }>(),
   {
     open: true,
     desktopTransition: 'fade-dropdown',
+    elevated: false,
   },
 );
 
@@ -344,6 +347,7 @@ defineExpose({ menuEl: desktopMenuEl, startClose });
     v-if="isMobile"
     ref="sheetComponentRef"
     :open="open"
+    :elevated="elevated"
     role="menu"
     :aria-label="title"
     aria-orientation="vertical"
