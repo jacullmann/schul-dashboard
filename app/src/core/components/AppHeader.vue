@@ -170,7 +170,7 @@ onUnmounted(() => {
       >
         <button
           v-wave
-          class="flex items-center gap-2 cursor-pointer hover:bg-ghost-hover transition-hover rounded-full -m-1 p-1 min-w-0"
+          class="relative flex items-center gap-2 cursor-pointer hover:bg-ghost-hover transition-hover rounded-full -m-1 p-1 min-w-0 touch-target after:min-w-12 after:min-h-12"
           @click="toggleGroupMenu"
         >
           <Avatar
@@ -185,8 +185,8 @@ onUnmounted(() => {
           }}</span>
           <ChevronDown
             :size="16"
-            class="transform transition-transform duration-200 ease-in-out text-on-ghost-muted transition-hover mr-2 shrink-0"
-            :class="groupMenuOpen ? 'rotate-180' : ''"
+            class="text-on-ghost-muted mr-2 shrink-0 transition-transform duration-200 ease-in-out"
+            :class="{ 'rotate-180': groupMenuOpen }"
           />
         </button>
 
