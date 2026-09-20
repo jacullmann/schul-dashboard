@@ -98,6 +98,7 @@ const {
         }
       "
       :open="open"
+      :title="email"
       class="fixed pointer-events-auto z-[var(--z-modal)] origin-top-left min-w-[320px]"
       :style="popupStyle"
       role="menu"
@@ -105,14 +106,15 @@ const {
       @click.stop
       @cancel="cancel"
     >
+      <!-- Desktop only: the sheet shows the email as BaseMenu's sticky title. -->
       <div
-        class="flex justify-center md:justify-start px-4 py-2 md:px-3 md:py-1.5 font-semibold text-base md:text-sm text-on-ghost overflow-hidden text-ellipsis whitespace-nowrap"
+        class="hidden md:flex px-3 py-1.5 font-semibold text-sm text-on-ghost overflow-hidden text-ellipsis whitespace-nowrap"
         :title="email"
       >
         {{ email }}
       </div>
 
-      <BaseMenuDivider />
+      <BaseMenuDivider class="hidden md:block" />
 
       <BaseMenuButton
         ref="firstMenuBtnRef"
