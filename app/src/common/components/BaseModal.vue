@@ -19,6 +19,12 @@ const props = withDefaults(
     loading?: boolean;
     requirement?: boolean;
     sheet?: boolean;
+    /**
+     * Opens the modal, in both its shapes, above a fullscreen overlay that
+     * already sits above the normal layers, such as the image viewer. See
+     * BaseSheet's own `elevated`.
+     */
+    elevated?: boolean;
   }>(),
   {
     danger: false,
@@ -26,6 +32,7 @@ const props = withDefaults(
     loading: false,
     requirement: true,
     sheet: false,
+    elevated: false,
   },
 );
 
@@ -51,6 +58,7 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
       <BaseModalCard
         v-if="open && (!isMobile || !sheet)"
         :labelledby="titleId"
+        :elevated="elevated"
         @cancel="handleCancel"
       >
         <!-- pr-12 reserves the close button's width plus gap -->
@@ -94,7 +102,12 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
     </Transition>
   </Teleport>
 
-  <BaseSheet v-if="sheet && isMobile" :open="open" @cancel="handleCancel">
+  <BaseSheet
+    v-if="sheet && isMobile"
+    :open="open"
+    :elevated="elevated"
+    @cancel="handleCancel"
+  >
     <div class="px-4 pb-4">
       <!-- Sticks below the drag handle. The fade reaches up under the handle,
            like the modal's fade covers its padding, and rounds its top

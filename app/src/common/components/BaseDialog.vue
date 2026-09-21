@@ -15,11 +15,17 @@ withDefaults(
     loading?: boolean;
     danger?: boolean;
     open: boolean;
+    /**
+     * Opens the dialog above a fullscreen overlay such as the image viewer;
+     * see BaseSheet's own `elevated`.
+     */
+    elevated?: boolean;
   }>(),
   {
     loading: false,
     danger: false,
     submitText: undefined,
+    elevated: false,
   },
 );
 </script>
@@ -28,6 +34,7 @@ withDefaults(
   <BaseModal
     :open="open"
     :sheet="true"
+    :elevated="elevated"
     :submit="() => $emit('confirm')"
     :loading="loading"
     :danger="danger"

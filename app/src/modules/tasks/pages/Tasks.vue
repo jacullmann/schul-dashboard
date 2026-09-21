@@ -233,21 +233,48 @@ function handleEmptyStateAnimationEnd(event: AnimationEvent) {
         </template>
 
         <template #action>
-          <BaseTooltip :content="t('common.sidebar.task')" placement="bottom">
-            <BaseButton
-              variant="action"
-              :aria-label="t('tasks.list.task_form.new_task')"
-              :icon="Plus"
-              icon-classes="size-6"
-              @click="openTaskForm()"
-            />
-          </BaseTooltip>
+          <BaseRow class="flex-nowrap!">
+            <!-- Below md the filter row under the tabs would cost a whole line
+                 for one button, so the button joins the header actions instead.
+                 There is no room for its label there, and a tooltip never opens
+                 on a touch device, so the active state has to read from the
+                 button itself: it stays filled while a filter is on. -->
+            <BaseTooltip
+              :content="t('tasks.list.filter')"
+              placement="bottom"
+              class="md:hidden"
+            >
+              <BaseButton
+                variant="ghost"
+                :class="
+                  hasActiveFilters ? 'bg-ghost-hover! text-on-ghost!' : ''
+                "
+                :aria-label="
+                  hasActiveFilters
+                    ? t('tasks.list.filter_active')
+                    : t('tasks.list.filter')
+                "
+                :icon="ListFilter"
+                @click="showFilterModal = true"
+              />
+            </BaseTooltip>
+
+            <BaseTooltip :content="t('common.sidebar.task')" placement="bottom">
+              <BaseButton
+                variant="action"
+                :aria-label="t('tasks.list.task_form.new_task')"
+                :icon="Plus"
+                icon-classes="size-6"
+                @click="openTaskForm()"
+              />
+            </BaseTooltip>
+          </BaseRow>
         </template>
       </PageHeader>
     </div>
 
-    <div class="flex max-md:flex-col gap-y-4 gap-x-2 md:justify-between">
-      <div class="animate-fade-up">
+    <div class="flex gap-x-2 md:justify-between">
+      <div class="animate-fade-up min-w-0">
         <BaseTabs
           :items="tabItems"
           :active-id="tab"
@@ -255,7 +282,7 @@ function handleEmptyStateAnimationEnd(event: AnimationEvent) {
         />
       </div>
 
-      <div class="animate-fade-up">
+      <div class="animate-fade-up max-md:hidden">
         <BaseRow>
           <BaseButton
             variant="ghost"

@@ -2,6 +2,7 @@
   "list": {
     "allsubjects": "All Subjects",
     "filter": "Filter",
+    "filter_active": "Filter (active)",
     "hide_checked": "Hide checked off",
     "archive": {
       "archive": "Archive",

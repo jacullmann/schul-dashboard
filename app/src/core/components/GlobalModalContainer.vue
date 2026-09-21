@@ -232,8 +232,11 @@ async function onAuthSuccess() {
     @cancel="modalStore.closeInviteModal()"
   />
 
+  <!-- The confirm is the only dialog the image viewer can raise while it is
+       up, so it has to be lifted over the viewer's own layer. -->
   <BaseDialog
     :open="confirmOpen"
+    :elevated="imageViewerOpen"
     :title="confirmOptions.title"
     :submit-text="confirmOptions.submitText ?? t('common.buttons.confirm')"
     :danger="confirmOptions.danger"

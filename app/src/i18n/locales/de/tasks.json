@@ -2,6 +2,7 @@
   "list": {
     "allsubjects": "Alle Fächer",
     "filter": "Filter",
+    "filter_active": "Filter (aktiv)",
     "hide_checked": "Erledigte ausblenden",
     "archive": {
       "archive": "Archiv",
