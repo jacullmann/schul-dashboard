@@ -240,8 +240,7 @@ defineExpose({ sheetEl, scrollEl });
     >
       <!-- No overflow clipping here: Chromium drops the masks of backdrop
            filters (BaseScrollFade) under a rounded overflow clip, leaving a
-           hard edge. The scroller clips its content; a sticky fade rounds its
-           own corners. -->
+           hard edge. The scroller rounds its own clip instead. -->
       <div
         v-if="open"
         ref="sheetEl"
@@ -273,9 +272,11 @@ defineExpose({ sheetEl, scrollEl });
           />
         </div>
 
+        <!-- Clips like BaseModalCard's scroller, see there; the clip path
+             rounds the top corners like the sheet's. -->
         <div
           ref="scrollEl"
-          class="min-h-0 pt-6 pb-4 overflow-x-hidden overflow-y-auto overscroll-contain"
+          class="min-h-0 pt-6 pb-4 overflow-x-hidden overflow-y-auto overscroll-contain bg-surface opacity-[.999] [clip-path:inset(0_round_var(--radius-2xl)_var(--radius-2xl)_0_0)]"
         >
           <slot></slot>
         </div>

@@ -363,17 +363,16 @@ defineExpose({ menuEl: desktopMenuEl, startClose });
       class="-mt-6 pt-6 overflow-y-auto overflow-x-hidden max-h-[70vh]"
       @scroll="handleScroll"
     >
-      <!-- Fade reaches up under the handle and rounds its top corners to
-           match the sheet's; see BaseModal's sheet header for the 1px
-           overshoot. Below the header it only covers the views' empty p-1
-           padding, so nothing is blurred until the content is scrolled.
-           Only rendered once scrolled, sparing the backdrop filters when
-           there is nothing underneath. -->
+      <!-- Fade reaches up under the handle to the scrollers' edges; the sheet
+           scroller's clip rounds its corners. Below the header it only covers
+           the views' empty p-1 padding, so nothing is blurred until the
+           content is scrolled. Only rendered once scrolled, sparing the
+           backdrop filters when there is nothing underneath. -->
       <div class="sticky top-0 z-10">
         <BaseScrollFade
           v-show="showTopFade"
           color="var(--color-surface)"
-          class="-inset-x-px -top-[25px] -bottom-1 rounded-t-[calc(var(--radius-2xl)+1px)_var(--radius-2xl)]"
+          class="inset-x-0 -top-6 -bottom-1"
         />
 
         <!-- Styled like the email heading of AccountMenu's sheet. -->

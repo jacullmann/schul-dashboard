@@ -109,18 +109,13 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
     @cancel="handleCancel"
   >
     <div class="px-4 pb-4">
-      <!-- Sticks below the drag handle. The fade reaches up under the handle,
-           like the modal's fade covers its padding, and rounds its top
-           corners to match the sheet's. It overshoots the scroller by 1px at
-           the sides and top (clipped by the scroller): the scroller's clip and
-           the fade's backdrop filter snap to device pixels differently, which
-           otherwise leaves a 1px seam where content shows through unblurred.
-           The fade's top then sits on the sheet's outer edge, so the corner
-           curve matches the sheet's with 1px more horizontal radius. -->
+      <!-- Sticks below the drag handle. The fade reaches up under the handle
+           to the scroller's edges, like the modal's fade covers its padding;
+           the scroller's clip rounds its corners. -->
       <BaseRow class="sticky top-0 z-10 mb-4">
         <BaseScrollFade
           color="var(--color-surface)"
-          class="-inset-x-[17px] -top-[25px] -bottom-4 rounded-t-[calc(var(--radius-2xl)+1px)_var(--radius-2xl)]"
+          class="-inset-x-4 -top-6 -bottom-4"
         />
 
         <h3 :id="titleId">

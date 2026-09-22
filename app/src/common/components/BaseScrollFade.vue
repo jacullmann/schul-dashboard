@@ -3,7 +3,14 @@
  * Backdrop for sticky headers inside scroll containers. Content scrolling
  * underneath fades into `color` and gets progressively more blurred towards
  * the top edge. Place it inside a positioned element that creates a stacking
- * context (e.g. `sticky z-10`) and size it with inset classes.
+ * context (e.g. `sticky z-10`) and size it with inset classes, so its top and
+ * sides sit on the scroll container's edges.
+ *
+ * The layers bleed a little past those three edges, leaving the scroll
+ * container's clip as the only edge. Its clip and the backdrop filters snap to
+ * device pixels differently, so flush edges leave seams at fractional
+ * positions where content shows through unblurred. That clip must also cut
+ * the content and the fade as one surface; see BaseModalCard's scroller.
  */
 withDefaults(
   defineProps<{
@@ -59,10 +66,14 @@ const layers = Array.from({ length: LAYER_COUNT }, (_, i) => {
 </template>
 
 <style scoped>
+.scroll-fade {
+  --scroll-fade-bleed: 2px;
+}
+
 .scroll-fade > * {
   position: absolute;
-  inset: 0;
-  border-radius: inherit;
+  inset: calc(-1 * var(--scroll-fade-bleed)) calc(-1 * var(--scroll-fade-bleed))
+    0;
 }
 
 .scroll-fade__blur {
@@ -80,7 +91,7 @@ const layers = Array.from({ length: LAYER_COUNT }, (_, i) => {
     color-mix(in oklab, var(--scroll-fade-color) 20%, transparent) 20%,
     color-mix(in oklab, var(--scroll-fade-color) 50%, transparent) 45%,
     color-mix(in oklab, var(--scroll-fade-color) 80%, transparent) 70%,
-    var(--scroll-fade-color) 100%
+    var(--scroll-fade-color) calc(100% - var(--scroll-fade-bleed))
   );
 }
 </style>
