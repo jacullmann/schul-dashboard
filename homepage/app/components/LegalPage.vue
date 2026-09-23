@@ -6,23 +6,14 @@ defineProps<{
 </script>
 
 <template>
-  <div class="w-full px-4 py-16 md:py-12 pb-24">
-    <div class="max-w-[720px] mx-auto">
-      <NuxtLink
-        :to="useLocalePath()('index')"
-        class="inline-flex items-center gap-1.5 text-sm text-on-ghost-muted no-underline hover:text-on-ghost transition-colors mb-10"
-      >
-        <span aria-hidden="true">←</span>
-        {{ $t('common.back_home') }}
-      </NuxtLink>
+  <div class="page page-grid gap-y-10 pt-intro pb-section">
+    <div class="col-span-12 flex flex-col gap-6 lg:col-span-9 lg:col-start-4">
+      <h1 class="font-serif text-headline">{{ title }}</h1>
+      <p v-if="description" class="max-w-prose text-lede text-on-ghost-muted">{{ description }}</p>
+    </div>
 
-      <h1 class="text-h1 font-bold font-display text-on-ghost mb-3">{{ title }}</h1>
-      <p v-if="description" class="text-on-ghost-muted leading-[1.65] mb-12">{{ description }}</p>
-
-      <div class="flex flex-col divide-y divide-ghost-border">
-        <slot />
-      </div>
+    <div class="col-span-12 mt-8 border-t border-on-ghost lg:col-span-9 lg:col-start-4">
+      <slot />
     </div>
   </div>
 </template>
-

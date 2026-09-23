@@ -1,26 +1,24 @@
 <script setup lang="ts">
-const { locales, locale } = useI18n();
+const { t, locales, locale } = useI18n();
 const switchLocalePath = useSwitchLocalePath();
-
-function setLocale(code: string) {
-  navigateTo(switchLocalePath(code));
-}
 </script>
 
 <template>
-  <div class="flex flex-col gap-2">
-    <p class="text-sm font-semibold text-on-ghost m-0">{{ $t('common.language') }}</p>
-    <BaseRow role="group" :aria-label="$t('common.language')">
-      <BaseButton
-        v-for="loc in locales"
-        :key="loc.code"
-        variant="ghost"
-        :aria-current="locale === loc.code ? 'true' : undefined"
-        :class="locale === loc.code ? 'bg-surface-hover! text-on-ghost!' : ''"
-        @click="setLocale(loc.code)"
-      >
-        {{ loc.name }}
-      </BaseButton>
-    </BaseRow>
-  </div>
+  <nav class="flex items-center gap-4" :aria-label="t('common.language')">
+    <NuxtLink
+      v-for="option in locales"
+      :key="option.code"
+      :to="switchLocalePath(option.code)"
+      :lang="option.language"
+      :aria-current="locale === option.code ? 'true' : undefined"
+      class="text-[0.8125rem] transition-colors"
+      :class="
+        locale === option.code
+          ? 'font-medium text-on-ghost'
+          : 'text-on-ghost-subtle hover:text-on-ghost'
+      "
+    >
+      {{ option.name }}
+    </NuxtLink>
+  </nav>
 </template>

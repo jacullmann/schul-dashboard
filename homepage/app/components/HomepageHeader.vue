@@ -3,111 +3,102 @@ import { Menu, X } from '@lucide/vue';
 
 const { t } = useI18n();
 const localePath = useLocalePath();
-const config = useRuntimeConfig();
-const mobileMenuOpen = ref(false);
+const route = useRoute();
+const appLinks = useAppLinks();
+const { y: scrollY } = useWindowScroll();
+
+const menuOpen = ref(false);
+const scrolled = computed(() => scrollY.value > 8);
 
 const navLinks = [
   { labelKey: 'nav.features', route: 'features' },
-  { labelKey: 'nav.product', route: 'product' },
   { labelKey: 'nav.about', route: 'about' },
   { labelKey: 'nav.contact', route: 'contact' },
-];
+] as const;
 
-function closeMobileMenu() {
-  mobileMenuOpen.value = false;
-}
+watch(
+  () => route.fullPath,
+  () => (menuOpen.value = false),
+);
+
+useHead({ bodyAttrs: { class: computed(() => (menuOpen.value ? 'overflow-hidden' : '')) } });
 </script>
 
 <template>
-  <header class="sticky top-0 z-50 w-full bg-canvas">
-    <nav
-      class="max-w-[1300px] w-full mx-auto px-4 lg:px-6 h-14 flex items-center justify-between"
-      aria-label="Main navigation"
-    >
-      <div class="flex items-center gap-8">
-        <NuxtLink
-          :to="localePath('index')"
-          class="inline-flex items-center gap-2.5 font-bold text-on-ghost font-display no-underline hover:opacity-80 transition-opacity flex-shrink-0"
-          aria-label="schul-dashboard home"
-        >
-          <img src="/favicon.svg" alt="" class="w-7 h-7" />
-          <span class="hidden sm:inline text-sm">schul-dashboard</span>
-        </NuxtLink>
+  <header
+    class="sticky top-0 z-(--z-header) bg-canvas transition-[box-shadow] duration-300"
+    :class="scrolled || menuOpen ? 'shadow-[0_1px_0_var(--color-ghost-border)]' : ''"
+  >
+    <nav class="page flex h-header items-center gap-10" :aria-label="t('nav.label')">
+      <NuxtLink
+        :to="localePath('index')"
+        class="-ml-1 flex items-center gap-2.5 rounded-md px-1 py-1"
+        :aria-label="t('nav.home')"
+      >
+        <img src="/favicon.svg" alt="" class="size-6" width="24" height="24" />
+        <span class="text-[0.9375rem] font-semibold tracking-[-0.01em]">schul-dashboard</span>
+      </NuxtLink>
 
-        <div class="hidden lg:flex items-center gap-6">
-          <BaseLink v-for="link in navLinks" :key="link.route" :to="localePath(link.route)">
+      <ul class="hidden items-center gap-7 md:flex">
+        <li v-for="link in navLinks" :key="link.route">
+          <NuxtLink
+            :to="localePath(link.route)"
+            class="text-sm text-on-ghost-muted transition-colors hover:text-on-ghost"
+            active-class="text-on-ghost!"
+          >
             {{ t(link.labelKey) }}
-          </BaseLink>
-        </div>
-      </div>
+          </NuxtLink>
+        </li>
+      </ul>
 
-      <BaseRow class="hidden lg:flex">
-        <BaseButton
-          variant="ghost"
-          :href="config.public.loginUrl || 'https://app.schul-dashboard.com'"
-          target="_self"
-        >
-          {{ t('common.login') }}
-        </BaseButton>
-        <BaseButton
-          variant="action"
-          :href="config.public.appUrl || 'https://app.schul-dashboard.com'"
-          target="_self"
-        >
+      <div class="ml-auto hidden items-center gap-1 md:flex">
+        <BaseButton :href="appLinks.login" target="_self">{{ t('common.login') }}</BaseButton>
+        <BaseButton :href="appLinks.register" target="_self" variant="action">
           {{ t('common.getStarted') }}
         </BaseButton>
-      </BaseRow>
+      </div>
 
       <BaseButton
-        variant="ghost"
-        class="lg:hidden"
-        :aria-expanded="mobileMenuOpen"
-        :icon="mobileMenuOpen ? X : Menu"
-        @click="mobileMenuOpen = !mobileMenuOpen"
-      >
-      </BaseButton>
+        class="-mr-2 ml-auto md:hidden"
+        :icon="menuOpen ? X : Menu"
+        :aria-label="t(menuOpen ? 'nav.close_menu' : 'nav.open_menu')"
+        :aria-expanded="menuOpen"
+        aria-controls="mobile-nav"
+        @click="menuOpen = !menuOpen"
+      />
     </nav>
 
-    <Transition name="slide-down">
-      <div v-if="mobileMenuOpen" class="lg:hidden border-t border-ghost-border bg-canvas">
-        <div class="max-w-[1300px] w-full mx-auto px-4 py-3 flex flex-col gap-1">
-          <BaseLink
-            v-for="link in navLinks"
-            :key="link.route"
-            :to="localePath(link.route)"
-            @click="closeMobileMenu"
-          >
-            {{ t(link.labelKey) }}
-          </BaseLink>
-          <div class="border-t border-ghost-border my-2" />
-          <BaseButton
-            :href="config.public.loginUrl || 'https://app.schul-dashboard.com'"
-            variant="ghost"
-            class="w-full"
-          >
-            {{ t('common.login') }}
-          </BaseButton>
-          <BaseButton
-            :href="config.public.appUrl || 'https://app.schul-dashboard.com'"
-            variant="action"
-            class="w-full"
-          >
+    <Transition
+      enter-from-class="opacity-0"
+      leave-to-class="opacity-0"
+      enter-active-class="transition-opacity duration-200"
+      leave-active-class="transition-opacity duration-150"
+    >
+      <div
+        v-if="menuOpen"
+        id="mobile-nav"
+        class="fixed inset-x-0 top-header bottom-0 z-(--z-mobile-nav) flex flex-col bg-canvas md:hidden"
+      >
+        <ul class="page flex flex-col pt-6">
+          <li v-for="link in navLinks" :key="link.route" class="border-b border-ghost-border">
+            <NuxtLink
+              :to="localePath(link.route)"
+              class="block py-4 font-serif text-title"
+              @click="menuOpen = false"
+            >
+              {{ t(link.labelKey) }}
+            </NuxtLink>
+          </li>
+        </ul>
+        <div class="page mt-auto flex flex-col gap-2 pb-8">
+          <BaseButton :href="appLinks.register" target="_self" variant="action" size="lg">
             {{ t('common.getStarted') }}
+          </BaseButton>
+          <BaseButton :href="appLinks.login" target="_self" size="lg">
+            {{ t('common.login') }}
           </BaseButton>
         </div>
       </div>
     </Transition>
   </header>
 </template>
-
-<style scoped>
-.slide-down-enter-active,
-.slide-down-leave-active {
-  transition: all 200ms ease;
-}
-.slide-down-enter-from,
-.slide-down-leave-to {
-  opacity: 0;
-  transform: translateY(-8px);
-}
-</style>

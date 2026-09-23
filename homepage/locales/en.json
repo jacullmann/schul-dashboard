@@ -3,178 +3,340 @@
     "theme": "Theme",
     "language": "Language",
     "login": "Log in",
-    "signup": "Sign up",
-    "getStarted": "Get Started",
-    "learnMore": "Learn More",
+    "getStarted": "Get started",
     "light": "Light",
     "dark": "Dark",
     "system": "System",
     "back_home": "Back to home"
   },
   "nav": {
+    "label": "Main",
+    "home": "schul-dashboard home",
     "features": "Features",
-    "product": "Product",
     "about": "About",
-    "contact": "Contact"
+    "contact": "Contact",
+    "open_menu": "Open menu",
+    "close_menu": "Close menu"
   },
   "pages": {
     "home": {
-      "title": "schul-dashboard — Free School Management for Students",
-      "description": "The collaborative school management system by students for students. Tasks, timetable, groups, and more – all in one place."
+      "title": "schul-dashboard — the school week, in one place",
+      "description": "Homework, timetable changes and announcements for your whole class, kept up to date together. Free, without ads, made by students."
     },
     "features": {
-      "title": "Everything You Need to Stay on Top",
-      "description": "Six core features designed around how students actually work — from daily tasks to group collaboration and everything in between.",
-      "tasks": {
-        "title": "Task & Homework Management",
-        "description": "Create and track homework, tasks, and exams with due dates, attachments, and status indicators. Pin important items, archive old ones, and check off completed work — so nothing slips through the cracks."
-      },
-      "schedule": {
-        "title": "Live Class Schedule",
-        "description": "View your class schedule with real-time updates. Personalise your timetable by selecting only the courses you actually take, and always know what's coming up next."
-      },
-      "groups": {
-        "title": "Class & Study Groups",
-        "description": "Every class or study group gets its own shared space. Join with a group name and password, or create your own. Switch between multiple groups instantly and keep everything organised."
-      },
-      "private": {
-        "title": "Private Notes & Todos",
-        "description": "Keep personal notes and todos encrypted and visible only to you. Track your own progress and reorder tasks with drag-and-drop — your private space, no one else's."
-      },
-      "security": {
-        "title": "Built-In Security",
-        "description": "Email verification, optional two-factor authentication, AES-256-GCM encrypted personal data, and CSRF protection — security is built in from the ground up, not added as an afterthought."
-      },
-      "search": {
-        "title": "Instant Search & Shortcuts",
-        "description": "A powerful command palette with keyboard shortcuts lets you reach anything in seconds. Stop clicking through menus — just search and jump straight to what you need."
-      }
-    },
-    "product": {
-      "badge": "The Product",
-      "title": "School Management That Works for You",
-      "description": "schul-dashboard is built around one belief: every student deserves great tools, for free, without compromise. No subscriptions. No ads. No paywalls.",
-      "cta": "Start for Free",
-      "included_title": "Everything Included. Always Free.",
-      "included_description": "No tiers, no feature locks. Every user gets the full product from day one.",
-      "feature0": "Task and homework tracking with due dates and status",
-      "feature1": "Live class schedule with personalised course selection",
-      "feature2": "Shared spaces for classes and study groups",
-      "feature3": "Encrypted private notes and personal todos",
-      "feature4": "Admin tools for group moderation and announcements",
-      "feature5": "Command palette with keyboard shortcuts",
-      "feature6": "Two-factor authentication and AES-256-GCM encryption",
-      "feature7": "Works on any device — no install required",
-      "price_label": "Pricing",
-      "price": "Free",
-      "price_description": "schul-dashboard is and will always be completely free. We believe access to good tools shouldn't depend on your budget."
+      "title": "Features",
+      "description": "Tasks, timetable, announcements, chat, groups and a private space — everything schul-dashboard does, in detail."
     },
     "about": {
-      "title": "About schul-dashboard",
-      "description": "We're a group of students who built the tool we wished we had. Here's why.",
-      "mission_title": "Our Mission",
-      "mission_text": "We believe every student deserves access to a simple, free, and privacy-respecting school management system. Most tools are either too complex, filled with ads, or locked behind paywalls. We built schul-dashboard to change that — an open, honest platform developed by students, for students.",
-      "values_title": "What We Stand For",
-      "value_free_title": "Free Forever",
-      "value_free_text": "No subscriptions, no premium tiers, no hidden costs. The full product is free, and that will never change.",
-      "value_privacy_title": "Privacy First",
-      "value_privacy_text": "Personal data is encrypted. We don't sell data, we don't run ads, and we don't track you beyond what's necessary to run the service.",
-      "value_open_title": "Built by Students",
-      "value_open_text": "We're students ourselves. We build what we actually need, and we keep it honest and focused — no bloat, no corporate speak.",
-      "value_simple_title": "Simple by Design",
-      "value_simple_text": "Every feature is there because it solves a real problem. We cut everything that doesn't help you focus on school.",
-      "team_title": "The Team",
-      "team_text": "We're a small, motivated group of students who care about building things properly. We work on schul-dashboard because we believe in it — not for profit, but because it makes school life a little easier for everyone."
+      "title": "About",
+      "description": "schul-dashboard is built by students in Berlin. Why we started, and what we won't compromise on."
     },
     "contact": {
-      "title": "Get in Touch",
-      "description": "Have a question, found a bug, or want to share feedback? We'd love to hear from you.",
-      "email_title": "Email",
-      "email_description": "Send us a message and we'll get back to you as soon as we can.",
-      "discord_title": "Discord",
-      "discord_description": "Join the community, ask questions, and connect with other users."
+      "title": "Contact",
+      "description": "Questions, bugs, ideas — write to us."
+    },
+    "not_found": {
+      "title": "Page not found"
     }
   },
-  "sections": {
-    "hero": {
-      "badge": "Now Available",
-      "title": "School Management Made Simple",
-      "description": "All your tasks, timetable, and study groups in one place. Free, ad-free, and built by students who actually use it.",
-      "cta_primary": "Get Started — It's Free",
-      "cta_secondary": "See How It Works",
-      "social_proof": "Free forever. No account required to explore."
+  "home": {
+    "days": {
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri"
     },
-    "features": {
-      "badge": "Features",
-      "title": "The Tools You Actually Need",
-      "subtitle": "Built around how students work — not how administrators want them to work.",
-      "tasks": {
-        "title": "Tasks & Homework",
-        "description": "Track assignments, exams, and todos with due dates, priorities, and statuses. Pin what matters, archive what's done."
+    "subjects": {
+      "maths": "Maths",
+      "german": "German",
+      "physics": "Physics",
+      "history": "History",
+      "chemistry": "Chemistry",
+      "english": "English",
+      "sport": "PE",
+      "biology": "Biology",
+      "computing": "Computer Science",
+      "art": "Art",
+      "politics": "Politics",
+      "music": "Music"
+    },
+    "hero": {
+      "title": "The school week, {emphasis}",
+      "title_emphasis": "in one place.",
+      "lede": "Homework, timetable changes and announcements for your whole class — kept up to date together, visible to everyone the moment they change.",
+      "timetable_label": "Example timetable for class 10b: a cancelled German lesson on Monday, a room change on Tuesday, a substitute on Wednesday and an exam on Thursday.",
+      "caption": "Class 10b, week 39. Cancellations, room changes and substitutes show up in everyone's timetable as soon as they're entered.",
+      "break": "{minutes} min",
+      "cancelled": "Cancelled",
+      "substitute": "Substitute: Mr Weber",
+      "exam": "Exam"
+    },
+    "tasks": {
+      "label": "Tasks",
+      "title": "Homework gets written down once. {emphasis} has it.",
+      "title_emphasis": "Everyone",
+      "body": "Placeholder: anyone your class trusts can add homework, Dalton assignments and exams — with a due date, notes and photos of the worksheet. Everyone ticks tasks off for themselves.",
+      "filter_label": "Filter tasks",
+      "due": "due {day}",
+      "added_by": "added by {name}",
+      "kinds": {
+        "all": "All",
+        "homework": "Homework",
+        "dalton": "Dalton",
+        "exam": "Exam"
       },
-      "schedule": {
-        "title": "Class Schedule",
-        "description": "Your personalised timetable with live updates. See only the courses you take, always up to date."
-      },
-      "groups": {
-        "title": "Groups",
-        "description": "Shared spaces for your class or study group. Join, create, and switch between groups instantly."
-      },
-      "private": {
-        "title": "Private Notes",
-        "description": "Encrypted personal notes visible only to you. Drag-and-drop sorting and progress tracking included."
-      },
-      "security": {
-        "title": "Security",
-        "description": "2FA, AES-256 encryption, email verification, and CSRF protection — built in from day one."
-      },
-      "search": {
-        "title": "Quick Search",
-        "description": "A command palette with keyboard shortcuts to reach anything in seconds."
+      "lab_report": "Lab report",
+      "vocabulary": "Vocabulary, unit 4",
+      "essay": "Essay draft",
+      "items": {
+        "titration": {
+          "title": "Lab report: acid–base titration"
+        },
+        "mechanics": {
+          "title": "Mechanics and Newton's laws",
+          "note": "Formula sheet pages 40–52 allowed."
+        },
+        "vocabulary": {
+          "title": "Vocabulary, unit 4"
+        },
+        "essay": {
+          "title": "Essay: digital tools in schools"
+        }
       }
     },
-    "product": {
-      "badge": "Product",
-      "title": "Powerful Tools. Zero Cost.",
-      "description": "schul-dashboard gives you everything you need to stay organised at school — without subscriptions, ads, or paywalls. Built by students, for students.",
-      "cta": "Try It Now — Free",
-      "highlight0": "Completely free — no subscription, no trial period",
-      "highlight1": "No ads, ever",
-      "highlight2": "Encrypted private data",
-      "highlight3": "Works on every device, no install needed",
-      "highlight4": "Built and maintained by students",
-      "price": "€0",
-      "price_subtitle": "per month, forever",
-      "stat_free": "Open Access",
-      "stat_ads": "Ads",
-      "stat_groups": "Groups",
-      "stat_encrypted": "Encrypted"
+    "changes": {
+      "label": "Timetable",
+      "title": "Cancelled, moved, covered — {emphasis}",
+      "title_emphasis": "you'll know before first period.",
+      "body": "Placeholder: your personal timetable shows only the courses you actually take. Substitutions, room changes and cancellations are marked right where they happen.",
+      "items": {
+        "room": "Room Info1 instead of Bio1",
+        "substitute": "Mr Weber covers for Ms Adler",
+        "cancelled": "Cancelled"
+      },
+      "announcement": "Because of the heat, lessons on Friday end after period 4.",
+      "announcement_caption": "Announcements sit at the top of everyone's dashboard until they expire."
     },
-    "cta": {
-      "title": "Ready to Get Organised?",
-      "description": "Join students already using schul-dashboard to take control of their school life.",
-      "primary_cta": "Start for Free",
-      "secondary_cta": "Contact Us"
+    "groups": {
+      "label": "Groups",
+      "title": "One person keeps it up to date; the whole class has it.",
+      "one": "person enters the homework.",
+      "thirty": "classmates have it on their phone.",
+      "details": {
+        "roles": {
+          "title": "Roles and permissions",
+          "body": "Placeholder: admins decide who may add tasks, edit the timetable or post announcements."
+        },
+        "invites": {
+          "title": "Invite links",
+          "body": "Placeholder: share one link and the whole class is in. No codes to copy."
+        },
+        "many": {
+          "title": "More than one group",
+          "body": "Placeholder: your class, your advanced courses, your club — switch between them in one click."
+        }
+      }
+    },
+    "extras": {
+      "label": "Also included",
+      "title": "And the things you'd miss if they weren't there.",
+      "items": {
+        "chat": {
+          "title": "Group chat",
+          "body": "Placeholder: talk to your class without a separate messenger. Replies, images, and nobody's private number."
+        },
+        "private": {
+          "title": "Private notes",
+          "body": "Placeholder: your own todos, encrypted and visible only to you."
+        },
+        "search": {
+          "title": "Search everything",
+          "body": "Placeholder: a command palette that jumps to any task, subject or setting in a keystroke."
+        },
+        "devices": {
+          "title": "On every device",
+          "body": "Placeholder: works in any browser, on phones, tablets and laptops. Nothing to install."
+        }
+      }
+    },
+    "principles": {
+      "label": "Why",
+      "lead": "schul-dashboard is made by students in Berlin, because the tools our schools gave us weren't good enough.",
+      "rest": "It's free, it shows no ads, and it doesn't sell anyone's data. That isn't a launch offer — it's the point.",
+      "link": "About the project"
     }
   },
+  "cta": {
+    "title": "Set up your class {emphasis}",
+    "title_emphasis": "this afternoon.",
+    "button": "Get started — it's free",
+    "question": "Questions first? Write to {email}"
+  },
+  "features": {
+    "title": "Everything {name} {emphasis}",
+    "title_emphasis": "does.",
+    "lede": "Placeholder: a complete tour of the app. Each part is short on purpose — the app is meant to be understood without a manual.",
+    "index_label": "On this page",
+    "chapters": {
+      "tasks": {
+        "title": "Tasks",
+        "body": "Placeholder: explains how homework, Dalton assignments and exams are collected in one list for the whole group.",
+        "items": [
+          "Homework, Dalton and exams, filterable",
+          "Due dates, notes and image attachments",
+          "Tick off for yourself, without affecting others",
+          "Pin what matters, archive what's done"
+        ]
+      },
+      "timetable": {
+        "title": "Timetable",
+        "body": "Placeholder: explains the live timetable, personal course selection and how changes are shown.",
+        "items": [
+          "Week view on desktop, one day at a time on phones",
+          "Only the courses you take",
+          "Cancellations, substitutes and room changes",
+          "The next lesson, right on your dashboard"
+        ]
+      },
+      "announcements": {
+        "title": "Announcements",
+        "body": "Placeholder: explains how admins publish announcements that appear at the top of everyone's dashboard.",
+        "items": [
+          "Shown to every member at once",
+          "Expire automatically",
+          "Several announcements rotate"
+        ]
+      },
+      "chat": {
+        "title": "Group chat",
+        "body": "Placeholder: explains the built-in group chat and why it replaces the class messenger group.",
+        "items": [
+          "Replies and quotes",
+          "Images",
+          "Report and delete messages"
+        ]
+      },
+      "groups": {
+        "title": "Groups and roles",
+        "body": "Placeholder: explains groups for classes, courses and clubs, and how admins manage them.",
+        "items": [
+          "Invite links",
+          "Roles with fine-grained permissions",
+          "Subjects and timetable editor",
+          "Remove and ban members"
+        ]
+      },
+      "private": {
+        "title": "Private space",
+        "body": "Placeholder: explains private todos and notes that only the owner can see.",
+        "items": [
+          "Encrypted with AES-256-GCM",
+          "Drag to reorder",
+          "Track your own progress"
+        ]
+      },
+      "search": {
+        "title": "Search and shortcuts",
+        "body": "Placeholder: explains the command palette and keyboard shortcuts.",
+        "items": [
+          "Open with Ctrl K",
+          "Tasks, subjects, settings and pages",
+          "Keyboard shortcuts for common actions"
+        ]
+      },
+      "account": {
+        "title": "Account and security",
+        "body": "Placeholder: explains how accounts are protected.",
+        "items": [
+          "Email verification",
+          "Two-factor authentication",
+          "Sign in with Google",
+          "See and end active sessions",
+          "Delete your account at any time"
+        ]
+      }
+    }
+  },
+  "about": {
+    "title": "Made by students {emphasis}",
+    "title_emphasis": "who needed it.",
+    "lede": "Placeholder: one or two sentences on who is behind schul-dashboard and where it comes from.",
+    "story": {
+      "label": "Story",
+      "lead": "Placeholder: the moment the project started — a homework list lost in a group chat, a cancelled lesson nobody heard about.",
+      "body": "Placeholder: a longer paragraph about how the first version was built for one class, how other classes asked for it, and how it grew from there."
+    },
+    "principles": {
+      "label": "Principles",
+      "items": {
+        "free": {
+          "title": "Free, without ads",
+          "body": "Placeholder: no subscriptions, no premium tier, no advertising. The whole product, for everyone."
+        },
+        "private": {
+          "title": "Private by default",
+          "body": "Placeholder: personal data is encrypted, nothing is sold, nothing is tracked beyond what the service needs."
+        },
+        "students": {
+          "title": "By students",
+          "body": "Placeholder: we use schul-dashboard every day ourselves, so we build what we actually need."
+        },
+        "simple": {
+          "title": "Only what helps",
+          "body": "Placeholder: every feature has to solve a real problem at school. Everything else gets cut."
+        }
+      }
+    },
+    "team": {
+      "label": "Team",
+      "body": "Placeholder: a short note about the small team of students behind the project, where they go to school and how to join.",
+      "place": "Berlin, Germany"
+    }
+  },
+  "contact": {
+    "title": "Write {emphasis}",
+    "title_emphasis": "to us.",
+    "lede": "Placeholder: questions, bugs, ideas for new features — we read everything and reply as soon as we can.",
+    "email_label": "Email",
+    "channels": {
+      "discord": {
+        "title": "Discord",
+        "body": "Placeholder: talk to other users and to us directly.",
+        "link": "Join the server"
+      },
+      "status": {
+        "title": "System status",
+        "body": "Placeholder: check whether something is down before writing.",
+        "link": "View status"
+      },
+      "bugs": {
+        "title": "Found a bug?",
+        "body": "Placeholder: tell us what you did, what you expected and what happened instead."
+      }
+    }
+  },
+  "not_found": {
+    "label": "404",
+    "title": "Free period.",
+    "body": "This page doesn't exist — or it was cancelled.",
+    "link": "Back to the homepage"
+  },
+  "cookie": {
+    "text": "We only use cookies the site needs to work — no tracking.",
+    "link": "Privacy policy",
+    "dismiss": "Okay"
+  },
   "footer": {
-    "tagline": "By students, for students. Free school management.",
-    "navigation": {
-      "title": "Navigation",
-      "home": "Home",
-      "features": "Features",
-      "product": "Product",
-      "about": "About",
-      "contact": "Contact"
-    },
-    "legal": {
-      "title": "Legal",
-      "imprint": "Imprint",
-      "privacy": "Privacy Policy",
-      "terms": "Terms of Service"
-    },
-    "rights": "All rights reserved.",
-    "status": "System Status"
+    "tagline": "The school week, in one place. Free and without ads, made by students.",
+    "product": "Product",
+    "project": "Project",
+    "legal": "Legal",
+    "imprint": "Imprint",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "status": "Status",
+    "made_in": "Made in Berlin"
   },
   "legal": {
     "imprint": {

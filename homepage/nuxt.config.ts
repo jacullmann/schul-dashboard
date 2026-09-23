@@ -64,10 +64,6 @@ export default defineNuxtConfig({
         en: '/features',
         de: '/funktionen'
       },
-      product: {
-        en: '/product',
-        de: '/produkt'
-      },
       about: {
         en: '/about',
         de: '/uber-uns'
@@ -120,7 +116,8 @@ export default defineNuxtConfig({
         { name: 'twitter:title', content: 'schul-dashboard – Free School Management' },
         { name: 'twitter:description', content: 'The free school management system by students for students.' },
         { name: 'twitter:image', content: 'https://schul-dashboard.com/og-image.png' },
-        { name: 'theme-color', content: '#0f0f0f' },
+        { name: 'theme-color', content: '#faf9f5', media: '(prefers-color-scheme: light)' },
+        { name: 'theme-color', content: '#121110', media: '(prefers-color-scheme: dark)' },
         { name: 'apple-mobile-web-app-capable', content: 'yes' },
         { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
         { name: 'google-site-verification', content: 'EWIYTbU2hlYorTqIulVfAyKjArTsWmgQ9O9g0Tb0L8c' },
@@ -129,12 +126,6 @@ export default defineNuxtConfig({
         { rel: 'canonical', href: 'https://schul-dashboard.com' },
         { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
         { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
-        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
-        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
-        {
-          rel: 'stylesheet',
-          href: 'https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap',
-        },
       ],
       script: [
         {
@@ -191,14 +182,12 @@ export default defineNuxtConfig({
     urls: [
       { loc: 'https://schul-dashboard.com', priority: 1.0, changefreq: 'weekly' },
       { loc: 'https://schul-dashboard.com/features', priority: 0.9, changefreq: 'monthly' },
-      { loc: 'https://schul-dashboard.com/product', priority: 0.9, changefreq: 'monthly' },
       { loc: 'https://schul-dashboard.com/about', priority: 0.8, changefreq: 'monthly' },
       { loc: 'https://schul-dashboard.com/contact', priority: 0.7, changefreq: 'monthly' },
       { loc: 'https://schul-dashboard.com/legal/imprint', priority: 0.3, changefreq: 'yearly' },
       { loc: 'https://schul-dashboard.com/legal/privacy-policy', priority: 0.3, changefreq: 'yearly' },
       { loc: 'https://schul-dashboard.com/legal/terms', priority: 0.3, changefreq: 'yearly' },
       { loc: 'https://schul-dashboard.com/de/funktionen', priority: 0.9, changefreq: 'monthly' },
-      { loc: 'https://schul-dashboard.com/de/produkt', priority: 0.9, changefreq: 'monthly' },
       { loc: 'https://schul-dashboard.com/de/uber-uns', priority: 0.8, changefreq: 'monthly' },
       { loc: 'https://schul-dashboard.com/de/kontakt', priority: 0.7, changefreq: 'monthly' },
       { loc: 'https://schul-dashboard.com/de/legal/impressum', priority: 0.3, changefreq: 'yearly' },
@@ -206,6 +195,11 @@ export default defineNuxtConfig({
       { loc: 'https://schul-dashboard.com/de/legal/nutzungsbedingungen', priority: 0.3, changefreq: 'yearly' },
     ],
     sitemaps: true,
+  },
+
+  routeRules: {
+    '/product': { redirect: { to: '/features', statusCode: 301 } },
+    '/de/produkt': { redirect: { to: '/de/funktionen', statusCode: 301 } },
   },
 
   runtimeConfig: {

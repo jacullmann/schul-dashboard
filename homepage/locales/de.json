@@ -3,178 +3,340 @@
     "theme": "Design",
     "language": "Sprache",
     "login": "Anmelden",
-    "signup": "Registrieren",
     "getStarted": "Loslegen",
-    "learnMore": "Mehr erfahren",
     "light": "Hell",
     "dark": "Dunkel",
     "system": "System",
     "back_home": "Zurück zur Startseite"
   },
   "nav": {
+    "label": "Hauptnavigation",
+    "home": "schul-dashboard Startseite",
     "features": "Funktionen",
-    "product": "Produkt",
     "about": "Über uns",
-    "contact": "Kontakt"
+    "contact": "Kontakt",
+    "open_menu": "Menü öffnen",
+    "close_menu": "Menü schließen"
   },
   "pages": {
     "home": {
-      "title": "schul-dashboard — Kostenlose Schulverwaltung für Schüler",
-      "description": "Das kollaborative Schulverwaltungssystem von Schülern für Schüler. Aufgaben, Stundenplan, Gruppen und mehr – alles an einem Ort."
+      "title": "schul-dashboard — die Schulwoche an einem Ort",
+      "description": "Hausaufgaben, Vertretungen und Ankündigungen für die ganze Klasse, gemeinsam aktuell gehalten. Kostenlos, ohne Werbung, von Schülern gemacht."
     },
     "features": {
-      "title": "Alles, was du brauchst",
-      "description": "Sechs Kernfunktionen, die genau auf die Arbeitsweise von Schülern abgestimmt sind – von täglichen Aufgaben bis hin zur Gruppenarbeit.",
-      "tasks": {
-        "title": "Aufgaben & Hausaufgaben",
-        "description": "Erstelle und verfolge Hausaufgaben, Aufgaben und Prüfungen mit Fälligkeitsdaten, Anhängen und Statusanzeigen. Pinne wichtige Einträge, archiviere erledigte Aufgaben – damit nichts verloren geht."
-      },
-      "schedule": {
-        "title": "Live-Stundenplan",
-        "description": "Sieh deinen Stundenplan mit Echtzeit-Aktualisierungen. Wähle nur die Fächer aus, die du belegst, und behalte immer den Überblick über deine nächsten Stunden."
-      },
-      "groups": {
-        "title": "Klassen- & Lerngruppen",
-        "description": "Jede Klasse oder Lerngruppe bekommt ihren eigenen gemeinsamen Bereich. Tritt mit Name und Passwort bei, erstelle eigene Gruppen und wechsle nahtlos zwischen mehreren Gruppen."
-      },
-      "private": {
-        "title": "Private Notizen & Todos",
-        "description": "Persönliche Notizen und Todos, die nur für dich sichtbar sind – verschlüsselt und privat. Sortiere per Drag-and-drop und verfolge deinen eigenen Fortschritt."
-      },
-      "security": {
-        "title": "Eingebaute Sicherheit",
-        "description": "E-Mail-Verifizierung, optionale Zwei-Faktor-Authentifizierung, AES-256-GCM-verschlüsselte Daten und CSRF-Schutz – Sicherheit ist von Anfang an integriert."
-      },
-      "search": {
-        "title": "Schnellsuche & Shortcuts",
-        "description": "Eine leistungsstarke Befehlspalette mit Tastaturkürzeln, mit der du in Sekunden alles erreichst. Einfach suchen und direkt springen."
-      }
-    },
-    "product": {
-      "badge": "Das Produkt",
-      "title": "Schulverwaltung, die für dich arbeitet",
-      "description": "schul-dashboard ist mit einer Überzeugung gebaut: Jeder Schüler verdient großartige Werkzeuge – kostenlos und ohne Kompromisse. Keine Abos. Keine Werbung. Keine Bezahlschranken.",
-      "cta": "Kostenlos starten",
-      "included_title": "Alles inklusive. Immer kostenlos.",
-      "included_description": "Keine Tarife, keine gesperrten Funktionen. Jeder Nutzer bekommt das vollständige Produkt vom ersten Tag an.",
-      "feature0": "Aufgaben- und Hausaufgabenverwaltung mit Fälligkeitsdaten und Status",
-      "feature1": "Live-Stundenplan mit persönlicher Kursauswahl",
-      "feature2": "Gemeinsame Bereiche für Klassen und Lerngruppen",
-      "feature3": "Verschlüsselte private Notizen und persönliche Todos",
-      "feature4": "Admin-Tools für Gruppenmoderation und Ankündigungen",
-      "feature5": "Befehlspalette mit Tastaturkürzeln",
-      "feature6": "Zwei-Faktor-Authentifizierung und AES-256-GCM-Verschlüsselung",
-      "feature7": "Funktioniert auf jedem Gerät – keine Installation erforderlich",
-      "price_label": "Preis",
-      "price": "Kostenlos",
-      "price_description": "schul-dashboard ist und bleibt vollständig kostenlos. Wir glauben, dass der Zugang zu guten Werkzeugen nicht vom Budget abhängen sollte."
+      "title": "Funktionen",
+      "description": "Aufgaben, Stundenplan, Ankündigungen, Chat, Gruppen und ein privater Bereich — alles, was schul-dashboard kann, im Detail."
     },
     "about": {
-      "title": "Über schul-dashboard",
-      "description": "Wir sind eine Gruppe von Schülern, die das Tool gebaut haben, das wir uns gewünscht haben.",
-      "mission_title": "Unsere Mission",
-      "mission_text": "Wir glauben, dass jeder Schüler Zugang zu einem einfachen, kostenlosen und datenschutzfreundlichen Schulverwaltungssystem haben sollte. Die meisten Tools sind entweder zu komplex, voller Werbung oder hinter Bezahlschranken versteckt. Wir haben schul-dashboard entwickelt, um das zu ändern – eine offene, ehrliche Plattform, von Schülern für Schüler.",
-      "values_title": "Wofür wir stehen",
-      "value_free_title": "Kostenlos für immer",
-      "value_free_text": "Keine Abos, keine Premium-Tarife, keine versteckten Kosten. Das vollständige Produkt ist kostenlos – und das wird sich nie ändern.",
-      "value_privacy_title": "Privatsphäre zuerst",
-      "value_privacy_text": "Persönliche Daten sind verschlüsselt. Wir verkaufen keine Daten, schalten keine Werbung und tracken dich nicht über das Notwendige hinaus.",
-      "value_open_title": "Von Schülern gebaut",
-      "value_open_text": "Wir sind selbst Schüler. Wir bauen, was wir wirklich brauchen – ehrlich und fokussiert, ohne aufgeblähte Features.",
-      "value_simple_title": "Einfach by Design",
-      "value_simple_text": "Jede Funktion ist da, weil sie ein echtes Problem löst. Alles, was nicht beim Lernen hilft, haben wir weggelassen.",
-      "team_title": "Das Team",
-      "team_text": "Wir sind eine kleine, engagierte Gruppe von Schülern, denen es wichtig ist, Dinge richtig zu machen. Wir arbeiten an schul-dashboard, weil wir daran glauben – nicht für Profit, sondern weil es den Schulalltag für alle etwas leichter macht."
+      "title": "Über uns",
+      "description": "schul-dashboard wird von Schülern in Berlin entwickelt. Warum wir angefangen haben und worauf wir nicht verzichten."
     },
     "contact": {
-      "title": "Kontakt aufnehmen",
-      "description": "Hast du eine Frage, einen Bug entdeckt oder möchtest Feedback geben? Wir freuen uns von dir zu hören.",
-      "email_title": "E-Mail",
-      "email_description": "Schreib uns eine Nachricht – wir melden uns so schnell wie möglich.",
-      "discord_title": "Discord",
-      "discord_description": "Tritt der Community bei, stelle Fragen und tausche dich mit anderen Nutzern aus."
+      "title": "Kontakt",
+      "description": "Fragen, Fehler, Ideen — schreib uns."
+    },
+    "not_found": {
+      "title": "Seite nicht gefunden"
     }
   },
-  "sections": {
-    "hero": {
-      "badge": "Jetzt verfügbar",
-      "title": "Schulverwaltung leicht gemacht",
-      "description": "Alle deine Aufgaben, dein Stundenplan und deine Lerngruppen an einem Ort. Kostenlos, werbefrei und von Schülern gebaut, die es selbst nutzen.",
-      "cta_primary": "Kostenlos starten",
-      "cta_secondary": "So funktioniert's",
-      "social_proof": "Für immer kostenlos. Kein Account nötig zum Erkunden."
+  "home": {
+    "days": {
+      "mon": "Mo",
+      "tue": "Di",
+      "wed": "Mi",
+      "thu": "Do",
+      "fri": "Fr"
     },
-    "features": {
-      "badge": "Funktionen",
-      "title": "Die Tools, die du wirklich brauchst",
-      "subtitle": "Entwickelt für die Art, wie Schüler arbeiten – nicht wie Administratoren es gerne hätten.",
-      "tasks": {
-        "title": "Aufgaben & Hausaufgaben",
-        "description": "Verwalte Aufgaben, Prüfungen und Todos mit Fälligkeiten, Prioritäten und Statusanzeigen. Pinne Wichtiges, archiviere Erledigtes."
+    "subjects": {
+      "maths": "Mathe",
+      "german": "Deutsch",
+      "physics": "Physik",
+      "history": "Geschichte",
+      "chemistry": "Chemie",
+      "english": "Englisch",
+      "sport": "Sport",
+      "biology": "Biologie",
+      "computing": "Informatik",
+      "art": "Kunst",
+      "politics": "Politik",
+      "music": "Musik"
+    },
+    "hero": {
+      "title": "Die Schulwoche, {emphasis}",
+      "title_emphasis": "an einem Ort.",
+      "lede": "Hausaufgaben, Vertretungen und Ankündigungen für die ganze Klasse — gemeinsam aktuell gehalten und für alle sichtbar, sobald sich etwas ändert.",
+      "timetable_label": "Beispiel-Stundenplan der Klasse 10b: Deutsch fällt am Montag aus, am Dienstag gibt es einen Raumwechsel, am Mittwoch eine Vertretung und am Donnerstag eine Klausur.",
+      "caption": "Klasse 10b, Kalenderwoche 39. Ausfälle, Raumwechsel und Vertretungen erscheinen bei allen im Stundenplan, sobald sie eingetragen sind.",
+      "break": "{minutes} Min.",
+      "cancelled": "Entfall",
+      "substitute": "Vertretung: Hr. Weber",
+      "exam": "Klausur"
+    },
+    "tasks": {
+      "label": "Aufgaben",
+      "title": "Hausaufgaben werden einmal eingetragen. {emphasis} haben sie.",
+      "title_emphasis": "Alle",
+      "body": "Platzhalter: Wem die Klasse vertraut, der trägt Hausaufgaben, Dalton-Aufgaben und Klausuren ein — mit Abgabedatum, Notizen und Fotos vom Arbeitsblatt. Abhaken kann jeder für sich.",
+      "filter_label": "Aufgaben filtern",
+      "due": "bis {day}",
+      "added_by": "von {name}",
+      "kinds": {
+        "all": "Alle",
+        "homework": "Hausaufgabe",
+        "dalton": "Dalton",
+        "exam": "Klausur"
       },
-      "schedule": {
-        "title": "Stundenplan",
-        "description": "Dein persönlicher Stundenplan mit Live-Updates. Nur die Kurse, die du belegst – immer aktuell."
-      },
-      "groups": {
-        "title": "Gruppen",
-        "description": "Gemeinsame Räume für deine Klasse oder Lerngruppe. Beitreten, erstellen und nahtlos wechseln."
-      },
-      "private": {
-        "title": "Private Notizen",
-        "description": "Verschlüsselte persönliche Notizen, die nur du siehst. Mit Drag-and-drop-Sortierung und Fortschrittsverfolgung."
-      },
-      "security": {
-        "title": "Sicherheit",
-        "description": "2FA, AES-256-Verschlüsselung, E-Mail-Verifizierung und CSRF-Schutz – von Anfang an eingebaut."
-      },
-      "search": {
-        "title": "Schnellsuche",
-        "description": "Eine Befehlspalette mit Tastaturkürzeln, die dich in Sekunden ans Ziel bringt."
+      "lab_report": "Protokoll",
+      "vocabulary": "Vokabeln, Unit 4",
+      "essay": "Erörterung",
+      "items": {
+        "titration": {
+          "title": "Protokoll: Säure-Base-Titration"
+        },
+        "mechanics": {
+          "title": "Mechanik und Newton'sche Gesetze",
+          "note": "Formelsammlung S. 40–52 zugelassen."
+        },
+        "vocabulary": {
+          "title": "Vokabeln, Unit 4"
+        },
+        "essay": {
+          "title": "Erörterung: Digitalisierung an Schulen"
+        }
       }
     },
-    "product": {
-      "badge": "Produkt",
-      "title": "Leistungsstarke Tools. Null Kosten.",
-      "description": "schul-dashboard gibt dir alles, was du brauchst, um in der Schule organisiert zu bleiben – ohne Abos, Werbung oder Bezahlschranken. Von Schülern für Schüler gebaut.",
-      "cta": "Jetzt ausprobieren – kostenlos",
-      "highlight0": "Vollständig kostenlos – kein Abo, keine Testphase",
-      "highlight1": "Keine Werbung, niemals",
-      "highlight2": "Persönliche Daten verschlüsselt",
-      "highlight3": "Funktioniert auf jedem Gerät, keine Installation nötig",
-      "highlight4": "Entwickelt und gepflegt von Schülern",
-      "price": "€0",
-      "price_subtitle": "pro Monat, für immer",
-      "stat_free": "Offener Zugang",
-      "stat_ads": "Werbung",
-      "stat_groups": "Gruppen",
-      "stat_encrypted": "Verschlüsselt"
+    "changes": {
+      "label": "Stundenplan",
+      "title": "Entfall, Raumwechsel, Vertretung — {emphasis}",
+      "title_emphasis": "du weißt es vor der ersten Stunde.",
+      "body": "Platzhalter: Dein persönlicher Stundenplan zeigt nur die Kurse, die du wirklich belegst. Vertretungen, Raumwechsel und Ausfälle stehen genau dort, wo sie passieren.",
+      "items": {
+        "room": "Raum Info1 statt Bio1",
+        "substitute": "Hr. Weber vertritt Fr. Adler",
+        "cancelled": "Entfall"
+      },
+      "announcement": "Wegen der Hitze endet der Unterricht am Freitag nach der 4. Stunde.",
+      "announcement_caption": "Ankündigungen stehen ganz oben im Dashboard aller Mitglieder, bis sie ablaufen."
     },
-    "cta": {
-      "title": "Bereit, endlich organisiert zu sein?",
-      "description": "Schließ dich den Schülern an, die schul-dashboard bereits nutzen, um ihren Schulalltag in den Griff zu bekommen.",
-      "primary_cta": "Kostenlos starten",
-      "secondary_cta": "Kontakt aufnehmen"
+    "groups": {
+      "label": "Gruppen",
+      "title": "Eine Person hält alles aktuell, die ganze Klasse hat es.",
+      "one": "Person trägt die Hausaufgabe ein.",
+      "thirty": "Mitschüler haben sie auf dem Handy.",
+      "details": {
+        "roles": {
+          "title": "Rollen und Rechte",
+          "body": "Platzhalter: Admins legen fest, wer Aufgaben eintragen, den Stundenplan bearbeiten oder Ankündigungen schreiben darf."
+        },
+        "invites": {
+          "title": "Einladungslinks",
+          "body": "Platzhalter: Ein Link, und die ganze Klasse ist drin. Keine Codes zum Abtippen."
+        },
+        "many": {
+          "title": "Mehrere Gruppen",
+          "body": "Platzhalter: Klasse, Leistungskurse, AG — mit einem Klick wechseln."
+        }
+      }
+    },
+    "extras": {
+      "label": "Außerdem",
+      "title": "Und die Dinge, die man vermissen würde, wenn sie fehlten.",
+      "items": {
+        "chat": {
+          "title": "Gruppenchat",
+          "body": "Platzhalter: Mit der Klasse schreiben, ohne extra Messenger. Antworten, Bilder und keine privaten Nummern."
+        },
+        "private": {
+          "title": "Private Notizen",
+          "body": "Platzhalter: Deine eigenen Todos, verschlüsselt und nur für dich sichtbar."
+        },
+        "search": {
+          "title": "Alles durchsuchen",
+          "body": "Platzhalter: Eine Befehlspalette, die mit einem Tastendruck zu jeder Aufgabe, jedem Fach und jeder Einstellung springt."
+        },
+        "devices": {
+          "title": "Auf jedem Gerät",
+          "body": "Platzhalter: Läuft in jedem Browser, auf Handy, Tablet und Laptop. Nichts zu installieren."
+        }
+      }
+    },
+    "principles": {
+      "label": "Warum",
+      "lead": "schul-dashboard wird von Schülern in Berlin gemacht, weil die Werkzeuge unserer Schulen nicht gut genug waren.",
+      "rest": "Es ist kostenlos, zeigt keine Werbung und verkauft keine Daten. Das ist kein Einführungsangebot, sondern der Sinn der Sache.",
+      "link": "Mehr über das Projekt"
     }
   },
+  "cta": {
+    "title": "Richte deine Klasse {emphasis}",
+    "title_emphasis": "heute Nachmittag ein.",
+    "button": "Loslegen — kostenlos",
+    "question": "Erst noch Fragen? Schreib an {email}"
+  },
+  "features": {
+    "title": "Alles, was {name} {emphasis}",
+    "title_emphasis": "kann.",
+    "lede": "Platzhalter: Ein vollständiger Rundgang durch die App. Jeder Teil ist bewusst kurz — die App soll ohne Anleitung verständlich sein.",
+    "index_label": "Auf dieser Seite",
+    "chapters": {
+      "tasks": {
+        "title": "Aufgaben",
+        "body": "Platzhalter: Erklärt, wie Hausaufgaben, Dalton-Aufgaben und Klausuren in einer Liste für die ganze Gruppe gesammelt werden.",
+        "items": [
+          "Hausaufgaben, Dalton und Klausuren, filterbar",
+          "Abgabedatum, Notizen und Bildanhänge",
+          "Für sich selbst abhaken, ohne andere zu beeinflussen",
+          "Wichtiges anheften, Erledigtes archivieren"
+        ]
+      },
+      "timetable": {
+        "title": "Stundenplan",
+        "body": "Platzhalter: Erklärt den Live-Stundenplan, die persönliche Kurswahl und wie Änderungen angezeigt werden.",
+        "items": [
+          "Wochenansicht am Computer, Tag für Tag am Handy",
+          "Nur die Kurse, die du belegst",
+          "Ausfälle, Vertretungen und Raumwechsel",
+          "Die nächste Stunde direkt im Dashboard"
+        ]
+      },
+      "announcements": {
+        "title": "Ankündigungen",
+        "body": "Platzhalter: Erklärt, wie Admins Ankündigungen veröffentlichen, die ganz oben im Dashboard aller erscheinen.",
+        "items": [
+          "Für alle Mitglieder gleichzeitig",
+          "Laufen automatisch ab",
+          "Mehrere Ankündigungen wechseln sich ab"
+        ]
+      },
+      "chat": {
+        "title": "Gruppenchat",
+        "body": "Platzhalter: Erklärt den eingebauten Gruppenchat und warum er die Klassengruppe im Messenger ersetzt.",
+        "items": [
+          "Antworten und Zitate",
+          "Bilder",
+          "Nachrichten melden und löschen"
+        ]
+      },
+      "groups": {
+        "title": "Gruppen und Rollen",
+        "body": "Platzhalter: Erklärt Gruppen für Klassen, Kurse und AGs und wie Admins sie verwalten.",
+        "items": [
+          "Einladungslinks",
+          "Rollen mit feinen Berechtigungen",
+          "Fächer und Stundenplan-Editor",
+          "Mitglieder entfernen und sperren"
+        ]
+      },
+      "private": {
+        "title": "Privater Bereich",
+        "body": "Platzhalter: Erklärt private Todos und Notizen, die nur man selbst sehen kann.",
+        "items": [
+          "Verschlüsselt mit AES-256-GCM",
+          "Per Drag-and-drop sortieren",
+          "Eigenen Fortschritt verfolgen"
+        ]
+      },
+      "search": {
+        "title": "Suche und Tastenkürzel",
+        "body": "Platzhalter: Erklärt die Befehlspalette und die Tastenkürzel.",
+        "items": [
+          "Öffnen mit Strg K",
+          "Aufgaben, Fächer, Einstellungen und Seiten",
+          "Tastenkürzel für häufige Aktionen"
+        ]
+      },
+      "account": {
+        "title": "Konto und Sicherheit",
+        "body": "Platzhalter: Erklärt, wie Konten geschützt werden.",
+        "items": [
+          "E-Mail-Bestätigung",
+          "Zwei-Faktor-Authentifizierung",
+          "Mit Google anmelden",
+          "Aktive Sitzungen sehen und beenden",
+          "Konto jederzeit löschen"
+        ]
+      }
+    }
+  },
+  "about": {
+    "title": "Von Schülern gemacht, {emphasis}",
+    "title_emphasis": "die es selbst brauchten.",
+    "lede": "Platzhalter: Ein, zwei Sätze dazu, wer hinter schul-dashboard steckt und woher es kommt.",
+    "story": {
+      "label": "Geschichte",
+      "lead": "Platzhalter: Der Moment, in dem alles anfing — eine Hausaufgabe, die im Gruppenchat unterging, eine Stunde, deren Ausfall niemand mitbekam.",
+      "body": "Platzhalter: Ein längerer Absatz darüber, wie die erste Version für eine Klasse entstand, andere Klassen danach fragten und das Projekt von dort aus wuchs."
+    },
+    "principles": {
+      "label": "Grundsätze",
+      "items": {
+        "free": {
+          "title": "Kostenlos, ohne Werbung",
+          "body": "Platzhalter: Keine Abos, keine Premium-Stufe, keine Werbung. Das ganze Produkt, für alle."
+        },
+        "private": {
+          "title": "Privat als Standard",
+          "body": "Platzhalter: Persönliche Daten sind verschlüsselt, nichts wird verkauft, nichts über das Nötige hinaus erfasst."
+        },
+        "students": {
+          "title": "Von Schülern",
+          "body": "Platzhalter: Wir nutzen schul-dashboard selbst jeden Tag und bauen, was wir wirklich brauchen."
+        },
+        "simple": {
+          "title": "Nur, was hilft",
+          "body": "Platzhalter: Jede Funktion muss ein echtes Problem im Schulalltag lösen. Alles andere fliegt raus."
+        }
+      }
+    },
+    "team": {
+      "label": "Team",
+      "body": "Platzhalter: Eine kurze Notiz über das kleine Team von Schülern hinter dem Projekt, wo sie zur Schule gehen und wie man mitmachen kann.",
+      "place": "Berlin, Deutschland"
+    }
+  },
+  "contact": {
+    "title": "Schreib {emphasis}",
+    "title_emphasis": "uns.",
+    "lede": "Platzhalter: Fragen, Fehler, Ideen für neue Funktionen — wir lesen alles und antworten so schnell wir können.",
+    "email_label": "E-Mail",
+    "channels": {
+      "discord": {
+        "title": "Discord",
+        "body": "Platzhalter: Mit anderen Nutzern und direkt mit uns reden.",
+        "link": "Server beitreten"
+      },
+      "status": {
+        "title": "Systemstatus",
+        "body": "Platzhalter: Vor dem Schreiben prüfen, ob gerade etwas ausgefallen ist.",
+        "link": "Status ansehen"
+      },
+      "bugs": {
+        "title": "Fehler gefunden?",
+        "body": "Platzhalter: Schreib uns, was du gemacht hast, was du erwartet hast und was stattdessen passiert ist."
+      }
+    }
+  },
+  "not_found": {
+    "label": "404",
+    "title": "Freistunde.",
+    "body": "Diese Seite gibt es nicht — oder sie ist ausgefallen.",
+    "link": "Zurück zur Startseite"
+  },
+  "cookie": {
+    "text": "Wir verwenden nur Cookies, die die Seite zum Funktionieren braucht — kein Tracking.",
+    "link": "Datenschutz",
+    "dismiss": "Okay"
+  },
   "footer": {
-    "tagline": "Von Schülern, für Schüler. Kostenlose Schulverwaltung.",
-    "navigation": {
-      "title": "Navigation",
-      "home": "Startseite",
-      "features": "Funktionen",
-      "product": "Produkt",
-      "about": "Über uns",
-      "contact": "Kontakt"
-    },
-    "legal": {
-      "title": "Rechtliches",
-      "imprint": "Impressum",
-      "privacy": "Datenschutz",
-      "terms": "Nutzungsbedingungen"
-    },
-    "rights": "Alle Rechte vorbehalten.",
-    "status": "Systemstatus"
+    "tagline": "Die Schulwoche an einem Ort. Kostenlos und ohne Werbung, von Schülern gemacht.",
+    "product": "Produkt",
+    "project": "Projekt",
+    "legal": "Rechtliches",
+    "imprint": "Impressum",
+    "privacy": "Datenschutz",
+    "terms": "Nutzungsbedingungen",
+    "status": "Status",
+    "made_in": "Gemacht in Berlin"
   },
   "legal": {
     "imprint": {
