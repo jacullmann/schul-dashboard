@@ -116,8 +116,8 @@ interface SearchResult {
   id: string;
   label: string;
   description?: string;
-  /** Extra terms the item is found by, such as the name of its parent page. */
-  keywords?: string[];
+  /** The page this item is a subpage of; shown with it and searchable. */
+  parent?: string;
   category: ResultCategory;
   icon: Component;
   action: () => void | Promise<void>;
@@ -160,7 +160,7 @@ const groupSettingsTabs = computed<SearchResult[]>(() =>
     id: `group-settings-${tab}`,
     label: t(`groups.settings.nav.${tab}.label`),
     description: t(`groups.settings.nav.${tab}.description`),
-    keywords: [t('common.sidebar.admin')],
+    parent: t('common.sidebar.admin'),
     category: 'page',
     icon,
     action: () => navigateInGroup('group-admin', { tab }),
@@ -225,7 +225,7 @@ const defaultResults = computed<SearchResult[]>(() => [
     id: 'superadmin-users',
     label: t('admin.nav.users'),
     description: t('search.descriptions.admin_users'),
-    keywords: [t('common.roles.superadmin')],
+    parent: t('common.roles.superadmin'),
     category: 'page',
     icon: UsersRound,
     action: () => navigate({ name: 'admin-users' }),
@@ -236,7 +236,7 @@ const defaultResults = computed<SearchResult[]>(() => [
     id: 'superadmin-reports',
     label: t('admin.nav.reports'),
     description: t('search.descriptions.admin_reports'),
-    keywords: [t('common.roles.superadmin')],
+    parent: t('common.roles.superadmin'),
     category: 'page',
     icon: Flag,
     action: () => navigate({ name: 'admin-reports' }),
@@ -247,7 +247,7 @@ const defaultResults = computed<SearchResult[]>(() => [
     id: 'superadmin-groups',
     label: t('admin.nav.groups'),
     description: t('search.descriptions.admin_groups'),
-    keywords: [t('common.roles.superadmin')],
+    parent: t('common.roles.superadmin'),
     category: 'page',
     icon: Building2,
     action: () => navigate({ name: 'admin-groups' }),
@@ -282,7 +282,7 @@ const defaultResults = computed<SearchResult[]>(() => [
     id: 'security',
     label: t('auth.account_settings.security.title'),
     description: t('search.descriptions.security'),
-    keywords: [t('auth.account_settings.title')],
+    parent: t('auth.account_settings.title'),
     category: 'page',
     icon: Shield,
     action: () =>
@@ -292,7 +292,7 @@ const defaultResults = computed<SearchResult[]>(() => [
     id: 'account',
     label: t('auth.account_settings.account.title'),
     description: t('search.descriptions.account'),
-    keywords: [t('auth.account_settings.title')],
+    parent: t('auth.account_settings.title'),
     category: 'page',
     icon: UserRound,
     action: () =>
@@ -473,7 +473,7 @@ const resultSections = computed<ResultSection[]>(() => {
   if (query.value.trim()) {
     const ranked = rankByQuery(availableResults.value, query.value, (item) => [
       { text: item.label, weight: 1 },
-      ...(item.keywords ?? []).map((text) => ({ text, weight: 0.7 })),
+      { text: item.parent ?? '', weight: 0.7 },
       { text: item.description ?? '', weight: 0.5 },
     ]);
     return ranked.length
@@ -736,6 +736,7 @@ function handleSelect(index: number) {
             :key="item.id"
             :active="selectedIndex === globalIndex(item)"
             :label="item.label"
+            :parent="item.parent"
             :description="item.description"
             :icon="item.icon"
             @click="void item.action()"
