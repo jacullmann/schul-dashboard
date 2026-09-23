@@ -56,7 +56,7 @@ defineEmits<{
            blur, hence the opaque background: over a transparent one the
            blurred copy is translucent, and the sharp content shows through. -->
       <div
-        class="min-h-0 p-4 overflow-y-auto overscroll-contain bg-canvas opacity-[.999] [clip-path:inset(0_round_var(--radius-2xl))]"
+        class="min-h-0 p-4 overflow-x-hidden overflow-y-auto overscroll-contain bg-canvas opacity-[.999] [clip-path:inset(0_round_var(--radius-2xl))]"
       >
         <slot></slot>
       </div>
