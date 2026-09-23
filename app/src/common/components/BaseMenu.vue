@@ -97,6 +97,9 @@ interface StackEntry {
 const viewStack = ref<StackEntry[]>([{ id: 'root', label: '' }]);
 const activeViewId = computed(() => viewStack.value.at(-1)!.id);
 const isAtRoot = computed(() => viewStack.value.length <= 1);
+const sheetTitle = computed(() =>
+  isAtRoot.value ? props.title : viewStack.value.at(-1)!.label || props.title,
+);
 const submenuTarget = ref<HTMLElement | null>(null);
 
 function pushView(id: string, label: string) {
@@ -380,7 +383,7 @@ defineExpose({ menuEl: desktopMenuEl, startClose });
           v-if="title"
           class="px-4 pb-2 text-center font-semibold text-base text-on-ghost truncate"
         >
-          {{ title }}
+          {{ sheetTitle }}
         </div>
 
         <div
