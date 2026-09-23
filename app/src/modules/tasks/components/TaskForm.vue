@@ -164,18 +164,6 @@ const {
         />
       </BaseFormGroup>
 
-      <BaseFormGroup id="description" :error="descriptionError">
-        <BaseLabel for="description">{{
-          t('tasks.list.task_form.description')
-        }}</BaseLabel>
-        <BaseMarkdownTextarea
-          id="description"
-          v-model="description"
-          rows="4"
-          :aria-describedby="descriptionError ? 'description-error' : undefined"
-        ></BaseMarkdownTextarea>
-      </BaseFormGroup>
-
       <BaseFormGroup id="dueDate" :error="dueDateError">
         <BaseLabel for="dueDate" :required="true">{{
           t('tasks.list.task_form.due_date')
@@ -187,6 +175,18 @@ const {
           :max="maxDateKey"
           :aria-describedby="dueDateError ? 'dueDate-error' : undefined"
         />
+      </BaseFormGroup>
+
+      <BaseFormGroup id="description" :error="descriptionError">
+        <BaseLabel for="description">{{
+          t('tasks.list.task_form.description')
+        }}</BaseLabel>
+        <BaseMarkdownTextarea
+          id="description"
+          v-model="description"
+          rows="4"
+          :aria-describedby="descriptionError ? 'description-error' : undefined"
+        ></BaseMarkdownTextarea>
       </BaseFormGroup>
 
       <BaseFormGroup id="images" :error="imgUploadError">
