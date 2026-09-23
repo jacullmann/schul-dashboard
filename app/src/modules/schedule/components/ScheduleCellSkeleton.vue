@@ -1,29 +1,19 @@
 <script setup lang="ts">
 import BaseSkeleton from '@/common/components/BaseSkeleton.vue';
-import { useWindowSize } from '@vueuse/core';
-
-const { width: windowWidth } = useWindowSize();
 
 defineProps<{
-  col: number;
+  gridColumn: number;
   gridRow: number;
+  radius: 'md' | 'lg';
 }>();
 </script>
 
 <template>
-  <div
-    class="max-[500px]:![grid-column:var(--col-mobile)] animate-fade-up"
-    :style="{
-      '--col-desktop': `${col + 1} / span 1`,
-      '--col-mobile': `${col} / span 1`,
-      gridColumn: 'var(--col-desktop)',
-      gridRow: `${gridRow} / span 1`,
-    }"
-  >
+  <div class="animate-fade-up" :style="{ gridColumn, gridRow }">
     <BaseSkeleton
       width="full"
       height="full"
-      :radius="windowWidth < 501 ? 'lg' : 'md'"
+      :radius="radius"
       class="h-full min-h-[58px] min-[501px]:min-h-[54px]"
     />
   </div>

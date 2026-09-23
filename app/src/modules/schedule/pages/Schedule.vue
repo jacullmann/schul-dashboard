@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, nextTick } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { useWindowSize } from '@vueuse/core';
 import { useSchedule } from '@/modules/schedule/composables/useSchedule';
-import { useScheduleRowSync } from '@/modules/schedule/composables/useScheduleRowSync';
 import { useScheduleDayPager } from '@/modules/schedule/composables/useScheduleDayPager';
-import type { ScheduleRow } from '@/modules/schedule/types';
+import type { Lesson, ScheduleRow } from '@/modules/schedule/types';
 
 import BaseTableWrapper from '@/common/components/BaseTableWrapper.vue';
 import BaseTabs from '@/common/components/BaseTabs.vue';
@@ -29,15 +28,27 @@ const {
   formatDayName,
 } = useSchedule();
 
-const scrollContainerRef = ref<HTMLElement | null>(null);
-const daysGridWrapperRef = ref<HTMLElement | null>(null);
-
 const { width: windowWidth } = useWindowSize();
 const isCompactLayout = computed(() => windowWidth.value < 501);
 
-const { activeDayIndex, scrollToDay } = useScheduleDayPager(
-  scrollContainerRef,
-  '.day-header',
+const dayTrackRef = ref<HTMLElement | null>(null);
+
+const {
+  activeDayIndex,
+  selectedDayIndex,
+  incomingDayIndex,
+  settling,
+  hasPaged,
+  goToDay,
+  showDay,
+  panelStyle,
+  onPanelTransitionEnd,
+} = useScheduleDayPager(dayTrackRef, days.length);
+
+const visibleDayIndexes = computed(() =>
+  incomingDayIndex.value === null
+    ? [activeDayIndex.value]
+    : [activeDayIndex.value, incomingDayIndex.value],
 );
 
 const dayTabs = computed(() =>
@@ -47,40 +58,27 @@ const dayTabs = computed(() =>
   })),
 );
 
-const { syncedRowHeights, syncRowHeights } =
-  useScheduleRowSync(daysGridWrapperRef);
-
 const animationStartTime = ref(Date.now());
 const elapsedLoadTime = ref(0);
 
-const scrollToDefaultDay = () => {
-  if (!isCompactLayout.value) return;
-  scrollToDay(defaultDayIndex.value, 'auto');
+const recordLoadTime = () => {
+  elapsedLoadTime.value = (Date.now() - animationStartTime.value) / 1000;
+  if (!hasPaged.value) showDay(defaultDayIndex.value);
 };
 
-watch(loadingLessons, (newVal) => {
-  if (newVal) {
+watch(loadingLessons, (loading) => {
+  if (loading) {
     animationStartTime.value = Date.now();
   } else {
-    elapsedLoadTime.value = (Date.now() - animationStartTime.value) / 1000;
-    void nextTick(() => {
-      syncRowHeights();
-      requestAnimationFrame(syncRowHeights);
-      setTimeout(syncRowHeights, 100);
-      scrollToDefaultDay();
-    });
+    recordLoadTime();
   }
 });
 
 onMounted(() => {
-  if (!loadingLessons.value) {
-    elapsedLoadTime.value = (Date.now() - animationStartTime.value) / 1000;
-    void nextTick(() => {
-      syncRowHeights();
-      requestAnimationFrame(syncRowHeights);
-      setTimeout(syncRowHeights, 100);
-      scrollToDefaultDay();
-    });
+  if (loadingLessons.value) {
+    showDay(defaultDayIndex.value);
+  } else {
+    recordLoadTime();
   }
 });
 
@@ -90,25 +88,22 @@ const breakRows = computed(() =>
   scheduleRows.value.filter((row): row is BreakRow => row.kind === 'break'),
 );
 
-const skeletonCells = computed(() =>
-  days.flatMap((_, dayIdx) =>
-    scheduleRows.value
-      .filter((row) => row.kind === 'lesson')
-      .map((row) => ({ col: dayIdx + 1, gridRow: row.gridRow })),
-  ),
+const lessonRows = computed(() =>
+  scheduleRows.value.filter((row) => row.kind === 'lesson'),
 );
 
-const desktopGridTemplateRows = computed(
+const lessonGroupsByDay = computed(() => {
+  const byDay = new Map<number, Array<[string, Lesson[]]>>();
+  Object.entries(groupedLessons.value).forEach(([key, group]) => {
+    const day = group[0]?.day;
+    if (day === undefined) return;
+    byDay.set(day, [...(byDay.get(day) ?? []), [key, group]]);
+  });
+  return byDay;
+});
+
+const gridTemplateRows = computed(
   () => `auto repeat(${scheduleRows.value.length}, auto)`,
-);
-
-const compactGridTemplateRows = computed(() =>
-  [
-    'auto',
-    ...scheduleRows.value.map((row) =>
-      row.kind === 'lesson' ? 'minmax(58px, auto)' : 'auto',
-    ),
-  ].join(' '),
 );
 </script>
 
@@ -121,87 +116,132 @@ const compactGridTemplateRows = computed(() =>
       />
     </div>
 
-    <BaseTabs
-      v-if="isCompactLayout"
-      class="animate-fade-up"
-      :items="dayTabs"
-      :active-id="String(activeDayIndex)"
-      @change="(id) => scrollToDay(Number(id))"
-    />
+    <template v-if="isCompactLayout">
+      <BaseTabs
+        class="animate-fade-up"
+        :items="dayTabs"
+        :active-id="String(selectedDayIndex)"
+        @change="(id) => goToDay(Number(id))"
+      />
 
-    <BaseTableWrapper class="max-[500px]:overflow-visible">
+      <div ref="dayTrackRef" class="relative overflow-hidden touch-pan-y">
+        <div
+          v-for="dayIndex in visibleDayIndexes"
+          :key="days[dayIndex]"
+          class="grid grid-cols-[3.25rem_1fr] gap-2 w-full"
+          :class="[
+            dayIndex === activeDayIndex
+              ? 'relative'
+              : 'absolute inset-x-0 top-0',
+            { 'transition-transform duration-300 ease-out': settling },
+          ]"
+          :style="[panelStyle(dayIndex), { gridTemplateRows }]"
+          @transitionend="onPanelTransitionEnd"
+        >
+          <ScheduleStartTimeColumn :rows="scheduleRows" :animated="!hasPaged" />
+
+          <div
+            class="bg-surface border border-ghost-border text-on-ghost p-2 text-center font-bold rounded-lg text-base shadow-input [grid-column:2] [grid-row:1]"
+            :class="{ 'animate-fade-up': !hasPaged }"
+          >
+            {{ formatDayName(days[dayIndex] ?? 0) }}
+          </div>
+
+          <ScheduleBreakDivider
+            v-for="row in breakRows"
+            :key="`break-${row.gridRow}`"
+            :grid-column="2"
+            :grid-row="row.gridRow"
+            :duration-mins="row.durationMins"
+            :animated="!hasPaged"
+          />
+
+          <template v-if="loadingLessons">
+            <ScheduleCellSkeleton
+              v-for="row in lessonRows"
+              :key="`skel-${row.gridRow}`"
+              :grid-column="2"
+              :grid-row="row.gridRow"
+              radius="lg"
+            />
+          </template>
+
+          <template v-else>
+            <ScheduleLessonGroup
+              v-for="[key, group] in lessonGroupsByDay.get(days[dayIndex] ?? 0)"
+              :key="key"
+              :group="group"
+              :group-key="key"
+              :is-active="key === activeOrNextGroupKey"
+              :is-current-day="days[dayIndex] === currentDay"
+              :day-index="dayIndex"
+              :elapsed-load-time="elapsedLoadTime"
+              :animated="!hasPaged"
+              :get-display-name="getDisplayName"
+              :get-group-style="getGroupStyleWithBreaks"
+            />
+          </template>
+        </div>
+      </div>
+    </template>
+
+    <BaseTableWrapper v-else>
       <div
-        class="grid grid-cols-[3.25rem_repeat(5,minmax(9rem,1fr))] gap-2 items-stretch max-[500px]:flex max-[500px]:overflow-hidden max-[500px]:grid-cols-none max-[500px]:grid-rows-none"
-        :style="{ gridTemplateRows: desktopGridTemplateRows }"
+        class="grid grid-cols-[3.25rem_repeat(5,minmax(9rem,1fr))] gap-2 items-stretch"
+        :style="{ gridTemplateRows }"
       >
-        <ScheduleStartTimeColumn
-          :rows="scheduleRows"
-          :fallback-grid-template-rows="compactGridTemplateRows"
-          :grid-template-rows="syncedRowHeights"
-        />
+        <ScheduleStartTimeColumn :rows="scheduleRows" />
 
         <div
-          ref="scrollContainerRef"
-          class="max-[500px]:rounded-lg max-[500px]:block max-[500px]:relative max-[500px]:overflow-x-auto max-[500px]:overflow-y-hidden max-[500px]:snap-x max-[500px]:snap-mandatory max-[500px]:flex-1 max-[500px]:overscroll-x-contain max-[500px]:h-full [&::-webkit-scrollbar]:hidden min-[501px]:contents"
+          v-for="(day, dayIdx) in days"
+          :key="day"
+          :style="{ gridColumn: dayIdx + 2 }"
+          class="bg-surface border border-ghost-border text-on-ghost p-2 text-center font-bold rounded-md text-base shadow-input [grid-row:1] animate-fade-up"
+          :class="
+            day === currentDay
+              ? 'bg-linear-to-b from-ghost-border to-ghost-border border-surface-hover-border!'
+              : ''
+          "
         >
-          <div
-            ref="daysGridWrapperRef"
-            class="max-[500px]:grid max-[500px]:grid-cols-[repeat(5,100%)] max-[500px]:gap-2 min-[501px]:contents"
-            :style="
-              isCompactLayout
-                ? { gridTemplateRows: compactGridTemplateRows }
-                : {}
-            "
-          >
-            <div
-              v-for="(day, dayIdx) in days"
-              :key="day"
-              :style="{ '--col-desktop': dayIdx + 2 }"
-              class="day-header bg-surface border border-ghost-border text-on-ghost p-2 text-center font-bold rounded-md max-[500px]:rounded-lg text-base shadow-input min-[501px]:[grid-row:1] min-[501px]:[grid-column:var(--col-desktop)] max-[500px]:snap-start max-[500px]:snap-always max-[500px]:scroll-ml-0 animate-fade-up"
-              :class="
-                day === currentDay
-                  ? 'min-[501px]:bg-linear-to-b min-[501px]:from-ghost-border min-[501px]:to-ghost-border min-[501px]:border-surface-hover-border!'
-                  : ''
-              "
-            >
-              <span class="block">{{ formatDayName(day) }}</span>
-            </div>
-
-            <template v-for="(_, dayIdx) in days" :key="`breaks-${dayIdx}`">
-              <ScheduleBreakDivider
-                v-for="row in breakRows"
-                :key="`break-${dayIdx}-${row.gridRow}`"
-                :col="dayIdx + 1"
-                :grid-row="row.gridRow"
-                :duration-mins="row.durationMins"
-              />
-            </template>
-
-            <template v-if="loadingLessons">
-              <ScheduleCellSkeleton
-                v-for="cell in skeletonCells"
-                :key="`skel-${cell.col}-${cell.gridRow}`"
-                :col="cell.col"
-                :grid-row="cell.gridRow"
-              />
-            </template>
-
-            <template v-else>
-              <ScheduleLessonGroup
-                v-for="(group, key) in groupedLessons"
-                :key="key"
-                :group="group"
-                :group-key="String(key)"
-                :is-active="key === activeOrNextGroupKey"
-                :is-current-day="group[0]?.day === currentDay"
-                :day-index="group[0] ? days.indexOf(group[0].day) : -1"
-                :elapsed-load-time="elapsedLoadTime"
-                :get-display-name="getDisplayName"
-                :get-group-style="getGroupStyleWithBreaks"
-              />
-            </template>
-          </div>
+          <span class="block">{{ formatDayName(day) }}</span>
         </div>
+
+        <template v-for="(_, dayIdx) in days" :key="`breaks-${dayIdx}`">
+          <ScheduleBreakDivider
+            v-for="row in breakRows"
+            :key="`break-${dayIdx}-${row.gridRow}`"
+            :grid-column="dayIdx + 2"
+            :grid-row="row.gridRow"
+            :duration-mins="row.durationMins"
+          />
+        </template>
+
+        <template v-if="loadingLessons">
+          <template v-for="(_, dayIdx) in days" :key="`skel-${dayIdx}`">
+            <ScheduleCellSkeleton
+              v-for="row in lessonRows"
+              :key="`skel-${dayIdx}-${row.gridRow}`"
+              :grid-column="dayIdx + 2"
+              :grid-row="row.gridRow"
+              radius="md"
+            />
+          </template>
+        </template>
+
+        <template v-else>
+          <ScheduleLessonGroup
+            v-for="(group, key) in groupedLessons"
+            :key="key"
+            :group="group"
+            :group-key="String(key)"
+            :is-active="key === activeOrNextGroupKey"
+            :is-current-day="group[0]?.day === currentDay"
+            :day-index="group[0] ? days.indexOf(group[0].day) : -1"
+            :elapsed-load-time="elapsedLoadTime"
+            :get-display-name="getDisplayName"
+            :get-group-style="getGroupStyleWithBreaks"
+          />
+        </template>
       </div>
     </BaseTableWrapper>
   </div>

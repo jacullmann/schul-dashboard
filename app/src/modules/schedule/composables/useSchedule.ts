@@ -369,6 +369,7 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
   const buildGroupStyle = (
     groupLessons: Lesson[],
     rowOfSlot: (slot: number) => number,
+    mobileColumn: (desktopColumn: number) => number,
   ) => {
     if (!groupLessons.length) return {};
     const firstLesson = groupLessons[0];
@@ -383,7 +384,7 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
     const minHeight = Math.max(58, groupLessons.length * 54);
     return {
       '--col-desktop': `${colStart} / span 1`,
-      '--col-mobile': `${colStart - 1} / span 1`,
+      '--col-mobile': `${mobileColumn(colStart)} / span 1`,
       gridColumn: `var(--col-desktop)`,
       gridRow: `${rowStart} / ${rowEnd}`,
       minHeight: `${minHeight}px`,
@@ -391,10 +392,15 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
   };
 
   const getGroupStyle = (groupLessons: Lesson[]) =>
-    buildGroupStyle(groupLessons, (slot) => slot + 1);
+    buildGroupStyle(
+      groupLessons,
+      (slot) => slot + 1,
+      (column) => column - 1,
+    );
 
+  // On a phone every day is its own table, its lessons beside the time column.
   const getGroupStyleWithBreaks = (groupLessons: Lesson[]) =>
-    buildGroupStyle(groupLessons, gridRowOfSlot);
+    buildGroupStyle(groupLessons, gridRowOfSlot, () => 2);
 
   const now = ref(new Date());
 
