@@ -23,15 +23,17 @@ defineProps<{
     <div
       v-for="row in rows"
       :key="row.gridRow"
-      class="flex items-center justify-center h-full whitespace-nowrap min-[501px]:[grid-column:1] animate-fade-up"
-      :class="
-        row.kind === 'lesson'
-          ? 'min-h-[58px] text-sm font-semibold text-on-ghost'
-          : 'text-xs text-on-ghost-muted'
-      "
+      class="flex flex-col justify-center items-center bg-transparent text-sm text-on-ghost-muted h-full whitespace-nowrap min-[501px]:[grid-column:1] animate-fade-up"
+      :class="{ 'min-h-[58px]': row.kind === 'lesson' }"
       :style="{ gridRow: row.gridRow }"
     >
-      {{ row.startTime }}
+      <span
+        v-if="row.kind === 'lesson'"
+        class="font-bold text-lg text-on-ghost"
+      >
+        {{ row.slot }}
+      </span>
+      <span class="text-xs">{{ row.startTime }}</span>
     </div>
   </div>
 </template>
