@@ -1,12 +1,10 @@
 <script setup lang="ts">
-import { Heart, Code2, Shield, Zap } from '@lucide/vue';
-
 const { t } = useI18n();
 
 useSeoMetaWithI18n({
   title: () => `${t('pages.about.title')} — schul-dashboard`,
   description: () => t('pages.about.description'),
-  keywords: 'about, mission, student project, open source, school management',
+  keywords: 'about, mission, student project, school management, Berlin',
   canonicalUrl: 'https://schul-dashboard.com/about',
   structuredData: {
     '@context': 'https://schema.org',
@@ -16,88 +14,57 @@ useSeoMetaWithI18n({
   },
 });
 
-const values = [
-  { icon: Heart, key: 'free' },
-  { icon: Shield, key: 'privacy' },
-  { icon: Code2, key: 'open' },
-  { icon: Zap, key: 'simple' },
-];
+const principles = ['free', 'private', 'students', 'simple'] as const;
 </script>
 
 <template>
-  <div class="w-full">
-    <section class="w-full py-20 md:py-14 border-b border-ghost-border">
-      <div class="max-w-[1300px] w-full mx-auto px-4 lg:px-6 text-center">
-        <h1
-          class="text-[clamp(2rem,5vw,3.5rem)] font-bold font-display text-on-ghost leading-[1.15] mb-5 max-w-2xl mx-auto"
-        >
-          {{ t('pages.about.title') }}
-        </h1>
-        <p class="text-lg text-on-ghost-muted leading-[1.65]">
-          {{ t('pages.about.description') }}
-        </p>
-      </div>
-    </section>
+  <section class="page pt-intro">
+    <div class="page-grid gap-y-10">
+      <h1 class="col-span-12 font-serif text-display lg:col-span-11">
+        <i18n-t keypath="about.title" scope="global">
+          <template #emphasis>
+            <em>{{ t('about.title_emphasis') }}</em>
+          </template>
+        </i18n-t>
+      </h1>
+      <p
+        class="col-span-12 text-lede text-on-ghost-muted md:col-span-7 lg:col-span-5 lg:col-start-7"
+      >
+        {{ t('about.lede') }}
+      </p>
+    </div>
+  </section>
 
-    <section class="w-full py-20 md:py-14 border-b border-ghost-border">
-      <div class="max-w-[1300px] w-full mx-auto px-4 lg:px-6">
-        <div class="max-w-2xl mx-auto text-center">
-          <h2
-            class="text-[clamp(1.5rem,3vw,2.25rem)] font-bold font-display text-on-ghost leading-[1.2] mb-5"
-          >
-            {{ t('pages.about.mission_title') }}
-          </h2>
-          <p class="text-on-ghost-muted leading-[1.75] text-lg">
-            {{ t('pages.about.mission_text') }}
-          </p>
-        </div>
-      </div>
-    </section>
+  <PageChapter :label="t('about.story.label')">
+    <div class="col-span-12 flex flex-col gap-8 lg:col-span-8">
+      <p class="font-serif text-statement">{{ t('about.story.lead') }}</p>
+      <p class="max-w-prose text-lede text-on-ghost-muted">{{ t('about.story.body') }}</p>
+    </div>
+  </PageChapter>
 
-    <section class="w-full py-20 md:py-14 border-b border-ghost-border">
-      <div class="max-w-[1300px] w-full mx-auto px-4 lg:px-6">
-        <h2
-          class="text-[clamp(1.5rem,3vw,2.25rem)] font-bold font-display text-on-ghost leading-[1.2] mb-12 text-center"
-        >
-          {{ t('pages.about.values_title') }}
-        </h2>
-        <div class="grid grid-cols-4 md:grid-cols-2 sm:grid-cols-1 gap-6">
-          <div
-            v-for="value in values"
-            :key="value.key"
-            class="bg-surface border border-ghost-border rounded-xl p-6 flex flex-col gap-4"
-          >
-            <div
-              class="w-10 h-10 rounded-lg bg-canvas border border-ghost-border flex items-center justify-center text-on-ghost-muted flex-shrink-0"
-            >
-              <component :is="value.icon" :size="20" aria-hidden="true" />
-            </div>
-            <div>
-              <h3 class="font-semibold text-on-ghost font-display mb-2">
-                {{ t(`pages.about.value_${value.key}_title`) }}
-              </h3>
-              <p class="text-sm text-on-ghost-muted leading-[1.65] m-0">
-                {{ t(`pages.about.value_${value.key}_text`) }}
-              </p>
-            </div>
-          </div>
-        </div>
+  <PageChapter :label="t('about.principles.label')">
+    <dl class="col-span-12 m-0 lg:col-span-9">
+      <div
+        v-for="principle in principles"
+        :key="principle"
+        class="grid gap-x-gutter gap-y-3 border-b border-ghost-border py-7 first:pt-0 md:grid-cols-9"
+      >
+        <dt class="font-serif text-[1.625rem] leading-tight tracking-[-0.015em] md:col-span-4">
+          {{ t(`about.principles.items.${principle}.title`) }}
+        </dt>
+        <dd class="m-0 text-[0.9375rem] leading-relaxed text-on-ghost-muted md:col-span-5">
+          {{ t(`about.principles.items.${principle}.body`) }}
+        </dd>
       </div>
-    </section>
+    </dl>
+  </PageChapter>
 
-    <section class="w-full py-20 md:py-14">
-      <div class="max-w-[1300px] w-full mx-auto px-4 lg:px-6 text-center">
-        <h2
-          class="text-[clamp(1.5rem,3vw,2.25rem)] font-bold font-display text-on-ghost leading-[1.2] mb-5"
-        >
-          {{ t('pages.about.team_title') }}
-        </h2>
-        <p class="text-on-ghost-muted leading-[1.65] mb-0">
-          {{ t('pages.about.team_text') }}
-        </p>
-      </div>
-    </section>
+  <PageChapter :label="t('about.team.label')">
+    <div class="col-span-12 flex flex-col gap-4 lg:col-span-6">
+      <p class="text-lede text-on-ghost-muted">{{ t('about.team.body') }}</p>
+      <p class="text-label text-on-ghost-subtle">{{ t('about.team.place') }}</p>
+    </div>
+  </PageChapter>
 
-    <CTASection />
-  </div>
+  <CallToAction />
 </template>

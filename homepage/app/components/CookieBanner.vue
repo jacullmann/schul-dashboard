@@ -1,29 +1,31 @@
 <script setup lang="ts">
+const { t } = useI18n();
 const localePath = useLocalePath();
 
-const dismissed = useCookie<boolean>('cookie_notice_dismissed', { maxAge: 60*60*24*180 });
-const visible = computed(() => !dismissed.value);
-
-function dismiss() {
-  dismissed.value = true;
-}
+const dismissed = useCookie<boolean>('cookie_notice_dismissed', { maxAge: 60 * 60 * 24 * 180 });
 </script>
 
 <template>
-  <div
-    v-if="visible"
-    role="region"
-    aria-label="Cookie notice"
-    class="fixed bottom-4 right-4 z-[1200] w-[calc(100%-2rem)] max-w-sm sm:w-auto"
-  >
+  <Transition leave-active-class="transition-opacity duration-200" leave-to-class="opacity-0">
     <div
-      class="flex flex-col gap-3 px-4 py-3.5 rounded-xl border border-ghost-border bg-canvas shadow-menu"
+      v-if="!dismissed"
+      role="region"
+      :aria-label="t('cookie.link')"
+      class="fixed inset-x-4 bottom-4 z-(--z-notice) flex items-center gap-4 rounded-xl sm:rounded-full bg-action py-1.5 pr-1.5 pl-5 text-[0.8125rem] text-on-action shadow-menu sm:right-auto sm:left-4 sm:max-w-md"
     >
-      <p class="text-xs text-on-ghost-muted leading-[1.6] m-0">
-        We use only essential cookies to keep the site running.
-        <BaseLink :to="localePath('legal-privacy-policy')"> Privacy Policy </BaseLink>
+      <p class="flex-1">
+        {{ t('cookie.text') }}
+        <NuxtLink :to="localePath('legal-privacy-policy')" class="link-underline whitespace-nowrap">
+          {{ t('cookie.link') }}
+        </NuxtLink>
       </p>
-      <BaseButton variant="action" class="self-end" @click="dismiss"> Got it </BaseButton>
+      <button
+        type="button"
+        class="h-9 shrink-0 cursor-pointer rounded-full bg-canvas px-4 font-medium text-on-ghost transition-opacity hover:opacity-85"
+        @click="dismissed = true"
+      >
+        {{ t('cookie.dismiss') }}
+      </button>
     </div>
-  </div>
+  </Transition>
 </template>

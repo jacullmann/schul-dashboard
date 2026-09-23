@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Mail, MessageCircle, ArrowRight } from '@lucide/vue';
+import { ArrowUpRight } from '@lucide/vue';
 
 const { t } = useI18n();
 
@@ -10,74 +10,70 @@ useSeoMetaWithI18n({
   canonicalUrl: 'https://schul-dashboard.com/contact',
 });
 
-const contactMethods = [
-  {
-    icon: Mail,
-    key: 'email',
-    href: 'mailto:contact@schul-dashboard.com',
-    value: 'contact@schul-dashboard.com',
-  },
-  {
-    icon: MessageCircle,
-    key: 'discord',
-    href: 'https://discord.gg/schul-dashboard',
-    value: 'Discord',
-  },
+const email = 'contact@schul-dashboard.com';
+
+const channels: { key: 'discord' | 'status' | 'bugs'; href?: string }[] = [
+  { key: 'discord', href: 'https://discord.gg/schul-dashboard' },
+  { key: 'status', href: 'https://stats.uptimerobot.com/m8tUrWG3Zz' },
+  { key: 'bugs' },
 ];
 </script>
 
 <template>
-  <div class="w-full">
-    <section class="w-full py-20 md:py-14 border-b border-ghost-border">
-      <div class="max-w-[1300px] w-full mx-auto px-4 lg:px-6 text-center">
-        <h1
-          class="text-[clamp(2rem,5vw,3.5rem)] font-bold font-display text-on-ghost leading-[1.15] mb-5"
-        >
-          {{ t('pages.contact.title') }}
-        </h1>
-        <p class="text-lg text-on-ghost-muted leading-[1.65]">
-          {{ t('pages.contact.description') }}
-        </p>
-      </div>
-    </section>
+  <section class="page pt-intro pb-section">
+    <div class="page-grid gap-y-10">
+      <h1 class="col-span-12 font-serif text-display lg:col-span-10">
+        <i18n-t keypath="contact.title" scope="global">
+          <template #emphasis>
+            <em>{{ t('contact.title_emphasis') }}</em>
+          </template>
+        </i18n-t>
+      </h1>
+      <p
+        class="col-span-12 text-lede text-on-ghost-muted md:col-span-7 lg:col-span-5 lg:col-start-7"
+      >
+        {{ t('contact.lede') }}
+      </p>
 
-    <section class="w-full py-20 md:py-14">
-      <div class="max-w-[1300px] w-full mx-auto px-4 lg:px-6">
-        <div class="grid grid-cols-2 md:grid-cols-1 gap-5 max-w-2xl mx-auto">
+      <div class="col-span-12 mt-figure flex flex-col gap-3 border-t border-on-ghost pt-5">
+        <p class="text-label font-medium">{{ t('contact.email_label') }}</p>
+        <a
+          :href="`mailto:${email}`"
+          class="w-fit font-serif text-headline break-all underline decoration-ghost-border decoration-1 underline-offset-[0.14em] transition-colors hover:decoration-current sm:break-normal"
+        >
+          {{ email }}
+        </a>
+      </div>
+
+      <ul class="col-span-12 grid gap-x-gutter gap-y-10 sm:grid-cols-3">
+        <li
+          v-for="channel in channels"
+          :key="channel.key"
+          class="flex flex-col gap-2 border-t border-ghost-border pt-4"
+        >
+          <h2 class="text-[0.9375rem] font-semibold">
+            {{ t(`contact.channels.${channel.key}.title`) }}
+          </h2>
+          <p class="text-[0.9375rem] leading-relaxed text-on-ghost-muted">
+            {{ t(`contact.channels.${channel.key}.body`) }}
+          </p>
           <a
-            v-for="method in contactMethods"
-            :key="method.key"
-            :href="method.href"
+            v-if="channel.href"
+            :href="channel.href"
             target="_blank"
             rel="noopener noreferrer"
-            class="group bg-surface border border-ghost-border rounded-xl p-8 flex flex-col gap-5 no-underline transition-all hover:border-surface-hover-border hover:bg-surface-highlight hover:-translate-y-px"
+            class="group mt-1 inline-flex w-fit items-center gap-1 text-[0.9375rem] font-medium"
           >
-            <div
-              class="w-12 h-12 rounded-xl bg-canvas border border-ghost-border flex items-center justify-center text-on-ghost-muted group-hover:text-on-ghost transition-colors"
-            >
-              <component :is="method.icon" :size="22" aria-hidden="true" />
-            </div>
-            <div class="flex-1">
-              <h2 class="text-lg font-semibold text-on-ghost font-display mb-1.5">
-                {{ t(`pages.contact.${method.key}_title`) }}
-              </h2>
-              <p class="text-sm text-on-ghost-muted m-0 leading-[1.6]">
-                {{ t(`pages.contact.${method.key}_description`) }}
-              </p>
-            </div>
-            <div
-              class="flex items-center gap-2 text-sm font-medium text-on-ghost-muted group-hover:text-on-ghost transition-colors"
-            >
-              {{ method.value }}
-              <ArrowRight
-                :size="14"
-                class="transition-transform group-hover:translate-x-0.5"
-                aria-hidden="true"
-              />
-            </div>
+            <span class="link-underline">{{ t(`contact.channels.${channel.key}.link`) }}</span>
+            <ArrowUpRight
+              :size="16"
+              :stroke-width="1.75"
+              class="transition-transform duration-200 ease-out-quint group-hover:translate-x-px group-hover:-translate-y-px"
+              aria-hidden="true"
+            />
           </a>
-        </div>
-      </div>
-    </section>
-  </div>
+        </li>
+      </ul>
+    </div>
+  </section>
 </template>

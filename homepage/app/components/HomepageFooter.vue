@@ -1,92 +1,95 @@
 <script setup lang="ts">
-import { ExternalLink } from '@lucide/vue';
-
 const { t } = useI18n();
 const localePath = useLocalePath();
+const appLinks = useAppLinks();
+
+const columns = computed(() => [
+  {
+    titleKey: 'footer.product',
+    links: [
+      { labelKey: 'nav.features', to: localePath('features') },
+      { labelKey: 'common.login', href: appLinks.login },
+      { labelKey: 'common.getStarted', href: appLinks.register },
+    ],
+  },
+  {
+    titleKey: 'footer.project',
+    links: [
+      { labelKey: 'nav.about', to: localePath('about') },
+      { labelKey: 'nav.contact', to: localePath('contact') },
+      {
+        labelKey: 'footer.status',
+        href: 'https://stats.uptimerobot.com/m8tUrWG3Zz',
+        external: true,
+      },
+    ],
+  },
+  {
+    titleKey: 'footer.legal',
+    links: [
+      { labelKey: 'footer.imprint', to: localePath('legal-imprint') },
+      { labelKey: 'footer.privacy', to: localePath('legal-privacy-policy') },
+      { labelKey: 'footer.terms', to: localePath('legal-terms') },
+    ],
+  },
+]);
 </script>
 
 <template>
-  <footer class="w-full bg-canvas border-t border-ghost-border">
-    <div class="max-w-[1300px] w-full mx-auto px-4 lg:px-6 py-14 md:py-10">
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
-
-        <div class="flex flex-col gap-3">
-          <NuxtLink
-            :to="localePath('index')"
-            class="inline-flex items-center gap-2 w-fit group"
-            aria-label="schul-dashboard home"
-          >
-            <img src="/favicon.svg" alt="" class="w-7 h-7" />
-            <span
-              class="font-bold text-on-ghost font-display text-xl group-hover:underline underline-offset-2 decoration-1.5 decoration-skip-ink transition-opacity"
-            >
-              schul-dashboard
-            </span>
-          </NuxtLink>
-          <p class="text-xs text-on-ghost-muted leading-[1.6] max-w-[200px] m-0">
-            {{ t('footer.tagline') }}
-          </p>
-        </div>
-
-        <div class="flex flex-col gap-3">
-          <p class="text-sm font-semibold text-on-ghost m-0">
-            {{ t('footer.navigation.title') }}
-          </p>
-          <nav class="flex flex-col gap-2" aria-label="Footer navigation">
-            <BaseLink :to="localePath('index')">
-              {{ t('footer.navigation.home') }}
-            </BaseLink>
-            <BaseLink :to="localePath('features')">
-              {{ t('footer.navigation.features') }}
-            </BaseLink>
-            <BaseLink :to="localePath('product')">
-              {{ t('footer.navigation.product') }}
-            </BaseLink>
-            <BaseLink :to="localePath('about')">
-              {{ t('footer.navigation.about') }}
-            </BaseLink>
-            <BaseLink :to="localePath('contact')">
-              {{ t('footer.navigation.contact') }}
-            </BaseLink>
-          </nav>
-        </div>
-
-        <div class="flex flex-col gap-3">
-          <p class="text-sm font-semibold text-on-ghost m-0">{{ t('footer.legal.title') }}</p>
-          <nav class="flex flex-col gap-2" aria-label="Legal navigation">
-            <BaseLink :to="localePath('legal-imprint')">
-              {{ t('footer.legal.imprint') }}
-            </BaseLink>
-            <BaseLink :to="localePath('legal-privacy-policy')">
-              {{ t('footer.legal.privacy') }}
-            </BaseLink>
-            <BaseLink :to="localePath('legal-terms')">
-              {{ t('footer.legal.terms') }}
-            </BaseLink>
-          </nav>
-        </div>
-
-        <div class="flex flex-col gap-5">
-          <ThemeSwitch />
-          <LanguageSwitch />
-        </div>
+  <footer>
+    <div class="h-0.5 bg-(image:--gradient-bismuth)" />
+    <div class="page page-grid gap-y-12 pt-14 pb-10">
+      <div class="col-span-12 flex flex-col gap-4 lg:col-span-6">
+        <NuxtLink
+          :to="localePath('index')"
+          class="-ml-1 flex w-fit items-center gap-2.5 rounded-md px-1 py-1"
+          :aria-label="t('nav.home')"
+        >
+          <img src="/favicon.svg" alt="" class="size-6" width="24" height="24" />
+          <span class="text-[0.9375rem] font-semibold tracking-[-0.01em]">schul-dashboard</span>
+        </NuxtLink>
+        <p class="max-w-[22rem] text-[0.9375rem] leading-relaxed text-on-ghost-muted">
+          {{ t('footer.tagline') }}
+        </p>
       </div>
 
-      <div
-        class="border-t border-ghost-border pt-8 flex flex-col md:flex-row items-center justify-between gap-4"
+      <nav
+        v-for="column in columns"
+        :key="column.titleKey"
+        class="col-span-6 flex flex-col gap-3 sm:col-span-4 lg:col-span-2"
+        :aria-label="t(column.titleKey)"
       >
-        <p class="text-xs text-on-ghost-muted m-0">
-          &copy; {{ new Date().getFullYear() }} schul-dashboard. {{ t('footer.rights') }}
+        <p class="text-label text-on-ghost-subtle">{{ t(column.titleKey) }}</p>
+        <ul class="flex flex-col gap-2.5">
+          <li v-for="link in column.links" :key="link.labelKey">
+            <NuxtLink
+              v-if="link.to"
+              :to="link.to"
+              class="text-[0.9375rem] text-on-ghost-muted transition-colors hover:text-on-ghost"
+            >
+              {{ t(link.labelKey) }}
+            </NuxtLink>
+            <a
+              v-else
+              :href="link.href"
+              :target="link.external ? '_blank' : undefined"
+              :rel="link.external ? 'noopener noreferrer' : undefined"
+              class="text-[0.9375rem] text-on-ghost-muted transition-colors hover:text-on-ghost"
+            >
+              {{ t(link.labelKey) }}
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <div
+        class="col-span-12 flex flex-wrap items-center gap-x-8 gap-y-5 border-t border-ghost-border pt-6 text-[0.8125rem] text-on-ghost-subtle"
+      >
+        <p class="mr-auto">
+          © {{ new Date().getFullYear() }} schul-dashboard · {{ t('footer.made_in') }}
         </p>
-        <a
-          href="https://stats.uptimerobot.com/m8tUrWG3Zz"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="inline-flex items-center gap-1.5 text-xs text-on-ghost-muted no-underline hover:text-on-ghost transition-colors"
-        >
-          {{ t('footer.status') }}
-          <ExternalLink :size="12" aria-hidden="true" />
-        </a>
+        <LanguageSwitch />
+        <ThemeSwitch />
       </div>
     </div>
   </footer>

@@ -19,10 +19,11 @@ useSeoMetaWithI18n({
 </script>
 
 <template>
-  <div class="w-full">
-    <HeroSection />
-    <FeaturesSection />
-    <ProductSection />
-    <CTASection />
-  </div>
+  <HomeHero />
+  <HomeTasks />
+  <HomeChanges />
+  <HomeGroups />
+  <HomeExtras />
+  <HomePrinciples />
+  <CallToAction />
 </template>

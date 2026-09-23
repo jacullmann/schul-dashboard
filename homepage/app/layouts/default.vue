@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen flex flex-col">
+  <div class="flex min-h-dvh flex-col">
     <HomepageHeader />
     <main class="flex-1">
       <slot />
@@ -7,9 +7,3 @@
     <HomepageFooter />
   </div>
 </template>
-
-<style>
-html {
-  scroll-behavior: smooth;
-}
-</style>
