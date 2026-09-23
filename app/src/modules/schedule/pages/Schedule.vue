@@ -4,11 +4,13 @@ import { useWindowSize } from '@vueuse/core';
 import { useSchedule } from '@/modules/schedule/composables/useSchedule';
 import { useScheduleRowSync } from '@/modules/schedule/composables/useScheduleRowSync';
 import { useScheduleDayPager } from '@/modules/schedule/composables/useScheduleDayPager';
+import type { ScheduleRow } from '@/modules/schedule/types';
 
 import BaseTableWrapper from '@/common/components/BaseTableWrapper.vue';
 import BaseTabs from '@/common/components/BaseTabs.vue';
 import ScheduleHeader from '../components/ScheduleHeader.vue';
-import ScheduleTimeColumn from '../components/ScheduleTimeColumn.vue';
+import ScheduleStartTimeColumn from '../components/ScheduleStartTimeColumn.vue';
+import ScheduleBreakDivider from '../components/ScheduleBreakDivider.vue';
 import ScheduleLessonGroup from '../components/ScheduleLessonGroup.vue';
 import ScheduleCellSkeleton from '../components/ScheduleCellSkeleton.vue';
 
@@ -17,12 +19,12 @@ const {
   loadingSubs,
   loadingLessons,
   days,
-  timeSlots,
+  scheduleRows,
   groupedLessons,
   currentDay,
   activeOrNextGroupKey,
   getDisplayName,
-  getGroupStyle,
+  getGroupStyleWithBreaks,
   defaultDayIndex,
   formatDayName,
 } = useSchedule();
@@ -82,15 +84,32 @@ onMounted(() => {
   }
 });
 
-const skeletonCells = computed(() => {
-  const rowCount = timeSlots.value.length || 9;
-  return days.flatMap((_, dayIdx) =>
-    Array.from({ length: rowCount }, (_, rowIdx) => ({
-      col: dayIdx + 1,
-      row: rowIdx + 1,
-    })),
-  );
-});
+type BreakRow = Extract<ScheduleRow, { kind: 'break' }>;
+
+const breakRows = computed(() =>
+  scheduleRows.value.filter((row): row is BreakRow => row.kind === 'break'),
+);
+
+const skeletonCells = computed(() =>
+  days.flatMap((_, dayIdx) =>
+    scheduleRows.value
+      .filter((row) => row.kind === 'lesson')
+      .map((row) => ({ col: dayIdx + 1, gridRow: row.gridRow })),
+  ),
+);
+
+const desktopGridTemplateRows = computed(
+  () => `auto repeat(${scheduleRows.value.length}, auto)`,
+);
+
+const compactGridTemplateRows = computed(() =>
+  [
+    'auto',
+    ...scheduleRows.value.map((row) =>
+      row.kind === 'lesson' ? 'minmax(58px, auto)' : 'auto',
+    ),
+  ].join(' '),
+);
 </script>
 
 <template>
@@ -112,13 +131,12 @@ const skeletonCells = computed(() => {
 
     <BaseTableWrapper class="max-[500px]:overflow-visible">
       <div
-        class="grid grid-cols-[80px_repeat(5,minmax(9rem,1fr))] gap-2 items-stretch max-[500px]:flex max-[500px]:overflow-hidden max-[500px]:grid-cols-none max-[500px]:grid-rows-none"
-        :style="{
-          gridTemplateRows: `auto repeat(${timeSlots.length || 9}, auto)`,
-        }"
+        class="grid grid-cols-[3.25rem_repeat(5,minmax(9rem,1fr))] gap-2 items-stretch max-[500px]:flex max-[500px]:overflow-hidden max-[500px]:grid-cols-none max-[500px]:grid-rows-none"
+        :style="{ gridTemplateRows: desktopGridTemplateRows }"
       >
-        <ScheduleTimeColumn
-          :time-slots="timeSlots"
+        <ScheduleStartTimeColumn
+          :rows="scheduleRows"
+          :fallback-grid-template-rows="compactGridTemplateRows"
           :grid-template-rows="syncedRowHeights"
         />
 
@@ -131,16 +149,15 @@ const skeletonCells = computed(() => {
             class="max-[500px]:grid max-[500px]:grid-cols-[repeat(5,100%)] max-[500px]:gap-2 min-[501px]:contents"
             :style="
               isCompactLayout
-                ? {
-                    gridTemplateRows: `auto repeat(${timeSlots.length || 9}, minmax(58px, auto))`,
-                  }
+                ? { gridTemplateRows: compactGridTemplateRows }
                 : {}
             "
           >
             <div
-              v-for="day in days"
+              v-for="(day, dayIdx) in days"
               :key="day"
-              class="day-header bg-surface border border-ghost-border text-on-ghost p-2 text-center font-bold rounded-md max-[500px]:rounded-lg text-base shadow-input min-[501px]:[grid-row:1] max-[500px]:snap-start max-[500px]:snap-always max-[500px]:scroll-ml-0 animate-fade-up"
+              :style="{ '--col-desktop': dayIdx + 2 }"
+              class="day-header bg-surface border border-ghost-border text-on-ghost p-2 text-center font-bold rounded-md max-[500px]:rounded-lg text-base shadow-input min-[501px]:[grid-row:1] min-[501px]:[grid-column:var(--col-desktop)] max-[500px]:snap-start max-[500px]:snap-always max-[500px]:scroll-ml-0 animate-fade-up"
               :class="
                 day === currentDay
                   ? 'min-[501px]:bg-linear-to-b min-[501px]:from-ghost-border min-[501px]:to-ghost-border min-[501px]:border-surface-hover-border!'
@@ -150,12 +167,22 @@ const skeletonCells = computed(() => {
               <span class="block">{{ formatDayName(day) }}</span>
             </div>
 
+            <template v-for="(_, dayIdx) in days" :key="`breaks-${dayIdx}`">
+              <ScheduleBreakDivider
+                v-for="row in breakRows"
+                :key="`break-${dayIdx}-${row.gridRow}`"
+                :col="dayIdx + 1"
+                :grid-row="row.gridRow"
+                :duration-mins="row.durationMins"
+              />
+            </template>
+
             <template v-if="loadingLessons">
               <ScheduleCellSkeleton
                 v-for="cell in skeletonCells"
-                :key="`skel-${cell.col}-${cell.row}`"
+                :key="`skel-${cell.col}-${cell.gridRow}`"
                 :col="cell.col"
-                :row="cell.row"
+                :grid-row="cell.gridRow"
               />
             </template>
 
@@ -170,7 +197,7 @@ const skeletonCells = computed(() => {
                 :day-index="group[0] ? days.indexOf(group[0].day) : -1"
                 :elapsed-load-time="elapsedLoadTime"
                 :get-display-name="getDisplayName"
-                :get-group-style="getGroupStyle"
+                :get-group-style="getGroupStyleWithBreaks"
               />
             </template>
           </div>

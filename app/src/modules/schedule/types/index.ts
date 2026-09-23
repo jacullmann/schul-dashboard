@@ -49,3 +49,13 @@ export interface TimeSlot {
   slot: number;
   time: string;
 }
+
+export type ScheduleRow =
+  | { kind: 'lesson'; gridRow: number; slot: number; startTime: string }
+  | {
+      kind: 'break';
+      gridRow: number;
+      afterSlot: number;
+      startTime: string;
+      durationMins: number;
+    };

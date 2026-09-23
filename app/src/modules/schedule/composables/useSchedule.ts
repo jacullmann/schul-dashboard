@@ -2,7 +2,12 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import hw from '@/api/api.ts';
 import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
-import type { Lesson, Substitution, TimeSlot } from '@/modules/schedule/types';
+import type {
+  Lesson,
+  ScheduleRow,
+  Substitution,
+  TimeSlot,
+} from '@/modules/schedule/types';
 import { useI18n } from 'vue-i18n';
 import { parseTimeOfDay } from '@/utils/time';
 
@@ -313,6 +318,44 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
     return slots;
   });
 
+  const scheduleRows = computed<ScheduleRow[]>(() => {
+    const rows: ScheduleRow[] = [];
+    let gridRow = 2;
+    for (let slot = 1; slot <= totalSlots.value; slot++) {
+      const startMins = slotStartMinutes.value[slot] ?? 0;
+      rows.push({
+        kind: 'lesson',
+        gridRow: gridRow++,
+        slot,
+        startTime: formatTime(startMins),
+      });
+
+      const durationMins = breaks.value[slot] ?? 0;
+      if (durationMins > 0 && slot < totalSlots.value) {
+        rows.push({
+          kind: 'break',
+          gridRow: gridRow++,
+          afterSlot: slot,
+          startTime: formatTime(startMins + lessonDurationMins.value),
+          durationMins,
+        });
+      }
+    }
+    return rows;
+  });
+
+  const lessonGridRows = computed(() => {
+    const map = new Map<number, number>();
+    scheduleRows.value.forEach((row) => {
+      if (row.kind === 'lesson') map.set(row.slot, row.gridRow);
+    });
+    return map;
+  });
+
+  const gridRowOfSlot = (slot: number): number =>
+    lessonGridRows.value.get(slot) ??
+    slot + 1 + (scheduleRows.value.length - totalSlots.value);
+
   const groupedLessons = computed(() => {
     const groups: Record<string, Lesson[]> = {};
     effectiveLessons.value.forEach((lesson) => {
@@ -323,7 +366,10 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
     return groups;
   });
 
-  const getGroupStyle = (groupLessons: Lesson[]) => {
+  const buildGroupStyle = (
+    groupLessons: Lesson[],
+    rowOfSlot: (slot: number) => number,
+  ) => {
     if (!groupLessons.length) return {};
     const firstLesson = groupLessons[0];
     if (!firstLesson) return {};
@@ -332,16 +378,23 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
     );
     const dayIndex = days.indexOf(firstLesson.day);
     const colStart = dayIndex + 2;
-    const rowStart = firstLesson.slot + 1;
+    const rowStart = rowOfSlot(firstLesson.slot);
+    const rowEnd = rowOfSlot(firstLesson.slot + maxDuration - 1) + 1;
     const minHeight = Math.max(58, groupLessons.length * 54);
     return {
       '--col-desktop': `${colStart} / span 1`,
       '--col-mobile': `${colStart - 1} / span 1`,
       gridColumn: `var(--col-desktop)`,
-      gridRow: `${rowStart} / span ${maxDuration}`,
+      gridRow: `${rowStart} / ${rowEnd}`,
       minHeight: `${minHeight}px`,
     } as Record<string, string>;
   };
+
+  const getGroupStyle = (groupLessons: Lesson[]) =>
+    buildGroupStyle(groupLessons, (slot) => slot + 1);
+
+  const getGroupStyleWithBreaks = (groupLessons: Lesson[]) =>
+    buildGroupStyle(groupLessons, gridRowOfSlot);
 
   const now = ref(new Date());
 
@@ -502,12 +555,15 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
     days,
     weekDates,
     timeSlots,
+    scheduleRows,
     groupedLessons,
     currentDay,
     activeOrNextGroupKey,
     defaultDayIndex,
     getDisplayName,
     getGroupStyle,
+    getGroupStyleWithBreaks,
+    gridRowOfSlot,
     formatDayName,
     lessons,
     substitutions,

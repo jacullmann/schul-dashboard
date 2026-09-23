@@ -6,7 +6,7 @@ const { width: windowWidth } = useWindowSize();
 
 defineProps<{
   col: number;
-  row: number;
+  gridRow: number;
 }>();
 </script>
 
@@ -17,7 +17,7 @@ defineProps<{
       '--col-desktop': `${col + 1} / span 1`,
       '--col-mobile': `${col} / span 1`,
       gridColumn: 'var(--col-desktop)',
-      gridRow: `${row + 1} / span 1`,
+      gridRow: `${gridRow} / span 1`,
     }"
   >
     <BaseSkeleton
