@@ -185,6 +185,7 @@ const {
           id="description"
           v-model="description"
           rows="4"
+          auto-grow
           :aria-describedby="descriptionError ? 'description-error' : undefined"
         ></BaseMarkdownTextarea>
       </BaseFormGroup>

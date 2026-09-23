@@ -7,10 +7,12 @@ const props = withDefaults(
     id: string;
     required?: boolean;
     rows?: string | number;
+    autoGrow?: boolean;
   }>(),
   {
     required: false,
     rows: '4',
+    autoGrow: false,
   },
 );
 
@@ -338,6 +340,8 @@ defineExpose({
       ref="textareaRef"
       v-model="model"
       class="custom-textarea resize-vertical block! w-full bg-transparent outline-none shadow-none"
+      :class="{ 'auto-grow': props.autoGrow }"
+      :style="props.autoGrow ? { '--max-rows': props.rows } : undefined"
       :rows="props.rows"
       :aria-required="props.required"
       v-bind="$attrs"
@@ -389,6 +393,16 @@ defineExpose({
   z-index: 2 !important;
   color: transparent;
   caret-color: var(--color-on-ghost) !important;
+}
+
+/* Browsers without field-sizing keep the fixed `rows` height */
+@supports (field-sizing: content) {
+  .custom-textarea.auto-grow {
+    field-sizing: content;
+    min-height: calc(1lh + 16px);
+    max-height: calc(var(--max-rows) * 1lh + 16px);
+    resize: none;
+  }
 }
 
 .custom-textarea::placeholder {
