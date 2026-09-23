@@ -79,12 +79,14 @@
         "label": "Type",
         "description": "The group type decides how subjects and the schedule work.",
         "options": {
-          "regular": "Regular group",
-          "abitur": "Abitur group"
-        },
-        "hints": {
-          "regular": "One class that attends its subjects together. Subjects are core, elective or extra subjects.",
-          "abitur": "A whole year. Subjects are core, elective or additional subjects, every one of them has courses, and each course is a GK or an LK and is scheduled on its own."
+          "regular": {
+            "title": "Standard group",
+            "description": "Grades 1–10, simple control over subjects and the schedule for individual classes"
+          },
+          "abitur": {
+            "title": "Abitur group",
+            "description": "Upper school, advanced control over courses and schedules for whole year groups"
+          }
         },
         "modal": {
           "title": "Change group type?",

@@ -540,6 +540,11 @@ p {
     opacity: 1;
     transition: clip-path 0.4s cubic-bezier(0.25, 1, 0.5, 1);
   }
+  /* A round box is fully covered at 50%; growing past its edge would spend
+     most of the transition invisibly. */
+  .checkbox-checked .checkbox-bg-clip-round {
+    clip-path: circle(50% at 50% 50%);
+  }
 
   .fade-scale-enter-active {
     transition: opacity 250ms ease-out;

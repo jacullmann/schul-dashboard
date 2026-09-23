@@ -8,8 +8,9 @@ import { useModalStore } from '@/stores/modalStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import hw from '../../../api/api';
 import GroupAvatarCropper from './GroupAvatarCropper.vue';
+import GroupTypeRadioGroup from './GroupTypeRadioGroup.vue';
 import Avatar from '@/modules/auth/components/Avatar.vue';
-import { GROUP_TYPES, toGroupType, type GroupType } from '@/types/groups';
+import type { GroupType } from '@/types/groups';
 
 const modalStore = useModalStore();
 const { t } = useI18n();
@@ -50,13 +51,6 @@ const groupTypeInput = ref<GroupType>(activeGroupType.value);
 watch(activeGroupType, (type) => {
   groupTypeInput.value = type;
 });
-
-const groupTypeOptions = computed(() =>
-  GROUP_TYPES.map((type) => ({
-    value: type,
-    label: t(`groups.settings.general.group_type.options.${type}`),
-  })),
-);
 
 const groupTypeChanged = computed(
   () => groupTypeInput.value !== activeGroupType.value,
@@ -402,26 +396,10 @@ async function confirmDeleteGroup() {
       </p>
 
       <BaseFormContent class="max-w-120">
-        <BaseFormGroup id="group-type">
-          <BaseLabel for="group-type">{{
-            t('groups.settings.general.group_type.label')
-          }}</BaseLabel>
-          <BaseSelect
-            id="group-type"
-            :model-value="groupTypeInput"
-            class="w-full"
-            :disabled="!canEditGroupType || savingGroupType"
-            :options="groupTypeOptions"
-            @update:model-value="
-              (value) => (groupTypeInput = toGroupType(value))
-            "
-          />
-          <span class="text-xs text-on-ghost-muted mt-1">
-            {{
-              t(`groups.settings.general.group_type.hints.${groupTypeInput}`)
-            }}
-          </span>
-        </BaseFormGroup>
+        <GroupTypeRadioGroup
+          v-model="groupTypeInput"
+          :disabled="!canEditGroupType || savingGroupType"
+        />
 
         <BaseRow
           v-if="canEditGroupType"

@@ -79,12 +79,14 @@
         "label": "Typ",
         "description": "Der Gruppentyp bestimmt, wie Fächer und der Stundenplan funktionieren.",
         "options": {
-          "regular": "Reguläre Gruppe",
-          "abitur": "Abitur-Gruppe"
-        },
-        "hints": {
-          "regular": "Eine Klasse, die ihre Fächer gemeinsam hat. Fächer sind Pflicht-, Wahl- oder Zusatzfächer.",
-          "abitur": "Ein ganzer Jahrgang. Fächer sind Pflichtfächer, Wahlfächer oder Zusatzkurse, jedes hat Kurse, und jeder Kurs ist ein GK oder LK und wird einzeln eingeplant."
+          "regular": {
+            "title": "Standard-Gruppe",
+            "description": "1.–10. Klasse, einfache Steuerung für Fächer und Stundenplan für einzelne Klassen"
+          },
+          "abitur": {
+            "title": "Abitur-Gruppe",
+            "description": "Oberstufe, fortgeschrittene Kontrolle über Kurse und Stundenpläne für ganze Jahrgänge"
+          }
         },
         "modal": {
           "title": "Gruppentyp ändern?",
