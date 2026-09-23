@@ -38,6 +38,12 @@ const loadedSlides = ref<Record<number, boolean>>({});
 const measuredSizes = ref<Record<number, { w: number; h: number }>>({});
 let hideTimeout: ReturnType<typeof setTimeout> | null = null;
 let zooming = false;
+// Set once the close has taken over, so an open that is cut short does not
+// finish its own bookkeeping on an element that is already on its way out.
+let leaving = false;
+// The dim of the open. A swipe that starts while it still runs takes the dim
+// over, so it has to be able to stop it where it is.
+let openDimAnimation: Animation | null = null;
 let pendingSize: { index: number; w: number; h: number } | null = null;
 
 const { width: windowWidth, height: windowHeight } = useWindowSize();
@@ -317,6 +323,9 @@ function prev() {
 const dismissOffset = ref(0);
 const dismissSideways = ref(0);
 const dismissTransition = ref<string | null>(null);
+// How far the dim had got when a swipe caught the open halfway, 1 being the
+// backdrop at rest. The swipe fades from there instead of from full strength.
+const openDim = ref(1);
 let dismissTimer: ReturnType<typeof setTimeout> | null = null;
 
 // Follows the finger less and less the further out it goes, and never reaches
@@ -363,10 +372,18 @@ const stageStyle = computed(() => ({
 }));
 
 const backdropStyle = computed(() => {
-  if (!dismissProgress.value && !dismissTransition.value) return undefined;
+  if (
+    !dismissProgress.value &&
+    !dismissTransition.value &&
+    openDim.value === 1
+  ) {
+    return undefined;
+  }
 
   return {
-    ...dimAt(1 - dismissProgress.value * DISMISS_BACKDROP_FADE),
+    ...dimAt(
+      openDim.value * (1 - dismissProgress.value * DISMISS_BACKDROP_FADE),
+    ),
     transition: dismissTransition.value
       ? `background-color ${DISMISS_RETURN_DURATION}ms ease, backdrop-filter ${DISMISS_RETURN_DURATION}ms ease`
       : 'none',
@@ -385,6 +402,24 @@ function resetDismiss() {
   dismissOffset.value = 0;
   dismissSideways.value = 0;
   dismissTransition.value = null;
+  openDim.value = 1;
+}
+
+// A swipe that starts while the viewer is still opening takes the dim over
+// where the open has got it to, so the backdrop answers the finger right away
+// instead of only once the open is done.
+function takeOverOpenDim() {
+  const animation = openDimAnimation;
+  if (!animation || animation.playState === 'finished') return;
+
+  const backdrop = overlayRef.value?.$el as HTMLElement | undefined;
+  if (backdrop) {
+    const alpha = colorAlpha(getComputedStyle(backdrop).backgroundColor);
+    openDim.value = Math.min(1, Math.max(0, alpha / DIM_ALPHA));
+  }
+
+  openDimAnimation = null;
+  animation.cancel();
 }
 
 // Slide gesture ----------------------------------------------------------
@@ -407,7 +442,9 @@ let dragMoved = false;
 let dragEndedAt = 0;
 
 function onSlideStart(e: TouchEvent) {
-  if (zooming || e.touches.length !== 1) return;
+  // The open does not lock the gesture out: the frame keeps growing on its
+  // own layer while the stage above it follows the finger.
+  if (e.touches.length !== 1) return;
 
   const touch = e.touches[0];
   if (!touch) return;
@@ -456,6 +493,7 @@ function onSlideMove(e: TouchEvent) {
       return;
     }
     dragAxis = Math.abs(deltaX) > Math.abs(deltaY) ? 'x' : 'y';
+    if (dragAxis === 'y') takeOverOpenDim();
   }
 
   if (e.cancelable) e.preventDefault();
@@ -570,6 +608,8 @@ function onDismissEnd() {
   dismissTransition.value = `transform ${DISMISS_RETURN_DURATION}ms ${DISMISS_RETURN_EASING}`;
   dismissOffset.value = 0;
   dismissSideways.value = 0;
+  // A swipe that caught the open halfway gives the dim back in full.
+  openDim.value = 1;
 
   clearDismissTimer();
   dismissTimer = setTimeout(() => {
@@ -640,29 +680,14 @@ function originTile(): HTMLElement | null {
   return el;
 }
 
-// The tile sits right under the frame for the whole animation, so a hidden
-// tile keeps its edge from peeking out along the way.
-function hideTile(tile: HTMLElement) {
-  tile.style.visibility = 'hidden';
-  return () => {
-    tile.style.visibility = '';
-  };
-}
-
 // The frame is squashed onto the tile, so the image inside it is counter
 // scaled back to a uniform ratio. That keeps the picture undistorted while the
 // frame crops it exactly like the tile does.
-// `stageScale` is what the dismiss gesture left on the stage above the frame.
-// The frame's own translation is measured on screen but applied underneath
-// that scale, so it has to be divided back out or the frame lands short of
-// its tile.
-function zoomKeyframes(tile: DOMRect, frame: DOMRect, stageScale = 1) {
+function zoomKeyframes(tile: DOMRect, frame: DOMRect) {
   const sx = tile.width / frame.width;
   const sy = tile.height / frame.height;
-  const dx =
-    (tile.left + tile.width / 2 - (frame.left + frame.width / 2)) / stageScale;
-  const dy =
-    (tile.top + tile.height / 2 - (frame.top + frame.height / 2)) / stageScale;
+  const dx = tile.left + tile.width / 2 - (frame.left + frame.width / 2);
+  const dy = tile.top + tile.height / 2 - (frame.top + frame.height / 2);
   const cover = Math.max(sx, sy);
 
   return {
@@ -697,25 +722,125 @@ function zoomKeyframes(tile: DOMRect, frame: DOMRect, stageScale = 1) {
       { offset: HANDOVER, opacity: 0 },
       { offset: 1, opacity: 0 },
     ],
-    // Not the reverse of the above: reversing it would put the crossfade in
-    // the slow tail instead of the fast opening stretch of the close.
-    thumbClose: [
-      { offset: 0, opacity: 0 },
-      { offset: CLOSE_HANDOVER, opacity: 1 },
-      { offset: 1, opacity: 1 },
-    ],
   };
 }
 
-// Plays a keyframe list backwards, offsets included, for the close animation.
-function reversed(keyframes: Keyframe[]): Keyframe[] {
-  return [...keyframes]
-    .reverse()
-    .map((keyframe) =>
-      typeof keyframe.offset === 'number'
-        ? { ...keyframe, offset: 1 - keyframe.offset }
-        : keyframe,
-    );
+// Where the frame is on its way between the tile and full size, in its own
+// units. At rest that is no offset, a scale of 1 and the frame's own corners.
+interface FrameState {
+  dx: number;
+  dy: number;
+  sx: number;
+  sy: number;
+  rx: number;
+  ry: number;
+  // The scale the picture is drawn at relative to the frame at rest, which the
+  // counter scale keeps uniform.
+  uniform: number;
+}
+
+function matrixOf(el: Element | null) {
+  if (!el) return new DOMMatrixReadOnly();
+  try {
+    const transform = getComputedStyle(el).transform;
+    return !transform || transform === 'none'
+      ? new DOMMatrixReadOnly()
+      : new DOMMatrixReadOnly(transform);
+  } catch {
+    return new DOMMatrixReadOnly();
+  }
+}
+
+// The alpha of a computed colour: `rgba(r, g, b, a)`, `rgb(r g b / a)` or a
+// plain `rgb(...)`, which is opaque.
+function colorAlpha(color: string) {
+  if (!color || color === 'transparent') return 0;
+  const numbers = color.match(/-?[\d.]+(e-?\d+)?%?/g) ?? [];
+  if (numbers.length < 4) return 1;
+  const alpha = numbers[3]!;
+  return alpha.endsWith('%') ? parseFloat(alpha) / 100 : parseFloat(alpha);
+}
+
+// Read off the screen rather than from the animation, so a close that cuts
+// into the open, or into a swipe on its way back, starts exactly where the
+// frame is drawn.
+function frameState(frame: HTMLElement, inner: HTMLElement): FrameState {
+  const f = matrixOf(frame);
+  const i = matrixOf(inner);
+  const radius = getComputedStyle(frame)
+    .borderTopLeftRadius.split(/\s+/)
+    .map((value) => parseFloat(value));
+  const rx = Number.isFinite(radius[0]) ? radius[0]! : FRAME_RADIUS;
+  const ry = Number.isFinite(radius[1]) ? radius[1]! : rx;
+
+  return {
+    dx: f.e,
+    dy: f.f,
+    sx: f.a || 1,
+    sy: f.d || 1,
+    rx,
+    ry,
+    uniform: (i.a || 1) * (f.a || 1),
+  };
+}
+
+// The way into the tile, from wherever the frame is: at rest, still growing
+// out of the tile, or pushed away by the swipe. `frame` is the frame's rect
+// with no animation on it. `stageScale` is what the dismiss gesture left on
+// the stage above the frame. The frame's own translation is measured on screen
+// but applied underneath that scale, so it has to be divided back out or the
+// frame lands short of its tile.
+function closeKeyframes(
+  tile: DOMRect,
+  frame: DOMRect,
+  from: FrameState,
+  stageScale = 1,
+) {
+  const sx = tile.width / frame.width;
+  const sy = tile.height / frame.height;
+  const dx =
+    (tile.left + tile.width / 2 - (frame.left + frame.width / 2)) / stageScale;
+  const dy =
+    (tile.top + tile.height / 2 - (frame.top + frame.height / 2)) / stageScale;
+  const cover = Math.max(sx, sy);
+
+  return {
+    frame: [
+      {
+        transform: `translate(${from.dx}px, ${from.dy}px) scale(${from.sx}, ${from.sy})`,
+        borderRadius: `${from.rx}px / ${from.ry}px`,
+      },
+      {
+        transform: `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`,
+        borderRadius: `${THUMB_RADIUS / sx}px / ${THUMB_RADIUS / sy}px`,
+      },
+    ],
+    // Sampled along the frame's path for the same reason as on the way in.
+    inner: Array.from({ length: ZOOM_SAMPLES + 1 }, (_, step) => {
+      const progress = step / ZOOM_SAMPLES;
+      const frameX = from.sx + (sx - from.sx) * progress;
+      const frameY = from.sy + (sy - from.sy) * progress;
+      const uniform = from.uniform + (cover - from.uniform) * progress;
+
+      return {
+        offset: progress,
+        transform: `scale(${uniform / frameX}, ${uniform / frameY})`,
+      };
+    }),
+  };
+}
+
+// Back to the thumbnail before the frame reaches the tile, so what lands is
+// the tile itself rather than an image that has to match it. Not the reverse
+// of the open: that would put the crossfade in the slow tail instead of the
+// fast opening stretch of the close. It starts from whatever the thumbnail
+// shows right now, which after a cut short open may be anything in between.
+function thumbCloseKeyframes(from: number): Keyframe[] {
+  return [
+    { offset: 0, opacity: from },
+    { offset: CLOSE_HANDOVER, opacity: 1 },
+    { offset: 1, opacity: 1 },
+  ];
 }
 
 // The dim at a given strength, 1 being the backdrop at rest. Only the colour
@@ -763,16 +888,37 @@ function controlsKeyframes(): Keyframe[] {
   return [{ opacity: 0 }, { opacity: 1 }];
 }
 
+// allSettled, not all: a cancelled animation rejects its promise straight
+// away, which would otherwise end the whole group while the rest still runs.
 function settle(animations: Animation[], done: () => void) {
-  Promise.all(animations.map((animation) => animation.finished))
-    .catch(() => undefined)
-    .finally(done);
+  void Promise.allSettled(
+    animations.map((animation) => animation.finished),
+  ).then(done);
+}
+
+function cancelAnimations(el: Element | null | undefined) {
+  el?.getAnimations().forEach((animation) => animation.cancel());
+}
+
+// Once the viewer is on its way out Vue no longer patches it, so a slide or a
+// swipe that was still easing back would carry on under the close and pull
+// the frame off the path it was measured for. Pinned where they are drawn,
+// they hold still for it.
+function freezeAt(el: HTMLElement | null) {
+  if (!el) return;
+  const transform = getComputedStyle(el).transform;
+  el.style.transition = 'none';
+  el.style.transform = transform || 'none';
 }
 
 async function onEnter(el: Element, done: () => void) {
   const backdrop = el as HTMLElement;
+  leaving = false;
 
   await nextTick();
+
+  // Closed again before the open had even started.
+  if (leaving) return;
 
   const parts = zoomParts(backdrop);
   const tile = parts ? originTile() : null;
@@ -799,8 +945,9 @@ async function onEnter(el: Element, done: () => void) {
     tile.getBoundingClientRect(),
     parts.frame.getBoundingClientRect(),
   );
+  openDimAnimation = backdrop.animate(dimKeyframes(), options);
   const animations = [
-    backdrop.animate(dimKeyframes(), options),
+    openDimAnimation,
     parts.frame.animate(keyframes.frame, options),
     parts.inner.animate(keyframes.inner, options),
   ];
@@ -815,11 +962,22 @@ async function onEnter(el: Element, done: () => void) {
     animations.push(parts.controls.animate(controlsKeyframes(), options));
   }
 
-  const showTile = hideTile(tile);
+  // The tile stays where it is the whole time: what grows out of it is the
+  // viewer's own copy of the picture, and it lands back on the tile at the
+  // end of the close.
   zooming = true;
 
   settle(animations, () => {
     zooming = false;
+    openDimAnimation = null;
+
+    // A close cut the open short and has taken over from here.
+    if (leaving) {
+      pendingSize = null;
+      done();
+      return;
+    }
+
     if (pendingSize) {
       measuredSizes.value[pendingSize.index] = {
         w: pendingSize.w,
@@ -827,7 +985,6 @@ async function onEnter(el: Element, done: () => void) {
       };
       pendingSize = null;
     }
-    showTile();
     // The controls are already up; this only starts the idle timer that takes
     // them away again.
     showControls();
@@ -837,25 +994,69 @@ async function onEnter(el: Element, done: () => void) {
 
 function onLeave(el: Element, done: () => void) {
   const backdrop = el as HTMLElement;
+  leaving = true;
+  zooming = false;
+  openDimAnimation = null;
+
+  if (hideTimeout) clearTimeout(hideTimeout);
+
+  const stage = backdrop.querySelector<HTMLElement>('[data-viewer-stage]');
+  freezeAt(stage);
+  freezeAt(backdrop.querySelector<HTMLElement>('[data-viewer-track]'));
+
   const parts = zoomParts(backdrop);
   const tile = parts ? originTile() : null;
 
-  if (hideTimeout) clearTimeout(hideTimeout);
+  // Everything is picked up from where it is drawn right now, before the
+  // animations that put it there are taken off. The open may still be
+  // running, or a swipe may have faded the dim and moved the stage.
+  const backdropStyle = getComputedStyle(backdrop);
+  const dimFrom: Keyframe = {
+    backgroundColor: backdropStyle.backgroundColor,
+    backdropFilter: backdropStyle.backdropFilter,
+    webkitBackdropFilter: backdropStyle.backdropFilter,
+  };
+  const opacityFrom = Number(backdropStyle.opacity);
 
   if (!tile || !parts) {
     // The whole backdrop fades, controls included.
     controlsVisible.value = false;
+    cancelAnimations(backdrop);
 
     settle(
       [
-        backdrop.animate([{ opacity: 1 }, { opacity: 0 }], {
+        backdrop.animate([{ opacity: opacityFrom }, { opacity: 0 }], {
           duration: FADE_DURATION,
           easing: 'ease',
+          fill: 'forwards',
         }),
       ],
       done,
     );
     return;
+  }
+
+  const from = frameState(parts.frame, parts.inner);
+  const thumbFrom = parts.thumb
+    ? Number(getComputedStyle(parts.thumb).opacity)
+    : 1;
+  const controlsStyle = parts.controls
+    ? getComputedStyle(parts.controls)
+    : null;
+  const controlsFrom =
+    controlsStyle && controlsStyle.display !== 'none'
+      ? Number(controlsStyle.opacity)
+      : 0;
+  const stageScale = matrixOf(stage).a || 1;
+
+  for (const part of [
+    backdrop,
+    parts.frame,
+    parts.inner,
+    parts.thumb,
+    parts.controls,
+  ]) {
+    cancelAnimations(part);
   }
 
   // Held at the end state, otherwise the frame snaps back to full size for the
@@ -865,42 +1066,38 @@ function onLeave(el: Element, done: () => void) {
     easing: CLOSE_EASING,
     fill: 'forwards',
   };
-  const keyframes = zoomKeyframes(
+  // Measured with the open taken off, so this is the frame's resting rect
+  // under whatever the swipe left on the stage.
+  const keyframes = closeKeyframes(
     tile.getBoundingClientRect(),
     parts.frame.getBoundingClientRect(),
-    dismissScale.value,
+    from,
+    stageScale,
   );
   const animations = [
-    // From the dim the gesture left behind, not from full strength, so a
-    // close that starts mid-drag does not put the dim back first.
-    backdrop.animate(
-      [dimAt(1 - dismissProgress.value * DISMISS_BACKDROP_FADE), dimAt(0)],
-      options,
-    ),
-    parts.frame.animate(reversed(keyframes.frame), options),
-    parts.inner.animate(reversed(keyframes.inner), options),
+    backdrop.animate([dimFrom, dimAt(0)], options),
+    parts.frame.animate(keyframes.frame, options),
+    parts.inner.animate(keyframes.inner, options),
   ];
 
-  // Back to the thumbnail before the frame reaches the tile, so what lands is
-  // the tile itself rather than an image that has to match it.
-  if (parts.thumb && fullLoaded.value) {
-    animations.push(parts.thumb.animate(keyframes.thumbClose, options));
+  if (parts.thumb) {
+    animations.push(
+      parts.thumb.animate(thumbCloseKeyframes(thumbFrom), options),
+    );
   }
 
   // Controls the idle timer has already taken away are gone, and fading a
   // hidden element would only hold it in the layout for nothing.
-  if (parts.controls && controlsVisible.value) {
+  if (parts.controls && controlsFrom > 0) {
     animations.push(
-      parts.controls.animate(reversed(controlsKeyframes()), options),
+      parts.controls.animate(
+        [{ opacity: controlsFrom }, { opacity: 0 }],
+        options,
+      ),
     );
   }
 
-  const showTile = hideTile(tile);
-
-  settle(animations, () => {
-    showTile();
-    done();
-  });
+  settle(animations, done);
 }
 
 function onFullLoad(event: Event, index: number) {
