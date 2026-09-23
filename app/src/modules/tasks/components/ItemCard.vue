@@ -80,6 +80,7 @@ const cardStyle = computed(() => {
 });
 
 const transitionDuration = '350ms';
+
 const transitionEasing = 'cubic-bezier(0.25, 1, 0.5, 1)';
 
 function onEnter(el: Element) {
