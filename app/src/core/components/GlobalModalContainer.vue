@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { defineAsyncComponent, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useToast } from '@/common/composables/useToast';
@@ -10,18 +11,49 @@ import { useLogout } from '@/core/composables/useLogout';
 import { useOAuth } from '@/modules/auth/composables/useOAuth';
 import { consumePendingInviteRoute } from '@/modules/auth/utils/pendingInvite';
 
-import GoogleLinkModal from '@/modules/auth/components/GoogleLinkModal.vue';
-import MfaVerifyModal from '@/modules/auth/components/MfaVerifyModal.vue';
-import SearchModal from '@/core/components/SearchModal.vue';
-import TaskForm from '@/modules/tasks/components/TaskForm.vue';
-import PrivateTaskForm from '@/modules/tasks/components/PrivateTaskForm.vue';
-import ChangePasswordModal from '@/modules/auth/components/ChangePasswordModal.vue';
-import DeleteAccountModal from '@/modules/auth/components/DeleteAccountModal.vue';
-import EditCoursesModal from '@/modules/auth/components/EditCoursesModal.vue';
-import CreateGroupModal from '@/modules/auth/components/CreateGroupModal.vue';
-import InviteModal from '@/modules/auth/components/InviteModal.vue';
-import AnnouncementForm from '@/modules/announcements/components/AnnouncementForm.vue';
-import ImageViewer from '@/modules/tasks/components/ImageViewer.vue';
+// Modals are split out of the entry chunk so they never delay first paint.
+// The v-if ones are prefetched on mount so opening them stays instant.
+const loadSearchModal = () => import('@/core/components/SearchModal.vue');
+const loadMfaVerifyModal = () =>
+  import('@/modules/auth/components/MfaVerifyModal.vue');
+
+const SearchModal = defineAsyncComponent(loadSearchModal);
+const MfaVerifyModal = defineAsyncComponent(loadMfaVerifyModal);
+const GoogleLinkModal = defineAsyncComponent(
+  () => import('@/modules/auth/components/GoogleLinkModal.vue'),
+);
+const TaskForm = defineAsyncComponent(
+  () => import('@/modules/tasks/components/TaskForm.vue'),
+);
+const PrivateTaskForm = defineAsyncComponent(
+  () => import('@/modules/tasks/components/PrivateTaskForm.vue'),
+);
+const ChangePasswordModal = defineAsyncComponent(
+  () => import('@/modules/auth/components/ChangePasswordModal.vue'),
+);
+const DeleteAccountModal = defineAsyncComponent(
+  () => import('@/modules/auth/components/DeleteAccountModal.vue'),
+);
+const EditCoursesModal = defineAsyncComponent(
+  () => import('@/modules/auth/components/EditCoursesModal.vue'),
+);
+const CreateGroupModal = defineAsyncComponent(
+  () => import('@/modules/auth/components/CreateGroupModal.vue'),
+);
+const InviteModal = defineAsyncComponent(
+  () => import('@/modules/auth/components/InviteModal.vue'),
+);
+const AnnouncementForm = defineAsyncComponent(
+  () => import('@/modules/announcements/components/AnnouncementForm.vue'),
+);
+const ImageViewer = defineAsyncComponent(
+  () => import('@/modules/tasks/components/ImageViewer.vue'),
+);
+
+onMounted(() => {
+  void loadSearchModal().catch(() => {});
+  void loadMfaVerifyModal().catch(() => {});
+});
 
 const { t } = useI18n();
 const router = useRouter();

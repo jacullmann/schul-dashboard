@@ -4,7 +4,6 @@ import hw from '@/api/api.ts';
 import { processImageBeforeUpload } from '@/modules/tasks/composables/useConvertImage';
 import { useToast } from '@/common/composables/useToast';
 import type { ImageItem } from '@/modules/tasks/types';
-import JSZip from 'jszip';
 
 export type { ImageItem };
 
@@ -18,6 +17,7 @@ const uploadSuccess = ref(false);
 
 export async function extractOfficeThumbnail(file: File): Promise<File | null> {
   try {
+    const { default: JSZip } = await import('jszip');
     const zip = await JSZip.loadAsync(file);
     const possiblePaths = [
       'docProps/thumbnail.jpeg',

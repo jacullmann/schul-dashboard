@@ -175,7 +175,6 @@ let contentResizeObserver: ResizeObserver | null = null;
 
 onMounted(() => {
   checkOverflow();
-  window.addEventListener('resize', checkOverflow);
 
   if (contentRef.value) {
     contentResizeObserver = new ResizeObserver(() => {
@@ -186,7 +185,6 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  window.removeEventListener('resize', checkOverflow);
   if (contentResizeObserver) {
     contentResizeObserver.disconnect();
   }

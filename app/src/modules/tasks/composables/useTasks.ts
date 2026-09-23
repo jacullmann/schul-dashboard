@@ -301,27 +301,23 @@ export function useTasks() {
     }
   });
 
-  watch(
-    user,
-    async (newUser, oldUser) => {
-      if (newUser && !oldUser) {
-        await Promise.all([
-          list.loadCheckedForMe(),
-          actions.loadPinnedForMe(),
-          list.loadVisibilityForMe(),
-        ]);
-        void reload();
-      }
-      if (!newUser && oldUser) {
-        checkedItems.value = new Set();
-        pinnedItems.value = new Set();
-        archivedItems.value = new Set();
-        keptItems.value = new Set();
-        void reload();
-      }
-    },
-    { deep: true },
-  );
+  watch(user, async (newUser, oldUser) => {
+    if (newUser && !oldUser) {
+      await Promise.all([
+        list.loadCheckedForMe(),
+        actions.loadPinnedForMe(),
+        list.loadVisibilityForMe(),
+      ]);
+      void reload();
+    }
+    if (!newUser && oldUser) {
+      checkedItems.value = new Set();
+      pinnedItems.value = new Set();
+      archivedItems.value = new Set();
+      keptItems.value = new Set();
+      void reload();
+    }
+  });
 
   onMounted(async () => {
     await subjectStore.loadSubjects();

@@ -5,7 +5,6 @@ import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useModalStore } from '@/stores/modalStore';
 import { Copy, Check, RefreshCw } from '@lucide/vue';
 import { useToast } from '@/common/composables/useToast';
-import QRCode from 'qrcode';
 
 const { t } = useI18n();
 const auth = useAppAuth();
@@ -49,6 +48,7 @@ watch(
       return;
     }
     try {
+      const { default: QRCode } = await import('qrcode');
       qrCodeUrl.value = await QRCode.toDataURL(newUrl, {
         width: 200,
         margin: 2,
