@@ -250,7 +250,7 @@ function onDrop(e: DragEvent) {
             @leave="onLeave"
           >
             <div v-show="!isCollapsed" class="overflow-hidden">
-              <div class="flex flex-wrap gap-1 items-center justify-start">
+              <div class="flex flex-wrap gap-1 items-center justify-start mt-1">
                 <slot name="badges"></slot>
               </div>
             </div>
