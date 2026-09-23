@@ -39,13 +39,13 @@ const emit = defineEmits<{
 
 <template>
   <div
-    class="group bg-surface rounded-md max-[500px]:rounded-lg border border-ghost-border flex flex-col overflow-hidden z-[2] transition-colors duration-300 shadow-input"
+    class="group bg-surface rounded-md max-[500px]:rounded-lg border border-ghost-border flex flex-col overflow-hidden z-[2] shadow-input"
     :class="[
       animated ? 'animate-fade-up' : '',
       isActive
         ? 'highlight-active bg-action! border-action!'
         : isCurrentDay
-          ? 'current-day min-[501px]:border-surface-hover-border'
+          ? 'current-day min-[501px]:border-surface-hover-border min-[501px]:bg-linear-to-b min-[501px]:from-ghost-border min-[501px]:to-ghost-border'
           : '',
       'min-[501px]:[grid-column:var(--col-desktop)]',
       'max-[500px]:![grid-column:var(--col-mobile)] max-[500px]:[scroll-snap-align:start] max-[500px]:[scroll-margin-left:0]',

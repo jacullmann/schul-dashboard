@@ -60,7 +60,7 @@ function onClick(event: MouseEvent) {
         <span class="line-through truncate">{{ getDisplayName(lesson) }}</span>
         <span
           v-if="lesson.courseCount && lesson.courseCount > 1"
-          class="text-[9px] shrink-0 inline-block px-1.5 py-0.5 rounded bg-ghost-hover text-on-ghost-muted font-semibold truncate max-w-full"
+          class="text-[9px] shrink-0 inline-block px-1.5 py-0.5 rounded bg-ghost-hover text-on-ghost-muted font-semibold truncate max-w-full group-[.highlight-active]:bg-on-action/10! group-[.highlight-active]:text-on-action-muted!"
           :class="
             isSelected
               ? 'min-[501px]:text-on-action-muted min-[501px]:bg-on-action/10'
@@ -71,7 +71,7 @@ function onClick(event: MouseEvent) {
         </span>
         <span
           v-else-if="lesson.courseName || lesson.courses?.name"
-          class="text-[9px] shrink-0 inline-block px-1.5 py-0.5 rounded bg-ghost-hover text-on-ghost-muted font-semibold truncate max-w-full"
+          class="text-[9px] shrink-0 inline-block px-1.5 py-0.5 rounded bg-ghost-hover text-on-ghost-muted font-semibold truncate max-w-full group-[.highlight-active]:bg-on-action/10! group-[.highlight-active]:text-on-action-muted!"
           :class="
             isSelected
               ? 'min-[501px]:text-on-action-muted min-[501px]:bg-on-action/10'
@@ -142,7 +142,7 @@ function onClick(event: MouseEvent) {
 
         <span
           v-if="lesson.courseCount && lesson.courseCount > 1"
-          class="text-sm shrink-0 inline-block px-2.5 py-0.5 ml-2 rounded-full font-semibold max-w-full"
+          class="text-sm shrink-0 inline-block px-2.5 py-0.5 ml-2 rounded-full font-semibold max-w-full group-[.highlight-active]:bg-on-action/15! group-[.highlight-active]:text-on-action-muted!"
           :class="
             isSelected
               ? 'min-[501px]:text-on-action-muted min-[501px]:bg-on-action/15 bg-ghost-hover text-on-ghost-muted'
@@ -153,7 +153,7 @@ function onClick(event: MouseEvent) {
         </span>
         <span
           v-else-if="lesson.courseName || lesson.courses?.name"
-          class="font-normal truncate ml-1 min-w-0 max-w-[55%]"
+          class="font-normal truncate ml-1 min-w-0 max-w-[55%] group-[.highlight-active]:text-on-action-muted!"
           :class="
             isSelected
               ? 'min-[501px]:text-on-action-muted text-on-ghost-muted'

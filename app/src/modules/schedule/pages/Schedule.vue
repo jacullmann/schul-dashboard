@@ -3,8 +3,10 @@ import { ref, computed, watch, onMounted, nextTick } from 'vue';
 import { useWindowSize } from '@vueuse/core';
 import { useSchedule } from '@/modules/schedule/composables/useSchedule';
 import { useScheduleRowSync } from '@/modules/schedule/composables/useScheduleRowSync';
+import { useScheduleDayPager } from '@/modules/schedule/composables/useScheduleDayPager';
 
 import BaseTableWrapper from '@/common/components/BaseTableWrapper.vue';
+import BaseTabs from '@/common/components/BaseTabs.vue';
 import ScheduleHeader from '../components/ScheduleHeader.vue';
 import ScheduleTimeColumn from '../components/ScheduleTimeColumn.vue';
 import ScheduleLessonGroup from '../components/ScheduleLessonGroup.vue';
@@ -29,6 +31,19 @@ const scrollContainerRef = ref<HTMLElement | null>(null);
 const daysGridWrapperRef = ref<HTMLElement | null>(null);
 
 const { width: windowWidth } = useWindowSize();
+const isCompactLayout = computed(() => windowWidth.value < 501);
+
+const { activeDayIndex, scrollToDay } = useScheduleDayPager(
+  scrollContainerRef,
+  '.day-header',
+);
+
+const dayTabs = computed(() =>
+  days.map((day, index) => ({
+    id: String(index),
+    label: formatDayName(day, 'short'),
+  })),
+);
 
 const { syncedRowHeights, syncRowHeights } =
   useScheduleRowSync(daysGridWrapperRef);
@@ -37,16 +52,8 @@ const animationStartTime = ref(Date.now());
 const elapsedLoadTime = ref(0);
 
 const scrollToDefaultDay = () => {
-  if (!scrollContainerRef.value || windowWidth.value > 500) return;
-  const dayIndex = defaultDayIndex.value;
-  const dayHeaders = scrollContainerRef.value.querySelectorAll('.day-header');
-  if (dayHeaders[dayIndex]) {
-    const header = dayHeaders[dayIndex] as HTMLElement;
-    scrollContainerRef.value.scrollTo({
-      left: header.offsetLeft,
-      behavior: 'auto',
-    });
-  }
+  if (!isCompactLayout.value) return;
+  scrollToDay(defaultDayIndex.value, 'auto');
 };
 
 watch(loadingLessons, (newVal) => {
@@ -95,6 +102,14 @@ const skeletonCells = computed(() => {
       />
     </div>
 
+    <BaseTabs
+      v-if="isCompactLayout"
+      class="animate-fade-up"
+      :items="dayTabs"
+      :active-id="String(activeDayIndex)"
+      @change="(id) => scrollToDay(Number(id))"
+    />
+
     <BaseTableWrapper class="max-[500px]:overflow-visible">
       <div
         class="grid grid-cols-[80px_repeat(5,minmax(9rem,1fr))] gap-2 items-stretch max-[500px]:flex max-[500px]:overflow-hidden max-[500px]:grid-cols-none max-[500px]:grid-rows-none"
@@ -109,13 +124,13 @@ const skeletonCells = computed(() => {
 
         <div
           ref="scrollContainerRef"
-          class="max-[500px]:rounded-lg max-[500px]:block max-[500px]:relative max-[500px]:overflow-x-auto max-[500px]:overflow-y-hidden max-[500px]:snap-x max-[500px]:snap-mandatory max-[500px]:flex-1 max-[500px]:overscroll-x-none max-[500px]:h-full [&::-webkit-scrollbar]:hidden min-[501px]:contents"
+          class="max-[500px]:rounded-lg max-[500px]:block max-[500px]:relative max-[500px]:overflow-x-auto max-[500px]:overflow-y-hidden max-[500px]:snap-x max-[500px]:snap-mandatory max-[500px]:flex-1 max-[500px]:overscroll-x-contain max-[500px]:h-full [&::-webkit-scrollbar]:hidden min-[501px]:contents"
         >
           <div
             ref="daysGridWrapperRef"
             class="max-[500px]:grid max-[500px]:grid-cols-[repeat(5,100%)] max-[500px]:gap-2 min-[501px]:contents"
             :style="
-              windowWidth < 501
+              isCompactLayout
                 ? {
                     gridTemplateRows: `auto repeat(${timeSlots.length || 9}, minmax(58px, auto))`,
                   }
@@ -125,10 +140,10 @@ const skeletonCells = computed(() => {
             <div
               v-for="day in days"
               :key="day"
-              class="day-header bg-surface border border-ghost-border text-on-ghost p-2 text-center font-bold rounded-md max-[500px]:rounded-lg text-base shadow-input min-[501px]:[grid-row:1] max-[500px]:snap-start max-[500px]:scroll-ml-0 animate-fade-up"
+              class="day-header bg-surface border border-ghost-border text-on-ghost p-2 text-center font-bold rounded-md max-[500px]:rounded-lg text-base shadow-input min-[501px]:[grid-row:1] max-[500px]:snap-start max-[500px]:snap-always max-[500px]:scroll-ml-0 animate-fade-up"
               :class="
                 day === currentDay
-                  ? 'min-[501px]:bg-ghost-border! min-[501px]:border-surface-hover-border!'
+                  ? 'min-[501px]:bg-linear-to-b min-[501px]:from-ghost-border min-[501px]:to-ghost-border min-[501px]:border-surface-hover-border!'
                   : ''
               "
             >

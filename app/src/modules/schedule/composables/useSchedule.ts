@@ -58,11 +58,12 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
     return map;
   });
 
-  const formatDayName = (day: number): string => {
+  const formatDayName = (
+    day: number,
+    weekday: 'long' | 'short' = 'long',
+  ): string => {
     const date = new Date(Date.UTC(2024, 0, day, 12));
-    return new Intl.DateTimeFormat(locale.value, { weekday: 'long' }).format(
-      date,
-    );
+    return new Intl.DateTimeFormat(locale.value, { weekday }).format(date);
   };
 
   const totalSlots = computed(
