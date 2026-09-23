@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { computed } from 'vue';
 import { Filter, LayoutGrid } from '@lucide/vue';
 import BaseMenuSelect from '@/common/components/BaseMenuSelect.vue';
-import hw from '../../../api/api';
 import { useI18n } from 'vue-i18n';
-import { useToast } from '@/common/composables/useToast';
-import { apiErrorMessage } from '@/api/errors';
+import { usePersonalization } from '@/modules/auth/composables/usePersonalization';
 
 const { t } = useI18n();
+const { updating, setPersonalization: savePersonalization } =
+  usePersonalization();
 
 const props = defineProps<{
   modelValue: boolean;
@@ -17,8 +17,6 @@ const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void;
   (e: 'change', value: boolean): void;
 }>();
-
-const updating = ref(false);
 
 const currentPersonalized = computed(() => props.modelValue);
 
@@ -41,31 +39,13 @@ const options = computed(() => [
 ]);
 
 async function setPersonalization(value: boolean) {
-  if (updating.value || value === currentPersonalized.value) {
-    return;
-  }
+  if (value === currentPersonalized.value) return;
 
-  updating.value = true;
+  const saved = await savePersonalization(value);
+  if (saved === null) return;
 
-  try {
-    const { data } = await hw.patch('/user/personalization', {
-      personalized: value,
-    });
-
-    if (data.ok) {
-      emit('update:modelValue', data.personalized);
-      emit('change', data.personalized);
-      useToast().success(
-        value
-          ? t('auth.personalization.enabled_toast')
-          : t('auth.personalization.disabled_toast'),
-      );
-    }
-  } catch (e: unknown) {
-    useToast().error(apiErrorMessage(e, t('common.errors.update')));
-  } finally {
-    updating.value = false;
-  }
+  emit('update:modelValue', saved);
+  emit('change', saved);
 }
 </script>
 

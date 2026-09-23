@@ -1,6 +1,11 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
+import { ref, computed, type Component } from 'vue';
+import {
+  useRouter,
+  useRoute,
+  type RouteLocationRaw,
+  type RouteRecordName,
+} from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useLogout } from '@/core/composables/useLogout';
@@ -16,20 +21,31 @@ import {
   Megaphone,
   UsersRound,
   Settings,
+  SlidersHorizontal,
+  Key,
+  BookOpen,
+  Crown,
+  Flag,
+  Building2,
   Gamepad,
   Newspaper,
   Crop,
   SquarePen,
   UserRoundPlus,
+  UserRoundCog,
+  UserRound,
   Plus,
   Search,
   ChevronRight,
   ArrowUpRight,
   LucideGraduationCap,
+  Filter,
+  LayoutGrid,
   SunMoon,
   Languages,
   LucideKeyRound,
   Shield,
+  Trash2,
   LogOut,
   PanelLeft,
   Moon,
@@ -37,12 +53,14 @@ import {
   Check,
   ArrowLeft,
 } from '@lucide/vue';
-import { useModalStore } from '@/stores/modalStore';
+import { useModalStore, type SearchMode } from '@/stores/modalStore';
 import { useAccountModals } from '@/modules/auth/composables/useAccountModals';
+import { usePersonalization } from '@/modules/auth/composables/usePersonalization';
 import { useUserStore } from '@/stores/userStore';
 import { usePreferences } from '@/common/composables/usePreferences';
 import type { ThemeMode } from '@/common/composables/useTheme';
 import { useGroupAction } from '@/core/composables/useGroupAction';
+import { rankByQuery } from '@/utils/search-rank';
 import Avatar from '@/modules/auth/components/Avatar.vue';
 
 const emit = defineEmits<{ (e: 'cancel'): void }>();
@@ -60,7 +78,8 @@ const {
 const { openTaskForm } = useTaskForm();
 const { openPrivateTaskForm } = usePrivateTaskForm();
 const { openAnnouncementForm } = useAnnouncementForm();
-const { openSetup, openChangePassword } = useAccountModals();
+const { openSetup, openChangePassword, openDeleteAccount } = useAccountModals();
+const { setPersonalization } = usePersonalization();
 const userStore = useUserStore();
 const performLogout = useLogout();
 const modalStore = useModalStore();
@@ -79,7 +98,7 @@ const query = ref('');
 
 const mode = computed(() => modalStore.searchMode);
 
-function setMode(newMode: 'default' | 'group' | 'theme' | 'language') {
+function setMode(newMode: SearchMode) {
   query.value = '';
   modalStore.searchMode = newMode;
 }
@@ -97,12 +116,58 @@ interface SearchResult {
   id: string;
   label: string;
   description?: string;
+  /** Extra terms the item is found by, such as the name of its parent page. */
+  keywords?: string[];
   category: ResultCategory;
-  icon: any;
+  icon: Component;
   action: () => void | Promise<void>;
   shortcut?: string[];
   condition?: boolean;
+  /** Too specific for the unfiltered list; only shown once it matches a query. */
+  searchOnly?: boolean;
 }
+
+function navigate(to: RouteLocationRaw) {
+  void router.push(to);
+  emit('cancel');
+}
+
+function navigateInGroup(
+  name: RouteRecordName,
+  params: Record<string, string> = {},
+) {
+  withGroup(() =>
+    navigate({ name, params: { groupId: activeGroupId.value, ...params } }),
+  );
+}
+
+function runAndClose(action: () => void) {
+  action();
+  emit('cancel');
+}
+
+const groupSettingsTabs = computed<SearchResult[]>(() =>
+  (
+    [
+      { tab: 'general', icon: SlidersHorizontal },
+      { tab: 'members', icon: UsersRound },
+      { tab: 'permissions', icon: Key },
+      { tab: 'schedule', icon: CalendarDays },
+      { tab: 'subjects', icon: BookOpen },
+      { tab: 'announcements', icon: Megaphone },
+    ] as const
+  ).map(({ tab, icon }) => ({
+    id: `group-settings-${tab}`,
+    label: t(`groups.settings.nav.${tab}.label`),
+    description: t(`groups.settings.nav.${tab}.description`),
+    keywords: [t('common.sidebar.admin')],
+    category: 'page',
+    icon,
+    action: () => navigateInGroup('group-admin', { tab }),
+    condition: !!activeGroupId.value,
+    searchOnly: true,
+  })),
+);
 
 const defaultResults = computed<SearchResult[]>(() => [
   {
@@ -111,8 +176,7 @@ const defaultResults = computed<SearchResult[]>(() => [
     description: t('search.descriptions.home'),
     category: 'page',
     icon: House,
-    action: () =>
-      withGroup(() => navigate(`/groups/${activeGroupId.value}/dashboard`)),
+    action: () => navigateInGroup('group-dashboard'),
   },
   {
     id: 'tasks',
@@ -120,8 +184,7 @@ const defaultResults = computed<SearchResult[]>(() => [
     description: t('search.descriptions.tasks'),
     category: 'page',
     icon: ListTodo,
-    action: () =>
-      withGroup(() => navigate(`/groups/${activeGroupId.value}/tasks`)),
+    action: () => navigateInGroup('group-tasks'),
   },
   {
     id: 'schedule',
@@ -129,8 +192,7 @@ const defaultResults = computed<SearchResult[]>(() => [
     description: t('search.descriptions.schedule'),
     category: 'page',
     icon: CalendarDays,
-    action: () =>
-      withGroup(() => navigate(`/groups/${activeGroupId.value}/schedule`)),
+    action: () => navigateInGroup('group-schedule'),
   },
   {
     id: 'messages',
@@ -138,24 +200,7 @@ const defaultResults = computed<SearchResult[]>(() => [
     description: t('search.descriptions.messages'),
     category: 'page',
     icon: MessageCircle,
-    action: () =>
-      withGroup(() => navigate(`/groups/${activeGroupId.value}/messages`)),
-  },
-  {
-    id: 'private',
-    label: t('common.sidebar.private'),
-    description: t('search.descriptions.private'),
-    category: 'page',
-    icon: Lock,
-    action: () => navigate('/private'),
-  },
-  {
-    id: 'groups',
-    label: t('common.sidebar.groups'),
-    description: t('search.descriptions.groups'),
-    category: 'page',
-    icon: UsersRound,
-    action: () => withGroup(() => navigate(`/groups`)),
+    action: () => navigateInGroup('group-messages'),
   },
   {
     id: 'admin',
@@ -163,9 +208,96 @@ const defaultResults = computed<SearchResult[]>(() => [
     description: t('search.descriptions.admin'),
     category: 'page',
     icon: Settings,
-    action: () =>
-      withGroup(() => navigate(`/groups/${activeGroupId.value}/settings`)),
+    action: () => navigateInGroup('group-admin'),
     condition: !!activeGroupId.value,
+  },
+  ...groupSettingsTabs.value,
+  {
+    id: 'superadmin',
+    label: t('common.roles.superadmin'),
+    description: t('search.descriptions.superadmin'),
+    category: 'page',
+    icon: Crown,
+    action: () => navigate({ name: 'super-admin' }),
+    condition: userStore.isSuperadmin,
+  },
+  {
+    id: 'superadmin-users',
+    label: t('admin.nav.users'),
+    description: t('search.descriptions.admin_users'),
+    keywords: [t('common.roles.superadmin')],
+    category: 'page',
+    icon: UsersRound,
+    action: () => navigate({ name: 'admin-users' }),
+    condition: userStore.isSuperadmin,
+    searchOnly: true,
+  },
+  {
+    id: 'superadmin-reports',
+    label: t('admin.nav.reports'),
+    description: t('search.descriptions.admin_reports'),
+    keywords: [t('common.roles.superadmin')],
+    category: 'page',
+    icon: Flag,
+    action: () => navigate({ name: 'admin-reports' }),
+    condition: userStore.isSuperadmin,
+    searchOnly: true,
+  },
+  {
+    id: 'superadmin-groups',
+    label: t('admin.nav.groups'),
+    description: t('search.descriptions.admin_groups'),
+    keywords: [t('common.roles.superadmin')],
+    category: 'page',
+    icon: Building2,
+    action: () => navigate({ name: 'admin-groups' }),
+    condition: userStore.isSuperadmin,
+    searchOnly: true,
+  },
+  {
+    id: 'groups',
+    label: t('common.sidebar.groups'),
+    description: t('search.descriptions.groups'),
+    category: 'page',
+    icon: UsersRound,
+    action: () => navigate({ name: 'groups' }),
+  },
+  {
+    id: 'private',
+    label: t('common.sidebar.private'),
+    description: t('search.descriptions.private'),
+    category: 'page',
+    icon: Lock,
+    action: () => navigate({ name: 'private-todos' }),
+  },
+  {
+    id: 'account-settings',
+    label: t('auth.account_settings.title'),
+    description: t('search.descriptions.account_settings'),
+    category: 'page',
+    icon: UserRoundCog,
+    action: () => navigate({ name: 'account-settings' }),
+  },
+  {
+    id: 'security',
+    label: t('auth.account_settings.security.title'),
+    description: t('search.descriptions.security'),
+    keywords: [t('auth.account_settings.title')],
+    category: 'page',
+    icon: Shield,
+    action: () =>
+      navigate({ name: 'account-settings', params: { tab: 'security' } }),
+  },
+  {
+    id: 'account',
+    label: t('auth.account_settings.account.title'),
+    description: t('search.descriptions.account'),
+    keywords: [t('auth.account_settings.title')],
+    category: 'page',
+    icon: UserRound,
+    action: () =>
+      navigate({ name: 'account-settings', params: { tab: 'account' } }),
+    searchOnly: true,
   },
   {
     id: 'games',
@@ -173,7 +305,7 @@ const defaultResults = computed<SearchResult[]>(() => [
     description: t('search.descriptions.games'),
     category: 'page',
     icon: Gamepad,
-    action: () => navigate('/games'),
+    action: () => navigate({ name: 'games' }),
   },
   {
     id: 'info-dashboard',
@@ -181,7 +313,7 @@ const defaultResults = computed<SearchResult[]>(() => [
     description: t('search.descriptions.info_dashboard'),
     category: 'page',
     icon: Newspaper,
-    action: () => navigate('/info-dashboard'),
+    action: () => navigate({ name: 'info-dashboard' }),
   },
   {
     id: 'image-tool',
@@ -189,7 +321,7 @@ const defaultResults = computed<SearchResult[]>(() => [
     description: t('search.descriptions.image_tool'),
     category: 'page',
     icon: Crop,
-    action: () => navigate('/imagetool'),
+    action: () => navigate({ name: 'imagetool' }),
   },
   {
     id: 'toggle-sidebar',
@@ -197,10 +329,7 @@ const defaultResults = computed<SearchResult[]>(() => [
     description: t('search.descriptions.toggle_sidebar'),
     category: 'action',
     icon: PanelLeft,
-    action: () => {
-      modalStore.toggleSidebar();
-      emit('cancel');
-    },
+    action: () => runAndClose(modalStore.toggleSidebar),
     shortcut: ['ctrl', 'shift', 'd'],
   },
   {
@@ -209,12 +338,7 @@ const defaultResults = computed<SearchResult[]>(() => [
     description: t('search.descriptions.create_task'),
     category: 'action',
     icon: SquarePen,
-    action: () => {
-      withGroup(() => {
-        openTaskForm();
-      });
-      emit('cancel');
-    },
+    action: () => withGroup(() => runAndClose(openTaskForm)),
     shortcut: ['alt', 'n'],
   },
   {
@@ -223,10 +347,7 @@ const defaultResults = computed<SearchResult[]>(() => [
     description: t('search.descriptions.create_private_task'),
     category: 'action',
     icon: Lock,
-    action: () => {
-      openPrivateTaskForm();
-      emit('cancel');
-    },
+    action: () => runAndClose(openPrivateTaskForm),
     shortcut: ['alt', 'p'],
   },
   {
@@ -235,12 +356,7 @@ const defaultResults = computed<SearchResult[]>(() => [
     description: t('announcements.actions.create_description'),
     category: 'action',
     icon: Megaphone,
-    action: () => {
-      withGroup(() => {
-        openAnnouncementForm();
-      });
-      emit('cancel');
-    },
+    action: () => withGroup(() => runAndClose(openAnnouncementForm)),
     shortcut: ['alt', 'a'],
     condition: isAnyGroupAdmin.value,
   },
@@ -278,10 +394,7 @@ const defaultResults = computed<SearchResult[]>(() => [
     description: t('search.descriptions.create_group'),
     category: 'action',
     icon: Plus,
-    action: () => {
-      modalStore.openCreateGroup();
-      emit('cancel');
-    },
+    action: () => runAndClose(modalStore.openCreateGroup),
   },
   {
     id: 'edit-courses',
@@ -289,10 +402,15 @@ const defaultResults = computed<SearchResult[]>(() => [
     description: t('search.descriptions.edit_courses'),
     category: 'action',
     icon: LucideGraduationCap,
-    action: () => {
-      openSetup();
-      emit('cancel');
-    },
+    action: () => runAndClose(openSetup),
+  },
+  {
+    id: 'change-personalization',
+    label: t('auth.settings.personalization'),
+    description: t('search.descriptions.personalization'),
+    category: 'action',
+    icon: Filter,
+    action: () => setMode('personalization'),
   },
   {
     id: 'change-theme',
@@ -311,23 +429,21 @@ const defaultResults = computed<SearchResult[]>(() => [
     action: () => setMode('language'),
   },
   {
-    id: 'security',
-    label: t('auth.security.title'),
-    description: t('search.descriptions.security'),
-    category: 'action',
-    icon: Shield,
-    action: () => navigate('/account/security'),
-  },
-  {
     id: 'change-password',
     label: t('auth.change_password.title'),
     description: t('search.descriptions.change_password'),
     category: 'action',
     icon: LucideKeyRound,
-    action: () => {
-      openChangePassword();
-      emit('cancel');
-    },
+    action: () => runAndClose(openChangePassword),
+  },
+  {
+    id: 'delete-account',
+    label: t('auth.delete_account.title'),
+    description: t('search.descriptions.delete_account'),
+    category: 'action',
+    icon: Trash2,
+    action: () => runAndClose(openDeleteAccount),
+    searchOnly: true,
   },
   {
     id: 'logout',
@@ -344,46 +460,57 @@ async function logout() {
   await performLogout();
 }
 
-function navigate(path: string) {
-  void router.push(path);
-  emit('cancel');
+const availableResults = computed(() =>
+  defaultResults.value.filter((item) => item.condition ?? true),
+);
+
+interface ResultSection {
+  title: string;
+  items: SearchResult[];
 }
 
-function matchesQuery(item: SearchResult, q: string): boolean {
-  if (!q) return true;
-  const haystack = `${item.label} ${item.description ?? ''}`.toLowerCase();
-  const needle = q.toLowerCase();
-  let hi = 0;
-  for (const ch of needle) {
-    hi = haystack.indexOf(ch, hi);
-    if (hi === -1) return false;
-    hi++;
+const resultSections = computed<ResultSection[]>(() => {
+  if (query.value.trim()) {
+    const ranked = rankByQuery(availableResults.value, query.value, (item) => [
+      { text: item.label, weight: 1 },
+      ...(item.keywords ?? []).map((text) => ({ text, weight: 0.7 })),
+      { text: item.description ?? '', weight: 0.5 },
+    ]);
+    return ranked.length
+      ? [{ title: t('search.modal.category_results'), items: ranked }]
+      : [];
   }
-  return true;
-}
 
-const filteredDefaultResults = computed(() =>
-  defaultResults.value
-    .filter((item) => item.condition ?? true)
-    .filter((item) => matchesQuery(item, query.value)),
+  const browsable = availableResults.value.filter((item) => !item.searchOnly);
+  return [
+    {
+      title: t('search.modal.category_pages'),
+      items: browsable.filter((item) => item.category === 'page'),
+    },
+    {
+      title: t('search.modal.category_actions'),
+      items: browsable.filter((item) => item.category === 'action'),
+    },
+  ].filter((section) => section.items.length);
+});
+
+const visibleResults = computed(() =>
+  resultSections.value.flatMap((section) => section.items),
 );
 
-const defaultPageResults = computed(() =>
-  filteredDefaultResults.value.filter((r) => r.category === 'page'),
-);
-const defaultActionResults = computed(() =>
-  filteredDefaultResults.value.filter((r) => r.category === 'action'),
+const resultIndex = computed(
+  () => new Map(visibleResults.value.map((item, index) => [item.id, index])),
 );
 
 function globalIndex(item: SearchResult): number {
-  return filteredDefaultResults.value.indexOf(item);
+  return resultIndex.value.get(item.id) ?? -1;
 }
 
-const filteredGroups = computed(() => {
-  if (!query.value) return userGroups.value;
-  const q = query.value.toLowerCase();
-  return userGroups.value.filter((g) => g.name.toLowerCase().includes(q));
-});
+const filteredGroups = computed(() =>
+  rankByQuery(userGroups.value, query.value, (g) => [
+    { text: g.name, weight: 1 },
+  ]),
+);
 
 async function onSwitchGroup(id: string) {
   emit('cancel');
@@ -412,36 +539,73 @@ async function onSwitchGroup(id: string) {
   }
 }
 
-const themeOptions = computed(() => [
-  { id: 'system', label: t('common.theme.system'), icon: SunMoon },
-  { id: 'dark', label: t('common.theme.dark'), icon: Moon },
-  { id: 'light', label: t('common.theme.light'), icon: Sun },
-]);
-
-const filteredThemes = computed(() => {
-  if (!query.value) return themeOptions.value;
-  const q = query.value.toLowerCase();
-  return themeOptions.value.filter((o) => o.label.toLowerCase().includes(q));
-});
-
-function onSwitchTheme(id: string) {
-  setPreference('theme', id as ThemeMode);
-  emit('cancel');
+interface ChoiceOption {
+  id: string;
+  label: string;
+  icon: Component;
 }
 
-const languageOptions = [
-  { id: 'de', label: 'Deutsch', icon: Languages },
-  { id: 'en', label: 'English', icon: Languages },
-];
+interface ChoiceMode {
+  title: string;
+  placeholder: string;
+  options: ChoiceOption[];
+  current: string;
+  select: (id: string) => void;
+}
 
-const filteredLanguages = computed(() => {
-  if (!query.value) return languageOptions;
-  const q = query.value.toLowerCase();
-  return languageOptions.filter((o) => o.label.toLowerCase().includes(q));
-});
+const choiceModes = computed<Partial<Record<SearchMode, ChoiceMode>>>(() => ({
+  theme: {
+    title: t('auth.settings.theme.title'),
+    placeholder: t('search.descriptions.change_theme'),
+    options: [
+      { id: 'system', label: t('common.theme.system'), icon: SunMoon },
+      { id: 'dark', label: t('common.theme.dark'), icon: Moon },
+      { id: 'light', label: t('common.theme.light'), icon: Sun },
+    ],
+    current: currentTheme.value,
+    select: (id) => setPreference('theme', id as ThemeMode),
+  },
+  language: {
+    title: t('auth.settings.language.title'),
+    placeholder: t('search.descriptions.change_language'),
+    options: [
+      { id: 'de', label: 'Deutsch', icon: Languages },
+      { id: 'en', label: 'English', icon: Languages },
+    ],
+    current: currentLanguage.value,
+    select: (id) => setPreference('language', id),
+  },
+  personalization: {
+    title: t('auth.settings.personalization'),
+    placeholder: t('search.descriptions.personalization'),
+    options: [
+      {
+        id: 'mine',
+        label: t('auth.settings.personalization_options.mine'),
+        icon: Filter,
+      },
+      {
+        id: 'all',
+        label: t('auth.settings.personalization_options.all'),
+        icon: LayoutGrid,
+      },
+    ],
+    current: (userStore.user?.personalized ?? true) ? 'mine' : 'all',
+    select: (id) => void setPersonalization(id === 'mine'),
+  },
+}));
 
-function onSwitchLanguage(id: string) {
-  setPreference('language', id);
+const activeChoiceMode = computed(() => choiceModes.value[mode.value]);
+
+const filteredChoices = computed(() =>
+  rankByQuery(activeChoiceMode.value?.options ?? [], query.value, (o) => [
+    { text: o.label, weight: 1 },
+  ]),
+);
+
+function onSelectChoice(id: string) {
+  const choiceMode = activeChoiceMode.value;
+  if (choiceMode && id !== choiceMode.current) choiceMode.select(id);
   emit('cancel');
 }
 
@@ -454,24 +618,16 @@ const paletteProps = computed(() => {
       prefix: 'group-result-',
     };
   }
-  if (mode.value === 'theme') {
+  if (activeChoiceMode.value) {
     return {
-      itemCount: filteredThemes.value.length,
-      placeholder: t('search.descriptions.change_theme'),
-      title: t('auth.settings.theme.title'),
-      prefix: 'theme-result-',
-    };
-  }
-  if (mode.value === 'language') {
-    return {
-      itemCount: filteredLanguages.value.length,
-      placeholder: t('search.descriptions.change_language'),
-      title: t('auth.settings.language.title'),
-      prefix: 'language-result-',
+      itemCount: filteredChoices.value.length,
+      placeholder: activeChoiceMode.value.placeholder,
+      title: activeChoiceMode.value.title,
+      prefix: `${mode.value}-result-`,
     };
   }
   return {
-    itemCount: filteredDefaultResults.value.length,
+    itemCount: visibleResults.value.length,
     placeholder: t('search.modal.placeholder'),
     title: t('search.modal.title'),
     prefix: 'search-result-',
@@ -482,14 +638,11 @@ function handleSelect(index: number) {
   if (mode.value === 'group') {
     const group = filteredGroups.value[index];
     if (group) void onSwitchGroup(group.id);
-  } else if (mode.value === 'theme') {
-    const theme = filteredThemes.value[index];
-    if (theme) onSwitchTheme(theme.id);
-  } else if (mode.value === 'language') {
-    const lang = filteredLanguages.value[index];
-    if (lang) onSwitchLanguage(lang.id);
+  } else if (activeChoiceMode.value) {
+    const choice = filteredChoices.value[index];
+    if (choice) onSelectChoice(choice.id);
   } else {
-    void filteredDefaultResults.value[index]?.action();
+    void visibleResults.value[index]?.action();
   }
 }
 </script>
@@ -542,69 +695,43 @@ function handleSelect(index: number) {
         </template>
       </template>
 
-      <template v-else-if="mode === 'theme'">
+      <template v-else-if="activeChoiceMode">
         <BaseRow class="m-2">
           <BaseButton :icon="ArrowLeft" size="sm" @click="setMode('default')" />
           <span class="text-sm text-on-ghost-muted font-medium">{{
-            t('auth.settings.theme.title')
+            activeChoiceMode.title
           }}</span>
         </BaseRow>
-        <template v-if="filteredThemes.length">
-          <BaseCommandPaletteItem
-            v-for="(opt, index) in filteredThemes"
-            :id="'theme-result-' + index"
-            :key="opt.id"
-            :active="selectedIndex === index"
-            :label="opt.label"
-            :icon="opt.icon"
-            @click="onSwitchTheme(opt.id)"
-            @mouseenter="setSelectedIndex(index)"
-          >
-            <Check
-              v-if="currentTheme === opt.id"
-              :size="16"
-              class="shrink-0 text-on-ghost"
-            />
-          </BaseCommandPaletteItem>
-        </template>
-      </template>
-
-      <template v-else-if="mode === 'language'">
-        <BaseRow class="m-2">
-          <BaseButton :icon="ArrowLeft" size="sm" @click="setMode('default')" />
-          <span class="text-sm text-on-ghost-muted font-medium">{{
-            t('auth.settings.language.title')
-          }}</span>
-        </BaseRow>
-        <template v-if="filteredLanguages.length">
-          <BaseCommandPaletteItem
-            v-for="(opt, index) in filteredLanguages"
-            :id="'language-result-' + index"
-            :key="opt.id"
-            :active="selectedIndex === index"
-            :label="opt.label"
-            :icon="opt.icon"
-            @click="onSwitchLanguage(opt.id)"
-            @mouseenter="setSelectedIndex(index)"
-          >
-            <Check
-              v-if="currentLanguage === opt.id"
-              :size="16"
-              class="shrink-0 text-on-ghost"
-            />
-          </BaseCommandPaletteItem>
-        </template>
+        <BaseCommandPaletteItem
+          v-for="(opt, index) in filteredChoices"
+          :id="paletteProps.prefix + index"
+          :key="opt.id"
+          :active="selectedIndex === index"
+          :label="opt.label"
+          :icon="opt.icon"
+          @click="onSelectChoice(opt.id)"
+          @mouseenter="setSelectedIndex(index)"
+        >
+          <Check
+            v-if="activeChoiceMode.current === opt.id"
+            :size="16"
+            class="shrink-0 text-on-ghost"
+          />
+        </BaseCommandPaletteItem>
       </template>
 
       <template v-else>
-        <template v-if="defaultPageResults.length">
-          <div class="px-4 py-1.5">
+        <template
+          v-for="(section, sectionIndex) in resultSections"
+          :key="section.title"
+        >
+          <div class="px-4 py-1.5" :class="sectionIndex > 0 ? 'mt-2' : ''">
             <span class="text-sm text-on-ghost-muted font-medium">
-              {{ t('search.modal.category_pages') }}
+              {{ section.title }}
             </span>
           </div>
           <BaseCommandPaletteItem
-            v-for="item in defaultPageResults"
+            v-for="item in section.items"
             :id="'search-result-' + globalIndex(item)"
             :key="item.id"
             :active="selectedIndex === globalIndex(item)"
@@ -614,45 +741,17 @@ function handleSelect(index: number) {
             @click="void item.action()"
             @mouseenter="setSelectedIndex(globalIndex(item))"
           >
-            <ArrowUpRight
-              v-if="selectedIndex === globalIndex(item)"
-              :size="14"
-              class="shrink-0 text-on-ghost-subtle"
-            />
-          </BaseCommandPaletteItem>
-        </template>
-
-        <template v-if="defaultActionResults.length">
-          <div
-            class="px-4 py-1.5"
-            :class="defaultPageResults.length ? 'mt-2' : ''"
-          >
-            <span class="text-sm text-on-ghost-muted font-medium">
-              {{ t('search.modal.category_actions') }}
-            </span>
-          </div>
-          <BaseCommandPaletteItem
-            v-for="item in defaultActionResults"
-            :id="'search-result-' + globalIndex(item)"
-            :key="item.id"
-            :active="selectedIndex === globalIndex(item)"
-            :label="item.label"
-            :description="item.description"
-            :icon="item.icon"
-            @click="void item.action()"
-            @mouseenter="setSelectedIndex(globalIndex(item))"
-          >
-            <span class="flex items-center gap-2 shrink-0">
-              <BaseKbdGroup
-                v-if="item.shortcut && selectedIndex === globalIndex(item)"
-                :keys="item.shortcut"
-              />
-              <ChevronRight
-                v-if="selectedIndex === globalIndex(item)"
+            <template v-if="selectedIndex === globalIndex(item)">
+              <ArrowUpRight
+                v-if="item.category === 'page'"
                 :size="14"
-                class="text-on-ghost-subtle"
+                class="shrink-0 text-on-ghost-subtle"
               />
-            </span>
+              <span v-else class="flex items-center gap-2 shrink-0">
+                <BaseKbdGroup v-if="item.shortcut" :keys="item.shortcut" />
+                <ChevronRight :size="14" class="text-on-ghost-subtle" />
+              </span>
+            </template>
           </BaseCommandPaletteItem>
         </template>
       </template>

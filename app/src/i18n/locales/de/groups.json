@@ -417,20 +417,29 @@
       }
     },
     "nav": {
+      "general": {
+        "label": "Allgemein",
+        "description": "Aussehen • Passwort • Löschen"
+      },
       "members": {
-        "label": "Mitglieder"
+        "label": "Mitglieder",
+        "description": "Rollen • Sperren • Besitz"
       },
       "permissions": {
-        "label": "Berechtigungen"
+        "label": "Berechtigungen",
+        "description": "Berechtigungen • Rollen • Sicherheit"
       },
       "schedule": {
-        "label": "Stundenplan"
+        "label": "Stundenplan",
+        "description": "Stunden • Stundenplanänderungen"
       },
       "subjects": {
-        "label": "Fächer"
+        "label": "Fächer",
+        "description": "Fächer • Kurse"
       },
       "announcements": {
-        "label": "Ankündigungen"
+        "label": "Ankündigungen",
+        "description": "Ankündigungen verwalten"
       }
     },
     "go_back": "Zurück"

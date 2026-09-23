@@ -12,13 +12,18 @@ export interface ConfirmOptions {
   danger?: boolean;
 }
 
+export type SearchMode =
+  | 'default'
+  | 'group'
+  | 'theme'
+  | 'language'
+  | 'personalization';
+
 export const useModalStore = defineStore('modals', () => {
   const searchOpen = ref(false);
-  const searchMode = ref<'default' | 'group' | 'theme' | 'language'>('default');
+  const searchMode = ref<SearchMode>('default');
 
-  function openSearch(
-    mode: 'default' | 'group' | 'theme' | 'language' = 'default',
-  ) {
+  function openSearch(mode: SearchMode = 'default') {
     searchMode.value = mode;
     searchOpen.value = true;
   }
