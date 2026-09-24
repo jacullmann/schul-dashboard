@@ -264,11 +264,11 @@ defineExpose({ sheetEl, scrollEl });
         <!-- Overlays the scroller's top padding, so it always stays in place
              while sticky headers can still fade out underneath it. -->
         <div
-          class="absolute top-0 inset-x-0 z-20 flex justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing touch-none select-none"
+          class="absolute top-0 inset-x-0 z-20 flex justify-center pt-2 pb-3 cursor-grab active:cursor-grabbing touch-none select-none"
           data-drag-handle
         >
           <div
-            class="w-15 h-1 rounded-full bg-on-ghost-subtle opacity-50 pointer-events-none"
+            class="w-16 h-1 rounded-full bg-on-ghost-subtle opacity-50 pointer-events-none"
           />
         </div>
 
