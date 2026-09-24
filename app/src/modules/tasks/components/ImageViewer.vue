@@ -1200,19 +1200,19 @@ onBeforeUnmount(() => {
               <iframe
                 v-if="slide.image && isOffice(slide.image)"
                 :src="getOfficeViewerSrc(slide.image)"
-                class="w-[90vw] h-[85vh] max-w-5xl rounded-xl border-none bg-white shadow-menu"
+                class="w-[90vw] h-[85vh] max-w-5xl rounded-xl border-none bg-white"
                 @click.stop
               ></iframe>
               <iframe
                 v-else-if="slide.image && isPdf(slide.image)"
                 :src="getImageSrc(slide.image)"
-                class="w-[90vw] h-[85vh] max-w-5xl rounded-xl border-none bg-white shadow-menu"
+                class="w-[90vw] h-[85vh] max-w-5xl rounded-xl border-none bg-white"
                 @click.stop
               ></iframe>
               <div
                 v-else-if="slide.image && frameSize(slide.index)"
                 :data-viewer-frame="slide.index === currentIndex ? '' : null"
-                class="relative max-w-full max-h-full overflow-hidden rounded-xl shadow-menu will-change-transform"
+                class="relative max-w-full max-h-full overflow-hidden rounded-xl will-change-transform"
                 :style="frameStyle(slide.index)"
                 @click.stop
               >
@@ -1251,7 +1251,7 @@ onBeforeUnmount(() => {
               <img
                 v-else-if="slide.image"
                 :src="getImageSrc(slide.image)"
-                class="max-w-full max-h-full rounded-xl object-contain shadow-menu"
+                class="max-w-full max-h-full rounded-xl object-contain"
                 draggable="false"
                 alt=""
                 @click.stop
