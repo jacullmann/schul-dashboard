@@ -26,6 +26,7 @@ const {
   getGroupStyleWithBreaks,
   defaultDayIndex,
   formatDayName,
+  formatDayDate,
 } = useSchedule();
 
 const { width: windowWidth } = useWindowSize();
@@ -54,7 +55,7 @@ const visibleDayIndexes = computed(() =>
 const dayTabs = computed(() =>
   days.map((day, index) => ({
     id: String(index),
-    label: formatDayName(day, 'short'),
+    label: formatDayDate(day),
   })),
 );
 
@@ -141,7 +142,7 @@ const gridTemplateRows = computed(
           <ScheduleStartTimeColumn :rows="scheduleRows" :animated="!hasPaged" />
 
           <div
-            class="bg-surface border border-ghost-border text-on-ghost p-2 text-center font-bold rounded-lg text-base shadow-input [grid-column:2] [grid-row:1]"
+            class="px-2 text-center font-bold text-base text-on-ghost-muted [grid-column:2] [grid-row:1]"
             :class="{ 'animate-fade-up': !hasPaged }"
           >
             {{ formatDayName(days[dayIndex] ?? 0) }}

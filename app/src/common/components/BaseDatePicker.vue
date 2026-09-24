@@ -77,18 +77,37 @@ const days = computed(() => {
     cursor.value.getMonth(),
     1,
   );
-  const start = addDays(first, -((first.getDay() - weekStart.value + 7) % 7));
-  return Array.from({ length: 42 }, (_, i) => {
+  const leading = (first.getDay() - weekStart.value + 7) % 7;
+  const daysInMonth = new Date(
+    first.getFullYear(),
+    first.getMonth() + 1,
+    0,
+  ).getDate();
+  const start = addDays(first, -leading);
+  return Array.from({ length: leading + daysInMonth }, (_, i) => {
     const date = addDays(start, i);
     return {
       key: toKey(date),
       day: date.getDate(),
-      outside: date.getMonth() !== first.getMonth(),
+      outside: i < leading,
+      weekend: date.getDay() === 0 || date.getDay() === 6,
     };
   });
 });
 
+const weekCount = computed(() => Math.ceil(days.value.length / 7));
+
 const cursorKey = computed(() => toKey(cursor.value));
+const monthKey = computed(() => cursorKey.value.slice(0, 7));
+
+const monthIndex = (d: Date) => d.getFullYear() * 12 + d.getMonth();
+const slideDirection = ref<'prev' | 'next'>('next');
+
+const moveCursor = (date: Date) => {
+  const delta = monthIndex(date) - monthIndex(cursor.value);
+  if (delta) slideDirection.value = delta < 0 ? 'prev' : 'next';
+  cursor.value = date;
+};
 
 const shortcuts = computed(() => {
   const rtf = new Intl.RelativeTimeFormat(locale.value, { numeric: 'auto' });
@@ -146,7 +165,7 @@ const shiftMonth = (n: number) => {
   const target = new Date(c.getFullYear(), c.getMonth() + n, 1);
   const lastDay = new Date(target.getFullYear(), target.getMonth() + 1, 0);
   target.setDate(Math.min(c.getDate(), lastDay.getDate()));
-  cursor.value = target;
+  moveCursor(target);
 };
 
 const keySteps: Record<string, number> = {
@@ -158,7 +177,7 @@ const keySteps: Record<string, number> = {
 
 const onGridKeydown = (e: KeyboardEvent) => {
   const step = keySteps[e.key];
-  if (step) cursor.value = addDays(cursor.value, step);
+  if (step) moveCursor(addDays(cursor.value, step));
   else if (e.key === 'PageUp') shiftMonth(-1);
   else if (e.key === 'PageDown') shiftMonth(1);
   else return;
@@ -230,10 +249,13 @@ const onGridKeydown = (e: KeyboardEvent) => {
               @click="shiftMonth(-1)"
             />
             <span
-              class="text-sm font-semibold text-on-ghost capitalize"
+              class="swap-stack justify-items-center text-sm font-semibold text-on-ghost capitalize"
               aria-live="polite"
-              >{{ monthLabel }}</span
             >
+              <Transition :name="`swap-slide-${slideDirection}`">
+                <span :key="monthKey">{{ monthLabel }}</span>
+              </Transition>
+            </span>
             <BaseButton
               :icon="ChevronRight"
               :aria-label="t('common.date.next_month')"
@@ -245,41 +267,68 @@ const onGridKeydown = (e: KeyboardEvent) => {
             ref="gridRef"
             role="grid"
             :aria-label="monthLabel"
-            class="grid grid-cols-7 text-center"
+            class="text-center"
             @keydown="onGridKeydown"
           >
-            <span
-              v-for="(w, i) in weekdays"
-              :key="i"
-              class="pb-1 text-xs font-medium text-on-ghost-muted"
-              aria-hidden="true"
-              >{{ w }}</span
-            >
-            <button
-              v-for="d in days"
-              :key="d.key"
-              type="button"
-              role="gridcell"
-              :data-key="d.key"
-              :tabindex="d.key === cursorKey ? 0 : -1"
-              :disabled="isDisabled(d.key)"
-              :aria-selected="d.key === model"
-              :aria-current="d.key === todayKey ? 'date' : undefined"
-              class="relative mx-auto aspect-square size-10 rounded-full text-sm tabular-nums cursor-pointer outline-none transition-hover focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-30 disabled:cursor-not-allowed"
-              :class="[
-                d.key === model
-                  ? 'bg-action text-on-action font-semibold'
-                  : 'hover:bg-ghost-hover enabled:hover:text-on-ghost',
-                d.key !== model &&
-                  (d.outside ? 'text-on-ghost-subtle' : 'text-on-ghost'),
-                d.key === todayKey && d.key !== model
-                  ? 'font-bold after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:size-1 after:rounded-full after:bg-current'
-                  : '',
-              ]"
-              @click="select(d.key)"
-            >
-              {{ d.day }}
-            </button>
+            <div class="grid grid-cols-7" aria-hidden="true">
+              <span
+                v-for="(w, i) in weekdays"
+                :key="i"
+                class="pb-1 text-xs font-medium text-on-ghost-muted"
+                >{{ w }}</span
+              >
+            </div>
+            <!-- Outgoing and incoming months share one cell so they slide past
+                 each other in place. Height of six packed rows, the tallest
+                 month, keeps the menu steady; 5-week months spread out, 4-week
+                 ones leave a row free -->
+            <div class="grid">
+              <Transition :name="`swap-slide-${slideDirection}`">
+                <div
+                  :key="monthKey"
+                  class="col-start-1 row-start-1 grid h-[calc(6*--spacing(10))] grid-cols-7"
+                  :class="weekCount === 6 ? 'grid-rows-6' : 'grid-rows-5'"
+                >
+                  <template v-for="d in days" :key="d.key">
+                    <span v-if="d.outside" aria-hidden="true" />
+                    <!-- Button fills its grid cell so the tap area grows with the
+                         spacing but never overlaps a neighbour -->
+                    <button
+                      v-else
+                      type="button"
+                      role="gridcell"
+                      :data-key="d.key"
+                      :tabindex="d.key === cursorKey ? 0 : -1"
+                      :disabled="isDisabled(d.key)"
+                      :aria-selected="d.key === model"
+                      :aria-current="d.key === todayKey ? 'date' : undefined"
+                      class="group grid size-full place-items-center cursor-pointer outline-none disabled:cursor-not-allowed"
+                      @click="select(d.key)"
+                    >
+                      <span
+                        class="relative grid size-10 place-items-center rounded-full text-sm tabular-nums transition-hover group-focus-visible:ring-2 group-focus-visible:ring-focus"
+                        :class="[
+                          d.key === model
+                            ? 'bg-action text-on-action font-semibold'
+                            : 'group-enabled:group-hover:bg-ghost-hover group-enabled:group-hover:text-on-ghost',
+                          d.key !== model &&
+                            (isDisabled(d.key)
+                              ? 'text-on-ghost-subtle'
+                              : d.weekend
+                                ? 'text-on-ghost-muted'
+                                : 'text-on-ghost'),
+                          d.key === todayKey && d.key !== model
+                            ? 'font-bold after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:size-1 after:rounded-full after:bg-current'
+                            : '',
+                        ]"
+                      >
+                        {{ d.day }}
+                      </span>
+                    </button>
+                  </template>
+                </div>
+              </Transition>
+            </div>
           </div>
         </div>
       </BaseMenu>

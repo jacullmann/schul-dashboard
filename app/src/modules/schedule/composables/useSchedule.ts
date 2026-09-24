@@ -36,7 +36,7 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
 
   const days = [1, 2, 3, 4, 5];
 
-  const weekDates = computed<Record<number, number>>(() => {
+  const weekDates = computed<Record<number, Date>>(() => {
     const d = now.value;
     const jsDay = d.getDay();
 
@@ -54,14 +54,21 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
     monday.setHours(0, 0, 0, 0);
     monday.setDate(d.getDate() + (offsetToMonday[jsDay] ?? 0));
 
-    const map: Record<number, number> = {};
+    const map: Record<number, Date> = {};
     days.forEach((day, idx) => {
       const date = new Date(monday);
       date.setDate(monday.getDate() + idx);
-      map[day] = date.getDate();
+      map[day] = date;
     });
     return map;
   });
+
+  const formatDayDate = (day: number): string => {
+    const date = weekDates.value[day];
+    return date
+      ? new Intl.DateTimeFormat(locale.value, { day: 'numeric' }).format(date)
+      : '';
+  };
 
   const formatDayName = (
     day: number,
@@ -571,6 +578,7 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
     getGroupStyleWithBreaks,
     gridRowOfSlot,
     formatDayName,
+    formatDayDate,
     lessons,
     substitutions,
     effectiveLessons,
