@@ -1,8 +1,11 @@
 import { computed, nextTick, ref, watch, type Ref } from 'vue';
 import { useEventListener, usePreferredReducedMotion } from '@vueuse/core';
 
-/** Space between the day on screen and the one sliding in, in px. */
-const DAY_PAGE_GAP = 16;
+/**
+ * Space between the day on screen and the one sliding in, in px: the page's
+ * 16px gutter on both sides, so each day slides as if it carried its padding.
+ */
+const DAY_PAGE_GAP = 32;
 /** How far a touch travels before it is read as a swipe or a scroll, in px. */
 const SWIPE_SLOP = 8;
 /** The share of the width a swipe must cover to turn the page on release. */
