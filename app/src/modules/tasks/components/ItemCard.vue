@@ -53,31 +53,55 @@ function collapseContainer() {
   el.style.transition = `height 300ms ${easing}, margin 300ms ${easing}`;
   el.style.height = '0';
 
-  const onEnd = (e: TransitionEvent) => {
-    if (e.propertyName !== 'height') return;
+  let finished = false;
+  const finish = () => {
+    if (finished) return;
+    finished = true;
     el.removeEventListener('transitionend', onEnd);
+    clearTimeout(fallback);
     emit('swiped');
+  };
+  const onEnd = (e: TransitionEvent) => {
+    if (e.propertyName === 'height') finish();
   };
   el.addEventListener('transitionend', onEnd);
-  setTimeout(() => {
-    el.removeEventListener('transitionend', onEnd);
-    emit('swiped');
-  }, 350);
+  const fallback = setTimeout(finish, 350);
 }
 
-const { swipeOffset, isSwiping, isDismissing } = props.swipeable
-  ? useSwipeToDismiss(cardRef, { onSlideOut: collapseContainer })
-  : { swipeOffset: ref(0), isSwiping: ref(false), isDismissing: ref(false) };
+const swipeActionRef = ref<HTMLElement | null>(null);
+
+const { swipeOffset, isSwiping, isArmed, isDismissing, dismiss } =
+  useSwipeToDismiss(cardRef, {
+    enabled: props.swipeable,
+    actionButton: swipeActionRef,
+    onSlideOut: collapseContainer,
+  });
+
+const isSwipeActionVisible = computed(
+  () => isSwiping.value || isDismissing.value || swipeOffset.value > 0,
+);
+
+const swipeActionLabel = computed(() =>
+  props.swipeAction === 'keep'
+    ? t('tasks.list.tasks.menu.unarchive')
+    : t('tasks.list.tasks.menu.archive'),
+);
+
+const swipeSettleTiming = '360ms cubic-bezier(0.25, 1, 0.5, 1)';
 
 const cardStyle = computed(() => {
-  if (!props.swipeable || swipeOffset.value === 0) return undefined;
+  if (swipeOffset.value === 0) return undefined;
   return {
-    transform: `translateX(${swipeOffset.value}px)`,
-    transition: isSwiping.value
-      ? 'none'
-      : 'transform 360ms cubic-bezier(0.25, 1, 0.5, 1)',
+    transform: `translateX(${-swipeOffset.value}px)`,
+    transition: isSwiping.value ? 'none' : `transform ${swipeSettleTiming}`,
   };
 });
+
+// Keeps the icon centred in the uncovered strip while the card moves.
+const swipeActionIconStyle = computed(() => ({
+  width: `${swipeOffset.value}px`,
+  transition: isSwiping.value ? 'none' : `width ${swipeSettleTiming}`,
+}));
 
 const transitionDuration = '350ms';
 
@@ -169,24 +193,42 @@ function onDrop(e: DragEvent) {
     ref="containerRef"
     class="relative"
     :class="
-      swipeable && (isSwiping || isDismissing || swipeOffset > 0)
+      isSwipeActionVisible
         ? 'overflow-x-clip overflow-y-visible rounded-xl z-10'
         : 'z-20 focus-within:z-30 hover:z-30 has-[[role=menu]]:z-50'
     "
   >
-    <div
-      v-if="swipeable && (isSwiping || isDismissing || swipeOffset > 0)"
-      class="absolute inset-0 rounded-xl flex items-center pl-3 pointer-events-none"
+    <button
+      v-if="isSwipeActionVisible"
+      ref="swipeActionRef"
+      type="button"
+      class="absolute inset-0 rounded-xl flex justify-end cursor-pointer"
       :style="
         swipeAction === 'keep'
           ? 'background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%)'
           : 'background: linear-gradient(135deg, #e53935 0%, #c62828 100%)'
       "
-      aria-hidden="true"
+      :aria-label="swipeActionLabel"
+      :title="swipeActionLabel"
+      @click="dismiss"
     >
-      <ArchiveRestore v-if="swipeAction === 'keep'" :size="24" color="#fff" />
-      <Archive v-else :size="24" color="#fff" />
-    </div>
+      <span
+        class="h-full flex items-center justify-center"
+        :style="swipeActionIconStyle"
+      >
+        <span
+          class="transition-transform duration-200"
+          :class="{ 'scale-125': isArmed }"
+        >
+          <ArchiveRestore
+            v-if="swipeAction === 'keep'"
+            :size="24"
+            color="#fff"
+          />
+          <Archive v-else :size="24" color="#fff" />
+        </span>
+      </span>
+    </button>
 
     <div
       ref="cardRef"
