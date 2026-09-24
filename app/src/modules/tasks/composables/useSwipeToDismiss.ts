@@ -151,6 +151,17 @@ export function useSwipeToDismiss(
   // scrolling, so no swipe end ever arrives.
   useEventListener(gestureTarget, 'pointercancel', settle, { passive: true });
 
+  // `touch-action: pan-y` alone still lets some mobile browsers scroll the
+  // page along with the finger's vertical drift during a horizontal swipe.
+  useEventListener(
+    gestureTarget,
+    'touchmove',
+    (e: TouchEvent) => {
+      if (isSwiping.value && e.cancelable) e.preventDefault();
+    },
+    { passive: false },
+  );
+
   // A tap on an open card only closes it, and the click that ends a mouse
   // drag must not reach the card's controls.
   useEventListener(

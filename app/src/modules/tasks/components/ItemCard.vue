@@ -97,9 +97,15 @@ const cardStyle = computed(() => {
   };
 });
 
-// Keeps the icon centred in the uncovered strip while the card moves.
-const swipeActionIconStyle = computed(() => ({
-  width: `${swipeOffset.value}px`,
+// Covers only the uncovered strip plus the card's rounded corner, so red
+// never lines the card's top and bottom edges where a sub-pixel shift of the
+// moving card would bare it. The icon stays centred in the uncovered strip.
+const swipeActionStyle = computed(() => ({
+  background:
+    props.swipeAction === 'keep'
+      ? 'linear-gradient(135deg, #4caf50 0%, #2e7d32 100%)'
+      : 'linear-gradient(135deg, #e53935 0%, #c62828 100%)',
+  width: `calc(${swipeOffset.value}px + var(--radius-xl))`,
   transition: isSwiping.value ? 'none' : `width ${swipeSettleTiming}`,
 }));
 
@@ -202,20 +208,13 @@ function onDrop(e: DragEvent) {
       v-if="isSwipeActionVisible"
       ref="swipeActionRef"
       type="button"
-      class="absolute inset-0 rounded-xl flex justify-end cursor-pointer"
-      :style="
-        swipeAction === 'keep'
-          ? 'background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%)'
-          : 'background: linear-gradient(135deg, #e53935 0%, #c62828 100%)'
-      "
+      class="absolute inset-y-0 right-0 rounded-r-xl flex pl-(--radius-xl) cursor-pointer"
+      :style="swipeActionStyle"
       :aria-label="swipeActionLabel"
       :title="swipeActionLabel"
       @click="dismiss"
     >
-      <span
-        class="h-full flex items-center justify-center"
-        :style="swipeActionIconStyle"
-      >
+      <span class="flex-1 flex items-center justify-center">
         <span
           class="transition-transform duration-200"
           :class="{ 'scale-125': isArmed }"
