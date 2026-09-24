@@ -268,7 +268,7 @@ defineExpose({ sheetEl, scrollEl });
           data-drag-handle
         >
           <div
-            class="w-10 h-1 rounded-full bg-on-ghost-subtle opacity-50 pointer-events-none"
+            class="w-15 h-1 rounded-full bg-on-ghost-subtle opacity-50 pointer-events-none"
           />
         </div>
 
