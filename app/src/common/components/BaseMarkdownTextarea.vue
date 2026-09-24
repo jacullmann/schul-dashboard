@@ -7,12 +7,12 @@ const props = withDefaults(
     id: string;
     required?: boolean;
     rows?: string | number;
-    autoGrow?: boolean;
+    maxRows?: string | number;
   }>(),
   {
     required: false,
     rows: '4',
-    autoGrow: false,
+    maxRows: undefined,
   },
 );
 
@@ -340,8 +340,8 @@ defineExpose({
       ref="textareaRef"
       v-model="model"
       class="custom-textarea resize-vertical block! w-full bg-transparent outline-none shadow-none"
-      :class="{ 'auto-grow': props.autoGrow }"
-      :style="props.autoGrow ? { '--max-rows': props.rows } : undefined"
+      :class="{ 'auto-grow': props.maxRows }"
+      :style="props.maxRows ? { '--max-rows': props.maxRows } : undefined"
       :rows="props.rows"
       :aria-required="props.required"
       v-bind="$attrs"
