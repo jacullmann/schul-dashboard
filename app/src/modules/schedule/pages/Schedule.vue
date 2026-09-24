@@ -125,63 +125,70 @@ const gridTemplateRows = computed(
         @change="(id) => goToDay(Number(id))"
       />
 
-      <div ref="dayTrackRef" class="relative overflow-hidden touch-pan-y">
-        <div
-          v-for="dayIndex in visibleDayIndexes"
-          :key="days[dayIndex]"
-          class="grid grid-cols-[3.25rem_1fr] gap-2 w-full"
-          :class="[
-            dayIndex === activeDayIndex
-              ? 'relative'
-              : 'absolute inset-x-0 top-0',
-            { 'transition-transform duration-300 ease-out': settling },
-          ]"
-          :style="[panelStyle(dayIndex), { gridTemplateRows }]"
-          @transitionend="onPanelTransitionEnd"
-        >
-          <ScheduleStartTimeColumn :rows="scheduleRows" :animated="!hasPaged" />
-
+      <div class="-mx-4 px-4 overflow-hidden">
+        <div ref="dayTrackRef" class="relative touch-pan-y">
           <div
-            class="px-2 text-center font-bold text-base text-on-ghost-muted [grid-column:2] [grid-row:1]"
-            :class="{ 'animate-fade-up': !hasPaged }"
+            v-for="dayIndex in visibleDayIndexes"
+            :key="days[dayIndex]"
+            class="grid grid-cols-[3.25rem_1fr] gap-2 w-full"
+            :class="[
+              dayIndex === activeDayIndex
+                ? 'relative'
+                : 'absolute inset-x-0 top-0',
+              { 'transition-transform duration-300 ease-out': settling },
+            ]"
+            :style="[panelStyle(dayIndex), { gridTemplateRows }]"
+            @transitionend="onPanelTransitionEnd"
           >
-            {{ formatDayName(days[dayIndex] ?? 0) }}
-          </div>
+            <ScheduleStartTimeColumn
+              :rows="scheduleRows"
+              :animated="!hasPaged"
+            />
 
-          <ScheduleBreakDivider
-            v-for="row in breakRows"
-            :key="`break-${row.gridRow}`"
-            :grid-column="2"
-            :grid-row="row.gridRow"
-            :duration-mins="row.durationMins"
-            :animated="!hasPaged"
-          />
+            <div
+              class="px-2 text-center font-bold text-base text-on-ghost-muted [grid-column:2] [grid-row:1]"
+              :class="{ 'animate-fade-up': !hasPaged }"
+            >
+              {{ formatDayName(days[dayIndex] ?? 0) }}
+            </div>
 
-          <template v-if="loadingLessons">
-            <ScheduleCellSkeleton
-              v-for="row in lessonRows"
-              :key="`skel-${row.gridRow}`"
+            <ScheduleBreakDivider
+              v-for="row in breakRows"
+              :key="`break-${row.gridRow}`"
               :grid-column="2"
               :grid-row="row.gridRow"
-              radius="lg"
-            />
-          </template>
-
-          <template v-else>
-            <ScheduleLessonGroup
-              v-for="[key, group] in lessonGroupsByDay.get(days[dayIndex] ?? 0)"
-              :key="key"
-              :group="group"
-              :group-key="key"
-              :is-active="key === activeOrNextGroupKey"
-              :is-current-day="days[dayIndex] === currentDay"
-              :day-index="dayIndex"
-              :elapsed-load-time="elapsedLoadTime"
+              :duration-mins="row.durationMins"
               :animated="!hasPaged"
-              :get-display-name="getDisplayName"
-              :get-group-style="getGroupStyleWithBreaks"
             />
-          </template>
+
+            <template v-if="loadingLessons">
+              <ScheduleCellSkeleton
+                v-for="row in lessonRows"
+                :key="`skel-${row.gridRow}`"
+                :grid-column="2"
+                :grid-row="row.gridRow"
+                radius="lg"
+              />
+            </template>
+
+            <template v-else>
+              <ScheduleLessonGroup
+                v-for="[key, group] in lessonGroupsByDay.get(
+                  days[dayIndex] ?? 0,
+                )"
+                :key="key"
+                :group="group"
+                :group-key="key"
+                :is-active="key === activeOrNextGroupKey"
+                :is-current-day="days[dayIndex] === currentDay"
+                :day-index="dayIndex"
+                :elapsed-load-time="elapsedLoadTime"
+                :animated="!hasPaged"
+                :get-display-name="getDisplayName"
+                :get-group-style="getGroupStyleWithBreaks"
+              />
+            </template>
+          </div>
         </div>
       </div>
     </template>
