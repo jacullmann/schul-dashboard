@@ -146,8 +146,13 @@ const gridTemplateRows = computed(
             />
 
             <div
-              class="px-2 text-center font-bold text-base text-on-ghost-muted [grid-column:2] [grid-row:1]"
-              :class="{ 'animate-fade-up': !hasPaged }"
+              class="px-2 text-center font-bold text-base [grid-column:2] [grid-row:1]"
+              :class="[
+                days[dayIndex] === currentDay
+                  ? 'text-action'
+                  : 'text-on-ghost-muted',
+                { 'animate-fade-up': !hasPaged },
+              ]"
             >
               {{ formatDayName(days[dayIndex] ?? 0) }}
             </div>
