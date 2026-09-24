@@ -21,7 +21,6 @@ import {
   type CourseType,
 } from '@/types/subjects';
 import type { AdminCourse } from '@/modules/groups/types';
-import SettingToggleCard from './SettingToggleCard.vue';
 
 const i18n = useI18n();
 const { t } = i18n;
@@ -480,13 +479,21 @@ onMounted(() => {
               "
             />
           </BaseFormGroup>
-          <SettingToggleCard
+          <BaseFormGroup
             v-if="activeGroupDaltonEnabled"
-            v-model="newSubjectIsDalton"
-            :title="t('groups.settings.subjects.dalton_label')"
-            :description="t('groups.settings.subjects.dalton_description')"
-            :disabled="saving"
-          />
+            id="new-subject-dalton"
+          >
+            <div class="flex items-center justify-between">
+              <label class="text-sm font-medium" for="new-subject-dalton">{{
+                t('groups.settings.subjects.dalton_label')
+              }}</label>
+              <BaseToggle
+                id="new-subject-dalton"
+                v-model="newSubjectIsDalton"
+                :disabled="saving"
+              />
+            </div>
+          </BaseFormGroup>
         </template>
 
         <template #action-text>
@@ -553,19 +560,20 @@ onMounted(() => {
             </span>
           </BaseFormGroup>
 
-          <SettingToggleCard
-            v-if="activeGroupDaltonEnabled"
-            v-model="subjectIsDaltonInput"
-            :title="t('groups.settings.subjects.dalton_label')"
-            :description="t('groups.settings.subjects.dalton_description')"
-            :disabled="saving || !canEditSubjects"
-          />
+          <BaseFormGroup v-if="activeGroupDaltonEnabled" id="subject-dalton">
+            <div class="flex items-center justify-between">
+              <label class="text-sm font-medium" for="subject-dalton">{{
+                t('groups.settings.subjects.dalton_label')
+              }}</label>
+              <BaseToggle
+                id="subject-dalton"
+                v-model="subjectIsDaltonInput"
+                :disabled="saving || !canEditSubjects"
+              />
+            </div>
+          </BaseFormGroup>
 
-          <BaseRow
-            v-if="canEditSubjects"
-            justify="end"
-            class="w-full mt-2 gap-2"
-          >
+          <BaseRow v-if="canEditSubjects" justify="end">
             <BaseButton
               variant="ghost"
               :disabled="saving"

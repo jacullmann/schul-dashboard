@@ -5,10 +5,12 @@ const model = defineModel<boolean>({ default: false });
 
 const props = withDefaults(
   defineProps<{
+    id?: string;
     label?: string;
     disabled?: boolean;
   }>(),
   {
+    id: undefined,
     label: '',
     disabled: false,
   },
@@ -46,6 +48,7 @@ const dotClasses = computed(() => {
 <template>
   <div class="inline-flex items-center gap-3">
     <button
+      :id="id"
       type="button"
       role="switch"
       :aria-checked="model"

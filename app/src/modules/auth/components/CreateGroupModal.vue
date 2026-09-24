@@ -7,7 +7,6 @@ import { useUserStore } from '@/stores/userStore';
 import { Camera, ImagePlus, Trash2, Upload } from '@lucide/vue';
 import GroupAvatarCropper from '@/modules/groups/components/GroupAvatarCropper.vue';
 import GroupTypeRadioGroup from '@/modules/groups/components/GroupTypeRadioGroup.vue';
-import SettingToggleCard from '@/modules/groups/components/SettingToggleCard.vue';
 import hw from '@/api/api.ts';
 import Avatar from '@/modules/auth/components/Avatar.vue';
 import { apiErrorMessage } from '@/api/errors';
@@ -290,11 +289,21 @@ async function submit() {
 
       <GroupTypeRadioGroup v-model="groupType" />
 
-      <SettingToggleCard
-        v-model="daltonEnabled"
-        :title="t('groups.settings.general.dalton.toggle_title')"
-        :description="t('groups.settings.general.dalton.toggle_description')"
-      />
+      <BaseFormGroup id="group-dalton">
+        <BaseLabel for="group-dalton">{{
+          t('auth.create_group.settings_label')
+        }}</BaseLabel>
+        <div class="flex items-center justify-between">
+          <label class="text-sm font-medium" for="group-dalton">{{
+            t('auth.create_group.dalton_label')
+          }}</label>
+          <BaseToggle
+            id="group-dalton"
+            v-model="daltonEnabled"
+            :disabled="submitting"
+          />
+        </div>
+      </BaseFormGroup>
 
       <input
         ref="fileInputRef"
