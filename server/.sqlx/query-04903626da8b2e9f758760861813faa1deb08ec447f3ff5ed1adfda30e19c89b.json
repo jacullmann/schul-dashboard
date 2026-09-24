@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT dalton_enabled FROM groups WHERE id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "dalton_enabled",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "groups",
+            "name": "dalton_enabled"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "04903626da8b2e9f758760861813faa1deb08ec447f3ff5ed1adfda30e19c89b"
+}

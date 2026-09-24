@@ -17,9 +17,11 @@ import {
   subjectCategoriesFor,
   usesCourseTypes,
   ZUSATZKURS_CATEGORY,
+  DALTON_SUBJECT_KEY,
   type CourseType,
 } from '@/types/subjects';
 import type { AdminCourse } from '@/modules/groups/types';
+import SettingToggleCard from './SettingToggleCard.vue';
 
 const i18n = useI18n();
 const { t } = i18n;
@@ -44,7 +46,8 @@ const {
   deleteCourse,
 } = useSubjectAdmin();
 
-const { checkPermission, activeGroupType } = useAppAuth();
+const { checkPermission, activeGroupType, activeGroupDaltonEnabled } =
+  useAppAuth();
 const canEditSubjects = computed(() =>
   checkPermission('edit_subjects_courses'),
 );
@@ -52,15 +55,19 @@ const canEditSubjects = computed(() =>
 const newSubjectName = ref('');
 const selectedSubjectKey = ref('');
 const newSubjectCategory = ref(defaultSubjectCategory(activeGroupType.value));
+const newSubjectIsDalton = ref(false);
 const showCreateModal = ref(false);
 const newSubjectInputRef = ref<any>(null);
 
 const subjectOptions = computed(() => {
   const subjectsObj = i18n.tm('common.subjects');
-  const list = Object.entries(subjectsObj || {}).map(([key, label]) => ({
-    value: key,
-    label,
-  }));
+  // Dalton is a pseudo-subject that only exists in the schedule.
+  const list = Object.entries(subjectsObj || {})
+    .filter(([key]) => key !== DALTON_SUBJECT_KEY)
+    .map(([key, label]) => ({
+      value: key,
+      label,
+    }));
   list.push({
     value: 'custom',
     label: t('common.selection.other'),
@@ -89,6 +96,7 @@ const subject = computed(() => {
 
 const subjectNameInput = ref('');
 const subjectCategoryInput = ref(defaultSubjectCategory(activeGroupType.value));
+const subjectIsDaltonInput = ref(false);
 
 function categoryLabel(category: string): string {
   const key = `groups.settings.subjects.categories.${category}`;
@@ -180,6 +188,7 @@ watch(
         newSub.category,
         activeGroupType.value,
       );
+      subjectIsDaltonInput.value = newSub.isDalton === true;
     }
   },
   { immediate: true },
@@ -192,8 +201,17 @@ function resetSubjectName() {
       subject.value.category,
       activeGroupType.value,
     );
+    subjectIsDaltonInput.value = subject.value.isDalton === true;
   }
 }
+
+const subjectChanged = computed(
+  () =>
+    !!subject.value &&
+    (subjectNameInput.value.trim() !== subject.value.name ||
+      subjectCategoryInput.value !== storedCategory.value ||
+      subjectIsDaltonInput.value !== (subject.value.isDalton === true)),
+);
 
 async function handleSave() {
   if (!subject.value) return;
@@ -202,6 +220,7 @@ async function handleSave() {
   await updateSubject(subject.value.id, {
     name: nameTrimmed,
     category: subjectCategoryInput.value,
+    isDalton: subjectIsDaltonInput.value,
   });
 }
 
@@ -232,16 +251,22 @@ function closeCreateModal() {
   newSubjectName.value = '';
   selectedSubjectKey.value = '';
   newSubjectCategory.value = defaultSubjectCategory(activeGroupType.value);
+  newSubjectIsDalton.value = false;
 }
 
 async function handleCreate() {
   if (!newSubjectName.value.trim()) return;
   const oldLength = subjects.value.length;
-  await createSubject(newSubjectName.value, newSubjectCategory.value);
+  await createSubject(
+    newSubjectName.value,
+    newSubjectCategory.value,
+    activeGroupDaltonEnabled.value && newSubjectIsDalton.value,
+  );
   if (subjects.value.length > oldLength) {
     newSubjectName.value = '';
     selectedSubjectKey.value = '';
     newSubjectCategory.value = defaultSubjectCategory(activeGroupType.value);
+    newSubjectIsDalton.value = false;
     showCreateModal.value = false;
   }
 }
@@ -394,6 +419,9 @@ onMounted(() => {
                             count: sub.coursesCount,
                           })
                   }`
+                : '') +
+              (activeGroupDaltonEnabled && sub.isDalton
+                ? `, ${t('groups.settings.subjects.dalton_badge')}`
                 : '')
             }}</span>
           </template>
@@ -452,6 +480,13 @@ onMounted(() => {
               "
             />
           </BaseFormGroup>
+          <SettingToggleCard
+            v-if="activeGroupDaltonEnabled"
+            v-model="newSubjectIsDalton"
+            :title="t('groups.settings.subjects.dalton_label')"
+            :description="t('groups.settings.subjects.dalton_description')"
+            :disabled="saving"
+          />
         </template>
 
         <template #action-text>
@@ -518,6 +553,14 @@ onMounted(() => {
             </span>
           </BaseFormGroup>
 
+          <SettingToggleCard
+            v-if="activeGroupDaltonEnabled"
+            v-model="subjectIsDaltonInput"
+            :title="t('groups.settings.subjects.dalton_label')"
+            :description="t('groups.settings.subjects.dalton_description')"
+            :disabled="saving || !canEditSubjects"
+          />
+
           <BaseRow
             v-if="canEditSubjects"
             justify="end"
@@ -531,12 +574,7 @@ onMounted(() => {
               {{ t('common.buttons.cancel') }}
             </BaseButton>
             <BaseButton
-              :disabled="
-                saving ||
-                !subjectNameInput.trim() ||
-                (subjectNameInput.trim() === subject.name &&
-                  subjectCategoryInput === storedCategory)
-              "
+              :disabled="saving || !subjectNameInput.trim() || !subjectChanged"
               variant="action"
               @click="handleSave"
             >

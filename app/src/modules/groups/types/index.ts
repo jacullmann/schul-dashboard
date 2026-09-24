@@ -54,6 +54,8 @@ export interface AdminSubject {
   id: string;
   name: string;
   category?: string;
+  /** Offered for Dalton tasks; always set on the whole subject. */
+  isDalton?: boolean;
   courses?: AdminCourse[];
   coursesCount?: number;
 }

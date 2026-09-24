@@ -51,6 +51,30 @@ fn validate_category(group_type: GroupType, category: &str) -> AppResult<()> {
     )))
 }
 
+/// Dalton stands in for a subject in the schedule, so a Dalton lesson cannot
+/// point at a real subject or course as well.
+fn validate_dalton_lesson(
+    is_dalton: bool,
+    subject_id: Option<Uuid>,
+    course_id: Option<Uuid>,
+) -> AppResult<()> {
+    if is_dalton && (subject_id.is_some() || course_id.is_some()) {
+        return Err(AppError::bad_request(
+            "A Dalton lesson cannot belong to a subject or course.",
+        ));
+    }
+
+    Ok(())
+}
+
+fn json_is_dalton(value: &Value) -> bool {
+    value
+        .get("isDalton")
+        .or_else(|| value.get("is_dalton"))
+        .and_then(Value::as_bool)
+        .unwrap_or(false)
+}
+
 /// Reads a UUID that clients may send either flat (`subjectId`/`subject_id`) or
 /// nested inside the joined object (`subjects: { id }`).
 fn json_uuid(value: &Value, camel: &str, snake: &str, nested: &str) -> Option<Uuid> {
@@ -75,6 +99,24 @@ impl GroupAdminService {
             .ok_or_else(|| AppError::not_found("Group not found"))?;
 
         Ok(GroupType::from_str_or_regular(&row))
+    }
+
+    async fn ensure_dalton_enabled(&self, tenant_id: Uuid) -> AppResult<()> {
+        let enabled = sqlx::query_scalar!(
+            r#"SELECT dalton_enabled FROM groups WHERE id = $1"#,
+            tenant_id
+        )
+        .fetch_optional(&self.db)
+        .await?
+        .ok_or_else(|| AppError::not_found("Group not found"))?;
+
+        if enabled {
+            Ok(())
+        } else {
+            Err(AppError::bad_request(
+                "Dalton is not enabled for this group.",
+            ))
+        }
     }
 
     /// Ensures every lesson only points at subjects and courses of this group,
@@ -474,7 +516,33 @@ impl GroupAdminService {
         name: Option<&str>,
         avatar_url: Option<&str>,
         group_type: Option<GroupType>,
+        dalton_enabled: Option<bool>,
     ) -> AppResult<Value> {
+        if let Some(enabled) = dalton_enabled {
+            let mut tx = self.db.begin().await?;
+
+            sqlx::query!(
+                r#"UPDATE groups SET dalton_enabled = $1 WHERE id = $2"#,
+                enabled,
+                tenant_id
+            )
+            .execute(&mut *tx)
+            .await?;
+
+            // The pseudo-subject disappears with the setting, so its lessons
+            // cannot outlive it. Dalton subject flags stay for a re-enable.
+            if !enabled {
+                sqlx::query!(
+                    r#"DELETE FROM schedules WHERE tenant_id = $1 AND is_dalton"#,
+                    tenant_id
+                )
+                .execute(&mut *tx)
+                .await?;
+            }
+
+            tx.commit().await?;
+        }
+
         if let Some(gt) = group_type {
             sqlx::query!(
                 r#"UPDATE groups SET group_type = $1 WHERE id = $2"#,
@@ -510,6 +578,7 @@ impl GroupAdminService {
                 "name": name,
                 "avatarUrl": avatar_url,
                 "groupType": group_type.map(GroupType::as_str),
+                "daltonEnabled": dalton_enabled,
             })
         )
         .execute(&self.db)
@@ -653,7 +722,7 @@ impl GroupAdminService {
 
     pub async fn get_subjects(&self, tenant_id: Uuid) -> AppResult<Value> {
         let rows = sqlx::query!(
-            r#"SELECT s.id, s.name, s.category,
+            r#"SELECT s.id, s.name, s.category, s.is_dalton,
                       COALESCE(
                           json_agg(json_build_object('id', c.id, 'name', c.name, 'courseType', c.course_type) ORDER BY c.name) FILTER (WHERE c.id IS NOT NULL),
                           '[]'::json
@@ -673,6 +742,7 @@ impl GroupAdminService {
                     "id": s.id,
                     "name": s.name,
                     "category": s.category,
+                    "isDalton": s.is_dalton,
                     "courses": s.courses,
                     "coursesCount": s.courses.as_array().map_or(0, std::vec::Vec::len)
                 }))
@@ -686,17 +756,19 @@ impl GroupAdminService {
         user_id: Uuid,
         name: &str,
         category: Option<&str>,
+        is_dalton: bool,
     ) -> AppResult<Value> {
         let group_type = self.group_type(tenant_id).await?;
         let cat = category.unwrap_or(default_category(group_type));
         validate_category(group_type, cat)?;
 
         let row = sqlx::query!(
-            r#"INSERT INTO subjects (tenant_id, name, category) VALUES ($1, $2, $3)
-               RETURNING id, name, category"#,
+            r#"INSERT INTO subjects (tenant_id, name, category, is_dalton) VALUES ($1, $2, $3, $4)
+               RETURNING id, name, category, is_dalton"#,
             tenant_id,
             name,
-            cat
+            cat,
+            is_dalton
         )
         .fetch_one(&self.db)
         .await?;
@@ -710,7 +782,12 @@ impl GroupAdminService {
         .execute(&self.db)
         .await?;
 
-        Ok(json!({ "id": row.id, "name": row.name, "category": row.category }))
+        Ok(json!({
+            "id": row.id,
+            "name": row.name,
+            "category": row.category,
+            "isDalton": row.is_dalton,
+        }))
     }
 
     /// Keeps the courses of a subject consistent with its category: a
@@ -766,6 +843,7 @@ impl GroupAdminService {
         id: Uuid,
         name: Option<&str>,
         category: Option<&str>,
+        is_dalton: Option<bool>,
     ) -> AppResult<Value> {
         sqlx::query!(
             r#"SELECT id FROM subjects WHERE id = $1 AND tenant_id = $2"#,
@@ -794,6 +872,16 @@ impl GroupAdminService {
             sqlx::query!(r#"UPDATE subjects SET name = $1 WHERE id = $2"#, n, id)
                 .execute(&self.db)
                 .await?;
+        }
+
+        if let Some(flag) = is_dalton {
+            sqlx::query!(
+                r#"UPDATE subjects SET is_dalton = $1 WHERE id = $2"#,
+                flag,
+                id
+            )
+            .execute(&self.db)
+            .await?;
         }
 
         sqlx::query!(
@@ -859,7 +947,7 @@ impl GroupAdminService {
 
     pub async fn get_schedule(&self, tenant_id: Uuid) -> AppResult<Value> {
         let rows = sqlx::query!(
-            r#"SELECT s.id, s.day, s.slot, s.duration, s.room, s.course_id,
+            r#"SELECT s.id, s.day, s.slot, s.duration, s.room, s.course_id, s.is_dalton,
                   sub.id as "sid?", sub.name as "sname?",
                   c.name as "cname?"
            FROM schedules s
@@ -883,6 +971,7 @@ impl GroupAdminService {
                     "subjects": l.sid.map(|id| json!({ "id": id, "name": l.sname })),
                     "courseId": l.course_id,
                     "courses": l.course_id.map(|id| json!({ "id": id, "name": l.cname })),
+                    "isDalton": l.is_dalton,
                 }))
                 .collect::<Vec<_>>()
         ))
@@ -909,6 +998,17 @@ impl GroupAdminService {
             })
             .collect();
 
+        let mut has_dalton = false;
+        for (item, (subject_id, course_id)) in items.iter().zip(&references) {
+            let is_dalton = json_is_dalton(item);
+            validate_dalton_lesson(is_dalton, *subject_id, *course_id)?;
+            has_dalton |= is_dalton;
+        }
+
+        if has_dalton {
+            self.ensure_dalton_enabled(tenant_id).await?;
+        }
+
         self.validate_lesson_references(tenant_id, &references)
             .await?;
 
@@ -929,6 +1029,8 @@ impl GroupAdminService {
 
                 let course_id = json_uuid(item, "courseId", "course_id", "courses");
 
+                let is_dalton = json_is_dalton(item);
+
                 let id = item
                     .get("id")
                     .and_then(|v| v.as_str())
@@ -936,8 +1038,8 @@ impl GroupAdminService {
                     .unwrap_or_else(Uuid::new_v4);
 
                 sqlx::query!(
-                    r#"INSERT INTO schedules (id, tenant_id, day, slot, duration, room, subject_id, course_id)
-                       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)"#,
+                    r#"INSERT INTO schedules (id, tenant_id, day, slot, duration, room, subject_id, course_id, is_dalton)
+                       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)"#,
                     id,
                     tenant_id,
                     day,
@@ -945,7 +1047,8 @@ impl GroupAdminService {
                     duration,
                     room,
                     subject_id,
-                    course_id
+                    course_id,
+                    is_dalton
                 )
                 .execute(&mut *tx)
                 .await?;
@@ -960,6 +1063,8 @@ impl GroupAdminService {
 
             let course_id = json_uuid(&body, "courseId", "course_id", "courses");
 
+            let is_dalton = json_is_dalton(&body);
+
             let id = body
                 .get("id")
                 .and_then(|v| v.as_str())
@@ -967,8 +1072,8 @@ impl GroupAdminService {
                 .unwrap_or_else(Uuid::new_v4);
 
             sqlx::query!(
-                r#"INSERT INTO schedules (id, tenant_id, day, slot, duration, room, subject_id, course_id)
-                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                r#"INSERT INTO schedules (id, tenant_id, day, slot, duration, room, subject_id, course_id, is_dalton)
+                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
                    ON CONFLICT (id) DO UPDATE SET
                      day = EXCLUDED.day,
                      slot = EXCLUDED.slot,
@@ -976,6 +1081,7 @@ impl GroupAdminService {
                      room = EXCLUDED.room,
                      subject_id = EXCLUDED.subject_id,
                      course_id = EXCLUDED.course_id,
+                     is_dalton = EXCLUDED.is_dalton,
                      updated_at = now()
                    WHERE schedules.tenant_id = EXCLUDED.tenant_id"#,
                 id,
@@ -985,7 +1091,8 @@ impl GroupAdminService {
                 duration,
                 room,
                 subject_id,
-                course_id
+                course_id,
+                is_dalton
             )
             .execute(&mut *tx)
             .await?;
@@ -1045,6 +1152,7 @@ impl GroupAdminService {
 
         let mut lesson_ids = HashSet::new();
         let mut references = Vec::with_capacity(dto.lessons.len());
+        let mut has_dalton = false;
 
         for lesson in &dto.lessons {
             if !(1..=5).contains(&lesson.day) || lesson.slot < 1 || lesson.duration < 1 {
@@ -1082,7 +1190,14 @@ impl GroupAdminService {
                 ));
             }
 
+            validate_dalton_lesson(lesson.is_dalton, lesson.subject_id, lesson.course_id)?;
+            has_dalton |= lesson.is_dalton;
+
             references.push((lesson.subject_id, lesson.course_id));
+        }
+
+        if has_dalton {
+            self.ensure_dalton_enabled(tenant_id).await?;
         }
 
         let lesson_ids: Vec<_> = lesson_ids.into_iter().collect();
@@ -1124,8 +1239,8 @@ impl GroupAdminService {
 
         for lesson in dto.lessons {
             sqlx::query!(
-                r#"INSERT INTO schedules (id, tenant_id, day, slot, duration, room, subject_id, course_id)
-                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8)"#,
+                r#"INSERT INTO schedules (id, tenant_id, day, slot, duration, room, subject_id, course_id, is_dalton)
+                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)"#,
                 lesson.id.unwrap_or_else(Uuid::new_v4),
                 tenant_id,
                 lesson.day,
@@ -1133,7 +1248,8 @@ impl GroupAdminService {
                 lesson.duration,
                 lesson.room,
                 lesson.subject_id,
-                lesson.course_id
+                lesson.course_id,
+                lesson.is_dalton
             )
             .execute(&mut *tx)
             .await?;
@@ -1517,5 +1633,27 @@ impl GroupAdminService {
         }
 
         Ok(json!({ "ok": true }))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn dalton_lessons_cannot_point_at_a_subject_or_course() {
+        let id = Some(Uuid::nil());
+
+        assert!(validate_dalton_lesson(true, None, None).is_ok());
+        assert!(validate_dalton_lesson(true, id, None).is_err());
+        assert!(validate_dalton_lesson(true, None, id).is_err());
+        assert!(validate_dalton_lesson(false, id, id).is_ok());
+    }
+
+    #[test]
+    fn dalton_flag_is_read_from_either_casing() {
+        assert!(json_is_dalton(&json!({ "isDalton": true })));
+        assert!(json_is_dalton(&json!({ "is_dalton": true })));
+        assert!(!json_is_dalton(&json!({ "subjectId": "x" })));
     }
 }

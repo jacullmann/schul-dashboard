@@ -14,6 +14,7 @@ import { useUserStore } from '@/stores/userStore';
 import { useSubjectStore } from '@/stores/subjectStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useSchedule } from '@/modules/schedule/composables/useSchedule';
+import { lessonSubjectName } from '@/modules/schedule/utils/lesson';
 import { formatSubjectDisplay } from '@/utils/subject-formatter';
 import { courseSelectionFor } from '@/types/subjects';
 import hw from '@/api/api.ts';
@@ -360,8 +361,7 @@ const getDisplayName = (lesson: any): string => {
     return lesson.subject;
   }
 
-  const subjectName =
-    lesson.subjects?.name || lesson.subject || lesson.subjectAbbr || '';
+  const subjectName = lessonSubjectName(lesson);
   const normalizedSubject = subjectName.toLowerCase();
 
   if (normalizedSubject === 'wpu1' || normalizedSubject === 'wpu2') {

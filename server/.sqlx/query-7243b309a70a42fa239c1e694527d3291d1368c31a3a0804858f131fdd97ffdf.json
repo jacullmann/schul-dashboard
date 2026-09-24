@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE groups SET dalton_enabled = $1 WHERE id = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Bool",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "7243b309a70a42fa239c1e694527d3291d1368c31a3a0804858f131fdd97ffdf"
+}

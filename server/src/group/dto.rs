@@ -11,6 +11,8 @@ pub struct CreateGroupDto {
     pub group_name: String,
     pub avatar_url: Option<String>,
     pub group_type: Option<String>,
+    #[serde(default)]
+    pub dalton_enabled: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -31,6 +33,7 @@ pub struct RenameGroupDto {
     pub name: Option<String>,
     pub avatar_url: Option<String>,
     pub group_type: Option<String>,
+    pub dalton_enabled: Option<bool>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -56,6 +59,8 @@ pub struct ScheduleLessonDto {
     pub room: Option<String>,
     pub subject_id: Option<Uuid>,
     pub course_id: Option<Uuid>,
+    #[serde(default)]
+    pub is_dalton: bool,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -94,6 +99,8 @@ pub struct CreateAnnouncementDto {
 pub struct CreateSubjectDto {
     pub name: String,
     pub category: Option<String>,
+    #[serde(default)]
+    pub is_dalton: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -101,6 +108,7 @@ pub struct CreateSubjectDto {
 pub struct UpdateSubjectDto {
     pub name: Option<String>,
     pub category: Option<String>,
+    pub is_dalton: Option<bool>,
 }
 
 #[derive(Debug, Deserialize)]

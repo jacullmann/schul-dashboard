@@ -9,15 +9,21 @@ import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import hw from '../../../api/api';
 import GroupAvatarCropper from './GroupAvatarCropper.vue';
 import GroupTypeRadioGroup from './GroupTypeRadioGroup.vue';
+import SettingToggleCard from './SettingToggleCard.vue';
 import Avatar from '@/modules/auth/components/Avatar.vue';
 import type { GroupType } from '@/types/groups';
 
 const modalStore = useModalStore();
 const { t } = useI18n();
-const { activeGroupAvatarUrl, activeGroupType, checkPermission } = useAppAuth();
+const {
+  activeGroupAvatarUrl,
+  activeGroupType,
+  activeGroupDaltonEnabled,
+  checkPermission,
+} = useAppAuth();
 const canEditSettings = computed(() => checkPermission('edit_group_general'));
 
-// Switching the type rewires subject categories and the schedule, so it takes
+// Switching the type or Dalton rewires subjects and the schedule, so it takes
 // the rights for both on top of the general settings permission.
 const canEditGroupType = computed(
   () =>
@@ -42,8 +48,14 @@ const emit = defineEmits<{
   (e: 'update:newGroupName', value: string): void;
 }>();
 
-const { deleteGroup, saveGroupAvatar, saveGroupType, savingGroupType } =
-  useGroupAdmin();
+const {
+  deleteGroup,
+  saveGroupAvatar,
+  saveGroupType,
+  savingGroupType,
+  saveDaltonEnabled,
+  savingDaltonEnabled,
+} = useGroupAdmin();
 const router = useRouter();
 
 const groupTypeInput = ref<GroupType>(activeGroupType.value);
@@ -73,6 +85,40 @@ async function confirmGroupTypeChange() {
 
   const ok = await saveGroupType(target);
   if (!ok) groupTypeInput.value = activeGroupType.value;
+}
+
+const daltonInput = ref(activeGroupDaltonEnabled.value);
+
+watch(activeGroupDaltonEnabled, (enabled) => {
+  daltonInput.value = enabled;
+});
+
+const daltonChanged = computed(
+  () => daltonInput.value !== activeGroupDaltonEnabled.value,
+);
+
+async function confirmDaltonChange() {
+  if (!daltonChanged.value) return;
+
+  const target = daltonInput.value;
+
+  // Disabling removes every Dalton lesson from the schedule.
+  if (!target) {
+    const isConfirmed = await modalStore.confirm({
+      title: t('groups.settings.general.dalton.modal.title'),
+      content: t('groups.settings.general.dalton.modal.message'),
+      submitText: t('common.buttons.save'),
+      danger: true,
+    });
+
+    if (!isConfirmed) {
+      daltonInput.value = activeGroupDaltonEnabled.value;
+      return;
+    }
+  }
+
+  const ok = await saveDaltonEnabled(target);
+  if (!ok) daltonInput.value = activeGroupDaltonEnabled.value;
 }
 
 // Avatar/Cropper state
@@ -420,6 +466,47 @@ async function confirmDeleteGroup() {
           >
             {{
               savingGroupType
+                ? t('common.buttons.saving')
+                : t('common.buttons.save')
+            }}
+          </BaseButton>
+        </BaseRow>
+      </BaseFormContent>
+    </div>
+
+    <div>
+      <PageHeader>{{ t('groups.settings.general.dalton.title') }}</PageHeader>
+      <p class="text-base/relaxed text-on-ghost-muted m-0 mb-4 max-w-160">
+        {{ t('groups.settings.general.dalton.description') }}
+      </p>
+
+      <BaseFormContent class="max-w-120">
+        <SettingToggleCard
+          v-model="daltonInput"
+          :title="t('groups.settings.general.dalton.toggle_title')"
+          :description="t('groups.settings.general.dalton.toggle_description')"
+          :disabled="!canEditGroupType || savingDaltonEnabled"
+        />
+
+        <BaseRow
+          v-if="canEditGroupType"
+          justify="end"
+          class="w-full mt-2 gap-2"
+        >
+          <BaseButton
+            variant="ghost"
+            :disabled="!daltonChanged || savingDaltonEnabled"
+            @click="daltonInput = activeGroupDaltonEnabled"
+          >
+            {{ t('common.buttons.cancel') }}
+          </BaseButton>
+          <BaseButton
+            variant="action"
+            :disabled="!daltonChanged || savingDaltonEnabled"
+            @click="confirmDaltonChange"
+          >
+            {{
+              savingDaltonEnabled
                 ? t('common.buttons.saving')
                 : t('common.buttons.save')
             }}

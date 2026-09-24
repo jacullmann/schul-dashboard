@@ -8,6 +8,9 @@ use sha2::{Digest, Sha256};
 use sqlx::PgPool;
 use uuid::Uuid;
 
+/// Only groups that enabled Dalton may create items of this type.
+const DALTON_ITEM_TYPE: &str = "dalton";
+
 fn time_left_color(due: &chrono::DateTime<Utc>) -> &'static str {
     let diff = (*due - Utc::now()).num_seconds() as f64 / 86400.0;
     if diff < 0.0 {
@@ -232,6 +235,22 @@ impl ItemsService {
             .due_date
             .parse::<chrono::DateTime<Utc>>()
             .map_err(|_| AppError::bad_request("Invalid due_date format"))?;
+
+        if dto.r#type == DALTON_ITEM_TYPE {
+            let dalton_enabled = sqlx::query_scalar!(
+                r#"SELECT dalton_enabled FROM groups WHERE id = $1"#,
+                tenant_id
+            )
+            .fetch_optional(&self.db)
+            .await?
+            .unwrap_or(false);
+
+            if !dalton_enabled {
+                return Err(AppError::bad_request(
+                    "Dalton is not enabled for this group.",
+                ));
+            }
+        }
 
         if !dto.confirm_double_task.unwrap_or(false) {
             let duplicate = sqlx::query!(

@@ -24,6 +24,7 @@ pub struct CreateGroupParams<'a> {
     pub group_name: &'a str,
     pub avatar_url: Option<&'a str>,
     pub group_type: GroupType,
+    pub dalton_enabled: bool,
     pub ip: Option<&'a str>,
     pub ua: Option<&'a str>,
     pub current_refresh: Option<&'a str>,
@@ -127,17 +128,19 @@ impl GroupService {
         let group_name = params.group_name;
         let avatar_url = params.avatar_url;
         let group_type = params.group_type;
+        let dalton_enabled = params.dalton_enabled;
         let ip = params.ip;
         let ua = params.ua;
         let ip_parsed: Option<ipnetwork::IpNetwork> = ip.and_then(|s| s.parse().ok());
 
         let group = sqlx::query!(
-            r#"INSERT INTO groups (name, avatar_url, owner_id, group_type)
-               VALUES ($1, $2, $3, $4) RETURNING id, name"#,
+            r#"INSERT INTO groups (name, avatar_url, owner_id, group_type, dalton_enabled)
+               VALUES ($1, $2, $3, $4, $5) RETURNING id, name"#,
             group_name,
             avatar_url,
             user_id,
-            group_type.as_str()
+            group_type.as_str(),
+            dalton_enabled
         )
         .fetch_one(&self.db)
         .await?;
@@ -157,7 +160,7 @@ impl GroupService {
         sqlx::query!(
             r#"INSERT INTO security_events (event_type, event_status, ip_address, user_agent, metadata)
              VALUES ('group_create', 'success', $1::inet, $2, $3)"#,
-            ip_parsed, ua, json!({ "groupName": group_name_str, "groupId": group_id, "createdBy": user_id, "groupType": group_type.as_str() })
+            ip_parsed, ua, json!({ "groupName": group_name_str, "groupId": group_id, "createdBy": user_id, "groupType": group_type.as_str(), "daltonEnabled": dalton_enabled })
         ).execute(&self.db).await?;
 
         let jar = self
@@ -188,7 +191,7 @@ impl GroupService {
 
         let user_roles = sqlx::query!(
             r#"SELECT ur.tenant_id, g.id as gid, g.name as gname, g.owner_id, g.schedule_config,
-                      g.avatar_url, g.permissions, g.group_type, r.name as role_name
+                      g.avatar_url, g.permissions, g.group_type, g.dalton_enabled, r.name as role_name
                FROM user_roles ur
                JOIN groups g ON g.id = ur.tenant_id
                JOIN roles r ON r.id = ur.role_id
@@ -207,6 +210,7 @@ impl GroupService {
                     "scheduleConfig": ur.schedule_config, "avatarUrl": ur.avatar_url,
                     "permissions": ur.permissions,
                     "groupType": GroupType::from_str_or_regular(&ur.group_type).as_str(),
+                    "daltonEnabled": ur.dalton_enabled,
                 })
             })
             .collect();
@@ -218,7 +222,7 @@ impl GroupService {
             {
                 Some(g) => Some(g.clone()),
                 None if global_role == Some("superadmin") => sqlx::query!(
-                    r#"SELECT id, name, owner_id, schedule_config, avatar_url, permissions, group_type
+                    r#"SELECT id, name, owner_id, schedule_config, avatar_url, permissions, group_type, dalton_enabled
                            FROM groups WHERE id = $1"#,
                     gid
                 )
@@ -231,6 +235,7 @@ impl GroupService {
                         "scheduleConfig": g.schedule_config, "avatarUrl": g.avatar_url,
                         "permissions": g.permissions,
                         "groupType": GroupType::from_str_or_regular(&g.group_type).as_str(),
+                        "daltonEnabled": g.dalton_enabled,
                     })
                 }),
                 None => None,
@@ -263,6 +268,7 @@ impl GroupService {
                 "id": g["id"], "name": g["name"], "ownerId": g["ownerId"],
                 "avatarUrl": g["avatarUrl"], "permissions": g["permissions"],
                 "groupType": g["groupType"],
+                "daltonEnabled": g["daltonEnabled"],
             })),
             "groups": groups,
             "activePermissions": active_permission_keys,

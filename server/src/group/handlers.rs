@@ -94,6 +94,7 @@ pub async fn create_group(
             group_name: &dto.group_name,
             avatar_url: dto.avatar_url.as_deref(),
             group_type,
+            dalton_enabled: dto.dalton_enabled,
             ip: ip.as_deref(),
             ua: ua.as_deref(),
             current_refresh: current.as_deref(),
@@ -310,8 +311,9 @@ pub async fn rename_group(
     let group_type = parse_group_type(dto.group_type.as_deref())?;
 
     // The group type decides which subject categories exist and whether the
-    // schedule is kept per course, so changing it needs both of those rights.
-    if group_type.is_some() {
+    // schedule is kept per course, and Dalton adds a pseudo-subject to both, so
+    // changing either needs both of those rights.
+    if group_type.is_some() || dto.dalton_enabled.is_some() {
         crate::require_permission!(
             tc,
             crate::common::permission::Permission::EditSubjectsCourses
@@ -327,6 +329,7 @@ pub async fn rename_group(
                 dto.name.as_deref(),
                 dto.avatar_url.as_deref(),
                 group_type,
+                dto.dalton_enabled,
             )
             .await?,
     ))
@@ -442,6 +445,7 @@ pub async fn create_subject(
                 tc.user.user_id,
                 &dto.name,
                 dto.category.as_deref(),
+                dto.is_dalton,
             )
             .await?,
     ))
@@ -465,6 +469,7 @@ pub async fn update_subject(
                 id,
                 dto.name.as_deref(),
                 dto.category.as_deref(),
+                dto.is_dalton,
             )
             .await?,
     ))

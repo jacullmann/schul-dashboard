@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM schedules WHERE tenant_id = $1 AND is_dalton",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "7a7409a9b887a67825a0cdbae59495c0131c8d8ea12ce1179d31f895cd397bf2"
+}

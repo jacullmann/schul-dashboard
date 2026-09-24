@@ -15,7 +15,7 @@ impl ScheduleService {
 
     pub async fn get_schedule(&self, tenant_id: Uuid, user_id: Option<Uuid>) -> AppResult<Value> {
         let lessons = sqlx::query!(
-            r#"SELECT s.id, s.day, s.slot, s.duration, s.room, s.course_id,
+            r#"SELECT s.id, s.day, s.slot, s.duration, s.room, s.course_id, s.is_dalton,
        sub.id as "subject_id: Option<Uuid>", sub.name as "subject_name?",
        c.name as "course_name?"
 FROM schedules s
@@ -74,6 +74,7 @@ WHERE s.tenant_id = $1"#,
                 "subjects": l.subject_id.map(|id| json!({ "id": id, "name": l.subject_name })),
                 "courseId": l.course_id,
                 "courses": l.course_id.map(|id| json!({ "id": id, "name": l.course_name })),
+                "isDalton": l.is_dalton,
             }))
             .collect();
 
@@ -102,7 +103,7 @@ WHERE s.tenant_id = $1"#,
 
     pub async fn get_subjects(&self, tenant_id: Uuid) -> AppResult<Value> {
         let subjects = sqlx::query!(
-            r#"SELECT s.id, s.name, s.category,
+            r#"SELECT s.id, s.name, s.category, s.is_dalton,
                       COALESCE(
                           json_agg(json_build_object('id', c.id, 'name', c.name, 'courseType', c.course_type) ORDER BY c.name) FILTER (WHERE c.id IS NOT NULL),
                           '[]'::json
@@ -121,6 +122,7 @@ WHERE s.tenant_id = $1"#,
                     "id": s.id,
                     "name": s.name,
                     "category": s.category,
+                    "isDalton": s.is_dalton,
                     "courses": s.courses,
                 }))
                 .collect::<Vec<_>>()

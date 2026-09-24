@@ -95,6 +95,18 @@
         },
         "success": "Gruppentyp aktualisiert",
         "failed": "Gruppentyp konnte nicht geändert werden"
+      },
+      "dalton": {
+        "title": "Dalton",
+        "description": "Dalton ergänzt den Stundenplan um freie Lernzeit und bringt einen eigenen Aufgabentyp mit.",
+        "toggle_title": "Dalton aktivieren",
+        "toggle_description": "Dalton wird zum Aufgabentyp und kann wie ein Fach in den Stundenplan eingetragen werden. Fächer können als Daltonfächer markiert werden.",
+        "modal": {
+          "title": "Dalton deaktivieren?",
+          "message": "Alle Daltonstunden werden aus dem Stundenplan entfernt und es können keine neuen Daltonaufträge erstellt werden. Bestehende Daltonaufträge und die Dalton-Markierungen der Fächer bleiben erhalten."
+        },
+        "success": "Dalton-Einstellung aktualisiert",
+        "failed": "Dalton-Einstellung konnte nicht geändert werden"
       }
     },
     "members": {
@@ -397,7 +409,10 @@
         "optional": "Wahl",
         "zk": "ZK"
       },
-      "category_mismatch": "Dieses Fach ist noch als „{category}“ gespeichert – eine Kategorie des anderen Gruppentyps. Beim Speichern wird die ausgewählte Kategorie übernommen."
+      "category_mismatch": "Dieses Fach ist noch als „{category}“ gespeichert – eine Kategorie des anderen Gruppentyps. Beim Speichern wird die ausgewählte Kategorie übernommen.",
+      "dalton_label": "Daltonfach",
+      "dalton_description": "Wird als Fach für Daltonaufträge angeboten. Ist kein Fach markiert, stehen bei Daltonaufträgen alle Fächer zur Auswahl.",
+      "dalton_badge": "Daltonfach"
     },
     "title": "Gruppen Verwaltung",
     "messages": {

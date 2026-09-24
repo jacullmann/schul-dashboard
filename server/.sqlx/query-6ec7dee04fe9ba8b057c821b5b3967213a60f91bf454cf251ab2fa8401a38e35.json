@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO subjects (tenant_id, name, category) VALUES ($1, $2, $3)\n               RETURNING id, name, category",
+  "query": "INSERT INTO groups (name, avatar_url, owner_id, group_type, dalton_enabled)\n               VALUES ($1, $2, $3, $4, $5) RETURNING id, name",
   "describe": {
     "columns": [
       {
@@ -9,7 +9,7 @@
         "type_info": "Uuid",
         "origin": {
           "Table": {
-            "table": "subjects",
+            "table": "groups",
             "name": "id"
           }
         }
@@ -20,35 +20,25 @@
         "type_info": "Text",
         "origin": {
           "Table": {
-            "table": "subjects",
+            "table": "groups",
             "name": "name"
-          }
-        }
-      },
-      {
-        "ordinal": 2,
-        "name": "category",
-        "type_info": "Text",
-        "origin": {
-          "Table": {
-            "table": "subjects",
-            "name": "category"
           }
         }
       }
     ],
     "parameters": {
       "Left": [
+        "Text",
+        "Text",
         "Uuid",
         "Text",
-        "Text"
+        "Bool"
       ]
     },
     "nullable": [
       false,
-      false,
       false
     ]
   },
-  "hash": "c7e9257466f8f71a10695a55fbcebec64cd0d809ed53ea11c557a726096a8051"
+  "hash": "6ec7dee04fe9ba8b057c821b5b3967213a60f91bf454cf251ab2fa8401a38e35"
 }

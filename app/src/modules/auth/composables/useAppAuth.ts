@@ -16,6 +16,7 @@ const activeGroupOwnerId = ref<string | null>(null);
 const activeGroupAvatarUrl = ref<string | null>(null);
 const activeGroupPermissions = ref<Record<string, string>>({});
 const activeGroupType = ref<GroupType>('regular');
+const activeGroupDaltonEnabled = ref(false);
 
 import type { PermissionKey } from '@/types/permissions.ts';
 
@@ -31,6 +32,7 @@ type UserGroup = {
   scheduleConfig?: ScheduleConfig;
   avatarUrl?: string;
   groupType?: GroupType;
+  daltonEnabled?: boolean;
 };
 
 const userGroups = ref<UserGroup[]>([]);
@@ -62,6 +64,7 @@ function clearAuthState(): void {
   activeGroupAvatarUrl.value = null;
   activeGroupPermissions.value = {};
   activeGroupType.value = 'regular';
+  activeGroupDaltonEnabled.value = false;
   activePermissions.value = new Set();
   userGroups.value = [];
   statusPromise = null;
@@ -81,6 +84,7 @@ function applyStatusData(data: {
     avatarUrl?: string;
     permissions?: Record<string, string>;
     groupType?: string;
+    daltonEnabled?: boolean;
   } | null;
   groups?: UserGroup[];
   activePermissions?: string[];
@@ -93,6 +97,7 @@ function applyStatusData(data: {
   activeGroupAvatarUrl.value = data.group?.avatarUrl ?? null;
   activeGroupPermissions.value = data.group?.permissions ?? {};
   activeGroupType.value = toGroupType(data.group?.groupType);
+  activeGroupDaltonEnabled.value = data.group?.daltonEnabled === true;
   userGroups.value = (data.groups ?? []).map((group) => ({
     ...group,
     groupType: toGroupType(group.groupType),
@@ -219,12 +224,14 @@ export function useAppAuth() {
     name: string,
     avatarUrl?: string,
     groupType: GroupType = 'regular',
+    daltonEnabled = false,
   ): Promise<AuthResult> {
     try {
       const { status, data } = await hw.post('/groups/create', {
         groupName: name,
         avatarUrl,
         groupType,
+        daltonEnabled,
       });
       if ((status === 200 || status === 201) && data.ok) {
         await checkAuthStatus();
@@ -408,6 +415,7 @@ export function useAppAuth() {
     activeGroupAvatarUrl,
     activeGroupPermissions,
     activeGroupType,
+    activeGroupDaltonEnabled,
     activePermissions,
     activeScheduleConfig,
     userGroups,

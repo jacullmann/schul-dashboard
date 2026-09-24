@@ -54,6 +54,7 @@ const {
   saveScheduleBatch,
   lessons,
   loadingLessons,
+  loadSchedule,
   savingLesson,
   saveLesson,
   deleteLesson,
@@ -94,7 +95,11 @@ const activeTab = computed<string>({
   },
 });
 
-const { activeGroupOwnerId } = useAppAuth();
+const { activeGroupOwnerId, activeGroupDaltonEnabled } = useAppAuth();
+
+// Turning Dalton off deletes its lessons on the server, so the schedule this
+// page hands to its editor has to be fetched again.
+watch(activeGroupDaltonEnabled, () => void loadSchedule());
 const userStore = useUserStore();
 const isAdmin = computed(
   () =>

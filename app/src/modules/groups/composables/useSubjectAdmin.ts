@@ -5,6 +5,7 @@ import type { AdminCourse, AdminSubject } from '@/modules/groups/types';
 import type { CourseType } from '@/types/subjects';
 import { useToast } from '@/common/composables/useToast';
 import { useModalStore } from '@/stores/modalStore';
+import { useSubjectStore } from '@/stores/subjectStore';
 
 const subjects = ref<AdminSubject[]>([]);
 const loading = ref(false);
@@ -13,6 +14,7 @@ const saving = ref(false);
 export function useSubjectAdmin() {
   const { t } = useI18n();
   const modalStore = useModalStore();
+  const subjectStore = useSubjectStore();
   const { success, error: toastError } = useToast();
 
   async function loadSubjects() {
@@ -32,16 +34,22 @@ export function useSubjectAdmin() {
     }
   }
 
-  async function createSubject(name: string, category?: string) {
+  async function createSubject(
+    name: string,
+    category?: string,
+    isDalton = false,
+  ) {
     if (!name.trim()) return;
     saving.value = true;
     try {
       const { data } = await hw.post<AdminSubject>('/group-admin/subjects', {
         name: name.trim(),
         category,
+        isDalton,
       });
       subjects.value.push(data);
       subjects.value.sort((a, b) => a.name.localeCompare(b.name));
+      subjectStore.reset();
       success(t('groups.settings.subjects.errors.create_success'));
     } catch {
       toastError(t('groups.settings.subjects.errors.create_failed'));
@@ -52,7 +60,7 @@ export function useSubjectAdmin() {
 
   async function updateSubject(
     id: string,
-    updates: { name?: string; category?: string },
+    updates: { name?: string; category?: string; isDalton?: boolean },
   ): Promise<boolean> {
     saving.value = true;
     try {
@@ -64,7 +72,10 @@ export function useSubjectAdmin() {
       if (subject) {
         if (updates.name !== undefined) subject.name = updates.name.trim();
         if (updates.category !== undefined) subject.category = updates.category;
+        if (updates.isDalton !== undefined) subject.isDalton = updates.isDalton;
       }
+      // The task form offers subjects by their Dalton flag and name.
+      subjectStore.reset();
       if (updates.name !== undefined) {
         subjects.value.sort((a, b) => a.name.localeCompare(b.name));
       }

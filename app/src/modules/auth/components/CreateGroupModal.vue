@@ -7,6 +7,7 @@ import { useUserStore } from '@/stores/userStore';
 import { Camera, ImagePlus, Trash2, Upload } from '@lucide/vue';
 import GroupAvatarCropper from '@/modules/groups/components/GroupAvatarCropper.vue';
 import GroupTypeRadioGroup from '@/modules/groups/components/GroupTypeRadioGroup.vue';
+import SettingToggleCard from '@/modules/groups/components/SettingToggleCard.vue';
 import hw from '@/api/api.ts';
 import Avatar from '@/modules/auth/components/Avatar.vue';
 import { apiErrorMessage } from '@/api/errors';
@@ -31,6 +32,7 @@ const groupNameInputRef = ref<HTMLInputElement | null>(null);
 
 const groupName = ref('');
 const groupType = ref<GroupType>('regular');
+const daltonEnabled = ref(false);
 const submitting = ref(false);
 const errorMsg = ref('');
 
@@ -162,6 +164,7 @@ async function submit() {
       groupName.value.trim(),
       avatarUrl.value || undefined,
       groupType.value,
+      daltonEnabled.value,
     );
 
     if (res.ok) {
@@ -286,6 +289,12 @@ async function submit() {
       </BaseFormGroup>
 
       <GroupTypeRadioGroup v-model="groupType" />
+
+      <SettingToggleCard
+        v-model="daltonEnabled"
+        :title="t('groups.settings.general.dalton.toggle_title')"
+        :description="t('groups.settings.general.dalton.toggle_description')"
+      />
 
       <input
         ref="fileInputRef"

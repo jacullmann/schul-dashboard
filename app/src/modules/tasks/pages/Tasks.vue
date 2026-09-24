@@ -8,6 +8,7 @@ import { Plus, ListFilter } from '@lucide/vue';
 import { useTasks } from '@/modules/tasks/composables/useTasks';
 import { useTaskForm } from '@/core/composables/useTaskForm';
 import { useImageViewer } from '@/core/composables/useImageViewer';
+import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 
 import InfoModal from '@/common/components/InfoModal.vue';
 import TaskSkeleton from '@/modules/tasks/components/TaskSkeleton.vue';
@@ -27,10 +28,14 @@ const t = i18n.t.bind(i18n);
 const tm = i18n.tm.bind(i18n);
 const { width: windowWidth } = useWindowSize();
 
+const { activeGroupDaltonEnabled } = useAppAuth();
+
 const tabItems = computed(() => [
   { id: 'all', label: t('tasks.list.tabs.all') },
   { id: 'homework', label: t('tasks.list.tabs.homework') },
-  { id: 'dalton', label: t('tasks.list.tabs.dalton') },
+  ...(activeGroupDaltonEnabled.value
+    ? [{ id: 'dalton', label: t('tasks.list.tabs.dalton') }]
+    : []),
   { id: 'exam', label: t('tasks.list.tabs.exams') },
 ]);
 
@@ -117,6 +122,15 @@ const hasActiveFilters = computed(
 
 const { openTaskForm } = useTaskForm();
 const { openImageViewer } = useImageViewer();
+
+// The Dalton tab disappears with the setting, also for a link that opened it.
+watch(
+  [activeGroupDaltonEnabled, tab],
+  ([daltonEnabled, activeTab]) => {
+    if (!daltonEnabled && activeTab === 'dalton') goTab('all');
+  },
+  { immediate: true },
+);
 
 const animationStartTime = ref(Date.now());
 const elapsedLoadTime = ref(0);
