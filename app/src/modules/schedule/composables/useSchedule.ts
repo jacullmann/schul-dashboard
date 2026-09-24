@@ -10,6 +10,7 @@ import type {
 } from '@/modules/schedule/types';
 import { useI18n } from 'vue-i18n';
 import { parseTimeOfDay } from '@/utils/time';
+import { lessonSubjectName } from '@/modules/schedule/utils/lesson';
 
 export interface UseScheduleOptions {
   autoLoad?: boolean;
@@ -106,8 +107,7 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
       return lesson.subject;
     }
 
-    const subjectName =
-      lesson.subjects?.name || lesson.subject || lesson.subjectAbbr || '';
+    const subjectName = lessonSubjectName(lesson);
     const normalizedSubject = subjectName.toLowerCase();
 
     if (normalizedSubject === 'wpu1' || normalizedSubject === 'wpu2') {

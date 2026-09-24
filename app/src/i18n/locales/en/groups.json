@@ -95,6 +95,18 @@
         },
         "success": "Group type updated",
         "failed": "Failed to update the group type"
+      },
+      "dalton": {
+        "title": "Dalton",
+        "description": "Dalton adds independent study time to the schedule and its own task type.",
+        "toggle_title": "Enable Dalton",
+        "toggle_description": "Dalton becomes a task type and can be scheduled like a subject. Subjects can be marked as Dalton subjects.",
+        "modal": {
+          "title": "Disable Dalton?",
+          "message": "All Dalton lessons are removed from the schedule and no new Dalton tasks can be created. Existing Dalton tasks and the Dalton marks on subjects are kept."
+        },
+        "success": "Dalton setting updated",
+        "failed": "Failed to update the Dalton setting"
       }
     },
     "members": {
@@ -397,7 +409,10 @@
         "optional": "Elective",
         "zk": "ZK"
       },
-      "category_mismatch": "This subject is still saved as \"{category}\", a category of the other group type. Saving moves it to the selected category."
+      "category_mismatch": "This subject is still saved as \"{category}\", a category of the other group type. Saving moves it to the selected category.",
+      "dalton_label": "Dalton subject",
+      "dalton_description": "Offered as a subject for Dalton tasks. If no subject is marked, Dalton tasks offer all subjects.",
+      "dalton_badge": "Dalton subject"
     },
     "title": "Group Management",
     "messages": {

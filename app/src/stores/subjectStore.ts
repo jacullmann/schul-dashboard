@@ -20,6 +20,8 @@ export interface Subject {
   id: string;
   name: string;
   category: SubjectCategory;
+  /** Offered for Dalton tasks; always set on the whole subject. */
+  isDalton?: boolean;
   courses?: Course[];
 }
 
@@ -54,6 +56,12 @@ export const useSubjectStore = defineStore('subjectStore', () => {
     return subjects.value.map((s) => s.name);
   });
 
+  /** Dalton tasks offer only Dalton subjects, unless the group marked none. */
+  const daltonSubjectKeys = computed(() => {
+    const keys = subjects.value.filter((s) => s.isDalton).map((s) => s.name);
+    return keys.length > 0 ? keys : availableSubjectKeys.value;
+  });
+
   const withCourses = (selection: 'required' | 'optional') =>
     subjects.value.filter(
       (s) =>
@@ -82,6 +90,7 @@ export const useSubjectStore = defineStore('subjectStore', () => {
     loadSubjects,
     reset,
     availableSubjectKeys,
+    daltonSubjectKeys,
     groupType,
     requiredCourseSubjects,
     optionalCourseSubjects,

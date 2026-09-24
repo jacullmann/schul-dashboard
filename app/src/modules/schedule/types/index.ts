@@ -21,6 +21,8 @@ export interface Lesson {
   _original?: Lesson;
   cancelled?: boolean;
   isSubstitutedSubject?: boolean;
+  /** A Dalton lesson stands in for a subject and never carries one. */
+  isDalton?: boolean;
 }
 
 export interface ScheduleConfig {

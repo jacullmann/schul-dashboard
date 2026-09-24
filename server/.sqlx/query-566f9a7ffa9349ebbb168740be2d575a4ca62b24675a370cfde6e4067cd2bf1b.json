@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO schedules (id, tenant_id, day, slot, duration, room, subject_id, course_id, is_dalton)\n                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)\n                   ON CONFLICT (id) DO UPDATE SET\n                     day = EXCLUDED.day,\n                     slot = EXCLUDED.slot,\n                     duration = EXCLUDED.duration,\n                     room = EXCLUDED.room,\n                     subject_id = EXCLUDED.subject_id,\n                     course_id = EXCLUDED.course_id,\n                     is_dalton = EXCLUDED.is_dalton,\n                     updated_at = now()\n                   WHERE schedules.tenant_id = EXCLUDED.tenant_id",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Int4",
+        "Int4",
+        "Int4",
+        "Text",
+        "Uuid",
+        "Uuid",
+        "Bool"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "566f9a7ffa9349ebbb168740be2d575a4ca62b24675a370cfde6e4067cd2bf1b"
+}

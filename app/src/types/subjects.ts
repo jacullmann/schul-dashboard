@@ -155,6 +155,12 @@ export function subjectNeedsCourseChoice(
   }
 }
 
+/**
+ * Dalton is a pseudo-subject: lessons can be scheduled for it, but it has no
+ * subject row of its own and is only ever named through this translation key.
+ */
+export const DALTON_SUBJECT_KEY = 'dalton';
+
 export function getSubjectKey(subject: string): string {
   return subject;
 }

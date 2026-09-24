@@ -11,6 +11,7 @@ import { useSubjectStore } from '@/stores/subjectStore';
 import { useEnrolledCourses } from '@/common/composables/useEnrolledCourses';
 import { formatSubjectDisplay } from '@/utils/subject-formatter';
 import { apiErrorMessage } from '@/api/errors';
+import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 
 export function useTaskFormLogic(
   initial: HwItem | null | undefined,
@@ -29,15 +30,23 @@ export function useTaskFormLogic(
 
   const subjectStore = useSubjectStore();
   const { enrolledCourseForSubjectName } = useEnrolledCourses();
+  const { activeGroupDaltonEnabled } = useAppAuth();
 
   const typeTabItems = computed(() => [
     { id: 'homework', label: t('tasks.list.types.homework') },
-    { id: 'dalton', label: t('tasks.list.types.dalton') },
+    ...(activeGroupDaltonEnabled.value
+      ? [{ id: 'dalton', label: t('tasks.list.types.dalton') }]
+      : []),
     { id: 'exam', label: t('tasks.list.types.exam') },
   ]);
 
+  const requestedType = initialType ?? 'homework';
   const activeType = ref<Exclude<ItemType, 'all'>>(
-    initial ? initial.type : (initialType ?? 'homework'),
+    initial
+      ? initial.type
+      : requestedType === 'dalton' && !activeGroupDaltonEnabled.value
+        ? 'homework'
+        : requestedType,
   );
 
   const {
@@ -226,8 +235,26 @@ export function useTaskFormLogic(
   const submitting = ref(false);
   const submitError = ref('');
 
+  const selectableSubjectKeys = computed(() =>
+    activeType.value === 'dalton'
+      ? subjectStore.daltonSubjectKeys
+      : subjectStore.availableSubjectKeys,
+  );
+
+  // A subject picked for another type may not be offered for Dalton tasks.
+  watch(activeType, () => {
+    const current = subjectSel.value;
+    if (
+      current &&
+      current !== '__OTHER__' &&
+      !selectableSubjectKeys.value.includes(current)
+    ) {
+      subjectSel.value = '';
+    }
+  });
+
   const subjectOptions = computed(() => {
-    const opts = subjectStore.availableSubjectKeys.map((s) => {
+    const opts = selectableSubjectKeys.value.map((s) => {
       const translationKey = `common.subjects.${s}`;
       const label = te(translationKey) ? t(translationKey) : s;
       return { label, value: s };

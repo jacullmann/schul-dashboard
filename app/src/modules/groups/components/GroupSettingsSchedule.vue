@@ -29,6 +29,8 @@ import { useI18n } from 'vue-i18n';
 import { useWindowSize } from '@vueuse/core';
 import { useIsMobileViewport } from '@/common/composables/useViewport';
 import { minutesSinceMidnight } from '@/utils/time';
+import { lessonSubjectName } from '@/modules/schedule/utils/lesson';
+import { DALTON_SUBJECT_KEY } from '@/types/subjects';
 
 const i18n = useI18n();
 const { t } = i18n;
@@ -61,7 +63,12 @@ const emit = defineEmits<{
   (e: 'delete-lesson', id: string): void;
 }>();
 
-const { activeScheduleConfig, activeGroupType, checkPermission } = useAppAuth();
+const {
+  activeScheduleConfig,
+  activeGroupType,
+  activeGroupDaltonEnabled,
+  checkPermission,
+} = useAppAuth();
 const { subjects, loadSubjects } = useSubjectAdmin();
 
 // Abitur groups schedule each course on its own, so lessons carry a course.
@@ -265,9 +272,8 @@ function getSubCourseName(courseId?: string | null): string {
 }
 
 function getDisplayName(lesson: Lesson): string {
-  const subjectName =
-    lesson.subjects?.name || lesson.subject || lesson.subjectAbbr || '';
-  return subjectName || t('common.selection.unknown');
+  if (lesson.isDalton) return t(`common.subjects.${DALTON_SUBJECT_KEY}`);
+  return lessonSubjectName(lesson) || t('common.selection.unknown');
 }
 
 function onLessonSelected(lesson: Lesson) {
@@ -692,18 +698,34 @@ const lessonForm = ref({
   courseId: '',
 });
 
-// Subject Options directly from group subjects table
+// Dalton has no subject row, so the form tells it apart by a value no subject
+// id can take.
+const DALTON_LESSON_OPTION = '__dalton__';
+
+const isDaltonSelected = computed(
+  () => lessonForm.value.subjectId === DALTON_LESSON_OPTION,
+);
+
+// Subject Options directly from group subjects table, plus the Dalton
+// pseudo-subject while the group has it enabled.
 const subjectOptions = computed(() => {
-  if (!subjects.value || subjects.value.length === 0) return [];
-  return subjects.value.map((s) => ({
+  const options = subjects.value.map((s) => ({
     label: s.name,
     value: s.id,
   }));
+  if (activeGroupDaltonEnabled.value) {
+    options.push({
+      label: t(`common.subjects.${DALTON_SUBJECT_KEY}`),
+      value: DALTON_LESSON_OPTION,
+    });
+    options.sort((a, b) => a.label.localeCompare(b.label));
+  }
+  return options;
 });
 
 // Selected Subject Object
 const selectedSubjectObj = computed(() => {
-  if (!lessonForm.value.subjectId) return null;
+  if (!lessonForm.value.subjectId || isDaltonSelected.value) return null;
   return (
     subjects.value.find((s) => s.id === lessonForm.value.subjectId) || null
   );
@@ -863,7 +885,9 @@ function openEditLessonModal(lesson: Lesson) {
       s.name.toLowerCase() === (lesson.subject || '').toLowerCase(),
   );
 
-  const matchedSubId = matchedSub ? matchedSub.id : '';
+  const matchedSubId = lesson.isDalton
+    ? DALTON_LESSON_OPTION
+    : (matchedSub?.id ?? '');
 
   const lessonCourseId = lesson.courseId || lesson.courses?.id || '';
   const matchedCourseId = matchedSub?.courses?.some(
@@ -890,20 +914,52 @@ function closeLessonModal() {
 }
 
 function submitLessonForm() {
-  const subObj = selectedSubjectObj.value;
-  if (!subObj) return;
-
   const targetId =
     lessonForm.value.id ||
     `les_draft_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+
+  const newLesson = isDaltonSelected.value
+    ? draftDaltonLesson(targetId)
+    : draftSubjectLesson(targetId);
+  if (!newLesson) return;
+
+  const existingIdx = draftLessons.value.findIndex((l) => l.id === targetId);
+  if (existingIdx !== -1) {
+    draftLessons.value[existingIdx] = newLesson;
+  } else {
+    draftLessons.value.push(newLesson);
+  }
+
+  pushHistoryState(draftLessons.value);
+  closeLessonModal();
+}
+
+function draftDaltonLesson(id: string): Lesson {
+  return {
+    id,
+    day: Number(lessonForm.value.day),
+    slot: Number(lessonForm.value.slot),
+    duration: Number(lessonForm.value.duration || 1),
+    room: lessonForm.value.room.trim() || null,
+    subjectId: null,
+    subjects: null,
+    courseId: null,
+    courses: null,
+    isDalton: true,
+  };
+}
+
+function draftSubjectLesson(id: string): Lesson | null {
+  const subObj = selectedSubjectObj.value;
+  if (!subObj) return null;
 
   const courseObj =
     subObj.courses?.find(
       (c: { id: string }) => c.id === lessonForm.value.courseId,
     ) ?? null;
 
-  const newLesson: Lesson = {
-    id: targetId,
+  return {
+    id,
     day: Number(lessonForm.value.day),
     slot: Number(lessonForm.value.slot),
     duration: Number(lessonForm.value.duration || 1),
@@ -916,16 +972,6 @@ function submitLessonForm() {
     courseName: courseObj?.name,
     courses: courseObj ? { id: courseObj.id, name: courseObj.name } : null,
   };
-
-  const existingIdx = draftLessons.value.findIndex((l) => l.id === targetId);
-  if (existingIdx !== -1) {
-    draftLessons.value[existingIdx] = newLesson;
-  } else {
-    draftLessons.value.push(newLesson);
-  }
-
-  pushHistoryState(draftLessons.value);
-  closeLessonModal();
 }
 
 onMounted(() => {
@@ -1493,7 +1539,7 @@ onBeforeUnmount(() => {
     <BaseModal
       :open="isLessonModalOpen"
       :submit="submitLessonForm"
-      :requirement="!(subjects.length === 0 || !lessonForm.subjectId)"
+      :requirement="!!lessonForm.subjectId"
       @cancel="closeLessonModal"
     >
       <template #title>
@@ -1510,7 +1556,7 @@ onBeforeUnmount(() => {
         </div>
 
         <div
-          v-if="subjects.length === 0"
+          v-if="subjectOptions.length === 0"
           class="text-xs text-warning bg-warning/10 border border-warning/20 p-3 rounded-lg flex items-center gap-2"
         >
           <BookOpen class="size-4 shrink-0" />

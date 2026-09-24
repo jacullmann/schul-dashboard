@@ -66,6 +66,7 @@ export function useGroupAdmin() {
   const newGroupName = ref('');
   const savingGroupName = ref(false);
   const savingGroupType = ref(false);
+  const savingDaltonEnabled = ref(false);
 
   function showMessage(msg: string, isError = false) {
     if (isError) {
@@ -260,14 +261,20 @@ export function useGroupAdmin() {
     room: string | null;
     subjectId: string | null;
     courseId: string | null;
+    isDalton: boolean;
   };
 
   const uuidPattern =
     /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
   function createScheduleLessonPayload(lesson: Lesson): ScheduleLessonPayload {
-    const subjectId = lesson.subjectId ?? lesson.subjects?.id ?? null;
-    const courseId = lesson.courseId ?? lesson.courses?.id ?? null;
+    const isDalton = lesson.isDalton === true;
+    const subjectId = isDalton
+      ? null
+      : (lesson.subjectId ?? lesson.subjects?.id ?? null);
+    const courseId = isDalton
+      ? null
+      : (lesson.courseId ?? lesson.courses?.id ?? null);
 
     return {
       ...(uuidPattern.test(lesson.id) ? { id: lesson.id } : {}),
@@ -277,6 +284,7 @@ export function useGroupAdmin() {
       room: lesson.room?.trim() || null,
       subjectId,
       courseId,
+      isDalton,
     };
   }
 
@@ -502,6 +510,24 @@ export function useGroupAdmin() {
     }
   }
 
+  async function saveDaltonEnabled(daltonEnabled: boolean): Promise<boolean> {
+    savingDaltonEnabled.value = true;
+    try {
+      await hw.patch('/group-admin/settings', { daltonEnabled });
+      await checkAuthStatus();
+      showMessage(t('groups.settings.general.dalton.success'));
+      return true;
+    } catch (e: unknown) {
+      showMessage(
+        apiErrorMessage(e, t('groups.settings.general.dalton.failed')),
+        true,
+      );
+      return false;
+    } finally {
+      savingDaltonEnabled.value = false;
+    }
+  }
+
   async function deleteGroup() {
     try {
       await hw.delete('/group-admin');
@@ -640,6 +666,8 @@ export function useGroupAdmin() {
     saveGroupAvatar,
     savingGroupType,
     saveGroupType,
+    savingDaltonEnabled,
+    saveDaltonEnabled,
     deleteGroup,
     transferOwnership,
 

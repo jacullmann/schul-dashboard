@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, name, owner_id, schedule_config, avatar_url, permissions, group_type\n                           FROM groups WHERE id = $1",
+  "query": "SELECT id, name, owner_id, schedule_config, avatar_url, permissions, group_type, dalton_enabled\n                           FROM groups WHERE id = $1",
   "describe": {
     "columns": [
       {
@@ -79,6 +79,17 @@
             "name": "group_type"
           }
         }
+      },
+      {
+        "ordinal": 7,
+        "name": "dalton_enabled",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "groups",
+            "name": "dalton_enabled"
+          }
+        }
       }
     ],
     "parameters": {
@@ -93,8 +104,9 @@
       false,
       true,
       false,
+      false,
       false
     ]
   },
-  "hash": "e239402ea85dcf7c2931db361135974ae08b85168e4ec796ea79b291256c06e5"
+  "hash": "2552e64027e11d9297f46949eb4db0417746ae822da6db0de2e925bc18618e9f"
 }
