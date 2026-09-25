@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { Ellipsis, Archive, ArchiveRestore, UploadCloud } from '@lucide/vue';
+import {
+  Ellipsis,
+  Archive,
+  ArchiveRestore,
+  Trash2,
+  UploadCloud,
+} from '@lucide/vue';
 import { useSwipeToDismiss } from '@/modules/tasks/composables/useSwipeToDismiss';
 
 const { t } = useI18n();
@@ -13,7 +19,8 @@ const props = withDefaults(
     highlighted?: boolean;
     showMenuTrigger?: boolean;
     swipeable?: boolean;
-    swipeAction?: 'archive' | 'keep';
+    swipeAction?: 'archive' | 'keep' | 'delete';
+    confirmSwipe?: () => Promise<boolean>;
     reducedBottomMargin?: boolean;
   }>(),
   {
@@ -72,8 +79,9 @@ const swipeActionRef = ref<HTMLElement | null>(null);
 
 const { swipeOffset, isSwiping, isArmed, isDismissing, dismiss } =
   useSwipeToDismiss(cardRef, {
-    enabled: props.swipeable,
+    enabled: () => props.swipeable,
     actionButton: swipeActionRef,
+    confirmDismiss: props.confirmSwipe,
     onSlideOut: collapseContainer,
   });
 
@@ -81,10 +89,15 @@ const isSwipeActionVisible = computed(
   () => isSwiping.value || isDismissing.value || swipeOffset.value > 0,
 );
 
+const swipeActions = {
+  archive: { icon: Archive, labelKey: 'tasks.list.tasks.menu.archive' },
+  keep: { icon: ArchiveRestore, labelKey: 'tasks.list.tasks.menu.unarchive' },
+  delete: { icon: Trash2, labelKey: 'common.buttons.delete' },
+} as const;
+
+const swipeActionIcon = computed(() => swipeActions[props.swipeAction].icon);
 const swipeActionLabel = computed(() =>
-  props.swipeAction === 'keep'
-    ? t('tasks.list.tasks.menu.unarchive')
-    : t('tasks.list.tasks.menu.archive'),
+  t(swipeActions[props.swipeAction].labelKey),
 );
 
 const swipeSettleTiming = '360ms cubic-bezier(0.25, 1, 0.5, 1)';
@@ -219,12 +232,7 @@ function onDrop(e: DragEvent) {
           class="transition-transform duration-200"
           :class="{ 'scale-125': isArmed }"
         >
-          <ArchiveRestore
-            v-if="swipeAction === 'keep'"
-            :size="24"
-            color="#fff"
-          />
-          <Archive v-else :size="24" color="#fff" />
+          <component :is="swipeActionIcon" :size="24" color="#fff" />
         </span>
       </span>
     </button>

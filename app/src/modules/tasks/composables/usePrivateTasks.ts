@@ -220,16 +220,16 @@ export function usePrivateTasks() {
     }
   };
 
-  const deletePrivateTask = async (id: string) => {
-    if (
-      !(await modalStore.confirm({
-        title: t('tasks.list.tasks.menu.delete.title'),
-        content: t('tasks.private_tasks.delete_confirm'),
-        submitText: t('common.buttons.delete'),
-        danger: true,
-      }))
-    )
-      return;
+  const confirmDeletePrivateTask = () =>
+    modalStore.confirm({
+      title: t('tasks.list.tasks.menu.delete.title'),
+      content: t('tasks.private_tasks.delete_confirm'),
+      submitText: t('common.buttons.delete'),
+      danger: true,
+    });
+
+  const deletePrivateTask = async (id: string, { confirm = true } = {}) => {
+    if (confirm && !(await confirmDeletePrivateTask())) return;
 
     const idx = privateTasks.value.findIndex((t) => t.id === id);
     if (idx === -1) return;
@@ -383,6 +383,7 @@ export function usePrivateTasks() {
     toggleMenu,
     togglePrivateTaskCompletion,
     duplicatePrivateTask,
+    confirmDeletePrivateTask,
     deletePrivateTask,
     reorderPrivateTask,
   };

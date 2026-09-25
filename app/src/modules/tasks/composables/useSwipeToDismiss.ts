@@ -1,4 +1,11 @@
-import { ref, computed, watch, type Ref } from 'vue';
+import {
+  ref,
+  computed,
+  watch,
+  toValue,
+  type MaybeRefOrGetter,
+  type Ref,
+} from 'vue';
 import {
   usePointerSwipe,
   useElementBounding,
@@ -6,13 +13,15 @@ import {
 } from '@vueuse/core';
 
 export interface SwipeToDismissOptions {
-  enabled?: boolean;
+  enabled?: MaybeRefOrGetter<boolean>;
   /** How far the card rests aside while its action button is shown. */
   revealWidth?: number;
   /** Share of the card's width past which letting go runs the action. */
   commitRatio?: number;
   /** Pressing it must not count as a press outside that closes the card. */
   actionButton?: Ref<HTMLElement | null>;
+  /** Asked before the card slides out; declining puts the card back. */
+  confirmDismiss?: () => Promise<boolean>;
   onSlideOut: () => void;
 }
 
@@ -33,18 +42,21 @@ function vibrate(duration: number) {
 }
 
 /**
- * Swiping the card right to left reveals an action button behind it. Letting
- * go past half the button snaps the card open onto it; swiping on past
- * `commitRatio` of the card's width runs the action without the tap.
+ * Touch only: a mouse has the card's menu for the same actions, and dragging
+ * with it would fight text selection. Swiping the card right to left reveals
+ * an action button behind it. Letting go past half the button snaps the card
+ * open onto it; swiping on past `commitRatio` of the card's width runs the
+ * action without the tap.
  */
 export function useSwipeToDismiss(
   target: Ref<HTMLElement | null>,
   options: SwipeToDismissOptions,
 ) {
-  const enabled = options.enabled ?? true;
   const revealWidth = options.revealWidth ?? DEFAULT_REVEAL_WIDTH;
   const commitRatio = options.commitRatio ?? DEFAULT_COMMIT_RATIO;
-  const gestureTarget = computed(() => (enabled ? target.value : null));
+  const gestureTarget = computed(() =>
+    toValue(options.enabled ?? true) ? target.value : null,
+  );
 
   const swipeOffset = ref(0);
   const isSwiping = ref(false);
@@ -76,11 +88,24 @@ export function useSwipeToDismiss(
     swipeOffset.value = 0;
   }
 
-  function dismiss() {
+  async function dismiss() {
     if (isDismissing.value) return;
     isDismissing.value = true;
     isOpen.value = false;
     isSwiping.value = false;
+
+    if (options.confirmDismiss) {
+      // Rests on the action button while the question is open. Not `open()`:
+      // a press inside the dialog would count as a press outside the card.
+      swipeOffset.value = revealWidth;
+      const confirmed = await options.confirmDismiss();
+      if (!confirmed) {
+        isDismissing.value = false;
+        close();
+        return;
+      }
+    }
+
     swipeOffset.value = elementWidth.value + SLIDE_OUT_OVERSHOOT;
 
     const el = target.value;
@@ -109,13 +134,14 @@ export function useSwipeToDismiss(
     isSwiping.value = false;
 
     if (!gestureLockedHorizontal) close();
-    else if (isArmed.value) dismiss();
+    else if (isArmed.value) void dismiss();
     else if (swipeOffset.value >= revealWidth / 2) open();
     else close();
   }
 
   const { distanceX, distanceY } = usePointerSwipe(gestureTarget, {
     threshold: POINTER_SWIPE_THRESHOLD,
+    pointerTypes: ['touch'],
     onSwipeStart() {
       if (isDismissing.value) return;
       gestureDecided = false;
@@ -162,8 +188,8 @@ export function useSwipeToDismiss(
     { passive: false },
   );
 
-  // A tap on an open card only closes it, and the click that ends a mouse
-  // drag must not reach the card's controls.
+  // A tap on an open card only closes it, and the click that ends a swipe
+  // must not reach the card's controls.
   useEventListener(
     gestureTarget,
     'click',

@@ -1,4 +1,4 @@
-import { nextTick, onScopeDispose, type Ref } from 'vue';
+import { nextTick, onScopeDispose, readonly, ref, type Ref } from 'vue';
 import { useEventListener } from '@vueuse/core';
 
 export interface DragReorderOptions {
@@ -174,6 +174,8 @@ export function useDragReorder(
 
   let pending: Pending | null = null;
   let gesture: Gesture | null = null;
+  /** A held card's finger must not also swipe it aside. */
+  const isDragging = ref(false);
   let pointerX = 0;
   let pointerY = 0;
   let scroller: HTMLElement | null = null;
@@ -404,6 +406,7 @@ export function useDragReorder(
       samples: [],
     };
     pending = null;
+    isDragging.value = true;
 
     document.documentElement.classList.add('is-reordering');
     window.getSelection()?.removeAllRanges();
@@ -425,6 +428,7 @@ export function useDragReorder(
     const g = gesture;
     if (!g) return;
     gesture = null;
+    isDragging.value = false;
 
     document.documentElement.classList.remove('is-reordering');
     window.removeEventListener('keydown', onKeyDown, true);
@@ -698,5 +702,5 @@ export function useDragReorder(
     entries.clear();
   });
 
-  return { move };
+  return { move, isDragging: readonly(isDragging) };
 }

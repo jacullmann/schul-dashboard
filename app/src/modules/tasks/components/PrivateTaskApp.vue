@@ -36,6 +36,7 @@ const {
   updatePrivateTask,
   togglePrivateTaskCompletion,
   duplicatePrivateTask,
+  confirmDeletePrivateTask,
   deletePrivateTask,
   reorderPrivateTask,
 } = usePrivateTasks();
@@ -147,6 +148,7 @@ const reorder = useDragReorder(listRef, {
   onMove: moveTask,
   ignore: IGNORED_REGIONS,
 });
+const { isDragging: isReordering } = reorder;
 
 function handleItemDoubleClick(task: PrivateTask, event: MouseEvent) {
   if (!user.value) return;
@@ -216,6 +218,10 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
               :class="{ 'animate-fade-up': !enteredIds.has(privateTask.id) }"
               :is-collapsed="privateTask.completed"
               :title="privateTask.title"
+              :swipeable="!isReordering"
+              swipe-action="delete"
+              :confirm-swipe="confirmDeletePrivateTask"
+              @swiped="deletePrivateTask(privateTask.id, { confirm: false })"
               @dblclick="handleItemDoubleClick(privateTask, $event)"
               @contextmenu.prevent.stop="
                 handleCardContextMenu(privateTask, $event)

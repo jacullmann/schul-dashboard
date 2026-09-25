@@ -748,6 +748,6 @@ const isScheduleVisible = computed(() => {
 }
 
 .task-list-leave-to {
-  transform: translateX(110%);
+  transform: translateX(-110%);
 }
 </style>
