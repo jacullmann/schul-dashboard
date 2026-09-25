@@ -713,6 +713,80 @@ p {
     filter: blur(4px);
   }
 
+  /* Rows interpolate between 0fr and 1fr, so the message eases the content
+     below it into place instead of shoving it down by a full line. Clipping
+     only vertically keeps the blurred glyphs' horizontal bleed visible. */
+  .form-error {
+    display: grid;
+    grid-template-rows: 1fr;
+  }
+  .form-error > * {
+    min-height: 0;
+    overflow-y: clip;
+  }
+  .form-error-enter-active {
+    transition: grid-template-rows 350ms cubic-bezier(0.32, 0.72, 0, 1);
+  }
+  .form-error-leave-active {
+    transition: grid-template-rows 250ms cubic-bezier(0.32, 0.72, 0, 1) 50ms;
+  }
+  .form-error-enter-from,
+  .form-error-leave-to {
+    grid-template-rows: 0fr;
+  }
+
+  /* The text trails the row opening and leads it closing, so it never slides
+     over content that is still moving. Vue only waits for the row's transition,
+     so the text must settle within it. */
+  .form-error-enter-active > * {
+    transition:
+      opacity 250ms linear 50ms,
+      transform 300ms cubic-bezier(0.16, 1, 0.3, 1) 50ms,
+      filter 300ms cubic-bezier(0.25, 0.5, 0.75, 1) 50ms;
+  }
+  .form-error-leave-active > * {
+    transition:
+      opacity 150ms linear,
+      transform 150ms cubic-bezier(0.5, 0, 1, 1),
+      filter 150ms cubic-bezier(0.25, 0, 0.3, 1);
+  }
+  .form-error-enter-from > *,
+  .form-error-leave-to > * {
+    opacity: 0;
+    transform: translateY(-0.25rem);
+    filter: blur(2px);
+  }
+
+  /* Old and new messages share one cell so a swap crossfades in place */
+  .form-error-message {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .form-error-message > * {
+    grid-area: 1 / 1;
+  }
+
+  .form-error-swap-enter-active {
+    transition:
+      opacity 250ms linear,
+      transform 300ms cubic-bezier(0.16, 1, 0.3, 1),
+      filter 300ms cubic-bezier(0.25, 0.5, 0.75, 1);
+  }
+  .form-error-swap-leave-active {
+    transition:
+      opacity 150ms linear,
+      filter 150ms cubic-bezier(0.25, 0, 0.3, 1);
+  }
+  .form-error-swap-enter-from {
+    opacity: 0;
+    transform: translateY(-0.25rem);
+    filter: blur(2px);
+  }
+  .form-error-swap-leave-to {
+    opacity: 0;
+    filter: blur(2px);
+  }
+
   .player-range {
     -webkit-appearance: none;
     appearance: none;

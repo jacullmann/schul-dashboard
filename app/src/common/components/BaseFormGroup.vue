@@ -19,29 +19,26 @@ const errorId = computed(() => `${props.id}-error`);
 </script>
 
 <template>
-  <div class="flex flex-col w-full gap-1.5">
+  <div class="flex flex-col w-full">
     <div>
       <slot></slot>
     </div>
 
-    <Transition
-      appear
-      enter-active-class="transition duration-150 ease-out"
-      enter-from-class="opacity-0 -translate-y-1"
-      enter-to-class="opacity-100 translate-y-0"
-      leave-active-class="transition duration-150 ease-in"
-      leave-from-class="opacity-100 translate-y-0"
-      leave-to-class="opacity-0 -translate-y-1"
-    >
-      <span
-        v-if="error"
-        :id="errorId"
-        class="text-danger text-sm/[1.4] font-sans m-0"
-        role="alert"
-        aria-live="polite"
-      >
-        {{ error }}
-      </span>
+    <Transition name="form-error" appear>
+      <div v-if="error" class="form-error">
+        <div>
+          <div
+            :id="errorId"
+            class="form-error-message pt-1.5 text-danger text-sm/[1.4] font-sans"
+            role="alert"
+            aria-live="polite"
+          >
+            <Transition name="form-error-swap">
+              <span :key="error">{{ error }}</span>
+            </Transition>
+          </div>
+        </div>
+      </div>
     </Transition>
   </div>
 </template>
