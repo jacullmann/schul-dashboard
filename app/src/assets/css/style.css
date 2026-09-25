@@ -694,6 +694,30 @@ p {
     filter: blur(3px);
   }
 
+  /* Sideways counterpart for paged content: "next" rolls in from the right,
+     the way the following page slides in. */
+  .swap-slide-prev-enter-active,
+  .swap-slide-prev-leave-active,
+  .swap-slide-next-enter-active,
+  .swap-slide-next-leave-active {
+    transition:
+      transform 450ms cubic-bezier(0.32, 0.72, 0, 1),
+      opacity 300ms cubic-bezier(0.32, 0.72, 0, 1),
+      filter 300ms cubic-bezier(0.32, 0.72, 0, 1);
+  }
+  .swap-slide-next-enter-from,
+  .swap-slide-prev-leave-to {
+    transform: translateX(1.5em);
+    opacity: 0;
+    filter: blur(3px);
+  }
+  .swap-slide-next-leave-to,
+  .swap-slide-prev-enter-from {
+    transform: translateX(-1.5em);
+    opacity: 0;
+    filter: blur(3px);
+  }
+
   .swap-icon-enter-active {
     transition:
       transform 450ms cubic-bezier(0.34, 1.4, 0.64, 1),

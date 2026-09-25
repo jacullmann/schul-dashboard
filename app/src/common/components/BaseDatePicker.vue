@@ -3,6 +3,7 @@ import { ref, computed, nextTick } from 'vue';
 import { Calendar, ChevronLeft, ChevronRight } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/vue';
+import { useSwipePager } from '@/common/composables/useSwipePager';
 
 /** Value format matches `<input type="date">`: `YYYY-MM-DD`. */
 const model = defineModel<string | null>();
@@ -71,12 +72,7 @@ const monthLabel = computed(() =>
   }).format(cursor.value),
 );
 
-const days = computed(() => {
-  const first = new Date(
-    cursor.value.getFullYear(),
-    cursor.value.getMonth(),
-    1,
-  );
+const monthGrid = (first: Date) => {
   const leading = (first.getDay() - weekStart.value + 7) % 7;
   const daysInMonth = new Date(
     first.getFullYear(),
@@ -84,7 +80,7 @@ const days = computed(() => {
     0,
   ).getDate();
   const start = addDays(first, -leading);
-  return Array.from({ length: leading + daysInMonth }, (_, i) => {
+  const days = Array.from({ length: leading + daysInMonth }, (_, i) => {
     const date = addDays(start, i);
     return {
       key: toKey(date),
@@ -93,15 +89,30 @@ const days = computed(() => {
       weekend: date.getDay() === 0 || date.getDay() === 6,
     };
   });
-});
-
-const weekCount = computed(() => Math.ceil(days.value.length / 7));
+  return { days, weekCount: Math.ceil(days.length / 7) };
+};
 
 const cursorKey = computed(() => toKey(cursor.value));
 const monthKey = computed(() => cursorKey.value.slice(0, 7));
 
 const monthIndex = (d: Date) => d.getFullYear() * 12 + d.getMonth();
 const slideDirection = ref<'prev' | 'next'>('next');
+
+const trackRef = ref<HTMLElement | null>(null);
+const { reach } = useSwipePager(trackRef, gridRef, {
+  page: () => monthIndex(cursor.value),
+  onSwipe: (step) => shiftMonth(step),
+});
+
+// Keyed by `monthKey`, not `cursor`, so moving within a month keeps the grids.
+const monthPanels = computed(() => {
+  const [year = 0, month = 1] = monthKey.value.split('-').map(Number);
+  return Array.from({ length: 2 * reach.value + 1 }, (_, i) => {
+    const offset = i - reach.value;
+    const first = new Date(year, month - 1 + offset, 1);
+    return { offset, key: toKey(first).slice(0, 7), ...monthGrid(first) };
+  });
+});
 
 const moveCursor = (date: Date) => {
   const delta = monthIndex(date) - monthIndex(cursor.value);
@@ -133,11 +144,11 @@ const displayLabel = computed(() =>
     : t('common.selection.placeholder'),
 );
 
-const focusCursor = async () => {
+const focusCursor = async (options?: FocusOptions) => {
   await nextTick();
   gridRef.value
     ?.querySelector<HTMLElement>(`[data-key="${cursorKey.value}"]`)
-    ?.focus();
+    ?.focus(options);
 };
 
 const toggle = () => {
@@ -184,7 +195,9 @@ const onGridKeydown = (e: KeyboardEvent) => {
   // Keep BaseMenu's linear arrow navigation out of the grid
   e.preventDefault();
   e.stopPropagation();
-  void focusCursor();
+  // The day may still be sliding in from beyond the clipped edge, where
+  // scrolling it into view would shift the menu sideways.
+  void focusCursor({ preventScroll: true });
 };
 </script>
 
@@ -278,18 +291,22 @@ const onGridKeydown = (e: KeyboardEvent) => {
                 >{{ w }}</span
               >
             </div>
-            <!-- Outgoing and incoming months share one cell so they slide past
-                 each other in place. Height of six packed rows, the tallest
+            <!-- Neighbouring months wait beside the visible one, clipped, so a
+                 swipe drags them in. The clip reaches into the menu padding
+                 for the focus ring. Height of six packed rows, the tallest
                  month, keeps the menu steady; 5-week months spread out, 4-week
                  ones leave a row free -->
-            <div class="grid">
-              <Transition :name="`swap-slide-${slideDirection}`">
+            <div class="-mx-1 overflow-x-clip touch-pan-y">
+              <div ref="trackRef" class="grid will-change-transform">
                 <div
-                  :key="monthKey"
-                  class="col-start-1 row-start-1 grid h-[calc(6*--spacing(10))] grid-cols-7"
-                  :class="weekCount === 6 ? 'grid-rows-6' : 'grid-rows-5'"
+                  v-for="panel in monthPanels"
+                  :key="panel.key"
+                  class="col-start-1 row-start-1 grid h-[calc(6*--spacing(10))] grid-cols-7 px-1"
+                  :class="panel.weekCount === 6 ? 'grid-rows-6' : 'grid-rows-5'"
+                  :style="{ transform: `translateX(${panel.offset * 100}%)` }"
+                  :inert="panel.offset !== 0"
                 >
-                  <template v-for="d in days" :key="d.key">
+                  <template v-for="d in panel.days" :key="d.key">
                     <span v-if="d.outside" aria-hidden="true" />
                     <!-- Button fills its grid cell so the tap area grows with the
                          spacing but never overlaps a neighbour -->
@@ -327,7 +344,7 @@ const onGridKeydown = (e: KeyboardEvent) => {
                     </button>
                   </template>
                 </div>
-              </Transition>
+              </div>
             </div>
           </div>
         </div>
