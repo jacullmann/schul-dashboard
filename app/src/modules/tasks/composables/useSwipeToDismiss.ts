@@ -11,6 +11,7 @@ import {
   useElementBounding,
   useEventListener,
 } from '@vueuse/core';
+import { haptic } from '@/utils/haptics';
 
 export interface SwipeToDismissOptions {
   enabled?: MaybeRefOrGetter<boolean>;
@@ -32,14 +33,6 @@ const HORIZONTAL_LOCK_RATIO = 1.2;
 const SLIDE_OUT_OVERSHOOT = 20;
 const SLIDE_OUT_FALLBACK_MS = 280;
 const ARMED_VIBRATION_MS = 10;
-
-function vibrate(duration: number) {
-  try {
-    window.navigator.vibrate?.(duration);
-  } catch {
-    // Not allowed or not supported by the browser/device.
-  }
-}
 
 /**
  * Touch only: a mouse has the card's menu for the same actions, and dragging
@@ -75,7 +68,7 @@ export function useSwipeToDismiss(
   let swallowNextClick = false;
 
   watch(isArmed, (armed) => {
-    if (armed && isSwiping.value) vibrate(ARMED_VIBRATION_MS);
+    if (armed && isSwiping.value) haptic(ARMED_VIBRATION_MS);
   });
 
   function open() {

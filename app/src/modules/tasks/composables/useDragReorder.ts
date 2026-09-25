@@ -1,5 +1,6 @@
 import { nextTick, onScopeDispose, readonly, ref, type Ref } from 'vue';
 import { useEventListener } from '@vueuse/core';
+import { haptic } from '@/utils/haptics';
 
 export interface DragReorderOptions {
   /** Called with DOM indices once a card is released in a new slot. */
@@ -413,13 +414,7 @@ export function useDragReorder(
     window.addEventListener('keydown', onKeyDown, true);
     window.addEventListener('blur', onBlur);
 
-    if (from.pointerType === 'touch') {
-      try {
-        navigator.vibrate?.(8);
-      } catch {
-        // Vibration is a nicety; browsers are free to refuse it.
-      }
-    }
+    if (from.pointerType === 'touch') haptic(8);
 
     schedule();
   }

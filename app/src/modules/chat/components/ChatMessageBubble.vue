@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 import { Reply, Ellipsis } from '@lucide/vue';
 import Avatar from '@/modules/auth/components/Avatar.vue';
 import { useLongPress } from '@/common/composables/useLongPress';
+import { haptic } from '@/utils/haptics';
 
 const { t } = useI18n();
 
@@ -65,13 +66,7 @@ const handleTouchMove = (e: TouchEvent) => {
 const handleTouchEnd = () => {
   if (isSwiping.value && swipeX.value >= 40) {
     emit('reply', props.msg);
-    if (window.navigator && window.navigator.vibrate) {
-      try {
-        window.navigator.vibrate(15);
-      } catch {
-        // Ignore vibration errors (e.g. if not allowed or not supported)
-      }
-    }
+    haptic(15);
   }
   swipeX.value = 0;
   isSwiping.value = false;
