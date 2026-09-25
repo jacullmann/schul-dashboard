@@ -45,7 +45,7 @@ const columns = computed(() => [
           class="-ml-1 flex w-fit items-center gap-2.5 rounded-md px-1 py-1"
           :aria-label="t('nav.home')"
         >
-          <img src="/favicon.svg" alt="" class="size-6" width="24" height="24" />
+          <SiteLogo class="size-6" />
           <span class="text-[0.9375rem] font-semibold tracking-[-0.01em]">schul-dashboard</span>
         </NuxtLink>
         <p class="max-w-[22rem] text-[0.9375rem] leading-relaxed text-on-ghost-muted">
