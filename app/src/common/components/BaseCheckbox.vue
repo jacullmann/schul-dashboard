@@ -33,7 +33,7 @@ function handleLabelClick(event: MouseEvent) {
 
 <template>
   <label
-    class="group inline-flex items-start gap-2 cursor-pointer select-none relative z-0 touch-target after:min-w-12 after:min-h-12"
+    class="group inline-flex items-start gap-2 cursor-pointer select-none relative z-0"
     :class="{ 'checkbox-checked': modelValue || checked }"
   >
     <input
@@ -43,7 +43,7 @@ function handleLabelClick(event: MouseEvent) {
       @change="handleChange"
     />
     <span
-      class="relative size-4.5 rounded-sm border-2 border-on-ghost-muted inline-flex items-center justify-center bg-transparent group-hover:border-action peer-checked:border-action transition-colors duration-300 ease-out"
+      class="relative size-4.5 shrink-0 touch-target after:min-w-12 after:min-h-12 rounded-sm border-2 border-on-ghost-muted inline-flex items-center justify-center bg-transparent group-hover:border-action peer-checked:border-action transition-colors duration-300 ease-out"
       aria-hidden="true"
     >
       <span

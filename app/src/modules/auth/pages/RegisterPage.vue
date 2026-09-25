@@ -3,11 +3,13 @@ import { useRouter } from 'vue-router';
 import GoogleIcon from '@/modules/auth/components/GoogleIcon.vue';
 import { useRegister } from '@/modules/auth/composables/useRegister';
 import { useOAuth } from '@/modules/auth/composables/useOAuth';
+import { useLegalLinks } from '@/modules/auth/composables/useLegalLinks';
 import { useI18n } from 'vue-i18n';
 
 const router = useRouter();
 const { t } = useI18n();
 const { initiateGoogleLogin } = useOAuth();
+const { privacyPolicyUrl, termsUrl } = useLegalLinks();
 
 const {
   email,
@@ -118,12 +120,12 @@ function navigateToLogin() {
             >
               <i18n-t keypath="auth.login.terms">
                 <template #privacy>
-                  <BaseLink to="/legal/privacy-policy">
+                  <BaseLink :to="privacyPolicyUrl" inline>
                     {{ t('legal.privacy.title') }}
                   </BaseLink>
                 </template>
                 <template #terms>
-                  <BaseLink to="/legal/terms">
+                  <BaseLink :to="termsUrl" inline>
                     {{ t('legal.terms.title') }}
                   </BaseLink>
                 </template>
