@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE users SET last_active_group_id = $2\n           WHERE id = $1 AND last_active_group_id IS DISTINCT FROM $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "73cae928c7675ed914143d1c8b95f89191bf040b8dc96daee2baafd579bca00a"
+}

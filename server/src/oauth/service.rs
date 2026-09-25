@@ -1,5 +1,9 @@
 use crate::{
-    auth::{cookies::*, token::TokenService},
+    auth::{
+        cookies::*,
+        session_context::{SessionContext, resolve_session_context},
+        token::TokenService,
+    },
     common::{csrf::generate_csrf_token, jwt::now_secs, password::verify_password},
     config::Config,
     error::{AppError, AppResult},
@@ -308,27 +312,6 @@ impl OAuthService {
         }))
     }
 
-    async fn resolve_user_context(&self, user_id: Uuid) -> AppResult<(String, Option<Uuid>)> {
-        let global_role = sqlx::query!(
-            r#"SELECT r.name FROM user_roles ur JOIN roles r ON r.id = ur.role_id
-               WHERE ur.user_id = $1 AND ur.tenant_id IS NULL LIMIT 1"#,
-            user_id
-        )
-        .fetch_optional(&self.db)
-        .await?
-        .map_or_else(|| "user".into(), |r| r.name);
-
-        let active_group = sqlx::query!(
-            r#"SELECT tenant_id FROM user_roles WHERE user_id = $1 AND tenant_id IS NOT NULL LIMIT 1"#,
-            user_id
-        )
-            .fetch_optional(&self.db)
-            .await?
-            .and_then(|r| r.tenant_id);
-
-        Ok((global_role, active_group))
-    }
-
     async fn resolve_account(
         &self,
         google_id: &str,
@@ -559,7 +542,10 @@ impl OAuthService {
         user_id: Uuid,
         email: &str,
     ) -> AppResult<(CookieJar, String)> {
-        let (global_role, active_group_id) = self.resolve_user_context(user_id).await?;
+        let SessionContext {
+            global_role,
+            active_group_id,
+        } = resolve_session_context(&self.db, user_id).await?;
 
         let tokens = TokenService::from_state(&self.state)
             .issue_pair(crate::auth::token::IssueTokenParams {

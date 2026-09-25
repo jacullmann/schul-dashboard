@@ -1,6 +1,7 @@
 use crate::{
     auth::{
         cookies::*,
+        session_context::remember_active_group,
         token::{LOGOUT, TokenService},
     },
     common::{
@@ -68,6 +69,10 @@ impl GroupService {
         active_group_id: Option<Uuid>,
         origin: SessionOrigin<'_>,
     ) -> AppResult<CookieJar> {
+        if let Some(group_id) = active_group_id {
+            remember_active_group(&self.db, user_id, group_id).await?;
+        }
+
         let svc = TokenService::from_state(&self.state);
 
         let tokens = match origin.current_refresh.filter(|t| !t.is_empty()) {

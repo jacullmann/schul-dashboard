@@ -2,6 +2,7 @@ use crate::{
     auth::{
         cookies::*,
         dto::*,
+        session_context::resolve_session_context,
         token::{TokenService, *},
     },
     common::{
@@ -51,31 +52,6 @@ impl AuthService {
         }
     }
 
-    async fn resolve_user_context(&self, user_id: Uuid) -> AppResult<(String, Option<Uuid>)> {
-        let global_role = sqlx::query!(
-            r#"
-            SELECT r.name FROM user_roles ur
-            JOIN roles r ON r.id = ur.role_id
-            WHERE ur.user_id = $1 AND ur.tenant_id IS NULL
-            LIMIT 1
-            "#,
-            user_id
-        )
-        .fetch_optional(&self.db)
-        .await?
-        .map_or_else(|| "user".into(), |r| r.name);
-
-        let active_group_id = sqlx::query!(
-            r#"SELECT tenant_id FROM user_roles WHERE user_id = $1 AND tenant_id IS NOT NULL LIMIT 1"#,
-            user_id
-        )
-            .fetch_optional(&self.db)
-            .await?
-            .and_then(|r| r.tenant_id);
-
-        Ok((global_role, active_group_id))
-    }
-
     async fn issue_session(
         &self,
         user_id: Uuid,
@@ -83,7 +59,7 @@ impl AuthService {
         user_agent: Option<&str>,
         ip: Option<&str>,
     ) -> AppResult<(CookieJar, String)> {
-        let (global_role, active_group_id) = self.resolve_user_context(user_id).await?;
+        let context = resolve_session_context(&self.db, user_id).await?;
 
         let opts = self.config.base_cookie_options();
 
@@ -92,8 +68,8 @@ impl AuthService {
             .issue_pair(crate::auth::token::IssueTokenParams {
                 user_id,
                 email,
-                global_role: &global_role,
-                active_group_id,
+                global_role: &context.global_role,
+                active_group_id: context.active_group_id,
                 user_agent,
                 ip_address: ip,
                 parent: None,
