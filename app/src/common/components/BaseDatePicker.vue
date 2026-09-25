@@ -96,7 +96,6 @@ const cursorKey = computed(() => toKey(cursor.value));
 const monthKey = computed(() => cursorKey.value.slice(0, 7));
 
 const monthIndex = (d: Date) => d.getFullYear() * 12 + d.getMonth();
-const slideDirection = ref<'prev' | 'next'>('next');
 
 const trackRef = ref<HTMLElement | null>(null);
 const { reach } = useSwipePager(trackRef, gridRef, {
@@ -113,12 +112,6 @@ const monthPanels = computed(() => {
     return { offset, key: toKey(first).slice(0, 7), ...monthGrid(first) };
   });
 });
-
-const moveCursor = (date: Date) => {
-  const delta = monthIndex(date) - monthIndex(cursor.value);
-  if (delta) slideDirection.value = delta < 0 ? 'prev' : 'next';
-  cursor.value = date;
-};
 
 const shortcuts = computed(() => {
   const rtf = new Intl.RelativeTimeFormat(locale.value, { numeric: 'auto' });
@@ -176,7 +169,7 @@ const shiftMonth = (n: number) => {
   const target = new Date(c.getFullYear(), c.getMonth() + n, 1);
   const lastDay = new Date(target.getFullYear(), target.getMonth() + 1, 0);
   target.setDate(Math.min(c.getDate(), lastDay.getDate()));
-  moveCursor(target);
+  cursor.value = target;
 };
 
 const keySteps: Record<string, number> = {
@@ -188,7 +181,7 @@ const keySteps: Record<string, number> = {
 
 const onGridKeydown = (e: KeyboardEvent) => {
   const step = keySteps[e.key];
-  if (step) moveCursor(addDays(cursor.value, step));
+  if (step) cursor.value = addDays(cursor.value, step);
   else if (e.key === 'PageUp') shiftMonth(-1);
   else if (e.key === 'PageDown') shiftMonth(1);
   else return;
@@ -262,12 +255,10 @@ const onGridKeydown = (e: KeyboardEvent) => {
               @click="shiftMonth(-1)"
             />
             <span
-              class="swap-stack justify-items-center text-sm font-semibold text-on-ghost capitalize"
+              class="text-sm font-semibold text-on-ghost capitalize"
               aria-live="polite"
             >
-              <Transition :name="`swap-slide-${slideDirection}`">
-                <span :key="monthKey">{{ monthLabel }}</span>
-              </Transition>
+              {{ monthLabel }}
             </span>
             <BaseButton
               :icon="ChevronRight"
