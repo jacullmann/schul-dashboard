@@ -567,14 +567,6 @@ function handleContextMenu(lesson: Lesson, event?: UIEvent) {
   }
   if (!isEditMode.value) return;
 
-  if (typeof navigator !== 'undefined' && navigator.vibrate) {
-    try {
-      navigator.vibrate(40);
-    } catch {
-      // Ignore vibration errors if not supported/permitted
-    }
-  }
-
   selectSingleLesson(lesson.id);
   mobileMenuOpen.value = true;
 }
