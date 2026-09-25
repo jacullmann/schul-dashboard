@@ -76,7 +76,7 @@
       "label": "Aufgaben",
       "title": "Hausaufgaben werden einmal eingetragen. {emphasis} haben sie.",
       "title_emphasis": "Alle",
-      "body": "Platzhalter: Wem die Klasse vertraut, der trägt Hausaufgaben, Dalton-Aufgaben und Klausuren ein — mit Abgabedatum, Notizen und Fotos vom Arbeitsblatt. Abhaken kann jeder für sich.",
+      "body": "Wem die Klasse vertraut, der trägt Hausaufgaben, Klausuren und Dalton-Aufgaben ein — mit Abgabedatum, Beschreibung und einem Foto von der Tafel oder dem Arbeitsblatt. Abhaken kann jeder für sich.",
       "filter_label": "Aufgaben filtern",
       "due": "bis {day}",
       "added_by": "von {name}",
@@ -109,14 +109,14 @@
       "label": "Stundenplan",
       "title": "Entfall, Raumwechsel, Vertretung — {emphasis}",
       "title_emphasis": "du weißt es vor der ersten Stunde.",
-      "body": "Platzhalter: Dein persönlicher Stundenplan zeigt nur die Kurse, die du wirklich belegst. Vertretungen, Raumwechsel und Ausfälle stehen genau dort, wo sie passieren.",
+      "body": "Speicher deine Kurse, und dein Stundenplan zeigt nur deine Stunden. Vertretungen, Raumwechsel und Ausfälle stehen direkt in der betroffenen Stunde, und die nächste Stunde wartet schon im Dashboard.",
       "items": {
         "room": "Raum Info1 statt Bio1",
         "substitute": "Hr. Weber vertritt Fr. Adler",
         "cancelled": "Entfall"
       },
       "announcement": "Wegen der Hitze endet der Unterricht am Freitag nach der 4. Stunde.",
-      "announcement_caption": "Ankündigungen stehen ganz oben im Dashboard aller Mitglieder, bis sie ablaufen."
+      "announcement_caption": "Ankündigungen stehen für alle Mitglieder ganz oben in der App, bis ein Admin sie entfernt."
     },
     "groups": {
       "label": "Gruppen",
@@ -126,15 +126,15 @@
       "details": {
         "roles": {
           "title": "Rollen und Rechte",
-          "body": "Platzhalter: Admins legen fest, wer Aufgaben eintragen, den Stundenplan bearbeiten oder Ankündigungen schreiben darf."
+          "body": "Mitglieder, Moderatoren und Admins. Jede Gruppe legt fest, wer Aufgaben eintragen, den Stundenplan bearbeiten, Ankündigungen schreiben oder den Chat moderieren darf."
         },
         "invites": {
           "title": "Einladungslinks",
-          "body": "Platzhalter: Ein Link, und die ganze Klasse ist drin. Keine Codes zum Abtippen."
+          "body": "Einen Link verschicken, und die Klasse ist drin. Links laufen von selbst ab, und Admins können sie jederzeit widerrufen."
         },
         "many": {
           "title": "Mehrere Gruppen",
-          "body": "Platzhalter: Klasse, Leistungskurse, AG — mit einem Klick wechseln."
+          "body": "Klasse, Leistungskurse, AG — jede mit eigenen Aufgaben und eigenem Stundenplan, nur einen Wechsel entfernt."
         }
       }
     },
@@ -144,19 +144,20 @@
       "items": {
         "chat": {
           "title": "Gruppenchat",
-          "body": "Platzhalter: Mit der Klasse schreiben, ohne extra Messenger. Antworten, Bilder und keine privaten Nummern."
+          "body": "Mit der Klasse schreiben, ohne extra Messenger. Auf Nachrichten antworten, sehen, wer gerade tippt — und niemand braucht die Handynummer der anderen."
         },
         "private": {
           "title": "Private Notizen",
-          "body": "Platzhalter: Deine eigenen Todos, verschlüsselt und nur für dich sichtbar."
+          "body": "Deine eigene Todo-Liste neben der der Klasse. Mit AES-256 verschlüsselt und nur für dich sichtbar."
         },
         "search": {
           "title": "Alles durchsuchen",
-          "body": "Platzhalter: Eine Befehlspalette, die mit einem Tastendruck zu jeder Aufgabe, jedem Fach und jeder Einstellung springt."
+          "body": "Mit der Tastatur zu jeder Seite und jeder Aktion: Aufgabe anlegen, Gruppe wechseln oder jemanden einladen, ohne zur Maus zu greifen.",
+          "shortcut": "Strg K"
         },
         "devices": {
           "title": "Auf jedem Gerät",
-          "body": "Platzhalter: Läuft in jedem Browser, auf Handy, Tablet und Laptop. Nichts zu installieren."
+          "body": "Läuft in jedem Browser, auf Handy, Tablet und Laptop. Nichts zu installieren, und was du auf einem Gerät abhakst, ist auf allen abgehakt."
         }
       }
     },
@@ -176,22 +177,22 @@
   "features": {
     "title": "Alles, was {name} {emphasis}",
     "title_emphasis": "kann.",
-    "lede": "Platzhalter: Ein vollständiger Rundgang durch die App. Jeder Teil ist bewusst kurz — die App soll ohne Anleitung verständlich sein.",
+    "lede": "Ein vollständiger Rundgang durch die App. Jeder Teil ist bewusst kurz — schul-dashboard soll ohne Anleitung verständlich sein.",
     "index_label": "Auf dieser Seite",
     "chapters": {
       "tasks": {
         "title": "Aufgaben",
-        "body": "Platzhalter: Erklärt, wie Hausaufgaben, Dalton-Aufgaben und Klausuren in einer Liste für die ganze Gruppe gesammelt werden.",
+        "body": "Hausaufgaben, Klausuren und Dalton-Aufgaben der ganzen Gruppe stehen in einer Liste. Einer trägt eine Aufgabe einmal ein — Fach, Abgabedatum, Beschreibung, Anhänge — und alle haben sie. Gibt es für das Fach an dem Tag schon einen Eintrag, fragt die App nach, bevor ein Duplikat entsteht.",
         "items": [
-          "Hausaufgaben, Dalton und Klausuren, filterbar",
-          "Abgabedatum, Notizen und Bildanhänge",
+          "Hausaufgaben, Klausuren und Dalton, nach Art und Fach filterbar",
+          "Fotos, PDFs und Office-Dateien an jeder Aufgabe",
           "Für sich selbst abhaken, ohne andere zu beeinflussen",
-          "Wichtiges anheften, Erledigtes archivieren"
+          "Wichtiges anheften, Vergangenes landet im Archiv"
         ]
       },
       "timetable": {
         "title": "Stundenplan",
-        "body": "Platzhalter: Erklärt den Live-Stundenplan, die persönliche Kurswahl und wie Änderungen angezeigt werden.",
+        "body": "Admins bauen den Stundenplan einmal im visuellen Editor: Stunden, Räume, Pausen und Kurse. Speicher deine Kurse, und du siehst nur deine eigenen Stunden. Vertretungen, Raumwechsel und Ausfälle werden live eingetragen und erscheinen sofort bei allen, die sie betreffen.",
         "items": [
           "Wochenansicht am Computer, Tag für Tag am Handy",
           "Nur die Kurse, die du belegst",
@@ -201,58 +202,65 @@
       },
       "announcements": {
         "title": "Ankündigungen",
-        "body": "Platzhalter: Erklärt, wie Admins Ankündigungen veröffentlichen, die ganz oben im Dashboard aller erscheinen.",
+        "body": "Admins schreiben eine kurze Nachricht — ein Ausflug, früher Schluss, eine verschobene Klausur — und sie erscheint für alle Mitglieder ganz oben in der App. Wer sie noch nicht gelesen hat, bekommt eine Benachrichtigung.",
         "items": [
           "Für alle Mitglieder gleichzeitig",
-          "Laufen automatisch ab",
-          "Mehrere Ankündigungen wechseln sich ab"
+          "Drei Stufen: Info, Warnung und Wichtig",
+          "Mehrere gleichzeitig, einen Tipp voneinander entfernt",
+          "Benachrichtigung bei ungelesenen Ankündigungen"
         ]
       },
       "chat": {
         "title": "Gruppenchat",
-        "body": "Platzhalter: Erklärt den eingebauten Gruppenchat und warum er die Klassengruppe im Messenger ersetzt.",
+        "body": "Jede Gruppe hat ihren eigenen Chat, damit Hausaufgaben nicht mehr in der Messenger-Gruppe untergehen. Mitglieder erscheinen unter automatisch erzeugten Namen, niemand muss seine Handynummer teilen.",
         "items": [
-          "Antworten und Zitate",
-          "Bilder",
-          "Nachrichten melden und löschen"
+          "Auf einzelne Nachrichten antworten",
+          "Sehen, wer gerade tippt",
+          "Nachrichten kopieren, melden und löschen",
+          "Festlegen, welche Rollen schreiben dürfen"
         ]
       },
       "groups": {
         "title": "Gruppen und Rollen",
-        "body": "Platzhalter: Erklärt Gruppen für Klassen, Kurse und AGs und wie Admins sie verwalten.",
+        "body": "Eine Gruppe ist eine Klasse, ein Kurs oder eine AG. Wer sie erstellt, ist Inhaber und legt fest, was Mitglieder, Moderatoren und Admins dürfen. Standardgruppen passen für die Klassen 1 bis 10, Abiturgruppen verwalten ganze Jahrgänge mit Grund- und Leistungskursen.",
         "items": [
-          "Einladungslinks",
+          "Einladungslinks, die ablaufen und widerrufen werden können",
           "Rollen mit feinen Berechtigungen",
-          "Fächer und Stundenplan-Editor",
-          "Mitglieder entfernen und sperren"
+          "Fächer, Kurse und Stundenplan-Editor",
+          "Mitglieder entfernen und sperren",
+          "Abiturgruppen mit GK- und LK-Kursen",
+          "Dalton als optionale Gruppeneinstellung"
         ]
       },
       "private": {
         "title": "Privater Bereich",
-        "body": "Platzhalter: Erklärt private Todos und Notizen, die nur man selbst sehen kann.",
+        "body": "Eine Todo-Liste, die nur dir gehört — Einkaufen, Training, das Buch, das du endlich fertig lesen wolltest. Private Aufgaben sind verschlüsselt und nur mit deinem Passwort lesbar; nicht einmal die Admins deiner Gruppe sehen sie.",
         "items": [
           "Verschlüsselt mit AES-256-GCM",
-          "Per Drag-and-drop sortieren",
-          "Eigenen Fortschritt verfolgen"
+          "Nur für dich sichtbar",
+          "Per Drag-and-drop sortieren, bearbeiten und duplizieren",
+          "Abhaken, wenn erledigt"
         ]
       },
       "search": {
         "title": "Suche und Tastenkürzel",
-        "body": "Platzhalter: Erklärt die Befehlspalette und die Tastenkürzel.",
+        "body": "Drück überall in der App Strg K (⌘ K auf dem Mac), um die Schnellsuche zu öffnen. Ein paar Buchstaben tippen, und du springst zu einer Seite oder startest eine Aktion — ohne dich durch Menüs zu klicken.",
         "items": [
-          "Öffnen mit Strg K",
-          "Aufgaben, Fächer, Einstellungen und Seiten",
-          "Tastenkürzel für häufige Aktionen"
+          "Öffnen mit Strg K oder ⌘ K",
+          "Seiten, Einstellungen und Aktionen",
+          "Alt N für eine neue Aufgabe, Alt P für eine private",
+          "Strg G zum Gruppenwechsel"
         ]
       },
       "account": {
         "title": "Konto und Sicherheit",
-        "body": "Platzhalter: Erklärt, wie Konten geschützt werden.",
+        "body": "Dein Konto ist durch eine bestätigte E-Mail-Adresse, optionale Zwei-Faktor-Authentifizierung und eine Übersicht aller angemeldeten Geräte geschützt. Wenn du gehen willst, löschst du dein Konto selbst — ohne Antrag, ohne Wartezeit.",
         "items": [
           "E-Mail-Bestätigung",
-          "Zwei-Faktor-Authentifizierung",
+          "Zwei-Faktor-Authentifizierung mit jeder Authenticator-App",
           "Mit Google anmelden",
           "Aktive Sitzungen sehen und beenden",
+          "Vergessenes Passwort per E-Mail zurücksetzen",
           "Konto jederzeit löschen"
         ]
       }
@@ -261,58 +269,58 @@
   "about": {
     "title": "Von Schülern gemacht, {emphasis}",
     "title_emphasis": "die es selbst brauchten.",
-    "lede": "Platzhalter: Ein, zwei Sätze dazu, wer hinter schul-dashboard steckt und woher es kommt.",
+    "lede": "schul-dashboard ist ein privates Projekt von Schülern aus Berlin. Wir haben das Werkzeug gebaut, das uns in der Schule gefehlt hat, und nutzen es jeden Tag.",
     "story": {
       "label": "Geschichte",
-      "lead": "Platzhalter: Der Moment, in dem alles anfing — eine Hausaufgabe, die im Gruppenchat unterging, eine Stunde, deren Ausfall niemand mitbekam.",
-      "body": "Platzhalter: Ein längerer Absatz darüber, wie die erste Version für eine Klasse entstand, andere Klassen danach fragten und das Projekt von dort aus wuchs."
+      "lead": "Hausaufgaben gingen in der Messenger-Gruppe unter. Vom Ausfall erfuhr man erst vor der Klassentür.",
+      "body": "Also haben wir gebaut, was uns fehlte: einen Ort, an dem Hausaufgaben, Klausuren und Stundenplanänderungen einmal eingetragen werden und alle sie sehen. Gewachsen ist es mit jedem echten Bedarf — Einladungslinks, Rollen und Rechte, ein Stundenplan-Editor, Kurse für Abiturjahrgänge, Dalton. Nichts davon kam dazu, weil es auf einer Funktionsliste gut aussieht."
     },
     "principles": {
       "label": "Grundsätze",
       "items": {
         "free": {
           "title": "Kostenlos, ohne Werbung",
-          "body": "Platzhalter: Keine Abos, keine Premium-Stufe, keine Werbung. Das ganze Produkt, für alle."
+          "body": "Keine Abos, keine Premium-Stufe, keine Werbung. Alle bekommen das ganze Produkt, und daran ändert sich nichts."
         },
         "private": {
           "title": "Privat als Standard",
-          "body": "Platzhalter: Persönliche Daten sind verschlüsselt, nichts wird verkauft, nichts über das Nötige hinaus erfasst."
+          "body": "Persönliche Daten sind verschlüsselt. Wir verkaufen keine Daten, zeigen keine Werbung und erfassen nicht mehr, als der Dienst zum Laufen braucht."
         },
         "students": {
           "title": "Von Schülern",
-          "body": "Platzhalter: Wir nutzen schul-dashboard selbst jeden Tag und bauen, was wir wirklich brauchen."
+          "body": "Wir sind selbst Schüler und nutzen schul-dashboard jeden Tag. Deshalb bauen wir, was wir wirklich brauchen — nicht, was in einer Verkaufspräsentation gut klingt."
         },
         "simple": {
           "title": "Nur, was hilft",
-          "body": "Platzhalter: Jede Funktion muss ein echtes Problem im Schulalltag lösen. Alles andere fliegt raus."
+          "body": "Jede Funktion muss ein echtes Problem im Schulalltag lösen. Was das nicht tut, fliegt raus."
         }
       }
     },
     "team": {
       "label": "Team",
-      "body": "Platzhalter: Eine kurze Notiz über das kleine Team von Schülern hinter dem Projekt, wo sie zur Schule gehen und wie man mitmachen kann.",
+      "body": "schul-dashboard wird von einer kleinen Gruppe Schüler in Berlin gebaut und betrieben, in unserer Freizeit und ohne Firma dahinter. Du willst mithelfen oder hast eine Idee? Schreib uns — wir freuen uns.",
       "place": "Berlin, Deutschland"
     }
   },
   "contact": {
     "title": "Schreib {emphasis}",
     "title_emphasis": "uns.",
-    "lede": "Platzhalter: Fragen, Fehler, Ideen für neue Funktionen — wir lesen alles und antworten so schnell wir können.",
+    "lede": "Fragen, Fehler, Ideen für neue Funktionen — wir lesen alles und antworten so schnell wir können.",
     "email_label": "E-Mail",
     "channels": {
       "discord": {
         "title": "Discord",
-        "body": "Platzhalter: Mit anderen Nutzern und direkt mit uns reden.",
+        "body": "Mit anderen Nutzern reden, Ideen teilen und uns direkt erreichen.",
         "link": "Server beitreten"
       },
       "status": {
         "title": "Systemstatus",
-        "body": "Platzhalter: Vor dem Schreiben prüfen, ob gerade etwas ausgefallen ist.",
+        "body": "Prüfen, ob gerade etwas ausgefallen ist, bevor du uns schreibst.",
         "link": "Status ansehen"
       },
       "bugs": {
         "title": "Fehler gefunden?",
-        "body": "Platzhalter: Schreib uns, was du gemacht hast, was du erwartet hast und was stattdessen passiert ist."
+        "body": "Schreib uns, was du gemacht hast, was du erwartet hast und was stattdessen passiert ist. Ein Screenshot hilft."
       }
     }
   },

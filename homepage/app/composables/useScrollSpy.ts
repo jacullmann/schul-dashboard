@@ -1,9 +1,12 @@
 export const useScrollSpy = (ids: readonly string[]) => {
   const activeId = ref(ids[0]);
+  const isMounted = useMounted();
   const visible = new Set<string>();
 
+  // On client-side navigation the page is set up before its DOM exists, so the
+  // sections can only be looked up once it has mounted.
   useIntersectionObserver(
-    () => (import.meta.client ? ids.map((id) => document.getElementById(id)) : []),
+    () => (isMounted.value ? ids.map((id) => document.getElementById(id)) : []),
     (entries) => {
       for (const entry of entries) {
         if (entry.isIntersecting) visible.add(entry.target.id);

@@ -76,7 +76,7 @@
       "label": "Tasks",
       "title": "Homework gets written down once. {emphasis} has it.",
       "title_emphasis": "Everyone",
-      "body": "Placeholder: anyone your class trusts can add homework, Dalton assignments and exams — with a due date, notes and photos of the worksheet. Everyone ticks tasks off for themselves.",
+      "body": "Anyone your class trusts can add homework, exams and Dalton assignments — with a due date, a description and a photo of the board or the worksheet. Everyone ticks tasks off for themselves.",
       "filter_label": "Filter tasks",
       "due": "due {day}",
       "added_by": "added by {name}",
@@ -109,14 +109,14 @@
       "label": "Timetable",
       "title": "Cancelled, moved, covered — {emphasis}",
       "title_emphasis": "you'll know before first period.",
-      "body": "Placeholder: your personal timetable shows only the courses you actually take. Substitutions, room changes and cancellations are marked right where they happen.",
+      "body": "Save the courses you take and your timetable shows only your lessons. Substitutes, room changes and cancellations are marked in the lesson they affect, and your next lesson waits on your dashboard.",
       "items": {
         "room": "Room Info1 instead of Bio1",
         "substitute": "Mr Weber covers for Ms Adler",
         "cancelled": "Cancelled"
       },
       "announcement": "Because of the heat, lessons on Friday end after period 4.",
-      "announcement_caption": "Announcements sit at the top of everyone's dashboard until they expire."
+      "announcement_caption": "Announcements stay at the top of the app for every member until an admin takes them down."
     },
     "groups": {
       "label": "Groups",
@@ -126,15 +126,15 @@
       "details": {
         "roles": {
           "title": "Roles and permissions",
-          "body": "Placeholder: admins decide who may add tasks, edit the timetable or post announcements."
+          "body": "Members, moderators and admins. Each group decides who may add tasks, edit the timetable, post announcements or moderate the chat."
         },
         "invites": {
           "title": "Invite links",
-          "body": "Placeholder: share one link and the whole class is in. No codes to copy."
+          "body": "Send one link and your classmates are in. Links expire on their own, and admins can revoke them at any time."
         },
         "many": {
           "title": "More than one group",
-          "body": "Placeholder: your class, your advanced courses, your club — switch between them in one click."
+          "body": "Your class, your advanced courses, your club — each with its own tasks and timetable, one switch apart."
         }
       }
     },
@@ -144,19 +144,20 @@
       "items": {
         "chat": {
           "title": "Group chat",
-          "body": "Placeholder: talk to your class without a separate messenger. Replies, images, and nobody's private number."
+          "body": "Talk to your class without a separate messenger. Reply to a message, see who's typing — and nobody needs anyone's phone number."
         },
         "private": {
           "title": "Private notes",
-          "body": "Placeholder: your own todos, encrypted and visible only to you."
+          "body": "Your own to-do list next to the class's. Encrypted with AES-256 and visible only to you."
         },
         "search": {
           "title": "Search everything",
-          "body": "Placeholder: a command palette that jumps to any task, subject or setting in a keystroke."
+          "body": "Jump to any page or action from the keyboard: create a task, switch groups or invite someone without reaching for the mouse.",
+          "shortcut": "Ctrl K"
         },
         "devices": {
           "title": "On every device",
-          "body": "Placeholder: works in any browser, on phones, tablets and laptops. Nothing to install."
+          "body": "Runs in any browser on phones, tablets and laptops. Nothing to install, and what you tick off on one device is ticked off on all of them."
         }
       }
     },
@@ -176,22 +177,22 @@
   "features": {
     "title": "Everything {name} {emphasis}",
     "title_emphasis": "does.",
-    "lede": "Placeholder: a complete tour of the app. Each part is short on purpose — the app is meant to be understood without a manual.",
+    "lede": "A complete tour of the app. Each part is short on purpose — schul-dashboard is meant to be understood without a manual.",
     "index_label": "On this page",
     "chapters": {
       "tasks": {
         "title": "Tasks",
-        "body": "Placeholder: explains how homework, Dalton assignments and exams are collected in one list for the whole group.",
+        "body": "Homework, exams and Dalton assignments for the whole group live in one list. Someone adds a task once — subject, due date, description, attachments — and everyone has it. If the same subject already has an entry for that day, you're asked before a duplicate appears.",
         "items": [
-          "Homework, Dalton and exams, filterable",
-          "Due dates, notes and image attachments",
-          "Tick off for yourself, without affecting others",
-          "Pin what matters, archive what's done"
+          "Homework, exams and Dalton, filterable by type and subject",
+          "Photos, PDFs and Office files on any task",
+          "Tick off for yourself, without affecting anyone else",
+          "Pin what matters; past tasks move to the archive"
         ]
       },
       "timetable": {
         "title": "Timetable",
-        "body": "Placeholder: explains the live timetable, personal course selection and how changes are shown.",
+        "body": "Admins build the timetable once in a visual editor: lessons, rooms, breaks and courses. Save the courses you take and you only see your own lessons. Substitutes, room changes and cancellations are entered live and show up immediately for everyone they affect.",
         "items": [
           "Week view on desktop, one day at a time on phones",
           "Only the courses you take",
@@ -201,58 +202,65 @@
       },
       "announcements": {
         "title": "Announcements",
-        "body": "Placeholder: explains how admins publish announcements that appear at the top of everyone's dashboard.",
+        "body": "Admins post a short notice — a school trip, an early finish, a moved exam — and it appears at the top of the app for every member. Anyone who hasn't read it yet gets a notification.",
         "items": [
           "Shown to every member at once",
-          "Expire automatically",
-          "Several announcements rotate"
+          "Three levels: info, warning and important",
+          "Several at once, one tap apart",
+          "Notifications for unread announcements"
         ]
       },
       "chat": {
         "title": "Group chat",
-        "body": "Placeholder: explains the built-in group chat and why it replaces the class messenger group.",
+        "body": "Every group has its own chat, so homework no longer drowns in a messenger group. Members appear under generated aliases, so nobody has to share their phone number.",
         "items": [
-          "Replies and quotes",
-          "Images",
-          "Report and delete messages"
+          "Replies to individual messages",
+          "See who's typing",
+          "Copy, report and delete messages",
+          "Choose which roles may write"
         ]
       },
       "groups": {
         "title": "Groups and roles",
-        "body": "Placeholder: explains groups for classes, courses and clubs, and how admins manage them.",
+        "body": "A group is a class, a course or a club. Whoever creates it owns it and decides what members, moderators and admins may do. Standard groups suit grades 1 to 10; Abitur groups manage whole year groups with basic and advanced courses.",
         "items": [
-          "Invite links",
+          "Invite links that expire and can be revoked",
           "Roles with fine-grained permissions",
-          "Subjects and timetable editor",
-          "Remove and ban members"
+          "Subjects, courses and a timetable editor",
+          "Remove and ban members",
+          "Abitur groups with GK and LK courses",
+          "Dalton as an optional group setting"
         ]
       },
       "private": {
         "title": "Private space",
-        "body": "Placeholder: explains private todos and notes that only the owner can see.",
+        "body": "A to-do list that belongs to you alone — shopping, training, the book you promised to finish. Private tasks are encrypted, and only your password unlocks them; not even your group's admins can see them.",
         "items": [
           "Encrypted with AES-256-GCM",
-          "Drag to reorder",
-          "Track your own progress"
+          "Visible only to you",
+          "Drag to reorder, edit and duplicate",
+          "Tick off when done"
         ]
       },
       "search": {
         "title": "Search and shortcuts",
-        "body": "Placeholder: explains the command palette and keyboard shortcuts.",
+        "body": "Press Ctrl K (⌘ K on a Mac) anywhere in the app to open quick search. Type a few letters to jump to a page or start an action — no clicking through menus.",
         "items": [
-          "Open with Ctrl K",
-          "Tasks, subjects, settings and pages",
-          "Keyboard shortcuts for common actions"
+          "Open with Ctrl K or ⌘ K",
+          "Pages, settings and actions",
+          "Alt N for a new task, Alt P for a private one",
+          "Ctrl G to switch groups"
         ]
       },
       "account": {
         "title": "Account and security",
-        "body": "Placeholder: explains how accounts are protected.",
+        "body": "Your account is protected by a verified email address, optional two-factor authentication and an overview of every device you're signed in on. If you want to leave, you delete your account yourself — no request, no waiting.",
         "items": [
           "Email verification",
-          "Two-factor authentication",
+          "Two-factor authentication with any authenticator app",
           "Sign in with Google",
           "See and end active sessions",
+          "Reset a forgotten password by email",
           "Delete your account at any time"
         ]
       }
@@ -261,58 +269,58 @@
   "about": {
     "title": "Made by students {emphasis}",
     "title_emphasis": "who needed it.",
-    "lede": "Placeholder: one or two sentences on who is behind schul-dashboard and where it comes from.",
+    "lede": "schul-dashboard is a private project run by students in Berlin. We built the tool we were missing at school, and we use it every day.",
     "story": {
       "label": "Story",
-      "lead": "Placeholder: the moment the project started — a homework list lost in a group chat, a cancelled lesson nobody heard about.",
-      "body": "Placeholder: a longer paragraph about how the first version was built for one class, how other classes asked for it, and how it grew from there."
+      "lead": "Homework got lost in a messenger group. Cancelled lessons were news at the classroom door.",
+      "body": "So we built what we were missing: one place where homework, exams and timetable changes are written down once and everyone can see them. It has grown one real need at a time — invite links, roles and permissions, a timetable editor, courses for Abitur year groups, Dalton support. Nothing was added because it looked good on a feature list."
     },
     "principles": {
       "label": "Principles",
       "items": {
         "free": {
           "title": "Free, without ads",
-          "body": "Placeholder: no subscriptions, no premium tier, no advertising. The whole product, for everyone."
+          "body": "No subscriptions, no premium tier, no advertising. Everyone gets the whole product, and that won't change."
         },
         "private": {
           "title": "Private by default",
-          "body": "Placeholder: personal data is encrypted, nothing is sold, nothing is tracked beyond what the service needs."
+          "body": "Personal data is encrypted. We don't sell data, we don't show ads, and we don't collect more than the service needs to run."
         },
         "students": {
           "title": "By students",
-          "body": "Placeholder: we use schul-dashboard every day ourselves, so we build what we actually need."
+          "body": "We're students ourselves and use schul-dashboard every day, so we build what we actually need — not what sounds good in a sales pitch."
         },
         "simple": {
           "title": "Only what helps",
-          "body": "Placeholder: every feature has to solve a real problem at school. Everything else gets cut."
+          "body": "Every feature has to solve a real problem at school. Whatever doesn't gets cut."
         }
       }
     },
     "team": {
       "label": "Team",
-      "body": "Placeholder: a short note about the small team of students behind the project, where they go to school and how to join.",
+      "body": "schul-dashboard is built and run by a small group of students in Berlin, in our free time and with no company behind it. Want to help or have an idea? Write to us — we're happy to hear from you.",
       "place": "Berlin, Germany"
     }
   },
   "contact": {
     "title": "Write {emphasis}",
     "title_emphasis": "to us.",
-    "lede": "Placeholder: questions, bugs, ideas for new features — we read everything and reply as soon as we can.",
+    "lede": "Questions, bugs, ideas for new features — we read everything and reply as soon as we can.",
     "email_label": "Email",
     "channels": {
       "discord": {
         "title": "Discord",
-        "body": "Placeholder: talk to other users and to us directly.",
+        "body": "Talk to other users, share ideas and reach us directly.",
         "link": "Join the server"
       },
       "status": {
         "title": "System status",
-        "body": "Placeholder: check whether something is down before writing.",
+        "body": "See whether something is down before you write to us.",
         "link": "View status"
       },
       "bugs": {
         "title": "Found a bug?",
-        "body": "Placeholder: tell us what you did, what you expected and what happened instead."
+        "body": "Email us what you did, what you expected and what happened instead. A screenshot helps."
       }
     }
   },

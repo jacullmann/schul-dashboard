@@ -21,7 +21,7 @@ const extras = ['chat', 'private', 'search', 'devices'] as const;
           <kbd
             v-if="extra === 'search'"
             class="rounded-[0.3125rem] border border-ghost-border px-1.5 py-px font-sans text-[0.6875rem] font-medium text-on-ghost-muted"
-            >Ctrl K</kbd
+            >{{ t('home.extras.items.search.shortcut') }}</kbd
           >
         </h3>
         <p class="max-w-[30rem] text-[0.9375rem] leading-relaxed text-on-ghost-muted">
