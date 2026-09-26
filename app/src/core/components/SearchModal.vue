@@ -8,6 +8,7 @@ import {
 } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
+import { useGroupSettingsAccess } from '@/modules/groups/composables/useGroupSettingsAccess';
 import { useLogout } from '@/core/composables/useLogout';
 import { useTaskForm } from '@/core/composables/useTaskForm';
 import { usePrivateTaskForm } from '@/core/composables/usePrivateTaskForm';
@@ -75,6 +76,7 @@ const {
   checkPermission,
   createInvite,
 } = useAppAuth();
+const { canAccessGroupSettings, canAccessTab } = useGroupSettingsAccess();
 const { openTaskForm } = useTaskForm();
 const { openPrivateTaskForm } = usePrivateTaskForm();
 const { openAnnouncementForm } = useAnnouncementForm();
@@ -164,7 +166,7 @@ const groupSettingsTabs = computed<SearchResult[]>(() =>
     category: 'page',
     icon,
     action: () => navigateInGroup('group-admin', { tab }),
-    condition: !!activeGroupId.value,
+    condition: !!activeGroupId.value && canAccessTab(tab),
     searchOnly: true,
   })),
 );
@@ -209,7 +211,7 @@ const defaultResults = computed<SearchResult[]>(() => [
     category: 'page',
     icon: Settings,
     action: () => navigateInGroup('group-admin'),
-    condition: !!activeGroupId.value,
+    condition: !!activeGroupId.value && canAccessGroupSettings.value,
   },
   ...groupSettingsTabs.value,
   {

@@ -205,7 +205,7 @@
       },
       "list": {
         "loading": "Berechtigungen werden geladen...",
-        "admin_only_warning": "Nur Gruppen-Administratoren können Berechtigungen anpassen."
+        "admin_only_warning": "Nur der Gruppeninhaber kann Berechtigungen anpassen."
       },
       "categories": {
         "general": "Gruppeneinstellungen",
@@ -225,7 +225,7 @@
         "send_messages": "Nachrichten senden",
         "manage_schedule_changes": "Stundenplanänderungen hinzufügen und löschen",
         "manage_announcements": "Ankündigungen hinzufügen und löschen",
-        "moderate_members": "Mitglieder entfernen und bannen bzw. entbannen",
+        "moderate_members": "Mitglieder entfernen und bannen bzw. entbannen, Einladungslinks einsehen und widerrufen",
         "delete_other_content": "Aufgaben, Bilder und Nachrichten von Nutzern löschen"
       },
       "options": {

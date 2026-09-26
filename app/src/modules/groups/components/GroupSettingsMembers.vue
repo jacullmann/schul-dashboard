@@ -135,7 +135,7 @@ function confirmRemove() {
     <!-- Subpages navigation list above the members list -->
     <div class="flex flex-col max-w-200 mx-auto mb-6 max-md:-mx-6">
       <BaseList
-        v-if="checkPermission('invite_members')"
+        v-if="canModerateMembers"
         :chevron="true"
         :separator="true"
         @click="goToInvites"

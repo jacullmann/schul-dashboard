@@ -698,7 +698,7 @@ pub async fn delete_announcement(
 }
 
 pub async fn get_invites(State(s): State<AppState>, tc: TenantContext) -> AppResult<Json<Value>> {
-    crate::require_permission!(tc, crate::common::permission::Permission::InviteMembers);
+    crate::require_permission!(tc, crate::common::permission::Permission::ModerateMembers);
     Ok(Json(
         GroupAdminService::from_state(&s)
             .get_invites(tc.tenant_id)
@@ -711,7 +711,7 @@ pub async fn revoke_invite(
     tc: TenantContext,
     Path(invite_id): Path<Uuid>,
 ) -> AppResult<Json<Value>> {
-    crate::require_permission!(tc, crate::common::permission::Permission::InviteMembers);
+    crate::require_permission!(tc, crate::common::permission::Permission::ModerateMembers);
     Ok(Json(
         GroupAdminService::from_state(&s)
             .revoke_invite(tc.tenant_id, tc.user.user_id, invite_id)
