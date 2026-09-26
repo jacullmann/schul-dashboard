@@ -1,4 +1,4 @@
-import { computed, nextTick, ref, watch, type Ref } from 'vue';
+import { computed, nextTick, ref, shallowRef, watch } from 'vue';
 import { useEventListener, usePreferredReducedMotion } from '@vueuse/core';
 
 /**
@@ -17,10 +17,10 @@ const EDGE_RESISTANCE = 0.3;
 
 type Direction = 1 | -1;
 
-export function useScheduleDayPager(
-  trackRef: Ref<HTMLElement | null>,
-  dayCount: number,
-) {
+export type ScheduleDayPager = ReturnType<typeof useScheduleDayPager>;
+
+export function useScheduleDayPager(dayCount: number) {
+  const trackRef = shallowRef<HTMLElement | null>(null);
   const reducedMotion = usePreferredReducedMotion();
 
   const activeDayIndex = ref(0);
@@ -200,6 +200,7 @@ export function useScheduleDayPager(
   };
 
   return {
+    trackRef,
     activeDayIndex,
     selectedDayIndex,
     incomingDayIndex,

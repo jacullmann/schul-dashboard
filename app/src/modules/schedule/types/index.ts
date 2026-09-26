@@ -1,3 +1,5 @@
+import type { StyleValue } from 'vue';
+
 export interface Lesson {
   id: string;
   _originalId?: string;
@@ -27,6 +29,24 @@ export interface Lesson {
   outsideCourseSelection?: boolean;
 }
 
+/** Lessons that start in the same slot of the same day share one cell. */
+export interface LessonGroup {
+  key: string;
+  day: number;
+  lessons: Lesson[];
+}
+
+export interface ScheduleCourse {
+  id: string;
+  name: string;
+}
+
+export interface ScheduleSubject {
+  id: string;
+  name: string;
+  courses?: ScheduleCourse[] | null;
+}
+
 export interface ScheduleConfig {
   startTime: string;
   totalSlots: number;
@@ -52,6 +72,7 @@ export interface Substitution {
 export interface TimeSlot {
   slot: number;
   time: string;
+  startTime: string;
 }
 
 export type ScheduleRow =
@@ -69,4 +90,9 @@ export interface ScheduleLayout {
   rows: ScheduleRow[];
   gridRowOfSlot: (slot: number) => number;
   groupStyle: (group: Lesson[]) => Record<string, string>;
+}
+
+/** What a phone shows for one day, laid out on a grid of its own. */
+export interface ScheduleDayPanel {
+  gridStyle?: StyleValue;
 }

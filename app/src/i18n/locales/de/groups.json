@@ -329,13 +329,7 @@
         "save_service_unavailable": "Der Stundenplan-Speicherdienst ist derzeit nicht verfügbar. Es wurden keine Änderungen übernommen. Bitte versuche es später erneut.",
         "add_lesson_slot": "Stunde hinzufügen",
         "empty_slot": "Freistunde",
-        "day_monday": "Montag",
-        "day_tuesday": "Dienstag",
-        "day_wednesday": "Mittwoch",
-        "day_thursday": "Donnerstag",
-        "day_friday": "Freitag",
         "course_hint": "Ohne Kurs gilt die Stunde für die ganze Gruppe.",
-        "day_fallback": "Tag {day}",
         "no_subjects": "Es sind noch keine Fächer in dieser Gruppe vorhanden. Bitte erstelle zuerst Fächer unter \"Fächer\" in den Gruppeneinstellungen.",
         "undo": "Rückgängig (Strg+Z)",
         "redo": "Wiederholen (Strg+Y)"

@@ -28,12 +28,22 @@ import { useSubjectAdmin } from '@/modules/groups/composables/useSubjectAdmin';
 import { useI18n } from 'vue-i18n';
 import { useWindowSize } from '@vueuse/core';
 import { useIsMobileViewport } from '@/common/composables/useViewport';
-import { minutesSinceMidnight } from '@/utils/time';
-import { lessonSubjectName } from '@/modules/schedule/utils/lesson';
+import {
+  lessonLastSlot,
+  lessonSpan,
+  lessonSubjectName,
+} from '@/modules/schedule/utils/lesson';
+import {
+  DEFAULT_SCHEDULE_CONFIG,
+  formatMinuteRange,
+  slotRangeMinutes,
+  timeSlotsOf,
+} from '@/modules/schedule/utils/slotTimes';
+import { formatWeekday } from '@/modules/schedule/utils/weekday';
 import { DALTON_SUBJECT_KEY } from '@/types/subjects';
 
 const i18n = useI18n();
-const { t } = i18n;
+const { t, locale } = i18n;
 const te = (key: string) => i18n.te(key);
 const { width: windowWidth } = useWindowSize();
 const isMobile = useIsMobileViewport();
@@ -89,28 +99,26 @@ const showToolbar = ref(false);
 const draftLessons = ref<Lesson[]>([]);
 const hasSwitchedFromEditor = ref(false);
 
-const configForm = ref({
-  startTime: '08:00',
-  totalSlots: 9,
-  lessonDurationMins: 45,
+const emptyConfigForm = () => ({
+  startTime: DEFAULT_SCHEDULE_CONFIG.startTime,
+  totalSlots: DEFAULT_SCHEDULE_CONFIG.totalSlots,
+  lessonDurationMins: DEFAULT_SCHEDULE_CONFIG.lessonDurationMins,
   breaks: [] as { id: string; slot: number; duration: number }[],
 });
 
-const draftConfigForm = ref({
-  startTime: '08:00',
-  totalSlots: 9,
-  lessonDurationMins: 45,
-  breaks: [] as { id: string; slot: number; duration: number }[],
-});
+const configForm = ref(emptyConfigForm());
+const draftConfigForm = ref(emptyConfigForm());
 
 watch(
   activeScheduleConfig,
   (newConfig) => {
     if (newConfig) {
       const cfg = {
-        startTime: newConfig.startTime ?? '08:00',
-        totalSlots: newConfig.totalSlots ?? 9,
-        lessonDurationMins: newConfig.lessonDurationMins ?? 45,
+        startTime: newConfig.startTime ?? DEFAULT_SCHEDULE_CONFIG.startTime,
+        totalSlots: newConfig.totalSlots ?? DEFAULT_SCHEDULE_CONFIG.totalSlots,
+        lessonDurationMins:
+          newConfig.lessonDurationMins ??
+          DEFAULT_SCHEDULE_CONFIG.lessonDurationMins,
         breaks: Object.entries(newConfig.breaks || {}).map(
           ([slot, duration]) => ({
             id: Math.random().toString(36).substring(2, 9),
@@ -157,19 +165,32 @@ function cancelEditMode() {
   }, 300);
 }
 
-function handleSaveAll() {
-  const breaksObj: Record<number, number> = {};
+const draftBreaks = computed(() => {
+  const breaks: Record<number, number> = {};
   draftConfigForm.value.breaks.forEach((b) => {
     if (b.slot) {
-      breaksObj[b.slot] = b.duration || 0;
+      breaks[Number(b.slot)] = Number(b.duration || 0);
     }
   });
+  return breaks;
+});
 
+/** The draft as the grid and the time labels read it, with a blank duration read as the default. */
+const draftTiming = computed<ScheduleConfig>(() => ({
+  startTime: draftConfigForm.value.startTime,
+  totalSlots: draftConfigForm.value.totalSlots,
+  lessonDurationMins:
+    Number(draftConfigForm.value.lessonDurationMins) ||
+    DEFAULT_SCHEDULE_CONFIG.lessonDurationMins,
+  breaks: draftBreaks.value,
+}));
+
+function handleSaveAll() {
   const configPayload = {
     startTime: draftConfigForm.value.startTime,
     totalSlots: draftConfigForm.value.totalSlots,
     lessonDurationMins: draftConfigForm.value.lessonDurationMins,
-    breaks: breaksObj,
+    breaks: draftBreaks.value,
   };
 
   emit('save-schedule-batch', draftLessons.value, configPayload, () => {
@@ -323,74 +344,7 @@ function handleSaveSub() {
 // Visual Schedule Grid Calculation (Using Draft State)
 // ----------------------------------------------------
 
-const daysList = computed(() => [
-  {
-    day: 1,
-    label: t('groups.settings.schedule.editor.day_monday'),
-    short: 'Mo',
-  },
-  {
-    day: 2,
-    label: t('groups.settings.schedule.editor.day_tuesday'),
-    short: 'Di',
-  },
-  {
-    day: 3,
-    label: t('groups.settings.schedule.editor.day_wednesday'),
-    short: 'Mi',
-  },
-  {
-    day: 4,
-    label: t('groups.settings.schedule.editor.day_thursday'),
-    short: 'Do',
-  },
-  {
-    day: 5,
-    label: t('groups.settings.schedule.editor.day_friday'),
-    short: 'Fr',
-  },
-]);
-
-const slotTimes = computed(() => {
-  let currentMins = minutesSinceMidnight(draftConfigForm.value.startTime);
-
-  const breaksMap: Record<number, number> = {};
-  draftConfigForm.value.breaks.forEach((b) => {
-    breaksMap[b.slot] = b.duration;
-  });
-
-  const slots: {
-    slot: number;
-    time: string;
-    startMins: number;
-    endMins: number;
-  }[] = [];
-  const duration = draftConfigForm.value.lessonDurationMins || 45;
-
-  for (let s = 1; s <= draftConfigForm.value.totalSlots; s++) {
-    const slotStartM = currentMins;
-    const endM = slotStartM + duration;
-
-    const format = (mins: number) => {
-      const h = Math.floor(mins / 60)
-        .toString()
-        .padStart(2, '0');
-      const m = (mins % 60).toString().padStart(2, '0');
-      return `${h}:${m}`;
-    };
-
-    slots.push({
-      slot: s,
-      time: `${format(slotStartM)} - ${format(endM)}`,
-      startMins: slotStartM,
-      endMins: endM,
-    });
-
-    const breakTime = breaksMap[s] || 0;
-    currentMins = endM + breakTime;
-  }
-  return slots;
-});
+const slotTimes = computed(() => timeSlotsOf(draftTiming.value));
 
 // ----------------------------------------------------
 // Undo / Redo History System State
@@ -483,14 +437,8 @@ function selectRangeToLesson(targetId: string, isCtrlPressed = false) {
   const dayMin = Math.min(Number(anchorLesson.day), Number(targetLesson.day));
   const dayMax = Math.max(Number(anchorLesson.day), Number(targetLesson.day));
 
-  const anchorEndSlot =
-    Number(anchorLesson.slot) +
-    Math.max(1, Number(anchorLesson.duration || 1)) -
-    1;
-  const targetEndSlot =
-    Number(targetLesson.slot) +
-    Math.max(1, Number(targetLesson.duration || 1)) -
-    1;
+  const anchorEndSlot = lessonLastSlot(anchorLesson);
+  const targetEndSlot = lessonLastSlot(targetLesson);
 
   const slotMin = Math.min(
     Number(anchorLesson.slot),
@@ -501,7 +449,7 @@ function selectRangeToLesson(targetId: string, isCtrlPressed = false) {
   const rangeLessons = draftLessons.value.filter((l) => {
     const lDay = Number(l.day);
     const lStart = Number(l.slot);
-    const lEnd = lStart + Math.max(1, Number(l.duration || 1)) - 1;
+    const lEnd = lessonLastSlot(l);
 
     const dayMatches = lDay >= dayMin && lDay <= dayMax;
     const slotMatches = lStart <= slotMax && lEnd >= slotMin;
@@ -757,66 +705,18 @@ watch(
   },
 );
 
-function getSlotTimeRange(startSlot: number, endSlot: number): string {
-  let currentMins = minutesSinceMidnight(draftConfigForm.value.startTime);
-
-  const breaksMap: Record<number, number> = {};
-  draftConfigForm.value.breaks.forEach((b) => {
-    if (b.slot) {
-      breaksMap[Number(b.slot)] = Number(b.duration || 0);
-    }
-  });
-
-  const lessonDur = Number(draftConfigForm.value.lessonDurationMins || 45);
-
-  let rangeStartTime = '';
-  let rangeEndTime = '';
-
-  for (let s = 1; s <= endSlot; s++) {
-    const slotStartM = currentMins;
-    const endM = slotStartM + lessonDur;
-
-    if (s === startSlot) {
-      const h = Math.floor(slotStartM / 60)
-        .toString()
-        .padStart(2, '0');
-      const m = (slotStartM % 60).toString().padStart(2, '0');
-      rangeStartTime = `${h}:${m}`;
-    }
-
-    if (s === endSlot) {
-      const h = Math.floor(endM / 60)
-        .toString()
-        .padStart(2, '0');
-      const m = (endM % 60).toString().padStart(2, '0');
-      rangeEndTime = `${h}:${m}`;
-    }
-
-    const breakTime = breaksMap[s] || 0;
-    currentMins = endM + breakTime;
-  }
-
-  if (rangeStartTime && rangeEndTime) {
-    return `${rangeStartTime} - ${rangeEndTime}`;
-  }
-  return '';
-}
-
 // Summary text for selected day & slot at top of modal
 const selectedSlotSummary = computed(() => {
-  const dObj = daysList.value.find((d) => d.day === lessonForm.value.day);
-  const dayName = dObj
-    ? dObj.label
-    : t('groups.settings.schedule.editor.day_fallback', {
-        day: lessonForm.value.day,
-      });
+  const dayName = formatWeekday(Number(lessonForm.value.day), locale.value);
 
   const startSlot = Number(lessonForm.value.slot);
-  const duration = Math.max(1, Number(lessonForm.value.duration || 1));
+  const duration = lessonSpan(lessonForm.value);
   const endSlot = startSlot + duration - 1;
 
-  const timeRange = getSlotTimeRange(startSlot, endSlot);
-  const timeStr = timeRange ? ` (${timeRange})` : '';
+  const timeStr =
+    startSlot >= 1
+      ? ` (${formatMinuteRange(slotRangeMinutes(draftTiming.value, startSlot, endSlot))})`
+      : '';
 
   const slotRangeStr =
     duration > 1 ? `${startSlot}.-${endSlot}.` : `${startSlot}.`;

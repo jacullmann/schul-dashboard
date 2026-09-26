@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useLongPress } from '@/common/composables/useLongPress';
 
@@ -30,108 +31,64 @@ function onClick(event: MouseEvent) {
 
   emit('select', props.lesson, event);
 }
+
+const strongText = computed(() => [
+  props.isSelected ? 'text-on-action' : 'text-on-ghost',
+  'group-[.highlight-active]:text-on-action!',
+]);
+
+const mutedText = computed(() => [
+  props.isSelected ? 'text-on-action-muted' : 'text-on-ghost-muted',
+  'group-[.highlight-active]:text-on-action-muted!',
+]);
+
+/* A cancelled lesson shows only that it is cancelled, not what else changed. */
+const nameChanged = computed(
+  () =>
+    !props.lesson.cancelled &&
+    props.lesson._original &&
+    props.getDisplayName(props.lesson) !==
+      props.getDisplayName(props.lesson._original),
+);
+
+const roomChanged = computed(
+  () =>
+    !props.lesson.cancelled &&
+    props.lesson._original &&
+    props.lesson.room !== props.lesson._original.room,
+);
 </script>
 
 <template>
   <div
-    class="js-lesson-card flex-1 flex flex-col justify-start h-full max-[500px]:px-2.5 max-[500px]:py-1.5 px-2 py-1 select-none"
+    class="js-lesson-card flex-1 flex flex-col justify-start h-full max-xs:px-2.5 max-xs:py-1.5 px-2 py-1 select-none"
     :class="[
       hasBorder
-        ? 'border-b border-ghost-border min-[501px]:group-[.current-day]:border-surface-hover-border! group-[.highlight-active]:border-on-ghost-muted!'
+        ? 'border-b border-ghost-border xs:group-[.current-day]:border-surface-hover-border! group-[.highlight-active]:border-on-ghost-muted!'
         : '',
       isClickable
         ? 'cursor-pointer transition-colors duration-150 hover:bg-surface-hover'
         : '',
-      isSelected ? 'min-[501px]:bg-action! min-[501px]:text-on-action!' : '',
+      isSelected ? 'bg-action! text-on-action!' : '',
       hasContextMenu ? 'long-press-target' : '',
     ]"
     v-on="hasContextMenu ? handlers : {}"
     @click.stop="onClick"
   >
-    <div v-if="lesson.cancelled">
+    <div>
       <div
-        class="font-bold text-base whitespace-nowrap overflow-hidden text-ellipsis flex items-center gap-1.5 group-[.highlight-active]:text-on-action-muted!"
-        :class="
-          isSelected
-            ? 'min-[501px]:text-on-action-muted text-on-ghost-muted'
-            : 'text-on-ghost-muted'
-        "
+        class="font-bold text-base whitespace-nowrap overflow-hidden text-ellipsis flex items-center"
+        :class="lesson.cancelled ? mutedText : strongText"
       >
-        <span class="line-through truncate">{{ getDisplayName(lesson) }}</span>
         <span
-          v-if="lesson.courseCount && lesson.courseCount > 1"
-          class="text-[9px] shrink-0 inline-block px-1.5 py-0.5 rounded bg-ghost-hover text-on-ghost-muted font-semibold truncate max-w-full group-[.highlight-active]:bg-on-action/10! group-[.highlight-active]:text-on-action-muted!"
-          :class="
-            isSelected
-              ? 'min-[501px]:text-on-action-muted min-[501px]:bg-on-action/10'
-              : ''
-          "
+          class="flex-1 min-w-0 truncate"
+          :class="{ 'line-through': lesson.cancelled }"
         >
-          {{ t('schedule.course_count', { count: lesson.courseCount }) }}
-        </span>
-        <span
-          v-else-if="lesson.courseName || lesson.courses?.name"
-          class="text-[9px] shrink-0 inline-block px-1.5 py-0.5 rounded bg-ghost-hover text-on-ghost-muted font-semibold truncate max-w-full group-[.highlight-active]:bg-on-action/10! group-[.highlight-active]:text-on-action-muted!"
-          :class="
-            isSelected
-              ? 'min-[501px]:text-on-action-muted min-[501px]:bg-on-action/10'
-              : ''
-          "
-        >
-          {{ lesson.courses?.name || lesson.courseName }}
-        </span>
-      </div>
-      <div
-        class="text-danger font-bold text-base group-[.highlight-active]:text-danger!"
-      >
-        {{ t('schedule.cancelled') }}
-      </div>
-      <div
-        class="flex justify-between text-sm group-[.highlight-active]:text-on-action-muted!"
-        :class="
-          isSelected
-            ? 'min-[501px]:text-on-action-muted text-on-ghost-muted'
-            : 'text-on-ghost-muted'
-        "
-      >
-        <span class="line-through">{{ lesson.room }}</span>
-      </div>
-    </div>
-
-    <div v-else>
-      <div
-        class="font-bold text-base whitespace-nowrap overflow-hidden text-ellipsis flex items-center group-[.highlight-active]:text-on-action!"
-        :class="
-          isSelected
-            ? 'min-[501px]:text-on-action text-on-ghost'
-            : 'text-on-ghost'
-        "
-      >
-        <span class="flex-1 min-w-0 truncate">
-          <template
-            v-if="
-              lesson._original &&
-              getDisplayName(lesson) !== getDisplayName(lesson._original)
-            "
-          >
-            <span
-              class="line-through font-normal group-[.highlight-active]:text-on-action-muted! mr-1"
-              :class="
-                isSelected
-                  ? 'min-[501px]:text-on-action-muted text-on-ghost-muted'
-                  : 'text-on-ghost-muted'
-              "
-            >
+          <template v-if="nameChanged">
+            <span class="line-through font-normal mr-1" :class="mutedText">
               {{ getDisplayName(lesson._original) }}
             </span>
-            <span
-              class="font-bold group-[.highlight-active]:text-on-action!"
-              :class="
-                isSelected
-                  ? 'min-[501px]:text-on-action text-on-ghost'
-                  : 'text-on-ghost'
-              "
-            >
+            <span class="font-bold" :class="strongText">
               {{ getDisplayName(lesson) }}
             </span>
           </template>
@@ -145,7 +102,7 @@ function onClick(event: MouseEvent) {
           class="text-sm shrink-0 inline-block px-2.5 py-0.5 ml-2 rounded-full font-semibold max-w-full group-[.highlight-active]:bg-on-action/15! group-[.highlight-active]:text-on-action-muted!"
           :class="
             isSelected
-              ? 'min-[501px]:text-on-action-muted min-[501px]:bg-on-action/15 bg-ghost-hover text-on-ghost-muted'
+              ? 'text-on-action-muted bg-on-action/15'
               : 'bg-ghost-hover text-on-ghost-muted'
           "
         >
@@ -153,47 +110,30 @@ function onClick(event: MouseEvent) {
         </span>
         <span
           v-else-if="lesson.courseName || lesson.courses?.name"
-          class="font-normal truncate ml-1 min-w-0 max-w-[55%] group-[.highlight-active]:text-on-action-muted!"
-          :class="
-            isSelected
-              ? 'min-[501px]:text-on-action-muted text-on-ghost-muted'
-              : 'text-on-ghost-muted'
-          "
+          class="font-normal truncate ml-1 min-w-0 max-w-[55%]"
+          :class="mutedText"
         >
           ({{ lesson.courses?.name || lesson.courseName }})
         </span>
       </div>
 
       <div
-        class="flex justify-between text-sm group-[.highlight-active]:text-on-action-muted!"
-        :class="
-          isSelected
-            ? 'min-[501px]:text-on-action-muted text-on-ghost-muted'
-            : 'text-on-ghost-muted'
-        "
+        v-if="lesson.cancelled"
+        class="text-danger font-bold text-base group-[.highlight-active]:text-danger!"
       >
-        <span class="inline-flex gap-1 items-center">
-          <template
-            v-if="lesson._original && lesson.room !== lesson._original.room"
-          >
-            <span
-              class="line-through font-normal group-[.highlight-active]:text-on-action-muted! mr-1"
-              :class="
-                isSelected
-                  ? 'min-[501px]:text-on-action-muted text-on-ghost-muted'
-                  : 'text-on-ghost-muted'
-              "
-            >
+        {{ t('schedule.cancelled') }}
+      </div>
+
+      <div class="flex justify-between text-sm" :class="mutedText">
+        <span
+          class="inline-flex gap-1 items-center"
+          :class="{ 'line-through': lesson.cancelled }"
+        >
+          <template v-if="roomChanged">
+            <span class="line-through font-normal mr-1" :class="mutedText">
               {{ lesson._original.room }}
             </span>
-            <span
-              class="font-bold group-[.highlight-active]:text-on-action!"
-              :class="
-                isSelected
-                  ? 'min-[501px]:text-on-action text-on-ghost'
-                  : 'text-on-ghost'
-              "
-            >
+            <span class="font-bold" :class="strongText">
               {{ lesson.room }}
             </span>
           </template>

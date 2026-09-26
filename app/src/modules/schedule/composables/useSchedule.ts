@@ -5,14 +5,29 @@ import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import type {
   Lesson,
+  LessonGroup,
   ScheduleLayout,
   ScheduleRow,
+  ScheduleSubject,
   Substitution,
-  TimeSlot,
 } from '@/modules/schedule/types';
 import { useI18n } from 'vue-i18n';
-import { parseTimeOfDay } from '@/utils/time';
-import { lessonSubjectName } from '@/modules/schedule/utils/lesson';
+import { formatTimeOfDay } from '@/utils/time';
+import {
+  groupLessonsBySlot,
+  lessonLastSlot,
+  lessonSpan,
+  lessonSubjectName,
+  resolveLessonSubject,
+  subjectsById,
+} from '@/modules/schedule/utils/lesson';
+import {
+  lessonMinutes,
+  scheduleConfigOrDefault,
+  slotRangeMinutes,
+  timeSlotsOf,
+} from '@/modules/schedule/utils/slotTimes';
+import { formatWeekday } from '@/modules/schedule/utils/weekday';
 
 export interface UseScheduleOptions {
   autoLoad?: boolean;
@@ -32,7 +47,7 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
   );
 
   const lessons = ref<Lesson[]>([]);
-  const subjects = ref<any[]>([]);
+  const subjects = ref<ScheduleSubject[]>([]);
   const substitutions = ref<Substitution[]>([]);
   const loadingSubs = ref(true);
   const loadingLessons = ref(true);
@@ -74,35 +89,11 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
       : '';
   };
 
-  const formatDayName = (
-    day: number,
-    weekday: 'long' | 'short' = 'long',
-  ): string => {
-    const date = new Date(Date.UTC(2024, 0, day, 12));
-    return new Intl.DateTimeFormat(locale.value, { weekday }).format(date);
-  };
+  const formatDayName = (day: number, weekday: 'long' | 'short' = 'long') =>
+    formatWeekday(day, locale.value, weekday);
 
-  const totalSlots = computed(
-    () => activeScheduleConfig.value?.totalSlots ?? 9,
-  );
-  const lessonDurationMins = computed(
-    () => activeScheduleConfig.value?.lessonDurationMins ?? 45,
-  );
-
-  const startTime = computed(() =>
-    parseTimeOfDay(activeScheduleConfig.value?.startTime),
-  );
-  const startTimeHour = computed(() => startTime.value.hour);
-  const startTimeMinute = computed(() => startTime.value.minute);
-
-  const breaks = computed<Record<number, number>>(
-    () =>
-      activeScheduleConfig.value?.breaks ?? {
-        2: 25,
-        3: 5,
-        5: 40,
-        7: 10,
-      },
+  const scheduleConfig = computed(() =>
+    scheduleConfigOrDefault(activeScheduleConfig.value),
   );
 
   function getDisplayName(lesson: Lesson): string {
@@ -177,38 +168,30 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
       return { lessons: result, hiddenCount };
     }
 
-    const subjectMap = new Map<string, any>();
-    subjects.value.forEach((sub) => {
-      if (sub && sub.id) subjectMap.set(sub.id, sub);
-    });
+    const subjectMap = subjectsById(subjects.value);
 
     const userCourses = userStore.user?.courses || [];
     const userCourseIds = new Set(userCourses.map((c: any) => c.courseId));
     const hasCourseSelection = !!userStore.user?.doneSetup;
 
     lessons.value.forEach((lesson) => {
-      const subId = lesson.subjectId || lesson.subjects?.id;
-      const subObj = subId ? subjectMap.get(subId) : null;
-      const courses: Array<{ id: string; name: string }> =
-        subObj?.courses || [];
-      const subjectRef =
-        lesson.subjects ||
-        (subObj ? { id: subObj.id, name: subObj.name } : null);
-
-      const ownCourseId = lesson.courseId || lesson.courses?.id || null;
+      const {
+        subjectId,
+        subjects: subjectRef,
+        courses,
+        ownCourseId,
+        ownCourse,
+      } = resolveLessonSubject(lesson, subjectMap);
 
       // A lesson scheduled for one course is already personal — Abitur groups
       // schedule nearly all of them that way.
       if (ownCourseId) {
-        const course =
-          lesson.courses ?? courses.find((c) => c.id === ownCourseId) ?? null;
-
         result.push({
           ...lesson,
           _originalId: lesson.id,
           courseId: ownCourseId,
-          courseName: lesson.courseName ?? course?.name,
-          courses: course,
+          courseName: lesson.courseName ?? ownCourse?.name,
+          courses: ownCourse,
           subjects: subjectRef,
           outsideCourseSelection:
             hasCourseSelection && !userCourseIds.has(ownCourseId),
@@ -249,7 +232,7 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
           courseId: c.id,
           courseName: c.name,
           courses: { id: c.id, name: c.name },
-          subjectId: subId || lesson.subjectId,
+          subjectId,
           subjects: subjectRef,
         });
       });
@@ -319,52 +302,19 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
     return result;
   });
 
-  const formatTime = (totalMinutes: number): string => {
-    const hours = Math.floor(totalMinutes / 60);
-    const minutes = totalMinutes % 60;
-    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-  };
+  const timeSlots = computed(() => timeSlotsOf(scheduleConfig.value));
 
-  const slotStartMinutes = computed(() => {
-    const map: Record<number, number> = {};
-    let currentMetrics = startTimeHour.value * 60 + startTimeMinute.value;
-    for (let i = 1; i <= totalSlots.value; i++) {
-      map[i] = currentMetrics;
-      const breakTime = breaks.value[i] || 0;
-      currentMetrics += lessonDurationMins.value + breakTime;
-    }
-    return map;
-  });
-
-  const timeSlots = computed<TimeSlot[]>(() => {
-    const slots: TimeSlot[] = [];
-    for (let i = 1; i <= totalSlots.value; i++) {
-      const startMins = slotStartMinutes.value[i] ?? 0;
-      const endMins = startMins + lessonDurationMins.value;
-      slots.push({
-        slot: i,
-        time: `${formatTime(startMins)} - ${formatTime(endMins)}`,
-      });
-    }
-    return slots;
-  });
-
-  const groupedLessons = computed(() => {
-    const groups: Record<string, Lesson[]> = {};
-    effectiveLessons.value.forEach((lesson) => {
-      const key = `${lesson.day}-${lesson.slot}`;
-      if (!groups[key]) groups[key] = [];
-      groups[key].push(lesson);
-    });
-    return groups;
-  });
+  const groupedLessons = computed<LessonGroup[]>(() =>
+    groupLessonsBySlot(effectiveLessons.value),
+  );
 
   const lastSlotByDayOf = (dayLessons: Lesson[]) => {
     const byDay = new Map<number, number>();
     dayLessons.forEach((lesson) => {
-      const lastSlot =
-        lesson.slot + Math.max(1, Number(lesson.duration || 1)) - 1;
-      byDay.set(lesson.day, Math.max(byDay.get(lesson.day) ?? 0, lastSlot));
+      byDay.set(
+        lesson.day,
+        Math.max(byDay.get(lesson.day) ?? 0, lessonLastSlot(lesson)),
+      );
     });
     return byDay;
   };
@@ -391,9 +341,7 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
     if (!groupLessons.length) return {};
     const firstLesson = groupLessons[0];
     if (!firstLesson) return {};
-    const maxDuration = Math.max(
-      ...groupLessons.map((l) => Math.max(1, Number(l.duration || 1))),
-    );
+    const maxDuration = Math.max(...groupLessons.map(lessonSpan));
     const dayIndex = days.indexOf(firstLesson.day);
     const colStart = dayIndex + 2;
     const rowStart = rowOfSlot(firstLesson.slot);
@@ -420,20 +368,21 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
    * follows gets a row of its own, so its end shows a time like a break does.
    */
   const buildLayout = (dayEndSlots: ReadonlySet<number>): ScheduleLayout => {
+    const config = scheduleConfig.value;
     const rows: ScheduleRow[] = [];
     let gridRow = 2;
-    for (let slot = 1; slot <= totalSlots.value; slot++) {
-      const startMins = slotStartMinutes.value[slot] ?? 0;
-      const endTime = formatTime(startMins + lessonDurationMins.value);
+    for (let slot = 1; slot <= config.totalSlots; slot++) {
+      const { start, end } = slotRangeMinutes(config, slot);
+      const endTime = formatTimeOfDay(end);
       rows.push({
         kind: 'lesson',
         gridRow: gridRow++,
         slot,
-        startTime: formatTime(startMins),
+        startTime: formatTimeOfDay(start),
       });
 
-      const durationMins = breaks.value[slot] ?? 0;
-      if (durationMins > 0 && slot < totalSlots.value) {
+      const durationMins = config.breaks[slot] ?? 0;
+      if (durationMins > 0 && slot < config.totalSlots) {
         rows.push({
           kind: 'break',
           gridRow: gridRow++,
@@ -456,7 +405,7 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
       if (row.kind === 'lesson') lessonGridRows.set(row.slot, row.gridRow);
     });
     const gridRowOfSlot = (slot: number): number =>
-      lessonGridRows.get(slot) ?? slot + 1 + (rows.length - totalSlots.value);
+      lessonGridRows.get(slot) ?? slot + 1 + (rows.length - config.totalSlots);
 
     return {
       rows,
@@ -544,20 +493,11 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
       (l) => l.day === days[dayIndex],
     );
     if (lessonsToday.length > 0) {
-      let maxEndMins = 0;
-      lessonsToday.forEach((l) => {
-        const startMins = slotStartMinutes.value[l.slot] ?? 0;
-        let endMins = startMins;
-        for (let d = 0; d < l.duration; d++) {
-          endMins += lessonDurationMins.value;
-          if (d < l.duration - 1) {
-            endMins += breaks.value[l.slot + d] || 0;
-          }
-        }
-        if (endMins > maxEndMins) {
-          maxEndMins = endMins;
-        }
-      });
+      const maxEndMins = Math.max(
+        ...lessonsToday.map(
+          (lesson) => lessonMinutes(scheduleConfig.value, lesson).end,
+        ),
+      );
 
       const currentMinutes = now.value.getHours() * 60 + now.value.getMinutes();
       if (currentMinutes > maxEndMins + 10) {
@@ -572,26 +512,20 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
     const currentMinutes = now.value.getHours() * 60 + now.value.getMinutes();
     const currentTotalWeekMinutes = currentDayIndex * 24 * 60 + currentMinutes;
 
-    const timeBlocks = Object.entries(groupedLessons.value)
-      .map(([key, group]) => {
+    const timeBlocks = groupedLessons.value
+      .map(({ key, lessons: group }) => {
         const first = group[0];
         if (!first) return null;
         const dayIdx = dayMap[first.day] ?? -1;
         if (dayIdx === -1) return null;
 
-        const maxDuration = Math.max(...group.map((l) => l.duration));
-        const startMinsOfDay = slotStartMinutes.value[first.slot] ?? 0;
-
-        let endMinsOfDay = startMinsOfDay;
-        for (let d = 0; d < maxDuration; d++) {
-          endMinsOfDay += lessonDurationMins.value;
-          if (d < maxDuration - 1) {
-            endMinsOfDay += breaks.value[first.slot + d] || 0;
-          }
-        }
-
-        const startTotal = dayIdx * 24 * 60 + startMinsOfDay;
-        const endTotal = dayIdx * 24 * 60 + endMinsOfDay;
+        const { start, end } = slotRangeMinutes(
+          scheduleConfig.value,
+          first.slot,
+          first.slot + Math.max(...group.map(lessonSpan)) - 1,
+        );
+        const startTotal = dayIdx * 24 * 60 + start;
+        const endTotal = dayIdx * 24 * 60 + end;
 
         return { key, startTotal, endTotal };
       })
@@ -644,6 +578,7 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
     loadingLessons,
     days,
     weekDates,
+    scheduleConfig,
     timeSlots,
     weekLayout,
     dayLayouts,

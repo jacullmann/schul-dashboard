@@ -19,7 +19,7 @@ import { formatSubjectDisplay } from '@/utils/subject-formatter';
 import { courseSelectionFor } from '@/types/subjects';
 import hw from '@/api/api.ts';
 import ItemCard from '@/modules/tasks/components/ItemCard.vue';
-import { parseTimeOfDay } from '@/utils/time';
+import { lessonMinutes } from '@/modules/schedule/utils/slotTimes';
 
 const i18n = useI18n();
 const t = i18n.t.bind(i18n);
@@ -28,9 +28,15 @@ const locale = i18n.locale;
 const userStore = useUserStore();
 const subjectStore = useSubjectStore();
 const { user } = storeToRefs(userStore);
-const { activeGroupId, activeScheduleConfig, checkPermission } = useAppAuth();
+const { activeGroupId, checkPermission } = useAppAuth();
 
-const { lessons, effectiveLessons, loadingLessons, loadingSubs } = useSchedule({
+const {
+  lessons,
+  effectiveLessons,
+  loadingLessons,
+  loadingSubs,
+  scheduleConfig,
+} = useSchedule({
   autoLoad: true,
 });
 
@@ -260,32 +266,6 @@ const sortedTasks = computed(() => {
     .slice(0, 3);
 });
 
-const totalSlots = computed(() => activeScheduleConfig.value?.totalSlots ?? 9);
-const lessonDurationMins = computed(
-  () => activeScheduleConfig.value?.lessonDurationMins ?? 45,
-);
-
-const startTime = computed(() =>
-  parseTimeOfDay(activeScheduleConfig.value?.startTime),
-);
-const startTimeHour = computed(() => startTime.value.hour);
-const startTimeMinute = computed(() => startTime.value.minute);
-
-const breaks = computed<Record<number, number>>(() => {
-  return activeScheduleConfig.value?.breaks ?? { 2: 25, 3: 5, 5: 40, 7: 10 };
-});
-
-const slotStartMinutes = computed(() => {
-  const map: Record<number, number> = {};
-  let currentMetrics = startTimeHour.value * 60 + startTimeMinute.value;
-  for (let i = 1; i <= totalSlots.value; i++) {
-    map[i] = currentMetrics;
-    const breakTime = breaks.value[i] || 0;
-    currentMetrics += lessonDurationMins.value + breakTime;
-  }
-  return map;
-});
-
 const upcomingLesson = computed(() => {
   if (!effectiveLessons.value.length) return null;
 
@@ -296,20 +276,13 @@ const upcomingLesson = computed(() => {
   const lessonsWithTimes = effectiveLessons.value
     .filter((l) => !l.cancelled)
     .map((l) => {
-      const startMinsOfDay = slotStartMinutes.value[l.slot] ?? 0;
-      const startTotal = (l.day - 1) * 24 * 60 + startMinsOfDay;
-
-      const maxDuration = l.duration || 1;
-      let endMinsOfDay = startMinsOfDay;
-      for (let d = 0; d < maxDuration; d++) {
-        endMinsOfDay += lessonDurationMins.value;
-        if (d < maxDuration - 1) {
-          endMinsOfDay += breaks.value[l.slot + d] || 0;
-        }
-      }
-      const endTotal = (l.day - 1) * 24 * 60 + endMinsOfDay;
-
-      return { lesson: l, startTotal, endTotal };
+      const { start, end } = lessonMinutes(scheduleConfig.value, l);
+      const dayOffset = (l.day - 1) * 24 * 60;
+      return {
+        lesson: l,
+        startTotal: dayOffset + start,
+        endTotal: dayOffset + end,
+      };
     });
 
   if (!lessonsWithTimes.length) return null;

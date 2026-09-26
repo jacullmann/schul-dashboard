@@ -2,6 +2,7 @@ import { computed, readonly, ref, type ComputedRef, type Ref } from 'vue';
 import {
   createSharedComposable,
   useEventListener,
+  useMediaQuery,
   useWindowSize,
 } from '@vueuse/core';
 
@@ -18,9 +19,17 @@ const KEYBOARD_MIN_HEIGHT = 150;
 /** Beyond this the visual viewport is pinch-zoomed, and shrinks for that reason alone. */
 const ZOOMED_SCALE = 1.01;
 
+/** Matches the Tailwind `xs` breakpoint; narrower screens are phones held upright. */
+export const PHONE_BREAKPOINT = 501;
+
 export function useIsMobileViewport(): ComputedRef<boolean> {
   const { width } = useWindowSize();
   return computed(() => width.value < MOBILE_BREAKPOINT);
+}
+
+/** Whether the screen is narrower than {@link PHONE_BREAKPOINT}. */
+export function useIsPhoneViewport(): Readonly<Ref<boolean>> {
+  return useMediaQuery(`(width < ${PHONE_BREAKPOINT}px)`);
 }
 
 /**

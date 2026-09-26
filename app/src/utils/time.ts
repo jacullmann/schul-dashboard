@@ -23,3 +23,9 @@ export function minutesSinceMidnight(time: string | null | undefined): number {
   const { hour, minute } = parseTimeOfDay(time);
   return hour * 60 + minute;
 }
+
+/** `HH:MM` for a count of minutes since midnight. */
+export function formatTimeOfDay(minutes: number): string {
+  const hour = Math.floor(minutes / 60);
+  return `${String(hour).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
+}

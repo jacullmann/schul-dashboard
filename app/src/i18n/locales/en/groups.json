@@ -330,13 +330,7 @@
         "save_service_unavailable": "The schedule save service is currently unavailable. No changes were applied. Please try again later.",
         "add_lesson_slot": "Add lesson",
         "empty_slot": "Free slot",
-        "day_monday": "Monday",
-        "day_tuesday": "Tuesday",
-        "day_wednesday": "Wednesday",
-        "day_thursday": "Thursday",
-        "day_friday": "Friday",
         "course_hint": "Without a course the lesson applies to the whole group.",
-        "day_fallback": "Day {day}",
         "undo": "Undo (Ctrl+Z)",
         "redo": "Redo (Ctrl+Y)"
       }

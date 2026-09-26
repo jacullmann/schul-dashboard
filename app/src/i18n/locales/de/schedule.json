@@ -20,6 +20,5 @@
   "loading": "Lade Stundenplan...",
   "personalized": "Personalisiert",
   "title": "Stundenplan",
-  "day_end": "Schluss",
-  "course_count": "{count} Kurse"
+  "day_end": "Schluss"
 }

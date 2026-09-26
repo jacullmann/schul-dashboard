@@ -161,6 +161,9 @@
   --color-kbd-border-inverted: oklch(0.4091 0 0);
   --color-kbd-border-bottom-inverted: oklch(0.2603 0 0);
   --color-kbd-shadow-inverted: oklch(0 0 0 / 40%);
+
+  /* 501px, kept in step with PHONE_BREAKPOINT in useViewport.ts. */
+  --breakpoint-xs: 31.3125rem;
 }
 
 @font-face {

@@ -1,14 +1,11 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
-import { useWindowSize } from '@vueuse/core';
+import type { TimeSlot } from '@/modules/schedule/types';
 
-const { width: windowWidth } = useWindowSize();
-
-const props = withDefaults(
+withDefaults(
   defineProps<{
-    timeSlots: Array<{ slot: number; time: string }>;
+    timeSlots: TimeSlot[];
     animated?: boolean;
-    gridTemplateRows?: string;
   }>(),
   {
     animated: true,
@@ -20,35 +17,20 @@ const { t } = useI18n();
 
 <template>
   <div
-    class="max-[500px]:grid max-[500px]:w-[85px] max-[500px]:shrink-0 max-[500px]:gap-2 max-[500px]:z-10 max-[500px]:bg-transparent min-[501px]:contents"
-    :style="
-      windowWidth < 501
-        ? {
-            gridTemplateRows:
-              props.gridTemplateRows ||
-              `auto repeat(${props.timeSlots.length || 9}, minmax(58px, auto))`,
-          }
-        : {}
-    "
+    class="bg-surface text-on-ghost px-3 py-2 border border-ghost-border text-center font-bold rounded-md text-base shadow-input [grid-column:1] [grid-row:1] flex items-center justify-center h-full"
+    :class="{ 'animate-fade-up': animated }"
   >
-    <div
-      class="bg-surface text-on-ghost px-3 py-2 border border-ghost-border text-center font-bold rounded-md max-[500px]:rounded-lg text-base shadow-input max-[500px]:static min-[501px]:[grid-column:1] min-[501px]:[grid-row:1] flex items-center justify-center h-full"
-      :class="{ 'animate-fade-up': animated }"
-    >
-      {{ t('schedule.lesson') }}
-    </div>
+    {{ t('schedule.lesson') }}
+  </div>
 
-    <div
-      v-for="ts in timeSlots"
-      :key="ts.slot"
-      class="flex flex-col justify-center items-center bg-transparent text-sm text-on-ghost-muted h-full min-h-[58px] whitespace-nowrap max-[500px]:static min-[501px]:[grid-column:1]"
-      :class="{ 'animate-fade-up': animated }"
-      :style="{
-        gridRow: ts.slot + 1,
-      }"
-    >
-      <span class="font-bold text-lg text-on-ghost">{{ ts.slot }}</span>
-      <span class="text-xs">{{ ts.time }}</span>
-    </div>
+  <div
+    v-for="ts in timeSlots"
+    :key="ts.slot"
+    class="flex flex-col justify-center items-center bg-transparent text-sm text-on-ghost-muted h-full min-h-[58px] whitespace-nowrap [grid-column:1]"
+    :class="{ 'animate-fade-up': animated }"
+    :style="{ gridRow: ts.slot + 1 }"
+  >
+    <span class="font-bold text-lg text-on-ghost">{{ ts.slot }}</span>
+    <span class="text-xs">{{ ts.time }}</span>
   </div>
 </template>

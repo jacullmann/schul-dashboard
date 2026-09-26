@@ -33,7 +33,7 @@ defineProps<{
         width="full"
         height="full"
         :radius="radius"
-        class="h-full min-h-[58px] min-[501px]:min-h-[54px]"
+        class="h-full min-h-[58px] xs:min-h-[54px]"
       />
     </div>
   </div>
