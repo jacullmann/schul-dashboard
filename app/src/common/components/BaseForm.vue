@@ -31,8 +31,17 @@ withDefaults(
       <slot name="content"></slot>
     </BaseFormContent>
 
-    <BaseRow justify="end" class="mt-4">
-      <BaseButton v-if="cancel" type="button" variant="ghost" @click="cancel">
+    <!-- Stacked full width on mobile: German labels don't wrap and won't fit
+         side by side. Reversed so the action sits above cancel while tab
+         order stays cancel first. -->
+    <div class="flex flex-col-reverse gap-2 mt-4 md:flex-row md:justify-end">
+      <BaseButton
+        v-if="cancel"
+        type="button"
+        variant="ghost"
+        class="max-md:w-full"
+        @click="cancel"
+      >
         <slot name="cancel-text">
           {{ t('common.buttons.cancel') }}
         </slot>
@@ -44,11 +53,12 @@ withDefaults(
         :full="!cancel"
         :loading="loading"
         :disabled="loading || !requirement"
+        class="max-md:w-full"
       >
         <slot name="action-text">
           {{ t('common.buttons.confirm') }}
         </slot>
       </BaseButton>
-    </BaseRow>
+    </div>
   </form>
 </template>
