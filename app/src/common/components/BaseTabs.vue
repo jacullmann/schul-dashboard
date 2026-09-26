@@ -35,19 +35,15 @@ const PRESS: SpringConfig = { response: 0.22, dampingRatio: 1 };
 
 /** How far the held pill draws in from every side, in px. */
 const PRESS_INSET = 2;
-/** How long a touch rests before the pill gives way, so a scroll never flashes it. */
-const PRESS_DELAY = 80;
 /**
- * How far a press must travel to stop being a press, in px. Whichever axis
- * crosses it first settles the pan: sideways and it is the pill's, up or down
- * and it stays the page's to scroll. Shorter than the distance a browser lets a
- * touch wander before it starts scrolling on its own, so a sideways pan is
- * claimed — and from then on every touch move taken — while a scroll can still
- * be called off. Once the pill is held, no amount of vertical travel takes it
- * back.
+ * How far a touch must travel before its direction is settled, in px. Whichever
+ * axis crosses it first decides: sideways and every touch move is the pill's,
+ * up or down and the page scrolls while the pill goes back. Shorter than the
+ * distance a browser lets a touch wander before it starts scrolling on its own,
+ * so a sideways pan is claimed while a scroll can still be called off. Once
+ * claimed, no amount of vertical travel takes the pill back.
  */
 const TOUCH_SLOP = 6;
-const MOUSE_SLOP = 5;
 /**
  * How far ahead a release's momentum is projected when picking the tab it
  * lands on, in seconds: the reach of UIScrollView's fast deceleration.
@@ -178,23 +174,18 @@ interface Sample {
 
 interface Gesture {
   pointerId: number;
-  pointerType: string;
   startX: number;
   startY: number;
   clientX: number;
-  /** Where across the pill the press landed, from 0 to 1; null beside it. */
-  grip: number | null;
-  /**
-   * The point on every tab that the finger holds the pill by, as a distance
-   * along the row. Set once the press has travelled far enough to be a drag.
-   */
-  stops: number[] | null;
+  /** Whether every touch move is the pill's; until then a vertical pan can still scroll the page. */
+  claimed: boolean;
+  /** The point on every tab that the finger holds the pill by, as a distance along the row. */
+  stops: number[];
   /** How far the pill still trails the finger, closing as it catches up. */
   lag: Spring;
   samples: Sample[];
   /** Where the row is being scrolled to, kept fractional. */
   scroll: number;
-  pressTimer: ReturnType<typeof setTimeout> | undefined;
 }
 
 function clamp(value: number, min: number, max: number) {
@@ -574,9 +565,9 @@ function frame(now: number) {
   let center: number;
   let moving = true;
 
-  if (g?.stops) {
+  if (g) {
     autoscroll(g, elapsed, now);
-    center = dragCenter(g, g.stops, m, now);
+    center = dragCenter(g, m, now);
   } else {
     [center, moving] = pill.settle(now);
   }
@@ -592,9 +583,7 @@ function render(now: number) {
   const m = metrics;
   if (!m || !pillShown) return;
 
-  const center = gesture?.stops
-    ? dragCenter(gesture, gesture.stops, m, now)
-    : pill.sample(now)[0];
+  const center = gesture ? dragCenter(gesture, m, now) : pill.sample(now)[0];
 
   paint(m, center, press.sample(now)[0]);
 }
@@ -672,13 +661,8 @@ function follow(stops: readonly number[], m: Metrics, x: number) {
 }
 
 /** The held pill: under the finger, less however far it is still catching up. */
-function dragCenter(
-  g: Gesture,
-  stops: readonly number[],
-  m: Metrics,
-  time: number,
-) {
-  return resist(m, follow(stops, m, rowX(g.clientX)) + g.lag.sample(time)[0]);
+function dragCenter(g: Gesture, m: Metrics, time: number) {
+  return resist(m, follow(g.stops, m, rowX(g.clientX)) + g.lag.sample(time)[0]);
 }
 
 function record(g: Gesture, time: number) {
@@ -696,41 +680,67 @@ function setPressed(pressed: boolean) {
   schedule();
 }
 
+/**
+ * Picks the pill up under the pressing finger. A finger on the pill holds it
+ * right where it pressed, catching it if it was still moving. A finger on
+ * another tab holds the pill where it touches that tab, and the pill glides
+ * over from wherever it was, at the speed it already had.
+ */
 function onPointerDown(event: PointerEvent) {
   // A new press owns whatever click comes next.
   suppressClicksUntil = 0;
 
   const m = metrics;
-  if (gesture || !m || !pillShown || m.centers.length < 2) return;
+  const bar = barRef.value;
+  if (gesture || !m || !bar || !pillShown || m.centers.length < 2) return;
   if (!event.isPrimary || event.button !== 0) return;
 
   const now = performance.now();
-  const [left, right] = pillEdges(m, pill.sample(now)[0]);
+  const [center, velocity] = pill.sample(now);
+  const [left, right] = pillEdges(m, center);
   const x = rowX(event.clientX);
   const onPill = x >= left && x <= right;
 
   // In a row that scrolls, a finger landing beside the pill is scrolling it.
   if (event.pointerType !== 'mouse' && isScrollable.value && !onPill) return;
 
+  const tab = tabAt(m, x);
+  const [heldLeft, heldRight] = onPill
+    ? [left, right]
+    : [m.lefts[tab]!, m.rights[tab]!];
+  const grip =
+    heldRight > heldLeft
+      ? clamp((x - heldLeft) / (heldRight - heldLeft), 0, 1)
+      : 0.5;
+  const stops = m.lefts.map(
+    (tabLeft, index) => tabLeft + grip * (m.rights[index]! - tabLeft),
+  );
+
   const g: Gesture = {
     pointerId: event.pointerId,
-    pointerType: event.pointerType,
     startX: event.clientX,
     startY: event.clientY,
     clientX: event.clientX,
-    grip: onPill ? (right > left ? (x - left) / (right - left) : 0.5) : null,
-    stops: null,
+    claimed: event.pointerType === 'mouse',
+    stops,
     lag: new Spring(CATCH_UP),
     samples: [],
-    scroll: 0,
-    pressTimer: undefined,
+    scroll: bar.scrollLeft,
   };
+
+  if (reduceMotion()) g.lag.jump(0);
+  else
+    g.lag.launch(center - follow(stops, m, x), onPill ? 0 : velocity, 0, now);
+
   gesture = g;
   record(g, now);
+  setPressed(true);
+  isDragging.value = true;
 
-  if (onPill) {
-    if (event.pointerType === 'mouse') setPressed(true);
-    else g.pressTimer = setTimeout(() => setPressed(true), PRESS_DELAY);
+  try {
+    bar.setPointerCapture(g.pointerId);
+  } catch {
+    // The pointer is already gone; its pointerup or cancel still ends the drag.
   }
 
   window.addEventListener('pointermove', onPointerMove, CAPTURE);
@@ -746,89 +756,23 @@ function onPointerMove(event: PointerEvent) {
   if (!g || event.pointerId !== g.pointerId) return;
 
   g.clientX = event.clientX;
-  const now = performance.now();
 
-  if (!g.stops) {
+  if (!g.claimed) {
     const dx = Math.abs(event.clientX - g.startX);
     const dy = Math.abs(event.clientY - g.startY);
 
-    if (g.pointerType === 'mouse') {
-      if (dx < MOUSE_SLOP) {
-        record(g, now);
-        return;
-      }
-    } else {
-      // A pan that sets off up or down is the page's: bowing out now, before a
-      // single touch move has been taken, leaves the browser free to scroll it.
-      if (dy > dx && dy >= TOUCH_SLOP) {
-        end(true);
-        return;
-      }
-
-      if (dx < TOUCH_SLOP) {
-        record(g, now);
-        return;
-      }
+    // A pan that sets off up or down is the page's: bowing out now, before a
+    // single touch move has been taken, leaves the browser free to scroll it.
+    if (dy > dx && dy >= TOUCH_SLOP) {
+      end(true);
+      return;
     }
 
-    pickUp(g, now);
+    g.claimed = dx >= TOUCH_SLOP;
   }
 
-  record(g, now);
+  record(g, performance.now());
   schedule();
-}
-
-/**
- * Turns a press into a drag. A finger on the pill holds it right where it
- * pressed, and the few px it travelled before counting as a drag close up
- * smoothly instead of as a jump. A finger on another tab holds the pill where
- * it touches that tab, and the pill glides over from wherever it was, at the
- * speed it already had.
- */
-function pickUp(g: Gesture, now: number) {
-  const m = metrics;
-  const bar = barRef.value;
-  if (!m || !bar) {
-    end(true);
-    return;
-  }
-
-  const x = rowX(g.clientX);
-  const [center, velocity] = pill.sample(now);
-
-  const tab = tabAt(m, x);
-  const tabLeft = m.lefts[tab]!;
-  const grip =
-    g.grip ?? clamp((x - tabLeft) / (m.rights[tab]! - tabLeft), 0, 1);
-
-  const stops = m.lefts.map(
-    (left, index) => left + grip * (m.rights[index]! - left),
-  );
-  const lag = center - follow(stops, m, x);
-
-  if (reduceMotion()) {
-    g.lag.jump(0);
-  } else if (g.grip !== null) {
-    g.lag.launch(lag, 0, 0, now);
-  } else {
-    // Taking the finger's own speed out keeps the pill's velocity continuous.
-    const fingerSpeed = speedOf(g.samples, now, (sampleX) =>
-      follow(stops, m, sampleX),
-    );
-    g.lag.launch(lag, velocity - fingerSpeed, 0, now);
-  }
-
-  g.stops = stops;
-  g.scroll = bar.scrollLeft;
-  clearTimeout(g.pressTimer);
-  setPressed(true);
-  isDragging.value = true;
-
-  try {
-    bar.setPointerCapture(g.pointerId);
-  } catch {
-    // The pointer is already gone; its pointerup or cancel still ends the drag.
-  }
 }
 
 function onPointerUp(event: PointerEvent) {
@@ -851,11 +795,11 @@ function onPointerCancel(event: PointerEvent) {
  * pill stays tied to it, and the page stays put, until it lets go.
  */
 function onTouchMove(event: TouchEvent) {
-  if (gesture?.stops && event.cancelable) event.preventDefault();
+  if (gesture?.claimed && event.cancelable) event.preventDefault();
 }
 
 function onKeyDown(event: KeyboardEvent) {
-  if (event.key !== 'Escape' || !gesture?.stops) return;
+  if (event.key !== 'Escape' || !gesture) return;
 
   // Puts the pill back, without also closing a modal the tabs sit in.
   event.preventDefault();
@@ -879,11 +823,7 @@ function end(cancelled: boolean) {
   window.removeEventListener('keydown', onKeyDown, CAPTURE);
   window.removeEventListener('blur', onBlur);
 
-  clearTimeout(g.pressTimer);
   setPressed(false);
-
-  if (!g.stops) return;
-
   isDragging.value = false;
   suppressClicksUntil = performance.now() + CLICK_SUPPRESS_WINDOW;
 
@@ -892,7 +832,7 @@ function end(cancelled: boolean) {
     bar.releasePointerCapture(g.pointerId);
   }
 
-  release(g, g.stops, cancelled);
+  release(g, cancelled);
 }
 
 /**
@@ -900,10 +840,11 @@ function end(cancelled: boolean) {
  * there from exactly where it is, at exactly the speed it is going, so the
  * hand-off from finger to spring never shows.
  */
-function release(g: Gesture, stops: readonly number[], cancelled: boolean) {
+function release(g: Gesture, cancelled: boolean) {
   const m = metrics;
   if (!m) return;
 
+  const { stops } = g;
   const now = performance.now();
   const reach = follow(stops, m, rowX(g.clientX));
   const speed = clamp(
@@ -1005,7 +946,7 @@ watch(
       end(true);
       targetIndex = -1;
       hidePill();
-    } else if (gesture?.stops) {
+    } else if (gesture) {
       // The drag decides where the pill goes; if it is cancelled, it goes here.
       targetIndex = index;
     } else {
@@ -1038,7 +979,7 @@ onBeforeUnmount(() => {
       class="relative isolate flex max-w-full overflow-x-auto overflow-y-hidden rounded-full border border-ghost-border scrollbar-hide select-none [-webkit-touch-callout:none] has-focus-visible:ring-2 has-focus-visible:ring-focus"
       :class="[
         isTabBar
-          ? 'bg-surface/85 p-1 shadow-menu backdrop-blur-lg backdrop-saturate-150'
+          ? 'bg-surface/80 p-1 shadow-menu backdrop-blur-[2px] backdrop-saturate-150'
           : 'bg-surface shadow-input',
         fillsWidth ? 'w-full' : 'w-max',
         isDragging && 'cursor-grabbing **:cursor-grabbing',
