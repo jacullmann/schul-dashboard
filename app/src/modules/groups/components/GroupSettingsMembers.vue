@@ -133,13 +133,11 @@ function confirmRemove() {
 <template>
   <div class="animate-fade-up">
     <!-- Subpages navigation list above the members list -->
-    <div class="flex flex-col max-w-200 mx-auto mb-6 max-md:-mx-6">
-      <BaseList
-        v-if="canModerateMembers"
-        :chevron="true"
-        :separator="true"
-        @click="goToInvites"
-      >
+    <div
+      v-if="canModerateMembers"
+      class="flex flex-col max-w-200 mx-auto mb-6 max-md:-mx-6"
+    >
+      <BaseList :chevron="true" :separator="true" @click="goToInvites">
         <template #icon>
           <span class="flex size-10 justify-center items-center text-on-ghost">
             <UserRoundPlus :size="24" />
@@ -200,7 +198,7 @@ function confirmRemove() {
       <template #action>
         <BaseTooltip :content="t('common.buttons.refresh')">
           <BaseButton
-            :disabled="loading"
+            :disabled="loading || !canModerateMembers"
             variant="ghost"
             :icon="RefreshCw"
             @click="emit('refresh')"
@@ -209,7 +207,16 @@ function confirmRemove() {
       </template>
     </PageHeader>
 
-    <div v-if="loading && members.length === 0" class="flex justify-center p-8">
+    <div
+      v-if="!canModerateMembers"
+      class="text-center p-8 text-on-ghost-muted text-base"
+    >
+      {{ t('groups.settings.members.list.unauthorized') }}
+    </div>
+    <div
+      v-else-if="loading && members.length === 0"
+      class="flex justify-center p-8"
+    >
       <BaseSpinner />
     </div>
     <div

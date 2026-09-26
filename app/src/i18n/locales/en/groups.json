@@ -123,6 +123,7 @@
         "remove_text": "To remove a member from the group, click on the corresponding icon next to the dropdown menu. Admins cannot be removed."
       },
       "list": {
+        "unauthorized": "You don't have permission to view the member list.",
         "empty": "No members found."
       },
       "actions": {

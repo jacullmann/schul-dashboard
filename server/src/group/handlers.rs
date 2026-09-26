@@ -557,8 +557,8 @@ pub async fn get_schedule_admin(
     State(s): State<AppState>,
     tc: TenantContext,
 ) -> AppResult<Json<Value>> {
-    crate::require_permission!(tc, crate::common::permission::Permission::EditSchedule);
-
+    // Read-only for every member: /schedule already returns the whole
+    // timetable to members without course personalization.
     Ok(Json(
         GroupAdminService::from_state(&s)
             .get_schedule(tc.tenant_id)
@@ -612,11 +612,7 @@ pub async fn get_schedule_subs_admin(
     State(s): State<AppState>,
     tc: TenantContext,
 ) -> AppResult<Json<Value>> {
-    crate::require_permission!(
-        tc,
-        crate::common::permission::Permission::ManageScheduleChanges
-    );
-
+    // Read-only for every member, like /schedule/subs.
     Ok(Json(
         GroupAdminService::from_state(&s)
             .get_schedule_subs(tc.tenant_id)
