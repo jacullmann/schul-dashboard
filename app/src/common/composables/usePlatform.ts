@@ -19,6 +19,8 @@ export function usePlatform() {
   const isSafari = /safari/.test(ua) && !/chrome/.test(ua);
   const isFirefox = /firefox/.test(ua);
   const isEdge = /edg/.test(ua) || /edge/.test(ua);
+  // Every Chromium browser names itself Chrome; those on iOS are WebKit and don't.
+  const isChromium = /chrome|chromium/.test(ua);
 
   const isTouch = ref(
     isBrowser && ('ontouchstart' in window || nav.maxTouchPoints > 0),
@@ -45,6 +47,7 @@ export function usePlatform() {
     isSafari,
     isFirefox,
     isEdge,
+    isChromium,
 
     isTouch,
 

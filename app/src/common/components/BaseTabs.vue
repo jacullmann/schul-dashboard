@@ -1099,7 +1099,12 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div ref="containerRef" class="flex w-full items-center justify-start">
+  <div
+    ref="containerRef"
+    class="flex w-full items-center justify-start"
+    :class="isTabBar && 'relative'"
+  >
+    <BaseGlassRefraction v-if="isTabBar" />
     <div
       ref="barRef"
       class="relative isolate flex max-w-full overflow-x-auto overflow-y-hidden rounded-full border border-ghost-border scrollbar-hide select-none [-webkit-touch-callout:none] has-focus-visible:ring-2 has-focus-visible:ring-focus"
