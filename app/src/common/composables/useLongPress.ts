@@ -1,5 +1,4 @@
 import { onScopeDispose } from 'vue';
-import { haptic, supportsVibration } from '@/utils/haptics';
 
 export type LongPressTrigger = (event: PointerEvent | MouseEvent) => void;
 
@@ -169,10 +168,6 @@ export function useLongPress(
   }
 
   function swallowClick(event: MouseEvent) {
-    // Script-dispatched clicks, such as the haptic switch's, are never the
-    // finger's own and must neither be swallowed nor end the window.
-    if (!event.isTrusted) return;
-
     if (isTrailingClick(event)) {
       event.preventDefault();
       event.stopPropagation();
@@ -211,12 +206,6 @@ export function useLongPress(
 
     openedByHold = true;
     clearStraySelection();
-
-    // Where the Vibration API exists the browser already plays its own
-    // long-press feedback once the page consumes the hold; ticking here too
-    // would double it.
-    if (!supportsVibration) haptic();
-
     trigger(source);
   }
 
