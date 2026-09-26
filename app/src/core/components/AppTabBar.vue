@@ -72,13 +72,15 @@ onBeforeUnmount(() => {
 
 <template>
   <!-- The nav spans the full width for the safe-area math, but only the bar
-       itself takes pointer events, so the margin around it stays tappable. -->
+       itself takes pointer events, so the margin around it stays tappable.
+       Like a native tab bar, it reaches into the bottom safe area: that space
+       only keeps the home indicator clear, which the margin already does. -->
   <nav
     v-if="routeTab"
     v-show="!isKeyboardOpen"
     ref="barEl"
     :aria-label="t('common.tab_bar.label')"
-    class="pointer-events-none fixed inset-x-0 bottom-0 z-(--z-tab-bar) flex justify-center pt-2 pr-[max(--spacing(4),env(safe-area-inset-right))] pb-[max(--spacing(2),env(safe-area-inset-bottom))] pl-[max(--spacing(4),env(safe-area-inset-left))] md:hidden print:hidden"
+    class="pointer-events-none fixed inset-x-0 bottom-0 z-(--z-tab-bar) flex justify-center pt-2 pr-[max(var(--tab-bar-margin),env(safe-area-inset-right))] pb-[max(--spacing(2),min(var(--tab-bar-margin),env(safe-area-inset-bottom)))] pl-[max(var(--tab-bar-margin),env(safe-area-inset-left))] md:hidden print:hidden"
   >
     <BaseTabs
       class="pointer-events-auto max-w-md"

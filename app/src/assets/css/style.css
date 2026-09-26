@@ -186,6 +186,13 @@
   --announcement-height: 0px;
   /* Space the fixed mobile tab bar covers at the bottom; AppTabBar measures it. */
   --tab-bar-height: 0px;
+  /*
+   * The tab bar's gap to the screen edges. Equal at the sides and the bottom,
+   * the capsule's corners share their centre with the screen's rounded corners,
+   * as native tab bars do: an iPhone's ~55px corner radius less the bar's own
+   * ~31px radius.
+   */
+  --tab-bar-margin: calc(var(--spacing) * 6);
 }
 
 @layer base {
