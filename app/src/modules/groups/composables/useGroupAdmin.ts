@@ -577,7 +577,7 @@ export function useGroupAdmin() {
   }
 
   async function loadInvites() {
-    if (!checkPermission('invite_members')) return;
+    if (!checkPermission('moderate_members')) return;
     loadingInvites.value = true;
     try {
       const { data } = await hw.get('/group-admin/invites');

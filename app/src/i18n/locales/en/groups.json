@@ -226,7 +226,7 @@
         "send_messages": "Send messages",
         "manage_schedule_changes": "Add and delete schedule changes",
         "manage_announcements": "Add and delete announcements",
-        "moderate_members": "Remove and ban/unban members",
+        "moderate_members": "Remove and ban/unban members, view and revoke invite links",
         "delete_other_content": "Delete tasks, images, and messages from users"
       },
       "options": {
