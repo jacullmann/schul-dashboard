@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { LogOut, LucideGraduationCap, Settings } from '@lucide/vue';
+import { LogOut, Settings } from '@lucide/vue';
 import PersonalizationSubmenu from '@/modules/auth/components/PersonalizationSubmenu.vue';
 import ThemeSubmenu from '@/modules/auth/components/ThemeSubmenu.vue';
 import LocaleSubmenu from '@/modules/auth/components/LocaleSubmenu.vue';
@@ -41,7 +41,6 @@ const {
   open,
   popupStyle,
   handleLogout,
-  openSetup,
   openAccountSettings,
   toggle,
   cancel,
@@ -122,10 +121,6 @@ const {
         @click="openAccountSettings"
       >
         {{ t('auth.account_settings.title') }}
-      </BaseMenuButton>
-
-      <BaseMenuButton :icon="LucideGraduationCap" @click="openSetup">
-        {{ t('auth.courses.title') }}
       </BaseMenuButton>
 
       <PersonalizationSubmenu

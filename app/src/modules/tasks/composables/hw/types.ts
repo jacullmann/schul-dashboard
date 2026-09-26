@@ -11,6 +11,8 @@ export interface HwContext {
   showPersonalized: Ref<boolean>;
 
   items: Ref<HwItem[]>;
+  /** Items the server left out because of the member's course selection. */
+  hiddenByCourses: Ref<number>;
   loading: Ref<boolean>;
   checksLoading: Ref<boolean>;
   pinsLoading: Ref<boolean>;

@@ -46,6 +46,7 @@ export function useTasks() {
   );
 
   const items = ref<HwItem[]>([]);
+  const hiddenByCourses = ref(0);
   const loadingList = ref(true);
   const checksLoading = ref(true);
   const pinsLoading = ref(true);
@@ -78,6 +79,7 @@ export function useTasks() {
     activeGroupId,
     showPersonalized,
     items,
+    hiddenByCourses,
     loading: loadingList,
     checksLoading,
     pinsLoading,
@@ -335,6 +337,7 @@ export function useTasks() {
     loading,
     subjectFilter,
     showPersonalized,
+    hiddenByCourses,
     showOldEntries,
     hideChecked,
     visibleCount,

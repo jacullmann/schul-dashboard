@@ -1,5 +1,6 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import hw from '@/api/api.ts';
+import { hiddenByCourses } from '@/api/personalization';
 import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import type {
@@ -34,6 +35,7 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
   const substitutions = ref<Substitution[]>([]);
   const loadingSubs = ref(true);
   const loadingLessons = ref(true);
+  const lessonsHiddenByServer = ref(0);
 
   const days = [1, 2, 3, 4, 5];
 
@@ -150,24 +152,29 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
   async function loadSchedule() {
     loadingLessons.value = true;
     try {
-      const [{ data: lessonData }, subjectRes] = await Promise.all([
+      const [lessonRes, subjectRes] = await Promise.all([
         hw.get('/schedule'),
         hw.get('/schedule/subjects').catch(() => ({ data: [] })),
       ]);
-      lessons.value = lessonData;
+      lessons.value = lessonRes.data;
+      lessonsHiddenByServer.value = hiddenByCourses(lessonRes);
       subjects.value = subjectRes.data || [];
     } catch (error) {
       console.error('Error loading schedule:', error);
       lessons.value = [];
+      lessonsHiddenByServer.value = 0;
       subjects.value = [];
     } finally {
       loadingLessons.value = false;
     }
   }
 
-  const expandedLessons = computed<Lesson[]>(() => {
-    if (!lessons.value || lessons.value.length === 0) return [];
+  const personalLessons = computed(() => {
     const result: Lesson[] = [];
+    let hiddenCount = 0;
+    if (!lessons.value || lessons.value.length === 0) {
+      return { lessons: result, hiddenCount };
+    }
 
     const subjectMap = new Map<string, any>();
     subjects.value.forEach((sub) => {
@@ -222,24 +229,32 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
         return;
       }
 
-      courses
-        .filter((c) => userCourseIds.has(c.id))
-        .forEach((c) => {
-          result.push({
-            ...lesson,
-            id: `${lesson.id}_${c.id}`,
-            _originalId: lesson.id,
-            courseId: c.id,
-            courseName: c.name,
-            courses: { id: c.id, name: c.name },
-            subjectId: subId || lesson.subjectId,
-            subjects: subjectRef,
-          });
+      const ownCourses = courses.filter((c) => userCourseIds.has(c.id));
+      if (ownCourses.length === 0) hiddenCount++;
+
+      ownCourses.forEach((c) => {
+        result.push({
+          ...lesson,
+          id: `${lesson.id}_${c.id}`,
+          _originalId: lesson.id,
+          courseId: c.id,
+          courseName: c.name,
+          courses: { id: c.id, name: c.name },
+          subjectId: subId || lesson.subjectId,
+          subjects: subjectRef,
         });
+      });
     });
 
-    return result;
+    return { lessons: result, hiddenCount };
   });
+
+  const expandedLessons = computed(() => personalLessons.value.lessons);
+
+  /** Lessons the member does not see because of their course selection. */
+  const hiddenLessonCount = computed(
+    () => lessonsHiddenByServer.value + personalLessons.value.hiddenCount,
+  );
 
   const effectiveLessons = computed<Lesson[]>(() => {
     const result: Lesson[] = [];
@@ -563,6 +578,7 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
 
   return {
     isPersonalized,
+    hiddenLessonCount,
     loadingSubs,
     loadingLessons,
     days,

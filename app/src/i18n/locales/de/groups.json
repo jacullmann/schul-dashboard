@@ -435,6 +435,10 @@
       }
     },
     "nav": {
+      "courses": {
+        "label": "Meine Kurse",
+        "description": "Deine Kurse in dieser Gruppe"
+      },
       "general": {
         "label": "Allgemein",
         "description": "Aussehen • Passwort • Löschen"

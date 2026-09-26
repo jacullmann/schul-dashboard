@@ -4,7 +4,6 @@ import { useEventListener, useElementBounding } from '@vueuse/core';
 import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/vue';
 import { useIsMobileViewport } from '@/common/composables/useViewport';
 import type { UserData } from '@/stores/userStore';
-import { useAccountModals } from '@/modules/auth/composables/useAccountModals';
 
 export function useAccountMenu(
   props: { email: string; userData: UserData | null },
@@ -16,7 +15,6 @@ export function useAccountMenu(
     baseMenu: Ref<{ startClose: () => void } | null>;
   },
 ) {
-  const accountModals = useAccountModals();
   const router = useRouter();
 
   const personalizationSetting = computed({
@@ -75,11 +73,6 @@ export function useAccountMenu(
     closeAnimated();
   }
 
-  function openSetup() {
-    accountModals.openSetup();
-    closeAnimated();
-  }
-
   function openAccountSettings() {
     void router.push({ name: 'account-settings' });
     closeAnimated();
@@ -127,7 +120,6 @@ export function useAccountMenu(
     open,
     popupStyle,
     handleLogout,
-    openSetup,
     openAccountSettings,
     toggle,
     cancel,

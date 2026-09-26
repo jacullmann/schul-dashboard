@@ -53,6 +53,7 @@ declare module 'vue' {
     InfoModal: typeof import('./src/common/components/InfoModal.vue')['default']
     NotificationDot: typeof import('./src/common/components/NotificationDot.vue')['default']
     PageHeader: typeof import('./src/common/components/PageHeader.vue')['default']
+    PersonalizedViewNotice: typeof import('./src/common/components/PersonalizedViewNotice.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Tagline: typeof import('./src/common/components/Tagline.vue')['default']

@@ -7,6 +7,7 @@ import type { Lesson, ScheduleRow } from '@/modules/schedule/types';
 
 import BaseTableWrapper from '@/common/components/BaseTableWrapper.vue';
 import BaseTabs from '@/common/components/BaseTabs.vue';
+import PersonalizedViewNotice from '@/common/components/PersonalizedViewNotice.vue';
 import ScheduleHeader from '../components/ScheduleHeader.vue';
 import ScheduleStartTimeColumn from '../components/ScheduleStartTimeColumn.vue';
 import ScheduleBreakDivider from '../components/ScheduleBreakDivider.vue';
@@ -15,6 +16,7 @@ import ScheduleCellSkeleton from '../components/ScheduleCellSkeleton.vue';
 
 const {
   isPersonalized,
+  hiddenLessonCount,
   loadingSubs,
   loadingLessons,
   days,
@@ -116,6 +118,11 @@ const gridTemplateRows = computed(
         :is-personalized="!!isPersonalized"
       />
     </div>
+
+    <PersonalizedViewNotice
+      v-if="isPersonalized && hiddenLessonCount > 0 && !loadingLessons"
+      class="animate-fade-up"
+    />
 
     <template v-if="isCompactLayout">
       <BaseTabs

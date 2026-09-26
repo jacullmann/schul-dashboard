@@ -461,6 +461,10 @@
       }
     },
     "nav": {
+      "courses": {
+        "label": "My courses",
+        "description": "Your courses in this group"
+      },
       "general": {
         "label": "General",
         "description": "Appearance • Password • Deletion"

@@ -1,6 +1,7 @@
 import { computed, nextTick } from 'vue';
 import type { HwContext } from './types';
 import hw from '@/api/api.ts';
+import { hiddenByCourses } from '@/api/personalization';
 
 export function useHwList(ctx: HwContext) {
   const filteredItems = computed(() => {
@@ -121,6 +122,7 @@ export function useHwList(ctx: HwContext) {
     if ((ctx.tab.value as string) === 'PRIVATE') {
       ctx.loading.value = false;
       ctx.items.value = [];
+      ctx.hiddenByCourses.value = 0;
       ctx.expandedDescriptions.value = new Set();
       ctx.revealedImages.value = new Set();
       ctx.visibleCount.value = 5;
@@ -135,8 +137,9 @@ export function useHwList(ctx: HwContext) {
     if (ctx.showPersonalized.value) params.personalized = true;
 
     try {
-      const { data } = await hw.get('/items', { params });
-      ctx.items.value = data;
+      const response = await hw.get('/items', { params });
+      ctx.items.value = response.data;
+      ctx.hiddenByCourses.value = hiddenByCourses(response);
       ctx.expandedDescriptions.value = new Set();
       ctx.revealedImages.value = new Set();
     } catch (e) {

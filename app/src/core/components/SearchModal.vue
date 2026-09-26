@@ -78,7 +78,7 @@ const {
 const { openTaskForm } = useTaskForm();
 const { openPrivateTaskForm } = usePrivateTaskForm();
 const { openAnnouncementForm } = useAnnouncementForm();
-const { openSetup, openChangePassword, openDeleteAccount } = useAccountModals();
+const { openChangePassword, openDeleteAccount } = useAccountModals();
 const { setPersonalization } = usePersonalization();
 const userStore = useUserStore();
 const performLogout = useLogout();
@@ -402,7 +402,8 @@ const defaultResults = computed<SearchResult[]>(() => [
     description: t('search.descriptions.edit_courses'),
     category: 'action',
     icon: LucideGraduationCap,
-    action: () => runAndClose(openSetup),
+    action: () => navigateInGroup('group-admin', { tab: 'courses' }),
+    condition: !!activeGroupId.value,
   },
   {
     id: 'change-personalization',

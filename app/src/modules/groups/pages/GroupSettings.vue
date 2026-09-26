@@ -11,6 +11,7 @@ import {
   BookOpen,
   SlidersHorizontal,
   ArrowLeft,
+  GraduationCap,
 } from '@lucide/vue';
 import { useGroupAdmin } from '@/modules/groups/composables/useGroupAdmin';
 import { useUserStore } from '@/stores/userStore';
@@ -27,6 +28,7 @@ import GroupSettingsSchedule from '@/modules/groups/components/GroupSettingsSche
 import GroupSettingsAnnouncements from '@/modules/groups/components/GroupSettingsAnnouncements.vue';
 import GroupSettingsSubjects from '@/modules/groups/components/GroupSettingsSubjects.vue';
 import GroupSettingsGeneral from '@/modules/groups/components/GroupSettingsGeneral.vue';
+import GroupSettingsMyCourses from '@/modules/groups/components/GroupSettingsMyCourses.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -116,6 +118,12 @@ const navItems = computed<AdminNavItem[]>(() => [
     icon: markRaw(LayoutDashboard),
     description: 'Activity • Status • Quick actions',
   }, */
+  {
+    id: 'courses',
+    label: t('groups.settings.nav.courses.label'),
+    icon: markRaw(GraduationCap),
+    description: t('groups.settings.nav.courses.description'),
+  },
   {
     id: 'general',
     label: t('groups.settings.nav.general.label'),
@@ -288,6 +296,8 @@ function goBack() {
 
         <div class="flex-1 overflow-y-auto p-4 md:py-8 px-6 bg-canvas">
           <div class="w-full max-w-250 mx-auto">
+            <GroupSettingsMyCourses v-if="activeTab === 'courses'" />
+
             <GroupSettingsOverview
               v-if="activeTab === 'overview'"
               :stats="stats"

@@ -17,6 +17,7 @@ import ImageContextMenu from '@/modules/tasks/components/ImageContextMenu.vue';
 import ReportModal from '@/modules/tasks/components/ReportModal.vue';
 import TaskInfoModal from '@/modules/tasks/components/TaskInfoModal.vue';
 import NotificationDot from '@/common/components/NotificationDot.vue';
+import PersonalizedViewNotice from '@/common/components/PersonalizedViewNotice.vue';
 
 import type { HwItem } from '@/modules/tasks/composables/useTasks';
 
@@ -63,6 +64,8 @@ const {
   loading,
   initialLoad,
   subjectFilter,
+  showPersonalized,
+  hiddenByCourses,
   showOldEntries,
   hideChecked,
   visibleCount,
@@ -118,6 +121,11 @@ const {
 const isMobile = useIsMobileViewport();
 const hasActiveFilters = computed(
   () => subjectFilter.value !== '' || showOldEntries.value || hideChecked.value,
+);
+
+const showPersonalizedNotice = computed(
+  () =>
+    showPersonalized.value && hiddenByCourses.value > 0 && !initialLoad.value,
 );
 
 const { openTaskForm } = useTaskForm();
@@ -310,7 +318,15 @@ function handleEmptyStateAnimationEnd(event: AnimationEvent) {
       </div>
     </div>
 
-    <div class="flex flex-col gap-3 mt-8 max-w-192 mx-auto">
+    <div
+      class="flex flex-col gap-3 max-w-192 mx-auto"
+      :class="showPersonalizedNotice ? 'mt-4' : 'mt-8'"
+    >
+      <PersonalizedViewNotice
+        v-if="showPersonalizedNotice"
+        class="animate-fade-up"
+      />
+
       <TaskSkeleton v-if="loading && initialLoad" :count="5" :image-count="2" />
 
       <TransitionGroup
