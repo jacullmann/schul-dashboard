@@ -15,6 +15,7 @@ import {
 import { useGroupAdmin } from '@/modules/groups/composables/useGroupAdmin';
 import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
+import { useGroupSettingsAccess } from '@/modules/groups/composables/useGroupSettingsAccess';
 import { type AdminNavItem } from '@/layouts/AdminLayout.vue';
 
 import GroupSettingsOverview from '@/modules/groups/components/GroupSettingsOverview.vue';
@@ -95,7 +96,9 @@ const activeTab = computed<string>({
   },
 });
 
-const { activeGroupOwnerId, activeGroupDaltonEnabled } = useAppAuth();
+const { activeGroupDaltonEnabled } = useAppAuth();
+const { isOwner, canManagePermissions, canAccessTab } =
+  useGroupSettingsAccess();
 
 // Turning Dalton off deletes its lessons on the server, so the schedule this
 // page hands to its editor has to be fetched again.
@@ -106,12 +109,7 @@ const isAdmin = computed(
     userStore.user?.tenantRole === 'admin' ||
     userStore.user?.role === 'superadmin',
 );
-const isOwner = computed(
-  () =>
-    !!(userStore.user?.id && activeGroupOwnerId.value === userStore.user.id),
-);
-
-const navItems = computed<AdminNavItem[]>(() => [
+const allNavItems = computed<AdminNavItem[]>(() => [
   /* {
     id: 'overview',
     label: 'Overview',
@@ -155,6 +153,10 @@ const navItems = computed<AdminNavItem[]>(() => [
     description: t('groups.settings.nav.announcements.description'),
   },
 ]);
+
+const navItems = computed(() =>
+  allNavItems.value.filter((item) => canAccessTab(item.id)),
+);
 
 const transitionDirection = ref<'forward' | 'backward'>('forward');
 
@@ -359,7 +361,7 @@ function goBack() {
 
             <GroupSettingsPermissions
               v-if="activeTab === 'permissions'"
-              :is-admin="isAdmin"
+              :can-manage="canManagePermissions"
             />
 
             <GroupSettingsGeneral

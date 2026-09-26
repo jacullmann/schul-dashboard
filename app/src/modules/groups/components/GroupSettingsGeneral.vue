@@ -20,6 +20,7 @@ const {
   activeGroupType,
   activeGroupDaltonEnabled,
   checkPermission,
+  checkAuthStatus,
 } = useAppAuth();
 const canEditSettings = computed(() => checkPermission('edit_group_general'));
 
@@ -258,11 +259,14 @@ async function confirmDeleteGroup() {
   deletingGroup.value = true;
   try {
     await deleteGroup();
-    void router.push({ name: 'groups' });
   } catch {
-    // TODO: Add toast
+    // deleteGroup already reports the failure via toast.
     deletingGroup.value = false;
+    return;
   }
+
+  await checkAuthStatus();
+  void router.push({ name: 'groups' });
 }
 </script>
 

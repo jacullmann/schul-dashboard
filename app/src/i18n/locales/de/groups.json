@@ -205,7 +205,7 @@
       },
       "list": {
         "loading": "Berechtigungen werden geladen...",
-        "admin_only_warning": "Nur Gruppen-Administratoren können Berechtigungen anpassen."
+        "admin_only_warning": "Nur der Gruppeninhaber kann Berechtigungen anpassen."
       },
       "categories": {
         "general": "Gruppeneinstellungen",

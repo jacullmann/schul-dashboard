@@ -10,7 +10,7 @@ import type { PermissionKey } from '@/types/permissions';
 const { t } = useI18n();
 
 const props = defineProps<{
-  isAdmin: boolean;
+  canManage: boolean;
 }>();
 
 const toast = useToast();
@@ -52,7 +52,7 @@ async function fetchPermissions() {
 }
 
 async function savePermission(key: PermissionKey, value: string) {
-  if (!props.isAdmin) return;
+  if (!props.canManage) return;
 
   saving.value = true;
   const originalValue = permissions.value[key];
@@ -112,7 +112,7 @@ onMounted(() => {
       </div>
 
       <div
-        v-if="!isAdmin"
+        v-if="!canManage"
         class="text-xs text-warning bg-warning/10 border border-warning/20 p-3 rounded-lg mb-2"
       >
         {{ t('groups.settings.permissions.list.admin_only_warning') }}
@@ -128,7 +128,7 @@ onMounted(() => {
         <BaseSelect
           :form="false"
           :model-value="permissions.edit_group_general"
-          :disabled="!isAdmin || saving"
+          :disabled="!canManage || saving"
           :options="[
             {
               label: t('groups.settings.permissions.options.all'),
@@ -156,7 +156,7 @@ onMounted(() => {
         <BaseSelect
           :form="false"
           :model-value="permissions.invite_members"
-          :disabled="!isAdmin || saving"
+          :disabled="!canManage || saving"
           :options="[
             {
               label: t('groups.settings.permissions.options.all'),
@@ -184,7 +184,7 @@ onMounted(() => {
         <BaseSelect
           :form="false"
           :model-value="permissions.edit_subjects_courses"
-          :disabled="!isAdmin || saving"
+          :disabled="!canManage || saving"
           :options="[
             {
               label: t('groups.settings.permissions.options.moderators'),
@@ -208,7 +208,7 @@ onMounted(() => {
         <BaseSelect
           :form="false"
           :model-value="permissions.edit_schedule"
-          :disabled="!isAdmin || saving"
+          :disabled="!canManage || saving"
           :options="[
             {
               label: t('groups.settings.permissions.options.moderators'),
@@ -234,7 +234,7 @@ onMounted(() => {
         <BaseSelect
           :form="false"
           :model-value="permissions.create_items"
-          :disabled="!isAdmin || saving"
+          :disabled="!canManage || saving"
           :options="[
             {
               label: t('groups.settings.permissions.options.all'),
@@ -262,7 +262,7 @@ onMounted(() => {
         <BaseSelect
           :form="false"
           :model-value="permissions.upload_images"
-          :disabled="!isAdmin || saving"
+          :disabled="!canManage || saving"
           :options="[
             {
               label: t('groups.settings.permissions.options.all'),
@@ -290,7 +290,7 @@ onMounted(() => {
         <BaseSelect
           :form="false"
           :model-value="permissions.manage_notes"
-          :disabled="!isAdmin || saving"
+          :disabled="!canManage || saving"
           :options="[
             {
               label: t('groups.settings.permissions.options.all'),
@@ -320,7 +320,7 @@ onMounted(() => {
         <BaseSelect
           :form="false"
           :model-value="permissions.send_messages"
-          :disabled="!isAdmin || saving"
+          :disabled="!canManage || saving"
           :options="[
             {
               label: t('groups.settings.permissions.options.all'),
@@ -350,7 +350,7 @@ onMounted(() => {
         <BaseSelect
           :form="false"
           :model-value="permissions.manage_schedule_changes"
-          :disabled="!isAdmin || saving"
+          :disabled="!canManage || saving"
           :options="[
             {
               label: t('groups.settings.permissions.options.all'),
@@ -380,7 +380,7 @@ onMounted(() => {
         <BaseSelect
           :form="false"
           :model-value="permissions.manage_announcements"
-          :disabled="!isAdmin || saving"
+          :disabled="!canManage || saving"
           :options="[
             {
               label: t('groups.settings.permissions.options.moderators'),
@@ -406,7 +406,7 @@ onMounted(() => {
         <BaseSelect
           :form="false"
           :model-value="permissions.moderate_members"
-          :disabled="!isAdmin || saving"
+          :disabled="!canManage || saving"
           :options="[
             {
               label: t('groups.settings.permissions.options.moderators'),
@@ -430,7 +430,7 @@ onMounted(() => {
         <BaseSelect
           :form="false"
           :model-value="permissions.delete_other_content"
-          :disabled="!isAdmin || saving"
+          :disabled="!canManage || saving"
           :options="[
             {
               label: t('groups.settings.permissions.options.moderators'),

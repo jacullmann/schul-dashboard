@@ -6,6 +6,7 @@ import { useUserStore } from '@/stores/userStore';
 import i18n from '@/i18n';
 import { refreshSession } from '@/api/api';
 import { consumePendingInviteRoute } from '@/modules/auth/utils/pendingInvite';
+import { useGroupSettingsAccess } from '@/modules/groups/composables/useGroupSettingsAccess';
 
 const routes: RouteRecordRaw[] = [
   {
@@ -130,6 +131,7 @@ const routes: RouteRecordRaw[] = [
               requiresTenant: true,
               groupContext: true,
               fullWidth: true,
+              requiresGroupSettingsAccess: true,
             },
           },
         ],
@@ -439,6 +441,28 @@ router.beforeEach(async (to, from, next) => {
     if (!result.ok) {
       finish();
       return next({ path: '/groups', replace: true });
+    }
+  }
+
+  if (to.meta.requiresGroupSettingsAccess) {
+    const { canAccessGroupSettings, canAccessTab } = useGroupSettingsAccess();
+    if (!canAccessGroupSettings.value) {
+      finish();
+      return next({
+        name: 'group-dashboard',
+        params: { groupId: to.params.groupId },
+        replace: true,
+      });
+    }
+
+    const tab = to.params.tab as string | undefined;
+    if (tab && !canAccessTab(tab)) {
+      finish();
+      return next({
+        name: 'group-admin',
+        params: { groupId: to.params.groupId },
+        replace: true,
+      });
     }
   }
 

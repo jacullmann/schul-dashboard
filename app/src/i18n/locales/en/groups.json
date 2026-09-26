@@ -206,7 +206,7 @@
       },
       "list": {
         "loading": "Loading permissions...",
-        "admin_only_warning": "Only group administrators can adjust permissions."
+        "admin_only_warning": "Only the group owner can adjust permissions."
       },
       "categories": {
         "general": "Group Settings",

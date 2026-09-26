@@ -87,6 +87,7 @@ export function useGroupAdmin() {
   }
 
   async function loadStats() {
+    if (!checkPermission('edit_group_general')) return;
     loadingStats.value = true;
     try {
       const { data } = await hw.get('/group-admin/stats');
@@ -99,6 +100,7 @@ export function useGroupAdmin() {
   }
 
   async function loadMembers() {
+    if (!checkPermission('moderate_members')) return;
     loadingMembers.value = true;
     try {
       const { data } = await hw.get('/group-admin/members');
@@ -147,6 +149,7 @@ export function useGroupAdmin() {
   }
 
   async function loadBannedUsers() {
+    if (!checkPermission('moderate_members')) return;
     loadingBannedUsers.value = true;
     try {
       const { data } = await hw.get('/group-admin/banned-users');
@@ -171,6 +174,7 @@ export function useGroupAdmin() {
   const savingLesson = ref(false);
 
   async function loadSchedule() {
+    if (!checkPermission('edit_schedule')) return;
     loadingLessons.value = true;
     try {
       const { data } = await hw.get('/group-admin/schedule');
@@ -223,6 +227,7 @@ export function useGroupAdmin() {
   }
 
   async function loadSubs() {
+    if (!checkPermission('manage_schedule_changes')) return;
     loadingSubs.value = true;
     try {
       const { data } = await hw.get('/group-admin/schedule/subs');
@@ -601,9 +606,7 @@ export function useGroupAdmin() {
     void loadSubs();
     void loadAnnouncements();
     void loadSchedule();
-    if (checkPermission('invite_members')) {
-      void loadInvites();
-    }
+    void loadInvites();
   });
 
   return {
