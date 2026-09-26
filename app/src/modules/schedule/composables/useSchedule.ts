@@ -5,6 +5,7 @@ import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import type {
   Lesson,
+  ScheduleLayout,
   ScheduleRow,
   Substitution,
   TimeSlot,
@@ -183,6 +184,7 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
 
     const userCourses = userStore.user?.courses || [];
     const userCourseIds = new Set(userCourses.map((c: any) => c.courseId));
+    const hasCourseSelection = !!userStore.user?.doneSetup;
 
     lessons.value.forEach((lesson) => {
       const subId = lesson.subjectId || lesson.subjects?.id;
@@ -208,6 +210,8 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
           courseName: lesson.courseName ?? course?.name,
           courses: course,
           subjects: subjectRef,
+          outsideCourseSelection:
+            hasCourseSelection && !userCourseIds.has(ownCourseId),
         });
         return;
       }
@@ -220,6 +224,11 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
           ...lesson,
           _originalId: lesson.id,
           subjects: subjectRef,
+          outsideCourseSelection:
+            hasCourseSelection &&
+            !schedulesCoursesIndividually.value &&
+            courses.length > 0 &&
+            !courses.some((c) => userCourseIds.has(c.id)),
         });
         return;
       }
@@ -340,44 +349,6 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
     return slots;
   });
 
-  const scheduleRows = computed<ScheduleRow[]>(() => {
-    const rows: ScheduleRow[] = [];
-    let gridRow = 2;
-    for (let slot = 1; slot <= totalSlots.value; slot++) {
-      const startMins = slotStartMinutes.value[slot] ?? 0;
-      rows.push({
-        kind: 'lesson',
-        gridRow: gridRow++,
-        slot,
-        startTime: formatTime(startMins),
-      });
-
-      const durationMins = breaks.value[slot] ?? 0;
-      if (durationMins > 0 && slot < totalSlots.value) {
-        rows.push({
-          kind: 'break',
-          gridRow: gridRow++,
-          afterSlot: slot,
-          startTime: formatTime(startMins + lessonDurationMins.value),
-          durationMins,
-        });
-      }
-    }
-    return rows;
-  });
-
-  const lessonGridRows = computed(() => {
-    const map = new Map<number, number>();
-    scheduleRows.value.forEach((row) => {
-      if (row.kind === 'lesson') map.set(row.slot, row.gridRow);
-    });
-    return map;
-  });
-
-  const gridRowOfSlot = (slot: number): number =>
-    lessonGridRows.value.get(slot) ??
-    slot + 1 + (scheduleRows.value.length - totalSlots.value);
-
   const groupedLessons = computed(() => {
     const groups: Record<string, Lesson[]> = {};
     effectiveLessons.value.forEach((lesson) => {
@@ -388,11 +359,35 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
     return groups;
   });
 
+  const lastSlotByDayOf = (dayLessons: Lesson[]) => {
+    const byDay = new Map<number, number>();
+    dayLessons.forEach((lesson) => {
+      const lastSlot =
+        lesson.slot + Math.max(1, Number(lesson.duration || 1)) - 1;
+      byDay.set(lesson.day, Math.max(byDay.get(lesson.day) ?? 0, lastSlot));
+    });
+    return byDay;
+  };
+
+  /** The last slot of each day that shows a lesson at all. */
+  const lastShownSlotByDay = computed(() =>
+    lastSlotByDayOf(effectiveLessons.value),
+  );
+
+  /** The last slot of each day the member actually has to attend. */
+  const lastAttendedSlotByDay = computed(() =>
+    lastSlotByDayOf(
+      effectiveLessons.value.filter(
+        (lesson) => !lesson.cancelled && !lesson.outsideCourseSelection,
+      ),
+    ),
+  );
+
   const buildGroupStyle = (
     groupLessons: Lesson[],
     rowOfSlot: (slot: number) => number,
     mobileColumn: (desktopColumn: number) => number,
-  ) => {
+  ): Record<string, string> => {
     if (!groupLessons.length) return {};
     const firstLesson = groupLessons[0];
     if (!firstLesson) return {};
@@ -410,7 +405,7 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
       gridColumn: `var(--col-desktop)`,
       gridRow: `${rowStart} / ${rowEnd}`,
       minHeight: `${minHeight}px`,
-    } as Record<string, string>;
+    };
   };
 
   const getGroupStyle = (groupLessons: Lesson[]) =>
@@ -420,9 +415,75 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
       (column) => column - 1,
     );
 
-  // On a phone every day is its own table, its lessons beside the time column.
-  const getGroupStyleWithBreaks = (groupLessons: Lesson[]) =>
-    buildGroupStyle(groupLessons, gridRowOfSlot, () => 2);
+  /*
+   * Lesson rows interleaved with breaks. A day that ends where no break
+   * follows gets a row of its own, so its end shows a time like a break does.
+   */
+  const buildLayout = (dayEndSlots: ReadonlySet<number>): ScheduleLayout => {
+    const rows: ScheduleRow[] = [];
+    let gridRow = 2;
+    for (let slot = 1; slot <= totalSlots.value; slot++) {
+      const startMins = slotStartMinutes.value[slot] ?? 0;
+      const endTime = formatTime(startMins + lessonDurationMins.value);
+      rows.push({
+        kind: 'lesson',
+        gridRow: gridRow++,
+        slot,
+        startTime: formatTime(startMins),
+      });
+
+      const durationMins = breaks.value[slot] ?? 0;
+      if (durationMins > 0 && slot < totalSlots.value) {
+        rows.push({
+          kind: 'break',
+          gridRow: gridRow++,
+          afterSlot: slot,
+          startTime: endTime,
+          durationMins,
+        });
+      } else if (dayEndSlots.has(slot)) {
+        rows.push({
+          kind: 'dayEnd',
+          gridRow: gridRow++,
+          afterSlot: slot,
+          startTime: endTime,
+        });
+      }
+    }
+
+    const lessonGridRows = new Map<number, number>();
+    rows.forEach((row) => {
+      if (row.kind === 'lesson') lessonGridRows.set(row.slot, row.gridRow);
+    });
+    const gridRowOfSlot = (slot: number): number =>
+      lessonGridRows.get(slot) ?? slot + 1 + (rows.length - totalSlots.value);
+
+    return {
+      rows,
+      gridRowOfSlot,
+      // On a phone every day is its own table, its lessons beside the time column.
+      groupStyle: (groupLessons) =>
+        buildGroupStyle(groupLessons, gridRowOfSlot, () => 2),
+    };
+  };
+
+  const attendedDayEndSlots = (dayList: number[]): ReadonlySet<number> => {
+    if (loadingLessons.value) return new Set();
+    return new Set(
+      dayList.flatMap((day) => lastAttendedSlotByDay.value.get(day) ?? []),
+    );
+  };
+
+  /** The whole week side by side, sharing its rows. */
+  const weekLayout = computed(() => buildLayout(attendedDayEndSlots(days)));
+
+  /** Each day on its own, as a phone shows it. */
+  const dayLayouts = computed(
+    () =>
+      new Map(
+        days.map((day) => [day, buildLayout(attendedDayEndSlots([day]))]),
+      ),
+  );
 
   const now = ref(new Date());
 
@@ -584,15 +645,16 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
     days,
     weekDates,
     timeSlots,
-    scheduleRows,
+    weekLayout,
+    dayLayouts,
     groupedLessons,
+    lastShownSlotByDay,
+    lastAttendedSlotByDay,
     currentDay,
     activeOrNextGroupKey,
     defaultDayIndex,
     getDisplayName,
     getGroupStyle,
-    getGroupStyleWithBreaks,
-    gridRowOfSlot,
     formatDayName,
     formatDayDate,
     lessons,

@@ -23,6 +23,8 @@ export interface Lesson {
   isSubstitutedSubject?: boolean;
   /** A Dalton lesson stands in for a subject and never carries one. */
   isDalton?: boolean;
+  /** Shown to the member although they take none of its courses. */
+  outsideCourseSelection?: boolean;
 }
 
 export interface ScheduleConfig {
@@ -60,4 +62,11 @@ export type ScheduleRow =
       afterSlot: number;
       startTime: string;
       durationMins: number;
-    };
+    }
+  | { kind: 'dayEnd'; gridRow: number; afterSlot: number; startTime: string };
+
+export interface ScheduleLayout {
+  rows: ScheduleRow[];
+  gridRowOfSlot: (slot: number) => number;
+  groupStyle: (group: Lesson[]) => Record<string, string>;
+}

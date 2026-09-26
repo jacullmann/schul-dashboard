@@ -1,29 +1,31 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
+import { entranceDelay } from '@/modules/schedule/utils/entrance';
 
 withDefaults(
   defineProps<{
     gridColumn: number;
     gridRow: number;
-    durationMins: number;
+    label: string;
     animated?: boolean;
   }>(),
   {
     animated: true,
   },
 );
-
-const { t } = useI18n();
 </script>
 
 <template>
   <div
     class="flex items-center gap-2 text-xs text-on-ghost-muted whitespace-nowrap"
-    :class="{ 'animate-fade-up': animated }"
-    :style="{ gridColumn, gridRow }"
+    :class="{ 'animate-enter': animated }"
+    :style="{
+      gridColumn,
+      gridRow,
+      '--enter-delay': entranceDelay(gridColumn, gridRow),
+    }"
   >
     <span class="h-px flex-1 bg-ghost-border" />
-    {{ t('schedule.break', { minutes: durationMins }) }}
+    {{ label }}
     <span class="h-px flex-1 bg-ghost-border" />
   </div>
 </template>

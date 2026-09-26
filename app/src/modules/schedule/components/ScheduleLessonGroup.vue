@@ -41,7 +41,7 @@ const emit = defineEmits<{
   <div
     class="group bg-surface rounded-md max-[500px]:rounded-lg border border-ghost-border flex flex-col overflow-hidden z-[2] shadow-input"
     :class="[
-      animated ? 'animate-fade-up' : '',
+      animated ? 'animate-enter' : '',
       isActive
         ? 'highlight-active bg-action! border-action!'
         : isCurrentDay
