@@ -8,12 +8,21 @@ pub struct ScheduleService {
     db: PgPool,
 }
 
+pub struct PersonalSchedule {
+    pub lessons: Value,
+    pub hidden_by_courses: usize,
+}
+
 impl ScheduleService {
     pub fn from_state(s: &AppState) -> Self {
         Self { db: s.db.clone() }
     }
 
-    pub async fn get_schedule(&self, tenant_id: Uuid, user_id: Option<Uuid>) -> AppResult<Value> {
+    pub async fn get_schedule(
+        &self,
+        tenant_id: Uuid,
+        user_id: Option<Uuid>,
+    ) -> AppResult<PersonalSchedule> {
         let lessons = sqlx::query!(
             r#"SELECT s.id, s.day, s.slot, s.duration, s.room, s.course_id, s.is_dalton,
        sub.id as "subject_id: Option<Uuid>", sub.name as "subject_name?",
@@ -62,6 +71,8 @@ WHERE s.tenant_id = $1"#,
             });
         }
 
+        let lesson_count = lessons.len();
+
         let result: Vec<Value> = lessons
             .into_iter()
             .filter(|l| match (&enrolled_course_ids, l.course_id) {
@@ -78,7 +89,10 @@ WHERE s.tenant_id = $1"#,
             }))
             .collect();
 
-        Ok(json!(result))
+        Ok(PersonalSchedule {
+            hidden_by_courses: lesson_count - result.len(),
+            lessons: json!(result),
+        })
     }
 
     pub async fn get_subs(&self, tenant_id: Uuid) -> AppResult<Value> {

@@ -86,7 +86,8 @@ async fn main() -> anyhow::Result<()> {
             axum::http::header::AUTHORIZATION,
             axum::http::HeaderName::from_static("x-csrf-token"),
             axum::http::HeaderName::from_static("x-tenant-id"),
-        ]));
+        ]))
+        .expose_headers([common::personalization::HIDDEN_BY_COURSES]);
 
     let global_governor = Arc::new(
         GovernorConfigBuilder::default()

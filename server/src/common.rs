@@ -6,5 +6,6 @@ pub mod group_type;
 pub mod jwt;
 pub mod name_generator;
 pub mod password;
+pub mod personalization;
 pub mod permission;
 pub mod role;

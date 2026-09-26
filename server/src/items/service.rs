@@ -35,6 +35,11 @@ pub struct GetItemsFilter<'a> {
     pub personalized: bool,
 }
 
+pub struct ItemList {
+    pub items: Vec<Value>,
+    pub hidden_by_courses: usize,
+}
+
 pub struct DeleteItemParams {
     pub tenant_id: Uuid,
     pub id: Uuid,
@@ -69,7 +74,7 @@ impl ItemsService {
         user_id: Uuid,
         f: GetItemsFilter<'_>,
         include_creator_email: bool,
-    ) -> AppResult<Vec<Value>> {
+    ) -> AppResult<ItemList> {
         if f.item_type.is_none() || f.item_type == Some("all") {
             let db2 = self.db.clone();
 
@@ -92,7 +97,27 @@ impl ItemsService {
         let mut rows = sqlx::query!(
             r#"SELECT i.id, i.type, i.title, i.subject, i.description, i.images, i.due_date,
                       i.created_by as "created_by?: Uuid", i.editor_note, i.created_at, i.updated_at,
-                      u.email as "creator_email?: String"
+                      u.email as "creator_email?: String",
+                      (
+                          i.id IN (SELECT item_id FROM pinned_items WHERE user_id = $2)
+                          OR NOT EXISTS (
+                              SELECT 1 FROM subjects s
+                              WHERE LOWER(s.name) = LOWER(SPLIT_PART(i.subject, ' -', 1))
+                                AND s.tenant_id = $1
+                                AND s.category != 'core'
+                                AND (SELECT COUNT(*) FROM courses c2 WHERE c2.subject_id = s.id) > 0
+                                AND NOT EXISTS (
+                                    SELECT 1 FROM courses c
+                                    JOIN user_courses uc ON uc.course_id = c.id
+                                    WHERE c.subject_id = s.id
+                                      AND uc.user_id = $2
+                                      AND (
+                                          i.subject = s.name || ' - ' || c.name
+                                          OR (s.category IN ('extra', 'optional', 'zk') AND i.subject = s.name AND (SELECT COUNT(*) FROM courses c3 WHERE c3.subject_id = s.id) = 1)
+                                      )
+                                )
+                          )
+                      ) as "matches_courses!"
                FROM items i
                LEFT JOIN users u ON u.id = i.created_by
                LEFT JOIN user_item_visibility v ON v.item_id = i.id AND v.user_id = $2
@@ -116,44 +141,30 @@ impl ItemsService {
                      OR LOWER(SPLIT_PART(i.subject, ' -', 1)) = LOWER($6)
                      OR LOWER(i.subject) = LOWER($6)
                  )
-                 AND (
-                     $7::boolean IS FALSE
-                     OR i.id IN (SELECT item_id FROM pinned_items WHERE user_id = $2)
-                     OR NOT EXISTS (
-                         SELECT 1 FROM subjects s
-                         WHERE LOWER(s.name) = LOWER(SPLIT_PART(i.subject, ' -', 1))
-                           AND s.tenant_id = $1
-                           AND s.category != 'core'
-                           AND (SELECT COUNT(*) FROM courses c2 WHERE c2.subject_id = s.id) > 0
-                           AND NOT EXISTS (
-                               SELECT 1 FROM courses c
-                               JOIN user_courses uc ON uc.course_id = c.id
-                               WHERE c.subject_id = s.id
-                                 AND uc.user_id = $2
-                                 AND (
-                                     i.subject = s.name || ' - ' || c.name
-                                     OR (s.category IN ('extra', 'optional', 'zk') AND i.subject = s.name AND (SELECT COUNT(*) FROM courses c3 WHERE c3.subject_id = s.id) = 1)
-                                 )
-                           )
-                     )
-                 )
                ORDER BY i.due_date ASC"#,
             tenant_id,
             user_id,
             f.item_type,
             old_filter,
             f.hide_checked,
-            subject_lower,
-            f.personalized
+            subject_lower
         )
             .fetch_all(&self.db)
             .await?;
+
+        // Filtering here instead of in SQL lets one query also tell how many
+        // items the member's course selection hid.
+        let row_count = rows.len();
+        if f.personalized {
+            rows.retain(|r| r.matches_courses);
+        }
+        let hidden_by_courses = row_count - rows.len();
 
         if old_filter {
             rows.sort_by(|a, b| b.due_date.cmp(&a.due_date));
         }
 
-        let result: Vec<Value> = rows
+        let items: Vec<Value> = rows
             .into_iter()
             .map(|r| {
                 let creator_deleted = r.created_by.is_none();
@@ -179,7 +190,10 @@ impl ItemsService {
             })
             .collect();
 
-        Ok(result)
+        Ok(ItemList {
+            items,
+            hidden_by_courses,
+        })
     }
 
     pub async fn get_item_by_id(

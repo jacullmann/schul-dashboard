@@ -3,7 +3,10 @@ use super::{
     service::{DeleteItemParams, GetItemsFilter, ItemsService},
 };
 use crate::{
-    common::{extractors::TenantContext, permission::Permission},
+    common::{
+        extractors::TenantContext, permission::Permission,
+        personalization::hidden_by_courses_header,
+    },
     error::AppResult,
     reports::service::ReportsService,
     require_permission,
@@ -12,6 +15,7 @@ use crate::{
 use axum::{
     Json,
     extract::{Path, Query, State},
+    response::IntoResponse,
 };
 use serde_json::Value;
 use uuid::Uuid;
@@ -20,8 +24,8 @@ pub async fn get_items(
     State(s): State<AppState>,
     tc: TenantContext,
     Query(q): Query<ItemsQuery>,
-) -> AppResult<Json<Value>> {
-    let items = ItemsService::from_state(&s)
+) -> AppResult<impl IntoResponse> {
+    let list = ItemsService::from_state(&s)
         .get_items(
             tc.tenant_id,
             tc.user.user_id,
@@ -35,7 +39,11 @@ pub async fn get_items(
             tc.user.is_superadmin(),
         )
         .await?;
-    Ok(Json(serde_json::json!(items)))
+
+    Ok((
+        hidden_by_courses_header(list.hidden_by_courses),
+        Json(list.items),
+    ))
 }
 
 pub async fn get_item_by_id(
