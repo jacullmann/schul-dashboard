@@ -6,7 +6,14 @@ import { useRouter, useRoute } from 'vue-router';
 import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import AppLogo from '@/common/components/AppLogo.vue';
-import { Menu, ChevronDown, Plus, LogOut, UserRoundPlus } from '@lucide/vue';
+import {
+  Menu,
+  ChevronDown,
+  Plus,
+  LogOut,
+  UserRoundPlus,
+  Settings,
+} from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import { useModalStore } from '@/stores/modalStore';
 import Avatar from '@/modules/auth/components/Avatar.vue';
@@ -107,6 +114,16 @@ async function leaveGroup() {
   } finally {
     loading.value = false;
   }
+}
+
+function openGroupSettings() {
+  groupMenuOpen.value = false;
+  if (!activeGroupId.value) return;
+
+  void router.push({
+    name: 'group-admin',
+    params: { groupId: activeGroupId.value },
+  });
 }
 
 async function inviteMember() {
@@ -228,6 +245,10 @@ onUnmounted(() => {
             @click="inviteMember"
           >
             {{ t('auth.groups.invite.invite_button_header') }}
+          </BaseMenuButton>
+
+          <BaseMenuButton :icon="Settings" @click="openGroupSettings">
+            {{ t('common.sidebar.admin') }}
           </BaseMenuButton>
 
           <BaseMenuButton

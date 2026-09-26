@@ -276,7 +276,7 @@ defineExpose({ sheetEl, scrollEl });
              rounds the top corners like the sheet's. -->
         <div
           ref="scrollEl"
-          class="min-h-0 pt-6 pb-4 overflow-x-hidden overflow-y-auto overscroll-contain bg-surface opacity-[.999] [clip-path:inset(0_round_var(--radius-2xl)_var(--radius-2xl)_0_0)]"
+          class="min-h-0 pt-6 pb-[max(--spacing(4),env(safe-area-inset-bottom))] overflow-x-hidden overflow-y-auto overscroll-contain bg-surface opacity-[.999] [clip-path:inset(0_round_var(--radius-2xl)_var(--radius-2xl)_0_0)]"
         >
           <slot></slot>
         </div>

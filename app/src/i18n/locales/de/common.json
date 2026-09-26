@@ -195,6 +195,10 @@
     "create": "Gruppe erstellen",
     "toggle": "Seitenleiste umschalten"
   },
+  "tab_bar": {
+    "label": "Hauptnavigation",
+    "chat": "Chat"
+  },
   "contact": {
     "email": "E-Mail",
     "feedback": "Feedback",

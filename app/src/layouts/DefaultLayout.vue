@@ -2,6 +2,7 @@
 import { useAppShortcuts } from '@/core/composables/useAppShortcuts';
 import AppHeader from '@/core/components/AppHeader.vue';
 import AppSidebar from '@/core/components/AppSidebar.vue';
+import AppTabBar from '@/core/components/AppTabBar.vue';
 import Announcements from '../modules/announcements/components/Announcements.vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useUserStore } from '@/stores/userStore';
@@ -22,7 +23,7 @@ useAppShortcuts();
       <AppHeader />
       <Announcements v-if="activeGroupId" />
 
-      <main class="full-c flex-1">
+      <main class="full-c flex-1 pb-(--tab-bar-height)">
         <div
           key="content"
           :class="{ container: !$route.meta.fullWidth }"
@@ -34,5 +35,7 @@ useAppShortcuts();
         </div>
       </main>
     </div>
+
+    <AppTabBar v-if="user" />
   </div>
 </template>

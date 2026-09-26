@@ -2,6 +2,7 @@
 import { useI18n } from 'vue-i18n';
 import { MessageCircle, Info } from '@lucide/vue';
 import { useMessages } from '../composables/useMessages';
+import { useIsOnScreenKeyboardOpen } from '@/common/composables/useViewport';
 
 // Sub-components
 import ChatMessageBubble from '../components/ChatMessageBubble.vue';
@@ -11,6 +12,7 @@ import ChatScrollButton from '../components/ChatScrollButton.vue';
 import ReportModal from '@/modules/tasks/components/ReportModal.vue';
 
 const { t } = useI18n();
+const isKeyboardOpen = useIsOnScreenKeyboardOpen();
 
 const {
   canSend,
@@ -55,6 +57,7 @@ const {
   <!-- Grid: the message list and the scroll button share the first row, the input sits in the second. -->
   <div
     class="chat-container grid grid-rows-[minmax(0,1fr)_auto] overflow-hidden animate-fade-up"
+    :class="{ 'is-keyboard-open': isKeyboardOpen }"
     :style="
       viewportHeight
         ? { '--chat-viewport-height': `${viewportHeight}px` }
@@ -192,12 +195,23 @@ const {
 /*
  * Fill the space below the header. `--chat-viewport-height` follows the visual
  * viewport so the input stays above the on-screen keyboard; `100dvh` is the fallback.
+ * The bottom inset clears the tab bar, which already includes the safe area,
+ * or else the safe area alone. An open keyboard covers both, so it needs neither.
  */
 .chat-container {
+  --chat-bottom-inset: max(
+    var(--tab-bar-height, 0px),
+    env(safe-area-inset-bottom, 0px)
+  );
+
   height: calc(
     var(--chat-viewport-height, 100dvh) - var(--header-height, 65px) -
-      var(--announcement-height, 0px) - 8px - env(safe-area-inset-bottom, 0px)
+      var(--announcement-height, 0px) - 8px - var(--chat-bottom-inset)
   );
+}
+
+.chat-container.is-keyboard-open {
+  --chat-bottom-inset: 0px;
 }
 
 @keyframes flash-message-pulse {

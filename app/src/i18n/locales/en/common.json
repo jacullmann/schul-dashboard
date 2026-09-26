@@ -195,6 +195,10 @@
     "create": "Create group",
     "toggle": "Toggle Sidebar"
   },
+  "tab_bar": {
+    "label": "Main navigation",
+    "chat": "Chat"
+  },
   "contact": {
     "email": "Email",
     "feedback": "Feedback",

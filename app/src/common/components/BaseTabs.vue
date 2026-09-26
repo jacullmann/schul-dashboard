@@ -1,8 +1,17 @@
 <script lang="ts">
+import type { Component } from 'vue';
+
 export interface NavItem {
   id: string;
   label: string;
+  icon?: Component;
 }
+
+/**
+ * `segmented` is an inline control sized to its labels. `tab-bar` is an app's
+ * bottom navigation: equal-width tabs with a large icon over a small label.
+ */
+export type TabsVariant = 'segmented' | 'tab-bar';
 
 /**
  * A spring tuned the way designers describe one: `response` is how long one
@@ -339,10 +348,12 @@ const props = withDefaults(
   defineProps<{
     items: NavItem[];
     activeId: string;
+    variant?: TabsVariant;
   }>(),
   {
     items: () => [],
     activeId: '',
+    variant: 'segmented',
   },
 );
 
@@ -363,16 +374,24 @@ const isStretched = ref(false);
 const isScrollable = ref(false);
 const isDragging = ref(false);
 
+const isTabBar = computed(() => props.variant === 'tab-bar');
+const fillsWidth = computed(() => isTabBar.value || isStretched.value);
+
 const activeIndex = computed(() =>
   props.items.findIndex((item) => item.id === props.activeId),
 );
 const structure = computed(() => props.items.map((item) => item.id).join('\n'));
 
 /** Shared by the tabs and their copies inside the pill, which must lay out identically. */
-const tabClass = computed(() => [
-  'flex min-h-9 min-w-9 shrink-0 items-center whitespace-nowrap px-5 py-2 text-sm/4 font-medium',
-  isStretched.value && 'grow justify-center',
-]);
+const tabClass = computed(() =>
+  isTabBar.value
+    ? 'flex min-w-0 grow basis-0 flex-col items-center justify-center gap-0.5 px-2 py-1.5 text-2xs font-semibold'
+    : [
+        'flex min-h-9 min-w-9 shrink-0 items-center whitespace-nowrap px-5 py-2 text-sm/4 font-medium',
+        isStretched.value && 'grow justify-center',
+      ],
+);
+const labelClass = computed(() => isTabBar.value && 'max-w-full truncate');
 
 // The pill lives outside Vue's reactivity: it changes every frame, and all it
 // ever touches is one style property.
@@ -443,6 +462,8 @@ function measure(): Metrics | null {
 
 /** Tabs that would take up more than half of the available width stretch to fill it. */
 function updateStretch() {
+  if (isTabBar.value) return false;
+
   const available = containerRef.value?.clientWidth ?? 0;
   const tabs = tabElements();
   if (available <= 0 || tabs.length === 0) return false;
@@ -1014,9 +1035,12 @@ onBeforeUnmount(() => {
   <div ref="containerRef" class="flex w-full items-center justify-start">
     <div
       ref="barRef"
-      class="relative isolate flex max-w-full overflow-x-auto overflow-y-hidden rounded-full border border-ghost-border bg-surface shadow-input scrollbar-hide select-none [-webkit-touch-callout:none] has-focus-visible:ring-2 has-focus-visible:ring-focus"
+      class="relative isolate flex max-w-full overflow-x-auto overflow-y-hidden rounded-full border border-ghost-border scrollbar-hide select-none [-webkit-touch-callout:none] has-focus-visible:ring-2 has-focus-visible:ring-focus"
       :class="[
-        isStretched ? 'w-full' : 'w-max',
+        isTabBar
+          ? 'bg-surface/85 p-1 shadow-menu backdrop-blur-lg backdrop-saturate-150'
+          : 'bg-surface shadow-input',
+        fillsWidth ? 'w-full' : 'w-max',
         isDragging && 'cursor-grabbing **:cursor-grabbing',
       ]"
       @pointerdown="onPointerDown"
@@ -1026,7 +1050,9 @@ onBeforeUnmount(() => {
         ref="rowRef"
         role="radiogroup"
         class="relative grid"
-        :class="isStretched ? 'w-full min-w-max' : 'w-max'"
+        :class="
+          isTabBar ? 'w-full' : isStretched ? 'w-full min-w-max' : 'w-max'
+        "
       >
         <div ref="tabsRef" class="col-start-1 row-start-1 flex">
           <label
@@ -1043,18 +1069,34 @@ onBeforeUnmount(() => {
               :checked="item.id === activeId"
               @change="onChange(index)"
             />
-            <span>{{ item.label }}</span>
+            <component
+              :is="item.icon"
+              v-if="item.icon"
+              class="size-6.5 shrink-0"
+              aria-hidden="true"
+            />
+            <span :class="labelClass">{{ item.label }}</span>
           </label>
         </div>
 
         <!-- The pill: the same row in the active colours, clipped to its shape -->
         <div
           ref="pillRef"
-          class="pointer-events-none relative z-1 col-start-1 row-start-1 flex bg-action text-on-action [clip-path:inset(0_100%_0_0)] forced-colors:bg-[Highlight] forced-colors:text-[HighlightText] forced-colors:forced-color-adjust-none"
+          class="pointer-events-none relative z-1 col-start-1 row-start-1 flex [clip-path:inset(0_100%_0_0)] forced-colors:bg-[Highlight] forced-colors:text-[HighlightText] forced-colors:forced-color-adjust-none"
+          :class="
+            isTabBar
+              ? 'bg-ghost-hover text-on-ghost'
+              : 'bg-action text-on-action'
+          "
           aria-hidden="true"
         >
           <span v-for="item in items" :key="item.id" :class="tabClass">
-            <span>{{ item.label }}</span>
+            <component
+              :is="item.icon"
+              v-if="item.icon"
+              class="size-6.5 shrink-0"
+            />
+            <span :class="labelClass">{{ item.label }}</span>
           </span>
         </div>
       </div>
