@@ -13,7 +13,7 @@ const { activeGroupId } = useAppAuth();
   <Transition name="notice-reveal">
     <div v-if="show" class="notice-reveal">
       <div class="min-h-0">
-        <p
+        <span
           class="animate-enter m-0 flex flex-wrap items-center gap-x-1.5 text-sm text-on-ghost-muted"
         >
           <ListFilter :size="16" class="shrink-0" aria-hidden="true" />
@@ -28,7 +28,7 @@ const { activeGroupId } = useAppAuth();
           >
             {{ t('common.personalized_view.edit_courses') }}
           </BaseLink>
-        </p>
+        </span>
       </div>
     </div>
   </Transition>
