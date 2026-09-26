@@ -288,7 +288,7 @@ function handleEmptyStateAnimationEnd(event: AnimationEvent) {
     </div>
 
     <div class="flex gap-x-2 md:justify-between">
-      <div class="animate-fade-up min-w-0">
+      <div class="animate-fade-up min-w-0 grow">
         <BaseTabs
           :items="tabItems"
           :active-id="tab"
