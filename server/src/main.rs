@@ -90,7 +90,8 @@ async fn main() -> anyhow::Result<()> {
 
     let global_governor = Arc::new(
         GovernorConfigBuilder::default()
-            .per_second(400)
+            // governor takes the replenish interval per token, not a rate: this is 400 req/s.
+            .period(Duration::from_secs(1) / 400)
             .burst_size(600)
             .key_extractor(SmartIpKeyExtractor)
             .finish()
