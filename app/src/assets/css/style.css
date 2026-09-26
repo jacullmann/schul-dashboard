@@ -193,6 +193,43 @@
    * ~31px radius.
    */
   --tab-bar-margin: calc(var(--spacing) * 6);
+
+  --ease-settle: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: var(--ease-settle);
+}
+
+@supports (animation-timing-function: linear(0, 1)) {
+  :root {
+    /* A spring with damping ratio 0.75, sampled: it leaves rest gently and
+       settles with an overshoot too small to read as a bounce. */
+    --ease-spring: linear(
+      0,
+      0.039,
+      0.132,
+      0.255,
+      0.386,
+      0.514,
+      0.631,
+      0.732,
+      0.815,
+      0.882,
+      0.933,
+      0.97,
+      0.996,
+      1.013,
+      1.023,
+      1.027,
+      1.028,
+      1.027,
+      1.024,
+      1.021,
+      1.017,
+      1.013,
+      1.01,
+      1.007,
+      1
+    );
+  }
 }
 
 @layer base {
@@ -895,6 +932,29 @@ html.is-long-pressing {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
+}
+
+/* Held on its first frame through --enter-delay, so items staggered into a
+   wave stay hidden until their turn. Focus and motion settle on separate
+   curves: the blur clears before the spring has finished carrying the item. */
+@utility animate-enter {
+  animation:
+    enter-focus 600ms var(--ease-settle) backwards,
+    enter-rise 1000ms var(--ease-spring) backwards;
+  animation-delay: var(--enter-delay, 0ms);
+}
+
+@keyframes enter-focus {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+  }
+}
+
+@keyframes enter-rise {
+  from {
+    transform: translateY(16px) scale(0.96);
+  }
 }
 
 @utility transition-hover {

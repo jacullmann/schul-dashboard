@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch, onMounted } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useWindowSize } from '@vueuse/core';
 import { useIsMobileViewport } from '@/common/composables/useViewport';
@@ -20,6 +20,10 @@ import NotificationDot from '@/common/components/NotificationDot.vue';
 import PersonalizedViewNotice from '@/common/components/PersonalizedViewNotice.vue';
 
 import type { HwItem } from '@/modules/tasks/composables/useTasks';
+import {
+  entranceDelay,
+  hasSettledEntrance,
+} from '@/modules/tasks/utils/entrance';
 
 const showInfoItem = ref<HwItem | null>(null);
 const showFilterModal = ref(false);
@@ -140,22 +144,14 @@ watch(
   { immediate: true },
 );
 
-const animationStartTime = ref(Date.now());
-const elapsedLoadTime = ref(0);
+const showSkeleton = computed(() => loading.value && initialLoad.value);
 
-watch(loading, (newVal) => {
-  if (newVal) {
-    animationStartTime.value = Date.now();
-  } else {
-    elapsedLoadTime.value = (Date.now() - animationStartTime.value) / 1000;
-  }
-});
-
-onMounted(() => {
-  if (!loading.value) {
-    elapsedLoadTime.value = (Date.now() - animationStartTime.value) / 1000;
-  }
-});
+/** The header, then the tabs and filter beside them, then the list. */
+const TABS_ENTRANCE_ORDER = 1;
+const FILTER_ENTRANCE_ORDER = 2;
+const LIST_ENTRANCE_ORDER = 3;
+/** Counted from the loaded cards: after the first page of five. */
+const PAGING_ENTRANCE_ORDER = 5;
 
 // The viewer grows out of the tile it was opened from and shrinks back into
 // it, so it has to find that tile again, also after paging to another image.
@@ -202,38 +198,54 @@ function beforeLeave(el: Element) {
   h.style.position = 'absolute';
 }
 
-const animatedCardIds = ref(new Set<string>());
-const rawVisibleIds = computed(() => visibleItems.value.map((item) => item.id));
+/*
+ * Cards that just appeared, by their place in the batch they arrived with, so
+ * each batch cascades in from its first card. A card leaves the map once
+ * settled: TransitionGroup moves re-insert nodes, which restarts animations.
+ */
+const enteringCardOrder = ref(new Map<string, number>());
+const visibleIds = computed(() => visibleItems.value.map((item) => item.id));
+let shownIds = new Set<string>();
 
+// Behind the skeleton the list still sorts itself as checks and pins load, so
+// the order is only taken once the cards are actually shown.
 watch(
-  rawVisibleIds,
-  (newIds, oldIds) => {
-    const oldSet = new Set(oldIds || []);
-    for (const id of newIds) {
-      if (!oldSet.has(id)) {
-        animatedCardIds.value.add(id);
-      }
+  [visibleIds, showSkeleton],
+  ([ids, skeleton]) => {
+    if (skeleton) return;
+    const entering = new Map(enteringCardOrder.value);
+    let order = 0;
+    for (const id of ids) {
+      if (!shownIds.has(id)) entering.set(id, order++);
     }
-    animatedCardIds.value = new Set(animatedCardIds.value);
+    shownIds = new Set(ids);
+    enteringCardOrder.value = entering;
   },
-  { immediate: true, deep: true },
+  { immediate: true },
 );
 
-function handleAnimationEnd(itemId: string) {
-  animatedCardIds.value.delete(itemId);
-  animatedCardIds.value = new Set(animatedCardIds.value);
+function cardEntranceStyle(itemId: string) {
+  const order = enteringCardOrder.value.get(itemId);
+  return order === undefined ? {} : { '--enter-delay': entranceDelay(order) };
 }
 
-const emptyStateAnimated = ref(false);
+function handleCardAnimationEnd(event: AnimationEvent, itemId: string) {
+  if (!hasSettledEntrance(event)) return;
+  const entering = new Map(enteringCardOrder.value);
+  entering.delete(itemId);
+  enteringCardOrder.value = entering;
+}
+
+const emptyStateEntered = ref(false);
 
 function handleEmptyStateAnimationEnd(event: AnimationEvent) {
-  if (event.animationName === 'fade-up') emptyStateAnimated.value = true;
+  if (hasSettledEntrance(event)) emptyStateEntered.value = true;
 }
 </script>
 
 <template>
   <div class="card">
-    <div class="animate-fade-up">
+    <div class="animate-enter">
       <PageHeader>
         {{ t('tasks.list.title') }}
         <template #info>
@@ -296,7 +308,10 @@ function handleEmptyStateAnimationEnd(event: AnimationEvent) {
     </div>
 
     <div class="flex gap-x-2 md:justify-between">
-      <div class="animate-fade-up min-w-0 grow">
+      <div
+        class="animate-enter min-w-0 grow"
+        :style="{ '--enter-delay': entranceDelay(TABS_ENTRANCE_ORDER) }"
+      >
         <BaseTabs
           :items="tabItems"
           :active-id="tab"
@@ -304,7 +319,10 @@ function handleEmptyStateAnimationEnd(event: AnimationEvent) {
         />
       </div>
 
-      <div class="animate-fade-up max-md:hidden">
+      <div
+        class="animate-enter max-md:hidden"
+        :style="{ '--enter-delay': entranceDelay(FILTER_ENTRANCE_ORDER) }"
+      >
         <BaseRow>
           <BaseButton
             variant="ghost"
@@ -319,18 +337,30 @@ function handleEmptyStateAnimationEnd(event: AnimationEvent) {
     </div>
 
     <div
-      class="flex flex-col gap-3 max-w-192 mx-auto"
+      class="relative flex flex-col gap-3 max-w-192 mx-auto"
       :class="showPersonalizedNotice ? 'mt-4' : 'mt-8'"
     >
       <PersonalizedViewNotice
         v-if="showPersonalizedNotice"
-        class="animate-fade-up"
+        class="animate-enter"
       />
 
-      <TaskSkeleton v-if="loading && initialLoad" :count="5" :image-count="2" />
+      <!-- Taken out of the flow while it fades, so the cards arriving in its
+           place overlap it instead of waiting below it. -->
+      <Transition
+        leave-active-class="skeleton-leaving absolute inset-x-0 top-0 transition-opacity duration-300 ease-out"
+        leave-to-class="opacity-0"
+      >
+        <TaskSkeleton
+          v-if="showSkeleton"
+          :count="5"
+          :image-count="2"
+          :entrance-order="LIST_ENTRANCE_ORDER"
+        />
+      </Transition>
 
       <TransitionGroup
-        v-else
+        v-if="!showSkeleton"
         :css="useListTransitions"
         name="task-list"
         tag="div"
@@ -341,7 +371,8 @@ function handleEmptyStateAnimationEnd(event: AnimationEvent) {
           v-for="(item, index) in visibleItems"
           :key="item.id"
           v-model:note-edit-content="noteEditContent"
-          :class="{ 'animate-fade-up': animatedCardIds.has(item.id) }"
+          :class="{ 'animate-enter': enteringCardOrder.has(item.id) }"
+          :style="cardEntranceStyle(item.id)"
           :item="item"
           :index="index"
           :user="user"
@@ -352,7 +383,6 @@ function handleEmptyStateAnimationEnd(event: AnimationEvent) {
           :is-revealed="isRevealed(item.id)"
           :images-per-row="imagesPerRow"
           :is-mobile="isMobile"
-          :elapsed-load-time="elapsedLoadTime"
           :highlighted="highlightedItemId === item.id"
           :show-old-entries="showOldEntries"
           :is-open-menu="openMenuId === item.id"
@@ -383,13 +413,13 @@ function handleEmptyStateAnimationEnd(event: AnimationEvent) {
           @edit-note-cancel="cancelEditNote()"
           @edit-note-save="saveNote(item.id)"
           @edit-note-delete="deleteNote(item.id)"
-          @animationend="handleAnimationEnd(item.id)"
+          @animationend="handleCardAnimationEnd($event, item.id)"
         />
       </TransitionGroup>
 
       <BaseEmptyState
         v-if="!loading && !limitedItems.length"
-        :class="{ 'animate-fade-up': !emptyStateAnimated }"
+        :class="{ 'animate-enter': !emptyStateEntered }"
         :primary-action="openTaskForm"
         :secondary-action="resetFilters"
         @animationend="handleEmptyStateAnimationEnd"
@@ -410,7 +440,8 @@ function handleEmptyStateAnimationEnd(event: AnimationEvent) {
 
       <div
         v-if="filteredItems.length > 5"
-        class="mt-1 flex justify-center gap-3"
+        class="mt-1 flex justify-center gap-3 animate-enter"
+        :style="{ '--enter-delay': entranceDelay(PAGING_ENTRANCE_ORDER) }"
       >
         <BaseButton
           v-if="visibleCount < filteredItems.length"

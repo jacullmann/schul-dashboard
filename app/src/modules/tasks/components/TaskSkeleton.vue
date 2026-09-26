@@ -1,21 +1,31 @@
 <script setup lang="ts">
 import BaseSkeleton from '@/common/components/BaseSkeleton.vue';
+import { entranceDelay } from '@/modules/tasks/utils/entrance';
 
 withDefaults(
   defineProps<{
     count?: number;
     imageCount?: number;
+    /** Where the first card falls in the page's entrance order. */
+    entranceOrder?: number;
   }>(),
   {
     count: 5,
     imageCount: 2,
+    entranceOrder: 0,
   },
 );
 </script>
 
 <template>
   <div class="flex flex-col gap-9 p-3">
-    <div v-for="n in count" :key="n" class="animate-fade-up">
+    <!-- A card still waiting for its entrance stays hidden while the skeleton leaves. -->
+    <div
+      v-for="n in count"
+      :key="n"
+      class="animate-enter in-[.skeleton-leaving]:[animation-play-state:paused]"
+      :style="{ '--enter-delay': entranceDelay(entranceOrder + n - 1) }"
+    >
       <BaseSkeleton width="60" height="20px" class="mb-3" />
 
       <BaseSkeleton width="40" height="16px" class="mb-3" />

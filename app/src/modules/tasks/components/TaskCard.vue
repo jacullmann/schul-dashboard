@@ -33,7 +33,6 @@ const props = defineProps<{
   isRevealed: boolean;
   imagesPerRow: number;
   isMobile: boolean;
-  elapsedLoadTime: number;
   highlighted: boolean;
   showOldEntries: boolean;
   isOpenMenu: boolean;
