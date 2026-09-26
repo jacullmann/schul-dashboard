@@ -9,7 +9,8 @@ export interface NavItem {
 
 /**
  * `segmented` is an inline control sized to its labels. `tab-bar` is an app's
- * bottom navigation: equal-width tabs with a large icon over a small label.
+ * bottom navigation: tabs that share the width equally, as far as their labels
+ * allow, with a large icon over a small label.
  */
 export type TabsVariant = 'segmented' | 'tab-bar';
 
@@ -35,6 +36,14 @@ const PRESS: SpringConfig = { response: 0.22, dampingRatio: 1 };
 
 /** How far the held pill draws in from every side, in px. */
 const PRESS_INSET = 2;
+/**
+ * The room the pill leaves either side of a label, in px, reaching over onto
+ * the neighbouring tabs where they sit closer than that. It matches a segmented
+ * control's outer padding, so at the row's ends the pill meets the wall.
+ */
+const PILL_PADDING = 20;
+/** The least the pill keeps clear of a neighbouring label, in px, giving up padding for it. */
+const LABEL_CLEARANCE = 6;
 /**
  * How far a touch must travel before its direction is settled, in px. Whichever
  * axis crosses it first decides: sideways and every touch move is the pill's,
@@ -157,11 +166,13 @@ class Spring {
   }
 }
 
-/** Where each tab sits along the row, in layout px. */
+/** Where the pill sits on each tab along the row, in layout px. */
 interface Metrics {
   lefts: number[];
   rights: number[];
   centers: number[];
+  /** How far each tab's contents move from where layout puts them to sit centred in the pill. */
+  contentShifts: number[];
   /** The row's height: the narrowest the pill is ever squeezed to. */
   height: number;
 }
@@ -263,10 +274,16 @@ function pillEdges(metrics: Metrics, center: number): [number, number] {
   return [valueAlong(lefts, progress), valueAlong(rights, progress)];
 }
 
-/** The tab under `x`, or the nearest one past either end. */
+/**
+ * The tab under `x`, or the nearest one past either end. Neighbouring pill
+ * shapes overlap, so two tabs part halfway through the overlap.
+ */
 function tabAt(metrics: Metrics, x: number) {
-  const index = metrics.rights.findIndex((right) => x < right);
-  return index === -1 ? metrics.rights.length - 1 : index;
+  const { lefts, rights } = metrics;
+  const index = rights.findIndex(
+    (right, i) => x < (right + (lefts[i + 1] ?? right)) / 2,
+  );
+  return index === -1 ? rights.length - 1 : index;
 }
 
 /**
@@ -315,6 +332,12 @@ function speedOf(
   }
 
   return variance > 0 ? (covariance / variance) * 1000 : 0;
+}
+
+/** How much `el` is drawn scaled by the transforms around it; 1 when barely at all. */
+function drawnScale(el: HTMLElement, rect = el.getBoundingClientRect()) {
+  const scale = el.offsetWidth > 0 ? rect.width / el.offsetWidth : 1;
+  return Math.abs(scale - 1) < 0.01 ? 1 : scale;
 }
 
 /** A length for inline CSS, rounded so it never serialises in exponent notation. */
@@ -376,13 +399,22 @@ const structure = computed(() => props.items.map((item) => item.id).join('\n'));
 /** Shared by the tabs and their copies inside the pill, which must lay out identically. */
 const tabClass = computed(() =>
   isTabBar.value
-    ? 'flex min-w-0 grow basis-0 flex-col items-center justify-center gap-0.5 px-2 py-1.5 text-2xs font-semibold'
+    ? 'flex grow basis-0 items-center justify-center whitespace-nowrap px-[min(--spacing(2),var(--tab-slack,--spacing(2)))] py-1.5 text-2xs font-semibold'
     : [
-        'flex min-h-9 min-w-9 shrink-0 items-center whitespace-nowrap px-5 py-2 text-sm/4 font-medium',
+        'flex min-h-9 min-w-9 shrink-0 items-center whitespace-nowrap px-3.5 py-2 text-sm/4 font-medium first:pl-5 last:pr-5',
         isStretched.value && 'grow justify-center',
       ],
 );
-const labelClass = computed(() => isTabBar.value && 'max-w-full truncate');
+const contentClass = computed(() =>
+  isTabBar.value ? 'flex flex-col items-center gap-0.5' : 'flex items-center',
+);
+const contentShifts = ref<number[]>([]);
+/** Each tab bar tab's share of the row left over beside the contents, halved for either side. */
+const tabSlack = ref<number | null>(null);
+
+function contentStyle(index: number) {
+  return { translate: px(contentShifts.value[index] ?? 0) };
+}
 
 // The pill lives outside Vue's reactivity: it changes every frame, and all it
 // ever touches is one style property.
@@ -421,8 +453,15 @@ function tabElements() {
 }
 
 /**
- * Reads where every tab sits along the row. Layout offsets ignore transforms,
- * so a modal that is still scaling in reports its settled geometry.
+ * Reads where the pill sits on every tab, with the row's scaling undone, so a
+ * modal that is still scaling in reports its settled geometry.
+ *
+ * The pill covers its tab, and never less than the label with room either side:
+ * tabs that sit close together or split the row evenly would otherwise cramp a
+ * long label inside it. It is centred on the label, except at the row's ends,
+ * where it meets the wall and the label moves over to stay centred in it.
+ * Where the row is tight, the pill gives up padding before it crowds the
+ * labels beside it.
  */
 function measure(): Metrics | null {
   const row = rowRef.value;
@@ -431,24 +470,82 @@ function measure(): Metrics | null {
     return null;
   }
 
-  const lefts: number[] = [];
-  const rights: number[] = [];
-  const centers: number[] = [];
+  // Hidden or not laid out yet; the resize that follows brings real numbers.
+  if (tabs.some((tab) => tab.offsetWidth <= 0)) return null;
 
-  for (const tab of tabs) {
-    const left = tab.offsetLeft;
-    const right = left + tab.offsetWidth;
-    const center = (left + right) / 2;
+  // Fractional, unlike layout offsets: tabs sharing the row evenly rarely come
+  // out at whole pixels, and a rounded one shows as a label off centre.
+  const origin = row.getBoundingClientRect();
+  const scale = drawnScale(row, origin);
+  const along = (el: Element | null, shift = 0): [number, number] => {
+    const rect = el?.getBoundingClientRect();
+    if (!rect) return [0, 0];
+    return [
+      (rect.left - origin.left) / scale - shift,
+      (rect.right - origin.left) / scale - shift,
+    ];
+  };
 
-    // Hidden or not laid out yet; the resize that follows brings real numbers.
-    if (right <= left || center <= (centers.at(-1) ?? -Infinity)) return null;
+  const last = tabs.length - 1;
+  const tabBoxes = tabs.map((tab) => along(tab));
+  const tabLefts = tabBoxes.map(([left]) => left);
+  const tabRights = tabBoxes.map(([, right]) => right);
+  // Where layout puts each tab's contents, before they are moved.
+  const contentBoxes = tabs.map((tab, i) =>
+    along(tab.lastElementChild, contentShifts.value[i] ?? 0),
+  );
+  const contentHalves = contentBoxes.map(([left, right]) => (right - left) / 2);
+  const laidOut = contentBoxes.map(([left, right]) => (left + right) / 2);
+  const contentCenters = [...laidOut];
+  const halves = tabs.map(() => 0);
 
-    lefts.push(left);
-    rights.push(right);
-    centers.push(center);
+  const contentLeft = (i: number) => contentCenters[i]! - contentHalves[i]!;
+  const contentRight = (i: number) => contentCenters[i]! + contentHalves[i]!;
+
+  /** Half the pill's width, with at most `room` to reach into on either side. */
+  const pillHalf = (i: number, room: number) => {
+    const wanted = Math.max(
+      contentHalves[i]! + PILL_PADDING,
+      (tabRights[i]! - tabLefts[i]!) / 2,
+    );
+    return Math.max(Math.min(wanted, room), contentHalves[i]!);
+  };
+
+  // The ends go first: their labels move, and their neighbours keep clear of
+  // where they land.
+  const firstLimit =
+    last > 0 ? contentLeft(1) - LABEL_CLEARANCE : tabRights[0]!;
+  halves[0] = pillHalf(0, (firstLimit - tabLefts[0]!) / 2);
+  contentCenters[0] = tabLefts[0]! + halves[0];
+
+  if (last > 0) {
+    const lastLimit = contentRight(last - 1) + LABEL_CLEARANCE;
+    halves[last] = pillHalf(last, (tabRights[last]! - lastLimit) / 2);
+    contentCenters[last] = tabRights[last]! - halves[last];
   }
 
-  return { lefts, rights, centers, height: row.offsetHeight };
+  for (let i = 1; i < last; i++) {
+    const room =
+      Math.min(
+        contentCenters[i]! - contentRight(i - 1),
+        contentLeft(i + 1) - contentCenters[i]!,
+      ) - LABEL_CLEARANCE;
+    halves[i] = pillHalf(i, room);
+  }
+
+  const centers = contentCenters;
+  if (centers.some((center, i) => i > 0 && center <= centers[i - 1]!)) {
+    return null;
+  }
+
+  const width = origin.width / scale;
+  return {
+    lefts: centers.map((center, i) => Math.max(center - halves[i]!, 0)),
+    rights: centers.map((center, i) => Math.min(center + halves[i]!, width)),
+    centers,
+    contentShifts: centers.map((center, i) => center - laidOut[i]!),
+    height: row.offsetHeight,
+  };
 }
 
 /** Tabs that would take up more than half of the available width stretch to fill it. */
@@ -477,6 +574,31 @@ function updateStretch() {
 }
 
 /**
+ * A tab bar's tabs give up their padding evenly once the row gets too narrow
+ * for all of it, rather than one tab's label ending up hard against the next.
+ */
+function updateSlack() {
+  const row = rowRef.value;
+  const tabs = tabElements();
+  if (!isTabBar.value || !row || tabs.length === 0) return false;
+
+  let contents = 0;
+  for (const tab of tabs) {
+    contents += (tab.lastElementChild as HTMLElement | null)?.offsetWidth ?? 0;
+  }
+
+  // Whole pixels, so rounding never leaves the row a hair too narrow for them.
+  const slack = Math.max(
+    Math.floor((row.clientWidth - contents) / (2 * tabs.length)),
+    0,
+  );
+  if (slack === tabSlack.value) return false;
+
+  tabSlack.value = slack;
+  return true;
+}
+
+/**
  * Re-reads the layout and carries the pill over to it. A pill in flight keeps
  * its place among the tabs and its speed, so a reflow — a page scrollbar
  * appearing as the content below changes, a web font finishing loading —
@@ -491,6 +613,9 @@ function refresh() {
 
   const previous = metrics;
   metrics = next;
+  if (next.contentShifts.some((shift, i) => shift !== contentShifts.value[i])) {
+    contentShifts.value = next.contentShifts;
+  }
 
   const target = next.centers[targetIndex];
   if (target === undefined) {
@@ -513,8 +638,8 @@ function refresh() {
 }
 
 function onResize() {
-  // Stretching reflows the tabs, so measure once Vue has applied it.
-  if (updateStretch()) void nextTick(refresh);
+  // Both reflow the tabs, so measure once Vue has applied them.
+  if (updateStretch() || updateSlack()) void nextTick(refresh);
   else refresh();
 }
 
@@ -522,7 +647,9 @@ function observe() {
   if (!observer) return;
 
   observer.disconnect();
-  for (const el of [containerRef.value, barRef.value, ...tabElements()]) {
+  const tabs = tabElements();
+  const contents = tabs.map((tab) => tab.lastElementChild);
+  for (const el of [containerRef.value, barRef.value, ...tabs, ...contents]) {
     if (el) observer.observe(el);
   }
 }
@@ -651,8 +778,7 @@ function rowX(clientX: number) {
   if (!row) return 0;
 
   const rect = row.getBoundingClientRect();
-  const scale = row.offsetWidth > 0 ? rect.width / row.offsetWidth : 1;
-  return (clientX - rect.left) / (Math.abs(scale - 1) < 0.01 ? 1 : scale);
+  return (clientX - rect.left) / drawnScale(row, rect);
 }
 
 /** The pill centre that puts the point it is held by under `x`. */
@@ -990,10 +1116,11 @@ onBeforeUnmount(() => {
       <div
         ref="rowRef"
         role="radiogroup"
-        class="relative grid"
+        class="relative grid overflow-x-clip"
         :class="
           isTabBar ? 'w-full' : isStretched ? 'w-full min-w-max' : 'w-max'
         "
+        :style="tabSlack === null ? undefined : { '--tab-slack': px(tabSlack) }"
       >
         <div ref="tabsRef" class="col-start-1 row-start-1 flex">
           <label
@@ -1010,13 +1137,15 @@ onBeforeUnmount(() => {
               :checked="item.id === activeId"
               @change="onChange(index)"
             />
-            <component
-              :is="item.icon"
-              v-if="item.icon"
-              class="size-6.5 shrink-0"
-              aria-hidden="true"
-            />
-            <span :class="labelClass">{{ item.label }}</span>
+            <span :class="contentClass" :style="contentStyle(index)">
+              <component
+                :is="item.icon"
+                v-if="item.icon"
+                class="shrink-0"
+                aria-hidden="true"
+              />
+              <span>{{ item.label }}</span>
+            </span>
           </label>
         </div>
 
@@ -1031,13 +1160,11 @@ onBeforeUnmount(() => {
           "
           aria-hidden="true"
         >
-          <span v-for="item in items" :key="item.id" :class="tabClass">
-            <component
-              :is="item.icon"
-              v-if="item.icon"
-              class="size-6.5 shrink-0"
-            />
-            <span :class="labelClass">{{ item.label }}</span>
+          <span v-for="(item, index) in items" :key="item.id" :class="tabClass">
+            <span :class="contentClass" :style="contentStyle(index)">
+              <component :is="item.icon" v-if="item.icon" class="shrink-0" />
+              <span>{{ item.label }}</span>
+            </span>
           </span>
         </div>
       </div>
