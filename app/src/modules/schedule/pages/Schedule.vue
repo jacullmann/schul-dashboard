@@ -226,8 +226,7 @@ const slotRowVariables = (layout: ScheduleLayout) =>
     </div>
 
     <PersonalizedViewNotice
-      v-if="isPersonalized && hiddenLessonCount > 0 && !loadingLessons"
-      class="animate-enter"
+      :show="!!isPersonalized && hiddenLessonCount > 0 && !loadingLessons"
     />
 
     <template v-if="isCompactLayout">

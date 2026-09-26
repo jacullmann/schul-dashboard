@@ -336,15 +336,16 @@ function handleEmptyStateAnimationEnd(event: AnimationEvent) {
       </div>
     </div>
 
-    <div
-      class="relative flex flex-col gap-3 max-w-192 mx-auto"
-      :class="showPersonalizedNotice ? 'mt-4' : 'mt-8'"
-    >
-      <PersonalizedViewNotice
-        v-if="showPersonalizedNotice"
-        class="animate-enter"
-      />
+    <PersonalizedViewNotice
+      :show="showPersonalizedNotice"
+      class="mt-4 max-w-192 mx-auto"
+    />
 
+    <!-- Tightens in step with the notice opening above it. -->
+    <div
+      class="relative flex flex-col gap-3 max-w-192 mx-auto transition-[margin-top] duration-500 ease-(--ease-settle)"
+      :class="showPersonalizedNotice ? 'mt-3' : 'mt-8'"
+    >
       <!-- Taken out of the flow while it fades, so the cards arriving in its
            place overlap it instead of waiting below it. -->
       <Transition
