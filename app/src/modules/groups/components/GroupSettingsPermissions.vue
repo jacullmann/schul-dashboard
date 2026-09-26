@@ -14,7 +14,7 @@ const props = defineProps<{
 }>();
 
 const toast = useToast();
-const { checkAuthStatus } = useAppAuth();
+const { checkAuthStatus, activeGroupPermissions } = useAppAuth();
 
 const permissions = ref<Record<PermissionKey, string>>({
   edit_group_general: 'moderator',
@@ -35,6 +35,17 @@ const loading = ref(true);
 const saving = ref(false);
 
 async function fetchPermissions() {
+  // Only managers may call the admin endpoint; everyone else gets the
+  // read-only matrix that the group status already carries.
+  if (!props.canManage) {
+    permissions.value = {
+      ...permissions.value,
+      ...activeGroupPermissions.value,
+    };
+    loading.value = false;
+    return;
+  }
+
   loading.value = true;
   try {
     const { data } = await hw.get('/group-admin/permissions');

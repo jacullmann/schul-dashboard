@@ -174,7 +174,6 @@ export function useGroupAdmin() {
   const savingLesson = ref(false);
 
   async function loadSchedule() {
-    if (!checkPermission('edit_schedule')) return;
     loadingLessons.value = true;
     try {
       const { data } = await hw.get('/group-admin/schedule');
@@ -227,7 +226,6 @@ export function useGroupAdmin() {
   }
 
   async function loadSubs() {
-    if (!checkPermission('manage_schedule_changes')) return;
     loadingSubs.value = true;
     try {
       const { data } = await hw.get('/group-admin/schedule/subs');

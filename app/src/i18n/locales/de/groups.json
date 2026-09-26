@@ -123,6 +123,7 @@
         "remove_text": "Um ein Mitglied aus der Gruppe zu entfernen, klicke auf das entsprechende Symbol neben dem Dropdown-Menü. Admins können nicht entfernt werden."
       },
       "list": {
+        "unauthorized": "Du hast keine Berechtigung, die Mitgliederliste zu sehen.",
         "empty": "Keine Mitglieder gefunden."
       },
       "actions": {

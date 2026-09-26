@@ -97,8 +97,7 @@ const activeTab = computed<string>({
 });
 
 const { activeGroupDaltonEnabled } = useAppAuth();
-const { isOwner, canManagePermissions, canAccessTab } =
-  useGroupSettingsAccess();
+const { isOwner, canManagePermissions } = useGroupSettingsAccess();
 
 // Turning Dalton off deletes its lessons on the server, so the schedule this
 // page hands to its editor has to be fetched again.
@@ -109,7 +108,8 @@ const isAdmin = computed(
     userStore.user?.tenantRole === 'admin' ||
     userStore.user?.role === 'superadmin',
 );
-const allNavItems = computed<AdminNavItem[]>(() => [
+
+const navItems = computed<AdminNavItem[]>(() => [
   /* {
     id: 'overview',
     label: 'Overview',
@@ -153,10 +153,6 @@ const allNavItems = computed<AdminNavItem[]>(() => [
     description: t('groups.settings.nav.announcements.description'),
   },
 ]);
-
-const navItems = computed(() =>
-  allNavItems.value.filter((item) => canAccessTab(item.id)),
-);
 
 const transitionDirection = ref<'forward' | 'backward'>('forward');
 

@@ -5,7 +5,6 @@ import { storeToRefs } from 'pinia';
 import { useRouter, useRoute } from 'vue-router';
 import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
-import { useGroupSettingsAccess } from '@/modules/groups/composables/useGroupSettingsAccess';
 import AppLogo from '@/common/components/AppLogo.vue';
 import {
   Menu,
@@ -35,7 +34,6 @@ const {
   checkPermission,
   createInvite,
 } = useAppAuth();
-const { canAccessGroupSettings } = useGroupSettingsAccess();
 const router = useRouter();
 const route = useRoute();
 
@@ -249,11 +247,7 @@ onUnmounted(() => {
             {{ t('auth.groups.invite.invite_button_header') }}
           </BaseMenuButton>
 
-          <BaseMenuButton
-            v-if="canAccessGroupSettings"
-            :icon="Settings"
-            @click="openGroupSettings"
-          >
+          <BaseMenuButton :icon="Settings" @click="openGroupSettings">
             {{ t('common.sidebar.admin') }}
           </BaseMenuButton>
 
