@@ -10,6 +10,7 @@ import TaskCardDescription from './TaskCardDescription.vue';
 const { t } = useI18n();
 
 const props = defineProps<{
+  groupId: string;
   initialType?: Exclude<ItemType, 'all'>;
   initial?: HwItem | null;
   open: boolean;
@@ -17,6 +18,7 @@ const props = defineProps<{
 const emit = defineEmits<{ (e: 'cancel'): void; (e: 'success'): void }>();
 
 const {
+  targetGroupName,
   typeTabItems,
   activeType,
   imgImages,
@@ -61,7 +63,7 @@ const {
   doubleTaskTypeLabel,
   doubleTaskDueDate,
   doubleTaskConfirmMessage,
-} = useTaskFormLogic(props.initial, props.initialType, emit);
+} = useTaskFormLogic(props.groupId, props.initial, props.initialType, emit);
 </script>
 
 <template>
@@ -82,6 +84,9 @@ const {
           ? t('tasks.list.task_form.edit_task')
           : t('tasks.list.task_form.new_task')
       }}
+      <span v-if="targetGroupName" class="text-on-ghost-muted font-normal">
+        · {{ targetGroupName }}
+      </span>
     </template>
 
     <template #content>

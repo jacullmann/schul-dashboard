@@ -24,10 +24,11 @@ import { storeToRefs } from 'pinia';
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useLogout } from '@/core/composables/useLogout';
-import { useRouter } from 'vue-router';
+import { useRouter, type RouteLocationRaw } from 'vue-router';
 import SidebarButton from '@/core/components/SidebarButton.vue';
 import { useI18n } from 'vue-i18n';
 import { useGroupAction } from '@/core/composables/useGroupAction';
+import { useOpenGroup } from '@/core/composables/useOpenGroup';
 import Avatar from '@/modules/auth/components/Avatar.vue';
 import { MOBILE_BREAKPOINT } from '@/common/composables/useViewport';
 
@@ -37,7 +38,7 @@ const performLogout = useLogout();
 const userStore = useUserStore();
 const { user, isGroupAdmin, isSuperadmin } = storeToRefs(userStore);
 
-const { activeGroupId, userGroups } = useAppAuth();
+const { activeGroupId, contextGroupId, userGroups } = useAppAuth();
 const router = useRouter();
 
 const modalStore = useModalStore();
@@ -46,6 +47,7 @@ const { openSearch } = useSearchModal();
 const { openTaskForm } = useTaskForm();
 const { openAnnouncementForm } = useAnnouncementForm();
 const { withGroup } = useGroupAction();
+const { openGroup } = useOpenGroup();
 
 const isAnyGroupAdmin = computed(() => {
   if (isSuperadmin?.value) return true;
@@ -74,8 +76,8 @@ function collapseIfMobile() {
   }
 }
 
-function handleNavigation(path: string) {
-  void router.push(path);
+function handleNavigation(to: RouteLocationRaw) {
+  void router.push(to);
   collapseIfMobile();
 }
 
@@ -86,16 +88,12 @@ function handleSearch() {
 
 function handleTask() {
   collapseIfMobile();
-  withGroup(() => {
-    openTaskForm();
-  });
+  withGroup((groupId) => openTaskForm(groupId));
 }
 
 function handleAnnouncement() {
   collapseIfMobile();
-  withGroup(() => {
-    openAnnouncementForm();
-  });
+  withGroup((groupId) => openAnnouncementForm(groupId));
 }
 
 function handleCreate() {
@@ -375,15 +373,12 @@ onMounted(() => {
 });
 
 function handleGroupClick(groupId: string) {
-  const currentPath = router.currentRoute.value.path;
-  if (
-    activeGroupId.value &&
-    currentPath.includes(`/groups/${activeGroupId.value}`)
-  ) {
-    handleNavigation(currentPath.replace(activeGroupId.value, groupId));
-  } else {
-    handleNavigation(`/groups/${groupId}/tasks`);
-  }
+  void openGroup(groupId, 'group-tasks');
+  collapseIfMobile();
+}
+
+function openGroupPage(name: string) {
+  withGroup((groupId) => handleNavigation({ name, params: { groupId } }));
 }
 
 onUnmounted(() => {
@@ -490,65 +485,47 @@ onUnmounted(() => {
         <SidebarButton
           :label="t('common.sidebar.dashboard')"
           :expanded="isExpanded"
-          :active="$route.path.startsWith(`/groups/${activeGroupId}/dashboard`)"
+          :active="$route.name === 'group-dashboard'"
           :icon="House"
           :page="true"
-          @click="
-            withGroup(() =>
-              handleNavigation(`/groups/${activeGroupId}/dashboard`),
-            )
-          "
+          @click="openGroupPage('group-dashboard')"
         />
 
         <SidebarButton
           :label="t('common.sidebar.tasks')"
           :expanded="isExpanded"
-          :active="$route.path.startsWith(`/groups/${activeGroupId}/tasks`)"
+          :active="$route.name === 'group-tasks'"
           :icon="ListTodo"
           :page="true"
-          @click="
-            withGroup(() => handleNavigation(`/groups/${activeGroupId}/tasks`))
-          "
+          @click="openGroupPage('group-tasks')"
         />
 
         <SidebarButton
           :label="t('common.sidebar.schedule')"
           :expanded="isExpanded"
-          :active="$route.path.startsWith(`/groups/${activeGroupId}/schedule`)"
+          :active="$route.name === 'group-schedule'"
           :icon="CalendarDays"
           :page="true"
-          @click="
-            withGroup(() =>
-              handleNavigation(`/groups/${activeGroupId}/schedule`),
-            )
-          "
+          @click="openGroupPage('group-schedule')"
         />
 
         <SidebarButton
           :label="t('common.sidebar.messages')"
           :expanded="isExpanded"
-          :active="$route.path.startsWith(`/groups/${activeGroupId}/messages`)"
+          :active="$route.name === 'group-messages'"
           :icon="MessageCircle"
           :page="true"
-          @click="
-            withGroup(() =>
-              handleNavigation(`/groups/${activeGroupId}/messages`),
-            )
-          "
+          @click="openGroupPage('group-messages')"
         />
 
         <SidebarButton
-          v-if="activeGroupId"
+          v-if="contextGroupId"
           :label="t('common.sidebar.admin')"
           :expanded="isExpanded"
-          :active="$route.path.startsWith(`/groups/${activeGroupId}/settings`)"
+          :active="$route.name === 'group-admin'"
           :icon="Settings"
           :page="true"
-          @click="
-            withGroup(() =>
-              handleNavigation(`/groups/${activeGroupId}/settings`),
-            )
-          "
+          @click="openGroupPage('group-admin')"
         />
 
         <SidebarButton
@@ -558,7 +535,7 @@ onUnmounted(() => {
           :active="$route.path.startsWith('/admin')"
           :icon="Crown"
           :page="true"
-          @click="withGroup(() => handleNavigation('/admin'))"
+          @click="handleNavigation({ name: 'super-admin' })"
         />
       </div>
 

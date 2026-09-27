@@ -18,6 +18,7 @@ import { lessonSubjectName } from '@/modules/schedule/utils/lesson';
 import { formatSubjectDisplay } from '@/utils/subject-formatter';
 import { courseSelectionFor } from '@/types/subjects';
 import hw from '@/api/api.ts';
+import { groupPath } from '@/api/groupPath';
 import ItemCard from '@/modules/tasks/components/ItemCard.vue';
 import { lessonMinutes } from '@/modules/schedule/utils/slotTimes';
 
@@ -104,10 +105,11 @@ async function fetchTasks() {
   useListTransitions.value = false;
 
   try {
-    const config = { headers: { 'x-tenant-id': activeGroupId.value } };
     const [itemsRes, checksRes] = await Promise.all([
-      hw.get('/items', { params: { type: 'all' }, ...config }),
-      hw.get('/user/checks', config),
+      hw.get(groupPath(activeGroupId.value, '/items'), {
+        params: { type: 'all' },
+      }),
+      hw.get('/user/checks'),
     ]);
 
     rawItems.value = itemsRes.data || [];
@@ -158,14 +160,10 @@ async function toggleCheck(item: any) {
   }
 
   try {
-    const config = activeGroupId.value
-      ? { headers: { 'x-tenant-id': activeGroupId.value } }
-      : {};
-
     if (wasChecked) {
-      await hw.delete(`/user/items/${id}/check`, config);
+      await hw.delete(groupPath(activeGroupId.value, `/items/${id}/check`));
     } else {
-      await hw.post(`/user/items/${id}/check`, {}, config);
+      await hw.post(groupPath(activeGroupId.value, `/items/${id}/check`));
     }
   } catch (err) {
     if (wasChecked) {

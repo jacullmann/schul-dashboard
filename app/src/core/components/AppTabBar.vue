@@ -6,7 +6,6 @@ import { useElementSize } from '@vueuse/core';
 import { House, ListTodo, CalendarDays, Lock } from '@lucide/vue';
 import type { NavItem } from '@/common/components/BaseTabs.vue';
 import { useIsOnScreenKeyboardOpen } from '@/common/composables/useViewport';
-import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useGroupAction } from '@/core/composables/useGroupAction';
 
 const PRIVATE_TAB = 'private-todos';
@@ -15,7 +14,6 @@ const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const isKeyboardOpen = useIsOnScreenKeyboardOpen();
-const { activeGroupId } = useAppAuth();
 const { withGroup } = useGroupAction();
 
 /** Each tab's id is the name of the route it opens. */
@@ -59,10 +57,7 @@ function selectTab(name: string) {
     return;
   }
   // The private page has no :groupId to inherit, so group tabs pass it explicitly.
-  withGroup(
-    () =>
-      void openTab(name, { name, params: { groupId: activeGroupId.value } }),
-  );
+  withGroup((groupId) => void openTab(name, { name, params: { groupId } }));
 }
 
 const barEl = ref<HTMLElement | null>(null);

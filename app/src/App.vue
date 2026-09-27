@@ -47,10 +47,6 @@ async function handleAuthExpired() {
   }
 }
 
-async function handleTenantChanged() {
-  await userStore.fetchUser();
-}
-
 watch(user, (newUser, oldUser) => {
   if (newUser && !oldUser) logPageload();
 });
@@ -80,7 +76,6 @@ onMounted(() => {
   });
 
   useEventListener(window, 'auth-expired', () => void handleAuthExpired());
-  useEventListener(window, 'tenant-changed', () => void handleTenantChanged());
 });
 </script>
 

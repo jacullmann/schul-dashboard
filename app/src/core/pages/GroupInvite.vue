@@ -77,19 +77,21 @@ async function handleJoin() {
       try {
         await userStore.fetchUser();
 
-        subjectStore.reset();
-        await subjectStore.loadSubjects();
+        await subjectStore.loadSubjects(res.groupId);
 
         if (
           subjectStore.requiredCourseSubjects.length > 0 ||
           subjectStore.optionalCourseSubjects.length > 0
         ) {
-          modalStore.openSetup();
+          modalStore.openSetup(res.groupId);
         }
       } catch (err) {
         console.error('Failed to load courses check after join:', err);
       }
-      await router.push(`/groups/${res.groupId}/dashboard`);
+      await router.push({
+        name: 'group-dashboard',
+        params: { groupId: res.groupId },
+      });
     } else {
       toast.error(res.error || t('auth.groups.invite.join_failed'));
     }

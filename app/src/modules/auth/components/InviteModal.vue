@@ -85,7 +85,7 @@ async function regenerate() {
 
   regenerating.value = true;
   try {
-    const res = await auth.createInvite();
+    const res = await auth.createInvite(auth.activeGroupId.value);
     if (res.ok && res.token) {
       currentToken.value = res.token;
       copied.value = false;

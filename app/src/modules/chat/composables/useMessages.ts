@@ -9,6 +9,7 @@ import {
   useVisualViewportHeight,
 } from '@/common/composables/useViewport';
 import hw from '../../../api/api';
+import { groupPath } from '@/api/groupPath';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useToast } from '@/common/composables/useToast';
 import { useModalStore } from '@/stores/modalStore';
@@ -178,7 +179,7 @@ export function useMessages() {
     isInitialScroll.value = true;
     stickToBottom = true;
     try {
-      const { data } = await hw.get('/messages');
+      const { data } = await hw.get(groupPath(groupId.value, '/messages'));
       messages.value = data.messages;
       lastVisitAt.value = data.lastVisitAt;
 
@@ -327,7 +328,7 @@ export function useMessages() {
     }
 
     try {
-      await hw.post('/messages', payload);
+      await hw.post(groupPath(groupId.value, '/messages'), payload);
     } catch (err) {
       console.error('Failed to send message:', err);
       messageInput.value = text;
@@ -422,7 +423,7 @@ export function useMessages() {
     if (!isConfirmed) return;
 
     try {
-      await hw.delete(`/messages/${msg.id}`);
+      await hw.delete(groupPath(groupId.value, `/messages/${msg.id}`));
       toast.success(t('chat.delete_success'));
     } catch (err) {
       console.error('Failed to delete message:', err);
@@ -448,7 +449,7 @@ export function useMessages() {
     cancelReport();
 
     try {
-      await hw.post('/messages/reports', {
+      await hw.post(groupPath(groupId.value, '/messages/reports'), {
         messageId: msg.id,
         reason: reason || undefined,
       });
@@ -478,7 +479,7 @@ export function useMessages() {
 
     pendingMarkRead.value = false;
     try {
-      await hw.post('/messages/read');
+      await hw.post(groupPath(groupId.value, '/messages/read'));
       lastVisitAt.value = new Date().toISOString();
     } catch (err) {
       console.error('Failed to mark messages as read:', err);
@@ -522,7 +523,9 @@ export function useMessages() {
       if (navigator.sendBeacon) {
         navigator.sendBeacon(`${apiUrl}/messages/read`);
       } else {
-        void hw.post('/messages/read').catch(() => {});
+        void hw
+          .post(groupPath(groupId.value, '/messages/read'))
+          .catch(() => {});
       }
     }
     document.body.style.overflow = '';
@@ -531,7 +534,7 @@ export function useMessages() {
   watch(groupId, () => {
     if (pendingMarkRead.value) {
       pendingMarkRead.value = false;
-      void hw.post('/messages/read').catch(() => {});
+      void hw.post(groupPath(groupId.value, '/messages/read')).catch(() => {});
     }
     dismissedNewMessagesDivider.value = false;
     isInitialScroll.value = true;

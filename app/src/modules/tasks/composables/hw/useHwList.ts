@@ -1,6 +1,7 @@
 import { computed, nextTick } from 'vue';
 import type { HwContext } from './types';
 import hw from '@/api/api.ts';
+import { groupPath } from '@/api/groupPath';
 import { hiddenByCourses } from '@/api/personalization';
 
 export function useHwList(ctx: HwContext) {
@@ -137,7 +138,10 @@ export function useHwList(ctx: HwContext) {
     if (ctx.showPersonalized.value) params.personalized = true;
 
     try {
-      const response = await hw.get('/items', { params });
+      const response = await hw.get(
+        groupPath(ctx.activeGroupId.value, '/items'),
+        { params },
+      );
       ctx.items.value = response.data;
       ctx.hiddenByCourses.value = hiddenByCourses(response);
       ctx.expandedDescriptions.value = new Set();
@@ -160,7 +164,9 @@ export function useHwList(ctx: HwContext) {
 
   async function refreshItem(itemId: string, onUpdate?: (item: any) => void) {
     try {
-      const { data } = await hw.get(`/items/${itemId}`);
+      const { data } = await hw.get(
+        groupPath(ctx.activeGroupId.value, `/items/${itemId}`),
+      );
       const index = ctx.items.value.findIndex((i) => i.id === itemId);
       if (index !== -1) {
         ctx.items.value[index] = data;

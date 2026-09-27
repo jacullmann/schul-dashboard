@@ -7,6 +7,7 @@ import { Pencil, Camera, Trash2, Upload } from '@lucide/vue';
 import { useModalStore } from '@/stores/modalStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import hw from '../../../api/api';
+import { groupPath } from '@/api/groupPath';
 import GroupAvatarCropper from './GroupAvatarCropper.vue';
 import GroupTypeRadioGroup from './GroupTypeRadioGroup.vue';
 import SettingToggleCard from './SettingToggleCard.vue';
@@ -16,6 +17,7 @@ import type { GroupType } from '@/types/groups';
 const modalStore = useModalStore();
 const { t } = useI18n();
 const {
+  activeGroupId,
   activeGroupAvatarUrl,
   activeGroupType,
   activeGroupDaltonEnabled,
@@ -183,7 +185,9 @@ async function onCropConfirmed(blob: Blob) {
   avatarError.value = '';
 
   try {
-    const { data: sign } = await hw.post('/items/uploads/sign');
+    const { data: sign } = await hw.post(
+      groupPath(activeGroupId.value, '/items/uploads/sign'),
+    );
 
     const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
     const form = new FormData();

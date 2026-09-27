@@ -1,9 +1,9 @@
 import { computed, reactive } from 'vue';
 import { useI18n } from 'vue-i18n';
 import hw from '@/api/api';
+import { groupPath } from '@/api/groupPath';
 import { useSubjectStore, type Subject } from '@/stores/subjectStore';
 import { useUserStore, type UserData } from '@/stores/userStore';
-import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { getSubjectKey } from '@/types/subjects';
 import type { UnitOption } from '@/common/components/BaseSelect.vue';
 
@@ -12,7 +12,7 @@ export type Enrollment = UserData['courses'][number];
 export const NO_COURSE = 'NONE';
 
 /**
- * The member's course per subject of the active group, shared by the
+ * The member's course per subject of the loaded group, shared by the
  * onboarding modal and the "My courses" settings page.
  */
 export function useCourseSelection() {
@@ -21,7 +21,6 @@ export function useCourseSelection() {
   const te = i18n.te.bind(i18n);
   const subjectStore = useSubjectStore();
   const userStore = useUserStore();
-  const { activeGroupId } = useAppAuth();
 
   const selections = reactive<Record<string, string>>({});
 
@@ -89,19 +88,24 @@ export function useCourseSelection() {
     }),
   );
 
+  /** Replaces the selection for the group whose subjects are loaded. */
   async function saveCourses(
     courses: Enrollment[],
   ): Promise<Partial<UserData>> {
-    const config = activeGroupId.value
-      ? { headers: { 'x-tenant-id': activeGroupId.value } }
-      : {};
+    const { data } = await hw.patch(
+      groupPath(subjectStore.groupId, '/me/courses'),
+      { courses },
+    );
 
-    const { data } = await hw.patch('/user/setup', { courses }, config);
+    const groupSubjectIds = new Set(subjectStore.subjects.map((s) => s.id));
+    const otherGroupsCourses = (userStore.user?.courses ?? []).filter(
+      (c) => !groupSubjectIds.has(c.subjectId),
+    );
 
     const updatedUser: Partial<UserData> = {
       ...(data?.user || userStore.user || {}),
       doneSetup: true,
-      courses,
+      courses: [...otherGroupsCourses, ...courses],
     };
     userStore.updateUser(updatedUser);
     return updatedUser;

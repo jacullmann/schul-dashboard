@@ -34,7 +34,7 @@ const t = i18n.t.bind(i18n);
 const tm = i18n.tm.bind(i18n);
 const { width: windowWidth } = useWindowSize();
 
-const { activeGroupDaltonEnabled } = useAppAuth();
+const { activeGroupDaltonEnabled, activeGroupId } = useAppAuth();
 
 const tabItems = computed(() => [
   { id: 'all', label: t('tasks.list.tabs.all') },
@@ -134,6 +134,10 @@ const showPersonalizedNotice = computed(
 );
 
 const { openTaskForm } = useTaskForm();
+
+function openNewTask() {
+  if (activeGroupId.value) openTaskForm(activeGroupId.value);
+}
 const { openImageViewer } = useImageViewer();
 
 // The Dalton tab disappears with the setting, also for a link that opened it.
@@ -272,7 +276,7 @@ function handleEmptyStateAnimationEnd(event: AnimationEvent) {
                 :aria-label="t('tasks.list.task_form.new_task')"
                 :icon="Plus"
                 icon-classes="size-6"
-                @click="openTaskForm()"
+                @click="openNewTask"
               />
             </BaseTooltip>
           </BaseRow>
@@ -394,7 +398,7 @@ function handleEmptyStateAnimationEnd(event: AnimationEvent) {
       <BaseEmptyState
         v-if="!loading && !limitedItems.length"
         :class="{ 'animate-enter': !emptyStateEntered }"
-        :primary-action="openTaskForm"
+        :primary-action="openNewTask"
         :secondary-action="resetFilters"
         @animationend="handleEmptyStateAnimationEnd"
       >

@@ -4,6 +4,7 @@ use crate::{
     common::group_type::GroupType,
     common::path_params::{IdPath, MemberPath, SubjectPath},
     error::{AppError, AppResult},
+    items::service::ItemsService,
     state::AppState,
 };
 use axum::{
@@ -87,6 +88,12 @@ pub async fn create_group(
         .await?;
 
     Ok(Json(body))
+}
+
+/// A new group's avatar is uploaded before the group exists, so this is the
+/// one upload signature that needs no group membership.
+pub async fn sign_group_avatar_upload(State(s): State<AppState>, _user: AuthUser) -> Json<Value> {
+    Json(ItemsService::from_state(&s).create_upload_signature())
 }
 
 pub async fn get_status(

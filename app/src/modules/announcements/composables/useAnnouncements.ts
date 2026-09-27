@@ -4,6 +4,8 @@ import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
 import { useModalStore } from '@/stores/modalStore';
 import hw from '@/api/api.ts';
+import { groupPath } from '@/api/groupPath';
+import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useToast } from '@/common/composables/useToast';
 import type { Announcement } from '@/modules/announcements/types';
 import { apiErrorMessage } from '@/api/errors';
@@ -17,6 +19,7 @@ export function useAnnouncements() {
   const userStore = useUserStore();
   const { user } = storeToRefs(userStore);
   const toast = useToast();
+  const { activeGroupId } = useAppAuth();
 
   const announcements = ref<Announcement[]>([]);
   const loading = ref(false);
@@ -25,7 +28,9 @@ export function useAnnouncements() {
   async function loadAnnouncements(): Promise<void> {
     loading.value = true;
     try {
-      const { data } = await hw.get<Announcement[]>('/schedule/announcements');
+      const { data } = await hw.get<Announcement[]>(
+        groupPath(activeGroupId.value, '/schedule/announcements'),
+      );
       announcements.value = data;
     } catch (e) {
       console.error('Failed to load announcements', e);
@@ -38,7 +43,7 @@ export function useAnnouncements() {
     if (!user.value) return;
     try {
       const { data } = await hw.get<string[]>(
-        '/schedule/announcements/read-status',
+        groupPath(activeGroupId.value, '/schedule/announcements/read-status'),
       );
       seenIds.value = new Set(data);
     } catch {
@@ -50,7 +55,12 @@ export function useAnnouncements() {
     if (seenIds.value.has(announcementId)) return;
     seenIds.value.add(announcementId);
     try {
-      await hw.post(`/schedule/announcements/${announcementId}/read`);
+      await hw.post(
+        groupPath(
+          activeGroupId.value,
+          `/schedule/announcements/${announcementId}/read`,
+        ),
+      );
     } catch {
       // Already marked locally; a failed sync retries on the next load.
     }
@@ -103,7 +113,9 @@ export function useAnnouncements() {
 
     if (!isConfirmed) return;
     try {
-      await hw.delete(`/group-admin/announcements/${id}`);
+      await hw.delete(
+        groupPath(activeGroupId.value, `/admin/announcements/${id}`),
+      );
       announcements.value = announcements.value.filter((a) => a.id !== id);
     } catch (e: unknown) {
       toast.error(apiErrorMessage(e, t('announcements.errors.delete_failed')));

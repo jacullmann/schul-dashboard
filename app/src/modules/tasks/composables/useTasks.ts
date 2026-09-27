@@ -26,7 +26,7 @@ export function useTasks() {
   const userStore = useUserStore();
   const subjectStore = useSubjectStore();
   const modalStore = useModalStore();
-  const imageUpload = useImageUpload();
+  const imageUpload = useImageUpload(() => activeGroupId.value);
   const { user } = storeToRefs(userStore);
   const i18n = useI18n();
   const t = i18n.t.bind(i18n);
@@ -383,7 +383,9 @@ export function useTasks() {
     makeThumb: images.makeThumb,
     isRevealed: ui.isRevealed,
     revealImages: ui.revealImages,
-    onSetupSuccess: () => modalStore.openSetup(),
+    onSetupSuccess: () => {
+      if (activeGroupId.value) modalStore.openSetup(activeGroupId.value);
+    },
     doReport: actions.doReport,
     cancelReport: actions.cancelReport,
     openCreateFormByType: forms.openCreateFormByType,

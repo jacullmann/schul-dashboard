@@ -1,111 +1,166 @@
 import { ref, computed } from 'vue';
+import type { RouteLocationNamedRaw } from 'vue-router';
 import hw, { ensureCsrf, refreshSession } from '@/api/api.ts';
+import { groupPath } from '@/api/groupPath';
 import i18n from '@/i18n';
-import { useUserStore } from '@/stores/userStore';
 import type { ScheduleConfig } from '@/modules/schedule/types';
 import { toGroupType, type GroupType } from '@/types/groups';
+import type { PermissionKey } from '@/types/permissions.ts';
 
 const STATUS_ENDPOINT = '/groups/status';
+
+export type UserGroup = {
+  id: string;
+  name: string;
+  role: string;
+  ownerId: string;
+  hasUnreadContent?: boolean;
+  scheduleConfig?: ScheduleConfig;
+  avatarUrl?: string | null;
+  permissions: Record<string, string>;
+  groupType: GroupType;
+  daltonEnabled: boolean;
+  effectivePermissions: PermissionKey[];
+};
+
+type RawGroup = Omit<UserGroup, 'groupType' | 'effectivePermissions'> & {
+  groupType?: string;
+  effectivePermissions?: string[];
+};
+
+type StatusResponse = {
+  authenticated: boolean;
+  groups?: RawGroup[];
+  landingGroupId?: string | null;
+};
 
 const isAuthenticated = ref(false);
 const isLoggedIn = ref(false);
 const isAuthReady = ref(false);
-const groupName = ref<string | null>(null);
-const activeGroupId = ref<string | null>(null);
-const activeGroupOwnerId = ref<string | null>(null);
-const activeGroupAvatarUrl = ref<string | null>(null);
-const activeGroupPermissions = ref<Record<string, string>>({});
-const activeGroupType = ref<GroupType>('regular');
-const activeGroupDaltonEnabled = ref(false);
-
-import type { PermissionKey } from '@/types/permissions.ts';
-
-const activePermissions = ref<Set<PermissionKey>>(new Set());
-
-type UserGroup = {
-  id: string;
-  name: string;
-  role: string;
-  generatedName?: string;
-  ownerId?: string;
-  hasUnreadContent?: boolean;
-  scheduleConfig?: ScheduleConfig;
-  avatarUrl?: string;
-  groupType?: GroupType;
-  daltonEnabled?: boolean;
-};
 
 const userGroups = ref<UserGroup[]>([]);
+const landingGroupId = ref<string | null>(null);
+
+/**
+ * The group the current route shows. It is per tab and derived from the URL
+ * by the router, so two tabs on different groups never interfere.
+ */
+const activeGroupId = ref<string | null>(null);
+
+/** The last group this tab showed, kept while visiting non-group pages. */
+const recentGroupId = ref<string | null>(null);
+
+/** A group a superadmin opened without being a member of it. */
+const foreignGroup = ref<UserGroup | null>(null);
 
 let initPromise: Promise<void> | null = null;
 let statusPromise: Promise<boolean> | null = null;
-let switchPromise: Promise<AuthResult> | null = null;
-let switchTarget: string | null = null;
 let authExpiredHandlerInstalled = false;
 
-type OkResult = { ok: true };
 type ErrResult = { ok: false; error: string };
-type AuthResult = OkResult | ErrResult;
 
-type GroupSnapshot = {
-  activeGroupId: string | null;
-  groupName: string | null;
-  userGroups: typeof userGroups.value;
-  isLoggedIn: boolean;
-  isAuthenticated: boolean;
-};
+const PERMISSION_KEYS: readonly string[] = [
+  'edit_group_general',
+  'edit_subjects_courses',
+  'edit_schedule',
+  'create_items',
+  'upload_images',
+  'manage_notes',
+  'send_messages',
+  'manage_schedule_changes',
+  'manage_announcements',
+  'moderate_members',
+  'delete_other_content',
+  'invite_members',
+] satisfies PermissionKey[];
+
+function isPermissionKey(s: string): s is PermissionKey {
+  return PERMISSION_KEYS.includes(s);
+}
+
+function toUserGroup(raw: RawGroup): UserGroup {
+  return {
+    ...raw,
+    groupType: toGroupType(raw.groupType),
+    daltonEnabled: raw.daltonEnabled === true,
+    effectivePermissions: (raw.effectivePermissions ?? []).filter(
+      isPermissionKey,
+    ),
+  };
+}
+
+function findGroup(groupId: string | null): UserGroup | null {
+  if (!groupId) return null;
+  return (
+    userGroups.value.find((g) => g.id === groupId) ??
+    (foreignGroup.value?.id === groupId ? foreignGroup.value : null)
+  );
+}
+
+const activeGroup = computed(() => findGroup(activeGroupId.value));
+
+/**
+ * The group an action started outside a group page defaults to: the one on
+ * screen, else the one this tab showed last, else where the user landed.
+ */
+const contextGroupId = computed<string | null>(() => {
+  const candidates = [
+    activeGroupId.value,
+    recentGroupId.value,
+    landingGroupId.value,
+  ];
+  return (
+    candidates.find((id) => findGroup(id) !== null) ??
+    userGroups.value[0]?.id ??
+    null
+  );
+});
+
+/** Where to go when nothing more specific applies, e.g. after sign-in. */
+const homeRoute = computed<RouteLocationNamedRaw>(() =>
+  contextGroupId.value
+    ? { name: 'group-dashboard', params: { groupId: contextGroupId.value } }
+    : { name: 'groups' },
+);
+
+const groupName = computed(() => activeGroup.value?.name ?? null);
+const activeGroupOwnerId = computed(() => activeGroup.value?.ownerId ?? null);
+const activeGroupAvatarUrl = computed(
+  () => activeGroup.value?.avatarUrl ?? null,
+);
+const activeGroupPermissions = computed(
+  () => activeGroup.value?.permissions ?? {},
+);
+const activeGroupType = computed<GroupType>(
+  () => activeGroup.value?.groupType ?? 'regular',
+);
+const activeGroupDaltonEnabled = computed(
+  () => activeGroup.value?.daltonEnabled === true,
+);
+const activeGroupRole = computed(() => activeGroup.value?.role ?? null);
+const activeScheduleConfig = computed(
+  () => activeGroup.value?.scheduleConfig ?? null,
+);
+const activePermissions = computed(
+  () => new Set<PermissionKey>(activeGroup.value?.effectivePermissions ?? []),
+);
 
 function clearAuthState(): void {
   isLoggedIn.value = false;
   isAuthenticated.value = false;
-  groupName.value = null;
-  activeGroupId.value = null;
-  activeGroupOwnerId.value = null;
-  activeGroupAvatarUrl.value = null;
-  activeGroupPermissions.value = {};
-  activeGroupType.value = 'regular';
-  activeGroupDaltonEnabled.value = false;
-  activePermissions.value = new Set();
   userGroups.value = [];
+  landingGroupId.value = null;
+  activeGroupId.value = null;
+  recentGroupId.value = null;
+  foreignGroup.value = null;
   statusPromise = null;
-  try {
-    localStorage.removeItem('active_tenant_id');
-  } catch {
-    // Storage may be unavailable; in-memory state is already cleared.
-  }
 }
 
-function applyStatusData(data: {
-  authenticated: boolean;
-  group?: {
-    id: string;
-    name: string;
-    ownerId?: string;
-    avatarUrl?: string;
-    permissions?: Record<string, string>;
-    groupType?: string;
-    daltonEnabled?: boolean;
-  } | null;
-  groups?: UserGroup[];
-  activePermissions?: string[];
-}): void {
+function applyStatusData(data: StatusResponse): void {
   isLoggedIn.value = data.authenticated;
   isAuthenticated.value = data.authenticated;
-  groupName.value = data.group?.name ?? null;
-  activeGroupId.value = data.group?.id ?? null;
-  activeGroupOwnerId.value = data.group?.ownerId ?? null;
-  activeGroupAvatarUrl.value = data.group?.avatarUrl ?? null;
-  activeGroupPermissions.value = data.group?.permissions ?? {};
-  activeGroupType.value = toGroupType(data.group?.groupType);
-  activeGroupDaltonEnabled.value = data.group?.daltonEnabled === true;
-  userGroups.value = (data.groups ?? []).map((group) => ({
-    ...group,
-    groupType: toGroupType(group.groupType),
-  }));
-
-  activePermissions.value = new Set<PermissionKey>(
-    (data.activePermissions ?? []).filter(isPermissionKey),
-  );
+  userGroups.value = (data.groups ?? []).map(toUserGroup);
+  landingGroupId.value = data.landingGroupId ?? null;
 }
 
 function installAuthExpiredHandlerOnce(): void {
@@ -119,7 +174,7 @@ function installAuthExpiredHandlerOnce(): void {
 }
 
 async function fetchStatus(): Promise<boolean> {
-  const { data } = await hw.get(STATUS_ENDPOINT);
+  const { data } = await hw.get<StatusResponse>(STATUS_ENDPOINT);
   applyStatusData(data);
   return data.authenticated === true;
 }
@@ -148,64 +203,11 @@ async function doInitAuth(): Promise<void> {
   }
 }
 
-async function doSwitchGroup(
-  groupId: string,
-  snapshot: GroupSnapshot,
-  checkAuthStatus: () => Promise<boolean>,
-): Promise<AuthResult> {
-  try {
-    const { status, data } = await hw.post('/groups/switch', { groupId });
-
-    if ((status === 200 || status === 201) && data.ok) {
-      await checkAuthStatus();
-      window.dispatchEvent(
-        new CustomEvent('tenant-changed', { detail: { groupId } }),
-      );
-      return { ok: true };
-    }
-
-    throw new Error(data?.error ?? 'Group switch failed.');
-  } catch (error: unknown) {
-    activeGroupId.value = snapshot.activeGroupId;
-    groupName.value = snapshot.groupName;
-    userGroups.value = snapshot.userGroups;
-    isLoggedIn.value = snapshot.isLoggedIn;
-    isAuthenticated.value = snapshot.isAuthenticated;
-
-    const err = error as {
-      response?: { data?: { message?: string; error?: string } };
-      message?: string;
-    };
-    return {
-      ok: false,
-      error:
-        err.response?.data?.message ??
-        err.response?.data?.error ??
-        err.message ??
-        i18n.global.t('auth.groups.errors.switch_failed'),
-    };
-  } finally {
-    switchPromise = null;
-    switchTarget = null;
-  }
-}
-
-function isPermissionKey(s: string): s is PermissionKey {
-  const valid: readonly string[] = [
-    'edit_group_general',
-    'edit_subjects_courses',
-    'edit_schedule',
-    'create_items',
-    'upload_images',
-    'manage_notes',
-    'send_messages',
-    'manage_schedule_changes',
-    'manage_announcements',
-    'moderate_members',
-    'delete_other_content',
-    'invite_members',
-  ] satisfies PermissionKey[];
-  return valid.includes(s);
+function errorMessage(error: unknown, fallback: string): string {
+  const err = error as {
+    response?: { data?: { message?: string; error?: string } };
+  };
+  return err.response?.data?.message ?? err.response?.data?.error ?? fallback;
 }
 
 export function useAppAuth() {
@@ -216,9 +218,7 @@ export function useAppAuth() {
 
     statusPromise = (async () => {
       try {
-        const { data } = await hw.get(STATUS_ENDPOINT);
-        applyStatusData(data);
-        return data.authenticated === true;
+        return await fetchStatus();
       } catch {
         clearAuthState();
         return false;
@@ -237,57 +237,53 @@ export function useAppAuth() {
     return initPromise;
   }
 
+  /**
+   * Whether this tab may show `groupId`. Membership is the server's call: a
+   * group missing from the list is only reachable for a superadmin, and the
+   * server answers 404 to anyone else.
+   */
+  async function canShowGroup(groupId: string): Promise<boolean> {
+    if (findGroup(groupId)) return true;
+    try {
+      const { data } = await hw.get<RawGroup>(groupPath(groupId));
+      foreignGroup.value = toUserGroup(data);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /** Called once a navigation is confirmed, with the group its URL names. */
+  function showGroup(groupId: string | null): void {
+    if (groupId === activeGroupId.value) return;
+    activeGroupId.value = groupId;
+    if (!groupId) return;
+
+    recentGroupId.value = groupId;
+    hw.post(groupPath(groupId, '/visit')).catch(() => {
+      // Only the next sign-in's landing page depends on it.
+    });
+  }
+
   async function createGroup(
     name: string,
     avatarUrl?: string,
     groupType: GroupType = 'regular',
     daltonEnabled = false,
-  ): Promise<AuthResult> {
+  ): Promise<{ ok: true; groupId: string } | ErrResult> {
     try {
-      const { status, data } = await hw.post('/groups/create', {
-        groupName: name,
-        avatarUrl,
-        groupType,
-        daltonEnabled,
-      });
-      if ((status === 200 || status === 201) && data.ok) {
-        await checkAuthStatus();
-        return { ok: true };
-      }
-      return {
-        ok: false,
-        error: i18n.global.t('auth.groups.errors.creation_failed'),
-      };
+      const { data } = await hw.post<{ ok: boolean; groupId: string }>(
+        '/groups',
+        { groupName: name, avatarUrl, groupType, daltonEnabled },
+      );
+      await checkAuthStatus();
+      return { ok: true, groupId: data.groupId };
     } catch (error: unknown) {
-      const err = error as {
-        response?: { data?: { message?: string; error?: string } };
-      };
       return {
         ok: false,
-        error:
-          err.response?.data?.message ??
-          err.response?.data?.error ??
-          i18n.global.t('auth.groups.errors.generic'),
+        error: errorMessage(error, i18n.global.t('auth.groups.errors.generic')),
       };
     }
-  }
-
-  async function switchActiveGroup(groupId: string): Promise<AuthResult> {
-    if (switchPromise && switchTarget === groupId) {
-      return switchPromise;
-    }
-
-    const snapshot: GroupSnapshot = {
-      activeGroupId: activeGroupId.value,
-      groupName: groupName.value,
-      userGroups: userGroups.value,
-      isLoggedIn: isLoggedIn.value,
-      isAuthenticated: isAuthenticated.value,
-    };
-
-    switchTarget = groupId;
-    switchPromise = doSwitchGroup(groupId, snapshot, checkAuthStatus);
-    return switchPromise;
   }
 
   async function logout(): Promise<void> {
@@ -310,52 +306,26 @@ export function useAppAuth() {
     }
   }
 
-  const activeScheduleConfig = computed(() => {
-    if (!activeGroupId.value) return null;
-    const activeGroup = userGroups.value.find(
-      (g) => g.id === activeGroupId.value,
-    );
-    return activeGroup?.scheduleConfig ?? null;
-  });
-
+  /** Mirrors the server's verdict for the group on screen; the server still enforces it. */
   function checkPermission(permissionKey: PermissionKey): boolean {
-    const userStore = useUserStore();
-
-    if (userStore.user?.role === 'superadmin') return true;
-
-    if (
-      activeGroupOwnerId.value &&
-      userStore.user?.id === activeGroupOwnerId.value
-    )
-      return true;
-
     return activePermissions.value.has(permissionKey);
   }
 
-  async function createInvite(): Promise<{
-    ok: boolean;
-    token?: string;
-    error?: string;
-  }> {
+  async function createInvite(
+    groupId: string | null,
+  ): Promise<{ ok: boolean; token?: string; error?: string }> {
     try {
-      const { status, data } = await hw.post('/groups/invite');
-      if (status === 200 || status === 201) {
-        return { ok: true, token: data.token };
-      }
-      return {
-        ok: false,
-        error: i18n.global.t('auth.groups.errors.invite_create_failed'),
-      };
+      const { data } = await hw.post<{ token: string }>(
+        groupPath(groupId, '/invites'),
+      );
+      return { ok: true, token: data.token };
     } catch (error: unknown) {
-      const err = error as {
-        response?: { data?: { message?: string; error?: string } };
-      };
       return {
         ok: false,
-        error:
-          err.response?.data?.message ??
-          err.response?.data?.error ??
-          i18n.global.t('auth.groups.errors.generic'),
+        error: errorMessage(
+          error,
+          i18n.global.t('auth.groups.errors.invite_create_failed'),
+        ),
       };
     }
   }
@@ -368,29 +338,17 @@ export function useAppAuth() {
     error?: string;
   }> {
     try {
-      const { status, data } = await hw.get(`/groups/invite/${token}`);
-      if (status === 200) {
-        return {
-          ok: true,
-          groupName: data.groupName,
-          avatarUrl: data.avatarUrl,
-          memberCount: data.memberCount,
-        };
-      }
+      const { data } = await hw.get(`/invites/${encodeURIComponent(token)}`);
       return {
-        ok: false,
-        error: i18n.global.t('auth.groups.errors.invite_details_failed'),
+        ok: true,
+        groupName: data.groupName,
+        avatarUrl: data.avatarUrl,
+        memberCount: data.memberCount,
       };
     } catch (error: unknown) {
-      const err = error as {
-        response?: { data?: { message?: string; error?: string } };
-      };
       return {
         ok: false,
-        error:
-          err.response?.data?.message ??
-          err.response?.data?.error ??
-          i18n.global.t('auth.groups.errors.generic'),
+        error: errorMessage(error, i18n.global.t('auth.groups.errors.generic')),
       };
     }
   }
@@ -399,25 +357,15 @@ export function useAppAuth() {
     token: string,
   ): Promise<{ ok: boolean; groupId?: string; error?: string }> {
     try {
-      const { status, data } = await hw.post(`/groups/invite/${token}/accept`);
-      if ((status === 200 || status === 201) && data.ok) {
-        await checkAuthStatus();
-        return { ok: true, groupId: data.groupId };
-      }
-      return {
-        ok: false,
-        error: i18n.global.t('auth.groups.errors.invite_accept_failed'),
-      };
+      const { data } = await hw.post(
+        `/invites/${encodeURIComponent(token)}/accept`,
+      );
+      await checkAuthStatus();
+      return { ok: true, groupId: data.groupId };
     } catch (error: unknown) {
-      const err = error as {
-        response?: { data?: { message?: string; error?: string } };
-      };
       return {
         ok: false,
-        error:
-          err.response?.data?.message ??
-          err.response?.data?.error ??
-          i18n.global.t('auth.groups.errors.generic'),
+        error: errorMessage(error, i18n.global.t('auth.groups.errors.generic')),
       };
     }
   }
@@ -428,18 +376,24 @@ export function useAppAuth() {
     isAuthReady,
     groupName,
     activeGroupId,
+    contextGroupId,
+    homeRoute,
+    activeGroup,
     activeGroupOwnerId,
     activeGroupAvatarUrl,
     activeGroupPermissions,
     activeGroupType,
     activeGroupDaltonEnabled,
+    activeGroupRole,
     activePermissions,
     activeScheduleConfig,
     userGroups,
+    findGroup,
     initAuth,
     checkAuthStatus,
+    canShowGroup,
+    showGroup,
     createGroup,
-    switchActiveGroup,
     logout,
     logoutAllDevices,
     checkPermission,

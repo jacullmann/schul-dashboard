@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { onClickOutside } from '@vueuse/core';
 import { storeToRefs } from 'pinia';
-import { useRouter, useRoute } from 'vue-router';
+import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import AppLogo from '@/common/components/AppLogo.vue';
@@ -19,6 +19,8 @@ import { useModalStore } from '@/stores/modalStore';
 import Avatar from '@/modules/auth/components/Avatar.vue';
 import { useToast } from '@/common/composables/useToast';
 import hw from '../../api/api';
+import { groupPath } from '@/api/groupPath';
+import { useOpenGroup } from '@/core/composables/useOpenGroup';
 
 const userStore = useUserStore();
 const { user } = storeToRefs(userStore);
@@ -28,14 +30,14 @@ const {
   groupName,
   userGroups,
   activeGroupId,
-  switchActiveGroup,
   activeGroupAvatarUrl,
   activeGroupOwnerId,
   checkPermission,
   createInvite,
+  checkAuthStatus,
 } = useAppAuth();
+const { openGroup } = useOpenGroup();
 const router = useRouter();
-const route = useRoute();
 
 const modalStore = useModalStore();
 const { sidebarExpanded: isExpanded } = storeToRefs(modalStore);
@@ -54,30 +56,9 @@ function toggleGroupMenu() {
   groupMenuOpen.value = !groupMenuOpen.value;
 }
 
-async function onSwitchGroup(id: string) {
+function onSwitchGroup(id: string) {
   groupMenuOpen.value = false;
-  const oldGroupId = activeGroupId.value;
-  if (id !== oldGroupId) {
-    const res = await switchActiveGroup(id);
-    if (res.ok) {
-      await userStore.fetchUser();
-
-      if (oldGroupId && route.path.startsWith(`/groups/${oldGroupId}`)) {
-        const newPath = route.path.replace(
-          `/groups/${oldGroupId}`,
-          `/groups/${id}`,
-        );
-        await router.push(newPath);
-        if (route.path === '/groups') {
-          await router.push(`/groups/${id}/dashboard`);
-        }
-      } else {
-        await router.push(`/groups/${id}/dashboard`);
-      }
-    } else {
-      console.error('Failed to switch group', res.error);
-    }
-  }
+  if (id !== activeGroupId.value) void openGroup(id);
 }
 
 onClickOutside(groupMenuRef, () => {
@@ -106,8 +87,9 @@ async function leaveGroup() {
 
   loading.value = true;
   try {
-    await hw.delete(`/groups/${activeGroupId.value}/leave`);
-    window.location.reload();
+    await hw.delete(groupPath(activeGroupId.value, '/leave'));
+    await checkAuthStatus();
+    await router.push({ name: 'groups' });
   } catch (err) {
     console.error('Failed to leave group:', err);
     toast.error(t('auth.groups.errors.leave_failed'));
@@ -130,7 +112,7 @@ async function inviteMember() {
   groupMenuOpen.value = false;
   loading.value = true;
   try {
-    const res = await createInvite();
+    const res = await createInvite(activeGroupId.value);
     if (res.ok && res.token) {
       modalStore.openInviteModal(res.token);
     } else {

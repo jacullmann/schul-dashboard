@@ -18,7 +18,7 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
-const { createInvite } = useAppAuth();
+const { createInvite, activeGroupId } = useAppAuth();
 const modalStore = useModalStore();
 const toast = useToast();
 
@@ -28,7 +28,7 @@ const copiedId = ref<string | null>(null);
 async function inviteMember() {
   loadingInvite.value = true;
   try {
-    const res = await createInvite();
+    const res = await createInvite(activeGroupId.value);
     if (res.ok && res.token) {
       modalStore.openInviteModal(res.token);
       emit('refresh-invites');

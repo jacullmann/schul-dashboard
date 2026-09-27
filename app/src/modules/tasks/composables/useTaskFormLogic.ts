@@ -1,7 +1,8 @@
 import { onMounted, ref, watch, computed } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRouter } from 'vue-router';
 import { useEventListener } from '@vueuse/core';
 import hw from '../../../api/api';
+import { groupPath } from '@/api/groupPath';
 import type { HwItem } from '@/modules/tasks/composables/useTasks';
 import type { ItemType } from '@/modules/tasks/types';
 import { useImageUpload } from '@/modules/tasks/composables/useImageUpload';
@@ -14,6 +15,7 @@ import { apiErrorMessage } from '@/api/errors';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 
 export function useTaskFormLogic(
+  groupId: string,
   initial: HwItem | null | undefined,
   initialType: Exclude<ItemType, 'all'> | undefined,
   emit: {
@@ -22,7 +24,6 @@ export function useTaskFormLogic(
   },
 ) {
   const i18n = useI18n();
-  const route = useRoute();
   const router = useRouter();
   const t = (key: string, named?: Record<string, any>) =>
     i18n.t(key, named || {});
@@ -30,11 +31,19 @@ export function useTaskFormLogic(
 
   const subjectStore = useSubjectStore();
   const { enrolledCourseForSubjectName } = useEnrolledCourses();
-  const { activeGroupDaltonEnabled } = useAppAuth();
+  const { findGroup, userGroups } = useAppAuth();
+  const targetGroup = computed(() => findGroup(groupId));
+  const daltonEnabled = computed(
+    () => targetGroup.value?.daltonEnabled === true,
+  );
+  /** Only worth showing when the user could mean more than one group. */
+  const targetGroupName = computed(() =>
+    userGroups.value.length > 1 ? (targetGroup.value?.name ?? null) : null,
+  );
 
   const typeTabItems = computed(() => [
     { id: 'homework', label: t('tasks.list.types.homework') },
-    ...(activeGroupDaltonEnabled.value
+    ...(daltonEnabled.value
       ? [{ id: 'dalton', label: t('tasks.list.types.dalton') }]
       : []),
     { id: 'exam', label: t('tasks.list.types.exam') },
@@ -44,7 +53,7 @@ export function useTaskFormLogic(
   const activeType = ref<Exclude<ItemType, 'all'>>(
     initial
       ? initial.type
-      : requestedType === 'dalton' && !activeGroupDaltonEnabled.value
+      : requestedType === 'dalton' && !daltonEnabled.value
         ? 'homework'
         : requestedType,
   );
@@ -59,7 +68,7 @@ export function useTaskFormLogic(
     removeImg,
     uploadFiles,
     makeUrl,
-  } = useImageUpload();
+  } = useImageUpload(groupId);
 
   const isPdf = (img: any) => img.metadata?.format === 'pdf';
 
@@ -387,9 +396,9 @@ export function useTaskFormLogic(
       };
 
       if (initial) {
-        await hw.patch(`/items/${initial.id}`, payload);
+        await hw.patch(groupPath(groupId, `/items/${initial.id}`), payload);
       } else {
-        await hw.post('/items', {
+        await hw.post(groupPath(groupId, '/items'), {
           ...payload,
           type: activeType.value,
           confirmDoubleTask: doubleCheckPassed.value,
@@ -440,7 +449,7 @@ export function useTaskFormLogic(
     emit('cancel');
     void router.push({
       name: 'group-tasks',
-      params: { groupId: route.params.groupId as string },
+      params: { groupId },
       query: {
         type: doubleTaskOriginalItem.value.type,
         highlightedTask: doubleTaskOriginalItem.value.id,
@@ -463,13 +472,14 @@ export function useTaskFormLogic(
   useEventListener(window, 'keydown', onKeyDown);
 
   onMounted(() => {
-    void subjectStore.loadSubjects();
+    void subjectStore.loadSubjects(groupId);
     imgInit(initial?.images || []);
     titleInputRef.value?.focus();
   });
 
   return {
     t,
+    targetGroupName,
     typeTabItems,
     activeType,
     imgImages,

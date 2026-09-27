@@ -98,7 +98,7 @@ const activeTab = computed<string>({
   },
 });
 
-const { activeGroupDaltonEnabled } = useAppAuth();
+const { activeGroupDaltonEnabled, activeGroupRole } = useAppAuth();
 const { hasOwnerRights } = useGroupSettingsAccess();
 
 // Turning Dalton off deletes its lessons on the server, so the schedule this
@@ -106,9 +106,7 @@ const { hasOwnerRights } = useGroupSettingsAccess();
 watch(activeGroupDaltonEnabled, () => void loadSchedule());
 const userStore = useUserStore();
 const isAdmin = computed(
-  () =>
-    userStore.user?.tenantRole === 'admin' ||
-    userStore.user?.role === 'superadmin',
+  () => activeGroupRole.value === 'admin' || userStore.isSuperadmin,
 );
 
 const navItems = computed<AdminNavItem[]>(() => [

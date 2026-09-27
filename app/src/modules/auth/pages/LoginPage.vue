@@ -13,7 +13,7 @@ const userStore = useUserStore();
 const { t } = useI18n();
 const { handleOAuthReturn } = useOAuth();
 const { initiateGoogleLogin } = useOAuth();
-const { checkAuthStatus, activeGroupId } = useAppAuth();
+const { checkAuthStatus, homeRoute } = useAppAuth();
 
 const {
   email,
@@ -33,10 +33,7 @@ const {
     } catch {
       // Login succeeded; navigate anyway and let the route guard re-sync.
     }
-    const target = activeGroupId.value
-      ? `/groups/${activeGroupId.value}/dashboard`
-      : '/groups';
-    await router.push(target);
+    await router.push(homeRoute.value);
   },
   async () => {
     await router.push({ name: 'verify-mfa' });
@@ -59,10 +56,7 @@ onMounted(() => {
     } catch {
       // Login succeeded; navigate anyway and let the route guard re-sync.
     }
-    const target = activeGroupId.value
-      ? `/groups/${activeGroupId.value}/dashboard`
-      : '/groups';
-    await router.push(target);
+    await router.push(homeRoute.value);
   });
 });
 </script>

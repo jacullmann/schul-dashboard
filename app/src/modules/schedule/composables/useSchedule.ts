@@ -1,5 +1,6 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import hw from '@/api/api.ts';
+import { groupPath } from '@/api/groupPath';
 import { hiddenByCourses } from '@/api/personalization';
 import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
@@ -36,7 +37,7 @@ export interface UseScheduleOptions {
 export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
   const { t, locale } = useI18n();
   const userStore = useUserStore();
-  const { activeScheduleConfig, activeGroupType } = useAppAuth();
+  const { activeScheduleConfig, activeGroupType, activeGroupId } = useAppAuth();
 
   const isPersonalized = computed(() => {
     return userStore.user?.personalized && userStore.user?.doneSetup;
@@ -131,7 +132,9 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
 
   async function loadSubstitutions() {
     try {
-      const { data } = await hw.get('/schedule/subs');
+      const { data } = await hw.get(
+        groupPath(activeGroupId.value, '/schedule/subs'),
+      );
       substitutions.value = data;
     } catch (error) {
       console.error('Error loading substitutions:', error);
@@ -145,8 +148,10 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
     loadingLessons.value = true;
     try {
       const [lessonRes, subjectRes] = await Promise.all([
-        hw.get('/schedule'),
-        hw.get('/schedule/subjects').catch(() => ({ data: [] })),
+        hw.get(groupPath(activeGroupId.value, '/schedule')),
+        hw
+          .get(groupPath(activeGroupId.value, '/schedule/subjects'))
+          .catch(() => ({ data: [] })),
       ]);
       lessons.value = lessonRes.data;
       lessonsHiddenByServer.value = hiddenByCourses(lessonRes);

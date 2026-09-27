@@ -77,10 +77,12 @@ const {
   searchOpen,
   taskFormOpen,
   taskFormKey,
+  taskFormGroupId,
   taskToEdit,
   taskFormInitialType,
   showChangePassword,
   showSetup,
+  setupGroupId,
   showDeleteAccount,
   createGroupOpen,
   inviteModalOpen,
@@ -90,6 +92,7 @@ const {
   privateTaskToEdit,
   announcementFormOpen,
   announcementFormKey,
+  announcementFormGroupId,
   imageViewerOpen,
   imageViewerImages,
   imageViewerInitialIndex,
@@ -195,7 +198,9 @@ async function onAuthSuccess() {
   </Teleport>
 
   <TaskForm
+    v-if="taskFormGroupId"
     :key="taskFormKey"
+    :group-id="taskFormGroupId"
     :open="taskFormOpen"
     :initial-type="taskFormInitialType"
     :initial="taskToEdit"
@@ -212,7 +217,9 @@ async function onAuthSuccess() {
   />
 
   <AnnouncementForm
+    v-if="announcementFormGroupId"
     :key="announcementFormKey"
+    :group-id="announcementFormGroupId"
     :open="announcementFormOpen"
     @cancel="modalStore.closeAnnouncementForm()"
     @success="onAnnouncementFormSuccess"
@@ -242,8 +249,9 @@ async function onAuthSuccess() {
   />
 
   <EditCoursesModal
-    v-if="user"
+    v-if="user && setupGroupId"
     :open="showSetup"
+    :group-id="setupGroupId"
     :is-setup="!user?.doneSetup"
     :initial-data="{
       courses: user?.courses || [],

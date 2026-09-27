@@ -25,7 +25,6 @@ const emit = defineEmits<{
 const router = useRouter();
 const auth = useAppAuth();
 const userStore = useUserStore();
-const { activeGroupId } = useAppAuth();
 
 const groupNameInputRef = ref<HTMLInputElement | null>(null);
 
@@ -97,7 +96,7 @@ async function onCropConfirmed(blob: Blob) {
   avatarError.value = '';
 
   try {
-    const { data: sign } = await hw.post('/items/uploads/sign');
+    const { data: sign } = await hw.post('/uploads/group-avatar/sign');
 
     const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
     const form = new FormData();
@@ -174,7 +173,10 @@ async function submit() {
       }
 
       emit('cancel');
-      await router.push(`/groups/${activeGroupId.value}/dashboard`);
+      await router.push({
+        name: 'group-dashboard',
+        params: { groupId: res.groupId },
+      });
     } else {
       errorMsg.value = res.error || t('auth.groups.errors.create_failed');
     }

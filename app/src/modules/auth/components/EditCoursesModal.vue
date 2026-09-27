@@ -24,6 +24,7 @@ const {
 
 const props = defineProps<{
   open: boolean;
+  groupId: string;
   initialData: { courses: Enrollment[] };
   isSetup: boolean;
 }>();
@@ -49,7 +50,7 @@ watch(
   (isOpen) => {
     if (isOpen) {
       error.value = '';
-      void subjectStore.loadSubjects().then(() => {
+      void subjectStore.loadSubjects(props.groupId).then(() => {
         initSelections();
       });
       initSelections();
@@ -82,7 +83,7 @@ watch(
 
 onMounted(() => {
   if (props.open) {
-    void subjectStore.loadSubjects().then(() => {
+    void subjectStore.loadSubjects(props.groupId).then(() => {
       initSelections();
     });
   }

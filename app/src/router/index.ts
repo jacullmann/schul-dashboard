@@ -85,7 +85,6 @@ const routes: RouteRecordRaw[] = [
             props: true,
             meta: {
               title: 'tasks.list.title',
-              requiresTenant: true,
               groupContext: true,
             },
           },
@@ -96,7 +95,6 @@ const routes: RouteRecordRaw[] = [
             props: true,
             meta: {
               title: 'tasks.list.title',
-              requiresTenant: true,
               groupContext: true,
             },
           },
@@ -106,7 +104,6 @@ const routes: RouteRecordRaw[] = [
             component: () => import('@/modules/schedule/pages/Schedule.vue'),
             meta: {
               title: 'schedule.title',
-              requiresTenant: true,
               groupContext: true,
             },
           },
@@ -116,7 +113,6 @@ const routes: RouteRecordRaw[] = [
             component: () => import('@/modules/chat/pages/Messages.vue'),
             meta: {
               title: 'common.sidebar.messages',
-              requiresTenant: true,
               groupContext: true,
             },
           },
@@ -126,7 +122,6 @@ const routes: RouteRecordRaw[] = [
             component: () => import('@/modules/groups/pages/GroupSettings.vue'),
             meta: {
               title: 'navigation.group_admin',
-              requiresTenant: true,
               groupContext: true,
               fullWidth: true,
             },
@@ -312,8 +307,14 @@ const router = createRouter({
 });
 
 const { start, finish } = useLoadingBar();
-const { isLoggedIn, isAuthReady, initAuth, activeGroupId, userGroups } =
-  useAppAuth();
+const {
+  isLoggedIn,
+  isAuthReady,
+  initAuth,
+  homeRoute,
+  canShowGroup,
+  showGroup,
+} = useAppAuth();
 
 router.beforeEach(async (to, from, next) => {
   if (to.path !== from.path) start();
@@ -359,12 +360,7 @@ router.beforeEach(async (to, from, next) => {
     isLoggedIn.value
   ) {
     finish();
-    return next({
-      path: activeGroupId.value
-        ? `/groups/${activeGroupId.value}/dashboard`
-        : '/groups',
-      replace: true,
-    });
+    return next({ ...homeRoute.value, replace: true });
   }
 
   if (to.meta.title) {
@@ -396,39 +392,21 @@ router.beforeEach(async (to, from, next) => {
     }
   }
 
-  if (to.meta.requiresGroupAdmin) {
-    if (!userStore.initialized) await userStore.fetchUser();
-    if (!userStore.isGroupAdmin && !userStore.isSuperadmin) {
-      finish();
-      return next({ path: '/groups', replace: true });
-    }
-  }
-
-  if (to.meta.requiresTenant && !activeGroupId.value) {
+  const routeGroupId = to.params.groupId;
+  if (typeof routeGroupId === 'string' && !(await canShowGroup(routeGroupId))) {
     finish();
-    return next({ path: '/groups', replace: true });
-  }
-
-  const routeGroupId = to.params.groupId as string | undefined;
-  if (routeGroupId && routeGroupId !== activeGroupId.value) {
-    if (!userStore.initialized) await userStore.fetchUser();
-    const isMember = userGroups.value.some((g) => g.id === routeGroupId);
-    if (!isMember && !userStore.isSuperadmin) {
-      finish();
-      return next({ path: '/groups', replace: true });
-    }
-
-    const { switchActiveGroup } = useAppAuth();
-    const result = await switchActiveGroup(routeGroupId);
-    if (!result.ok) {
-      finish();
-      return next({ path: '/groups', replace: true });
-    }
+    return next({ name: 'groups', replace: true });
   }
 
   next();
 });
 
-router.afterEach(() => finish());
+router.afterEach((to, _from, failure) => {
+  if (!failure) {
+    const groupId = to.params.groupId;
+    showGroup(typeof groupId === 'string' ? groupId : null);
+  }
+  finish();
+});
 
 export default router;

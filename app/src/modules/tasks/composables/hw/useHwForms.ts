@@ -2,14 +2,17 @@ import { onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { HwItem, ItemType } from '@/modules/tasks/types';
 import hw from '@/api/api.ts';
+import { groupPath } from '@/api/groupPath';
 import { useToast } from '@/common/composables/useToast';
 import { useTaskForm } from '@/core/composables/useTaskForm';
 import { useModalStore } from '@/stores/modalStore';
+import { useUserStore } from '@/stores/userStore';
 import type { HwContext } from './types';
 import { apiErrorMessage } from '@/api/errors';
 
 export function useHwForms(ctx: HwContext) {
   const { t } = useI18n();
+  const userStore = useUserStore();
   const { openTaskForm, openEditForm, onFormSuccess } = useTaskForm();
 
   const unregister = onFormSuccess(() => void ctx.reloadList());
@@ -24,20 +27,15 @@ export function useHwForms(ctx: HwContext) {
   }
 
   function editItem(item: HwItem) {
-    openEditForm(item);
+    if (ctx.activeGroupId.value) openEditForm(ctx.activeGroupId.value, item);
   }
 
   function openCreateFormByType(type: Exclude<ItemType, 'all'>) {
-    openTaskForm(type);
+    if (ctx.activeGroupId.value) openTaskForm(ctx.activeGroupId.value, type);
   }
 
   function canEditNote() {
-    if (!ctx.user.value) return false;
-    return (
-      ctx.user.value.role === 'superadmin' ||
-      ctx.user.value.tenantRole === 'admin' ||
-      ctx.user.value.tenantRole === 'moderator'
-    );
+    return ctx.user.value !== null && userStore.isGroupAdmin;
   }
 
   function startEditNote(item: HwItem) {
@@ -55,9 +53,12 @@ export function useHwForms(ctx: HwContext) {
     savingNote.value = true;
 
     try {
-      await hw.patch(`/items/${itemId}/note`, {
-        editorNote: noteEditContent.value,
-      });
+      await hw.patch(
+        groupPath(ctx.activeGroupId.value, `/items/${itemId}/note`),
+        {
+          editorNote: noteEditContent.value,
+        },
+      );
 
       const item = ctx.items.value.find((i) => i.id === itemId);
       if (item) item.editorNote = noteEditContent.value;
@@ -87,9 +88,12 @@ export function useHwForms(ctx: HwContext) {
     savingNote.value = true;
 
     try {
-      await hw.patch(`/items/${itemId}/note`, {
-        editorNote: '',
-      });
+      await hw.patch(
+        groupPath(ctx.activeGroupId.value, `/items/${itemId}/note`),
+        {
+          editorNote: '',
+        },
+      );
 
       const item = ctx.items.value.find((i) => i.id === itemId);
       if (item) item.editorNote = '';
