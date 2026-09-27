@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { RefreshCw, CircleMinus, UserRoundPlus, Ban } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
-import { computed, ref } from 'vue';
+import { computed, ref, toRef } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import InfoModal from '@/common/components/InfoModal.vue';
 import type {
@@ -9,8 +9,10 @@ import type {
   GroupMember,
   MemberRole,
 } from '@/modules/groups/types';
-import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
-import { useUserStore } from '@/stores/userStore';
+import {
+  MEMBER_ROLES,
+  useMemberPermissions,
+} from '@/modules/groups/composables/useMemberPermissions';
 
 const { t, locale } = useI18n();
 const route = useRoute();
@@ -68,7 +70,6 @@ function formatRelativeTime(dateStr: string | undefined): string {
 const props = defineProps<{
   members: GroupMember[];
   loading: boolean;
-  hasOwnerRights?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -78,19 +79,11 @@ const emit = defineEmits<{
   (e: 'transfer-ownership', userId: string): void;
 }>();
 
-const { checkPermission } = useAppAuth();
-const userStore = useUserStore();
-const canModerateMembers = computed(() => checkPermission('moderate_members'));
+const { canModerateMembers, isSelf, canAssign, canEditRole, canRemove } =
+  useMemberPermissions(toRef(props, 'members'));
 
-const ROLE_ORDER: readonly MemberRole[] = [
-  'user',
-  'moderator',
-  'admin',
-  'owner',
-];
-
-// Admin and owner can only be handed out with the owner's rights.
-const OWNER_ONLY_ROLES: ReadonlySet<MemberRole> = new Set(['admin', 'owner']);
+// The dropdown lists roles from lowest to highest.
+const DROPDOWN_ROLES = [...MEMBER_ROLES].reverse();
 
 const roleLabels = computed<Record<MemberRole, string>>(() => ({
   owner: t('common.roles.owner'),
@@ -107,35 +100,15 @@ const memberCountLabel = computed(() =>
       }),
 );
 
-function isSelf(member: GroupMember): boolean {
-  return member.userId === userStore.user?.id;
-}
-
 function isMemberRole(value: string): value is MemberRole {
-  return (ROLE_ORDER as readonly string[]).includes(value);
-}
-
-// The owner's own row stays locked: ownership only ever moves by picking
-// "owner" on somebody else's row.
-function canEditRole(member: GroupMember): boolean {
-  if (member.role === 'owner') return false;
-  if (props.hasOwnerRights) return true;
-  return canModerateMembers.value && !isSelf(member) && member.role !== 'admin';
-}
-
-function canRemove(member: GroupMember): boolean {
-  if (!canModerateMembers.value || isSelf(member)) return false;
-  if (member.role === 'owner') return false;
-  return member.role !== 'admin' || !!props.hasOwnerRights;
+  return (MEMBER_ROLES as readonly string[]).includes(value);
 }
 
 function roleOptionsFor(member: GroupMember) {
-  const editable = canEditRole(member);
-  return ROLE_ORDER.map((role) => ({
+  return DROPDOWN_ROLES.map((role) => ({
     label: roleLabels.value[role],
     value: role,
-    disabled:
-      !editable || (OWNER_ONLY_ROLES.has(role) && !props.hasOwnerRights),
+    disabled: !canAssign(member, role),
   }));
 }
 

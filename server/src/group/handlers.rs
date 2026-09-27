@@ -14,7 +14,7 @@ use serde::Deserialize;
 use serde_json::{Value, json};
 use uuid::Uuid;
 
-use super::admin::service::GroupAdminService;
+use super::{admin::service::GroupAdminService, member_policy::Caller};
 use crate::group::dto::CreateScheduleSubDto;
 
 pub async fn create_invite(State(s): State<AppState>, tc: TenantContext) -> AppResult<Json<Value>> {
@@ -243,17 +243,9 @@ pub async fn change_member_role(
     Path(target): Path<Uuid>,
     Json(dto): Json<ChangeMemberRoleDto>,
 ) -> AppResult<Json<Value>> {
-    crate::require_permission!(tc, crate::common::permission::Permission::ModerateMembers);
-
     Ok(Json(
         GroupAdminService::from_state(&s)
-            .change_member_role(
-                tc.tenant_id,
-                tc.user.user_id,
-                target,
-                &dto.role,
-                tc.has_owner_rights(),
-            )
+            .change_member_role(tc.tenant_id, Caller::from_tenant(&tc), target, &dto.role)
             .await?,
     ))
 }
@@ -286,16 +278,13 @@ pub async fn remove_member(
     Path(target): Path<Uuid>,
     Query(q): Query<BanQuery>,
 ) -> AppResult<Json<Value>> {
-    crate::require_permission!(tc, crate::common::permission::Permission::ModerateMembers);
-
     Ok(Json(
         GroupAdminService::from_state(&s)
             .remove_member(
                 tc.tenant_id,
-                tc.user.user_id,
+                Caller::from_tenant(&tc),
                 target,
                 q.ban.as_deref() == Some("true"),
-                tc.has_owner_rights(),
             )
             .await?,
     ))

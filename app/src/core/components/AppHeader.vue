@@ -89,6 +89,11 @@ const loading = ref(false);
 async function leaveGroup() {
   if (!activeGroupId.value) return;
 
+  if (activeGroupOwnerId.value === user.value?.id) {
+    toast.error(t('auth.groups.errors.owner_cannot_leave'));
+    return;
+  }
+
   const isConfirmed = await modalStore.confirm({
     title: t('common.header.leave_group_confirm.title'),
     content: t('common.header.leave_group_confirm.content', {
@@ -97,11 +102,6 @@ async function leaveGroup() {
     submitText: t('common.header.leave_group_confirm.submit'),
     danger: true,
   });
-
-  if (activeGroupOwnerId.value === user.value?.id) {
-    toast.error(t('auth.groups.errors.owner_cannot_leave'));
-    return;
-  }
   if (!isConfirmed) return;
 
   loading.value = true;

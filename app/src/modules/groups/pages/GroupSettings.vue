@@ -309,7 +309,6 @@ function goBack() {
               v-if="activeTab === 'members' && !route.params.subTab"
               :members="members"
               :loading="loadingMembers"
-              :has-owner-rights="hasOwnerRights"
               @refresh="loadMembers"
               @change-role="(userId, role) => changeRole(userId, role)"
               @remove="(userId, name, ban) => removeMember(userId, name, ban)"

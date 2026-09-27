@@ -343,21 +343,6 @@ impl GroupService {
             return Err(AppError::forbidden("The owner cannot leave the group."));
         }
 
-        let role = sqlx::query!(
-            r#"SELECT r.name FROM user_roles ur JOIN roles r ON r.id = ur.role_id
-               WHERE ur.user_id = $1 AND ur.tenant_id = $2"#,
-            user_id,
-            group_id
-        )
-        .fetch_optional(&mut *tx)
-        .await?;
-
-        if role.as_ref().map(|r| r.name.as_str()) == Some("admin") {
-            return Err(AppError::forbidden(
-                "Admins cannot leave the group directly.",
-            ));
-        }
-
         sqlx::query!(
             r#"DELETE FROM user_roles WHERE user_id = $1 AND tenant_id = $2"#,
             user_id,
