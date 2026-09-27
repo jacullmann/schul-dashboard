@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import hw from '@/api/api.ts';
 import type {
+  AssignableMemberRole,
   GroupMember,
   GroupStats,
   ScheduleSubstitution,
@@ -100,10 +101,9 @@ export function useGroupAdmin() {
   }
 
   async function loadMembers() {
-    if (!checkPermission('moderate_members')) return;
     loadingMembers.value = true;
     try {
-      const { data } = await hw.get('/group-admin/members');
+      const { data } = await hw.get<GroupMember[]>('/groups/members');
       members.value = data;
     } catch {
       showMessage(t('groups.settings.messages.load_members_failed'), true);
@@ -112,7 +112,7 @@ export function useGroupAdmin() {
     }
   }
 
-  async function changeRole(userId: string, newRole: string) {
+  async function changeRole(userId: string, newRole: AssignableMemberRole) {
     try {
       await hw.patch(`/group-admin/members/${userId}/role`, {
         role: newRole,
@@ -550,9 +550,12 @@ export function useGroupAdmin() {
   }
 
   async function transferOwnership(targetUserId: string) {
+    const target = members.value.find((m) => m.userId === targetUserId);
     const isConfirmed = await modalStore.confirm({
       title: t('groups.settings.members.transfer_modal.title'),
-      content: t('groups.settings.members.transfer_modal.message'),
+      content: t('groups.settings.members.transfer_modal.message', {
+        name: target?.generatedName ?? '',
+      }),
       submitText: t('groups.settings.members.transfer_modal.submit'),
       danger: true,
     });
@@ -561,7 +564,7 @@ export function useGroupAdmin() {
     try {
       await hw.post('/group-admin/transfer-ownership', { targetUserId });
       showMessage(t('groups.settings.messages.ownership_transferred'));
-      await checkAuthStatus();
+      await Promise.all([checkAuthStatus(), loadMembers()]);
     } catch (e: unknown) {
       const err = e as {
         response?: { data?: { message?: string; error?: string } };

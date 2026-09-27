@@ -51,6 +51,7 @@ onMounted(loadUsers);
       <thead>
         <tr>
           <th>{{ t('admin.users.table.email') }}</th>
+          <th>{{ t('admin.users.table.username') }}</th>
           <th>{{ t('admin.users.table.id') }}</th>
           <th>{{ t('admin.users.table.status') }}</th>
           <th>{{ t('admin.users.table.registered') }}</th>
@@ -64,6 +65,7 @@ onMounted(loadUsers);
           :class="{ 'row-banned': u.isBanned }"
         >
           <td>{{ u.email }}</td>
+          <td class="whitespace-nowrap">{{ u.username }}</td>
           <td>{{ u.id }}</td>
           <td>
             <span v-if="u.role === 'superadmin'" class="badge badge-purple">{{

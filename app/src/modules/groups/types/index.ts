@@ -14,10 +14,15 @@ export interface GroupStats {
   memberCount: number;
 }
 
+export type MemberRole = 'owner' | 'admin' | 'moderator' | 'user';
+
+/** The roles that can be assigned directly; ownership is only transferred. */
+export type AssignableMemberRole = Exclude<MemberRole, 'owner'>;
+
 export interface GroupMember {
   userId: string;
   generatedName: string;
-  role: string;
+  role: MemberRole;
   joinedAt: string;
 }
 

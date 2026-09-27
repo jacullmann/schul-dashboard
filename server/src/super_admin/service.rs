@@ -1,6 +1,6 @@
 use crate::{
     auth::token::{ADMIN_REVOKE, TokenService},
-    common::role::Role,
+    common::{name_generator::generate_user_name, role::Role},
     error::{AppError, AppResult},
     state::AppState,
 };
@@ -122,40 +122,28 @@ impl SuperAdminService {
 
     pub async fn get_groups(&self) -> AppResult<Value> {
         let groups = sqlx::query!(
-            r#"SELECT id, name, owner_id, created_at FROM groups ORDER BY created_at DESC"#
+            r#"SELECT g.id, g.name, g.owner_id, g.created_at, u.email AS "owner_email?",
+                      (SELECT COUNT(*) FROM user_roles WHERE tenant_id = g.id) AS "member_count!",
+                      (SELECT COUNT(*) FROM items WHERE tenant_id = g.id) AS "item_count!"
+               FROM groups g
+               LEFT JOIN users u ON u.id = g.owner_id
+               ORDER BY g.created_at DESC"#
         )
         .fetch_all(&self.db)
         .await?;
 
-        let mut result = vec![];
-
-        for g in groups {
-            let member_count = sqlx::query_scalar!(
-                r#"SELECT COUNT(*) FROM user_roles WHERE tenant_id = $1"#,
-                g.id
-            )
-            .fetch_one(&self.db)
-            .await?
-            .unwrap_or(0);
-
-            let item_count =
-                sqlx::query_scalar!(r#"SELECT COUNT(*) FROM items WHERE tenant_id = $1"#, g.id)
-                    .fetch_one(&self.db)
-                    .await?
-                    .unwrap_or(0);
-
-            let owner_email =
-                sqlx::query_scalar!(r#"SELECT email FROM users WHERE id = $1"#, g.owner_id)
-                    .fetch_optional(&self.db)
-                    .await?;
-
-            result.push(json!({
-                "id": g.id, "name": g.name, "ownerId": g.owner_id,
-                "ownerEmail": owner_email, "createdAt": g.created_at,
-                "memberCount": member_count, "itemCount": item_count,
-            }));
-        }
-        Ok(json!(result))
+        Ok(json!(
+            groups
+                .into_iter()
+                .map(|g| json!({
+                    "id": g.id, "name": g.name, "ownerId": g.owner_id,
+                    "ownerEmail": g.owner_email,
+                    "ownerName": generate_user_name(&g.owner_id.to_string()),
+                    "createdAt": g.created_at,
+                    "memberCount": g.member_count, "itemCount": g.item_count,
+                }))
+                .collect::<Vec<_>>()
+        ))
     }
 
     pub async fn delete_group(&self, group_id: Uuid) -> AppResult<Value> {
@@ -194,6 +182,7 @@ impl SuperAdminService {
                 .into_iter()
                 .map(|u| json!({
                     "id": u.id, "email": u.email,
+                    "username": generate_user_name(&u.id.to_string()),
                     "role": u.global_role.unwrap_or_else(|| "user".into()),
                     "emailVerified": u.email_verified,
                     "createdAt": u.created_at, "lastLoginAt": u.last_login_at,

@@ -112,18 +112,20 @@
     "members": {
       "joined": "{time} beigetreten",
       "title": "Mitglieder",
+      "count_one": "1 Mitglied in dieser Gruppe",
+      "count_other": "{count} Mitglieder in dieser Gruppe",
+      "you": "Du",
       "info": {
         "tooltip": "Übersicht des Mitgliedermenüs",
         "headline": "Verwalte Mitglieder deiner Gruppe",
         "list_title": "Mitgliedsliste",
-        "list_text": "Hier siehst du eine Liste aller Mitglieder deiner Gruppe zusammen mit ihren Berechtigungen (Mitglied, Moderator, Admin). Um die Daten der Nutzer zu schützen wird ein automatisch generierter Alias angezeigt. Über das Dropdown-Menü kannst du die Rolle eines Mitglieds ändern.",
+        "list_text": "Hier siehst du alle Mitglieder deiner Gruppe mit ihrer Rolle (Besitzer, Admin, Moderator, Mitglied). Um die Daten der Nutzer zu schützen, wird ein automatisch generierter Alias angezeigt. Dein eigener Eintrag ist mit „Du“ markiert.",
         "role_title": "Rollen ändern",
-        "role_text": "Wenn du die Rolle eines Nutzers ändern willst, um ihm Berechtigungen zu erteilen oder zu entziehen, kannst du dies über das Dropdown-Menü, das neben jedem Mitglied steht, tun.",
+        "role_text": "Wer Mitglieder verwalten darf, kann die Rolle eines Mitglieds über das Dropdown-Menü neben dem Mitglied ändern. Die Rolle des Besitzers kann nicht geändert werden – der Besitz lässt sich nur übertragen.",
         "remove_title": "Mitglieder entfernen",
-        "remove_text": "Um ein Mitglied aus der Gruppe zu entfernen, klicke auf das entsprechende Symbol neben dem Dropdown-Menü. Admins können nicht entfernt werden."
+        "remove_text": "Um ein Mitglied aus der Gruppe zu entfernen, klicke auf das entsprechende Symbol neben dem Dropdown-Menü. Admins und der Besitzer können nicht entfernt werden."
       },
       "list": {
-        "unauthorized": "Du hast keine Berechtigung, die Mitgliederliste zu sehen.",
         "empty": "Keine Mitglieder gefunden."
       },
       "actions": {
@@ -174,7 +176,7 @@
       },
       "transfer_modal": {
         "title": "Besitz übertragen?",
-        "message": "Bist du dir sicher, dass du den Besitz übertragen willst? Du wirst deine Besitzerrechte verlieren.",
+        "message": "Möchtest du den Besitz der Gruppe wirklich an {name} übertragen? Du wirst danach Admin und verlierst deine Besitzerrechte.",
         "submit": "Übertragen"
       }
     },

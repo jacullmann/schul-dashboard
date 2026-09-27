@@ -1,0 +1,59 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT ur.user_id, ur.assigned_at, ur.role_id, ur.user_id = g.owner_id AS \"is_owner!\"\n               FROM user_roles ur\n               JOIN groups g ON g.id = ur.tenant_id\n               WHERE ur.tenant_id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "user_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "user_roles",
+            "name": "user_id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "assigned_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "user_roles",
+            "name": "assigned_at"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "role_id",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "user_roles",
+            "name": "role_id"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "is_owner!",
+        "type_info": "Bool",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      null
+    ]
+  },
+  "hash": "dda52a76d9f0de57961a20c3c9eea0bfa0c63c7a2269b2168a62c089f0880112"
+}

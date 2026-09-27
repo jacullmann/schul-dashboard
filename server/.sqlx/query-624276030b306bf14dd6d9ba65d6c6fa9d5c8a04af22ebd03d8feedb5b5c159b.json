@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, name, owner_id, created_at FROM groups ORDER BY created_at DESC",
+  "query": "SELECT g.id, g.name, g.owner_id, g.created_at, u.email AS \"owner_email?\",\n                      (SELECT COUNT(*) FROM user_roles WHERE tenant_id = g.id) AS \"member_count!\",\n                      (SELECT COUNT(*) FROM items WHERE tenant_id = g.id) AS \"item_count!\"\n               FROM groups g\n               LEFT JOIN users u ON u.id = g.owner_id\n               ORDER BY g.created_at DESC",
   "describe": {
     "columns": [
       {
@@ -46,6 +46,29 @@
             "name": "created_at"
           }
         }
+      },
+      {
+        "ordinal": 4,
+        "name": "owner_email?",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "users",
+            "name": "email"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "member_count!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 6,
+        "name": "item_count!",
+        "type_info": "Int8",
+        "origin": "Expression"
       }
     ],
     "parameters": {
@@ -55,8 +78,11 @@
       false,
       false,
       false,
-      false
+      false,
+      false,
+      null,
+      null
     ]
   },
-  "hash": "88b212c5b2d9d5948f2c3d8707e99f352f0d642c8964a4bf8191f54515ec3652"
+  "hash": "624276030b306bf14dd6d9ba65d6c6fa9d5c8a04af22ebd03d8feedb5b5c159b"
 }

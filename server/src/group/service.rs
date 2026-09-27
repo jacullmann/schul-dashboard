@@ -7,10 +7,12 @@ use crate::{
     common::{
         csrf::generate_csrf_token,
         group_type::GroupType,
+        name_generator::generate_user_name,
         permission::{GroupPermissions, Permission},
-        role::Role,
+        role::{MemberRole, Role},
     },
     error::{AppError, AppResult},
+    group::dto::GroupMemberDto,
     state::AppState,
 };
 use axum_extra::extract::CookieJar;
@@ -439,6 +441,39 @@ impl GroupService {
             .await?;
 
         Ok(json!({ "token": token }))
+    }
+
+    pub async fn list_members(&self, tenant_id: Uuid) -> AppResult<Vec<GroupMemberDto>> {
+        let rows = sqlx::query!(
+            r#"SELECT ur.user_id, ur.assigned_at, ur.role_id, ur.user_id = g.owner_id AS "is_owner!"
+               FROM user_roles ur
+               JOIN groups g ON g.id = ur.tenant_id
+               WHERE ur.tenant_id = $1"#,
+            tenant_id
+        )
+        .fetch_all(&self.db)
+        .await?;
+
+        let mut members: Vec<GroupMemberDto> = rows
+            .into_iter()
+            .map(|r| GroupMemberDto {
+                generated_name: generate_user_name(&r.user_id.to_string()),
+                role: MemberRole::resolve(
+                    Role::from_db_id(r.role_id.into()).unwrap_or(Role::User),
+                    r.is_owner,
+                ),
+                user_id: r.user_id,
+                joined_at: r.assigned_at,
+            })
+            .collect();
+
+        members.sort_by(|a, b| {
+            a.role
+                .cmp(&b.role)
+                .then_with(|| a.generated_name.cmp(&b.generated_name))
+        });
+
+        Ok(members)
     }
 
     pub async fn get_invite(&self, token: &str) -> AppResult<Value> {
