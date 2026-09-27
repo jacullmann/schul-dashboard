@@ -6,9 +6,16 @@ import {
   Archive,
   ArchiveRestore,
   Trash2,
+  Pencil,
+  Pin,
+  PinOff,
   UploadCloud,
 } from '@lucide/vue';
-import { useSwipeToDismiss } from '@/modules/tasks/composables/useSwipeToDismiss';
+import {
+  useSwipeToDismiss,
+  SWIPE_SETTLE_MS,
+  SWIPE_SETTLE_EASING,
+} from '@/modules/tasks/composables/useSwipeToDismiss';
 
 const { t } = useI18n();
 
@@ -20,6 +27,8 @@ const props = withDefaults(
     showMenuTrigger?: boolean;
     swipeable?: boolean;
     swipeAction?: 'archive' | 'keep' | 'delete';
+    /** Shown beside the main action while the card rests open. */
+    secondarySwipeAction?: 'edit' | 'pin' | 'unpin';
     confirmSwipe?: () => Promise<boolean>;
     reducedBottomMargin?: boolean;
   }>(),
@@ -36,6 +45,7 @@ const props = withDefaults(
 const emit = defineEmits<{
   (e: 'menu-click', event: MouseEvent): void;
   (e: 'swiped'): void;
+  (e: 'swipe-secondary'): void;
   (e: 'files-dropped', files: File[]): void;
 }>();
 
@@ -75,51 +85,132 @@ function collapseContainer() {
   const fallback = setTimeout(finish, 350);
 }
 
-const swipeActionRef = ref<HTMLElement | null>(null);
+const swipeActionsRef = ref<HTMLElement | null>(null);
 
-const { swipeOffset, isSwiping, isArmed, isDismissing, dismiss } =
-  useSwipeToDismiss(cardRef, {
-    enabled: () => props.swipeable,
-    actionButton: swipeActionRef,
-    confirmDismiss: props.confirmSwipe,
-    onSlideOut: collapseContainer,
-  });
+const SWIPE_ACTION_WIDTH = 76;
 
-const isSwipeActionVisible = computed(
-  () => isSwiping.value || isDismissing.value || swipeOffset.value > 0,
-);
+const {
+  swipeOffset,
+  revealProgress,
+  isSwiping,
+  isArmed,
+  isDismissing,
+  isActionsVisible,
+  dismiss,
+  close: closeSwipe,
+} = useSwipeToDismiss(cardRef, {
+  enabled: () => props.swipeable,
+  revealWidth: () => SWIPE_ACTION_WIDTH * (props.secondarySwipeAction ? 2 : 1),
+  actions: swipeActionsRef,
+  confirmDismiss: props.confirmSwipe,
+  onSlideOut: collapseContainer,
+});
+
+function runSecondarySwipeAction() {
+  closeSwipe();
+  emit('swipe-secondary');
+}
 
 const swipeActions = {
-  archive: { icon: Archive, labelKey: 'tasks.list.tasks.menu.archive' },
-  keep: { icon: ArchiveRestore, labelKey: 'tasks.list.tasks.menu.unarchive' },
-  delete: { icon: Trash2, labelKey: 'common.buttons.delete' },
+  archive: {
+    icon: Archive,
+    labelKey: 'tasks.list.tasks.menu.archive',
+    colors: 'bg-danger text-on-danger',
+  },
+  keep: {
+    icon: ArchiveRestore,
+    labelKey: 'tasks.list.tasks.menu.unarchive',
+    colors: 'bg-success text-on-success',
+  },
+  delete: {
+    icon: Trash2,
+    labelKey: 'common.buttons.delete',
+    colors: 'bg-danger text-on-danger',
+  },
+  edit: {
+    icon: Pencil,
+    labelKey: 'common.buttons.edit',
+    colors: 'bg-action text-on-action',
+  },
+  pin: {
+    icon: Pin,
+    labelKey: 'tasks.list.tasks.menu.pin',
+    colors: 'bg-action text-on-action',
+  },
+  unpin: {
+    icon: PinOff,
+    labelKey: 'tasks.list.tasks.menu.unpin',
+    colors: 'bg-action text-on-action',
+  },
 } as const;
 
-const swipeActionIcon = computed(() => swipeActions[props.swipeAction].icon);
-const swipeActionLabel = computed(() =>
-  t(swipeActions[props.swipeAction].labelKey),
+const primarySwipeButton = computed(() => swipeActions[props.swipeAction]);
+const secondarySwipeButton = computed(() =>
+  props.secondarySwipeAction ? swipeActions[props.secondarySwipeAction] : null,
 );
 
-const swipeSettleTiming = '360ms cubic-bezier(0.25, 1, 0.5, 1)';
+const swipeSettleTiming = `${SWIPE_SETTLE_MS}ms ${SWIPE_SETTLE_EASING}`;
+/** Swaps the button layout while the finger keeps moving, so it runs on its own clock. */
+const swipeTakeoverTiming = '320ms var(--ease-settle)';
 
 const cardStyle = computed(() => {
-  if (swipeOffset.value === 0) return undefined;
+  if (!isActionsVisible.value) return undefined;
   return {
     transform: `translateX(${-swipeOffset.value}px)`,
     transition: isSwiping.value ? 'none' : `transform ${swipeSettleTiming}`,
   };
 });
 
-// Covers only the uncovered strip plus the card's rounded corner, so red
+// Covers only the uncovered strip plus the card's rounded corner, so colour
 // never lines the card's top and bottom edges where a sub-pixel shift of the
-// moving card would bare it. The icon stays centred in the uncovered strip.
-const swipeActionStyle = computed(() => ({
-  background:
-    props.swipeAction === 'keep'
-      ? 'linear-gradient(135deg, #4caf50 0%, #2e7d32 100%)'
-      : 'linear-gradient(135deg, #e53935 0%, #c62828 100%)',
+// moving card would bare it.
+const swipeTrayStyle = computed(() => ({
   width: `calc(${swipeOffset.value}px + var(--radius-xl))`,
   transition: isSwiping.value ? 'none' : `width ${swipeSettleTiming}`,
+}));
+
+/** Past the commit point the main action takes over the whole strip. */
+const isPrimaryTakingOver = computed(() => isArmed.value || isDismissing.value);
+const isSecondaryShown = computed(
+  () => !!secondarySwipeButton.value && !isPrimaryTakingOver.value,
+);
+
+// The buttons fan out from under the card like a spread of cards: each one
+// reaches a corner's width under its left neighbour, so the rounded corners
+// above it show the next one instead of a gap. Widths are shares of the
+// strip, so they keep up with the finger frame by frame while the takeover
+// itself still eases.
+const primaryButtonStyle = computed(() => ({
+  width: isSecondaryShown.value
+    ? 'calc(50% + var(--radius-xl))'
+    : 'calc(100% + var(--radius-xl))',
+  transition: `width ${swipeTakeoverTiming}`,
+}));
+
+// Taking over, it tucks back under the card: a corner's width is exactly the
+// part the card's own rounded corner hides.
+const secondaryButtonStyle = computed(() => ({
+  width: isSecondaryShown.value
+    ? 'calc(50% + var(--radius-xl))'
+    : 'var(--radius-xl)',
+  transition: `width ${swipeTakeoverTiming}`,
+}));
+
+// Once taking over, the icon rides along the card's edge instead of drifting
+// to the middle of the widening button.
+const primaryIconSlotStyle = computed(() => ({
+  width: isPrimaryTakingOver.value
+    ? `${SWIPE_ACTION_WIDTH}px`
+    : 'calc(100% - var(--radius-xl))',
+  transition: `width ${swipeTakeoverTiming}`,
+}));
+
+const swipeIconStyle = computed(() => ({
+  opacity: revealProgress.value,
+  transform: `scale(${0.6 + 0.4 * revealProgress.value})`,
+  transition: isSwiping.value
+    ? 'none'
+    : `opacity ${swipeSettleTiming}, transform ${swipeSettleTiming}`,
 }));
 
 const transitionDuration = '350ms';
@@ -212,25 +303,53 @@ function onDrop(e: DragEvent) {
     ref="containerRef"
     class="relative z-20 focus-within:z-30 hover:z-30 has-[[role=menu]]:z-50"
   >
-    <button
-      v-if="isSwipeActionVisible"
-      ref="swipeActionRef"
-      type="button"
-      class="absolute inset-y-0 right-0 rounded-r-xl flex pl-(--radius-xl) cursor-pointer"
-      :style="swipeActionStyle"
-      :aria-label="swipeActionLabel"
-      :title="swipeActionLabel"
-      @click="dismiss"
+    <div
+      v-if="isActionsVisible"
+      ref="swipeActionsRef"
+      class="absolute inset-y-0 right-0 isolate overflow-hidden rounded-r-xl"
+      :style="swipeTrayStyle"
     >
-      <span class="flex-1 flex items-center justify-center">
-        <span
-          class="transition-transform duration-200"
-          :class="{ 'scale-125': isArmed }"
+      <!-- The strip the card has uncovered, right of its rounded corner. -->
+      <div class="absolute inset-y-0 right-0 left-(--radius-xl)">
+        <button
+          v-if="secondarySwipeButton"
+          type="button"
+          class="absolute inset-y-0 -left-(--radius-xl) z-10 overflow-hidden rounded-r-xl pl-(--radius-xl) flex items-center justify-center cursor-pointer active:brightness-90"
+          :class="secondarySwipeButton.colors"
+          :style="secondaryButtonStyle"
+          :aria-label="t(secondarySwipeButton.labelKey)"
+          :title="t(secondarySwipeButton.labelKey)"
+          @click="runSecondarySwipeAction"
         >
-          <component :is="swipeActionIcon" :size="24" color="#fff" />
-        </span>
-      </span>
-    </button>
+          <component
+            :is="secondarySwipeButton.icon"
+            :size="22"
+            :style="swipeIconStyle"
+          />
+        </button>
+
+        <button
+          type="button"
+          class="absolute inset-y-0 right-0 cursor-pointer active:brightness-90"
+          :class="primarySwipeButton.colors"
+          :style="primaryButtonStyle"
+          :aria-label="t(primarySwipeButton.labelKey)"
+          :title="t(primarySwipeButton.labelKey)"
+          @click="dismiss"
+        >
+          <span
+            class="absolute inset-y-0 left-(--radius-xl) flex items-center justify-center"
+            :style="primaryIconSlotStyle"
+          >
+            <component
+              :is="primarySwipeButton.icon"
+              :size="22"
+              :style="swipeIconStyle"
+            />
+          </span>
+        </button>
+      </div>
+    </div>
 
     <div
       ref="cardRef"

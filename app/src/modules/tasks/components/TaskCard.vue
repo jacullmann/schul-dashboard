@@ -176,6 +176,12 @@ const isOnlyNote = computed(() => {
   return !hasDescription && !hasImages && hasNote;
 });
 
+const secondarySwipeAction = computed(() => {
+  if (props.canEdit(props.item.createdBy)) return 'edit';
+  if (!props.user) return undefined;
+  return props.isPinned ? 'unpin' : 'pin';
+});
+
 watch(
   () => props.isOpenMenu,
   (newVal) => {
@@ -196,8 +202,12 @@ watch(
     :title="item.title"
     :swipeable="true"
     :swipe-action="showOldEntries ? 'keep' : 'archive'"
+    :secondary-swipe-action="secondarySwipeAction"
     :reduced-bottom-margin="isOnlyNote"
     @swiped="$emit('swipe')"
+    @swipe-secondary="
+      $emit('menu-action', secondarySwipeAction === 'edit' ? 'edit' : 'pin')
+    "
     v-on="longPressHandlers"
     @dblclick="handleItemDoubleClick($event)"
     @menu-click="handleCardMenuClick($event)"

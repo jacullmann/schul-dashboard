@@ -262,8 +262,10 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
                 :title="privateTask.title"
                 :swipeable="!isReordering"
                 swipe-action="delete"
+                secondary-swipe-action="edit"
                 :confirm-swipe="confirmDeletePrivateTask"
                 @swiped="deletePrivateTask(privateTask.id, { confirm: false })"
+                @swipe-secondary="openEditPrivateTaskForm(privateTask)"
                 @dblclick="handleItemDoubleClick(privateTask, $event)"
                 @contextmenu.prevent.stop="
                   handleCardContextMenu(privateTask, $event)
