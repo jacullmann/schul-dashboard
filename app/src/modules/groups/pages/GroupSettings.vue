@@ -99,7 +99,7 @@ const activeTab = computed<string>({
 });
 
 const { activeGroupDaltonEnabled } = useAppAuth();
-const { isOwner, canManagePermissions } = useGroupSettingsAccess();
+const { hasOwnerRights } = useGroupSettingsAccess();
 
 // Turning Dalton off deletes its lessons on the server, so the schedule this
 // page hands to its editor has to be fetched again.
@@ -309,7 +309,7 @@ function goBack() {
               v-if="activeTab === 'members' && !route.params.subTab"
               :members="members"
               :loading="loadingMembers"
-              :is-owner="isOwner"
+              :has-owner-rights="hasOwnerRights"
               @refresh="loadMembers"
               @change-role="(userId, role) => changeRole(userId, role)"
               @remove="(userId, name, ban) => removeMember(userId, name, ban)"
@@ -367,13 +367,13 @@ function goBack() {
 
             <GroupSettingsPermissions
               v-if="activeTab === 'permissions'"
-              :can-manage="canManagePermissions"
+              :can-manage="hasOwnerRights"
             />
 
             <GroupSettingsGeneral
               v-if="activeTab === 'general'"
               :is-admin="isAdmin"
-              :is-owner="isOwner"
+              :has-owner-rights="hasOwnerRights"
               :group-name="groupName"
               :new-group-name="newGroupName"
               :editing-group-name="editingGroupName"

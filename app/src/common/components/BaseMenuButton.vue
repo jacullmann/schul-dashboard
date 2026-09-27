@@ -19,9 +19,11 @@ withDefaults(
     variant?: 'default' | 'danger';
     icon?: Component;
     iconClasses?: string;
+    disabled?: boolean;
   }>(),
   {
     variant: 'default',
+    disabled: false,
     isSelect: false,
     isToggle: false,
     isSubmenu: false,
@@ -39,9 +41,10 @@ defineExpose({
 <template>
   <button
     ref="buttonEl"
-    v-wave
+    v-wave="!disabled"
     type="button"
-    class="flex justify-between items-center w-full text-left border-0 py-2 gap-4 cursor-pointer transition-hover user-select-none"
+    :disabled="disabled"
+    class="flex justify-between items-center w-full text-left border-0 py-2 gap-4 cursor-pointer transition-hover user-select-none disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-transparent!"
     :class="[
       variant === 'danger'
         ? 'text-danger hover:bg-danger-hover'

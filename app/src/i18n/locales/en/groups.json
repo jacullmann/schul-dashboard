@@ -121,15 +121,14 @@
         "list_title": "Member List",
         "list_text": "Here you can see all members of your group along with their role (Owner, Admin, Moderator, Member). To protect user data, an automatically generated alias is displayed. Your own entry is marked with “You”.",
         "role_title": "Change Roles",
-        "role_text": "Anyone allowed to manage members can change a member’s role via the dropdown menu next to them. The owner’s role cannot be changed – ownership can only be transferred.",
+        "role_text": "The dropdown next to each member shows their current role. Roles you cannot assign with your own role are greyed out. Only the owner and superadmins can assign Admin and Owner. Choosing “Owner” transfers ownership of the group, and the previous owner becomes an admin.",
         "remove_title": "Remove Members",
-        "remove_text": "To remove a member from the group, click on the corresponding icon next to the dropdown menu. Admins and the owner cannot be removed."
+        "remove_text": "To remove a member from the group, click on the corresponding icon next to the dropdown menu. Admins can only be removed by the owner or a superadmin; the owner cannot be removed."
       },
       "list": {
         "empty": "No members found."
       },
       "actions": {
-        "transfer_ownership": "Transfer Ownership",
         "remove": "Remove from group"
       },
       "ban_list": {

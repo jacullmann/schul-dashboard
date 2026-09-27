@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RefreshCw, CircleMinus, Crown, UserRoundPlus, Ban } from '@lucide/vue';
+import { RefreshCw, CircleMinus, UserRoundPlus, Ban } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import { computed, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -68,7 +68,7 @@ function formatRelativeTime(dateStr: string | undefined): string {
 const props = defineProps<{
   members: GroupMember[];
   loading: boolean;
-  isOwner?: boolean;
+  hasOwnerRights?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -82,24 +82,22 @@ const { checkPermission } = useAppAuth();
 const userStore = useUserStore();
 const canModerateMembers = computed(() => checkPermission('moderate_members'));
 
+const ROLE_ORDER: readonly MemberRole[] = [
+  'user',
+  'moderator',
+  'admin',
+  'owner',
+];
+
+// Admin and owner can only be handed out with the owner's rights.
+const OWNER_ONLY_ROLES: ReadonlySet<MemberRole> = new Set(['admin', 'owner']);
+
 const roleLabels = computed<Record<MemberRole, string>>(() => ({
   owner: t('common.roles.owner'),
   admin: t('common.roles.admin'),
   moderator: t('common.roles.moderator'),
   user: t('common.roles.member'),
 }));
-
-// Only the owner may hand out or take away the admin role, so everyone else
-// is not offered it in the first place.
-const roleOptions = computed(() => {
-  const assignable: AssignableMemberRole[] = props.isOwner
-    ? ['user', 'moderator', 'admin']
-    : ['user', 'moderator'];
-  return assignable.map((role) => ({
-    label: roleLabels.value[role],
-    value: role,
-  }));
-});
 
 const memberCountLabel = computed(() =>
   props.members.length === 1
@@ -113,23 +111,32 @@ function isSelf(member: GroupMember): boolean {
   return member.userId === userStore.user?.id;
 }
 
+function isMemberRole(value: string): value is MemberRole {
+  return (ROLE_ORDER as readonly string[]).includes(value);
+}
+
+// The owner's own row stays locked: ownership only ever moves by picking
+// "owner" on somebody else's row.
 function canEditRole(member: GroupMember): boolean {
-  if (!canModerateMembers.value || isSelf(member)) return false;
   if (member.role === 'owner') return false;
-  return member.role !== 'admin' || !!props.isOwner;
+  if (props.hasOwnerRights) return true;
+  return canModerateMembers.value && !isSelf(member) && member.role !== 'admin';
 }
 
 function canRemove(member: GroupMember): boolean {
-  return (
-    canModerateMembers.value &&
-    !isSelf(member) &&
-    member.role !== 'owner' &&
-    member.role !== 'admin'
-  );
+  if (!canModerateMembers.value || isSelf(member)) return false;
+  if (member.role === 'owner') return false;
+  return member.role !== 'admin' || !!props.hasOwnerRights;
 }
 
-function canTransferOwnership(member: GroupMember): boolean {
-  return !!props.isOwner && !isSelf(member);
+function roleOptionsFor(member: GroupMember) {
+  const editable = canEditRole(member);
+  return ROLE_ORDER.map((role) => ({
+    label: roleLabels.value[role],
+    value: role,
+    disabled:
+      !editable || (OWNER_ONLY_ROLES.has(role) && !props.hasOwnerRights),
+  }));
 }
 
 const groupId = computed(() => route.params.groupId as string);
@@ -148,9 +155,13 @@ function goToBanned() {
   });
 }
 
-function onRoleChange(member: GroupMember, newRole: AssignableMemberRole) {
-  if (newRole !== member.role) {
-    emit('change-role', member.userId, newRole);
+function onRoleChange(member: GroupMember, value: string) {
+  if (!isMemberRole(value) || value === member.role) return;
+
+  if (value === 'owner') {
+    emit('transfer-ownership', member.userId);
+  } else {
+    emit('change-role', member.userId, value);
   }
 }
 
@@ -287,7 +298,7 @@ function confirmRemove() {
           >
           <span
             v-if="isSelf(member)"
-            class="rounded-full border border-ghost-border px-2 text-xs/5 font-medium text-on-ghost"
+            class="rounded-full bg-action px-2 text-xs/5 font-semibold text-on-action"
             >{{ t('groups.settings.members.you') }}</span
           >
           <span class="text-on-ghost-muted text-sm">{{
@@ -297,17 +308,6 @@ function confirmRemove() {
           }}</span>
         </div>
         <div class="flex items-center gap-2 flex-shrink-0">
-          <BaseTooltip
-            v-if="canTransferOwnership(member)"
-            :content="t('groups.settings.members.actions.transfer_ownership')"
-            placement="bottom"
-          >
-            <BaseButton
-              variant="ghost"
-              :icon="Crown"
-              @click="emit('transfer-ownership', member.userId)"
-            />
-          </BaseTooltip>
           <BaseTooltip
             v-if="canModerateMembers"
             :content="t('groups.settings.members.actions.remove')"
@@ -322,22 +322,13 @@ function confirmRemove() {
           </BaseTooltip>
 
           <BaseSelect
-            v-if="canEditRole(member)"
             :model-value="member.role"
+            :disabled="!canEditRole(member)"
             :form="false"
             classes="w-40!"
-            :options="roleOptions"
-            @update:model-value="
-              (val: string) => onRoleChange(member, val as AssignableMemberRole)
-            "
+            :options="roleOptionsFor(member)"
+            @update:model-value="(val: string) => onRoleChange(member, val)"
           />
-          <span
-            v-else
-            class="inline-flex items-center gap-1.5 rounded-full border border-ghost-border px-3 text-sm/7 font-medium text-on-ghost-muted"
-          >
-            <Crown v-if="member.role === 'owner'" :size="14" />
-            {{ roleLabels[member.role] }}
-          </span>
         </div>
       </div>
     </div>

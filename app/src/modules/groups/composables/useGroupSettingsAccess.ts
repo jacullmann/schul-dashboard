@@ -10,11 +10,11 @@ export function useGroupSettingsAccess() {
     () =>
       !!userStore.user?.id && activeGroupOwnerId.value === userStore.user.id,
   );
-  // The backend only lets the owner or a superadmin read and change the
-  // group's permission matrix, since it defines every other member's rights.
-  const canManagePermissions = computed(
+  // Superadmins act with the owner's rights in every group, mirroring the
+  // backend's `TenantContext::has_owner_rights`.
+  const hasOwnerRights = computed(
     () => isOwner.value || userStore.isSuperadmin,
   );
 
-  return { isOwner, canManagePermissions };
+  return { hasOwnerRights };
 }

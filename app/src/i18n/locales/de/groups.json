@@ -121,15 +121,14 @@
         "list_title": "Mitgliedsliste",
         "list_text": "Hier siehst du alle Mitglieder deiner Gruppe mit ihrer Rolle (Besitzer, Admin, Moderator, Mitglied). Um die Daten der Nutzer zu schützen, wird ein automatisch generierter Alias angezeigt. Dein eigener Eintrag ist mit „Du“ markiert.",
         "role_title": "Rollen ändern",
-        "role_text": "Wer Mitglieder verwalten darf, kann die Rolle eines Mitglieds über das Dropdown-Menü neben dem Mitglied ändern. Die Rolle des Besitzers kann nicht geändert werden – der Besitz lässt sich nur übertragen.",
+        "role_text": "Das Dropdown neben jedem Mitglied zeigt dessen aktuelle Rolle. Rollen, die du mit deiner eigenen Rolle nicht vergeben darfst, sind ausgegraut. Admin und Besitzer können nur der Besitzer und Superadmins vergeben. Wählst du „Besitzer“, wird der Besitz der Gruppe übertragen und der bisherige Besitzer wird Admin.",
         "remove_title": "Mitglieder entfernen",
-        "remove_text": "Um ein Mitglied aus der Gruppe zu entfernen, klicke auf das entsprechende Symbol neben dem Dropdown-Menü. Admins und der Besitzer können nicht entfernt werden."
+        "remove_text": "Um ein Mitglied aus der Gruppe zu entfernen, klicke auf das entsprechende Symbol neben dem Dropdown-Menü. Admins können nur vom Besitzer oder von Superadmins entfernt werden, der Besitzer gar nicht."
       },
       "list": {
         "empty": "Keine Mitglieder gefunden."
       },
       "actions": {
-        "transfer_ownership": "Eigentümerschaft übertragen",
         "remove": "Aus Gruppe entfernen"
       },
       "ban_list": {

@@ -11,6 +11,7 @@ export interface UnitOption {
   label: string;
   value: string;
   hint?: string;
+  disabled?: boolean;
 }
 
 const props = withDefaults(
@@ -173,6 +174,7 @@ onClickOutside(
           type="button"
           :is-select="true"
           :active="modelValue === option.value"
+          :disabled="option.disabled"
           @click="selectOption(option.value)"
         >
           {{ option.label }}

@@ -162,13 +162,15 @@ impl TenantContext {
         self.tenant_role.dominates(required)
     }
 
-    pub fn can_bypass_tenant_checks(&self) -> bool {
+    /// Superadmins act with the owner's rights in every group, whether or not
+    /// they are a member of it.
+    pub fn has_owner_rights(&self) -> bool {
         self.user.is_superadmin() || self.is_owner()
     }
 
     #[allow(dead_code)]
     pub fn effective_permission_keys(&self) -> Vec<&'static str> {
-        if self.can_bypass_tenant_checks() {
+        if self.has_owner_rights() {
             return Permission::ALL
                 .iter()
                 .map(super::permission::Permission::as_str)
