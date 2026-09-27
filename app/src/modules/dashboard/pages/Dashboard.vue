@@ -19,6 +19,8 @@ import { formatSubjectDisplay } from '@/utils/subject-formatter';
 import { courseSelectionFor } from '@/types/subjects';
 import hw from '@/api/api.ts';
 import ItemCard from '@/modules/tasks/components/ItemCard.vue';
+import { useCardEntrance } from '@/modules/tasks/composables/useCardEntrance';
+import { entranceDelay } from '@/modules/tasks/utils/entrance';
 import { lessonMinutes } from '@/modules/schedule/utils/slotTimes';
 
 const i18n = useI18n();
@@ -385,15 +387,39 @@ const formatDayName = (day: number): string => {
 const hasLessons = computed(() => lessons.value && lessons.value.length > 0);
 const canEditScheduleConfig = computed(() => checkPermission('edit_schedule'));
 
+const loadingSchedule = computed(
+  () => loadingLessons.value || loadingSubs.value,
+);
+
 const isScheduleVisible = computed(() => {
   if (loadingLessons.value) return true;
   return hasLessons.value || canEditScheduleConfig.value;
 });
+
+/** Top to bottom: each section's header, then what it holds. */
+const TASKS_HEADER_ENTRANCE_ORDER = 1;
+const TASKS_LIST_ENTRANCE_ORDER = 2;
+const TASK_SKELETON_COUNT = 3;
+const SCHEDULE_HEADER_ENTRANCE_ORDER =
+  TASKS_LIST_ENTRANCE_ORDER + TASK_SKELETON_COUNT;
+const NEXT_LESSON_ENTRANCE_ORDER = SCHEDULE_HEADER_ENTRANCE_ORDER + 1;
+const SUBSTITUTIONS_ENTRANCE_ORDER = SCHEDULE_HEADER_ENTRANCE_ORDER + 2;
+const NEXT_LESSON_REVEAL_ORDER = 0;
+const SUBSTITUTIONS_REVEAL_ORDER = 1;
+
+const {
+  isEntering: isCardEntering,
+  entranceStyle: cardEntranceStyle,
+  handleEntranceEnd: handleCardAnimationEnd,
+} = useCardEntrance(
+  computed(() => sortedTasks.value.map((task) => task.id)),
+  loadingTasks,
+);
 </script>
 
 <template>
   <div class="card">
-    <div class="relative">
+    <div class="relative animate-enter">
       <PageHeader>
         {{
           new Date().toLocaleDateString(locale, {
@@ -414,7 +440,12 @@ const isScheduleVisible = computed(() => {
 
     <div class="flex flex-col gap-8">
       <div class="flex flex-col">
-        <PageHeader>
+        <PageHeader
+          class="animate-enter"
+          :style="{
+            '--enter-delay': entranceDelay(TASKS_HEADER_ENTRANCE_ORDER),
+          }"
+        >
           {{ t('dashboard.tasks_overview.title') }}
           <template v-if="activeGroupId" #action>
             <BaseTooltip
@@ -435,34 +466,51 @@ const isScheduleVisible = computed(() => {
           </template>
         </PageHeader>
 
-        <div class="flex flex-col justify-center">
-          <div
-            v-if="loadingTasks"
-            class="flex flex-col gap-3 animate-pulse max-w-192 mx-auto"
+        <!-- Taken out of the flow while it fades, so the cards arriving in its
+             place overlap it instead of waiting below it. -->
+        <div class="relative flex flex-col w-full max-w-192 mx-auto">
+          <Transition
+            leave-active-class="skeleton-leaving absolute inset-x-0 top-0 transition-opacity duration-300 ease-out"
+            leave-to-class="opacity-0"
           >
-            <div
-              v-for="i in 3"
-              :key="i"
-              class="h-17 bg-surface-highlight rounded-xl"
-            ></div>
-          </div>
+            <div v-if="loadingTasks" class="flex flex-col gap-3">
+              <!-- A row still waiting for its entrance stays hidden while the skeleton leaves. -->
+              <div
+                v-for="n in TASK_SKELETON_COUNT"
+                :key="n"
+                class="animate-enter in-[.skeleton-leaving]:[animation-play-state:paused]"
+                :style="{
+                  '--enter-delay': entranceDelay(
+                    TASKS_LIST_ENTRANCE_ORDER + n - 1,
+                  ),
+                }"
+              >
+                <div
+                  class="h-17 bg-surface-highlight rounded-xl animate-pulse"
+                ></div>
+              </div>
+            </div>
+          </Transition>
 
-          <template v-else>
+          <template v-if="!loadingTasks">
             <TransitionGroup
               :css="useListTransitions"
               name="task-list"
               tag="div"
-              class="flex flex-col gap-3 relative overflow-x-clip w-full max-w-192 mx-auto"
+              class="flex flex-col gap-3 relative overflow-x-clip"
               @before-leave="beforeLeave"
             >
               <ItemCard
                 v-for="(task, index) in sortedTasks"
                 :key="task.id"
+                :class="{ 'animate-enter': isCardEntering(task.id) }"
+                :style="cardEntranceStyle(task.id)"
                 :item="task"
                 :index="index"
                 :user="user"
                 :title="task.title"
                 :show-menu-trigger="false"
+                @animationend="handleCardAnimationEnd($event, task.id)"
               >
                 <template #checkbox>
                   <BaseCheckbox
@@ -506,7 +554,7 @@ const isScheduleVisible = computed(() => {
 
             <div
               v-if="sortedTasks.length === 0"
-              class="text-center py-8 space-y-3 animate-fade-up"
+              class="text-center py-8 space-y-3 animate-enter"
             >
               <div
                 class="inline-flex p-3 rounded-full bg-success/10 text-success"
@@ -524,7 +572,12 @@ const isScheduleVisible = computed(() => {
       </div>
 
       <div v-if="isScheduleVisible" class="flex flex-col">
-        <PageHeader>
+        <PageHeader
+          class="animate-enter"
+          :style="{
+            '--enter-delay': entranceDelay(SCHEDULE_HEADER_ENTRANCE_ORDER),
+          }"
+        >
           {{ t('dashboard.schedule_overview.title') }}
           <template v-if="activeGroupId && hasLessons" #action>
             <BaseTooltip
@@ -544,136 +597,170 @@ const isScheduleVisible = computed(() => {
           </template>
         </PageHeader>
 
+        <!-- Each block enters with its heading. Content that replaces a skeleton
+             plays its own entrance as well, cascading from when it arrives
+             rather than inheriting the block's place in the page. -->
         <div
-          v-if="loadingLessons || loadingSubs"
+          v-if="loadingSchedule || hasLessons"
           class="flex-1 flex flex-col gap-6 min-h-[220px]"
         >
-          <div>
-            <h3 class="mb-1!">
-              {{ t('dashboard.schedule_overview.next_lesson') }}
-            </h3>
-            <div
-              class="h-20 bg-surface-highlight rounded-xl animate-pulse max-w-192 mx-auto"
-            ></div>
-          </div>
-
-          <div class="flex-1 flex flex-col">
-            <h3 class="mb-1!">
-              {{ t('dashboard.schedule_overview.substitutions') }}
-            </h3>
-            <div
-              class="h-16 bg-surface-highlight rounded-xl animate-pulse"
-            ></div>
-          </div>
-        </div>
-
-        <div
-          v-else-if="hasLessons"
-          class="flex-1 flex flex-col gap-6 min-h-[220px]"
-        >
-          <div>
+          <div
+            class="animate-enter"
+            :style="{
+              '--enter-delay': entranceDelay(NEXT_LESSON_ENTRANCE_ORDER),
+            }"
+          >
             <h3 class="mb-1!">
               {{ t('dashboard.schedule_overview.next_lesson') }}
             </h3>
 
-            <div
-              v-if="upcomingLesson"
-              class="flex items-center justify-between gap-4 px-3 py-2 rounded-lg border border-ghost-border bg-surface max-w-192 mx-auto"
-            >
-              <div class="min-w-0">
-                <div class="text-xs text-on-ghost-muted mb-0.5">
-                  {{
-                    t('dashboard.schedule_overview.slot', {
-                      slot: upcomingLesson.slot,
-                    })
-                  }}
-                </div>
-
-                <div class="text-base font-bold text-on-ghost truncate m-0">
-                  {{ getDisplayName(upcomingLesson) }}
-                </div>
-
-                <div class="text-sm text-on-ghost-muted">
-                  {{
-                    upcomingLesson.room ||
-                    t('dashboard.schedule_overview.no_room')
-                  }}
-                </div>
-              </div>
-            </div>
-
-            <div
-              v-else
-              class="p-4 rounded-xl border border-dashed border-ghost-border text-center text-xs text-on-ghost-muted"
-            >
-              {{ t('dashboard.schedule_overview.no_more_lessons') }}
-            </div>
-          </div>
-
-          <div class="flex-1 flex flex-col">
-            <h3 class="mb-1!">
-              {{ t('dashboard.schedule_overview.substitutions') }}
-            </h3>
-
-            <div
-              v-if="scheduleChanges.length > 0"
-              class="flex flex-col max-h-48 overflow-y-auto w-full max-w-192 mx-auto"
-            >
-              <div
-                v-for="(change, index) in scheduleChanges"
-                :key="change.id"
-                class="flex max-sm:flex-col sm:items-center sm:justify-between sm:gap-3 py-3"
-                :class="
-                  index !== scheduleChanges.length - 1
-                    ? 'border-b border-ghost-border'
-                    : ''
-                "
+            <div class="relative">
+              <Transition
+                leave-active-class="absolute inset-x-0 top-0 transition-opacity duration-300 ease-out"
+                leave-to-class="opacity-0"
               >
-                <div class="min-w-0">
-                  <span class="text-base text-on-ghost font-medium">
-                    {{
-                      t('dashboard.schedule_overview.slot', {
-                        slot: change.slot,
-                      })
-                    }}
-                    {{ getDisplayName(change) }},
-                    {{ formatDayName(change.day) }}
-                  </span>
+                <!-- The pulse stays off the leaving element: Vue would wait out
+                     its infinite animation instead of the fade. -->
+                <div v-if="loadingSchedule">
+                  <div
+                    class="h-20 bg-surface-highlight rounded-xl animate-pulse max-w-192 mx-auto"
+                  ></div>
+                </div>
+              </Transition>
+
+              <template v-if="!loadingSchedule">
+                <div
+                  v-if="upcomingLesson"
+                  class="flex items-center justify-between gap-4 px-3 py-2 rounded-lg border border-ghost-border bg-surface max-w-192 mx-auto animate-enter"
+                  :style="{
+                    '--enter-delay': entranceDelay(NEXT_LESSON_REVEAL_ORDER),
+                  }"
+                >
+                  <div class="min-w-0">
+                    <div class="text-xs text-on-ghost-muted mb-0.5">
+                      {{
+                        t('dashboard.schedule_overview.slot', {
+                          slot: upcomingLesson.slot,
+                        })
+                      }}
+                    </div>
+
+                    <div class="text-base font-bold text-on-ghost truncate m-0">
+                      {{ getDisplayName(upcomingLesson) }}
+                    </div>
+
+                    <div class="text-sm text-on-ghost-muted">
+                      {{
+                        upcomingLesson.room ||
+                        t('dashboard.schedule_overview.no_room')
+                      }}
+                    </div>
+                  </div>
                 </div>
 
-                <i18n-t
-                  v-if="change.room !== change._original?.room"
-                  keypath="dashboard.schedule_overview.room_change"
-                  tag="span"
-                  class="text-on-ghost-muted block"
+                <div
+                  v-else
+                  class="p-4 rounded-xl border border-dashed border-ghost-border text-center text-xs text-on-ghost-muted animate-enter"
+                  :style="{
+                    '--enter-delay': entranceDelay(NEXT_LESSON_REVEAL_ORDER),
+                  }"
                 >
-                  <template #room>
-                    <strong>{{ change.room }}</strong>
-                  </template>
-
-                  <template #original>
-                    {{ change._original?.room || '?' }}
-                  </template>
-                </i18n-t>
-
-                <span v-if="change.cancelled" class="font-bold text-danger">
-                  {{ t('dashboard.schedule_overview.cancelled') }}
-                </span>
-              </div>
+                  {{ t('dashboard.schedule_overview.no_more_lessons') }}
+                </div>
+              </template>
             </div>
+          </div>
 
-            <div
-              v-else
-              class="flex-1 flex items-center justify-center p-4 rounded-xl border border-dashed border-ghost-border text-center text-xs text-on-ghost-muted"
-            >
-              {{ t('dashboard.schedule_overview.no_substitutions') }}
+          <div
+            class="flex-1 flex flex-col animate-enter"
+            :style="{
+              '--enter-delay': entranceDelay(SUBSTITUTIONS_ENTRANCE_ORDER),
+            }"
+          >
+            <h3 class="mb-1!">
+              {{ t('dashboard.schedule_overview.substitutions') }}
+            </h3>
+
+            <div class="relative flex-1 flex flex-col">
+              <Transition
+                leave-active-class="absolute inset-x-0 top-0 transition-opacity duration-300 ease-out"
+                leave-to-class="opacity-0"
+              >
+                <div v-if="loadingSchedule">
+                  <div
+                    class="h-16 w-full max-w-192 mx-auto bg-surface-highlight rounded-xl animate-pulse"
+                  ></div>
+                </div>
+              </Transition>
+
+              <template v-if="!loadingSchedule">
+                <div
+                  v-if="scheduleChanges.length > 0"
+                  class="flex flex-col max-h-48 overflow-y-auto w-full max-w-192 mx-auto animate-enter"
+                  :style="{
+                    '--enter-delay': entranceDelay(SUBSTITUTIONS_REVEAL_ORDER),
+                  }"
+                >
+                  <div
+                    v-for="(change, index) in scheduleChanges"
+                    :key="change.id"
+                    class="flex max-sm:flex-col sm:items-center sm:justify-between sm:gap-3 py-3"
+                    :class="
+                      index !== scheduleChanges.length - 1
+                        ? 'border-b border-ghost-border'
+                        : ''
+                    "
+                  >
+                    <div class="min-w-0">
+                      <span class="text-base text-on-ghost font-medium">
+                        {{
+                          t('dashboard.schedule_overview.slot', {
+                            slot: change.slot,
+                          })
+                        }}
+                        {{ getDisplayName(change) }},
+                        {{ formatDayName(change.day) }}
+                      </span>
+                    </div>
+
+                    <i18n-t
+                      v-if="change.room !== change._original?.room"
+                      keypath="dashboard.schedule_overview.room_change"
+                      tag="span"
+                      class="text-on-ghost-muted block"
+                    >
+                      <template #room>
+                        <strong>{{ change.room }}</strong>
+                      </template>
+
+                      <template #original>
+                        {{ change._original?.room || '?' }}
+                      </template>
+                    </i18n-t>
+
+                    <span v-if="change.cancelled" class="font-bold text-danger">
+                      {{ t('dashboard.schedule_overview.cancelled') }}
+                    </span>
+                  </div>
+                </div>
+
+                <div
+                  v-else
+                  class="flex-1 flex items-center justify-center p-4 rounded-xl border border-dashed border-ghost-border text-center text-xs text-on-ghost-muted animate-enter"
+                  :style="{
+                    '--enter-delay': entranceDelay(SUBSTITUTIONS_REVEAL_ORDER),
+                  }"
+                >
+                  {{ t('dashboard.schedule_overview.no_substitutions') }}
+                </div>
+              </template>
             </div>
           </div>
         </div>
 
         <div
           v-else-if="canEditScheduleConfig"
-          class="flex-1 flex items-center justify-center p-6 min-h-[220px]"
+          class="flex-1 flex items-center justify-center p-6 min-h-[220px] animate-enter"
         >
           <BaseEmptyState
             :primary-action="

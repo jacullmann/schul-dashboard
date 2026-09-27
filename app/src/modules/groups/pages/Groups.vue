@@ -9,6 +9,7 @@ import { Plus, UsersRound } from '@lucide/vue';
 import hw from '@/api/api';
 import { useI18n } from 'vue-i18n';
 import Avatar from '@/modules/auth/components/Avatar.vue';
+import { entranceDelay } from '@/modules/tasks/utils/entrance';
 
 const { t } = useI18n();
 
@@ -83,6 +84,11 @@ async function loadAllGroups() {
 onMounted(() => {
   void loadAllGroups();
 });
+
+/** The greeting, the prompt and its action, then the groups one by one. */
+const PROMPT_ENTRANCE_ORDER = 1;
+const GROUPS_HEADER_ENTRANCE_ORDER = 2;
+const GROUPS_LIST_ENTRANCE_ORDER = 3;
 </script>
 
 <template>
@@ -90,10 +96,13 @@ onMounted(() => {
     <section class="max-md:pt-4 max-md:px-4 mb-4 md:mb-8">
       <div class="flex justify-between items-start gap-4">
         <div>
-          <h2 class="animate-fade-up">
+          <h2 class="animate-enter">
             {{ t(greeting) }}
           </h2>
-          <p class="text-base/relaxed text-on-ghost-muted m-0! animate-fade-up">
+          <p
+            class="text-base/relaxed text-on-ghost-muted m-0! animate-enter"
+            :style="{ '--enter-delay': entranceDelay(PROMPT_ENTRANCE_ORDER) }"
+          >
             {{
               userGroups.length
                 ? t('groups.list.choose_group_prompt')
@@ -102,7 +111,11 @@ onMounted(() => {
           </p>
         </div>
 
-        <div v-if="userGroups.length > 0" class="relative">
+        <div
+          v-if="userGroups.length > 0"
+          class="relative animate-enter"
+          :style="{ '--enter-delay': entranceDelay(PROMPT_ENTRANCE_ORDER) }"
+        >
           <BaseTooltip
             :content="t('groups.list.tooltip.create_group')"
             placement="bottom"
@@ -111,7 +124,6 @@ onMounted(() => {
               variant="action"
               :icon="Plus"
               icon-classes="size-6"
-              class="animate-fade-up"
               @click="modalStore.openCreateGroup()"
             />
           </BaseTooltip>
@@ -120,12 +132,17 @@ onMounted(() => {
     </section>
 
     <section v-if="userGroups.length > 0" class="mb-9">
-      <div class="flex items-center gap-2.5 mb-4 max-md:px-4">
-        <h2 class="text-2xl font-bold text-on-ghost m-0 animate-fade-up">
+      <div
+        class="flex items-center gap-2.5 mb-4 max-md:px-4 animate-enter"
+        :style="{
+          '--enter-delay': entranceDelay(GROUPS_HEADER_ENTRANCE_ORDER),
+        }"
+      >
+        <h2 class="text-2xl font-bold text-on-ghost m-0">
           {{ t('groups.list.your_groups') }}
         </h2>
         <span
-          class="text-on-ghost-muted bg-ghost-hover rounded-full text-sm font-semibold px-2.5 py-0.5 animate-fade-up"
+          class="text-on-ghost-muted bg-ghost-hover rounded-full text-sm font-semibold px-2.5 py-0.5"
           >{{ userGroups.length }}</span
         >
       </div>
@@ -133,7 +150,10 @@ onMounted(() => {
         <BaseList
           v-for="(group, index) in userGroups"
           :key="group.id"
-          class="animate-fade-up"
+          class="animate-enter"
+          :style="{
+            '--enter-delay': entranceDelay(GROUPS_LIST_ENTRANCE_ORDER + index),
+          }"
           :active="group.id === activeGroupId"
           :separator="index !== userGroups.length - 1"
           :disabled="navigatingGroupId === group.id"
@@ -164,7 +184,11 @@ onMounted(() => {
       </div>
     </section>
 
-    <section v-if="!isSuperadmin && userGroups.length === 0 && !loading">
+    <section
+      v-if="!isSuperadmin && userGroups.length === 0 && !loading"
+      class="animate-enter"
+      :style="{ '--enter-delay': entranceDelay(GROUPS_HEADER_ENTRANCE_ORDER) }"
+    >
       <BaseEmptyState
         :icon="UsersRound"
         :primary-action="() => modalStore.openCreateGroup()"
@@ -177,7 +201,11 @@ onMounted(() => {
       </BaseEmptyState>
     </section>
 
-    <div v-if="loading" class="flex justify-center p-10">
+    <div
+      v-if="loading"
+      class="flex justify-center p-10 animate-enter"
+      :style="{ '--enter-delay': entranceDelay(GROUPS_HEADER_ENTRANCE_ORDER) }"
+    >
       <div
         class="w-7 h-7 border-2 border-ghost-border border-t-on-ghost rounded-full animate-spin"
       ></div>
