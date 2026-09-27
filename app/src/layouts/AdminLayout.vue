@@ -46,7 +46,7 @@ const activeTab = computed({
 
     <div class="adm-body">
       <aside
-        class="adm-sidebar p-3.5 w-full md:w-60 shrink-0 bg-surface border-b md:border-b-0 md:border-r border-ghost-border overflow-x-auto md:overflow-y-auto flex md:flex-col gap-3.5 scrollbar-hide"
+        class="adm-sidebar p-3.5 w-full md:w-60 shrink-0 bg-surface border-b md:border-b-0 md:border-r border-ghost-border overflow-x-auto md:overflow-x-hidden md:overflow-y-auto flex md:flex-col gap-3.5 scrollbar-hide"
       >
         <nav class="flex flex-row md:flex-col w-full">
           <SidebarButton
@@ -77,20 +77,21 @@ const activeTab = computed({
 
 <style scoped>
 .adm-layout {
+  --adm-header-height: 56px;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  min-height: calc(100dvh - var(--header-height));
   background: var(--color-canvas);
   color: var(--color-on-ghost);
 }
 
 .adm-header {
-  height: 56px;
+  height: var(--adm-header-height);
   border-bottom: 1px solid var(--color-ghost-border);
   background: var(--color-canvas);
   flex-shrink: 0;
   position: sticky;
-  top: 0;
+  top: var(--header-height);
   z-index: 200;
 }
 
@@ -148,6 +149,14 @@ const activeTab = computed({
   min-height: 0;
 }
 
+.adm-sidebar {
+  position: sticky;
+  top: calc(var(--header-height) + var(--adm-header-height));
+  align-self: flex-start;
+  height: calc(100dvh - var(--header-height) - var(--adm-header-height));
+  z-index: 100;
+}
+
 .adm-nav-badge {
   font-size: 0.7rem;
   font-weight: 600;
@@ -165,22 +174,18 @@ const activeTab = computed({
 .adm-main {
   flex: 1;
   padding: 28px 32px 64px;
-  overflow-y: auto;
   min-width: 0;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 767px) {
   .adm-body {
     flex-direction: column;
   }
 
   .adm-sidebar {
-    width: 100%;
-    border-right: none;
-    border-bottom: 1px solid var(--color-ghost-border);
+    align-self: stretch;
+    height: auto;
     padding: 8px;
-    overflow-x: auto;
-    overflow-y: visible;
   }
 
   .adm-nav-badge {
