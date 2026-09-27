@@ -252,7 +252,7 @@ pub async fn change_member_role(
                 tc.user.user_id,
                 target,
                 &dto.role,
-                tc.is_owner(),
+                tc.has_owner_rights(),
             )
             .await?,
     ))
@@ -263,9 +263,9 @@ pub async fn transfer_ownership(
     tc: TenantContext,
     Json(dto): Json<TransferOwnershipDto>,
 ) -> AppResult<Json<Value>> {
-    if !tc.is_owner() {
+    if !tc.has_owner_rights() {
         return Err(AppError::forbidden(
-            "Only the owner can transfer ownership.",
+            "Only the owner or a superadmin can transfer ownership.",
         ));
     }
     Ok(Json(
@@ -295,6 +295,7 @@ pub async fn remove_member(
                 tc.user.user_id,
                 target,
                 q.ban.as_deref() == Some("true"),
+                tc.has_owner_rights(),
             )
             .await?,
     ))
@@ -338,7 +339,7 @@ pub async fn get_permissions(
     State(s): State<AppState>,
     tc: TenantContext,
 ) -> AppResult<Json<Value>> {
-    if !tc.can_bypass_tenant_checks() {
+    if !tc.has_owner_rights() {
         return Err(AppError::forbidden(
             "Only the group owner or superadmin can view permissions.",
         ));
@@ -355,7 +356,7 @@ pub async fn update_permissions(
     tc: TenantContext,
     Json(dto): Json<UpdateGroupPermissionsDto>,
 ) -> AppResult<Json<Value>> {
-    if !tc.can_bypass_tenant_checks() {
+    if !tc.has_owner_rights() {
         return Err(AppError::forbidden(
             "Only the group owner or superadmin can change permissions.",
         ));
@@ -382,9 +383,9 @@ pub async fn update_schedule_config(
 }
 
 pub async fn delete_group(State(s): State<AppState>, tc: TenantContext) -> AppResult<Json<Value>> {
-    if !tc.is_owner() {
+    if !tc.has_owner_rights() {
         return Err(AppError::forbidden(
-            "Only the group owner can delete this group.",
+            "Only the group owner or superadmin can delete this group.",
         ));
     }
 
@@ -399,7 +400,7 @@ pub async fn cleanup_old_items(
     State(s): State<AppState>,
     tc: TenantContext,
 ) -> AppResult<Json<Value>> {
-    if !tc.can_bypass_tenant_checks() {
+    if !tc.has_owner_rights() {
         return Err(AppError::forbidden(
             "Only the group owner or superadmin can run cleanup.",
         ));

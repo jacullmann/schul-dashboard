@@ -286,9 +286,9 @@ impl GroupAdminService {
         current_user_id: Uuid,
         target: Uuid,
         role: &str,
-        acting_is_owner: bool,
+        acting_has_owner_rights: bool,
     ) -> AppResult<Value> {
-        if target == current_user_id {
+        if target == current_user_id && !acting_has_owner_rights {
             return Err(AppError::bad_request("You cannot change your own role."));
         }
 
@@ -316,9 +316,9 @@ impl GroupAdminService {
         }
 
         let touches_admin = role_enum == Role::Admin || existing.role_name == Role::Admin.as_str();
-        if touches_admin && !acting_is_owner {
+        if touches_admin && !acting_has_owner_rights {
             return Err(AppError::forbidden(
-                "Only the group owner can assign or change admin roles.",
+                "Only the group owner or superadmin can assign or change admin roles.",
             ));
         }
 
@@ -348,6 +348,7 @@ impl GroupAdminService {
         current_user_id: Uuid,
         target: Uuid,
         ban: bool,
+        acting_has_owner_rights: bool,
     ) -> AppResult<Value> {
         if target == current_user_id {
             return Err(AppError::bad_request("You cannot remove yourself."));
@@ -372,9 +373,9 @@ impl GroupAdminService {
         .await?
         .ok_or_else(|| AppError::not_found("User is not a member"))?;
 
-        if target_role.name == Role::Admin.as_str() && group.owner_id != current_user_id {
+        if target_role.name == Role::Admin.as_str() && !acting_has_owner_rights {
             return Err(AppError::forbidden(
-                "Admins can only be removed by the owner.",
+                "Admins can only be removed by the owner or a superadmin.",
             ));
         }
 
@@ -410,16 +411,13 @@ impl GroupAdminService {
         Ok(json!({ "ok": true }))
     }
 
+    /// The previous owner always stays in the group as an admin.
     pub async fn transfer_ownership(
         &self,
         tenant_id: Uuid,
         current_user_id: Uuid,
         target: Uuid,
     ) -> AppResult<Value> {
-        if target == current_user_id {
-            return Err(AppError::bad_request("You are already the owner."));
-        }
-
         let mut tx = self.db.begin().await?;
 
         let group = sqlx::query!(
@@ -430,10 +428,9 @@ impl GroupAdminService {
         .await?
         .ok_or_else(|| AppError::not_found("Group not found."))?;
 
-        if group.owner_id != current_user_id {
-            return Err(AppError::forbidden(
-                "Only the owner can transfer ownership.",
-            ));
+        let previous_owner = group.owner_id;
+        if target == previous_owner {
+            return Err(AppError::bad_request("This member already owns the group."));
         }
 
         sqlx::query!(
@@ -457,7 +454,7 @@ impl GroupAdminService {
             r#"UPDATE user_roles SET role_id = $1
                WHERE user_id = $2 AND tenant_id = $3"#,
             Role::Admin.db_id_i32(),
-            current_user_id,
+            previous_owner,
             tenant_id
         )
         .execute(&mut *tx)
@@ -477,7 +474,7 @@ impl GroupAdminService {
             r#"INSERT INTO user_activity (user_id, type, meta)
                VALUES ($1, 'group-admin:transfer-ownership', $2)"#,
             current_user_id,
-            json!({ "newOwnerId": target })
+            json!({ "previousOwnerId": previous_owner, "newOwnerId": target })
         )
         .execute(&mut *tx)
         .await?;

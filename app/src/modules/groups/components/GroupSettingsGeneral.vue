@@ -35,7 +35,7 @@ const canEditGroupType = computed(
 
 const props = defineProps<{
   isAdmin: boolean;
-  isOwner?: boolean;
+  hasOwnerRights?: boolean;
   groupName: string;
   newGroupName: string;
   editingGroupName: boolean;
@@ -519,7 +519,7 @@ async function confirmDeleteGroup() {
       </BaseFormContent>
     </div>
 
-    <div v-if="isOwner">
+    <div v-if="hasOwnerRights">
       <h3 class="text-danger">
         {{ t('groups.settings.general.delete_group.danger_zone_title') }}
       </h3>
