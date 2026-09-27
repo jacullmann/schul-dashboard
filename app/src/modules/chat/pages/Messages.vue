@@ -56,7 +56,7 @@ const {
 <template>
   <!-- Grid: the message list and the scroll button share the first row, the input sits in the second. -->
   <div
-    class="chat-container grid grid-rows-[minmax(0,1fr)_auto] overflow-hidden animate-fade-up"
+    class="chat-container grid grid-rows-[minmax(0,1fr)_auto] overflow-hidden"
     :class="{ 'is-keyboard-open': isKeyboardOpen }"
     :style="
       viewportHeight

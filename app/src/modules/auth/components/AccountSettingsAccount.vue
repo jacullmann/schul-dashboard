@@ -14,7 +14,7 @@ const { t } = useI18n();
 </script>
 
 <template>
-  <div class="animate-fade-up flex flex-col gap-10">
+  <div class="flex flex-col gap-10">
     <section class="flex flex-col gap-2">
       <h3>{{ t('auth.account_settings.account.email') }}</h3>
       <span class="text-base font-semibold text-on-ghost">{{ email }}</span>

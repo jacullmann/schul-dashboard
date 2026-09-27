@@ -243,7 +243,6 @@ function goBack() {
             <BaseList
               v-for="(item, index) in navItems"
               :key="item.id"
-              class="animate-fade-up"
               :separator="index !== navItems.length - 1"
               :chevron="true"
               @click="selectTab(item.id)"

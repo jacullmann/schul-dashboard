@@ -210,12 +210,7 @@ function onDrop(e: DragEvent) {
 <template>
   <div
     ref="containerRef"
-    class="relative"
-    :class="
-      isSwipeActionVisible
-        ? 'overflow-x-clip overflow-y-visible rounded-xl z-10'
-        : 'z-20 focus-within:z-30 hover:z-30 has-[[role=menu]]:z-50'
-    "
+    class="relative z-20 focus-within:z-30 hover:z-30 has-[[role=menu]]:z-50"
   >
     <button
       v-if="isSwipeActionVisible"

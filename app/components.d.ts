@@ -58,6 +58,5 @@ declare module 'vue' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Tagline: typeof import('./src/common/components/Tagline.vue')['default']
-    VideoPlayer: typeof import('./src/common/components/VideoPlayer.vue')['default']
   }
 }

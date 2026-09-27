@@ -259,10 +259,7 @@ const phoneEntranceStyle = (group: Lesson[]) => ({
     <div
       class="grid grid-cols-[80px_repeat(5,minmax(9rem,1fr))] grid-rows-[auto_repeat(9,auto)] gap-2 items-stretch"
     >
-      <ScheduleTimeColumn
-        :time-slots="effectiveTimeSlots"
-        :animated="animated"
-      />
+      <ScheduleTimeColumn :time-slots="effectiveTimeSlots" />
 
       <div
         v-for="day in days"

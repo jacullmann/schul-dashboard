@@ -177,7 +177,7 @@ function confirmRemove() {
 </script>
 
 <template>
-  <div class="animate-fade-up">
+  <div>
     <!-- Subpages navigation list above the members list -->
     <div
       v-if="canModerateMembers"
@@ -269,7 +269,7 @@ function confirmRemove() {
       <div
         v-for="member in members"
         :key="member.userId"
-        class="flex max-md:flex-col items-center justify-between p-2 px-3 bg-surface border border-ghost-border shadow-input rounded-xl gap-3 animate-fade-up"
+        class="flex max-md:flex-col items-center justify-between p-2 px-3 bg-surface border border-ghost-border shadow-input rounded-xl gap-3"
       >
         <div class="flex items-center gap-2.5 min-w-0">
           <span

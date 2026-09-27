@@ -353,7 +353,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="animate-fade-up">
+  <div>
     <!-- List View -->
     <div v-if="!subTabId">
       <PageHeader>
@@ -392,7 +392,7 @@ onMounted(() => {
         <BaseList
           v-for="(sub, index) in subjects"
           :key="sub.id"
-          class="animate-fade-up cursor-pointer"
+          class="cursor-pointer"
           :separator="index !== subjects.length - 1"
           :chevron="true"
           @click="goToSubject(sub.id)"
@@ -629,7 +629,7 @@ onMounted(() => {
           <div
             v-for="course in subject.courses"
             :key="course.id"
-            class="flex items-center justify-between p-3 rounded-xl bg-surface border border-ghost-border animate-fade-up"
+            class="flex items-center justify-between p-3 rounded-xl bg-surface border border-ghost-border"
           >
             <span class="font-medium text-base text-on-ghost truncate">
               {{ course.name }}

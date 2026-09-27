@@ -344,7 +344,7 @@ function handleEmptyStateAnimationEnd(event: AnimationEvent) {
         :css="useListTransitions"
         name="task-list"
         tag="div"
-        class="flex flex-col gap-3 relative overflow-x-clip"
+        class="flex flex-col gap-3 relative"
         @before-leave="beforeLeave"
       >
         <TaskCard

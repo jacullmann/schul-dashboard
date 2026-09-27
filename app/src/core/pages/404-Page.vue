@@ -26,22 +26,22 @@ const goBack = () => {
   <div class="p-4 max-w-[800px] my-0 mx-0 md:my-10 md:mx-auto">
     <div class="flex flex-col items-center text-center py-5 max-[500px]:py-2.5">
       <div
-        class="font-display text-[96px] font-bold text-on-ghost leading-none mb-4 tracking-[-0.02em] max-md:text-[72px] max-[500px]:text-[64px] animate-fade-up"
+        class="font-display text-[96px] font-bold text-on-ghost leading-none mb-4 tracking-[-0.02em] max-md:text-[72px] max-[500px]:text-[64px]"
       >
         404
       </div>
       <h1
-        class="font-display text-[32px] font-semibold text-on-ghost m-0 mb-3 max-md:text-[24px] animate-fade-up"
+        class="font-display text-[32px] font-semibold text-on-ghost m-0 mb-3 max-md:text-[24px]"
       >
         {{ t('common.not_found.title') }}
       </h1>
       <p
-        class="text-base text-on-ghost-muted m-0 mb-12 max-w-[500px] max-md:text-sm max-md:mb-8 animate-fade-up"
+        class="text-base text-on-ghost-muted m-0 mb-12 max-w-[500px] max-md:text-sm max-md:mb-8"
       >
         {{ t('common.not_found.description') }}
       </p>
 
-      <div v-if="contextGroupId" class="w-full mb-8 animate-fade-up">
+      <div v-if="contextGroupId" class="w-full mb-8">
         <div
           class="grid w-full gap-3 grid-cols-[repeat(auto-fit,minmax(280px,1fr))] max-md:grid-cols-1"
         >
@@ -129,7 +129,7 @@ const goBack = () => {
         </div>
       </div>
 
-      <div class="mt-4 animate-fade-up">
+      <div class="mt-4">
         <BaseButton variant="ghost" :icon="ArrowLeft" @click="goBack">
           {{ t('common.not_found.go_back') }}
         </BaseButton>

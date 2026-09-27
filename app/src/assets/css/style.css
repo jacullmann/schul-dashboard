@@ -1,6 +1,9 @@
 @import 'tailwindcss';
 @plugin '@tailwindcss/typography';
 
+/* For Firefox rendering bugs only; feature queries cover everything else. */
+@custom-variant firefox (@supports (-moz-appearance: none));
+
 @theme {
   --color-black: oklch(0 0 0);
   --color-vapor: oklch(0 0 0 / 7%);
@@ -126,19 +129,7 @@
   --z-tooltip: 20000;
 
   --animate-pulse: pulse 2s cubic-bezier(0.22, 1, 0.36, 1) infinite;
-  --animate-fade-up: fade-up 0.35s ease-out forwards;
   --animate-ripple: ripple-effect 400ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
-
-  @keyframes fade-up {
-    0% {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
 
   @keyframes ripple-effect {
     0% {

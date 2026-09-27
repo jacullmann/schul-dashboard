@@ -26,8 +26,6 @@ import {
   Crown,
   Flag,
   Building2,
-  Gamepad,
-  Newspaper,
   Crop,
   SquarePen,
   UserRoundPlus,
@@ -291,22 +289,6 @@ const defaultResults = computed<SearchResult[]>(() => [
     action: () =>
       navigate({ name: 'account-settings', params: { tab: 'account' } }),
     searchOnly: true,
-  },
-  {
-    id: 'games',
-    label: t('search.items.games'),
-    description: t('search.descriptions.games'),
-    category: 'page',
-    icon: Gamepad,
-    action: () => navigate({ name: 'games' }),
-  },
-  {
-    id: 'info-dashboard',
-    label: t('search.items.info_dashboard'),
-    description: t('search.descriptions.info_dashboard'),
-    category: 'page',
-    icon: Newspaper,
-    action: () => navigate({ name: 'info-dashboard' }),
   },
   {
     id: 'image-tool',

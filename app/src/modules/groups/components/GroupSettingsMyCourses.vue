@@ -71,7 +71,7 @@ async function save() {
 </script>
 
 <template>
-  <div class="animate-fade-up">
+  <div>
     <p class="text-base/relaxed text-on-ghost-muted m-0 mb-4 max-w-160">
       {{ t('auth.courses.description') }}
     </p>

@@ -882,7 +882,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="animate-fade-up">
+  <div>
     <PageHeader>
       <span>{{
         isEditMode

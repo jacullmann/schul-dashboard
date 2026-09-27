@@ -18,7 +18,7 @@ const canModerateMembers = computed(() => checkPermission('moderate_members'));
 </script>
 
 <template>
-  <div class="animate-fade-up">
+  <div>
     <PageHeader>
       {{ t('groups.settings.members.ban_list.title') }}
     </PageHeader>
@@ -45,7 +45,7 @@ const canModerateMembers = computed(() => checkPermission('moderate_members'));
       <div
         v-for="user in bannedUsers"
         :key="user.userId"
-        class="flex items-center justify-between p-2 px-3 bg-surface border border-ghost-border shadow-input rounded-xl gap-3 animate-fade-up"
+        class="flex items-center justify-between p-2 px-3 bg-surface border border-ghost-border shadow-input rounded-xl gap-3"
       >
         <div class="flex items-center gap-2.5 min-w-0">
           <span
