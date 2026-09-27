@@ -1,22 +1,11 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT ur.tenant_id, g.id as gid, g.name as gname, g.owner_id, g.schedule_config,\n                      g.avatar_url, g.permissions, g.group_type, g.dalton_enabled, r.name as role_name\n               FROM user_roles ur\n               JOIN groups g ON g.id = ur.tenant_id\n               JOIN roles r ON r.id = ur.role_id\n               WHERE ur.user_id = $1 AND ur.tenant_id IS NOT NULL",
+  "query": "SELECT g.id, g.name, g.owner_id, g.schedule_config, g.avatar_url, g.permissions,\n                      g.group_type, g.dalton_enabled, r.name AS role_name\n               FROM user_roles ur\n               JOIN groups g ON g.id = ur.tenant_id\n               JOIN roles r ON r.id = ur.role_id\n               WHERE ur.user_id = $1\n               ORDER BY ur.assigned_at",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
-        "name": "tenant_id",
-        "type_info": "Uuid",
-        "origin": {
-          "Table": {
-            "table": "user_roles",
-            "name": "tenant_id"
-          }
-        }
-      },
-      {
-        "ordinal": 1,
-        "name": "gid",
+        "name": "id",
         "type_info": "Uuid",
         "origin": {
           "Table": {
@@ -26,8 +15,8 @@
         }
       },
       {
-        "ordinal": 2,
-        "name": "gname",
+        "ordinal": 1,
+        "name": "name",
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -37,7 +26,7 @@
         }
       },
       {
-        "ordinal": 3,
+        "ordinal": 2,
         "name": "owner_id",
         "type_info": "Uuid",
         "origin": {
@@ -48,7 +37,7 @@
         }
       },
       {
-        "ordinal": 4,
+        "ordinal": 3,
         "name": "schedule_config",
         "type_info": "Jsonb",
         "origin": {
@@ -59,7 +48,7 @@
         }
       },
       {
-        "ordinal": 5,
+        "ordinal": 4,
         "name": "avatar_url",
         "type_info": "Text",
         "origin": {
@@ -70,7 +59,7 @@
         }
       },
       {
-        "ordinal": 6,
+        "ordinal": 5,
         "name": "permissions",
         "type_info": "Jsonb",
         "origin": {
@@ -81,7 +70,7 @@
         }
       },
       {
-        "ordinal": 7,
+        "ordinal": 6,
         "name": "group_type",
         "type_info": "Text",
         "origin": {
@@ -92,7 +81,7 @@
         }
       },
       {
-        "ordinal": 8,
+        "ordinal": 7,
         "name": "dalton_enabled",
         "type_info": "Bool",
         "origin": {
@@ -103,7 +92,7 @@
         }
       },
       {
-        "ordinal": 9,
+        "ordinal": 8,
         "name": "role_name",
         "type_info": "Text",
         "origin": {
@@ -120,7 +109,6 @@
       ]
     },
     "nullable": [
-      true,
       false,
       false,
       false,
@@ -132,5 +120,5 @@
       false
     ]
   },
-  "hash": "d09ad9fbe7918f0b9c8c94686c22ae098a93888174c93e20d07a495577127442"
+  "hash": "7df9de7d168f1d50edca05289137a8b83bf1565d0f3d98c1d035877ec7bd7075"
 }

@@ -1,9 +1,5 @@
 use crate::{
-    auth::{
-        cookies::*,
-        session_context::{SessionContext, resolve_session_context},
-        token::TokenService,
-    },
+    auth::{cookies::*, session_context::load_global_role, token::TokenService},
     common::{csrf::generate_csrf_token, jwt::now_secs, password::verify_password},
     config::Config,
     error::{AppError, AppResult},
@@ -542,17 +538,13 @@ impl OAuthService {
         user_id: Uuid,
         email: &str,
     ) -> AppResult<(CookieJar, String)> {
-        let SessionContext {
-            global_role,
-            active_group_id,
-        } = resolve_session_context(&self.db, user_id).await?;
+        let global_role = load_global_role(&self.db, user_id).await?;
 
         let tokens = TokenService::from_state(&self.state)
             .issue_pair(crate::auth::token::IssueTokenParams {
                 user_id,
                 email,
                 global_role: &global_role,
-                active_group_id,
                 user_agent: None,
                 ip_address: None,
                 parent: None,

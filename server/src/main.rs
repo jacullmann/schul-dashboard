@@ -17,7 +17,7 @@ mod user;
 
 use anyhow::Context;
 use axum::{Router, body::Body, http::Response, middleware};
-use common::csrf::csrf_middleware;
+use common::{csrf::csrf_middleware, extractors::resolve_tenant};
 use config::Config;
 use sqlx::postgres::PgPoolOptions;
 use state::AppState;
@@ -85,7 +85,6 @@ async fn main() -> anyhow::Result<()> {
             axum::http::header::CONTENT_TYPE,
             axum::http::header::AUTHORIZATION,
             axum::http::HeaderName::from_static("x-csrf-token"),
-            axum::http::HeaderName::from_static("x-tenant-id"),
         ]))
         .expose_headers([common::personalization::HIDDEN_BY_COURSES]);
 
@@ -110,15 +109,28 @@ async fn main() -> anyhow::Result<()> {
         }
     });
 
+    // Every group-bound endpoint names its group in the path. The layer checks
+    // membership once per request, so no handler below can be reached for a
+    // group the caller does not belong to.
+    let group_scoped = Router::new()
+        .merge(group::routes::group_router())
+        .merge(items::routes::group_router())
+        .merge(messages::routes::group_router())
+        .merge(schedule::routes::group_router())
+        .merge(user::routes::group_router())
+        .route_layer(middleware::from_fn_with_state(
+            state.clone(),
+            resolve_tenant,
+        ));
+
     let api = Router::new()
+        .nest("/groups/{group_id}", group_scoped)
         .merge(system::routes::router())
         .merge(auth::routes::router())
         .merge(user::routes::router())
         .merge(group::routes::router())
         .merge(todos::routes::router())
-        .merge(items::routes::router())
         .merge(messages::routes::router())
-        .merge(schedule::routes::router())
         .merge(mfa::routes::router())
         .merge(oauth::routes::router())
         .merge(super_admin::routes::router())

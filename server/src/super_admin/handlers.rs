@@ -1,9 +1,7 @@
 use super::{dto::*, service::SuperAdminService};
 use crate::{
-    common::extractors::{AuthUser, TenantContext},
+    common::extractors::AuthUser,
     error::{AppError, AppResult},
-    group::admin::service::GroupAdminService,
-    group::dto::CreateScheduleSubDto,
     reports::service::ReportsService,
     state::AppState,
 };
@@ -22,23 +20,19 @@ fn require_superadmin(user: &AuthUser) -> AppResult<()> {
     }
 }
 
-pub async fn get_stats(State(s): State<AppState>, tc: TenantContext) -> AppResult<Json<Value>> {
-    require_superadmin(&tc.user)?;
-    Ok(Json(
-        SuperAdminService::from_state(&s)
-            .get_stats(tc.tenant_id)
-            .await?,
-    ))
+pub async fn get_stats(State(s): State<AppState>, user: AuthUser) -> AppResult<Json<Value>> {
+    require_superadmin(&user)?;
+    Ok(Json(SuperAdminService::from_state(&s).get_stats().await?))
 }
 
 pub async fn cleanup_old_items(
     State(s): State<AppState>,
-    tc: TenantContext,
+    user: AuthUser,
 ) -> AppResult<Json<Value>> {
-    require_superadmin(&tc.user)?;
+    require_superadmin(&user)?;
     Ok(Json(
         SuperAdminService::from_state(&s)
-            .cleanup_old_items(tc.tenant_id, tc.user.user_id)
+            .cleanup_old_items(user.user_id)
             .await?,
     ))
 }
@@ -185,75 +179,6 @@ pub async fn delete_report(
     Ok(Json(
         ReportsService::from_state(&s)
             .delete(id, user.user_id)
-            .await?,
-    ))
-}
-
-pub async fn upsert_subject(
-    State(s): State<AppState>,
-    tc: TenantContext,
-    Json(dto): Json<CreateSubjectDto>,
-) -> AppResult<Json<Value>> {
-    require_superadmin(&tc.user)?;
-
-    Ok(Json(
-        SuperAdminService::from_state(&s)
-            .upsert_subject(tc.tenant_id, &dto.name)
-            .await?,
-    ))
-}
-
-pub async fn delete_subject(
-    State(s): State<AppState>,
-    tc: TenantContext,
-    Path(name): Path<String>,
-) -> AppResult<Json<Value>> {
-    require_superadmin(&tc.user)?;
-
-    Ok(Json(
-        SuperAdminService::from_state(&s)
-            .delete_subject_by_name(tc.tenant_id, &name)
-            .await?,
-    ))
-}
-
-pub async fn get_schedule_subs_admin(
-    State(s): State<AppState>,
-    tc: TenantContext,
-) -> AppResult<Json<Value>> {
-    require_superadmin(&tc.user)?;
-
-    Ok(Json(
-        GroupAdminService::from_state(&s)
-            .get_schedule_subs(tc.tenant_id)
-            .await?,
-    ))
-}
-
-pub async fn create_schedule_sub_admin(
-    State(s): State<AppState>,
-    tc: TenantContext,
-    Json(dto): Json<CreateScheduleSubDto>,
-) -> AppResult<Json<Value>> {
-    require_superadmin(&tc.user)?;
-
-    Ok(Json(
-        GroupAdminService::from_state(&s)
-            .create_schedule_sub(tc.tenant_id, tc.user.user_id, dto)
-            .await?,
-    ))
-}
-
-pub async fn delete_schedule_sub_admin(
-    State(s): State<AppState>,
-    tc: TenantContext,
-    Path(id): Path<Uuid>,
-) -> AppResult<Json<Value>> {
-    require_superadmin(&tc.user)?;
-
-    Ok(Json(
-        GroupAdminService::from_state(&s)
-            .delete_schedule_sub(tc.tenant_id, id)
             .await?,
     ))
 }

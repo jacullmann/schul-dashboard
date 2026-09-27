@@ -30,7 +30,6 @@ pub struct IssueTokenParams<'a> {
     pub user_id: Uuid,
     pub email: &'a str,
     pub global_role: &'a str,
-    pub active_group_id: Option<Uuid>,
     pub user_agent: Option<&'a str>,
     pub ip_address: Option<&'a str>,
     pub parent: Option<(Uuid, Uuid)>,
@@ -44,7 +43,6 @@ struct RefreshTokenRow {
     revoked_at: Option<DateTime<Utc>>,
     expires_at: DateTime<Utc>,
     role_version: i32,
-    active_group_id: Option<Uuid>,
 }
 
 impl RefreshTokenRow {
@@ -144,8 +142,8 @@ impl TokenService {
         sqlx::query!(
             r#"INSERT INTO refresh_tokens
                 (user_id, token_hash, family_id, parent_id, expires_at,
-                 user_agent, ip_address, role_version, active_group_id)
-               VALUES ($1, $2, $3, $4, $5, $6, $7::inet, $8, $9)"#,
+                 user_agent, ip_address, role_version)
+               VALUES ($1, $2, $3, $4, $5, $6, $7::inet, $8)"#,
             p.user_id,
             token_hash,
             family_id,
@@ -154,7 +152,6 @@ impl TokenService {
             ua,
             ip_parsed,
             role_version,
-            p.active_group_id,
         )
         .execute(&self.db)
         .await?;
@@ -163,7 +160,6 @@ impl TokenService {
             p.user_id,
             p.email.to_string(),
             p.global_role.to_string(),
-            p.active_group_id,
             ACCESS_TOKEN_TTL,
             u32::try_from(role_version).unwrap_or(0),
         );
@@ -253,10 +249,6 @@ impl TokenService {
                 user_id: user.user_id,
                 email: &user.email,
                 global_role: &user.global_role,
-                // Preserve the group this session was actually using. Falling back
-                // to load_user_claims' "first tenant" silently moved the user to a
-                // different group on every refresh.
-                active_group_id: row.active_group_id,
                 user_agent,
                 ip_address,
                 parent: Some((row.id, row.family_id)),
@@ -269,73 +261,12 @@ impl TokenService {
     async fn find_refresh_token(&self, hash: &str) -> Result<Option<RefreshTokenRow>, AppError> {
         Ok(sqlx::query_as!(
             RefreshTokenRow,
-            r#"SELECT id, user_id, family_id, used_at, revoked_at, expires_at, role_version, active_group_id
+            r#"SELECT id, user_id, family_id, used_at, revoked_at, expires_at, role_version
                FROM refresh_tokens WHERE token_hash = $1"#,
             hash
         )
         .fetch_optional(&self.db)
         .await?)
-    }
-
-    pub async fn reissue_for_group(
-        &self,
-        presented_token: &str,
-        active_group_id: Option<Uuid>,
-        user_agent: Option<&str>,
-        ip_address: Option<&str>,
-    ) -> Result<Option<IssuedTokens>, AppError> {
-        let hash = hash_token(presented_token);
-
-        let row = sqlx::query!(
-            r#"SELECT id, user_id, family_id, revoked_at, expires_at
-               FROM refresh_tokens WHERE token_hash = $1"#,
-            hash
-        )
-        .fetch_optional(&self.db)
-        .await?;
-
-        let Some(row) = row else { return Ok(None) };
-
-        // A revoked or expired family cannot be advanced — let the caller start a
-        // fresh family. But a token that is merely already-*used* means a
-        // concurrent switch/refresh consumed it first; in that case we still
-        // advance the SAME family. A transient second live tip is collapsed by
-        // list_active_sessions' DISTINCT ON, whereas forking a new family would
-        // resurface as a phantom session — the exact bug we are fixing. This is
-        // safe because switch reaches us only behind a valid (short-lived) access
-        // token, so it is not the unauthenticated replay surface `rotate` guards.
-        if row.revoked_at.is_some() || row.expires_at < Utc::now() {
-            return Ok(None);
-        }
-
-        // Best-effort consume; ignore the rowcount, since losing the race is the
-        // case we deliberately tolerate above.
-        sqlx::query!(
-            r#"UPDATE refresh_tokens SET used_at = now()
-               WHERE id = $1 AND used_at IS NULL AND revoked_at IS NULL"#,
-            row.id
-        )
-        .execute(&self.db)
-        .await?;
-
-        let Some(user) = self.load_user_claims(row.user_id).await? else {
-            self.revoke_family(row.family_id, ADMIN_REVOKE).await?;
-            return Ok(None);
-        };
-
-        let issued = self
-            .issue_pair(IssueTokenParams {
-                user_id: user.user_id,
-                email: &user.email,
-                global_role: &user.global_role,
-                active_group_id,
-                user_agent,
-                ip_address,
-                parent: Some((row.id, row.family_id)),
-            })
-            .await?;
-
-        Ok(Some(issued))
     }
 
     pub async fn revoke_by_token(&self, token: &str, reason: RevokeReason) -> Result<(), AppError> {

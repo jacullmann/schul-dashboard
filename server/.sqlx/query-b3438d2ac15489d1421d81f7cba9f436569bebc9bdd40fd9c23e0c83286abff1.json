@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT COUNT(*) FROM items WHERE tenant_id = $1 AND created_at < now() - interval '90 days'",
+  "query": "SELECT COUNT(*) FROM items WHERE created_at < now() - interval '90 days'",
   "describe": {
     "columns": [
       {
@@ -11,13 +11,11 @@
       }
     ],
     "parameters": {
-      "Left": [
-        "Uuid"
-      ]
+      "Left": []
     },
     "nullable": [
       null
     ]
   },
-  "hash": "eb792dedde1cf11163b9cd1b8292bdad347e4e3ac3b29c7e9befbb36fecf205a"
+  "hash": "b3438d2ac15489d1421d81f7cba9f436569bebc9bdd40fd9c23e0c83286abff1"
 }

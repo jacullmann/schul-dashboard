@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT r.name FROM user_roles ur\n            JOIN roles r ON r.id = ur.role_id\n            WHERE ur.user_id = $1 AND ur.tenant_id IS NULL\n            LIMIT 1\n            ",
+  "query": "SELECT r.name FROM user_roles ur\n           JOIN roles r ON r.id = ur.role_id\n           WHERE ur.user_id = $1 AND ur.tenant_id IS NULL\n           LIMIT 1",
   "describe": {
     "columns": [
       {
@@ -24,5 +24,5 @@
       false
     ]
   },
-  "hash": "eefaf8240aabdee64931e034afc5bdfd3c6346f89bd321558879b6257c961bf7"
+  "hash": "f1fe3a6bc0ab89457db407899195be63489804ab58a3996022f344b4f440efa4"
 }

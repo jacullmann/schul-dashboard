@@ -21,19 +21,16 @@ impl SuperAdminService {
         }
     }
 
-    pub async fn get_stats(&self, tenant_id: Uuid) -> AppResult<Value> {
+    pub async fn get_stats(&self) -> AppResult<Value> {
         let user_count = sqlx::query_scalar!(r#"SELECT COUNT(*) FROM users"#)
             .fetch_one(&self.db)
             .await?
             .unwrap_or(0);
 
-        let item_count = sqlx::query_scalar!(
-            r#"SELECT COUNT(*) FROM items WHERE tenant_id = $1"#,
-            tenant_id
-        )
-        .fetch_one(&self.db)
-        .await?
-        .unwrap_or(0);
+        let item_count = sqlx::query_scalar!(r#"SELECT COUNT(*) FROM items"#)
+            .fetch_one(&self.db)
+            .await?
+            .unwrap_or(0);
 
         let banned_count = sqlx::query_scalar!(r#"SELECT COUNT(*) FROM banned_users"#)
             .fetch_one(&self.db)
@@ -58,12 +55,11 @@ impl SuperAdminService {
                 .unwrap_or(0);
 
         let old_items = sqlx::query_scalar!(
-            r#"SELECT COUNT(*) FROM items WHERE tenant_id = $1 AND created_at < now() - interval '90 days'"#,
-            tenant_id
+            r#"SELECT COUNT(*) FROM items WHERE created_at < now() - interval '90 days'"#
         )
-            .fetch_one(&self.db)
-            .await?
-            .unwrap_or(0);
+        .fetch_one(&self.db)
+        .await?
+        .unwrap_or(0);
 
         let new_users_week = sqlx::query_scalar!(
             r#"SELECT COUNT(*) FROM users WHERE created_at >= now() - interval '7 days'"#
@@ -73,12 +69,11 @@ impl SuperAdminService {
         .unwrap_or(0);
 
         let new_items_week = sqlx::query_scalar!(
-            r#"SELECT COUNT(*) FROM items WHERE tenant_id = $1 AND created_at >= now() - interval '7 days'"#,
-            tenant_id
+            r#"SELECT COUNT(*) FROM items WHERE created_at >= now() - interval '7 days'"#
         )
-            .fetch_one(&self.db)
-            .await?
-            .unwrap_or(0);
+        .fetch_one(&self.db)
+        .await?
+        .unwrap_or(0);
 
         Ok(json!({
             "userCount": user_count, "itemCount": item_count,
@@ -93,21 +88,13 @@ impl SuperAdminService {
         }))
     }
 
-    pub async fn cleanup_old_items(&self, tenant_id: Uuid, user_id: Uuid) -> AppResult<Value> {
-        let count = sqlx::query_scalar!(
-            r#"SELECT COUNT(*) FROM items WHERE tenant_id = $1 AND created_at < now() - interval '90 days'"#,
-            tenant_id
-        )
-            .fetch_one(&self.db)
-            .await?
-            .unwrap_or(0);
-
-        sqlx::query!(
-            r#"DELETE FROM items WHERE tenant_id = $1 AND created_at < now() - interval '90 days'"#,
-            tenant_id
-        )
-        .execute(&self.db)
-        .await?;
+    /// Platform-wide counterpart of the per-group cleanup in group admin.
+    pub async fn cleanup_old_items(&self, user_id: Uuid) -> AppResult<Value> {
+        let count =
+            sqlx::query!(r#"DELETE FROM items WHERE created_at < now() - interval '90 days'"#)
+                .execute(&self.db)
+                .await?
+                .rows_affected();
 
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'admin:cleanup:old_items', $2)"#,
@@ -380,27 +367,5 @@ impl SuperAdminService {
         .await?;
 
         Ok(json!({ "ok": true, "message": "Logs pruned." }))
-    }
-
-    pub async fn upsert_subject(&self, tenant_id: Uuid, name: &str) -> AppResult<Value> {
-        sqlx::query!(
-            r#"INSERT INTO subjects (tenant_id, name) VALUES ($1, $2) ON CONFLICT DO NOTHING"#,
-            tenant_id,
-            name
-        )
-        .execute(&self.db)
-        .await?;
-        Ok(json!({ "ok": true }))
-    }
-
-    pub async fn delete_subject_by_name(&self, tenant_id: Uuid, name: &str) -> AppResult<Value> {
-        sqlx::query!(
-            r#"DELETE FROM subjects WHERE tenant_id = $1 AND name = $2"#,
-            tenant_id,
-            name
-        )
-        .execute(&self.db)
-        .await?;
-        Ok(json!({ "ok": true }))
     }
 }

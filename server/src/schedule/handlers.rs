@@ -1,8 +1,7 @@
 use super::service::ScheduleService;
 use crate::{
     common::{
-        extractors::{OptionalAuth, TenantContext},
-        personalization::hidden_by_courses_header,
+        extractors::TenantContext, path_params::IdPath, personalization::hidden_by_courses_header,
     },
     error::AppResult,
     state::AppState,
@@ -13,15 +12,13 @@ use axum::{
     response::IntoResponse,
 };
 use serde_json::{Value, json};
-use uuid::Uuid;
 
 pub async fn get_schedule(
     State(s): State<AppState>,
     tc: TenantContext,
-    opt: OptionalAuth,
 ) -> AppResult<impl IntoResponse> {
     let schedule = ScheduleService::from_state(&s)
-        .get_schedule(tc.tenant_id, opt.0.map(|u| u.user_id))
+        .get_schedule(tc.tenant_id, Some(tc.user.user_id))
         .await?;
 
     Ok((
@@ -66,7 +63,7 @@ pub async fn get_announcement_read_status(
 pub async fn mark_announcement_read(
     State(s): State<AppState>,
     tc: TenantContext,
-    Path(id): Path<Uuid>,
+    Path(IdPath { id }): Path<IdPath>,
 ) -> AppResult<Json<Value>> {
     ScheduleService::from_state(&s)
         .mark_announcement_read(tc.user.user_id, tc.tenant_id, id)

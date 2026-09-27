@@ -2,7 +2,7 @@ use crate::{
     auth::{
         cookies::*,
         dto::*,
-        session_context::resolve_session_context,
+        session_context::load_global_role,
         token::{TokenService, *},
     },
     common::{
@@ -59,7 +59,7 @@ impl AuthService {
         user_agent: Option<&str>,
         ip: Option<&str>,
     ) -> AppResult<(CookieJar, String)> {
-        let context = resolve_session_context(&self.db, user_id).await?;
+        let global_role = load_global_role(&self.db, user_id).await?;
 
         let opts = self.config.base_cookie_options();
 
@@ -68,8 +68,7 @@ impl AuthService {
             .issue_pair(crate::auth::token::IssueTokenParams {
                 user_id,
                 email,
-                global_role: &context.global_role,
-                active_group_id: context.active_group_id,
+                global_role: &global_role,
                 user_agent,
                 ip_address: ip,
                 parent: None,
@@ -351,11 +350,7 @@ impl AuthService {
         }
     }
 
-    pub async fn get_me(
-        &self,
-        user_id: Uuid,
-        active_group_id: Option<Uuid>,
-    ) -> AppResult<serde_json::Value> {
+    pub async fn get_me(&self, user_id: Uuid) -> AppResult<serde_json::Value> {
         let user = sqlx::query!(
             r#"
             SELECT id, email, email_verified, mfa_enabled, done_setup, personalized, preferences
@@ -371,36 +366,7 @@ impl AuthService {
             Some(u) => u,
         };
 
-        let global_role = sqlx::query!(
-            r#"
-            SELECT r.name FROM user_roles ur
-            JOIN roles r ON r.id = ur.role_id
-            WHERE ur.user_id = $1 AND ur.tenant_id IS NULL
-            LIMIT 1
-            "#,
-            user_id
-        )
-        .fetch_optional(&self.db)
-        .await?
-        .map_or_else(|| "user".into(), |r| r.name);
-
-        let tenant_role = if let Some(gid) = active_group_id {
-            sqlx::query!(
-                r#"
-                SELECT r.name FROM user_roles ur
-                JOIN roles r ON r.id = ur.role_id
-                WHERE ur.user_id = $1 AND ur.tenant_id = $2
-                LIMIT 1
-                "#,
-                user_id,
-                gid
-            )
-            .fetch_optional(&self.db)
-            .await?
-            .map(|r| r.name)
-        } else {
-            None
-        };
+        let global_role = load_global_role(&self.db, user_id).await?;
 
         let courses = sqlx::query!(
             r#"SELECT subject_id, course_id FROM user_courses WHERE user_id = $1"#,
@@ -419,7 +385,6 @@ impl AuthService {
             "id": user.id,
             "email": user.email,
             "role": global_role,
-            "tenantRole": tenant_role,
             "emailVerified": user.email_verified,
             "courses": courses,
             "doneSetup": user.done_setup,

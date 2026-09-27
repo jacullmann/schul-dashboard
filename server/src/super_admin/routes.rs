@@ -23,14 +23,4 @@ pub fn router() -> Router<AppState> {
         .route("/admin/reports", get(get_reports))
         .route("/admin/reports/{id}/processed", patch(process_report))
         .route("/admin/reports/{id}", delete(delete_report))
-        .route("/admin/subjects", post(upsert_subject))
-        .route("/admin/subjects/{name}", delete(delete_subject))
-        .route(
-            "/admin/schedule/subs",
-            get(get_schedule_subs_admin).post(create_schedule_sub_admin),
-        )
-        .route(
-            "/admin/schedule/subs/{id}",
-            delete(delete_schedule_sub_admin),
-        )
 }

@@ -5,7 +5,8 @@ use axum::{
     routing::{get, post},
 };
 
-pub fn router() -> Router<AppState> {
+/// Mounted under `/groups/{group_id}` behind the tenant middleware.
+pub fn group_router() -> Router<AppState> {
     Router::new()
         .route("/schedule", get(get_schedule))
         .route("/schedule/subs", get(get_subs))

@@ -1,0 +1,12 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM items WHERE created_at < now() - interval '90 days'",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": []
+  },
+  "hash": "c574e3134fa0e38debb5d00ebaacb48ff6e4382e8f38c0c2562aefc85aea7438"
+}
