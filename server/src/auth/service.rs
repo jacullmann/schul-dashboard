@@ -2,7 +2,7 @@ use crate::{
     auth::{
         cookies::*,
         dto::*,
-        session_context::load_global_role,
+        session_context::is_superadmin,
         token::{TokenService, *},
     },
     common::{
@@ -10,6 +10,7 @@ use crate::{
         email::EmailService,
         jwt::JwtService,
         password::{hash_password, validate_password_strength, verify_password},
+        role::Role,
     },
     config::{
         Config, EMAIL_VERIFY_TTL, MFA_PENDING_TTL, PASSWORD_RESET_CODE_TTL, PASSWORD_RESET_TTL,
@@ -59,8 +60,6 @@ impl AuthService {
         user_agent: Option<&str>,
         ip: Option<&str>,
     ) -> AppResult<(CookieJar, String)> {
-        let global_role = load_global_role(&self.db, user_id).await?;
-
         let opts = self.config.base_cookie_options();
 
         let issued = self
@@ -68,7 +67,6 @@ impl AuthService {
             .issue_pair(crate::auth::token::IssueTokenParams {
                 user_id,
                 email,
-                global_role: &global_role,
                 user_agent,
                 ip_address: ip,
                 parent: None,
@@ -366,7 +364,11 @@ impl AuthService {
             Some(u) => u,
         };
 
-        let global_role = load_global_role(&self.db, user_id).await?;
+        let global_role = if is_superadmin(&self.db, user_id).await? {
+            Role::Superadmin
+        } else {
+            Role::User
+        };
 
         let courses = sqlx::query!(
             r#"SELECT subject_id, course_id FROM user_courses WHERE user_id = $1"#,
@@ -384,7 +386,7 @@ impl AuthService {
             "authenticated": true,
             "id": user.id,
             "email": user.email,
-            "role": global_role,
+            "role": global_role.as_str(),
             "emailVerified": user.email_verified,
             "courses": courses,
             "doneSetup": user.done_setup,

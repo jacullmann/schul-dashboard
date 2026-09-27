@@ -37,7 +37,7 @@ pub async fn get_items(
                 hide_checked: q.hide_checked.unwrap_or(false),
                 personalized: q.personalized.unwrap_or(false),
             },
-            tc.user.is_superadmin(),
+            tc.is_superadmin,
         )
         .await?;
 
@@ -54,7 +54,7 @@ pub async fn get_item_by_id(
 ) -> AppResult<Json<Value>> {
     Ok(Json(
         ItemsService::from_state(&s)
-            .get_item_by_id(tc.tenant_id, id, tc.user.is_superadmin())
+            .get_item_by_id(tc.tenant_id, id, tc.is_superadmin)
             .await?,
     ))
 }
@@ -97,7 +97,7 @@ pub async fn delete_item(
                 tenant_id: tc.tenant_id,
                 id,
                 user_id: tc.user.user_id,
-                is_superadmin: tc.user.is_superadmin(),
+                is_superadmin: tc.is_superadmin,
                 is_owner: tc.is_owner(),
                 can_delete_others: tc.can(Permission::DeleteOtherContent),
             })
@@ -149,7 +149,7 @@ pub async fn remove_image(
                 tc.tenant_id,
                 id,
                 tc.user.user_id,
-                tc.user.is_superadmin(),
+                tc.is_superadmin,
                 &decoded,
             )
             .await?,

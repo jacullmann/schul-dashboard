@@ -12,7 +12,6 @@ use axum::{
     extract::{Path, Query, State},
     http::StatusCode,
 };
-use axum_extra::extract::CookieJar;
 use serde::Deserialize;
 use serde_json::{Value, json};
 
@@ -100,11 +99,9 @@ pub async fn get_status(
     State(s): State<AppState>,
     OptionalAuth(user): OptionalAuth,
 ) -> AppResult<Json<GroupStatusDto>> {
-    let is_superadmin = user.as_ref().is_some_and(AuthUser::is_superadmin);
-
     Ok(Json(
         GroupService::from_state(&s)
-            .get_status(user.map(|u| u.user_id), is_superadmin)
+            .get_status(user.map(|u| u.user_id))
             .await?,
     ))
 }
@@ -130,19 +127,6 @@ pub async fn leave_group(State(s): State<AppState>, tc: TenantContext) -> AppRes
         .await?;
 
     Ok(Json(json!({ "ok": true })))
-}
-
-pub async fn logout(
-    State(s): State<AppState>,
-    jar: CookieJar,
-    ClientIp(ip): ClientIp,
-    UserAgent(ua): UserAgent,
-) -> AppResult<(CookieJar, Json<Value>)> {
-    let jar = GroupService::from_state(&s)
-        .logout(jar, ip.as_deref(), ua.as_deref())
-        .await?;
-
-    Ok((jar, Json(json!({ "ok": true }))))
 }
 
 pub async fn get_stats(State(s): State<AppState>, tc: TenantContext) -> AppResult<Json<Value>> {

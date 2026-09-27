@@ -1,9 +1,5 @@
 use crate::{
-    auth::{
-        cookies::*,
-        session_context::{remember_visited_group, resolve_landing_group},
-        token::{LOGOUT, TokenService},
-    },
+    auth::session_context::{is_superadmin, remember_visited_group, resolve_landing_group},
     common::{
         extractors::TenantContext,
         group_type::GroupType,
@@ -18,7 +14,6 @@ use crate::{
     },
     state::AppState,
 };
-use axum_extra::extract::CookieJar;
 use serde_json::{Value, json};
 use sqlx::{PgConnection, PgPool};
 use uuid::Uuid;
@@ -61,15 +56,11 @@ pub struct AcceptInviteParams<'a> {
 
 pub struct GroupService {
     db: PgPool,
-    state: AppState,
 }
 
 impl GroupService {
     pub fn from_state(s: &AppState) -> Self {
-        Self {
-            db: s.db.clone(),
-            state: s.clone(),
-        }
+        Self { db: s.db.clone() }
     }
 
     pub async fn create_group(&self, params: CreateGroupParams<'_>) -> AppResult<Value> {
@@ -82,6 +73,8 @@ impl GroupService {
         let ua = params.ua;
         let ip_parsed: Option<ipnetwork::IpNetwork> = ip.and_then(|s| s.parse().ok());
 
+        let mut tx = self.db.begin().await?;
+
         let group = sqlx::query!(
             r#"INSERT INTO groups (name, avatar_url, owner_id, group_type, dalton_enabled)
                VALUES ($1, $2, $3, $4, $5) RETURNING id, name"#,
@@ -91,7 +84,7 @@ impl GroupService {
             group_type.as_str(),
             dalton_enabled
         )
-        .fetch_one(&self.db)
+        .fetch_one(&mut *tx)
         .await?;
 
         let group_id = group.id;
@@ -103,23 +96,21 @@ impl GroupService {
             Role::Admin.db_id_i32(),
             group_id
         )
-        .execute(&self.db)
+        .execute(&mut *tx)
         .await?;
 
         sqlx::query!(
             r#"INSERT INTO security_events (event_type, event_status, ip_address, user_agent, metadata)
              VALUES ('group_create', 'success', $1::inet, $2, $3)"#,
             ip_parsed, ua, json!({ "groupName": group_name_str, "groupId": group_id, "createdBy": user_id, "groupType": group_type.as_str(), "daltonEnabled": dalton_enabled })
-        ).execute(&self.db).await?;
+        ).execute(&mut *tx).await?;
+
+        tx.commit().await?;
 
         Ok(json!({ "ok": true, "groupId": group_id }))
     }
 
-    pub async fn get_status(
-        &self,
-        user_id: Option<Uuid>,
-        is_superadmin: bool,
-    ) -> AppResult<GroupStatusDto> {
+    pub async fn get_status(&self, user_id: Option<Uuid>) -> AppResult<GroupStatusDto> {
         let Some(user_id) = user_id else {
             return Ok(GroupStatusDto {
                 authenticated: false,
@@ -127,6 +118,8 @@ impl GroupService {
                 landing_group_id: None,
             });
         };
+
+        let is_superadmin = is_superadmin(&self.db, user_id).await?;
 
         let groups = sqlx::query!(
             r#"SELECT g.id, g.name, g.owner_id, g.schedule_config, g.avatar_url, g.permissions,
@@ -238,36 +231,6 @@ impl GroupService {
         tx.commit().await?;
 
         Ok(())
-    }
-
-    pub async fn logout(
-        &self,
-        jar: CookieJar,
-        ip: Option<&str>,
-        ua: Option<&str>,
-    ) -> AppResult<CookieJar> {
-        let ip_parsed: Option<ipnetwork::IpNetwork> = ip.and_then(|s| s.parse().ok());
-
-        sqlx::query!(
-            r#"INSERT INTO security_events (event_type, event_status, ip_address, user_agent, metadata)
-             VALUES ('group_logout', 'success', $1::inet, $2, '{}'::jsonb)"#,
-            ip_parsed, ua
-        ).execute(&self.db).await?;
-
-        let opts = self.state.config.base_cookie_options();
-
-        if let Some(token) = jar
-            .get(crate::config::REFRESH_COOKIE)
-            .map(|c| c.value().to_string())
-        {
-            let _ = TokenService::from_state(&self.state)
-                .revoke_by_token(&token, LOGOUT)
-                .await;
-        }
-
-        Ok(jar
-            .add(clear_access_cookie(&opts))
-            .add(clear_refresh_cookie(&opts)))
     }
 
     pub async fn create_invite(&self, tenant_id: Uuid, user_id: Uuid) -> AppResult<Value> {
@@ -413,23 +376,16 @@ impl GroupService {
             return Err(AppError::forbidden("You have been banned from this group."));
         }
 
-        let existing = sqlx::query!(
-            "SELECT id FROM user_roles WHERE user_id = $1 AND tenant_id = $2",
+        // Joining twice keeps the existing membership and its role.
+        sqlx::query!(
+            r#"INSERT INTO user_roles (user_id, role_id, tenant_id) VALUES ($1, $2, $3)
+               ON CONFLICT (user_id, tenant_id) WHERE tenant_id IS NOT NULL DO NOTHING"#,
             user_id,
+            Role::User.db_id_i32(),
             group_id
         )
-        .fetch_optional(&mut *tx)
+        .execute(&mut *tx)
         .await?;
-
-        if existing.is_none() {
-            sqlx::query!(
-                "INSERT INTO user_roles (user_id, role_id, tenant_id) VALUES ($1, 4, $2)",
-                user_id,
-                group_id
-            )
-            .execute(&mut *tx)
-            .await?;
-        }
 
         let ip_parsed: Option<ipnetwork::IpNetwork> = ip.and_then(|s| s.parse().ok());
 

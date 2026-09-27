@@ -1,4 +1,11 @@
-use crate::{common::name_generator::generate_user_name, config::ACCESS_COOKIE, state::AppState};
+use crate::{
+    common::{
+        extractors::{AuthUser, TenantContext},
+        name_generator::generate_user_name,
+    },
+    config::ACCESS_COOKIE,
+    state::AppState,
+};
 use axum::extract::ws::{Message, WebSocket, WebSocketUpgrade};
 use axum::{
     extract::State,
@@ -102,6 +109,10 @@ async fn handle_socket(mut socket: WebSocket, state: AppState, token: Option<Str
         Ok(id) => id,
         Err(_) => return,
     };
+    let user = AuthUser {
+        user_id,
+        email: claims.email,
+    };
     let mut rx: Option<broadcast::Receiver<BusEvent>> = None;
     let mut joined_group: Option<Uuid> = None;
     let mut sender_name: Option<String> = None;
@@ -113,20 +124,12 @@ async fn handle_socket(mut socket: WebSocket, state: AppState, token: Option<Str
                         if let Ok(event) = serde_json::from_str::<ClientEvent>(&text) {
                             match event {
                                 ClientEvent::JoinGroup { group_id } => {
-                                    let mut has_access = claims.g_role == "superadmin";
-                                    if !has_access {
-                                        let is_member = sqlx::query!(
-                                            r#"SELECT tenant_id FROM user_roles WHERE user_id = $1 AND tenant_id = $2"#,
-                                            user_id,
-                                            group_id
-                                        )
-                                        .fetch_optional(&state.db)
-                                        .await
-                                        .unwrap_or(None);
-                                        if is_member.is_some() {
-                                            has_access = true;
-                                        }
-                                    }
+                                    // Same membership rule as every HTTP route under
+                                    // /groups/{group_id}.
+                                    let has_access =
+                                        TenantContext::resolve(&state.db, user.clone(), group_id)
+                                            .await
+                                            .is_ok();
                                     if has_access {
                                         let tx = state.message_bus.sender_for(group_id).await;
                                         rx = Some(tx.subscribe());

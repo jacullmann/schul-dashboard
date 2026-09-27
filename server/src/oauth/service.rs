@@ -1,5 +1,5 @@
 use crate::{
-    auth::{cookies::*, session_context::load_global_role, token::TokenService},
+    auth::{cookies::*, token::TokenService},
     common::{csrf::generate_csrf_token, jwt::now_secs, password::verify_password},
     config::Config,
     error::{AppError, AppResult},
@@ -264,9 +264,7 @@ impl OAuthService {
             AppError::bad_request("This Google account is already linked to another account.")
         })?;
 
-        let (jar, _) = self
-            .generate_auth_jar_with_context(user.id, &user.email)
-            .await?;
+        let jar = self.generate_auth_jar(user.id, &user.email).await?;
         Ok((jar, json!({ "ok": true })))
     }
 
@@ -529,22 +527,10 @@ impl OAuthService {
     }
 
     async fn generate_auth_jar(&self, user_id: Uuid, email: &str) -> AppResult<CookieJar> {
-        let (jar, _) = self.generate_auth_jar_with_context(user_id, email).await?;
-        Ok(jar)
-    }
-
-    async fn generate_auth_jar_with_context(
-        &self,
-        user_id: Uuid,
-        email: &str,
-    ) -> AppResult<(CookieJar, String)> {
-        let global_role = load_global_role(&self.db, user_id).await?;
-
         let tokens = TokenService::from_state(&self.state)
             .issue_pair(crate::auth::token::IssueTokenParams {
                 user_id,
                 email,
-                global_role: &global_role,
                 user_agent: None,
                 ip_address: None,
                 parent: None,
@@ -555,12 +541,10 @@ impl OAuthService {
 
         let csrf = generate_csrf_token();
 
-        let jar = CookieJar::new()
+        Ok(CookieJar::new()
             .add(access_cookie(tokens.access_token, &opts))
             .add(refresh_cookie(tokens.refresh_token, &opts))
-            .add(crate::common::csrf::csrf_cookie(&csrf, &opts));
-
-        Ok((jar, global_role))
+            .add(crate::common::csrf::csrf_cookie(&csrf, &opts)))
     }
 }
 

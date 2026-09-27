@@ -29,7 +29,6 @@ pub struct IssuedTokens {
 pub struct IssueTokenParams<'a> {
     pub user_id: Uuid,
     pub email: &'a str,
-    pub global_role: &'a str,
     pub user_agent: Option<&'a str>,
     pub ip_address: Option<&'a str>,
     pub parent: Option<(Uuid, Uuid)>,
@@ -159,7 +158,6 @@ impl TokenService {
         let claims = AccessClaims::new(
             p.user_id,
             p.email.to_string(),
-            p.global_role.to_string(),
             ACCESS_TOKEN_TTL,
             u32::try_from(role_version).unwrap_or(0),
         );
@@ -248,7 +246,6 @@ impl TokenService {
             .issue_pair(IssueTokenParams {
                 user_id: user.user_id,
                 email: &user.email,
-                global_role: &user.global_role,
                 user_agent,
                 ip_address,
                 parent: Some((row.id, row.family_id)),
@@ -267,20 +264,6 @@ impl TokenService {
         )
         .fetch_optional(&self.db)
         .await?)
-    }
-
-    pub async fn revoke_by_token(&self, token: &str, reason: RevokeReason) -> Result<(), AppError> {
-        let hash = hash_token(token);
-
-        sqlx::query!(
-            r#"UPDATE refresh_tokens SET revoked_at = now(), revoked_reason = $1
-               WHERE token_hash = $2 AND revoked_at IS NULL"#,
-            reason,
-            hash,
-        )
-        .execute(&self.db)
-        .await?;
-        Ok(())
     }
 
     pub async fn revoke_family(
@@ -450,21 +433,9 @@ impl TokenService {
             return Ok(None);
         }
 
-        let global_role = sqlx::query!(
-            r#"SELECT r.name FROM user_roles ur
-               JOIN roles r ON r.id = ur.role_id
-               WHERE ur.user_id = $1 AND ur.tenant_id IS NULL
-               LIMIT 1"#,
-            user_id
-        )
-        .fetch_optional(&self.db)
-        .await?
-        .map_or_else(|| "user".into(), |r| r.name);
-
         Ok(Some(UserClaims {
             user_id: user.id,
             email: user.email,
-            global_role,
             role_version: user.role_version,
         }))
     }
@@ -474,7 +445,6 @@ impl TokenService {
 struct UserClaims {
     user_id: Uuid,
     email: String,
-    global_role: String,
     role_version: i32,
 }
 

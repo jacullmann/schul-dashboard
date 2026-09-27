@@ -133,7 +133,7 @@ async fn main() -> anyhow::Result<()> {
         .merge(messages::routes::router())
         .merge(mfa::routes::router())
         .merge(oauth::routes::router())
-        .merge(super_admin::routes::router())
+        .merge(super_admin::routes::router(state.clone()))
         .layer(
             GovernorLayer::new(global_governor)
                 .error_handler(|e: GovernorError| -> Response<Body> { Response::from(e) }),

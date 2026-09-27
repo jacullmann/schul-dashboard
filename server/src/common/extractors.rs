@@ -1,4 +1,5 @@
 use crate::{
+    auth::session_context::is_superadmin,
     common::{
         path_params::GroupPath,
         permission::{GroupPermissions, Permission},
@@ -11,7 +12,8 @@ use crate::{
 use axum::{
     Json,
     extract::{
-        FromRef, FromRequest, FromRequestParts, Path, Request, State, rejection::JsonRejection,
+        FromRef, FromRequest, FromRequestParts, Path, Request, State,
+        rejection::{JsonRejection, PathRejection},
     },
     http::request::Parts,
     middleware::Next,
@@ -24,22 +26,13 @@ use std::convert::Infallible;
 use uuid::Uuid;
 use validator::Validate;
 
+/// Who is calling, as proven by the access token. It carries no roles: every
+/// authorization decision reads the current state from the database, so a
+/// revoked right never outlives the request that revoked it.
 #[derive(Debug, Clone)]
 pub struct AuthUser {
     pub user_id: Uuid,
     pub email: String,
-    pub global_role: String,
-}
-
-impl AuthUser {
-    pub fn is_superadmin(&self) -> bool {
-        self.global_role == "superadmin"
-    }
-
-    #[allow(dead_code)]
-    pub fn role(&self) -> Role {
-        Role::from_str_or_user(&self.global_role)
-    }
 }
 
 impl<S> FromRequestParts<S> for AuthUser
@@ -71,7 +64,6 @@ where
         Ok(AuthUser {
             user_id,
             email: claims.email,
-            global_role: claims.g_role,
         })
     }
 }
@@ -156,23 +148,20 @@ pub struct TenantContext {
 
 impl TenantContext {
     pub async fn resolve(db: &PgPool, user: AuthUser, tenant_id: Uuid) -> AppResult<Self> {
+        // One round trip for everything a group request needs to authorize.
         let row = sqlx::query!(
             r#"
             SELECT g.owner_id,
                    g.permissions,
-                   membership.role_name AS "tenant_role?",
+                   (SELECT r.name FROM user_roles ur
+                    JOIN roles r ON r.id = ur.role_id
+                    WHERE ur.user_id = $1 AND ur.tenant_id = g.id) AS "tenant_role?",
                    EXISTS (
                        SELECT 1 FROM user_roles ur
                        JOIN roles r ON r.id = ur.role_id
                        WHERE ur.user_id = $1 AND ur.tenant_id IS NULL AND r.name = 'superadmin'
                    ) AS "is_superadmin!"
             FROM groups g
-            LEFT JOIN LATERAL (
-                SELECT r.name AS role_name FROM user_roles ur
-                JOIN roles r ON r.id = ur.role_id
-                WHERE ur.user_id = $1 AND ur.tenant_id = g.id
-                LIMIT 1
-            ) membership ON true
             WHERE g.id = $2
             "#,
             user.user_id,
@@ -181,15 +170,12 @@ impl TenantContext {
         .fetch_optional(db)
         .await?;
 
-        // Non-members get the same answer as for a missing group, so group ids
-        // cannot be probed for existence.
-        let not_found = || AppError::not_found("Group not found.");
-        let row = row.ok_or_else(not_found)?;
+        let row = row.ok_or_else(group_not_found)?;
 
         let tenant_role = match (row.is_superadmin, row.tenant_role.as_deref()) {
             (true, _) => Role::Superadmin,
             (false, Some(role)) => Role::from_str_or_user(role),
-            (false, None) => return Err(not_found()),
+            (false, None) => return Err(group_not_found()),
         };
 
         Ok(Self {
@@ -226,14 +212,21 @@ impl TenantContext {
     }
 }
 
+/// Non-members get the same answer as for a missing or malformed group id, so
+/// group ids cannot be probed for existence.
+fn group_not_found() -> AppError {
+    AppError::not_found("Group not found.")
+}
+
 /// Route layer for everything nested under `/groups/{group_id}`.
 pub async fn resolve_tenant(
     State(state): State<AppState>,
     user: AuthUser,
-    Path(GroupPath { group_id }): Path<GroupPath>,
+    path: Result<Path<GroupPath>, PathRejection>,
     mut request: Request,
     next: Next,
 ) -> AppResult<Response> {
+    let Path(GroupPath { group_id }) = path.map_err(|_| group_not_found())?;
     let tenant = TenantContext::resolve(&state.db, user, group_id).await?;
     request.extensions_mut().insert(tenant);
     Ok(next.run(request).await)
@@ -246,14 +239,52 @@ where
     type Rejection = AppError;
 
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
-        parts
-            .extensions
-            .get::<TenantContext>()
-            .cloned()
-            .ok_or_else(|| {
-                AppError::internal("TenantContext used on a route outside /groups/{group_id}")
-            })
+        from_route_layer(parts, "resolve_tenant")
     }
+}
+
+/// A caller whose superadmin role was confirmed against the database for this
+/// request by the `require_superadmin` route layer.
+#[derive(Debug, Clone)]
+pub struct SuperAdmin(pub AuthUser);
+
+/// Route layer for the platform administration endpoints.
+pub async fn require_superadmin(
+    State(state): State<AppState>,
+    user: AuthUser,
+    mut request: Request,
+    next: Next,
+) -> AppResult<Response> {
+    if !is_superadmin(&state.db, user.user_id).await? {
+        return Err(AppError::forbidden("Super-admin privileges required."));
+    }
+    request.extensions_mut().insert(SuperAdmin(user));
+    Ok(next.run(request).await)
+}
+
+impl<S> FromRequestParts<S> for SuperAdmin
+where
+    S: Send + Sync,
+{
+    type Rejection = AppError;
+
+    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
+        from_route_layer(parts, "require_superadmin")
+    }
+}
+
+/// Reading a guard's result without its layer is a routing bug, not a
+/// client error, so it fails loudly.
+fn from_route_layer<T: Clone + Send + Sync + 'static>(
+    parts: &Parts,
+    layer: &str,
+) -> Result<T, AppError> {
+    parts.extensions.get::<T>().cloned().ok_or_else(|| {
+        AppError::internal(format!(
+            "{} extracted on a route without the {layer} layer",
+            std::any::type_name::<T>()
+        ))
+    })
 }
 
 pub struct ClientIp(pub Option<String>);

@@ -2,18 +2,21 @@ use crate::error::AppResult;
 use sqlx::PgPool;
 use uuid::Uuid;
 
-pub async fn load_global_role(db: &PgPool, user_id: Uuid) -> AppResult<String> {
-    let role = sqlx::query_scalar!(
-        r#"SELECT r.name FROM user_roles ur
-           JOIN roles r ON r.id = ur.role_id
-           WHERE ur.user_id = $1 AND ur.tenant_id IS NULL
-           LIMIT 1"#,
+/// Superadmin is the only platform-wide role; everyone else is a plain user
+/// whose rights come from their group memberships.
+pub async fn is_superadmin(db: &PgPool, user_id: Uuid) -> AppResult<bool> {
+    let is_superadmin = sqlx::query_scalar!(
+        r#"SELECT EXISTS (
+               SELECT 1 FROM user_roles ur
+               JOIN roles r ON r.id = ur.role_id
+               WHERE ur.user_id = $1 AND ur.tenant_id IS NULL AND r.name = 'superadmin'
+           ) AS "is_superadmin!""#,
         user_id
     )
-    .fetch_optional(db)
+    .fetch_one(db)
     .await?;
 
-    Ok(role.unwrap_or_else(|| "user".into()))
+    Ok(is_superadmin)
 }
 
 /// Where the app opens after sign-in. The last visited group only wins while

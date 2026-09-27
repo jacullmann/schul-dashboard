@@ -30,7 +30,6 @@ fn hs256_validation() -> Validation {
 pub struct AccessClaims {
     pub sub: String,
     pub email: String,
-    pub g_role: String,
     pub iat: u64,
     pub exp: u64,
     #[serde(default)]
@@ -38,19 +37,12 @@ pub struct AccessClaims {
 }
 
 impl AccessClaims {
-    pub fn new(
-        user_id: Uuid,
-        email: String,
-        global_role: String,
-        ttl: Duration,
-        role_version: u32,
-    ) -> Self {
+    pub fn new(user_id: Uuid, email: String, ttl: Duration, role_version: u32) -> Self {
         let now = now_secs();
 
         Self {
             sub: user_id.to_string(),
             email,
-            g_role: global_role,
             iat: now,
             exp: now + ttl.as_secs(),
             rv: role_version,

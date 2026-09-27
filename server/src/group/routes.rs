@@ -10,7 +10,6 @@ pub fn router() -> Router<AppState> {
         .route("/groups", post(create_group))
         .route("/groups/status", get(get_status))
         .route("/uploads/group-avatar/sign", post(sign_group_avatar_upload))
-        .route("/groups/logout", post(logout))
         .route("/invites/{token}", get(get_invite))
         .route("/invites/{token}/accept", post(accept_invite))
 }
