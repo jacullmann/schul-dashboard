@@ -40,7 +40,7 @@ function formatDate(iso: string) {
 </script>
 
 <template>
-  <div class="animate-fade-up">
+  <div>
     <PageHeader>
       {{ t('announcements.list.title') }}
 
@@ -70,7 +70,7 @@ function formatDate(iso: string) {
       <div
         v-for="ann in announcements"
         :key="ann.id"
-        class="flex justify-between gap-2 p-1 rounded-xl bg-surface border border-ghost-border border-l-[3px] animate-fade-up"
+        class="flex justify-between gap-2 p-1 rounded-xl bg-surface border border-ghost-border border-l-[3px]"
         :class="[
           ann.color === 'info'
             ? 'border-l-action'

@@ -93,7 +93,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="animate-fade-up">
+  <div>
     <PageHeader>
       {{ t('groups.settings.permissions.title') }}
 

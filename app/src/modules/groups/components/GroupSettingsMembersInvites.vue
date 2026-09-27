@@ -96,7 +96,7 @@ function getInviteUrl(token: string): string {
 </script>
 
 <template>
-  <div class="animate-fade-up">
+  <div>
     <div class="flex items-center justify-between gap-4 mb-4">
       <PageHeader class="m-0!">
         {{ t('groups.settings.members.invite_links.title') }}

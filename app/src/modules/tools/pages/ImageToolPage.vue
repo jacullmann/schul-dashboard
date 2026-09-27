@@ -295,12 +295,12 @@ const updateImageSource = (newSrc: string) => {
 <template>
   <div class="card">
     <div class="container">
-      <h2 class="mb-4 animate-[fade-up_0.5s_ease-out]">
+      <h2 class="mb-4">
         {{ t('tools.image.title') }}
       </h2>
 
       <div
-        class="border-2 border-dashed border-ghost-border rounded-md p-4 text-center cursor-pointer transition-all duration-200 mb-8 animate-[fade-up_0.5s_ease-out]"
+        class="border-2 border-dashed border-ghost-border rounded-md p-4 text-center cursor-pointer transition-all duration-200 mb-8"
         :class="{ 'border-ghost-border': isDraggingFile }"
         @click="triggerUpload"
         @dragover.prevent="isDraggingFile = true"
@@ -324,7 +324,7 @@ const updateImageSource = (newSrc: string) => {
       </div>
 
       <div
-        class="grid grid-cols-2 gap-4 opacity-50 pointer-events-none animate-[fade-up_0.5s_ease-out]"
+        class="grid grid-cols-2 gap-4 opacity-50 pointer-events-none"
         :class="{ '!opacity-100 !pointer-events-auto': hasImage }"
       >
         <div class="flex flex-col">
@@ -380,7 +380,7 @@ const updateImageSource = (newSrc: string) => {
       <BaseRow
         v-if="hasImage"
         justify="end"
-        class="mt-8 animate-[fade-up_0.5s_ease-out]"
+        class="mt-8"
       >
         <BaseButton variant="ghost" @click="openEditor">{{
           t('common.buttons.edit')
@@ -392,7 +392,7 @@ const updateImageSource = (newSrc: string) => {
 
       <div
         v-show="hasImage"
-        class="mt-4 text-center animate-[fade-up_0.5s_ease-out]"
+        class="mt-4 text-center"
       >
         <div class="mb-2 text-sm text-on-ghost-muted">
           {{ t('tools.image.settings.size') }}: {{ imageMeta.naturalWidth }} x

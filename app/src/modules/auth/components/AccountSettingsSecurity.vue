@@ -31,7 +31,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="animate-fade-up flex flex-col gap-10">
+  <div class="flex flex-col gap-10">
     <section class="flex flex-col gap-2">
       <h3>{{ t('auth.account_settings.password.title') }}</h3>
       <p class="text-sm/relaxed text-on-ghost-muted m-0!">

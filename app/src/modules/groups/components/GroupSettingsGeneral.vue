@@ -271,7 +271,7 @@ async function confirmDeleteGroup() {
 </script>
 
 <template>
-  <div class="animate-fade-up flex flex-col gap-8">
+  <div class="flex flex-col gap-8">
     <div
       v-if="!canEditSettings"
       class="text-center text-base text-on-ghost-muted"

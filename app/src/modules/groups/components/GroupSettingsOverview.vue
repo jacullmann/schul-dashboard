@@ -15,7 +15,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="animate-fade-up">
+  <div>
     <div class="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-3 mb-5">
       <div
         class="bg-surface border border-ghost-border shadow-input rounded-xl p-4.5 flex flex-col gap-1"
