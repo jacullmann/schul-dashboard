@@ -5,12 +5,12 @@ useSeoMetaWithI18n({
   title: () => `${t('pages.about.title')} — schul-dashboard`,
   description: () => t('pages.about.description'),
   keywords: 'about, mission, student project, school management, Berlin',
-  canonicalUrl: 'https://schul-dashboard.com/about',
   structuredData: {
     '@context': 'https://schema.org',
     '@type': 'AboutPage',
-    name: 'About schul-dashboard',
+    name: t('pages.about.title'),
     description: t('pages.about.description'),
+    isPartOf: { '@id': 'https://schul-dashboard.com/#website' },
   },
 });
 

@@ -7,7 +7,6 @@ useSeoMetaWithI18n({
   title: () => `${t('pages.contact.title')} — schul-dashboard`,
   description: () => t('pages.contact.description'),
   keywords: 'contact, support, email, discord',
-  canonicalUrl: 'https://schul-dashboard.com/contact',
 });
 
 const email = 'contact@schul-dashboard.com';

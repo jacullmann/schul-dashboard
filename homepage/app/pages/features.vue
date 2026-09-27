@@ -5,7 +5,6 @@ useSeoMetaWithI18n({
   title: () => `${t('pages.features.title')} — schul-dashboard`,
   description: () => t('pages.features.description'),
   keywords: 'features, tasks, timetable, substitutions, announcements, group chat, private notes',
-  canonicalUrl: 'https://schul-dashboard.com/features',
 });
 
 const chapters = [

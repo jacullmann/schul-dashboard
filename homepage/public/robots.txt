@@ -1,18 +1,4 @@
-# Allow search engines to crawl the homepage
 User-agent: *
 Allow: /
-Disallow: /.nuxt/
-Disallow: /node_modules/
-Crawl-delay: 1
 
-# Specific rules for search engines
-User-agent: Googlebot
-Allow: /
-Crawl-delay: 0
-
-User-agent: Bingbot
-Allow: /
-Crawl-delay: 1
-
-# Reference to sitemap
-Sitemap: https://schul-dashboard.com/sitemap.xml
+Sitemap: https://schul-dashboard.com/sitemap_index.xml
