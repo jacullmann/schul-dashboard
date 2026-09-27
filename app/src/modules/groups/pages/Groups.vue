@@ -26,11 +26,6 @@ const allGroups = ref<
 
 const isSuperadmin = computed(() => user.value?.role === 'superadmin');
 
-const displayName = computed(() => {
-  if (!user.value?.email) return '';
-  return user.value.email.split('@')[0];
-});
-
 const greeting = computed(() => {
   const h = new Date().getHours();
   if (h < 6) return 'groups.list.good_night';
@@ -96,12 +91,7 @@ onMounted(() => {
       <div class="flex justify-between items-start gap-4">
         <div>
           <h2 class="animate-fade-up">
-            {{ t(greeting) }}<span v-if="user">, </span>
-            <span
-              v-if="user"
-              class="bg-[image:var(--background-image-bismuth)] bg-clip-text text-transparent"
-              >{{ displayName }}</span
-            >
+            {{ t(greeting) }}
           </h2>
           <p class="text-base/relaxed text-on-ghost-muted m-0! animate-fade-up">
             {{
