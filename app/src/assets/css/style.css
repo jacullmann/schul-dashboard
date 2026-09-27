@@ -1,6 +1,9 @@
 @import 'tailwindcss';
 @plugin '@tailwindcss/typography';
 
+/* For Firefox rendering bugs only; feature queries cover everything else. */
+@custom-variant firefox (@supports (-moz-appearance: none));
+
 @theme {
   --color-black: oklch(0 0 0);
   --color-vapor: oklch(0 0 0 / 7%);

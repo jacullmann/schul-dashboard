@@ -63,7 +63,14 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
       >
         <!-- pr-12 reserves the close button's width plus gap -->
         <BaseRow class="sticky top-0 z-10 items-start h-[30px] mb-4 pr-12">
-          <BaseScrollFade class="-inset-x-4 -top-4 -bottom-4" />
+          <!-- Firefox leaves backdrop filters outside the scroller's clip
+               path, so the blur would square off the card's top corners.
+               The fade clips itself there instead: a rounded overflow clip
+               drops its masks in Chromium, and on the scroller or card it
+               drops the blur in Firefox. -->
+          <BaseScrollFade
+            class="-inset-x-4 -top-4 -bottom-4 firefox:overflow-hidden firefox:rounded-t-2xl"
+          />
 
           <BaseRow>
             <h3 :id="titleId">
