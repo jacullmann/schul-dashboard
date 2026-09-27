@@ -1,6 +1,7 @@
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import hw from '@/api/api.ts';
+import { groupPath } from '@/api/groupPath';
 import { processImageBeforeUpload } from '@/modules/tasks/composables/useConvertImage';
 import { useToast } from '@/common/composables/useToast';
 import type { ImageItem } from '@/modules/tasks/types';
@@ -113,7 +114,8 @@ export function makeRawUrl(input?: string): string {
   return `https://res.cloudinary.com/${CLOUD_NAME}/raw/upload/${input}`;
 }
 
-export function useImageUpload() {
+/** Uploads attach to items of `groupId`, which the caller fixes. */
+export function useImageUpload(groupId: string) {
   const { t } = useI18n();
   const toast = useToast();
 
@@ -211,7 +213,9 @@ export function useImageUpload() {
             const thumbFile = await extractOfficeThumbnail(file);
             if (thumbFile) {
               const processedThumb = await processImageBeforeUpload(thumbFile);
-              const { data: sign } = await hw.post('/items/uploads/sign');
+              const { data: sign } = await hw.post(
+                groupPath(groupId, '/items/uploads/sign'),
+              );
 
               let json;
               if (sign.cloudName === 'mock_cloud') {
@@ -254,7 +258,9 @@ export function useImageUpload() {
           }
 
           // 2. Upload the original Office file as a RAW resource
-          const { data: sign } = await hw.post('/items/uploads/sign');
+          const { data: sign } = await hw.post(
+            groupPath(groupId, '/items/uploads/sign'),
+          );
           let json;
 
           if (sign.cloudName === 'mock_cloud') {
@@ -293,9 +299,12 @@ export function useImageUpload() {
           const imgPayload = { publicId: json.public_id, metadata };
 
           if (itemId) {
-            const { data } = await hw.post(`/items/${itemId}/images`, {
-              image: imgPayload,
-            });
+            const { data } = await hw.post(
+              groupPath(groupId, `/items/${itemId}/images`),
+              {
+                image: imgPayload,
+              },
+            );
             images.value.push(data.image);
           } else {
             images.value.push({
@@ -309,7 +318,9 @@ export function useImageUpload() {
         } else {
           // Existing behavior for standard images and PDFs
           const processedFile = await processImageBeforeUpload(file);
-          const { data: sign } = await hw.post('/items/uploads/sign');
+          const { data: sign } = await hw.post(
+            groupPath(groupId, '/items/uploads/sign'),
+          );
 
           let json;
           if (sign.cloudName === 'mock_cloud') {
@@ -356,9 +367,12 @@ export function useImageUpload() {
           const imgPayload = { publicId: json.public_id, metadata };
 
           if (itemId) {
-            const { data } = await hw.post(`/items/${itemId}/images`, {
-              image: imgPayload,
-            });
+            const { data } = await hw.post(
+              groupPath(groupId, `/items/${itemId}/images`),
+              {
+                image: imgPayload,
+              },
+            );
             images.value.push(data.image);
           } else {
             images.value.push({
@@ -430,7 +444,10 @@ export function useImageUpload() {
     if (parentId) {
       try {
         await hw.delete(
-          `/items/${parentId}/images/${encodeURIComponent(img.publicId)}`,
+          groupPath(
+            groupId,
+            `/items/${parentId}/images/${encodeURIComponent(img.publicId)}`,
+          ),
         );
         images.value = images.value.filter((i) => i.publicId !== img.publicId);
         uploadError.value = t('tasks.images.delete_modal.success');

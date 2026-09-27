@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import hw from '@/api/api.ts';
 import { usePreferences } from '@/common/composables/usePreferences';
+import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 
 export interface UserData {
   id: string;
@@ -12,7 +13,6 @@ export interface UserData {
   doneSetup: boolean;
   personalized: boolean;
   mfaEnabled: boolean;
-  tenantRole: string | null;
   preferences?: Record<string, any>;
   username: string;
 }
@@ -30,11 +30,13 @@ export const useUserStore = defineStore('user', () => {
     () => user.value !== null && !user.value.doneSetup,
   );
   const mfaEnabled = computed(() => user.value?.mfaEnabled === true);
+  const { activeGroupRole } = useAppAuth();
+  /** Admin or moderator of the group the current route shows. */
   const isGroupAdmin = computed(
     () =>
-      user.value?.role === 'superadmin' ||
-      user.value?.tenantRole === 'admin' ||
-      user.value?.tenantRole === 'moderator',
+      isSuperadmin.value ||
+      activeGroupRole.value === 'admin' ||
+      activeGroupRole.value === 'moderator',
   );
 
   let fetchPromise: Promise<void> | null = null;
@@ -56,7 +58,6 @@ export const useUserStore = defineStore('user', () => {
             doneSetup: data.doneSetup,
             personalized: data.personalized,
             mfaEnabled: data.mfaEnabled ?? false,
-            tenantRole: data.tenantRole ?? null,
             preferences: data.preferences,
             username: data.username || '',
           };

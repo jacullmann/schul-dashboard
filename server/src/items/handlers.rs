@@ -4,7 +4,9 @@ use super::{
 };
 use crate::{
     common::{
-        extractors::TenantContext, permission::Permission,
+        extractors::TenantContext,
+        path_params::{IdPath, ItemImagePath},
+        permission::Permission,
         personalization::hidden_by_courses_header,
     },
     error::AppResult,
@@ -18,7 +20,6 @@ use axum::{
     response::IntoResponse,
 };
 use serde_json::Value;
-use uuid::Uuid;
 
 pub async fn get_items(
     State(s): State<AppState>,
@@ -36,7 +37,7 @@ pub async fn get_items(
                 hide_checked: q.hide_checked.unwrap_or(false),
                 personalized: q.personalized.unwrap_or(false),
             },
-            tc.user.is_superadmin(),
+            tc.is_superadmin,
         )
         .await?;
 
@@ -49,11 +50,11 @@ pub async fn get_items(
 pub async fn get_item_by_id(
     State(s): State<AppState>,
     tc: TenantContext,
-    Path(id): Path<Uuid>,
+    Path(IdPath { id }): Path<IdPath>,
 ) -> AppResult<Json<Value>> {
     Ok(Json(
         ItemsService::from_state(&s)
-            .get_item_by_id(tc.tenant_id, id, tc.user.is_superadmin())
+            .get_item_by_id(tc.tenant_id, id, tc.is_superadmin)
             .await?,
     ))
 }
@@ -75,7 +76,7 @@ pub async fn create_item(
 pub async fn update_item(
     State(s): State<AppState>,
     tc: TenantContext,
-    Path(id): Path<Uuid>,
+    Path(IdPath { id }): Path<IdPath>,
     Json(dto): Json<UpdateItemDto>,
 ) -> AppResult<Json<Value>> {
     Ok(Json(
@@ -88,7 +89,7 @@ pub async fn update_item(
 pub async fn delete_item(
     State(s): State<AppState>,
     tc: TenantContext,
-    Path(id): Path<Uuid>,
+    Path(IdPath { id }): Path<IdPath>,
 ) -> AppResult<Json<Value>> {
     Ok(Json(
         ItemsService::from_state(&s)
@@ -96,7 +97,7 @@ pub async fn delete_item(
                 tenant_id: tc.tenant_id,
                 id,
                 user_id: tc.user.user_id,
-                is_superadmin: tc.user.is_superadmin(),
+                is_superadmin: tc.is_superadmin,
                 is_owner: tc.is_owner(),
                 can_delete_others: tc.can(Permission::DeleteOtherContent),
             })
@@ -107,7 +108,7 @@ pub async fn delete_item(
 pub async fn update_item_note(
     State(s): State<AppState>,
     tc: TenantContext,
-    Path(id): Path<Uuid>,
+    Path(IdPath { id }): Path<IdPath>,
     Json(dto): Json<UpdateEditorNoteDto>,
 ) -> AppResult<Json<Value>> {
     require_permission!(tc, Permission::ManageNotes);
@@ -122,7 +123,7 @@ pub async fn update_item_note(
 pub async fn add_image(
     State(s): State<AppState>,
     tc: TenantContext,
-    Path(id): Path<Uuid>,
+    Path(IdPath { id }): Path<IdPath>,
     Json(dto): Json<AddImageDto>,
 ) -> AppResult<Json<Value>> {
     let can_upload = tc.can(Permission::UploadImages);
@@ -137,7 +138,7 @@ pub async fn add_image(
 pub async fn remove_image(
     State(s): State<AppState>,
     tc: TenantContext,
-    Path((id, public_id)): Path<(Uuid, String)>,
+    Path(ItemImagePath { id, public_id }): Path<ItemImagePath>,
 ) -> AppResult<Json<Value>> {
     let decoded = urlencoding::decode(&public_id)
         .map_err(|_| crate::error::AppError::bad_request("Invalid public_id encoding"))?;
@@ -148,7 +149,7 @@ pub async fn remove_image(
                 tc.tenant_id,
                 id,
                 tc.user.user_id,
-                tc.user.is_superadmin(),
+                tc.is_superadmin,
                 &decoded,
             )
             .await?,

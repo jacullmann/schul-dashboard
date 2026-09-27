@@ -1,6 +1,6 @@
 use super::{dto::*, gateway::BusEvent, service::MessagesService};
 use crate::{
-    common::{extractors::TenantContext, permission::Permission},
+    common::{extractors::TenantContext, path_params::IdPath, permission::Permission},
     error::AppResult,
     reports::service::ReportsService,
     require_permission,
@@ -11,7 +11,6 @@ use axum::{
     extract::{Path, State},
 };
 use serde_json::{Value, json};
-use uuid::Uuid;
 
 pub async fn get_messages(State(s): State<AppState>, tc: TenantContext) -> AppResult<Json<Value>> {
     Ok(Json(
@@ -55,7 +54,7 @@ pub async fn create_message(
 pub async fn delete_message(
     State(s): State<AppState>,
     tc: TenantContext,
-    Path(msg_id): Path<Uuid>,
+    Path(IdPath { id: msg_id }): Path<IdPath>,
 ) -> AppResult<Json<Value>> {
     let can_delete_others = tc.can(Permission::DeleteOtherContent);
 

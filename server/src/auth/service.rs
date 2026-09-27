@@ -2,7 +2,7 @@ use crate::{
     auth::{
         cookies::*,
         dto::*,
-        session_context::resolve_session_context,
+        session_context::is_superadmin,
         token::{TokenService, *},
     },
     common::{
@@ -10,6 +10,7 @@ use crate::{
         email::EmailService,
         jwt::JwtService,
         password::{hash_password, validate_password_strength, verify_password},
+        role::Role,
     },
     config::{
         Config, EMAIL_VERIFY_TTL, MFA_PENDING_TTL, PASSWORD_RESET_CODE_TTL, PASSWORD_RESET_TTL,
@@ -59,8 +60,6 @@ impl AuthService {
         user_agent: Option<&str>,
         ip: Option<&str>,
     ) -> AppResult<(CookieJar, String)> {
-        let context = resolve_session_context(&self.db, user_id).await?;
-
         let opts = self.config.base_cookie_options();
 
         let issued = self
@@ -68,8 +67,6 @@ impl AuthService {
             .issue_pair(crate::auth::token::IssueTokenParams {
                 user_id,
                 email,
-                global_role: &context.global_role,
-                active_group_id: context.active_group_id,
                 user_agent,
                 ip_address: ip,
                 parent: None,
@@ -351,11 +348,7 @@ impl AuthService {
         }
     }
 
-    pub async fn get_me(
-        &self,
-        user_id: Uuid,
-        active_group_id: Option<Uuid>,
-    ) -> AppResult<serde_json::Value> {
+    pub async fn get_me(&self, user_id: Uuid) -> AppResult<serde_json::Value> {
         let user = sqlx::query!(
             r#"
             SELECT id, email, email_verified, mfa_enabled, done_setup, personalized, preferences
@@ -371,35 +364,10 @@ impl AuthService {
             Some(u) => u,
         };
 
-        let global_role = sqlx::query!(
-            r#"
-            SELECT r.name FROM user_roles ur
-            JOIN roles r ON r.id = ur.role_id
-            WHERE ur.user_id = $1 AND ur.tenant_id IS NULL
-            LIMIT 1
-            "#,
-            user_id
-        )
-        .fetch_optional(&self.db)
-        .await?
-        .map_or_else(|| "user".into(), |r| r.name);
-
-        let tenant_role = if let Some(gid) = active_group_id {
-            sqlx::query!(
-                r#"
-                SELECT r.name FROM user_roles ur
-                JOIN roles r ON r.id = ur.role_id
-                WHERE ur.user_id = $1 AND ur.tenant_id = $2
-                LIMIT 1
-                "#,
-                user_id,
-                gid
-            )
-            .fetch_optional(&self.db)
-            .await?
-            .map(|r| r.name)
+        let global_role = if is_superadmin(&self.db, user_id).await? {
+            Role::Superadmin
         } else {
-            None
+            Role::User
         };
 
         let courses = sqlx::query!(
@@ -418,8 +386,7 @@ impl AuthService {
             "authenticated": true,
             "id": user.id,
             "email": user.email,
-            "role": global_role,
-            "tenantRole": tenant_role,
+            "role": global_role.as_str(),
             "emailVerified": user.email_verified,
             "courses": courses,
             "doneSetup": user.done_setup,

@@ -1,6 +1,8 @@
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import hw from '@/api/api.ts';
+import { groupPath } from '@/api/groupPath';
+import { useGroupPageId } from '@/core/composables/useGroupPageId';
 import type { AdminCourse, AdminSubject } from '@/modules/groups/types';
 import type { CourseType } from '@/types/subjects';
 import { useToast } from '@/common/composables/useToast';
@@ -13,6 +15,7 @@ const saving = ref(false);
 
 export function useSubjectAdmin() {
   const { t } = useI18n();
+  const groupId = useGroupPageId();
   const modalStore = useModalStore();
   const subjectStore = useSubjectStore();
   const { success, error: toastError } = useToast();
@@ -20,11 +23,15 @@ export function useSubjectAdmin() {
   async function loadSubjects() {
     loading.value = true;
     try {
-      const { data } = await hw.get<AdminSubject[]>('/group-admin/subjects');
+      const { data } = await hw.get<AdminSubject[]>(
+        groupPath(groupId, '/admin/subjects'),
+      );
       subjects.value = data || [];
     } catch {
       try {
-        const { data } = await hw.get<AdminSubject[]>('/schedule/subjects');
+        const { data } = await hw.get<AdminSubject[]>(
+          groupPath(groupId, '/schedule/subjects'),
+        );
         subjects.value = data || [];
       } catch {
         toastError(t('groups.settings.subjects.errors.load_failed'));
@@ -42,11 +49,14 @@ export function useSubjectAdmin() {
     if (!name.trim()) return;
     saving.value = true;
     try {
-      const { data } = await hw.post<AdminSubject>('/group-admin/subjects', {
-        name: name.trim(),
-        category,
-        isDalton,
-      });
+      const { data } = await hw.post<AdminSubject>(
+        groupPath(groupId, '/admin/subjects'),
+        {
+          name: name.trim(),
+          category,
+          isDalton,
+        },
+      );
       subjects.value.push(data);
       subjects.value.sort((a, b) => a.name.localeCompare(b.name));
       subjectStore.reset();
@@ -64,7 +74,7 @@ export function useSubjectAdmin() {
   ): Promise<boolean> {
     saving.value = true;
     try {
-      await hw.patch(`/group-admin/subjects/${id}`, updates);
+      await hw.patch(groupPath(groupId, `/admin/subjects/${id}`), updates);
       const subject = subjects.value.find((s) => s.id === id);
       const categoryChanged =
         updates.category !== undefined &&
@@ -106,7 +116,7 @@ export function useSubjectAdmin() {
 
     if (!isConfirmed) return false;
     try {
-      await hw.delete(`/group-admin/subjects/${id}`);
+      await hw.delete(groupPath(groupId, `/admin/subjects/${id}`));
       subjects.value = subjects.value.filter((s) => s.id !== id);
       success(t('groups.settings.subjects.errors.delete_success'));
       return true;
@@ -129,7 +139,7 @@ export function useSubjectAdmin() {
     saving.value = true;
     try {
       const { data } = await hw.post<AdminCourse & { subjectId: string }>(
-        `/group-admin/subjects/${subjectId}/courses`,
+        groupPath(groupId, `/admin/subjects/${subjectId}/courses`),
         { name: name.trim(), courseType },
       );
       const subject = subjects.value.find((s) => s.id === subjectId);
@@ -168,7 +178,7 @@ export function useSubjectAdmin() {
     saving.value = true;
     try {
       const { data } = await hw.patch<{ courseType?: CourseType | null }>(
-        `/group-admin/courses/${courseId}`,
+        groupPath(groupId, `/admin/courses/${courseId}`),
         { name: name.trim(), courseType },
       );
       const subject = subjects.value.find((s) => s.id === subjectId);
@@ -208,7 +218,7 @@ export function useSubjectAdmin() {
     if (!isConfirmed) return false;
     saving.value = true;
     try {
-      await hw.delete(`/group-admin/courses/${courseId}`);
+      await hw.delete(groupPath(groupId, `/admin/courses/${courseId}`));
       const subject = subjects.value.find((s) => s.id === subjectId);
       if (subject && subject.courses) {
         subject.courses = subject.courses.filter((c) => c.id !== courseId);

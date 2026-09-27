@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import hw from '../../../api/api';
+import { groupPath } from '@/api/groupPath';
 import { useI18n } from 'vue-i18n';
 import { apiErrorMessage } from '@/api/errors';
 
 const { t } = useI18n();
 
-defineProps<{
+const props = defineProps<{
+  groupId: string;
   open: boolean;
 }>();
 
@@ -43,7 +45,7 @@ async function submit() {
 
   submitting.value = true;
   try {
-    await hw.post('/group-admin/announcements', {
+    await hw.post(groupPath(props.groupId, '/admin/announcements'), {
       content: annContent.value.trim(),
       color: annColor.value,
     });

@@ -7,7 +7,8 @@ export interface HwContext {
   showOldEntries: Ref<boolean>;
   subjectFilter: Ref<string>;
   hideChecked: Ref<boolean>;
-  activeGroupId: Ref<string | null>;
+  /** The group this task page belongs to. */
+  groupId: string;
   showPersonalized: Ref<boolean>;
 
   items: Ref<HwItem[]>;

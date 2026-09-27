@@ -1,5 +1,6 @@
 import { useModalStore } from '@/stores/modalStore';
-import type { HwItem } from '@/modules/tasks/types';
+import type { HwItem, ItemType } from '@/modules/tasks/types';
+
 export function useTaskForm() {
   const store = useModalStore();
 
@@ -10,8 +11,10 @@ export function useTaskForm() {
     initialType: store.taskFormInitialType as Readonly<
       typeof store.taskFormInitialType
     >,
-    openTaskForm: store.openTaskForm,
-    openEditForm: (item: HwItem) => store.openEditForm(item),
+    openTaskForm: (groupId: string, type?: Exclude<ItemType, 'all'>) =>
+      store.openTaskForm(groupId, type),
+    openEditForm: (groupId: string, item: HwItem) =>
+      store.openEditForm(groupId, item),
     closeTaskForm: store.closeTaskForm,
     notifySuccess: store.notifyTaskFormSuccess,
     onFormSuccess: store.onTaskFormSuccess,

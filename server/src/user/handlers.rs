@@ -1,6 +1,9 @@
 use super::{dto::*, service::UserService};
 use crate::{
-    common::extractors::{AuthUser, TenantContext},
+    common::{
+        extractors::{AuthUser, TenantContext},
+        path_params::IdPath,
+    },
     error::AppResult,
     state::AppState,
 };
@@ -10,7 +13,6 @@ use axum::{
     http::HeaderMap,
 };
 use serde_json::Value;
-use uuid::Uuid;
 
 pub async fn update_personalization(
     State(s): State<AppState>,
@@ -79,7 +81,7 @@ pub async fn get_visibility(State(s): State<AppState>, user: AuthUser) -> AppRes
 pub async fn set_visibility(
     State(s): State<AppState>,
     tc: TenantContext,
-    Path(item_id): Path<Uuid>,
+    Path(IdPath { id: item_id }): Path<IdPath>,
     Json(dto): Json<VisibilityStatusDto>,
 ) -> AppResult<Json<Value>> {
     Ok(Json(
@@ -91,12 +93,12 @@ pub async fn set_visibility(
 
 pub async fn remove_visibility(
     State(s): State<AppState>,
-    user: AuthUser,
-    Path(item_id): Path<Uuid>,
+    tc: TenantContext,
+    Path(IdPath { id: item_id }): Path<IdPath>,
 ) -> AppResult<Json<Value>> {
     Ok(Json(
         UserService::from_state(&s)
-            .remove_visibility(item_id, user.user_id)
+            .remove_visibility(item_id, tc.user.user_id)
             .await?,
     ))
 }
@@ -121,7 +123,7 @@ pub async fn log_page_load(
 pub async fn check_item(
     State(s): State<AppState>,
     tc: TenantContext,
-    Path(item_id): Path<Uuid>,
+    Path(IdPath { id: item_id }): Path<IdPath>,
 ) -> AppResult<Json<Value>> {
     Ok(Json(
         UserService::from_state(&s)
@@ -132,12 +134,12 @@ pub async fn check_item(
 
 pub async fn uncheck_item(
     State(s): State<AppState>,
-    user: AuthUser,
-    Path(item_id): Path<Uuid>,
+    tc: TenantContext,
+    Path(IdPath { id: item_id }): Path<IdPath>,
 ) -> AppResult<Json<Value>> {
     Ok(Json(
         UserService::from_state(&s)
-            .uncheck_item(item_id, user.user_id)
+            .uncheck_item(item_id, tc.user.user_id)
             .await?,
     ))
 }
@@ -145,7 +147,7 @@ pub async fn uncheck_item(
 pub async fn pin_item(
     State(s): State<AppState>,
     tc: TenantContext,
-    Path(item_id): Path<Uuid>,
+    Path(IdPath { id: item_id }): Path<IdPath>,
 ) -> AppResult<Json<Value>> {
     Ok(Json(
         UserService::from_state(&s)
@@ -156,12 +158,12 @@ pub async fn pin_item(
 
 pub async fn unpin_item(
     State(s): State<AppState>,
-    user: AuthUser,
-    Path(item_id): Path<Uuid>,
+    tc: TenantContext,
+    Path(IdPath { id: item_id }): Path<IdPath>,
 ) -> AppResult<Json<Value>> {
     Ok(Json(
         UserService::from_state(&s)
-            .unpin_item(item_id, user.user_id)
+            .unpin_item(item_id, tc.user.user_id)
             .await?,
     ))
 }

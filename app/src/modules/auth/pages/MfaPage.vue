@@ -6,7 +6,7 @@ import MfaVerifyModal from '@/modules/auth/components/MfaVerifyModal.vue';
 
 const router = useRouter();
 const userStore = useUserStore();
-const { checkAuthStatus, activeGroupId } = useAppAuth();
+const { checkAuthStatus, homeRoute } = useAppAuth();
 
 async function handleMfaVerified() {
   try {
@@ -17,10 +17,7 @@ async function handleMfaVerified() {
     console.error('Fehler beim Laden des Users nach MFA:', error);
   }
 
-  const target = activeGroupId.value
-    ? `/groups/${activeGroupId.value}/dashboard`
-    : '/groups';
-  await router.push(target);
+  await router.push(homeRoute.value);
 }
 
 async function handleMfaCancelled() {

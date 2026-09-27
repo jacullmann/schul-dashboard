@@ -4,6 +4,8 @@ import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
 import { useModalStore } from '@/stores/modalStore';
 import hw from '@/api/api.ts';
+import { groupPath } from '@/api/groupPath';
+import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useToast } from '@/common/composables/useToast';
 import type { Announcement } from '@/modules/announcements/types';
 import { apiErrorMessage } from '@/api/errors';
@@ -17,15 +19,20 @@ export function useAnnouncements() {
   const userStore = useUserStore();
   const { user } = storeToRefs(userStore);
   const toast = useToast();
+  const { activeGroupId } = useAppAuth();
 
   const announcements = ref<Announcement[]>([]);
   const loading = ref(false);
   const seenIds = ref<Set<string>>(new Set());
 
   async function loadAnnouncements(): Promise<void> {
+    const groupId = activeGroupId.value;
+    if (!groupId) return;
     loading.value = true;
     try {
-      const { data } = await hw.get<Announcement[]>('/schedule/announcements');
+      const { data } = await hw.get<Announcement[]>(
+        groupPath(groupId, '/schedule/announcements'),
+      );
       announcements.value = data;
     } catch (e) {
       console.error('Failed to load announcements', e);
@@ -35,10 +42,11 @@ export function useAnnouncements() {
   }
 
   async function loadSeenIds(): Promise<void> {
-    if (!user.value) return;
+    const groupId = activeGroupId.value;
+    if (!user.value || !groupId) return;
     try {
       const { data } = await hw.get<string[]>(
-        '/schedule/announcements/read-status',
+        groupPath(groupId, '/schedule/announcements/read-status'),
       );
       seenIds.value = new Set(data);
     } catch {
@@ -47,10 +55,13 @@ export function useAnnouncements() {
   }
 
   async function markAsSeen(announcementId: string): Promise<void> {
-    if (seenIds.value.has(announcementId)) return;
+    const groupId = activeGroupId.value;
+    if (!groupId || seenIds.value.has(announcementId)) return;
     seenIds.value.add(announcementId);
     try {
-      await hw.post(`/schedule/announcements/${announcementId}/read`);
+      await hw.post(
+        groupPath(groupId, `/schedule/announcements/${announcementId}/read`),
+      );
     } catch {
       // Already marked locally; a failed sync retries on the next load.
     }
@@ -94,6 +105,8 @@ export function useAnnouncements() {
   }
 
   async function deleteAnnouncement(id: string): Promise<void> {
+    const groupId = activeGroupId.value;
+    if (!groupId) return;
     const isConfirmed = await modalStore.confirm({
       title: t('announcements.delete_modal.title'),
       content: t('announcements.delete_modal.message'),
@@ -103,7 +116,7 @@ export function useAnnouncements() {
 
     if (!isConfirmed) return;
     try {
-      await hw.delete(`/group-admin/announcements/${id}`);
+      await hw.delete(groupPath(groupId, `/admin/announcements/${id}`));
       announcements.value = announcements.value.filter((a) => a.id !== id);
     } catch (e: unknown) {
       toast.error(apiErrorMessage(e, t('announcements.errors.delete_failed')));

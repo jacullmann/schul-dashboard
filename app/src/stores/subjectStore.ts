@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { useEventListener } from '@vueuse/core';
 import hw from '@/api/api.ts';
+import { groupPath } from '@/api/groupPath';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import {
   courseSelectionFor,
@@ -25,28 +25,42 @@ export interface Subject {
   courses?: Course[];
 }
 
+/**
+ * Subjects of one group at a time: the one on screen, or the one a task form
+ * opened elsewhere targets. Loading another group replaces the list.
+ */
 export const useSubjectStore = defineStore('subjectStore', () => {
-  const { activeGroupType } = useAppAuth();
+  const { findGroup } = useAppAuth();
 
+  const groupId = ref<string | null>(null);
   const subjects = ref<Subject[]>([]);
   const loading = ref(false);
   const loaded = ref(false);
 
-  async function loadSubjects() {
-    if (loaded.value || loading.value) return;
+  async function loadSubjects(target: string) {
+    if (groupId.value === target && (loaded.value || loading.value)) return;
+
+    groupId.value = target;
+    subjects.value = [];
+    loaded.value = false;
     loading.value = true;
     try {
-      const { data } = await hw.get<Subject[]>('/schedule/subjects');
+      const { data } = await hw.get<Subject[]>(
+        groupPath(target, '/schedule/subjects'),
+      );
+      // A newer load for another group wins over this late response.
+      if (groupId.value !== target) return;
       subjects.value = data || [];
       loaded.value = true;
     } catch (e) {
       console.error('Failed to load subjects', e);
     } finally {
-      loading.value = false;
+      if (groupId.value === target) loading.value = false;
     }
   }
 
   function reset() {
+    groupId.value = null;
     subjects.value = [];
     loaded.value = false;
     loading.value = false;
@@ -75,15 +89,12 @@ export const useSubjectStore = defineStore('subjectStore', () => {
   /** Subjects where a member picks one course or none — all Abitur subjects. */
   const optionalCourseSubjects = computed(() => withCourses('optional'));
 
-  const groupType = computed(() => activeGroupType.value);
-
-  function onTenantChanged() {
-    reset();
-  }
-
-  useEventListener(window, 'tenant-changed', onTenantChanged);
+  const groupType = computed(
+    () => findGroup(groupId.value)?.groupType ?? 'regular',
+  );
 
   return {
+    groupId,
     subjects,
     loading,
     loaded,

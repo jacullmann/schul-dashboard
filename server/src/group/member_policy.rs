@@ -36,7 +36,7 @@ impl Caller {
     pub fn from_tenant(tc: &TenantContext) -> Self {
         Self {
             user_id: tc.user.user_id,
-            is_superadmin: tc.user.is_superadmin(),
+            is_superadmin: tc.is_superadmin,
             moderate_members_role: tc
                 .group_permissions
                 .required_role(Permission::ModerateMembers),

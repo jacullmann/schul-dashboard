@@ -7,71 +7,61 @@ use axum::{
 
 pub fn router() -> Router<AppState> {
     Router::new()
-        .route("/groups/create", post(create_group))
+        .route("/groups", post(create_group))
         .route("/groups/status", get(get_status))
-        .route("/groups/switch", post(switch_group))
-        .route("/groups/{id}/leave", delete(leave_group))
-        .route("/groups/logout", post(logout))
-        .route("/groups/members", get(get_members))
-        .route("/groups/invite", post(create_invite))
-        .route("/groups/invite/{token}", get(get_invite))
-        .route("/groups/invite/{token}/accept", post(accept_invite))
-        .route("/group-admin/stats", get(get_stats))
-        .route("/group-admin/banned-users", get(get_banned_users))
-        .route("/group-admin/banned-users/{userId}", delete(revert_ban))
-        .route("/group-admin/invites", get(get_invites))
-        .route("/group-admin/invites/{id}", delete(revoke_invite))
+        .route("/uploads/group-avatar/sign", post(sign_group_avatar_upload))
+        .route("/invites/{token}", get(get_invite))
+        .route("/invites/{token}/accept", post(accept_invite))
+}
+
+/// Mounted under `/groups/{group_id}` behind the tenant middleware.
+pub fn group_router() -> Router<AppState> {
+    Router::new()
+        .route("/", get(get_group).delete(delete_group))
+        .route("/visit", post(record_visit))
+        .route("/leave", delete(leave_group))
+        .route("/members", get(get_members))
+        .route("/invites", post(create_invite))
+        .route("/admin/stats", get(get_stats))
+        .route("/admin/banned-users", get(get_banned_users))
+        .route("/admin/banned-users/{user_id}", delete(revert_ban))
+        .route("/admin/invites", get(get_invites))
+        .route("/admin/invites/{id}", delete(revoke_invite))
+        .route("/admin/members/{user_id}/role", patch(change_member_role))
+        .route("/admin/members/{user_id}", delete(remove_member))
+        .route("/admin/transfer-ownership", post(transfer_ownership))
+        .route("/admin/settings", patch(rename_group))
         .route(
-            "/group-admin/members/{userId}/role",
-            patch(change_member_role),
-        )
-        .route("/group-admin/transfer-ownership", post(transfer_ownership))
-        .route("/group-admin/members/{userId}", delete(remove_member))
-        .route("/group-admin/settings", patch(rename_group))
-        .route(
-            "/group-admin/permissions",
+            "/admin/permissions",
             get(get_permissions).patch(update_permissions),
         )
+        .route("/admin/schedule-config", patch(update_schedule_config))
+        .route("/admin/cleanup/old-items", delete(cleanup_old_items))
         .route(
-            "/group-admin/schedule-config",
-            patch(update_schedule_config),
-        )
-        .route("/group-admin", delete(delete_group))
-        .route("/group-admin/cleanup/old-items", delete(cleanup_old_items))
-        .route(
-            "/group-admin/subjects",
+            "/admin/subjects",
             get(get_subjects_admin).post(create_subject),
         )
         .route(
-            "/group-admin/subjects/{id}",
+            "/admin/subjects/{id}",
             patch(update_subject).delete(delete_subject),
         )
+        .route("/admin/subjects/{subject_id}/courses", post(create_course))
         .route(
-            "/group-admin/subjects/{subject_id}/courses",
-            post(create_course),
-        )
-        .route(
-            "/group-admin/courses/{id}",
+            "/admin/courses/{id}",
             patch(update_course).delete(delete_course),
         )
         .route(
-            "/group-admin/schedule",
+            "/admin/schedule",
             get(get_schedule_admin)
                 .post(save_schedule_admin)
                 .put(replace_schedule_admin),
         )
-        .route("/group-admin/schedule/{id}", delete(delete_schedule_admin))
+        .route("/admin/schedule/{id}", delete(delete_schedule_admin))
         .route(
-            "/group-admin/schedule/subs",
+            "/admin/schedule/subs",
             get(get_schedule_subs_admin).post(create_schedule_sub),
         )
-        .route(
-            "/group-admin/schedule/subs/{id}",
-            delete(delete_schedule_sub),
-        )
-        .route("/group-admin/announcements", post(create_announcement))
-        .route(
-            "/group-admin/announcements/{id}",
-            delete(delete_announcement),
-        )
+        .route("/admin/schedule/subs/{id}", delete(delete_schedule_sub))
+        .route("/admin/announcements", post(create_announcement))
+        .route("/admin/announcements/{id}", delete(delete_announcement))
 }

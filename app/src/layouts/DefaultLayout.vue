@@ -30,7 +30,11 @@ useAppShortcuts();
           class="w-full"
         >
           <router-view v-slot="{ Component }">
-            <component :is="Component" :key="activeGroupId || 'default'" />
+            <!-- One page instance per group: group pages read their id once. -->
+            <component
+              :is="Component"
+              :key="$route.params.groupId || 'default'"
+            />
           </router-view>
         </div>
       </main>

@@ -115,9 +115,17 @@ impl UserService {
         .execute(&mut *tx)
         .await?;
 
-        sqlx::query!(r#"DELETE FROM user_courses WHERE user_id = $1"#, user_id)
-            .execute(&mut *tx)
-            .await?;
+        // Only this group's selection is replaced; the user's courses in other
+        // groups stay untouched.
+        sqlx::query!(
+            r#"DELETE FROM user_courses
+               WHERE user_id = $1
+                 AND subject_id IN (SELECT id FROM subjects WHERE tenant_id = $2)"#,
+            user_id,
+            tenant_id
+        )
+        .execute(&mut *tx)
+        .await?;
 
         if !courses.is_empty() {
             sqlx::query!(

@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue';
 import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/vue';
 import { useI18n } from 'vue-i18n';
 import { useLongPress } from '@/common/composables/useLongPress';
+import { useUserStore } from '@/stores/userStore';
 import type { HwItem } from '@/modules/tasks/composables/useTasks';
 import ItemCard from './ItemCard.vue';
 import TaskCardDescription from './TaskCardDescription.vue';
@@ -47,6 +48,9 @@ const props = defineProps<{
   getSubjectName: (subject: string) => string;
   getTypeLabel: (type: string) => string;
 }>();
+
+const userStore = useUserStore();
+const isGroupAdmin = computed(() => userStore.isGroupAdmin);
 
 const emit = defineEmits<{
   (e: 'toggle-check'): void;
@@ -214,13 +218,7 @@ watch(
           >{{ getTypeLabel(item.type) }} • </template
         >{{ getSubjectName(item.subject) }} •
         {{ new Date(item.dueDate).toLocaleDateString()
-        }}<template
-          v-if="
-            user?.role === 'superadmin' ||
-            user?.tenantRole === 'admin' ||
-            user?.tenantRole === 'moderator'
-          "
-        >
+        }}<template v-if="isGroupAdmin">
           • {{ item.createdByName || t('common.selection.unknown') }}</template
         >
       </div>

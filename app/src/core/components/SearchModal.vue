@@ -2,7 +2,6 @@
 import { ref, computed, type Component } from 'vue';
 import {
   useRouter,
-  useRoute,
   type RouteLocationRaw,
   type RouteRecordName,
 } from 'vue-router';
@@ -58,6 +57,7 @@ import { useUserStore } from '@/stores/userStore';
 import { usePreferences } from '@/common/composables/usePreferences';
 import type { ThemeMode } from '@/common/composables/useTheme';
 import { useGroupAction } from '@/core/composables/useGroupAction';
+import { useOpenGroup } from '@/core/composables/useOpenGroup';
 import { rankByQuery } from '@/utils/search-rank';
 import Avatar from '@/modules/auth/components/Avatar.vue';
 
@@ -65,14 +65,8 @@ const emit = defineEmits<{ (e: 'cancel'): void }>();
 
 const { t } = useI18n();
 const router = useRouter();
-const route = useRoute();
-const {
-  activeGroupId,
-  userGroups,
-  switchActiveGroup,
-  checkPermission,
-  createInvite,
-} = useAppAuth();
+const { activeGroupId, userGroups, checkPermission, createInvite } =
+  useAppAuth();
 const { openTaskForm } = useTaskForm();
 const { openPrivateTaskForm } = usePrivateTaskForm();
 const { openAnnouncementForm } = useAnnouncementForm();
@@ -83,6 +77,7 @@ const performLogout = useLogout();
 const modalStore = useModalStore();
 const { currentTheme, currentLanguage, setPreference } = usePreferences();
 const { withGroup } = useGroupAction();
+const { openGroup } = useOpenGroup();
 
 const isAnyGroupAdmin = computed(() => {
   if (userStore.isSuperadmin) return true;
@@ -134,9 +129,7 @@ function navigateInGroup(
   name: RouteRecordName,
   params: Record<string, string> = {},
 ) {
-  withGroup(() =>
-    navigate({ name, params: { groupId: activeGroupId.value, ...params } }),
-  );
+  withGroup((groupId) => navigate({ name, params: { groupId, ...params } }));
 }
 
 function runAndClose(action: () => void) {
@@ -320,7 +313,8 @@ const defaultResults = computed<SearchResult[]>(() => [
     description: t('search.descriptions.create_task'),
     category: 'action',
     icon: SquarePen,
-    action: () => withGroup(() => runAndClose(openTaskForm)),
+    action: () =>
+      withGroup((groupId) => runAndClose(() => openTaskForm(groupId))),
     shortcut: ['alt', 'n'],
   },
   {
@@ -338,7 +332,8 @@ const defaultResults = computed<SearchResult[]>(() => [
     description: t('announcements.actions.create_description'),
     category: 'action',
     icon: Megaphone,
-    action: () => withGroup(() => runAndClose(openAnnouncementForm)),
+    action: () =>
+      withGroup((groupId) => runAndClose(() => openAnnouncementForm(groupId))),
     shortcut: ['alt', 'a'],
     condition: isAnyGroupAdmin.value,
   },
@@ -359,10 +354,12 @@ const defaultResults = computed<SearchResult[]>(() => [
     icon: UserRoundPlus,
     action: async () => {
       emit('cancel');
+      const groupId = activeGroupId.value;
+      if (!groupId) return;
       try {
-        const res = await createInvite();
+        const res = await createInvite(groupId);
         if (res.ok && res.token) {
-          modalStore.openInviteModal(res.token);
+          modalStore.openInviteModal(res.token, groupId);
         }
       } catch (err) {
         console.error('Failed to generate invite link', err);
@@ -495,31 +492,9 @@ const filteredGroups = computed(() =>
   ]),
 );
 
-async function onSwitchGroup(id: string) {
+function onSwitchGroup(id: string) {
   emit('cancel');
-  const oldGroupId = activeGroupId.value;
-  if (id !== oldGroupId) {
-    const res = await switchActiveGroup(id);
-    if (res.ok) {
-      await userStore.fetchUser();
-
-      if (oldGroupId && route.path.startsWith(`/groups/${oldGroupId}`)) {
-        const newPath = route.path.replace(
-          `/groups/${oldGroupId}`,
-          `/groups/${id}`,
-        );
-        await router.push(newPath);
-
-        if (route.path === '/groups') {
-          await router.push(`/groups/${id}/dashboard`);
-        }
-      } else {
-        await router.push(`/groups/${id}/dashboard`);
-      }
-    } else {
-      console.error('Failed to switch group', res.error);
-    }
-  }
+  if (id !== activeGroupId.value) void openGroup(id);
 }
 
 interface ChoiceOption {
@@ -661,12 +636,7 @@ function handleSelect(index: number) {
             @mouseenter="setSelectedIndex(index)"
           >
             <template #icon>
-              <Avatar
-                :name="group.name"
-                :picture="group.avatarUrl"
-                :unread="group.hasUnreadContent"
-                :size="8"
-              />
+              <Avatar :name="group.name" :picture="group.avatarUrl" :size="8" />
             </template>
 
             <ArrowUpRight

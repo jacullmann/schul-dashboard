@@ -8,7 +8,8 @@ import {
   useIsMobileViewport,
   useVisualViewportHeight,
 } from '@/common/composables/useViewport';
-import hw from '../../../api/api';
+import hw, { refreshSession } from '../../../api/api';
+import { groupPath } from '@/api/groupPath';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useToast } from '@/common/composables/useToast';
 import { useModalStore } from '@/stores/modalStore';
@@ -117,6 +118,9 @@ export function useMessages() {
   let reconnectTimeout: any = null;
   let reconnectAttempts = 0;
   const MAX_RECONNECT_ATTEMPTS = 5;
+  // Close codes the server uses (see messages/gateway.rs).
+  const WS_CLOSE_TOKEN_EXPIRED = 4001;
+  const WS_CLOSE_ACCESS_REVOKED = 4003;
 
   const isGroupedWithPrevious = (msg: any, index: number) => {
     if (index === 0) return false;
@@ -178,7 +182,7 @@ export function useMessages() {
     isInitialScroll.value = true;
     stickToBottom = true;
     try {
-      const { data } = await hw.get('/messages');
+      const { data } = await hw.get(groupPath(groupId.value, '/messages'));
       messages.value = data.messages;
       lastVisitAt.value = data.lastVisitAt;
 
@@ -269,9 +273,15 @@ export function useMessages() {
       }
     };
 
-    ws.onclose = () => {
+    ws.onclose = (event: CloseEvent) => {
       console.log('WebSocket disconnected');
       ws = null;
+      if (event.code === WS_CLOSE_ACCESS_REVOKED) return;
+      if (event.code === WS_CLOSE_TOKEN_EXPIRED) {
+        // A failed refresh ends the session through the global auth handler.
+        refreshSession().then(initSocket, () => {});
+        return;
+      }
       if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
         const delay = Math.min(1000 * 2 ** reconnectAttempts, 30000);
         reconnectAttempts++;
@@ -327,7 +337,7 @@ export function useMessages() {
     }
 
     try {
-      await hw.post('/messages', payload);
+      await hw.post(groupPath(groupId.value, '/messages'), payload);
     } catch (err) {
       console.error('Failed to send message:', err);
       messageInput.value = text;
@@ -422,7 +432,7 @@ export function useMessages() {
     if (!isConfirmed) return;
 
     try {
-      await hw.delete(`/messages/${msg.id}`);
+      await hw.delete(groupPath(groupId.value, `/messages/${msg.id}`));
       toast.success(t('chat.delete_success'));
     } catch (err) {
       console.error('Failed to delete message:', err);
@@ -448,7 +458,7 @@ export function useMessages() {
     cancelReport();
 
     try {
-      await hw.post('/messages/reports', {
+      await hw.post(groupPath(groupId.value, '/messages/reports'), {
         messageId: msg.id,
         reason: reason || undefined,
       });
@@ -478,7 +488,7 @@ export function useMessages() {
 
     pendingMarkRead.value = false;
     try {
-      await hw.post('/messages/read');
+      await hw.post(groupPath(groupId.value, '/messages/read'));
       lastVisitAt.value = new Date().toISOString();
     } catch (err) {
       console.error('Failed to mark messages as read:', err);
@@ -522,7 +532,9 @@ export function useMessages() {
       if (navigator.sendBeacon) {
         navigator.sendBeacon(`${apiUrl}/messages/read`);
       } else {
-        void hw.post('/messages/read').catch(() => {});
+        void hw
+          .post(groupPath(groupId.value, '/messages/read'))
+          .catch(() => {});
       }
     }
     document.body.style.overflow = '';
@@ -531,7 +543,7 @@ export function useMessages() {
   watch(groupId, () => {
     if (pendingMarkRead.value) {
       pendingMarkRead.value = false;
-      void hw.post('/messages/read').catch(() => {});
+      void hw.post(groupPath(groupId.value, '/messages/read')).catch(() => {});
     }
     dismissedNewMessagesDivider.value = false;
     isInitialScroll.value = true;

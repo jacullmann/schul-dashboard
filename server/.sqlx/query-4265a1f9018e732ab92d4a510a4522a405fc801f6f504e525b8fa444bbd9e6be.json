@@ -1,0 +1,24 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT EXISTS (\n               SELECT 1 FROM user_roles\n               WHERE user_id = $1 AND tenant_id IS NULL AND role_id = $2\n           ) AS \"is_superadmin!\"",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "is_superadmin!",
+        "type_info": "Bool",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Int4"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "4265a1f9018e732ab92d4a510a4522a405fc801f6f504e525b8fa444bbd9e6be"
+}

@@ -7,14 +7,16 @@ import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 const router = useRouter();
 const { t } = useI18n();
 
-const { activeGroupId } = useAppAuth();
+const { contextGroupId } = useAppAuth();
 
 const goBack = () => {
   if (window.history.length > 1) {
     router.back();
   } else {
     void router.push(
-      activeGroupId.value ? `/groups/${activeGroupId.value}/tasks` : '/groups',
+      contextGroupId.value
+        ? { name: 'group-tasks', params: { groupId: contextGroupId.value } }
+        : { name: 'groups' },
     );
   }
 };
@@ -39,14 +41,14 @@ const goBack = () => {
         {{ t('common.not_found.description') }}
       </p>
 
-      <div class="w-full mb-8">
+      <div v-if="contextGroupId" class="w-full mb-8">
         <div
           class="grid w-full gap-3 grid-cols-[repeat(auto-fit,minmax(280px,1fr))] max-md:grid-cols-1"
         >
           <router-link
             :to="{
               name: 'group-dashboard',
-              params: { groupId: activeGroupId },
+              params: { groupId: contextGroupId },
             }"
             class="flex items-center gap-3 p-3 bg-surface border border-ghost-border shadow-input rounded-xl no-underline transition-all duration-150 ease cursor-pointer hover:bg-surface-highlight"
           >
@@ -66,7 +68,7 @@ const goBack = () => {
           </router-link>
 
           <router-link
-            :to="{ name: 'group-tasks', params: { groupId: activeGroupId } }"
+            :to="{ name: 'group-tasks', params: { groupId: contextGroupId } }"
             class="flex items-center gap-3 p-3 bg-surface border border-ghost-border shadow-input rounded-xl no-underline transition-all duration-150 ease cursor-pointer hover:bg-surface-highlight"
           >
             <div
@@ -85,7 +87,10 @@ const goBack = () => {
           </router-link>
 
           <router-link
-            :to="{ name: 'group-schedule', params: { groupId: activeGroupId } }"
+            :to="{
+              name: 'group-schedule',
+              params: { groupId: contextGroupId },
+            }"
             class="flex items-center gap-3 p-3 bg-surface border border-ghost-border shadow-input rounded-xl no-underline transition-all duration-150 ease cursor-pointer hover:bg-surface-highlight"
           >
             <div

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, email, role_version FROM users WHERE id = $1",
+  "query": "SELECT id, email FROM users WHERE id = $1",
   "describe": {
     "columns": [
       {
@@ -24,17 +24,6 @@
             "name": "email"
           }
         }
-      },
-      {
-        "ordinal": 2,
-        "name": "role_version",
-        "type_info": "Int4",
-        "origin": {
-          "Table": {
-            "table": "users",
-            "name": "role_version"
-          }
-        }
       }
     ],
     "parameters": {
@@ -44,9 +33,8 @@
     },
     "nullable": [
       false,
-      false,
       false
     ]
   },
-  "hash": "515df9f055e7d7ae10e0dbf7aa5826e0bc4210b39c3240827dd495f003739dfa"
+  "hash": "b4a3b0ae9c157a5a6b7922189cfa08a41627c4cc8b8921632a0ecce482001ecd"
 }

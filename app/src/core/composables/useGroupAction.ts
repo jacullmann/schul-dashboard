@@ -1,19 +1,20 @@
 import { useRouter } from 'vue-router';
-import { useModalStore } from '@/stores/modalStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 
+/**
+ * Runs a group-bound action from anywhere in the app. Outside a group page it
+ * targets the group this tab showed last; the action receives that group
+ * explicitly and never relies on an ambient "current group".
+ */
 export function useGroupAction() {
   const router = useRouter();
-  const modalStore = useModalStore();
-  const { activeGroupId, userGroups } = useAppAuth();
+  const { contextGroupId } = useAppAuth();
 
-  const withGroup = (action: () => void) => {
-    if (activeGroupId.value) {
-      action();
-    } else if (userGroups.value.length === 0) {
-      void router.push({ name: 'groups' });
+  const withGroup = (action: (groupId: string) => void) => {
+    if (contextGroupId.value) {
+      action(contextGroupId.value);
     } else {
-      modalStore.openSearch('group');
+      void router.push({ name: 'groups' });
     }
   };
 

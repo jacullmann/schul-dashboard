@@ -49,31 +49,41 @@ export const useModalStore = defineStore('modals', () => {
 
   const inviteModalOpen = ref(false);
   const inviteModalToken = ref<string | null>(null);
+  const inviteModalGroupId = ref<string | null>(null);
 
-  function openInviteModal(token: string) {
+  function openInviteModal(token: string, groupId: string) {
     inviteModalToken.value = token;
+    inviteModalGroupId.value = groupId;
     inviteModalOpen.value = true;
   }
   function closeInviteModal() {
     inviteModalOpen.value = false;
     inviteModalToken.value = null;
+    inviteModalGroupId.value = null;
   }
 
   const taskFormOpen = ref(false);
   const taskFormKey = ref(0);
+  /** Fixed when the form opens, so navigating away cannot retarget it. */
+  const taskFormGroupId = ref<string | null>(null);
   const taskToEdit = ref<HwItem | null>(null);
   const taskFormInitialType = ref<Exclude<ItemType, 'all'>>('homework');
 
   const _taskFormSuccessCallbacks = new Set<() => void>();
 
-  function openTaskForm(type: Exclude<ItemType, 'all'> = 'homework') {
+  function openTaskForm(
+    groupId: string,
+    type: Exclude<ItemType, 'all'> = 'homework',
+  ) {
+    taskFormGroupId.value = groupId;
     taskToEdit.value = null;
     taskFormInitialType.value = type;
     taskFormKey.value += 1;
     taskFormOpen.value = true;
   }
 
-  function openEditForm(item: HwItem) {
+  function openEditForm(groupId: string, item: HwItem) {
+    taskFormGroupId.value = groupId;
     taskToEdit.value = item;
     taskFormInitialType.value = item.type;
     taskFormKey.value += 1;
@@ -132,10 +142,12 @@ export const useModalStore = defineStore('modals', () => {
 
   const announcementFormOpen = ref(false);
   const announcementFormKey = ref(0);
+  const announcementFormGroupId = ref<string | null>(null);
 
   const _announcementFormSuccessCallbacks = new Set<() => void>();
 
-  function openAnnouncementForm() {
+  function openAnnouncementForm(groupId: string) {
+    announcementFormGroupId.value = groupId;
     announcementFormKey.value += 1;
     announcementFormOpen.value = true;
   }
@@ -211,12 +223,15 @@ export const useModalStore = defineStore('modals', () => {
 
   const showChangePassword = ref(false);
   const showSetup = ref(false);
+  const setupGroupId = ref<string | null>(null);
   const showDeleteAccount = ref(false);
 
   function openChangePassword() {
     showChangePassword.value = true;
   }
-  function openSetup() {
+  /** Course choices are per group, so the dialog is bound to one. */
+  function openSetup(groupId: string) {
+    setupGroupId.value = groupId;
     showSetup.value = true;
   }
   function openDeleteAccount() {
@@ -284,6 +299,7 @@ export const useModalStore = defineStore('modals', () => {
 
     inviteModalOpen,
     inviteModalToken,
+    inviteModalGroupId,
     openInviteModal,
     closeInviteModal,
 
@@ -291,6 +307,7 @@ export const useModalStore = defineStore('modals', () => {
     taskFormKey,
     taskToEdit,
     taskFormInitialType,
+    taskFormGroupId,
     openTaskForm,
     openEditForm,
     closeTaskForm,
@@ -308,6 +325,7 @@ export const useModalStore = defineStore('modals', () => {
 
     announcementFormOpen,
     announcementFormKey,
+    announcementFormGroupId,
     openAnnouncementForm,
     closeAnnouncementForm,
     notifyAnnouncementFormSuccess,
@@ -323,6 +341,7 @@ export const useModalStore = defineStore('modals', () => {
 
     showChangePassword,
     showSetup,
+    setupGroupId,
     showDeleteAccount,
     openChangePassword,
     openSetup,

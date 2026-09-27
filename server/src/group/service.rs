@@ -1,24 +1,19 @@
 use crate::{
-    auth::{
-        cookies::*,
-        session_context::remember_active_group,
-        token::{LOGOUT, TokenService},
-    },
+    auth::session_context::{is_superadmin, remember_visited_group, resolve_landing_group},
     common::{
-        csrf::generate_csrf_token,
+        extractors::TenantContext,
         group_type::GroupType,
         name_generator::generate_user_name,
-        permission::{GroupPermissions, Permission},
+        permission::GroupPermissions,
         role::{MemberRole, Role},
     },
     error::{AppError, AppResult},
     group::{
-        dto::GroupMemberDto,
+        dto::{GroupMemberDto, GroupStatusDto, GroupSummaryDto},
         member_policy::{self, Caller, Target},
     },
     state::AppState,
 };
-use axum_extra::extract::CookieJar;
 use serde_json::{Value, json};
 use sqlx::{PgConnection, PgPool};
 use uuid::Uuid;
@@ -44,116 +39,44 @@ pub(crate) fn role_from_db(id: i32) -> AppResult<Role> {
 
 pub struct CreateGroupParams<'a> {
     pub user_id: Uuid,
-    pub email: &'a str,
-    pub global_role: &'a str,
     pub group_name: &'a str,
     pub avatar_url: Option<&'a str>,
     pub group_type: GroupType,
     pub dalton_enabled: bool,
     pub ip: Option<&'a str>,
     pub ua: Option<&'a str>,
-    pub current_refresh: Option<&'a str>,
+}
+
+struct Membership {
+    id: Uuid,
+    name: String,
+    owner_id: Uuid,
+    schedule_config: Value,
+    avatar_url: Option<String>,
+    permissions: Value,
+    group_type: String,
+    dalton_enabled: bool,
+    role_name: String,
 }
 
 pub struct AcceptInviteParams<'a> {
     pub user_id: Uuid,
-    pub email: &'a str,
-    pub global_role: &'a str,
     pub token: &'a str,
     pub ip: Option<&'a str>,
     pub ua: Option<&'a str>,
-    pub current_refresh: Option<&'a str>,
 }
 
 pub struct GroupService {
     db: PgPool,
-    state: AppState,
-}
-
-#[derive(Clone, Copy, Default)]
-pub struct SessionOrigin<'a> {
-    pub current_refresh: Option<&'a str>,
-    pub user_agent: Option<&'a str>,
-    pub ip_address: Option<&'a str>,
 }
 
 impl GroupService {
     pub fn from_state(s: &AppState) -> Self {
-        Self {
-            db: s.db.clone(),
-            state: s.clone(),
-        }
+        Self { db: s.db.clone() }
     }
 
-    async fn issue_session_cookie(
-        &self,
-        user_id: Uuid,
-        email: &str,
-        global_role: &str,
-        active_group_id: Option<Uuid>,
-        origin: SessionOrigin<'_>,
-    ) -> AppResult<CookieJar> {
-        if let Some(group_id) = active_group_id {
-            remember_active_group(&self.db, user_id, group_id).await?;
-        }
-
-        let svc = TokenService::from_state(&self.state);
-
-        let tokens = match origin.current_refresh.filter(|t| !t.is_empty()) {
-            Some(rt) => match svc
-                .reissue_for_group(rt, active_group_id, origin.user_agent, origin.ip_address)
-                .await?
-            {
-                Some(t) => t,
-                None => {
-                    self.issue_new_family(user_id, email, global_role, active_group_id, origin)
-                        .await?
-                }
-            },
-            None => {
-                self.issue_new_family(user_id, email, global_role, active_group_id, origin)
-                    .await?
-            }
-        };
-
-        let opts = self.state.config.base_cookie_options();
-
-        let csrf = generate_csrf_token();
-
-        Ok(CookieJar::new()
-            .add(access_cookie(tokens.access_token, &opts))
-            .add(refresh_cookie(tokens.refresh_token, &opts))
-            .add(crate::common::csrf::csrf_cookie(&csrf, &opts)))
-    }
-
-    async fn issue_new_family(
-        &self,
-        user_id: Uuid,
-        email: &str,
-        global_role: &str,
-        active_group_id: Option<Uuid>,
-        origin: SessionOrigin<'_>,
-    ) -> AppResult<crate::auth::token::IssuedTokens> {
-        TokenService::from_state(&self.state)
-            .issue_pair(crate::auth::token::IssueTokenParams {
-                user_id,
-                email,
-                global_role,
-                active_group_id,
-                user_agent: origin.user_agent,
-                ip_address: origin.ip_address,
-                parent: None,
-            })
-            .await
-    }
-
-    pub async fn create_group(
-        &self,
-        params: CreateGroupParams<'_>,
-    ) -> AppResult<(CookieJar, Value)> {
+    pub async fn create_group(&self, params: CreateGroupParams<'_>) -> AppResult<Value> {
         let user_id = params.user_id;
-        let email = params.email;
-        let global_role = params.global_role;
         let group_name = params.group_name;
         let avatar_url = params.avatar_url;
         let group_type = params.group_type;
@@ -161,6 +84,8 @@ impl GroupService {
         let ip = params.ip;
         let ua = params.ua;
         let ip_parsed: Option<ipnetwork::IpNetwork> = ip.and_then(|s| s.parse().ok());
+
+        let mut tx = self.db.begin().await?;
 
         let group = sqlx::query!(
             r#"INSERT INTO groups (name, avatar_url, owner_id, group_type, dalton_enabled)
@@ -171,7 +96,7 @@ impl GroupService {
             group_type.as_str(),
             dalton_enabled
         )
-        .fetch_one(&self.db)
+        .fetch_one(&mut *tx)
         .await?;
 
         let group_id = group.id;
@@ -183,168 +108,114 @@ impl GroupService {
             Role::Admin.db_id_i32(),
             group_id
         )
-        .execute(&self.db)
+        .execute(&mut *tx)
         .await?;
 
         sqlx::query!(
             r#"INSERT INTO security_events (event_type, event_status, ip_address, user_agent, metadata)
              VALUES ('group_create', 'success', $1::inet, $2, $3)"#,
             ip_parsed, ua, json!({ "groupName": group_name_str, "groupId": group_id, "createdBy": user_id, "groupType": group_type.as_str(), "daltonEnabled": dalton_enabled })
-        ).execute(&self.db).await?;
+        ).execute(&mut *tx).await?;
 
-        let jar = self
-            .issue_session_cookie(
-                user_id,
-                email,
-                global_role,
-                Some(group_id),
-                SessionOrigin {
-                    current_refresh: params.current_refresh,
-                    user_agent: ua,
-                    ip_address: ip,
-                },
-            )
-            .await?;
-        Ok((jar, json!({ "ok": true })))
+        tx.commit().await?;
+
+        Ok(json!({ "ok": true, "groupId": group_id }))
     }
 
-    pub async fn get_status(
-        &self,
-        user_id: Option<Uuid>,
-        active_group_id: Option<Uuid>,
-        global_role: Option<&str>,
-    ) -> AppResult<Value> {
-        let Some(uid) = user_id else {
-            return Ok(json!({ "authenticated": false, "groups": [] }));
+    pub async fn get_status(&self, user_id: Option<Uuid>) -> AppResult<GroupStatusDto> {
+        let Some(user_id) = user_id else {
+            return Ok(GroupStatusDto {
+                authenticated: false,
+                groups: Vec::new(),
+                landing_group_id: None,
+            });
         };
 
-        let user_roles = sqlx::query!(
-            r#"SELECT ur.tenant_id, g.id as gid, g.name as gname, g.owner_id, g.schedule_config,
-                      g.avatar_url, g.permissions, g.group_type, g.dalton_enabled, r.name as role_name
-               FROM user_roles ur
-               JOIN groups g ON g.id = ur.tenant_id
-               JOIN roles r ON r.id = ur.role_id
-               WHERE ur.user_id = $1 AND ur.tenant_id IS NOT NULL"#,
-            uid
-        )
-        .fetch_all(&self.db)
-        .await?;
+        // Independent reads, so they run concurrently.
+        let (is_superadmin, landing_group_id, memberships) = tokio::try_join!(
+            is_superadmin(&self.db, user_id),
+            resolve_landing_group(&self.db, user_id),
+            self.memberships(user_id),
+        )?;
 
-        let groups: Vec<Value> = user_roles
+        let groups = memberships
             .into_iter()
-            .map(|ur| {
-                json!({
-                    "id": ur.gid, "name": ur.gname, "ownerId": ur.owner_id,
-                    "role": ur.role_name, "hasUnreadContent": false,
-                    "scheduleConfig": ur.schedule_config, "avatarUrl": ur.avatar_url,
-                    "permissions": ur.permissions,
-                    "groupType": GroupType::from_str_or_regular(&ur.group_type).as_str(),
-                    "daltonEnabled": ur.dalton_enabled,
-                })
+            .map(|g| {
+                let role = Role::from_str_or_user(&g.role_name);
+                let has_owner_rights = is_superadmin || g.owner_id == user_id;
+                let effective_permissions =
+                    GroupPermissions::from_json_with_defaults(&g.permissions)
+                        .effective_keys(role, has_owner_rights);
+
+                GroupSummaryDto {
+                    id: g.id,
+                    name: g.name,
+                    owner_id: g.owner_id,
+                    role: role.as_str(),
+                    schedule_config: g.schedule_config,
+                    avatar_url: g.avatar_url,
+                    permissions: g.permissions,
+                    group_type: GroupType::from_str_or_regular(&g.group_type).as_str(),
+                    dalton_enabled: g.dalton_enabled,
+                    effective_permissions,
+                }
             })
             .collect();
 
-        let active_group = if let Some(gid) = active_group_id {
-            match groups
-                .iter()
-                .find(|g| g["id"].as_str() == Some(&gid.to_string()))
-            {
-                Some(g) => Some(g.clone()),
-                None if global_role == Some("superadmin") => sqlx::query!(
-                    r#"SELECT id, name, owner_id, schedule_config, avatar_url, permissions, group_type, dalton_enabled
-                           FROM groups WHERE id = $1"#,
-                    gid
-                )
-                .fetch_optional(&self.db)
-                .await?
-                .map(|g| {
-                    json!({
-                        "id": g.id, "name": g.name, "ownerId": g.owner_id,
-                        "role": "superadmin", "hasUnreadContent": false,
-                        "scheduleConfig": g.schedule_config, "avatarUrl": g.avatar_url,
-                        "permissions": g.permissions,
-                        "groupType": GroupType::from_str_or_regular(&g.group_type).as_str(),
-                        "daltonEnabled": g.dalton_enabled,
-                    })
-                }),
-                None => None,
-            }
-        } else {
-            None
-        };
-
-        let active_permission_keys: Vec<&'static str> = if let Some(ref g) = active_group {
-            let is_superadmin = global_role == Some("superadmin");
-            let is_owner = g["ownerId"].as_str() == Some(&uid.to_string());
-
-            if is_superadmin || is_owner {
-                Permission::ALL.iter().map(Permission::as_str).collect()
-            } else {
-                let tenant_role = g["role"]
-                    .as_str()
-                    .map_or(Role::User, Role::from_str_or_user);
-                let raw_perms = g.get("permissions").cloned().unwrap_or(json!({}));
-                let perms = GroupPermissions::from_json_with_defaults(&raw_perms);
-                perms.allowed_keys_for_role(tenant_role)
-            }
-        } else {
-            vec![]
-        };
-
-        Ok(json!({
-            "authenticated": true,
-            "group": active_group.map(|g| json!({
-                "id": g["id"], "name": g["name"], "ownerId": g["ownerId"],
-                "avatarUrl": g["avatarUrl"], "permissions": g["permissions"],
-                "groupType": g["groupType"],
-                "daltonEnabled": g["daltonEnabled"],
-            })),
-            "groups": groups,
-            "activePermissions": active_permission_keys,
-        }))
+        Ok(GroupStatusDto {
+            authenticated: true,
+            groups,
+            landing_group_id,
+        })
     }
 
-    pub async fn switch_group(
-        &self,
-        user_id: Uuid,
-        email: &str,
-        global_role: &str,
-        group_id: Uuid,
-        origin: SessionOrigin<'_>,
-    ) -> AppResult<(CookieJar, Value)> {
-        if global_role == "superadmin" {
-            sqlx::query!(r#"SELECT id FROM groups WHERE id = $1"#, group_id)
-                .fetch_optional(&self.db)
-                .await?
-                .ok_or_else(|| AppError::not_found("Group not found."))?;
-        } else {
-            let membership = sqlx::query!(
-                r#"SELECT tenant_id FROM user_roles WHERE user_id = $1 AND tenant_id = $2"#,
-                user_id,
-                group_id
-            )
-            .fetch_optional(&self.db)
-            .await?;
-
-            if membership.is_none() {
-                return Err(AppError::forbidden("You do not have access to this group."));
-            }
-        }
-
-        let jar = self
-            .issue_session_cookie(user_id, email, global_role, Some(group_id), origin)
-            .await?;
-
-        Ok((jar, json!({ "ok": true })))
+    async fn memberships(&self, user_id: Uuid) -> AppResult<Vec<Membership>> {
+        Ok(sqlx::query_as!(
+            Membership,
+            r#"SELECT g.id, g.name, g.owner_id, g.schedule_config, g.avatar_url, g.permissions,
+                      g.group_type, g.dalton_enabled, r.name AS role_name
+               FROM user_roles ur
+               JOIN groups g ON g.id = ur.tenant_id
+               JOIN roles r ON r.id = ur.role_id
+               WHERE ur.user_id = $1
+               ORDER BY ur.assigned_at"#,
+            user_id
+        )
+        .fetch_all(&self.db)
+        .await?)
     }
 
-    pub async fn leave_group(
-        &self,
-        user_id: Uuid,
-        group_id: Uuid,
-        active_group_id: Option<Uuid>,
-        origin: SessionOrigin<'_>,
-    ) -> AppResult<CookieJar> {
+    /// Also serves superadmins looking at a group they are not a member of,
+    /// which therefore is missing from their status list.
+    pub async fn get_group(&self, tc: &TenantContext) -> AppResult<GroupSummaryDto> {
+        let g = sqlx::query!(
+            r#"SELECT name, schedule_config, avatar_url, permissions, group_type, dalton_enabled
+               FROM groups WHERE id = $1"#,
+            tc.tenant_id
+        )
+        .fetch_optional(&self.db)
+        .await?
+        .ok_or_else(|| AppError::not_found("Group not found."))?;
+
+        Ok(GroupSummaryDto {
+            id: tc.tenant_id,
+            name: g.name,
+            owner_id: tc.group_owner_id,
+            role: tc.tenant_role.as_str(),
+            schedule_config: g.schedule_config,
+            avatar_url: g.avatar_url,
+            permissions: g.permissions,
+            group_type: GroupType::from_str_or_regular(&g.group_type).as_str(),
+            dalton_enabled: g.dalton_enabled,
+            effective_permissions: tc.effective_permission_keys(),
+        })
+    }
+
+    pub async fn record_visit(&self, user_id: Uuid, group_id: Uuid) -> AppResult<()> {
+        remember_visited_group(&self.db, user_id, group_id).await
+    }
+
+    pub async fn leave_group(&self, user_id: Uuid, group_id: Uuid) -> AppResult<()> {
         let mut tx = self.db.begin().await?;
         let owner_id = lock_group_owner(&mut tx, group_id).await?;
 
@@ -352,13 +223,19 @@ impl GroupService {
             return Err(AppError::forbidden("The owner cannot leave the group."));
         }
 
-        sqlx::query!(
+        let left = sqlx::query!(
             r#"DELETE FROM user_roles WHERE user_id = $1 AND tenant_id = $2"#,
             user_id,
             group_id
         )
         .execute(&mut *tx)
-        .await?;
+        .await?
+        .rows_affected();
+
+        // A superadmin can reach a group without belonging to it.
+        if left == 0 {
+            return Err(AppError::bad_request("You are not a member of this group."));
+        }
 
         sqlx::query!(
             r#"DELETE FROM user_courses
@@ -380,57 +257,7 @@ impl GroupService {
 
         tx.commit().await?;
 
-        let jar = if active_group_id == Some(group_id) {
-            let user = sqlx::query!(r#"SELECT email FROM users WHERE id = $1"#, user_id)
-                .fetch_one(&self.db)
-                .await?;
-
-            let global_role = sqlx::query!(
-                r#"SELECT r.name FROM user_roles ur JOIN roles r ON r.id = ur.role_id
-                   WHERE ur.user_id = $1 AND ur.tenant_id IS NULL LIMIT 1"#,
-                user_id
-            )
-            .fetch_optional(&self.db)
-            .await?
-            .map_or_else(|| "user".into(), |r| r.name);
-
-            self.issue_session_cookie(user_id, &user.email, &global_role, None, origin)
-                .await?
-        } else {
-            CookieJar::new()
-        };
-
-        Ok(jar)
-    }
-
-    pub async fn logout(
-        &self,
-        jar: CookieJar,
-        ip: Option<&str>,
-        ua: Option<&str>,
-    ) -> AppResult<CookieJar> {
-        let ip_parsed: Option<ipnetwork::IpNetwork> = ip.and_then(|s| s.parse().ok());
-
-        sqlx::query!(
-            r#"INSERT INTO security_events (event_type, event_status, ip_address, user_agent, metadata)
-             VALUES ('group_logout', 'success', $1::inet, $2, '{}'::jsonb)"#,
-            ip_parsed, ua
-        ).execute(&self.db).await?;
-
-        let opts = self.state.config.base_cookie_options();
-
-        if let Some(token) = jar
-            .get(crate::config::REFRESH_COOKIE)
-            .map(|c| c.value().to_string())
-        {
-            let _ = TokenService::from_state(&self.state)
-                .revoke_by_token(&token, LOGOUT)
-                .await;
-        }
-
-        Ok(jar
-            .add(clear_access_cookie(&opts))
-            .add(clear_refresh_cookie(&opts)))
+        Ok(())
     }
 
     pub async fn create_invite(&self, tenant_id: Uuid, user_id: Uuid) -> AppResult<Value> {
@@ -539,13 +366,8 @@ impl GroupService {
         }))
     }
 
-    pub async fn accept_invite(
-        &self,
-        params: AcceptInviteParams<'_>,
-    ) -> AppResult<(CookieJar, Value)> {
+    pub async fn accept_invite(&self, params: AcceptInviteParams<'_>) -> AppResult<Value> {
         let user_id = params.user_id;
-        let email = params.email;
-        let global_role = params.global_role;
         let token = params.token;
         let ip = params.ip;
         let ua = params.ua;
@@ -581,23 +403,16 @@ impl GroupService {
             return Err(AppError::forbidden("You have been banned from this group."));
         }
 
-        let existing = sqlx::query!(
-            "SELECT id FROM user_roles WHERE user_id = $1 AND tenant_id = $2",
+        // Joining twice keeps the existing membership and its role.
+        sqlx::query!(
+            r#"INSERT INTO user_roles (user_id, role_id, tenant_id) VALUES ($1, $2, $3)
+               ON CONFLICT (user_id, tenant_id) WHERE tenant_id IS NOT NULL DO NOTHING"#,
             user_id,
+            Role::User.db_id_i32(),
             group_id
         )
-        .fetch_optional(&mut *tx)
+        .execute(&mut *tx)
         .await?;
-
-        if existing.is_none() {
-            sqlx::query!(
-                "INSERT INTO user_roles (user_id, role_id, tenant_id) VALUES ($1, 4, $2)",
-                user_id,
-                group_id
-            )
-            .execute(&mut *tx)
-            .await?;
-        }
 
         let ip_parsed: Option<ipnetwork::IpNetwork> = ip.and_then(|s| s.parse().ok());
 
@@ -620,20 +435,6 @@ impl GroupService {
 
         tx.commit().await?;
 
-        let jar = self
-            .issue_session_cookie(
-                user_id,
-                email,
-                global_role,
-                Some(group_id),
-                SessionOrigin {
-                    current_refresh: params.current_refresh,
-                    user_agent: ua,
-                    ip_address: ip,
-                },
-            )
-            .await?;
-
-        Ok((jar, json!({ "ok": true, "groupId": group_id })))
+        Ok(json!({ "ok": true, "groupId": group_id }))
     }
 }

@@ -186,6 +186,14 @@ impl GroupPermissions {
             .map(Permission::as_str)
             .collect()
     }
+
+    /// Owners and superadmins hold every permission regardless of the matrix.
+    pub fn effective_keys(&self, role: Role, has_owner_rights: bool) -> Vec<&'static str> {
+        if has_owner_rights {
+            return Permission::ALL.iter().map(Permission::as_str).collect();
+        }
+        self.allowed_keys_for_role(role)
+    }
 }
 
 #[macro_export]
@@ -254,6 +262,19 @@ mod tests {
         let p = GroupPermissions::default();
         let keys = p.allowed_keys_for_role(Role::Admin);
         assert_eq!(keys.len(), Permission::ALL.len());
+    }
+
+    #[test]
+    fn effective_keys_owner_rights_override_matrix() {
+        let p = GroupPermissions::default();
+        assert_eq!(
+            p.effective_keys(Role::User, true).len(),
+            Permission::ALL.len()
+        );
+        assert_eq!(
+            p.effective_keys(Role::User, false),
+            p.allowed_keys_for_role(Role::User)
+        );
     }
 
     #[test]

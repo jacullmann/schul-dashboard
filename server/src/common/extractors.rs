@@ -1,40 +1,38 @@
 use crate::{
+    auth::session_context::is_superadmin,
     common::{
+        path_params::GroupPath,
         permission::{GroupPermissions, Permission},
         role::Role,
     },
     config::ACCESS_COOKIE,
-    error::AppError,
+    error::{AppError, AppResult},
     state::AppState,
 };
 use axum::{
     Json,
-    extract::{FromRef, FromRequest, FromRequestParts, Request, rejection::JsonRejection},
+    extract::{
+        FromRef, FromRequest, FromRequestParts, Path, Request, State,
+        rejection::{JsonRejection, PathRejection},
+    },
     http::request::Parts,
+    middleware::Next,
+    response::Response,
 };
 use axum_extra::extract::CookieJar;
 use serde::de::DeserializeOwned;
+use sqlx::PgPool;
 use std::convert::Infallible;
 use uuid::Uuid;
 use validator::Validate;
 
+/// Who is calling, as proven by the access token. It carries no roles: every
+/// authorization decision reads the current state from the database, so a
+/// revoked right never outlives the request that revoked it.
 #[derive(Debug, Clone)]
 pub struct AuthUser {
     pub user_id: Uuid,
     pub email: String,
-    pub global_role: String,
-    pub active_group_id: Option<Uuid>,
-}
-
-impl AuthUser {
-    pub fn is_superadmin(&self) -> bool {
-        self.global_role == "superadmin"
-    }
-
-    #[allow(dead_code)]
-    pub fn role(&self) -> Role {
-        Role::from_str_or_user(&self.global_role)
-    }
 }
 
 impl<S> FromRequestParts<S> for AuthUser
@@ -63,13 +61,9 @@ where
             .parse::<Uuid>()
             .map_err(|_| AppError::TokenExpired)?;
 
-        let active_group_id = claims.g_id.as_deref().and_then(|s| s.parse::<Uuid>().ok());
-
         Ok(AuthUser {
             user_id,
             email: claims.email,
-            global_role: claims.g_role,
-            active_group_id,
         })
     }
 }
@@ -136,26 +130,70 @@ where
     }
 }
 
+/// The caller's standing in the group named by the request path. The tenant
+/// middleware resolves it once for every route nested under
+/// `/groups/{group_id}`, so a handler can only be reached by a member (or a
+/// superadmin) and never has to repeat the check.
 #[derive(Debug, Clone)]
 pub struct TenantContext {
     pub tenant_id: Uuid,
     pub tenant_role: Role,
-    pub group_owner_id: Option<Uuid>,
+    pub group_owner_id: Uuid,
     pub group_permissions: GroupPermissions,
+    /// Read from the database, not the access token, so a revoked superadmin
+    /// loses group access immediately instead of when the token expires.
+    pub is_superadmin: bool,
     pub user: AuthUser,
 }
 
 impl TenantContext {
+    pub async fn resolve(db: &PgPool, user: AuthUser, tenant_id: Uuid) -> AppResult<Self> {
+        // One round trip for everything a group request needs to authorize.
+        let row = sqlx::query!(
+            r#"
+            SELECT g.owner_id,
+                   g.permissions,
+                   (SELECT r.name FROM user_roles ur
+                    JOIN roles r ON r.id = ur.role_id
+                    WHERE ur.user_id = $1 AND ur.tenant_id = g.id) AS "tenant_role?",
+                   EXISTS (
+                       SELECT 1 FROM user_roles
+                       WHERE user_id = $1 AND tenant_id IS NULL AND role_id = $3
+                   ) AS "is_superadmin!"
+            FROM groups g
+            WHERE g.id = $2
+            "#,
+            user.user_id,
+            tenant_id,
+            Role::Superadmin.db_id_i32()
+        )
+        .fetch_optional(db)
+        .await?;
+
+        let row = row.ok_or_else(group_not_found)?;
+
+        let tenant_role = match (row.is_superadmin, row.tenant_role.as_deref()) {
+            (true, _) => Role::Superadmin,
+            (false, Some(role)) => Role::from_str_or_user(role),
+            (false, None) => return Err(group_not_found()),
+        };
+
+        Ok(Self {
+            tenant_id,
+            tenant_role,
+            group_owner_id: row.owner_id,
+            group_permissions: GroupPermissions::from_json_with_defaults(&row.permissions),
+            is_superadmin: row.is_superadmin,
+            user,
+        })
+    }
+
     pub fn is_owner(&self) -> bool {
-        self.group_owner_id
-            .is_some_and(|id| id == self.user.user_id)
+        self.group_owner_id == self.user.user_id
     }
 
     pub fn can(&self, permission: Permission) -> bool {
-        if self.user.is_superadmin() {
-            return true;
-        }
-        if self.is_owner() {
+        if self.has_owner_rights() {
             return true;
         }
         let required = self.group_permissions.required_role(permission);
@@ -165,91 +203,88 @@ impl TenantContext {
     /// Superadmins act with the owner's rights in every group, whether or not
     /// they are a member of it.
     pub fn has_owner_rights(&self) -> bool {
-        self.user.is_superadmin() || self.is_owner()
+        self.is_superadmin || self.is_owner()
     }
 
-    #[allow(dead_code)]
     pub fn effective_permission_keys(&self) -> Vec<&'static str> {
-        if self.has_owner_rights() {
-            return Permission::ALL
-                .iter()
-                .map(super::permission::Permission::as_str)
-                .collect();
-        }
         self.group_permissions
-            .allowed_keys_for_role(self.tenant_role)
+            .effective_keys(self.tenant_role, self.has_owner_rights())
     }
+}
+
+/// Non-members get the same answer as for a missing or malformed group id, so
+/// group ids cannot be probed for existence.
+fn group_not_found() -> AppError {
+    AppError::not_found("Group not found.")
+}
+
+/// Route layer for everything nested under `/groups/{group_id}`.
+pub async fn resolve_tenant(
+    State(state): State<AppState>,
+    user: AuthUser,
+    path: Result<Path<GroupPath>, PathRejection>,
+    mut request: Request,
+    next: Next,
+) -> AppResult<Response> {
+    let Path(GroupPath { group_id }) = path.map_err(|_| group_not_found())?;
+    let tenant = TenantContext::resolve(&state.db, user, group_id).await?;
+    request.extensions_mut().insert(tenant);
+    Ok(next.run(request).await)
 }
 
 impl<S> FromRequestParts<S> for TenantContext
 where
-    AppState: FromRef<S>,
     S: Send + Sync,
 {
     type Rejection = AppError;
 
-    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
-        let app_state = AppState::from_ref(state);
-
-        let user = AuthUser::from_request_parts(parts, state).await?;
-
-        let tenant_id: Uuid = if user.is_superadmin() {
-            if let Some(hdr) = parts.headers.get("x-tenant-id") {
-                hdr.to_str()
-                    .ok()
-                    .and_then(|s| s.parse().ok())
-                    .ok_or_else(|| AppError::BadRequest("Invalid x-tenant-id header.".into()))?
-            } else {
-                user.active_group_id
-                    .ok_or_else(|| AppError::Forbidden("Tenant context missing.".into()))?
-            }
-        } else {
-            user.active_group_id
-                .ok_or_else(|| AppError::Forbidden("Tenant context missing.".into()))?
-        };
-
-        if user.is_superadmin() {
-            let row = sqlx::query!(
-                r#"SELECT owner_id, permissions FROM groups WHERE id = $1"#,
-                tenant_id
-            )
-            .fetch_optional(&app_state.db)
-            .await?
-            .ok_or_else(|| AppError::NotFound("Group not found.".into()))?;
-
-            return Ok(TenantContext {
-                tenant_id,
-                tenant_role: Role::Superadmin,
-                group_owner_id: Some(row.owner_id),
-                group_permissions: GroupPermissions::from_json_with_defaults(&row.permissions),
-                user,
-            });
-        }
-
-        let row = sqlx::query!(
-            r#"
-            SELECT r.name as role_name, g.owner_id, g.permissions
-            FROM user_roles ur
-            JOIN roles r ON r.id = ur.role_id
-            JOIN groups g ON g.id = ur.tenant_id
-            WHERE ur.user_id = $1 AND ur.tenant_id = $2
-            LIMIT 1
-            "#,
-            user.user_id,
-            tenant_id
-        )
-        .fetch_optional(&app_state.db)
-        .await?
-        .ok_or_else(|| AppError::Forbidden("Kein Zugriff auf diesen Tenant.".into()))?;
-
-        Ok(TenantContext {
-            tenant_id,
-            tenant_role: Role::from_str_or_user(&row.role_name),
-            group_owner_id: Some(row.owner_id),
-            group_permissions: GroupPermissions::from_json_with_defaults(&row.permissions),
-            user,
-        })
+    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
+        from_route_layer(parts, "resolve_tenant")
     }
+}
+
+/// A caller whose superadmin role was confirmed against the database for this
+/// request by the `require_superadmin` route layer.
+#[derive(Debug, Clone)]
+pub struct SuperAdmin(pub AuthUser);
+
+/// Route layer for the platform administration endpoints.
+pub async fn require_superadmin(
+    State(state): State<AppState>,
+    user: AuthUser,
+    mut request: Request,
+    next: Next,
+) -> AppResult<Response> {
+    if !is_superadmin(&state.db, user.user_id).await? {
+        return Err(AppError::forbidden("Super-admin privileges required."));
+    }
+    request.extensions_mut().insert(SuperAdmin(user));
+    Ok(next.run(request).await)
+}
+
+impl<S> FromRequestParts<S> for SuperAdmin
+where
+    S: Send + Sync,
+{
+    type Rejection = AppError;
+
+    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
+        from_route_layer(parts, "require_superadmin")
+    }
+}
+
+/// Reading a guard's result without its layer is a routing bug, not a
+/// client error, so it fails loudly.
+fn from_route_layer<T: Clone + Send + Sync + 'static>(
+    parts: &Parts,
+    layer: &str,
+) -> Result<T, AppError> {
+    parts.extensions.get::<T>().cloned().ok_or_else(|| {
+        AppError::internal(format!(
+            "{} extracted on a route without the {layer} layer",
+            std::any::type_name::<T>()
+        ))
+    })
 }
 
 pub struct ClientIp(pub Option<String>);

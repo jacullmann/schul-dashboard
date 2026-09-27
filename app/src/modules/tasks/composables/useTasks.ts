@@ -3,6 +3,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
 import { useSubjectStore } from '@/stores/subjectStore';
+import { useGroupPageId } from '@/core/composables/useGroupPageId';
 import { useModalStore } from '@/stores/modalStore';
 import { useImageUpload } from '@/modules/tasks/composables/useImageUpload';
 import { useI18n } from 'vue-i18n';
@@ -26,7 +27,8 @@ export function useTasks() {
   const userStore = useUserStore();
   const subjectStore = useSubjectStore();
   const modalStore = useModalStore();
-  const imageUpload = useImageUpload();
+  const groupId = useGroupPageId();
+  const imageUpload = useImageUpload(groupId);
   const { user } = storeToRefs(userStore);
   const i18n = useI18n();
   const t = i18n.t.bind(i18n);
@@ -41,9 +43,6 @@ export function useTasks() {
   const subjectFilter = ref((route.query.subject as string) || '');
   const hideChecked = ref(route.query.hideChecked === 'true');
   const showPersonalized = computed(() => user.value?.personalized ?? false);
-  const activeGroupId = computed(
-    () => (route.params.groupId as string) || null,
-  );
 
   const items = ref<HwItem[]>([]);
   const hiddenByCourses = ref(0);
@@ -76,7 +75,7 @@ export function useTasks() {
     showOldEntries,
     subjectFilter,
     hideChecked,
-    activeGroupId,
+    groupId,
     showPersonalized,
     items,
     hiddenByCourses,
@@ -322,7 +321,7 @@ export function useTasks() {
   });
 
   onMounted(async () => {
-    await subjectStore.loadSubjects();
+    await subjectStore.loadSubjects(groupId);
     await Promise.all([
       reload(),
       list.loadCheckedForMe(),
@@ -383,7 +382,9 @@ export function useTasks() {
     makeThumb: images.makeThumb,
     isRevealed: ui.isRevealed,
     revealImages: ui.revealImages,
-    onSetupSuccess: () => modalStore.openSetup(),
+    onSetupSuccess: () => {
+      modalStore.openSetup(groupId);
+    },
     doReport: actions.doReport,
     cancelReport: actions.cancelReport,
     openCreateFormByType: forms.openCreateFormByType,

@@ -4,10 +4,12 @@ import { useI18n } from 'vue-i18n';
 import { useSubjectStore } from '@/stores/subjectStore';
 import { useUserStore } from '@/stores/userStore';
 import { useCourseSelection } from '@/common/composables/useCourseSelection';
+import { useGroupPageId } from '@/core/composables/useGroupPageId';
 import { useToast } from '@/common/composables/useToast';
 import { apiErrorMessage } from '@/api/errors';
 
 const { t } = useI18n();
+const groupId = useGroupPageId();
 const toast = useToast();
 const subjectStore = useSubjectStore();
 const userStore = useUserStore();
@@ -18,7 +20,7 @@ const {
   optionsForSubject,
   selectedCourses,
   saveCourses,
-} = useCourseSelection();
+} = useCourseSelection(groupId);
 
 const saving = ref(false);
 const error = ref('');
@@ -51,7 +53,7 @@ watch(
   { immediate: true },
 );
 
-void subjectStore.loadSubjects();
+void subjectStore.loadSubjects(groupId);
 
 async function save() {
   saving.value = true;

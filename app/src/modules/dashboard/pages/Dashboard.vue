@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import {
@@ -18,6 +18,8 @@ import { lessonSubjectName } from '@/modules/schedule/utils/lesson';
 import { formatSubjectDisplay } from '@/utils/subject-formatter';
 import { courseSelectionFor } from '@/types/subjects';
 import hw from '@/api/api.ts';
+import { groupPath } from '@/api/groupPath';
+import { useGroupPageId } from '@/core/composables/useGroupPageId';
 import ItemCard from '@/modules/tasks/components/ItemCard.vue';
 import { useCardEntrance } from '@/modules/tasks/composables/useCardEntrance';
 import { entranceDelay } from '@/modules/tasks/utils/entrance';
@@ -30,7 +32,8 @@ const locale = i18n.locale;
 const userStore = useUserStore();
 const subjectStore = useSubjectStore();
 const { user } = storeToRefs(userStore);
-const { activeGroupId, checkPermission } = useAppAuth();
+const { checkPermission } = useAppAuth();
+const groupId = useGroupPageId();
 
 const {
   lessons,
@@ -54,7 +57,7 @@ const checkTimeouts = new Map<string, number>();
 let timerInterval: number | undefined;
 
 onMounted(async () => {
-  await subjectStore.loadSubjects();
+  await subjectStore.loadSubjects(groupId);
   timerInterval = window.setInterval(() => {
     now.value = new Date();
   }, 30000);
@@ -85,18 +88,7 @@ function beforeLeave(el: Element) {
   h.style.position = 'absolute';
 }
 
-watch(
-  activeGroupId,
-  async (newGroupId) => {
-    if (newGroupId) {
-      await fetchTasks();
-    }
-  },
-  { immediate: true },
-);
-
 async function fetchTasks() {
-  if (!activeGroupId.value) return;
   loadingTasks.value = true;
 
   // Clear any pending check timeouts and states
@@ -106,10 +98,11 @@ async function fetchTasks() {
   useListTransitions.value = false;
 
   try {
-    const config = { headers: { 'x-tenant-id': activeGroupId.value } };
     const [itemsRes, checksRes] = await Promise.all([
-      hw.get('/items', { params: { type: 'all' }, ...config }),
-      hw.get('/user/checks', config),
+      hw.get(groupPath(groupId, '/items'), {
+        params: { type: 'all' },
+      }),
+      hw.get('/user/checks'),
     ]);
 
     rawItems.value = itemsRes.data || [];
@@ -120,6 +113,8 @@ async function fetchTasks() {
     loadingTasks.value = false;
   }
 }
+
+void fetchTasks();
 
 async function toggleCheck(item: any) {
   const id = item.id;
@@ -160,14 +155,10 @@ async function toggleCheck(item: any) {
   }
 
   try {
-    const config = activeGroupId.value
-      ? { headers: { 'x-tenant-id': activeGroupId.value } }
-      : {};
-
     if (wasChecked) {
-      await hw.delete(`/user/items/${id}/check`, config);
+      await hw.delete(groupPath(groupId, `/items/${id}/check`));
     } else {
-      await hw.post(`/user/items/${id}/check`, {}, config);
+      await hw.post(groupPath(groupId, `/items/${id}/check`));
     }
   } catch (err) {
     if (wasChecked) {
@@ -447,7 +438,7 @@ const {
           }"
         >
           {{ t('dashboard.tasks_overview.title') }}
-          <template v-if="activeGroupId" #action>
+          <template #action>
             <BaseTooltip
               :content="t('dashboard.tasks_overview.view_all')"
               placement="bottom"
@@ -457,7 +448,7 @@ const {
                 @click="
                   $router.push({
                     name: 'group-tasks',
-                    params: { groupId: activeGroupId },
+                    params: { groupId },
                     query: { type: 'all' },
                   })
                 "
@@ -539,7 +530,7 @@ const {
                       @click.stop="
                         $router.push({
                           name: 'group-tasks',
-                          params: { groupId: activeGroupId },
+                          params: { groupId },
                           query: {
                             type: 'all',
                             highlightedTask: task.id,
@@ -579,7 +570,7 @@ const {
           }"
         >
           {{ t('dashboard.schedule_overview.title') }}
-          <template v-if="activeGroupId && hasLessons" #action>
+          <template v-if="hasLessons" #action>
             <BaseTooltip
               :content="t('dashboard.schedule_overview.view_full')"
               placement="bottom"
@@ -589,7 +580,7 @@ const {
                 @click="
                   $router.push({
                     name: 'group-schedule',
-                    params: { groupId: activeGroupId },
+                    params: { groupId },
                   })
                 "
               />
@@ -767,7 +758,7 @@ const {
               () =>
                 $router.push({
                   name: 'group-admin',
-                  params: { groupId: activeGroupId, tab: 'schedule' },
+                  params: { groupId, tab: 'schedule' },
                 })
             "
             :icon="CalendarDays"

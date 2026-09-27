@@ -3,6 +3,7 @@ import { useRoute } from 'vue-router';
 import axios from 'axios';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import hw from '@/api/api.ts';
+import { groupPath } from '@/api/groupPath';
 import type {
   AssignableMemberRole,
   GroupMember,
@@ -95,7 +96,7 @@ export function useGroupAdmin() {
     if (!checkPermission('edit_group_general')) return;
     loadingStats.value = true;
     try {
-      const { data } = await hw.get('/group-admin/stats');
+      const { data } = await hw.get(groupPath(groupId.value, '/admin/stats'));
       stats.value = data;
     } catch {
       showMessage(t('groups.settings.messages.load_stats_failed'), true);
@@ -107,7 +108,9 @@ export function useGroupAdmin() {
   async function loadMembers() {
     loadingMembers.value = true;
     try {
-      const { data } = await hw.get<GroupMember[]>('/groups/members');
+      const { data } = await hw.get<GroupMember[]>(
+        groupPath(groupId.value, '/members'),
+      );
       members.value = data;
     } catch {
       showMessage(t('groups.settings.messages.load_members_failed'), true);
@@ -131,13 +134,15 @@ export function useGroupAdmin() {
     }
 
     try {
-      await hw.patch(`/group-admin/members/${userId}/role`, {
-        role: newRole,
-      });
+      await hw.patch(
+        groupPath(groupId.value, `/admin/members/${userId}/role`),
+        {
+          role: newRole,
+        },
+      );
       showMessage(t('groups.settings.messages.role_updated'));
       // A role change also changes what may be done to that member next.
       if (isSelf) {
-        userStore.updateUser({ tenantRole: newRole });
         await Promise.all([checkAuthStatus(), loadMembers()]);
       } else {
         await loadMembers();
@@ -153,7 +158,9 @@ export function useGroupAdmin() {
 
   async function removeMember(userId: string, _name: string, ban = false) {
     try {
-      await hw.delete(`/group-admin/members/${userId}?ban=${ban}`);
+      await hw.delete(
+        groupPath(groupId.value, `/admin/members/${userId}?ban=${ban}`),
+      );
       members.value = members.value.filter((m) => m.userId !== userId);
       showMessage(
         ban
@@ -174,7 +181,9 @@ export function useGroupAdmin() {
     if (!checkPermission('moderate_members')) return;
     loadingBannedUsers.value = true;
     try {
-      const { data } = await hw.get('/group-admin/banned-users');
+      const { data } = await hw.get(
+        groupPath(groupId.value, '/admin/banned-users'),
+      );
       bannedUsers.value = data;
     } catch {
       showMessage(t('groups.settings.messages.load_banned_failed'), true);
@@ -185,7 +194,9 @@ export function useGroupAdmin() {
 
   async function revertBan(userId: string) {
     try {
-      await hw.delete(`/group-admin/banned-users/${userId}`);
+      await hw.delete(
+        groupPath(groupId.value, `/admin/banned-users/${userId}`),
+      );
       bannedUsers.value = bannedUsers.value.filter((u) => u.userId !== userId);
       showMessage(t('groups.settings.messages.ban_reverted'));
     } catch {
@@ -198,7 +209,9 @@ export function useGroupAdmin() {
   async function loadSchedule() {
     loadingLessons.value = true;
     try {
-      const { data } = await hw.get('/group-admin/schedule');
+      const { data } = await hw.get(
+        groupPath(groupId.value, '/admin/schedule'),
+      );
       lessons.value = data;
     } catch {
       showMessage(t('groups.settings.messages.load_schedule_failed'), true);
@@ -212,7 +225,7 @@ export function useGroupAdmin() {
   ): Promise<boolean> {
     savingLesson.value = true;
     try {
-      await hw.post('/group-admin/schedule', lessonData);
+      await hw.post(groupPath(groupId.value, '/admin/schedule'), lessonData);
       await loadSchedule();
       showMessage(t('groups.settings.schedule.editor.success_save_lesson'));
       return true;
@@ -235,7 +248,7 @@ export function useGroupAdmin() {
     if (!isConfirmed) return false;
     savingLesson.value = true;
     try {
-      await hw.delete(`/group-admin/schedule/${lessonId}`);
+      await hw.delete(groupPath(groupId.value, `/admin/schedule/${lessonId}`));
       await loadSchedule();
       showMessage(t('groups.settings.schedule.editor.success_delete_lesson'));
       return true;
@@ -250,7 +263,9 @@ export function useGroupAdmin() {
   async function loadSubs() {
     loadingSubs.value = true;
     try {
-      const { data } = await hw.get('/group-admin/schedule/subs');
+      const { data } = await hw.get(
+        groupPath(groupId.value, '/admin/schedule/subs'),
+      );
       subs.value = data;
     } catch {
       showMessage(
@@ -266,7 +281,7 @@ export function useGroupAdmin() {
     if (!subData.lessonId) return;
     savingSub.value = true;
     try {
-      await hw.post('/group-admin/schedule/subs', subData);
+      await hw.post(groupPath(groupId.value, '/admin/schedule/subs'), subData);
       await loadSubs();
       showMessage(t('groups.settings.messages.substitution_saved'));
     } catch {
@@ -335,7 +350,7 @@ export function useGroupAdmin() {
   ): Promise<boolean> {
     savingScheduleConfig.value = true;
     try {
-      await hw.put('/group-admin/schedule', {
+      await hw.put(groupPath(groupId.value, '/admin/schedule'), {
         lessons: updatedLessons.map(createScheduleLessonPayload),
         scheduleConfig: configPayload,
       });
@@ -354,7 +369,9 @@ export function useGroupAdmin() {
   async function updateScheduleConfig(scheduleConfig: ScheduleConfig) {
     savingScheduleConfig.value = true;
     try {
-      await hw.patch('/group-admin/schedule-config', { scheduleConfig });
+      await hw.patch(groupPath(groupId.value, '/admin/schedule-config'), {
+        scheduleConfig,
+      });
       await useAppAuth().checkAuthStatus();
       showMessage(t('groups.settings.messages.schedule_config_updated'));
     } catch {
@@ -377,7 +394,7 @@ export function useGroupAdmin() {
 
     if (!isConfirmed) return;
     try {
-      await hw.delete(`/group-admin/schedule/subs/${id}`);
+      await hw.delete(groupPath(groupId.value, `/admin/schedule/subs/${id}`));
       subs.value = subs.value.filter((s) => s.id !== id);
       showMessage(t('groups.settings.messages.substitution_deleted'));
     } catch {
@@ -390,7 +407,9 @@ export function useGroupAdmin() {
 
   async function loadAnnouncements() {
     try {
-      const { data } = await hw.get('/schedule/announcements');
+      const { data } = await hw.get(
+        groupPath(groupId.value, '/schedule/announcements'),
+      );
       announcements.value = data;
     } catch {
       // Announcements are supplementary; keep the previously loaded list.
@@ -401,7 +420,7 @@ export function useGroupAdmin() {
     if (!content.trim()) return;
     creatingAnn.value = true;
     try {
-      await hw.post('/group-admin/announcements', {
+      await hw.post(groupPath(groupId.value, '/admin/announcements'), {
         content: content.trim(),
         color,
       });
@@ -427,7 +446,7 @@ export function useGroupAdmin() {
 
     if (!isConfirmed) return;
     try {
-      await hw.delete(`/group-admin/announcements/${id}`);
+      await hw.delete(groupPath(groupId.value, `/admin/announcements/${id}`));
       announcements.value = announcements.value.filter((a) => a.id !== id);
       showMessage(t('groups.settings.messages.announcement_deleted'));
     } catch {
@@ -449,7 +468,9 @@ export function useGroupAdmin() {
     if (!isConfirmed) return;
     cleaningUp.value = true;
     try {
-      const { data } = await hw.delete('/group-admin/cleanup/old-items');
+      const { data } = await hw.delete(
+        groupPath(groupId.value, '/admin/cleanup/old-items'),
+      );
       showMessage(
         data.message || t('groups.settings.messages.cleanup_completed'),
       );
@@ -475,7 +496,7 @@ export function useGroupAdmin() {
     if (!newGroupName.value.trim()) return;
     savingGroupName.value = true;
     try {
-      await hw.patch('/group-admin/settings', {
+      await hw.patch(groupPath(groupId.value, '/admin/settings'), {
         name: newGroupName.value.trim(),
       });
       showMessage(t('groups.settings.messages.group_name_updated'));
@@ -496,7 +517,7 @@ export function useGroupAdmin() {
 
   async function saveGroupAvatar(avatarUrl: string | null) {
     try {
-      await hw.patch('/group-admin/settings', {
+      await hw.patch(groupPath(groupId.value, '/admin/settings'), {
         avatarUrl: avatarUrl ? avatarUrl.trim() : null,
       });
       showMessage(
@@ -520,7 +541,9 @@ export function useGroupAdmin() {
   async function saveGroupType(groupType: GroupType): Promise<boolean> {
     savingGroupType.value = true;
     try {
-      await hw.patch('/group-admin/settings', { groupType });
+      await hw.patch(groupPath(groupId.value, '/admin/settings'), {
+        groupType,
+      });
       await checkAuthStatus();
       showMessage(t('groups.settings.general.group_type.success'));
       return true;
@@ -538,7 +561,9 @@ export function useGroupAdmin() {
   async function saveDaltonEnabled(daltonEnabled: boolean): Promise<boolean> {
     savingDaltonEnabled.value = true;
     try {
-      await hw.patch('/group-admin/settings', { daltonEnabled });
+      await hw.patch(groupPath(groupId.value, '/admin/settings'), {
+        daltonEnabled,
+      });
       await checkAuthStatus();
       showMessage(t('groups.settings.general.dalton.success'));
       return true;
@@ -555,7 +580,7 @@ export function useGroupAdmin() {
 
   async function deleteGroup() {
     try {
-      await hw.delete('/group-admin');
+      await hw.delete(groupPath(groupId.value));
       showMessage(t('groups.settings.messages.group_deleted'));
       return true;
     } catch (e: unknown) {
@@ -597,7 +622,9 @@ export function useGroupAdmin() {
 
     if (!isConfirmed) return;
     try {
-      await hw.post('/group-admin/transfer-ownership', { targetUserId });
+      await hw.post(groupPath(groupId.value, '/admin/transfer-ownership'), {
+        targetUserId,
+      });
       showMessage(t('groups.settings.messages.ownership_transferred'));
       await Promise.all([checkAuthStatus(), loadMembers()]);
     } catch (e: unknown) {
@@ -616,7 +643,7 @@ export function useGroupAdmin() {
     if (!checkPermission('moderate_members')) return;
     loadingInvites.value = true;
     try {
-      const { data } = await hw.get('/group-admin/invites');
+      const { data } = await hw.get(groupPath(groupId.value, '/admin/invites'));
       invites.value = data;
     } catch {
       showMessage(t('groups.settings.messages.load_invites_failed'), true);
@@ -627,7 +654,7 @@ export function useGroupAdmin() {
 
   async function revokeInvite(id: string) {
     try {
-      await hw.delete(`/group-admin/invites/${id}`);
+      await hw.delete(groupPath(groupId.value, `/admin/invites/${id}`));
       showMessage(t('groups.settings.messages.invite_revoked'));
       await loadInvites();
     } catch {

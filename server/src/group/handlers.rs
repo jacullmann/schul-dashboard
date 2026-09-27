@@ -2,17 +2,18 @@ use super::{dto::*, service::GroupService};
 use crate::{
     common::extractors::{AuthUser, ClientIp, OptionalAuth, TenantContext, UserAgent},
     common::group_type::GroupType,
+    common::path_params::{IdPath, MemberPath, SubjectPath},
     error::{AppError, AppResult},
+    items::service::ItemsService,
     state::AppState,
 };
 use axum::{
     Json,
     extract::{Path, Query, State},
+    http::StatusCode,
 };
-use axum_extra::extract::CookieJar;
 use serde::Deserialize;
 use serde_json::{Value, json};
-use uuid::Uuid;
 
 use super::{admin::service::GroupAdminService, member_policy::Caller};
 use crate::group::dto::CreateScheduleSubDto;
@@ -39,28 +40,20 @@ pub async fn get_invite(
 pub async fn accept_invite(
     State(s): State<AppState>,
     user: AuthUser,
-    cookies: CookieJar,
     ClientIp(ip): ClientIp,
     UserAgent(ua): UserAgent,
     Path(token): Path<String>,
-) -> AppResult<(CookieJar, Json<Value>)> {
-    let current = cookies
-        .get(crate::config::REFRESH_COOKIE)
-        .map(|c| c.value().to_string());
-
-    let (jar, body) = GroupService::from_state(&s)
+) -> AppResult<Json<Value>> {
+    let body = GroupService::from_state(&s)
         .accept_invite(crate::group::service::AcceptInviteParams {
             user_id: user.user_id,
-            email: &user.email,
-            global_role: &user.global_role,
             token: &token,
             ip: ip.as_deref(),
             ua: ua.as_deref(),
-            current_refresh: current.as_deref(),
         })
         .await?;
 
-    Ok((jar, Json(body)))
+    Ok(Json(body))
 }
 
 /// Rejects unknown group types instead of silently storing a regular group.
@@ -75,116 +68,66 @@ fn parse_group_type(raw: Option<&str>) -> AppResult<Option<GroupType>> {
 pub async fn create_group(
     State(s): State<AppState>,
     user: AuthUser,
-    cookies: CookieJar,
     ClientIp(ip): ClientIp,
     UserAgent(ua): UserAgent,
     Json(dto): Json<CreateGroupDto>,
-) -> AppResult<(CookieJar, Json<Value>)> {
-    let current = cookies
-        .get(crate::config::REFRESH_COOKIE)
-        .map(|c| c.value().to_string());
-
+) -> AppResult<Json<Value>> {
     let group_type = parse_group_type(dto.group_type.as_deref())?.unwrap_or_default();
 
-    let (jar, body) = GroupService::from_state(&s)
+    let body = GroupService::from_state(&s)
         .create_group(crate::group::service::CreateGroupParams {
             user_id: user.user_id,
-            email: &user.email,
-            global_role: &user.global_role,
             group_name: &dto.group_name,
             avatar_url: dto.avatar_url.as_deref(),
             group_type,
             dalton_enabled: dto.dalton_enabled,
             ip: ip.as_deref(),
             ua: ua.as_deref(),
-            current_refresh: current.as_deref(),
         })
         .await?;
 
-    Ok((jar, Json(body)))
+    Ok(Json(body))
 }
 
-pub async fn get_status(State(s): State<AppState>, opt: OptionalAuth) -> AppResult<Json<Value>> {
-    let (uid, gid, role) = match opt.0 {
-        Some(u) => (Some(u.user_id), u.active_group_id, Some(u.global_role)),
-        None => (None, None, None),
-    };
+/// A new group's avatar is uploaded before the group exists, so this is the
+/// one upload signature that needs no group membership.
+pub async fn sign_group_avatar_upload(State(s): State<AppState>, _user: AuthUser) -> Json<Value> {
+    Json(ItemsService::from_state(&s).create_upload_signature())
+}
 
+pub async fn get_status(
+    State(s): State<AppState>,
+    OptionalAuth(user): OptionalAuth,
+) -> AppResult<Json<GroupStatusDto>> {
     Ok(Json(
         GroupService::from_state(&s)
-            .get_status(uid, gid, role.as_deref())
+            .get_status(user.map(|u| u.user_id))
             .await?,
     ))
 }
 
-pub async fn switch_group(
+pub async fn get_group(
     State(s): State<AppState>,
-    user: AuthUser,
-    cookies: CookieJar,
-    ClientIp(ip): ClientIp,
-    UserAgent(ua): UserAgent,
-    Json(dto): Json<SwitchGroupDto>,
-) -> AppResult<(CookieJar, Json<Value>)> {
-    let current = cookies
-        .get(crate::config::REFRESH_COOKIE)
-        .map(|c| c.value().to_string());
-
-    let (jar, body) = GroupService::from_state(&s)
-        .switch_group(
-            user.user_id,
-            &user.email,
-            &user.global_role,
-            dto.group_id,
-            crate::group::service::SessionOrigin {
-                current_refresh: current.as_deref(),
-                user_agent: ua.as_deref(),
-                ip_address: ip.as_deref(),
-            },
-        )
-        .await?;
-
-    Ok((jar, Json(body)))
+    tc: TenantContext,
+) -> AppResult<Json<GroupSummaryDto>> {
+    Ok(Json(GroupService::from_state(&s).get_group(&tc).await?))
 }
 
-pub async fn leave_group(
-    State(s): State<AppState>,
-    user: AuthUser,
-    cookies: CookieJar,
-    ClientIp(ip): ClientIp,
-    UserAgent(ua): UserAgent,
-    Path(group_id): Path<Uuid>,
-) -> AppResult<(CookieJar, Json<Value>)> {
-    let current = cookies
-        .get(crate::config::REFRESH_COOKIE)
-        .map(|c| c.value().to_string());
-
-    let jar = GroupService::from_state(&s)
-        .leave_group(
-            user.user_id,
-            group_id,
-            user.active_group_id,
-            crate::group::service::SessionOrigin {
-                current_refresh: current.as_deref(),
-                user_agent: ua.as_deref(),
-                ip_address: ip.as_deref(),
-            },
-        )
+pub async fn record_visit(State(s): State<AppState>, tc: TenantContext) -> AppResult<StatusCode> {
+    GroupService::from_state(&s)
+        .record_visit(tc.user.user_id, tc.tenant_id)
         .await?;
 
-    Ok((jar, Json(json!({ "ok": true }))))
+    Ok(StatusCode::NO_CONTENT)
 }
 
-pub async fn logout(
-    State(s): State<AppState>,
-    jar: CookieJar,
-    ClientIp(ip): ClientIp,
-    UserAgent(ua): UserAgent,
-) -> AppResult<(CookieJar, Json<Value>)> {
-    let jar = GroupService::from_state(&s)
-        .logout(jar, ip.as_deref(), ua.as_deref())
+pub async fn leave_group(State(s): State<AppState>, tc: TenantContext) -> AppResult<Json<Value>> {
+    GroupService::from_state(&s)
+        .leave_group(tc.user.user_id, tc.tenant_id)
         .await?;
+    s.message_bus.membership_changed(tc.tenant_id).await;
 
-    Ok((jar, Json(json!({ "ok": true }))))
+    Ok(Json(json!({ "ok": true })))
 }
 
 pub async fn get_stats(State(s): State<AppState>, tc: TenantContext) -> AppResult<Json<Value>> {
@@ -226,7 +169,7 @@ pub async fn get_banned_users(
 pub async fn revert_ban(
     State(s): State<AppState>,
     tc: TenantContext,
-    Path(target): Path<Uuid>,
+    Path(MemberPath { user_id: target }): Path<MemberPath>,
 ) -> AppResult<Json<Value>> {
     crate::require_permission!(tc, crate::common::permission::Permission::ModerateMembers);
 
@@ -240,7 +183,7 @@ pub async fn revert_ban(
 pub async fn change_member_role(
     State(s): State<AppState>,
     tc: TenantContext,
-    Path(target): Path<Uuid>,
+    Path(MemberPath { user_id: target }): Path<MemberPath>,
     Json(dto): Json<ChangeMemberRoleDto>,
 ) -> AppResult<Json<Value>> {
     Ok(Json(
@@ -270,19 +213,20 @@ pub struct BanQuery {
 pub async fn remove_member(
     State(s): State<AppState>,
     tc: TenantContext,
-    Path(target): Path<Uuid>,
+    Path(MemberPath { user_id: target }): Path<MemberPath>,
     Query(q): Query<BanQuery>,
 ) -> AppResult<Json<Value>> {
-    Ok(Json(
-        GroupAdminService::from_state(&s)
-            .remove_member(
-                tc.tenant_id,
-                Caller::from_tenant(&tc),
-                target,
-                q.ban.as_deref() == Some("true"),
-            )
-            .await?,
-    ))
+    let body = GroupAdminService::from_state(&s)
+        .remove_member(
+            tc.tenant_id,
+            Caller::from_tenant(&tc),
+            target,
+            q.ban.as_deref() == Some("true"),
+        )
+        .await?;
+    s.message_bus.membership_changed(tc.tenant_id).await;
+
+    Ok(Json(body))
 }
 
 pub async fn rename_group(
@@ -373,11 +317,12 @@ pub async fn delete_group(State(s): State<AppState>, tc: TenantContext) -> AppRe
         ));
     }
 
-    Ok(Json(
-        GroupAdminService::from_state(&s)
-            .delete_group(tc.tenant_id, tc.user.user_id)
-            .await?,
-    ))
+    let body = GroupAdminService::from_state(&s)
+        .delete_group(tc.tenant_id, tc.user.user_id)
+        .await?;
+    s.message_bus.membership_changed(tc.tenant_id).await;
+
+    Ok(Json(body))
 }
 
 pub async fn cleanup_old_items(
@@ -438,7 +383,7 @@ pub async fn create_subject(
 pub async fn update_subject(
     State(s): State<AppState>,
     tc: TenantContext,
-    Path(id): Path<Uuid>,
+    Path(IdPath { id }): Path<IdPath>,
     Json(dto): Json<UpdateSubjectDto>,
 ) -> AppResult<Json<Value>> {
     crate::require_permission!(
@@ -462,7 +407,7 @@ pub async fn update_subject(
 pub async fn delete_subject(
     State(s): State<AppState>,
     tc: TenantContext,
-    Path(id): Path<Uuid>,
+    Path(IdPath { id }): Path<IdPath>,
 ) -> AppResult<Json<Value>> {
     crate::require_permission!(
         tc,
@@ -478,7 +423,7 @@ pub async fn delete_subject(
 pub async fn create_course(
     State(s): State<AppState>,
     tc: TenantContext,
-    Path(subject_id): Path<Uuid>,
+    Path(SubjectPath { subject_id }): Path<SubjectPath>,
     Json(dto): Json<CreateCourseDto>,
 ) -> AppResult<Json<Value>> {
     crate::require_permission!(
@@ -501,7 +446,7 @@ pub async fn create_course(
 pub async fn update_course(
     State(s): State<AppState>,
     tc: TenantContext,
-    Path(id): Path<Uuid>,
+    Path(IdPath { id }): Path<IdPath>,
     Json(dto): Json<UpdateCourseDto>,
 ) -> AppResult<Json<Value>> {
     crate::require_permission!(
@@ -524,7 +469,7 @@ pub async fn update_course(
 pub async fn delete_course(
     State(s): State<AppState>,
     tc: TenantContext,
-    Path(id): Path<Uuid>,
+    Path(IdPath { id }): Path<IdPath>,
 ) -> AppResult<Json<Value>> {
     crate::require_permission!(
         tc,
@@ -581,7 +526,7 @@ pub async fn replace_schedule_admin(
 pub async fn delete_schedule_admin(
     State(s): State<AppState>,
     tc: TenantContext,
-    Path(id): Path<Uuid>,
+    Path(IdPath { id }): Path<IdPath>,
 ) -> AppResult<Json<Value>> {
     crate::require_permission!(tc, crate::common::permission::Permission::EditSchedule);
 
@@ -624,7 +569,7 @@ pub async fn create_schedule_sub(
 pub async fn delete_schedule_sub(
     State(s): State<AppState>,
     tc: TenantContext,
-    Path(id): Path<Uuid>,
+    Path(IdPath { id }): Path<IdPath>,
 ) -> AppResult<Json<Value>> {
     crate::require_permission!(
         tc,
@@ -663,7 +608,7 @@ pub async fn create_announcement(
 pub async fn delete_announcement(
     State(s): State<AppState>,
     tc: TenantContext,
-    Path(id): Path<Uuid>,
+    Path(IdPath { id }): Path<IdPath>,
 ) -> AppResult<Json<Value>> {
     crate::require_permission!(
         tc,
@@ -689,7 +634,7 @@ pub async fn get_invites(State(s): State<AppState>, tc: TenantContext) -> AppRes
 pub async fn revoke_invite(
     State(s): State<AppState>,
     tc: TenantContext,
-    Path(invite_id): Path<Uuid>,
+    Path(IdPath { id: invite_id }): Path<IdPath>,
 ) -> AppResult<Json<Value>> {
     crate::require_permission!(tc, crate::common::permission::Permission::ModerateMembers);
     Ok(Json(

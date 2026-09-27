@@ -2,14 +2,17 @@ import { onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { HwItem, ItemType } from '@/modules/tasks/types';
 import hw from '@/api/api.ts';
+import { groupPath } from '@/api/groupPath';
 import { useToast } from '@/common/composables/useToast';
 import { useTaskForm } from '@/core/composables/useTaskForm';
 import { useModalStore } from '@/stores/modalStore';
+import { useUserStore } from '@/stores/userStore';
 import type { HwContext } from './types';
 import { apiErrorMessage } from '@/api/errors';
 
 export function useHwForms(ctx: HwContext) {
   const { t } = useI18n();
+  const userStore = useUserStore();
   const { openTaskForm, openEditForm, onFormSuccess } = useTaskForm();
 
   const unregister = onFormSuccess(() => void ctx.reloadList());
@@ -24,20 +27,15 @@ export function useHwForms(ctx: HwContext) {
   }
 
   function editItem(item: HwItem) {
-    openEditForm(item);
+    openEditForm(ctx.groupId, item);
   }
 
   function openCreateFormByType(type: Exclude<ItemType, 'all'>) {
-    openTaskForm(type);
+    openTaskForm(ctx.groupId, type);
   }
 
   function canEditNote() {
-    if (!ctx.user.value) return false;
-    return (
-      ctx.user.value.role === 'superadmin' ||
-      ctx.user.value.tenantRole === 'admin' ||
-      ctx.user.value.tenantRole === 'moderator'
-    );
+    return ctx.user.value !== null && userStore.isGroupAdmin;
   }
 
   function startEditNote(item: HwItem) {
@@ -55,7 +53,7 @@ export function useHwForms(ctx: HwContext) {
     savingNote.value = true;
 
     try {
-      await hw.patch(`/items/${itemId}/note`, {
+      await hw.patch(groupPath(ctx.groupId, `/items/${itemId}/note`), {
         editorNote: noteEditContent.value,
       });
 
@@ -87,7 +85,7 @@ export function useHwForms(ctx: HwContext) {
     savingNote.value = true;
 
     try {
-      await hw.patch(`/items/${itemId}/note`, {
+      await hw.patch(groupPath(ctx.groupId, `/items/${itemId}/note`), {
         editorNote: '',
       });
 

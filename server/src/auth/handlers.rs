@@ -81,7 +81,7 @@ pub async fn get_me(State(state): State<AppState>, opt: OptionalAuth) -> AppResu
         None => Ok(Json(json!({ "authenticated": false }))),
         Some(user) => {
             let svc = AuthService::from_state(&state);
-            Ok(Json(svc.get_me(user.user_id, user.active_group_id).await?))
+            Ok(Json(svc.get_me(user.user_id).await?))
         }
     }
 }

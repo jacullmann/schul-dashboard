@@ -2,8 +2,10 @@ import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useEventListener } from '@vueuse/core';
 import { useModalStore } from '@/stores/modalStore';
+import { useUserStore } from '@/stores/userStore';
 import type { HwItem } from '@/modules/tasks/types';
 import hw from '@/api/api.ts';
+import { groupPath } from '@/api/groupPath';
 import type { HwContext } from './types';
 import { apiErrorMessage } from '@/api/errors';
 
@@ -13,16 +15,15 @@ export function useHwActions(
 ) {
   const { t } = useI18n();
   const modalStore = useModalStore();
+  const userStore = useUserStore();
   const deletingEntry = ref(false);
 
   const showReportConfirm = ref(false);
   const reportReason = ref('');
   const reportTarget = ref<HwItem | null>(null);
 
-  const getConfig = () =>
-    ctx.activeGroupId.value
-      ? { headers: { 'x-tenant-id': ctx.activeGroupId.value } }
-      : {};
+  const itemPath = (id: string, path: string) =>
+    groupPath(ctx.groupId, `/items/${id}${path}`);
 
   async function loadPinnedForMe() {
     ctx.pinsLoading.value = true;
@@ -181,8 +182,8 @@ export function useHwActions(
     entry.inFlight = true;
     let failed = false;
     try {
-      if (desired) await hw.post(`/user/items/${id}/check`, {}, getConfig());
-      else await hw.delete(`/user/items/${id}/check`, getConfig());
+      if (desired) await hw.post(itemPath(id, '/check'));
+      else await hw.delete(itemPath(id, '/check'));
       entry.serverChecked = desired;
     } catch {
       failed = true;
@@ -262,14 +263,8 @@ export function useHwActions(
     if (!ctx.user.value) return true;
 
     try {
-      if (newStatus === null)
-        await hw.delete(`/user/items/${id}/visibility`, getConfig());
-      else
-        await hw.post(
-          `/user/items/${id}/visibility`,
-          { status: newStatus },
-          getConfig(),
-        );
+      if (newStatus === null) await hw.delete(itemPath(id, '/visibility'));
+      else await hw.post(itemPath(id, '/visibility'), { status: newStatus });
       return true;
     } catch {
       ctx.archivedItems.value.delete(id);
@@ -292,8 +287,8 @@ export function useHwActions(
     ctx.pinnedItems.value = new Set(ctx.pinnedItems.value);
 
     try {
-      if (wasPinned) await hw.delete(`/user/items/${id}/pin`, getConfig());
-      else await hw.post(`/user/items/${id}/pin`, {}, getConfig());
+      if (wasPinned) await hw.delete(itemPath(id, '/pin'));
+      else await hw.post(itemPath(id, '/pin'));
     } catch {
       if (wasPinned) ctx.pinnedItems.value.add(id);
       else ctx.pinnedItems.value.delete(id);
@@ -307,13 +302,7 @@ export function useHwActions(
 
   function canDelete(createdBy: string) {
     if (!ctx.user.value) return false;
-    const u = ctx.user.value as any;
-    return (
-      u.role === 'superadmin' ||
-      u.tenantRole === 'admin' ||
-      u.tenantRole === 'moderator' ||
-      u.id === createdBy
-    );
+    return userStore.isGroupAdmin || ctx.user.value.id === createdBy;
   }
 
   function canDeleteImage(
@@ -321,13 +310,11 @@ export function useHwActions(
     imageCreatedBy: string | undefined,
   ) {
     if (!ctx.user.value) return false;
-    const u = ctx.user.value as any;
+    const userId = ctx.user.value.id;
     return (
-      u.role === 'superadmin' ||
-      u.tenantRole === 'admin' ||
-      u.tenantRole === 'moderator' ||
-      u.id === imageCreatedBy ||
-      u.id === itemCreatedBy
+      userStore.isGroupAdmin ||
+      userId === imageCreatedBy ||
+      userId === itemCreatedBy
     );
   }
 
@@ -343,7 +330,7 @@ export function useHwActions(
 
     deletingEntry.value = true;
     try {
-      await hw.delete(`/items/${id}`);
+      await hw.delete(itemPath(id, ''));
       ctx.items.value = ctx.items.value.filter((item) => item.id !== id);
       handleSuccessAction(t('tasks.actions.delete_modal.success'));
     } catch (e: any) {
@@ -369,7 +356,7 @@ export function useHwActions(
     handleSuccessAction('Melde...');
 
     try {
-      await hw.post('/items/reports', {
+      await hw.post(groupPath(ctx.groupId, '/items/reports'), {
         itemId: item.id,
         itemTitle: item.title,
         reason,

@@ -18,10 +18,30 @@ pub struct CreateGroupDto {
     pub dalton_enabled: bool,
 }
 
-#[derive(Debug, Deserialize)]
+/// A group as the client sees it, including what the caller may do in it, so
+/// the UI never has to re-derive permissions from the raw matrix.
+#[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct SwitchGroupDto {
-    pub group_id: Uuid,
+pub struct GroupSummaryDto {
+    pub id: Uuid,
+    pub name: String,
+    pub owner_id: Uuid,
+    pub role: &'static str,
+    pub schedule_config: serde_json::Value,
+    pub avatar_url: Option<String>,
+    pub permissions: serde_json::Value,
+    pub group_type: &'static str,
+    pub dalton_enabled: bool,
+    pub effective_permissions: Vec<&'static str>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GroupStatusDto {
+    pub authenticated: bool,
+    pub groups: Vec<GroupSummaryDto>,
+    /// Where the app opens after sign-in; never used to scope a request.
+    pub landing_group_id: Option<Uuid>,
 }
 
 #[derive(Debug, Serialize)]

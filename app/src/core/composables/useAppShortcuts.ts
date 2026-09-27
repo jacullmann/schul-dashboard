@@ -22,9 +22,7 @@ export function useAppShortcuts() {
 
     if (e.altKey && !e.ctrlKey && !e.metaKey) {
       e.preventDefault();
-      withGroup(() => {
-        modalStore.openTaskForm();
-      });
+      withGroup((groupId) => modalStore.openTaskForm(groupId));
     }
   });
 
@@ -43,9 +41,7 @@ export function useAppShortcuts() {
 
     if (e.altKey && !e.ctrlKey && !e.metaKey) {
       e.preventDefault();
-      withGroup(() => {
-        modalStore.openAnnouncementForm();
-      });
+      withGroup((groupId) => modalStore.openAnnouncementForm(groupId));
     }
   });
 

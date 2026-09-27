@@ -3,6 +3,8 @@ import { ref, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import InfoModal from '@/common/components/InfoModal.vue';
 import hw from '../../../api/api';
+import { groupPath } from '@/api/groupPath';
+import { useGroupPageId } from '@/core/composables/useGroupPageId';
 import { useToast } from '@/common/composables/useToast';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import type { PermissionKey } from '@/types/permissions';
@@ -15,6 +17,7 @@ const props = defineProps<{
 
 const toast = useToast();
 const { checkAuthStatus, activeGroupPermissions } = useAppAuth();
+const groupId = useGroupPageId();
 
 const permissions = ref<Record<PermissionKey, string>>({
   edit_group_general: 'moderator',
@@ -48,7 +51,7 @@ async function fetchPermissions() {
 
   loading.value = true;
   try {
-    const { data } = await hw.get('/group-admin/permissions');
+    const { data } = await hw.get(groupPath(groupId, '/admin/permissions'));
     if (data.permissions) {
       permissions.value = {
         ...permissions.value,
@@ -70,7 +73,7 @@ async function savePermission(key: PermissionKey, value: string) {
   permissions.value[key] = value;
 
   try {
-    const { data } = await hw.patch('/group-admin/permissions', {
+    const { data } = await hw.patch(groupPath(groupId, '/admin/permissions'), {
       permissions: permissions.value,
     });
     if (data.ok) {

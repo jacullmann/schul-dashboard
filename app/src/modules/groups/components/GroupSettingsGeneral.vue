@@ -7,6 +7,8 @@ import { Pencil, Camera, Trash2, Upload } from '@lucide/vue';
 import { useModalStore } from '@/stores/modalStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import hw from '../../../api/api';
+import { groupPath } from '@/api/groupPath';
+import { useGroupPageId } from '@/core/composables/useGroupPageId';
 import GroupAvatarCropper from './GroupAvatarCropper.vue';
 import GroupTypeRadioGroup from './GroupTypeRadioGroup.vue';
 import SettingToggleCard from './SettingToggleCard.vue';
@@ -22,6 +24,7 @@ const {
   checkPermission,
   checkAuthStatus,
 } = useAppAuth();
+const groupId = useGroupPageId();
 const canEditSettings = computed(() => checkPermission('edit_group_general'));
 
 // Switching the type or Dalton rewires subjects and the schedule, so it takes
@@ -183,7 +186,9 @@ async function onCropConfirmed(blob: Blob) {
   avatarError.value = '';
 
   try {
-    const { data: sign } = await hw.post('/items/uploads/sign');
+    const { data: sign } = await hw.post(
+      groupPath(groupId, '/items/uploads/sign'),
+    );
 
     const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
     const form = new FormData();

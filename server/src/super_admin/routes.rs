@@ -1,11 +1,12 @@
 use super::handlers::*;
-use crate::state::AppState;
+use crate::{common::extractors::require_superadmin, state::AppState};
 use axum::{
-    Router,
+    Router, middleware,
     routing::{delete, get, patch, post},
 };
 
-pub fn router() -> Router<AppState> {
+/// Every route here sits behind the `require_superadmin` layer.
+pub fn router(state: AppState) -> Router<AppState> {
     Router::new()
         .route("/admin/stats", get(get_stats))
         .route("/admin/cleanup/old-items", delete(cleanup_old_items))
@@ -23,14 +24,5 @@ pub fn router() -> Router<AppState> {
         .route("/admin/reports", get(get_reports))
         .route("/admin/reports/{id}/processed", patch(process_report))
         .route("/admin/reports/{id}", delete(delete_report))
-        .route("/admin/subjects", post(upsert_subject))
-        .route("/admin/subjects/{name}", delete(delete_subject))
-        .route(
-            "/admin/schedule/subs",
-            get(get_schedule_subs_admin).post(create_schedule_sub_admin),
-        )
-        .route(
-            "/admin/schedule/subs/{id}",
-            delete(delete_schedule_sub_admin),
-        )
+        .route_layer(middleware::from_fn_with_state(state, require_superadmin))
 }

@@ -17,7 +17,7 @@ const router = useRouter();
 const userStore = useUserStore();
 const modalStore = useModalStore();
 const { user } = storeToRefs(userStore);
-const { activeGroupId, userGroups, switchActiveGroup } = useAppAuth();
+const { contextGroupId, userGroups } = useAppAuth();
 
 const loading = ref(false);
 const navigatingGroupId = ref<string | null>(null);
@@ -50,17 +50,7 @@ async function navigateToGroup(groupId: string) {
   navigatingGroupId.value = groupId;
 
   try {
-    if (groupId === activeGroupId.value) {
-      await router.push(`/groups/${groupId}/dashboard`);
-      return;
-    }
-
-    const res = await switchActiveGroup(groupId);
-    if (res.ok) {
-      await router.push(`/groups/${groupId}/dashboard`);
-    } else {
-      console.error('Failed to switch group:', res.error);
-    }
+    await router.push({ name: 'group-dashboard', params: { groupId } });
   } catch (err) {
     console.error('Navigation error:', err);
   } finally {
@@ -154,12 +144,11 @@ const GROUPS_LIST_ENTRANCE_ORDER = 3;
           :style="{
             '--enter-delay': entranceDelay(GROUPS_LIST_ENTRANCE_ORDER + index),
           }"
-          :active="group.id === activeGroupId"
+          :active="group.id === contextGroupId"
           :separator="index !== userGroups.length - 1"
           :disabled="navigatingGroupId === group.id"
           :chevron="true"
           :indicator="false"
-          :unread="group.hasUnreadContent"
           @click="navigateToGroup(group.id)"
         >
           <template #icon>
@@ -171,10 +160,6 @@ const GROUPS_LIST_ENTRANCE_ORDER = 3;
               <span class="font-semibold text-base text-on-ghost truncate">
                 {{ group.name }}
               </span>
-              <NotificationDot
-                v-if="group.hasUnreadContent"
-                class="max-md:hidden"
-              />
             </span>
             <span class="font-normal text-sm text-on-ghost-muted">
               {{ roleLabel(group.role) }}
