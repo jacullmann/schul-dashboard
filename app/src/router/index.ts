@@ -152,30 +152,10 @@ const routes: RouteRecordRaw[] = [
         redirect: '/private',
       },
       {
-        path: 'games',
-        name: 'games',
-        component: () => import('@/modules/games/Games.vue'),
-        meta: { title: 'navigation.games' },
-      },
-      {
-        path: 'games/:id',
-        name: 'GameDetail',
-        component: () => import('@/modules/games/GameDetail.vue'),
-        props: true,
-        meta: { title: 'navigation.game_detail' },
-      },
-      {
         path: 'imagetool',
         name: 'imagetool',
         component: () => import('@/modules/tools/pages/ImageToolPage.vue'),
         meta: { title: 'navigation.image_tool' },
-      },
-      {
-        path: 'info-dashboard',
-        name: 'info-dashboard',
-        component: () =>
-          import('@/modules/infodashboard/pages/InfoDashboard.vue'),
-        meta: { title: 'infodashboard.dashboard.title', fullWidth: true },
       },
     ],
   },
