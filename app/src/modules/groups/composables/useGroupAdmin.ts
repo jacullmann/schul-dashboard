@@ -134,13 +134,14 @@ export function useGroupAdmin() {
       await hw.patch(`/group-admin/members/${userId}/role`, {
         role: newRole,
       });
-      const member = members.value.find((m) => m.userId === userId);
-      if (member) member.role = newRole;
+      showMessage(t('groups.settings.messages.role_updated'));
+      // A role change also changes what may be done to that member next.
       if (isSelf) {
         userStore.updateUser({ tenantRole: newRole });
-        await checkAuthStatus();
+        await Promise.all([checkAuthStatus(), loadMembers()]);
+      } else {
+        await loadMembers();
       }
-      showMessage(t('groups.settings.messages.role_updated'));
     } catch (e: unknown) {
       showMessage(
         apiErrorMessage(e, t('groups.settings.messages.role_update_failed')),

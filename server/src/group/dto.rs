@@ -31,6 +31,10 @@ pub struct GroupMemberDto {
     pub generated_name: String,
     pub role: MemberRole,
     pub joined_at: DateTime<Utc>,
+    /// What the requesting user may change this member's role to.
+    pub assignable_roles: Vec<MemberRole>,
+    /// Whether the requesting user may remove this member.
+    pub can_remove: bool,
 }
 
 #[derive(Debug, Deserialize)]

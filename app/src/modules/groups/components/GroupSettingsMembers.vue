@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { RefreshCw, CircleMinus, UserRoundPlus, Ban } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
-import { computed, ref, toRef } from 'vue';
+import { computed, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import InfoModal from '@/common/components/InfoModal.vue';
 import type {
@@ -9,10 +9,8 @@ import type {
   GroupMember,
   MemberRole,
 } from '@/modules/groups/types';
-import {
-  MEMBER_ROLES,
-  useMemberPermissions,
-} from '@/modules/groups/composables/useMemberPermissions';
+import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
+import { useUserStore } from '@/stores/userStore';
 
 const { t, locale } = useI18n();
 const route = useRoute();
@@ -79,11 +77,16 @@ const emit = defineEmits<{
   (e: 'transfer-ownership', userId: string): void;
 }>();
 
-const { canModerateMembers, isSelf, canAssign, canEditRole, canRemove } =
-  useMemberPermissions(toRef(props, 'members'));
+const { checkPermission } = useAppAuth();
+const userStore = useUserStore();
+const canModerateMembers = computed(() => checkPermission('moderate_members'));
 
-// The dropdown lists roles from lowest to highest.
-const DROPDOWN_ROLES = [...MEMBER_ROLES].reverse();
+const DROPDOWN_ROLES: readonly MemberRole[] = [
+  'user',
+  'moderator',
+  'admin',
+  'owner',
+];
 
 const roleLabels = computed<Record<MemberRole, string>>(() => ({
   owner: t('common.roles.owner'),
@@ -100,15 +103,19 @@ const memberCountLabel = computed(() =>
       }),
 );
 
+function isSelf(member: GroupMember): boolean {
+  return member.userId === userStore.user?.id;
+}
+
 function isMemberRole(value: string): value is MemberRole {
-  return (MEMBER_ROLES as readonly string[]).includes(value);
+  return (DROPDOWN_ROLES as readonly string[]).includes(value);
 }
 
 function roleOptionsFor(member: GroupMember) {
   return DROPDOWN_ROLES.map((role) => ({
     label: roleLabels.value[role],
     value: role,
-    disabled: !canAssign(member, role),
+    disabled: role !== member.role && !member.assignableRoles.includes(role),
   }));
 }
 
@@ -288,7 +295,7 @@ function confirmRemove() {
           >
             <BaseButton
               variant="ghost"
-              :disabled="!canRemove(member)"
+              :disabled="!member.canRemove"
               :icon="CircleMinus"
               @click="openRemoveModal(member.userId, member.generatedName)"
             />
@@ -296,7 +303,7 @@ function confirmRemove() {
 
           <BaseSelect
             :model-value="member.role"
-            :disabled="!canEditRole(member)"
+            :disabled="member.assignableRoles.length === 0"
             :form="false"
             classes="w-40!"
             :options="roleOptionsFor(member)"

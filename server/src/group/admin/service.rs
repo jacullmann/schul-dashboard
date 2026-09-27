@@ -10,7 +10,7 @@ use crate::{
     group::{
         dto::{CreateScheduleSubDto, ReplaceScheduleDto},
         member_policy::{self, Actor, Caller, Target},
-        service::lock_group_owner,
+        service::{lock_group_owner, role_from_db},
     },
     state::AppState,
 };
@@ -19,6 +19,12 @@ use serde_json::{Value, json};
 use sqlx::{PgConnection, PgPool};
 use std::collections::HashSet;
 use uuid::Uuid;
+
+struct LockedMembership {
+    owner_id: Uuid,
+    actor: Actor,
+    target: Target,
+}
 
 pub struct GroupAdminService {
     db: PgPool,
@@ -284,14 +290,14 @@ impl GroupAdminService {
         Ok(json!({ "ok": true }))
     }
 
-    /// Reads the caller's and target's group roles inside the membership
-    /// transaction, after the group row is locked.
-    async fn resolve_actor_and_target(
+    /// Locks the group and reads the caller's and target's roles inside the
+    /// membership transaction, so no concurrent change can make them stale.
+    async fn lock_membership(
         tx: &mut PgConnection,
         tenant_id: Uuid,
         caller: Caller,
         target: Uuid,
-    ) -> AppResult<(Actor, Target)> {
+    ) -> AppResult<LockedMembership> {
         let owner_id = lock_group_owner(tx, tenant_id).await?;
 
         let rows = sqlx::query!(
@@ -306,18 +312,21 @@ impl GroupAdminService {
         let role_of = |user_id: Uuid| {
             rows.iter()
                 .find(|r| r.user_id == user_id)
-                .map(|r| Role::from_db_id(r.role_id.into()).unwrap_or(Role::User))
+                .map(|r| role_from_db(r.role_id))
+                .transpose()
         };
 
-        let target_role = role_of(target).ok_or_else(|| AppError::not_found("User is not a member"))?;
+        let target_role =
+            role_of(target)?.ok_or_else(|| AppError::not_found("User is not a member"))?;
 
-        Ok((
-            caller.resolve(owner_id, role_of(caller.user_id)),
-            Target {
+        Ok(LockedMembership {
+            owner_id,
+            actor: caller.resolve(owner_id, role_of(caller.user_id)?),
+            target: Target {
                 user_id: target,
                 role: MemberRole::resolve(target_role, target == owner_id),
             },
-        ))
+        })
     }
 
     pub async fn change_member_role(
@@ -330,9 +339,8 @@ impl GroupAdminService {
         let new_role = Role::from_str(role).ok_or_else(|| AppError::bad_request("Invalid role"))?;
 
         let mut tx = self.db.begin().await?;
-        let (actor, target_member) =
-            Self::resolve_actor_and_target(&mut tx, tenant_id, caller, target).await?;
-        member_policy::ensure_can_change_role(actor, target_member, new_role)?;
+        let locked = Self::lock_membership(&mut tx, tenant_id, caller, target).await?;
+        member_policy::ensure_can_change_role(locked.actor, locked.target, new_role)?;
 
         sqlx::query!(
             r#"UPDATE user_roles SET role_id = $1 WHERE user_id = $2 AND tenant_id = $3"#,
@@ -365,9 +373,8 @@ impl GroupAdminService {
         ban: bool,
     ) -> AppResult<Value> {
         let mut tx = self.db.begin().await?;
-        let (actor, target_member) =
-            Self::resolve_actor_and_target(&mut tx, tenant_id, caller, target).await?;
-        member_policy::ensure_can_remove(actor, target_member)?;
+        let locked = Self::lock_membership(&mut tx, tenant_id, caller, target).await?;
+        member_policy::ensure_can_remove(locked.actor, locked.target)?;
 
         sqlx::query!(
             r#"DELETE FROM user_roles WHERE user_id = $1 AND tenant_id = $2"#,
@@ -407,24 +414,13 @@ impl GroupAdminService {
     pub async fn transfer_ownership(
         &self,
         tenant_id: Uuid,
-        current_user_id: Uuid,
+        caller: Caller,
         target: Uuid,
     ) -> AppResult<Value> {
         let mut tx = self.db.begin().await?;
-
-        let previous_owner = lock_group_owner(&mut tx, tenant_id).await?;
-        if target == previous_owner {
-            return Err(AppError::bad_request("This member already owns the group."));
-        }
-
-        sqlx::query!(
-            r#"SELECT id FROM user_roles WHERE user_id = $1 AND tenant_id = $2"#,
-            target,
-            tenant_id
-        )
-        .fetch_optional(&mut *tx)
-        .await?
-        .ok_or_else(|| AppError::not_found("Target user is not a member."))?;
+        let locked = Self::lock_membership(&mut tx, tenant_id, caller, target).await?;
+        member_policy::ensure_can_transfer_ownership(locked.actor, locked.target)?;
+        let previous_owner = locked.owner_id;
 
         sqlx::query!(
             r#"UPDATE groups SET owner_id = $1 WHERE id = $2"#,
@@ -434,22 +430,14 @@ impl GroupAdminService {
         .execute(&mut *tx)
         .await?;
 
+        // The owner's own role row is never consulted for rights, so both
+        // sides of the handover simply hold admin.
         sqlx::query!(
             r#"UPDATE user_roles SET role_id = $1
-               WHERE user_id = $2 AND tenant_id = $3"#,
+               WHERE tenant_id = $2 AND user_id = ANY($3)"#,
             Role::Admin.db_id_i32(),
-            previous_owner,
-            tenant_id
-        )
-        .execute(&mut *tx)
-        .await?;
-
-        sqlx::query!(
-            r#"UPDATE user_roles SET role_id = $1
-               WHERE user_id = $2 AND tenant_id = $3"#,
-            Role::Admin.db_id_i32(),
-            target,
-            tenant_id
+            tenant_id,
+            &[previous_owner, target][..]
         )
         .execute(&mut *tx)
         .await?;
@@ -457,7 +445,7 @@ impl GroupAdminService {
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta)
                VALUES ($1, 'group-admin:transfer-ownership', $2)"#,
-            current_user_id,
+            caller.user_id,
             json!({ "previousOwnerId": previous_owner, "newOwnerId": target })
         )
         .execute(&mut *tx)

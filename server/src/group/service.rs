@@ -12,7 +12,10 @@ use crate::{
         role::{MemberRole, Role},
     },
     error::{AppError, AppResult},
-    group::dto::GroupMemberDto,
+    group::{
+        dto::GroupMemberDto,
+        member_policy::{self, Caller, Target},
+    },
     state::AppState,
 };
 use axum_extra::extract::CookieJar;
@@ -31,6 +34,12 @@ pub(crate) async fn lock_group_owner(conn: &mut PgConnection, tenant_id: Uuid) -
     .fetch_optional(conn)
     .await?
     .ok_or_else(|| AppError::not_found("Group not found."))
+}
+
+/// An unknown id means the `roles` table and `Role` drifted apart, which must
+/// surface as an error rather than quietly demote someone to a plain member.
+pub(crate) fn role_from_db(id: i32) -> AppResult<Role> {
+    Role::from_db_id(id.into()).ok_or_else(|| AppError::internal(format!("Unknown role id {id}")))
 }
 
 pub struct CreateGroupParams<'a> {
@@ -441,27 +450,53 @@ impl GroupService {
         Ok(json!({ "token": token }))
     }
 
-    pub async fn list_members(&self, tenant_id: Uuid) -> AppResult<Vec<GroupMemberDto>> {
+    pub async fn list_members(
+        &self,
+        tenant_id: Uuid,
+        caller: Caller,
+    ) -> AppResult<Vec<GroupMemberDto>> {
+        let owner_id =
+            sqlx::query_scalar!(r#"SELECT owner_id FROM groups WHERE id = $1"#, tenant_id)
+                .fetch_optional(&self.db)
+                .await?
+                .ok_or_else(|| AppError::not_found("Group not found."))?;
+
         let rows = sqlx::query!(
-            r#"SELECT ur.user_id, ur.assigned_at, ur.role_id, ur.user_id = g.owner_id AS "is_owner!"
-               FROM user_roles ur
-               JOIN groups g ON g.id = ur.tenant_id
-               WHERE ur.tenant_id = $1"#,
+            r#"SELECT user_id, assigned_at, role_id FROM user_roles WHERE tenant_id = $1"#,
             tenant_id
         )
         .fetch_all(&self.db)
         .await?;
 
-        let mut members: Vec<GroupMemberDto> = rows
+        let targets = rows
             .into_iter()
-            .map(|r| GroupMemberDto {
-                generated_name: generate_user_name(&r.user_id.to_string()),
-                role: MemberRole::resolve(
-                    Role::from_db_id(r.role_id.into()).unwrap_or(Role::User),
-                    r.is_owner,
-                ),
-                user_id: r.user_id,
-                joined_at: r.assigned_at,
+            .map(|r| {
+                let role = role_from_db(r.role_id)?;
+                Ok((r.user_id, r.assigned_at, role))
+            })
+            .collect::<AppResult<Vec<_>>>()?;
+
+        let caller_role = targets
+            .iter()
+            .find(|(user_id, ..)| *user_id == caller.user_id)
+            .map(|(.., role)| *role);
+        let actor = caller.resolve(owner_id, caller_role);
+
+        let mut members: Vec<GroupMemberDto> = targets
+            .into_iter()
+            .map(|(user_id, joined_at, role)| {
+                let target = Target {
+                    user_id,
+                    role: MemberRole::resolve(role, user_id == owner_id),
+                };
+                GroupMemberDto {
+                    generated_name: generate_user_name(&user_id.to_string()),
+                    role: target.role,
+                    user_id,
+                    joined_at,
+                    assignable_roles: member_policy::assignable_roles(actor, target),
+                    can_remove: member_policy::ensure_can_remove(actor, target).is_ok(),
+                }
             })
             .collect();
 

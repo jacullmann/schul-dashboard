@@ -205,7 +205,7 @@ pub async fn get_members(
 ) -> AppResult<Json<Vec<GroupMemberDto>>> {
     Ok(Json(
         GroupService::from_state(&s)
-            .list_members(tc.tenant_id)
+            .list_members(tc.tenant_id, Caller::from_tenant(&tc))
             .await?,
     ))
 }
@@ -255,14 +255,9 @@ pub async fn transfer_ownership(
     tc: TenantContext,
     Json(dto): Json<TransferOwnershipDto>,
 ) -> AppResult<Json<Value>> {
-    if !tc.has_owner_rights() {
-        return Err(AppError::forbidden(
-            "Only the owner or a superadmin can transfer ownership.",
-        ));
-    }
     Ok(Json(
         GroupAdminService::from_state(&s)
-            .transfer_ownership(tc.tenant_id, tc.user.user_id, dto.target_user_id)
+            .transfer_ownership(tc.tenant_id, Caller::from_tenant(&tc), dto.target_user_id)
             .await?,
     ))
 }

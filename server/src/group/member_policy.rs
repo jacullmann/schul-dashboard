@@ -120,6 +120,39 @@ pub fn ensure_can_change_role(actor: Actor, target: Target, new_role: Role) -> A
     Ok(())
 }
 
+pub fn ensure_can_transfer_ownership(actor: Actor, target: Target) -> AppResult<()> {
+    if !actor.has_owner_rights {
+        return Err(AppError::forbidden(
+            "Only the owner or a superadmin can transfer ownership.",
+        ));
+    }
+
+    if target.role == MemberRole::Owner {
+        return Err(AppError::bad_request("This member already owns the group."));
+    }
+
+    Ok(())
+}
+
+/// Every role the actor could move the target to, owner included when the
+/// actor may transfer ownership. The target's current role is left out.
+pub fn assignable_roles(actor: Actor, target: Target) -> Vec<MemberRole> {
+    let transferable = ensure_can_transfer_ownership(actor, target)
+        .is_ok()
+        .then_some(MemberRole::Owner);
+
+    let assignable = [Role::Admin, Role::Moderator, Role::User]
+        .into_iter()
+        .filter(|&role| ensure_can_change_role(actor, target, role).is_ok())
+        .filter_map(|role| assignable(role).ok());
+
+    transferable
+        .into_iter()
+        .chain(assignable)
+        .filter(|&role| role != target.role)
+        .collect()
+}
+
 pub fn ensure_can_remove(actor: Actor, target: Target) -> AppResult<()> {
     if actor.user_id == target.user_id {
         return Err(AppError::bad_request(
@@ -331,6 +364,51 @@ mod tests {
         .resolve(TARGET_ID, None);
         assert!(outside_superadmin.has_owner_rights);
         assert!(outside_superadmin.can_moderate_members);
+    }
+
+    #[test]
+    fn only_owner_rights_transfer_ownership_to_non_owners() {
+        assert!(
+            ensure_can_transfer_ownership(owner_rights(MemberRole::Owner), other(MemberRole::User))
+                .is_ok()
+        );
+        assert!(
+            ensure_can_transfer_ownership(owner_rights(MemberRole::User), me(MemberRole::User))
+                .is_ok()
+        );
+        assert!(
+            ensure_can_transfer_ownership(
+                owner_rights(MemberRole::Admin),
+                other(MemberRole::Owner)
+            )
+            .is_err()
+        );
+        assert!(
+            ensure_can_transfer_ownership(member(MemberRole::Admin), other(MemberRole::User))
+                .is_err()
+        );
+    }
+
+    #[test]
+    fn assignable_roles_list_every_allowed_change() {
+        assert_eq!(
+            assignable_roles(owner_rights(MemberRole::Owner), other(MemberRole::Admin)),
+            [MemberRole::Owner, MemberRole::Moderator, MemberRole::User]
+        );
+        assert_eq!(
+            assignable_roles(member(MemberRole::Admin), other(MemberRole::User)),
+            [MemberRole::Moderator]
+        );
+        assert_eq!(
+            assignable_roles(member(MemberRole::Admin), me(MemberRole::Admin)),
+            [MemberRole::Moderator, MemberRole::User]
+        );
+        assert!(
+            assignable_roles(member(MemberRole::Moderator), other(MemberRole::User)).is_empty()
+        );
+        assert!(
+            assignable_roles(owner_rights(MemberRole::Owner), me(MemberRole::Owner)).is_empty()
+        );
     }
 
     #[test]
