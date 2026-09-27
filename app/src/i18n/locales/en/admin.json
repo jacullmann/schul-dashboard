@@ -49,7 +49,8 @@
       "id": "ID",
       "status": "Status",
       "registered": "Registered",
-      "actions": "Actions"
+      "actions": "Actions",
+      "username": "Username"
     },
     "status": {
       "admin": "Admin",

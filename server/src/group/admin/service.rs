@@ -231,36 +231,6 @@ impl GroupAdminService {
         }))
     }
 
-    pub async fn get_members(&self, tenant_id: Uuid) -> AppResult<Value> {
-        let rows = sqlx::query!(
-            r#"SELECT ur.user_id, ur.assigned_at, r.name as role_name
-               FROM user_roles ur JOIN roles r ON r.id = ur.role_id
-               WHERE ur.tenant_id = $1"#,
-            tenant_id
-        )
-        .fetch_all(&self.db)
-        .await?;
-
-        let mut members: Vec<Value> = rows
-            .into_iter()
-            .map(|r| {
-                let generated_name =
-                    crate::common::name_generator::generate_user_name(&r.user_id.to_string());
-                json!({
-                    "userId": r.user_id,
-                    "generatedName": generated_name,
-                    "role": r.role_name,
-                    "joinedAt": r.assigned_at
-                })
-            })
-            .collect();
-
-        members
-            .sort_by_key(|m| Role::from_str_or_user(m["role"].as_str().unwrap_or("user")).db_id());
-
-        Ok(json!(members))
-    }
-
     pub async fn get_banned_users(&self, tenant_id: Uuid) -> AppResult<Value> {
         let rows = sqlx::query!(
             r#"SELECT user_id, banned_at FROM group_bans WHERE tenant_id = $1"#,
@@ -327,8 +297,10 @@ impl GroupAdminService {
             .ok_or_else(|| AppError::bad_request("Invalid role"))?;
 
         let existing = sqlx::query!(
-            r#"SELECT ur.id, r.name as role_name
-               FROM user_roles ur JOIN roles r ON r.id = ur.role_id
+            r#"SELECT ur.id, r.name as role_name, ur.user_id = g.owner_id AS "is_owner!"
+               FROM user_roles ur
+               JOIN roles r ON r.id = ur.role_id
+               JOIN groups g ON g.id = ur.tenant_id
                WHERE ur.user_id = $1 AND ur.tenant_id = $2"#,
             target,
             tenant_id
@@ -336,6 +308,12 @@ impl GroupAdminService {
         .fetch_optional(&self.db)
         .await?
         .ok_or_else(|| AppError::not_found("User is not a member"))?;
+
+        if existing.is_owner {
+            return Err(AppError::forbidden(
+                "The owner's role cannot be changed. Transfer ownership instead.",
+            ));
+        }
 
         let touches_admin = role_enum == Role::Admin || existing.role_name == Role::Admin.as_str();
         if touches_admin && !acting_is_owner {

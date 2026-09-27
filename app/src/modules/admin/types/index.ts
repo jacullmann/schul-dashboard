@@ -18,6 +18,7 @@ export interface SuperAdminStats {
 export interface SuperAdminUser {
   id: string;
   email: string;
+  username: string;
   role: string;
   isBanned: boolean;
   emailVerified: boolean;
@@ -67,6 +68,7 @@ export interface SuperAdminGroup {
   name: string;
   ownerId: string;
   ownerEmail: string | null;
+  ownerName: string;
   createdAt: string;
   memberCount: number;
   itemCount: number;

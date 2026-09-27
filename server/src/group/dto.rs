@@ -1,8 +1,11 @@
 use std::collections::BTreeMap;
 
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use validator::Validate;
+
+use crate::common::role::MemberRole;
 
 #[derive(Debug, Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
@@ -19,6 +22,21 @@ pub struct CreateGroupDto {
 #[serde(rename_all = "camelCase")]
 pub struct SwitchGroupDto {
     pub group_id: Uuid,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GroupMemberDto {
+    pub user_id: Uuid,
+    pub generated_name: String,
+    pub role: MemberRole,
+    pub joined_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TransferOwnershipDto {
+    pub target_user_id: Uuid,
 }
 
 #[derive(Debug, Deserialize)]

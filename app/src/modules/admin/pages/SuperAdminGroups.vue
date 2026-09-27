@@ -44,7 +44,12 @@ onMounted(loadGroups);
         <tr v-for="g in groups" :key="g.id">
           <td>{{ g.name }}</td>
           <td>{{ g.id }}</td>
-          <td>{{ g.ownerEmail ?? '—' }}</td>
+          <td>
+            <div class="font-medium whitespace-nowrap">{{ g.ownerName }}</div>
+            <div class="text-on-ghost-muted text-sm">
+              {{ g.ownerEmail ?? '—' }}
+            </div>
+          </td>
           <td>{{ g.memberCount }}</td>
           <td>{{ g.itemCount }}</td>
           <td>{{ fmtDate(g.createdAt) }}</td>

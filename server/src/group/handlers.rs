@@ -197,12 +197,15 @@ pub async fn get_stats(State(s): State<AppState>, tc: TenantContext) -> AppResul
     ))
 }
 
-pub async fn get_members(State(s): State<AppState>, tc: TenantContext) -> AppResult<Json<Value>> {
-    crate::require_permission!(tc, crate::common::permission::Permission::ModerateMembers);
-
+/// Every member may see who else is in the group; only the pseudonyms are
+/// exposed, never emails.
+pub async fn get_members(
+    State(s): State<AppState>,
+    tc: TenantContext,
+) -> AppResult<Json<Vec<GroupMemberDto>>> {
     Ok(Json(
-        GroupAdminService::from_state(&s)
-            .get_members(tc.tenant_id)
+        GroupService::from_state(&s)
+            .list_members(tc.tenant_id)
             .await?,
     ))
 }
@@ -258,20 +261,16 @@ pub async fn change_member_role(
 pub async fn transfer_ownership(
     State(s): State<AppState>,
     tc: TenantContext,
-    Json(body): Json<Value>,
+    Json(dto): Json<TransferOwnershipDto>,
 ) -> AppResult<Json<Value>> {
     if !tc.is_owner() {
         return Err(AppError::forbidden(
             "Only the owner can transfer ownership.",
         ));
     }
-    let target: Uuid = body["targetUserId"]
-        .as_str()
-        .and_then(|s| s.parse().ok())
-        .ok_or_else(|| AppError::bad_request("Invalid targetUserId"))?;
     Ok(Json(
         GroupAdminService::from_state(&s)
-            .transfer_ownership(tc.tenant_id, tc.user.user_id, target)
+            .transfer_ownership(tc.tenant_id, tc.user.user_id, dto.target_user_id)
             .await?,
     ))
 }

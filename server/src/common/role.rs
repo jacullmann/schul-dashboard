@@ -58,6 +58,31 @@ impl Role {
     }
 }
 
+/// A member's role as clients see it. Ownership lives in `groups.owner_id`
+/// rather than `user_roles`, so it is folded in here to keep the single-owner
+/// invariant enforced by the schema instead of by a second role row.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum MemberRole {
+    Owner,
+    Admin,
+    Moderator,
+    User,
+}
+
+impl MemberRole {
+    pub fn resolve(tenant_role: Role, is_owner: bool) -> Self {
+        if is_owner {
+            return Self::Owner;
+        }
+        match tenant_role {
+            Role::Superadmin | Role::Admin => Self::Admin,
+            Role::Moderator => Self::Moderator,
+            Role::User => Self::User,
+        }
+    }
+}
+
 impl fmt::Display for Role {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(self.as_str())
@@ -129,6 +154,26 @@ mod tests {
         assert_eq!(Role::Admin.db_id(), 2);
         assert_eq!(Role::Moderator.db_id(), 3);
         assert_eq!(Role::User.db_id(), 4);
+    }
+
+    #[test]
+    fn member_role_owner_overrides_tenant_role() {
+        for role in [Role::Admin, Role::Moderator, Role::User] {
+            assert_eq!(MemberRole::resolve(role, true), MemberRole::Owner);
+        }
+        assert_eq!(MemberRole::resolve(Role::Admin, false), MemberRole::Admin);
+        assert_eq!(
+            MemberRole::resolve(Role::Moderator, false),
+            MemberRole::Moderator
+        );
+        assert_eq!(MemberRole::resolve(Role::User, false), MemberRole::User);
+    }
+
+    #[test]
+    fn member_role_sorts_owner_first() {
+        assert!(MemberRole::Owner < MemberRole::Admin);
+        assert!(MemberRole::Admin < MemberRole::Moderator);
+        assert!(MemberRole::Moderator < MemberRole::User);
     }
 
     #[test]
