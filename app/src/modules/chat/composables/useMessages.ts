@@ -8,7 +8,7 @@ import {
   useIsMobileViewport,
   useVisualViewportHeight,
 } from '@/common/composables/useViewport';
-import hw from '../../../api/api';
+import hw, { refreshSession } from '../../../api/api';
 import { groupPath } from '@/api/groupPath';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useToast } from '@/common/composables/useToast';
@@ -118,6 +118,9 @@ export function useMessages() {
   let reconnectTimeout: any = null;
   let reconnectAttempts = 0;
   const MAX_RECONNECT_ATTEMPTS = 5;
+  // Close codes the server uses (see messages/gateway.rs).
+  const WS_CLOSE_TOKEN_EXPIRED = 4001;
+  const WS_CLOSE_ACCESS_REVOKED = 4003;
 
   const isGroupedWithPrevious = (msg: any, index: number) => {
     if (index === 0) return false;
@@ -270,9 +273,15 @@ export function useMessages() {
       }
     };
 
-    ws.onclose = () => {
+    ws.onclose = (event: CloseEvent) => {
       console.log('WebSocket disconnected');
       ws = null;
+      if (event.code === WS_CLOSE_ACCESS_REVOKED) return;
+      if (event.code === WS_CLOSE_TOKEN_EXPIRED) {
+        // A failed refresh ends the session through the global auth handler.
+        refreshSession().then(initSocket, () => {});
+        return;
+      }
       if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
         const delay = Math.min(1000 * 2 ** reconnectAttempts, 30000);
         reconnectAttempts++;

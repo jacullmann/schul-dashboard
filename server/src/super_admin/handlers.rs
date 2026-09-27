@@ -34,9 +34,10 @@ pub async fn delete_group(
     _: SuperAdmin,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<Value>> {
-    Ok(Json(
-        SuperAdminService::from_state(&s).delete_group(id).await?,
-    ))
+    let body = SuperAdminService::from_state(&s).delete_group(id).await?;
+    s.message_bus.membership_changed(id).await;
+
+    Ok(Json(body))
 }
 
 pub async fn get_all_users(State(s): State<AppState>, _: SuperAdmin) -> AppResult<Json<Value>> {

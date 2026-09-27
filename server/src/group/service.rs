@@ -223,13 +223,19 @@ impl GroupService {
             return Err(AppError::forbidden("The owner cannot leave the group."));
         }
 
-        sqlx::query!(
+        let left = sqlx::query!(
             r#"DELETE FROM user_roles WHERE user_id = $1 AND tenant_id = $2"#,
             user_id,
             group_id
         )
         .execute(&mut *tx)
-        .await?;
+        .await?
+        .rows_affected();
+
+        // A superadmin can reach a group without belonging to it.
+        if left == 0 {
+            return Err(AppError::bad_request("You are not a member of this group."));
+        }
 
         sqlx::query!(
             r#"DELETE FROM user_courses

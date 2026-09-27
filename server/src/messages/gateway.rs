@@ -1,21 +1,35 @@
 use crate::{
     common::{
         extractors::{AuthUser, TenantContext},
+        jwt::now_secs,
         name_generator::generate_user_name,
     },
     config::ACCESS_COOKIE,
+    error::AppError,
     state::AppState,
 };
-use axum::extract::ws::{Message, WebSocket, WebSocketUpgrade};
+use axum::extract::ws::{CloseFrame, Message, WebSocket, WebSocketUpgrade};
 use axum::{
     extract::State,
+    http::StatusCode,
     response::{IntoResponse, Response},
 };
+use axum_extra::extract::CookieJar;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::{collections::HashMap, sync::Arc};
+use std::{collections::HashMap, sync::Arc, time::Duration};
 use tokio::sync::broadcast;
 use uuid::Uuid;
+/// A socket lives no longer than the access token that opened it; the client
+/// refreshes its session and reconnects.
+const CLOSE_TOKEN_EXPIRED: u16 = 4001;
+/// The caller lost access to the group the socket is subscribed to.
+const CLOSE_ACCESS_REVOKED: u16 = 4003;
+/// Membership changes announce themselves on the bus, so this only bounds
+/// revocations that do not (e.g. a withdrawn superadmin role). Checking on
+/// every broadcast instead would cost a query per recipient per message.
+const ACCESS_RECHECK_INTERVAL: Duration = Duration::from_secs(30);
+
 #[derive(Clone, Default)]
 pub struct MessageBus {
     inner: Arc<tokio::sync::Mutex<HashMap<Uuid, broadcast::Sender<BusEvent>>>>,
@@ -36,6 +50,9 @@ pub enum BusEvent {
         sender_name: String,
         is_typing: bool,
     },
+    /// Server-internal: subscribers recheck their access, clients never see it.
+    #[serde(skip)]
+    MembershipChanged,
 }
 impl MessageBus {
     pub async fn sender_for(&self, tenant_id: Uuid) -> broadcast::Sender<BusEvent> {
@@ -47,6 +64,12 @@ impl MessageBus {
     pub async fn broadcast(&self, tenant_id: Uuid, event: BusEvent) {
         let tx = self.sender_for(tenant_id).await;
         let _ = tx.send(event);
+    }
+
+    /// Lets open sockets of the group drop a subscription the moment its
+    /// member loses access, instead of at the next periodic recheck.
+    pub async fn membership_changed(&self, tenant_id: Uuid) {
+        self.broadcast(tenant_id, BusEvent::MembershipChanged).await;
     }
 }
 #[derive(Deserialize)]
@@ -71,6 +94,7 @@ enum ClientEvent {
 pub async fn ws_handler(
     ws: WebSocketUpgrade,
     State(state): State<AppState>,
+    jar: CookieJar,
     headers: axum::http::HeaderMap,
 ) -> Response {
     // Cross-site WebSocket hijacking guard: browsers always send Origin on the
@@ -83,41 +107,79 @@ pub async fn ws_handler(
         .and_then(|v| v.to_str().ok())
         && origin != state.config.cors_origin
     {
-        return axum::http::StatusCode::FORBIDDEN.into_response();
+        return StatusCode::FORBIDDEN.into_response();
     }
-    let token = headers
-        .get("cookie")
-        .and_then(|v| v.to_str().ok())
-        .and_then(|cookies| {
-            cookies.split(';').find_map(|c| {
-                let c = c.trim();
-                c.strip_prefix(&format!("{ACCESS_COOKIE}="))
-                    .map(str::to_string)
-            })
-        });
-    ws.on_upgrade(move |socket| handle_socket(socket, state, token))
-}
-async fn handle_socket(mut socket: WebSocket, state: AppState, token: Option<String>) {
-    let Some(claims) = token
-        .as_deref()
-        .and_then(|t| state.jwt.verify_access(t).ok())
+
+    let Some(claims) = jar
+        .get(ACCESS_COOKIE)
+        .and_then(|c| state.jwt.verify_access(c.value()).ok())
     else {
-        let _ = socket.send(Message::Close(None)).await;
-        return;
+        return StatusCode::UNAUTHORIZED.into_response();
     };
-    let user_id: Uuid = match claims.sub.parse() {
-        Ok(id) => id,
-        Err(_) => return,
+    let Ok(user_id) = claims.sub.parse::<Uuid>() else {
+        return StatusCode::UNAUTHORIZED.into_response();
     };
+
     let user = AuthUser {
         user_id,
         email: claims.email,
     };
+    let token_ttl = Duration::from_secs(claims.exp.saturating_sub(now_secs()));
+
+    ws.on_upgrade(move |socket| handle_socket(socket, state, user, token_ttl))
+}
+
+async fn close(socket: &mut WebSocket, code: u16, reason: &'static str) {
+    let frame = CloseFrame {
+        code,
+        reason: reason.into(),
+    };
+    let _ = socket.send(Message::Close(Some(frame))).await;
+}
+
+/// Only a definite "no access" counts; a failing database keeps the
+/// subscription rather than disconnecting every member.
+async fn group_access_revoked(state: &AppState, user: &AuthUser, group_id: Uuid) -> bool {
+    match TenantContext::resolve(&state.db, user.clone(), group_id).await {
+        Ok(_) => false,
+        Err(AppError::NotFound(_)) => true,
+        Err(e) => {
+            tracing::warn!("WebSocket access recheck failed: {e:?}");
+            false
+        }
+    }
+}
+
+async fn handle_socket(
+    mut socket: WebSocket,
+    state: AppState,
+    user: AuthUser,
+    token_ttl: Duration,
+) {
+    let user_id = user.user_id;
+    let token_expiry = tokio::time::sleep(token_ttl);
+    tokio::pin!(token_expiry);
+    let mut access_recheck = tokio::time::interval_at(
+        tokio::time::Instant::now() + ACCESS_RECHECK_INTERVAL,
+        ACCESS_RECHECK_INTERVAL,
+    );
     let mut rx: Option<broadcast::Receiver<BusEvent>> = None;
     let mut joined_group: Option<Uuid> = None;
     let mut sender_name: Option<String> = None;
     loop {
         tokio::select! {
+            () = &mut token_expiry => {
+                close(&mut socket, CLOSE_TOKEN_EXPIRED, "Token expired").await;
+                break;
+            }
+            _ = access_recheck.tick(), if joined_group.is_some() => {
+                if let Some(group_id) = joined_group
+                    && group_access_revoked(&state, &user, group_id).await
+                {
+                    close(&mut socket, CLOSE_ACCESS_REVOKED, "Group access revoked").await;
+                    break;
+                }
+            }
             msg = socket.recv() => {
                 match msg {
                     Some(Ok(Message::Text(text))) => {
@@ -171,6 +233,14 @@ async fn handle_socket(mut socket: WebSocket, state: AppState, token: Option<Str
                 }
             }, if rx.is_some() => {
                 match event {
+                    Ok(BusEvent::MembershipChanged) => {
+                        if let Some(group_id) = joined_group
+                            && group_access_revoked(&state, &user, group_id).await
+                        {
+                            close(&mut socket, CLOSE_ACCESS_REVOKED, "Group access revoked").await;
+                            break;
+                        }
+                    }
                     Ok(ev) => {
                         if let Ok(json) = serde_json::to_string(&ev) && socket.send(Message::Text(json.into())).await.is_err() {
                             break;

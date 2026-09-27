@@ -98,9 +98,7 @@ function handleAnnouncement() {
 
 function handleCreate() {
   collapseIfMobile();
-  withGroup(() => {
-    modalStore.openCreateGroup();
-  });
+  modalStore.openCreateGroup();
 }
 
 /* Swipe to dismiss - the drawer's equivalent of BaseSheet's downward drag. */

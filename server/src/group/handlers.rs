@@ -125,6 +125,7 @@ pub async fn leave_group(State(s): State<AppState>, tc: TenantContext) -> AppRes
     GroupService::from_state(&s)
         .leave_group(tc.user.user_id, tc.tenant_id)
         .await?;
+    s.message_bus.membership_changed(tc.tenant_id).await;
 
     Ok(Json(json!({ "ok": true })))
 }
@@ -215,16 +216,17 @@ pub async fn remove_member(
     Path(MemberPath { user_id: target }): Path<MemberPath>,
     Query(q): Query<BanQuery>,
 ) -> AppResult<Json<Value>> {
-    Ok(Json(
-        GroupAdminService::from_state(&s)
-            .remove_member(
-                tc.tenant_id,
-                Caller::from_tenant(&tc),
-                target,
-                q.ban.as_deref() == Some("true"),
-            )
-            .await?,
-    ))
+    let body = GroupAdminService::from_state(&s)
+        .remove_member(
+            tc.tenant_id,
+            Caller::from_tenant(&tc),
+            target,
+            q.ban.as_deref() == Some("true"),
+        )
+        .await?;
+    s.message_bus.membership_changed(tc.tenant_id).await;
+
+    Ok(Json(body))
 }
 
 pub async fn rename_group(
@@ -315,11 +317,12 @@ pub async fn delete_group(State(s): State<AppState>, tc: TenantContext) -> AppRe
         ));
     }
 
-    Ok(Json(
-        GroupAdminService::from_state(&s)
-            .delete_group(tc.tenant_id, tc.user.user_id)
-            .await?,
-    ))
+    let body = GroupAdminService::from_state(&s)
+        .delete_group(tc.tenant_id, tc.user.user_id)
+        .await?;
+    s.message_bus.membership_changed(tc.tenant_id).await;
+
+    Ok(Json(body))
 }
 
 pub async fn cleanup_old_items(
