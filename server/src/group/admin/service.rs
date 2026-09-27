@@ -7,7 +7,10 @@ use crate::{
         role::Role,
     },
     error::{AppError, AppResult},
-    group::dto::{CreateScheduleSubDto, ReplaceScheduleDto},
+    group::{
+        dto::{CreateScheduleSubDto, ReplaceScheduleDto},
+        service::lock_group_owner,
+    },
     state::AppState,
 };
 use chrono::NaiveTime;
@@ -296,20 +299,21 @@ impl GroupAdminService {
             .filter(|r| matches!(r, Role::Admin | Role::Moderator | Role::User))
             .ok_or_else(|| AppError::bad_request("Invalid role"))?;
 
+        let mut tx = self.db.begin().await?;
+        let owner_id = lock_group_owner(&mut tx, tenant_id).await?;
+
         let existing = sqlx::query!(
-            r#"SELECT ur.id, r.name as role_name, ur.user_id = g.owner_id AS "is_owner!"
-               FROM user_roles ur
-               JOIN roles r ON r.id = ur.role_id
-               JOIN groups g ON g.id = ur.tenant_id
+            r#"SELECT ur.id, r.name as role_name
+               FROM user_roles ur JOIN roles r ON r.id = ur.role_id
                WHERE ur.user_id = $1 AND ur.tenant_id = $2"#,
             target,
             tenant_id
         )
-        .fetch_optional(&self.db)
+        .fetch_optional(&mut *tx)
         .await?
         .ok_or_else(|| AppError::not_found("User is not a member"))?;
 
-        if existing.is_owner {
+        if target == owner_id {
             return Err(AppError::forbidden(
                 "The owner's role cannot be changed. Transfer ownership instead.",
             ));
@@ -327,7 +331,7 @@ impl GroupAdminService {
             role_enum.db_id_i32(),
             existing.id
         )
-        .execute(&self.db)
+        .execute(&mut *tx)
         .await?;
 
         sqlx::query!(
@@ -336,8 +340,10 @@ impl GroupAdminService {
             current_user_id,
             json!({ "targetUserId": target, "newRole": role })
         )
-        .execute(&self.db)
+        .execute(&mut *tx)
         .await?;
+
+        tx.commit().await?;
 
         Ok(json!({ "ok": true }))
     }
@@ -354,12 +360,10 @@ impl GroupAdminService {
             return Err(AppError::bad_request("You cannot remove yourself."));
         }
 
-        let group = sqlx::query!(r#"SELECT owner_id FROM groups WHERE id = $1"#, tenant_id)
-            .fetch_optional(&self.db)
-            .await?
-            .ok_or_else(|| AppError::not_found("Group not found"))?;
+        let mut tx = self.db.begin().await?;
+        let owner_id = lock_group_owner(&mut tx, tenant_id).await?;
 
-        if group.owner_id == target {
+        if owner_id == target {
             return Err(AppError::forbidden("The group owner cannot be removed."));
         }
 
@@ -369,7 +373,7 @@ impl GroupAdminService {
             target,
             tenant_id
         )
-        .fetch_optional(&self.db)
+        .fetch_optional(&mut *tx)
         .await?
         .ok_or_else(|| AppError::not_found("User is not a member"))?;
 
@@ -384,7 +388,7 @@ impl GroupAdminService {
             target,
             tenant_id
         )
-        .execute(&self.db)
+        .execute(&mut *tx)
         .await?;
 
         if ban {
@@ -395,7 +399,7 @@ impl GroupAdminService {
                 tenant_id,
                 current_user_id
             )
-            .execute(&self.db)
+            .execute(&mut *tx)
             .await?;
         }
 
@@ -405,8 +409,10 @@ impl GroupAdminService {
             current_user_id,
             json!({ "targetUserId": target })
         )
-        .execute(&self.db)
+        .execute(&mut *tx)
         .await?;
+
+        tx.commit().await?;
 
         Ok(json!({ "ok": true }))
     }
@@ -420,15 +426,7 @@ impl GroupAdminService {
     ) -> AppResult<Value> {
         let mut tx = self.db.begin().await?;
 
-        let group = sqlx::query!(
-            r#"SELECT owner_id FROM groups WHERE id = $1 FOR UPDATE"#,
-            tenant_id
-        )
-        .fetch_optional(&mut *tx)
-        .await?
-        .ok_or_else(|| AppError::not_found("Group not found."))?;
-
-        let previous_owner = group.owner_id;
+        let previous_owner = lock_group_owner(&mut tx, tenant_id).await?;
         if target == previous_owner {
             return Err(AppError::bad_request("This member already owns the group."));
         }

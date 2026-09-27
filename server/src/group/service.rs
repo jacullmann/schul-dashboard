@@ -17,8 +17,21 @@ use crate::{
 };
 use axum_extra::extract::CookieJar;
 use serde_json::{Value, json};
-use sqlx::PgPool;
+use sqlx::{PgConnection, PgPool};
 use uuid::Uuid;
+
+/// Locks the group row for the rest of the transaction. Every change to a
+/// group's membership takes this lock first, so an owner check in one request
+/// cannot interleave with an ownership transfer in another.
+pub(crate) async fn lock_group_owner(conn: &mut PgConnection, tenant_id: Uuid) -> AppResult<Uuid> {
+    sqlx::query_scalar!(
+        r#"SELECT owner_id FROM groups WHERE id = $1 FOR UPDATE"#,
+        tenant_id
+    )
+    .fetch_optional(conn)
+    .await?
+    .ok_or_else(|| AppError::not_found("Group not found."))
+}
 
 pub struct CreateGroupParams<'a> {
     pub user_id: Uuid,
@@ -323,12 +336,10 @@ impl GroupService {
         active_group_id: Option<Uuid>,
         origin: SessionOrigin<'_>,
     ) -> AppResult<CookieJar> {
-        let group = sqlx::query!(r#"SELECT owner_id FROM groups WHERE id = $1"#, group_id)
-            .fetch_optional(&self.db)
-            .await?
-            .ok_or_else(|| AppError::not_found("Group not found."))?;
+        let mut tx = self.db.begin().await?;
+        let owner_id = lock_group_owner(&mut tx, group_id).await?;
 
-        if group.owner_id == user_id {
+        if owner_id == user_id {
             return Err(AppError::forbidden("The owner cannot leave the group."));
         }
 
@@ -338,7 +349,7 @@ impl GroupService {
             user_id,
             group_id
         )
-        .fetch_optional(&self.db)
+        .fetch_optional(&mut *tx)
         .await?;
 
         if role.as_ref().map(|r| r.name.as_str()) == Some("admin") {
@@ -352,7 +363,7 @@ impl GroupService {
             user_id,
             group_id
         )
-        .execute(&self.db)
+        .execute(&mut *tx)
         .await?;
 
         sqlx::query!(
@@ -362,7 +373,7 @@ impl GroupService {
             user_id,
             group_id
         )
-        .execute(&self.db)
+        .execute(&mut *tx)
         .await?;
 
         sqlx::query!(
@@ -370,8 +381,10 @@ impl GroupService {
             user_id,
             json!({ "groupId": group_id })
         )
-        .execute(&self.db)
+        .execute(&mut *tx)
         .await?;
+
+        tx.commit().await?;
 
         let jar = if active_group_id == Some(group_id) {
             let user = sqlx::query!(r#"SELECT email FROM users WHERE id = $1"#, user_id)
