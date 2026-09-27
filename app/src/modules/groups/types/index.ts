@@ -24,6 +24,10 @@ export interface GroupMember {
   generatedName: string;
   role: MemberRole;
   joinedAt: string;
+  /** Roles the current user may move this member to, decided by the server. */
+  assignableRoles: MemberRole[];
+  /** Whether the current user may remove this member, decided by the server. */
+  canRemove: boolean;
 }
 
 export interface ScheduleSubstitution {

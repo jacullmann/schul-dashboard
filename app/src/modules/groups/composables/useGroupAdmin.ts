@@ -17,6 +17,8 @@ import { useToast } from '@/common/composables/useToast';
 import { useModalStore } from '@/stores/modalStore';
 import { useI18n } from 'vue-i18n';
 import { apiErrorMessage } from '@/api/errors';
+import { useUserStore } from '@/stores/userStore';
+import { useGroupSettingsAccess } from '@/modules/groups/composables/useGroupSettingsAccess';
 
 export function useGroupAdmin() {
   const modalStore = useModalStore();
@@ -29,6 +31,8 @@ export function useGroupAdmin() {
     checkPermission,
   } = useAppAuth();
   const { success, error: toastError } = useToast();
+  const userStore = useUserStore();
+  const { hasOwnerRights } = useGroupSettingsAccess();
 
   const groupId = computed(() => route.params.groupId as string);
   const groupName = computed(
@@ -113,13 +117,31 @@ export function useGroupAdmin() {
   }
 
   async function changeRole(userId: string, newRole: AssignableMemberRole) {
+    const isSelf = userId === userStore.user?.id;
+
+    // Without owner rights, nobody can hand a lowered role back to themselves.
+    if (isSelf && !hasOwnerRights.value) {
+      const isConfirmed = await modalStore.confirm({
+        title: t('groups.settings.members.step_down_modal.title'),
+        content: t('groups.settings.members.step_down_modal.message'),
+        submitText: t('groups.settings.members.step_down_modal.submit'),
+        danger: true,
+      });
+      if (!isConfirmed) return;
+    }
+
     try {
       await hw.patch(`/group-admin/members/${userId}/role`, {
         role: newRole,
       });
-      const member = members.value.find((m) => m.userId === userId);
-      if (member) member.role = newRole;
       showMessage(t('groups.settings.messages.role_updated'));
+      // A role change also changes what may be done to that member next.
+      if (isSelf) {
+        userStore.updateUser({ tenantRole: newRole });
+        await Promise.all([checkAuthStatus(), loadMembers()]);
+      } else {
+        await loadMembers();
+      }
     } catch (e: unknown) {
       showMessage(
         apiErrorMessage(e, t('groups.settings.messages.role_update_failed')),
@@ -551,10 +573,23 @@ export function useGroupAdmin() {
 
   async function transferOwnership(targetUserId: string) {
     const target = members.value.find((m) => m.userId === targetUserId);
+    const owner = members.value.find((m) => m.role === 'owner');
+    const selfId = userStore.user?.id;
+
+    // Superadmins can transfer on the owner's behalf, so the text names
+    // whoever actually gets demoted.
+    const messageKey =
+      owner?.userId === selfId
+        ? 'message_as_owner'
+        : targetUserId === selfId
+          ? 'message_take_over'
+          : 'message_on_behalf';
+
     const isConfirmed = await modalStore.confirm({
       title: t('groups.settings.members.transfer_modal.title'),
-      content: t('groups.settings.members.transfer_modal.message', {
+      content: t(`groups.settings.members.transfer_modal.${messageKey}`, {
         name: target?.generatedName ?? '',
+        owner: owner?.generatedName ?? '',
       }),
       submitText: t('groups.settings.members.transfer_modal.submit'),
       danger: true,

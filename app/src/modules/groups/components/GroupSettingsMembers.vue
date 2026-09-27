@@ -68,7 +68,6 @@ function formatRelativeTime(dateStr: string | undefined): string {
 const props = defineProps<{
   members: GroupMember[];
   loading: boolean;
-  hasOwnerRights?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -82,15 +81,12 @@ const { checkPermission } = useAppAuth();
 const userStore = useUserStore();
 const canModerateMembers = computed(() => checkPermission('moderate_members'));
 
-const ROLE_ORDER: readonly MemberRole[] = [
+const DROPDOWN_ROLES: readonly MemberRole[] = [
   'user',
   'moderator',
   'admin',
   'owner',
 ];
-
-// Admin and owner can only be handed out with the owner's rights.
-const OWNER_ONLY_ROLES: ReadonlySet<MemberRole> = new Set(['admin', 'owner']);
 
 const roleLabels = computed<Record<MemberRole, string>>(() => ({
   owner: t('common.roles.owner'),
@@ -112,30 +108,14 @@ function isSelf(member: GroupMember): boolean {
 }
 
 function isMemberRole(value: string): value is MemberRole {
-  return (ROLE_ORDER as readonly string[]).includes(value);
-}
-
-// The owner's own row stays locked: ownership only ever moves by picking
-// "owner" on somebody else's row.
-function canEditRole(member: GroupMember): boolean {
-  if (member.role === 'owner') return false;
-  if (props.hasOwnerRights) return true;
-  return canModerateMembers.value && !isSelf(member) && member.role !== 'admin';
-}
-
-function canRemove(member: GroupMember): boolean {
-  if (!canModerateMembers.value || isSelf(member)) return false;
-  if (member.role === 'owner') return false;
-  return member.role !== 'admin' || !!props.hasOwnerRights;
+  return (DROPDOWN_ROLES as readonly string[]).includes(value);
 }
 
 function roleOptionsFor(member: GroupMember) {
-  const editable = canEditRole(member);
-  return ROLE_ORDER.map((role) => ({
+  return DROPDOWN_ROLES.map((role) => ({
     label: roleLabels.value[role],
     value: role,
-    disabled:
-      !editable || (OWNER_ONLY_ROLES.has(role) && !props.hasOwnerRights),
+    disabled: role !== member.role && !member.assignableRoles.includes(role),
   }));
 }
 
@@ -315,7 +295,7 @@ function confirmRemove() {
           >
             <BaseButton
               variant="ghost"
-              :disabled="!canRemove(member)"
+              :disabled="!member.canRemove"
               :icon="CircleMinus"
               @click="openRemoveModal(member.userId, member.generatedName)"
             />
@@ -323,7 +303,7 @@ function confirmRemove() {
 
           <BaseSelect
             :model-value="member.role"
-            :disabled="!canEditRole(member)"
+            :disabled="member.assignableRoles.length === 0"
             :form="false"
             classes="w-40!"
             :options="roleOptionsFor(member)"

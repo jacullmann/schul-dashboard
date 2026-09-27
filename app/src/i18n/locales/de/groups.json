@@ -121,9 +121,9 @@
         "list_title": "Mitgliedsliste",
         "list_text": "Hier siehst du alle Mitglieder deiner Gruppe mit ihrer Rolle (Besitzer, Admin, Moderator, Mitglied). Um die Daten der Nutzer zu schützen, wird ein automatisch generierter Alias angezeigt. Dein eigener Eintrag ist mit „Du“ markiert.",
         "role_title": "Rollen ändern",
-        "role_text": "Das Dropdown neben jedem Mitglied zeigt dessen aktuelle Rolle. Rollen, die du mit deiner eigenen Rolle nicht vergeben darfst, sind ausgegraut. Admin und Besitzer können nur der Besitzer und Superadmins vergeben. Wählst du „Besitzer“, wird der Besitz der Gruppe übertragen und der bisherige Besitzer wird Admin.",
+        "role_text": "Das Dropdown neben jedem Mitglied zeigt dessen aktuelle Rolle. Du kannst nur Mitglieder verwalten, die unter dir stehen, und nur Rollen vergeben, die unter deiner eigenen liegen – alles andere ist ausgegraut. Deine eigene Rolle kannst du jederzeit herabsetzen. Der Besitzer und Superadmins dürfen alles. Wählen sie bei jemandem „Besitzer“, wird der Besitz übertragen und der bisherige Besitzer wird Admin.",
         "remove_title": "Mitglieder entfernen",
-        "remove_text": "Um ein Mitglied aus der Gruppe zu entfernen, klicke auf das entsprechende Symbol neben dem Dropdown-Menü. Admins können nur vom Besitzer oder von Superadmins entfernt werden, der Besitzer gar nicht."
+        "remove_text": "Um ein Mitglied aus der Gruppe zu entfernen, klicke auf das entsprechende Symbol neben dem Dropdown-Menü. Auch hier kannst du nur Mitglieder entfernen, die unter dir stehen. Der Besitzer kann nicht entfernt werden."
       },
       "list": {
         "empty": "Keine Mitglieder gefunden."
@@ -175,8 +175,15 @@
       },
       "transfer_modal": {
         "title": "Besitz übertragen?",
-        "message": "Möchtest du den Besitz der Gruppe wirklich an {name} übertragen? Du wirst danach Admin und verlierst deine Besitzerrechte.",
+        "message_as_owner": "Möchtest du den Besitz der Gruppe wirklich an {name} übertragen? Du wirst danach Admin und verlierst deine Besitzerrechte.",
+        "message_take_over": "Möchtest du den Besitz der Gruppe übernehmen? {owner} verliert die Besitzerrechte und wird danach Admin.",
+        "message_on_behalf": "Möchtest du den Besitz der Gruppe an {name} übertragen? {owner} verliert die Besitzerrechte und wird danach Admin.",
         "submit": "Übertragen"
+      },
+      "step_down_modal": {
+        "title": "Eigene Rolle herabsetzen?",
+        "message": "Du kannst dir diese Rolle danach nicht selbst zurückgeben. Dafür brauchst du jemanden mit einer höheren Rolle.",
+        "submit": "Herabsetzen"
       }
     },
     "overview": {
