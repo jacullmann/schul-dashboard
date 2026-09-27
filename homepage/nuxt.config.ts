@@ -18,6 +18,11 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
+  site: {
+    url: 'https://schul-dashboard.com',
+    name: 'schul-dashboard',
+  },
+
   colorMode: {
     preference: 'system',
     fallback: 'dark',
@@ -38,6 +43,7 @@ export default defineNuxtConfig({
     lazy: true,
     langDir: '../locales',
     defaultLocale: 'en',
+    baseUrl: 'https://schul-dashboard.com',
     locales: [
       {
         code: 'en',
@@ -103,16 +109,13 @@ export default defineNuxtConfig({
         { name: 'author', content: 'schul-dashboard' },
         { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
         { property: 'og:type', content: 'website' },
-        { property: 'og:url', content: 'https://schul-dashboard.com' },
         { property: 'og:title', content: 'schul-dashboard – Free School Management for Students' },
         { property: 'og:description', content: 'The free, ad-free school management system by students for students.' },
         { property: 'og:image', content: 'https://schul-dashboard.com/og-image.png' },
         { property: 'og:image:width', content: '1200' },
         { property: 'og:image:height', content: '630' },
-        { property: 'og:locale', content: 'en_US' },
         { property: 'og:site_name', content: 'schul-dashboard' },
         { name: 'twitter:card', content: 'summary_large_image' },
-        { name: 'twitter:url', content: 'https://schul-dashboard.com' },
         { name: 'twitter:title', content: 'schul-dashboard – Free School Management' },
         { name: 'twitter:description', content: 'The free school management system by students for students.' },
         { name: 'twitter:image', content: 'https://schul-dashboard.com/og-image.png' },
@@ -123,7 +126,6 @@ export default defineNuxtConfig({
         { name: 'google-site-verification', content: 'EWIYTbU2hlYorTqIulVfAyKjArTsWmgQ9O9g0Tb0L8c' },
       ],
       link: [
-        { rel: 'canonical', href: 'https://schul-dashboard.com' },
         { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
         { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
       ],
@@ -141,34 +143,30 @@ export default defineNuxtConfig({
               {
                 '@type': 'WebSite',
                 '@id': 'https://schul-dashboard.com/#website',
-                url: 'https://schul-dashboard.com',
+                url: 'https://schul-dashboard.com/',
                 name: 'schul-dashboard',
-                description: 'The free school management system for students',
-                inLanguage: 'en-US',
+                alternateName: ['Schul-Dashboard', 'Schuldashboard'],
+                inLanguage: ['en-US', 'de-DE'],
+                publisher: { '@id': 'https://schul-dashboard.com/#organization' },
               },
               {
                 '@type': 'WebApplication',
                 '@id': 'https://schul-dashboard.com/#webapp',
-                url: 'https://schul-dashboard.com',
+                url: 'https://app.schul-dashboard.com',
                 name: 'schul-dashboard',
                 description: 'The free school management system by students for students',
                 applicationCategory: 'EducationalApplication',
-                inLanguage: 'en-US',
                 operatingSystem: 'Web',
                 offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
-                author: {
-                  '@type': 'Organization',
-                  name: 'schul-dashboard',
-                  url: 'https://schul-dashboard.com',
-                },
+                publisher: { '@id': 'https://schul-dashboard.com/#organization' },
               },
               {
                 '@type': 'Organization',
                 '@id': 'https://schul-dashboard.com/#organization',
                 name: 'schul-dashboard',
-                url: 'https://schul-dashboard.com',
-                logo: 'https://schul-dashboard.com/schul-dashboard_logo.svg',
-                description: 'Free school administration by students for students',
+                url: 'https://schul-dashboard.com/',
+                logo: 'https://schul-dashboard.com/apple-touch-icon.png',
+                email: 'contact@schul-dashboard.com',
                 contactPoint: {
                   '@type': 'ContactPoint',
                   email: 'contact@schul-dashboard.com',
@@ -183,23 +181,8 @@ export default defineNuxtConfig({
   },
 
   sitemap: {
-    enabled: true,
-    urls: [
-      { loc: 'https://schul-dashboard.com', priority: 1.0, changefreq: 'weekly' },
-      { loc: 'https://schul-dashboard.com/features', priority: 0.9, changefreq: 'monthly' },
-      { loc: 'https://schul-dashboard.com/about', priority: 0.8, changefreq: 'monthly' },
-      { loc: 'https://schul-dashboard.com/contact', priority: 0.7, changefreq: 'monthly' },
-      { loc: 'https://schul-dashboard.com/legal/imprint', priority: 0.3, changefreq: 'yearly' },
-      { loc: 'https://schul-dashboard.com/legal/privacy-policy', priority: 0.3, changefreq: 'yearly' },
-      { loc: 'https://schul-dashboard.com/legal/terms', priority: 0.3, changefreq: 'yearly' },
-      { loc: 'https://schul-dashboard.com/de/funktionen', priority: 0.9, changefreq: 'monthly' },
-      { loc: 'https://schul-dashboard.com/de/uber-uns', priority: 0.8, changefreq: 'monthly' },
-      { loc: 'https://schul-dashboard.com/de/kontakt', priority: 0.7, changefreq: 'monthly' },
-      { loc: 'https://schul-dashboard.com/de/legal/impressum', priority: 0.3, changefreq: 'yearly' },
-      { loc: 'https://schul-dashboard.com/de/legal/datenschutz', priority: 0.3, changefreq: 'yearly' },
-      { loc: 'https://schul-dashboard.com/de/legal/nutzungsbedingungen', priority: 0.3, changefreq: 'yearly' },
-    ],
-    sitemaps: true,
+    // Legal pages are noindex; listing them would only produce Search Console warnings.
+    exclude: ['/legal/**', '/de/legal/**'],
   },
 
   routeRules: {

@@ -1,47 +1,32 @@
 export const useSeoMetaWithI18n = (options: {
-  title: string | (() => string);
-  description: string | (() => string);
+  title: () => string;
+  description: () => string;
   keywords?: string;
   ogImage?: string;
-  ogType?: string;
-  canonicalUrl?: string;
+  ogType?: 'website' | 'article';
   structuredData?: Record<string, unknown>;
 }) => {
-  const route = useRoute();
+  const { url: siteUrl } = useSiteConfig();
+  const ogImage = options.ogImage ?? `${siteUrl}/og-image.png`;
 
-  const title = typeof options.title === 'function' ? options.title() : options.title;
-  const description =
-    typeof options.description === 'function' ? options.description() : options.description;
-  const ogImage = options.ogImage || 'https://schul-dashboard.com/og-image.png';
-  const canonicalUrl = options.canonicalUrl || `https://schul-dashboard.com${route.path}`;
-
+  // Canonical, og:url and hreflang links come from useLocaleHead in the layout, so every locale keeps its own canonical URL.
   useSeoMeta({
-    title,
-    description,
+    title: options.title,
+    description: options.description,
     keywords: options.keywords,
-    ogTitle: title,
-    ogDescription: description,
+    ogTitle: options.title,
+    ogDescription: options.description,
     ogImage,
-    ogType: options.ogType || 'website',
-    ogUrl: canonicalUrl,
+    ogType: options.ogType ?? 'website',
     twitterCard: 'summary_large_image',
-    twitterTitle: title,
-    twitterDescription: description,
+    twitterTitle: options.title,
+    twitterDescription: options.description,
     twitterImage: ogImage,
-  });
-
-  useHead({
-    link: [{ rel: 'canonical', href: canonicalUrl }],
   });
 
   if (options.structuredData) {
     useHead({
-      script: [
-        {
-          type: 'application/ld+json',
-          innerHTML: JSON.stringify(options.structuredData),
-        },
-      ],
+      script: [{ type: 'application/ld+json', innerHTML: JSON.stringify(options.structuredData) }],
     });
   }
 };
