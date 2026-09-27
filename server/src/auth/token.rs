@@ -1,10 +1,10 @@
 use crate::{
     common::jwt::{AccessClaims, JwtService},
-    config::{ACCESS_TOKEN_TTL, REFRESH_TOKEN_TTL, chrono_ttl},
+    config::{ACCESS_TOKEN_TTL, REFRESH_REUSE_GRACE, REFRESH_TOKEN_TTL, chrono_ttl},
     error::AppError,
     state::AppState,
 };
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 use sha2::{Digest, Sha256};
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -34,6 +34,24 @@ pub struct IssueTokenParams<'a> {
     pub user_agent: Option<&'a str>,
     pub ip_address: Option<&'a str>,
     pub parent: Option<(Uuid, Uuid)>,
+}
+
+struct RefreshTokenRow {
+    id: Uuid,
+    user_id: Uuid,
+    family_id: Uuid,
+    used_at: Option<DateTime<Utc>>,
+    revoked_at: Option<DateTime<Utc>>,
+    expires_at: DateTime<Utc>,
+    role_version: i32,
+    active_group_id: Option<Uuid>,
+}
+
+impl RefreshTokenRow {
+    fn used_within_reuse_grace(&self) -> bool {
+        self.used_at
+            .is_some_and(|used_at| Utc::now() - used_at <= chrono_ttl(REFRESH_REUSE_GRACE))
+    }
 }
 
 pub struct TokenService {
@@ -168,50 +186,46 @@ impl TokenService {
     ) -> Result<Option<IssuedTokens>, AppError> {
         let hash = hash_token(presented_token);
 
-        let row = sqlx::query!(
-            r#"SELECT id, user_id, family_id, used_at, revoked_at, expires_at, role_version, active_group_id
-               FROM refresh_tokens WHERE token_hash = $1"#,
-            hash
-        )
-            .fetch_optional(&self.db)
-            .await?;
-
-        let row = match row {
-            None => return Ok(None),
-            Some(r) => r,
-        };
-
-        if row.used_at.is_some() || row.revoked_at.is_some() {
-            tracing::warn!(
-                "Refresh token reuse detected for user {}, family {}",
-                row.user_id,
-                row.family_id
-            );
-
-            self.revoke_family(row.family_id, REUSE_DETECTED).await?;
-
+        let Some(row) = self.find_refresh_token(&hash).await? else {
             return Ok(None);
-        }
+        };
 
         if row.expires_at < Utc::now() {
             return Ok(None);
         }
 
-        let updated = sqlx::query!(
+        let consumed = sqlx::query!(
             r#"UPDATE refresh_tokens SET used_at = now()
                WHERE id = $1 AND used_at IS NULL AND revoked_at IS NULL
                RETURNING id"#,
             row.id
         )
         .fetch_optional(&self.db)
-        .await?;
+        .await?
+        .is_some();
 
-        if updated.is_none() {
-            tracing::warn!("Refresh rotation race on token {}", row.id);
+        if !consumed {
+            // Re-read so a concurrent consume or revoke is judged on current state.
+            let Some(current) = self.find_refresh_token(&hash).await? else {
+                return Ok(None);
+            };
 
-            self.revoke_family(row.family_id, REUSE_DETECTED).await?;
+            // Parallel refreshes (several tabs, a reload racing an in-flight
+            // refresh) legitimately present the same token moments apart and get
+            // a sibling pair in the same family. Only a replay outside the grace
+            // window, or of a revoked token, is treated as theft.
+            if current.revoked_at.is_some() || !current.used_within_reuse_grace() {
+                tracing::warn!(
+                    "Refresh token reuse detected for user {}, family {}",
+                    current.user_id,
+                    current.family_id
+                );
 
-            return Ok(None);
+                self.revoke_family(current.family_id, REUSE_DETECTED)
+                    .await?;
+
+                return Ok(None);
+            }
         }
 
         let user = self.load_user_claims(row.user_id).await?;
@@ -250,6 +264,17 @@ impl TokenService {
             .await?;
 
         Ok(Some(issued))
+    }
+
+    async fn find_refresh_token(&self, hash: &str) -> Result<Option<RefreshTokenRow>, AppError> {
+        Ok(sqlx::query_as!(
+            RefreshTokenRow,
+            r#"SELECT id, user_id, family_id, used_at, revoked_at, expires_at, role_version, active_group_id
+               FROM refresh_tokens WHERE token_hash = $1"#,
+            hash
+        )
+        .fetch_optional(&self.db)
+        .await?)
     }
 
     pub async fn reissue_for_group(

@@ -1,5 +1,5 @@
 import { ref, computed } from 'vue';
-import hw, { ensureCsrf } from '@/api/api.ts';
+import hw, { ensureCsrf, refreshSession } from '@/api/api.ts';
 import i18n from '@/i18n';
 import { useUserStore } from '@/stores/userStore';
 import type { ScheduleConfig } from '@/modules/schedule/types';
@@ -118,11 +118,28 @@ function installAuthExpiredHandlerOnce(): void {
   });
 }
 
+async function fetchStatus(): Promise<boolean> {
+  const { data } = await hw.get(STATUS_ENDPOINT);
+  applyStatusData(data);
+  return data.authenticated === true;
+}
+
+async function restoreSession(): Promise<void> {
+  try {
+    await refreshSession({ silent: true });
+  } catch {
+    return;
+  }
+  await fetchStatus();
+}
+
+// The app must not render until the session is resolved: an expired access
+// token with a valid refresh cookie is still a logged-in user, and anything
+// mounted in between would act on a false "logged out" state.
 async function doInitAuth(): Promise<void> {
   try {
     await ensureCsrf();
-    const { data } = await hw.get(STATUS_ENDPOINT);
-    applyStatusData(data);
+    if (!(await fetchStatus())) await restoreSession();
   } catch {
     clearAuthState();
   } finally {

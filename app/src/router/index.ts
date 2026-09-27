@@ -4,7 +4,6 @@ import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useLoadingBar } from '@/common/composables/loadingState';
 import { useUserStore } from '@/stores/userStore';
 import i18n from '@/i18n';
-import { refreshSession } from '@/api/api';
 import { consumePendingInviteRoute } from '@/modules/auth/utils/pendingInvite';
 
 const routes: RouteRecordRaw[] = [
@@ -313,14 +312,8 @@ const router = createRouter({
 });
 
 const { start, finish } = useLoadingBar();
-const {
-  isLoggedIn,
-  isAuthReady,
-  initAuth,
-  checkAuthStatus,
-  activeGroupId,
-  userGroups,
-} = useAppAuth();
+const { isLoggedIn, isAuthReady, initAuth, activeGroupId, userGroups } =
+  useAppAuth();
 
 router.beforeEach(async (to, from, next) => {
   if (to.path !== from.path) start();
@@ -339,15 +332,6 @@ router.beforeEach(async (to, from, next) => {
     to.path.startsWith('/natural-intelligence') ||
     to.path.startsWith('/ai') ||
     to.path === '/server';
-
-  if (!isPublicRoute && !isLoggedIn.value) {
-    try {
-      await refreshSession({ silent: true });
-      await checkAuthStatus();
-    } catch {
-      // No valid session: fall through to the unauthenticated redirect below.
-    }
-  }
 
   if (!isPublicRoute && !isLoggedIn.value) {
     finish();
