@@ -30,19 +30,55 @@ let refreshInFlight: Promise<void> | null = null;
 let refreshFailedListeners: Array<() => void> = [];
 
 const REFRESH_URL = '/auth/refresh';
+const REFRESH_LOCK = 'auth-refresh';
+const LAST_REFRESH_KEY = 'auth:last-refresh';
+// Bounds how long other tabs can be stuck waiting on the refresh lock.
+const REFRESH_TIMEOUT_MS = 15_000;
+
+const readLastRefresh = (): number => {
+  try {
+    return Number(localStorage.getItem(LAST_REFRESH_KEY)) || 0;
+  } catch {
+    return 0;
+  }
+};
+
+const recordRefresh = (): void => {
+  try {
+    localStorage.setItem(LAST_REFRESH_KEY, String(Date.now()));
+  } catch {
+    // Without storage, a waiting tab just refreshes again, which stays valid.
+  }
+};
+
+const postRefresh = async (silent: boolean): Promise<void> => {
+  await hw.post(REFRESH_URL, null, {
+    _skipAuthRetry: true,
+    _silent: silent,
+    timeout: REFRESH_TIMEOUT_MS,
+  } as AxiosRequestConfig);
+  recordRefresh();
+};
+
+// Refresh tokens rotate on every use and share one cookie across tabs, so
+// refreshes are serialized browser-wide. A tab that waited on another tab's
+// refresh reuses the cookies it set instead of rotating them again.
+async function refreshAcrossTabs(silent: boolean): Promise<void> {
+  if (!navigator.locks) return postRefresh(silent);
+
+  const requestedAt = Date.now();
+  await navigator.locks.request(REFRESH_LOCK, async () => {
+    if (readLastRefresh() >= requestedAt) return;
+    await postRefresh(silent);
+  });
+}
 
 function performRefresh(opts: { silent?: boolean } = {}): Promise<void> {
   if (refreshInFlight) return refreshInFlight;
 
-  refreshInFlight = hw
-    .post(REFRESH_URL, null, {
-      _skipAuthRetry: true,
-      _silent: opts.silent === true,
-    } as AxiosRequestConfig)
-    .then(() => undefined)
-    .finally(() => {
-      refreshInFlight = null;
-    });
+  refreshInFlight = refreshAcrossTabs(opts.silent === true).finally(() => {
+    refreshInFlight = null;
+  });
   return refreshInFlight;
 }
 
