@@ -344,6 +344,36 @@ function drawnScale(el: HTMLElement, rect = el.getBoundingClientRect()) {
 function px(value: number) {
   return `${Math.round(value * 100) / 100}px`;
 }
+
+const SOLID = 'linear-gradient(#000 0 0)';
+const ROUND =
+  'radial-gradient(closest-side, #000 calc(100% - 0.5px), transparent calc(100% + 0.5px))';
+
+/**
+ * A mask for everything outside the pill: the whole row, less the pill's two
+ * round ends and the two bars joining them, one of which is always empty.
+ * Masks leave hit testing alone, unlike a clip, so every tab stays pressable.
+ */
+function outsidePill(left: number, top: number, width: number, height: number) {
+  const radius = Math.min(width, height) / 2;
+  const diameter = 2 * radius;
+  const layer = (image: string, x: number, y: number, w: number, h: number) =>
+    `${image} ${px(x)} ${px(y)} / ${px(w)} ${px(h)} no-repeat add`;
+
+  return [
+    `${SOLID} 0 0 / 100% 100% no-repeat subtract`,
+    layer(ROUND, left, top, diameter, diameter),
+    layer(
+      ROUND,
+      left + width - diameter,
+      top + height - diameter,
+      diameter,
+      diameter,
+    ),
+    layer(SOLID, left + radius, top, width - diameter, height),
+    layer(SOLID, left, top + radius, width, height - diameter),
+  ].join(', ');
+}
 </script>
 
 <script setup lang="ts">
@@ -399,7 +429,7 @@ const structure = computed(() => props.items.map((item) => item.id).join('\n'));
 /** Shared by the tabs and their copies inside the pill, which must lay out identically. */
 const tabClass = computed(() =>
   isTabBar.value
-    ? 'flex grow basis-0 items-center justify-center whitespace-nowrap px-[min(--spacing(2),var(--tab-slack,--spacing(2)))] py-1.5 text-2xs font-semibold'
+    ? 'flex grow basis-0 items-center justify-center whitespace-nowrap px-[min(--spacing(2),var(--tab-slack,--spacing(2)))] py-1.5 text-2xs font-medium'
     : [
         'flex min-h-9 min-w-9 shrink-0 items-center whitespace-nowrap px-3.5 py-2 text-sm/4 font-medium first:pl-5 last:pr-5',
         isStretched.value && 'grow justify-center',
@@ -426,6 +456,7 @@ let metrics: Metrics | null = null;
 let targetIndex = activeIndex.value;
 let pillShown = false;
 let paintedClip = '';
+let paintedMask = '';
 let frameId = 0;
 let lastFrame = 0;
 let gesture: Gesture | null = null;
@@ -544,7 +575,7 @@ function measure(): Metrics | null {
     rights: centers.map((center, i) => Math.min(center + halves[i]!, width)),
     centers,
     contentShifts: centers.map((center, i) => center - laidOut[i]!),
-    height: row.offsetHeight,
+    height: origin.height / scale,
   };
 }
 
@@ -721,23 +752,38 @@ function render(now: number) {
  * and never move, so they can't shimmer or drift out of line the way
  * counter-translated text does, and a clip only repaints: nothing is laid out
  * again while the pill moves.
+ *
+ * The row beneath is masked out where the pill covers it. Through a
+ * translucent pill, its labels' anti-aliased edges would otherwise tint the
+ * edges of their copies on top.
  */
 function paint(m: Metrics, center: number, inset: number) {
   const el = pillRef.value;
-  if (!el) return;
+  const tabs = tabsRef.value;
+  if (!el || !tabs) return;
 
   const [left, right] = pillEdges(m, center);
   const clip = `inset(${px(inset)} calc(100% - ${px(right - inset)}) ${px(inset)} ${px(left + inset)} round 9999px)`;
-  if (clip === paintedClip) return;
+  const mask = outsidePill(
+    left + inset,
+    inset,
+    right - left - 2 * inset,
+    m.height - 2 * inset,
+  );
+  if (clip === paintedClip && mask === paintedMask) return;
 
   paintedClip = clip;
+  paintedMask = mask;
   el.style.clipPath = clip;
+  tabs.style.mask = mask;
 }
 
 function hidePill() {
   pillShown = false;
   paintedClip = '';
+  paintedMask = '';
   pillRef.value?.style.removeProperty('clip-path');
+  tabsRef.value?.style.removeProperty('mask');
 }
 
 // ─── Selection ───────────────────────────────────────────────────────────────
@@ -1147,6 +1193,7 @@ onBeforeUnmount(() => {
                 :is="item.icon"
                 v-if="item.icon"
                 class="shrink-0"
+                :stroke-width="1.8"
                 aria-hidden="true"
               />
               <span>{{ item.label }}</span>
@@ -1167,7 +1214,12 @@ onBeforeUnmount(() => {
         >
           <span v-for="(item, index) in items" :key="item.id" :class="tabClass">
             <span :class="contentClass" :style="contentStyle(index)">
-              <component :is="item.icon" v-if="item.icon" class="shrink-0" />
+              <component
+                :is="item.icon"
+                v-if="item.icon"
+                class="shrink-0"
+                :stroke-width="1.8"
+              />
               <span>{{ item.label }}</span>
             </span>
           </span>

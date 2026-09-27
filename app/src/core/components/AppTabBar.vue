@@ -1,16 +1,22 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watchEffect } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute, useRouter, type RouteLocationRaw } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useElementSize } from '@vueuse/core';
-import { House, ListTodo, CalendarDays, MessageCircle } from '@lucide/vue';
+import { House, ListTodo, CalendarDays, Lock } from '@lucide/vue';
 import type { NavItem } from '@/common/components/BaseTabs.vue';
 import { useIsOnScreenKeyboardOpen } from '@/common/composables/useViewport';
+import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
+import { useGroupAction } from '@/core/composables/useGroupAction';
+
+const PRIVATE_TAB = 'private-todos';
 
 const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const isKeyboardOpen = useIsOnScreenKeyboardOpen();
+const { activeGroupId } = useAppAuth();
+const { withGroup } = useGroupAction();
 
 /** Each tab's id is the name of the route it opens. */
 const tabs = computed<NavItem[]>(() => [
@@ -22,9 +28,9 @@ const tabs = computed<NavItem[]>(() => [
     icon: CalendarDays,
   },
   {
-    id: 'group-messages',
-    label: t('common.tab_bar.chat'),
-    icon: MessageCircle,
+    id: PRIVATE_TAB,
+    label: t('common.tab_bar.private'),
+    icon: Lock,
   },
 ]);
 
@@ -36,16 +42,27 @@ const routeTab = computed(
 );
 const activeTab = computed(() => pendingTab.value ?? routeTab.value);
 
-async function openTab(name: string) {
+async function openTab(name: string, location: RouteLocationRaw) {
   pendingTab.value = name;
   try {
-    // Named navigation keeps the current :groupId.
-    await router.push({ name });
+    await router.push(location);
   } finally {
     // A blocked or failed navigation hands the selection back to the route,
     // unless a later tap has already claimed it.
     if (pendingTab.value === name) pendingTab.value = null;
   }
+}
+
+function selectTab(name: string) {
+  if (name === PRIVATE_TAB) {
+    void openTab(name, { name });
+    return;
+  }
+  // The private page has no :groupId to inherit, so group tabs pass it explicitly.
+  withGroup(
+    () =>
+      void openTab(name, { name, params: { groupId: activeGroupId.value } }),
+  );
 }
 
 const barEl = ref<HTMLElement | null>(null);
@@ -87,7 +104,7 @@ onBeforeUnmount(() => {
       variant="tab-bar"
       :items="tabs"
       :active-id="activeTab ?? ''"
-      @change="openTab"
+      @change="selectTab"
     />
   </nav>
 </template>

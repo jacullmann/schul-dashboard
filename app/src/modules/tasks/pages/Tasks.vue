@@ -6,6 +6,7 @@ import { useIsMobileViewport } from '@/common/composables/useViewport';
 import { Plus, ListFilter } from '@lucide/vue';
 
 import { useTasks } from '@/modules/tasks/composables/useTasks';
+import { useCardEntrance } from '@/modules/tasks/composables/useCardEntrance';
 import { useTaskForm } from '@/core/composables/useTaskForm';
 import { useImageViewer } from '@/core/composables/useImageViewer';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
@@ -198,43 +199,15 @@ function beforeLeave(el: Element) {
   h.style.position = 'absolute';
 }
 
-/*
- * Cards that just appeared, by their place in the batch they arrived with, so
- * each batch cascades in from its first card. A card leaves the map once
- * settled: TransitionGroup moves re-insert nodes, which restarts animations.
- */
-const enteringCardOrder = ref(new Map<string, number>());
-const visibleIds = computed(() => visibleItems.value.map((item) => item.id));
-let shownIds = new Set<string>();
-
-// Behind the skeleton the list still sorts itself as checks and pins load, so
-// the order is only taken once the cards are actually shown.
-watch(
-  [visibleIds, showSkeleton],
-  ([ids, skeleton]) => {
-    if (skeleton) return;
-    const entering = new Map(enteringCardOrder.value);
-    let order = 0;
-    for (const id of ids) {
-      if (!shownIds.has(id)) entering.set(id, order++);
-    }
-    shownIds = new Set(ids);
-    enteringCardOrder.value = entering;
-  },
-  { immediate: true },
+// Behind the skeleton the list still sorts itself as checks and pins load.
+const {
+  isEntering: isCardEntering,
+  entranceStyle: cardEntranceStyle,
+  handleEntranceEnd: handleCardAnimationEnd,
+} = useCardEntrance(
+  computed(() => visibleItems.value.map((item) => item.id)),
+  showSkeleton,
 );
-
-function cardEntranceStyle(itemId: string) {
-  const order = enteringCardOrder.value.get(itemId);
-  return order === undefined ? {} : { '--enter-delay': entranceDelay(order) };
-}
-
-function handleCardAnimationEnd(event: AnimationEvent, itemId: string) {
-  if (!hasSettledEntrance(event)) return;
-  const entering = new Map(enteringCardOrder.value);
-  entering.delete(itemId);
-  enteringCardOrder.value = entering;
-}
 
 const emptyStateEntered = ref(false);
 
@@ -372,7 +345,7 @@ function handleEmptyStateAnimationEnd(event: AnimationEvent) {
           v-for="(item, index) in visibleItems"
           :key="item.id"
           v-model:note-edit-content="noteEditContent"
-          :class="{ 'animate-enter': enteringCardOrder.has(item.id) }"
+          :class="{ 'animate-enter': isCardEntering(item.id) }"
           :style="cardEntranceStyle(item.id)"
           :item="item"
           :index="index"

@@ -197,7 +197,9 @@
   },
   "tab_bar": {
     "label": "Hauptnavigation",
-    "chat": "Chat"
+    "chat": "Chat",
+    "account": "Konto",
+    "private": "Privat"
   },
   "contact": {
     "email": "E-Mail",

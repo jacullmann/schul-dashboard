@@ -19,43 +19,45 @@ const { user } = storeToRefs(userStore);
 
 <template>
   <div class="card">
-    <PageHeader class="animate-fade-up">
-      {{ t('tasks.private_tasks.title') }}
-      <template #info>
-        <InfoModal
-          :tooltip="t('tasks.private_tasks.infopop.tooltip')"
-          :title="t('tasks.private_tasks.title')"
-        >
-          <!-- eslint-disable-next-line vue/no-v-html -- bundled translation markup, not user input -->
-          <p v-html="t('tasks.private_tasks.infopop.description')"></p>
-          <template
-            v-for="(section, index) in tm(
-              'tasks.private_tasks.infopop.sections',
-            )"
-            :key="index"
+    <div class="animate-enter">
+      <PageHeader>
+        {{ t('tasks.private_tasks.title') }}
+        <template #info>
+          <InfoModal
+            :tooltip="t('tasks.private_tasks.infopop.tooltip')"
+            :title="t('tasks.private_tasks.title')"
           >
             <!-- eslint-disable-next-line vue/no-v-html -- bundled translation markup, not user input -->
-            <h3 v-html="section.title"></h3>
-            <!-- eslint-disable-next-line vue/no-v-html -- bundled translation markup, not user input -->
-            <p v-html="section.text"></p>
-          </template>
-        </InfoModal>
-      </template>
-      <template #action>
-        <BaseTooltip
-          :content="t('tasks.private_tasks.new_task')"
-          placement="bottom"
-        >
-          <BaseButton
-            v-if="user"
-            variant="action"
-            :icon="Plus"
-            icon-classes="size-6"
-            @click="openPrivateTaskForm"
-          />
-        </BaseTooltip>
-      </template>
-    </PageHeader>
+            <p v-html="t('tasks.private_tasks.infopop.description')"></p>
+            <template
+              v-for="(section, index) in tm(
+                'tasks.private_tasks.infopop.sections',
+              )"
+              :key="index"
+            >
+              <!-- eslint-disable-next-line vue/no-v-html -- bundled translation markup, not user input -->
+              <h3 v-html="section.title"></h3>
+              <!-- eslint-disable-next-line vue/no-v-html -- bundled translation markup, not user input -->
+              <p v-html="section.text"></p>
+            </template>
+          </InfoModal>
+        </template>
+        <template #action>
+          <BaseTooltip
+            :content="t('tasks.private_tasks.new_task')"
+            placement="bottom"
+          >
+            <BaseButton
+              v-if="user"
+              variant="action"
+              :icon="Plus"
+              icon-classes="size-6"
+              @click="openPrivateTaskForm"
+            />
+          </BaseTooltip>
+        </template>
+      </PageHeader>
+    </div>
 
     <div class="private-entries-container">
       <PrivateTaskApp />

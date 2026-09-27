@@ -52,6 +52,8 @@ export function usePrivateTasks() {
   const privateTasks = ref<PrivateTask[]>([]);
   const displayPrivateTasks = ref<PrivateTask[]>([]);
   const loading = ref(false);
+  // Later loads (a duplicate, a failed reorder) refresh the list in place.
+  const initialLoad = ref(true);
   const openMenuId = ref<string | null>(null);
 
   const sortDisplayList = (data: PrivateTask[]) =>
@@ -106,6 +108,7 @@ export function usePrivateTasks() {
       useToast().error(t('tasks.private_tasks.error_load'));
     } finally {
       loading.value = false;
+      initialLoad.value = false;
     }
   };
 
@@ -376,6 +379,7 @@ export function usePrivateTasks() {
     privateTasks,
     displayPrivateTasks,
     loading,
+    initialLoad,
     openMenuId,
     loadPrivateTasks,
     addPrivateTask,

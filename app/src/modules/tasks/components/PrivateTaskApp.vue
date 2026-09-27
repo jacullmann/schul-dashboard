@@ -16,10 +16,15 @@ import {
 } from '@/modules/tasks/composables/useDragReorder';
 import ItemCard from '@/modules/tasks/components/ItemCard.vue';
 import { usePrivateTaskForm } from '@/core/composables/usePrivateTaskForm';
-import { computed, reactive, ref, onUnmounted, watch } from 'vue';
+import { computed, ref, onUnmounted, watch } from 'vue';
 import { useIsMobileViewport } from '@/common/composables/useViewport';
 import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/vue';
 import BaseSkeleton from '@/common/components/BaseSkeleton.vue';
+import { useCardEntrance } from '@/modules/tasks/composables/useCardEntrance';
+import {
+  entranceDelay,
+  hasSettledEntrance,
+} from '@/modules/tasks/utils/entrance';
 
 const { t } = useI18n();
 
@@ -30,6 +35,7 @@ const {
   privateTasks,
   displayPrivateTasks,
   loading,
+  initialLoad,
   openMenuId,
   loadPrivateTasks,
   addPrivateTask,
@@ -156,14 +162,26 @@ function handleItemDoubleClick(task: PrivateTask, event: MouseEvent) {
   togglePrivateTaskCompletion(task);
 }
 
-/**
- * Cards whose entrance has already played. Reordering moves the card's node,
- * and a node put back into the document starts its animations over.
- */
-const enteredIds = reactive(new Set<string>());
+/** After the page header: the privacy notice, then the list. */
+const NOTICE_ENTRANCE_ORDER = 1;
+const LIST_ENTRANCE_ORDER = 2;
+const SKELETON_COUNT = 10;
 
-function onCardAnimationEnd(event: AnimationEvent, id: string) {
-  if (event.animationName === 'fade-up') enteredIds.add(id);
+const showSkeleton = computed(() => loading.value && initialLoad.value);
+
+const {
+  isEntering: isCardEntering,
+  entranceStyle: cardEntranceStyle,
+  handleEntranceEnd: handleCardAnimationEnd,
+} = useCardEntrance(
+  computed(() => displayPrivateTasks.value.map((task) => task.id)),
+  showSkeleton,
+);
+
+const emptyStateEntered = ref(false);
+
+function handleEmptyStateAnimationEnd(event: AnimationEvent) {
+  if (hasSettledEntrance(event)) emptyStateEntered.value = true;
 }
 
 defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
@@ -171,7 +189,10 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
 
 <template>
   <div class="private-task-app-integrated">
-    <div class="private-task-header animate-fade-up">
+    <div
+      class="private-task-header animate-enter"
+      :style="{ '--enter-delay': entranceDelay(NOTICE_ENTRANCE_ORDER) }"
+    >
       <div
         class="flex gap-2 items-center justify-center text-on-ghost-muted mb-4"
       >
@@ -185,141 +206,168 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
       </div>
     </div>
 
-    <div v-if="user" class="private-task-list">
-      <div v-if="loading" class="flex flex-col gap-8 pt-4">
-        <div v-for="n in 10" :key="n" class="animate-fade-up">
-          <BaseSkeleton width="60" height="20px" class="mb-3" />
-          <BaseSkeleton width="full" height="16px" class="mb-2" />
-          <BaseSkeleton
-            width="[70%]"
-            height="16px"
-            class="hidden md:flex mb-2"
-          />
-        </div>
-      </div>
-
-      <div
-        v-else-if="privateTasks.length === 0"
-        class="p-12 text-center text-on-ghost-muted"
+    <div v-if="user" class="private-task-list relative">
+      <!-- Taken out of the flow while it fades, so the cards arriving in its
+           place overlap it instead of waiting below it. -->
+      <Transition
+        leave-active-class="skeleton-leaving absolute inset-x-0 top-0 transition-opacity duration-300 ease-out"
+        leave-to-class="opacity-0"
       >
-        <p>{{ t('tasks.private_tasks.no_tasks_found') }}</p>
-      </div>
-
-      <div v-else class="private-tasks-container">
-        <div ref="listRef" class="flex flex-col gap-3 max-w-192 mx-auto">
+        <div v-if="showSkeleton" class="flex flex-col gap-8 pt-4">
+          <!-- A row still waiting for its entrance stays hidden while the skeleton leaves. -->
           <div
-            v-for="(privateTask, index) in displayPrivateTasks"
-            :key="privateTask.id"
-            v-bind="{ [REORDER_ITEM_ATTR]: '' }"
-            class="reorder-item long-press-target relative rounded-xl"
-            @animationend="onCardAnimationEnd($event, privateTask.id)"
+            v-for="n in SKELETON_COUNT"
+            :key="n"
+            class="animate-enter in-[.skeleton-leaving]:[animation-play-state:paused]"
+            :style="{
+              '--enter-delay': entranceDelay(LIST_ENTRANCE_ORDER + n - 1),
+            }"
           >
-            <ItemCard
-              :class="{ 'animate-fade-up': !enteredIds.has(privateTask.id) }"
-              :is-collapsed="privateTask.completed"
-              :title="privateTask.title"
-              :swipeable="!isReordering"
-              swipe-action="delete"
-              :confirm-swipe="confirmDeletePrivateTask"
-              @swiped="deletePrivateTask(privateTask.id, { confirm: false })"
-              @dblclick="handleItemDoubleClick(privateTask, $event)"
-              @contextmenu.prevent.stop="
-                handleCardContextMenu(privateTask, $event)
-              "
-              @menu-click="handleCardMenuClick(privateTask, $event)"
-            >
-              <template #checkbox>
-                <BaseCheckbox
-                  class="checkbox"
-                  :checked="privateTask.completed"
-                  @change="togglePrivateTaskCompletion(privateTask)"
-                />
-              </template>
-
-              <template #menu>
-                <Teleport to="body" :disabled="isMobile">
-                  <BaseMenu
-                    :ref="
-                      (el: any) => {
-                        if (el && openMenuId === privateTask.id)
-                          menuRef = el.menuEl;
-                      }
-                    "
-                    :open="openMenuId === privateTask.id"
-                    :class="!isMobile ? 'fixed! z-[10000]! min-w-[180px]' : ''"
-                    :style="!isMobile ? itemMenuStyles : undefined"
-                    @close="openMenuId = null"
-                    @click.stop
-                  >
-                    <BaseMenuButton
-                      :icon="Pencil"
-                      @click="
-                        openEditPrivateTaskForm(privateTask);
-                        openMenuId = null;
-                      "
-                    >
-                      {{ t('common.buttons.edit') }}
-                    </BaseMenuButton>
-
-                    <BaseMenuButton
-                      :icon="Copy"
-                      @click="
-                        duplicatePrivateTask(privateTask);
-                        openMenuId = null;
-                      "
-                    >
-                      {{ t('common.buttons.duplicate') }}
-                    </BaseMenuButton>
-
-                    <BaseMenuDivider />
-
-                    <BaseMenuButton
-                      v-if="index > 0"
-                      :icon="ChevronUp"
-                      @click="
-                        reorder.move(index, index - 1);
-                        openMenuId = null;
-                      "
-                    >
-                      {{ t('tasks.private_tasks.menu.up') }}
-                    </BaseMenuButton>
-
-                    <BaseMenuButton
-                      v-if="index < displayPrivateTasks.length - 1"
-                      :icon="ChevronDown"
-                      @click="
-                        reorder.move(index, index + 1);
-                        openMenuId = null;
-                      "
-                    >
-                      {{ t('tasks.private_tasks.menu.down') }}
-                    </BaseMenuButton>
-
-                    <BaseMenuDivider
-                      v-if="index > 0 || index < displayPrivateTasks.length - 1"
-                    />
-
-                    <BaseMenuButton
-                      :icon="Trash2"
-                      variant="danger"
-                      @click="
-                        deletePrivateTask(privateTask.id);
-                        openMenuId = null;
-                      "
-                    >
-                      {{ t('common.buttons.delete') }}
-                    </BaseMenuButton>
-                  </BaseMenu>
-                </Teleport>
-              </template>
-
-              <template v-if="privateTask.description" #body>
-                <span>{{ privateTask.description }}</span>
-              </template>
-            </ItemCard>
+            <BaseSkeleton width="60" height="20px" class="mb-3" />
+            <BaseSkeleton width="full" height="16px" class="mb-2" />
+            <BaseSkeleton
+              width="[70%]"
+              height="16px"
+              class="hidden md:flex mb-2"
+            />
           </div>
         </div>
-      </div>
+      </Transition>
+
+      <template v-if="!showSkeleton">
+        <div
+          v-if="privateTasks.length === 0"
+          class="p-12 text-center text-on-ghost-muted"
+          :class="{ 'animate-enter': !emptyStateEntered }"
+          :style="{ '--enter-delay': entranceDelay(LIST_ENTRANCE_ORDER) }"
+          @animationend="handleEmptyStateAnimationEnd"
+        >
+          <p>{{ t('tasks.private_tasks.no_tasks_found') }}</p>
+        </div>
+
+        <div v-else class="private-tasks-container">
+          <div ref="listRef" class="flex flex-col gap-3 max-w-192 mx-auto">
+            <div
+              v-for="(privateTask, index) in displayPrivateTasks"
+              :key="privateTask.id"
+              v-bind="{ [REORDER_ITEM_ATTR]: '' }"
+              class="reorder-item long-press-target relative rounded-xl"
+            >
+              <!-- The entrance plays on the card, not the wrapper, whose
+                 transform belongs to the drag reorder. -->
+              <ItemCard
+                :class="{ 'animate-enter': isCardEntering(privateTask.id) }"
+                :style="cardEntranceStyle(privateTask.id)"
+                :is-collapsed="privateTask.completed"
+                :title="privateTask.title"
+                :swipeable="!isReordering"
+                swipe-action="delete"
+                :confirm-swipe="confirmDeletePrivateTask"
+                @swiped="deletePrivateTask(privateTask.id, { confirm: false })"
+                @dblclick="handleItemDoubleClick(privateTask, $event)"
+                @contextmenu.prevent.stop="
+                  handleCardContextMenu(privateTask, $event)
+                "
+                @menu-click="handleCardMenuClick(privateTask, $event)"
+                @animationend="handleCardAnimationEnd($event, privateTask.id)"
+              >
+                <template #checkbox>
+                  <BaseCheckbox
+                    class="checkbox"
+                    :checked="privateTask.completed"
+                    @change="togglePrivateTaskCompletion(privateTask)"
+                  />
+                </template>
+
+                <template #menu>
+                  <Teleport to="body" :disabled="isMobile">
+                    <BaseMenu
+                      :ref="
+                        (el: any) => {
+                          if (el && openMenuId === privateTask.id)
+                            menuRef = el.menuEl;
+                        }
+                      "
+                      :open="openMenuId === privateTask.id"
+                      :class="
+                        !isMobile ? 'fixed! z-[10000]! min-w-[180px]' : ''
+                      "
+                      :style="!isMobile ? itemMenuStyles : undefined"
+                      @close="openMenuId = null"
+                      @click.stop
+                    >
+                      <BaseMenuButton
+                        :icon="Pencil"
+                        @click="
+                          openEditPrivateTaskForm(privateTask);
+                          openMenuId = null;
+                        "
+                      >
+                        {{ t('common.buttons.edit') }}
+                      </BaseMenuButton>
+
+                      <BaseMenuButton
+                        :icon="Copy"
+                        @click="
+                          duplicatePrivateTask(privateTask);
+                          openMenuId = null;
+                        "
+                      >
+                        {{ t('common.buttons.duplicate') }}
+                      </BaseMenuButton>
+
+                      <BaseMenuDivider />
+
+                      <BaseMenuButton
+                        v-if="index > 0"
+                        :icon="ChevronUp"
+                        @click="
+                          reorder.move(index, index - 1);
+                          openMenuId = null;
+                        "
+                      >
+                        {{ t('tasks.private_tasks.menu.up') }}
+                      </BaseMenuButton>
+
+                      <BaseMenuButton
+                        v-if="index < displayPrivateTasks.length - 1"
+                        :icon="ChevronDown"
+                        @click="
+                          reorder.move(index, index + 1);
+                          openMenuId = null;
+                        "
+                      >
+                        {{ t('tasks.private_tasks.menu.down') }}
+                      </BaseMenuButton>
+
+                      <BaseMenuDivider
+                        v-if="
+                          index > 0 || index < displayPrivateTasks.length - 1
+                        "
+                      />
+
+                      <BaseMenuButton
+                        :icon="Trash2"
+                        variant="danger"
+                        @click="
+                          deletePrivateTask(privateTask.id);
+                          openMenuId = null;
+                        "
+                      >
+                        {{ t('common.buttons.delete') }}
+                      </BaseMenuButton>
+                    </BaseMenu>
+                  </Teleport>
+                </template>
+
+                <template v-if="privateTask.description" #body>
+                  <span>{{ privateTask.description }}</span>
+                </template>
+              </ItemCard>
+            </div>
+          </div>
+        </div>
+      </template>
     </div>
   </div>
 </template>
