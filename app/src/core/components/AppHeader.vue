@@ -68,7 +68,8 @@ onClickOutside(groupMenuRef, () => {
 const loading = ref(false);
 
 async function leaveGroup() {
-  if (!activeGroupId.value) return;
+  const groupId = activeGroupId.value;
+  if (!groupId) return;
 
   if (activeGroupOwnerId.value === user.value?.id) {
     toast.error(t('auth.groups.errors.owner_cannot_leave'));
@@ -87,7 +88,7 @@ async function leaveGroup() {
 
   loading.value = true;
   try {
-    await hw.delete(groupPath(activeGroupId.value, '/leave'));
+    await hw.delete(groupPath(groupId, '/leave'));
     await checkAuthStatus();
     await router.push({ name: 'groups' });
   } catch (err) {
@@ -110,11 +111,13 @@ function openGroupSettings() {
 
 async function inviteMember() {
   groupMenuOpen.value = false;
+  const groupId = activeGroupId.value;
+  if (!groupId) return;
   loading.value = true;
   try {
-    const res = await createInvite(activeGroupId.value);
+    const res = await createInvite(groupId);
     if (res.ok && res.token) {
-      modalStore.openInviteModal(res.token);
+      modalStore.openInviteModal(res.token, groupId);
     } else {
       toast.error(res.error || t('auth.groups.errors.invite_failed'));
     }
@@ -202,10 +205,6 @@ onUnmounted(() => {
             @click="onSwitchGroup(g.id)"
           >
             <span>{{ g.name }}</span>
-            <NotificationDot
-              v-if="g.hasUnreadContent && g.id !== activeGroupId"
-              class="ml-2"
-            />
           </BaseMenuButton>
 
           <BaseMenuDivider />

@@ -12,10 +12,10 @@ export type Enrollment = UserData['courses'][number];
 export const NO_COURSE = 'NONE';
 
 /**
- * The member's course per subject of the loaded group, shared by the
+ * The member's course per subject of `groupId`, shared by the
  * onboarding modal and the "My courses" settings page.
  */
-export function useCourseSelection() {
+export function useCourseSelection(groupId: string) {
   const i18n = useI18n();
   const t = i18n.t.bind(i18n);
   const te = i18n.te.bind(i18n);
@@ -88,14 +88,12 @@ export function useCourseSelection() {
     }),
   );
 
-  /** Replaces the selection for the group whose subjects are loaded. */
   async function saveCourses(
     courses: Enrollment[],
   ): Promise<Partial<UserData>> {
-    const { data } = await hw.patch(
-      groupPath(subjectStore.groupId, '/me/courses'),
-      { courses },
-    );
+    const { data } = await hw.patch(groupPath(groupId, '/me/courses'), {
+      courses,
+    });
 
     const groupSubjectIds = new Set(subjectStore.subjects.map((s) => s.id));
     const otherGroupsCourses = (userStore.user?.courses ?? []).filter(

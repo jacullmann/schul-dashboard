@@ -27,11 +27,11 @@ export function useHwForms(ctx: HwContext) {
   }
 
   function editItem(item: HwItem) {
-    if (ctx.activeGroupId.value) openEditForm(ctx.activeGroupId.value, item);
+    openEditForm(ctx.groupId, item);
   }
 
   function openCreateFormByType(type: Exclude<ItemType, 'all'>) {
-    if (ctx.activeGroupId.value) openTaskForm(ctx.activeGroupId.value, type);
+    openTaskForm(ctx.groupId, type);
   }
 
   function canEditNote() {
@@ -53,12 +53,9 @@ export function useHwForms(ctx: HwContext) {
     savingNote.value = true;
 
     try {
-      await hw.patch(
-        groupPath(ctx.activeGroupId.value, `/items/${itemId}/note`),
-        {
-          editorNote: noteEditContent.value,
-        },
-      );
+      await hw.patch(groupPath(ctx.groupId, `/items/${itemId}/note`), {
+        editorNote: noteEditContent.value,
+      });
 
       const item = ctx.items.value.find((i) => i.id === itemId);
       if (item) item.editorNote = noteEditContent.value;
@@ -88,12 +85,9 @@ export function useHwForms(ctx: HwContext) {
     savingNote.value = true;
 
     try {
-      await hw.patch(
-        groupPath(ctx.activeGroupId.value, `/items/${itemId}/note`),
-        {
-          editorNote: '',
-        },
-      );
+      await hw.patch(groupPath(ctx.groupId, `/items/${itemId}/note`), {
+        editorNote: '',
+      });
 
       const item = ctx.items.value.find((i) => i.id === itemId);
       if (item) item.editorNote = '';

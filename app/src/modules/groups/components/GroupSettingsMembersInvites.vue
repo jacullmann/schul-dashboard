@@ -3,6 +3,7 @@ import { UserRoundPlus, Copy, Check, Undo2 } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import { ref } from 'vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
+import { useGroupPageId } from '@/core/composables/useGroupPageId';
 import { useModalStore } from '@/stores/modalStore';
 import { useToast } from '@/common/composables/useToast';
 import type { GroupInviteLog } from '@/modules/groups/types';
@@ -18,7 +19,8 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
-const { createInvite, activeGroupId } = useAppAuth();
+const { createInvite } = useAppAuth();
+const groupId = useGroupPageId();
 const modalStore = useModalStore();
 const toast = useToast();
 
@@ -28,9 +30,9 @@ const copiedId = ref<string | null>(null);
 async function inviteMember() {
   loadingInvite.value = true;
   try {
-    const res = await createInvite(activeGroupId.value);
+    const res = await createInvite(groupId);
     if (res.ok && res.token) {
-      modalStore.openInviteModal(res.token);
+      modalStore.openInviteModal(res.token, groupId);
       emit('refresh-invites');
     } else {
       toast.error(res.error || t('auth.groups.errors.invite_failed'));

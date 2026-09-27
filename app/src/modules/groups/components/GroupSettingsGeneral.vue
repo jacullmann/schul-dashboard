@@ -8,6 +8,7 @@ import { useModalStore } from '@/stores/modalStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import hw from '../../../api/api';
 import { groupPath } from '@/api/groupPath';
+import { useGroupPageId } from '@/core/composables/useGroupPageId';
 import GroupAvatarCropper from './GroupAvatarCropper.vue';
 import GroupTypeRadioGroup from './GroupTypeRadioGroup.vue';
 import SettingToggleCard from './SettingToggleCard.vue';
@@ -17,13 +18,13 @@ import type { GroupType } from '@/types/groups';
 const modalStore = useModalStore();
 const { t } = useI18n();
 const {
-  activeGroupId,
   activeGroupAvatarUrl,
   activeGroupType,
   activeGroupDaltonEnabled,
   checkPermission,
   checkAuthStatus,
 } = useAppAuth();
+const groupId = useGroupPageId();
 const canEditSettings = computed(() => checkPermission('edit_group_general'));
 
 // Switching the type or Dalton rewires subjects and the schedule, so it takes
@@ -186,7 +187,7 @@ async function onCropConfirmed(blob: Blob) {
 
   try {
     const { data: sign } = await hw.post(
-      groupPath(activeGroupId.value, '/items/uploads/sign'),
+      groupPath(groupId, '/items/uploads/sign'),
     );
 
     const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });

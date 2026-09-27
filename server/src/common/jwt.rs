@@ -32,12 +32,10 @@ pub struct AccessClaims {
     pub email: String,
     pub iat: u64,
     pub exp: u64,
-    #[serde(default)]
-    pub rv: u32,
 }
 
 impl AccessClaims {
-    pub fn new(user_id: Uuid, email: String, ttl: Duration, role_version: u32) -> Self {
+    pub fn new(user_id: Uuid, email: String, ttl: Duration) -> Self {
         let now = now_secs();
 
         Self {
@@ -45,7 +43,6 @@ impl AccessClaims {
             email,
             iat: now,
             exp: now + ttl.as_secs(),
-            rv: role_version,
         }
     }
 }

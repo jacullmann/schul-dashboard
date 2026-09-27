@@ -1,4 +1,4 @@
-use crate::error::AppResult;
+use crate::{common::role::Role, error::AppResult};
 use sqlx::PgPool;
 use uuid::Uuid;
 
@@ -7,11 +7,11 @@ use uuid::Uuid;
 pub async fn is_superadmin(db: &PgPool, user_id: Uuid) -> AppResult<bool> {
     let is_superadmin = sqlx::query_scalar!(
         r#"SELECT EXISTS (
-               SELECT 1 FROM user_roles ur
-               JOIN roles r ON r.id = ur.role_id
-               WHERE ur.user_id = $1 AND ur.tenant_id IS NULL AND r.name = 'superadmin'
+               SELECT 1 FROM user_roles
+               WHERE user_id = $1 AND tenant_id IS NULL AND role_id = $2
            ) AS "is_superadmin!""#,
-        user_id
+        user_id,
+        Role::Superadmin.db_id_i32()
     )
     .fetch_one(db)
     .await?;

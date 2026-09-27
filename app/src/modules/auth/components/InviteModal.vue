@@ -14,6 +14,7 @@ const toast = useToast();
 const props = defineProps<{
   open: boolean;
   token: string | null;
+  groupId: string;
 }>();
 
 defineEmits<{
@@ -85,7 +86,7 @@ async function regenerate() {
 
   regenerating.value = true;
   try {
-    const res = await auth.createInvite(auth.activeGroupId.value);
+    const res = await auth.createInvite(props.groupId);
     if (res.ok && res.token) {
       currentToken.value = res.token;
       copied.value = false;

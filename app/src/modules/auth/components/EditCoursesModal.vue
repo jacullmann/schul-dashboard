@@ -12,6 +12,13 @@ import { apiErrorMessage } from '@/api/errors';
 const { t } = useI18n();
 const subjectStore = useSubjectStore();
 const userStore = useUserStore();
+const props = defineProps<{
+  open: boolean;
+  groupId: string;
+  initialData: { courses: Enrollment[] };
+  isSetup: boolean;
+}>();
+
 const {
   selections,
   resetSelections,
@@ -20,14 +27,7 @@ const {
   hasRequiredSelections,
   selectedCourses,
   saveCourses,
-} = useCourseSelection();
-
-const props = defineProps<{
-  open: boolean;
-  groupId: string;
-  initialData: { courses: Enrollment[] };
-  isSetup: boolean;
-}>();
+} = useCourseSelection(props.groupId);
 
 const emit = defineEmits(['cancel', 'success', 'update:user']);
 

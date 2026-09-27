@@ -23,7 +23,7 @@ export function useHwActions(
   const reportTarget = ref<HwItem | null>(null);
 
   const itemPath = (id: string, path: string) =>
-    groupPath(ctx.activeGroupId.value, `/items/${id}${path}`);
+    groupPath(ctx.groupId, `/items/${id}${path}`);
 
   async function loadPinnedForMe() {
     ctx.pinsLoading.value = true;
@@ -356,7 +356,7 @@ export function useHwActions(
     handleSuccessAction('Melde...');
 
     try {
-      await hw.post(groupPath(ctx.activeGroupId.value, '/items/reports'), {
+      await hw.post(groupPath(ctx.groupId, '/items/reports'), {
         itemId: item.id,
         itemTitle: item.title,
         reason,

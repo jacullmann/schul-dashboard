@@ -582,12 +582,7 @@ onUnmounted(() => {
             <span
               class="absolute transition-[max-height,width,top,opacity] duration-200 -left-2.5 group-[.active]:top-0 group-hover:top-[25%] top-[45%] bottom-0 w-0.5 opacity-0 group-[.active]:w-1 group-hover:w-1 group-[.active]:opacity-100 group-hover:opacity-100 group-[.active]:max-h-full group-hover:max-h-[50%] max-h-[10%] bg-action rounded-r-full"
             ></span>
-            <Avatar
-              :name="group.name"
-              :picture="group.avatarUrl"
-              :size="8"
-              :unread="group.hasUnreadContent"
-            />
+            <Avatar :name="group.name" :picture="group.avatarUrl" :size="8" />
             <span
               class="transition-[max-width,opacity,margin-left] text-sm/5 font-medium whitespace-nowrap overflow-hidden"
               :class="

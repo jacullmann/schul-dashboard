@@ -14,7 +14,6 @@ export type UserGroup = {
   name: string;
   role: string;
   ownerId: string;
-  hasUnreadContent?: boolean;
   scheduleConfig?: ScheduleConfig;
   avatarUrl?: string | null;
   permissions: Record<string, string>;
@@ -312,7 +311,7 @@ export function useAppAuth() {
   }
 
   async function createInvite(
-    groupId: string | null,
+    groupId: string,
   ): Promise<{ ok: boolean; token?: string; error?: string }> {
     try {
       const { data } = await hw.post<{ token: string }>(

@@ -157,15 +157,15 @@ impl TenantContext {
                     JOIN roles r ON r.id = ur.role_id
                     WHERE ur.user_id = $1 AND ur.tenant_id = g.id) AS "tenant_role?",
                    EXISTS (
-                       SELECT 1 FROM user_roles ur
-                       JOIN roles r ON r.id = ur.role_id
-                       WHERE ur.user_id = $1 AND ur.tenant_id IS NULL AND r.name = 'superadmin'
+                       SELECT 1 FROM user_roles
+                       WHERE user_id = $1 AND tenant_id IS NULL AND role_id = $3
                    ) AS "is_superadmin!"
             FROM groups g
             WHERE g.id = $2
             "#,
             user.user_id,
-            tenant_id
+            tenant_id,
+            Role::Superadmin.db_id_i32()
         )
         .fetch_optional(db)
         .await?;

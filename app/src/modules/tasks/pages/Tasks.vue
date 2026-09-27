@@ -10,6 +10,7 @@ import { useCardEntrance } from '@/modules/tasks/composables/useCardEntrance';
 import { useTaskForm } from '@/core/composables/useTaskForm';
 import { useImageViewer } from '@/core/composables/useImageViewer';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
+import { useGroupPageId } from '@/core/composables/useGroupPageId';
 
 import InfoModal from '@/common/components/InfoModal.vue';
 import TaskSkeleton from '@/modules/tasks/components/TaskSkeleton.vue';
@@ -34,7 +35,8 @@ const t = i18n.t.bind(i18n);
 const tm = i18n.tm.bind(i18n);
 const { width: windowWidth } = useWindowSize();
 
-const { activeGroupDaltonEnabled, activeGroupId } = useAppAuth();
+const { activeGroupDaltonEnabled } = useAppAuth();
+const groupId = useGroupPageId();
 
 const tabItems = computed(() => [
   { id: 'all', label: t('tasks.list.tabs.all') },
@@ -136,7 +138,7 @@ const showPersonalizedNotice = computed(
 const { openTaskForm } = useTaskForm();
 
 function openNewTask() {
-  if (activeGroupId.value) openTaskForm(activeGroupId.value);
+  openTaskForm(groupId);
 }
 const { openImageViewer } = useImageViewer();
 

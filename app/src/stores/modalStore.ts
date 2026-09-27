@@ -49,14 +49,17 @@ export const useModalStore = defineStore('modals', () => {
 
   const inviteModalOpen = ref(false);
   const inviteModalToken = ref<string | null>(null);
+  const inviteModalGroupId = ref<string | null>(null);
 
-  function openInviteModal(token: string) {
+  function openInviteModal(token: string, groupId: string) {
     inviteModalToken.value = token;
+    inviteModalGroupId.value = groupId;
     inviteModalOpen.value = true;
   }
   function closeInviteModal() {
     inviteModalOpen.value = false;
     inviteModalToken.value = null;
+    inviteModalGroupId.value = null;
   }
 
   const taskFormOpen = ref(false);
@@ -296,6 +299,7 @@ export const useModalStore = defineStore('modals', () => {
 
     inviteModalOpen,
     inviteModalToken,
+    inviteModalGroupId,
     openInviteModal,
     closeInviteModal,
 

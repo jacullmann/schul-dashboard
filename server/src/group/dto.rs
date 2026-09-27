@@ -27,7 +27,6 @@ pub struct GroupSummaryDto {
     pub name: String,
     pub owner_id: Uuid,
     pub role: &'static str,
-    pub has_unread_content: bool,
     pub schedule_config: serde_json::Value,
     pub avatar_url: Option<String>,
     pub permissions: serde_json::Value,

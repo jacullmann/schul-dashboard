@@ -16,7 +16,7 @@ const router = useRouter();
 const userStore = useUserStore();
 const modalStore = useModalStore();
 const { user } = storeToRefs(userStore);
-const { activeGroupId, userGroups } = useAppAuth();
+const { contextGroupId, userGroups } = useAppAuth();
 
 const loading = ref(false);
 const navigatingGroupId = ref<string | null>(null);
@@ -124,12 +124,11 @@ onMounted(() => {
           v-for="(group, index) in userGroups"
           :key="group.id"
           class="animate-fade-up"
-          :active="group.id === activeGroupId"
+          :active="group.id === contextGroupId"
           :separator="index !== userGroups.length - 1"
           :disabled="navigatingGroupId === group.id"
           :chevron="true"
           :indicator="false"
-          :unread="group.hasUnreadContent"
           @click="navigateToGroup(group.id)"
         >
           <template #icon>
@@ -141,10 +140,6 @@ onMounted(() => {
               <span class="font-semibold text-base text-on-ghost truncate">
                 {{ group.name }}
               </span>
-              <NotificationDot
-                v-if="group.hasUnreadContent"
-                class="max-md:hidden"
-              />
             </span>
             <span class="font-normal text-sm text-on-ghost-muted">
               {{ roleLabel(group.role) }}

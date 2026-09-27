@@ -372,10 +372,12 @@ const defaultResults = computed<SearchResult[]>(() => [
     icon: UserRoundPlus,
     action: async () => {
       emit('cancel');
+      const groupId = activeGroupId.value;
+      if (!groupId) return;
       try {
-        const res = await createInvite(activeGroupId.value);
+        const res = await createInvite(groupId);
         if (res.ok && res.token) {
-          modalStore.openInviteModal(res.token);
+          modalStore.openInviteModal(res.token, groupId);
         }
       } catch (err) {
         console.error('Failed to generate invite link', err);
@@ -652,12 +654,7 @@ function handleSelect(index: number) {
             @mouseenter="setSelectedIndex(index)"
           >
             <template #icon>
-              <Avatar
-                :name="group.name"
-                :picture="group.avatarUrl"
-                :unread="group.hasUnreadContent"
-                :size="8"
-              />
+              <Avatar :name="group.name" :picture="group.avatarUrl" :size="8" />
             </template>
 
             <ArrowUpRight

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT g.owner_id,\n                   g.permissions,\n                   (SELECT r.name FROM user_roles ur\n                    JOIN roles r ON r.id = ur.role_id\n                    WHERE ur.user_id = $1 AND ur.tenant_id = g.id) AS \"tenant_role?\",\n                   EXISTS (\n                       SELECT 1 FROM user_roles ur\n                       JOIN roles r ON r.id = ur.role_id\n                       WHERE ur.user_id = $1 AND ur.tenant_id IS NULL AND r.name = 'superadmin'\n                   ) AS \"is_superadmin!\"\n            FROM groups g\n            WHERE g.id = $2\n            ",
+  "query": "\n            SELECT g.owner_id,\n                   g.permissions,\n                   (SELECT r.name FROM user_roles ur\n                    JOIN roles r ON r.id = ur.role_id\n                    WHERE ur.user_id = $1 AND ur.tenant_id = g.id) AS \"tenant_role?\",\n                   EXISTS (\n                       SELECT 1 FROM user_roles\n                       WHERE user_id = $1 AND tenant_id IS NULL AND role_id = $3\n                   ) AS \"is_superadmin!\"\n            FROM groups g\n            WHERE g.id = $2\n            ",
   "describe": {
     "columns": [
       {
@@ -41,7 +41,8 @@
     "parameters": {
       "Left": [
         "Uuid",
-        "Uuid"
+        "Uuid",
+        "Int4"
       ]
     },
     "nullable": [
@@ -51,5 +52,5 @@
       null
     ]
   },
-  "hash": "71e6fcdb72e8e82fcc4c0135b33cea170fed96662a173f27365a6aa4342ced35"
+  "hash": "5567613f95f0979ea4caead0d22d5d36e3f0ede50c41ff5453cb6c1d59081f6c"
 }

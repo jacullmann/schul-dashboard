@@ -47,6 +47,18 @@ pub struct CreateGroupParams<'a> {
     pub ua: Option<&'a str>,
 }
 
+struct Membership {
+    id: Uuid,
+    name: String,
+    owner_id: Uuid,
+    schedule_config: Value,
+    avatar_url: Option<String>,
+    permissions: Value,
+    group_type: String,
+    dalton_enabled: bool,
+    role_name: String,
+}
+
 pub struct AcceptInviteParams<'a> {
     pub user_id: Uuid,
     pub token: &'a str,
@@ -119,9 +131,47 @@ impl GroupService {
             });
         };
 
-        let is_superadmin = is_superadmin(&self.db, user_id).await?;
+        // Independent reads, so they run concurrently.
+        let (is_superadmin, landing_group_id, memberships) = tokio::try_join!(
+            is_superadmin(&self.db, user_id),
+            resolve_landing_group(&self.db, user_id),
+            self.memberships(user_id),
+        )?;
 
-        let groups = sqlx::query!(
+        let groups = memberships
+            .into_iter()
+            .map(|g| {
+                let role = Role::from_str_or_user(&g.role_name);
+                let has_owner_rights = is_superadmin || g.owner_id == user_id;
+                let effective_permissions =
+                    GroupPermissions::from_json_with_defaults(&g.permissions)
+                        .effective_keys(role, has_owner_rights);
+
+                GroupSummaryDto {
+                    id: g.id,
+                    name: g.name,
+                    owner_id: g.owner_id,
+                    role: role.as_str(),
+                    schedule_config: g.schedule_config,
+                    avatar_url: g.avatar_url,
+                    permissions: g.permissions,
+                    group_type: GroupType::from_str_or_regular(&g.group_type).as_str(),
+                    dalton_enabled: g.dalton_enabled,
+                    effective_permissions,
+                }
+            })
+            .collect();
+
+        Ok(GroupStatusDto {
+            authenticated: true,
+            groups,
+            landing_group_id,
+        })
+    }
+
+    async fn memberships(&self, user_id: Uuid) -> AppResult<Vec<Membership>> {
+        Ok(sqlx::query_as!(
+            Membership,
             r#"SELECT g.id, g.name, g.owner_id, g.schedule_config, g.avatar_url, g.permissions,
                       g.group_type, g.dalton_enabled, r.name AS role_name
                FROM user_roles ur
@@ -132,35 +182,7 @@ impl GroupService {
             user_id
         )
         .fetch_all(&self.db)
-        .await?
-        .into_iter()
-        .map(|g| {
-            let role = Role::from_str_or_user(&g.role_name);
-            let has_owner_rights = is_superadmin || g.owner_id == user_id;
-            let effective_permissions = GroupPermissions::from_json_with_defaults(&g.permissions)
-                .effective_keys(role, has_owner_rights);
-
-            GroupSummaryDto {
-                id: g.id,
-                name: g.name,
-                owner_id: g.owner_id,
-                role: role.as_str(),
-                has_unread_content: false,
-                schedule_config: g.schedule_config,
-                avatar_url: g.avatar_url,
-                permissions: g.permissions,
-                group_type: GroupType::from_str_or_regular(&g.group_type).as_str(),
-                dalton_enabled: g.dalton_enabled,
-                effective_permissions,
-            }
-        })
-        .collect();
-
-        Ok(GroupStatusDto {
-            authenticated: true,
-            groups,
-            landing_group_id: resolve_landing_group(&self.db, user_id).await?,
-        })
+        .await?)
     }
 
     /// Also serves superadmins looking at a group they are not a member of,
@@ -180,7 +202,6 @@ impl GroupService {
             name: g.name,
             owner_id: tc.group_owner_id,
             role: tc.tenant_role.as_str(),
-            has_unread_content: false,
             schedule_config: g.schedule_config,
             avatar_url: g.avatar_url,
             permissions: g.permissions,

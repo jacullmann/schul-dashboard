@@ -326,17 +326,6 @@ impl SuperAdminService {
         }
 
         sqlx::query!(
-            r#"UPDATE users SET role_version = role_version + 1 WHERE id = $1"#,
-            target_id
-        )
-        .execute(&self.db)
-        .await?;
-
-        self.tokens
-            .revoke_all_for_user(target_id, ADMIN_REVOKE, None)
-            .await?;
-
-        sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta)
                VALUES ($1, 'admin:role_change', $2)"#,
             admin_id,

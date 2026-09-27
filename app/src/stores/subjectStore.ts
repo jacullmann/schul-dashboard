@@ -30,15 +30,14 @@ export interface Subject {
  * opened elsewhere targets. Loading another group replaces the list.
  */
 export const useSubjectStore = defineStore('subjectStore', () => {
-  const { activeGroupId, findGroup } = useAppAuth();
+  const { findGroup } = useAppAuth();
 
   const groupId = ref<string | null>(null);
   const subjects = ref<Subject[]>([]);
   const loading = ref(false);
   const loaded = ref(false);
 
-  async function loadSubjects(target = activeGroupId.value) {
-    if (!target) return;
+  async function loadSubjects(target: string) {
     if (groupId.value === target && (loaded.value || loading.value)) return;
 
     groupId.value = target;

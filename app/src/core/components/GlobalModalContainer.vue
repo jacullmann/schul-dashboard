@@ -87,6 +87,7 @@ const {
   createGroupOpen,
   inviteModalOpen,
   inviteModalToken,
+  inviteModalGroupId,
   privateTaskFormOpen,
   privateTaskFormKey,
   privateTaskToEdit,
@@ -267,8 +268,10 @@ async function onAuthSuccess() {
   />
 
   <InviteModal
+    v-if="inviteModalGroupId"
     :open="inviteModalOpen"
     :token="inviteModalToken"
+    :group-id="inviteModalGroupId"
     @cancel="modalStore.closeInviteModal()"
   />
 

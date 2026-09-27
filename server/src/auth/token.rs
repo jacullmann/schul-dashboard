@@ -41,7 +41,6 @@ struct RefreshTokenRow {
     used_at: Option<DateTime<Utc>>,
     revoked_at: Option<DateTime<Utc>>,
     expires_at: DateTime<Utc>,
-    role_version: i32,
 }
 
 impl RefreshTokenRow {
@@ -110,11 +109,6 @@ impl TokenService {
             .await?;
         }
 
-        let role_version =
-            sqlx::query_scalar!(r#"SELECT role_version FROM users WHERE id = $1"#, p.user_id)
-                .fetch_one(&self.db)
-                .await?;
-
         let refresh_token = generate_opaque_token();
 
         let token_hash = hash_token(&refresh_token);
@@ -141,8 +135,8 @@ impl TokenService {
         sqlx::query!(
             r#"INSERT INTO refresh_tokens
                 (user_id, token_hash, family_id, parent_id, expires_at,
-                 user_agent, ip_address, role_version)
-               VALUES ($1, $2, $3, $4, $5, $6, $7::inet, $8)"#,
+                 user_agent, ip_address)
+               VALUES ($1, $2, $3, $4, $5, $6, $7::inet)"#,
             p.user_id,
             token_hash,
             family_id,
@@ -150,17 +144,11 @@ impl TokenService {
             expires_at,
             ua,
             ip_parsed,
-            role_version,
         )
         .execute(&self.db)
         .await?;
 
-        let claims = AccessClaims::new(
-            p.user_id,
-            p.email.to_string(),
-            ACCESS_TOKEN_TTL,
-            u32::try_from(role_version).unwrap_or(0),
-        );
+        let claims = AccessClaims::new(p.user_id, p.email.to_string(), ACCESS_TOKEN_TTL);
         let access_token = self
             .jwt
             .sign_access(&claims)
@@ -222,25 +210,10 @@ impl TokenService {
             }
         }
 
-        let user = self.load_user_claims(row.user_id).await?;
-
-        let user = match user {
-            None => {
-                self.revoke_family(row.family_id, ADMIN_REVOKE).await?;
-                return Ok(None);
-            }
-            Some(u) => u,
-        };
-
-        if row.role_version != user.role_version {
-            tracing::info!(
-                "Role version mismatch for user {} (token: {}, db: {}) – denying rotate",
-                row.user_id,
-                row.role_version,
-                user.role_version,
-            );
+        let Some(user) = self.load_active_user(row.user_id).await? else {
+            self.revoke_family(row.family_id, ADMIN_REVOKE).await?;
             return Ok(None);
-        }
+        };
 
         let issued = self
             .issue_pair(IssueTokenParams {
@@ -258,7 +231,7 @@ impl TokenService {
     async fn find_refresh_token(&self, hash: &str) -> Result<Option<RefreshTokenRow>, AppError> {
         Ok(sqlx::query_as!(
             RefreshTokenRow,
-            r#"SELECT id, user_id, family_id, used_at, revoked_at, expires_at, role_version
+            r#"SELECT id, user_id, family_id, used_at, revoked_at, expires_at
                FROM refresh_tokens WHERE token_hash = $1"#,
             hash
         )
@@ -412,13 +385,11 @@ impl TokenService {
         })
     }
 
-    async fn load_user_claims(&self, user_id: Uuid) -> Result<Option<UserClaims>, AppError> {
-        let user = sqlx::query!(
-            r#"SELECT id, email, role_version FROM users WHERE id = $1"#,
-            user_id
-        )
-        .fetch_optional(&self.db)
-        .await?;
+    /// A deleted or banned user gets no new tokens.
+    async fn load_active_user(&self, user_id: Uuid) -> Result<Option<ActiveUser>, AppError> {
+        let user = sqlx::query!(r#"SELECT id, email FROM users WHERE id = $1"#, user_id)
+            .fetch_optional(&self.db)
+            .await?;
 
         let user = match user {
             None => return Ok(None),
@@ -433,19 +404,17 @@ impl TokenService {
             return Ok(None);
         }
 
-        Ok(Some(UserClaims {
+        Ok(Some(ActiveUser {
             user_id: user.id,
             email: user.email,
-            role_version: user.role_version,
         }))
     }
 }
 
 #[derive(Debug)]
-struct UserClaims {
+struct ActiveUser {
     user_id: Uuid,
     email: String,
-    role_version: i32,
 }
 
 #[derive(Debug, serde::Serialize)]
