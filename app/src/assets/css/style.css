@@ -354,14 +354,12 @@
 .reorder-item {
   --reorder-shadow: oklch(0 0 0);
   --reorder-edge: var(--color-surface-hover-border);
-  --reorder-lift-surface: var(--color-surface);
 
   opacity: calc(1 - var(--recede, 0) * 0.38);
 }
 
 html.dark .reorder-item {
   --reorder-edge: var(--color-graphite);
-  --reorder-lift-surface: var(--color-surface-highlight);
 }
 
 .reorder-item.is-lifted {
@@ -407,11 +405,6 @@ html.dark .reorder-item.is-lifted {
     in oklab,
     var(--reorder-edge) calc(var(--lift, 0) * 100%),
     var(--color-ghost-border)
-  );
-  background-color: color-mix(
-    in oklab,
-    var(--reorder-lift-surface) calc(var(--lift, 0) * 100%),
-    var(--color-surface)
   );
 }
 

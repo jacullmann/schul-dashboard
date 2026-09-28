@@ -1,6 +1,7 @@
 import { nextTick, onScopeDispose, readonly, ref, type Ref } from 'vue';
 import { useEventListener } from '@vueuse/core';
 import { haptic } from '@/utils/haptics';
+import { growWhilePressed, type PressGrowth } from '@/utils/pressGrowth';
 
 export interface DragReorderOptions {
   /** Called with DOM indices once a card is released in a new slot. */
@@ -109,6 +110,8 @@ interface Pending {
   startX: number;
   startY: number;
   timer?: ReturnType<typeof setTimeout>;
+  /** The swell under a resting finger, which the lift carries on from. */
+  growth?: PressGrowth;
 }
 
 interface Gesture {
@@ -380,8 +383,10 @@ export function useDragReorder(
     const last = slots[slots.length - 1]!;
 
     const entry = self.entry;
+    const grown = from.growth?.handOver() ?? 1;
     entry.raised = true;
     entry.lift.config = LIFT;
+    entry.lift.value += (grown - 1) / LIFT_SCALE;
     entry.lift.target = 1;
     for (const slot of slots) {
       if (slot === self) continue;
@@ -416,6 +421,9 @@ export function useDragReorder(
 
     if (from.pointerType === 'touch') haptic(8);
 
+    // Painted now rather than on the next frame, so the card never drops back
+    // to rest between the growth handing over and the lift taking it.
+    render(entry, true);
     schedule();
   }
 
@@ -493,6 +501,7 @@ export function useDragReorder(
   function cancelPending() {
     if (!pending) return;
     clearTimeout(pending.timer);
+    pending.growth?.release();
     pending = null;
   }
 
@@ -590,6 +599,7 @@ export function useDragReorder(
       id: touch.identifier,
       startX: touch.clientX,
       startY: touch.clientY,
+      growth: growWhilePressed(el, holdDelay),
     };
     pointerX = touch.clientX;
     pointerY = touch.clientY;

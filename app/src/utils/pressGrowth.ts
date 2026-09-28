@@ -24,9 +24,14 @@ export interface PressGrowth {
   release(): void;
   /** The hold completed: spring back as the action takes over. */
   settle(): void;
+  /**
+   * The hold completed and the caller animates the scale from here on: stops
+   * the growth where it is and returns the scale it reached.
+   */
+  handOver(): number;
 }
 
-const NO_GROWTH: PressGrowth = { release() {}, settle() {} };
+const NO_GROWTH: PressGrowth = { release() {}, settle() {}, handOver: () => 1 };
 
 function prefersReducedMotion() {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -110,5 +115,6 @@ export function growWhilePressed(
       returnToRest({ duration: RELEASE_DURATION_MS, easing: RELEASE_EASING }),
     settle: () =>
       returnToRest({ duration: SETTLE_DURATION_MS, easing: springEasing() }),
+    handOver: () => interruptGrowth(el),
   };
 }
