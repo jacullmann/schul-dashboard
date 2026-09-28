@@ -13,7 +13,7 @@ import {
   LogOut,
   UserRoundPlus,
   Settings,
-  UsersRound,
+  ArrowLeftRight,
 } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import { useModalStore } from '@/stores/modalStore';
@@ -204,11 +204,9 @@ onUnmounted(() => {
           class="top-full mt-1 left-0"
           @close="groupMenuOpen = false"
         >
-          <BaseMenuButton :icon="UsersRound" @click="openGroupsPage">
+          <BaseMenuButton :icon="ArrowLeftRight" @click="openGroupsPage">
             {{ t('common.header.switch_group') }}
           </BaseMenuButton>
-
-          <BaseMenuDivider />
 
           <BaseMenuButton
             :icon="Plus"
@@ -219,6 +217,8 @@ onUnmounted(() => {
           >
             {{ t('common.sidebar.create') }}
           </BaseMenuButton>
+
+          <BaseMenuDivider />
 
           <BaseMenuButton
             v-if="checkPermission('invite_members')"
@@ -232,6 +232,8 @@ onUnmounted(() => {
           <BaseMenuButton :icon="Settings" @click="openGroupSettings">
             {{ t('common.sidebar.admin') }}
           </BaseMenuButton>
+
+          <BaseMenuDivider />
 
           <BaseMenuButton
             :icon="LogOut"
