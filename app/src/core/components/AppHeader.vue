@@ -13,6 +13,7 @@ import {
   LogOut,
   UserRoundPlus,
   Settings,
+  UsersRound,
 } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import { useModalStore } from '@/stores/modalStore';
@@ -23,7 +24,6 @@ import { useIsMobileViewport } from '@/common/composables/useViewport';
 import { useToast } from '@/common/composables/useToast';
 import hw from '../../api/api';
 import { groupPath } from '@/api/groupPath';
-import { useOpenGroup } from '@/core/composables/useOpenGroup';
 
 const userStore = useUserStore();
 const { user } = storeToRefs(userStore);
@@ -33,7 +33,6 @@ const isMobile = useIsMobileViewport();
 
 const {
   groupName,
-  userGroups,
   activeGroupId,
   activeGroupAvatarUrl,
   activeGroupOwnerId,
@@ -41,7 +40,6 @@ const {
   createInvite,
   checkAuthStatus,
 } = useAppAuth();
-const { openGroup } = useOpenGroup();
 const router = useRouter();
 
 const modalStore = useModalStore();
@@ -65,9 +63,9 @@ function toggleGroupMenu() {
   groupMenuOpen.value = !groupMenuOpen.value;
 }
 
-function onSwitchGroup(id: string) {
+function openGroupsPage() {
   groupMenuOpen.value = false;
-  if (id !== activeGroupId.value) void openGroup(id);
+  void router.push({ name: 'groups' });
 }
 
 onClickOutside(groupMenuRef, () => {
@@ -206,14 +204,8 @@ onUnmounted(() => {
           class="top-full mt-1 left-0"
           @close="groupMenuOpen = false"
         >
-          <BaseMenuButton
-            v-for="g in userGroups"
-            :key="g.id"
-            :is-select="true"
-            :active="g.id === activeGroupId"
-            @click="onSwitchGroup(g.id)"
-          >
-            <span>{{ g.name }}</span>
+          <BaseMenuButton :icon="UsersRound" @click="openGroupsPage">
+            {{ t('common.header.switch_group') }}
           </BaseMenuButton>
 
           <BaseMenuDivider />

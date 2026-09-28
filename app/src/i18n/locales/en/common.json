@@ -250,6 +250,7 @@
   "loading": "Loading...",
   "notifications": "Notifications",
   "header": {
+    "switch_group": "Switch group",
     "toggle_navigation": "Toggle navigation menu",
     "leave_group": "Leave group",
     "leave_group_confirm": {
