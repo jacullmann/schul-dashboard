@@ -314,21 +314,29 @@ const onGridKeydown = (e: KeyboardEvent) => {
                       @click="select(d.key)"
                     >
                       <span
-                        class="relative grid size-10 place-items-center rounded-full text-sm tabular-nums transition-hover group-focus-visible:ring-2 group-focus-visible:ring-focus"
-                        :class="[
+                        class="grid size-10 place-items-center rounded-full text-sm tabular-nums transition-hover group-focus-visible:ring-2 group-focus-visible:ring-focus"
+                        :class="
                           d.key === model
-                            ? 'bg-action text-on-action font-semibold'
-                            : 'group-enabled:group-hover:bg-ghost-hover group-enabled:group-hover:text-on-ghost',
-                          d.key !== model &&
-                            (isDisabled(d.key)
-                              ? 'text-on-ghost-subtle'
-                              : d.weekend
-                                ? 'text-on-ghost-muted'
-                                : 'text-on-ghost'),
-                          d.key === todayKey && d.key !== model
-                            ? 'font-bold after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:size-1 after:rounded-full after:bg-current'
-                            : '',
-                        ]"
+                            ? [
+                                'font-semibold',
+                                d.key === todayKey
+                                  ? 'bg-accent text-on-ghost'
+                                  : 'bg-action text-on-action',
+                              ]
+                            : [
+                                'group-enabled:group-hover:bg-ghost-hover',
+                                isDisabled(d.key)
+                                  ? 'text-on-ghost-subtle'
+                                  : d.key === todayKey
+                                    ? 'text-accent font-bold'
+                                    : [
+                                        'group-enabled:group-hover:text-on-ghost',
+                                        d.weekend
+                                          ? 'text-on-ghost-muted'
+                                          : 'text-on-ghost',
+                                      ],
+                              ]
+                        "
                       >
                         {{ d.day }}
                       </span>
