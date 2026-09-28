@@ -218,6 +218,13 @@ function goBack() {
     activeTab.value = '';
   }
 }
+
+function leaveSettings() {
+  void router.push({
+    name: 'group-dashboard',
+    params: { groupId: groupId.value },
+  });
+}
 </script>
 
 <template>
@@ -227,13 +234,22 @@ function goBack() {
         <header
           class="p-4 pt-2 md:px-6 bg-canvas border-b border-ghost-border shrink-0"
         >
-          <div class="w-full max-w-200 mx-auto">
-            <h1>{{ t('groups.settings.title') }}</h1>
-            <div
-              v-if="groupName"
-              class="text-on-ghost-muted font-semibold text-base"
-            >
-              {{ groupName }}
+          <div class="w-full max-w-200 mx-auto flex items-center gap-2">
+            <BaseButton
+              variant="ghost"
+              on="ghost"
+              :aria-label="t('groups.settings.go_back')"
+              :icon="ArrowLeft"
+              @click="leaveSettings"
+            />
+            <div>
+              <h1>{{ t('groups.settings.title') }}</h1>
+              <div
+                v-if="groupName"
+                class="text-on-ghost-muted font-semibold text-base"
+              >
+                {{ groupName }}
+              </div>
             </div>
           </div>
         </header>

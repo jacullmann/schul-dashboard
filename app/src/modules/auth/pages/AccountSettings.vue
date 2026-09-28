@@ -6,6 +6,7 @@ import { storeToRefs } from 'pinia';
 import { ArrowLeft, Shield, UserRound } from '@lucide/vue';
 import { useUserStore } from '@/stores/userStore';
 import { useModalStore } from '@/stores/modalStore';
+import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import AccountSettingsSecurity from '@/modules/auth/components/AccountSettingsSecurity.vue';
 import AccountSettingsAccount from '@/modules/auth/components/AccountSettingsAccount.vue';
 
@@ -21,6 +22,7 @@ const router = useRouter();
 const { t } = useI18n();
 const { user } = storeToRefs(useUserStore());
 const modalStore = useModalStore();
+const { homeRoute } = useAppAuth();
 
 const navItems = computed<AccountNavItem[]>(() => [
   {
@@ -79,6 +81,10 @@ function goBack() {
   transitionDirection.value = 'backward';
   activeTab.value = '';
 }
+
+function leaveSettings() {
+  void router.push(homeRoute.value);
+}
 </script>
 
 <template>
@@ -88,13 +94,22 @@ function goBack() {
         <header
           class="p-4 pt-2 md:px-6 bg-canvas border-b border-ghost-border shrink-0"
         >
-          <div class="w-full max-w-200 mx-auto">
-            <h1>{{ t('auth.account_settings.title') }}</h1>
-            <div
-              v-if="user?.email"
-              class="text-on-ghost-muted font-semibold text-base"
-            >
-              {{ user.email }}
+          <div class="w-full max-w-200 mx-auto flex items-center gap-2">
+            <BaseButton
+              variant="ghost"
+              on="ghost"
+              :aria-label="t('auth.account_settings.back')"
+              :icon="ArrowLeft"
+              @click="leaveSettings"
+            />
+            <div>
+              <h1>{{ t('auth.account_settings.title') }}</h1>
+              <div
+                v-if="user?.email"
+                class="text-on-ghost-muted font-semibold text-base"
+              >
+                {{ user.email }}
+              </div>
             </div>
           </div>
         </header>
