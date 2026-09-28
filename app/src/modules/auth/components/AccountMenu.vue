@@ -16,9 +16,11 @@ const props = withDefaults(
     email: string;
     userData: UserData | null;
     expanded?: boolean;
+    tooltipPlacement?: 'top' | 'bottom' | 'left' | 'right';
   }>(),
   {
     expanded: true,
+    tooltipPlacement: 'right',
   },
 );
 
@@ -53,8 +55,8 @@ const {
 </script>
 
 <template>
-  <div ref="root" class="relative flex w-full">
-    <BaseTooltip :content="email" placement="right" class="w-full">
+  <div ref="root" class="relative flex">
+    <BaseTooltip :content="email" :placement="tooltipPlacement" class="w-full">
       <button
         v-wave
         type="button"

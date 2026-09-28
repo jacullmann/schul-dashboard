@@ -30,7 +30,10 @@ import { useI18n } from 'vue-i18n';
 import { useGroupAction } from '@/core/composables/useGroupAction';
 import { useOpenGroup } from '@/core/composables/useOpenGroup';
 import Avatar from '@/modules/auth/components/Avatar.vue';
-import { MOBILE_BREAKPOINT } from '@/common/composables/useViewport';
+import {
+  MOBILE_BREAKPOINT,
+  useIsMobileViewport,
+} from '@/common/composables/useViewport';
 
 const { t } = useI18n();
 const performLogout = useLogout();
@@ -48,6 +51,7 @@ const { openTaskForm } = useTaskForm();
 const { openAnnouncementForm } = useAnnouncementForm();
 const { withGroup } = useGroupAction();
 const { openGroup } = useOpenGroup();
+const isMobile = useIsMobileViewport();
 
 const isAnyGroupAdmin = computed(() => {
   if (isSuperadmin?.value) return true;
@@ -63,11 +67,6 @@ function toggleExpanded() {
 
 function onPersonalizationChanged(value: boolean) {
   userStore.updateUser({ personalized: value });
-}
-
-async function logout() {
-  await performLogout();
-  collapseIfMobile();
 }
 
 function collapseIfMobile() {
@@ -605,13 +604,13 @@ onUnmounted(() => {
     </div>
 
     <AccountMenu
-      v-if="user"
+      v-if="user && !isMobile"
+      class="w-full"
       :email="user.email"
       :user-data="user"
       :expanded="isExpanded"
-      @logout="logout"
+      @logout="performLogout"
       @personalization-changed="onPersonalizationChanged"
-      @click="collapseIfMobile"
     />
   </aside>
 </template>

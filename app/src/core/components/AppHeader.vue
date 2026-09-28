@@ -17,6 +17,9 @@ import {
 import { useI18n } from 'vue-i18n';
 import { useModalStore } from '@/stores/modalStore';
 import Avatar from '@/modules/auth/components/Avatar.vue';
+import AccountMenu from '@/modules/auth/components/AccountMenu.vue';
+import { useLogout } from '@/core/composables/useLogout';
+import { useIsMobileViewport } from '@/common/composables/useViewport';
 import { useToast } from '@/common/composables/useToast';
 import hw from '../../api/api';
 import { groupPath } from '@/api/groupPath';
@@ -25,6 +28,8 @@ import { useOpenGroup } from '@/core/composables/useOpenGroup';
 const userStore = useUserStore();
 const { user } = storeToRefs(userStore);
 const { t } = useI18n();
+const performLogout = useLogout();
+const isMobile = useIsMobileViewport();
 
 const {
   groupName,
@@ -45,6 +50,10 @@ const toast = useToast();
 
 function toggleExpanded() {
   modalStore.toggleSidebar();
+}
+
+function onPersonalizationChanged(value: boolean) {
+  userStore.updateUser({ personalized: value });
 }
 
 const groupMenuOpen = ref(false);
@@ -242,6 +251,17 @@ onUnmounted(() => {
           </BaseMenuButton>
         </BaseMenu>
       </div>
+
+      <AccountMenu
+        v-if="user && isMobile"
+        class="ml-auto shrink-0"
+        :email="user.email"
+        :user-data="user"
+        :expanded="false"
+        tooltip-placement="left"
+        @logout="performLogout"
+        @personalization-changed="onPersonalizationChanged"
+      />
     </div>
   </header>
 </template>
