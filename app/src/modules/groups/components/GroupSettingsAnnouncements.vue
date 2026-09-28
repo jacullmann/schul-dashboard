@@ -7,6 +7,7 @@ import { computed } from 'vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 
 defineProps<{
+  groupId: string;
   announcements: AdminAnnouncement[];
 }>();
 
@@ -54,7 +55,7 @@ function formatDate(iso: string) {
             variant="action"
             :icon="Plus"
             icon-classes="size-6"
-            @click="openAnnouncementForm"
+            @click="openAnnouncementForm(groupId)"
           />
         </BaseTooltip>
       </template>
