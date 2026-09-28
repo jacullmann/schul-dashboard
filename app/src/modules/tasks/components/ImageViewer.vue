@@ -64,6 +64,10 @@ const OPEN_EASING = 'cubic-bezier(0.32, 0.72, 0, 1)';
 const CLOSE_DURATION = 360;
 const CLOSE_EASING = OPEN_EASING;
 const FADE_DURATION = 300;
+// The tile fades back in under the viewer once the zoom has left it.
+const TILE_FADE_IN_DURATION = FADE_DURATION;
+// Short, so the slot is empty well before the closing frame arrives in it.
+const TILE_FADE_OUT_DURATION = 150;
 // Where the thumbnail hands over to the image, in animation progress. Early,
 // because the thumbnail only stands for the same picture at the tile end: the
 // swap happens while the frame still moves fast and hides it.
@@ -668,31 +672,47 @@ function onActivity() {
   showControls();
 }
 
-// The tile of the image on show steps out while the viewer is up, so the
-// picture is never on screen twice. The viewer's own thumbnail lands back on
-// it at the end of the close, which is when it steps back in.
-let hiddenTile: HTMLElement | null = null;
+// The tile steps out while the picture flies out of it or back into it, so the
+// picture is never on screen twice in motion. At rest the tile is back in its
+// slot under the viewer. Keyed by tile, because a close can still be fading one
+// tile while a reopen fades another.
+const tileFades = new Map<HTMLElement, Animation>();
 
-function hideTile(index: number) {
-  const el = props.origin?.(index) ?? null;
-  if (el === hiddenTile) return;
-  revealTile(releaseTile());
-  if (!el) return;
-  el.style.visibility = 'hidden';
-  hiddenTile = el;
+// Picks the tile up from wherever an earlier fade left it. Without a target it
+// fades back to the tile's own opacity and lets go of it.
+function fadeTile(el: HTMLElement, to: number | null, duration: number) {
+  const from = Number(getComputedStyle(el).opacity);
+  tileFades.get(el)?.cancel();
+
+  const fade = el.animate(
+    to === null
+      ? [{ offset: 0, opacity: from }]
+      : [{ opacity: from }, { opacity: to }],
+    { duration, easing: 'ease', fill: to === null ? 'none' : 'forwards' },
+  );
+  tileFades.set(el, fade);
+
+  if (to === null) {
+    void fade.finished.then(
+      () => releaseTile(el, fade),
+      () => {},
+    );
+  }
+  return fade;
 }
 
-// Hands the hidden tile over to the caller, so a close can reveal it once it
-// has landed, even if a reopen has hidden another tile in the meantime.
-function releaseTile() {
-  const el = hiddenTile;
-  hiddenTile = null;
-  return el;
+// Hands the tile straight back, unless a later fade has taken it over since.
+function releaseTile(el: HTMLElement, fade: Animation) {
+  if (tileFades.get(el) !== fade) return;
+  tileFades.delete(el);
+  fade.cancel();
 }
 
-function revealTile(el: HTMLElement | null) {
-  // A reopen onto the same image has hidden it again already.
-  if (el && el !== hiddenTile) el.style.visibility = '';
+// Every tile still stepped out, other than the one the viewer is heading for.
+function restoreTiles(except: HTMLElement | null) {
+  for (const el of tileFades.keys()) {
+    if (el !== except) fadeTile(el, null, TILE_FADE_IN_DURATION);
+  }
 }
 
 function prefersReducedMotion() {
@@ -956,6 +976,8 @@ async function onEnter(el: Element, done: () => void) {
 
   const parts = zoomParts(backdrop);
   const tile = parts ? originTile() : null;
+  // A reopen cut the last close short, and its tile never got its landing.
+  restoreTiles(tile);
 
   if (!tile || !parts) {
     showControls();
@@ -996,8 +1018,9 @@ async function onEnter(el: Element, done: () => void) {
     animations.push(parts.controls.animate(controlsKeyframes(), options));
   }
 
-  // What grows out of the tile is the viewer's own copy of the picture, and
-  // it lands back on the tile at the end of the close.
+  // What grows out of the tile is the viewer's own copy of the picture, so the
+  // slot is left empty behind it.
+  fadeTile(tile, 0, 0);
   zooming = true;
 
   settle(animations, () => {
@@ -1018,6 +1041,7 @@ async function onEnter(el: Element, done: () => void) {
       };
       pendingSize = null;
     }
+    fadeTile(tile, null, TILE_FADE_IN_DURATION);
     // The controls are already up; this only starts the idle timer that takes
     // them away again.
     showControls();
@@ -1033,18 +1057,14 @@ function onLeave(el: Element, done: () => void) {
 
   if (hideTimeout) clearTimeout(hideTimeout);
 
-  const hidden = releaseTile();
-  const finish = () => {
-    revealTile(hidden);
-    done();
-  };
-
   const stage = backdrop.querySelector<HTMLElement>('[data-viewer-stage]');
   freezeAt(stage);
   freezeAt(backdrop.querySelector<HTMLElement>('[data-viewer-track]'));
 
   const parts = zoomParts(backdrop);
   const tile = parts ? originTile() : null;
+  // An open cut short, or one that paged away, may have left a tile out.
+  restoreTiles(tile);
 
   // Everything is picked up from where it is drawn right now, before the
   // animations that put it there are taken off. The open may still be
@@ -1070,10 +1090,18 @@ function onLeave(el: Element, done: () => void) {
           fill: 'forwards',
         }),
       ],
-      finish,
+      done,
     );
     return;
   }
+
+  // The slot empties before the frame arrives, and the viewer's thumbnail,
+  // pixel for pixel the tile, hands over to it on landing.
+  const tileFade = fadeTile(tile, 0, TILE_FADE_OUT_DURATION);
+  const finish = () => {
+    releaseTile(tile, tileFade);
+    done();
+  };
 
   const from = frameState(parts.frame, parts.inner);
   const thumbFrom = parts.thumb
@@ -1178,7 +1206,6 @@ watch(
       // The controls arrive with the frame, driven by the open animation, so
       // they are up from the first render and start out transparent.
       controlsVisible.value = true;
-      hideTile(currentIndex.value);
       document.body.style.overflow = 'hidden';
       void nextTick(() => focusOverlay());
     } else {
@@ -1187,12 +1214,9 @@ watch(
   },
 );
 
-watch(currentIndex, (index) => {
-  if (props.visible) hideTile(index);
-});
-
 onBeforeUnmount(() => {
-  revealTile(releaseTile());
+  tileFades.forEach((fade) => fade.cancel());
+  tileFades.clear();
   if (hideTimeout) clearTimeout(hideTimeout);
   clearSettleTimer();
   clearDismissTimer();
