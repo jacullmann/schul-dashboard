@@ -249,7 +249,7 @@ onMounted(() => {
         <AccountMenu
           :email="user.email"
           :user-data="user"
-          :expanded="false"
+          icon-only
           tooltip-placement="left"
           @logout="performLogout"
           @personalization-changed="onPersonalizationChanged"

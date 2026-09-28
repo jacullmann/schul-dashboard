@@ -16,10 +16,12 @@ const props = withDefaults(
     email: string;
     userData: UserData | null;
     expanded?: boolean;
+    iconOnly?: boolean;
     tooltipPlacement?: 'top' | 'bottom' | 'left' | 'right';
   }>(),
   {
     expanded: true,
+    iconOnly: false,
     tooltipPlacement: 'right',
   },
 );
@@ -71,7 +73,11 @@ const {
           @keydown.space.prevent="toggle"
         />
 
-        <span v-if="expanded" class="flex flex-col gap-1 max-w-44 ml-2">
+        <span
+          v-if="!iconOnly"
+          class="sidebar-fade flex flex-col gap-1 min-w-0 max-w-44 ml-2"
+          :class="expanded ? 'opacity-100' : 'opacity-0'"
+        >
           <span class="text-sm/4 font-medium text-on-ghost truncate">{{
             email
           }}</span>

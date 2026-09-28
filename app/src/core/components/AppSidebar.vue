@@ -175,8 +175,9 @@ onUnmounted(() => {
 
 <template>
   <aside
-    class="sidebar sticky top-0 flex flex-col justify-between shrink-0 overflow-hidden h-dvh p-2.5 bg-surface border-r border-ghost-border z-(--z-header)"
+    class="sidebar sticky top-0 flex flex-col justify-between shrink-0 overflow-hidden h-dvh p-2.5 bg-surface border-r border-ghost-border z-(--z-header) sidebar-motion"
     :class="isExpanded ? 'w-64' : 'w-[61px]'"
+    :data-expanded="isExpanded || undefined"
   >
     <div class="flex flex-col gap-4 w-full flex-1 min-h-0">
       <div class="flex items-center gap-2">
@@ -187,13 +188,17 @@ onUnmounted(() => {
               : t('common.sidebar.expand')
           "
           :shortcut="['ctrl', 'shift', 'd']"
-          :expanded="false"
+          icon-only
           :icon="PanelLeft"
           :page="false"
           @click="toggleExpanded"
         />
 
-        <div v-if="isExpanded" class="text-xl font-bold whitespace-nowrap mb-1">
+        <div
+          class="sidebar-fade text-xl font-bold whitespace-nowrap mb-1"
+          :class="isExpanded ? 'opacity-100' : 'opacity-0'"
+          :aria-hidden="!isExpanded"
+        >
           schul-dashboard
         </div>
       </div>
@@ -331,7 +336,8 @@ onUnmounted(() => {
             ></span>
             <Avatar :name="group.name" :picture="group.avatarUrl" :size="8" />
             <span
-              class="text-sm/5 font-medium whitespace-nowrap overflow-hidden max-w-40 ml-2"
+              class="sidebar-fade text-sm/5 font-medium whitespace-nowrap ml-2"
+              :class="isExpanded ? 'opacity-100' : 'opacity-0'"
             >
               {{ group.name }}
             </span>
