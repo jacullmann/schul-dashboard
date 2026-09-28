@@ -232,9 +232,9 @@ export function useTaskFormLogic(
     }
   }
 
-  const dueLocal = ref(
-    isoDateOnlyFromIso(initial?.dueDate ?? new Date().toISOString()),
-  );
+  const initialDueKey = initial ? isoDateOnlyFromIso(initial.dueDate) : null;
+  const dueLocal = ref(initialDueKey ?? isoDateOnlyFromIso(now.toISOString()));
+  const dueDateUnchanged = computed(() => dueLocal.value === initialDueKey);
   const minDateKey = isoDateOnlyFromIso(minDate.toISOString());
   const maxDateKey = isoDateOnlyFromIso(maxDate.toISOString());
 
@@ -371,12 +371,15 @@ export function useTaskFormLogic(
     const selectedDate = new Date(dueLocal.value);
     selectedDate.setHours(23, 59, 0, 0);
 
-    if (selectedDate < minDate) {
-      dueDateError.value = t('tasks.list.task_form.errors.date_old');
-      hasValidationErrors = true;
-    } else if (selectedDate > maxDate) {
-      dueDateError.value = t('tasks.list.task_form.errors.date_new');
-      hasValidationErrors = true;
+    // Old tasks stay editable: the allowed range only applies to a new date.
+    if (!dueDateUnchanged.value) {
+      if (selectedDate < minDate) {
+        dueDateError.value = t('tasks.list.task_form.errors.date_old');
+        hasValidationErrors = true;
+      } else if (selectedDate > maxDate) {
+        dueDateError.value = t('tasks.list.task_form.errors.date_new');
+        hasValidationErrors = true;
+      }
     }
 
     if (hasValidationErrors) {
@@ -393,14 +396,18 @@ export function useTaskFormLogic(
           publicId: img.publicId,
           metadata: img.metadata || {},
         })),
-        dueDate: selectedDate.toISOString(),
       };
+      const dueDate = selectedDate.toISOString();
 
       if (initial) {
-        await hw.patch(groupPath(groupId, `/items/${initial.id}`), payload);
+        await hw.patch(groupPath(groupId, `/items/${initial.id}`), {
+          ...payload,
+          ...(dueDateUnchanged.value ? {} : { dueDate }),
+        });
       } else {
         await hw.post(groupPath(groupId, '/items'), {
           ...payload,
+          dueDate,
           type: activeType.value,
           confirmDoubleTask: doubleCheckPassed.value,
         });
