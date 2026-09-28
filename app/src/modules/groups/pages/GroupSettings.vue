@@ -366,6 +366,7 @@ function goBack() {
 
             <GroupSettingsAnnouncements
               v-if="activeTab === 'announcements'"
+              :group-id="groupId"
               :announcements="announcements"
               @refresh="loadAnnouncements"
               @delete="deleteAnnouncement"
