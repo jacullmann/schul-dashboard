@@ -89,6 +89,7 @@ const { handlers: longPressHandlers } = useLongPress(
     within: '[data-image-index]',
     // The "+N more" overlay covers a tile but stands for the whole row.
     ignore: '.img-overlay',
+    grow: '[data-image-index]',
   },
 );
 </script>

@@ -1,4 +1,6 @@
 import { onScopeDispose } from 'vue';
+import { haptic } from '@/utils/haptics';
+import { growWhilePressed, type PressGrowth } from '@/utils/pressGrowth';
 
 export type LongPressTrigger = (event: PointerEvent | MouseEvent) => void;
 
@@ -17,6 +19,11 @@ export interface UseLongPressOptions {
    * as the gaps between tiles — passes through untouched to the ancestors.
    */
   within?: string;
+  /**
+   * Selector, matched from the pressed element outwards, for the element that
+   * swells under a touch hold until the menu opens.
+   */
+  grow?: string;
 }
 
 /** How long after the gesture ends a trailing compatibility click may arrive. */
@@ -119,7 +126,7 @@ export function useLongPress(
   trigger: LongPressTrigger,
   options: UseLongPressOptions = {},
 ) {
-  const { delay = 450, moveThreshold = 10, ignore, within } = options;
+  const { delay = 450, moveThreshold = 10, ignore, within, grow } = options;
 
   let holdTimer: ReturnType<typeof setTimeout> | undefined;
   let suppressTimer: ReturnType<typeof setTimeout> | undefined;
@@ -133,6 +140,7 @@ export function useLongPress(
   let travelled = false;
   let openedByHold = false;
   let tracking = false;
+  let growth: PressGrowth | undefined;
 
   function isIgnored(event: Event) {
     const target = event.target as Element | null;
@@ -143,7 +151,23 @@ export function useLongPress(
     return Boolean(target?.closest?.(ignore));
   }
 
+  function startGrowth(event: PointerEvent) {
+    const target = grow
+      ? (event.target as Element | null)?.closest?.<HTMLElement>(grow)
+      : null;
+
+    growth = target ? growWhilePressed(target, delay) : undefined;
+  }
+
+  function settleGrowth() {
+    growth?.settle();
+    growth = undefined;
+  }
+
   function stopHold() {
+    growth?.release();
+    growth = undefined;
+
     if (holdTimer === undefined) return;
 
     clearTimeout(holdTimer);
@@ -200,12 +224,14 @@ export function useLongPress(
   }
 
   function fire() {
+    settleGrowth();
     stopHold();
 
     if (openedByHold || !source) return;
 
     openedByHold = true;
     clearStraySelection();
+    haptic();
     trigger(source);
   }
 
@@ -351,6 +377,7 @@ export function useLongPress(
     if (event.pointerType === 'mouse') return;
 
     startTracking(event);
+    startGrowth(event);
     holdTimer = setTimeout(fire, delay);
   }
 
@@ -361,6 +388,7 @@ export function useLongPress(
     // fires it for touch at all. Either way the native menu stays closed.
     event.preventDefault();
     event.stopPropagation();
+    settleGrowth();
     stopHold();
 
     if (openedByHold) return;

@@ -166,6 +166,7 @@ function handleItemDoubleClick(event: MouseEvent) {
 
 const { handlers: longPressHandlers } = useLongPress(handleCardContextMenu, {
   ignore: IGNORED_REGIONS,
+  grow: '.item-card',
 });
 
 const isOnlyNote = computed(() => {
