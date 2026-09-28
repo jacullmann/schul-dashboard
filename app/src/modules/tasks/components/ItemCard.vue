@@ -357,19 +357,10 @@ function onDrop(e: DragEvent) {
       :class="{
         'transition-[padding,max-height] duration-[300ms] ease-[cubic-bezier(0.78,0,0.22,1)]':
           isCollapsed,
-        'border-2 border-transparent': highlighted,
+        'border-2 !border-accent': highlighted,
         'border-primary shadow-[0_0_0_2px_var(--color-primary)]': isDragOver,
       }"
-      :style="[
-        cardStyle,
-        highlighted
-          ? {
-              background:
-                'linear-gradient(var(--color-surface), var(--color-surface)) padding-box, var(--background-image-bismuth) border-box',
-              border: '2px solid transparent',
-            }
-          : undefined,
-      ]"
+      :style="cardStyle"
       @dragenter.prevent="onDragEnter"
       @dragover.prevent="onDragOver"
       @dragleave.prevent="onDragLeave"
