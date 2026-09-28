@@ -16,10 +16,10 @@ const { activeGroupId } = useAppAuth();
     <div v-if="show" class="notice-reveal">
       <div class="min-h-0">
         <div
-          class="animate-enter flex items-center gap-3 text-sm text-on-ghost-muted"
+          class="animate-enter flex items-center gap-2 text-sm text-on-ghost-muted"
         >
+          <ListFilter :size="16" class="shrink-0" aria-hidden="true" />
           <span class="m-0 flex flex-1 flex-wrap items-center gap-x-1.5">
-            <ListFilter :size="16" class="shrink-0" aria-hidden="true" />
             <span>{{ t('common.personalized_view.notice') }}</span>
             <BaseLink
               v-if="activeGroupId"

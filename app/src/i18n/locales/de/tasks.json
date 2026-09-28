@@ -44,7 +44,6 @@
       "course": "Kurs",
       "custom_subject": "Benutzerdefiniertes Fach",
       "description": "Beschreibung",
-      "drop_to_upload": "Bilder hier ablegen",
       "due_date": "Datum",
       "edit_task": "Aufgabe bearbeiten",
       "errors": {
@@ -266,7 +265,6 @@
       "progress": "Bilder werden hochgeladen",
       "success": "Bilder erfolgreich hochgeladen"
     },
-    "drop_to_upload": "Bilder ablegen zum Hochladen",
     "document": "Dokument"
   }
 }

@@ -205,6 +205,7 @@ watch(
     :swipe-action="showOldEntries ? 'keep' : 'archive'"
     :secondary-swipe-action="secondarySwipeAction"
     :reduced-bottom-margin="isOnlyNote"
+    :accepts-files="true"
     @swiped="$emit('swipe')"
     @swipe-secondary="
       $emit('menu-action', secondarySwipeAction === 'edit' ? 'edit' : 'pin')

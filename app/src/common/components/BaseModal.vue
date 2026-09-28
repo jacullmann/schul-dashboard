@@ -4,6 +4,10 @@ import { useIsMobileViewport } from '@/common/composables/useViewport';
 import { X } from '@lucide/vue';
 import { useId } from 'vue';
 
+// Two roots (dialog and sheet), so attributes and listeners such as drag and
+// drop handlers are forwarded to whichever one is shown.
+defineOptions({ inheritAttrs: false });
+
 const emit = defineEmits<{
   cancel: [];
   success: [];
@@ -57,6 +61,7 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
     <Transition name="fade-scale" appear>
       <BaseModalCard
         v-if="open && (!isMobile || !sheet)"
+        v-bind="$attrs"
         :labelledby="titleId"
         :elevated="elevated"
         @cancel="handleCancel"
@@ -111,6 +116,7 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
 
   <BaseSheet
     v-if="sheet && isMobile"
+    v-bind="$attrs"
     :open="open"
     :elevated="elevated"
     @cancel="handleCancel"

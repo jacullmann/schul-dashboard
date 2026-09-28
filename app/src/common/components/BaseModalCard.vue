@@ -1,4 +1,6 @@
 <script setup lang="ts">
+defineOptions({ inheritAttrs: false });
+
 defineProps<{
   labelledby?: string;
   /**
@@ -23,6 +25,7 @@ defineEmits<{
     @cancel="$emit('cancel')"
   >
     <div
+      v-bind="$attrs"
       class="bg-canvas rounded-2xl w-[calc(100%-2rem)] max-w-160 max-h-[min(56rem,calc(100dvh-5rem))] flex flex-col fixed text-left z-(--z-modal)"
       :class="elevated ? 'z-[100004]!' : ''"
       role="dialog"

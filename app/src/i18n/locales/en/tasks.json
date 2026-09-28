@@ -44,7 +44,6 @@
       "course": "Course",
       "custom_subject": "Custom Subject",
       "description": "Description",
-      "drop_to_upload": "Drop images here",
       "due_date": "Due date",
       "edit_task": "Edit Task",
       "errors": {
@@ -255,7 +254,6 @@
       "progress": "Uploading images",
       "success": "Images uploaded successfully"
     },
-    "drop_to_upload": "Drop images to upload",
     "document": "Document"
   }
 }

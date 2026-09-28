@@ -104,11 +104,11 @@ const { handlers: longPressHandlers } = useLongPress(
       v-for="(img, idx) in displayedImages"
       :key="img.publicId"
       :data-image-index="idx"
-      class="long-press-target relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-md border-none bg-black/[0.12] select-none"
+      class="long-press-target relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-sm border-none bg-black/[0.12] select-none"
     >
       <button
         type="button"
-        class="img-clickable w-full h-full cursor-pointer bg-transparent block"
+        class="img-clickable w-full h-full cursor-pointer bg-transparent block touch-target"
         @click.stop="$emit('open-viewer', idx)"
       >
         <span
@@ -158,11 +158,11 @@ const { handlers: longPressHandlers } = useLongPress(
           idx === imagesPerRow - 1 &&
           images.length > imagesPerRow
         "
-        class="img-overlay absolute flex inset-0 items-center justify-center rounded-md cursor-pointer z-10"
+        class="img-overlay absolute flex inset-0 items-center justify-center rounded-sm cursor-pointer z-10"
         @click.stop.prevent="$emit('reveal')"
       >
         <span
-          class="overlay-blur absolute inset-0 bg-[#8886] rounded-md backdrop-blur-sm"
+          class="overlay-blur absolute inset-0 bg-[#8886] rounded-sm backdrop-blur-sm"
         ></span>
         <span class="text-4xl font-medium text-white z-10"
           >+{{ images.length - (imagesPerRow - 1) }}</span
@@ -176,7 +176,7 @@ const { handlers: longPressHandlers } = useLongPress(
 .images-row {
   display: grid;
   grid-template-columns: repeat(v-bind(imagesPerRow), 1fr);
-  gap: 8px;
+  gap: 4px;
   position: relative;
 }
 </style>

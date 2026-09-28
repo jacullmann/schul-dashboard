@@ -73,39 +73,40 @@ export function useTaskFormLogic(
   const isPdf = (img: any) => img.metadata?.format === 'pdf';
 
   const isDragging = ref(false);
-  const dragCounter = ref(0);
+  let dragCounter = 0;
+
+  const isFileDrag = (e: DragEvent) =>
+    e.dataTransfer?.types.includes('Files') ?? false;
 
   const handleDragEnter = (e: DragEvent) => {
+    if (!isFileDrag(e)) return;
     e.preventDefault();
-    dragCounter.value++;
+    dragCounter++;
     isDragging.value = true;
   };
 
   const handleDragLeave = (e: DragEvent) => {
-    e.preventDefault();
-    dragCounter.value--;
-    if (dragCounter.value === 0) {
-      isDragging.value = false;
-    }
+    if (!isFileDrag(e)) return;
+    dragCounter--;
+    if (dragCounter === 0) isDragging.value = false;
   };
 
   const handleDragOver = (e: DragEvent) => {
+    if (!isFileDrag(e)) return;
     e.preventDefault();
+    e.dataTransfer!.dropEffect = 'copy';
   };
 
+  // uploadFiles filters unsupported types and enforces the size limits.
   const handleDrop = async (e: DragEvent) => {
+    if (!isFileDrag(e)) return;
     e.preventDefault();
-    dragCounter.value = 0;
+    dragCounter = 0;
     isDragging.value = false;
-    const files = e.dataTransfer?.files;
-    if (!files || files.length === 0) return;
+    const files = Array.from(e.dataTransfer?.files ?? []);
+    if (files.length === 0) return;
 
-    const validFiles = Array.from(files).filter(
-      (f) => f.type.startsWith('image/') || f.type === 'application/pdf',
-    );
-    if (validFiles.length === 0) return;
-
-    await uploadFiles(validFiles, !!initial, initial?.id);
+    await uploadFiles(files, !!initial, initial?.id);
   };
 
   const getInitialSubjectParts = () => {

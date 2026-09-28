@@ -12,7 +12,7 @@ export interface Props {
   iconPlacement?: 'leading' | 'trailing';
   iconClasses?: string;
   fill?: boolean;
-  size?: 'sm' | 'md';
+  size?: 'xs' | 'sm' | 'md';
   chip?: boolean;
   loading?: boolean;
   disabled?: boolean;
@@ -38,6 +38,8 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const buttonEl = ref<HTMLButtonElement | null>(null);
+
+const iconSize = computed(() => ({ xs: 16, sm: 18, md: 20 })[props.size]);
 
 const classes = computed(() => {
   const onClasses: Record<NonNullable<Props['on']>, string> = {
@@ -80,34 +82,32 @@ defineExpose({
         : variant === 'input'
           ? 'font-normal w-fit'
           : 'font-medium w-fit',
-      size === 'sm' ? '' : ' min-h-10 min-w-10',
+      size === 'md' ? 'min-h-10 min-w-10' : '',
       touch ? 'touch-target after:min-w-12 after:min-h-12' : '',
-      size === 'sm'
-        ? 'px-2'
-        : !chip && !loading && icon && $slots.default
-          ? iconPlacement === 'leading'
-            ? 'pl-3 pr-5'
-            : 'pl-5 pr-3'
-          : chip
-            ? 'px-2.5'
-            : loading || icon
-              ? 'px-2'
-              : 'px-5',
+      size === 'xs'
+        ? 'p-1'
+        : size === 'sm'
+          ? 'px-2 py-2'
+          : !chip && !loading && icon && $slots.default
+            ? iconPlacement === 'leading'
+              ? 'pl-3 pr-5 py-2'
+              : 'pl-5 pr-3 py-2'
+            : chip
+              ? 'px-2.5 py-2'
+              : loading || icon
+                ? 'px-2 py-2'
+                : 'px-5 py-2',
     ]"
-    class="relative inline-flex items-center justify-center gap-2 py-2 rounded-full text-sm/4 cursor-pointer select-none whitespace-nowrap transition-hover disabled:opacity-50 disabled:cursor-not-allowed"
+    class="relative inline-flex items-center justify-center gap-2 rounded-full text-sm/4 cursor-pointer select-none whitespace-nowrap transition-hover disabled:opacity-50 disabled:cursor-not-allowed"
     :aria-busy="loading"
     :aria-disabled="disabled"
   >
-    <BaseSpinner
-      v-if="loading"
-      :on="variant"
-      :size="size === 'sm' ? '18' : '20'"
-    />
+    <BaseSpinner v-if="loading" :on="variant" :size="`${iconSize}`" />
     <template v-else-if="!chip">
       <component
         :is="icon"
         v-if="icon && iconPlacement === 'leading'"
-        :size="size === 'sm' ? 18 : 20"
+        :size="iconSize"
         :fill="fill ? 'currentColor' : 'none'"
         :class="iconClasses"
       />
@@ -115,21 +115,16 @@ defineExpose({
       <component
         :is="icon"
         v-if="icon && iconPlacement === 'trailing'"
-        :size="size === 'sm' ? 18 : 20"
+        :size="iconSize"
         :fill="fill ? 'currentColor' : 'none'"
         :class="iconClasses"
       />
     </template>
 
     <template v-else>
-      <component
-        :is="icon"
-        v-if="icon"
-        :size="size === 'sm' ? 18 : 20"
-        :class="iconClasses"
-      />
+      <component :is="icon" v-if="icon" :size="iconSize" :class="iconClasses" />
       <slot></slot>
-      <X :size="size === 'sm' ? 18 : 20" />
+      <X :size="iconSize" />
     </template>
   </button>
 </template>

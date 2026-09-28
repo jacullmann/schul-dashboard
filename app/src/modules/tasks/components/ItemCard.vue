@@ -9,7 +9,6 @@ import {
   Pencil,
   Pin,
   PinOff,
-  UploadCloud,
 } from '@lucide/vue';
 import {
   useSwipeToDismiss,
@@ -31,6 +30,8 @@ const props = withDefaults(
     secondarySwipeAction?: 'edit' | 'pin' | 'unpin';
     confirmSwipe?: () => Promise<boolean>;
     reducedBottomMargin?: boolean;
+    /** Whether dropped files are uploaded to this card. */
+    acceptsFiles?: boolean;
   }>(),
   {
     isCollapsed: false,
@@ -39,6 +40,7 @@ const props = withDefaults(
     swipeable: false,
     swipeAction: 'archive',
     reducedBottomMargin: false,
+    acceptsFiles: false,
   },
 );
 
@@ -253,21 +255,26 @@ function onLeave(el: Element) {
 const isDragOver = ref(false);
 let dragCounter = 0;
 
+const isFileDrag = (e: DragEvent) =>
+  props.acceptsFiles && (e.dataTransfer?.types.includes('Files') ?? false);
+
 function onDragEnter(e: DragEvent) {
-  if (e.dataTransfer?.types.includes('Files')) {
+  if (isFileDrag(e)) {
+    e.preventDefault();
     dragCounter++;
     isDragOver.value = true;
   }
 }
 
 function onDragOver(e: DragEvent) {
-  if (e.dataTransfer?.types.includes('Files')) {
-    e.dataTransfer.dropEffect = 'copy';
+  if (isFileDrag(e)) {
+    e.preventDefault();
+    e.dataTransfer!.dropEffect = 'copy';
   }
 }
 
 function onDragLeave(e: DragEvent) {
-  if (e.dataTransfer?.types.includes('Files')) {
+  if (isFileDrag(e)) {
     dragCounter--;
     if (dragCounter === 0) {
       isDragOver.value = false;
@@ -276,6 +283,8 @@ function onDragLeave(e: DragEvent) {
 }
 
 function onDrop(e: DragEvent) {
+  if (!isFileDrag(e)) return;
+  e.preventDefault();
   dragCounter = 0;
   isDragOver.value = false;
   if (e.dataTransfer?.files.length) {
@@ -355,27 +364,21 @@ function onDrop(e: DragEvent) {
       ref="cardRef"
       class="item-card relative bg-surface border border-ghost-border rounded-xl p-1 shadow-input overflow-visible cursor-default touch-pan-y"
       :class="{
-        'transition-[padding,max-height] duration-[300ms] ease-[cubic-bezier(0.78,0,0.22,1)]':
+        'transition-[padding,max-height,outline-color] duration-[300ms] ease-[cubic-bezier(0.78,0,0.22,1)]':
           isCollapsed,
+        'transition-[outline-color] duration-(--duration-focus) ease-(--ease-focus)':
+          acceptsFiles && !isCollapsed,
         'border-2 !border-accent': highlighted,
-        'border-primary shadow-[0_0_0_2px_var(--color-primary)]': isDragOver,
+        'outline-2': acceptsFiles,
+        'outline-transparent': acceptsFiles && !isDragOver,
+        'outline-accent': isDragOver,
       }"
       :style="cardStyle"
-      @dragenter.prevent="onDragEnter"
-      @dragover.prevent="onDragOver"
-      @dragleave.prevent="onDragLeave"
-      @drop.prevent="onDrop"
+      @dragenter="onDragEnter"
+      @dragover="onDragOver"
+      @dragleave="onDragLeave"
+      @drop="onDrop"
     >
-      <div
-        v-if="isDragOver"
-        class="absolute inset-0 bg-black/40 backdrop-blur-sm rounded-xl z-50 flex items-center justify-center text-white"
-      >
-        <div class="flex flex-col items-center gap-2 font-medium text-base">
-          <UploadCloud :size="32" />
-          <span>{{ t('tasks.images.drop_to_upload') }}</span>
-        </div>
-      </div>
-
       <div class="relative flex justify-between items-start gap-2 select-none">
         <div
           class="flex-1 min-w-0 mt-2 ml-2"
@@ -448,6 +451,14 @@ function onDrop(e: DragEvent) {
           </div>
         </div>
       </Transition>
+
+      <!-- An inset shadow on the card itself would paint beneath its images. -->
+      <div
+        v-if="acceptsFiles"
+        aria-hidden="true"
+        class="pointer-events-none absolute inset-0 z-10 rounded-[inherit] inset-shadow-drop-target transition-opacity duration-(--duration-focus) ease-(--ease-focus)"
+        :class="isDragOver ? 'opacity-100' : 'opacity-0'"
+      />
     </div>
   </div>
 </template>

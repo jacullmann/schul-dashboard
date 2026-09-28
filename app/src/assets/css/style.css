@@ -94,6 +94,7 @@
   --color-shadow-light: oklch(0 0 0 / 5%);
   --color-shadow-heavy: oklch(0 0 0 / 10%);
   --shadow-menu: 0 12px 24px -2px var(--color-shadow-heavy);
+  --inset-shadow-drop-target: inset 0 0 16px 2px color-mix(in oklab, var(--color-accent) 45%, transparent);
   --shadow-focus-ring: 0 0 0 3px var(--focus-ring-color, var(--color-cloud));
 
   --duration-hover: 100ms;

@@ -72,6 +72,8 @@ const {
     :submit="submit"
     :error="submitError"
     :loading="submitting"
+    class="outline-2 transition-[outline-color] duration-(--duration-focus) ease-(--ease-focus)"
+    :class="isDragging ? 'outline-accent' : 'outline-transparent'"
     @cancel="emit('cancel')"
     @dragenter="handleDragEnter"
     @dragleave="handleDragLeave"
@@ -90,19 +92,13 @@ const {
     </template>
 
     <template #content>
+      <!-- Positioned against the dialog, so it lines the whole card. The
+           dialog's opaque scroller would hide an inset shadow of its own. -->
       <div
-        v-if="isDragging"
-        class="absolute inset-0 z-50 flex items-center justify-center bg-canvas/80 backdrop-blur-sm border-2 border-dashed border-primary rounded-2xl pointer-events-none"
-      >
-        <div class="text-center p-6">
-          <div class="text-2xl mb-2">📸</div>
-          <div class="text-xl font-bold text-primary">
-            {{
-              t('tasks.list.task_form.drop_to_upload') || 'Bilder hier ablegen'
-            }}
-          </div>
-        </div>
-      </div>
+        aria-hidden="true"
+        class="pointer-events-none absolute inset-0 z-40 rounded-2xl inset-shadow-drop-target transition-opacity duration-(--duration-focus) ease-(--ease-focus)"
+        :class="isDragging ? 'opacity-100' : 'opacity-0'"
+      />
 
       <BaseFormGroup v-if="!initial" id="type">
         <BaseTabs
@@ -227,7 +223,7 @@ const {
                 type="button"
                 variant="danger"
                 :icon="X"
-                size="sm"
+                size="xs"
                 @click="removeImg(img, initial?.id)"
               />
             </div>
