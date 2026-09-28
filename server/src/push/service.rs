@@ -1,5 +1,6 @@
 use super::{
-    sender::{Delivery, WebPush},
+    content::{self, Locale, ScheduleChange},
+    sender::{Delivery, Urgency, WebPush},
     subscription::PushSubscription,
 };
 use crate::{error::AppResult, state::AppState};
@@ -9,9 +10,6 @@ use std::sync::Arc;
 use tokio::task::JoinSet;
 use uuid::Uuid;
 
-/// Keeps the encrypted payload well below the 4 KB push services accept.
-const MAX_BODY_CHARS: usize = 180;
-
 /// What the service worker renders. The shape is shared with
 /// `app/src/modules/notifications/types`.
 #[derive(Debug, Serialize)]
@@ -20,7 +18,8 @@ pub struct PushPayload {
     pub title: String,
     pub body: String,
     /// Notifications with the same tag replace each other instead of piling up.
-    pub tag: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tag: Option<String>,
     /// Unix milliseconds of the event, so late deliveries show when it happened.
     pub timestamp: i64,
     pub target: PushTarget,
@@ -31,18 +30,30 @@ pub struct PushPayload {
 #[serde(tag = "type", rename_all = "camelCase")]
 pub enum PushTarget {
     #[serde(rename_all = "camelCase")]
-    GroupMessages { group_id: Uuid },
+    GroupAnnouncements { group_id: Uuid },
+    #[serde(rename_all = "camelCase")]
+    GroupSchedule { group_id: Uuid },
 }
 
-pub struct GroupMessageNotice<'a> {
+pub struct AnnouncementNotice {
     pub group_id: Uuid,
-    pub sender_id: Uuid,
-    pub sender_name: &'a str,
-    pub content: &'a str,
+    pub author_id: Uuid,
+    pub content: String,
+}
+
+/// A substitution entered for a timetable lesson.
+pub struct ScheduleChangeNotice {
+    pub group_id: Uuid,
+    pub author_id: Uuid,
+    pub lesson_id: Uuid,
+    /// Set when the change only applies to one course of the lesson.
+    pub course_id: Option<Uuid>,
+    pub change: ScheduleChange,
 }
 
 struct Recipient {
     id: Uuid,
+    locale: Locale,
     subscription: Option<PushSubscription>,
 }
 
@@ -125,78 +136,126 @@ impl PushService {
         Ok(result.rows_affected())
     }
 
-    /// Notifies every other member of the group in the background, so the
-    /// sender's request never waits on push services.
-    pub fn spawn_group_message(self, notice: GroupMessageNotice<'_>) {
+    /// Notifies the group in the background, so the author's request never
+    /// waits on push services.
+    pub fn spawn_announcement(self, notice: AnnouncementNotice) {
         if self.web_push.is_none() {
             return;
         }
-
-        let group_id = notice.group_id;
-        let sender_id = notice.sender_id;
-        let body = truncate_chars(
-            &format!("{}: {}", notice.sender_name, notice.content.trim()),
-            MAX_BODY_CHARS,
-        );
-        let timestamp = chrono::Utc::now().timestamp_millis();
-
         tokio::spawn(async move {
-            if let Err(e) = self
-                .notify_group_message(group_id, sender_id, body, timestamp)
-                .await
-            {
-                tracing::warn!("Group message push fan-out failed: {e}");
+            if let Err(e) = self.notify_announcement(notice).await {
+                tracing::warn!("Announcement push fan-out failed: {e}");
             }
         });
     }
 
-    async fn notify_group_message(
-        &self,
-        group_id: Uuid,
-        sender_id: Uuid,
-        body: String,
-        timestamp: i64,
-    ) -> AppResult<()> {
+    /// Notifies the members whose timetable shows the lesson, in the background.
+    pub fn spawn_schedule_change(self, notice: ScheduleChangeNotice) {
+        if self.web_push.is_none() {
+            return;
+        }
+        tokio::spawn(async move {
+            if let Err(e) = self.notify_schedule_change(notice).await {
+                tracing::warn!("Schedule change push fan-out failed: {e}");
+            }
+        });
+    }
+
+    async fn notify_announcement(&self, notice: AnnouncementNotice) -> AppResult<()> {
         let Some(group_name) =
-            sqlx::query_scalar!(r#"SELECT name FROM groups WHERE id = $1"#, group_id)
+            sqlx::query_scalar!(r#"SELECT name FROM groups WHERE id = $1"#, notice.group_id)
                 .fetch_optional(&self.db)
                 .await?
         else {
             return Ok(());
         };
 
-        let recipients = self.group_recipients(group_id, sender_id).await?;
-        if recipients.is_empty() {
-            return Ok(());
-        }
+        let recipients = self
+            .recipients(notice.group_id, notice.author_id, None)
+            .await?;
+        let body = content::announcement_body(&notice.content);
+        let timestamp = chrono::Utc::now().timestamp_millis();
 
-        let payload = PushPayload {
-            title: group_name,
-            body,
-            tag: format!("group-messages:{group_id}"),
+        self.deliver(recipients, Urgency::Normal, |locale| PushPayload {
+            title: content::announcement_title(locale, &group_name),
+            body: body.clone(),
+            tag: None,
             timestamp,
-            target: PushTarget::GroupMessages { group_id },
-        };
-        // A simple UUID is 32 base64url-safe characters, the most RFC 8030
-        // allows for a topic. Undelivered messages of one chat collapse into
-        // the newest while the device is offline.
-        let topic = group_id.simple().to_string();
+            target: PushTarget::GroupAnnouncements {
+                group_id: notice.group_id,
+            },
+        })
+        .await
+    }
 
-        self.deliver(recipients, &payload, Some(&topic)).await
+    async fn notify_schedule_change(&self, notice: ScheduleChangeNotice) -> AppResult<()> {
+        let Some(lesson) = sqlx::query!(
+            r#"SELECT s.day, s.slot, s.course_id, s.is_dalton,
+                      sub.name AS "subject?", g.name AS group_name
+               FROM schedules s
+               JOIN groups g ON g.id = s.tenant_id
+               LEFT JOIN subjects sub ON sub.id = s.subject_id
+               WHERE s.id = $1 AND s.tenant_id = $2"#,
+            notice.lesson_id,
+            notice.group_id
+        )
+        .fetch_optional(&self.db)
+        .await?
+        else {
+            return Ok(());
+        };
+
+        let course_id = notice.course_id.or(lesson.course_id);
+        let recipients = self
+            .recipients(notice.group_id, notice.author_id, course_id)
+            .await?;
+        let timetable_lesson = content::Lesson {
+            subject: lesson.subject.as_deref(),
+            is_dalton: lesson.is_dalton,
+            day: lesson.day,
+            slot: lesson.slot,
+        };
+        let timestamp = chrono::Utc::now().timestamp_millis();
+
+        // A cancelled first lesson matters before the phone's next routine sync.
+        self.deliver(recipients, Urgency::High, |locale| PushPayload {
+            title: content::schedule_change_title(locale, &lesson.group_name),
+            body: content::schedule_change_body(locale, &timetable_lesson, &notice.change),
+            // Correcting a change replaces its notification.
+            tag: Some(format!("schedule-change:{}", notice.lesson_id)),
+            timestamp,
+            target: PushTarget::GroupSchedule {
+                group_id: notice.group_id,
+            },
+        })
+        .await
     }
 
     /// Members of the group other than `exclude_user`, on devices whose login
-    /// session is still active.
-    async fn group_recipients(
+    /// session is still active. With a `course_id`, members who narrowed their
+    /// timetable to their courses only count if they take that course, the
+    /// same rule the timetable itself applies.
+    async fn recipients(
         &self,
         group_id: Uuid,
         exclude_user: Uuid,
+        course_id: Option<Uuid>,
     ) -> AppResult<Vec<Recipient>> {
         let rows = sqlx::query!(
-            r#"SELECT ps.id, ps.endpoint, ps.p256dh, ps.auth
+            r#"SELECT ps.id, ps.endpoint, ps.p256dh, ps.auth,
+                      u.preferences->>'language' AS language
                FROM push_subscriptions ps
                JOIN user_roles ur ON ur.user_id = ps.user_id AND ur.tenant_id = $1
+               JOIN users u ON u.id = ps.user_id
                WHERE ps.user_id <> $2
+                 AND (
+                     $3::uuid IS NULL
+                     OR NOT (u.personalized AND u.done_setup)
+                     OR EXISTS (
+                         SELECT 1 FROM user_courses uc
+                         WHERE uc.user_id = u.id AND uc.course_id = $3
+                     )
+                 )
                  AND EXISTS (
                      SELECT 1 FROM refresh_tokens rt
                      WHERE rt.family_id = ps.session_family_id
@@ -205,6 +264,7 @@ impl PushService {
                  )"#,
             group_id,
             exclude_user,
+            course_id,
         )
         .fetch_all(&self.db)
         .await?;
@@ -213,6 +273,7 @@ impl PushService {
             .into_iter()
             .map(|row| Recipient {
                 id: row.id,
+                locale: Locale::from_preference(row.language.as_deref()),
                 subscription: PushSubscription::parse(&row.endpoint, &row.p256dh, &row.auth).ok(),
             })
             .collect())
@@ -221,16 +282,22 @@ impl PushService {
     async fn deliver(
         &self,
         recipients: Vec<Recipient>,
-        payload: &PushPayload,
-        topic: Option<&str>,
+        urgency: Urgency,
+        payload_for: impl Fn(Locale) -> PushPayload,
     ) -> AppResult<()> {
         let Some(web_push) = &self.web_push else {
             return Ok(());
         };
-        let payload: Arc<[u8]> = serde_json::to_vec(payload)
-            .map_err(anyhow::Error::from)?
-            .into();
-        let topic: Option<Arc<str>> = topic.map(Into::into);
+        if recipients.is_empty() {
+            return Ok(());
+        }
+
+        let encode = |locale| -> AppResult<Arc<[u8]>> {
+            let payload = serde_json::to_vec(&payload_for(locale)).map_err(anyhow::Error::from)?;
+            Ok(payload.into())
+        };
+        let german = encode(Locale::De)?;
+        let english = encode(Locale::En)?;
 
         let mut gone = Vec::new();
         let mut deliveries = JoinSet::new();
@@ -240,12 +307,12 @@ impl PushService {
                 continue;
             };
             let web_push = web_push.clone();
-            let payload = Arc::clone(&payload);
-            let topic = topic.clone();
+            let payload = Arc::clone(match recipient.locale {
+                Locale::De => &german,
+                Locale::En => &english,
+            });
             deliveries.spawn(async move {
-                let delivery = web_push
-                    .send(&subscription, &payload, topic.as_deref())
-                    .await;
+                let delivery = web_push.send(&subscription, &payload, urgency).await;
                 (recipient.id, delivery)
             });
         }
@@ -268,44 +335,45 @@ impl PushService {
     }
 }
 
-fn truncate_chars(text: &str, max_chars: usize) -> String {
-    match text.char_indices().nth(max_chars) {
-        Some((end, _)) => format!("{}…", text[..end].trim_end()),
-        None => text.to_owned(),
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn truncates_on_char_boundaries() {
-        assert_eq!(truncate_chars("kurz", 10), "kurz");
-        assert_eq!(truncate_chars("äöüäöü", 3), "äöü…");
-        assert_eq!(truncate_chars("ab cd", 3), "ab…");
-    }
-
-    #[test]
     fn payload_matches_the_service_worker_contract() {
         let group_id = Uuid::nil();
         let payload = PushPayload {
-            title: "10b".into(),
-            body: "Fox: Hallo".into(),
-            tag: format!("group-messages:{group_id}"),
+            title: "Schedule change · 10b".into(),
+            body: "Mathe, Monday period 3: cancelled".into(),
+            tag: Some("schedule-change:x".into()),
             timestamp: 1,
-            target: PushTarget::GroupMessages { group_id },
+            target: PushTarget::GroupSchedule { group_id },
         };
-
         assert_eq!(
             serde_json::to_value(&payload).unwrap(),
             serde_json::json!({
-                "title": "10b",
-                "body": "Fox: Hallo",
-                "tag": format!("group-messages:{group_id}"),
+                "title": "Schedule change · 10b",
+                "body": "Mathe, Monday period 3: cancelled",
+                "tag": "schedule-change:x",
                 "timestamp": 1,
-                "target": { "type": "groupMessages", "groupId": group_id },
+                "target": { "type": "groupSchedule", "groupId": group_id },
             })
         );
+    }
+
+    #[test]
+    fn untagged_payloads_omit_the_tag() {
+        let payload = PushPayload {
+            title: "t".into(),
+            body: "b".into(),
+            tag: None,
+            timestamp: 1,
+            target: PushTarget::GroupAnnouncements {
+                group_id: Uuid::nil(),
+            },
+        };
+        let json = serde_json::to_value(&payload).unwrap();
+        assert!(json.get("tag").is_none());
+        assert_eq!(json["target"]["type"], "groupAnnouncements");
     }
 }

@@ -1,3 +1,4 @@
+pub mod content;
 pub mod dto;
 pub mod handlers;
 pub mod routes;

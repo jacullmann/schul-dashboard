@@ -38,7 +38,7 @@ async function setEnabled(enabled: boolean) {
   }
 }
 
-const chatMessagesEnabled = computed({
+const updatesEnabled = computed({
   get: () => isSubscribed.value,
   set: (enabled: boolean) => void setEnabled(enabled),
 });
@@ -58,9 +58,11 @@ onMounted(() => {
         {{ t('auth.account_settings.notifications.push_description') }}
       </p>
       <SettingToggleCard
-        v-model="chatMessagesEnabled"
-        :title="t('auth.account_settings.notifications.chat_title')"
-        :description="t('auth.account_settings.notifications.chat_description')"
+        v-model="updatesEnabled"
+        :title="t('auth.account_settings.notifications.updates_title')"
+        :description="
+          t('auth.account_settings.notifications.updates_description')
+        "
         :disabled="availability !== 'available' || isBusy"
       />
       <p v-if="hint" class="text-sm/relaxed text-on-ghost-muted m-0!">

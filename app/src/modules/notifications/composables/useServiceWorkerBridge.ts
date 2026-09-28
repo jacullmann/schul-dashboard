@@ -17,7 +17,7 @@ import type {
 /**
  * Connects the app shell to the service worker: follows notification clicks
  * within the running app, keeps the push subscription registered for the
- * signed-in user and clears notifications for the chat on screen.
+ * signed-in user and clears notifications for what is on screen.
  */
 export function useServiceWorkerBridge(): void {
   const route = useRoute();
@@ -57,17 +57,19 @@ export function useServiceWorkerBridge(): void {
     { immediate: true },
   );
 
-  const visibleTarget = computed<PushTarget | null>(() =>
-    route.name === 'group-messages' && typeof route.params.groupId === 'string'
-      ? { type: 'groupMessages', groupId: route.params.groupId }
-      : null,
-  );
+  // Every page of a group shows its announcements in the banner.
+  const visibleTargets = computed<PushTarget[]>(() => {
+    const groupId = route.params.groupId;
+    if (typeof groupId !== 'string') return [];
 
-  watch(
-    visibleTarget,
-    (target) => {
-      if (target) void closeNotificationsFor(target);
-    },
-    { immediate: true },
-  );
+    const targets: PushTarget[] = [{ type: 'groupAnnouncements', groupId }];
+    if (route.name === 'group-schedule') {
+      targets.push({ type: 'groupSchedule', groupId });
+    }
+    return targets;
+  });
+
+  watch(visibleTargets, (targets) => void closeNotificationsFor(targets), {
+    immediate: true,
+  });
 }

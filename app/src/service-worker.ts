@@ -46,11 +46,19 @@ self.addEventListener('pushsubscriptionchange', (event) => {
   change.waitUntil(renewSubscription(change));
 });
 
+const TARGET_TYPES: ReadonlySet<string> = new Set<PushTarget['type']>([
+  'groupAnnouncements',
+  'groupSchedule',
+]);
+
 /** The router path of a target, for windows that are not open yet. */
 function targetPath(target: PushTarget): string {
+  const group = `/groups/${encodeURIComponent(target.groupId)}`;
   switch (target.type) {
-    case 'groupMessages':
-      return `/groups/${encodeURIComponent(target.groupId)}/messages`;
+    case 'groupAnnouncements':
+      return `${group}/dashboard`;
+    case 'groupSchedule':
+      return `${group}/schedule`;
   }
 }
 
@@ -60,8 +68,9 @@ function parsePayload(data: PushMessageData | null): PushPayload | null {
     const isValid =
       typeof payload?.title === 'string' &&
       typeof payload.body === 'string' &&
-      typeof payload.tag === 'string' &&
-      payload.target?.type === 'groupMessages';
+      (payload.tag === undefined || typeof payload.tag === 'string') &&
+      typeof payload.target?.groupId === 'string' &&
+      TARGET_TYPES.has(payload.target.type);
     return isValid ? (payload as PushPayload) : null;
   } catch {
     return null;
@@ -73,18 +82,11 @@ function windowClients(): Promise<readonly WindowClient[]> {
 }
 
 async function showNotification(payload: PushPayload): Promise<void> {
-  const path = targetPath(payload.target);
-  const isViewingTarget = (await windowClients()).some(
-    (client) => client.focused && new URL(client.url).pathname === path,
-  );
-  // Browsers only require a notification while no window of the site is
-  // visible, so skipping it for the chat the user is reading is allowed.
-  if (isViewingTarget) return;
-
   const options: RichNotificationOptions = {
     body: payload.body,
     tag: payload.tag,
-    renotify: true,
+    // Browsers reject `renotify` without a tag.
+    renotify: payload.tag !== undefined,
     timestamp: payload.timestamp,
     icon: NOTIFICATION_ICON,
     data: payload.target,

@@ -11,6 +11,23 @@ use web_push_native::{
 
 const DELIVERY_TIMEOUT: Duration = Duration::from_secs(10);
 
+/// RFC 8030 §5.3: how eagerly the push service may wake a device, e.g. a
+/// phone in battery-saving mode.
+#[derive(Debug, Clone, Copy)]
+pub enum Urgency {
+    Normal,
+    High,
+}
+
+impl Urgency {
+    fn header_value(self) -> HeaderValue {
+        HeaderValue::from_static(match self {
+            Self::Normal => "normal",
+            Self::High => "high",
+        })
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Delivery {
     Accepted,
@@ -70,9 +87,9 @@ impl WebPush {
         &self,
         subscription: &PushSubscription,
         payload: &[u8],
-        topic: Option<&str>,
+        urgency: Urgency,
     ) -> Delivery {
-        let request = match self.build_request(subscription, payload, topic) {
+        let request = match self.build_request(subscription, payload, urgency) {
             Ok(request) => request,
             Err(e) => {
                 tracing::warn!("Failed to build push request: {e:#}");
@@ -93,7 +110,7 @@ impl WebPush {
         &self,
         subscription: &PushSubscription,
         payload: &[u8],
-        topic: Option<&str>,
+        urgency: Urgency,
     ) -> anyhow::Result<reqwest::Request> {
         let endpoint: Uri = subscription.endpoint().parse()?;
 
@@ -102,13 +119,9 @@ impl WebPush {
                 .with_vapid(&self.inner.key_pair, &self.inner.subject)
                 .build(payload)?;
 
-        let headers = request.headers_mut();
-        // RFC 8030 §5.3: every notification is a message someone is waiting
-        // on, so it may wake a phone in battery-saving mode.
-        headers.insert("urgency", HeaderValue::from_static("high"));
-        if let Some(topic) = topic {
-            headers.insert("topic", HeaderValue::from_str(topic)?);
-        }
+        request
+            .headers_mut()
+            .insert("urgency", urgency.header_value());
 
         Ok(reqwest::Request::try_from(request)?)
     }

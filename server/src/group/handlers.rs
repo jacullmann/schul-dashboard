@@ -5,6 +5,10 @@ use crate::{
     common::path_params::{IdPath, MemberPath, SubjectPath},
     error::{AppError, AppResult},
     items::service::ItemsService,
+    push::{
+        content::ScheduleChange,
+        service::{AnnouncementNotice, PushService, ScheduleChangeNotice},
+    },
     state::AppState,
 };
 use axum::{
@@ -559,11 +563,41 @@ pub async fn create_schedule_sub(
         crate::common::permission::Permission::ManageScheduleChanges
     );
 
-    Ok(Json(
-        GroupAdminService::from_state(&s)
-            .create_schedule_sub(tc.tenant_id, tc.user.user_id, dto)
-            .await?,
-    ))
+    let notice = ScheduleChangeNotice {
+        group_id: tc.tenant_id,
+        author_id: tc.user.user_id,
+        lesson_id: dto.lesson_id,
+        course_id: dto.course_id,
+        change: schedule_change_of(&dto),
+    };
+
+    let sub = GroupAdminService::from_state(&s)
+        .create_schedule_sub(tc.tenant_id, tc.user.user_id, dto)
+        .await?;
+
+    PushService::from_state(&s).spawn_schedule_change(notice);
+
+    Ok(Json(sub))
+}
+
+/// Blank text fields leave the lesson's value in place, as in the timetable.
+fn schedule_change_of(dto: &CreateScheduleSubDto) -> ScheduleChange {
+    let non_blank = |value: &Option<String>| {
+        value
+            .as_deref()
+            .map(str::trim)
+            .filter(|v| !v.is_empty())
+            .map(str::to_owned)
+    };
+
+    ScheduleChange {
+        // Hiding takes the lesson off the timetable, which reads as cancelled.
+        cancelled: dto.cancelled.unwrap_or(false) || dto.hide.unwrap_or(false),
+        day: dto.day,
+        slot: dto.slot,
+        subject: non_blank(&dto.subject),
+        room: non_blank(&dto.room),
+    }
 }
 
 pub async fn delete_schedule_sub(
@@ -593,16 +627,22 @@ pub async fn create_announcement(
         crate::common::permission::Permission::ManageAnnouncements
     );
 
-    Ok(Json(
-        GroupAdminService::from_state(&s)
-            .create_announcement(
-                tc.tenant_id,
-                tc.user.user_id,
-                &dto.content,
-                dto.color.as_deref(),
-            )
-            .await?,
-    ))
+    let announcement = GroupAdminService::from_state(&s)
+        .create_announcement(
+            tc.tenant_id,
+            tc.user.user_id,
+            &dto.content,
+            dto.color.as_deref(),
+        )
+        .await?;
+
+    PushService::from_state(&s).spawn_announcement(AnnouncementNotice {
+        group_id: tc.tenant_id,
+        author_id: tc.user.user_id,
+        content: dto.content,
+    });
+
+    Ok(Json(announcement))
 }
 
 pub async fn delete_announcement(

@@ -33,9 +33,12 @@ export function registerServiceWorker(): void {
 }
 
 export function targetRoute(target: PushTarget): RouteLocationRaw {
+  const params = { groupId: target.groupId };
   switch (target.type) {
-    case 'groupMessages':
-      return { name: 'group-messages', params: { groupId: target.groupId } };
+    case 'groupAnnouncements':
+      return { name: 'group-dashboard', params };
+    case 'groupSchedule':
+      return { name: 'group-schedule', params };
   }
 }
 
@@ -45,12 +48,16 @@ function isSameTarget(data: unknown, target: PushTarget): boolean {
 }
 
 /** Clears notifications about what the user is now looking at. */
-export async function closeNotificationsFor(target: PushTarget): Promise<void> {
-  if (!isServiceWorkerSupported) return;
+export async function closeNotificationsFor(
+  targets: readonly PushTarget[],
+): Promise<void> {
+  if (!isServiceWorkerSupported || targets.length === 0) return;
 
   const registration = await navigator.serviceWorker.getRegistration();
   const notifications = (await registration?.getNotifications()) ?? [];
   for (const notification of notifications) {
-    if (isSameTarget(notification.data, target)) notification.close();
+    if (targets.some((target) => isSameTarget(notification.data, target))) {
+      notification.close();
+    }
   }
 }

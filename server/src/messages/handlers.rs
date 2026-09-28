@@ -1,11 +1,7 @@
 use super::{dto::*, gateway::BusEvent, service::MessagesService};
 use crate::{
-    common::{
-        extractors::TenantContext, name_generator::generate_user_name, path_params::IdPath,
-        permission::Permission,
-    },
+    common::{extractors::TenantContext, path_params::IdPath, permission::Permission},
     error::AppResult,
-    push::service::{GroupMessageNotice, PushService},
     reports::service::ReportsService,
     require_permission,
     state::AppState,
@@ -51,13 +47,6 @@ pub async fn create_message(
             },
         )
         .await;
-
-    PushService::from_state(&s).spawn_group_message(GroupMessageNotice {
-        group_id: tc.tenant_id,
-        sender_id: tc.user.user_id,
-        sender_name: &generate_user_name(&tc.user.user_id.to_string()),
-        content: &dto.content,
-    });
 
     Ok(Json(msg))
 }
