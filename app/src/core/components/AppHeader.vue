@@ -5,7 +5,6 @@ import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
-import AppLogo from '@/common/components/AppLogo.vue';
 import {
   ChevronDown,
   Plus,
@@ -144,10 +143,7 @@ onMounted(() => {
   <header
     class="sticky flex w-full justify-center items-center bg-canvas text-on-ghost border-b border-ghost-border font-display p-0 top-0 h-(--header-height) z-(--z-header)"
   >
-    <div class="relative h-full w-full flex items-center gap-4 px-4 max-w-325">
-      <router-link :to="logoLink" class="logo-group hidden! md:flex! shrink-0">
-        <AppLogo class="logo-img" aria-hidden="true" />
-      </router-link>
+    <div class="relative h-full w-full flex items-center gap-2 px-4 max-w-325">
       <router-link
         v-if="!(activeGroupId && groupName)"
         :to="logoLink"
@@ -162,7 +158,7 @@ onMounted(() => {
       >
         <button
           v-wave
-          class="relative flex items-center gap-2 cursor-pointer hover:bg-ghost-hover transition-hover rounded-full -m-1 p-1 min-w-0 touch-target after:min-w-12 after:min-h-12"
+          class="relative flex items-center gap-2 cursor-pointer hover:bg-ghost-hover transition-hover rounded-full p-1 min-w-0 touch-target after:min-w-12 after:min-h-12"
           @click="toggleGroupMenu"
         >
           <Avatar
@@ -276,26 +272,17 @@ onMounted(() => {
   transition: opacity 0.2s ease;
 }
 
-@media (max-width: 1000px) {
-  .logo-img {
-    height: 26px;
-  }
-  .logo-text {
-    font-size: var(--text-2xl);
-  }
-}
-
-@media (max-width: 386px) {
+@media (max-width: 384px) {
   .logo-text {
     font-size: var(--text-xl);
   }
 }
-@media (max-width: 356px) {
+@media (max-width: 352px) {
   .logo-text {
     font-size: var(--text-lg);
   }
 }
-@media (max-width: 332px) {
+@media (max-width: 320px) {
   .logo-text {
     font-size: var(--text-base);
   }

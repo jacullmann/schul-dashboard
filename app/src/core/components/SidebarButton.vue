@@ -48,27 +48,14 @@ withDefaults(
       </span>
 
       <span
-        v-if="label"
-        class="transition-[max-width,opacity,margin-left] text-sm/5 font-medium whitespace-nowrap overflow-hidden"
-        :class="[
-          expanded
-            ? 'max-w-40 opacity-100 ml-3 duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)]'
-            : 'max-w-0 opacity-0 ml-0 duration-150 ease-[cubic-bezier(0.32,0,0.67,1)]',
-          !icon ? 'ml-1!' : '',
-        ]"
+        v-if="label && expanded"
+        class="transition-[max-width,opacity,margin-left] text-sm/5 font-medium whitespace-nowrap overflow-hidden max-w-40 ml-3"
+        :class="!icon ? 'ml-1!' : ''"
       >
         {{ label }}
       </span>
 
-      <NotificationDot
-        v-if="unread"
-        class="transition-[max-width,opacity,margin-left]"
-        :class="
-          expanded
-            ? 'opacity-100 ml-2 duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)]'
-            : 'max-w-0 opacity-0 ml-0 duration-150 ease-[cubic-bezier(0.32,0,0.67,1)]'
-        "
-      />
+      <NotificationDot v-if="unread && expanded" class="ml-2" />
     </button>
   </BaseTooltip>
 </template>

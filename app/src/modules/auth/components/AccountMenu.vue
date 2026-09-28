@@ -71,14 +71,7 @@ const {
           @keydown.space.prevent="toggle"
         />
 
-        <span
-          class="flex flex-col gap-1 transition-[max-width,opacity,margin-left]"
-          :class="
-            expanded
-              ? 'max-w-44 opacity-100 ml-2 duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)]'
-              : 'max-w-0 opacity-0 ml-0 duration-150 ease-[cubic-bezier(0.32,0,0.67,1)]'
-          "
-        >
+        <span v-if="expanded" class="flex flex-col gap-1 max-w-44 ml-2">
           <span class="text-sm/4 font-medium text-on-ghost truncate">{{
             email
           }}</span>

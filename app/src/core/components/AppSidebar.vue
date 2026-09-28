@@ -175,15 +175,11 @@ onUnmounted(() => {
 
 <template>
   <aside
-    class="sidebar sticky top-0 flex flex-col justify-between shrink-0 overflow-hidden h-dvh p-2.5 bg-surface border-r border-ghost-border z-(--z-header) transition-[width]"
-    :class="
-      isExpanded
-        ? 'w-64 duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)]'
-        : 'w-[61px] duration-150 ease-[cubic-bezier(0.32,0,0.67,1)]'
-    "
+    class="sidebar sticky top-0 flex flex-col justify-between shrink-0 overflow-hidden h-dvh p-2.5 bg-surface border-r border-ghost-border z-(--z-header)"
+    :class="isExpanded ? 'w-64' : 'w-[61px]'"
   >
     <div class="flex flex-col gap-4 w-full flex-1 min-h-0">
-      <div class="flex flex-col w-full">
+      <div class="flex items-center gap-2">
         <SidebarButton
           :label="
             isExpanded
@@ -191,11 +187,15 @@ onUnmounted(() => {
               : t('common.sidebar.expand')
           "
           :shortcut="['ctrl', 'shift', 'd']"
-          :expanded="isExpanded"
+          :expanded="false"
           :icon="PanelLeft"
           :page="false"
           @click="toggleExpanded"
         />
+
+        <div v-if="isExpanded" class="text-xl font-bold whitespace-nowrap mb-1">
+          schul-dashboard
+        </div>
       </div>
 
       <div class="flex flex-col gap-0 w-full">
@@ -331,12 +331,7 @@ onUnmounted(() => {
             ></span>
             <Avatar :name="group.name" :picture="group.avatarUrl" :size="8" />
             <span
-              class="transition-[max-width,opacity,margin-left] text-sm/5 font-medium whitespace-nowrap overflow-hidden"
-              :class="
-                isExpanded
-                  ? 'max-w-40 opacity-100 ml-2 duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)]'
-                  : 'max-w-0 opacity-0 ml-0 duration-150 ease-[cubic-bezier(0.32,0,0.67,1)]'
-              "
+              class="text-sm/5 font-medium whitespace-nowrap overflow-hidden max-w-40 ml-2"
             >
               {{ group.name }}
             </span>

@@ -102,7 +102,7 @@
   --duration-focus: 200ms;
   --ease-focus: ease;
 
-  --header-height: 65px;
+  --header-height: 49px;
   --announcement-height: 0px;
 
   --z-below: -10;
@@ -162,7 +162,7 @@
 :root {
   --animate-pulse: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 
-  --header-height: 65px;
+  --header-height: 49px;
   --announcement-height: 0px;
   /* Space the fixed mobile tab bar covers at the bottom; AppTabBar measures it. */
   --tab-bar-height: 0px;
@@ -991,18 +991,6 @@ hr {
 .full-c {
   flex: 1;
   position: relative;
-}
-
-@media (max-width: 1000px) {
-  :root {
-    --header-height: 50px;
-  }
-}
-
-@media (max-width: 500px) {
-  :root {
-    --header-height: 50px;
-  }
 }
 
 @keyframes pulse {
