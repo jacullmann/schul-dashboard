@@ -21,7 +21,7 @@ pub struct AppState {
 }
 
 impl AppState {
-    pub fn new(db: PgPool, config: Config) -> anyhow::Result<Self> {
+    pub fn new(db: PgPool, config: Config) -> Self {
         let http = Client::builder()
             .timeout(std::time::Duration::from_secs(10))
             .user_agent("schul-dashboard-api/v2")
@@ -40,13 +40,19 @@ impl AppState {
             config.user_key_pepper.clone(),
         );
 
+        // Push is optional; a bad key disables it rather than the whole server.
         let web_push = config
             .vapid
             .as_ref()
-            .map(WebPush::from_config)
-            .transpose()?;
+            .and_then(|vapid| match WebPush::from_config(vapid) {
+                Ok(web_push) => Some(web_push),
+                Err(e) => {
+                    tracing::warn!("{e:#}; push notifications are disabled.");
+                    None
+                }
+            });
 
-        Ok(Self {
+        Self {
             db,
             config: Arc::new(config),
             http,
@@ -55,6 +61,6 @@ impl AppState {
             encryption,
             message_bus: MessageBus::default(),
             web_push,
-        })
+        }
     }
 }

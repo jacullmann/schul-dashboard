@@ -65,7 +65,7 @@ async fn main() -> anyhow::Result<()> {
 
     info!("Database connected and migrations applied.");
 
-    let state = AppState::new(db, config).context("Failed to initialise application state")?;
+    let state = AppState::new(db, config);
 
     if state.web_push.is_some() {
         let push = push::service::PushService::from_state(&state);
@@ -79,7 +79,7 @@ async fn main() -> anyhow::Result<()> {
             }
         });
     } else {
-        info!("VAPID_PRIVATE_KEY not set; push notifications are disabled.");
+        info!("Push notifications are disabled.");
     }
 
     let cors = CorsLayer::new()

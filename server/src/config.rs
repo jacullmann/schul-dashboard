@@ -89,7 +89,7 @@ impl Config {
                 .unwrap_or_else(|_| "schul-dashboard <noreply@schul-dashboard.com>".into()),
             geoip_service_url: std::env::var("GEOIP_SERVICE_URL")
                 .unwrap_or_else(|_| "http://geoip-service:8080".into()),
-            vapid: vapid_from_env()?,
+            vapid: vapid_from_env(),
         })
     }
 
@@ -107,23 +107,39 @@ pub struct BaseCookieOptions {
     pub secure: bool,
 }
 
-fn vapid_from_env() -> Result<Option<VapidConfig>> {
-    let Some(private_key) = std::env::var("VAPID_PRIVATE_KEY")
+/// Push is optional, so a misconfigured VAPID identity disables it instead of
+/// keeping the whole server from starting.
+fn vapid_from_env() -> Option<VapidConfig> {
+    let private_key = std::env::var("VAPID_PRIVATE_KEY")
         .ok()
-        .filter(|k| !k.is_empty())
+        .filter(|k| !k.is_empty())?;
+
+    let Some(subject) = std::env::var("VAPID_SUBJECT")
+        .ok()
+        .and_then(|s| normalize_vapid_subject(&s))
     else {
-        return Ok(None);
+        tracing::warn!(
+            "VAPID_SUBJECT must be a mailto: or https:// URI; push notifications are disabled."
+        );
+        return None;
     };
 
-    let subject = require("VAPID_SUBJECT")?;
-    if !subject.starts_with("mailto:") && !subject.starts_with("https://") {
-        anyhow::bail!("VAPID_SUBJECT must be a mailto: or https:// URI");
-    }
-
-    Ok(Some(VapidConfig {
+    Some(VapidConfig {
         private_key,
         subject,
-    }))
+    })
+}
+
+/// Accepts a bare contact address as shorthand for its `mailto:` URI.
+fn normalize_vapid_subject(raw: &str) -> Option<String> {
+    let subject = raw.trim();
+    if subject.starts_with("mailto:") || subject.starts_with("https://") {
+        Some(subject.to_owned())
+    } else if subject.contains('@') && !subject.contains(char::is_whitespace) {
+        Some(format!("mailto:{subject}"))
+    } else {
+        None
+    }
 }
 
 fn require(key: &str) -> Result<String> {
@@ -162,3 +178,26 @@ pub const REFRESH_COOKIE: &str = "refresh_token";
 pub const MFA_PENDING_COOKIE: &str = "mfa_pending_token";
 pub const CSRF_COOKIE: &str = "csrf_token";
 pub const CSRF_HEADER: &str = "x-csrf-token";
+
+#[cfg(test)]
+mod tests {
+    use super::normalize_vapid_subject;
+
+    #[test]
+    fn vapid_subject_accepts_uris_and_bare_addresses() {
+        assert_eq!(
+            normalize_vapid_subject(" mailto:admin@example.com\n").as_deref(),
+            Some("mailto:admin@example.com")
+        );
+        assert_eq!(
+            normalize_vapid_subject("https://example.com").as_deref(),
+            Some("https://example.com")
+        );
+        assert_eq!(
+            normalize_vapid_subject("admin@example.com").as_deref(),
+            Some("mailto:admin@example.com")
+        );
+        assert_eq!(normalize_vapid_subject(""), None);
+        assert_eq!(normalize_vapid_subject("http://example.com"), None);
+    }
+}
