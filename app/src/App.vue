@@ -84,7 +84,7 @@ onMounted(() => {
       :style="{ opacity: opacity }"
     >
       <div
-        class="progress-bar h-full relative transition-[width] duration-200 ease-out"
+        class="h-full relative bg-accent transition-[width] duration-200 ease-out"
         :style="{ width: progress + '%' }"
       ></div>
     </div>
@@ -108,9 +108,3 @@ onMounted(() => {
     </template>
   </div>
 </template>
-
-<style scoped>
-.progress-bar {
-  background: var(--background-image-bismuth);
-}
-</style>

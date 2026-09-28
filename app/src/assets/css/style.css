@@ -164,14 +164,6 @@
 }
 
 :root {
-  --background-image-bismuth: linear-gradient(
-    116deg,
-    var(--color-bismuth-yellow) 2.5%,
-    var(--color-bismuth-red) 39.5%,
-    var(--color-bismuth-purple) 77.2%,
-    var(--color-bismuth-violet) 115.2%
-  );
-
   --animate-pulse: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 
   --header-height: 65px;
