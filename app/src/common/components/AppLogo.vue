@@ -11,10 +11,16 @@
     <title>schul-dashboard Logo</title>
     <defs>
       <linearGradient id="linearGradientBismuthStops">
-        <stop style="stop-color: var(--color-bismuth-yellow)" offset="8.4%" />
-        <stop style="stop-color: var(--color-bismuth-red)" offset="38.4%" />
-        <stop style="stop-color: var(--color-bismuth-purple)" offset="69.1%" />
-        <stop style="stop-color: var(--color-bismuth-violet)" offset="100%" />
+        <stop style="stop-color: oklch(0.8003 0.1668 71.67)" offset="8.4%" />
+        <stop style="stop-color: oklch(0.6541 0.2345 17.07)" offset="38.4%" />
+        <stop
+          style="stop-color: oklch(0.5878 0.29968 308.4769)"
+          offset="69.1%"
+        />
+        <stop
+          style="stop-color: oklch(0.4898 0.295776 280.2478)"
+          offset="100%"
+        />
       </linearGradient>
       <linearGradient
         id="linearGradientBismuth"

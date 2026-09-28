@@ -28,10 +28,6 @@
   --color-yellow: oklch(0.7952 0.1617 86.05);
   --color-basil: oklch(0.68 0.2 145);
   --color-pistachio: oklch(0.82 0.18 145);
-  --color-bismuth-yellow: oklch(0.8003 0.1668 71.67);
-  --color-bismuth-red: oklch(0.6541 0.2345 17.07);
-  --color-bismuth-purple: oklch(0.5878 0.29968 308.4769);
-  --color-bismuth-violet: oklch(0.4898 0.295776 280.2478);
 
   --color-canvas: var(--color-white);
 
