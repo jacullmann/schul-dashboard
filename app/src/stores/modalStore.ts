@@ -276,10 +276,6 @@ export const useModalStore = defineStore('modals', () => {
     sidebarExpanded.value = !sidebarExpanded.value;
   }
 
-  function setSidebarExpanded(val: boolean) {
-    sidebarExpanded.value = val;
-  }
-
   function closeAllAccountModals() {
     showChangePassword.value = false;
     showSetup.value = false;
@@ -350,7 +346,6 @@ export const useModalStore = defineStore('modals', () => {
 
     sidebarExpanded,
     toggleSidebar,
-    setSidebarExpanded,
 
     confirmOpen,
     confirmOptions,

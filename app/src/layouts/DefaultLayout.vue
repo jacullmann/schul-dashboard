@@ -7,17 +7,19 @@ import Announcements from '../modules/announcements/components/Announcements.vue
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useUserStore } from '@/stores/userStore';
 import { storeToRefs } from 'pinia';
+import { useIsMobileViewport } from '@/common/composables/useViewport';
 
 const { activeGroupId } = useAppAuth();
 const userStore = useUserStore();
 const { user } = storeToRefs(userStore);
+const isMobile = useIsMobileViewport();
 
 useAppShortcuts();
 </script>
 
 <template>
   <div class="flex min-h-screen w-full">
-    <AppSidebar v-if="user" />
+    <AppSidebar v-if="user && !isMobile" />
 
     <div class="flex-1 min-w-0 flex flex-col bg-canvas">
       <AppHeader />

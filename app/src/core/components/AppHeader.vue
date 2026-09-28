@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { onClickOutside } from '@vueuse/core';
 import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
@@ -7,7 +7,6 @@ import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import AppLogo from '@/common/components/AppLogo.vue';
 import {
-  Menu,
   ChevronDown,
   Plus,
   LogOut,
@@ -46,12 +45,7 @@ const {
 const router = useRouter();
 
 const modalStore = useModalStore();
-const { sidebarExpanded: isExpanded } = storeToRefs(modalStore);
 const toast = useToast();
-
-function toggleExpanded() {
-  modalStore.toggleSidebar();
-}
 
 function onPersonalizationChanged(value: boolean) {
   userStore.updateUser({ personalized: value });
@@ -144,10 +138,6 @@ onMounted(() => {
     void userStore.fetchUser();
   }
 });
-
-onUnmounted(() => {
-  document.body.style.overflow = '';
-});
 </script>
 
 <template>
@@ -155,16 +145,6 @@ onUnmounted(() => {
     class="sticky flex w-full justify-center items-center bg-canvas text-on-ghost border-b border-ghost-border font-display p-0 top-0 h-(--header-height) z-(--z-header)"
   >
     <div class="relative h-full w-full flex items-center gap-4 px-4 max-w-325">
-      <BaseButton
-        class="md:hidden -ml-1 shrink-0"
-        variant="ghost"
-        on="ghost"
-        :aria-expanded="isExpanded"
-        :aria-label="t('common.header.toggle_navigation')"
-        :icon="Menu"
-        @click="toggleExpanded"
-      />
-
       <router-link :to="logoLink" class="logo-group hidden! !md:flex shrink-0">
         <AppLogo class="logo-img" aria-hidden="true" />
       </router-link>

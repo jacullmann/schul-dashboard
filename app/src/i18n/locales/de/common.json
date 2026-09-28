@@ -251,7 +251,6 @@
   "notifications": "Benachrichtigungen",
   "header": {
     "switch_group": "Gruppe wechseln",
-    "toggle_navigation": "Navigationsmenü umschalten",
     "leave_group": "Gruppe verlassen",
     "leave_group_confirm": {
       "title": "Gruppe verlassen?",
