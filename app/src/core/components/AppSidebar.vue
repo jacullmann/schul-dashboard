@@ -469,6 +469,7 @@ onUnmounted(() => {
         />
 
         <SidebarButton
+          v-if="!isMobile"
           :label="t('common.sidebar.search')"
           :shortcut="['ctrl', 'k']"
           :expanded="isExpanded"

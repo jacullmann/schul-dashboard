@@ -14,6 +14,7 @@ import {
   UserRoundPlus,
   Settings,
   ArrowLeftRight,
+  Search,
 } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import { useModalStore } from '@/stores/modalStore';
@@ -21,6 +22,7 @@ import Avatar from '@/modules/auth/components/Avatar.vue';
 import AccountMenu from '@/modules/auth/components/AccountMenu.vue';
 import { useLogout } from '@/core/composables/useLogout';
 import { useIsMobileViewport } from '@/common/composables/useViewport';
+import { useSearchModal } from '@/core/composables/useSearchModal';
 import { useToast } from '@/common/composables/useToast';
 import hw from '../../api/api';
 import { groupPath } from '@/api/groupPath';
@@ -30,6 +32,7 @@ const { user } = storeToRefs(userStore);
 const { t } = useI18n();
 const performLogout = useLogout();
 const isMobile = useIsMobileViewport();
+const { openSearch } = useSearchModal();
 
 const {
   groupName,
@@ -246,16 +249,27 @@ onUnmounted(() => {
         </BaseMenu>
       </div>
 
-      <AccountMenu
+      <div
         v-if="user && isMobile"
-        class="ml-auto shrink-0"
-        :email="user.email"
-        :user-data="user"
-        :expanded="false"
-        tooltip-placement="left"
-        @logout="performLogout"
-        @personalization-changed="onPersonalizationChanged"
-      />
+        class="ml-auto flex items-center gap-2 shrink-0"
+      >
+        <BaseButton
+          variant="ghost"
+          on="ghost"
+          :aria-label="t('common.sidebar.search')"
+          :icon="Search"
+          @click="openSearch"
+        />
+
+        <AccountMenu
+          :email="user.email"
+          :user-data="user"
+          :expanded="false"
+          tooltip-placement="left"
+          @logout="performLogout"
+          @personalization-changed="onPersonalizationChanged"
+        />
+      </div>
     </div>
   </header>
 </template>
