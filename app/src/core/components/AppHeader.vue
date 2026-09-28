@@ -204,10 +204,6 @@ onUnmounted(() => {
           class="top-full mt-1 left-0"
           @close="groupMenuOpen = false"
         >
-          <BaseMenuButton :icon="ArrowLeftRight" @click="openGroupsPage">
-            {{ t('common.header.switch_group') }}
-          </BaseMenuButton>
-
           <BaseMenuButton
             :icon="Plus"
             @click="
@@ -216,6 +212,10 @@ onUnmounted(() => {
             "
           >
             {{ t('common.sidebar.create') }}
+          </BaseMenuButton>
+
+          <BaseMenuButton :icon="ArrowLeftRight" @click="openGroupsPage">
+            {{ t('common.header.switch_group') }}
           </BaseMenuButton>
 
           <BaseMenuDivider />
