@@ -1,20 +1,7 @@
 <script setup lang="ts">
-import {
-  ref,
-  computed,
-  watch,
-  onMounted,
-  onUnmounted,
-  nextTick,
-  h,
-  defineComponent,
-  type VNode,
-} from 'vue';
-import { marked } from 'marked';
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
-import DOMPurify from 'dompurify';
-import BaseLink from '@/common/components/BaseLink.vue';
-import BaseTableWrapper from '@/common/components/BaseTableWrapper.vue';
+import { BULLET_MARKER } from '@/utils/bullets';
 
 const props = defineProps<{
   description: string;
@@ -46,108 +33,9 @@ const estimateHasOverflow = (text: string): boolean => {
 
 const hasOverflow = ref(estimateHasOverflow(props.description));
 
-const tokens = computed(() => {
-  if (!props.description) return [];
-  return marked.lexer(props.description);
-});
-
-// Recursive token mapping to VNodes
-function renderToken(token: any): VNode | string {
-  switch (token.type) {
-    case 'heading':
-      return h('p', {}, token.raw.replace(/\n+$/, ''));
-    case 'paragraph':
-      return h('p', {}, renderTokens(token.tokens));
-    case 'text':
-      return token.tokens
-        ? h('span', {}, renderTokens(token.tokens))
-        : token.text;
-    case 'strong':
-      return h('strong', {}, renderTokens(token.tokens));
-    case 'em':
-      return h('em', {}, renderTokens(token.tokens));
-    case 'codespan':
-      return token.raw;
-    case 'code':
-      return h('p', {}, token.raw.replace(/\n+$/, ''));
-    case 'blockquote':
-      return h('p', {}, token.raw.replace(/\n+$/, ''));
-    case 'list':
-      return h(token.ordered ? 'ol' : 'ul', {}, [
-        ...token.items.map((item: any) =>
-          h('li', {}, renderTokens(item.tokens)),
-        ),
-      ]);
-    case 'list_item':
-      return h('li', {}, renderTokens(token.tokens));
-    case 'link':
-      return h(BaseLink, { to: token.href }, () => renderTokens(token.tokens));
-    case 'br':
-      return h('br');
-    case 'space':
-      return '';
-    case 'escape':
-      return token.text;
-    case 'html':
-      return h('span', { innerHTML: DOMPurify.sanitize(token.text) });
-    case 'table': {
-      const headerRow = h(
-        'tr',
-        {},
-        token.header.map((cell: any, index: number) => {
-          const align = token.align[index];
-          return h(
-            'th',
-            { style: align ? { textAlign: align } : undefined },
-            renderTokens(cell.tokens),
-          );
-        }),
-      );
-      const bodyRows = token.rows.map((row: any[]) => {
-        return h(
-          'tr',
-          {},
-          row.map((cell: any, index: number) => {
-            const align = token.align[index];
-            return h(
-              'td',
-              { style: align ? { textAlign: align } : undefined },
-              renderTokens(cell.tokens),
-            );
-          }),
-        );
-      });
-      return h(BaseTableWrapper, { class: 'my-3!' }, () =>
-        h('table', {}, [h('thead', {}, [headerRow]), h('tbody', {}, bodyRows)]),
-      );
-    }
-
-    default:
-      return token.text || '';
-  }
-}
-
-function renderTokens(tokensList: any[] | undefined): (VNode | string)[] {
-  if (!tokensList) return [];
-  return tokensList.map(renderToken);
-}
-
-const MarkdownRenderer = defineComponent({
-  name: 'MarkdownRenderer',
-  props: {
-    tokens: {
-      type: Array,
-      required: true,
-    },
-    isExpanded: {
-      type: Boolean,
-      required: true,
-    },
-  },
-  setup(props) {
-    return () => renderTokens(props.tokens as any[]);
-  },
-});
+const displayText = computed(() =>
+  props.description.replace(BULLET_MARKER, '•'),
+);
 
 const contentHeight = ref(0);
 
@@ -208,12 +96,8 @@ watch(
       class="overflow-hidden transition-[max-height] duration-300 ease-[cubic-bezier(0.25,1,0.5,1)]"
       :style="containerStyle"
     >
-      <div
-        ref="contentRef"
-        class="description-content min-h-0 overflow-hidden whitespace-normal prose-custom [&_p]:mt-0! [&_p]:mb-2! [&_p]:text-on-ghost! [&_p]:whitespace-pre-wrap! [&_p:last-child]:mb-0! [&_ul]:mt-0! [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-2! [&_ol]:mt-0! [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-2! [&_li]:mb-1 [&_strong]:font-semibold [&_strong]:text-on-ghost [&_a]:text-primary [&_a]:underline [&_code]:bg-surface-elevated [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs [&_pre]:mt-0! [&_pre]:bg-surface-elevated [&_pre]:p-2 [&_pre]:rounded [&_pre]:overflow-x-auto [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_h1]:mt-0! [&_h1]:text-xl [&_h1]:font-bold [&_h1]:mb-2 [&_h2]:mt-0! [&_h2]:text-lg [&_h2]:font-bold [&_h2]:mb-2 [&_h3]:mt-0! [&_h3]:text-base [&_h3]:font-bold [&_h3]:mb-1 [&_blockquote]:border-l-4 [&_blockquote]:border-ghost-border [&_blockquote]:pl-3 [&_blockquote]:italic [&_blockquote]:my-2 [&_>_*:first-child]:mt-0! [&_>_*:last-child]:mb-0! inline-block w-full align-top"
-      >
-        <MarkdownRenderer :tokens="tokens" :is-expanded="isExpanded" />
-      </div>
+      <!-- prettier-ignore -->
+      <div ref="contentRef" class="whitespace-pre-wrap break-words text-on-ghost">{{ displayText }}</div>
     </div>
 
     <!-- Fade-out overlay when collapsed and overflowing -->
