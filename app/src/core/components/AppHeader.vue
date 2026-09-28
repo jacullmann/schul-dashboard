@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { onClickOutside } from '@vueuse/core';
+  import { onClickOutside, useWindowScroll } from '@vueuse/core';
 import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/userStore';
@@ -31,6 +31,8 @@ const { t } = useI18n();
 const performLogout = useLogout();
 const isMobile = useIsMobileViewport();
 const { openSearch } = useSearchModal();
+const { y: scrollY } = useWindowScroll();
+const isScrolled = computed(() => scrollY.value > 0);
 
 const {
   groupName,
@@ -141,8 +143,15 @@ onMounted(() => {
 
 <template>
   <header
-    class="sticky flex w-full justify-center items-center bg-canvas text-on-ghost border-b border-ghost-border font-display p-0 top-0 h-(--header-height) z-(--z-header)"
+    class="sticky flex w-full justify-center items-center overflow-x-clip text-on-ghost font-display p-0 top-0 h-(--header-height) z-(--z-header)"
   >
+    <!-- Stays within the header, so it never covers the announcement bar
+         docked below. The x-clip trims the fade's sideways bleed, which would
+         otherwise paint over the sidebar's border and widen the page. Only
+         shown once scrolled, sparing the backdrop filters when there is
+         nothing underneath. -->
+    <BaseScrollFade v-show="isScrolled" class="inset-0 -bottom-4" />
+
     <div class="relative h-full w-full flex items-center gap-2 px-4 max-w-325">
       <router-link
         v-if="!(activeGroupId && groupName)"
