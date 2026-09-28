@@ -7,6 +7,7 @@ import { ArrowLeft, Shield, UserRound } from '@lucide/vue';
 import { useUserStore } from '@/stores/userStore';
 import { useModalStore } from '@/stores/modalStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
+import { useReturnRoute } from '@/common/composables/useReturnRoute';
 import AccountSettingsSecurity from '@/modules/auth/components/AccountSettingsSecurity.vue';
 import AccountSettingsAccount from '@/modules/auth/components/AccountSettingsAccount.vue';
 
@@ -23,6 +24,7 @@ const { t } = useI18n();
 const { user } = storeToRefs(useUserStore());
 const modalStore = useModalStore();
 const { homeRoute } = useAppAuth();
+const { leave: leaveSettings } = useReturnRoute(homeRoute);
 
 const navItems = computed<AccountNavItem[]>(() => [
   {
@@ -80,10 +82,6 @@ function selectTab(id: string) {
 function goBack() {
   transitionDirection.value = 'backward';
   activeTab.value = '';
-}
-
-function leaveSettings() {
-  void router.push(homeRoute.value);
 }
 </script>
 

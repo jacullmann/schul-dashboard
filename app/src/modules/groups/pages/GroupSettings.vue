@@ -17,6 +17,7 @@ import { useGroupAdmin } from '@/modules/groups/composables/useGroupAdmin';
 import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useGroupSettingsAccess } from '@/modules/groups/composables/useGroupSettingsAccess';
+import { useReturnRoute } from '@/common/composables/useReturnRoute';
 import { type AdminNavItem } from '@/layouts/AdminLayout.vue';
 
 import GroupSettingsOverview from '@/modules/groups/components/GroupSettingsOverview.vue';
@@ -78,6 +79,11 @@ const {
   loadInvites,
   revokeInvite,
 } = useGroupAdmin();
+
+const { leave: leaveSettings } = useReturnRoute(() => ({
+  name: 'group-dashboard',
+  params: { groupId: groupId.value },
+}));
 
 const activeTab = computed<string>({
   get() {
@@ -217,13 +223,6 @@ function goBack() {
   } else {
     activeTab.value = '';
   }
-}
-
-function leaveSettings() {
-  void router.push({
-    name: 'group-dashboard',
-    params: { groupId: groupId.value },
-  });
 }
 </script>
 
