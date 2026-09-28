@@ -72,8 +72,8 @@ const HANDOVER = 0.28;
 // the tail of the close covers very little distance, so a crossfade there
 // would play out in plain sight next to a nearly still frame.
 const CLOSE_HANDOVER = 0.18;
-// The grid tiles are rounded-md, the viewer frame is rounded-xl.
-const THUMB_RADIUS = 8;
+// The grid tiles are rounded-sm, the viewer frame is rounded-xl.
+const THUMB_RADIUS = 4;
 const FRAME_RADIUS = 16;
 // BaseBackdrop defaults: bg-black/40 with backdrop-blur-md.
 const DIM_ALPHA = 0.4;
@@ -668,6 +668,33 @@ function onActivity() {
   showControls();
 }
 
+// The tile of the image on show steps out while the viewer is up, so the
+// picture is never on screen twice. The viewer's own thumbnail lands back on
+// it at the end of the close, which is when it steps back in.
+let hiddenTile: HTMLElement | null = null;
+
+function hideTile(index: number) {
+  const el = props.origin?.(index) ?? null;
+  if (el === hiddenTile) return;
+  revealTile(releaseTile());
+  if (!el) return;
+  el.style.visibility = 'hidden';
+  hiddenTile = el;
+}
+
+// Hands the hidden tile over to the caller, so a close can reveal it once it
+// has landed, even if a reopen has hidden another tile in the meantime.
+function releaseTile() {
+  const el = hiddenTile;
+  hiddenTile = null;
+  return el;
+}
+
+function revealTile(el: HTMLElement | null) {
+  // A reopen onto the same image has hidden it again already.
+  if (el && el !== hiddenTile) el.style.visibility = '';
+}
+
 function prefersReducedMotion() {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
@@ -969,9 +996,8 @@ async function onEnter(el: Element, done: () => void) {
     animations.push(parts.controls.animate(controlsKeyframes(), options));
   }
 
-  // The tile stays where it is the whole time: what grows out of it is the
-  // viewer's own copy of the picture, and it lands back on the tile at the
-  // end of the close.
+  // What grows out of the tile is the viewer's own copy of the picture, and
+  // it lands back on the tile at the end of the close.
   zooming = true;
 
   settle(animations, () => {
@@ -1007,6 +1033,12 @@ function onLeave(el: Element, done: () => void) {
 
   if (hideTimeout) clearTimeout(hideTimeout);
 
+  const hidden = releaseTile();
+  const finish = () => {
+    revealTile(hidden);
+    done();
+  };
+
   const stage = backdrop.querySelector<HTMLElement>('[data-viewer-stage]');
   freezeAt(stage);
   freezeAt(backdrop.querySelector<HTMLElement>('[data-viewer-track]'));
@@ -1038,7 +1070,7 @@ function onLeave(el: Element, done: () => void) {
           fill: 'forwards',
         }),
       ],
-      done,
+      finish,
     );
     return;
   }
@@ -1104,7 +1136,7 @@ function onLeave(el: Element, done: () => void) {
     );
   }
 
-  settle(animations, done);
+  settle(animations, finish);
 }
 
 function onFullLoad(event: Event, index: number) {
@@ -1146,6 +1178,7 @@ watch(
       // The controls arrive with the frame, driven by the open animation, so
       // they are up from the first render and start out transparent.
       controlsVisible.value = true;
+      hideTile(currentIndex.value);
       document.body.style.overflow = 'hidden';
       void nextTick(() => focusOverlay());
     } else {
@@ -1154,7 +1187,12 @@ watch(
   },
 );
 
+watch(currentIndex, (index) => {
+  if (props.visible) hideTile(index);
+});
+
 onBeforeUnmount(() => {
+  revealTile(releaseTile());
   if (hideTimeout) clearTimeout(hideTimeout);
   clearSettleTimer();
   clearDismissTimer();
