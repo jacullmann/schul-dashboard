@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "WITH dismissed AS (\n                   UPDATE users\n                   SET preferences = jsonb_set(\n                       preferences,\n                       '{dismissedNotices}',\n                       COALESCE(preferences->'dismissedNotices', '[]'::jsonb) || to_jsonb($2::text)\n                   )\n                   WHERE id = $1\n                     AND NOT COALESCE(preferences->'dismissedNotices', '[]'::jsonb) ? $2\n                   RETURNING id\n               )\n               INSERT INTO user_activity (user_id, type, meta)\n               SELECT id, 'profile:notice:dismiss', $3 FROM dismissed",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Jsonb"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "ac488f83c7d1cd0cb433a34d02a75f4ab747fde721c8c2504823ac4fcf641859"
+}

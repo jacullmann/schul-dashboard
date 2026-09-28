@@ -1,3 +1,4 @@
+use super::dto::DismissibleNotice;
 use crate::{
     error::{AppError, AppResult},
     state::AppState,
@@ -76,6 +77,38 @@ impl UserService {
         ).execute(&self.db).await?;
 
         Ok(json!({ "ok": true, "preferences": merged }))
+    }
+
+    pub async fn dismiss_notice(
+        &self,
+        user_id: Uuid,
+        notice: DismissibleNotice,
+    ) -> AppResult<Value> {
+        // Appending inside a single statement keeps concurrent dismissals from
+        // overwriting each other, and repeats neither duplicate the entry nor
+        // log activity again.
+        sqlx::query!(
+            r#"WITH dismissed AS (
+                   UPDATE users
+                   SET preferences = jsonb_set(
+                       preferences,
+                       '{dismissedNotices}',
+                       COALESCE(preferences->'dismissedNotices', '[]'::jsonb) || to_jsonb($2::text)
+                   )
+                   WHERE id = $1
+                     AND NOT COALESCE(preferences->'dismissedNotices', '[]'::jsonb) ? $2
+                   RETURNING id
+               )
+               INSERT INTO user_activity (user_id, type, meta)
+               SELECT id, 'profile:notice:dismiss', $3 FROM dismissed"#,
+            user_id,
+            notice.as_str(),
+            json!({ "notice": notice.as_str() })
+        )
+        .execute(&self.db)
+        .await?;
+
+        Ok(json!({ "ok": true }))
     }
 
     pub async fn update_setup(

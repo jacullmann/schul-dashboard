@@ -2,6 +2,7 @@
 import { ref, computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useIsPhoneViewport } from '@/common/composables/useViewport';
+import { useDismissibleNotice } from '@/common/composables/useDismissibleNotice';
 import { useSchedule } from '@/modules/schedule/composables/useSchedule';
 import { useScheduleDayPager } from '@/modules/schedule/composables/useScheduleDayPager';
 import type {
@@ -201,8 +202,11 @@ const phonePanelOf = (day: number) => {
   };
 };
 
+const personalizedNotice = useDismissibleNotice('personalizedSchedule');
+
 const showPersonalizedNotice = computed(
   () =>
+    !personalizedNotice.isDismissed.value &&
     !!isPersonalized.value &&
     hiddenLessonCount.value > 0 &&
     !loadingLessons.value,
@@ -230,7 +234,10 @@ const skeletonCells = computed(() => {
       :is-personalized="!!isPersonalized"
     />
 
-    <PersonalizedViewNotice :show="showPersonalizedNotice" />
+    <PersonalizedViewNotice
+      :show="showPersonalizedNotice"
+      @dismiss="personalizedNotice.dismiss"
+    />
 
     <ScheduleDayTrack
       v-if="isPhone"

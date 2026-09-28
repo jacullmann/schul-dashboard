@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useWindowSize } from '@vueuse/core';
 import { useIsMobileViewport } from '@/common/composables/useViewport';
+import { useDismissibleNotice } from '@/common/composables/useDismissibleNotice';
 import { Plus, ListFilter } from '@lucide/vue';
 
 import { useTasks } from '@/modules/tasks/composables/useTasks';
@@ -130,9 +131,14 @@ const hasActiveFilters = computed(
   () => subjectFilter.value !== '' || showOldEntries.value || hideChecked.value,
 );
 
+const personalizedNotice = useDismissibleNotice('personalizedTasks');
+
 const showPersonalizedNotice = computed(
   () =>
-    showPersonalized.value && hiddenByCourses.value > 0 && !initialLoad.value,
+    !personalizedNotice.isDismissed.value &&
+    showPersonalized.value &&
+    hiddenByCourses.value > 0 &&
+    !initialLoad.value,
 );
 
 const { openTaskForm } = useTaskForm();
@@ -318,6 +324,7 @@ function handleEmptyStateAnimationEnd(event: AnimationEvent) {
     <PersonalizedViewNotice
       :show="showPersonalizedNotice"
       class="mt-4 max-w-192 mx-auto"
+      @dismiss="personalizedNotice.dismiss"
     />
 
     <!-- Tightens in step with the notice opening above it. -->

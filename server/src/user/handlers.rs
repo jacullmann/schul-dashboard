@@ -40,6 +40,18 @@ pub async fn update_preferences(
     ))
 }
 
+pub async fn dismiss_notice(
+    State(s): State<AppState>,
+    user: AuthUser,
+    Path(NoticePath { notice }): Path<NoticePath>,
+) -> AppResult<Json<Value>> {
+    Ok(Json(
+        UserService::from_state(&s)
+            .dismiss_notice(user.user_id, notice)
+            .await?,
+    ))
+}
+
 pub async fn update_setup(
     State(s): State<AppState>,
     tc: TenantContext,

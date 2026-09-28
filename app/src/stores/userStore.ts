@@ -4,6 +4,14 @@ import hw from '@/api/api.ts';
 import { usePreferences } from '@/common/composables/usePreferences';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 
+export type DismissibleNotice = 'personalizedTasks' | 'personalizedSchedule';
+
+export interface UserPreferences {
+  theme?: string;
+  language?: string;
+  dismissedNotices?: DismissibleNotice[];
+}
+
 export interface UserData {
   id: string;
   email: string;
@@ -13,7 +21,7 @@ export interface UserData {
   doneSetup: boolean;
   personalized: boolean;
   mfaEnabled: boolean;
-  preferences?: Record<string, any>;
+  preferences?: UserPreferences;
   username: string;
 }
 
@@ -105,6 +113,21 @@ export const useUserStore = defineStore('user', () => {
       user.value.mfaEnabled = enabled;
     }
   }
+
+  function isNoticeDismissed(notice: DismissibleNotice): boolean {
+    return user.value?.preferences?.dismissedNotices?.includes(notice) ?? false;
+  }
+
+  function markNoticeDismissed(notice: DismissibleNotice): void {
+    if (!user.value || isNoticeDismissed(notice)) return;
+
+    const preferences = user.value.preferences ?? {};
+    user.value.preferences = {
+      ...preferences,
+      dismissedNotices: [...(preferences.dismissedNotices ?? []), notice],
+    };
+  }
+
   return {
     user,
     loading,
@@ -120,6 +143,8 @@ export const useUserStore = defineStore('user', () => {
     updateUser,
     markSetupShown,
     setMfaEnabled,
+    isNoticeDismissed,
+    markNoticeDismissed,
     isGroupAdmin,
   };
 });

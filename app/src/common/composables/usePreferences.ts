@@ -1,7 +1,7 @@
 import { computed } from 'vue';
 import hw from '@/api/api.ts';
 import { useTheme, type ThemeMode } from '@/common/composables/useTheme';
-import { useUserStore } from '@/stores/userStore';
+import { useUserStore, type UserPreferences } from '@/stores/userStore';
 import i18n, { type SupportedLocale, LOCALE_KEY } from '@/i18n';
 
 type PreferenceKey = 'theme' | 'language';
@@ -34,7 +34,7 @@ export function usePreferences() {
     });
   }
 
-  function syncFromBackend(preferences: Record<string, any>): boolean {
+  function syncFromBackend(preferences: UserPreferences): boolean {
     if (!preferences) return false;
 
     let hasChanges = false;

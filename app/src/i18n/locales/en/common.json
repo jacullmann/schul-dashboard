@@ -271,7 +271,8 @@
   },
   "personalized_view": {
     "notice": "Displaying your courses only.",
-    "edit_courses": "Edit my courses"
+    "edit_courses": "Edit my courses",
+    "dismiss": "Hide notice"
   },
   "preview": "Preview",
   "image": "Image",

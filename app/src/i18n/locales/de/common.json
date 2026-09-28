@@ -271,7 +271,8 @@
   },
   "personalized_view": {
     "notice": "Nur deine Kurse angezeigt.",
-    "edit_courses": "Meine Kurse bearbeiten"
+    "edit_courses": "Meine Kurse bearbeiten",
+    "dismiss": "Hinweis ausblenden"
   },
   "preview": "Vorschau",
   "image": "Bild",

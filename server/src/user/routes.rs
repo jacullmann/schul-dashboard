@@ -2,13 +2,14 @@ use super::handlers::*;
 use crate::state::AppState;
 use axum::{
     Router,
-    routing::{get, patch, post},
+    routing::{get, patch, post, put},
 };
 
 pub fn router() -> Router<AppState> {
     Router::new()
         .route("/user/personalization", patch(update_personalization))
         .route("/user/preferences", patch(update_preferences))
+        .route("/user/dismissed-notices/{notice}", put(dismiss_notice))
         .route("/user/checks", get(get_checks))
         .route("/user/pins", get(get_pins))
         .route("/user/visibility", get(get_visibility))
