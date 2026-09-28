@@ -22,8 +22,9 @@ const props = withDefaults(
 
 const { t } = useI18n();
 
-const { handlers } = useLongPress((event) =>
-  emit('contextmenu', props.lesson, event),
+const { handlers } = useLongPress(
+  (event) => emit('contextmenu', props.lesson, event),
+  { grow: '.js-lesson-card' },
 );
 
 function onClick(event: MouseEvent) {
