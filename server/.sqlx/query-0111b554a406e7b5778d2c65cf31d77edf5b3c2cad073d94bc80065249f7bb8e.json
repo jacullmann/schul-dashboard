@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT s.day, s.slot, s.course_id, s.is_dalton,\n                      sub.name AS \"subject?\", g.name AS group_name\n               FROM schedules s\n               JOIN groups g ON g.id = s.tenant_id\n               LEFT JOIN subjects sub ON sub.id = s.subject_id\n               WHERE s.id = $1 AND s.tenant_id = $2",
+  "query": "SELECT s.day, s.slot, s.is_dalton,\n                      COALESCE($3, s.course_id) AS \"course_id?: Uuid\",\n                      sub.name AS \"subject?\", c.name AS \"course?\",\n                      g.name AS group_name\n               FROM schedules s\n               JOIN groups g ON g.id = s.tenant_id\n               LEFT JOIN subjects sub ON sub.id = s.subject_id\n               LEFT JOIN courses c\n                      ON c.id = COALESCE($3, s.course_id) AND c.tenant_id = s.tenant_id\n               WHERE s.id = $1 AND s.tenant_id = $2",
   "describe": {
     "columns": [
       {
@@ -27,17 +27,6 @@
       },
       {
         "ordinal": 2,
-        "name": "course_id",
-        "type_info": "Uuid",
-        "origin": {
-          "Table": {
-            "table": "schedules",
-            "name": "course_id"
-          }
-        }
-      },
-      {
-        "ordinal": 3,
         "name": "is_dalton",
         "type_info": "Bool",
         "origin": {
@@ -46,6 +35,12 @@
             "name": "is_dalton"
           }
         }
+      },
+      {
+        "ordinal": 3,
+        "name": "course_id?: Uuid",
+        "type_info": "Uuid",
+        "origin": "Expression"
       },
       {
         "ordinal": 4,
@@ -60,6 +55,17 @@
       },
       {
         "ordinal": 5,
+        "name": "course?",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "courses",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
         "name": "group_name",
         "type_info": "Text",
         "origin": {
@@ -73,17 +79,19 @@
     "parameters": {
       "Left": [
         "Uuid",
+        "Uuid",
         "Uuid"
       ]
     },
     "nullable": [
       false,
       false,
-      true,
       false,
+      null,
+      true,
       true,
       false
     ]
   },
-  "hash": "4ce8a6695da6c5d9f737ece7e07f5b185c955b0e65e010cbe3a1458655f5cd08"
+  "hash": "0111b554a406e7b5778d2c65cf31d77edf5b3c2cad073d94bc80065249f7bb8e"
 }

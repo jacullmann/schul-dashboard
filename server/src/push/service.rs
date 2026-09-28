@@ -176,8 +176,8 @@ impl PushService {
         let body = content::announcement_body(&notice.content);
         let timestamp = chrono::Utc::now().timestamp_millis();
 
-        self.deliver(recipients, Urgency::Normal, |locale| PushPayload {
-            title: content::announcement_title(locale, &group_name),
+        self.deliver(recipients, Urgency::Normal, |_| PushPayload {
+            title: group_name.clone(),
             body: body.clone(),
             tag: None,
             timestamp,
@@ -189,15 +189,21 @@ impl PushService {
     }
 
     async fn notify_schedule_change(&self, notice: ScheduleChangeNotice) -> AppResult<()> {
+        // The change's own course names the lesson over the one it is scheduled for.
         let Some(lesson) = sqlx::query!(
-            r#"SELECT s.day, s.slot, s.course_id, s.is_dalton,
-                      sub.name AS "subject?", g.name AS group_name
+            r#"SELECT s.day, s.slot, s.is_dalton,
+                      COALESCE($3, s.course_id) AS "course_id?: Uuid",
+                      sub.name AS "subject?", c.name AS "course?",
+                      g.name AS group_name
                FROM schedules s
                JOIN groups g ON g.id = s.tenant_id
                LEFT JOIN subjects sub ON sub.id = s.subject_id
+               LEFT JOIN courses c
+                      ON c.id = COALESCE($3, s.course_id) AND c.tenant_id = s.tenant_id
                WHERE s.id = $1 AND s.tenant_id = $2"#,
             notice.lesson_id,
-            notice.group_id
+            notice.group_id,
+            notice.course_id,
         )
         .fetch_optional(&self.db)
         .await?
@@ -205,12 +211,12 @@ impl PushService {
             return Ok(());
         };
 
-        let course_id = notice.course_id.or(lesson.course_id);
         let recipients = self
-            .recipients(notice.group_id, notice.author_id, course_id)
+            .recipients(notice.group_id, notice.author_id, lesson.course_id)
             .await?;
         let timetable_lesson = content::Lesson {
             subject: lesson.subject.as_deref(),
+            course: lesson.course.as_deref(),
             is_dalton: lesson.is_dalton,
             day: lesson.day,
             slot: lesson.slot,
@@ -219,7 +225,7 @@ impl PushService {
 
         // A cancelled first lesson matters before the phone's next routine sync.
         self.deliver(recipients, Urgency::High, |locale| PushPayload {
-            title: content::schedule_change_title(locale, &lesson.group_name),
+            title: lesson.group_name.clone(),
             body: content::schedule_change_body(locale, &timetable_lesson, &notice.change),
             // Correcting a change replaces its notification.
             tag: Some(format!("schedule-change:{}", notice.lesson_id)),
@@ -343,8 +349,8 @@ mod tests {
     fn payload_matches_the_service_worker_contract() {
         let group_id = Uuid::nil();
         let payload = PushPayload {
-            title: "Schedule change · 10b".into(),
-            body: "Mathe, Monday period 3: cancelled".into(),
+            title: "10b".into(),
+            body: "Math, Monday period 3: cancelled".into(),
             tag: Some("schedule-change:x".into()),
             timestamp: 1,
             target: PushTarget::GroupSchedule { group_id },
@@ -352,8 +358,8 @@ mod tests {
         assert_eq!(
             serde_json::to_value(&payload).unwrap(),
             serde_json::json!({
-                "title": "Schedule change · 10b",
-                "body": "Mathe, Monday period 3: cancelled",
+                "title": "10b",
+                "body": "Math, Monday period 3: cancelled",
                 "tag": "schedule-change:x",
                 "timestamp": 1,
                 "target": { "type": "groupSchedule", "groupId": group_id },

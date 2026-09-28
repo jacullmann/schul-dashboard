@@ -47,9 +47,11 @@ impl Locale {
 }
 
 /// A timetable lesson, by the numbering the schedule uses: Monday = 1, first
-/// lesson = 1.
+/// lesson = 1. `subject` and `course` are the stored names, which double as
+/// translation keys where the app has one.
 pub struct Lesson<'a> {
     pub subject: Option<&'a str>,
+    pub course: Option<&'a str>,
     pub is_dalton: bool,
     pub day: i32,
     pub slot: i32,
@@ -66,22 +68,8 @@ pub struct ScheduleChange {
     pub room: Option<String>,
 }
 
-pub fn announcement_title(locale: Locale, group: &str) -> String {
-    match locale {
-        Locale::De => format!("Neue Ankündigung · {group}"),
-        Locale::En => format!("New announcement · {group}"),
-    }
-}
-
 pub fn announcement_body(content: &str) -> String {
     truncate_chars(content.trim(), MAX_BODY_CHARS)
-}
-
-pub fn schedule_change_title(locale: Locale, group: &str) -> String {
-    match locale {
-        Locale::De => format!("Stundenplanänderung · {group}"),
-        Locale::En => format!("Schedule change · {group}"),
-    }
 }
 
 /// E.g. "Mathe, Montag 3. Stunde: entfällt".
@@ -99,12 +87,84 @@ pub fn schedule_change_body(
     truncate_chars(&body, MAX_BODY_CHARS)
 }
 
-fn lesson_name<'a>(locale: Locale, lesson: &Lesson<'a>) -> &'a str {
-    match (lesson.subject, lesson.is_dalton, locale) {
-        (Some(subject), _, _) => subject,
-        (None, true, _) => "Dalton",
-        (None, false, Locale::De) => "Unterricht",
-        (None, false, Locale::En) => "Lesson",
+/// Mirrors how the timetable names a lesson (`getDisplayName` in the app).
+fn lesson_name(locale: Locale, lesson: &Lesson<'_>) -> String {
+    if lesson.is_dalton {
+        return "Dalton".to_owned();
+    }
+    let Some(subject) = lesson.subject.filter(|s| !s.is_empty()) else {
+        return match locale {
+            Locale::De => "Unterricht",
+            Locale::En => "Lesson",
+        }
+        .to_owned();
+    };
+
+    let wpu_number = [(1, "wpu1"), (2, "wpu2")]
+        .into_iter()
+        .find_map(|(number, key)| subject.eq_ignore_ascii_case(key).then_some(number));
+    if let Some(number) = wpu_number {
+        return match lesson.course.filter(|c| !c.is_empty()) {
+            Some(course) => format!("WPU {}", translate_subject(locale, course)),
+            None => format!("WPU {number}"),
+        };
+    }
+
+    translate_subject(locale, subject).to_owned()
+}
+
+/// The app's `common.subjects.*` translations; other names are shown as stored.
+fn translate_subject(locale: Locale, name: &str) -> &str {
+    match (locale, name) {
+        (Locale::De, "art") => "Kunst",
+        (Locale::De, "biology") => "Biologie",
+        (Locale::De, "chemistry") => "Chemie",
+        (Locale::De, "homeroom") => "Klassenstunde",
+        (Locale::De, "cs") => "Informatik",
+        (Locale::De, "english") => "Englisch",
+        (Locale::De, "ethics") => "Ethik",
+        (Locale::De, "french") => "Französisch",
+        (Locale::De, "geography") => "Erdkunde",
+        (Locale::De, "german") => "Deutsch",
+        (Locale::De, "history") => "Geschichte",
+        (Locale::De, "latin") => "Latein",
+        (Locale::De, "math") => "Mathe",
+        (Locale::De, "music") => "Musik",
+        (Locale::De, "pe") => "Sport",
+        (Locale::De, "philosophy") => "Philosophie",
+        (Locale::De, "physics") => "Physik",
+        (Locale::De, "politics") => "Politik",
+        (Locale::De, "wpu") => "WPU",
+        (Locale::De, "wpu1") => "WPU 1",
+        (Locale::De, "wpu2") => "WPU 2",
+        (Locale::De, "wpu3") => "WPU 3",
+        (Locale::En, "art") => "Art",
+        (Locale::En, "biology") => "Biology",
+        (Locale::En, "chemistry") => "Chemistry",
+        (Locale::En, "homeroom") => "Homeroom",
+        (Locale::En, "cs") => "Computer Science",
+        (Locale::En, "english") => "English",
+        (Locale::En, "ethics") => "Ethics",
+        (Locale::En, "french") => "French",
+        (Locale::En, "geography") => "Geography",
+        (Locale::En, "german") => "German",
+        (Locale::En, "history") => "History",
+        (Locale::En, "latin") => "Latin",
+        (Locale::En, "math") => "Math",
+        (Locale::En, "music") => "Music",
+        (Locale::En, "pe") => "PE",
+        (Locale::En, "philosophy") => "Philosophy",
+        (Locale::En, "physics") => "Physics",
+        (Locale::En, "politics") => "Politics",
+        (Locale::En, "wpu") => "Elective",
+        (Locale::En, "wpu1") => "Elective 1",
+        (Locale::En, "wpu2") => "Elective 2",
+        (Locale::En, "wpu3") => "Elective 3",
+        (_, "dalton") => "Dalton",
+        (_, "enrichment") => "Enrichment",
+        (_, "religion") => "Religion",
+        (_, "theater") => "Theater",
+        _ => name,
     }
 }
 
@@ -173,7 +233,8 @@ mod tests {
     use super::*;
 
     const MATHS: Lesson<'static> = Lesson {
-        subject: Some("Mathe"),
+        subject: Some("math"),
+        course: None,
         is_dalton: false,
         day: 1,
         slot: 3,
@@ -192,7 +253,7 @@ mod tests {
         );
         assert_eq!(
             schedule_change_body(Locale::En, &MATHS, &change),
-            "Mathe, Monday period 3: cancelled"
+            "Math, Monday period 3: cancelled"
         );
     }
 
@@ -220,7 +281,7 @@ mod tests {
         };
         assert_eq!(
             schedule_change_body(Locale::En, &MATHS, &change),
-            "Mathe, Monday period 3: changed"
+            "Math, Monday period 3: changed"
         );
     }
 
@@ -238,6 +299,45 @@ mod tests {
         assert_eq!(
             schedule_change_body(Locale::De, &dalton, &change),
             "Dalton, Montag 3. Stunde: Raum Aula"
+        );
+    }
+
+    #[test]
+    fn names_subjects_as_the_timetable_does() {
+        let name = |locale, subject, course| {
+            lesson_name(
+                locale,
+                &Lesson {
+                    subject,
+                    course,
+                    ..MATHS
+                },
+            )
+        };
+        assert_eq!(name(Locale::De, Some("german"), None), "Deutsch");
+        assert_eq!(name(Locale::En, Some("pe"), None), "PE");
+        assert_eq!(name(Locale::De, Some("Astronomie"), None), "Astronomie");
+        assert_eq!(
+            name(Locale::En, Some("WPU1"), Some("cs")),
+            "WPU Computer Science"
+        );
+        assert_eq!(
+            name(Locale::De, Some("wpu2"), Some("Robotik")),
+            "WPU Robotik"
+        );
+        assert_eq!(name(Locale::En, Some("wpu2"), None), "WPU 2");
+        assert_eq!(name(Locale::En, None, None), "Lesson");
+    }
+
+    #[test]
+    fn keeps_the_substitute_subject_as_entered() {
+        let change = ScheduleChange {
+            subject: Some("german".into()),
+            ..Default::default()
+        };
+        assert_eq!(
+            schedule_change_body(Locale::De, &MATHS, &change),
+            "Mathe, Montag 3. Stunde: Vertretung german"
         );
     }
 
