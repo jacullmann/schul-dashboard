@@ -2,6 +2,7 @@ use crate::{
     common::{email::EmailService, encryption::EncryptionService, jwt::JwtService},
     config::Config,
     messages::gateway::MessageBus,
+    push::sender::WebPush,
 };
 use reqwest::Client;
 use sqlx::PgPool;
@@ -16,10 +17,11 @@ pub struct AppState {
     pub email: EmailService,
     pub encryption: EncryptionService,
     pub message_bus: MessageBus,
+    pub web_push: Option<WebPush>,
 }
 
 impl AppState {
-    pub fn new(db: PgPool, config: Config) -> Self {
+    pub fn new(db: PgPool, config: Config) -> anyhow::Result<Self> {
         let http = Client::builder()
             .timeout(std::time::Duration::from_secs(10))
             .user_agent("schul-dashboard-api/v2")
@@ -38,7 +40,13 @@ impl AppState {
             config.user_key_pepper.clone(),
         );
 
-        Self {
+        let web_push = config
+            .vapid
+            .as_ref()
+            .map(WebPush::from_config)
+            .transpose()?;
+
+        Ok(Self {
             db,
             config: Arc::new(config),
             http,
@@ -46,6 +54,7 @@ impl AppState {
             email,
             encryption,
             message_bus: MessageBus::default(),
-        }
+            web_push,
+        })
     }
 }

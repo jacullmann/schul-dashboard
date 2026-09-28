@@ -25,6 +25,25 @@ pub struct Config {
     pub resend_api_key: String,
     pub email_from: String,
     pub geoip_service_url: String,
+    pub vapid: Option<VapidConfig>,
+}
+
+/// Web Push (VAPID, RFC 8292) identity. Push notifications stay disabled when
+/// no key is configured.
+#[derive(Clone)]
+pub struct VapidConfig {
+    /// Base64url-encoded raw P-256 private scalar.
+    pub private_key: String,
+    /// `mailto:` or `https:` contact push services can reach on delivery problems.
+    pub subject: String,
+}
+
+impl std::fmt::Debug for VapidConfig {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("VapidConfig")
+            .field("subject", &self.subject)
+            .finish_non_exhaustive()
+    }
 }
 
 impl Config {
@@ -70,6 +89,7 @@ impl Config {
                 .unwrap_or_else(|_| "schul-dashboard <noreply@schul-dashboard.com>".into()),
             geoip_service_url: std::env::var("GEOIP_SERVICE_URL")
                 .unwrap_or_else(|_| "http://geoip-service:8080".into()),
+            vapid: vapid_from_env()?,
         })
     }
 
@@ -85,6 +105,25 @@ impl Config {
 pub struct BaseCookieOptions {
     pub domain: String,
     pub secure: bool,
+}
+
+fn vapid_from_env() -> Result<Option<VapidConfig>> {
+    let Some(private_key) = std::env::var("VAPID_PRIVATE_KEY")
+        .ok()
+        .filter(|k| !k.is_empty())
+    else {
+        return Ok(None);
+    };
+
+    let subject = require("VAPID_SUBJECT")?;
+    if !subject.starts_with("mailto:") && !subject.starts_with("https://") {
+        anyhow::bail!("VAPID_SUBJECT must be a mailto: or https:// URI");
+    }
+
+    Ok(Some(VapidConfig {
+        private_key,
+        subject,
+    }))
 }
 
 fn require(key: &str) -> Result<String> {

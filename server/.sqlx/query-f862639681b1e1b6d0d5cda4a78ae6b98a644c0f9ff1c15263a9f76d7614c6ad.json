@@ -1,0 +1,18 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "WITH replaced AS (\n                   DELETE FROM push_subscriptions\n                   WHERE session_family_id = $2 AND endpoint <> $3\n               )\n               INSERT INTO push_subscriptions (user_id, session_family_id, endpoint, p256dh, auth)\n               VALUES ($1, $2, $3, $4, $5)\n               ON CONFLICT (endpoint) DO UPDATE\n               SET user_id = EXCLUDED.user_id,\n                   session_family_id = EXCLUDED.session_family_id,\n                   p256dh = EXCLUDED.p256dh,\n                   auth = EXCLUDED.auth,\n                   updated_at = now()",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "f862639681b1e1b6d0d5cda4a78ae6b98a644c0f9ff1c15263a9f76d7614c6ad"
+}

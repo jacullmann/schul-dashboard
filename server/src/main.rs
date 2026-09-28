@@ -7,6 +7,7 @@ mod items;
 mod messages;
 mod mfa;
 mod oauth;
+mod push;
 mod reports;
 mod schedule;
 mod state;
@@ -64,7 +65,22 @@ async fn main() -> anyhow::Result<()> {
 
     info!("Database connected and migrations applied.");
 
-    let state = AppState::new(db, config);
+    let state = AppState::new(db, config).context("Failed to initialise application state")?;
+
+    if state.web_push.is_some() {
+        let push = push::service::PushService::from_state(&state);
+        tokio::spawn(async move {
+            let mut interval = tokio::time::interval(Duration::from_secs(60 * 60));
+            loop {
+                interval.tick().await;
+                if let Err(e) = push.prune_inactive_sessions().await {
+                    tracing::warn!("Pruning push subscriptions failed: {e}");
+                }
+            }
+        });
+    } else {
+        info!("VAPID_PRIVATE_KEY not set; push notifications are disabled.");
+    }
 
     let cors = CorsLayer::new()
         .allow_origin(
@@ -133,6 +149,7 @@ async fn main() -> anyhow::Result<()> {
         .merge(messages::routes::router())
         .merge(mfa::routes::router())
         .merge(oauth::routes::router())
+        .merge(push::routes::router())
         .merge(super_admin::routes::router(state.clone()))
         .layer(
             GovernorLayer::new(global_governor)
