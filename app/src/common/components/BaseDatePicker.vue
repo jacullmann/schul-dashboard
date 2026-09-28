@@ -123,6 +123,10 @@ const shortcuts = computed(() => {
   ].filter((s) => !isDisabled(s.key));
 });
 
+const selectedShortcutLabel = computed(
+  () => shortcuts.value.find((s) => s.key === model.value)?.label,
+);
+
 const displayLabel = computed(() =>
   model.value
     ? new Intl.DateTimeFormat(locale.value, {
@@ -214,6 +218,12 @@ const onGridKeydown = (e: KeyboardEvent) => {
     >
       <span class="truncate" :class="{ 'text-on-ghost-subtle': !model }">
         {{ displayLabel }}
+      </span>
+      <span
+        v-if="selectedShortcutLabel"
+        class="-ml-1 shrink-0 text-on-ghost-muted"
+      >
+        · {{ selectedShortcutLabel }}
       </span>
     </BaseButton>
 
