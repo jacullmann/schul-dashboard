@@ -33,7 +33,6 @@ withDefaults(
 <template>
   <BaseModal
     :open="open"
-    :sheet="true"
     :elevated="elevated"
     :submit="() => $emit('confirm')"
     :loading="loading"
