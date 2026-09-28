@@ -156,37 +156,6 @@ const routes: RouteRecordRaw[] = [
   },
 
   {
-    path: '/natural-intelligence',
-    component: () => import('@/layouts/IntelligenceLayout.vue'),
-    children: [
-      {
-        path: '',
-        name: 'natural-intelligence',
-        component: () => import('@/modules/chat/pages/NaturalIntelligence.vue'),
-        meta: { title: 'navigation.natural_intelligence' },
-      },
-      {
-        path: 'chat',
-        name: 'natural-intelligence-chat',
-        component: () => import('@/modules/chat/pages/ChatView.vue'),
-        meta: { title: 'navigation.natural_intelligence_chat' },
-      },
-      {
-        path: 'server',
-        name: 'natural-intelligence-server',
-        component: () => import('@/modules/chat/pages/ServerView.vue'),
-        meta: { title: 'navigation.natural_intelligence_server' },
-      },
-      {
-        path: 'admin',
-        name: 'natural-intelligence-admin',
-        component: () => import('@/modules/chat/pages/AdminView.vue'),
-        meta: { title: 'navigation.natural_intelligence_admin' },
-      },
-    ],
-  },
-
-  {
     path: '/admin',
     component: () => import('@/layouts/DefaultLayout.vue'),
     meta: {
@@ -256,18 +225,6 @@ const routes: RouteRecordRaw[] = [
   },
 
   {
-    path: '/ai',
-    name: 'ai-chat',
-    component: () => import('@/modules/chat/pages/AiChatView.vue'),
-    meta: { title: 'navigation.ai_chat' },
-  },
-
-  {
-    path: '/server',
-    redirect: '/natural-intelligence/server',
-  },
-
-  {
     path: '/:pathMatch(.*)*',
     component: () => import('@/layouts/DefaultLayout.vue'),
     children: [
@@ -309,10 +266,7 @@ router.beforeEach(async (to, from, next) => {
     to.path === '/reset-password' ||
     to.path === '/forgot-password' ||
     to.path.startsWith('/verify') ||
-    to.path.startsWith('/invite') ||
-    to.path.startsWith('/natural-intelligence') ||
-    to.path.startsWith('/ai') ||
-    to.path === '/server';
+    to.path.startsWith('/invite');
 
   if (!isPublicRoute && !isLoggedIn.value) {
     finish();

@@ -22,16 +22,6 @@
   "errors": {
     "send_deactivated": "Das Senden von Nachrichten ist für dich deaktiviert"
   },
-  "status": {
-    "connecting": "Verbinden",
-    "thinking": "Nachdenken",
-    "searching": "Suchen",
-    "generating": "Generieren",
-    "pondering": "Grübeln",
-    "reading": "Lesen",
-    "creating_image": "Bild erstellen",
-    "executing_terminal": "Terminal ausführen"
-  },
   "scroll_down": "Nach unten",
   "reload": "Erneut laden"
 }

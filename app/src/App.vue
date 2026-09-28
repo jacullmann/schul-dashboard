@@ -37,10 +37,7 @@ async function handleAuthExpired() {
     currentPath.startsWith('/register') ||
     currentPath.startsWith('/forgot') ||
     currentPath.startsWith('/verify') ||
-    currentPath.startsWith('/auth') ||
-    currentPath.startsWith('/natural-intelligence') ||
-    currentPath.startsWith('/ai') ||
-    currentPath === '/server';
+    currentPath.startsWith('/auth');
 
   if (!isPublicRoute) {
     await router.push({ name: 'login' });
