@@ -1,5 +1,12 @@
 <script setup lang="ts">
-import { ref, computed, watch, nextTick, onBeforeUnmount } from 'vue';
+import {
+  ref,
+  computed,
+  watch,
+  nextTick,
+  onBeforeUnmount,
+  type CSSProperties,
+} from 'vue';
 import { useWindowSize } from '@vueuse/core';
 import { X, Ellipsis, ChevronLeft, ChevronRight } from '@lucide/vue';
 import {
@@ -237,7 +244,7 @@ const trackStyle = computed(() => ({
   transition: slideTransition.value ?? 'none',
 }));
 
-function slideStyle(index: number) {
+function slideStyle(index: number): CSSProperties {
   return {
     transform: `translate3d(${index * pageStep.value}px, 0, 0)`,
     // The stage shrinks and leans as it is swiped away, which brings the

@@ -6,7 +6,6 @@ import router from '@/router';
 import { useTheme } from '@/common/composables/useTheme';
 import i18n from '@/i18n';
 import VWave from 'v-wave';
-import { registerServiceWorker } from '@/modules/notifications/serviceWorker';
 
 const { initializeTheme } = useTheme();
 initializeTheme();
@@ -32,4 +31,3 @@ app.config.errorHandler = (err, instance, info) => {
 };
 
 app.mount('#app');
-registerServiceWorker();

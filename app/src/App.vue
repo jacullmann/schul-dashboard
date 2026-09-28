@@ -7,7 +7,6 @@ import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useOAuth } from '@/modules/auth/composables/useOAuth';
 import { useLoadingBar } from '@/common/composables/loadingState';
-import { useServiceWorkerBridge } from '@/modules/notifications/composables/useServiceWorkerBridge';
 import GlobalModalContainer from '@/core/components/GlobalModalContainer.vue';
 import BaseToast from '@/common/components/BaseToast.vue';
 import hw from './api/api';
@@ -18,7 +17,6 @@ const { user } = storeToRefs(userStore);
 const { isAuthReady, checkAuthStatus } = useAppAuth();
 const { handleOAuthReturn } = useOAuth();
 const { loading, progress, opacity } = useLoadingBar();
-useServiceWorkerBridge();
 
 let pageloadLogged = false;
 

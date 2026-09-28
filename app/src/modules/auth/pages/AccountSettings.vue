@@ -3,14 +3,13 @@ import { markRaw, computed, ref, watch, type Component } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
-import { ArrowLeft, Bell, Shield, UserRound } from '@lucide/vue';
+import { ArrowLeft, Shield, UserRound } from '@lucide/vue';
 import { useUserStore } from '@/stores/userStore';
 import { useModalStore } from '@/stores/modalStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useReturnRoute } from '@/common/composables/useReturnRoute';
 import AccountSettingsSecurity from '@/modules/auth/components/AccountSettingsSecurity.vue';
 import AccountSettingsAccount from '@/modules/auth/components/AccountSettingsAccount.vue';
-import AccountSettingsNotifications from '@/modules/auth/components/AccountSettingsNotifications.vue';
 
 interface AccountNavItem {
   id: string;
@@ -33,12 +32,6 @@ const navItems = computed<AccountNavItem[]>(() => [
     label: t('auth.account_settings.security.title'),
     description: t('auth.account_settings.security.description'),
     icon: markRaw(Shield),
-  },
-  {
-    id: 'notifications',
-    label: t('auth.account_settings.notifications.title'),
-    description: t('auth.account_settings.notifications.description'),
-    icon: markRaw(Bell),
   },
   {
     id: 'account',
@@ -169,10 +162,6 @@ function goBack() {
             <AccountSettingsSecurity
               v-if="activeTab === 'security'"
               @change-password="modalStore.openChangePassword()"
-            />
-
-            <AccountSettingsNotifications
-              v-else-if="activeTab === 'notifications'"
             />
 
             <AccountSettingsAccount

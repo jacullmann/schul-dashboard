@@ -64,4 +64,3 @@ ipnetwork = "0.21.1"
 tower = "0.5.3"
 tower_governor = { version = "0.8", features = ["axum"]}
 governor = "0.10.4"
-web-push-native = { version = "0.5", default-features = false, features = ["vapid"] }
