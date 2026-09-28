@@ -242,16 +242,18 @@ export function useHwActions(
   async function toggleVisibility(
     item: HwItem,
     isOldEntriesView: boolean,
-    cutoffIso: string,
   ): Promise<boolean> {
     const id = item.id;
-    let newStatus: 'archived' | 'kept' | null = null;
     const originalArchived = isArchived(id);
     const originalKept = isKept(id);
-    const isNaturallyOld = item.dueDate < cutoffIso;
+    // Mirrors the server's list filter: only past-due items that are checked
+    // and not pinned drop into the old view without an explicit status.
+    const isNaturallyOld =
+      new Date(item.dueDate) < new Date() && isChecked(id) && !isPinned(id);
 
+    let newStatus: 'archived' | 'kept' | null;
     if (isOldEntriesView) newStatus = isNaturallyOld ? 'kept' : null;
-    else newStatus = !isNaturallyOld ? 'archived' : null;
+    else newStatus = isNaturallyOld ? null : 'archived';
 
     ctx.archivedItems.value.delete(id);
     ctx.keptItems.value.delete(id);

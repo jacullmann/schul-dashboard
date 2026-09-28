@@ -116,11 +116,7 @@ export function useTasks() {
     setTimeout(() => {
       useListTransitions.value = false;
     }, 1200);
-    const success = await actions.toggleVisibility(
-      item,
-      showOldEntries.value,
-      new Date().toISOString(),
-    );
+    const success = await actions.toggleVisibility(item, showOldEntries.value);
     if (!success) {
       dismissedItems.value.delete(item.id);
       dismissedItems.value = new Set(dismissedItems.value);
