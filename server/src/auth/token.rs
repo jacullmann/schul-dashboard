@@ -359,30 +359,6 @@ impl TokenService {
         Ok(row.map(|r| r.family_id))
     }
 
-    /// The login session a refresh token belongs to, if it is still live and
-    /// owned by `user_id`.
-    pub async fn active_family_for_user(
-        &self,
-        token: &str,
-        user_id: Uuid,
-    ) -> Result<Option<Uuid>, AppError> {
-        let hash = hash_token(token);
-
-        let row = sqlx::query!(
-            r#"SELECT family_id FROM refresh_tokens
-               WHERE token_hash = $1
-                 AND user_id = $2
-                 AND revoked_at IS NULL
-                 AND expires_at > now()"#,
-            hash,
-            user_id
-        )
-        .fetch_optional(&self.db)
-        .await?;
-
-        Ok(row.map(|r| r.family_id))
-    }
-
     async fn lookup_ip(&self, ip: &str) -> Option<IpLocation> {
         let clean_ip = ip.split('/').next().unwrap_or(ip);
 
