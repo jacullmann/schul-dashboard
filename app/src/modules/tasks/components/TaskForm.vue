@@ -92,9 +92,9 @@ const {
       }}
       <span
         v-if="targetGroupName"
-        class="max-md:hidden! text-on-ghost-muted font-medium"
+        class="max-md:hidden! text-on-ghost-muted font-medium ml-1"
       >
-        • {{ targetGroupName }}
+        {{ targetGroupName }}
       </span>
     </template>
 

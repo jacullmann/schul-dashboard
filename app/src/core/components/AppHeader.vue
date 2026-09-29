@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-  import { onClickOutside, useWindowScroll } from '@vueuse/core';
+import { onClickOutside, useWindowScroll } from '@vueuse/core';
 import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/userStore';
