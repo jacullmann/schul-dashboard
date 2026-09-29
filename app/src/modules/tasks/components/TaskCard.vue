@@ -168,7 +168,7 @@ function runSecondarySwipeAction(event: MouseEvent) {
     <div
       v-wave
       ref="card"
-      class="item-card relative bg-canvas border-ghost-border p-1 shadow-input cursor-default touch-pan-y outline-2 transition-[outline-color,background-color] duration-(--duration-focus) ease-(--ease-focus) [@media(hover:hover)]:has-[.item-card-link:hover]:bg-ghost-hover has-[.item-card-link:focus-visible]:shadow-focus-ring"
+      class="item-card relative bg-canvas border-ghost-border p-1 shadow-input cursor-default touch-pan-y outline-2 transition-[outline-color,background-color] duration-(--duration-focus) ease-(--ease-focus) [@media(hover:hover)]:has-[.item-card-link:hover]:bg-ghost-hover has-[.item-card-link:active]:bg-ghost-hover has-[.item-card-link:focus-visible]:shadow-focus-ring"
       :class="[
         isDragOver ? 'outline-accent' : 'outline-transparent',
         isRevealed

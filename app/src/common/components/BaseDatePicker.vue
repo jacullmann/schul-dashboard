@@ -250,7 +250,7 @@ const onGridKeydown = (e: KeyboardEvent) => {
               :class="
                 model === s.key
                   ? 'border-transparent bg-action text-on-action'
-                  : 'border-ghost-border text-on-ghost-muted hover:bg-ghost-hover hover:text-on-ghost'
+                  : 'border-ghost-border text-on-ghost-muted hover:bg-ghost-hover hover:text-on-ghost active:bg-ghost-hover active:text-on-ghost'
               "
               @click="select(s.key)"
             >

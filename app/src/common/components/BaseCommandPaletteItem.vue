@@ -29,10 +29,10 @@ defineEmits<{
       windowWidth > 640
         ? active
           ? 'bg-ghost-hover'
-          : 'bg-transparent hover:bg-surface-highlight'
+          : 'bg-transparent hover:bg-surface-highlight active:bg-surface-highlight'
         : active
           ? 'bg-ghost-hover'
-          : 'bg-transparent'
+          : 'bg-transparent active:bg-ghost-hover'
     "
     @click="$emit('click')"
     @mouseenter="$emit('mouseenter')"

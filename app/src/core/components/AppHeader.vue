@@ -167,7 +167,7 @@ onMounted(() => {
       >
         <button
           v-wave
-          class="relative flex items-center gap-2 cursor-pointer hover:bg-ghost-hover transition-hover rounded-full p-1 min-w-0 touch-target after:min-w-12 after:min-h-12"
+          class="relative flex items-center gap-2 cursor-pointer hover:bg-ghost-hover active:bg-ghost-hover transition-hover rounded-full p-1 min-w-0 touch-target after:min-w-12 after:min-h-12"
           @click="toggleGroupMenu"
         >
           <Avatar

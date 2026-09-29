@@ -62,7 +62,7 @@ const {
       <button
         v-wave
         type="button"
-        class="relative flex items-center p-1 rounded-full w-full bg-transparent hover:bg-ghost-hover transition-hover cursor-pointer text-left touch-target after:min-w-12 after:min-h-12"
+        class="relative flex items-center p-1 rounded-full w-full bg-transparent hover:bg-ghost-hover active:bg-ghost-hover transition-hover cursor-pointer text-left touch-target after:min-w-12 after:min-h-12"
         @click="toggle"
       >
         <Avatar

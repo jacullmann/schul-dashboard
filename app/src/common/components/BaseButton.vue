@@ -43,10 +43,12 @@ const iconSize = computed(() => ({ xs: 16, sm: 18, md: 20 })[props.size]);
 
 const classes = computed(() => {
   const onClasses: Record<NonNullable<Props['on']>, string> = {
-    ghost: 'text-on-ghost-muted hover:bg-ghost-hover hover:text-on-ghost',
-    action: 'text-on-action-muted hover:bg-action-hover hover:text-on-action',
+    ghost:
+      'text-on-ghost-muted hover:bg-ghost-hover hover:text-on-ghost active:bg-ghost-hover active:text-on-ghost',
+    action:
+      'text-on-action-muted hover:bg-action-hover hover:text-on-action active:bg-action-hover active:text-on-action',
     danger:
-      'text-on-danger-muted hover:bg-danger-highlight hover:text-on-danger',
+      'text-on-danger-muted hover:bg-danger-highlight hover:text-on-danger active:bg-danger-highlight active:text-on-danger',
   };
 
   const variantClasses: Record<NonNullable<Props['variant']>, string> = {
@@ -54,11 +56,20 @@ const classes = computed(() => {
     input: [
       'bg-surface text-on-ghost border border-ghost-border',
       'shadow-input rounded-lg! px-3! py-2! w-full',
-      'hover:bg-surface-highlight',
+      'hover:bg-surface-highlight active:bg-surface-highlight',
     ].join(' '),
-    action: ['bg-action text-on-action', 'hover:bg-action-hover'].join(' '),
-    danger: ['bg-danger text-on-danger', 'hover:bg-danger-highlight'].join(' '),
-    success: ['bg-success text-on-success', 'hover:bg-success-hover'].join(' '),
+    action: [
+      'bg-action text-on-action',
+      'hover:bg-action-hover active:bg-action-hover',
+    ].join(' '),
+    danger: [
+      'bg-danger text-on-danger',
+      'hover:bg-danger-highlight active:bg-danger-highlight',
+    ].join(' '),
+    success: [
+      'bg-success text-on-success',
+      'hover:bg-success-hover active:bg-success-hover',
+    ].join(' '),
   };
 
   return variantClasses[props.variant ?? 'ghost'];
