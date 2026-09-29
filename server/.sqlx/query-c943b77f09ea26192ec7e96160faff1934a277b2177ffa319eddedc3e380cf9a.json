@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "UPDATE group_invites SET used_at = now(), used_by = $2 WHERE token = $1 AND expires_at > now() AND used_at IS NULL AND revoked_at IS NULL RETURNING tenant_id",
+  "query": "SELECT gi.tenant_id\n               FROM group_invites gi\n               JOIN user_roles ur ON ur.tenant_id = gi.tenant_id AND ur.user_id = $2\n               WHERE gi.token = $1 AND gi.expires_at > now() AND gi.used_at IS NULL AND gi.revoked_at IS NULL",
   "describe": {
     "columns": [
       {
@@ -25,5 +25,5 @@
       false
     ]
   },
-  "hash": "736df0d3485464cc67cfaa8501090d8510237dd4c95d67547bb48f9027f68766"
+  "hash": "c943b77f09ea26192ec7e96160faff1934a277b2177ffa319eddedc3e380cf9a"
 }

@@ -336,33 +336,34 @@ impl GroupService {
         Ok(members)
     }
 
-    pub async fn get_invite(&self, token: &str) -> AppResult<Value> {
+    /// `viewer_id` lets an existing member skip the join prompt; the group id is
+    /// only revealed to members so the preview stays anonymous for everyone else.
+    pub async fn get_invite(&self, token: &str, viewer_id: Option<Uuid>) -> AppResult<Value> {
         let invite = sqlx::query!(
-            r#"SELECT g.name,
+            r#"SELECT g.id,
+                      g.name,
                       g.avatar_url,
-                      (SELECT COUNT(*) FROM user_roles WHERE tenant_id = g.id) AS "member_count!"
+                      (SELECT COUNT(*) FROM user_roles WHERE tenant_id = g.id) AS "member_count!",
+                      EXISTS (
+                          SELECT 1 FROM user_roles WHERE tenant_id = g.id AND user_id = $2
+                      ) AS "already_member!"
                FROM group_invites gi
                JOIN groups g ON g.id = gi.tenant_id
                WHERE gi.token = $1 AND gi.expires_at > now() AND gi.used_at IS NULL AND gi.revoked_at IS NULL"#,
-            token
+            token,
+            viewer_id
         )
         .fetch_optional(&self.db)
-        .await?;
-
-        let invite = match invite {
-            Some(r) => r,
-            None => {
-                return Err(AppError::BadRequest(
-                    "Invalid or expired invite token.".into(),
-                ));
-            }
-        };
+        .await?
+        .ok_or_else(|| AppError::BadRequest("Invalid or expired invite token.".into()))?;
 
         Ok(json!({
             "valid": true,
             "groupName": invite.name,
             "avatarUrl": invite.avatar_url,
             "memberCount": invite.member_count,
+            "alreadyMember": invite.already_member,
+            "groupId": invite.already_member.then_some(invite.id),
         }))
     }
 
@@ -374,8 +375,14 @@ impl GroupService {
 
         let mut tx = self.db.begin().await?;
 
+        // Invites are single-use, so an existing member must not burn the token.
         let invite = sqlx::query!(
-            "UPDATE group_invites SET used_at = now(), used_by = $2 WHERE token = $1 AND expires_at > now() AND used_at IS NULL AND revoked_at IS NULL RETURNING tenant_id",
+            r#"UPDATE group_invites gi SET used_at = now(), used_by = $2
+               WHERE gi.token = $1 AND gi.expires_at > now() AND gi.used_at IS NULL AND gi.revoked_at IS NULL
+                 AND NOT EXISTS (
+                     SELECT 1 FROM user_roles ur WHERE ur.tenant_id = gi.tenant_id AND ur.user_id = $2
+                 )
+               RETURNING gi.tenant_id"#,
             token,
             user_id
         )
@@ -385,9 +392,8 @@ impl GroupService {
         let group_id: Uuid = match invite {
             Some(row) => row.tenant_id,
             None => {
-                return Err(AppError::BadRequest(
-                    "Invalid or expired invite token.".into(),
-                ));
+                tx.rollback().await?;
+                return self.resolve_unaccepted_invite(token, user_id).await;
             }
         };
 
@@ -435,6 +441,24 @@ impl GroupService {
 
         tx.commit().await?;
 
-        Ok(json!({ "ok": true, "groupId": group_id }))
+        Ok(json!({ "ok": true, "groupId": group_id, "alreadyMember": false }))
+    }
+
+    /// Distinguishes "already a member" from an invalid token after the
+    /// consuming update matched nothing.
+    async fn resolve_unaccepted_invite(&self, token: &str, user_id: Uuid) -> AppResult<Value> {
+        let membership = sqlx::query!(
+            r#"SELECT gi.tenant_id
+               FROM group_invites gi
+               JOIN user_roles ur ON ur.tenant_id = gi.tenant_id AND ur.user_id = $2
+               WHERE gi.token = $1 AND gi.expires_at > now() AND gi.used_at IS NULL AND gi.revoked_at IS NULL"#,
+            token,
+            user_id
+        )
+        .fetch_optional(&self.db)
+        .await?
+        .ok_or_else(|| AppError::BadRequest("Invalid or expired invite token.".into()))?;
+
+        Ok(json!({ "ok": true, "groupId": membership.tenant_id, "alreadyMember": true }))
     }
 }

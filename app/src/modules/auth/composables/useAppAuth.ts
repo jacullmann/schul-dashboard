@@ -334,6 +334,8 @@ export function useAppAuth() {
     groupName?: string;
     avatarUrl?: string;
     memberCount?: number;
+    alreadyMember?: boolean;
+    groupId?: string;
     error?: string;
   }> {
     try {
@@ -343,6 +345,8 @@ export function useAppAuth() {
         groupName: data.groupName,
         avatarUrl: data.avatarUrl,
         memberCount: data.memberCount,
+        alreadyMember: data.alreadyMember === true,
+        groupId: data.groupId ?? undefined,
       };
     } catch (error: unknown) {
       return {
@@ -352,15 +356,19 @@ export function useAppAuth() {
     }
   }
 
-  async function acceptInvite(
-    token: string,
-  ): Promise<{ ok: boolean; groupId?: string; error?: string }> {
+  async function acceptInvite(token: string): Promise<{
+    ok: boolean;
+    groupId?: string;
+    alreadyMember?: boolean;
+    error?: string;
+  }> {
     try {
       const { data } = await hw.post(
         `/invites/${encodeURIComponent(token)}/accept`,
       );
-      await checkAuthStatus();
-      return { ok: true, groupId: data.groupId };
+      const alreadyMember = data.alreadyMember === true;
+      if (!alreadyMember) await checkAuthStatus();
+      return { ok: true, groupId: data.groupId, alreadyMember };
     } catch (error: unknown) {
       return {
         ok: false,

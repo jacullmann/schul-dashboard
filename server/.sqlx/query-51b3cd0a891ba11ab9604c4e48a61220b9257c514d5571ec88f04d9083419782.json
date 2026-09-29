@@ -1,0 +1,67 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT g.id,\n                      g.name,\n                      g.avatar_url,\n                      (SELECT COUNT(*) FROM user_roles WHERE tenant_id = g.id) AS \"member_count!\",\n                      EXISTS (\n                          SELECT 1 FROM user_roles WHERE tenant_id = g.id AND user_id = $2\n                      ) AS \"already_member!\"\n               FROM group_invites gi\n               JOIN groups g ON g.id = gi.tenant_id\n               WHERE gi.token = $1 AND gi.expires_at > now() AND gi.used_at IS NULL AND gi.revoked_at IS NULL",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "groups",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "groups",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "avatar_url",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "groups",
+            "name": "avatar_url"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "member_count!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 4,
+        "name": "already_member!",
+        "type_info": "Bool",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      null,
+      null
+    ]
+  },
+  "hash": "51b3cd0a891ba11ab9604c4e48a61220b9257c514d5571ec88f04d9083419782"
+}

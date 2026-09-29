@@ -32,9 +32,12 @@ pub async fn create_invite(State(s): State<AppState>, tc: TenantContext) -> AppR
 
 pub async fn get_invite(
     State(s): State<AppState>,
+    OptionalAuth(user): OptionalAuth,
     Path(token): Path<String>,
 ) -> AppResult<Json<Value>> {
-    let body = GroupService::from_state(&s).get_invite(&token).await?;
+    let body = GroupService::from_state(&s)
+        .get_invite(&token, user.map(|u| u.user_id))
+        .await?;
 
     Ok(Json(body))
 }

@@ -43,6 +43,11 @@ onMounted(async () => {
 
   try {
     const res = await auth.getInvite(token);
+    if (res.ok && res.alreadyMember && res.groupId) {
+      clearPendingInvite();
+      await openExistingGroup(res.groupId);
+      return;
+    }
     if (res.ok && res.groupName) {
       groupName.value = res.groupName;
       avatarUrl.value = res.avatarUrl || null;
@@ -72,7 +77,9 @@ async function handleJoin() {
   joining.value = true;
   try {
     const res = await auth.acceptInvite(token);
-    if (res.ok && res.groupId) {
+    if (res.ok && res.alreadyMember && res.groupId) {
+      await openExistingGroup(res.groupId);
+    } else if (res.ok && res.groupId) {
       toast.success(t('auth.groups.invite.success_join'));
       try {
         await userStore.fetchUser();
@@ -100,6 +107,11 @@ async function handleJoin() {
   } finally {
     joining.value = false;
   }
+}
+
+async function openExistingGroup(groupId: string) {
+  toast.info(t('auth.groups.invite.already_member'));
+  await router.replace({ name: 'group-dashboard', params: { groupId } });
 }
 
 function handleLogin() {
