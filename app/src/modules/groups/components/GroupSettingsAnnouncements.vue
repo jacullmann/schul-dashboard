@@ -55,7 +55,7 @@ function formatDate(iso: string) {
             variant="action"
             :icon="Plus"
             icon-classes="size-6"
-            @click="openAnnouncementForm(groupId)"
+            @click="openAnnouncementForm(groupId, { local: true })"
           />
         </BaseTooltip>
       </template>

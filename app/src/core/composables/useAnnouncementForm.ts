@@ -8,8 +8,8 @@ export function useAnnouncementForm() {
       typeof store.announcementFormOpen
     >,
     announcementFormKey: store.announcementFormKey,
-    openAnnouncementForm: (groupId: string) =>
-      store.openAnnouncementForm(groupId),
+    openAnnouncementForm: (groupId: string, options?: { local?: boolean }) =>
+      store.openAnnouncementForm(groupId, options),
     closeAnnouncementForm: store.closeAnnouncementForm,
     notifySuccess: store.notifyAnnouncementFormSuccess,
     onFormSuccess: store.onAnnouncementFormSuccess,

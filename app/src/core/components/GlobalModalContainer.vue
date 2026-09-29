@@ -78,6 +78,7 @@ const {
   taskFormOpen,
   taskFormKey,
   taskFormGroupId,
+  taskFormLocal,
   taskToEdit,
   taskFormInitialType,
   showChangePassword,
@@ -94,6 +95,7 @@ const {
   announcementFormOpen,
   announcementFormKey,
   announcementFormGroupId,
+  announcementFormLocal,
   imageViewerOpen,
   imageViewerImages,
   imageViewerInitialIndex,
@@ -202,6 +204,7 @@ async function onAuthSuccess() {
     v-if="taskFormGroupId"
     :key="taskFormKey"
     :group-id="taskFormGroupId"
+    :local="taskFormLocal"
     :open="taskFormOpen"
     :initial-type="taskFormInitialType"
     :initial="taskToEdit"
@@ -221,6 +224,7 @@ async function onAuthSuccess() {
     v-if="announcementFormGroupId"
     :key="announcementFormKey"
     :group-id="announcementFormGroupId"
+    :local="announcementFormLocal"
     :open="announcementFormOpen"
     @cancel="modalStore.closeAnnouncementForm()"
     @success="onAnnouncementFormSuccess"

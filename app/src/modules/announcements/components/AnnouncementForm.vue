@@ -11,6 +11,7 @@ const { t } = useI18n();
 
 const props = defineProps<{
   groupId: string;
+  local?: boolean;
   open: boolean;
 }>();
 
@@ -78,13 +79,14 @@ async function submit() {
     @cancel="$emit('cancel')"
   >
     <template #title>
-      {{ t('announcements.form.title') }}
-      <GroupSelect
-        v-if="userGroups.length > 1"
-        v-model="groupId"
-        permission="manage_announcements"
-        class="inline-block align-middle ml-1 max-w-full"
-      />
+      <span class="flex items-center gap-2 min-w-0">
+        <span class="shrink-0">{{ t('announcements.form.title') }}</span>
+        <GroupSelect
+          v-if="userGroups.length > 1 && !local"
+          v-model="groupId"
+          permission="manage_announcements"
+        />
+      </span>
     </template>
 
     <template #content>

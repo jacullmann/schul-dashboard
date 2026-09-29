@@ -18,6 +18,7 @@ const props = defineProps<{
   groupId: string;
   initialType?: Exclude<ItemType, 'all'>;
   initial?: HwItem | null;
+  local?: boolean;
   open: boolean;
 }>();
 const emit = defineEmits<{ (e: 'cancel'): void; (e: 'success'): void }>();
@@ -89,25 +90,24 @@ const {
     @drop="handleDrop"
   >
     <template #title>
-      {{
-        initial
-          ? t('tasks.list.task_form.edit_task')
-          : t('tasks.list.task_form.new_task')
-      }}
-      <template v-if="canChooseGroup">
-        <span
-          v-if="groupIsFixed"
-          class="max-md:hidden! text-on-ghost-muted font-medium ml-1"
-        >
-          {{ targetGroup?.name }}
+      <span class="flex items-center gap-2 min-w-0">
+        <span class="shrink-0">
+          {{
+            initial
+              ? t('tasks.list.task_form.edit_task')
+              : t('tasks.list.task_form.new_task')
+          }}
         </span>
-        <GroupSelect
-          v-else
-          v-model="groupId"
-          permission="create_items"
-          class="inline-block align-middle ml-1 max-w-full"
-        />
-      </template>
+        <template v-if="canChooseGroup && !local">
+          <span
+            v-if="groupIsFixed"
+            class="max-md:hidden! text-on-ghost-muted font-medium truncate"
+          >
+            {{ targetGroup?.name }}
+          </span>
+          <GroupSelect v-else v-model="groupId" permission="create_items" />
+        </template>
+      </span>
     </template>
 
     <template #content>

@@ -31,7 +31,7 @@ export function useHwForms(ctx: HwContext) {
   }
 
   function openCreateFormByType(type: Exclude<ItemType, 'all'>) {
-    openTaskForm(ctx.groupId, type);
+    openTaskForm(ctx.groupId, { type, local: true });
   }
 
   function canEditNote() {

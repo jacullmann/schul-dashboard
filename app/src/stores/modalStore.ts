@@ -5,6 +5,12 @@ import type { HwItem, PrivateTask } from '@/modules/tasks/types';
 import type { ItemType } from '@/modules/tasks/types';
 import type { ImageItem } from '@/modules/tasks/types';
 
+export interface TaskFormOptions {
+  type?: Exclude<ItemType, 'all'>;
+  /** Opened from the group's own page, which already tells the group. */
+  local?: boolean;
+}
+
 export interface ConfirmOptions {
   title: string;
   content: string;
@@ -68,16 +74,19 @@ export const useModalStore = defineStore('modals', () => {
   const taskFormGroupId = ref<string | null>(null);
   const taskToEdit = ref<HwItem | null>(null);
   const taskFormInitialType = ref<Exclude<ItemType, 'all'>>('homework');
+  /** Launched from the group's own page, where its name is already clear. */
+  const taskFormLocal = ref(false);
 
   const _taskFormSuccessCallbacks = new Set<() => void>();
 
   function openTaskForm(
     groupId: string,
-    type: Exclude<ItemType, 'all'> = 'homework',
+    { type = 'homework', local = false }: TaskFormOptions = {},
   ) {
     taskFormGroupId.value = groupId;
     taskToEdit.value = null;
     taskFormInitialType.value = type;
+    taskFormLocal.value = local;
     taskFormKey.value += 1;
     taskFormOpen.value = true;
   }
@@ -86,6 +95,7 @@ export const useModalStore = defineStore('modals', () => {
     taskFormGroupId.value = groupId;
     taskToEdit.value = item;
     taskFormInitialType.value = item.type;
+    taskFormLocal.value = false;
     taskFormKey.value += 1;
     taskFormOpen.value = true;
   }
@@ -143,11 +153,13 @@ export const useModalStore = defineStore('modals', () => {
   const announcementFormOpen = ref(false);
   const announcementFormKey = ref(0);
   const announcementFormGroupId = ref<string | null>(null);
+  const announcementFormLocal = ref(false);
 
   const _announcementFormSuccessCallbacks = new Set<() => void>();
 
-  function openAnnouncementForm(groupId: string) {
+  function openAnnouncementForm(groupId: string, { local = false } = {}) {
     announcementFormGroupId.value = groupId;
+    announcementFormLocal.value = local;
     announcementFormKey.value += 1;
     announcementFormOpen.value = true;
   }
@@ -304,6 +316,7 @@ export const useModalStore = defineStore('modals', () => {
     taskToEdit,
     taskFormInitialType,
     taskFormGroupId,
+    taskFormLocal,
     openTaskForm,
     openEditForm,
     closeTaskForm,
@@ -322,6 +335,7 @@ export const useModalStore = defineStore('modals', () => {
     announcementFormOpen,
     announcementFormKey,
     announcementFormGroupId,
+    announcementFormLocal,
     openAnnouncementForm,
     closeAnnouncementForm,
     notifyAnnouncementFormSuccess,

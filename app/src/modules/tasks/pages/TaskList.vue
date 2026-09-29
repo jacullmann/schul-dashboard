@@ -96,7 +96,7 @@ const showPersonalizedNotice = computed(
 const { openTaskForm } = useTaskForm();
 
 function openNewTask() {
-  openTaskForm(groupId);
+  openTaskForm(groupId, { local: true });
 }
 
 // The Dalton tab disappears with the setting, also for a link that opened it.
