@@ -5,7 +5,7 @@ import { X } from '@lucide/vue';
 
 export interface Props {
   type?: 'button' | 'submit' | 'reset';
-  variant?: 'action' | 'ghost' | 'danger' | 'input';
+  variant?: 'action' | 'ghost' | 'danger' | 'success' | 'input';
   on?: 'ghost' | 'action' | 'danger';
   full?: boolean;
   icon?: Component;
@@ -58,6 +58,7 @@ const classes = computed(() => {
     ].join(' '),
     action: ['bg-action text-on-action', 'hover:bg-action-hover'].join(' '),
     danger: ['bg-danger text-on-danger', 'hover:bg-danger-highlight'].join(' '),
+    success: ['bg-success text-on-success', 'hover:bg-success-hover'].join(' '),
   };
 
   return variantClasses[props.variant ?? 'ghost'];

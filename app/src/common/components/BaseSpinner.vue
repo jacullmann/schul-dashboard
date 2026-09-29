@@ -6,7 +6,7 @@ const { t } = useI18n();
 
 const props = withDefaults(
   defineProps<{
-    on?: 'action' | 'ghost' | 'input' | 'danger';
+    on?: 'action' | 'ghost' | 'input' | 'danger' | 'success';
     color?: string;
     size?: string;
     borderThickness?: string;
@@ -22,6 +22,7 @@ const activeColor = computed(() => {
   if (props.color) return props.color;
   if (props.on === 'action') return 'var(--color-on-action)';
   if (props.on === 'danger') return 'var(--color-on-danger)';
+  if (props.on === 'success') return 'var(--color-on-success)';
   if (props.on === 'ghost') return 'var(--color-on-ghost-muted)';
   return 'var(--color-on-ghost)';
 });

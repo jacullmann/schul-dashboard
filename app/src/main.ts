@@ -19,6 +19,8 @@ app.use(VWave, {
   initialOpacity: 0.12,
   finalOpacity: 0.12,
   duration: 0.2,
+  // Touch surfaces already give press feedback; the ripple only adds latency there.
+  disabled: window.matchMedia('(hover: none) and (pointer: coarse)').matches,
 });
 app.config.errorHandler = (err, instance, info) => {
   //if (import.meta.env.DEV) {

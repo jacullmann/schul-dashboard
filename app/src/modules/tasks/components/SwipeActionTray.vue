@@ -1,26 +1,32 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, type Component } from 'vue';
 import { useI18n } from 'vue-i18n';
 import {
   Archive,
   ArchiveRestore,
+  Copy,
+  Ellipsis,
   Trash2,
   Pencil,
   Pin,
   PinOff,
 } from '@lucide/vue';
 import {
-  SWIPE_ACTION_WIDTH,
+  SWIPE_BUTTON_GAP,
+  SWIPE_BUTTON_SIZE,
   SWIPE_SETTLE_TIMING,
-  type SecondarySwipeAction,
   type SwipeAction,
 } from '@/modules/tasks/composables/useSwipeCard';
+import type { Props as BaseButtonProps } from '@/common/components/BaseButton.vue';
+import type { SwipeSide } from '@/modules/tasks/composables/useSwipeToDismiss';
 
 const props = defineProps<{
+  /** The card edge the buttons come out from. */
+  side: SwipeSide;
   action: SwipeAction;
-  secondaryAction?: SecondarySwipeAction;
+  secondaryAction?: SwipeAction;
+  /** How far the card has moved aside. */
   offset: number;
-  revealProgress: number;
   isSwiping: boolean;
   /** Past the commit point, or sliding out: the main action takes over. */
   isTakingOver: boolean;
@@ -28,139 +34,152 @@ const props = defineProps<{
 
 defineEmits<{
   (e: 'action'): void;
-  (e: 'secondary-action'): void;
+  (e: 'secondary-action', event: MouseEvent): void;
 }>();
 
 const { t } = useI18n();
 
-const buttons = {
+const buttons: Record<
+  SwipeAction,
+  { icon: Component; labelKey: string; variant: BaseButtonVariant }
+> = {
   archive: {
     icon: Archive,
     labelKey: 'tasks.list.tasks.menu.archive',
-    colors: 'bg-danger text-on-danger',
+    variant: 'danger',
   },
   keep: {
     icon: ArchiveRestore,
     labelKey: 'tasks.list.tasks.menu.unarchive',
-    colors: 'bg-success text-on-success',
+    variant: 'success',
   },
   delete: {
     icon: Trash2,
     labelKey: 'common.buttons.delete',
-    colors: 'bg-danger text-on-danger',
+    variant: 'danger',
   },
   edit: {
     icon: Pencil,
     labelKey: 'common.buttons.edit',
-    colors: 'bg-action text-on-action',
+    variant: 'ghost',
   },
   pin: {
     icon: Pin,
     labelKey: 'tasks.list.tasks.menu.pin',
-    colors: 'bg-action text-on-action',
+    variant: 'ghost',
   },
   unpin: {
     icon: PinOff,
     labelKey: 'tasks.list.tasks.menu.unpin',
-    colors: 'bg-action text-on-action',
+    variant: 'ghost',
   },
-} as const;
+  duplicate: {
+    icon: Copy,
+    labelKey: 'common.buttons.duplicate',
+    variant: 'ghost',
+  },
+  menu: {
+    icon: Ellipsis,
+    labelKey: 'common.more',
+    variant: 'ghost',
+  },
+};
 
 const primaryButton = computed(() => buttons[props.action]);
 const secondaryButton = computed(() =>
   props.secondaryAction ? buttons[props.secondaryAction] : null,
 );
 
+type BaseButtonVariant = NonNullable<BaseButtonProps['variant']>;
+
 /** Swaps the button layout while the finger keeps moving, so it runs on its own clock. */
 const TAKEOVER_TIMING = '320ms var(--ease-settle)';
+/** Quicker than the takeover, so the secondary button is gone before the main one reaches it. */
+const SECONDARY_FADE_TIMING = '120ms ease-out';
 
-// Covers only the uncovered strip plus the card's rounded corner, so colour
-// never lines the card's top and bottom edges where a sub-pixel shift of the
-// moving card would bare it.
+const BUTTON_STEP = SWIPE_BUTTON_SIZE + SWIPE_BUTTON_GAP;
+
 const trayStyle = computed(() => ({
-  width: `calc(${props.offset}px + var(--radius-xl))`,
+  width: `${props.offset}px`,
   transition: props.isSwiping ? 'none' : `width ${SWIPE_SETTLE_TIMING}`,
 }));
 
-const isSecondaryShown = computed(
-  () => !!secondaryButton.value && !props.isTakingOver,
+/** 0 while the card still covers the button, 1 once it has cleared it. */
+function buttonProgress(buttonIndex: number) {
+  const uncovered = props.offset - SWIPE_BUTTON_GAP - buttonIndex * BUTTON_STEP;
+  return Math.min(1, Math.max(0, uncovered / SWIPE_BUTTON_SIZE));
+}
+
+const popInTransition = computed(() =>
+  props.isSwiping ? '0s' : SWIPE_SETTLE_TIMING,
 );
 
-// The buttons fan out from under the card like a spread of cards: each one
-// reaches a corner's width under its left neighbour, so the rounded corners
-// above it show the next one instead of a gap. Widths are shares of the
-// strip, so they keep up with the finger frame by frame while the takeover
-// itself still eases.
-const primaryButtonStyle = computed(() => ({
-  width: isSecondaryShown.value
-    ? 'calc(50% + var(--radius-xl))'
-    : 'calc(100% + var(--radius-xl))',
-  transition: `width ${TAKEOVER_TIMING}`,
-}));
+// Widths and offsets are expressed against the strip (`100%`) so they follow
+// the finger without a transition, which only the takeover needs.
+const STRIP_INSET = 2 * SWIPE_BUTTON_GAP;
+/** Room left of the main button for the secondary one and the gaps around it. */
+const SECONDARY_INSET = 3 * SWIPE_BUTTON_GAP + SWIPE_BUTTON_SIZE;
 
-// Taking over, it tucks back under the card: a corner's width is exactly the
-// part the card's own rounded corner hides.
-const secondaryButtonStyle = computed(() => ({
-  width: isSecondaryShown.value
-    ? 'calc(50% + var(--radius-xl))'
-    : 'var(--radius-xl)',
-  transition: `width ${TAKEOVER_TIMING}`,
-}));
+// The buttons rest against the card's far edge and stay put while the card uncovers them.
+// Past that, the secondary button rides along at a gap from the card's edge
+// and the main button widens to fill the space it leaves. Taking over, the
+// main button widens over the secondary one as well.
+const primarySlotStyle = computed(() => {
+  const restingInset = secondaryButton.value ? SECONDARY_INSET : STRIP_INSET;
+  return {
+    scale: buttonProgress(0),
+    opacity: buttonProgress(0),
+    [props.side]: `${SWIPE_BUTTON_GAP}px`,
+    width: props.isTakingOver
+      ? `calc(100% - ${STRIP_INSET}px)`
+      : `max(${SWIPE_BUTTON_SIZE}px, calc(100% - ${restingInset}px))`,
+    transition: `width ${TAKEOVER_TIMING}, scale ${popInTransition.value}, opacity ${popInTransition.value}`,
+  };
+});
 
-// Once taking over, the icon rides along the card's edge instead of drifting
-// to the middle of the widening button.
-const primaryIconSlotStyle = computed(() => ({
-  width: props.isTakingOver
-    ? `${SWIPE_ACTION_WIDTH}px`
-    : 'calc(100% - var(--radius-xl))',
-  transition: `width ${TAKEOVER_TIMING}`,
-}));
-
-const iconStyle = computed(() => ({
-  opacity: props.revealProgress,
-  transform: `scale(${0.6 + 0.4 * props.revealProgress})`,
-  transition: props.isSwiping
-    ? 'none'
-    : `opacity ${SWIPE_SETTLE_TIMING}, transform ${SWIPE_SETTLE_TIMING}`,
+const secondarySlotStyle = computed(() => ({
+  scale: buttonProgress(1),
+  [props.side]: `max(${SWIPE_BUTTON_GAP + BUTTON_STEP}px, calc(100% - ${BUTTON_STEP}px))`,
+  width: `${SWIPE_BUTTON_SIZE}px`,
+  opacity: props.isTakingOver ? 0 : buttonProgress(1),
+  transition: `opacity ${SECONDARY_FADE_TIMING}, scale ${popInTransition.value}`,
 }));
 </script>
 
 <template>
   <div
-    class="absolute inset-y-0 right-0 isolate overflow-hidden rounded-r-xl"
+    class="absolute inset-y-0 isolate overflow-hidden"
+    :class="side === 'left' ? 'left-0' : 'right-0'"
     :style="trayStyle"
   >
-    <!-- The strip the card has uncovered, right of its rounded corner. -->
-    <div class="absolute inset-y-0 right-0 left-(--radius-xl)">
-      <button
-        v-if="secondaryButton"
-        type="button"
-        class="absolute inset-y-0 -left-(--radius-xl) z-10 overflow-hidden rounded-r-xl pl-(--radius-xl) flex items-center justify-center cursor-pointer active:brightness-90"
-        :class="secondaryButton.colors"
-        :style="secondaryButtonStyle"
+    <div
+      v-if="secondaryButton"
+      class="absolute inset-y-0 flex items-center"
+      :style="secondarySlotStyle"
+    >
+      <BaseButton
+        full
+        :variant="secondaryButton.variant"
+        :icon="secondaryButton.icon"
         :aria-label="t(secondaryButton.labelKey)"
         :title="t(secondaryButton.labelKey)"
-        @click="$emit('secondary-action')"
-      >
-        <component :is="secondaryButton.icon" :size="22" :style="iconStyle" />
-      </button>
+        :tabindex="isTakingOver ? -1 : undefined"
+        @click.stop="$emit('secondary-action', $event)"
+      />
+    </div>
 
-      <button
-        type="button"
-        class="absolute inset-y-0 right-0 cursor-pointer active:brightness-90"
-        :class="primaryButton.colors"
-        :style="primaryButtonStyle"
+    <div
+      class="absolute inset-y-0 z-10 flex items-center"
+      :style="primarySlotStyle"
+    >
+      <BaseButton
+        full
+        :variant="primaryButton.variant"
+        :icon="primaryButton.icon"
         :aria-label="t(primaryButton.labelKey)"
         :title="t(primaryButton.labelKey)"
         @click="$emit('action')"
-      >
-        <span
-          class="absolute inset-y-0 left-(--radius-xl) flex items-center justify-center"
-          :style="primaryIconSlotStyle"
-        >
-          <component :is="primaryButton.icon" :size="22" :style="iconStyle" />
-        </span>
-      </button>
+      />
     </div>
   </div>
 </template>

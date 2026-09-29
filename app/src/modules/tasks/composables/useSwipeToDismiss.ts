@@ -16,8 +16,10 @@ import { haptic } from '@/utils/haptics';
 
 export interface SwipeToDismissOptions {
   enabled?: MaybeRefOrGetter<boolean>;
-  /** How far the card rests aside while its action buttons are shown. */
+  /** How far the card rests aside, to the left, while its action buttons are shown. */
   revealWidth?: MaybeRefOrGetter<number>;
+  /** The same for a swipe to the right; 0 leaves the card unable to go that way. */
+  startRevealWidth?: MaybeRefOrGetter<number>;
   /** Share of the card's width past which letting go runs the action. */
   commitRatio?: number;
   /** Pressing inside must not count as a press outside that closes the card. */
@@ -25,7 +27,12 @@ export interface SwipeToDismissOptions {
   /** Asked before the card slides out; declining puts the card back. */
   confirmDismiss?: () => Promise<boolean>;
   onSlideOut: () => void;
+  /** Runs when a swipe to the right goes all the way; the card then settles back. */
+  onStartCommit?: () => void;
 }
+
+/** The edge of the card its action buttons appear at. */
+export type SwipeSide = 'left' | 'right';
 
 /** Shared with the card, whose transform has to land together with the buttons. */
 export const SWIPE_SETTLE_MS = 380;
@@ -48,9 +55,11 @@ const VELOCITY_WINDOW_MS = 80;
 /**
  * Touch only: a mouse has the card's menu for the same actions, and dragging
  * with it would fight text selection. Swiping the card right to left reveals
- * its action buttons behind it. Letting go past half of them, or flicking
- * left, snaps the card open onto them; swiping on past `commitRatio` of the
- * card's width runs the main action without the tap.
+ * its action buttons behind it, left to right the ones on the other side.
+ * Letting go past half of them, or flicking towards them, snaps the card open
+ * onto them; swiping on past `commitRatio` of the card's width runs the main
+ * action without the tap. `swipeOffset` is positive while the card is pulled
+ * left and negative while it is pulled right.
  */
 export function useSwipeToDismiss(
   target: Ref<HTMLElement | null>,
@@ -59,6 +68,10 @@ export function useSwipeToDismiss(
   const revealWidth = computed(() =>
     toValue(options.revealWidth ?? DEFAULT_REVEAL_WIDTH),
   );
+  const startRevealWidth = computed(() =>
+    toValue(options.startRevealWidth ?? 0),
+  );
+  const hasStartSide = computed(() => startRevealWidth.value > 0);
   const commitRatio = options.commitRatio ?? DEFAULT_COMMIT_RATIO;
   const gestureTarget = computed(() =>
     toValue(options.enabled ?? true) ? target.value : null,
@@ -66,22 +79,23 @@ export function useSwipeToDismiss(
 
   const swipeOffset = ref(0);
   const isSwiping = ref(false);
-  const isOpen = ref(false);
+  const openSide = ref<SwipeSide | null>(null);
+  /** Outlasts the offset's return to 0, so the buttons stay on their side while the card slides back. */
+  const activeSide = ref<SwipeSide>('right');
   const isDismissing = ref(false);
   /** Outlasts the offset's return to 0 until the card has slid back. */
   const isActionsVisible = ref(false);
 
   const { width: elementWidth } = useElementBounding(gestureTarget);
-  const commitOffset = computed(() =>
-    Math.max(
-      elementWidth.value * commitRatio,
-      revealWidth.value + MIN_COMMIT_TRAVEL,
-    ),
+  const commitOffsetBeyond = (reveal: number) =>
+    Math.max(elementWidth.value * commitRatio, reveal + MIN_COMMIT_TRAVEL);
+  const isArmed = computed(
+    () => swipeOffset.value >= commitOffsetBeyond(revealWidth.value),
   );
-  const isArmed = computed(() => swipeOffset.value >= commitOffset.value);
-  /** 0 at rest, 1 once the buttons have room for their full width. */
-  const revealProgress = computed(() =>
-    Math.min(1, swipeOffset.value / revealWidth.value),
+  const isStartArmed = computed(
+    () =>
+      hasStartSide.value &&
+      -swipeOffset.value >= commitOffsetBeyond(startRevealWidth.value),
   );
 
   let gestureDecided = false;
@@ -100,7 +114,8 @@ export function useSwipeToDismiss(
     );
 
   watch([swipeOffset, isSwiping], ([offset, swiping]) => {
-    if (offset > 0 || swiping) {
+    if (offset !== 0) activeSide.value = offset > 0 ? 'right' : 'left';
+    if (offset !== 0 || swiping) {
       keepActionsVisible();
       isActionsVisible.value = true;
     } else if (isActionsVisible.value) {
@@ -108,24 +123,25 @@ export function useSwipeToDismiss(
     }
   });
 
-  watch(isArmed, () => {
+  watch([isArmed, isStartArmed], () => {
     if (isSwiping.value) haptic(ARMED_VIBRATION_MS);
   });
 
-  function open() {
-    isOpen.value = true;
-    swipeOffset.value = revealWidth.value;
+  function open(side: SwipeSide) {
+    openSide.value = side;
+    swipeOffset.value =
+      side === 'right' ? revealWidth.value : -startRevealWidth.value;
   }
 
   function close() {
-    isOpen.value = false;
+    openSide.value = null;
     swipeOffset.value = 0;
   }
 
   async function dismiss() {
     if (isDismissing.value) return;
     isDismissing.value = true;
-    isOpen.value = false;
+    openSide.value = null;
     isSwiping.value = false;
 
     if (options.confirmDismiss) {
@@ -163,7 +179,7 @@ export function useSwipeToDismiss(
     const fallback = setTimeout(finish, SLIDE_OUT_FALLBACK_MS);
   }
 
-  /** Positive while the card is heading left, towards the buttons. */
+  /** Positive while the card is heading left. */
   function releaseVelocity() {
     const first = velocitySamples[0];
     const last = velocitySamples.at(-1);
@@ -181,9 +197,21 @@ export function useSwipeToDismiss(
 
     if (!gestureLockedHorizontal) close();
     else if (isArmed.value) void dismiss();
-    else if (velocity >= FLICK_VELOCITY) open();
-    else if (velocity <= -FLICK_VELOCITY) close();
-    else if (swipeOffset.value >= revealWidth.value / 2) open();
+    else if (isStartArmed.value) {
+      close();
+      options.onStartCommit?.();
+    } else settleTowardsSide(velocity);
+  }
+
+  function settleTowardsSide(velocity: number) {
+    const side: SwipeSide = swipeOffset.value >= 0 ? 'right' : 'left';
+    const reveal =
+      side === 'right' ? revealWidth.value : startRevealWidth.value;
+    const towardsButtons = side === 'right' ? velocity : -velocity;
+
+    if (towardsButtons >= FLICK_VELOCITY) open(side);
+    else if (towardsButtons <= -FLICK_VELOCITY) close();
+    else if (Math.abs(swipeOffset.value) >= reveal / 2) open(side);
     else close();
   }
 
@@ -195,7 +223,7 @@ export function useSwipeToDismiss(
       gestureDecided = false;
       gestureLockedHorizontal = false;
       offsetAtGestureStart = swipeOffset.value;
-      swallowNextClick = isOpen.value;
+      swallowNextClick = openSide.value !== null;
       velocitySamples = [];
     },
     onSwipe() {
@@ -217,7 +245,8 @@ export function useSwipeToDismiss(
         return;
       }
 
-      swipeOffset.value = Math.max(0, offsetAtGestureStart + dx);
+      const minOffset = hasStartSide.value ? -Infinity : 0;
+      swipeOffset.value = Math.max(minOffset, offsetAtGestureStart + dx);
 
       const now = performance.now();
       velocitySamples.push({ time: now, offset: swipeOffset.value });
@@ -259,7 +288,7 @@ export function useSwipeToDismiss(
   );
 
   useEventListener(
-    () => (isOpen.value ? document : null),
+    () => (openSide.value ? document : null),
     'pointerdown',
     (e: PointerEvent) => {
       const pressed = e.target as Node;
@@ -273,16 +302,17 @@ export function useSwipeToDismiss(
   watch(target, () => {
     swipeOffset.value = 0;
     isSwiping.value = false;
-    isOpen.value = false;
+    openSide.value = null;
     isDismissing.value = false;
     isActionsVisible.value = false;
   });
 
   return {
     swipeOffset,
-    revealProgress,
     isSwiping,
     isArmed,
+    isStartArmed,
+    activeSide,
     isDismissing,
     isActionsVisible,
     dismiss,

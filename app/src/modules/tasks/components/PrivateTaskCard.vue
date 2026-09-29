@@ -17,6 +17,7 @@ const emit = defineEmits<{
   /** The swipe already asked, so the task goes without another question. */
   (e: 'delete'): void;
   (e: 'edit'): void;
+  (e: 'duplicate'): void;
   (e: 'menu-click', event: MouseEvent): void;
 }>();
 
@@ -27,8 +28,8 @@ const card = useTemplateRef<HTMLElement>('card');
 const tray = useTemplateRef<ComponentPublicInstance>('tray');
 
 const {
-  swipeOffset,
-  revealProgress,
+  revealedOffset,
+  activeSide,
   isSwiping,
   isActionsVisible,
   isTakingOver,
@@ -42,14 +43,25 @@ const {
   {
     enabled: () => props.swipeable,
     hasSecondaryAction: true,
+    hasStartAction: true,
     confirmDismiss: props.confirmDelete,
     onDismissed: () => emit('delete'),
+    onStartCommit: () => emit('edit'),
   },
 );
 
-function editFromSwipe() {
+function runSwipeAction() {
+  if (activeSide.value === 'right') {
+    void dismiss();
+    return;
+  }
   closeSwipe();
   emit('edit');
+}
+
+function duplicateFromSwipe() {
+  closeSwipe();
+  emit('duplicate');
 }
 
 const COLLAPSE_DURATION = '350ms';
@@ -103,14 +115,15 @@ function onLeave(el: Element) {
     <SwipeActionTray
       v-if="isActionsVisible"
       ref="tray"
-      action="delete"
-      secondary-action="edit"
-      :offset="swipeOffset"
-      :reveal-progress="revealProgress"
+      :key="activeSide"
+      :side="activeSide"
+      :action="activeSide === 'left' ? 'edit' : 'delete'"
+      :secondary-action="activeSide === 'right' ? 'duplicate' : undefined"
+      :offset="revealedOffset"
       :is-swiping="isSwiping"
       :is-taking-over="isTakingOver"
-      @action="dismiss"
-      @secondary-action="editFromSwipe"
+      @action="runSwipeAction"
+      @secondary-action="duplicateFromSwipe"
     />
 
     <div

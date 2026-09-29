@@ -11,7 +11,10 @@ import { Ellipsis, Pin } from '@lucide/vue';
 import { useLongPress } from '@/common/composables/useLongPress';
 import { useGroupPageId } from '@/core/composables/useGroupPageId';
 import { useIsMobileViewport } from '@/common/composables/useViewport';
-import { useSwipeCard } from '@/modules/tasks/composables/useSwipeCard';
+import {
+  useSwipeCard,
+  type SwipeAction,
+} from '@/modules/tasks/composables/useSwipeCard';
 import { useFileDrop } from '@/modules/tasks/composables/useFileDrop';
 import type { HwItem, TaskMenuAction } from '@/modules/tasks/types';
 import { taskRoute } from '@/modules/tasks/utils/routes';
@@ -84,10 +87,17 @@ const { isDragOver, handlers: dropHandlers } = useFileDrop((files) =>
   emit('image-drop', files),
 );
 
-const secondarySwipeAction = computed(() => {
-  if (props.canEdit) return 'edit';
+const secondarySwipeAction = computed(() => (props.canEdit ? 'edit' : 'menu'));
+
+const startSwipeAction = computed(() => {
   if (!props.canCheck) return undefined;
   return props.isPinned ? 'unpin' : 'pin';
+});
+
+const trayAction = computed<SwipeAction>(() => {
+  if (activeSide.value === 'left' && startSwipeAction.value)
+    return startSwipeAction.value;
+  return props.isArchiveView ? 'keep' : 'archive';
 });
 
 const container = useTemplateRef<HTMLElement>('container');
@@ -95,8 +105,8 @@ const card = useTemplateRef<HTMLElement>('card');
 const tray = useTemplateRef<ComponentPublicInstance>('tray');
 
 const {
-  swipeOffset,
-  revealProgress,
+  revealedOffset,
+  activeSide,
   isSwiping,
   isActionsVisible,
   isTakingOver,
@@ -110,14 +120,26 @@ const {
   computed(() => tray.value?.$el ?? null),
   {
     enabled: true,
-    hasSecondaryAction: () => !!secondarySwipeAction.value,
+    hasSecondaryAction: true,
+    hasStartAction: () => !!startSwipeAction.value,
     onDismissed: () => emit('swipe'),
+    onStartCommit: () => emit('menu-action', 'pin'),
   },
 );
 
-function runSecondarySwipeAction() {
+function runSwipeAction() {
+  if (activeSide.value === 'right') {
+    void dismiss();
+    return;
+  }
   closeSwipe();
-  emit('menu-action', secondarySwipeAction.value === 'edit' ? 'edit' : 'pin');
+  emit('menu-action', 'pin');
+}
+
+function runSecondarySwipeAction(event: MouseEvent) {
+  closeSwipe();
+  if (secondarySwipeAction.value === 'edit') emit('menu-action', 'edit');
+  else openMenuAt(event);
 }
 </script>
 
@@ -130,23 +152,28 @@ function runSecondarySwipeAction() {
     <SwipeActionTray
       v-if="isActionsVisible"
       ref="tray"
-      :action="isArchiveView ? 'keep' : 'archive'"
-      :secondary-action="secondarySwipeAction"
-      :offset="swipeOffset"
-      :reveal-progress="revealProgress"
+      :key="activeSide"
+      :side="activeSide"
+      :action="trayAction"
+      :secondary-action="
+        activeSide === 'right' ? secondarySwipeAction : undefined
+      "
+      :offset="revealedOffset"
       :is-swiping="isSwiping"
       :is-taking-over="isTakingOver"
-      @action="dismiss"
+      @action="runSwipeAction"
       @secondary-action="runSecondarySwipeAction"
     />
 
     <div
       v-wave
       ref="card"
-      class="item-card relative bg-canvas border-ghost-border p-1 shadow-input cursor-default touch-pan-y outline-2 transition-[outline-color,border-color] duration-(--duration-focus) ease-(--ease-focus) [@media(hover:hover)]:has-[.item-card-link:hover]:bg-linear-to-b [@media(hover:hover)]:has-[.item-card-link:hover]:from-ghost-hover [@media(hover:hover)]:has-[.item-card-link:hover]:to-ghost-hover has-[.item-card-link:focus-visible]:shadow-focus-ring"
+      class="item-card relative bg-canvas border-ghost-border p-1 shadow-input cursor-default touch-pan-y outline-2 transition-[outline-color,background-color] duration-(--duration-focus) ease-(--ease-focus) [@media(hover:hover)]:has-[.item-card-link:hover]:bg-ghost-hover has-[.item-card-link:focus-visible]:shadow-focus-ring"
       :class="[
         isDragOver ? 'outline-accent' : 'outline-transparent',
-        isRevealed ? 'rounded-xl' : 'rounded-none md:rounded-xl',
+        isRevealed
+          ? 'rounded-xl bg-ghost-border'
+          : 'rounded-none md:rounded-xl',
       ]"
       :style="cardStyle"
       v-on="dropHandlers"

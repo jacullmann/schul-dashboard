@@ -25,7 +25,7 @@ useAppShortcuts();
       <AppHeader />
       <Announcements v-if="activeGroupId" />
 
-      <main class="full-c flex-1 pb-(--tab-bar-height)">
+      <main class="full-c flex-1 overflow-x-clip pb-(--tab-bar-height)">
         <div
           key="content"
           :class="{ container: !$route.meta.fullWidth }"
