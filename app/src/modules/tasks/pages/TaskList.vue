@@ -305,7 +305,7 @@ onDeactivated(() => {
         <template v-for="(item, index) in visibleItems" :key="item.id">
           <div
             v-if="index > 0"
-            class="border-b border-ghost-border ml-9.5 mr-4"
+            class="border-b border-ghost-border ml-10.5 mr-4"
             :class="{ 'animate-enter': isCardEntering(item.id) }"
             :style="cardEntranceStyle(item.id)"
           ></div>

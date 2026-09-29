@@ -244,7 +244,7 @@ onMounted(() => {
         </BaseRow>
       </div>
 
-      <article v-if="isReady && item" class="flex flex-col gap-6">
+      <article v-if="isReady && item" class="flex flex-col gap-4">
         <header
           class="animate-enter flex flex-col gap-1"
           :style="{ '--enter-delay': entranceDelay(TITLE_ENTRANCE_ORDER) }"
@@ -262,6 +262,22 @@ onMounted(() => {
           </div>
           <TaskMeta :item="item" :show-type="true" :show-creator="true" />
         </header>
+
+        <TaskNote
+          v-if="hasNote"
+          class="animate-enter"
+          :style="{ '--enter-delay': entranceDelay(NOTE_ENTRANCE_ORDER) }"
+          :note="item.editorNote"
+          :editing="editingNoteForId === item.id"
+          :saving="savingNote"
+          :can-edit="canEditNote()"
+          :model-value="noteEditContent"
+          @update:model-value="noteEditContent = $event"
+          @edit-start="startEditNote(item)"
+          @edit-cancel="cancelEditNote()"
+          @edit-save="saveNote(item.id)"
+          @delete="deleteNote(item.id)"
+        />
 
         <TaskDescription
           v-if="item.description"
@@ -281,22 +297,6 @@ onMounted(() => {
           :make-thumb="makeThumb"
           @open-viewer="openImage"
           @context-menu="openImageMenu"
-        />
-
-        <TaskNote
-          v-if="hasNote"
-          class="animate-enter"
-          :style="{ '--enter-delay': entranceDelay(NOTE_ENTRANCE_ORDER) }"
-          :note="item.editorNote"
-          :editing="editingNoteForId === item.id"
-          :saving="savingNote"
-          :can-edit="canEditNote()"
-          :model-value="noteEditContent"
-          @update:model-value="noteEditContent = $event"
-          @edit-start="startEditNote(item)"
-          @edit-cancel="cancelEditNote()"
-          @edit-save="saveNote(item.id)"
-          @delete="deleteNote(item.id)"
         />
       </article>
 

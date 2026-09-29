@@ -81,16 +81,21 @@ export function useSwipeCard(
     if (!swipe.isActionsVisible.value) return undefined;
     return {
       transform: `translateX(${-swipe.swipeOffset.value}px)`,
-      transition: swipe.isSwiping.value
-        ? 'none'
-        : `transform ${SWIPE_SETTLE_TIMING}`,
+      // The corners round off on the settle clock even mid-drag, when the
+      // transform itself has to follow the finger without easing.
+      transition: `transform ${swipe.isSwiping.value ? '0s' : SWIPE_SETTLE_TIMING}, border-radius ${SWIPE_SETTLE_TIMING}`,
     };
   });
+
+  /** Cards flush with the screen edge round their corners once pulled aside. */
+  const isRevealed = computed(
+    () => swipe.swipeOffset.value > 0 || swipe.isSwiping.value,
+  );
 
   /** Past the commit point the main action takes over the whole strip. */
   const isTakingOver = computed(
     () => swipe.isArmed.value || swipe.isDismissing.value,
   );
 
-  return { ...swipe, cardStyle, isTakingOver };
+  return { ...swipe, cardStyle, isRevealed, isTakingOver };
 }

@@ -51,10 +51,10 @@ watch(
 
 <template>
   <div
-    class="note-section pt-3 border-t border-ghost-border flex justify-between gap-3"
+    class="note-section px-3 py-2 bg-surface border border-ghost-border rounded-xl flex justify-between gap-3"
   >
     <div class="w-full">
-      <div class="text-on-ghost text-base font-bold mb-1">
+      <div class="text-on-ghost text-base font-bold">
         {{ t('tasks.list.notes.note') }}
       </div>
 
