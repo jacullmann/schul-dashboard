@@ -1,12 +1,14 @@
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useEventListener } from '@vueuse/core';
+import { useRouter } from 'vue-router';
 import { useModalStore } from '@/stores/modalStore';
 import { useUserStore } from '@/stores/userStore';
 import type { HwItem } from '@/modules/tasks/types';
 import hw from '@/api/api.ts';
 import { groupPath } from '@/api/groupPath';
 import type { HwContext } from './types';
+import { taskRoute } from '@/modules/tasks/utils/routes';
 import { apiErrorMessage } from '@/api/errors';
 
 export function useHwActions(
@@ -16,6 +18,7 @@ export function useHwActions(
   const { t } = useI18n();
   const modalStore = useModalStore();
   const userStore = useUserStore();
+  const router = useRouter();
   const deletingEntry = ref(false);
 
   const showReportConfirm = ref(false);
@@ -53,6 +56,17 @@ export function useHwActions(
   }
   function isKept(itemId: string) {
     return ctx.keptItems.value.has(itemId);
+  }
+
+  /** Where the server's list filter puts the task, see toggleVisibility. */
+  function isInArchive(item: HwItem) {
+    if (isArchived(item.id)) return true;
+    if (isKept(item.id)) return false;
+    return (
+      new Date(item.dueDate) < new Date() &&
+      isChecked(item.id) &&
+      !isPinned(item.id)
+    );
   }
 
   const checkTimeouts = new Map<string, number>();
@@ -320,7 +334,8 @@ export function useHwActions(
     );
   }
 
-  async function deleteItem(id: string) {
+  /** Resolves to whether the task is gone, so a view of it knows to close. */
+  async function deleteItem(id: string): Promise<boolean> {
     const isConfirmed = await modalStore.confirm({
       title: t('tasks.actions.delete_modal.title'),
       content: t('tasks.actions.delete_modal.message'),
@@ -328,17 +343,19 @@ export function useHwActions(
       danger: true,
     });
 
-    if (!isConfirmed) return;
+    if (!isConfirmed) return false;
 
     deletingEntry.value = true;
     try {
       await hw.delete(itemPath(id, ''));
       ctx.items.value = ctx.items.value.filter((item) => item.id !== id);
       handleSuccessAction(t('tasks.actions.delete_modal.success'));
+      return true;
     } catch (e: any) {
       handleSuccessAction(
         apiErrorMessage(e, t('tasks.actions.delete_modal.error')),
       );
+      return false;
     } finally {
       deletingEntry.value = false;
     }
@@ -380,10 +397,8 @@ export function useHwActions(
   }
 
   async function shareItem(item: HwItem) {
-    const groupId = window.location.pathname.match(/\/groups\/([^/]+)/)?.[1];
-    const shareUrl = groupId
-      ? `${window.location.origin}/groups/${groupId}/tasks?type=${item.type}&highlightedTask=${item.id}`
-      : `${window.location.origin}/tasks?type=${item.type}&highlightedTask=${item.id}`;
+    const { href } = router.resolve(taskRoute(ctx.groupId, item.id));
+    const shareUrl = new URL(href, window.location.origin).href;
 
     if (navigator.share) {
       try {
@@ -415,6 +430,7 @@ export function useHwActions(
     isPinned,
     isArchived,
     isKept,
+    isInArchive,
     toggleCheck,
     togglePin,
     toggleVisibility,

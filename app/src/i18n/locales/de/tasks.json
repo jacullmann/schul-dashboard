@@ -15,7 +15,7 @@
       "sections": [
         {
           "title": "Aufgaben",
-          "text": "Jede/r, die/der ein Konto hat, kann eine Aufgabe hinzufügen. Ob <strong>Hausaufgabe</strong>, <strong>Daltonauftrag</strong> oder <strong>Prüfung</strong> – alles, was du für die Schule im Überblick haben musst, kann hochgeladen werden. Alle Aufgaben sind öffentlich und jederzeit einsehbar, du kannst also gemeinsam mit anderen tracken."
+          "text": "Jede/r, die/der ein Konto hat, kann eine Aufgabe hinzufügen. Ob <strong>Hausaufgabe</strong>, <strong>Daltonauftrag</strong> oder <strong>Prüfung</strong> – alles, was du für die Schule im Überblick haben musst, kann hochgeladen werden. Alle Aufgaben sind öffentlich und jederzeit einsehbar, du kannst also gemeinsam mit anderen tracken. Öffne eine Aufgabe, um ihre Beschreibung, Bilder und Notizen zu sehen."
         },
         {
           "title": "Aufgaben hinzufügen",
@@ -27,7 +27,7 @@
         },
         {
           "title": "Abgeschlossene Aufgaben tracken",
-          "text": "Wenn du ein Konto hast, kannst du mit der <strong>Checkbox</strong> jede Aufgabe, die du erledigt hast, abhaken. Dein Fortschritt wird in der Cloud gespeichert und die Aufgabe verkleinert, um Platz für offene Aufträge zu machen. So hast du gleich im Blick, was du noch erledigen musst."
+          "text": "Wenn du ein Konto hast, kannst du mit der <strong>Checkbox</strong> jede Aufgabe, die du erledigt hast, abhaken. Dein Fortschritt wird in der Cloud gespeichert. Mit dem Filter <strong>Erledigte ausblenden</strong> siehst du nur noch, was du noch erledigen musst."
         },
         {
           "title": "Personalisierte Kurse",
@@ -106,7 +106,13 @@
       "view": {
         "no_tasks": "Keine Aufgaben gefunden",
         "no_tasks_in_view_message": "Keine Aufgaben in der aktuellen Ansicht. Ändere deine Filter oder füge eine neue Aufgabe hinzu",
-        "no_tasks_message": "Füge eine neue Aufgabe hinzu oder "
+        "no_tasks_message": "Füge eine neue Aufgabe hinzu oder ",
+        "not_found": "Aufgabe nicht gefunden",
+        "not_found_message": "Diese Aufgabe wurde gelöscht oder ist nicht mehr verfügbar.",
+        "load_failed": "Aufgabe konnte nicht geladen werden",
+        "load_failed_message": "Prüfe deine Verbindung und versuche es noch einmal.",
+        "all_tasks": "Alle Aufgaben",
+        "drop_files": "Loslassen, um Dateien anzuhängen"
       },
       "errors": {
         "status_failed": "Fehler beim Setzen des Status."
@@ -138,9 +144,6 @@
       "message": "Am {date} gibt es bereits eine {type} für das Fach {subject}. Bist du sicher, dass es sich bei deiner Aufgabe nicht um dieselbe Aufgabe handelt?",
       "create_anyway": "Trotzdem erstellen",
       "view_existing": "Existierende anzeigen"
-    },
-    "description": {
-      "more": "mehr"
     }
   },
   "private_tasks": {

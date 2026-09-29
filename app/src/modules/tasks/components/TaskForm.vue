@@ -9,7 +9,7 @@ import {
 } from '../composables/useTaskFormLogic';
 import { CUSTOM_SUBJECT_MAX_LENGTH } from '@/types/subjects';
 import ItemCard from './ItemCard.vue';
-import TaskCardDescription from './TaskCardDescription.vue';
+import TaskDescription from './TaskDescription.vue';
 
 const { t } = useI18n();
 
@@ -276,8 +276,6 @@ const {
       <ItemCard
         v-if="doubleTaskOriginalItem"
         :title="doubleTaskOriginalItem.title"
-        :show-menu-trigger="false"
-        :is-collapsed="false"
       >
         <template #badges>
           <div class="text-on-ghost-muted text-base">
@@ -290,10 +288,7 @@ const {
         </template>
 
         <template v-if="doubleTaskOriginalItem.description" #body>
-          <TaskCardDescription
-            :description="doubleTaskOriginalItem.description"
-            :is-expanded="true"
-          />
+          <TaskDescription :description="doubleTaskOriginalItem.description" />
         </template>
 
         <template

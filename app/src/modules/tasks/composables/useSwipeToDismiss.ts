@@ -21,7 +21,7 @@ export interface SwipeToDismissOptions {
   /** Share of the card's width past which letting go runs the action. */
   commitRatio?: number;
   /** Pressing inside must not count as a press outside that closes the card. */
-  actions?: Ref<HTMLElement | null>;
+  actions?: Readonly<Ref<HTMLElement | null>>;
   /** Asked before the card slides out; declining puts the card back. */
   confirmDismiss?: () => Promise<boolean>;
   onSlideOut: () => void;

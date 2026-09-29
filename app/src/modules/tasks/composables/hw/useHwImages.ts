@@ -7,9 +7,6 @@ import type { HwContext } from './types';
 
 export function useHwImages(ctx: HwContext, imageUpload: any) {
   const { t } = useI18n();
-  const showImageViewer = ref(false);
-  const viewerImages = ref<HwItem['images']>([]);
-  const viewerStartIndex = ref(0);
 
   const imageMenu = reactive({
     visible: false,
@@ -22,20 +19,6 @@ export function useHwImages(ctx: HwContext, imageUpload: any) {
   const modalStore = useModalStore();
   const deletingImage = ref(false);
   const currentUploadItemId = ref<string | null>(null);
-
-  function openImageViewer(item: HwItem, index: number) {
-    viewerImages.value = item.images;
-    viewerStartIndex.value = index;
-    showImageViewer.value = true;
-  }
-
-  function closeImageViewer() {
-    showImageViewer.value = false;
-    setTimeout(() => {
-      viewerImages.value = [];
-      viewerStartIndex.value = 0;
-    }, 300);
-  }
 
   function handleImageContextMenu(
     event: MouseEvent,
@@ -112,19 +95,10 @@ export function useHwImages(ctx: HwContext, imageUpload: any) {
     return imageUpload.makeThumb(input);
   }
 
-  function makeUrl(input: string) {
-    return imageUpload.makeUrl(input);
-  }
-
   return {
-    showImageViewer,
-    viewerImages,
-    viewerStartIndex,
     imageMenu,
     deletingImage,
     currentUploadItemId,
-    openImageViewer,
-    closeImageViewer,
     handleImageContextMenu,
     openImageMenu,
     closeImageMenu,
@@ -132,6 +106,5 @@ export function useHwImages(ctx: HwContext, imageUpload: any) {
     triggerImageDrop,
     triggerImageDelete,
     makeThumb,
-    makeUrl,
   };
 }

@@ -3,7 +3,14 @@ import { useI18n } from 'vue-i18n';
 import { ListFilter, X } from '@lucide/vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 
-defineProps<{ show: boolean }>();
+withDefaults(
+  defineProps<{
+    show: boolean;
+    /** Off for a page shown again, which should not replay its entrance. */
+    entrance?: boolean;
+  }>(),
+  { entrance: true },
+);
 
 const emit = defineEmits<{ dismiss: [] }>();
 
@@ -16,7 +23,8 @@ const { activeGroupId } = useAppAuth();
     <div v-if="show" class="notice-reveal">
       <div class="min-h-0">
         <div
-          class="animate-enter flex items-center gap-2 text-sm text-on-ghost-muted"
+          class="flex items-center gap-2 text-sm text-on-ghost-muted"
+          :class="{ 'animate-enter': entrance }"
         >
           <ListFilter :size="16" class="shrink-0" aria-hidden="true" />
           <span class="m-0 flex flex-1 flex-wrap items-center gap-x-1.5">

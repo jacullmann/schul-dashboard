@@ -7,7 +7,7 @@ import { useToast } from '@/common/composables/useToast';
 import { useTaskForm } from '@/core/composables/useTaskForm';
 import { useModalStore } from '@/stores/modalStore';
 import { useUserStore } from '@/stores/userStore';
-import type { HwContext } from './types';
+import { findLoadedItem, type HwContext } from './types';
 import { apiErrorMessage } from '@/api/errors';
 
 export function useHwForms(ctx: HwContext) {
@@ -57,7 +57,7 @@ export function useHwForms(ctx: HwContext) {
         editorNote: noteEditContent.value,
       });
 
-      const item = ctx.items.value.find((i) => i.id === itemId);
+      const item = findLoadedItem(ctx, itemId);
       if (item) item.editorNote = noteEditContent.value;
 
       useToast().success(t('tasks.list.notes.saved'));
@@ -89,7 +89,7 @@ export function useHwForms(ctx: HwContext) {
         editorNote: '',
       });
 
-      const item = ctx.items.value.find((i) => i.id === itemId);
+      const item = findLoadedItem(ctx, itemId);
       if (item) item.editorNote = '';
 
       useToast().success(t('tasks.notes.delete_modal.success'));

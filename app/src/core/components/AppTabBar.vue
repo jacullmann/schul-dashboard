@@ -35,9 +35,10 @@ const tabs = computed<NavItem[]>(() => [
 /** The tab being navigated to, shown as selected until the navigation settles. */
 const pendingTab = ref<string | null>(null);
 
-const routeTab = computed(
-  () => tabs.value.find((tab) => tab.id === route.name)?.id ?? null,
-);
+const routeTab = computed(() => {
+  const current = route.meta.navItem ?? route.name;
+  return tabs.value.find((tab) => tab.id === current)?.id ?? null;
+});
 const activeTab = computed(() => pendingTab.value ?? routeTab.value);
 
 async function openTab(name: string, location: RouteLocationRaw) {

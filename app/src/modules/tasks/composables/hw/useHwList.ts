@@ -1,8 +1,12 @@
-import { computed, nextTick } from 'vue';
+import { computed } from 'vue';
+import type { HwItem } from '@/modules/tasks/types';
 import type { HwContext } from './types';
 import hw from '@/api/api.ts';
 import { groupPath } from '@/api/groupPath';
 import { hiddenByCourses } from '@/api/personalization';
+
+/** Tasks shown at first, and added or taken away per step. */
+export const TASK_PAGE_SIZE = 10;
 
 export function useHwList(ctx: HwContext) {
   const filteredItems = computed(() => {
@@ -28,19 +32,22 @@ export function useHwList(ctx: HwContext) {
     filteredItems.value.slice(0, ctx.visibleCount.value),
   );
 
-  function setVisibleCount(count: number) {
-    ctx.visibleCount.value = count;
+  function resetVisibleCount() {
+    ctx.visibleCount.value = TASK_PAGE_SIZE;
   }
 
   function showMore() {
     ctx.visibleCount.value = Math.min(
-      ctx.visibleCount.value + 5,
+      ctx.visibleCount.value + TASK_PAGE_SIZE,
       filteredItems.value.length,
     );
   }
 
   function showLess() {
-    ctx.visibleCount.value = Math.max(5, ctx.visibleCount.value - 5);
+    ctx.visibleCount.value = Math.max(
+      TASK_PAGE_SIZE,
+      ctx.visibleCount.value - TASK_PAGE_SIZE,
+    );
   }
 
   async function loadCheckedForMe() {
@@ -76,60 +83,7 @@ export function useHwList(ctx: HwContext) {
     }
   }
 
-  async function checkAndScrollToItem(
-    targetId: string | undefined,
-    forceOldEntries: () => void,
-  ) {
-    if (!targetId) {
-      ctx.highlightedItemId.value = null;
-      return;
-    }
-
-    const existsInRaw = ctx.items.value.some((i) => i.id === targetId);
-
-    if (!existsInRaw) {
-      if (!ctx.showOldEntries.value) {
-        forceOldEntries();
-        return;
-      }
-      return;
-    }
-
-    let index = filteredItems.value.findIndex((i) => i.id === targetId);
-
-    if (index === -1 && ctx.subjectFilter.value) {
-      ctx.subjectFilter.value = '';
-      await nextTick();
-      index = filteredItems.value.findIndex((i) => i.id === targetId);
-    }
-
-    if (index === -1) return;
-
-    ctx.highlightedItemId.value = targetId;
-
-    if (index >= ctx.visibleCount.value) {
-      ctx.visibleCount.value = index + 5;
-      await nextTick();
-    }
-
-    const el = document.getElementById(`item-${targetId}`);
-    el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }
-
-  async function reloadList(
-    routeParamsItemId?: string,
-    forceOldEntries?: () => void,
-  ) {
-    if ((ctx.tab.value as string) === 'PRIVATE') {
-      ctx.loading.value = false;
-      ctx.items.value = [];
-      ctx.hiddenByCourses.value = 0;
-      ctx.expandedDescriptions.value = new Set();
-      ctx.revealedImages.value = new Set();
-      ctx.visibleCount.value = 5;
-      return;
-    }
-
+  async function reloadList() {
     ctx.loading.value = true;
     const params: Record<string, string | boolean> = { type: ctx.tab.value };
     if (ctx.showOldEntries.value) params.filter = 'old';
@@ -143,32 +97,22 @@ export function useHwList(ctx: HwContext) {
       });
       ctx.items.value = response.data;
       ctx.hiddenByCourses.value = hiddenByCourses(response);
-      ctx.expandedDescriptions.value = new Set();
-      ctx.revealedImages.value = new Set();
     } catch (e) {
       console.error('Failed to load items:', e);
     } finally {
       ctx.loading.value = false;
       ctx.initialLoad.value = false;
-
-      if (!routeParamsItemId) {
-        ctx.visibleCount.value = Math.min(5, filteredItems.value.length || 5);
-      }
-
-      if (routeParamsItemId && forceOldEntries) {
-        await checkAndScrollToItem(routeParamsItemId, forceOldEntries);
-      }
     }
   }
 
-  async function refreshItem(itemId: string, onUpdate?: (item: any) => void) {
+  async function refreshItem(itemId: string) {
     try {
-      const { data } = await hw.get(groupPath(ctx.groupId, `/items/${itemId}`));
+      const { data } = await hw.get<HwItem>(
+        groupPath(ctx.groupId, `/items/${itemId}`),
+      );
       const index = ctx.items.value.findIndex((i) => i.id === itemId);
-      if (index !== -1) {
-        ctx.items.value[index] = data;
-      }
-      if (onUpdate) onUpdate(data);
+      if (index !== -1) ctx.items.value[index] = data;
+      if (ctx.openedItem.value?.id === itemId) ctx.openedItem.value = data;
     } catch (e) {
       console.error(`Failed to refresh item ${itemId}:`, e);
     }
@@ -177,13 +121,12 @@ export function useHwList(ctx: HwContext) {
   return {
     filteredItems,
     limitedItems,
-    setVisibleCount,
+    resetVisibleCount,
     showMore,
     showLess,
     loadCheckedForMe,
     loadVisibilityForMe,
     reloadList,
     refreshItem,
-    checkAndScrollToItem,
   };
 }

@@ -23,6 +23,7 @@ import { groupPath } from '@/api/groupPath';
 import { useGroupPageId } from '@/core/composables/useGroupPageId';
 import ItemCard from '@/modules/tasks/components/ItemCard.vue';
 import { useCardEntrance } from '@/modules/tasks/composables/useCardEntrance';
+import { taskRoute } from '@/modules/tasks/utils/routes';
 import { entranceDelay } from '@/modules/tasks/utils/entrance';
 import { lessonMinutes } from '@/modules/schedule/utils/slotTimes';
 
@@ -417,15 +418,11 @@ const {
               @before-leave="beforeLeave"
             >
               <ItemCard
-                v-for="(task, index) in sortedTasks"
+                v-for="task in sortedTasks"
                 :key="task.id"
                 :class="{ 'animate-enter': isCardEntering(task.id) }"
                 :style="cardEntranceStyle(task.id)"
-                :item="task"
-                :index="index"
-                :user="user"
                 :title="task.title"
-                :show-menu-trigger="false"
                 @animationend="handleCardAnimationEnd($event, task.id)"
               >
                 <template #checkbox>
@@ -452,16 +449,7 @@ const {
                       variant="ghost"
                       size="sm"
                       :icon="ArrowUpRight"
-                      @click.stop="
-                        $router.push({
-                          name: 'group-tasks',
-                          params: { groupId },
-                          query: {
-                            type: 'all',
-                            highlightedTask: task.id,
-                          },
-                        })
-                      "
+                      @click.stop="$router.push(taskRoute(groupId, task.id))"
                     />
                   </BaseTooltip>
                 </template>

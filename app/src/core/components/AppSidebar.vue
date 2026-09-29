@@ -246,7 +246,7 @@ onUnmounted(() => {
         <SidebarButton
           :label="t('common.sidebar.tasks')"
           :expanded="isExpanded"
-          :active="$route.name === 'group-tasks'"
+          :active="$route.meta.navItem === 'group-tasks'"
           :icon="ListTodo"
           :page="true"
           @click="openGroupPage('group-tasks')"

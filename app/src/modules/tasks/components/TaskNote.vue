@@ -9,7 +9,6 @@ const props = defineProps<{
   saving: boolean;
   canEdit: boolean;
   modelValue: string;
-  reducedMargin?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -43,6 +42,7 @@ watch(
     if (isEditing) {
       await nextTick();
       adjustHeight();
+      textareaRef.value?.focus();
     }
   },
   { immediate: true },
@@ -51,8 +51,7 @@ watch(
 
 <template>
   <div
-    class="note-section pt-1 border-t border-ghost-border flex justify-between gap-3"
-    :class="reducedMargin ? 'mt-0' : 'mt-2'"
+    class="note-section pt-3 border-t border-ghost-border flex justify-between gap-3"
   >
     <div class="w-full">
       <div class="text-on-ghost text-base font-bold mb-1">

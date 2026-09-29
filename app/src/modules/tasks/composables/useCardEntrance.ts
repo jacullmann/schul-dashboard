@@ -51,5 +51,10 @@ export function useCardEntrance(
     enteringOrder.value = entering;
   }
 
-  return { isEntering, entranceStyle, handleEntranceEnd };
+  /** For a list put away before its cards settled, so they return in place. */
+  function settleAll() {
+    enteringOrder.value = new Map();
+  }
+
+  return { isEntering, entranceStyle, handleEntranceEnd, settleAll };
 }

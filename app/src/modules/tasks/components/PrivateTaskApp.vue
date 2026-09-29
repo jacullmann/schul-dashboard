@@ -14,7 +14,7 @@ import {
   useDragReorder,
   REORDER_ITEM_ATTR,
 } from '@/modules/tasks/composables/useDragReorder';
-import ItemCard from '@/modules/tasks/components/ItemCard.vue';
+import PrivateTaskCard from '@/modules/tasks/components/PrivateTaskCard.vue';
 import { usePrivateTaskForm } from '@/core/composables/usePrivateTaskForm';
 import { computed, ref, onUnmounted, watch } from 'vue';
 import { useIsMobileViewport } from '@/common/composables/useViewport';
@@ -255,17 +255,15 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
             >
               <!-- The entrance plays on the card, not the wrapper, whose
                  transform belongs to the drag reorder. -->
-              <ItemCard
+              <PrivateTaskCard
                 :class="{ 'animate-enter': isCardEntering(privateTask.id) }"
                 :style="cardEntranceStyle(privateTask.id)"
-                :is-collapsed="privateTask.completed"
-                :title="privateTask.title"
+                :task="privateTask"
                 :swipeable="!isReordering"
-                swipe-action="delete"
-                secondary-swipe-action="edit"
-                :confirm-swipe="confirmDeletePrivateTask"
-                @swiped="deletePrivateTask(privateTask.id, { confirm: false })"
-                @swipe-secondary="openEditPrivateTaskForm(privateTask)"
+                :confirm-delete="confirmDeletePrivateTask"
+                @toggle-completion="togglePrivateTaskCompletion(privateTask)"
+                @delete="deletePrivateTask(privateTask.id, { confirm: false })"
+                @edit="openEditPrivateTaskForm(privateTask)"
                 @dblclick="handleItemDoubleClick(privateTask, $event)"
                 @contextmenu.prevent.stop="
                   handleCardContextMenu(privateTask, $event)
@@ -273,14 +271,6 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
                 @menu-click="handleCardMenuClick(privateTask, $event)"
                 @animationend="handleCardAnimationEnd($event, privateTask.id)"
               >
-                <template #checkbox>
-                  <BaseCheckbox
-                    class="checkbox"
-                    :checked="privateTask.completed"
-                    @change="togglePrivateTaskCompletion(privateTask)"
-                  />
-                </template>
-
                 <template #menu>
                   <Teleport to="body" :disabled="isMobile">
                     <BaseMenu
@@ -361,11 +351,7 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
                     </BaseMenu>
                   </Teleport>
                 </template>
-
-                <template v-if="privateTask.description" #body>
-                  <span>{{ privateTask.description }}</span>
-                </template>
-              </ItemCard>
+              </PrivateTaskCard>
             </div>
           </div>
         </div>

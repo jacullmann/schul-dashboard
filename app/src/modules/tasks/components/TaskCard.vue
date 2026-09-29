@@ -1,405 +1,236 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
-import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/vue';
-import { useI18n } from 'vue-i18n';
-import { useLongPress } from '@/common/composables/useLongPress';
-import { useUserStore } from '@/stores/userStore';
-import type { HwItem } from '@/modules/tasks/composables/useTasks';
-import ItemCard from './ItemCard.vue';
-import TaskCardDescription from './TaskCardDescription.vue';
-import TaskCardImages from './TaskCardImages.vue';
-import TaskCardNote from './TaskCardNote.vue';
-
 import {
-  Upload,
-  Pencil,
-  Send,
-  Flag,
-  Trash2,
-  Pin,
-  Archive,
-  ArchiveRestore,
-  Info,
-  MessageSquarePlus,
-} from '@lucide/vue';
+  computed,
+  ref,
+  useTemplateRef,
+  watch,
+  type ComponentPublicInstance,
+} from 'vue';
+import { useI18n } from 'vue-i18n';
+import { Ellipsis, Pin } from '@lucide/vue';
+import { useLongPress } from '@/common/composables/useLongPress';
+import { useGroupPageId } from '@/core/composables/useGroupPageId';
+import { useIsMobileViewport } from '@/common/composables/useViewport';
+import { useSwipeCard } from '@/modules/tasks/composables/useSwipeCard';
+import { useFileDrop } from '@/modules/tasks/composables/useFileDrop';
+import type { HwItem, TaskMenuAction } from '@/modules/tasks/types';
+import { taskRoute } from '@/modules/tasks/utils/routes';
+import { menuAnchor, type MenuAnchor } from '@/modules/tasks/utils/menuAnchor';
+import SwipeActionTray from './SwipeActionTray.vue';
+import TaskMenu from './TaskMenu.vue';
+import TaskMeta from './TaskMeta.vue';
 
 const props = defineProps<{
   item: HwItem;
-  index: number;
-  user: any;
-  tab: string;
+  showType: boolean;
+  isArchiveView: boolean;
   isChecked: boolean;
   isPinned: boolean;
-  isExpanded: boolean;
-  isRevealed: boolean;
-  imagesPerRow: number;
-  isMobile: boolean;
-  highlighted: boolean;
-  showOldEntries: boolean;
-  isOpenMenu: boolean;
-  noteEditContent: string;
-  editingNoteForId: string | null;
-  savingNote: boolean;
-  canEditNote: boolean;
-  canEdit: (createdBy: string) => boolean;
-  canDelete: (createdBy: string) => boolean;
-  canDeleteImage: (itemCreatedBy: string, imgCreatedBy: string) => boolean;
-  makeThumb: (id: string) => string;
-  getSubjectName: (item: HwItem) => string;
-  getTypeLabel: (type: string) => string;
+  isMenuOpen: boolean;
+  canCheck: boolean;
+  canEdit: boolean;
+  canAddNote: boolean;
+  canDelete: boolean;
 }>();
-
-const userStore = useUserStore();
-const isGroupAdmin = computed(() => userStore.isGroupAdmin);
 
 const emit = defineEmits<{
   (e: 'toggle-check'): void;
   (e: 'toggle-pin'): void;
-  (e: 'toggle-description'): void;
-  (e: 'reveal-images'): void;
   (e: 'swipe'): void;
-  (e: 'menu-action', action: string): void;
+  (e: 'menu-action', action: TaskMenuAction): void;
   (e: 'open-menu'): void;
   (e: 'close-menu'): void;
-  (e: 'show-info'): void;
   (e: 'image-drop', files: File[]): void;
-  (e: 'open-image-viewer', index: number): void;
-  (e: 'image-context-menu', event: MouseEvent, img: any): void;
-  (e: 'edit-note-start'): void;
-  (e: 'edit-note-cancel'): void;
-  (e: 'edit-note-save'): void;
-  (e: 'edit-note-delete'): void;
-  (e: 'update:noteEditContent', val: string): void;
 }>();
 
 const { t } = useI18n();
+const groupId = useGroupPageId();
+// On phones the card's menu opens on a long press, which frees the row for the
+// title; the task's own page keeps the button.
+const isMobile = useIsMobileViewport();
 
-const menuCoords = ref<{ x: number; y: number } | null>(null);
-const menuRef = ref<HTMLElement | null>(null);
+const to = computed(() => taskRoute(groupId, props.item.id));
 
-const menuVirtualElement = computed(() => {
-  if (!menuCoords.value) return null;
-  const { x, y } = menuCoords.value;
-  return {
-    getBoundingClientRect() {
-      return {
-        width: 0,
-        height: 0,
-        x,
-        y,
-        top: y,
-        left: x,
-        right: x,
-        bottom: y,
-      };
-    },
-  };
-});
+const menuPosition = ref<MenuAnchor | null>(null);
 
-const { floatingStyles, isPositioned } = useFloating(
-  menuVirtualElement,
-  menuRef,
-  {
-    strategy: 'fixed',
-    placement: 'bottom-start',
-    whileElementsMounted: autoUpdate,
-    transform: false,
-    middleware: [
-      offset(4),
-      flip({
-        fallbackPlacements: ['bottom-end', 'top-start', 'top-end'],
-      }),
-      shift({ padding: 8 }),
-    ],
-  },
-);
-
-const itemMenuStyles = computed(() => ({
-  ...floatingStyles.value,
-  opacity: isPositioned.value ? undefined : 0,
-}));
-
-function handleCardMenuClick(event: MouseEvent) {
-  if (props.isOpenMenu) {
-    emit('close-menu');
-    menuCoords.value = null;
-  } else {
-    menuCoords.value = { x: event.clientX, y: event.clientY };
-    emit('open-menu');
-  }
-}
-
-function handleCardContextMenu(event: MouseEvent) {
-  menuCoords.value = { x: event.clientX, y: event.clientY };
+function openMenuAt(event: MouseEvent) {
+  menuPosition.value = menuAnchor(event);
   emit('open-menu');
 }
 
-/**
- * Controls and regions that answer a press themselves — an image tile runs a
- * menu of its own, a field wants the caret — so neither the card's hold nor its
- * double click may speak for them. The empty space around the tiles stays the
- * card's.
- */
-const IGNORED_REGIONS = [
-  'button',
-  'a',
-  'input',
-  'textarea',
-  '.item-menu-trigger',
-  '.note-section',
-  '[data-image-index]',
-  '.unpin-trigger',
-  '[role=menu]',
-  '.checkbox',
-].join(', ');
-
-function handleItemDoubleClick(event: MouseEvent) {
-  if (!props.user) return;
-  const target = event.target as HTMLElement;
-
-  if (target.closest(IGNORED_REGIONS)) {
-    return;
-  }
-
-  emit('toggle-check');
+function handleMenuClick(event: MouseEvent) {
+  if (props.isMenuOpen) emit('close-menu');
+  else openMenuAt(event);
 }
 
-const { handlers: longPressHandlers } = useLongPress(handleCardContextMenu, {
+watch(
+  () => props.isMenuOpen,
+  (isOpen) => {
+    if (!isOpen) menuPosition.value = null;
+  },
+);
+
+/** Controls that answer a press themselves, so the card's hold may not. */
+const IGNORED_REGIONS = ['button', 'input', '.checkbox', '[role=menu]'].join(
+  ', ',
+);
+
+const { handlers: longPressHandlers } = useLongPress(openMenuAt, {
   ignore: IGNORED_REGIONS,
   grow: '.item-card',
 });
 
-const isOnlyNote = computed(() => {
-  const hasDescription = !!props.item.description;
-  const hasImages = !!(props.item.images && props.item.images.length);
-  const hasNote =
-    !!props.item.editorNote || props.editingNoteForId === props.item.id;
-  return !hasDescription && !hasImages && hasNote;
-});
+const { isDragOver, handlers: dropHandlers } = useFileDrop((files) =>
+  emit('image-drop', files),
+);
 
 const secondarySwipeAction = computed(() => {
-  if (props.canEdit(props.item.createdBy)) return 'edit';
-  if (!props.user) return undefined;
+  if (props.canEdit) return 'edit';
+  if (!props.canCheck) return undefined;
   return props.isPinned ? 'unpin' : 'pin';
 });
 
-watch(
-  () => props.isOpenMenu,
-  (newVal) => {
-    if (!newVal) {
-      menuCoords.value = null;
-      menuRef.value = null;
-    }
+const container = useTemplateRef<HTMLElement>('container');
+const card = useTemplateRef<HTMLElement>('card');
+const tray = useTemplateRef<ComponentPublicInstance>('tray');
+
+const {
+  swipeOffset,
+  revealProgress,
+  isSwiping,
+  isActionsVisible,
+  isTakingOver,
+  cardStyle,
+  dismiss,
+  close: closeSwipe,
+} = useSwipeCard(
+  container,
+  card,
+  computed(() => tray.value?.$el ?? null),
+  {
+    enabled: true,
+    hasSecondaryAction: () => !!secondarySwipeAction.value,
+    onDismissed: () => emit('swipe'),
   },
 );
+
+function runSecondarySwipeAction() {
+  closeSwipe();
+  emit('menu-action', secondarySwipeAction.value === 'edit' ? 'edit' : 'pin');
+}
 </script>
 
 <template>
-  <ItemCard
-    :id="'item-' + item.id"
-    class="long-press-target"
-    :is-collapsed="isChecked"
-    :highlighted="highlighted"
-    :title="item.title"
-    :swipeable="true"
-    :swipe-action="showOldEntries ? 'keep' : 'archive'"
-    :secondary-swipe-action="secondarySwipeAction"
-    :reduced-bottom-margin="isOnlyNote"
-    :accepts-files="true"
-    @swiped="$emit('swipe')"
-    @swipe-secondary="
-      $emit('menu-action', secondarySwipeAction === 'edit' ? 'edit' : 'pin')
-    "
+  <div
+    ref="container"
+    class="long-press-target relative z-20 focus-within:z-30 hover:z-30 has-[[role=menu]]:z-50"
     v-on="longPressHandlers"
-    @dblclick="handleItemDoubleClick($event)"
-    @menu-click="handleCardMenuClick($event)"
-    @files-dropped="(files: File[]) => $emit('image-drop', files)"
   >
-    <template #checkbox>
-      <BaseCheckbox
-        v-if="user"
-        class="checkbox"
-        :checked="isChecked"
-        @change="$emit('toggle-check')"
-      />
-    </template>
+    <SwipeActionTray
+      v-if="isActionsVisible"
+      ref="tray"
+      :action="isArchiveView ? 'keep' : 'archive'"
+      :secondary-action="secondarySwipeAction"
+      :offset="swipeOffset"
+      :reveal-progress="revealProgress"
+      :is-swiping="isSwiping"
+      :is-taking-over="isTakingOver"
+      @action="dismiss"
+      @secondary-action="runSecondarySwipeAction"
+    />
 
-    <template #badges>
-      <div class="text-on-ghost-muted text-base">
-        <template v-if="tab === 'all'"
-          >{{ getTypeLabel(item.type) }} • </template
-        >{{ getSubjectName(item) }} •
-        {{ new Date(item.dueDate).toLocaleDateString()
-        }}<template v-if="isGroupAdmin">
-          • {{ item.createdByName || t('common.selection.unknown') }}</template
-        >
-      </div>
-      <div
-        v-if="user?.role === 'superadmin'"
-        class="text-on-ghost-subtle text-base"
-      >
-        ({{ item.createdByEmail }})
-      </div>
-    </template>
-
-    <template #actions-pre>
-      <BaseTooltip
-        :content="t('tasks.list.tasks.menu.unpin')"
-        placement="bottom"
-      >
-        <BaseButton
-          v-if="isPinned"
-          variant="ghost"
-          size="sm"
-          :icon="Pin"
-          icon-classes="fill-current"
-          @click.stop="$emit('toggle-pin')"
-        />
-      </BaseTooltip>
-    </template>
-
-    <template #menu>
-      <Teleport to="body" :disabled="isMobile">
-        <BaseMenu
-          :ref="
-            (el: any) => {
-              if (el && isOpenMenu) menuRef = el.menuEl;
-            }
-          "
-          :open="isOpenMenu"
-          :class="!isMobile ? 'fixed! z-[10000]! min-w-[180px]' : ''"
-          :style="!isMobile ? itemMenuStyles : undefined"
-          @close="$emit('close-menu')"
-          @click.stop
-        >
-          <BaseMenuButton
-            :icon="Upload"
-            @click="$emit('menu-action', 'images')"
-          >
-            {{ t('tasks.list.tasks.menu.upload_images') }}
-          </BaseMenuButton>
-
-          <BaseMenuButton
-            v-if="canEdit(item.createdBy)"
-            :icon="Pencil"
-            @click="$emit('menu-action', 'edit')"
-          >
-            {{ t('common.buttons.edit') }}
-          </BaseMenuButton>
-
-          <BaseMenuButton
-            v-if="canEditNote && !item.editorNote"
-            :icon="MessageSquarePlus"
-            @click="$emit('menu-action', 'addNote')"
-          >
-            {{ t('tasks.list.tasks.menu.add_note') }}
-          </BaseMenuButton>
-
-          <BaseMenuDivider />
-
-          <BaseMenuButton
-            :icon="Pin"
-            :icon-classes="isPinned ? 'fill-current' : ''"
-            @click="$emit('menu-action', 'pin')"
-          >
-            {{
-              isPinned
-                ? t('tasks.list.tasks.menu.unpin')
-                : t('tasks.list.tasks.menu.pin')
-            }}
-          </BaseMenuButton>
-
-          <BaseMenuButton
-            :icon="showOldEntries ? ArchiveRestore : Archive"
-            @click="$emit('menu-action', 'archive')"
-          >
-            {{
-              showOldEntries
-                ? t('tasks.list.tasks.menu.unarchive')
-                : t('tasks.list.tasks.menu.archive')
-            }}
-          </BaseMenuButton>
-
-          <BaseMenuDivider />
-
-          <BaseMenuButton :icon="Send" @click="$emit('menu-action', 'share')">
-            {{ t('tasks.list.tasks.menu.share') }}
-          </BaseMenuButton>
-
-          <BaseMenuButton
-            :icon="Info"
-            @click="
-              $emit('close-menu');
-              $emit('show-info');
-            "
-          >
-            {{ t('tasks.list.tasks.menu.info') }}
-          </BaseMenuButton>
-
-          <BaseMenuDivider />
-
-          <BaseMenuButton
-            :title="t('tasks.list.tasks.menu.report.name')"
-            :icon="Flag"
-            @click="$emit('menu-action', 'report')"
-          >
-            {{ t('tasks.list.tasks.menu.report.name') }}
-          </BaseMenuButton>
-
-          <BaseMenuButton
-            v-if="canDelete(item.createdBy)"
-            variant="danger"
-            :icon="Trash2"
-            @click="$emit('menu-action', 'delete')"
-          >
-            {{ t('common.buttons.delete') }}
-          </BaseMenuButton>
-        </BaseMenu>
-      </Teleport>
-    </template>
-
-    <template v-if="item.description" #body>
-      <TaskCardDescription
-        :description="item.description"
-        :is-expanded="isExpanded"
-        @toggle="$emit('toggle-description')"
-      />
-    </template>
-
-    <template
-      v-if="
-        (item.images && item.images.length) ||
-        item.editorNote ||
-        editingNoteForId === item.id
-      "
-      #content-after
+    <div
+      v-wave
+      ref="card"
+      class="item-card relative bg-canvas border-ghost-border md:rounded-xl p-1 shadow-input cursor-default touch-pan-y outline-2 transition-[outline-color,border-color] duration-(--duration-focus) ease-(--ease-focus) has-[.item-card-link:hover]:bg-ghost-hover has-[.item-card-link:focus-visible]:shadow-focus-ring"
+      :class="isDragOver ? 'outline-accent' : 'outline-transparent'"
+      :style="cardStyle"
+      v-on="dropHandlers"
     >
-      <TaskCardImages
-        v-if="item.images && item.images.length"
-        :images="item.images"
-        :item-id="item.id"
-        :images-per-row="imagesPerRow"
-        :is-revealed="isRevealed"
-        :make-thumb="makeThumb"
-        @open-viewer="$emit('open-image-viewer', $event)"
-        @context-menu="(event, img) => $emit('image-context-menu', event, img)"
-        @reveal="$emit('reveal-images')"
-      />
+      <!-- Not positioned itself: the title's link has to stretch over the
+           whole card, so the controls are lifted above it instead. -->
+      <div class="flex justify-between items-start gap-2 select-none">
+        <div class="flex gap-2 min-w-0 mt-2 ml-3 md:ml-2 mb-1">
+          <span v-if="canCheck" class="relative z-10 flex">
+            <BaseCheckbox
+              class="checkbox"
+              :checked="isChecked"
+              @change="$emit('toggle-check')"
+            />
+          </span>
+          <div class="flex flex-col gap-1 flex-1 min-w-0">
+            <h3
+              class="min-w-0 text-lg/6! overflow-hidden text-ellipsis whitespace-nowrap -my-[3px]!"
+              :title="item.title"
+            >
+              <RouterLink
+                :to="to"
+                class="item-card-link outline-none after:absolute after:inset-0"
+                >{{ item.title }}</RouterLink
+              >
+            </h3>
 
-      <TaskCardNote
-        v-if="item.editorNote || editingNoteForId === item.id"
-        :note="item.editorNote"
-        :editing="editingNoteForId === item.id"
-        :saving="savingNote"
-        :can-edit="canEditNote"
-        :model-value="noteEditContent"
-        :reduced-margin="isOnlyNote"
-        @update:model-value="$emit('update:noteEditContent', $event)"
-        @edit-start="$emit('edit-note-start')"
-        @edit-cancel="$emit('edit-note-cancel')"
-        @edit-save="$emit('edit-note-save')"
-        @delete="$emit('edit-note-delete')"
+            <TaskMeta
+              :item="item"
+              :show-type="showType"
+              :show-creator="false"
+            />
+          </div>
+        </div>
+
+        <div
+          v-if="isPinned || !isMobile"
+          class="relative z-10 flex items-start gap-2"
+        >
+          <BaseTooltip
+            v-if="isPinned"
+            :content="t('tasks.list.tasks.menu.unpin')"
+            placement="bottom"
+          >
+            <BaseButton
+              variant="ghost"
+              size="sm"
+              :aria-label="t('tasks.list.tasks.menu.unpin')"
+              :icon="Pin"
+              icon-classes="fill-current"
+              @click.stop="$emit('toggle-pin')"
+            />
+          </BaseTooltip>
+
+          <BaseTooltip
+            v-if="!isMobile"
+            :content="t('common.more')"
+            placement="bottom"
+          >
+            <BaseButton
+              variant="ghost"
+              size="sm"
+              :aria-label="t('common.more')"
+              :icon="Ellipsis"
+              @click.stop="handleMenuClick"
+            />
+          </BaseTooltip>
+        </div>
+
+        <TaskMenu
+          :open="isMenuOpen"
+          :anchor="menuPosition"
+          :is-pinned="isPinned"
+          :is-in-archive="isArchiveView"
+          :can-edit="canEdit"
+          :can-add-note="canAddNote"
+          :can-delete="canDelete"
+          @action="(action) => $emit('menu-action', action)"
+          @close="$emit('close-menu')"
+        />
+      </div>
+
+      <!-- An inset shadow on the card itself would paint beneath its content. -->
+      <div
+        aria-hidden="true"
+        class="pointer-events-none absolute inset-0 z-10 rounded-[inherit] inset-shadow-drop-target transition-opacity duration-(--duration-focus) ease-(--ease-focus)"
+        :class="isDragOver ? 'opacity-100' : 'opacity-0'"
       />
-    </template>
-  </ItemCard>
+    </div>
+  </div>
 </template>

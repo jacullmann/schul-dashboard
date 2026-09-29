@@ -36,7 +36,7 @@ const body = computed(() =>
 </script>
 
 <template>
-  <ItemCard :title="title" :show-menu-trigger="false" :is-collapsed="false">
+  <ItemCard :title="title">
     <template #badges>
       <div
         class="text-on-ghost-muted text-base flex flex-wrap gap-1 items-center"

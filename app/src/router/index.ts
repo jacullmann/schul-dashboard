@@ -90,13 +90,41 @@ const routes: RouteRecordRaw[] = [
           },
           {
             path: 'tasks',
-            name: 'group-tasks',
             component: () => import('@/modules/tasks/pages/Tasks.vue'),
-            props: true,
             meta: {
               title: 'tasks.list.title',
               groupContext: true,
+              // An opened task keeps the tasks entry of the navigation active.
+              navItem: 'group-tasks',
             },
+            children: [
+              {
+                path: '',
+                name: 'group-tasks',
+                component: () => import('@/modules/tasks/pages/TaskList.vue'),
+                // Links shared before tasks had a page of their own pointed
+                // into the list.
+                beforeEnter: (to) =>
+                  typeof to.query.highlightedTask === 'string'
+                    ? {
+                        name: 'group-task',
+                        params: {
+                          groupId: to.params.groupId,
+                          taskId: to.query.highlightedTask,
+                        },
+                        replace: true,
+                      }
+                    : true,
+              },
+              {
+                path: ':taskId',
+                name: 'group-task',
+                component: () => import('@/modules/tasks/pages/TaskDetail.vue'),
+                // The page caps its own content, so files can be dropped
+                // across the whole view beside it.
+                meta: { fullWidth: true },
+              },
+            ],
           },
           {
             path: 'schedule',

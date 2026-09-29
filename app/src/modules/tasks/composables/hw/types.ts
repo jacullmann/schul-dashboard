@@ -28,17 +28,25 @@ export interface HwContext {
   pendingCheckRemovals: Ref<Set<string>>;
   useListTransitions: Ref<boolean>;
 
-  expandedDescriptions: Ref<Set<string>>;
-  revealedImages: Ref<Set<string>>;
   openMenuId: Ref<string | null>;
-  highlightedItemId: Ref<string | null>;
 
-  reloadList: (
-    routeParamsItemId?: string,
-    forceOldEntries?: () => void,
-  ) => Promise<void>;
-  refreshItem: (
-    itemId: string,
-    onUpdate?: (item: HwItem) => void,
-  ) => Promise<void>;
+  /** The task the page shows on its own, if one is open. */
+  openedItemId: Readonly<Ref<string | null>>;
+  /**
+   * The opened task as last seen. It outlives the list's copy, since a task
+   * can be opened from a link while the list holds another tab, or be dropped
+   * from the list while it stays open.
+   */
+  openedItem: Ref<HwItem | null>;
+
+  reloadList: () => Promise<void>;
+  refreshItem: (itemId: string) => Promise<void>;
+}
+
+/** The loaded copy of a task, from the list or the task open on its own. */
+export function findLoadedItem(ctx: HwContext, itemId: string) {
+  return (
+    ctx.items.value.find((item) => item.id === itemId) ??
+    (ctx.openedItem.value?.id === itemId ? ctx.openedItem.value : undefined)
+  );
 }

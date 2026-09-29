@@ -15,7 +15,7 @@
       "sections": [
         {
           "title": "Tasks",
-          "text": "Anyone with an account can add a task. Whether it's a <strong>homework assignment</strong>, <strong>Dalton task</strong>, or <strong>exam</strong> – anything you need to keep track of for school can be uploaded. All tasks are public and visible at any time, so you can track together with others."
+          "text": "Anyone with an account can add a task. Whether it's a <strong>homework assignment</strong>, <strong>Dalton task</strong>, or <strong>exam</strong> – anything you need to keep track of for school can be uploaded. All tasks are public and visible at any time, so you can track together with others. Open a task to see its description, images and notes."
         },
         {
           "title": "Adding tasks",
@@ -27,7 +27,7 @@
         },
         {
           "title": "Tracking completed tasks",
-          "text": "If you have an account, you can check off any task you've completed using the <strong>checkbox</strong>. Your progress is saved in the cloud and the task is minimized to make room for open tasks. This way you can immediately see what you still need to do."
+          "text": "If you have an account, you can check off any task you've completed using the <strong>checkbox</strong>. Your progress is saved in the cloud. With the <strong>Hide checked off</strong> filter you only see what you still need to do."
         },
         {
           "title": "Personalized courses",
@@ -106,7 +106,13 @@
       "view": {
         "no_tasks": "No tasks found",
         "no_tasks_in_view_message": "No tasks in the current view. Change your filters or add a new task",
-        "no_tasks_message": "Add a new task or"
+        "no_tasks_message": "Add a new task or",
+        "not_found": "Task not found",
+        "not_found_message": "This task was deleted or is no longer available.",
+        "load_failed": "Task could not be loaded",
+        "load_failed_message": "Check your connection and try again.",
+        "all_tasks": "All tasks",
+        "drop_files": "Drop to attach files"
       },
       "errors": {
         "status_failed": "Error while setting the status."
@@ -138,9 +144,6 @@
       "message": "On {date} there is already a {type} registered for the subject {subject}. Are you sure your task isn't about the same task?",
       "create_anyway": "Create anyway",
       "view_existing": "View existing"
-    },
-    "description": {
-      "more": "more"
     }
   },
   "private_tasks": {

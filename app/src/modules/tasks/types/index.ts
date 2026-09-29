@@ -31,6 +31,17 @@ export function isValidType(t: unknown): t is ItemType {
   return t === 'homework' || t === 'dalton' || t === 'exam' || t === 'all';
 }
 
+export type TaskMenuAction =
+  | 'images'
+  | 'edit'
+  | 'addNote'
+  | 'pin'
+  | 'archive'
+  | 'share'
+  | 'info'
+  | 'report'
+  | 'delete';
+
 export interface ImageItem {
   publicId: string;
   url?: string;

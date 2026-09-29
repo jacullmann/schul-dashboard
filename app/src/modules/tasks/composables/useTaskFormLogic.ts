@@ -5,6 +5,7 @@ import hw from '../../../api/api';
 import { groupPath } from '@/api/groupPath';
 import type { HwItem } from '@/modules/tasks/composables/useTasks';
 import type { ItemSubjectPayload, ItemType } from '@/modules/tasks/types';
+import { taskRoute } from '@/modules/tasks/utils/routes';
 import { useImageUpload } from '@/modules/tasks/composables/useImageUpload';
 import { useI18n } from 'vue-i18n';
 import {
@@ -447,14 +448,7 @@ export function useTaskFormLogic(
     if (!doubleTaskOriginalItem.value) return;
     showDoubleTaskConfirm.value = false;
     emit('cancel');
-    void router.push({
-      name: 'group-tasks',
-      params: { groupId },
-      query: {
-        type: doubleTaskOriginalItem.value.type,
-        highlightedTask: doubleTaskOriginalItem.value.id,
-      },
-    });
+    void router.push(taskRoute(groupId, doubleTaskOriginalItem.value.id));
   }
 
   function onKeyDown(e: KeyboardEvent) {
