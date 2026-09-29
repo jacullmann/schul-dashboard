@@ -90,8 +90,11 @@ const {
           ? t('tasks.list.task_form.edit_task')
           : t('tasks.list.task_form.new_task')
       }}
-      <span v-if="targetGroupName" class="text-on-ghost-muted font-normal">
-        · {{ targetGroupName }}
+      <span
+        v-if="targetGroupName"
+        class="max-md:hidden! text-on-ghost-muted font-medium"
+      >
+        • {{ targetGroupName }}
       </span>
     </template>
 
