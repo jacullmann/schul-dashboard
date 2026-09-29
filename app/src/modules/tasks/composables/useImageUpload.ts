@@ -1,4 +1,4 @@
-import { ref } from 'vue';
+import { ref, toValue, type MaybeRefOrGetter } from 'vue';
 import { useI18n } from 'vue-i18n';
 import hw from '@/api/api.ts';
 import { groupPath } from '@/api/groupPath';
@@ -114,8 +114,8 @@ export function makeRawUrl(input?: string): string {
   return `https://res.cloudinary.com/${CLOUD_NAME}/raw/upload/${input}`;
 }
 
-/** Uploads attach to items of `groupId`, which the caller fixes. */
-export function useImageUpload(groupId: string) {
+/** Uploads attach to items of the current `groupId`. */
+export function useImageUpload(groupId: MaybeRefOrGetter<string>) {
   const { t } = useI18n();
   const toast = useToast();
 
@@ -214,7 +214,7 @@ export function useImageUpload(groupId: string) {
             if (thumbFile) {
               const processedThumb = await processImageBeforeUpload(thumbFile);
               const { data: sign } = await hw.post(
-                groupPath(groupId, '/items/uploads/sign'),
+                groupPath(toValue(groupId), '/items/uploads/sign'),
               );
 
               let json;
@@ -259,7 +259,7 @@ export function useImageUpload(groupId: string) {
 
           // 2. Upload the original Office file as a RAW resource
           const { data: sign } = await hw.post(
-            groupPath(groupId, '/items/uploads/sign'),
+            groupPath(toValue(groupId), '/items/uploads/sign'),
           );
           let json;
 
@@ -300,7 +300,7 @@ export function useImageUpload(groupId: string) {
 
           if (itemId) {
             const { data } = await hw.post(
-              groupPath(groupId, `/items/${itemId}/images`),
+              groupPath(toValue(groupId), `/items/${itemId}/images`),
               {
                 image: imgPayload,
               },
@@ -319,7 +319,7 @@ export function useImageUpload(groupId: string) {
           // Existing behavior for standard images and PDFs
           const processedFile = await processImageBeforeUpload(file);
           const { data: sign } = await hw.post(
-            groupPath(groupId, '/items/uploads/sign'),
+            groupPath(toValue(groupId), '/items/uploads/sign'),
           );
 
           let json;
@@ -368,7 +368,7 @@ export function useImageUpload(groupId: string) {
 
           if (itemId) {
             const { data } = await hw.post(
-              groupPath(groupId, `/items/${itemId}/images`),
+              groupPath(toValue(groupId), `/items/${itemId}/images`),
               {
                 image: imgPayload,
               },
@@ -445,7 +445,7 @@ export function useImageUpload(groupId: string) {
       try {
         await hw.delete(
           groupPath(
-            groupId,
+            toValue(groupId),
             `/items/${parentId}/images/${encodeURIComponent(img.publicId)}`,
           ),
         );

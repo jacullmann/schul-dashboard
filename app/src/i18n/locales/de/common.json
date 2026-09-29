@@ -129,6 +129,7 @@
   },
   "language": "Sprache",
   "selection": {
+    "group": "Gruppe",
     "no": "Nein",
     "other": "Anderes...",
     "placeholder": "Bitte wählen",

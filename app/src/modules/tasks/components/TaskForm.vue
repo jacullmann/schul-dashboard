@@ -8,6 +8,7 @@ import {
   useTaskFormLogic,
 } from '../composables/useTaskFormLogic';
 import { CUSTOM_SUBJECT_MAX_LENGTH } from '@/types/subjects';
+import GroupSelect from '@/modules/groups/components/GroupSelect.vue';
 import ItemCard from './ItemCard.vue';
 import TaskDescription from './TaskDescription.vue';
 
@@ -22,7 +23,10 @@ const props = defineProps<{
 const emit = defineEmits<{ (e: 'cancel'): void; (e: 'success'): void }>();
 
 const {
-  targetGroupName,
+  groupId,
+  canChooseGroup,
+  groupIsFixed,
+  targetGroup,
   typeTabItems,
   activeType,
   imgImages,
@@ -90,12 +94,20 @@ const {
           ? t('tasks.list.task_form.edit_task')
           : t('tasks.list.task_form.new_task')
       }}
-      <span
-        v-if="targetGroupName"
-        class="max-md:hidden! text-on-ghost-muted font-medium ml-1"
-      >
-        {{ targetGroupName }}
-      </span>
+      <template v-if="canChooseGroup">
+        <span
+          v-if="groupIsFixed"
+          class="max-md:hidden! text-on-ghost-muted font-medium ml-1"
+        >
+          {{ targetGroup?.name }}
+        </span>
+        <GroupSelect
+          v-else
+          v-model="groupId"
+          permission="create_items"
+          class="inline-block align-middle ml-1 max-w-full"
+        />
+      </template>
     </template>
 
     <template #content>

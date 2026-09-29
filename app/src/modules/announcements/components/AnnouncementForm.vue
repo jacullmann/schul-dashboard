@@ -4,6 +4,8 @@ import hw from '../../../api/api';
 import { groupPath } from '@/api/groupPath';
 import { useI18n } from 'vue-i18n';
 import { apiErrorMessage } from '@/api/errors';
+import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
+import GroupSelect from '@/modules/groups/components/GroupSelect.vue';
 
 const { t } = useI18n();
 
@@ -16,6 +18,9 @@ const emit = defineEmits<{
   (e: 'cancel'): void;
   (e: 'success'): void;
 }>();
+
+const { userGroups } = useAppAuth();
+const groupId = ref(props.groupId);
 
 const annContent = ref('');
 const annColor = ref('warn');
@@ -45,7 +50,7 @@ async function submit() {
 
   submitting.value = true;
   try {
-    await hw.post(groupPath(props.groupId, '/admin/announcements'), {
+    await hw.post(groupPath(groupId.value, '/admin/announcements'), {
       content: annContent.value.trim(),
       color: annColor.value,
     });
@@ -72,7 +77,15 @@ async function submit() {
     :loading="submitting"
     @cancel="$emit('cancel')"
   >
-    <template #title>{{ t('announcements.form.title') }}</template>
+    <template #title>
+      {{ t('announcements.form.title') }}
+      <GroupSelect
+        v-if="userGroups.length > 1"
+        v-model="groupId"
+        permission="manage_announcements"
+        class="inline-block align-middle ml-1 max-w-full"
+      />
+    </template>
 
     <template #content>
       <BaseFormContent :error="submitError">

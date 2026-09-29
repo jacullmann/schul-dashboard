@@ -1,0 +1,49 @@
+<script setup lang="ts">
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+import Avatar from '@/modules/auth/components/Avatar.vue';
+import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
+import type { PermissionKey } from '@/types/permissions';
+
+const props = defineProps<{
+  /** Groups lacking this permission are listed but cannot be picked. */
+  permission?: PermissionKey;
+}>();
+
+const groupId = defineModel<string>({ required: true });
+
+const { t } = useI18n();
+const { userGroups } = useAppAuth();
+
+const options = computed(() =>
+  userGroups.value.map((group) => ({
+    label: group.name,
+    value: group.id,
+    disabled:
+      !!props.permission &&
+      !group.effectivePermissions.includes(props.permission),
+  })),
+);
+
+const avatarByGroupId = computed(
+  () => new Map(userGroups.value.map((g) => [g.id, g.avatarUrl ?? null])),
+);
+</script>
+
+<template>
+  <BaseSelect
+    v-model="groupId"
+    :options="options"
+    :form="false"
+    :title="t('common.selection.group')"
+    classes="w-64 max-w-full min-h-0! py-1! text-on-ghost! font-semibold"
+  >
+    <template #icon="{ option, size }">
+      <Avatar
+        :name="option.label"
+        :picture="avatarByGroupId.get(option.value)"
+        :size="size / 4"
+      />
+    </template>
+  </BaseSelect>
+</template>

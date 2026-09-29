@@ -1,4 +1,4 @@
-import { onMounted, ref, watch, computed } from 'vue';
+import { onBeforeUnmount, onMounted, ref, watch, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useEventListener } from '@vueuse/core';
 import hw from '../../../api/api';
@@ -26,7 +26,7 @@ import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 export const OTHER_SUBJECT = '__OTHER__';
 
 export function useTaskFormLogic(
-  groupId: string,
+  initialGroupId: string,
   initial: HwItem | null | undefined,
   initialType: Exclude<ItemType, 'all'> | undefined,
   emit: {
@@ -42,15 +42,16 @@ export function useTaskFormLogic(
 
   const subjectStore = useSubjectStore();
   const { enrolledCourseForSubjectId } = useEnrolledCourses();
-  const { findGroup, userGroups } = useAppAuth();
-  const targetGroup = computed(() => findGroup(groupId));
+  const { findGroup, activeGroupId, userGroups } = useAppAuth();
+  const groupId = ref(initialGroupId);
+  const targetGroup = computed(() => findGroup(groupId.value));
   const daltonEnabled = computed(
     () => targetGroup.value?.daltonEnabled === true,
   );
   /** Only worth showing when the user could mean more than one group. */
-  const targetGroupName = computed(() =>
-    userGroups.value.length > 1 ? (targetGroup.value?.name ?? null) : null,
-  );
+  const canChooseGroup = computed(() => userGroups.value.length > 1);
+  /** An existing item stays in its group. */
+  const groupIsFixed = !!initial;
 
   const typeTabItems = computed(() => [
     { id: 'homework', label: t('tasks.list.types.homework') },
@@ -68,6 +69,11 @@ export function useTaskFormLogic(
         ? 'homework'
         : requestedType,
   );
+
+  watch(daltonEnabled, (enabled) => {
+    if (!enabled && activeType.value === 'dalton')
+      activeType.value = 'homework';
+  });
 
   const {
     images: imgImages,
@@ -234,9 +240,12 @@ export function useTaskFormLogic(
   const minDateKey = isoDateOnlyFromIso(minDate.toISOString());
   const maxDateKey = isoDateOnlyFromIso(maxDate.toISOString());
 
-  watch([activeType, subjectSel, subjectOther, courseSel, dueLocal], () => {
-    doubleCheckPassed.value = false;
-  });
+  watch(
+    [groupId, activeType, subjectSel, subjectOther, courseSel, dueLocal],
+    () => {
+      doubleCheckPassed.value = false;
+    },
+  );
 
   const submitting = ref(false);
   const submitError = ref('');
@@ -393,12 +402,12 @@ export function useTaskFormLogic(
       const dueDate = selectedDate.toISOString();
 
       if (initial) {
-        await hw.patch(groupPath(groupId, `/items/${initial.id}`), {
+        await hw.patch(groupPath(groupId.value, `/items/${initial.id}`), {
           ...payload,
           ...(dueDateUnchanged.value ? {} : { dueDate }),
         });
       } else {
-        await hw.post(groupPath(groupId, '/items'), {
+        await hw.post(groupPath(groupId.value, '/items'), {
           ...payload,
           dueDate,
           type: activeType.value,
@@ -448,7 +457,7 @@ export function useTaskFormLogic(
     if (!doubleTaskOriginalItem.value) return;
     showDoubleTaskConfirm.value = false;
     emit('cancel');
-    void router.push(taskRoute(groupId, doubleTaskOriginalItem.value.id));
+    void router.push(taskRoute(groupId.value, doubleTaskOriginalItem.value.id));
   }
 
   function onKeyDown(e: KeyboardEvent) {
@@ -465,15 +474,32 @@ export function useTaskFormLogic(
 
   useEventListener(window, 'keydown', onKeyDown);
 
+  // Subjects belong to one group, so choosing another one swaps the whole list.
+  watch(groupId, (id) => {
+    if (subjectSel.value !== OTHER_SUBJECT) subjectSel.value = '';
+    courseSel.value = '';
+    void subjectStore.loadSubjects(id);
+  });
+
+  // The subject store follows the page, which the form must not leave behind.
+  onBeforeUnmount(() => {
+    if (activeGroupId.value && groupId.value !== activeGroupId.value) {
+      void subjectStore.loadSubjects(activeGroupId.value);
+    }
+  });
+
   onMounted(() => {
-    void subjectStore.loadSubjects(groupId);
+    void subjectStore.loadSubjects(groupId.value);
     imgInit(initial?.images || []);
     titleInputRef.value?.focus();
   });
 
   return {
     t,
-    targetGroupName,
+    groupId,
+    canChooseGroup,
+    groupIsFixed,
+    targetGroup,
     typeTabItems,
     activeType,
     imgImages,

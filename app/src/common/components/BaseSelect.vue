@@ -151,6 +151,12 @@ onClickOutside(
       "
       @click="toggleMenu"
     >
+      <slot
+        v-if="selectedOption && $slots.icon"
+        name="icon"
+        :option="selectedOption"
+        :size="20"
+      />
       <span class="truncate">
         {{ selectedOption?.label || t('common.selection.placeholder') }}
         <span v-if="selectedOption?.hint" class="text-on-ghost-muted">{{
@@ -177,6 +183,9 @@ onClickOutside(
           :disabled="option.disabled"
           @click="selectOption(option.value)"
         >
+          <template v-if="$slots.icon" #icon="{ size }">
+            <slot name="icon" :option="option" :size="size" />
+          </template>
           {{ option.label }}
           <span v-if="option.hint" class="text-on-ghost-muted">{{
             option.hint
