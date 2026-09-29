@@ -56,7 +56,7 @@ onMounted(loadReports);
                 >
                   <span>{{ getTypeLabel(r.itemType) }}</span>
                   <span>·</span>
-                  <span>{{ getSubjectName(r.itemSubject) }}</span>
+                  <span>{{ getSubjectName(r.itemSubject, r.itemCourse) }}</span>
                   <span>·</span>
                   <span>{{ fmtDate(r.itemDueDate) }}</span>
                   <template v-if="r.creatorEmail">
@@ -312,7 +312,7 @@ onMounted(loadReports);
                 >
                   <span>{{ getTypeLabel(r.itemType) }}</span>
                   <span>·</span>
-                  <span>{{ getSubjectName(r.itemSubject) }}</span>
+                  <span>{{ getSubjectName(r.itemSubject, r.itemCourse) }}</span>
                   <span>·</span>
                   <span>{{ fmtDate(r.itemDueDate) }}</span>
                   <template v-if="r.creatorEmail">

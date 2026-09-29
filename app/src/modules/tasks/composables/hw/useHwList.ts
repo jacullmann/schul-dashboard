@@ -133,8 +133,8 @@ export function useHwList(ctx: HwContext) {
     ctx.loading.value = true;
     const params: Record<string, string | boolean> = { type: ctx.tab.value };
     if (ctx.showOldEntries.value) params.filter = 'old';
-    if (ctx.subjectFilter.value) params.subject = ctx.subjectFilter.value;
-    if (ctx.hideChecked.value) params.hide_checked = true;
+    if (ctx.subjectFilter.value) params.subjectId = ctx.subjectFilter.value;
+    if (ctx.hideChecked.value) params.hideChecked = true;
     if (ctx.showPersonalized.value) params.personalized = true;
 
     try {

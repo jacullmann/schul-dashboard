@@ -1,54 +1,82 @@
-import { getSubjectKey } from '@/types/subjects';
-import { useSubjectStore } from '@/stores/subjectStore';
+import deCommon from '@/i18n/locales/de/common.json';
+import enCommon from '@/i18n/locales/en/common.json';
+import { DALTON_SUBJECT_KEY } from '@/types/subjects';
+
+type Translate = (key: string) => string;
+type TranslationExists = (key: string) => boolean;
+
+/**
+ * Subjects picked from the built-in list are stored by their translation key
+ * (`math`), everything else by the name the owner typed. Every place that shows
+ * a subject goes through here, so both kinds read the same in every language.
+ */
+export function subjectLabel(
+  name: string,
+  t: Translate,
+  te: TranslationExists,
+): string {
+  const key = builtInSubjectKey(name);
+  return key && te(`common.subjects.${key}`)
+    ? t(`common.subjects.${key}`)
+    : name;
+}
+
+/**
+ * Course names are typed in freely; only a leading title is localised, unless
+ * the whole name is a built-in subject (WPU courses are named after one).
+ */
+export function courseLabel(
+  name: string,
+  t: Translate,
+  te: TranslationExists,
+): string {
+  const key = builtInSubjectKey(name);
+  if (key && te(`common.subjects.${key}`)) return t(`common.subjects.${key}`);
+
+  return name
+    .replace(/^Herr\s+/, `${t('common.titles.abbr.mr')} `)
+    .replace(/^Frau\s+/, `${t('common.titles.abbr.ms')} `);
+}
+
+/** Subjects whose courses carry the whole name, so the subject shrinks to a prefix. */
+const COURSE_PREFIXES: Readonly<Record<string, string>> = {
+  enrichment: 'ENR',
+  wpu1: 'WPU 1',
+  wpu2: 'WPU 2',
+};
 
 export function formatSubjectDisplay(
-  subject: string,
-  t: (key: string) => string,
-  te: (key: string) => boolean,
+  subjectName: string,
+  courseName: string | null | undefined,
+  t: Translate,
+  te: TranslationExists,
 ): string {
-  if (!subject) return subject;
+  if (!courseName) return subjectLabel(subjectName, t, te);
 
-  const parts = subject.split(' - ');
-  const mainKey = getSubjectKey(parts[0]!.trim());
+  const course = courseLabel(courseName, t, te);
+  const prefix = COURSE_PREFIXES[subjectName];
+  if (prefix) return `${prefix} ${course}`;
 
-  if (parts.length === 2) {
-    const subjectStore = useSubjectStore();
-    const sub = subjectStore.subjects.find(
-      (s) => s.id === mainKey || s.name.toLowerCase() === mainKey.toLowerCase(),
-    );
-    let course = parts[1]!.trim();
-    const mapped = sub?.courses?.find(
-      (k) => k.id === course || k.name === course,
-    );
-    if (mapped) course = mapped.name;
+  return `${subjectLabel(subjectName, t, te)} - ${course}`;
+}
 
-    let courseDisplay = course;
-    const courseKey = getSubjectKey(course);
-    if (te(`common.subjects.${courseKey}`)) {
-      courseDisplay = t(`common.subjects.${courseKey}`);
-    } else {
-      const mr = t('common.titles.abbr.mr');
-      const ms = t('common.titles.abbr.ms');
-
-      courseDisplay = course
-        .replace(/^Herr\s+/, `${mr} `)
-        .replace(/^Frau\s+/, `${ms} `);
+const BUILT_IN_SUBJECT_KEYS = (() => {
+  const byLabel = new Map<string, string>();
+  for (const subjects of [deCommon.subjects, enCommon.subjects]) {
+    for (const [key, label] of Object.entries(subjects)) {
+      if (key === DALTON_SUBJECT_KEY) continue;
+      byLabel.set(key.toLowerCase(), key);
+      byLabel.set(label.toLowerCase(), key);
     }
-
-    if (mainKey === 'enrichment') return `ENR ${courseDisplay}`;
-    if (mainKey === 'wpu1') return `WPU 1 ${courseDisplay}`;
-    if (mainKey === 'wpu2') return `WPU 2 ${courseDisplay}`;
-
-    let subjectDisplay = parts[0]!.trim();
-    if (te(`common.subjects.${mainKey}`)) {
-      subjectDisplay = t(`common.subjects.${mainKey}`);
-    }
-    return `${subjectDisplay} - ${courseDisplay}`;
   }
+  return byLabel;
+})();
 
-  if (te(`common.subjects.${mainKey}`)) {
-    return t(`common.subjects.${mainKey}`);
-  }
-
-  return subject;
+/**
+ * The built-in key a typed name stands for, in any language: an owner typing
+ * "Mathe" or "Math" means the translated `math` subject, not a second one that
+ * only ever reads "Mathe".
+ */
+export function builtInSubjectKey(typedName: string): string | undefined {
+  return BUILT_IN_SUBJECT_KEYS.get(typedName.trim().toLowerCase());
 }

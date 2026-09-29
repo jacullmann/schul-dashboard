@@ -2,7 +2,12 @@ export interface HwItem {
   id: string;
   type: 'homework' | 'dalton' | 'exam';
   title: string;
-  subject: string;
+  /** Null when the subject was typed in by hand instead of picked. */
+  subjectId: string | null;
+  courseId: string | null;
+  /** A `common.subjects.*` key or the name the group owner typed. */
+  subjectName: string;
+  courseName: string | null;
   description: string;
   images: ImageItem[];
   dueDate: string;
@@ -14,6 +19,11 @@ export interface HwItem {
   createdAt?: string;
   updatedAt?: string;
 }
+
+/** How a task names its subject when it is created or edited. */
+export type ItemSubjectPayload =
+  | { subjectId: string; courseId: string | null }
+  | { customName: string };
 
 export type ItemType = 'homework' | 'dalton' | 'exam' | 'all';
 

@@ -8,8 +8,9 @@ import { useModalStore } from '@/stores/modalStore';
 import { useImageUpload } from '@/modules/tasks/composables/useImageUpload';
 import { useI18n } from 'vue-i18n';
 import { useToast } from '@/common/composables/useToast';
-import { formatSubjectDisplay } from '@/utils/subject-formatter';
+import { formatSubjectDisplay, subjectLabel } from '@/utils/subject-formatter';
 import type { HwItem, ItemType } from '@/modules/tasks/types';
+import { isUuid } from '@/utils/uuid';
 import { isValidType } from '@/modules/tasks/types';
 
 import type { HwContext } from './hw/types';
@@ -40,7 +41,10 @@ export function useTasks() {
       : 'all',
   );
   const showOldEntries = ref(route.query.archived === 'true');
-  const subjectFilter = ref((route.query.subject as string) || '');
+  // Links from before tasks referenced subjects by id carry a subject name.
+  const subjectFilterFromQuery = (value: unknown) =>
+    isUuid(value) ? value : '';
+  const subjectFilter = ref(subjectFilterFromQuery(route.query.subject));
   const hideChecked = ref(route.query.hideChecked === 'true');
   const showPersonalized = computed(() => user.value?.personalized ?? false);
 
@@ -123,7 +127,6 @@ export function useTasks() {
     }
   }
 
-  const subjects = computed(() => subjectStore.availableSubjectKeys);
   const hasLoadedOnce = ref(false);
 
   watch(
@@ -138,8 +141,8 @@ export function useTasks() {
     () => !hasLoadedOnce.value || initialLoad.value,
   );
 
-  const getSubjectName = (subject: string) =>
-    formatSubjectDisplay(subject, t, te);
+  const getSubjectName = (item: Pick<HwItem, 'subjectName' | 'courseName'>) =>
+    formatSubjectDisplay(item.subjectName, item.courseName, t, te);
 
   const getTypeLabel = (type: string) => {
     if (type === 'homework') return t('tasks.list.types.homework');
@@ -150,9 +153,9 @@ export function useTasks() {
 
   const subjectOptions = computed(() => [
     { label: t('tasks.list.allsubjects'), value: '' },
-    ...subjectStore.availableSubjectKeys.map((s) => ({
-      label: getSubjectName(s),
-      value: s,
+    ...subjectStore.subjects.map((s) => ({
+      label: subjectLabel(s.name, t, te),
+      value: s.id,
     })),
   ]);
 
@@ -206,7 +209,7 @@ export function useTasks() {
       if (showOldEntries.value !== newArchived)
         showOldEntries.value = newArchived;
 
-      const newSubject = (q.subject as string) || '';
+      const newSubject = subjectFilterFromQuery(q.subject);
       if (subjectFilter.value !== newSubject) subjectFilter.value = newSubject;
 
       const newHideChecked = q.hideChecked === 'true';
@@ -328,7 +331,6 @@ export function useTasks() {
 
   return {
     user,
-    subjects,
     loading,
     subjectFilter,
     showPersonalized,

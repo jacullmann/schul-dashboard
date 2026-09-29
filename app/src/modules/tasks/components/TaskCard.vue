@@ -45,7 +45,7 @@ const props = defineProps<{
   canDelete: (createdBy: string) => boolean;
   canDeleteImage: (itemCreatedBy: string, imgCreatedBy: string) => boolean;
   makeThumb: (id: string) => string;
-  getSubjectName: (subject: string) => string;
+  getSubjectName: (item: HwItem) => string;
   getTypeLabel: (type: string) => string;
 }>();
 
@@ -228,7 +228,7 @@ watch(
       <div class="text-on-ghost-muted text-base">
         <template v-if="tab === 'all'"
           >{{ getTypeLabel(item.type) }} • </template
-        >{{ getSubjectName(item.subject) }} •
+        >{{ getSubjectName(item) }} •
         {{ new Date(item.dueDate).toLocaleDateString()
         }}<template v-if="isGroupAdmin">
           • {{ item.createdByName || t('common.selection.unknown') }}</template

@@ -328,7 +328,6 @@
         "delete_lesson_button": "Stunde löschen",
         "delete_confirm_title": "Stunde löschen?",
         "delete_confirm_message": "Möchtest du diese Stunde wirklich aus dem Stundenplan entfernen?",
-        "success_save_lesson": "Stunde gespeichert",
         "success_delete_lesson": "Stunde gelöscht",
         "save_all_button": "Änderungen speichern",
         "cancel_button": "Abbrechen",
@@ -382,15 +381,18 @@
         "course_update_success": "Kurs aktualisiert",
         "course_update_failed": "Fehler beim Aktualisieren des Kurses",
         "course_delete_success": "Kurs gelöscht",
-        "course_delete_failed": "Fehler beim Löschen des Kurses"
+        "course_delete_failed": "Fehler beim Löschen des Kurses",
+        "name_taken": "Dieser Name ist bereits vergeben.",
+        "invalid_input": "Bitte prüfe deine Eingabe.",
+        "delete_referenced": "Das Fach wird noch im Stundenplan oder von Kursen verwendet. Entferne diese zuerst."
       },
       "delete_modal": {
         "title": "Dieses Fach löschen?",
-        "message": "Fach wirklich löschen? Falls es noch referenziert wird, schlage stattdessen eine Deaktivierung vor."
+        "message": "Möchtest du dieses Fach wirklich löschen? Bestehende Aufgaben behalten den Fachnamen."
       },
       "course_delete_modal": {
         "title": "Kurs löschen",
-        "message": "Möchtest du diesen Kurs wirklich löschen? Dadurch wird er aus allen Stundenplänen entfernt."
+        "message": "Möchtest du diesen Kurs wirklich löschen? Seine Stunden werden aus dem Stundenplan entfernt, seine Aufgaben gelten danach für das ganze Fach."
       },
       "title": "Fächer",
       "rename": "Umbenennen",

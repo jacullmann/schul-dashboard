@@ -66,14 +66,10 @@ export const useSubjectStore = defineStore('subjectStore', () => {
     loading.value = false;
   }
 
-  const availableSubjectKeys = computed(() => {
-    return subjects.value.map((s) => s.name);
-  });
-
   /** Dalton tasks offer only Dalton subjects, unless the group marked none. */
-  const daltonSubjectKeys = computed(() => {
-    const keys = subjects.value.filter((s) => s.isDalton).map((s) => s.name);
-    return keys.length > 0 ? keys : availableSubjectKeys.value;
+  const daltonSubjects = computed(() => {
+    const marked = subjects.value.filter((s) => s.isDalton);
+    return marked.length > 0 ? marked : subjects.value;
   });
 
   const withCourses = (selection: 'required' | 'optional') =>
@@ -100,8 +96,7 @@ export const useSubjectStore = defineStore('subjectStore', () => {
     loaded,
     loadSubjects,
     reset,
-    availableSubjectKeys,
-    daltonSubjectKeys,
+    daltonSubjects,
     groupType,
     requiredCourseSubjects,
     optionalCourseSubjects,

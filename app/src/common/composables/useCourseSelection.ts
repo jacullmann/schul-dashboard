@@ -4,7 +4,7 @@ import hw from '@/api/api';
 import { groupPath } from '@/api/groupPath';
 import { useSubjectStore, type Subject } from '@/stores/subjectStore';
 import { useUserStore, type UserData } from '@/stores/userStore';
-import { getSubjectKey } from '@/types/subjects';
+import { courseLabel, subjectLabel } from '@/utils/subject-formatter';
 import type { UnitOption } from '@/common/components/BaseSelect.vue';
 
 export type Enrollment = UserData['courses'][number];
@@ -50,8 +50,7 @@ export function useCourseSelection(groupId: string) {
   }
 
   function translatedName(name: string): string {
-    const key = `common.subjects.${getSubjectKey(name)}`;
-    return te(key) ? t(key) : name;
+    return subjectLabel(name, t, te);
   }
 
   // GK/LK/ZK belongs to the course, so two courses of the same subject stay
@@ -60,7 +59,7 @@ export function useCourseSelection(groupId: string) {
     const options = (subject.courses ?? []).map((course): UnitOption => {
       const typeKey = `groups.settings.subjects.course_types_short.${course.courseType}`;
       return {
-        label: translatedName(course.name),
+        label: courseLabel(course.name, t, te),
         value: course.id,
         hint: course.courseType && te(typeKey) ? t(typeKey) : undefined,
       };

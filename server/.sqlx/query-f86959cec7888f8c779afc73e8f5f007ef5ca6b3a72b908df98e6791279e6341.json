@@ -1,0 +1,36 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT name,\n                      EXISTS (SELECT 1 FROM schedules WHERE subject_id = s.id)\n                          OR EXISTS (SELECT 1 FROM courses WHERE subject_id = s.id) AS \"referenced!\"\n               FROM subjects s\n               WHERE id = $1 AND tenant_id = $2\n               FOR UPDATE",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "subjects",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "referenced!",
+        "type_info": "Bool",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      null
+    ]
+  },
+  "hash": "f86959cec7888f8c779afc73e8f5f007ef5ca6b3a72b908df98e6791279e6341"
+}

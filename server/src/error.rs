@@ -32,6 +32,9 @@ pub enum AppError {
     #[error("Conflict: {0}")]
     Conflict(String, serde_json::Value),
 
+    #[error("{0}")]
+    NameTaken(String),
+
     #[error("An unexpected error occurred.")]
     Internal(#[from] anyhow::Error),
 
@@ -54,6 +57,15 @@ impl AppError {
 
     pub fn internal(msg: impl Into<String>) -> Self {
         Self::Internal(anyhow::anyhow!(msg.into()))
+    }
+
+    /// Turns a unique violation into [`AppError::NameTaken`] so a racing
+    /// duplicate gets the same answer as one caught upfront.
+    pub fn name_taken_on_conflict(err: sqlx::Error, msg: &str) -> Self {
+        match err.as_database_error() {
+            Some(db) if db.is_unique_violation() => Self::NameTaken(msg.to_owned()),
+            _ => Self::Database(err),
+        }
     }
 }
 
@@ -79,6 +91,10 @@ impl IntoResponse for AppError {
             AppError::Conflict(msg, item) => (
                 StatusCode::CONFLICT,
                 json!({ "error": msg, "code": "DUPLICATE_ITEM", "item": item }),
+            ),
+            AppError::NameTaken(msg) => (
+                StatusCode::CONFLICT,
+                json!({ "error": msg, "code": "NAME_TAKEN" }),
             ),
             AppError::Internal(e) => {
                 tracing::error!("Internal error: {e:#}");

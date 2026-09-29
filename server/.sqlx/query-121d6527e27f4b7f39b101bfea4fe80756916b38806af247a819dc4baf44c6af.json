@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO schedules (id, tenant_id, day, slot, duration, room, subject_id, course_id, is_dalton)\n               SELECT t.id, $1, t.day, t.slot, t.duration, t.room, t.subject_id, t.course_id, t.is_dalton\n               FROM UNNEST($2::uuid[], $3::int4[], $4::int4[], $5::int4[], $6::text[], $7::uuid[], $8::uuid[], $9::bool[])\n                    AS t(id, day, slot, duration, room, subject_id, course_id, is_dalton)\n               ON CONFLICT (id) DO UPDATE SET\n                 day = EXCLUDED.day,\n                 slot = EXCLUDED.slot,\n                 duration = EXCLUDED.duration,\n                 room = EXCLUDED.room,\n                 subject_id = EXCLUDED.subject_id,\n                 course_id = EXCLUDED.course_id,\n                 is_dalton = EXCLUDED.is_dalton\n               WHERE schedules.tenant_id = EXCLUDED.tenant_id\n                 AND (schedules.day, schedules.slot, schedules.duration, schedules.room,\n                      schedules.subject_id, schedules.course_id, schedules.is_dalton)\n                     IS DISTINCT FROM\n                     (EXCLUDED.day, EXCLUDED.slot, EXCLUDED.duration, EXCLUDED.room,\n                      EXCLUDED.subject_id, EXCLUDED.course_id, EXCLUDED.is_dalton)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "UuidArray",
+        "Int4Array",
+        "Int4Array",
+        "Int4Array",
+        "TextArray",
+        "UuidArray",
+        "UuidArray",
+        "BoolArray"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "121d6527e27f4b7f39b101bfea4fe80756916b38806af247a819dc4baf44c6af"
+}

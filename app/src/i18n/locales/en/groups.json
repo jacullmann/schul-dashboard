@@ -302,7 +302,8 @@
           "room": "Room",
           "day": "Day",
           "slot": "Slot"
-        }
+        },
+        "list_title": "Scheduled changes"
       },
       "editor": {
         "edit_schedule_button": "Edit Schedule",
@@ -329,7 +330,6 @@
         "delete_lesson_button": "Delete Lesson",
         "delete_confirm_title": "Delete Lesson?",
         "delete_confirm_message": "Are you sure you want to remove this lesson from the schedule?",
-        "success_save_lesson": "Lesson saved",
         "success_delete_lesson": "Lesson deleted",
         "save_all_button": "Save Changes",
         "cancel_button": "Cancel",
@@ -340,7 +340,8 @@
         "empty_slot": "Free slot",
         "course_hint": "Without a course the lesson applies to the whole group.",
         "undo": "Undo (Ctrl+Z)",
-        "redo": "Redo (Ctrl+Y)"
+        "redo": "Redo (Ctrl+Y)",
+        "no_subjects": "This group has no subjects yet. Create them under \"Subjects\" in the group settings first."
       }
     },
     "subjects": {
@@ -382,15 +383,18 @@
         "course_update_success": "Course updated",
         "course_update_failed": "Failed to update course",
         "course_delete_success": "Course deleted",
-        "course_delete_failed": "Failed to delete course"
+        "course_delete_failed": "Failed to delete course",
+        "name_taken": "This name is already taken.",
+        "invalid_input": "Please check your input.",
+        "delete_referenced": "The subject is still used in the schedule or by courses. Remove those first."
       },
       "delete_modal": {
         "title": "Delete this subject?",
-        "message": "Really delete subject? If it is still referenced, suggest deactivating it instead."
+        "message": "Are you sure you want to delete this subject? Existing tasks keep its name."
       },
       "course_delete_modal": {
         "title": "Delete Course",
-        "message": "Are you sure you want to delete this course? This will remove it from all schedules."
+        "message": "Are you sure you want to delete this course? Its lessons are removed from the schedule and its tasks then apply to the whole subject."
       },
       "title": "Subjects",
       "rename": "Rename",
@@ -430,7 +434,6 @@
       "ban_reverted": "Ban reverted",
       "ban_revert_failed": "Failed to revert ban",
       "load_schedule_failed": "Failed to load schedule",
-      "lesson_save_failed": "Failed to save lesson",
       "lesson_delete_failed": "Failed to delete lesson",
       "load_substitutions_failed": "Failed to load substitutions",
       "substitution_saved": "Substitution saved",

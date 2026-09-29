@@ -18,6 +18,7 @@ import { useToast } from '@/common/composables/useToast';
 import { useModalStore } from '@/stores/modalStore';
 import { useI18n } from 'vue-i18n';
 import { apiErrorMessage } from '@/api/errors';
+import { isUuid } from '@/utils/uuid';
 import { useUserStore } from '@/stores/userStore';
 import { useGroupSettingsAccess } from '@/modules/groups/composables/useGroupSettingsAccess';
 
@@ -220,23 +221,6 @@ export function useGroupAdmin() {
     }
   }
 
-  async function saveLesson(
-    lessonData: Record<string, unknown>,
-  ): Promise<boolean> {
-    savingLesson.value = true;
-    try {
-      await hw.post(groupPath(groupId.value, '/admin/schedule'), lessonData);
-      await loadSchedule();
-      showMessage(t('groups.settings.schedule.editor.success_save_lesson'));
-      return true;
-    } catch {
-      showMessage(t('groups.settings.messages.lesson_save_failed'), true);
-      return false;
-    } finally {
-      savingLesson.value = false;
-    }
-  }
-
   async function deleteLesson(lessonId: string): Promise<boolean> {
     const isConfirmed = await modalStore.confirm({
       title: t('groups.settings.schedule.editor.delete_confirm_title'),
@@ -304,9 +288,6 @@ export function useGroupAdmin() {
     isDalton: boolean;
   };
 
-  const uuidPattern =
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
   function createScheduleLessonPayload(lesson: Lesson): ScheduleLessonPayload {
     const isDalton = lesson.isDalton === true;
     const subjectId = isDalton
@@ -317,7 +298,7 @@ export function useGroupAdmin() {
       : (lesson.courseId ?? lesson.courses?.id ?? null);
 
     return {
-      ...(uuidPattern.test(lesson.id) ? { id: lesson.id } : {}),
+      ...(isUuid(lesson.id) ? { id: lesson.id } : {}),
       day: Number(lesson.day),
       slot: Number(lesson.slot),
       duration: Number(lesson.duration),
@@ -711,7 +692,6 @@ export function useGroupAdmin() {
     loadingLessons,
     savingLesson,
     loadSchedule,
-    saveLesson,
     deleteLesson,
 
     announcements,

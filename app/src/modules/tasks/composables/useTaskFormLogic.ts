@@ -4,15 +4,25 @@ import { useEventListener } from '@vueuse/core';
 import hw from '../../../api/api';
 import { groupPath } from '@/api/groupPath';
 import type { HwItem } from '@/modules/tasks/composables/useTasks';
-import type { ItemType } from '@/modules/tasks/types';
+import type { ItemSubjectPayload, ItemType } from '@/modules/tasks/types';
 import { useImageUpload } from '@/modules/tasks/composables/useImageUpload';
 import { useI18n } from 'vue-i18n';
-import { getSubjectKey, subjectNeedsCourseChoice } from '@/types/subjects';
-import { useSubjectStore } from '@/stores/subjectStore';
+import {
+  CUSTOM_SUBJECT_MAX_LENGTH,
+  subjectNeedsCourseChoice,
+} from '@/types/subjects';
+import { useSubjectStore, type Subject } from '@/stores/subjectStore';
 import { useEnrolledCourses } from '@/common/composables/useEnrolledCourses';
-import { formatSubjectDisplay } from '@/utils/subject-formatter';
+import {
+  builtInSubjectKey,
+  courseLabel,
+  formatSubjectDisplay,
+  subjectLabel,
+} from '@/utils/subject-formatter';
 import { apiErrorMessage } from '@/api/errors';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
+
+export const OTHER_SUBJECT = '__OTHER__';
 
 export function useTaskFormLogic(
   groupId: string,
@@ -30,7 +40,7 @@ export function useTaskFormLogic(
   const te = (key: string) => i18n.te(key);
 
   const subjectStore = useSubjectStore();
-  const { enrolledCourseForSubjectName } = useEnrolledCourses();
+  const { enrolledCourseForSubjectId } = useEnrolledCourses();
   const { findGroup, userGroups } = useAppAuth();
   const targetGroup = computed(() => findGroup(groupId));
   const daltonEnabled = computed(
@@ -109,29 +119,14 @@ export function useTaskFormLogic(
     await uploadFiles(files, !!initial, initial?.id);
   };
 
-  const getInitialSubjectParts = () => {
-    const initSub = initial?.subject;
-    if (!initSub) return { main: '', course: '' };
-
-    const parts = initSub.split(' - ');
-    if (parts.length === 2) {
-      const main = parts[0]!.trim();
-      const course = parts[1]!.trim();
-      const subject = subjectStore.subjects.find((s) => s.name === main);
-      if (subject && subject.courses && subject.courses.length > 0) {
-        return { main, course };
-      }
-    }
-    return { main: initSub, course: '' };
-  };
-
-  const initialParts = getInitialSubjectParts();
-
   const title = ref(initial?.title || '');
-  const subjectSel = ref(initialParts.main);
-  const subjectOther = ref('');
+  /** A subject id, or {@link OTHER_SUBJECT} for a name typed in by hand. */
+  const subjectSel = ref(initial ? (initial.subjectId ?? OTHER_SUBJECT) : '');
+  const subjectOther = ref(
+    initial && !initial.subjectId ? initial.subjectName : '',
+  );
   const description = ref(initial?.description || '');
-  const courseSel = ref(initialParts.course);
+  const courseSel = ref(initial?.courseId ?? '');
 
   const titleError = ref('');
   const subjectError = ref('');
@@ -144,8 +139,8 @@ export function useTaskFormLogic(
   const doubleTaskOriginalItem = ref<HwItem | null>(null);
   const doubleCheckPassed = ref(false);
 
-  const getSubjectName = (subject: string) =>
-    formatSubjectDisplay(subject, t, te);
+  const getSubjectName = (item: Pick<HwItem, 'subjectName' | 'courseName'>) =>
+    formatSubjectDisplay(item.subjectName, item.courseName, t, te);
 
   const getTypeLabel = (type: string) => {
     if (type === 'homework') return t('tasks.list.types.homework');
@@ -165,7 +160,7 @@ export function useTaskFormLogic(
 
   const doubleTaskSubjectName = computed(() => {
     if (!doubleTaskOriginalItem.value) return '';
-    return getSubjectName(doubleTaskOriginalItem.value.subject);
+    return getSubjectName(doubleTaskOriginalItem.value);
   });
 
   const doubleTaskTypeLabel = computed(() => {
@@ -193,11 +188,11 @@ export function useTaskFormLogic(
     });
   });
 
-  const enrolledCourseName = (subjectName: string) =>
-    enrolledCourseForSubjectName(subjectName)?.name ?? '';
+  const enrolledCourseId = (subjectId: string) =>
+    enrolledCourseForSubjectId(subjectId)?.id ?? '';
 
-  watch(subjectSel, (subjectName) => {
-    courseSel.value = enrolledCourseName(subjectName);
+  watch(subjectSel, (subjectId) => {
+    courseSel.value = enrolledCourseId(subjectId);
   });
 
   // Subjects can still be loading while the form is open, so the preselection
@@ -206,7 +201,7 @@ export function useTaskFormLogic(
     () => subjectStore.subjects,
     () => {
       if (!courseSel.value) {
-        courseSel.value = enrolledCourseName(subjectSel.value);
+        courseSel.value = enrolledCourseId(subjectSel.value);
       }
     },
   );
@@ -245,10 +240,10 @@ export function useTaskFormLogic(
   const submitting = ref(false);
   const submitError = ref('');
 
-  const selectableSubjectKeys = computed(() =>
+  const selectableSubjects = computed(() =>
     activeType.value === 'dalton'
-      ? subjectStore.daltonSubjectKeys
-      : subjectStore.availableSubjectKeys,
+      ? subjectStore.daltonSubjects
+      : subjectStore.subjects,
   );
 
   // A subject picked for another type may not be offered for Dalton tasks.
@@ -256,56 +251,52 @@ export function useTaskFormLogic(
     const current = subjectSel.value;
     if (
       current &&
-      current !== '__OTHER__' &&
-      !selectableSubjectKeys.value.includes(current)
+      current !== OTHER_SUBJECT &&
+      !selectableSubjects.value.some((s) => s.id === current)
     ) {
       subjectSel.value = '';
     }
   });
 
-  const subjectOptions = computed(() => {
-    const opts = selectableSubjectKeys.value.map((s) => {
-      const translationKey = `common.subjects.${s}`;
-      const label = te(translationKey) ? t(translationKey) : s;
-      return { label, value: s };
-    });
+  const subjectOptions = computed(() => [
+    ...selectableSubjects.value.map((s) => ({
+      label: subjectLabel(s.name, t, te),
+      value: s.id,
+    })),
+    { label: t('common.selection.other'), value: OTHER_SUBJECT },
+  ]);
 
-    opts.push({ label: t('common.selection.other'), value: '__OTHER__' });
-
-    return opts;
-  });
-
-  const getCourseLabel = (courseName: string): string => {
-    const courseKey = getSubjectKey(courseName);
-    if (te(`common.subjects.${courseKey}`)) {
-      return t(`common.subjects.${courseKey}`);
-    }
-
-    const mr = t('common.titles.abbr.mr');
-    const ms = t('common.titles.abbr.ms');
-    return courseName
-      .replace(/^Herr\s+/, `${mr} `)
-      .replace(/^Frau\s+/, `${ms} `);
-  };
+  const selectedSubject = computed(() =>
+    subjectStore.subjects.find((s) => s.id === subjectSel.value),
+  );
 
   const selectedSubjectHasCourses = computed(() => {
-    const match = subjectStore.subjects.find(
-      (s) => s.name === subjectSel.value,
-    );
-    if (!match?.courses) return false;
-    return subjectNeedsCourseChoice(match.category, match.courses.length);
+    const subject = selectedSubject.value;
+    if (!subject?.courses) return false;
+    return subjectNeedsCourseChoice(subject.category, subject.courses.length);
   });
 
-  const courseOptions = computed(() => {
-    const match = subjectStore.subjects.find(
-      (s) => s.name === subjectSel.value,
+  const courseOptions = computed(() =>
+    (selectedSubject.value?.courses ?? []).map((c) => ({
+      label: courseLabel(c.name, t, te),
+      value: c.id,
+    })),
+  );
+
+  /**
+   * A typed name the group offers after all, in any language or spelling,
+   * becomes that subject instead of a detached label.
+   */
+  function groupSubjectForTypedName(typed: string): Subject | undefined {
+    const lower = typed.toLowerCase();
+    const builtInKey = builtInSubjectKey(typed);
+    return subjectStore.subjects.find(
+      (s) =>
+        s.name.toLowerCase() === lower ||
+        s.name === builtInKey ||
+        subjectLabel(s.name, t, te).toLowerCase() === lower,
     );
-    if (!match || !match.courses) return [];
-    return match.courses.map((c) => ({
-      label: getCourseLabel(c.name),
-      value: c.name,
-    }));
-  });
+  }
 
   async function submit() {
     submitting.value = true;
@@ -319,36 +310,37 @@ export function useTaskFormLogic(
     dueDateError.value = '';
 
     let hasValidationErrors = false;
-    let finalSubject = '';
+    let subject: ItemSubjectPayload | null = null;
 
-    const main = subjectSel.value;
-    if (!main) {
+    if (!subjectSel.value) {
       subjectError.value = t('tasks.list.task_form.errors.custom_missing');
       hasValidationErrors = true;
-    } else if (main === '__OTHER__') {
-      finalSubject = subjectOther.value.trim();
-      if (!finalSubject) {
+    } else if (subjectSel.value === OTHER_SUBJECT) {
+      const typed = subjectOther.value.trim();
+      const offered = typed ? groupSubjectForTypedName(typed) : undefined;
+      if (!typed) {
         subjectOtherError.value = t(
           'tasks.list.task_form.errors.custom_missing',
         );
         hasValidationErrors = true;
-      } else if (finalSubject.length > 100) {
+      } else if (typed.length > CUSTOM_SUBJECT_MAX_LENGTH) {
         subjectOtherError.value = t('tasks.list.task_form.errors.custom_long');
         hasValidationErrors = true;
-      }
-    } else if (selectedSubjectHasCourses.value) {
-      if (!courseSel.value) {
-        const translationKey = `common.subjects.${main}`;
-        const courseName = te(translationKey) ? t(translationKey) : main;
-        courseError.value = t('tasks.list.task_form.errors.course_missing', {
-          course: courseName,
-        });
-        hasValidationErrors = true;
+      } else if (offered) {
+        subject = { subjectId: offered.id, courseId: null };
       } else {
-        finalSubject = `${main} - ${courseSel.value}`;
+        subject = { customName: typed };
       }
+    } else if (selectedSubjectHasCourses.value && !courseSel.value) {
+      courseError.value = t('tasks.list.task_form.errors.course_missing', {
+        course: subjectLabel(selectedSubject.value?.name ?? '', t, te),
+      });
+      hasValidationErrors = true;
     } else {
-      finalSubject = main;
+      subject = {
+        subjectId: subjectSel.value,
+        courseId: selectedSubjectHasCourses.value ? courseSel.value : null,
+      };
     }
 
     const cleanTitle = title.value.trim();
@@ -382,7 +374,7 @@ export function useTaskFormLogic(
       }
     }
 
-    if (hasValidationErrors) {
+    if (hasValidationErrors || !subject) {
       submitting.value = false;
       return;
     }
@@ -390,7 +382,7 @@ export function useTaskFormLogic(
     try {
       const payload = {
         title: cleanTitle,
-        subject: finalSubject,
+        subject,
         description: cleanDesc,
         images: imgImages.value.map((img) => ({
           publicId: img.publicId,

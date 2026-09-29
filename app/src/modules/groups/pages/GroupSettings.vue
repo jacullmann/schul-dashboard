@@ -60,7 +60,6 @@ const {
   loadingLessons,
   loadSchedule,
   savingLesson,
-  saveLesson,
   deleteLesson,
   announcements,
   loadAnnouncements,
@@ -360,7 +359,6 @@ function goBack() {
               @delete-sub="deleteSub"
               @update-schedule-config="updateScheduleConfig"
               @save-schedule-batch="saveScheduleBatch"
-              @save-lesson="saveLesson"
               @delete-lesson="deleteLesson"
             />
 
