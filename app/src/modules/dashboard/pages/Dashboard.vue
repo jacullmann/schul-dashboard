@@ -2,28 +2,19 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
-import {
-  CheckCircle2,
-  ChevronRight,
-  Pencil,
-  ArrowUpRight,
-  CalendarDays,
-} from '@lucide/vue';
+import { CheckCircle2, ChevronRight, Pencil, CalendarDays } from '@lucide/vue';
 
 import { useUserStore } from '@/stores/userStore';
-import { useSubjectStore } from '@/stores/subjectStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useSchedule } from '@/modules/schedule/composables/useSchedule';
 import { lessonDisplayName } from '@/modules/schedule/utils/lesson';
 import type { Lesson } from '@/modules/schedule/types';
-import type { HwItem } from '@/modules/tasks/types';
-import { formatSubjectDisplay } from '@/utils/subject-formatter';
-import hw from '@/api/api.ts';
-import { groupPath } from '@/api/groupPath';
 import { useGroupPageId } from '@/core/composables/useGroupPageId';
-import ItemCard from '@/modules/tasks/components/ItemCard.vue';
+import { provideTasks } from '@/modules/tasks/composables/useTasks';
+import TaskCard from '@/modules/tasks/components/TaskCard.vue';
+import TaskDialogs from '@/modules/tasks/components/TaskDialogs.vue';
+import TaskSkeleton from '@/modules/tasks/components/TaskSkeleton.vue';
 import { useCardEntrance } from '@/modules/tasks/composables/useCardEntrance';
-import { taskRoute } from '@/modules/tasks/utils/routes';
 import { entranceDelay } from '@/modules/tasks/utils/entrance';
 import { lessonMinutes } from '@/modules/schedule/utils/slotTimes';
 
@@ -32,7 +23,6 @@ const t = i18n.t.bind(i18n);
 const te = i18n.te.bind(i18n);
 const locale = i18n.locale;
 const userStore = useUserStore();
-const subjectStore = useSubjectStore();
 const { user } = storeToRefs(userStore);
 const { checkPermission } = useAppAuth();
 const groupId = useGroupPageId();
@@ -47,19 +37,49 @@ const {
   autoLoad: true,
 });
 
-const rawItems = ref<HwItem[]>([]);
-const checkedIds = ref<Set<string>>(new Set());
-const loadingTasks = ref(false);
-const now = ref(new Date());
+// The open tasks, in the task list's order: pinned ones first, then by due date.
+const {
+  loading: loadingTasks,
+  initialLoad,
+  showOldEntries,
+  filteredItems,
+  openMenuId,
+  onMenuAction,
+  archiveItem,
+  dismissedItems,
+  useListTransitions,
+  canEdit,
+  canDelete,
+  canEditNote,
+  isChecked,
+  toggleCheck,
+  isPinned,
+  togglePin,
+  triggerImageDrop,
+} = provideTasks({
+  tab: 'all',
+  showOldEntries: false,
+  subject: '',
+  hideChecked: true,
+});
 
-const pendingCheckRemovals = ref<Set<string>>(new Set());
-const useListTransitions = ref(false);
-const checkTimeouts = new Map<string, number>();
+const TASK_COUNT = 3;
+
+const visibleTasks = computed(() =>
+  filteredItems.value
+    .filter((item) => !dismissedItems.value.has(item.id))
+    .slice(0, TASK_COUNT),
+);
+
+const showTaskSkeleton = computed(
+  () => loadingTasks.value && initialLoad.value,
+);
+
+const now = ref(new Date());
 
 let timerInterval: number | undefined;
 
-onMounted(async () => {
-  await subjectStore.loadSubjects(groupId);
+onMounted(() => {
   timerInterval = window.setInterval(() => {
     now.value = new Date();
   }, 30000);
@@ -69,8 +89,6 @@ onUnmounted(() => {
   if (timerInterval) {
     clearInterval(timerInterval);
   }
-  checkTimeouts.forEach((timeoutId) => clearTimeout(timeoutId));
-  checkTimeouts.clear();
 });
 
 function beforeLeave(el: Element) {
@@ -89,131 +107,6 @@ function beforeLeave(el: Element) {
   h.style.width = `${rect.width}px`;
   h.style.position = 'absolute';
 }
-
-async function fetchTasks() {
-  loadingTasks.value = true;
-
-  // Clear any pending check timeouts and states
-  checkTimeouts.forEach((timeoutId) => clearTimeout(timeoutId));
-  checkTimeouts.clear();
-  pendingCheckRemovals.value.clear();
-  useListTransitions.value = false;
-
-  try {
-    const [itemsRes, checksRes] = await Promise.all([
-      // The server applies the member's course selection, like on the task page.
-      hw.get<HwItem[]>(groupPath(groupId, '/items'), {
-        params: {
-          type: 'all',
-          personalized: Boolean(
-            user.value?.personalized && user.value?.doneSetup,
-          ),
-        },
-      }),
-      hw.get('/user/checks'),
-    ]);
-
-    rawItems.value = itemsRes.data || [];
-    checkedIds.value = new Set(checksRes.data?.itemIds || []);
-  } catch (err) {
-    console.error('Failed to fetch tasks in dashboard:', err);
-  } finally {
-    loadingTasks.value = false;
-  }
-}
-
-void fetchTasks();
-
-async function toggleCheck(item: any) {
-  const id = item.id;
-  const wasChecked = checkedIds.value.has(id);
-
-  if (wasChecked) {
-    checkedIds.value.delete(id);
-    checkedIds.value = new Set(checkedIds.value);
-
-    const timeoutId = checkTimeouts.get(id);
-    if (timeoutId !== undefined) {
-      clearTimeout(timeoutId);
-      checkTimeouts.delete(id);
-    }
-    pendingCheckRemovals.value.delete(id);
-    pendingCheckRemovals.value = new Set(pendingCheckRemovals.value);
-  } else {
-    checkedIds.value.add(id);
-    checkedIds.value = new Set(checkedIds.value);
-
-    useListTransitions.value = true;
-    pendingCheckRemovals.value.add(id);
-    pendingCheckRemovals.value = new Set(pendingCheckRemovals.value);
-
-    const timeoutId = window.setTimeout(() => {
-      pendingCheckRemovals.value.delete(id);
-      pendingCheckRemovals.value = new Set(pendingCheckRemovals.value);
-      checkTimeouts.delete(id);
-
-      // Keep useListTransitions true for another 800ms (total 1200ms) to let the slide transition finish
-      window.setTimeout(() => {
-        if (pendingCheckRemovals.value.size === 0) {
-          useListTransitions.value = false;
-        }
-      }, 800);
-    }, 400);
-    checkTimeouts.set(id, timeoutId);
-  }
-
-  try {
-    if (wasChecked) {
-      await hw.delete(groupPath(groupId, `/items/${id}/check`));
-    } else {
-      await hw.post(groupPath(groupId, `/items/${id}/check`));
-    }
-  } catch (err) {
-    if (wasChecked) {
-      checkedIds.value.add(id);
-      checkedIds.value = new Set(checkedIds.value);
-    } else {
-      checkedIds.value.delete(id);
-      checkedIds.value = new Set(checkedIds.value);
-
-      const timeoutId = checkTimeouts.get(id);
-      if (timeoutId !== undefined) {
-        clearTimeout(timeoutId);
-        checkTimeouts.delete(id);
-      }
-      pendingCheckRemovals.value.delete(id);
-      pendingCheckRemovals.value = new Set(pendingCheckRemovals.value);
-    }
-    console.error('Error toggling check status:', err);
-  }
-}
-
-const getSubjectName = (item: HwItem) =>
-  formatSubjectDisplay(item.subjectName, item.courseName, t, te);
-
-const filteredTasks = computed(() => {
-  return rawItems.value.filter((item) => {
-    const isChecked = checkedIds.value.has(item.id);
-    const isPending = pendingCheckRemovals.value.has(item.id);
-    return !isChecked || isPending;
-  });
-});
-
-const sortedTasks = computed(() => {
-  const copy = [...filteredTasks.value];
-  return copy
-    .sort((a, b) => {
-      const dueDiff =
-        new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
-      if (dueDiff !== 0) {
-        return dueDiff;
-      }
-      const timeA = new Date(a.updatedAt || a.createdAt || 0).getTime();
-      const timeB = new Date(b.updatedAt || b.createdAt || 0).getTime();
-      return timeB - timeA;
-    })
-    .slice(0, 3);
-});
 
 const upcomingLesson = computed(() => {
   if (!effectiveLessons.value.length) return null;
@@ -316,9 +209,7 @@ const isScheduleVisible = computed(() => {
 /** Top to bottom: each section's header, then what it holds. */
 const TASKS_HEADER_ENTRANCE_ORDER = 1;
 const TASKS_LIST_ENTRANCE_ORDER = 2;
-const TASK_SKELETON_COUNT = 3;
-const SCHEDULE_HEADER_ENTRANCE_ORDER =
-  TASKS_LIST_ENTRANCE_ORDER + TASK_SKELETON_COUNT;
+const SCHEDULE_HEADER_ENTRANCE_ORDER = TASKS_LIST_ENTRANCE_ORDER + TASK_COUNT;
 const NEXT_LESSON_ENTRANCE_ORDER = SCHEDULE_HEADER_ENTRANCE_ORDER + 1;
 const SUBSTITUTIONS_ENTRANCE_ORDER = SCHEDULE_HEADER_ENTRANCE_ORDER + 2;
 const NEXT_LESSON_REVEAL_ORDER = 0;
@@ -329,8 +220,8 @@ const {
   entranceStyle: cardEntranceStyle,
   handleEntranceEnd: handleCardAnimationEnd,
 } = useCardEntrance(
-  computed(() => sortedTasks.value.map((task) => task.id)),
-  loadingTasks,
+  computed(() => visibleTasks.value.map((task) => task.id)),
+  showTaskSkeleton,
 );
 </script>
 
@@ -383,81 +274,64 @@ const {
           </template>
         </PageHeader>
 
-        <!-- Taken out of the flow while it fades, so the cards arriving in its
-             place overlap it instead of waiting below it. -->
         <div class="relative flex flex-col w-full max-w-192 mx-auto">
+          <!-- Taken out of the flow while it fades, so the cards arriving in its
+               place overlap it instead of waiting below it. -->
           <Transition
             leave-active-class="skeleton-leaving absolute inset-x-0 top-0 transition-opacity duration-300 ease-out"
             leave-to-class="opacity-0"
           >
-            <div v-if="loadingTasks" class="flex flex-col gap-3">
-              <!-- A row still waiting for its entrance stays hidden while the skeleton leaves. -->
-              <div
-                v-for="n in TASK_SKELETON_COUNT"
-                :key="n"
-                class="animate-enter in-[.skeleton-leaving]:[animation-play-state:paused]"
-                :style="{
-                  '--enter-delay': entranceDelay(
-                    TASKS_LIST_ENTRANCE_ORDER + n - 1,
-                  ),
-                }"
-              >
-                <div
-                  class="h-17 bg-surface-highlight rounded-xl animate-pulse"
-                ></div>
-              </div>
-            </div>
+            <TaskSkeleton
+              v-if="showTaskSkeleton"
+              :count="TASK_COUNT"
+              :entrance-order="TASKS_LIST_ENTRANCE_ORDER"
+            />
           </Transition>
 
-          <template v-if="!loadingTasks">
+          <template v-if="!showTaskSkeleton">
             <TransitionGroup
               :css="useListTransitions"
               name="task-list"
               tag="div"
-              class="flex flex-col gap-3 relative overflow-x-clip"
+              class="flex flex-col relative max-md:-mx-4"
               @before-leave="beforeLeave"
             >
-              <ItemCard
-                v-for="task in sortedTasks"
-                :key="task.id"
-                :class="{ 'animate-enter': isCardEntering(task.id) }"
-                :style="cardEntranceStyle(task.id)"
-                :title="task.title"
-                @animationend="handleCardAnimationEnd($event, task.id)"
-              >
-                <template #checkbox>
-                  <BaseCheckbox
-                    :checked="checkedIds.has(task.id)"
-                    @change="toggleCheck(task)"
-                  />
-                </template>
-
-                <template #badges>
-                  <div class="text-on-ghost-muted text-base">
-                    {{ getSubjectName(task) }}
-                    •
-                    {{ new Date(task.dueDate).toLocaleDateString() }}
-                  </div>
-                </template>
-
-                <template #actions-pre>
-                  <BaseTooltip
-                    :content="t('dashboard.tasks_overview.view_task')"
-                    placement="bottom"
-                  >
-                    <BaseButton
-                      variant="ghost"
-                      size="sm"
-                      :icon="ArrowUpRight"
-                      @click.stop="$router.push(taskRoute(groupId, task.id))"
-                    />
-                  </BaseTooltip>
-                </template>
-              </ItemCard>
+              <!-- The fragment key prefixes both children's keys, so a separator
+                   slides out with the card below it and the next one takes over. -->
+              <template v-for="(task, index) in visibleTasks" :key="task.id">
+                <div
+                  v-if="index > 0"
+                  class="border-b border-ghost-border ml-10.5 mr-4"
+                  :class="{ 'animate-enter': isCardEntering(task.id) }"
+                  :style="cardEntranceStyle(task.id)"
+                ></div>
+                <TaskCard
+                  :class="{ 'animate-enter': isCardEntering(task.id) }"
+                  :style="cardEntranceStyle(task.id)"
+                  :item="task"
+                  :show-type="true"
+                  :is-archive-view="showOldEntries"
+                  :is-checked="isChecked(task.id)"
+                  :is-pinned="isPinned(task.id)"
+                  :is-menu-open="openMenuId === task.id"
+                  :can-check="!!user"
+                  :can-edit="canEdit(task.createdBy)"
+                  :can-add-note="canEditNote() && !task.editorNote"
+                  :can-delete="canDelete(task.createdBy)"
+                  @toggle-check="toggleCheck(task)"
+                  @toggle-pin="togglePin(task)"
+                  @swipe="archiveItem(task)"
+                  @menu-action="(action) => onMenuAction(action, task)"
+                  @open-menu="openMenuId = task.id"
+                  @close-menu="openMenuId = null"
+                  @image-drop="(files) => triggerImageDrop(task, files)"
+                  @animationend="handleCardAnimationEnd($event, task.id)"
+                />
+              </template>
             </TransitionGroup>
 
             <div
-              v-if="sortedTasks.length === 0"
+              v-if="!loadingTasks && visibleTasks.length === 0"
               class="text-center py-8 space-y-3 animate-enter"
             >
               <div
@@ -686,17 +560,12 @@ const {
         </div>
       </div>
     </div>
+
+    <TaskDialogs />
   </div>
 </template>
 
 <style scoped>
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
 .task-list-leave-active {
   transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
   animation: none !important;

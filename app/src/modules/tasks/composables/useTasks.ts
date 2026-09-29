@@ -31,7 +31,7 @@ import { useHwDetail } from './hw/useHwDetail';
 
 export type { HwItem };
 
-interface TaskFilters {
+export interface TaskFilters {
   tab: ItemType;
   showOldEntries: boolean;
   subject: string;
@@ -57,7 +57,8 @@ function queryFromFilters(filters: TaskFilters): LocationQuery {
   return query;
 }
 
-function createTasks() {
+/** `fixedFilters` take precedence over the filters in the URL. */
+function createTasks(fixedFilters: Partial<TaskFilters>) {
   const route = useRoute();
   const router = useRouter();
   const userStore = useUserStore();
@@ -76,7 +77,7 @@ function createTasks() {
       : null,
   );
 
-  const initialFilters = filtersFromQuery(route.query);
+  const initialFilters = { ...filtersFromQuery(route.query), ...fixedFilters };
   const tab = ref<ItemType>(initialFilters.tab);
   const showOldEntries = ref(initialFilters.showOldEntries);
   const subjectFilter = ref(initialFilters.subject);
@@ -375,10 +376,11 @@ const TASKS_KEY: InjectionKey<Tasks> = Symbol('tasks');
 /**
  * Owned by the tasks page, so the list and a task opened from it share one
  * state: checks, pins and notes changed on either show on both, and the list
- * is still loaded and filtered when the task is closed again.
+ * is still loaded and filtered when the task is closed again. The dashboard
+ * owns one of its own for its task cards.
  */
-export function provideTasks(): Tasks {
-  const tasks = createTasks();
+export function provideTasks(fixedFilters: Partial<TaskFilters> = {}): Tasks {
+  const tasks = createTasks(fixedFilters);
   provide(TASKS_KEY, tasks);
   return tasks;
 }

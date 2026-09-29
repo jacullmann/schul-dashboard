@@ -3,17 +3,9 @@ import { computed, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { provideTasks } from '@/modules/tasks/composables/useTasks';
 import { useIsMobileViewport } from '@/common/composables/useViewport';
-import ReportModal from '@/modules/tasks/components/ReportModal.vue';
-import TaskInfoModal from '@/modules/tasks/components/TaskInfoModal.vue';
+import TaskDialogs from '@/modules/tasks/components/TaskDialogs.vue';
 
-const {
-  user,
-  infoItem,
-  showReportConfirm,
-  reportReason,
-  doReport,
-  cancelReport,
-} = provideTasks();
+provideTasks();
 
 const route = useRoute();
 const isMobile = useIsMobileViewport();
@@ -70,19 +62,5 @@ function unpinList(el: Element) {
     </RouterView>
   </div>
 
-  <ReportModal
-    v-model:reason="reportReason"
-    :open="showReportConfirm"
-    message=""
-    :show-reason-input="true"
-    @confirm="doReport"
-    @cancel="cancelReport"
-  />
-
-  <TaskInfoModal
-    :open="!!infoItem"
-    :item="infoItem"
-    :is-super-admin="user?.role === 'superadmin'"
-    @cancel="infoItem = null"
-  />
+  <TaskDialogs />
 </template>
