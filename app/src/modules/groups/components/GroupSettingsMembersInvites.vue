@@ -46,9 +46,8 @@ async function inviteMember() {
 }
 
 async function copyLink(inviteId: string, token: string) {
-  const url = `${window.location.origin}/invite/${token}`;
   try {
-    await navigator.clipboard.writeText(url);
+    await navigator.clipboard.writeText(getInviteUrl(token));
     copiedId.value = inviteId;
     toast.success(t('auth.groups.invite.copied'));
     setTimeout(() => {
@@ -61,8 +60,11 @@ async function copyLink(inviteId: string, token: string) {
   }
 }
 
-function isInviteActive(invite: GroupInviteLog): boolean {
+function isInviteActive(
+  invite: GroupInviteLog,
+): invite is GroupInviteLog & { token: string } {
   return (
+    invite.token !== null &&
     invite.usedAt === null &&
     invite.revokedAt === null &&
     new Date(invite.expiresAt) > new Date()
@@ -145,9 +147,10 @@ function getInviteUrl(token: string): string {
         </thead>
         <tbody>
           <tr v-for="invite in invites" :key="invite.id">
-            <td class="truncate select-all">
+            <td v-if="isInviteActive(invite)" class="truncate select-all">
               {{ getInviteUrl(invite.token) }}
             </td>
+            <td v-else class="truncate text-on-ghost-subtle">—</td>
             <td :class="getBadgeClass(invite)" class="text-sm font-bold">
               {{ getBadgeLabel(invite) }}
             </td>

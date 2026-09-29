@@ -71,7 +71,8 @@ export interface AdminSubject {
 
 export interface GroupInviteLog {
   id: string;
-  token: string;
+  /** Only present while the invite can still be used. */
+  token: string | null;
   createdBy: string | null;
   createdByName: string | null;
   createdAt: string;

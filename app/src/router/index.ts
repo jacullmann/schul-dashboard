@@ -247,6 +247,7 @@ const routes: RouteRecordRaw[] = [
         path: '',
         name: 'group-invite',
         component: () => import('@/core/pages/GroupInvite.vue'),
+        props: true,
         meta: { title: 'navigation.group_invite' },
       },
     ],
@@ -307,7 +308,7 @@ router.beforeEach(async (to, from, next) => {
     const inviteRoute = consumePendingInviteRoute();
     if (inviteRoute) {
       finish();
-      return next({ path: inviteRoute, replace: true });
+      return next({ ...inviteRoute, replace: true });
     }
   }
 

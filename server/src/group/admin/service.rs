@@ -1488,9 +1488,12 @@ impl GroupAdminService {
             .fetch_all(&self.db)
             .await?;
 
+        let now = chrono::Utc::now();
         let invites: Vec<Value> = rows
             .into_iter()
             .map(|r| {
+                // Spent tokens are useless to admins, so they are not handed out again.
+                let is_active = r.used_at.is_none() && r.revoked_at.is_none() && r.expires_at > now;
                 let created_by_name = r
                     .created_by
                     .map(|uid| crate::common::name_generator::generate_user_name(&uid.to_string()));
@@ -1503,7 +1506,7 @@ impl GroupAdminService {
 
                 json!({
                     "id": r.id,
-                    "token": r.token,
+                    "token": is_active.then_some(r.token),
                     "createdBy": r.created_by,
                     "createdByName": created_by_name,
                     "createdAt": r.created_at,

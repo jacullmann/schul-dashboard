@@ -7,9 +7,12 @@
  * the app entirely.
  */
 
+import type { RouteLocationNamedRaw } from 'vue-router';
+
 const STORAGE_KEY = 'schul-dashboard:pending-invite';
 const MAX_AGE_MS = 24 * 60 * 60 * 1000;
-const TOKEN_PATTERN = /^[A-Za-z0-9_-]{1,256}$/;
+// Mirrors the server's token format (32 random bytes, hex-encoded).
+const TOKEN_PATTERN = /^[0-9a-f]{64}$/;
 
 interface StoredInvite {
   token: string;
@@ -60,9 +63,9 @@ export function getPendingInvite(): string | null {
 }
 
 /** Returns the invite route for a stored token and removes it (one-shot). */
-export function consumePendingInviteRoute(): string | null {
+export function consumePendingInviteRoute(): RouteLocationNamedRaw | null {
   const token = getPendingInvite();
   if (!token) return null;
   clearPendingInvite();
-  return `/invite/${encodeURIComponent(token)}`;
+  return { name: 'group-invite', params: { token } };
 }

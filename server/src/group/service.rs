@@ -10,6 +10,7 @@ use crate::{
     error::{AppError, AppResult},
     group::{
         dto::{GroupMemberDto, GroupStatusDto, GroupSummaryDto},
+        invite_token::{InviteToken, invalid_invite},
         member_policy::{self, Caller, Target},
     },
     state::AppState,
@@ -17,6 +18,8 @@ use crate::{
 use serde_json::{Value, json};
 use sqlx::{PgConnection, PgPool};
 use uuid::Uuid;
+
+const INVITE_TTL: chrono::TimeDelta = chrono::TimeDelta::days(7);
 
 /// Locks the group row for the rest of the transaction. Every change to a
 /// group's membership takes this lock first, so an owner check in one request
@@ -61,7 +64,7 @@ struct Membership {
 
 pub struct AcceptInviteParams<'a> {
     pub user_id: Uuid,
-    pub token: &'a str,
+    pub token: &'a InviteToken,
     pub ip: Option<&'a str>,
     pub ua: Option<&'a str>,
 }
@@ -261,20 +264,20 @@ impl GroupService {
     }
 
     pub async fn create_invite(&self, tenant_id: Uuid, user_id: Uuid) -> AppResult<Value> {
-        let token = hex::encode(rand::random::<[u8; 32]>());
-        let expires_at = chrono::Utc::now() + chrono::Duration::days(7);
+        let token = InviteToken::generate();
+        let expires_at = chrono::Utc::now() + INVITE_TTL;
 
         sqlx::query!(
             "INSERT INTO group_invites (token, tenant_id, created_by, expires_at) VALUES ($1, $2, $3, $4)",
-            token.clone(),
+            token.as_str(),
             tenant_id,
             user_id,
             expires_at
         )
-            .execute(&self.db)
-            .await?;
+        .execute(&self.db)
+        .await?;
 
-        Ok(json!({ "token": token }))
+        Ok(json!({ "token": token.as_str() }))
     }
 
     pub async fn list_members(
@@ -338,7 +341,11 @@ impl GroupService {
 
     /// `viewer_id` lets an existing member skip the join prompt; the group id is
     /// only revealed to members so the preview stays anonymous for everyone else.
-    pub async fn get_invite(&self, token: &str, viewer_id: Option<Uuid>) -> AppResult<Value> {
+    pub async fn get_invite(
+        &self,
+        token: &InviteToken,
+        viewer_id: Option<Uuid>,
+    ) -> AppResult<Value> {
         let invite = sqlx::query!(
             r#"SELECT g.id,
                       g.name,
@@ -350,12 +357,12 @@ impl GroupService {
                FROM group_invites gi
                JOIN groups g ON g.id = gi.tenant_id
                WHERE gi.token = $1 AND gi.expires_at > now() AND gi.used_at IS NULL AND gi.revoked_at IS NULL"#,
-            token,
+            token.as_str(),
             viewer_id
         )
         .fetch_optional(&self.db)
         .await?
-        .ok_or_else(|| AppError::BadRequest("Invalid or expired invite token.".into()))?;
+        .ok_or_else(invalid_invite)?;
 
         Ok(json!({
             "valid": true,
@@ -382,15 +389,15 @@ impl GroupService {
                  AND NOT EXISTS (
                      SELECT 1 FROM user_roles ur WHERE ur.tenant_id = gi.tenant_id AND ur.user_id = $2
                  )
-               RETURNING gi.tenant_id"#,
-            token,
+               RETURNING gi.id, gi.tenant_id"#,
+            token.as_str(),
             user_id
         )
         .fetch_optional(&mut *tx)
         .await?;
 
-        let group_id: Uuid = match invite {
-            Some(row) => row.tenant_id,
+        let (invite_id, group_id) = match invite {
+            Some(row) => (row.id, row.tenant_id),
             None => {
                 tx.rollback().await?;
                 return self.resolve_unaccepted_invite(token, user_id).await;
@@ -426,7 +433,8 @@ impl GroupService {
             "INSERT INTO security_events (event_type, event_status, ip_address, user_agent, metadata) VALUES ('group_invite_accept', 'success', $1::inet, $2, $3)",
             ip_parsed,
             ua,
-            json!({ "groupId": group_id, "userId": user_id, "token": token })
+            // The token is a bearer credential and stays out of the audit log.
+            json!({ "groupId": group_id, "userId": user_id, "inviteId": invite_id })
         )
             .execute(&mut *tx)
             .await?;
@@ -446,18 +454,22 @@ impl GroupService {
 
     /// Distinguishes "already a member" from an invalid token after the
     /// consuming update matched nothing.
-    async fn resolve_unaccepted_invite(&self, token: &str, user_id: Uuid) -> AppResult<Value> {
+    async fn resolve_unaccepted_invite(
+        &self,
+        token: &InviteToken,
+        user_id: Uuid,
+    ) -> AppResult<Value> {
         let membership = sqlx::query!(
             r#"SELECT gi.tenant_id
                FROM group_invites gi
                JOIN user_roles ur ON ur.tenant_id = gi.tenant_id AND ur.user_id = $2
                WHERE gi.token = $1 AND gi.expires_at > now() AND gi.used_at IS NULL AND gi.revoked_at IS NULL"#,
-            token,
+            token.as_str(),
             user_id
         )
         .fetch_optional(&self.db)
         .await?
-        .ok_or_else(|| AppError::BadRequest("Invalid or expired invite token.".into()))?;
+        .ok_or_else(invalid_invite)?;
 
         Ok(json!({ "ok": true, "groupId": membership.tenant_id, "alreadyMember": true }))
     }

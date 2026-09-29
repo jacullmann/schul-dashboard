@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { computed, ref, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useUserStore } from '@/stores/userStore';
@@ -14,8 +14,9 @@ import {
   savePendingInvite,
 } from '@/modules/auth/utils/pendingInvite';
 
+const props = defineProps<{ token: string }>();
+
 const { t } = useI18n();
-const route = useRoute();
 const router = useRouter();
 const auth = useAppAuth();
 const userStore = useUserStore();
@@ -23,7 +24,6 @@ const subjectStore = useSubjectStore();
 const modalStore = useModalStore();
 const toast = useToast();
 
-const token = route.params.token as string;
 const loading = ref(true);
 const ok = ref(false);
 const errorMsg = ref('');
@@ -33,53 +33,43 @@ const avatarUrl = ref<string | null>(null);
 const memberCount = ref<number>(0);
 const joining = ref(false);
 
-onMounted(async () => {
-  if (!token) {
-    ok.value = false;
-    errorMsg.value = t('auth.groups.invite.invalid_desc');
-    loading.value = false;
+async function loadInvite(token: string) {
+  loading.value = true;
+  ok.value = false;
+
+  const res = await auth.getInvite(token);
+  if (token !== props.token) return;
+
+  if (res.ok && res.alreadyMember && res.groupId) {
+    clearPendingInvite();
+    await openExistingGroup(res.groupId);
     return;
   }
 
-  try {
-    const res = await auth.getInvite(token);
-    if (res.ok && res.alreadyMember && res.groupId) {
-      clearPendingInvite();
-      await openExistingGroup(res.groupId);
-      return;
-    }
-    if (res.ok && res.groupName) {
-      groupName.value = res.groupName;
-      avatarUrl.value = res.avatarUrl || null;
-      memberCount.value = res.memberCount || 0;
-      ok.value = true;
-
-      // Remember the invite so the user returns here right after signing in.
-      if (auth.isLoggedIn.value) clearPendingInvite();
-      else savePendingInvite(token);
-    } else {
-      ok.value = false;
-      errorMsg.value = res.error || t('auth.groups.invite.invalid_desc');
-      clearPendingInvite();
-    }
-  } catch {
-    ok.value = false;
-    errorMsg.value = t('auth.groups.invite.invalid_desc');
+  if (res.ok && res.groupName) {
+    groupName.value = res.groupName;
+    avatarUrl.value = res.avatarUrl || null;
+    memberCount.value = res.memberCount || 0;
+    ok.value = true;
+  } else {
+    errorMsg.value = res.error || t('auth.groups.invite.invalid_desc');
     clearPendingInvite();
-  } finally {
-    loading.value = false;
   }
-});
+  loading.value = false;
+}
+
+watch(() => props.token, loadInvite, { immediate: true });
 
 async function handleJoin() {
   if (joining.value) return;
 
   joining.value = true;
   try {
-    const res = await auth.acceptInvite(token);
+    const res = await auth.acceptInvite(props.token);
     if (res.ok && res.alreadyMember && res.groupId) {
       await openExistingGroup(res.groupId);
     } else if (res.ok && res.groupId) {
+      clearPendingInvite();
       toast.success(t('auth.groups.invite.success_join'));
       try {
         await userStore.fetchUser();
@@ -102,8 +92,6 @@ async function handleJoin() {
     } else {
       toast.error(res.error || t('auth.groups.invite.join_failed'));
     }
-  } catch (err: any) {
-    toast.error(err.message || t('auth.groups.invite.join_failed'));
   } finally {
     joining.value = false;
   }
@@ -114,10 +102,17 @@ async function openExistingGroup(groupId: string) {
   await router.replace({ name: 'group-dashboard', params: { groupId } });
 }
 
-function handleLogin() {
-  savePendingInvite(token);
-  void router.push({ name: 'login' });
+// The token is only persisted once the visitor chooses to sign in or sign up,
+// so merely viewing a link never leaves it behind on a shared device.
+function continueWithAuth(routeName: 'login' | 'register') {
+  savePendingInvite(props.token);
+  void router.push({ name: routeName });
 }
+
+const submitAction = computed(() => {
+  if (!ok.value) return undefined;
+  return auth.isLoggedIn.value ? handleJoin : () => continueWithAuth('login');
+});
 
 function handleCancel() {
   if (!ok.value) return;
@@ -125,8 +120,7 @@ function handleCancel() {
     clearPendingInvite();
     void router.push({ name: 'groups' });
   } else {
-    savePendingInvite(token);
-    void router.push({ name: 'register' });
+    continueWithAuth('register');
   }
 }
 </script>
@@ -135,9 +129,7 @@ function handleCancel() {
   <BaseModal
     :open="true"
     :sheet="false"
-    :submit="
-      ok ? (auth.isLoggedIn.value ? handleJoin : handleLogin) : undefined
-    "
+    :submit="submitAction"
     :loading="joining"
     @cancel="handleCancel"
   >

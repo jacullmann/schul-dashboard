@@ -84,7 +84,7 @@ onMounted(async () => {
           <BaseButton
             variant="ghost"
             :icon="ArrowLeft"
-            @click="$router.push('/')"
+            @click="$router.push({ name: 'groups' })"
           >
             {{ t('common.buttons.back') }}
           </BaseButton>

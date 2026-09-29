@@ -1,4 +1,4 @@
-use super::{dto::*, service::GroupService};
+use super::{dto::*, invite_token::InviteToken, service::GroupService};
 use crate::{
     common::extractors::{AuthUser, ClientIp, OptionalAuth, TenantContext, UserAgent},
     common::group_type::GroupType,
@@ -35,6 +35,7 @@ pub async fn get_invite(
     OptionalAuth(user): OptionalAuth,
     Path(token): Path<String>,
 ) -> AppResult<Json<Value>> {
+    let token = InviteToken::parse(&token)?;
     let body = GroupService::from_state(&s)
         .get_invite(&token, user.map(|u| u.user_id))
         .await?;
@@ -49,6 +50,7 @@ pub async fn accept_invite(
     UserAgent(ua): UserAgent,
     Path(token): Path<String>,
 ) -> AppResult<Json<Value>> {
+    let token = InviteToken::parse(&token)?;
     let body = GroupService::from_state(&s)
         .accept_invite(crate::group::service::AcceptInviteParams {
             user_id: user.user_id,
