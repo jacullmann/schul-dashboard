@@ -75,9 +75,9 @@ const hasNote = computed(
 
 /** The top bar, then the task from its title down. */
 const TITLE_ENTRANCE_ORDER = 1;
-const DESCRIPTION_ENTRANCE_ORDER = 2;
-const IMAGES_ENTRANCE_ORDER = 3;
-const NOTE_ENTRANCE_ORDER = 4;
+const NOTE_ENTRANCE_ORDER = 2;
+const DESCRIPTION_ENTRANCE_ORDER = 3;
+const IMAGES_ENTRANCE_ORDER = 4;
 
 function goToList() {
   void router.push(taskListRoute(groupId));
