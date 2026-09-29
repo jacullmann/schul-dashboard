@@ -8,44 +8,72 @@
   "errors": {
     "action_failed": "Aktion fehlgeschlagen."
   },
+  "pagination": {
+    "total": "Insgesamt: {count}",
+    "page": "Seite {page} von {count}",
+    "previous": "Vorherige Seite",
+    "next": "Nächste Seite"
+  },
   "overview": {
     "title": "Dashboard Übersicht",
+    "details_title": "Details",
     "stats": {
       "users": "Benutzer",
+      "active_week": "Aktiv (7 Tage)",
       "tasks": "Aufgaben",
-      "open_reports": "Offene Meldungen",
-      "banned": "Gebannt"
-    },
-    "user_stats": {
-      "title": "Benutzerstatistiken",
+      "banned": "Gebannt",
       "verified": "Verifiziert",
       "unverified": "Nicht verifiziert",
-      "admins": "Admins",
-      "new_this_week": "Neu (7 Tage)"
+      "admins": "Superadmins",
+      "new_users_week": "Neue Benutzer (7 Tage)",
+      "new_tasks_week": "Neue Aufgaben (7 Tage)"
     },
-    "activity": {
-      "title": "Aktivität (7 Tage)",
-      "new_tasks": "Neue Aufgaben",
-      "total_reports": "Gesamtmeldungen",
-      "processed": "Verarbeitet"
+    "chart": {
+      "title": "Letzte 30 Tage",
+      "new_users": "Neue Benutzer pro Tag",
+      "new_tasks": "Neue Aufgaben pro Tag",
+      "total": "Gesamt: {count}"
     },
     "cleanup": {
-      "old_tasks": "{count} Einträge älter als 90 Tage",
-      "deleting": "Löschen...",
-      "modal": {
-        "content": "Alle Einträge älter als 90 Tage löschen?"
+      "title": "Aufräumen",
+      "action": "Löschen",
+      "success": "Gelöschte Einträge: {count}",
+      "error": "Aufräumen fehlgeschlagen.",
+      "items": {
+        "label": "Aufgaben älter als 90 Tage",
+        "count": "Betroffen: {count}",
+        "modal_title": "Alte Aufgaben löschen?",
+        "modal_content": "Alle Aufgaben, die vor mehr als 90 Tagen erstellt wurden, werden in allen Gruppen unwiderruflich gelöscht."
+      },
+      "activity": {
+        "label": "Protokolleinträge älter als 30 Tage",
+        "count": "Betroffen: {count}",
+        "modal_title": "Alte Protokolle löschen?",
+        "modal_content": "Alle Aktivitätsprotokolle aller Benutzer, die älter als 30 Tage sind, werden unwiderruflich gelöscht."
       }
+    },
+    "errors": {
+      "load": "Statistiken konnten nicht geladen werden."
     }
   },
   "users": {
     "title": "Benutzerverwaltung",
+    "empty": "Keine Benutzer gefunden.",
+    "search_placeholder": "Nach E-Mail oder ID suchen…",
+    "filters": {
+      "all": "Alle Benutzer",
+      "active": "Aktiv",
+      "banned": "Gebannt",
+      "unverified": "Nicht verifiziert",
+      "superadmin": "Superadmins"
+    },
     "table": {
       "email": "E-Mail",
-      "id": "ID",
+      "username": "Nutzername",
       "status": "Status",
       "registered": "Registriert",
-      "actions": "Aktionen",
-      "username": "Nutzername"
+      "last_login": "Letzter Login",
+      "actions": "Aktionen"
     },
     "status": {
       "admin": "Admin",
@@ -54,66 +82,87 @@
       "unverified": "Nicht verifiziert"
     },
     "actions": {
-      "activity_log": "Aktivitätsprotokoll",
+      "details": "Details & Protokoll",
       "ban": "Bannen",
-      "unban": "Entbannen",
-      "prune_logs": "Alte Protokolle bereinigen"
+      "unban": "Entbannen"
     },
-    "activity_log_title": "Aktivitätsprotokoll",
+    "details": {
+      "title": "Benutzerdetails",
+      "groups": "Gruppen & Rollen",
+      "no_groups": "Keine Gruppenmitgliedschaften.",
+      "joined": "Beigetreten am {date}",
+      "activity": "Aktivitätsprotokoll (letzte 200)",
+      "no_activity": "Keine Einträge.",
+      "role_changed": "Rolle geändert."
+    },
+    "ban_modal": {
+      "title": "Benutzer bannen?",
+      "content": "{email} wird gebannt und auf allen Geräten abgemeldet."
+    },
+    "unban_modal": {
+      "title": "Benutzer entbannen?",
+      "content": "{email} kann sich danach wieder anmelden."
+    },
     "ban_success": "Benutzer gebannt.",
-    "unban_success": "Benutzer entbannt",
+    "unban_success": "Benutzer entbannt.",
     "delete_modal": {
       "title": "Benutzer löschen?",
-      "content": "Bist du sicher, dass du diesen Benutzer löschen willst?"
+      "content": "{email} und alle zugehörigen Daten werden unwiderruflich gelöscht."
     },
     "delete_success": "Benutzer gelöscht.",
-    "prune_modal": {
-      "title": "Protokolle bereinigen?",
-      "content": "Aktivitätsprotokolle älter als 30 Tage für {email} löschen?",
-      "submit": "Bereinigen"
-    },
-    "prune_success": "Protokolle bereinigt."
+    "errors": {
+      "load": "Benutzer konnten nicht geladen werden.",
+      "load_details": "Benutzerdetails konnten nicht geladen werden.",
+      "delete": "Benutzer konnte nicht gelöscht werden."
+    }
   },
   "reports": {
     "title": "Gemeldete Inhalte",
-    "empty": "Keine Meldungen gefunden.",
-    "open": "Offen",
-    "processed": "Verarbeitet",
-    "view_task": "Ganze Aufgabe ansehen",
+    "empty": "Keine Meldungen vorhanden.",
     "reason": "Grund",
     "from": "Von: {email} · {date}",
-    "resolve": "Lösen",
-    "reopen": "Wieder öffnen",
-    "deleted": "Gelöscht",
-    "deleted_item": "Gelöschtes Element",
-    "deleted_title": "{title} (Gelöscht)",
+    "delete": "Meldung löschen",
+    "deleted": "Inhalt gelöscht",
     "message_by": "Nachricht von {email}",
     "message_sender_deleted": "Nachricht (Absender gelöscht)",
-    "resolved_success": "Als gelöst markiert.",
-    "reopened_success": "Wieder geöffnet.",
     "delete_modal": {
       "title": "Meldung löschen?",
       "content": "Bist du dir sicher, dass du diese Meldung löschen willst?"
     },
-    "delete_success": "Meldung gelöscht."
+    "delete_success": "Meldung gelöscht.",
+    "errors": {
+      "load": "Meldungen konnten nicht geladen werden.",
+      "delete": "Meldung konnte nicht gelöscht werden."
+    }
   },
   "groups": {
     "title": "Gruppenverwaltung",
     "empty": "Keine Gruppen gefunden.",
+    "search_placeholder": "Nach Name, Besitzer-E-Mail oder ID suchen…",
+    "filters": {
+      "all": "Alle Typen",
+      "regular": "Standard",
+      "abitur": "Abitur"
+    },
     "table": {
       "name": "Name",
-      "id": "ID",
+      "type": "Typ",
       "owner": "Besitzer",
       "members": "Mitglieder",
       "tasks": "Aufgaben",
       "created": "Erstellt",
       "actions": "Aktionen"
     },
+    "invite_tooltip": "Einladungslink generieren",
     "delete_tooltip": "Gruppe löschen",
     "delete_modal": {
       "title": "Gruppe löschen?",
       "content": "Gruppe \"{name}\" löschen?\n\nDies wird die Gruppe und alle damit verbundenen Daten unwiderruflich löschen."
     },
-    "delete_success": "Gruppe \"{name}\" gelöscht."
+    "delete_success": "Gruppe \"{name}\" gelöscht.",
+    "errors": {
+      "load": "Gruppen konnten nicht geladen werden.",
+      "delete": "Gruppe konnte nicht gelöscht werden."
+    }
   }
 }

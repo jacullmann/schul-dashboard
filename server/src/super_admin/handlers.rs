@@ -1,17 +1,45 @@
-use super::{dto::*, service::SuperAdminService};
+use super::{
+    dto::*,
+    service::{SuperAdminService, superadmin_caller},
+};
 use crate::{
-    common::extractors::SuperAdmin, error::AppResult, reports::service::ReportsService,
+    common::{
+        extractors::SuperAdmin,
+        pagination::Page,
+        role::{MemberRole, Role},
+    },
+    error::AppResult,
+    group::admin::service::GroupAdminService,
+    reports::service::ReportsService,
     state::AppState,
 };
 use axum::{
     Json,
-    extract::{Path, State},
+    extract::{Path, Query, State},
 };
+use serde::Deserialize;
 use serde_json::Value;
 use uuid::Uuid;
 
-pub async fn get_stats(State(s): State<AppState>, _: SuperAdmin) -> AppResult<Json<Value>> {
+#[derive(Debug, Deserialize)]
+pub struct MembershipPath {
+    pub id: Uuid,
+    pub group_id: Uuid,
+}
+
+pub async fn get_stats(State(s): State<AppState>, _: SuperAdmin) -> AppResult<Json<StatsDto>> {
     Ok(Json(SuperAdminService::from_state(&s).get_stats().await?))
+}
+
+pub async fn get_daily_activity(
+    State(s): State<AppState>,
+    _: SuperAdmin,
+) -> AppResult<Json<Vec<DailyActivityDto>>> {
+    Ok(Json(
+        SuperAdminService::from_state(&s)
+            .get_daily_activity()
+            .await?,
+    ))
 }
 
 pub async fn cleanup_old_items(
@@ -25,24 +53,47 @@ pub async fn cleanup_old_items(
     ))
 }
 
-pub async fn get_groups(State(s): State<AppState>, _: SuperAdmin) -> AppResult<Json<Value>> {
-    Ok(Json(SuperAdminService::from_state(&s).get_groups().await?))
+pub async fn cleanup_old_activity(
+    State(s): State<AppState>,
+    SuperAdmin(admin): SuperAdmin,
+) -> AppResult<Json<Value>> {
+    Ok(Json(
+        SuperAdminService::from_state(&s)
+            .cleanup_old_activity(admin.user_id)
+            .await?,
+    ))
+}
+
+pub async fn list_groups(
+    State(s): State<AppState>,
+    _: SuperAdmin,
+    Query(q): Query<GroupsQuery>,
+) -> AppResult<Json<Page<AdminGroupDto>>> {
+    Ok(Json(
+        SuperAdminService::from_state(&s).list_groups(&q).await?,
+    ))
 }
 
 pub async fn delete_group(
     State(s): State<AppState>,
-    _: SuperAdmin,
+    SuperAdmin(admin): SuperAdmin,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<Value>> {
-    let body = SuperAdminService::from_state(&s).delete_group(id).await?;
+    let body = SuperAdminService::from_state(&s)
+        .delete_group(id, admin.user_id)
+        .await?;
     s.message_bus.membership_changed(id).await;
 
     Ok(Json(body))
 }
 
-pub async fn get_all_users(State(s): State<AppState>, _: SuperAdmin) -> AppResult<Json<Value>> {
+pub async fn list_users(
+    State(s): State<AppState>,
+    _: SuperAdmin,
+    Query(q): Query<UsersQuery>,
+) -> AppResult<Json<Page<AdminUserDto>>> {
     Ok(Json(
-        SuperAdminService::from_state(&s).get_all_users().await?,
+        SuperAdminService::from_state(&s).list_users(&q).await?,
     ))
 }
 
@@ -56,6 +107,50 @@ pub async fn get_user_activity(
             .get_user_activity(id)
             .await?,
     ))
+}
+
+pub async fn get_user_memberships(
+    State(s): State<AppState>,
+    SuperAdmin(admin): SuperAdmin,
+    Path(id): Path<Uuid>,
+) -> AppResult<Json<Vec<UserMembershipDto>>> {
+    Ok(Json(
+        SuperAdminService::from_state(&s)
+            .get_user_memberships(id, admin.user_id)
+            .await?,
+    ))
+}
+
+/// Picking "owner" hands the group over; the previous owner stays as admin.
+pub async fn change_membership_role(
+    State(s): State<AppState>,
+    SuperAdmin(admin): SuperAdmin,
+    Path(MembershipPath { id, group_id }): Path<MembershipPath>,
+    Json(dto): Json<ChangeMembershipRoleDto>,
+) -> AppResult<Json<Value>> {
+    let groups = GroupAdminService::from_state(&s);
+    let caller = superadmin_caller(admin.user_id);
+
+    let body = match dto.role {
+        MemberRole::Owner => groups.transfer_ownership(group_id, caller, id).await?,
+        MemberRole::Admin => {
+            groups
+                .change_member_role(group_id, caller, id, Role::Admin)
+                .await?
+        }
+        MemberRole::Moderator => {
+            groups
+                .change_member_role(group_id, caller, id, Role::Moderator)
+                .await?
+        }
+        MemberRole::User => {
+            groups
+                .change_member_role(group_id, caller, id, Role::User)
+                .await?
+        }
+    };
+
+    Ok(Json(body))
 }
 
 pub async fn ban_user(
@@ -84,12 +179,12 @@ pub async fn unban_user(
 
 pub async fn delete_user(
     State(s): State<AppState>,
-    _: SuperAdmin,
+    SuperAdmin(admin): SuperAdmin,
     Path(target): Path<Uuid>,
 ) -> AppResult<Json<Value>> {
     Ok(Json(
         SuperAdminService::from_state(&s)
-            .delete_user(target)
+            .delete_user(target, admin.user_id)
             .await?,
     ))
 }
@@ -102,38 +197,13 @@ pub async fn update_user_role(
 ) -> AppResult<Json<Value>> {
     Ok(Json(
         SuperAdminService::from_state(&s)
-            .update_user_role(target, &dto.role, admin.user_id)
-            .await?,
-    ))
-}
-
-pub async fn prune_activity(
-    State(s): State<AppState>,
-    SuperAdmin(admin): SuperAdmin,
-    Path(target): Path<Uuid>,
-) -> AppResult<Json<Value>> {
-    Ok(Json(
-        SuperAdminService::from_state(&s)
-            .prune_activity(target, admin.user_id)
+            .update_user_role(target, dto.role, admin.user_id)
             .await?,
     ))
 }
 
 pub async fn get_reports(State(s): State<AppState>, _: SuperAdmin) -> AppResult<Json<Value>> {
     Ok(Json(ReportsService::from_state(&s).list().await?))
-}
-
-pub async fn process_report(
-    State(s): State<AppState>,
-    SuperAdmin(admin): SuperAdmin,
-    Path(id): Path<Uuid>,
-    Json(dto): Json<ProcessReportDto>,
-) -> AppResult<Json<Value>> {
-    Ok(Json(
-        ReportsService::from_state(&s)
-            .set_processed(id, admin.user_id, dto.processed)
-            .await?,
-    ))
 }
 
 pub async fn delete_report(

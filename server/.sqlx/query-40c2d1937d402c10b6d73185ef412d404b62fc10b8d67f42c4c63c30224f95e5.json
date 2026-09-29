@@ -1,16 +1,16 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id FROM groups WHERE id = $1",
+  "query": "DELETE FROM users WHERE id = $1 RETURNING email",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
-        "name": "id",
-        "type_info": "Uuid",
+        "name": "email",
+        "type_info": "Text",
         "origin": {
           "Table": {
-            "table": "groups",
-            "name": "id"
+            "table": "users",
+            "name": "email"
           }
         }
       }
@@ -24,5 +24,5 @@
       false
     ]
   },
-  "hash": "c298df21037fee74861be803b906e6c534363f5bab4efebcd743f00811760356"
+  "hash": "40c2d1937d402c10b6d73185ef412d404b62fc10b8d67f42c4c63c30224f95e5"
 }

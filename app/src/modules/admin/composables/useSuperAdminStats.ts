@@ -3,11 +3,16 @@ import { useI18n } from 'vue-i18n';
 import hw from '@/api/api';
 import { useToast } from '@/common/composables/useToast';
 import { useModalStore } from '@/stores/modalStore';
-import type { SuperAdminStats } from '../types';
+import type { DailyActivity, SuperAdminStats } from '../types';
 
+type CleanupTarget = 'old-items' | 'old-activity';
+
+// Shared across the dashboard shell (nav badge) and the overview page, so
+// the stats are fetched once per visit and refreshed only after changes.
 const stats = ref<SuperAdminStats | null>(null);
+const dailyActivity = ref<DailyActivity[]>([]);
 const loadingStats = ref(false);
-const isCleaningUp = ref(false);
+const cleaningUp = ref<CleanupTarget | null>(null);
 
 export function useSuperAdminStats() {
   const toast = useToast();
@@ -17,35 +22,61 @@ export function useSuperAdminStats() {
   async function loadStats() {
     loadingStats.value = true;
     try {
-      const { data } = await hw.get('/admin/stats');
+      const { data } = await hw.get<SuperAdminStats>('/admin/stats');
       stats.value = data;
-    } catch (e) {
-      console.error(e);
+    } catch {
+      toast.error(t('admin.overview.errors.load'));
     } finally {
       loadingStats.value = false;
     }
   }
 
-  async function cleanupOldItems() {
+  async function loadDailyActivity() {
+    try {
+      const { data } = await hw.get<DailyActivity[]>('/admin/stats/daily');
+      dailyActivity.value = data;
+    } catch {
+      toast.error(t('admin.overview.errors.load'));
+    }
+  }
+
+  async function cleanup(target: CleanupTarget) {
+    const i18nKey =
+      target === 'old-items'
+        ? 'admin.overview.cleanup.items'
+        : 'admin.overview.cleanup.activity';
+
     const confirmed = await modalStore.confirm({
-      title: t('admin.overview.cleanup.modal.title'),
-      content: t('admin.overview.cleanup.modal.content'),
-      submitText: t('common.buttons.confirm'),
+      title: t(`${i18nKey}.modal_title`),
+      content: t(`${i18nKey}.modal_content`),
+      submitText: t('common.buttons.delete'),
       danger: true,
     });
     if (!confirmed) return;
 
-    isCleaningUp.value = true;
+    cleaningUp.value = target;
     try {
-      const { data } = await hw.delete('/admin/cleanup/old-items');
-      toast.success(data.message || t('admin.overview.cleanup.success'));
+      const { data } = await hw.delete<{ deletedCount: number }>(
+        `/admin/cleanup/${target}`,
+      );
+      toast.success(
+        t('admin.overview.cleanup.success', { count: data.deletedCount }),
+      );
       await loadStats();
     } catch {
       toast.error(t('admin.overview.cleanup.error'));
     } finally {
-      isCleaningUp.value = false;
+      cleaningUp.value = null;
     }
   }
 
-  return { stats, loadingStats, isCleaningUp, loadStats, cleanupOldItems };
+  return {
+    stats,
+    dailyActivity,
+    loadingStats,
+    cleaningUp,
+    loadStats,
+    loadDailyActivity,
+    cleanup,
+  };
 }

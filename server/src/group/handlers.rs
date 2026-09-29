@@ -3,6 +3,7 @@ use crate::{
     common::extractors::{AuthUser, ClientIp, OptionalAuth, TenantContext, UserAgent},
     common::group_type::GroupType,
     common::path_params::{IdPath, MemberPath, SubjectPath},
+    common::role::Role,
     error::{AppError, AppResult},
     items::service::ItemsService,
     state::AppState,
@@ -186,9 +187,11 @@ pub async fn change_member_role(
     Path(MemberPath { user_id: target }): Path<MemberPath>,
     Json(dto): Json<ChangeMemberRoleDto>,
 ) -> AppResult<Json<Value>> {
+    let role = Role::from_str(&dto.role).ok_or_else(|| AppError::bad_request("Invalid role"))?;
+
     Ok(Json(
         GroupAdminService::from_state(&s)
-            .change_member_role(tc.tenant_id, Caller::from_tenant(&tc), target, &dto.role)
+            .change_member_role(tc.tenant_id, Caller::from_tenant(&tc), target, role)
             .await?,
     ))
 }

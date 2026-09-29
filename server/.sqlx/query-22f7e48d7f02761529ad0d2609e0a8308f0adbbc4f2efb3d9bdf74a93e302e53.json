@@ -1,0 +1,25 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT COUNT(*) AS \"count!\"\n               FROM groups g\n               JOIN users u ON u.id = g.owner_id\n               WHERE ($1::text IS NULL OR g.name ILIKE $1 OR u.email ILIKE $1 OR g.id = $2)\n                 AND ($3::text IS NULL OR g.group_type = $3)",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "count!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Uuid",
+        "Text"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "22f7e48d7f02761529ad0d2609e0a8308f0adbbc4f2efb3d9bdf74a93e302e53"
+}

@@ -1,0 +1,108 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT g.id, g.name, g.group_type, g.owner_id, g.created_at,\n                      u.email AS owner_email,\n                      members.n AS \"member_count!\", items.n AS \"item_count!\"\n               FROM groups g\n               JOIN users u ON u.id = g.owner_id\n               CROSS JOIN LATERAL (SELECT COUNT(*) AS n FROM user_roles WHERE tenant_id = g.id) members\n               CROSS JOIN LATERAL (SELECT COUNT(*) AS n FROM items WHERE tenant_id = g.id) items\n               WHERE ($1::text IS NULL OR g.name ILIKE $1 OR u.email ILIKE $1 OR g.id = $2)\n                 AND ($3::text IS NULL OR g.group_type = $3)\n               ORDER BY\n                 CASE WHEN $4 = 'name' AND $5 = 'asc' THEN g.name END ASC,\n                 CASE WHEN $4 = 'name' AND $5 = 'desc' THEN g.name END DESC,\n                 CASE WHEN $4 = 'memberCount' AND $5 = 'asc' THEN members.n END ASC,\n                 CASE WHEN $4 = 'memberCount' AND $5 = 'desc' THEN members.n END DESC,\n                 CASE WHEN $4 = 'itemCount' AND $5 = 'asc' THEN items.n END ASC,\n                 CASE WHEN $4 = 'itemCount' AND $5 = 'desc' THEN items.n END DESC,\n                 CASE WHEN $5 = 'asc' THEN g.created_at END ASC,\n                 g.created_at DESC,\n                 g.id\n               LIMIT $6 OFFSET $7",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "groups",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "groups",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "group_type",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "groups",
+            "name": "group_type"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "owner_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "groups",
+            "name": "owner_id"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "groups",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "owner_email",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "users",
+            "name": "email"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "member_count!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 7,
+        "name": "item_count!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Uuid",
+        "Text",
+        "Text",
+        "Text",
+        "Int8",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      null,
+      null
+    ]
+  },
+  "hash": "24a629bd157f996d71f6ca38d7e866ba54a136a92ba10d9ea5168f8a711eb3c7"
+}

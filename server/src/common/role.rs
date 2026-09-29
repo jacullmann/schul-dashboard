@@ -61,7 +61,7 @@ impl Role {
 /// A member's role as clients see it. Ownership lives in `groups.owner_id`
 /// rather than `user_roles`, so it is folded in here to keep the single-owner
 /// invariant enforced by the schema instead of by a second role row.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum MemberRole {
     Owner,

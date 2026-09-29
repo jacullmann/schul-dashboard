@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, report_type, reason, reporter_id, reporter_email,\n                      processed, processed_at, reported_at, details\n               FROM reports\n               ORDER BY created_at DESC",
+  "query": "SELECT r.id, r.report_type, r.reason, r.reporter_id, r.reporter_email,\n                      r.reported_at, r.details,\n                      CASE r.report_type\n                        WHEN 'task' THEN NOT EXISTS (\n                          SELECT 1 FROM items WHERE id = (r.details->>'itemId')::uuid)\n                        WHEN 'message' THEN NOT EXISTS (\n                          SELECT 1 FROM group_messages WHERE id = (r.details->>'messageId')::uuid)\n                        ELSE false\n                      END AS \"content_deleted!\"\n               FROM reports r\n               ORDER BY r.reported_at DESC",
   "describe": {
     "columns": [
       {
@@ -60,28 +60,6 @@
       },
       {
         "ordinal": 5,
-        "name": "processed",
-        "type_info": "Bool",
-        "origin": {
-          "Table": {
-            "table": "reports",
-            "name": "processed"
-          }
-        }
-      },
-      {
-        "ordinal": 6,
-        "name": "processed_at",
-        "type_info": "Timestamptz",
-        "origin": {
-          "Table": {
-            "table": "reports",
-            "name": "processed_at"
-          }
-        }
-      },
-      {
-        "ordinal": 7,
         "name": "reported_at",
         "type_info": "Timestamptz",
         "origin": {
@@ -92,7 +70,7 @@
         }
       },
       {
-        "ordinal": 8,
+        "ordinal": 6,
         "name": "details",
         "type_info": "Jsonb",
         "origin": {
@@ -101,6 +79,12 @@
             "name": "details"
           }
         }
+      },
+      {
+        "ordinal": 7,
+        "name": "content_deleted!",
+        "type_info": "Bool",
+        "origin": "Expression"
       }
     ],
     "parameters": {
@@ -113,10 +97,9 @@
       true,
       true,
       false,
-      true,
       false,
-      false
+      null
     ]
   },
-  "hash": "e132975262b7bdcfdbd07de4fccdce2f98c2a592e3fb1e5b3d2df21505b44d9d"
+  "hash": "45fc2503dee0a7c934daab942e476d7434bb6017fbc7c954ea275130e01135ec"
 }

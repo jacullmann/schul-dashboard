@@ -1,36 +1,70 @@
 export type AdminTab = 'overview' | 'users' | 'reports' | 'groups';
 
-export interface SuperAdminStats {
-  userCount?: number;
-  itemCount?: number;
-  reportCount?: number;
-  reportCountTotal?: number;
-  reportCountProcessed?: number;
-  bannedCount?: number;
-  verifiedUsers?: number;
-  unverifiedUsers?: number;
-  adminCount?: number;
-  oldItemsCount?: number;
-  newUsersThisWeek?: number;
-  newItemsThisWeek?: number;
+export type SortOrder = 'asc' | 'desc';
+
+export interface Page<T> {
+  items: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+  pageCount: number;
 }
+
+export interface SuperAdminStats {
+  userCount: number;
+  verifiedUsers: number;
+  unverifiedUsers: number;
+  adminCount: number;
+  bannedCount: number;
+  newUsersThisWeek: number;
+  activeUsersThisWeek: number;
+  itemCount: number;
+  newItemsThisWeek: number;
+  oldItemsCount: number;
+  oldActivityCount: number;
+  reportCount: number;
+}
+
+export interface DailyActivity {
+  day: string;
+  newUsers: number;
+  newItems: number;
+}
+
+export type UserStatusFilter =
+  | 'all'
+  | 'active'
+  | 'banned'
+  | 'unverified'
+  | 'superadmin';
+
+export type UserSort = 'createdAt' | 'lastLoginAt' | 'email';
 
 export interface SuperAdminUser {
   id: string;
   email: string;
   username: string;
-  role: string;
-  isBanned: boolean;
   emailVerified: boolean;
+  isSuperadmin: boolean;
+  isBanned: boolean;
   createdAt: string;
-  lastLogin?: string;
-  activityCount?: number;
+  lastLoginAt: string | null;
 }
 
 export interface SuperAdminUserActivity {
   at: string;
   type: string;
-  meta: Record<string, unknown>;
+  meta: Record<string, unknown> | null;
+}
+
+export type MemberRole = 'owner' | 'admin' | 'moderator' | 'user';
+
+export interface SuperAdminMembership {
+  groupId: string;
+  groupName: string;
+  role: MemberRole;
+  joinedAt: string;
+  assignableRoles: MemberRole[];
 }
 
 export interface SuperAdminReportImage {
@@ -41,11 +75,10 @@ export interface SuperAdminReportImage {
 export interface SuperAdminReport {
   id: string;
   reportedAt: string;
-  processed: boolean;
-  processedAt?: string | null;
-  reason?: string;
+  contentDeleted: boolean;
+  reason?: string | null;
   reporterEmail?: string;
-  reportType?: 'task' | 'message';
+  reportType: 'task' | 'message';
   itemId?: string;
   itemTitle?: string;
   itemType?: string;
@@ -54,20 +87,22 @@ export interface SuperAdminReport {
   itemImages?: SuperAdminReportImage[];
   itemDueDate?: string;
   itemEditorNote?: string;
-  itemTenantId?: string;
   creatorEmail?: string;
   messageId?: string;
   messageContent?: string;
-  messageSenderId?: string;
-  messageSenderEmail?: string;
-  messageTenantId?: string;
+  messageSenderEmail?: string | null;
 }
+
+export type GroupTypeFilter = 'all' | 'regular' | 'abitur';
+
+export type GroupSort = 'createdAt' | 'name' | 'memberCount' | 'itemCount';
 
 export interface SuperAdminGroup {
   id: string;
   name: string;
+  groupType: 'regular' | 'abitur';
   ownerId: string;
-  ownerEmail: string | null;
+  ownerEmail: string;
   ownerName: string;
   createdAt: string;
   memberCount: number;

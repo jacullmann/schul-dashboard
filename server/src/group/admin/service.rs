@@ -334,10 +334,8 @@ impl GroupAdminService {
         tenant_id: Uuid,
         caller: Caller,
         target: Uuid,
-        role: &str,
+        new_role: Role,
     ) -> AppResult<Value> {
-        let new_role = Role::from_str(role).ok_or_else(|| AppError::bad_request("Invalid role"))?;
-
         let mut tx = self.db.begin().await?;
         let locked = Self::lock_membership(&mut tx, tenant_id, caller, target).await?;
         member_policy::ensure_can_change_role(locked.actor, locked.target, new_role)?;
@@ -355,7 +353,7 @@ impl GroupAdminService {
             r#"INSERT INTO user_activity (user_id, type, meta)
                VALUES ($1, 'group-admin:change-role', $2)"#,
             caller.user_id,
-            json!({ "targetUserId": target, "newRole": new_role })
+            json!({ "tenantId": tenant_id, "targetUserId": target, "newRole": new_role })
         )
         .execute(&mut *tx)
         .await?;

@@ -1,15 +1,31 @@
-import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import hw from '@/api/api';
 import { useToast } from '@/common/composables/useToast';
 import { useModalStore } from '@/stores/modalStore';
-import type { SuperAdminUser, SuperAdminUserActivity } from '../types';
+import type {
+  SortOrder,
+  SuperAdminUser,
+  UserSort,
+  UserStatusFilter,
+} from '../types';
+import { usePaginatedList } from './usePaginatedList';
 import { useSuperAdminStats } from './useSuperAdminStats';
 
-const users = ref<SuperAdminUser[]>([]);
-const loadingUsers = ref(false);
-const activities = ref<Record<string, SuperAdminUserActivity[]>>({});
-const loadingActivities = ref<Record<string, boolean>>({});
+export const USER_STATUS_FILTERS = [
+  'all',
+  'active',
+  'banned',
+  'unverified',
+  'superadmin',
+] as const satisfies readonly UserStatusFilter[];
+
+const USER_SORTS = [
+  'createdAt',
+  'lastLoginAt',
+  'email',
+] as const satisfies readonly UserSort[];
+
+const SORT_ORDERS = ['asc', 'desc'] as const satisfies readonly SortOrder[];
 
 export function useSuperAdminUsers() {
   const toast = useToast();
@@ -17,93 +33,69 @@ export function useSuperAdminUsers() {
   const { t } = useI18n();
   const { loadStats } = useSuperAdminStats();
 
-  async function loadUsers() {
-    loadingUsers.value = true;
-    try {
-      const { data } = await hw.get('/admin/all-users');
-      users.value = data;
-    } catch {
-      toast.error(t('admin.users.errors.load'));
-    } finally {
-      loadingUsers.value = false;
+  const list = usePaginatedList<
+    SuperAdminUser,
+    {
+      search: string;
+      status: UserStatusFilter;
+      sort: UserSort;
+      order: SortOrder;
     }
-  }
+  >({
+    endpoint: '/admin/users',
+    defaults: { search: '', status: 'all', sort: 'createdAt', order: 'desc' },
+    allowed: {
+      status: USER_STATUS_FILTERS,
+      sort: USER_SORTS,
+      order: SORT_ORDERS,
+    },
+    ascendingSorts: ['email'],
+    onError: () => toast.error(t('admin.users.errors.load')),
+  });
 
-  async function fetchActivity(userId: string): Promise<boolean> {
-    loadingActivities.value[userId] = true;
-    try {
-      const { data } = await hw.get(`/admin/users/${userId}/activity`);
-      activities.value[userId] = data;
-      return true;
-    } catch {
-      toast.error(t('admin.users.errors.load_activity'));
-      return false;
-    } finally {
-      loadingActivities.value[userId] = false;
-    }
-  }
+  async function toggleBan(user: SuperAdminUser) {
+    if (user.isSuperadmin) return;
 
-  async function toggleBan(u: SuperAdminUser) {
-    if (u.role === 'superadmin') return;
+    const action = user.isBanned ? 'unban' : 'ban';
+    const confirmed = await modalStore.confirm({
+      title: t(`admin.users.${action}_modal.title`),
+      content: t(`admin.users.${action}_modal.content`, { email: user.email }),
+      submitText: t(`admin.users.actions.${action}`),
+      danger: !user.isBanned,
+    });
+    if (!confirmed) return;
+
     try {
-      if (u.isBanned) {
-        await hw.delete(`/admin/users/${u.id}/ban`);
-        u.isBanned = false;
-        toast.success(t('admin.users.unban_success'));
+      if (user.isBanned) {
+        await hw.delete(`/admin/users/${user.id}/ban`);
       } else {
-        await hw.post(`/admin/users/${u.id}/ban`);
-        u.isBanned = true;
-        toast.success(t('admin.users.ban_success'));
+        await hw.post(`/admin/users/${user.id}/ban`);
       }
+      user.isBanned = !user.isBanned;
+      toast.success(t(`admin.users.${action}_success`));
       await loadStats();
     } catch {
       toast.error(t('admin.errors.action_failed'));
     }
   }
 
-  async function deleteUser(id: string) {
+  async function deleteUser(user: SuperAdminUser) {
     const confirmed = await modalStore.confirm({
       title: t('admin.users.delete_modal.title'),
-      content: t('admin.users.delete_modal.content'),
+      content: t('admin.users.delete_modal.content', { email: user.email }),
       submitText: t('common.buttons.delete'),
       danger: true,
     });
     if (!confirmed) return;
+
     try {
-      await hw.delete(`/admin/users/${id}`);
-      users.value = users.value.filter((u) => u.id !== id);
+      await hw.delete(`/admin/users/${user.id}`);
       toast.success(t('admin.users.delete_success'));
-      await loadStats();
+      await Promise.all([list.reload(), loadStats()]);
     } catch {
       toast.error(t('admin.users.errors.delete'));
     }
   }
 
-  async function pruneOldLogs(u: SuperAdminUser) {
-    const confirmed = await modalStore.confirm({
-      title: t('admin.users.prune_modal.title'),
-      content: t('admin.users.prune_modal.content', { email: u.email }),
-      submitText: t('admin.users.prune_modal.submit'),
-      danger: true,
-    });
-    if (!confirmed) return;
-    try {
-      await hw.delete(`/admin/users/${u.id}/activity/prune`);
-      toast.success(t('admin.users.prune_success'));
-    } catch {
-      toast.error(t('admin.users.errors.prune'));
-    }
-  }
-
-  return {
-    users,
-    loadingUsers,
-    activities,
-    loadingActivities,
-    loadUsers,
-    fetchActivity,
-    toggleBan,
-    deleteUser,
-    pruneOldLogs,
-  };
+  return { ...list, toggleBan, deleteUser };
 }

@@ -17,14 +17,22 @@ export function useSuperAdminFormat() {
   const getSubjectName = (subject?: string) =>
     subject ? formatSubjectDisplay(subject, t, te) : '';
 
-  const fmtDate = (iso?: string) =>
+  const fmtDate = (iso?: string | null) =>
     iso
-      ? new Date(iso).toLocaleDateString('de-DE', {
+      ? new Date(iso).toLocaleDateString(i18n.locale.value, {
           day: '2-digit',
           month: '2-digit',
           year: 'numeric',
         })
       : '';
 
-  return { t, te, getTypeLabel, getSubjectName, fmtDate };
+  const fmtDateTime = (iso?: string | null) =>
+    iso
+      ? new Date(iso).toLocaleString(i18n.locale.value, {
+          dateStyle: 'short',
+          timeStyle: 'short',
+        })
+      : '';
+
+  return { getTypeLabel, getSubjectName, fmtDate, fmtDateTime };
 }

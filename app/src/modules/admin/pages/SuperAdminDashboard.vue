@@ -53,6 +53,7 @@ function onTabChange(id: string) {
   if (item && item.name !== route.name) void router.push({ name: item.name });
 }
 
+// The only place the stats are fetched on entry; child pages share the result.
 onMounted(loadStats);
 </script>
 

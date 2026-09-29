@@ -4,27 +4,7 @@ use crate::{
 };
 use serde_json::{Value, json};
 use sqlx::PgPool;
-use std::collections::HashSet;
 use uuid::Uuid;
-
-/// Blanks out a reference to content that has since been deleted, so the
-/// admin UI does not link to a row that no longer exists.
-fn null_field_if_missing(
-    map: &mut serde_json::Map<String, Value>,
-    id_field: &str,
-    target_field: &str,
-    existing: &HashSet<Uuid>,
-) {
-    let dangling = map
-        .get(id_field)
-        .and_then(Value::as_str)
-        .and_then(|raw| Uuid::parse_str(raw).ok())
-        .is_some_and(|id| !existing.contains(&id));
-
-    if dangling {
-        map.insert(target_field.into(), Value::Null);
-    }
-}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum ReportType {
@@ -177,102 +157,44 @@ impl ReportsService {
         Ok(())
     }
 
+    /// `contentDeleted` tells the admin UI that the reported task or message
+    /// no longer exists, so it shows the snapshot kept in `details` instead.
     pub async fn list(&self) -> AppResult<Value> {
         let rows = sqlx::query!(
-            r#"SELECT id, report_type, reason, reporter_id, reporter_email,
-                      processed, processed_at, reported_at, details
-               FROM reports
-               ORDER BY created_at DESC"#
+            r#"SELECT r.id, r.report_type, r.reason, r.reporter_id, r.reporter_email,
+                      r.reported_at, r.details,
+                      CASE r.report_type
+                        WHEN 'task' THEN NOT EXISTS (
+                          SELECT 1 FROM items WHERE id = (r.details->>'itemId')::uuid)
+                        WHEN 'message' THEN NOT EXISTS (
+                          SELECT 1 FROM group_messages WHERE id = (r.details->>'messageId')::uuid)
+                        ELSE false
+                      END AS "content_deleted!"
+               FROM reports r
+               ORDER BY r.reported_at DESC"#
         )
         .fetch_all(&self.db)
         .await?;
 
-        let existing_items: HashSet<Uuid> = sqlx::query_scalar!("SELECT id FROM items")
-            .fetch_all(&self.db)
-            .await?
-            .into_iter()
-            .collect();
-
-        let existing_messages: HashSet<Uuid> = sqlx::query_scalar!("SELECT id FROM group_messages")
-            .fetch_all(&self.db)
-            .await?
-            .into_iter()
-            .collect();
-
         let reports: Vec<Value> = rows
             .into_iter()
             .map(|r| {
-                let mut obj = match r.details {
-                    Value::Object(map) => Value::Object(map),
-                    _ => json!({}),
+                let mut map = match r.details {
+                    Value::Object(map) => map,
+                    _ => serde_json::Map::new(),
                 };
-                if let Value::Object(map) = &mut obj {
-                    map.insert("id".into(), json!(r.id));
-                    map.insert("reportType".into(), json!(r.report_type));
-                    map.insert("reason".into(), json!(r.reason));
-                    map.insert("reportedBy".into(), json!(r.reporter_id));
-                    map.insert("reporterEmail".into(), json!(r.reporter_email));
-                    map.insert("processed".into(), json!(r.processed));
-                    map.insert("processedAt".into(), json!(r.processed_at));
-                    map.insert("reportedAt".into(), json!(r.reported_at));
-
-                    match r.report_type.as_str() {
-                        t if t == ReportType::Task.as_str() => {
-                            null_field_if_missing(map, "itemId", "itemType", &existing_items);
-                        }
-                        t if t == ReportType::Message.as_str() => {
-                            null_field_if_missing(
-                                map,
-                                "messageId",
-                                "messageId",
-                                &existing_messages,
-                            );
-                        }
-                        _ => {}
-                    }
-                }
-                obj
+                map.insert("id".into(), json!(r.id));
+                map.insert("reportType".into(), json!(r.report_type));
+                map.insert("reason".into(), json!(r.reason));
+                map.insert("reportedBy".into(), json!(r.reporter_id));
+                map.insert("reporterEmail".into(), json!(r.reporter_email));
+                map.insert("reportedAt".into(), json!(r.reported_at));
+                map.insert("contentDeleted".into(), json!(r.content_deleted));
+                Value::Object(map)
             })
             .collect();
 
         Ok(json!(reports))
-    }
-
-    pub async fn set_processed(
-        &self,
-        report_id: Uuid,
-        admin_id: Uuid,
-        processed: bool,
-    ) -> AppResult<Value> {
-        let row = sqlx::query!(
-            r#"UPDATE reports
-               SET processed = $1,
-                   processed_at = CASE WHEN $1 THEN now() ELSE NULL END,
-                   processed_by = CASE WHEN $1 THEN $2::uuid ELSE NULL END
-               WHERE id = $3
-               RETURNING processed, processed_at"#,
-            processed,
-            admin_id,
-            report_id
-        )
-        .fetch_optional(&self.db)
-        .await?
-        .ok_or_else(|| AppError::not_found("Report not found."))?;
-
-        sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, $2, $3)"#,
-            admin_id,
-            if processed {
-                "admin:report:mark_processed"
-            } else {
-                "admin:report:mark_unprocessed"
-            },
-            json!({ "reportId": report_id })
-        )
-        .execute(&self.db)
-        .await?;
-
-        Ok(json!({ "ok": true, "processed": row.processed, "processedAt": row.processed_at }))
     }
 
     pub async fn delete(&self, report_id: Uuid, admin_id: Uuid) -> AppResult<Value> {
