@@ -36,6 +36,7 @@ const joining = ref(false);
 async function loadInvite(token: string) {
   loading.value = true;
   ok.value = false;
+  errorMsg.value = '';
 
   const res = await auth.getInvite(token);
   if (token !== props.token) return;

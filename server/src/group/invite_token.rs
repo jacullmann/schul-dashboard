@@ -1,4 +1,5 @@
 use crate::error::AppError;
+use std::str::FromStr;
 
 const TOKEN_BYTES: usize = 32;
 
@@ -13,17 +14,23 @@ impl InviteToken {
         Self(hex::encode(rand::random::<[u8; TOKEN_BYTES]>()))
     }
 
-    pub fn parse(raw: &str) -> Result<Self, AppError> {
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+impl FromStr for InviteToken {
+    type Err = AppError;
+
+    fn from_str(raw: &str) -> Result<Self, Self::Err> {
         let well_formed = raw.len() == TOKEN_BYTES * 2
             && raw.bytes().all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f'));
 
-        well_formed
-            .then(|| Self(raw.to_owned()))
-            .ok_or_else(invalid_invite)
-    }
-
-    pub fn as_str(&self) -> &str {
-        &self.0
+        if well_formed {
+            Ok(Self(raw.to_owned()))
+        } else {
+            Err(invalid_invite())
+        }
     }
 }
 
@@ -38,13 +45,13 @@ mod tests {
     #[test]
     fn generated_tokens_round_trip_through_parse() {
         let token = InviteToken::generate();
-        assert_eq!(InviteToken::parse(token.as_str()).unwrap(), token);
+        assert_eq!(token.as_str().parse::<InviteToken>().unwrap(), token);
     }
 
     #[test]
     fn rejects_malformed_tokens() {
         let valid = "a".repeat(TOKEN_BYTES * 2);
-        assert!(InviteToken::parse(&valid).is_ok());
+        assert!(valid.parse::<InviteToken>().is_ok());
 
         for raw in [
             "",
@@ -54,7 +61,7 @@ mod tests {
             &"g".repeat(TOKEN_BYTES * 2),
             &format!("{}'", "a".repeat(TOKEN_BYTES * 2 - 1)),
         ] {
-            assert!(InviteToken::parse(raw).is_err(), "accepted {raw:?}");
+            assert!(raw.parse::<InviteToken>().is_err(), "accepted {raw:?}");
         }
     }
 }
