@@ -18,7 +18,7 @@ const TITLE_WIDTHS = ['60%', '75%', '50%', '68%'];
 
 <template>
   <!-- Mirrors the list of cards, so each line sits where its text will. -->
-  <div class="flex flex-col max-md:-mx-4">
+  <div class="flex flex-col gap-0.25 max-md:-mx-4">
     <!-- A card still waiting for its entrance stays hidden while the skeleton leaves. -->
     <div
       v-for="n in count"
@@ -26,7 +26,6 @@ const TITLE_WIDTHS = ['60%', '75%', '50%', '68%'];
       class="animate-enter in-[.skeleton-leaving]:[animation-play-state:paused]"
       :style="{ '--enter-delay': entranceDelay(entranceOrder + n - 1) }"
     >
-      <div v-if="n > 1" class="border-b border-ghost-border ml-10.5 mr-4"></div>
       <div class="p-1">
         <div class="flex gap-2 mt-2 ml-3 md:ml-2 mb-1">
           <span class="size-4.5 shrink-0"></span>
