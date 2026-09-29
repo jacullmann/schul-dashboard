@@ -36,7 +36,7 @@ const avatarByGroupId = computed(
     :options="options"
     :form="false"
     :title="t('common.selection.group')"
-    classes="w-64 max-w-full min-h-0! py-1! text-on-ghost! font-semibold"
+    classes="w-48! pl-2! min-h-0! -m-0.5"
   >
     <template #icon="{ option, size }">
       <Avatar
