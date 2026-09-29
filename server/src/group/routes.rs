@@ -52,9 +52,7 @@ pub fn group_router() -> Router<AppState> {
         )
         .route(
             "/admin/schedule",
-            get(get_schedule_admin)
-                .post(save_schedule_admin)
-                .put(replace_schedule_admin),
+            get(get_schedule_admin).put(replace_schedule_admin),
         )
         .route("/admin/schedule/{id}", delete(delete_schedule_admin))
         .route(

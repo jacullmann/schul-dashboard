@@ -4,7 +4,7 @@ use super::{
 };
 use crate::{
     common::{
-        extractors::TenantContext,
+        extractors::{TenantContext, ValidatedJson},
         path_params::{IdPath, ItemImagePath},
         permission::Permission,
         personalization::hidden_by_courses_header,
@@ -33,7 +33,7 @@ pub async fn get_items(
             GetItemsFilter {
                 item_type: q.r#type.as_deref(),
                 filter: q.filter.as_deref(),
-                subject: q.subject.as_deref(),
+                subject_id: q.subject_id,
                 hide_checked: q.hide_checked.unwrap_or(false),
                 personalized: q.personalized.unwrap_or(false),
             },
@@ -62,7 +62,7 @@ pub async fn get_item_by_id(
 pub async fn create_item(
     State(s): State<AppState>,
     tc: TenantContext,
-    Json(dto): Json<CreateItemDto>,
+    ValidatedJson(dto): ValidatedJson<CreateItemDto>,
 ) -> AppResult<Json<Value>> {
     require_permission!(tc, Permission::CreateItems);
 
@@ -77,7 +77,7 @@ pub async fn update_item(
     State(s): State<AppState>,
     tc: TenantContext,
     Path(IdPath { id }): Path<IdPath>,
-    Json(dto): Json<UpdateItemDto>,
+    ValidatedJson(dto): ValidatedJson<UpdateItemDto>,
 ) -> AppResult<Json<Value>> {
     Ok(Json(
         ItemsService::from_state(&s)

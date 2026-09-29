@@ -8,6 +8,7 @@ import type { CourseType } from '@/types/subjects';
 import { useToast } from '@/common/composables/useToast';
 import { useModalStore } from '@/stores/modalStore';
 import { useSubjectStore } from '@/stores/subjectStore';
+import { apiErrorCode, apiErrorStatus } from '@/api/errors';
 
 const subjects = ref<AdminSubject[]>([]);
 const loading = ref(false);
@@ -19,6 +20,18 @@ export function useSubjectAdmin() {
   const modalStore = useModalStore();
   const subjectStore = useSubjectStore();
   const { success, error: toastError } = useToast();
+
+  const ERRORS = 'groups.settings.subjects.errors';
+
+  /**
+   * Server messages are English and meant for debugging, so failures are
+   * explained with translated texts picked by the error's code and status.
+   */
+  function failureMessage(err: unknown, fallback: string): string {
+    if (apiErrorCode(err) === 'NAME_TAKEN') return t(`${ERRORS}.name_taken`);
+    if (apiErrorStatus(err) === 400) return t(`${ERRORS}.invalid_input`);
+    return t(`${ERRORS}.${fallback}`);
+  }
 
   async function loadSubjects() {
     loading.value = true;
@@ -61,8 +74,8 @@ export function useSubjectAdmin() {
       subjects.value.sort((a, b) => a.name.localeCompare(b.name));
       subjectStore.reset();
       success(t('groups.settings.subjects.errors.create_success'));
-    } catch {
-      toastError(t('groups.settings.subjects.errors.create_failed'));
+    } catch (e: unknown) {
+      toastError(failureMessage(e, 'create_failed'));
     } finally {
       saving.value = false;
     }
@@ -94,11 +107,7 @@ export function useSubjectAdmin() {
       success(t('groups.settings.subjects.errors.update_success'));
       return true;
     } catch (e: unknown) {
-      const err = e as { response?: { data?: { message?: string } } };
-      toastError(
-        err.response?.data?.message ||
-          t('groups.settings.subjects.errors.update_failed'),
-      );
+      toastError(failureMessage(e, 'update_failed'));
       await loadSubjects();
       return false;
     } finally {
@@ -118,13 +127,15 @@ export function useSubjectAdmin() {
     try {
       await hw.delete(groupPath(groupId, `/admin/subjects/${id}`));
       subjects.value = subjects.value.filter((s) => s.id !== id);
+      subjectStore.reset();
       success(t('groups.settings.subjects.errors.delete_success'));
       return true;
     } catch (e: unknown) {
-      const err = e as { response?: { data?: { message?: string } } };
+      // The only rejection a member can cause is a subject still in use.
       toastError(
-        err.response?.data?.message ||
-          t('groups.settings.subjects.errors.delete_failed'),
+        apiErrorStatus(e) === 400
+          ? t(`${ERRORS}.delete_referenced`)
+          : t(`${ERRORS}.delete_failed`),
       );
       return false;
     }
@@ -154,14 +165,11 @@ export function useSubjectAdmin() {
         subject.courses.sort((a, b) => a.name.localeCompare(b.name));
         subject.coursesCount = (subject.coursesCount || 0) + 1;
       }
+      subjectStore.reset();
       success(t('groups.settings.subjects.errors.course_create_success'));
       return true;
     } catch (e: unknown) {
-      const err = e as { response?: { data?: { message?: string } } };
-      toastError(
-        err.response?.data?.message ||
-          t('groups.settings.subjects.errors.course_create_failed'),
-      );
+      toastError(failureMessage(e, 'course_create_failed'));
       return false;
     } finally {
       saving.value = false;
@@ -190,14 +198,11 @@ export function useSubjectAdmin() {
         }
         subject.courses.sort((a, b) => a.name.localeCompare(b.name));
       }
+      subjectStore.reset();
       success(t('groups.settings.subjects.errors.course_update_success'));
       return true;
     } catch (e: unknown) {
-      const err = e as { response?: { data?: { message?: string } } };
-      toastError(
-        err.response?.data?.message ||
-          t('groups.settings.subjects.errors.course_update_failed'),
-      );
+      toastError(failureMessage(e, 'course_update_failed'));
       return false;
     } finally {
       saving.value = false;
@@ -224,14 +229,11 @@ export function useSubjectAdmin() {
         subject.courses = subject.courses.filter((c) => c.id !== courseId);
         subject.coursesCount = Math.max(0, (subject.coursesCount || 1) - 1);
       }
+      subjectStore.reset();
       success(t('groups.settings.subjects.errors.course_delete_success'));
       return true;
     } catch (e: unknown) {
-      const err = e as { response?: { data?: { message?: string } } };
-      toastError(
-        err.response?.data?.message ||
-          t('groups.settings.subjects.errors.course_delete_failed'),
-      );
+      toastError(failureMessage(e, 'course_delete_failed'));
       return false;
     } finally {
       saving.value = false;

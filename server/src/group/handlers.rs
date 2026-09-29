@@ -2,6 +2,7 @@ use super::{dto::*, service::GroupService};
 use crate::{
     common::extractors::{AuthUser, ClientIp, OptionalAuth, TenantContext, UserAgent},
     common::group_type::GroupType,
+    common::names::{COURSE_NAME_MAX_CHARS, DisplayName, SUBJECT_NAME_MAX_CHARS},
     common::path_params::{IdPath, MemberPath, SubjectPath},
     common::role::Role,
     error::{AppError, AppResult},
@@ -370,12 +371,13 @@ pub async fn create_subject(
         tc,
         crate::common::permission::Permission::EditSubjectsCourses
     );
+    let name = DisplayName::parse(&dto.name, SUBJECT_NAME_MAX_CHARS, "name")?;
     Ok(Json(
         GroupAdminService::from_state(&s)
             .create_subject(
                 tc.tenant_id,
                 tc.user.user_id,
-                &dto.name,
+                &name,
                 dto.category.as_deref(),
                 dto.is_dalton,
             )
@@ -393,13 +395,18 @@ pub async fn update_subject(
         tc,
         crate::common::permission::Permission::EditSubjectsCourses
     );
+    let name = dto
+        .name
+        .as_deref()
+        .map(|n| DisplayName::parse(n, SUBJECT_NAME_MAX_CHARS, "name"))
+        .transpose()?;
     Ok(Json(
         GroupAdminService::from_state(&s)
             .update_subject(
                 tc.tenant_id,
                 tc.user.user_id,
                 id,
-                dto.name.as_deref(),
+                name.as_ref(),
                 dto.category.as_deref(),
                 dto.is_dalton,
             )
@@ -433,13 +440,14 @@ pub async fn create_course(
         tc,
         crate::common::permission::Permission::EditSubjectsCourses
     );
+    let name = DisplayName::parse(&dto.name, COURSE_NAME_MAX_CHARS, "name")?;
     Ok(Json(
         GroupAdminService::from_state(&s)
             .create_course(
                 tc.tenant_id,
                 tc.user.user_id,
                 subject_id,
-                &dto.name,
+                &name,
                 dto.course_type.as_deref(),
             )
             .await?,
@@ -456,13 +464,14 @@ pub async fn update_course(
         tc,
         crate::common::permission::Permission::EditSubjectsCourses
     );
+    let name = DisplayName::parse(&dto.name, COURSE_NAME_MAX_CHARS, "name")?;
     Ok(Json(
         GroupAdminService::from_state(&s)
             .update_course(
                 tc.tenant_id,
                 tc.user.user_id,
                 id,
-                &dto.name,
+                &name,
                 dto.course_type.as_deref(),
             )
             .await?,
@@ -494,20 +503,6 @@ pub async fn get_schedule_admin(
     Ok(Json(
         GroupAdminService::from_state(&s)
             .get_schedule(tc.tenant_id)
-            .await?,
-    ))
-}
-
-pub async fn save_schedule_admin(
-    State(s): State<AppState>,
-    tc: TenantContext,
-    Json(body): Json<Value>,
-) -> AppResult<Json<Value>> {
-    crate::require_permission!(tc, crate::common::permission::Permission::EditSchedule);
-
-    Ok(Json(
-        GroupAdminService::from_state(&s)
-            .save_schedule(tc.tenant_id, tc.user.user_id, body)
             .await?,
     ))
 }

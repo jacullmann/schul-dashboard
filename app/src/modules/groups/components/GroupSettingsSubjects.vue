@@ -4,6 +4,11 @@ import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 import { Plus, Pencil, Trash2 } from '@lucide/vue';
 import { useSubjectAdmin } from '@/modules/groups/composables/useSubjectAdmin';
+import {
+  CUSTOM_SUBJECT_OPTION,
+  useSubjectNamePicker,
+} from '@/modules/groups/composables/useSubjectNamePicker';
+import { courseLabel, subjectLabel } from '@/utils/subject-formatter';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import {
   categoryBelongsTo,
@@ -17,7 +22,8 @@ import {
   subjectCategoriesFor,
   usesCourseTypes,
   ZUSATZKURS_CATEGORY,
-  DALTON_SUBJECT_KEY,
+  COURSE_NAME_MAX_LENGTH,
+  SUBJECT_NAME_MAX_LENGTH,
   type CourseType,
 } from '@/types/subjects';
 import type { AdminCourse } from '@/modules/groups/types';
@@ -51,39 +57,17 @@ const canEditSubjects = computed(() =>
   checkPermission('edit_subjects_courses'),
 );
 
-const newSubjectName = ref('');
-const selectedSubjectKey = ref('');
+const newSubjectNamePicker = useSubjectNamePicker();
 const newSubjectCategory = ref(defaultSubjectCategory(activeGroupType.value));
 const newSubjectIsDalton = ref(false);
 const showCreateModal = ref(false);
 const newSubjectInputRef = ref<any>(null);
 
-const subjectOptions = computed(() => {
-  const subjectsObj = i18n.tm('common.subjects');
-  // Dalton is a pseudo-subject that only exists in the schedule.
-  const list = Object.entries(subjectsObj || {})
-    .filter(([key]) => key !== DALTON_SUBJECT_KEY)
-    .map(([key, label]) => ({
-      value: key,
-      label,
-    }));
-  list.push({
-    value: 'custom',
-    label: t('common.selection.other'),
-  });
-  return list;
-});
-
-watch(selectedSubjectKey, async (newVal) => {
-  if (newVal === 'custom') {
-    newSubjectName.value = '';
-    await nextTick();
-    newSubjectInputRef.value?.focus();
-  } else if (newVal) {
-    newSubjectName.value = newVal;
-  } else {
-    newSubjectName.value = '';
-  }
+watch(newSubjectNamePicker.selection, async (selection) => {
+  if (selection !== CUSTOM_SUBJECT_OPTION) return;
+  newSubjectNamePicker.customName.value = '';
+  await nextTick();
+  newSubjectInputRef.value?.focus();
 });
 
 const groupId = computed(() => route.params.groupId as string);
@@ -93,7 +77,7 @@ const subject = computed(() => {
   return subjects.value.find((s) => s.id === subTabId.value) || null;
 });
 
-const subjectNameInput = ref('');
+const subjectNamePicker = useSubjectNamePicker();
 const subjectCategoryInput = ref(defaultSubjectCategory(activeGroupType.value));
 const subjectIsDaltonInput = ref(false);
 
@@ -182,7 +166,7 @@ watch(
   subject,
   (newSub) => {
     if (newSub) {
-      subjectNameInput.value = newSub.name;
+      subjectNamePicker.load(newSub.name);
       subjectCategoryInput.value = normalizeSubjectCategory(
         newSub.category,
         activeGroupType.value,
@@ -195,7 +179,7 @@ watch(
 
 function resetSubjectName() {
   if (subject.value) {
-    subjectNameInput.value = subject.value.name;
+    subjectNamePicker.load(subject.value.name);
     subjectCategoryInput.value = normalizeSubjectCategory(
       subject.value.category,
       activeGroupType.value,
@@ -207,17 +191,17 @@ function resetSubjectName() {
 const subjectChanged = computed(
   () =>
     !!subject.value &&
-    (subjectNameInput.value.trim() !== subject.value.name ||
+    (subjectNamePicker.storedName.value !== subject.value.name ||
       subjectCategoryInput.value !== storedCategory.value ||
       subjectIsDaltonInput.value !== (subject.value.isDalton === true)),
 );
 
 async function handleSave() {
   if (!subject.value) return;
-  const nameTrimmed = subjectNameInput.value.trim();
-  if (!nameTrimmed) return;
+  const name = subjectNamePicker.storedName.value;
+  if (!name) return;
   await updateSubject(subject.value.id, {
-    name: nameTrimmed,
+    name,
     category: subjectCategoryInput.value,
     isDalton: subjectIsDaltonInput.value,
   });
@@ -247,23 +231,22 @@ function openCreateModal() {
 
 function closeCreateModal() {
   showCreateModal.value = false;
-  newSubjectName.value = '';
-  selectedSubjectKey.value = '';
+  newSubjectNamePicker.reset();
   newSubjectCategory.value = defaultSubjectCategory(activeGroupType.value);
   newSubjectIsDalton.value = false;
 }
 
 async function handleCreate() {
-  if (!newSubjectName.value.trim()) return;
+  const name = newSubjectNamePicker.storedName.value;
+  if (!name) return;
   const oldLength = subjects.value.length;
   await createSubject(
-    newSubjectName.value,
+    name,
     newSubjectCategory.value,
     activeGroupDaltonEnabled.value && newSubjectIsDalton.value,
   );
   if (subjects.value.length > oldLength) {
-    newSubjectName.value = '';
-    selectedSubjectKey.value = '';
+    newSubjectNamePicker.reset();
     newSubjectCategory.value = defaultSubjectCategory(activeGroupType.value);
     newSubjectIsDalton.value = false;
     showCreateModal.value = false;
@@ -273,7 +256,7 @@ async function handleCreate() {
 watch(showCreateModal, async (open) => {
   if (open) {
     await nextTick();
-    if (selectedSubjectKey.value === 'custom') {
+    if (newSubjectNamePicker.isCustom.value) {
       newSubjectInputRef.value?.focus();
     }
   }
@@ -400,11 +383,7 @@ onMounted(() => {
           <template #label>
             <span
               class="font-medium text-base/relaxed text-on-ghost truncate"
-              >{{
-                i18n.te(`common.subjects.${sub.name}`)
-                  ? t(`common.subjects.${sub.name}`)
-                  : sub.name
-              }}</span
+              >{{ subjectLabel(sub.name, t, i18n.te) }}</span
             >
             <span class="font-normal text-sm text-on-ghost-muted">{{
               categoryLabel(sub.category || '') +
@@ -431,7 +410,7 @@ onMounted(() => {
         :open="showCreateModal"
         :submit="handleCreate"
         :loading="saving"
-        :requirement="!!newSubjectName.trim()"
+        :requirement="!!newSubjectNamePicker.storedName.value"
         @cancel="closeCreateModal"
       >
         <template #title>
@@ -445,13 +424,13 @@ onMounted(() => {
             }}</BaseLabel>
             <BaseSelect
               id="new-subject-name"
-              v-model="selectedSubjectKey"
+              v-model="newSubjectNamePicker.selection.value"
               :disabled="saving"
-              :options="subjectOptions"
+              :options="newSubjectNamePicker.options.value"
             />
           </BaseFormGroup>
           <BaseFormGroup
-            v-if="selectedSubjectKey === 'custom'"
+            v-if="newSubjectNamePicker.isCustom.value"
             id="new-subject-custom"
           >
             <BaseLabel for="new-subject-custom" :required="true">{{
@@ -460,7 +439,8 @@ onMounted(() => {
             <BaseInput
               id="new-subject-custom"
               ref="newSubjectInputRef"
-              v-model="newSubjectName"
+              v-model="newSubjectNamePicker.customName.value"
+              :maxlength="SUBJECT_NAME_MAX_LENGTH"
               :placeholder="t('groups.settings.subjects.add_placeholder')"
               :disabled="saving"
             />
@@ -525,10 +505,26 @@ onMounted(() => {
             <BaseLabel for="subject-name">{{
               t('groups.settings.general.appearance.name_label')
             }}</BaseLabel>
-            <BaseInput
+            <BaseSelect
               id="subject-name"
-              v-model="subjectNameInput"
+              v-model="subjectNamePicker.selection.value"
               class="w-full"
+              :disabled="saving || !canEditSubjects"
+              :options="subjectNamePicker.options.value"
+            />
+          </BaseFormGroup>
+          <BaseFormGroup
+            v-if="subjectNamePicker.isCustom.value"
+            id="subject-custom-name"
+          >
+            <BaseLabel for="subject-custom-name" :required="true">{{
+              t('groups.settings.subjects.custom_label')
+            }}</BaseLabel>
+            <BaseInput
+              id="subject-custom-name"
+              v-model="subjectNamePicker.customName.value"
+              class="w-full"
+              :maxlength="SUBJECT_NAME_MAX_LENGTH"
               :disabled="saving || !canEditSubjects"
               @keyup.enter="handleSave"
             />
@@ -582,7 +578,9 @@ onMounted(() => {
               {{ t('common.buttons.cancel') }}
             </BaseButton>
             <BaseButton
-              :disabled="saving || !subjectNameInput.trim() || !subjectChanged"
+              :disabled="
+                saving || !subjectNamePicker.storedName.value || !subjectChanged
+              "
               variant="action"
               @click="handleSave"
             >
@@ -632,7 +630,7 @@ onMounted(() => {
             class="flex items-center justify-between p-3 rounded-xl bg-surface border border-ghost-border"
           >
             <span class="font-medium text-base text-on-ghost truncate">
-              {{ course.name }}
+              {{ courseLabel(course.name, t, i18n.te) }}
               <span
                 v-if="course.courseType"
                 class="font-normal text-sm text-on-ghost-muted"
@@ -678,6 +676,7 @@ onMounted(() => {
             <BaseInput
               id="new-course-name"
               v-model="newCourseName"
+              :maxlength="COURSE_NAME_MAX_LENGTH"
               :placeholder="t('groups.settings.subjects.course_name_label')"
               :disabled="saving"
               @keyup.enter="handleCreateCourse"
@@ -725,6 +724,7 @@ onMounted(() => {
             <BaseInput
               id="edit-course-name"
               v-model="editCourseName"
+              :maxlength="COURSE_NAME_MAX_LENGTH"
               :placeholder="t('groups.settings.subjects.course_name_label')"
               :disabled="saving"
               @keyup.enter="handleEditCourse"

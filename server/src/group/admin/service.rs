@@ -1,14 +1,13 @@
 use crate::{
     common::{
-        group_type::{
-            DEFAULT_COURSE_TYPE, GroupType, ZUSATZKURS_CATEGORY, resolve_course_type,
-        },
+        group_type::{DEFAULT_COURSE_TYPE, GroupType, ZUSATZKURS_CATEGORY, resolve_course_type},
+        names::DisplayName,
         permission::GroupPermissions,
         role::{MemberRole, Role},
     },
     error::{AppError, AppResult},
     group::{
-        dto::{CreateScheduleSubDto, ReplaceScheduleDto},
+        dto::{CreateScheduleSubDto, ReplaceScheduleDto, ScheduleLessonDto},
         member_policy::{self, Actor, Caller, Target},
         service::{lock_group_owner, role_from_db},
     },
@@ -20,6 +19,56 @@ use sqlx::{PgConnection, PgPool};
 use std::collections::HashSet;
 use uuid::Uuid;
 
+const SUBJECT_NAME_TAKEN: &str = "A subject with this name already exists.";
+const COURSE_NAME_TAKEN: &str = "A course with this name already exists.";
+
+/// Lessons split into one array per column, so the whole schedule is written
+/// with a single `UNNEST` statement instead of one round-trip per lesson.
+struct LessonColumns {
+    ids: Vec<Uuid>,
+    days: Vec<i32>,
+    slots: Vec<i32>,
+    durations: Vec<i32>,
+    rooms: Vec<Option<String>>,
+    subject_ids: Vec<Option<Uuid>>,
+    course_ids: Vec<Option<Uuid>>,
+    is_dalton: Vec<bool>,
+}
+
+impl From<Vec<ScheduleLessonDto>> for LessonColumns {
+    fn from(lessons: Vec<ScheduleLessonDto>) -> Self {
+        let n = lessons.len();
+        let mut columns = Self {
+            ids: Vec::with_capacity(n),
+            days: Vec::with_capacity(n),
+            slots: Vec::with_capacity(n),
+            durations: Vec::with_capacity(n),
+            rooms: Vec::with_capacity(n),
+            subject_ids: Vec::with_capacity(n),
+            course_ids: Vec::with_capacity(n),
+            is_dalton: Vec::with_capacity(n),
+        };
+
+        for lesson in lessons {
+            columns.ids.push(lesson.id.unwrap_or_else(Uuid::new_v4));
+            columns.days.push(lesson.day);
+            columns.slots.push(lesson.slot);
+            columns.durations.push(lesson.duration);
+            columns.rooms.push(
+                lesson
+                    .room
+                    .map(|room| room.trim().to_owned())
+                    .filter(|room| !room.is_empty()),
+            );
+            columns.subject_ids.push(lesson.subject_id);
+            columns.course_ids.push(lesson.course_id);
+            columns.is_dalton.push(lesson.is_dalton);
+        }
+
+        columns
+    }
+}
+
 struct LockedMembership {
     owner_id: Uuid,
     actor: Actor,
@@ -28,16 +77,6 @@ struct LockedMembership {
 
 pub struct GroupAdminService {
     db: PgPool,
-}
-
-/// Reads an `int4`-bound field from client JSON. Missing, non-integer and
-/// out-of-range values all fall back to `default` rather than wrapping.
-fn json_i32(value: &Value, key: &str, default: i32) -> i32 {
-    value
-        .get(key)
-        .and_then(Value::as_i64)
-        .and_then(|n| i32::try_from(n).ok())
-        .unwrap_or(default)
 }
 
 /// The category a new subject gets when the client does not send one.
@@ -61,6 +100,29 @@ fn validate_category(group_type: GroupType, category: &str) -> AppResult<()> {
     )))
 }
 
+const MAX_SCHEDULE_TEXT_CHARS: usize = 100;
+
+/// Bounds the free-form parts of a substitution to what the schedule can show.
+fn validate_schedule_sub(dto: &CreateScheduleSubDto) -> AppResult<()> {
+    let too_long = |text: &Option<String>| {
+        text.as_deref()
+            .is_some_and(|t| t.chars().count() > MAX_SCHEDULE_TEXT_CHARS)
+    };
+
+    if dto.day.is_some_and(|day| !(1..=5).contains(&day))
+        || dto.slot.is_some_and(|slot| slot < 1)
+        || dto.duration.is_some_and(|duration| duration < 1)
+        || too_long(&dto.subject)
+        || too_long(&dto.room)
+    {
+        return Err(AppError::bad_request(
+            "The substitution does not fit the school week or its texts are too long.",
+        ));
+    }
+
+    Ok(())
+}
+
 /// Dalton stands in for a subject in the schedule, so a Dalton lesson cannot
 /// point at a real subject or course as well.
 fn validate_dalton_lesson(
@@ -75,26 +137,6 @@ fn validate_dalton_lesson(
     }
 
     Ok(())
-}
-
-fn json_is_dalton(value: &Value) -> bool {
-    value
-        .get("isDalton")
-        .or_else(|| value.get("is_dalton"))
-        .and_then(Value::as_bool)
-        .unwrap_or(false)
-}
-
-/// Reads a UUID that clients may send either flat (`subjectId`/`subject_id`) or
-/// nested inside the joined object (`subjects: { id }`).
-fn json_uuid(value: &Value, camel: &str, snake: &str, nested: &str) -> Option<Uuid> {
-    let parse = |v: &Value| v.as_str().and_then(|s| Uuid::parse_str(s).ok());
-
-    value
-        .get(camel)
-        .or_else(|| value.get(snake))
-        .and_then(parse)
-        .or_else(|| value.get(nested).and_then(|n| n.get("id")).and_then(parse))
 }
 
 impl GroupAdminService {
@@ -699,7 +741,7 @@ impl GroupAdminService {
         &self,
         tenant_id: Uuid,
         user_id: Uuid,
-        name: &str,
+        name: &DisplayName,
         category: Option<&str>,
         is_dalton: bool,
     ) -> AppResult<Value> {
@@ -711,12 +753,13 @@ impl GroupAdminService {
             r#"INSERT INTO subjects (tenant_id, name, category, is_dalton) VALUES ($1, $2, $3, $4)
                RETURNING id, name, category, is_dalton"#,
             tenant_id,
-            name,
+            name.as_str(),
             cat,
             is_dalton
         )
         .fetch_one(&self.db)
-        .await?;
+        .await
+        .map_err(|e| AppError::name_taken_on_conflict(e, SUBJECT_NAME_TAKEN))?;
 
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta)
@@ -786,7 +829,7 @@ impl GroupAdminService {
         tenant_id: Uuid,
         user_id: Uuid,
         id: Uuid,
-        name: Option<&str>,
+        name: Option<&DisplayName>,
         category: Option<&str>,
         is_dalton: Option<bool>,
     ) -> AppResult<Value> {
@@ -814,9 +857,14 @@ impl GroupAdminService {
         }
 
         if let Some(n) = name {
-            sqlx::query!(r#"UPDATE subjects SET name = $1 WHERE id = $2"#, n, id)
-                .execute(&self.db)
-                .await?;
+            sqlx::query!(
+                r#"UPDATE subjects SET name = $1 WHERE id = $2"#,
+                n.as_str(),
+                id
+            )
+            .execute(&self.db)
+            .await
+            .map_err(|e| AppError::name_taken_on_conflict(e, SUBJECT_NAME_TAKEN))?;
         }
 
         if let Some(flag) = is_dalton {
@@ -847,36 +895,46 @@ impl GroupAdminService {
         user_id: Uuid,
         id: Uuid,
     ) -> AppResult<Value> {
-        sqlx::query!(
-            r#"SELECT id FROM subjects WHERE id = $1 AND tenant_id = $2"#,
+        let mut tx = self.db.begin().await?;
+
+        // The row lock makes lessons, courses and tasks that would reference
+        // the subject wait until it is gone, so the check below cannot go stale.
+        let subject = sqlx::query!(
+            r#"SELECT name,
+                      EXISTS (SELECT 1 FROM schedules WHERE subject_id = s.id)
+                          OR EXISTS (SELECT 1 FROM courses WHERE subject_id = s.id) AS "referenced!"
+               FROM subjects s
+               WHERE id = $1 AND tenant_id = $2
+               FOR UPDATE"#,
             id,
             tenant_id
         )
-        .fetch_optional(&self.db)
+        .fetch_optional(&mut *tx)
         .await?
         .ok_or_else(|| AppError::not_found("Subject not found"))?;
 
-        let refs = sqlx::query_scalar!(
-            r#"SELECT COUNT(*) FROM schedules WHERE subject_id = $1"#,
-            id
-        )
-        .fetch_one(&self.db)
-        .await?
-        .unwrap_or(0)
-            + sqlx::query_scalar!(r#"SELECT COUNT(*) FROM courses WHERE subject_id = $1"#, id)
-                .fetch_one(&self.db)
-                .await?
-                .unwrap_or(0);
-
-        if refs > 0 {
+        if subject.referenced {
             return Err(AppError::bad_request(
                 "Subject is still referenced. Delete the referencing schedules or courses first.",
             ));
         }
 
+        // Tasks outlive their subject: they keep its name as a custom label.
+        sqlx::query!(
+            r#"UPDATE items
+               SET custom_subject = $2, subject_id = NULL, course_id = NULL
+               WHERE subject_id = $1"#,
+            id,
+            subject.name
+        )
+        .execute(&mut *tx)
+        .await?;
+
         sqlx::query!(r#"DELETE FROM subjects WHERE id = $1"#, id)
-            .execute(&self.db)
+            .execute(&mut *tx)
             .await?;
+
+        tx.commit().await?;
 
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta)
@@ -920,141 +978,6 @@ impl GroupAdminService {
                 }))
                 .collect::<Vec<_>>()
         ))
-    }
-
-    pub async fn save_schedule(
-        &self,
-        tenant_id: Uuid,
-        user_id: Uuid,
-        body: Value,
-    ) -> AppResult<Value> {
-        let items: Vec<&Value> = match body.get("lessons").and_then(|v| v.as_array()) {
-            Some(lessons) => lessons.iter().collect(),
-            None => vec![&body],
-        };
-
-        let references: Vec<(Option<Uuid>, Option<Uuid>)> = items
-            .iter()
-            .map(|item| {
-                (
-                    json_uuid(item, "subjectId", "subject_id", "subjects"),
-                    json_uuid(item, "courseId", "course_id", "courses"),
-                )
-            })
-            .collect();
-
-        let mut has_dalton = false;
-        for (item, (subject_id, course_id)) in items.iter().zip(&references) {
-            let is_dalton = json_is_dalton(item);
-            validate_dalton_lesson(is_dalton, *subject_id, *course_id)?;
-            has_dalton |= is_dalton;
-        }
-
-        if has_dalton {
-            self.ensure_dalton_enabled(tenant_id).await?;
-        }
-
-        self.validate_lesson_references(tenant_id, &references)
-            .await?;
-
-        let mut tx = self.db.begin().await?;
-
-        if let Some(lessons_arr) = body.get("lessons").and_then(|v| v.as_array()) {
-            sqlx::query!(r#"DELETE FROM schedules WHERE tenant_id = $1"#, tenant_id)
-                .execute(&mut *tx)
-                .await?;
-
-            for item in lessons_arr {
-                let day = json_i32(item, "day", 1);
-                let slot = json_i32(item, "slot", 1);
-                let duration = json_i32(item, "duration", 1);
-                let room = item.get("room").and_then(|v| v.as_str());
-
-                let subject_id = json_uuid(item, "subjectId", "subject_id", "subjects");
-
-                let course_id = json_uuid(item, "courseId", "course_id", "courses");
-
-                let is_dalton = json_is_dalton(item);
-
-                let id = item
-                    .get("id")
-                    .and_then(|v| v.as_str())
-                    .and_then(|s| Uuid::parse_str(s).ok())
-                    .unwrap_or_else(Uuid::new_v4);
-
-                sqlx::query!(
-                    r#"INSERT INTO schedules (id, tenant_id, day, slot, duration, room, subject_id, course_id, is_dalton)
-                       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)"#,
-                    id,
-                    tenant_id,
-                    day,
-                    slot,
-                    duration,
-                    room,
-                    subject_id,
-                    course_id,
-                    is_dalton
-                )
-                .execute(&mut *tx)
-                .await?;
-            }
-        } else {
-            let day = json_i32(&body, "day", 1);
-            let slot = json_i32(&body, "slot", 1);
-            let duration = json_i32(&body, "duration", 1);
-            let room = body.get("room").and_then(|v| v.as_str());
-
-            let subject_id = json_uuid(&body, "subjectId", "subject_id", "subjects");
-
-            let course_id = json_uuid(&body, "courseId", "course_id", "courses");
-
-            let is_dalton = json_is_dalton(&body);
-
-            let id = body
-                .get("id")
-                .and_then(|v| v.as_str())
-                .and_then(|s| Uuid::parse_str(s).ok())
-                .unwrap_or_else(Uuid::new_v4);
-
-            sqlx::query!(
-                r#"INSERT INTO schedules (id, tenant_id, day, slot, duration, room, subject_id, course_id, is_dalton)
-                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-                   ON CONFLICT (id) DO UPDATE SET
-                     day = EXCLUDED.day,
-                     slot = EXCLUDED.slot,
-                     duration = EXCLUDED.duration,
-                     room = EXCLUDED.room,
-                     subject_id = EXCLUDED.subject_id,
-                     course_id = EXCLUDED.course_id,
-                     is_dalton = EXCLUDED.is_dalton,
-                     updated_at = now()
-                   WHERE schedules.tenant_id = EXCLUDED.tenant_id"#,
-                id,
-                tenant_id,
-                day,
-                slot,
-                duration,
-                room,
-                subject_id,
-                course_id,
-                is_dalton
-            )
-            .execute(&mut *tx)
-            .await?;
-        }
-
-        sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta)
-               VALUES ($1, 'group-admin:schedule:save', $2)"#,
-            user_id,
-            json!({ "tenantId": tenant_id })
-        )
-        .execute(&mut *tx)
-        .await?;
-
-        tx.commit().await?;
-
-        Ok(json!({ "ok": true }))
     }
 
     pub async fn replace_schedule(
@@ -1168,6 +1091,8 @@ impl GroupAdminService {
 
         let schedule_config = serde_json::to_value(&dto.schedule_config)
             .map_err(|_| AppError::internal("Failed to serialize the schedule configuration."))?;
+        let lessons = LessonColumns::from(dto.lessons);
+
         let mut tx = self.db.begin().await?;
 
         sqlx::query!(
@@ -1178,27 +1103,48 @@ impl GroupAdminService {
         .execute(&mut *tx)
         .await?;
 
-        sqlx::query!(r#"DELETE FROM schedules WHERE tenant_id = $1"#, tenant_id)
-            .execute(&mut *tx)
-            .await?;
+        // Lessons are synced instead of deleted and re-created: substitutions
+        // cascade from their lesson, so only lessons that really left the
+        // schedule may take theirs with them.
+        sqlx::query!(
+            r#"DELETE FROM schedules WHERE tenant_id = $1 AND NOT (id = ANY($2))"#,
+            tenant_id,
+            &lessons.ids
+        )
+        .execute(&mut *tx)
+        .await?;
 
-        for lesson in dto.lessons {
-            sqlx::query!(
-                r#"INSERT INTO schedules (id, tenant_id, day, slot, duration, room, subject_id, course_id, is_dalton)
-                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)"#,
-                lesson.id.unwrap_or_else(Uuid::new_v4),
-                tenant_id,
-                lesson.day,
-                lesson.slot,
-                lesson.duration,
-                lesson.room,
-                lesson.subject_id,
-                lesson.course_id,
-                lesson.is_dalton
-            )
-            .execute(&mut *tx)
-            .await?;
-        }
+        sqlx::query!(
+            r#"INSERT INTO schedules (id, tenant_id, day, slot, duration, room, subject_id, course_id, is_dalton)
+               SELECT t.id, $1, t.day, t.slot, t.duration, t.room, t.subject_id, t.course_id, t.is_dalton
+               FROM UNNEST($2::uuid[], $3::int4[], $4::int4[], $5::int4[], $6::text[], $7::uuid[], $8::uuid[], $9::bool[])
+                    AS t(id, day, slot, duration, room, subject_id, course_id, is_dalton)
+               ON CONFLICT (id) DO UPDATE SET
+                 day = EXCLUDED.day,
+                 slot = EXCLUDED.slot,
+                 duration = EXCLUDED.duration,
+                 room = EXCLUDED.room,
+                 subject_id = EXCLUDED.subject_id,
+                 course_id = EXCLUDED.course_id,
+                 is_dalton = EXCLUDED.is_dalton
+               WHERE schedules.tenant_id = EXCLUDED.tenant_id
+                 AND (schedules.day, schedules.slot, schedules.duration, schedules.room,
+                      schedules.subject_id, schedules.course_id, schedules.is_dalton)
+                     IS DISTINCT FROM
+                     (EXCLUDED.day, EXCLUDED.slot, EXCLUDED.duration, EXCLUDED.room,
+                      EXCLUDED.subject_id, EXCLUDED.course_id, EXCLUDED.is_dalton)"#,
+            tenant_id,
+            &lessons.ids,
+            &lessons.days,
+            &lessons.slots,
+            &lessons.durations,
+            &lessons.rooms as &[Option<String>],
+            &lessons.subject_ids as &[Option<Uuid>],
+            &lessons.course_ids as &[Option<Uuid>],
+            &lessons.is_dalton
+        )
+        .execute(&mut *tx)
+        .await?;
 
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta)
@@ -1253,6 +1199,10 @@ impl GroupAdminService {
         user_id: Uuid,
         dto: CreateScheduleSubDto,
     ) -> AppResult<Value> {
+        validate_schedule_sub(&dto)?;
+        self.validate_sub_target(tenant_id, dto.lesson_id, dto.course_id)
+            .await?;
+
         let day_str = dto.day.map(|d| d.to_string());
 
         let row = sqlx::query!(
@@ -1289,6 +1239,49 @@ impl GroupAdminService {
             "duration": row.duration, "subject": row.subject, "room": row.room,
             "cancelled": row.cancelled, "hide": row.hide, "createdAt": row.created_at,
         }))
+    }
+
+    /// A substitution may only target a lesson of this group, and a course
+    /// only when that lesson is taught to it: either the lesson belongs to the
+    /// course itself or the course is one of the lesson's subject.
+    async fn validate_sub_target(
+        &self,
+        tenant_id: Uuid,
+        lesson_id: Uuid,
+        course_id: Option<Uuid>,
+    ) -> AppResult<()> {
+        let target = sqlx::query!(
+            r#"SELECT s.subject_id, s.course_id AS lesson_course_id,
+                      c.subject_id AS "course_subject_id?"
+               FROM schedules s
+               LEFT JOIN courses c ON c.id = $3 AND c.tenant_id = s.tenant_id
+               WHERE s.id = $1 AND s.tenant_id = $2"#,
+            lesson_id,
+            tenant_id,
+            course_id
+        )
+        .fetch_optional(&self.db)
+        .await?
+        .ok_or_else(|| AppError::not_found("Lesson not found"))?;
+
+        let Some(course_id) = course_id else {
+            return Ok(());
+        };
+
+        let course_fits = match target.lesson_course_id {
+            Some(lesson_course_id) => lesson_course_id == course_id,
+            None => target
+                .course_subject_id
+                .is_some_and(|course_subject| target.subject_id == Some(course_subject)),
+        };
+
+        if course_fits {
+            Ok(())
+        } else {
+            Err(AppError::bad_request(
+                "The course does not take part in this lesson.",
+            ))
+        }
     }
 
     pub async fn delete_schedule_sub(&self, tenant_id: Uuid, id: Uuid) -> AppResult<Value> {
@@ -1371,35 +1364,23 @@ impl GroupAdminService {
         tenant_id: Uuid,
         user_id: Uuid,
         subject_id: Uuid,
-        name: &str,
+        name: &DisplayName,
         course_type: Option<&str>,
     ) -> AppResult<Value> {
         let course_type = self
             .course_type_for_subject(tenant_id, subject_id, course_type)
             .await?;
 
-        let exists = sqlx::query!(
-            r#"SELECT id FROM courses WHERE name = $1 AND subject_id = $2"#,
-            name,
-            subject_id
-        )
-        .fetch_optional(&self.db)
-        .await?;
-        if exists.is_some() {
-            return Err(AppError::bad_request(
-                "A course with this name already exists.",
-            ));
-        }
-
         let row = sqlx::query!(
             "INSERT INTO courses (tenant_id, name, subject_id, course_type) VALUES ($1, $2, $3, $4) RETURNING id, name, subject_id, course_type",
             tenant_id,
-            name,
+            name.as_str(),
             subject_id,
             course_type
         )
-            .fetch_one(&self.db)
-            .await?;
+        .fetch_one(&self.db)
+        .await
+        .map_err(|e| AppError::name_taken_on_conflict(e, COURSE_NAME_TAKEN))?;
 
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, $2, $3)"#,
@@ -1423,7 +1404,7 @@ impl GroupAdminService {
         tenant_id: Uuid,
         user_id: Uuid,
         course_id: Uuid,
-        name: &str,
+        name: &DisplayName,
         course_type: Option<&str>,
     ) -> AppResult<Value> {
         let course = sqlx::query!(
@@ -1445,34 +1426,21 @@ impl GroupAdminService {
             .course_type_for_subject(tenant_id, course.subject_id, requested)
             .await?;
 
-        let exists = sqlx::query!(
-            r#"SELECT id FROM courses WHERE name = $1 AND subject_id = $2 AND id != $3"#,
-            name,
-            course.subject_id,
-            course_id
-        )
-        .fetch_optional(&self.db)
-        .await?;
-        if exists.is_some() {
-            return Err(AppError::bad_request(
-                "A course with this name already exists.",
-            ));
-        }
-
         sqlx::query!(
             r#"UPDATE courses SET name = $1, course_type = $2 WHERE id = $3"#,
-            name,
+            name.as_str(),
             course_type,
             course_id
         )
         .execute(&self.db)
-        .await?;
+        .await
+        .map_err(|e| AppError::name_taken_on_conflict(e, COURSE_NAME_TAKEN))?;
 
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, $2, $3)"#,
             user_id,
             "group-admin:course:update",
-            json!({ "courseId": course_id, "name": name })
+            json!({ "courseId": course_id, "name": name.as_str() })
         )
         .execute(&self.db)
         .await?;
@@ -1595,10 +1563,31 @@ mod tests {
         assert!(validate_dalton_lesson(false, id, id).is_ok());
     }
 
+    fn sub(day: Option<i32>, room: Option<&str>) -> CreateScheduleSubDto {
+        CreateScheduleSubDto {
+            lesson_id: Uuid::nil(),
+            course_id: None,
+            day,
+            slot: Some(1),
+            duration: Some(1),
+            subject: None,
+            room: room.map(str::to_owned),
+            cancelled: None,
+            hide: None,
+        }
+    }
+
     #[test]
-    fn dalton_flag_is_read_from_either_casing() {
-        assert!(json_is_dalton(&json!({ "isDalton": true })));
-        assert!(json_is_dalton(&json!({ "is_dalton": true })));
-        assert!(!json_is_dalton(&json!({ "subjectId": "x" })));
+    fn substitutions_stay_within_the_school_week() {
+        assert!(validate_schedule_sub(&sub(Some(5), None)).is_ok());
+        assert!(validate_schedule_sub(&sub(None, None)).is_ok());
+        assert!(validate_schedule_sub(&sub(Some(6), None)).is_err());
+        assert!(validate_schedule_sub(&sub(Some(0), None)).is_err());
+    }
+
+    #[test]
+    fn substitution_texts_are_bounded() {
+        let long = "x".repeat(MAX_SCHEDULE_TEXT_CHARS + 1);
+        assert!(validate_schedule_sub(&sub(None, Some(&long))).is_err());
     }
 }

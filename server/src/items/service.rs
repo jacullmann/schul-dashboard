@@ -1,5 +1,7 @@
 use crate::{
+    common::names::{CUSTOM_SUBJECT_MAX_CHARS, DisplayName},
     error::{AppError, AppResult},
+    items::dto::{CreateItemDto, ItemSubjectDto, UpdateItemDto},
     state::AppState,
 };
 use chrono::Utc;
@@ -26,11 +28,45 @@ fn time_left_color(due: &chrono::DateTime<Utc>) -> &'static str {
     }
 }
 
+const TITLE_MAX_CHARS: usize = 60;
+
+/// A task's subject once it is known to exist in the task's group.
+enum ItemSubject {
+    Group {
+        subject_id: Uuid,
+        course_id: Option<Uuid>,
+    },
+    Custom(DisplayName),
+}
+
+impl ItemSubject {
+    fn subject_id(&self) -> Option<Uuid> {
+        match self {
+            Self::Group { subject_id, .. } => Some(*subject_id),
+            Self::Custom(_) => None,
+        }
+    }
+
+    fn course_id(&self) -> Option<Uuid> {
+        match self {
+            Self::Group { course_id, .. } => *course_id,
+            Self::Custom(_) => None,
+        }
+    }
+
+    fn custom_name(&self) -> Option<&str> {
+        match self {
+            Self::Group { .. } => None,
+            Self::Custom(name) => Some(name.as_str()),
+        }
+    }
+}
+
 #[derive(Default)]
 pub struct GetItemsFilter<'a> {
     pub item_type: Option<&'a str>,
     pub filter: Option<&'a str>,
-    pub subject: Option<&'a str>,
+    pub subject_id: Option<Uuid>,
     pub hide_checked: bool,
     pub personalized: bool,
 }
@@ -68,6 +104,66 @@ impl ItemsService {
         }
     }
 
+    /// Checks a subject reference against the group. A hand-typed name that the
+    /// group does offer after all is linked to that subject, so it follows
+    /// later renames and course filters like any other task.
+    async fn resolve_subject(
+        &self,
+        tenant_id: Uuid,
+        dto: &ItemSubjectDto,
+    ) -> AppResult<ItemSubject> {
+        match dto {
+            ItemSubjectDto::Group {
+                subject_id,
+                course_id,
+            } => {
+                let valid = sqlx::query_scalar!(
+                    r#"SELECT EXISTS (
+                           SELECT 1 FROM subjects s
+                           WHERE s.id = $1 AND s.tenant_id = $2
+                             AND ($3::uuid IS NULL
+                                  OR EXISTS (SELECT 1 FROM courses c WHERE c.id = $3 AND c.subject_id = s.id))
+                       ) AS "valid!""#,
+                    subject_id,
+                    tenant_id,
+                    *course_id
+                )
+                .fetch_one(&self.db)
+                .await?;
+
+                if !valid {
+                    return Err(AppError::bad_request(
+                        "The subject or course does not belong to this group.",
+                    ));
+                }
+
+                Ok(ItemSubject::Group {
+                    subject_id: *subject_id,
+                    course_id: *course_id,
+                })
+            }
+            ItemSubjectDto::Custom { custom_name } => {
+                let name = DisplayName::parse(custom_name, CUSTOM_SUBJECT_MAX_CHARS, "subject")?;
+
+                let offered = sqlx::query_scalar!(
+                    r#"SELECT id FROM subjects WHERE tenant_id = $1 AND lower(name) = lower($2)"#,
+                    tenant_id,
+                    name.as_str()
+                )
+                .fetch_optional(&self.db)
+                .await?;
+
+                Ok(match offered {
+                    Some(subject_id) => ItemSubject::Group {
+                        subject_id,
+                        course_id: None,
+                    },
+                    None => ItemSubject::Custom(name),
+                })
+            }
+        }
+    }
+
     pub async fn get_items(
         &self,
         tenant_id: Uuid,
@@ -92,33 +188,30 @@ impl ItemsService {
         }
 
         let old_filter = f.filter == Some("old");
-        let subject_lower = f.subject.map(str::to_lowercase);
 
+        // A task for a single course reaches that course's members; one for the
+        // whole subject reaches everybody taking any of its courses.
         let mut rows = sqlx::query!(
-            r#"SELECT i.id, i.type, i.title, i.subject, i.description, i.images, i.due_date,
+            r#"SELECT i.id, i.type, i.title, i.subject_id, i.course_id,
+                      COALESCE(s.name, i.custom_subject) as "subject_name!", c.name as "course_name?",
+                      i.description, i.images, i.due_date,
                       i.created_by as "created_by?: Uuid", i.editor_note, i.created_at, i.updated_at,
                       u.email as "creator_email?: String",
                       (
                           i.id IN (SELECT item_id FROM pinned_items WHERE user_id = $2)
-                          OR NOT EXISTS (
-                              SELECT 1 FROM subjects s
-                              WHERE LOWER(s.name) = LOWER(SPLIT_PART(i.subject, ' -', 1))
-                                AND s.tenant_id = $1
-                                AND s.category != 'core'
-                                AND (SELECT COUNT(*) FROM courses c2 WHERE c2.subject_id = s.id) > 0
-                                AND NOT EXISTS (
-                                    SELECT 1 FROM courses c
-                                    JOIN user_courses uc ON uc.course_id = c.id
-                                    WHERE c.subject_id = s.id
-                                      AND uc.user_id = $2
-                                      AND (
-                                          i.subject = s.name || ' - ' || c.name
-                                          OR (s.category IN ('extra', 'optional', 'zk') AND i.subject = s.name AND (SELECT COUNT(*) FROM courses c3 WHERE c3.subject_id = s.id) = 1)
-                                      )
-                                )
+                          OR i.subject_id IS NULL
+                          OR s.category = 'core'
+                          OR NOT EXISTS (SELECT 1 FROM courses sc WHERE sc.subject_id = i.subject_id)
+                          OR EXISTS (
+                              SELECT 1 FROM user_courses uc
+                              WHERE uc.user_id = $2
+                                AND uc.subject_id = i.subject_id
+                                AND (i.course_id IS NULL OR uc.course_id = i.course_id)
                           )
                       ) as "matches_courses!"
                FROM items i
+               LEFT JOIN subjects s ON s.id = i.subject_id
+               LEFT JOIN courses c ON c.id = i.course_id
                LEFT JOIN users u ON u.id = i.created_by
                LEFT JOIN user_item_visibility v ON v.item_id = i.id AND v.user_id = $2
                WHERE i.tenant_id = $1
@@ -133,13 +226,9 @@ impl ItemsService {
                      OR i.id NOT IN (SELECT item_id FROM keep_checked WHERE user_id = $2)
                  )
                  AND (
-                     $6::text IS NULL
+                     $6::uuid IS NULL
+                     OR i.subject_id = $6
                      OR i.id IN (SELECT item_id FROM pinned_items WHERE user_id = $2)
-                     OR ($6 = 'enrichment' AND LOWER(i.subject) LIKE 'enrichment%')
-                     OR ($6 = 'wpu1' AND LOWER(i.subject) LIKE 'wpu (di)%')
-                     OR ($6 = 'wpu2' AND LOWER(i.subject) LIKE 'wpu (do)%')
-                     OR LOWER(SPLIT_PART(i.subject, ' -', 1)) = LOWER($6)
-                     OR LOWER(i.subject) = LOWER($6)
                  )
                ORDER BY i.due_date ASC"#,
             tenant_id,
@@ -147,7 +236,7 @@ impl ItemsService {
             f.item_type,
             old_filter,
             f.hide_checked,
-            subject_lower
+            f.subject_id
         )
             .fetch_all(&self.db)
             .await?;
@@ -178,7 +267,9 @@ impl ItemsService {
                 };
                 json!({
                     "id": r.id, "type": r.r#type, "title": r.title,
-                    "subject": r.subject, "description": r.description,
+                    "subjectId": r.subject_id, "courseId": r.course_id,
+                    "subjectName": r.subject_name, "courseName": r.course_name,
+                    "description": r.description,
                     "images": r.images, "dueDate": r.due_date,
                     "createdBy": r.created_by,
                     "createdByName": created_by_name,
@@ -203,10 +294,14 @@ impl ItemsService {
         include_creator_email: bool,
     ) -> AppResult<Value> {
         let row = sqlx::query!(
-            r#"SELECT i.id, i.type, i.title, i.subject, i.description, i.images, i.due_date as "due_date!",
+            r#"SELECT i.id, i.type, i.title, i.subject_id, i.course_id,
+                      COALESCE(s.name, i.custom_subject) as "subject_name!", c.name as "course_name?",
+                      i.description, i.images, i.due_date as "due_date!",
                       i.created_by as "created_by?: Uuid", i.editor_note, i.created_at, i.updated_at,
                       u.email as "creator_email?: String"
                FROM items i
+               LEFT JOIN subjects s ON s.id = i.subject_id
+               LEFT JOIN courses c ON c.id = i.course_id
                LEFT JOIN users u ON u.id = i.created_by
                WHERE i.id = $1 AND i.tenant_id = $2"#,
             id,
@@ -228,7 +323,9 @@ impl ItemsService {
         };
         Ok(json!({
             "id": row.id, "type": row.r#type, "title": row.title,
-            "subject": row.subject, "description": row.description,
+            "subjectId": row.subject_id, "courseId": row.course_id,
+            "subjectName": row.subject_name, "courseName": row.course_name,
+            "description": row.description,
             "images": row.images, "dueDate": row.due_date,
             "createdBy": row.created_by,
             "createdByName": created_by_name,
@@ -243,8 +340,9 @@ impl ItemsService {
         &self,
         tenant_id: Uuid,
         user_id: Uuid,
-        dto: &crate::items::dto::CreateItemDto,
+        dto: &CreateItemDto,
     ) -> AppResult<Value> {
+        let title = DisplayName::parse(&dto.title, TITLE_MAX_CHARS, "title")?;
         let due_date = dto
             .due_date
             .parse::<chrono::DateTime<Utc>>()
@@ -266,19 +364,29 @@ impl ItemsService {
             }
         }
 
+        let subject = self.resolve_subject(tenant_id, &dto.subject).await?;
+
         if !dto.confirm_double_task.unwrap_or(false) {
             let duplicate = sqlx::query!(
-                r#"SELECT i.id, i.type, i.title, i.subject, i.description, i.images, i.due_date,
+                r#"SELECT i.id, i.type, i.title, i.subject_id, i.course_id,
+                          COALESCE(s.name, i.custom_subject) as "subject_name!", c.name as "course_name?",
+                          i.description, i.images, i.due_date,
                           i.created_by, i.editor_note, i.created_at, i.updated_at
                    FROM items i
+                   LEFT JOIN subjects s ON s.id = i.subject_id
+                   LEFT JOIN courses c ON c.id = i.course_id
                    WHERE i.tenant_id = $1
                      AND i.type = $2
-                     AND LOWER(TRIM(i.subject)) = LOWER(TRIM($3))
-                     AND (i.due_date AT TIME ZONE 'Europe/Berlin')::date = ($4 AT TIME ZONE 'Europe/Berlin')::date
+                     AND i.subject_id IS NOT DISTINCT FROM $3
+                     AND i.course_id IS NOT DISTINCT FROM $4
+                     AND lower(i.custom_subject) IS NOT DISTINCT FROM lower($5)
+                     AND (i.due_date AT TIME ZONE 'Europe/Berlin')::date = ($6 AT TIME ZONE 'Europe/Berlin')::date
                    LIMIT 1"#,
                 tenant_id,
                 dto.r#type,
-                dto.subject.trim(),
+                subject.subject_id(),
+                subject.course_id(),
+                subject.custom_name(),
                 due_date
             )
                 .fetch_optional(&self.db)
@@ -292,7 +400,10 @@ impl ItemsService {
                     "id": row.id,
                     "type": row.r#type,
                     "title": row.title,
-                    "subject": row.subject,
+                    "subjectId": row.subject_id,
+                    "courseId": row.course_id,
+                    "subjectName": row.subject_name,
+                    "courseName": row.course_name,
                     "description": row.description,
                     "images": row.images,
                     "dueDate": row.due_date,
@@ -320,9 +431,10 @@ impl ItemsService {
             .collect();
 
         let row = sqlx::query!(
-            r#"INSERT INTO items (type, title, subject, description, images, due_date, created_by, tenant_id)
-               VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id"#,
-            dto.r#type, dto.title.trim(), dto.subject.trim(),
+            r#"INSERT INTO items (type, title, subject_id, course_id, custom_subject, description, images, due_date, created_by, tenant_id)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id"#,
+            dto.r#type, title.as_str(),
+            subject.subject_id(), subject.course_id(), subject.custom_name(),
             dto.description.as_deref().unwrap_or("").trim(),
             json!(images),
             due_date,
@@ -347,8 +459,18 @@ impl ItemsService {
         tenant_id: Uuid,
         id: Uuid,
         user_id: Uuid,
-        dto: &crate::items::dto::UpdateItemDto,
+        dto: &UpdateItemDto,
     ) -> AppResult<Value> {
+        let title = dto
+            .title
+            .as_deref()
+            .map(|t| DisplayName::parse(t, TITLE_MAX_CHARS, "title"))
+            .transpose()?;
+        let subject = match &dto.subject {
+            Some(subject) => Some(self.resolve_subject(tenant_id, subject).await?),
+            None => None,
+        };
+
         let mut tx = self.db.begin().await?;
 
         let item = sqlx::query!(
@@ -365,20 +487,22 @@ impl ItemsService {
             return Err(AppError::forbidden("Only the creator can edit this item."));
         }
 
-        if let Some(ref title) = dto.title {
+        if let Some(title) = &title {
             sqlx::query!(
                 r#"UPDATE items SET title = $1 WHERE id = $2"#,
-                title.trim(),
+                title.as_str(),
                 id
             )
             .execute(&mut *tx)
             .await?;
         }
 
-        if let Some(ref subject) = dto.subject {
+        if let Some(subject) = &subject {
             sqlx::query!(
-                r#"UPDATE items SET subject = $1 WHERE id = $2"#,
-                subject.trim(),
+                r#"UPDATE items SET subject_id = $1, course_id = $2, custom_subject = $3 WHERE id = $4"#,
+                subject.subject_id(),
+                subject.course_id(),
+                subject.custom_name(),
                 id
             )
             .execute(&mut *tx)

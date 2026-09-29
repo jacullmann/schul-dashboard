@@ -161,6 +161,7 @@ export function subjectNeedsCourseChoice(
  */
 export const DALTON_SUBJECT_KEY = 'dalton';
 
-export function getSubjectKey(subject: string): string {
-  return subject;
-}
+/** Mirrors the server's limits in `common::names`. */
+export const SUBJECT_NAME_MAX_LENGTH = 60;
+export const COURSE_NAME_MAX_LENGTH = 60;
+export const CUSTOM_SUBJECT_MAX_LENGTH = 100;

@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE items\n               SET custom_subject = $2, subject_id = NULL, course_id = NULL\n               WHERE subject_id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "b7fd53e04806037f36c71f44ac9e917c56a7fabcfe5abf5a042cd4c0ae5c56e2"
+}

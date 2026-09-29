@@ -19,7 +19,7 @@ import {
   groupOverlappingLessons,
   lessonLastSlot,
   lessonsSlotRange,
-  lessonSubjectName,
+  lessonDisplayName,
   resolveLessonSubject,
   subjectsById,
 } from '@/modules/schedule/utils/lesson';
@@ -36,7 +36,9 @@ export interface UseScheduleOptions {
 }
 
 export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
-  const { t, locale } = useI18n();
+  const i18n = useI18n();
+  const { t, locale } = i18n;
+  const te = (key: string) => i18n.te(key);
   const userStore = useUserStore();
   const { activeScheduleConfig, activeGroupType } = useAppAuth();
   const groupId = useGroupPageId();
@@ -99,38 +101,8 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
     scheduleConfigOrDefault(activeScheduleConfig.value),
   );
 
-  function getDisplayName(lesson: Lesson): string {
-    if (lesson.isSubstitutedSubject && lesson.subject) {
-      return lesson.subject;
-    }
-
-    const subjectName = lessonSubjectName(lesson);
-    const normalizedSubject = subjectName.toLowerCase();
-
-    if (normalizedSubject === 'wpu1' || normalizedSubject === 'wpu2') {
-      const courseName = lesson.courses?.name || lesson.courseName;
-      if (courseName) {
-        return `WPU ${t(`common.subjects.${courseName}`)}`;
-      }
-      return normalizedSubject === 'wpu1' ? 'WPU 1' : 'WPU 2';
-    }
-
-    if (normalizedSubject === 'enrichment') {
-      return t('common.subjects.enrichment');
-    }
-
-    if (normalizedSubject === 'theater') {
-      return t('common.subjects.theater');
-    }
-
-    if (subjectName) {
-      const translationKey = `common.subjects.${subjectName}`;
-      const translation = t(translationKey);
-      return translation !== translationKey ? translation : subjectName;
-    }
-
-    return '';
-  }
+  const getDisplayName = (lesson: Lesson): string =>
+    lessonDisplayName(lesson, t, te);
 
   async function loadSubstitutions() {
     try {

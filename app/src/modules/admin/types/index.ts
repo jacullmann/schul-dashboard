@@ -83,6 +83,7 @@ export interface SuperAdminReport {
   itemTitle?: string;
   itemType?: string;
   itemSubject?: string;
+  itemCourse?: string | null;
   itemDescription?: string;
   itemImages?: SuperAdminReportImage[];
   itemDueDate?: string;

@@ -14,8 +14,8 @@ export function useSuperAdminFormat() {
     return type ?? '';
   };
 
-  const getSubjectName = (subject?: string) =>
-    subject ? formatSubjectDisplay(subject, t, te) : '';
+  const getSubjectName = (subject?: string, course?: string | null) =>
+    subject ? formatSubjectDisplay(subject, course, t, te) : '';
 
   const fmtDate = (iso?: string | null) =>
     iso

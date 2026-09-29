@@ -33,17 +33,8 @@ export function useEnrolledCourses() {
     return enrolledCourseBySubjectId.value.get(subjectId);
   }
 
-  function enrolledCourseForSubjectName(
-    subjectName: string | null | undefined,
-  ): Course | undefined {
-    if (!subjectName) return undefined;
-    const subject = subjectStore.subjects.find((s) => s.name === subjectName);
-    return enrolledCourseForSubjectId(subject?.id);
-  }
-
   return {
     enrolledCourseBySubjectId,
     enrolledCourseForSubjectId,
-    enrolledCourseForSubjectName,
   };
 }

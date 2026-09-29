@@ -14,9 +14,10 @@ import { useUserStore } from '@/stores/userStore';
 import { useSubjectStore } from '@/stores/subjectStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useSchedule } from '@/modules/schedule/composables/useSchedule';
-import { lessonSubjectName } from '@/modules/schedule/utils/lesson';
+import { lessonDisplayName } from '@/modules/schedule/utils/lesson';
+import type { Lesson } from '@/modules/schedule/types';
+import type { HwItem } from '@/modules/tasks/types';
 import { formatSubjectDisplay } from '@/utils/subject-formatter';
-import { courseSelectionFor } from '@/types/subjects';
 import hw from '@/api/api.ts';
 import { groupPath } from '@/api/groupPath';
 import { useGroupPageId } from '@/core/composables/useGroupPageId';
@@ -45,7 +46,7 @@ const {
   autoLoad: true,
 });
 
-const rawItems = ref<any[]>([]);
+const rawItems = ref<HwItem[]>([]);
 const checkedIds = ref<Set<string>>(new Set());
 const loadingTasks = ref(false);
 const now = ref(new Date());
@@ -99,8 +100,14 @@ async function fetchTasks() {
 
   try {
     const [itemsRes, checksRes] = await Promise.all([
-      hw.get(groupPath(groupId, '/items'), {
-        params: { type: 'all' },
+      // The server applies the member's course selection, like on the task page.
+      hw.get<HwItem[]>(groupPath(groupId, '/items'), {
+        params: {
+          type: 'all',
+          personalized: Boolean(
+            user.value?.personalized && user.value?.doneSetup,
+          ),
+        },
       }),
       hw.get('/user/checks'),
     ]);
@@ -180,67 +187,15 @@ async function toggleCheck(item: any) {
   }
 }
 
-const getSubjectName = (subject: string) => {
-  return formatSubjectDisplay(subject, t, te);
-};
-
-const userSubjects = computed(() => {
-  const subjects = new Set<string>();
-  if (
-    !user.value?.personalized ||
-    !user.value?.doneSetup ||
-    !Array.isArray(user.value.courses)
-  ) {
-    return subjects;
-  }
-
-  user.value.courses.forEach((c: any) => {
-    const subject = subjectStore.subjects.find((s) => s.id === c.subjectId);
-    if (!subject) return;
-    const course = subject.courses?.find((csc) => csc.id === c.courseId);
-    if (course) {
-      subjects.add(`${subject.name} - ${course.name}`);
-      // A subject with a single optional course is named without its course.
-      if (
-        courseSelectionFor(subject.category) === 'optional' &&
-        subject.courses?.length === 1
-      ) {
-        subjects.add(subject.name);
-      }
-    }
-  });
-  return subjects;
-});
+const getSubjectName = (item: HwItem) =>
+  formatSubjectDisplay(item.subjectName, item.courseName, t, te);
 
 const filteredTasks = computed(() => {
-  let list = rawItems.value.filter((item) => {
+  return rawItems.value.filter((item) => {
     const isChecked = checkedIds.value.has(item.id);
     const isPending = pendingCheckRemovals.value.has(item.id);
     return !isChecked || isPending;
   });
-
-  const isPersonalizedActive =
-    user.value?.personalized && user.value?.doneSetup;
-  if (isPersonalizedActive && userSubjects.value.size > 0) {
-    list = list.filter((item) => {
-      const subjectLower = item.subject.toLowerCase();
-      const subjectName = subjectLower.split(' - ')[0]?.trim();
-      const categoryMatch = subjectStore.subjects.find(
-        (s) => s.name.toLowerCase() === subjectName,
-      );
-
-      if (
-        categoryMatch &&
-        courseSelectionFor(categoryMatch.category) !== 'none' &&
-        (categoryMatch.courses?.length ?? 0) > 0
-      ) {
-        return userSubjects.value.has(item.subject);
-      }
-      return true;
-    });
-  }
-
-  return list;
 });
 
 const sortedTasks = computed(() => {
@@ -322,38 +277,8 @@ const upcomingLesson = computed(() => {
   return lessonsWithTimes[0]?.lesson;
 });
 
-const getDisplayName = (lesson: any): string => {
-  if (lesson.isSubstitutedSubject && lesson.subject) {
-    return lesson.subject;
-  }
-
-  const subjectName = lessonSubjectName(lesson);
-  const normalizedSubject = subjectName.toLowerCase();
-
-  if (normalizedSubject === 'wpu1' || normalizedSubject === 'wpu2') {
-    const courseName = lesson.courses?.name || lesson.courseName;
-    if (courseName) {
-      return `WPU ${t(`common.subjects.${courseName}`)}`;
-    }
-    return normalizedSubject === 'wpu1' ? 'WPU 1' : 'WPU 2';
-  }
-
-  if (normalizedSubject === 'enrichment') {
-    return t('common.subjects.enrichment');
-  }
-
-  if (normalizedSubject === 'theater') {
-    return t('common.subjects.theater');
-  }
-
-  if (subjectName) {
-    const translationKey = `common.subjects.${subjectName}`;
-    const translation = t(translationKey);
-    return translation !== translationKey ? translation : subjectName;
-  }
-
-  return '';
-};
+const getDisplayName = (lesson: Lesson): string =>
+  lessonDisplayName(lesson, t, te);
 
 const scheduleChanges = computed(() => {
   const changes = effectiveLessons.value.filter((l) => {
@@ -512,7 +437,7 @@ const {
 
                 <template #badges>
                   <div class="text-on-ghost-muted text-base">
-                    {{ getSubjectName(task.subject) }}
+                    {{ getSubjectName(task) }}
                     •
                     {{ new Date(task.dueDate).toLocaleDateString() }}
                   </div>

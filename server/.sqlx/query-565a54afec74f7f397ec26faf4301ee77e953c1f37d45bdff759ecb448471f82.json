@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT i.id, i.type, i.title, i.subject, i.description, i.images, i.due_date,\n                          i.created_by, i.editor_note, i.created_at, i.updated_at\n                   FROM items i\n                   WHERE i.tenant_id = $1\n                     AND i.type = $2\n                     AND LOWER(TRIM(i.subject)) = LOWER(TRIM($3))\n                     AND (i.due_date AT TIME ZONE 'Europe/Berlin')::date = ($4 AT TIME ZONE 'Europe/Berlin')::date\n                   LIMIT 1",
+  "query": "SELECT i.id, i.type, i.title,\n                      COALESCE(s.name, i.custom_subject) AS \"subject_name!\", c.name AS \"course_name?\",\n                      i.description, i.images, i.due_date, i.editor_note, i.tenant_id,\n                      u.email AS \"creator_email?: String\"\n               FROM items i\n               LEFT JOIN subjects s ON s.id = i.subject_id\n               LEFT JOIN courses c ON c.id = i.course_id\n               LEFT JOIN users u ON u.id = i.created_by\n               WHERE i.id = $1 AND i.tenant_id = $2",
   "describe": {
     "columns": [
       {
@@ -38,17 +38,23 @@
       },
       {
         "ordinal": 3,
-        "name": "subject",
+        "name": "subject_name!",
+        "type_info": "Text",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 4,
+        "name": "course_name?",
         "type_info": "Text",
         "origin": {
           "Table": {
-            "table": "items",
-            "name": "subject"
+            "table": "courses",
+            "name": "name"
           }
         }
       },
       {
-        "ordinal": 4,
+        "ordinal": 5,
         "name": "description",
         "type_info": "Text",
         "origin": {
@@ -59,7 +65,7 @@
         }
       },
       {
-        "ordinal": 5,
+        "ordinal": 6,
         "name": "images",
         "type_info": "Jsonb",
         "origin": {
@@ -70,24 +76,13 @@
         }
       },
       {
-        "ordinal": 6,
+        "ordinal": 7,
         "name": "due_date",
         "type_info": "Timestamptz",
         "origin": {
           "Table": {
             "table": "items",
             "name": "due_date"
-          }
-        }
-      },
-      {
-        "ordinal": 7,
-        "name": "created_by",
-        "type_info": "Uuid",
-        "origin": {
-          "Table": {
-            "table": "items",
-            "name": "created_by"
           }
         }
       },
@@ -104,23 +99,23 @@
       },
       {
         "ordinal": 9,
-        "name": "created_at",
-        "type_info": "Timestamptz",
+        "name": "tenant_id",
+        "type_info": "Uuid",
         "origin": {
           "Table": {
             "table": "items",
-            "name": "created_at"
+            "name": "tenant_id"
           }
         }
       },
       {
         "ordinal": 10,
-        "name": "updated_at",
-        "type_info": "Timestamptz",
+        "name": "creator_email?: String",
+        "type_info": "Text",
         "origin": {
           "Table": {
-            "table": "items",
-            "name": "updated_at"
+            "table": "users",
+            "name": "email"
           }
         }
       }
@@ -128,24 +123,22 @@
     "parameters": {
       "Left": [
         "Uuid",
-        "Text",
-        "Text",
-        "Timestamptz"
+        "Uuid"
       ]
     },
     "nullable": [
       false,
       false,
       false,
-      false,
+      null,
       true,
-      true,
-      false,
       true,
       true,
       false,
-      false
+      true,
+      false,
+      true
     ]
   },
-  "hash": "64db33bec7ea5262b4188082f5e1981a326bd9cbab2be349f0002aca33c9c54a"
+  "hash": "565a54afec74f7f397ec26faf4301ee77e953c1f37d45bdff759ecb448471f82"
 }

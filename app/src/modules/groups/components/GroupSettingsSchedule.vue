@@ -31,7 +31,7 @@ import { useIsMobileViewport } from '@/common/composables/useViewport';
 import {
   lessonLastSlot,
   lessonSpan,
-  lessonSubjectName,
+  lessonDisplayName,
 } from '@/modules/schedule/utils/lesson';
 import {
   DEFAULT_SCHEDULE_CONFIG,
@@ -41,6 +41,7 @@ import {
 } from '@/modules/schedule/utils/slotTimes';
 import { formatWeekday } from '@/modules/schedule/utils/weekday';
 import { DALTON_SUBJECT_KEY } from '@/types/subjects';
+import { courseLabel, subjectLabel } from '@/utils/subject-formatter';
 
 const i18n = useI18n();
 const { t, locale } = i18n;
@@ -69,7 +70,6 @@ const emit = defineEmits<{
     configPayload: ScheduleConfig,
     onSuccess?: () => void,
   ): void;
-  (e: 'save-lesson', payload: Record<string, unknown>): void;
   (e: 'delete-lesson', id: string): void;
 }>();
 
@@ -261,8 +261,8 @@ const selectedLessonSubject = computed(() => {
 function courseOptionLabel(course: AdminCourse): string {
   const typeKey = `groups.settings.subjects.course_types_short.${course.courseType}`;
   return course.courseType && te(typeKey)
-    ? `${course.name} (${t(typeKey)})`
-    : course.name;
+    ? `${courseLabel(course.name, t, te)} (${t(typeKey)})`
+    : courseLabel(course.name, t, te);
 }
 
 const targetCourseOptions = computed(() => {
@@ -286,15 +286,14 @@ function getSubCourseName(courseId?: string | null): string {
   for (const s of subjects.value) {
     if (s.courses) {
       const c = s.courses.find((crs: any) => crs.id === courseId);
-      if (c) return c.name;
+      if (c) return courseLabel(c.name, t, te);
     }
   }
   return t('groups.settings.schedule.changes.specific_course');
 }
 
 function getDisplayName(lesson: Lesson): string {
-  if (lesson.isDalton) return t(`common.subjects.${DALTON_SUBJECT_KEY}`);
-  return lessonSubjectName(lesson) || t('common.selection.unknown');
+  return lessonDisplayName(lesson, t, te) || t('common.selection.unknown');
 }
 
 function onLessonSelected(lesson: Lesson) {
@@ -650,7 +649,7 @@ const isDaltonSelected = computed(
 // pseudo-subject while the group has it enabled.
 const subjectOptions = computed(() => {
   const options = subjects.value.map((s) => ({
-    label: s.name,
+    label: subjectLabel(s.name, t, te),
     value: s.id,
   }));
   if (activeGroupDaltonEnabled.value) {
@@ -658,9 +657,8 @@ const subjectOptions = computed(() => {
       label: t(`common.subjects.${DALTON_SUBJECT_KEY}`),
       value: DALTON_LESSON_OPTION,
     });
-    options.sort((a, b) => a.label.localeCompare(b.label));
   }
-  return options;
+  return options.sort((a, b) => a.label.localeCompare(b.label, locale.value));
 });
 
 // Selected Subject Object
@@ -1388,7 +1386,13 @@ onBeforeUnmount(() => {
             </thead>
             <tbody>
               <tr v-for="sub in subs" :key="sub.id">
-                <td>{{ sub.subject || t('common.selection.unknown') }}</td>
+                <td>
+                  {{
+                    sub.subject
+                      ? subjectLabel(sub.subject, t, te)
+                      : t('common.selection.unknown')
+                  }}
+                </td>
                 <td>{{ getSubCourseName(sub.courseId) }}</td>
                 <td>{{ sub.room || '-' }}</td>
                 <td>{{ sub.day || '-' }}</td>

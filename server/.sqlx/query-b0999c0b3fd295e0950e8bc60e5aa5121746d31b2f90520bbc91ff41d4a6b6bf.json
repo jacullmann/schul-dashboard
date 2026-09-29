@@ -1,0 +1,25 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT EXISTS (\n                           SELECT 1 FROM subjects s\n                           WHERE s.id = $1 AND s.tenant_id = $2\n                             AND ($3::uuid IS NULL\n                                  OR EXISTS (SELECT 1 FROM courses c WHERE c.id = $3 AND c.subject_id = s.id))\n                       ) AS \"valid!\"",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "valid!",
+        "type_info": "Bool",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "b0999c0b3fd295e0950e8bc60e5aa5121746d31b2f90520bbc91ff41d4a6b6bf"
+}

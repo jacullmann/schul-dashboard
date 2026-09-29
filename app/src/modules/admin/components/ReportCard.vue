@@ -48,7 +48,9 @@ const body = computed(() =>
           <span v-if="report.contentDeleted">·</span>
           <span>{{ getTypeLabel(report.itemType) }}</span>
           <span>·</span>
-          <span>{{ getSubjectName(report.itemSubject) }}</span>
+          <span>{{
+            getSubjectName(report.itemSubject, report.itemCourse)
+          }}</span>
           <span>·</span>
           <span>{{ fmtDate(report.itemDueDate) }}</span>
           <template v-if="report.creatorEmail">

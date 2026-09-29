@@ -3,7 +3,11 @@ import { useI18n } from 'vue-i18n';
 import type { HwItem } from '@/modules/tasks/composables/useTasks';
 import type { ItemType } from '@/modules/tasks/types';
 import { X, Upload, FileText } from '@lucide/vue';
-import { useTaskFormLogic } from '../composables/useTaskFormLogic';
+import {
+  OTHER_SUBJECT,
+  useTaskFormLogic,
+} from '../composables/useTaskFormLogic';
+import { CUSTOM_SUBJECT_MAX_LENGTH } from '@/types/subjects';
 import ItemCard from './ItemCard.vue';
 import TaskCardDescription from './TaskCardDescription.vue';
 
@@ -149,7 +153,7 @@ const {
       </BaseFormGroup>
 
       <BaseFormGroup
-        v-if="subjectSel === '__OTHER__'"
+        v-if="subjectSel === OTHER_SUBJECT"
         id="subjectOther"
         :error="subjectOtherError"
       >
@@ -159,6 +163,7 @@ const {
         <BaseInput
           id="subjectOther"
           v-model="subjectOther"
+          :maxlength="CUSTOM_SUBJECT_MAX_LENGTH"
           :aria-describedby="
             subjectOtherError ? 'subjectOther-error' : undefined
           "

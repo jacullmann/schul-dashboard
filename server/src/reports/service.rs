@@ -39,10 +39,13 @@ impl ReportsService {
         reason: Option<&str>,
     ) -> AppResult<Value> {
         let item = sqlx::query!(
-            r#"SELECT i.id, i.type, i.title, i.subject, i.description,
-                      i.images, i.due_date, i.editor_note, i.tenant_id,
+            r#"SELECT i.id, i.type, i.title,
+                      COALESCE(s.name, i.custom_subject) AS "subject_name!", c.name AS "course_name?",
+                      i.description, i.images, i.due_date, i.editor_note, i.tenant_id,
                       u.email AS "creator_email?: String"
                FROM items i
+               LEFT JOIN subjects s ON s.id = i.subject_id
+               LEFT JOIN courses c ON c.id = i.course_id
                LEFT JOIN users u ON u.id = i.created_by
                WHERE i.id = $1 AND i.tenant_id = $2"#,
             item_id,
@@ -56,7 +59,8 @@ impl ReportsService {
             "itemId": item.id,
             "itemTitle": item.title,
             "itemType": item.r#type,
-            "itemSubject": item.subject,
+            "itemSubject": item.subject_name,
+            "itemCourse": item.course_name,
             "itemDescription": item.description,
             "itemImages": item.images,
             "itemDueDate": item.due_date,
