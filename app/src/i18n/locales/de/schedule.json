@@ -18,6 +18,8 @@
   },
   "lesson": "Stunde",
   "loading": "Lade Stundenplan...",
+  "period": "{slot}. Std.",
+  "periods": "{first}.–{last}. Std.",
   "personalized": "Personalisiert",
   "title": "Stundenplan",
   "day_end": "Schluss"

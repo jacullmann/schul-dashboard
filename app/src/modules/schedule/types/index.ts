@@ -29,7 +29,7 @@ export interface Lesson {
   outsideCourseSelection?: boolean;
 }
 
-/** Lessons that start in the same slot of the same day share one cell. */
+/** Lessons of the same day whose slots overlap share one cell, earliest first. */
 export interface LessonGroup {
   key: string;
   day: number;

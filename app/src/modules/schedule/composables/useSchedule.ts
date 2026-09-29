@@ -16,9 +16,9 @@ import type {
 import { useI18n } from 'vue-i18n';
 import { formatTimeOfDay } from '@/utils/time';
 import {
-  groupLessonsBySlot,
+  groupOverlappingLessons,
   lessonLastSlot,
-  lessonSpan,
+  lessonsSlotRange,
   lessonSubjectName,
   resolveLessonSubject,
   subjectsById,
@@ -310,7 +310,7 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
   const timeSlots = computed(() => timeSlotsOf(scheduleConfig.value));
 
   const groupedLessons = computed<LessonGroup[]>(() =>
-    groupLessonsBySlot(effectiveLessons.value),
+    groupOverlappingLessons(effectiveLessons.value),
   );
 
   const lastSlotByDayOf = (dayLessons: Lesson[]) => {
@@ -343,14 +343,13 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
     rowOfSlot: (slot: number) => number,
     mobileColumn: (desktopColumn: number) => number,
   ): Record<string, string> => {
-    if (!groupLessons.length) return {};
     const firstLesson = groupLessons[0];
     if (!firstLesson) return {};
-    const maxDuration = Math.max(...groupLessons.map(lessonSpan));
+    const { firstSlot, lastSlot } = lessonsSlotRange(groupLessons);
     const dayIndex = days.indexOf(firstLesson.day);
     const colStart = dayIndex + 2;
-    const rowStart = rowOfSlot(firstLesson.slot);
-    const rowEnd = rowOfSlot(firstLesson.slot + maxDuration - 1) + 1;
+    const rowStart = rowOfSlot(firstSlot);
+    const rowEnd = rowOfSlot(lastSlot) + 1;
     const minHeight = Math.max(58, groupLessons.length * 54);
     return {
       '--col-desktop': `${colStart} / span 1`,
@@ -524,10 +523,11 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
         const dayIdx = dayMap[first.day] ?? -1;
         if (dayIdx === -1) return null;
 
+        const { firstSlot, lastSlot } = lessonsSlotRange(group);
         const { start, end } = slotRangeMinutes(
           scheduleConfig.value,
-          first.slot,
-          first.slot + Math.max(...group.map(lessonSpan)) - 1,
+          firstSlot,
+          lastSlot,
         );
         const startTotal = dayIdx * 24 * 60 + start;
         const endTotal = dayIdx * 24 * 60 + end;

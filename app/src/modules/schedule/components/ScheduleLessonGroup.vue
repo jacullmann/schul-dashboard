@@ -1,8 +1,12 @@
 <script setup lang="ts">
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { Plus } from '@lucide/vue';
 import ScheduleLessonItem from './ScheduleLessonItem.vue';
+import type { Lesson } from '@/modules/schedule/types';
+import { lessonsSlotRange } from '@/modules/schedule/utils/lesson';
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     group: any[];
     groupKey: string;
@@ -35,6 +39,27 @@ const emit = defineEmits<{
   (e: 'contextmenu-lesson', lesson: any, event: UIEvent): void;
   (e: 'add-lesson'): void;
 }>();
+
+const { t } = useI18n();
+
+const groupRange = computed(() => lessonsSlotRange(props.group));
+
+/*
+ * A lesson filling only part of the cell's slots names its own, since the
+ * cell's height no longer tells when it takes place.
+ */
+const periodLabel = (lesson: Lesson) => {
+  const { firstSlot, lastSlot } = lessonsSlotRange([lesson]);
+  if (
+    firstSlot === groupRange.value.firstSlot &&
+    lastSlot === groupRange.value.lastSlot
+  ) {
+    return undefined;
+  }
+  return firstSlot === lastSlot
+    ? t('schedule.period', { slot: firstSlot })
+    : t('schedule.periods', { first: firstSlot, last: lastSlot });
+};
 </script>
 
 <template>
@@ -57,6 +82,7 @@ const emit = defineEmits<{
       :key="index"
       :lesson="lesson"
       :has-border="index < group.length - 1"
+      :period-label="periodLabel(lesson)"
       :is-clickable="isClickable"
       :has-context-menu="hasContextMenu"
       :is-selected="

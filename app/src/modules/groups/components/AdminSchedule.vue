@@ -12,7 +12,7 @@ import { useSchedule } from '@/modules/schedule/composables/useSchedule';
 import { useScheduleDayPager } from '@/modules/schedule/composables/useScheduleDayPager';
 import { entranceDelay } from '@/modules/schedule/utils/entrance';
 import {
-  groupLessonsBySlot,
+  groupOverlappingLessons,
   lessonSpan,
   resolveLessonSubject,
   subjectsById,
@@ -114,7 +114,9 @@ const displayLessons = computed(() => {
   });
 });
 
-const groupedLessons = computed(() => groupLessonsBySlot(displayLessons.value));
+const groupedLessons = computed(() =>
+  groupOverlappingLessons(displayLessons.value),
+);
 
 const coveredSlots = computed(() => {
   const set = new Set<string>();

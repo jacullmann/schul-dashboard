@@ -15,9 +15,10 @@ const props = withDefaults(
     isClickable?: boolean;
     isSelected?: boolean;
     hasContextMenu?: boolean;
+    periodLabel?: string;
     getDisplayName: (l: any) => string;
   }>(),
-  { hasContextMenu: false },
+  { hasContextMenu: false, periodLabel: undefined },
 );
 
 const { t } = useI18n();
@@ -141,6 +142,9 @@ const roomChanged = computed(
           <template v-else>
             {{ lesson.room || '-' }}
           </template>
+        </span>
+        <span v-if="periodLabel" class="shrink-0 ml-2">
+          {{ periodLabel }}
         </span>
       </div>
     </div>

@@ -29,18 +29,48 @@ export function lessonLastSlot(
   return Number(lesson.slot) + lessonSpan(lesson) - 1;
 }
 
-export function groupLessonsBySlot(lessons: Lesson[]): LessonGroup[] {
-  const groups = new Map<string, LessonGroup>();
-  for (const lesson of lessons) {
-    const key = `${lesson.day}-${lesson.slot}`;
-    const group = groups.get(key);
-    if (group) {
-      group.lessons.push(lesson);
+export interface SlotRange {
+  firstSlot: number;
+  lastSlot: number;
+}
+
+/** The slots a set of lessons fills together, from the first start to the last end. */
+export function lessonsSlotRange(
+  lessons: readonly (Pick<Lesson, 'slot'> & { duration?: number | null })[],
+): SlotRange {
+  return {
+    firstSlot: Math.min(...lessons.map((lesson) => Number(lesson.slot))),
+    lastSlot: Math.max(...lessons.map(lessonLastSlot)),
+  };
+}
+
+/**
+ * Lessons of a day whose slots overlap, directly or through another lesson,
+ * share one cell. A cell fills its rows alone, so overlapping cells would
+ * cover each other instead of showing every lesson.
+ */
+export function groupOverlappingLessons(lessons: Lesson[]): LessonGroup[] {
+  const chronological = lessons.toSorted(
+    (a, b) => a.day - b.day || a.slot - b.slot,
+  );
+  const groups: LessonGroup[] = [];
+  let current: LessonGroup | undefined;
+  let currentLastSlot = 0;
+  for (const lesson of chronological) {
+    if (current?.day === lesson.day && lesson.slot <= currentLastSlot) {
+      current.lessons.push(lesson);
+      currentLastSlot = Math.max(currentLastSlot, lessonLastSlot(lesson));
     } else {
-      groups.set(key, { key, day: lesson.day, lessons: [lesson] });
+      current = {
+        key: `${lesson.day}-${lesson.slot}`,
+        day: lesson.day,
+        lessons: [lesson],
+      };
+      groups.push(current);
+      currentLastSlot = lessonLastSlot(lesson);
     }
   }
-  return [...groups.values()];
+  return groups;
 }
 
 export function subjectsById(
