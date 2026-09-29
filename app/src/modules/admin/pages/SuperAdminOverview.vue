@@ -76,8 +76,8 @@ onMounted(loadDailyActivity);
   <div v-if="loadingStats && !stats" class="flex justify-center p-10">
     <BaseSpinner on="ghost" size="24px" />
   </div>
-  <template v-else-if="stats">
-    <div class="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-3 mb-7">
+  <div v-else-if="stats" class="flex flex-col gap-7">
+    <div class="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-3">
       <div
         v-for="s in headlineStats"
         :key="s.key"
@@ -93,55 +93,59 @@ onMounted(loadDailyActivity);
       </div>
     </div>
 
-    <h3 class="mb-3">{{ t('admin.overview.details_title') }}</h3>
-    <div
-      class="grid grid-cols-[repeat(auto-fit,minmax(120px,1fr))] gap-2.5 mb-7"
-    >
-      <div v-for="s in userStats" :key="s.key" class="stat-card p-3!">
-        <div class="text-lg font-bold tabular-nums">{{ s.value }}</div>
-        <div class="text-sm text-on-ghost-muted">
-          {{ t(`admin.overview.stats.${s.key}`) }}
-        </div>
-      </div>
-    </div>
-
-    <h3 class="mb-3">{{ t('admin.overview.chart.title') }}</h3>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-7">
-      <DailyBarChart
-        :title="t('admin.overview.chart.new_users')"
-        :points="newUserPoints"
-      />
-      <DailyBarChart
-        :title="t('admin.overview.chart.new_tasks')"
-        :points="newItemPoints"
-      />
-    </div>
-
-    <h3 class="mb-3">{{ t('admin.overview.cleanup.title') }}</h3>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-      <div
-        v-for="c in cleanups"
-        :key="c.target"
-        class="stat-card flex items-center justify-between gap-3 text-left!"
-      >
-        <div>
-          <div class="font-semibold">{{ t(`${c.i18nKey}.label`) }}</div>
+    <section class="flex flex-col gap-3">
+      <h3>{{ t('admin.overview.details_title') }}</h3>
+      <div class="grid grid-cols-[repeat(auto-fit,minmax(120px,1fr))] gap-2.5">
+        <div v-for="s in userStats" :key="s.key" class="stat-card p-3!">
+          <div class="text-lg font-bold tabular-nums">{{ s.value }}</div>
           <div class="text-sm text-on-ghost-muted">
-            {{ t(`${c.i18nKey}.count`, { count: c.count }) }}
+            {{ t(`admin.overview.stats.${s.key}`) }}
           </div>
         </div>
-        <BaseButton
-          variant="ghost"
-          :icon="Trash2"
-          :disabled="c.count === 0 || cleaningUp !== null"
-          :loading="cleaningUp === c.target"
-          @click="cleanup(c.target)"
-        >
-          {{ t('admin.overview.cleanup.action') }}
-        </BaseButton>
       </div>
-    </div>
-  </template>
+    </section>
+
+    <section class="flex flex-col gap-3">
+      <h3>{{ t('admin.overview.chart.title') }}</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <DailyBarChart
+          :title="t('admin.overview.chart.new_users')"
+          :points="newUserPoints"
+        />
+        <DailyBarChart
+          :title="t('admin.overview.chart.new_tasks')"
+          :points="newItemPoints"
+        />
+      </div>
+    </section>
+
+    <section class="flex flex-col gap-3">
+      <h3>{{ t('admin.overview.cleanup.title') }}</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div
+          v-for="c in cleanups"
+          :key="c.target"
+          class="stat-card flex items-center justify-between gap-3 text-left!"
+        >
+          <div>
+            <div class="font-semibold">{{ t(`${c.i18nKey}.label`) }}</div>
+            <div class="text-sm text-on-ghost-muted">
+              {{ t(`${c.i18nKey}.count`, { count: c.count }) }}
+            </div>
+          </div>
+          <BaseButton
+            variant="ghost"
+            :icon="Trash2"
+            :disabled="c.count === 0 || cleaningUp !== null"
+            :loading="cleaningUp === c.target"
+            @click="cleanup(c.target)"
+          >
+            {{ t('admin.overview.cleanup.action') }}
+          </BaseButton>
+        </div>
+      </div>
+    </section>
+  </div>
 </template>
 
 <style scoped>

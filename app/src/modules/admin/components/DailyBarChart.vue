@@ -80,18 +80,21 @@ const readout = computed(() => {
       <span>{{ points.length ? formatDay(points.at(-1)!.day) : '' }}</span>
     </div>
 
-    <table class="sr-only">
-      <caption>
-        {{
-          title
-        }}
-      </caption>
-      <tbody>
-        <tr v-for="point in points" :key="point.day">
-          <th scope="row">{{ formatDay(point.day) }}</th>
-          <td>{{ point.value }}</td>
-        </tr>
-      </tbody>
-    </table>
+    <!-- Wrapped because the global table styles would undo `sr-only` on the table itself. -->
+    <div class="sr-only">
+      <table>
+        <caption>
+          {{
+            title
+          }}
+        </caption>
+        <tbody>
+          <tr v-for="point in points" :key="point.day">
+            <th scope="row">{{ formatDay(point.day) }}</th>
+            <td>{{ point.value }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </figure>
 </template>

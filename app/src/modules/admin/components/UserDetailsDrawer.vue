@@ -46,7 +46,7 @@ function roleOptions(current: MemberRole, assignable: MemberRole[]) {
       >
         <div class="flex items-start justify-between gap-3 mb-5">
           <div class="min-w-0">
-            <h3 class="m-0 truncate">{{ user.username }}</h3>
+            <h3 class="truncate">{{ user.username }}</h3>
             <div class="text-sm text-on-ghost-muted truncate">
               {{ user.email }}
             </div>
@@ -65,9 +65,9 @@ function roleOptions(current: MemberRole, assignable: MemberRole[]) {
         <div v-if="loading" class="flex justify-center p-10">
           <BaseSpinner on="ghost" size="24px" />
         </div>
-        <template v-else>
-          <section class="mb-6">
-            <h4 class="mb-2">{{ t('admin.users.details.groups') }}</h4>
+        <div v-else class="flex flex-col gap-6">
+          <section class="flex flex-col gap-2">
+            <h4>{{ t('admin.users.details.groups') }}</h4>
             <p
               v-if="!memberships.length"
               class="text-sm text-on-ghost-muted m-0"
@@ -107,8 +107,8 @@ function roleOptions(current: MemberRole, assignable: MemberRole[]) {
             </ul>
           </section>
 
-          <section>
-            <h4 class="mb-2">{{ t('admin.users.details.activity') }}</h4>
+          <section class="flex flex-col gap-2">
+            <h4>{{ t('admin.users.details.activity') }}</h4>
             <p v-if="!activity.length" class="text-sm text-on-ghost-muted m-0">
               {{ t('admin.users.details.no_activity') }}
             </p>
@@ -122,7 +122,7 @@ function roleOptions(current: MemberRole, assignable: MemberRole[]) {
               </li>
             </ul>
           </section>
-        </template>
+        </div>
       </div>
     </div>
   </Transition>
