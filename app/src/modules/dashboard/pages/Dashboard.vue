@@ -300,7 +300,7 @@ const {
                 <div
                   v-if="index > 0"
                   v-entrance-start="cardEntranceStart"
-                  class="task-separator border-b border-ghost-border ml-10.5 mr-4"
+                  class="task-separator border-b border-ghost-border ml-11.5 mr-4"
                   :class="{ 'animate-enter': isCardEntering(task.id) }"
                   :style="cardEntranceStyle(task.id)"
                 ></div>
