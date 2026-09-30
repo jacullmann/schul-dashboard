@@ -15,7 +15,8 @@ export function subjectLabel(
   t: Translate,
   te: TranslationExists,
 ): string {
-  const key = builtInSubjectKey(name);
+  const key =
+    name === DALTON_SUBJECT_KEY ? DALTON_SUBJECT_KEY : builtInSubjectKey(name);
   return key && te(`common.subjects.${key}`)
     ? t(`common.subjects.${key}`)
     : name;
