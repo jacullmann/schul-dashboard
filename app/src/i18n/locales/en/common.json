@@ -277,5 +277,9 @@
   },
   "preview": "Preview",
   "image": "Image",
-  "more": "More"
+  "more": "More",
+  "connection": {
+    "offline": "No internet connection",
+    "restored": "Back online"
+  }
 }

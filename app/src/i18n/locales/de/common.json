@@ -277,5 +277,9 @@
   },
   "preview": "Vorschau",
   "image": "Bild",
-  "more": "Mehr"
+  "more": "Mehr",
+  "connection": {
+    "offline": "Keine Internetverbindung",
+    "restored": "Wieder online"
+  }
 }

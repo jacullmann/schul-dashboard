@@ -9,6 +9,7 @@ import { useOAuth } from '@/modules/auth/composables/useOAuth';
 import { useLoadingBar } from '@/common/composables/loadingState';
 import GlobalModalContainer from '@/core/components/GlobalModalContainer.vue';
 import BaseToast from '@/common/components/BaseToast.vue';
+import ConnectionStatus from '@/core/components/ConnectionStatus.vue';
 import hw from './api/api';
 
 const router = useRouter();
@@ -106,5 +107,7 @@ onMounted(() => {
       <GlobalModalContainer />
       <BaseToast />
     </template>
+
+    <ConnectionStatus />
   </div>
 </template>
