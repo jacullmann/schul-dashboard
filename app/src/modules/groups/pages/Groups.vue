@@ -30,14 +30,6 @@ const allGroups = ref<
 
 const isSuperadmin = computed(() => user.value?.role === 'superadmin');
 
-const greeting = computed(() => {
-  const h = new Date().getHours();
-  if (h < 6) return 'groups.list.good_night';
-  if (h < 12) return 'groups.list.good_morning';
-  if (h < 18) return 'groups.list.good_day';
-  return 'groups.list.good_evening';
-});
-
 function roleLabel(role: string): string {
   const map: Record<string, string> = {
     admin: t('common.roles.admin'),
@@ -101,53 +93,14 @@ const { handlers: longPressHandlers } = useLongPress(
   { within: '[data-group-id]', grow: '[data-group-id]' },
 );
 
-/** The greeting, the prompt and its action, then the groups one by one. */
-const PROMPT_ENTRANCE_ORDER = 1;
-const GROUPS_HEADER_ENTRANCE_ORDER = 2;
-const GROUPS_LIST_ENTRANCE_ORDER = 3;
+/** The header and its action, then the groups one by one. */
+const GROUPS_HEADER_ENTRANCE_ORDER = 1;
+const GROUPS_LIST_ENTRANCE_ORDER = 2;
 </script>
 
 <template>
   <div class="md:p-4">
-    <section class="max-md:pt-4 max-md:px-4 mb-4 md:mb-8">
-      <div class="flex justify-between items-start gap-4">
-        <div>
-          <h2 class="animate-enter">
-            {{ t(greeting) }}
-          </h2>
-          <p
-            class="text-base/relaxed text-on-ghost-muted m-0! animate-enter"
-            :style="{ '--enter-delay': entranceDelay(PROMPT_ENTRANCE_ORDER) }"
-          >
-            {{
-              userGroups.length
-                ? t('groups.list.choose_group_prompt')
-                : t('groups.list.join_or_create_prompt')
-            }}
-          </p>
-        </div>
-
-        <div
-          v-if="userGroups.length > 0"
-          class="relative animate-enter"
-          :style="{ '--enter-delay': entranceDelay(PROMPT_ENTRANCE_ORDER) }"
-        >
-          <BaseTooltip
-            :content="t('groups.list.tooltip.create_group')"
-            placement="bottom"
-          >
-            <BaseButton
-              variant="action"
-              :icon="Plus"
-              icon-classes="size-6"
-              @click="modalStore.openCreateGroup()"
-            />
-          </BaseTooltip>
-        </div>
-      </div>
-    </section>
-
-    <section v-if="userGroups.length > 0" class="mb-9">
+    <section v-if="userGroups.length > 0" class="max-md:pt-4 mb-9">
       <div
         class="flex items-center gap-2.5 mb-4 max-md:px-4 animate-enter"
         :style="{
@@ -161,6 +114,18 @@ const GROUPS_LIST_ENTRANCE_ORDER = 3;
           class="text-on-ghost-muted bg-ghost-hover rounded-full text-sm font-semibold px-2.5 py-0.5"
           >{{ userGroups.length }}</span
         >
+        <BaseTooltip
+          class="ml-auto"
+          :content="t('groups.list.tooltip.create_group')"
+          placement="bottom"
+        >
+          <BaseButton
+            variant="action"
+            :icon="Plus"
+            icon-classes="size-6"
+            @click="modalStore.openCreateGroup()"
+          />
+        </BaseTooltip>
       </div>
       <div class="flex flex-col" v-on="longPressHandlers">
         <div
@@ -210,7 +175,7 @@ const GROUPS_LIST_ENTRANCE_ORDER = 3;
 
     <section
       v-if="!isSuperadmin && userGroups.length === 0 && !loading"
-      class="animate-enter"
+      class="max-md:pt-4 animate-enter"
       :style="{ '--enter-delay': entranceDelay(GROUPS_HEADER_ENTRANCE_ORDER) }"
     >
       <BaseEmptyState
