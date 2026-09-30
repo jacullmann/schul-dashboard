@@ -250,13 +250,14 @@ onMounted(() => {
 
       <article v-if="isReady && item" class="flex flex-col gap-4">
         <header
-          class="animate-enter flex flex-col gap-1"
+          class="animate-enter"
           :style="{ '--enter-delay': entranceDelay(TITLE_ENTRANCE_ORDER) }"
         >
           <div class="flex items-start gap-3">
             <BaseCheckbox
               v-if="user"
               class="mt-1.5"
+              size="lg"
               :checked="isChecked(item.id)"
               @change="toggleCheck(item)"
             />
@@ -264,7 +265,12 @@ onMounted(() => {
               {{ item.title }}
             </h2>
           </div>
-          <TaskMeta :item="item" show-type :show-creator="canSeeCreator" />
+          <TaskMeta
+            :item="item"
+            show-type
+            spread
+            :show-creator="canSeeCreator"
+          />
         </header>
 
         <TaskNote

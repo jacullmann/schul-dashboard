@@ -5,12 +5,31 @@ withDefaults(
   defineProps<{
     modelValue?: boolean;
     checked?: boolean;
+    size?: 'md' | 'lg';
   }>(),
   {
     modelValue: false,
     checked: false,
+    size: 'md',
   },
 );
+
+const sizeClasses = {
+  md: {
+    box: 'size-4.5 rounded-sm',
+    fill: 'inset-0 rounded-[1px]',
+    hover: 'size-[34px]',
+    check: 'size-4',
+    checkStroke: 3,
+  },
+  lg: {
+    box: 'size-6 rounded-full',
+    fill: '-inset-0.5 rounded-full checkbox-bg-clip-round',
+    hover: 'size-10',
+    check: 'size-4',
+    checkStroke: 3,
+  },
+} as const;
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void;
@@ -43,16 +62,23 @@ function handleLabelClick(event: MouseEvent) {
       @change="handleChange"
     />
     <span
-      class="relative size-4.5 shrink-0 touch-target after:min-w-12 after:min-h-12 rounded-sm border-2 border-on-ghost-muted inline-flex items-center justify-center bg-transparent group-hover:border-action peer-checked:border-action transition-colors duration-300 ease-out"
+      class="relative shrink-0 touch-target after:min-w-12 after:min-h-12 border-2 border-on-ghost-muted inline-flex items-center justify-center bg-transparent group-hover:border-action peer-checked:border-action transition-colors duration-300 ease-out"
+      :class="sizeClasses[size].box"
       aria-hidden="true"
     >
       <span
-        class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[34px] rounded-full bg-transparent scale-50 group-hover:bg-surface-hover group-hover:scale-100 transition duration-150 ease-in-out z-[-1]"
+        class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-transparent scale-50 group-hover:bg-surface-hover group-hover:scale-100 transition duration-150 ease-in-out z-[-1]"
+        :class="sizeClasses[size].hover"
       ></span>
       <span
-        class="absolute inset-0 bg-action flex items-center justify-center rounded-[1px] checkbox-bg-clip"
+        class="absolute bg-action flex items-center justify-center checkbox-bg-clip"
+        :class="sizeClasses[size].fill"
       >
-        <Check class="size-4 text-on-action check-animate" stroke-width="3" />
+        <Check
+          class="text-on-action check-animate"
+          :class="sizeClasses[size].check"
+          :stroke-width="sizeClasses[size].checkStroke"
+        />
       </span>
     </span>
     <span

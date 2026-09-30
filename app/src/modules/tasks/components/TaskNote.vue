@@ -99,7 +99,7 @@ watch(
       </div>
     </div>
 
-    <div v-if="!editing && canEdit" class="flex gap-1 items-start -mr-2">
+    <div v-if="!editing && canEdit" class="flex gap-1 items-start -mr-2 -my-1">
       <BaseTooltip :content="t('common.buttons.edit')" placement="bottom">
         <BaseButton
           variant="ghost"

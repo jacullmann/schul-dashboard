@@ -2,7 +2,9 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { formatSubjectDisplay } from '@/utils/subject-formatter';
+import { useIsPhoneViewport } from '@/common/composables/useViewport';
 import type { HwItem } from '@/modules/tasks/types';
+import { formatDueDate } from '@/modules/tasks/utils/dueDate';
 
 const props = defineProps<{
   item: HwItem;
@@ -25,8 +27,13 @@ const leadingParts = computed(() => [
   formatSubjectDisplay(props.item.subjectName, props.item.courseName, t, te),
   ...(props.showType ? [t(`tasks.list.types.${props.item.type}`)] : []),
 ]);
+const isPhoneViewport = useIsPhoneViewport();
 const dueDate = computed(() =>
-  new Date(props.item.dueDate).toLocaleDateString(),
+  formatDueDate(
+    new Date(props.item.dueDate),
+    i18n.locale.value,
+    isPhoneViewport.value ? 'short' : 'long',
+  ),
 );
 const parts = computed(() => [
   ...leadingParts.value,
