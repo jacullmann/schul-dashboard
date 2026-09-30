@@ -3,6 +3,7 @@ import {
   computed,
   watch,
   toValue,
+  onScopeDispose,
   type MaybeRefOrGetter,
   type Ref,
 } from 'vue';
@@ -10,7 +11,9 @@ import {
   usePointerSwipe,
   useElementBounding,
   useEventListener,
-  useTimeoutFn,
+  executeTransition,
+  until,
+  type CubicBezierPoints,
 } from '@vueuse/core';
 import { haptic } from '@/utils/haptics';
 
@@ -34,9 +37,10 @@ export interface SwipeToDismissOptions {
 /** The edge of the card its action buttons appear at. */
 export type SwipeSide = 'left' | 'right';
 
-/** Shared with the card, whose transform has to land together with the buttons. */
+/** Shared with the card, whose corners round off on the same clock as it settles. */
 export const SWIPE_SETTLE_MS = 380;
-export const SWIPE_SETTLE_EASING = 'cubic-bezier(0.22, 1, 0.36, 1)';
+const SWIPE_SETTLE_CURVE: CubicBezierPoints = [0.22, 1, 0.36, 1];
+export const SWIPE_SETTLE_EASING = `cubic-bezier(${SWIPE_SETTLE_CURVE.join(', ')})`;
 
 const DEFAULT_REVEAL_WIDTH = 80;
 const DEFAULT_COMMIT_RATIO = 0.6;
@@ -45,7 +49,6 @@ const MIN_COMMIT_TRAVEL = 64;
 const POINTER_SWIPE_THRESHOLD = 10;
 const HORIZONTAL_LOCK_RATIO = 1.2;
 const SLIDE_OUT_OVERSHOOT = 20;
-const SLIDE_OUT_FALLBACK_MS = 280;
 const ARMED_VIBRATION_MS = 10;
 /** px/ms: a flick this fast opens or closes the card wherever it is let go. */
 const FLICK_VELOCITY = 0.35;
@@ -59,7 +62,8 @@ const VELOCITY_WINDOW_MS = 80;
  * Letting go past half of them, or flicking towards them, snaps the card open
  * onto them; swiping on past `commitRatio` of the card's width runs the main
  * action without the tap. `swipeOffset` is positive while the card is pulled
- * left and negative while it is pulled right.
+ * left and negative while it is pulled right; `animatedOffset` is where the
+ * card and its buttons are drawn on the way there.
  */
 export function useSwipeToDismiss(
   target: Ref<HTMLElement | null>,
@@ -83,8 +87,37 @@ export function useSwipeToDismiss(
   /** Outlasts the offset's return to 0, so the buttons stay on their side while the card slides back. */
   const activeSide = ref<SwipeSide>('right');
   const isDismissing = ref(false);
-  /** Outlasts the offset's return to 0 until the card has slid back. */
-  const isActionsVisible = ref(false);
+
+  /**
+   * Where the card and its buttons are drawn: with the finger while swiping,
+   * easing towards `swipeOffset` once let go. Everything is drawn from this one
+   * value frame by frame, as the card's transform on its own would ease on
+   * the compositor while the buttons' widths ease on the main thread, and
+   * drift from the card's edge whenever that thread is busy.
+   */
+  const animatedOffset = ref(0);
+  let settleRun = 0;
+  watch(
+    [swipeOffset, isSwiping],
+    ([offset, swiping]) => {
+      const run = ++settleRun;
+      if (swiping || animatedOffset.value === offset) {
+        animatedOffset.value = offset;
+        return;
+      }
+      void executeTransition(animatedOffset, animatedOffset.value, offset, {
+        duration: SWIPE_SETTLE_MS,
+        easing: SWIPE_SETTLE_CURVE,
+        abort: () => run !== settleRun,
+      });
+    },
+    { flush: 'sync' },
+  );
+  onScopeDispose(() => settleRun++);
+
+  const isActionsVisible = computed(
+    () => animatedOffset.value !== 0 || isSwiping.value,
+  );
 
   const { width: elementWidth } = useElementBounding(gestureTarget);
   const commitOffsetBeyond = (reveal: number) =>
@@ -104,23 +137,8 @@ export function useSwipeToDismiss(
   let swallowNextClick = false;
   let velocitySamples: { time: number; offset: number }[] = [];
 
-  const { start: hideActionsAfterSettle, stop: keepActionsVisible } =
-    useTimeoutFn(
-      () => {
-        isActionsVisible.value = false;
-      },
-      SWIPE_SETTLE_MS,
-      { immediate: false },
-    );
-
-  watch([swipeOffset, isSwiping], ([offset, swiping]) => {
+  watch(animatedOffset, (offset) => {
     if (offset !== 0) activeSide.value = offset > 0 ? 'right' : 'left';
-    if (offset !== 0 || swiping) {
-      keepActionsVisible();
-      isActionsVisible.value = true;
-    } else if (isActionsVisible.value) {
-      hideActionsAfterSettle();
-    }
   });
 
   watch([isArmed, isStartArmed], () => {
@@ -157,26 +175,11 @@ export function useSwipeToDismiss(
     }
 
     swipeOffset.value = elementWidth.value + SLIDE_OUT_OVERSHOOT;
-
-    const el = target.value;
-    if (!el) {
-      options.onSlideOut();
-      return;
-    }
-
-    let finished = false;
-    const finish = () => {
-      if (finished) return;
-      finished = true;
-      el.removeEventListener('transitionend', onTransitionEnd);
-      clearTimeout(fallback);
-      options.onSlideOut();
-    };
-    const onTransitionEnd = (e: TransitionEvent) => {
-      if (e.propertyName === 'transform') finish();
-    };
-    el.addEventListener('transitionend', onTransitionEnd);
-    const fallback = setTimeout(finish, SLIDE_OUT_FALLBACK_MS);
+    // Done once the card is out of sight, not once its easing has crept to a stop.
+    await until(animatedOffset).toMatch(
+      (offset) => offset >= elementWidth.value,
+    );
+    options.onSlideOut();
   }
 
   /** Positive while the card is heading left. */
@@ -304,11 +307,13 @@ export function useSwipeToDismiss(
     isSwiping.value = false;
     openSide.value = null;
     isDismissing.value = false;
-    isActionsVisible.value = false;
+    settleRun++;
+    animatedOffset.value = 0;
   });
 
   return {
     swipeOffset,
+    animatedOffset,
     isSwiping,
     isArmed,
     isStartArmed,

@@ -106,7 +106,6 @@ const tray = useTemplateRef<ComponentPublicInstance>('tray');
 const {
   revealedOffset,
   activeSide,
-  isSwiping,
   isActionsVisible,
   isTakingOver,
   isRevealed,
@@ -158,7 +157,6 @@ function runSecondarySwipeAction(event: MouseEvent) {
         activeSide === 'right' ? secondarySwipeAction : undefined
       "
       :offset="revealedOffset"
-      :is-swiping="isSwiping"
       :is-taking-over="isTakingOver"
       @action="runSwipeAction"
       @secondary-action="runSecondarySwipeAction"

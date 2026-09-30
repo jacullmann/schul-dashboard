@@ -14,7 +14,6 @@ import {
 import {
   SWIPE_BUTTON_GAP,
   SWIPE_BUTTON_SIZE,
-  SWIPE_SETTLE_TIMING,
   type SwipeAction,
 } from '@/modules/tasks/composables/useSwipeCard';
 import type { Props as BaseButtonProps } from '@/common/components/BaseButton.vue';
@@ -25,9 +24,8 @@ const props = defineProps<{
   side: SwipeSide;
   action: SwipeAction;
   secondaryAction?: SwipeAction;
-  /** How far the card has moved aside. */
+  /** How far the card is drawn aside, eased with it frame by frame. */
   offset: number;
-  isSwiping: boolean;
   /** Past the commit point, or sliding out: the main action takes over. */
   isTakingOver: boolean;
 }>();
@@ -99,10 +97,7 @@ const SECONDARY_FADE_TIMING = '120ms ease-out';
 
 const BUTTON_STEP = SWIPE_BUTTON_SIZE + SWIPE_BUTTON_GAP;
 
-const trayStyle = computed(() => ({
-  width: `${props.offset}px`,
-  transition: props.isSwiping ? 'none' : `width ${SWIPE_SETTLE_TIMING}`,
-}));
+const trayStyle = computed(() => ({ width: `${props.offset}px` }));
 
 /**
  * A button grows from its centre, so once the card's edge is past that, the
@@ -118,10 +113,6 @@ function buttonProgress(buttonIndex: number) {
     props.offset - SWIPE_BUTTON_GAP - buttonIndex * BUTTON_STEP - POP_IN_START;
   return Math.min(1, Math.max(0, pastCentre / POP_IN_DISTANCE));
 }
-
-const popInTransition = computed(() =>
-  props.isSwiping ? '0s' : SWIPE_SETTLE_TIMING,
-);
 
 // Widths and offsets are expressed against the strip (`100%`) so they follow
 // the finger without a transition, which only the takeover needs.
@@ -142,7 +133,7 @@ const primarySlotStyle = computed(() => {
     width: props.isTakingOver
       ? `calc(100% - ${STRIP_INSET}px)`
       : `max(${SWIPE_BUTTON_SIZE}px, calc(100% - ${restingInset}px))`,
-    transition: `width ${TAKEOVER_TIMING}, scale ${popInTransition.value}, opacity ${popInTransition.value}`,
+    transition: `width ${TAKEOVER_TIMING}`,
   };
 });
 
@@ -151,7 +142,8 @@ const secondarySlotStyle = computed(() => ({
   [props.side]: `max(${SWIPE_BUTTON_GAP + BUTTON_STEP}px, calc(100% - ${BUTTON_STEP}px))`,
   width: `${SWIPE_BUTTON_SIZE}px`,
   opacity: props.isTakingOver ? 0 : buttonProgress(1),
-  transition: `opacity ${SECONDARY_FADE_TIMING}, scale ${popInTransition.value}`,
+  // Only the takeover fades it; otherwise it follows the card frame by frame.
+  transition: props.isTakingOver ? `opacity ${SECONDARY_FADE_TIMING}` : 'none',
 }));
 </script>
 

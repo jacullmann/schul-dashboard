@@ -31,7 +31,6 @@ const tray = useTemplateRef<ComponentPublicInstance>('tray');
 const {
   revealedOffset,
   activeSide,
-  isSwiping,
   isActionsVisible,
   isTakingOver,
   cardStyle,
@@ -124,7 +123,6 @@ function onLeave(el: Element) {
       :action="activeSide === 'left' ? 'edit' : 'delete'"
       :secondary-action="activeSide === 'right' ? 'duplicate' : undefined"
       :offset="revealedOffset"
-      :is-swiping="isSwiping"
       :is-taking-over="isTakingOver"
       @action="runSwipeAction"
       @secondary-action="duplicateFromSwipe"

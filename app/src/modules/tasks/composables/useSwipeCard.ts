@@ -66,12 +66,12 @@ export function useSwipeCard(
   const cardStyle = computed(() => {
     if (!swipe.isActionsVisible.value) return undefined;
     return {
-      transform: `translateX(${-swipe.swipeOffset.value}px)`,
-      // The corners round off on the settle clock even mid-drag, when the
-      // transform itself has to follow the finger without easing. An inline
+      // Eased frame by frame together with the buttons, never transitioned.
+      transform: `translateX(${-swipe.animatedOffset.value}px)`,
+      // The corners round off on the settle clock even mid-drag. An inline
       // `transition` replaces the card's class-based one, so the focus and
       // hover properties are repeated here.
-      transition: `transform ${swipe.isSwiping.value ? '0s' : SWIPE_SETTLE_TIMING}, border-radius ${SWIPE_SETTLE_TIMING}, box-shadow ${SWIPE_SETTLE_TIMING}, outline-color ${FOCUS_TIMING}, background-color ${FOCUS_TIMING}`,
+      transition: `border-radius ${SWIPE_SETTLE_TIMING}, box-shadow ${SWIPE_SETTLE_TIMING}, outline-color ${FOCUS_TIMING}, background-color ${FOCUS_TIMING}`,
     };
   });
 
@@ -80,8 +80,8 @@ export function useSwipeCard(
     () => swipe.swipeOffset.value !== 0 || swipe.isSwiping.value,
   );
 
-  /** How far the card is pulled aside, whichever way. */
-  const revealedOffset = computed(() => Math.abs(swipe.swipeOffset.value));
+  /** How far the card is drawn aside, whichever way. */
+  const revealedOffset = computed(() => Math.abs(swipe.animatedOffset.value));
 
   /** Past the commit point the main action takes over the whole strip. */
   const isTakingOver = computed(() =>
