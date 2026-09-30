@@ -19,23 +19,23 @@
         },
         {
           "title": "Aufgaben hinzufügen",
-          "text": "Um eine Aufgabe hinzuzufügen, klicke auf das <strong>+</strong> und wähle den Typ aus. Hausaufgaben, Daltonaufträge und Prüfungen sind immer öffentlich, Private Aufgaben sind verschlüsselt und nur für dich sichtbar. Fülle nun das Formular aus und wähle Fach und Abgabedatum aus. Optional können dazugehörige Bilder hochgeladen werden wie Tafelbilder, Musterlösungen, Notizen, Lernzettel o. ä."
+          "text": "Um eine Aufgabe hinzuzufügen, klicke auf das <strong>+</strong> und wähle den passenden <strong>Typ</strong> (Hausaufgabe, Dalton oder Prüfung) aus. Trage nun einen <strong>Titel</strong>, der die Aufgabe kurz beschreibt, ein und wähle <strong>Fach</strong> sowie <strong>Abgabedatum</strong> aus. Optional kannst du genauere Details in der <strong>Beschreibung</strong> hinzufügen oder dazugehörige <strong>Medien</strong> wie Tafelbilder, Musterlösungen, Notizen, Lernzettel o. ä. hochladen. Unterstützt werden Bilder, PDFs und Office-Dateien"
         },
         {
-          "title": "Bilder hochladen",
-          "text": "Bilder können auch bei fremden Aufgaben hochgeladen werden, sofern passend; klicke auf das <strong>3-Punkte-Menü</strong>, wähle <strong>Bilder hochladen</strong> aus und wähle die gewünschten Bilder aus. Um eigene Bilder zu entfernen, <strong>halte</strong> das Bild <strong>gedrückt</strong> oder klicke mit der <strong>rechten Maustaste</strong> auf dein Bild und wähle im Menü <strong>Löschen</strong> aus."
+          "title": "Medien hochladen",
+          "text": "Dateien können bei Aufgaben, die von anderen erstellt wurden, hochgeladen werden, auch wenn du sie nicht bearbeiten kannst. Öffne dafür die Aufgabe und klicke auf das <strong>3-Punkte-Menü</strong>, wähle <strong>Bilder hochladen</strong> aus und wähle die gewünschten Dateien aus. Um deine hochgeladenen Bilder zu entfernen, <strong>halte</strong> das Bild <strong>gedrückt</strong> oder klicke mit der <strong>rechten Maustaste</strong> auf dein Bild und wähle im Menü <strong>Löschen</strong> aus."
         },
         {
           "title": "Abgeschlossene Aufgaben tracken",
-          "text": "Wenn du ein Konto hast, kannst du mit der <strong>Checkbox</strong> jede Aufgabe, die du erledigt hast, abhaken. Dein Fortschritt wird in der Cloud gespeichert. Mit dem Filter <strong>Erledigte ausblenden</strong> siehst du nur noch, was du noch erledigen musst."
+          "text": "Du kannst mit der <strong>Checkbox</strong> jede Aufgabe, die du erledigt hast, abhaken. So behältst du leicht den Überblick darüber, was du noch machen musst und was schon fertig ist. Dein Fortschritt wird in der Cloud für dein Konto gespeichert. Mit dem Filter <strong>Erledigte ausblenden</strong> siehst du nur noch Aufgaben, die du noch nicht abgeschlossen hast"
         },
         {
           "title": "Personalisierte Kurse",
-          "text": "Wenn du hinterlegt hast, welche Kurse/Wahlfächer du belegst, kannst du automatisch Aufgaben zu anderen Fächern ausblenden lassen. Deine Auswahl kannst du in den Gruppeneinstellungen unter <strong>Meine Kurse</strong> anpassen. Wenn du trotzdem alle Aufgaben sehen willst, kannst du diese Option in deinem Kontomenü deaktivieren."
+          "text": "Wenn du hinterlegt hast, welche <strong>Kurse/Wahlfächer</strong> du belegst, kannst du automatisch Aufgaben für andere Kurse, die dich nicht betreffen, <strong>ausblenden</strong> lassen. So siehst du nur, was wirklich wichtig für dich ist. Deine Auswahl kannst du in den Gruppeneinstellungen unter <strong>Meine Kurse</strong> anpassen. Wenn du trotzdem alle Aufgaben sehen willst, kannst du die Anzeigeoption in deinem <strong>Kontomenü</strong> entsprechend einstellen."
         },
         {
           "title": "Archiv",
-          "text": "Aufgaben, die älter als <strong>24 Stunden</strong> sind, werden automatisch ausgeblendet, um die Ansicht übersichtlich zu halten. Falls du eine ältere Aufgabe suchst, kannst du auf den <strong>Archiv</strong>-Button klicken und Aufgaben einsehen, die bis zu <strong>30 Tage</strong> alt sind."
+          "text": "Abgeschlossene Aufgaben werden <strong>automatisch</strong> 24 Stunden nach dem angegebenen Datum <strong>ausgeblendet</strong>, um die Ansicht übersichtlich zu halten. Falls du trotzdem eine alte Aufgabe finden willst, kannst du den Filter <strong>Archiv</strong> aktivieren. Du kannst Aufgaben auch manuell über das Menü mit den Optionen <strong>Archivieren</strong> und <strong>Wiederherstellen</strong> in das Archiv rein und raus verschieben, um sie besser zu organisieren."
         }
       ],
       "tooltip": "Übersicht und Funktionen für Aufgaben"
@@ -184,11 +184,11 @@
       "sections": [
         {
           "title": "Nur für dich sichtbar",
-          "text": "Anders als normale Aufgaben sind diese <strong>verschlüesselt</strong> und nur für dich sichtbar. So kannst du auch persönliche Aufgaben und To-dos tracken – alles mit <strong>einem Programm</strong>."
+          "text": "Anders als normale Aufgaben sind diese <strong>verschlüsselt</strong> und nur für dich sichtbar. So kannst du auch persönliche Aufgaben und To-dos tracken – alles mit <strong>einem Programm</strong>."
         },
         {
           "title": "Reihenfolge",
-          "text": "Sortiere deine Aufgaben der Wichtigkeit nach. Bewege sie durch <strong>ziehen</strong> oder über das <strong>3-Punkte-Menü</strong> in der Liste nach oben oder nach unten. So siehst du deine Prioritäten auf den ersten Blick."
+          "text": "Sortiere deine Aufgaben der Wichtigkeit nach. Bewege sie durch <strong>gedrückt halten und ziehen</strong> oder über das <strong>Menü</strong> in der Liste nach oben oder nach unten. So siehst du deine Prioritäten auf den ersten Blick."
         },
         {
           "title": "Sicherheit",

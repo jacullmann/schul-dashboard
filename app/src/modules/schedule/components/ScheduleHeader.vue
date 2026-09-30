@@ -20,16 +20,16 @@ const tm = i18n.tm.bind(i18n);
         :tooltip="t('schedule.infopop.tooltip')"
         :title="t('schedule.title')"
       >
-        <h3 class="text-xl font-bold mb-2">
+        <p>
           {{ t('schedule.infopop.description') }}
-        </h3>
+        </p>
         <div
           v-for="(section, index) in tm('schedule.infopop.sections')"
           :key="index"
           class="mb-4"
         >
-          <h3 class="text-xl font-bold mb-1">{{ section.title }}</h3>
-          <p class="text-base text-on-ghost-muted m-0">{{ section.text }}</p>
+          <h3 v-html="section.title"></h3>
+          <p v-html="section.text"></p>
         </div>
         <div class="w-full flex items-center justify-center mt-4">
           <img

@@ -115,7 +115,7 @@ const roomChanged = computed(
           class="font-normal truncate ml-1 min-w-0 max-w-[55%]"
           :class="mutedText"
         >
-          ({{ lesson.courses?.name || lesson.courseName }})
+          {{ lesson.courses?.name || lesson.courseName }}
         </span>
       </div>
 
