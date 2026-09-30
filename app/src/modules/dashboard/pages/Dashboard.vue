@@ -2,13 +2,18 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
-import { CheckCircle2, ChevronRight, Pencil, CalendarDays } from '@lucide/vue';
+import { CheckCircle2, ChevronRight, CalendarDays } from '@lucide/vue';
 
 import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useSchedule } from '@/modules/schedule/composables/useSchedule';
-import { lessonDisplayName } from '@/modules/schedule/utils/lesson';
+import {
+  lessonDisplayName,
+  lessonsSlotRange,
+} from '@/modules/schedule/utils/lesson';
 import type { Lesson } from '@/modules/schedule/types';
+import ScheduleStartTimeColumn from '@/modules/schedule/components/ScheduleStartTimeColumn.vue';
+import ScheduleLessonGroup from '@/modules/schedule/components/ScheduleLessonGroup.vue';
 import { useGroupPageId } from '@/core/composables/useGroupPageId';
 import { provideTasks } from '@/modules/tasks/composables/useTasks';
 import TaskCard from '@/modules/tasks/components/TaskCard.vue';
@@ -38,6 +43,10 @@ const {
   loadingLessons,
   loadingSubs,
   scheduleConfig,
+  groupedLessons,
+  dayLayouts,
+  currentDay,
+  activeOrNextGroupKey,
 } = useSchedule({
   autoLoad: true,
 });
@@ -169,6 +178,38 @@ const upcomingLesson = computed(() => {
 const getDisplayName = (lesson: Lesson): string =>
   lessonDisplayName(lesson, t, te);
 
+/*
+ * The upcoming lesson as its day's phone schedule shows it: the whole cell it
+ * shares with parallel courses, beside the time column of the rows it spans.
+ */
+const upcomingLessonPreview = computed(() => {
+  const lesson = upcomingLesson.value;
+  if (!lesson) return null;
+  const group = groupedLessons.value.find(({ lessons: groupLessons }) =>
+    groupLessons.includes(lesson),
+  );
+  const layout = dayLayouts.value.get(lesson.day);
+  if (!group || !layout) return null;
+
+  const { firstSlot, lastSlot } = lessonsSlotRange(group.lessons);
+  const firstRow = layout.gridRowOfSlot(firstSlot);
+  const lastRow = layout.gridRowOfSlot(lastSlot);
+  const rowOffset = firstRow - 1;
+  const rows = layout.rows
+    .filter((row) => row.gridRow >= firstRow && row.gridRow <= lastRow)
+    .map((row) => ({ ...row, gridRow: row.gridRow - rowOffset }));
+
+  return {
+    group,
+    rows,
+    groupStyle: (groupLessons: Lesson[]) => ({
+      ...layout.groupStyle(groupLessons),
+      '--col-desktop': '2',
+      gridRow: `1 / ${rows.length + 1}`,
+    }),
+  };
+});
+
 const scheduleChanges = computed(() => {
   const changes = effectiveLessons.value.filter((l) => {
     const orig = l._original;
@@ -224,50 +265,30 @@ const {
 
 <template>
   <div class="card">
-    <div class="relative animate-enter">
-      <PageHeader>
-        {{
-          new Date().toLocaleDateString(locale, {
-            weekday: 'short',
-            day: 'numeric',
-            month: 'short',
-          })
-        }}
-        <Tagline />
-        <template #info></template>
-        <template #action>
-          <BaseTooltip :content="t('dashboard.edit_layout')" placement="bottom">
-            <BaseButton :icon="Pencil" />
-          </BaseTooltip>
-        </template>
-      </PageHeader>
+    <div class="relative mb-4 animate-enter">
+      <Tagline />
     </div>
 
     <div class="flex flex-col gap-8">
       <div class="flex flex-col">
         <PageHeader
-          class="animate-enter"
+          class="mb-2! cursor-pointer animate-enter"
           :style="{
             '--enter-delay': entranceDelay(TASKS_HEADER_ENTRANCE_ORDER),
           }"
+          @click="
+            $router.push({
+              name: 'group-tasks',
+              params: { groupId },
+              query: { type: 'all' },
+            })
+          "
         >
           {{ t('dashboard.tasks_overview.title') }}
           <template #action>
-            <BaseTooltip
-              :content="t('dashboard.tasks_overview.view_all')"
-              placement="bottom"
-            >
-              <BaseButton
-                :icon="ChevronRight"
-                @click="
-                  $router.push({
-                    name: 'group-tasks',
-                    params: { groupId },
-                    query: { type: 'all' },
-                  })
-                "
-              />
-            </BaseTooltip>
+            <div class="size-10 flex items-center justify-center">
+              <ChevronRight :size="20" class="text-on-ghost-muted" />
+            </div>
           </template>
         </PageHeader>
 
@@ -353,27 +374,22 @@ const {
 
       <div v-if="isScheduleVisible" class="flex flex-col">
         <PageHeader
-          class="animate-enter"
+          class="cursor-pointer animate-enter"
           :style="{
             '--enter-delay': entranceDelay(SCHEDULE_HEADER_ENTRANCE_ORDER),
           }"
+          @click="
+            $router.push({
+              name: 'group-schedule',
+              params: { groupId },
+            })
+          "
         >
           {{ t('dashboard.schedule_overview.title') }}
           <template v-if="hasLessons" #action>
-            <BaseTooltip
-              :content="t('dashboard.schedule_overview.view_full')"
-              placement="bottom"
-            >
-              <BaseButton
-                :icon="ChevronRight"
-                @click="
-                  $router.push({
-                    name: 'group-schedule',
-                    params: { groupId },
-                  })
-                "
-              />
-            </BaseTooltip>
+            <div class="size-10 flex items-center justify-center">
+              <ChevronRight :size="20" class="text-on-ghost-muted" />
+            </div>
           </template>
         </PageHeader>
 
@@ -410,32 +426,30 @@ const {
 
               <template v-if="!loadingSchedule">
                 <div
-                  v-if="upcomingLesson"
-                  class="flex items-center justify-between gap-4 px-3 py-2 rounded-lg border border-ghost-border bg-surface max-w-192 mx-auto animate-enter"
+                  v-if="upcomingLessonPreview"
+                  class="grid grid-cols-[3.25rem_1fr] gap-2 w-full max-w-192 mx-auto animate-enter"
                   :style="{
                     '--enter-delay': entranceDelay(NEXT_LESSON_REVEAL_ORDER),
                   }"
                 >
-                  <div class="min-w-0">
-                    <div class="text-xs text-on-ghost-muted mb-0.5">
-                      {{
-                        t('dashboard.schedule_overview.slot', {
-                          slot: upcomingLesson.slot,
-                        })
-                      }}
-                    </div>
+                  <ScheduleStartTimeColumn
+                    :rows="upcomingLessonPreview.rows"
+                    :animated="false"
+                  />
 
-                    <div class="text-base font-bold text-on-ghost truncate m-0">
-                      {{ getDisplayName(upcomingLesson) }}
-                    </div>
-
-                    <div class="text-sm text-on-ghost-muted">
-                      {{
-                        upcomingLesson.room ||
-                        t('dashboard.schedule_overview.no_room')
-                      }}
-                    </div>
-                  </div>
+                  <ScheduleLessonGroup
+                    :group="upcomingLessonPreview.group.lessons"
+                    :group-key="upcomingLessonPreview.group.key"
+                    :is-active="
+                      upcomingLessonPreview.group.key === activeOrNextGroupKey
+                    "
+                    :is-current-day="
+                      upcomingLessonPreview.group.day === currentDay
+                    "
+                    :animated="false"
+                    :get-display-name="getDisplayName"
+                    :get-group-style="upcomingLessonPreview.groupStyle"
+                  />
                 </div>
 
                 <div

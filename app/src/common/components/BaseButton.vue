@@ -46,7 +46,7 @@ const iconSize = computed(() => ({ xs: 16, sm: 18, md: 20 })[props.size]);
 const classes = computed(() => {
   const onClasses: Record<NonNullable<Props['on']>, string> = {
     ghost: props.surface
-      ? 'bg-surface hover-overlay text-on-ghost-muted hover:text-on-ghost active:text-on-ghost'
+      ? 'bg-ghost-hover hover-overlay text-on-ghost-muted hover:text-on-ghost active:text-on-ghost'
       : 'bg-transparent text-on-ghost-muted hover:bg-ghost-hover hover:text-on-ghost active:bg-ghost-hover active:text-on-ghost',
     action:
       'bg-transparent text-on-action-muted hover:bg-action-hover hover:text-on-action active:bg-action-hover active:text-on-action',

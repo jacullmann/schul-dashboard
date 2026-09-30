@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const i18n = useI18n();
+const locale = i18n.locale;
 
 const randomIndex = ref<number | null>(null);
 const isVisible = ref(false);
@@ -50,13 +51,18 @@ onMounted(() => {
 </script>
 
 <template>
-  <p
-    class="text-on-ghost-muted text-base font-sans italic font-medium m-0! min-h-6"
-  >
+  <p class="text-base font-sans m-0! min-h-6">
+    <span class="text-on-ghost font-bold mr-2">{{
+      new Date().toLocaleDateString(locale, {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+      })
+    }}</span>
     <span
       v-for="(char, index) in displayQuote"
       :key="index"
-      class="transition-[opacity,filter,transform] duration-250"
+      class="italic font-medium text-on-ghost-muted transition-[opacity,filter,transform] duration-250"
       :class="isVisible ? 'opacity-100 blur-none' : 'opacity-0 blur-[3px]'"
       :style="{ transitionDelay: `${index * 6}ms` }"
     >
