@@ -59,6 +59,10 @@ const roomChanged = computed(
     props.lesson._original &&
     props.lesson.room !== props.lesson._original.room,
 );
+
+const showsRoom = computed(
+  () => Boolean(props.lesson.room) || roomChanged.value,
+);
 </script>
 
 <template>
@@ -126,8 +130,13 @@ const roomChanged = computed(
         {{ t('schedule.cancelled') }}
       </div>
 
-      <div class="flex justify-between text-sm" :class="mutedText">
+      <div
+        v-if="showsRoom || periodLabel"
+        class="flex justify-between text-sm"
+        :class="mutedText"
+      >
         <span
+          v-if="showsRoom"
           class="inline-flex gap-1 items-center"
           :class="{ 'line-through': lesson.cancelled }"
         >
@@ -140,10 +149,10 @@ const roomChanged = computed(
             </span>
           </template>
           <template v-else>
-            {{ lesson.room || '-' }}
+            {{ lesson.room }}
           </template>
         </span>
-        <span v-if="periodLabel" class="shrink-0 ml-2">
+        <span v-if="periodLabel" class="shrink-0 ml-auto pl-2">
           {{ periodLabel }}
         </span>
       </div>

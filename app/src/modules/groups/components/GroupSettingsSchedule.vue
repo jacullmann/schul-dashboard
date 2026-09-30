@@ -1225,8 +1225,10 @@ onBeforeUnmount(() => {
           {{ selectedLesson.slot }},
           {{ t('groups.settings.schedule.changes.last_lesson_label') }}
           {{ selectedLesson.slot + selectedLesson.duration - 1 }},
-          {{ t('groups.settings.schedule.changes.room_label') }}
-          {{ selectedLesson.room || '-' }},
+          <template v-if="selectedLesson.room">
+            {{ t('groups.settings.schedule.changes.room_label') }}
+            {{ selectedLesson.room }},
+          </template>
           {{ t('groups.settings.schedule.changes.day_label') }}
           {{ selectedLesson.day }})
         </p>
@@ -1394,7 +1396,7 @@ onBeforeUnmount(() => {
                   }}
                 </td>
                 <td>{{ getSubCourseName(sub.courseId) }}</td>
-                <td>{{ sub.room || '-' }}</td>
+                <td>{{ sub.room }}</td>
                 <td>{{ sub.day || '-' }}</td>
                 <td>{{ sub.slot || '-' }}</td>
                 <td class="text-danger">

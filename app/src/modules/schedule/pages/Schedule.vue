@@ -336,10 +336,9 @@ watch(
             gridColumn: dayIdx + 2,
             '--enter-delay': entranceDelay(dayIdx + 2, 1),
           }"
-          class="bg-surface border border-ghost-border text-on-ghost p-2 text-center font-bold rounded-md text-base shadow-input [grid-row:1] animate-enter"
+          class="text-on-ghost-muted px-2 text-center font-bold text-base [grid-row:1] animate-enter"
           :class="{
-            'bg-linear-to-b from-ghost-border to-ghost-border border-surface-hover-border!':
-              day === currentDay,
+            'text-on-ghost!': day === currentDay,
           }"
         >
           {{ formatDayName(day) }}
