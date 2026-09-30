@@ -51,7 +51,8 @@ const ImageViewer = defineAsyncComponent(
 );
 
 onMounted(() => {
-  void loadSearchModal().catch(() => {});
+  // TODO(search-chat): disabled until search and chat are ready.
+  // void loadSearchModal().catch(() => {});
   void loadMfaVerifyModal().catch(() => {});
 });
 
