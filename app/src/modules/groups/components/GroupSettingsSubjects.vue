@@ -31,10 +31,6 @@ import type { AdminCourse } from '@/modules/groups/types';
 const i18n = useI18n();
 const { t } = i18n;
 
-defineProps<{
-  isAdmin: boolean;
-}>();
-
 const route = useRoute();
 const router = useRouter();
 

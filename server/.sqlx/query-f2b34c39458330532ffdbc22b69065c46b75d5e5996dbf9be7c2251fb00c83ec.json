@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT name, schedule_config, avatar_url, permissions, group_type, dalton_enabled\n               FROM groups WHERE id = $1",
+  "query": "SELECT name, schedule_config, avatar_url, group_type, dalton_enabled\n               FROM groups WHERE id = $1",
   "describe": {
     "columns": [
       {
@@ -38,17 +38,6 @@
       },
       {
         "ordinal": 3,
-        "name": "permissions",
-        "type_info": "Jsonb",
-        "origin": {
-          "Table": {
-            "table": "groups",
-            "name": "permissions"
-          }
-        }
-      },
-      {
-        "ordinal": 4,
         "name": "group_type",
         "type_info": "Text",
         "origin": {
@@ -59,7 +48,7 @@
         }
       },
       {
-        "ordinal": 5,
+        "ordinal": 4,
         "name": "dalton_enabled",
         "type_info": "Bool",
         "origin": {
@@ -80,9 +69,8 @@
       false,
       true,
       false,
-      false,
       false
     ]
   },
-  "hash": "5a63dc490e72f7507f70dd5155abe02fb698167c45a3dbdb742c1bb5a2f8fda8"
+  "hash": "f2b34c39458330532ffdbc22b69065c46b75d5e5996dbf9be7c2251fb00c83ec"
 }

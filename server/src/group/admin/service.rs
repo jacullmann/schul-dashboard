@@ -581,7 +581,7 @@ impl GroupAdminService {
             .ok_or_else(|| AppError::not_found("Group not found"))?;
 
         let perms = GroupPermissions::from_json_with_defaults(&group.permissions);
-        Ok(json!({ "permissions": perms.to_json() }))
+        Ok(json!({ "permissions": perms }))
     }
 
     pub async fn update_permissions(
@@ -595,24 +595,9 @@ impl GroupAdminService {
             .await?
             .ok_or_else(|| AppError::not_found("Group not found"))?;
 
-        let current = GroupPermissions::from_json_with_defaults(&group.permissions);
-
-        let merged = {
-            let merged_raw = {
-                let mut base = current.to_json();
-                if let (Some(base_obj), Some(new_obj)) =
-                    (base.as_object_mut(), permissions.as_object())
-                {
-                    for (k, v) in new_obj {
-                        base_obj.insert(k.clone(), v.clone());
-                    }
-                }
-                base
-            };
-            GroupPermissions::from_json_with_defaults(&merged_raw)
-        };
-
-        let merged_json = merged.to_json();
+        let mut merged = GroupPermissions::from_json_with_defaults(&group.permissions);
+        merged.apply_overrides(&permissions);
+        let merged_json = json!(merged);
 
         sqlx::query!(
             r#"UPDATE groups SET permissions = $1 WHERE id = $2"#,

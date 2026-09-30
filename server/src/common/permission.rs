@@ -54,24 +54,8 @@ impl Permission {
         Self::InviteMembers,
     ];
 
-    #[allow(dead_code)]
     pub fn from_str(s: &str) -> Option<Self> {
-        match s {
-            "edit_group_general" => Some(Self::EditGroupGeneral),
-            "edit_subjects_courses" => Some(Self::EditSubjectsCourses),
-            "edit_schedule" => Some(Self::EditSchedule),
-            "create_items" => Some(Self::CreateItems),
-            "upload_images" => Some(Self::UploadImages),
-            "manage_notes" => Some(Self::ManageNotes),
-            "send_messages" => Some(Self::SendMessages),
-            "manage_schedule_changes" => Some(Self::ManageScheduleChanges),
-            "manage_announcements" => Some(Self::ManageAnnouncements),
-            "moderate_members" => Some(Self::ModerateMembers),
-            "edit_other_content" => Some(Self::EditOtherContent),
-            "delete_other_content" => Some(Self::DeleteOtherContent),
-            "invite_members" => Some(Self::InviteMembers),
-            _ => None,
-        }
+        Self::ALL.into_iter().find(|p| p.as_str() == s)
     }
 }
 
@@ -131,61 +115,50 @@ impl GroupPermissions {
         }
     }
 
+    fn required_role_mut(&mut self, permission: Permission) -> &mut Role {
+        match permission {
+            Permission::EditGroupGeneral => &mut self.edit_group_general,
+            Permission::EditSubjectsCourses => &mut self.edit_subjects_courses,
+            Permission::EditSchedule => &mut self.edit_schedule,
+            Permission::CreateItems => &mut self.create_items,
+            Permission::UploadImages => &mut self.upload_images,
+            Permission::ManageNotes => &mut self.manage_notes,
+            Permission::SendMessages => &mut self.send_messages,
+            Permission::ManageScheduleChanges => &mut self.manage_schedule_changes,
+            Permission::ManageAnnouncements => &mut self.manage_announcements,
+            Permission::ModerateMembers => &mut self.moderate_members,
+            Permission::EditOtherContent => &mut self.edit_other_content,
+            Permission::DeleteOtherContent => &mut self.delete_other_content,
+            Permission::InviteMembers => &mut self.invite_members,
+        }
+    }
+
+    /// Groups store only what they changed, so every permission missing from
+    /// `raw` keeps its default. That also covers permissions added later.
     pub fn from_json_with_defaults(raw: &serde_json::Value) -> Self {
         let mut perms = Self::default();
-
-        let Some(obj) = raw.as_object() else {
-            return perms;
-        };
-
-        for (key, val) in obj {
-            let Some(role_str) = val.as_str() else {
-                continue;
-            };
-            if role_str == "superadmin" {
-                continue;
-            }
-            let Some(role) = Role::from_str(role_str) else {
-                continue;
-            };
-
-            match key.as_str() {
-                "edit_group_general" => perms.edit_group_general = role,
-                "edit_subjects_courses" => perms.edit_subjects_courses = role,
-                "edit_schedule" => perms.edit_schedule = role,
-                "create_items" => perms.create_items = role,
-                "upload_images" => perms.upload_images = role,
-                "manage_notes" => perms.manage_notes = role,
-                "send_messages" => perms.send_messages = role,
-                "manage_schedule_changes" => perms.manage_schedule_changes = role,
-                "manage_announcements" => perms.manage_announcements = role,
-                "moderate_members" => perms.moderate_members = role,
-                "edit_other_content" => perms.edit_other_content = role,
-                "delete_other_content" => perms.delete_other_content = role,
-                "invite_members" => perms.invite_members = role,
-                _ => {}
-            }
-        }
-
+        perms.apply_overrides(raw);
         perms
     }
 
-    pub fn to_json(&self) -> serde_json::Value {
-        serde_json::json!({
-            "edit_group_general": self.edit_group_general.as_str(),
-            "edit_subjects_courses": self.edit_subjects_courses.as_str(),
-            "edit_schedule": self.edit_schedule.as_str(),
-            "create_items": self.create_items.as_str(),
-            "upload_images": self.upload_images.as_str(),
-            "manage_notes": self.manage_notes.as_str(),
-            "send_messages": self.send_messages.as_str(),
-            "manage_schedule_changes": self.manage_schedule_changes.as_str(),
-            "manage_announcements": self.manage_announcements.as_str(),
-            "moderate_members": self.moderate_members.as_str(),
-            "edit_other_content": self.edit_other_content.as_str(),
-            "delete_other_content": self.delete_other_content.as_str(),
-            "invite_members": self.invite_members.as_str(),
-        })
+    /// Unknown keys and unknown roles are skipped. Superadmin is never a
+    /// requirement: it would lock the group's own owner out.
+    pub fn apply_overrides(&mut self, raw: &serde_json::Value) {
+        let Some(obj) = raw.as_object() else {
+            return;
+        };
+
+        for (key, val) in obj {
+            let Some(permission) = Permission::from_str(key) else {
+                continue;
+            };
+            let Some(role) = val.as_str().and_then(Role::from_str) else {
+                continue;
+            };
+            if role != Role::Superadmin {
+                *self.required_role_mut(permission) = role;
+            }
+        }
     }
 
     pub fn allowed_keys_for_role(&self, role: Role) -> Vec<&'static str> {
@@ -252,9 +225,24 @@ mod tests {
     #[test]
     fn json_roundtrip() {
         let original = GroupPermissions::default();
-        let json = original.to_json();
+        let json = serde_json::json!(original);
         let restored = GroupPermissions::from_json_with_defaults(&json);
         assert_eq!(original, restored);
+    }
+
+    #[test]
+    fn overrides_keep_unmentioned_and_invalid_entries() {
+        let mut p = GroupPermissions::from_json_with_defaults(&serde_json::json!({
+            "edit_other_content": "admin",
+        }));
+        p.apply_overrides(&serde_json::json!({
+            "delete_other_content": "admin",
+            "edit_other_content": "superadmin",
+            "create_items": "nobody",
+        }));
+        assert_eq!(p.edit_other_content, Role::Admin);
+        assert_eq!(p.delete_other_content, Role::Admin);
+        assert_eq!(p.create_items, Role::User);
     }
 
     #[test]

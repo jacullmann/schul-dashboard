@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use validator::Validate;
 
-use crate::common::role::MemberRole;
+use crate::common::{permission::GroupPermissions, role::MemberRole};
 
 #[derive(Debug, Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
@@ -29,7 +29,8 @@ pub struct GroupSummaryDto {
     pub role: &'static str,
     pub schedule_config: serde_json::Value,
     pub avatar_url: Option<String>,
-    pub permissions: serde_json::Value,
+    /// Resolved against the defaults, so clients never need to know them.
+    pub permissions: GroupPermissions,
     pub group_type: &'static str,
     pub dalton_enabled: bool,
     pub effective_permissions: Vec<&'static str>,

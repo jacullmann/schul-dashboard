@@ -5,7 +5,7 @@ import { groupPath } from '@/api/groupPath';
 import i18n from '@/i18n';
 import type { ScheduleConfig } from '@/modules/schedule/types';
 import { toGroupType, type GroupType } from '@/types/groups';
-import type { PermissionKey } from '@/types/permissions.ts';
+import type { PermissionKey, PermissionMatrix } from '@/types/permissions.ts';
 
 const STATUS_ENDPOINT = '/groups/status';
 
@@ -16,7 +16,7 @@ export type UserGroup = {
   ownerId: string;
   scheduleConfig?: ScheduleConfig;
   avatarUrl?: string | null;
-  permissions: Record<string, string>;
+  permissions: PermissionMatrix;
   groupType: GroupType;
   daltonEnabled: boolean;
   effectivePermissions: PermissionKey[];
@@ -129,7 +129,7 @@ const activeGroupAvatarUrl = computed(
   () => activeGroup.value?.avatarUrl ?? null,
 );
 const activeGroupPermissions = computed(
-  () => activeGroup.value?.permissions ?? {},
+  () => activeGroup.value?.permissions ?? null,
 );
 const activeGroupType = computed<GroupType>(
   () => activeGroup.value?.groupType ?? 'regular',
@@ -137,7 +137,6 @@ const activeGroupType = computed<GroupType>(
 const activeGroupDaltonEnabled = computed(
   () => activeGroup.value?.daltonEnabled === true,
 );
-const activeGroupRole = computed(() => activeGroup.value?.role ?? null);
 const activeScheduleConfig = computed(
   () => activeGroup.value?.scheduleConfig ?? null,
 );
@@ -398,7 +397,6 @@ export function useAppAuth() {
     activeGroupPermissions,
     activeGroupType,
     activeGroupDaltonEnabled,
-    activeGroupRole,
     activePermissions,
     activeScheduleConfig,
     userGroups,

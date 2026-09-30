@@ -7,7 +7,11 @@ import { groupPath } from '@/api/groupPath';
 import { useGroupPageId } from '@/core/composables/useGroupPageId';
 import { useToast } from '@/common/composables/useToast';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
-import type { PermissionKey } from '@/types/permissions';
+import type {
+  PermissionKey,
+  PermissionMatrix,
+  PermissionRole,
+} from '@/types/permissions';
 
 const { t } = useI18n();
 
@@ -15,26 +19,70 @@ const props = defineProps<{
   canManage: boolean;
 }>();
 
+interface PermissionSection {
+  category: 'general' | 'tasks' | 'chat' | 'info' | 'moderation';
+  /** `lowestRole` keeps moderation-grade permissions from every member. */
+  permissions: { key: PermissionKey; lowestRole: PermissionRole }[];
+}
+
+const PERMISSION_SECTIONS: PermissionSection[] = [
+  {
+    category: 'general',
+    permissions: [
+      { key: 'edit_group_general', lowestRole: 'user' },
+      { key: 'invite_members', lowestRole: 'user' },
+      { key: 'edit_subjects_courses', lowestRole: 'moderator' },
+      { key: 'edit_schedule', lowestRole: 'moderator' },
+    ],
+  },
+  {
+    category: 'tasks',
+    permissions: [
+      { key: 'create_items', lowestRole: 'user' },
+      { key: 'upload_images', lowestRole: 'user' },
+      { key: 'manage_notes', lowestRole: 'user' },
+    ],
+  },
+  {
+    category: 'chat',
+    permissions: [{ key: 'send_messages', lowestRole: 'user' }],
+  },
+  {
+    category: 'info',
+    permissions: [
+      { key: 'manage_schedule_changes', lowestRole: 'user' },
+      { key: 'manage_announcements', lowestRole: 'moderator' },
+    ],
+  },
+  {
+    category: 'moderation',
+    permissions: [
+      { key: 'moderate_members', lowestRole: 'moderator' },
+      { key: 'edit_other_content', lowestRole: 'moderator' },
+      { key: 'delete_other_content', lowestRole: 'moderator' },
+    ],
+  },
+];
+
+const ROLES: { role: PermissionRole; label: string }[] = [
+  { role: 'user', label: 'all' },
+  { role: 'moderator', label: 'moderators' },
+  { role: 'admin', label: 'admins' },
+];
+
+function roleOptions(lowestRole: PermissionRole) {
+  const lowest = ROLES.findIndex(({ role }) => role === lowestRole);
+  return ROLES.slice(lowest).map(({ role, label }) => ({
+    label: t(`groups.settings.permissions.options.${label}`),
+    value: role,
+  }));
+}
+
 const toast = useToast();
 const { checkAuthStatus, activeGroupPermissions } = useAppAuth();
 const groupId = useGroupPageId();
 
-const permissions = ref<Record<PermissionKey, string>>({
-  edit_group_general: 'moderator',
-  edit_subjects_courses: 'admin',
-  edit_schedule: 'admin',
-  create_items: 'user',
-  upload_images: 'user',
-  manage_notes: 'moderator',
-  send_messages: 'user',
-  manage_schedule_changes: 'moderator',
-  manage_announcements: 'moderator',
-  moderate_members: 'moderator',
-  edit_other_content: 'moderator',
-  delete_other_content: 'moderator',
-  invite_members: 'user',
-});
-
+const permissions = ref<PermissionMatrix | null>(null);
 const loading = ref(true);
 const saving = ref(false);
 
@@ -42,23 +90,17 @@ async function fetchPermissions() {
   // Only managers may call the admin endpoint; everyone else gets the
   // read-only matrix that the group status already carries.
   if (!props.canManage) {
-    permissions.value = {
-      ...permissions.value,
-      ...activeGroupPermissions.value,
-    };
+    permissions.value = activeGroupPermissions.value;
     loading.value = false;
     return;
   }
 
   loading.value = true;
   try {
-    const { data } = await hw.get(groupPath(groupId, '/admin/permissions'));
-    if (data.permissions) {
-      permissions.value = {
-        ...permissions.value,
-        ...data.permissions,
-      };
-    }
+    const { data } = await hw.get<{ permissions: PermissionMatrix }>(
+      groupPath(groupId, '/admin/permissions'),
+    );
+    permissions.value = data.permissions;
   } catch {
     toast.error(t('groups.settings.permissions.errors.load_failed'));
   } finally {
@@ -66,25 +108,21 @@ async function fetchPermissions() {
   }
 }
 
-async function savePermission(key: PermissionKey, value: string) {
-  if (!props.canManage) return;
+async function savePermission(key: PermissionKey, role: PermissionRole) {
+  if (!props.canManage || !permissions.value) return;
 
   saving.value = true;
-  const originalValue = permissions.value[key];
-  permissions.value[key] = value;
+  const previousRole = permissions.value[key];
+  permissions.value[key] = role;
 
   try {
-    const { data } = await hw.patch(groupPath(groupId, '/admin/permissions'), {
-      permissions: permissions.value,
+    await hw.patch(groupPath(groupId, '/admin/permissions'), {
+      permissions: { [key]: role },
     });
-    if (data.ok) {
-      toast.success(t('groups.settings.permissions.errors.update_success'));
-      await checkAuthStatus();
-    } else {
-      throw new Error();
-    }
+    toast.success(t('groups.settings.permissions.errors.update_success'));
+    await checkAuthStatus();
   } catch {
-    permissions.value[key] = originalValue;
+    permissions.value[key] = previousRole;
     toast.error(t('groups.settings.permissions.errors.save_failed'));
   } finally {
     saving.value = false;
@@ -118,7 +156,7 @@ onMounted(() => {
       }}</span>
     </div>
 
-    <div v-else class="flex flex-col gap-4 relative">
+    <div v-else-if="permissions" class="flex flex-col gap-4 relative">
       <div
         v-if="saving"
         class="absolute inset-0 bg-canvas/30 rounded-xl flex items-center justify-center z-10"
@@ -133,357 +171,35 @@ onMounted(() => {
         {{ t('groups.settings.permissions.list.admin_only_warning') }}
       </div>
 
-      <h3>{{ t('groups.settings.permissions.categories.general') }}</h3>
+      <section
+        v-for="section in PERMISSION_SECTIONS"
+        :key="section.category"
+        class="flex flex-col gap-4"
+      >
+        <h3>
+          {{ t(`groups.settings.permissions.categories.${section.category}`) }}
+        </h3>
 
-      <BaseRow justify="between" class="flex-nowrap!">
-        <div class="text-base text-on-ghost">
-          {{ t('groups.settings.permissions.items.edit_group_general') }}
-        </div>
+        <BaseRow
+          v-for="{ key, lowestRole } in section.permissions"
+          :key="key"
+          justify="between"
+          class="flex-nowrap!"
+        >
+          <div class="text-base text-on-ghost">
+            {{ t(`groups.settings.permissions.items.${key}`) }}
+          </div>
 
-        <BaseSelect
-          :form="false"
-          :model-value="permissions.edit_group_general"
-          :disabled="!canManage || saving"
-          :options="[
-            {
-              label: t('groups.settings.permissions.options.all'),
-              value: 'user',
-            },
-            {
-              label: t('groups.settings.permissions.options.moderators'),
-              value: 'moderator',
-            },
-            {
-              label: t('groups.settings.permissions.options.admins'),
-              value: 'admin',
-            },
-          ]"
-          classes="w-38!"
-          @update:model-value="savePermission('edit_group_general', $event)"
-        />
-      </BaseRow>
-
-      <BaseRow justify="between" class="flex-nowrap!">
-        <div class="text-base text-on-ghost">
-          {{ t('groups.settings.permissions.items.invite_members') }}
-        </div>
-
-        <BaseSelect
-          :form="false"
-          :model-value="permissions.invite_members"
-          :disabled="!canManage || saving"
-          :options="[
-            {
-              label: t('groups.settings.permissions.options.all'),
-              value: 'user',
-            },
-            {
-              label: t('groups.settings.permissions.options.moderators'),
-              value: 'moderator',
-            },
-            {
-              label: t('groups.settings.permissions.options.admins'),
-              value: 'admin',
-            },
-          ]"
-          classes="w-38!"
-          @update:model-value="savePermission('invite_members', $event)"
-        />
-      </BaseRow>
-
-      <BaseRow justify="between" class="flex-nowrap!">
-        <div class="text-base text-on-ghost">
-          {{ t('groups.settings.permissions.items.edit_subjects_courses') }}
-        </div>
-
-        <BaseSelect
-          :form="false"
-          :model-value="permissions.edit_subjects_courses"
-          :disabled="!canManage || saving"
-          :options="[
-            {
-              label: t('groups.settings.permissions.options.moderators'),
-              value: 'moderator',
-            },
-            {
-              label: t('groups.settings.permissions.options.admins'),
-              value: 'admin',
-            },
-          ]"
-          classes="w-38!"
-          @update:model-value="savePermission('edit_subjects_courses', $event)"
-        />
-      </BaseRow>
-
-      <BaseRow justify="between" class="flex-nowrap!">
-        <div class="text-base text-on-ghost">
-          {{ t('groups.settings.permissions.items.edit_schedule') }}
-        </div>
-
-        <BaseSelect
-          :form="false"
-          :model-value="permissions.edit_schedule"
-          :disabled="!canManage || saving"
-          :options="[
-            {
-              label: t('groups.settings.permissions.options.moderators'),
-              value: 'moderator',
-            },
-            {
-              label: t('groups.settings.permissions.options.admins'),
-              value: 'admin',
-            },
-          ]"
-          classes="w-38!"
-          @update:model-value="savePermission('edit_schedule', $event)"
-        />
-      </BaseRow>
-
-      <h3>{{ t('groups.settings.permissions.categories.tasks') }}</h3>
-
-      <BaseRow justify="between" class="flex-nowrap!">
-        <div class="text-base text-on-ghost">
-          {{ t('groups.settings.permissions.items.create_items') }}
-        </div>
-
-        <BaseSelect
-          :form="false"
-          :model-value="permissions.create_items"
-          :disabled="!canManage || saving"
-          :options="[
-            {
-              label: t('groups.settings.permissions.options.all'),
-              value: 'user',
-            },
-            {
-              label: t('groups.settings.permissions.options.moderators'),
-              value: 'moderator',
-            },
-            {
-              label: t('groups.settings.permissions.options.admins'),
-              value: 'admin',
-            },
-          ]"
-          classes="w-38!"
-          @update:model-value="savePermission('create_items', $event)"
-        />
-      </BaseRow>
-
-      <BaseRow justify="between" class="flex-nowrap!">
-        <div class="text-base text-on-ghost">
-          {{ t('groups.settings.permissions.items.upload_images') }}
-        </div>
-
-        <BaseSelect
-          :form="false"
-          :model-value="permissions.upload_images"
-          :disabled="!canManage || saving"
-          :options="[
-            {
-              label: t('groups.settings.permissions.options.all'),
-              value: 'user',
-            },
-            {
-              label: t('groups.settings.permissions.options.moderators'),
-              value: 'moderator',
-            },
-            {
-              label: t('groups.settings.permissions.options.admins'),
-              value: 'admin',
-            },
-          ]"
-          classes="w-38!"
-          @update:model-value="savePermission('upload_images', $event)"
-        />
-      </BaseRow>
-
-      <BaseRow justify="between" class="flex-nowrap!">
-        <div class="text-base text-on-ghost">
-          {{ t('groups.settings.permissions.items.manage_notes') }}
-        </div>
-
-        <BaseSelect
-          :form="false"
-          :model-value="permissions.manage_notes"
-          :disabled="!canManage || saving"
-          :options="[
-            {
-              label: t('groups.settings.permissions.options.all'),
-              value: 'user',
-            },
-            {
-              label: t('groups.settings.permissions.options.moderators'),
-              value: 'moderator',
-            },
-            {
-              label: t('groups.settings.permissions.options.admins'),
-              value: 'admin',
-            },
-          ]"
-          classes="w-38!"
-          @update:model-value="savePermission('manage_notes', $event)"
-        />
-      </BaseRow>
-
-      <h3>{{ t('groups.settings.permissions.categories.chat') }}</h3>
-
-      <BaseRow justify="between" class="flex-nowrap!">
-        <div class="text-base text-on-ghost">
-          {{ t('groups.settings.permissions.items.send_messages') }}
-        </div>
-
-        <BaseSelect
-          :form="false"
-          :model-value="permissions.send_messages"
-          :disabled="!canManage || saving"
-          :options="[
-            {
-              label: t('groups.settings.permissions.options.all'),
-              value: 'user',
-            },
-            {
-              label: t('groups.settings.permissions.options.moderators'),
-              value: 'moderator',
-            },
-            {
-              label: t('groups.settings.permissions.options.admins'),
-              value: 'admin',
-            },
-          ]"
-          classes="w-38!"
-          @update:model-value="savePermission('send_messages', $event)"
-        />
-      </BaseRow>
-
-      <h3>{{ t('groups.settings.permissions.categories.info') }}</h3>
-
-      <BaseRow justify="between" class="flex-nowrap!">
-        <div class="text-base text-on-ghost hyphens-auto">
-          {{ t('groups.settings.permissions.items.manage_schedule_changes') }}
-        </div>
-
-        <BaseSelect
-          :form="false"
-          :model-value="permissions.manage_schedule_changes"
-          :disabled="!canManage || saving"
-          :options="[
-            {
-              label: t('groups.settings.permissions.options.all'),
-              value: 'user',
-            },
-            {
-              label: t('groups.settings.permissions.options.moderators'),
-              value: 'moderator',
-            },
-            {
-              label: t('groups.settings.permissions.options.admins'),
-              value: 'admin',
-            },
-          ]"
-          classes="w-38!"
-          @update:model-value="
-            savePermission('manage_schedule_changes', $event)
-          "
-        />
-      </BaseRow>
-
-      <BaseRow justify="between" class="flex-nowrap!">
-        <div class="text-base text-on-ghost">
-          {{ t('groups.settings.permissions.items.manage_announcements') }}
-        </div>
-
-        <BaseSelect
-          :form="false"
-          :model-value="permissions.manage_announcements"
-          :disabled="!canManage || saving"
-          :options="[
-            {
-              label: t('groups.settings.permissions.options.moderators'),
-              value: 'moderator',
-            },
-            {
-              label: t('groups.settings.permissions.options.admins'),
-              value: 'admin',
-            },
-          ]"
-          classes="w-38!"
-          @update:model-value="savePermission('manage_announcements', $event)"
-        />
-      </BaseRow>
-
-      <h3>{{ t('groups.settings.permissions.categories.moderation') }}</h3>
-
-      <BaseRow justify="between" class="flex-nowrap!">
-        <div class="text-base text-on-ghost">
-          {{ t('groups.settings.permissions.items.moderate_members') }}
-        </div>
-
-        <BaseSelect
-          :form="false"
-          :model-value="permissions.moderate_members"
-          :disabled="!canManage || saving"
-          :options="[
-            {
-              label: t('groups.settings.permissions.options.moderators'),
-              value: 'moderator',
-            },
-            {
-              label: t('groups.settings.permissions.options.admins'),
-              value: 'admin',
-            },
-          ]"
-          classes="w-38!"
-          @update:model-value="savePermission('moderate_members', $event)"
-        />
-      </BaseRow>
-
-      <BaseRow justify="between" class="flex-nowrap!">
-        <div class="text-base text-on-ghost">
-          {{ t('groups.settings.permissions.items.edit_other_content') }}
-        </div>
-
-        <BaseSelect
-          :form="false"
-          :model-value="permissions.edit_other_content"
-          :disabled="!canManage || saving"
-          :options="[
-            {
-              label: t('groups.settings.permissions.options.moderators'),
-              value: 'moderator',
-            },
-            {
-              label: t('groups.settings.permissions.options.admins'),
-              value: 'admin',
-            },
-          ]"
-          classes="w-38!"
-          @update:model-value="savePermission('edit_other_content', $event)"
-        />
-      </BaseRow>
-
-      <BaseRow justify="between" class="flex-nowrap!">
-        <div class="text-base text-on-ghost">
-          {{ t('groups.settings.permissions.items.delete_other_content') }}
-        </div>
-
-        <BaseSelect
-          :form="false"
-          :model-value="permissions.delete_other_content"
-          :disabled="!canManage || saving"
-          :options="[
-            {
-              label: t('groups.settings.permissions.options.moderators'),
-              value: 'moderator',
-            },
-            {
-              label: t('groups.settings.permissions.options.admins'),
-              value: 'admin',
-            },
-          ]"
-          classes="w-38!"
-          @update:model-value="savePermission('delete_other_content', $event)"
-        />
-      </BaseRow>
+          <BaseSelect
+            :form="false"
+            :model-value="permissions[key]"
+            :disabled="!canManage || saving"
+            :options="roleOptions(lowestRole)"
+            classes="w-38!"
+            @update:model-value="savePermission(key, $event as PermissionRole)"
+          />
+        </BaseRow>
+      </section>
     </div>
   </div>
 </template>

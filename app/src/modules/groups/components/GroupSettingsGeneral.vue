@@ -38,7 +38,6 @@ const canEditGroupType = computed(
 );
 
 defineProps<{
-  isAdmin: boolean;
   hasOwnerRights?: boolean;
   groupName: string;
   newGroupName: string;

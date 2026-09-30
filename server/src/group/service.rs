@@ -146,9 +146,8 @@ impl GroupService {
             .map(|g| {
                 let role = Role::from_str_or_user(&g.role_name);
                 let has_owner_rights = is_superadmin || g.owner_id == user_id;
-                let effective_permissions =
-                    GroupPermissions::from_json_with_defaults(&g.permissions)
-                        .effective_keys(role, has_owner_rights);
+                let permissions = GroupPermissions::from_json_with_defaults(&g.permissions);
+                let effective_permissions = permissions.effective_keys(role, has_owner_rights);
 
                 GroupSummaryDto {
                     id: g.id,
@@ -157,7 +156,7 @@ impl GroupService {
                     role: role.as_str(),
                     schedule_config: g.schedule_config,
                     avatar_url: g.avatar_url,
-                    permissions: g.permissions,
+                    permissions,
                     group_type: GroupType::from_str_or_regular(&g.group_type).as_str(),
                     dalton_enabled: g.dalton_enabled,
                     effective_permissions,
@@ -192,7 +191,7 @@ impl GroupService {
     /// which therefore is missing from their status list.
     pub async fn get_group(&self, tc: &TenantContext) -> AppResult<GroupSummaryDto> {
         let g = sqlx::query!(
-            r#"SELECT name, schedule_config, avatar_url, permissions, group_type, dalton_enabled
+            r#"SELECT name, schedule_config, avatar_url, group_type, dalton_enabled
                FROM groups WHERE id = $1"#,
             tc.tenant_id
         )
@@ -207,7 +206,7 @@ impl GroupService {
             role: tc.tenant_role.as_str(),
             schedule_config: g.schedule_config,
             avatar_url: g.avatar_url,
-            permissions: g.permissions,
+            permissions: tc.group_permissions.clone(),
             group_type: GroupType::from_str_or_regular(&g.group_type).as_str(),
             dalton_enabled: g.dalton_enabled,
             effective_permissions: tc.effective_permission_keys(),

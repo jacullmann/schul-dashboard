@@ -14,7 +14,6 @@ import {
   GraduationCap,
 } from '@lucide/vue';
 import { useGroupAdmin } from '@/modules/groups/composables/useGroupAdmin';
-import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useGroupSettingsAccess } from '@/modules/groups/composables/useGroupSettingsAccess';
 import { useReturnRoute } from '@/common/composables/useReturnRoute';
@@ -103,16 +102,12 @@ const activeTab = computed<string>({
   },
 });
 
-const { activeGroupDaltonEnabled, activeGroupRole } = useAppAuth();
+const { activeGroupDaltonEnabled } = useAppAuth();
 const { hasOwnerRights } = useGroupSettingsAccess();
 
 // Turning Dalton off deletes its lessons on the server, so the schedule this
 // page hands to its editor has to be fetched again.
 watch(activeGroupDaltonEnabled, () => void loadSchedule());
-const userStore = useUserStore();
-const isAdmin = computed(
-  () => activeGroupRole.value === 'admin' || userStore.isSuperadmin,
-);
 
 const navItems = computed<AdminNavItem[]>(() => [
   /* {
@@ -372,10 +367,7 @@ function goBack() {
               @delete="deleteAnnouncement"
             />
 
-            <GroupSettingsSubjects
-              v-if="activeTab === 'subjects'"
-              :is-admin="isAdmin"
-            />
+            <GroupSettingsSubjects v-if="activeTab === 'subjects'" />
 
             <GroupSettingsPermissions
               v-if="activeTab === 'permissions'"
@@ -384,7 +376,6 @@ function goBack() {
 
             <GroupSettingsGeneral
               v-if="activeTab === 'general'"
-              :is-admin="isAdmin"
               :has-owner-rights="hasOwnerRights"
               :group-name="groupName"
               :new-group-name="newGroupName"

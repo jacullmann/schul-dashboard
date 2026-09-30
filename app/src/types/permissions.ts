@@ -14,3 +14,8 @@ export type PermissionKey =
   | 'invite_members';
 
 export type GlobalRole = 'superadmin' | 'admin' | 'moderator' | 'user';
+
+/** The lowest role a permission needs; superadmins are never a requirement. */
+export type PermissionRole = Exclude<GlobalRole, 'superadmin'>;
+
+export type PermissionMatrix = Record<PermissionKey, PermissionRole>;
