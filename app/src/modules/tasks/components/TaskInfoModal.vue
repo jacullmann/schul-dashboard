@@ -30,7 +30,7 @@ const showUpdated = computed(() => {
 </script>
 
 <template>
-  <BaseModal :open="open" :sheet="true" @cancel="$emit('cancel')">
+  <BaseModal :open="open" sheet @cancel="$emit('cancel')">
     <template #title>
       {{ t('tasks.list.tasks.menu.info_modal.title') }}
     </template>

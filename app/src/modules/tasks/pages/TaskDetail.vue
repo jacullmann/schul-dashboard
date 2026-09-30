@@ -264,11 +264,7 @@ onMounted(() => {
               {{ item.title }}
             </h2>
           </div>
-          <TaskMeta
-            :item="item"
-            :show-type="true"
-            :show-creator="canSeeCreator"
-          />
+          <TaskMeta :item="item" show-type :show-creator="canSeeCreator" />
         </header>
 
         <TaskNote

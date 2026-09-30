@@ -38,6 +38,7 @@ withDefaults(
       <BaseButton
         v-if="cancel"
         type="button"
+        surface
         variant="ghost"
         class="max-md:w-full"
         @click="cancel"

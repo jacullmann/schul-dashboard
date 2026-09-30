@@ -160,6 +160,7 @@ const secondarySlotStyle = computed(() => ({
     >
       <BaseButton
         full
+        surface
         :variant="secondaryButton.variant"
         :icon="secondaryButton.icon"
         :aria-label="t(secondaryButton.labelKey)"
@@ -175,6 +176,7 @@ const secondarySlotStyle = computed(() => ({
     >
       <BaseButton
         full
+        surface
         :variant="primaryButton.variant"
         :icon="primaryButton.icon"
         :aria-label="t(primaryButton.labelKey)"

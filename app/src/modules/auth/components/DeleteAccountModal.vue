@@ -24,7 +24,7 @@ const { understoodChecked, submitting, errorMsg, successMsg, confirmDelete } =
     :open="open"
     :submit="confirmDelete"
     :loading="submitting"
-    :danger="true"
+    danger
     :requirement="understoodChecked"
     :error="errorMsg"
     @cancel="$emit('cancel')"

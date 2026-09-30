@@ -235,7 +235,6 @@ onUnmounted(() => {
           :expanded="isExpanded"
           :active="$route.name === 'group-dashboard'"
           :icon="House"
-          :page="true"
           @click="openGroupPage('group-dashboard')"
         />
 
@@ -244,7 +243,6 @@ onUnmounted(() => {
           :expanded="isExpanded"
           :active="$route.meta.navItem === 'group-tasks'"
           :icon="ListTodo"
-          :page="true"
           @click="openGroupPage('group-tasks')"
         />
 
@@ -253,7 +251,6 @@ onUnmounted(() => {
           :expanded="isExpanded"
           :active="$route.name === 'group-schedule'"
           :icon="CalendarDays"
-          :page="true"
           @click="openGroupPage('group-schedule')"
         />
 
@@ -263,7 +260,6 @@ onUnmounted(() => {
           :expanded="isExpanded"
           :active="$route.name === 'group-messages'"
           :icon="MessageCircle"
-          :page="true"
           @click="openGroupPage('group-messages')"
         />
         -->
@@ -274,7 +270,6 @@ onUnmounted(() => {
           :expanded="isExpanded"
           :active="$route.name === 'group-admin'"
           :icon="Settings"
-          :page="true"
           @click="openGroupPage('group-admin')"
         />
 
@@ -284,7 +279,6 @@ onUnmounted(() => {
           :expanded="isExpanded"
           :active="$route.path.startsWith('/admin')"
           :icon="Crown"
-          :page="true"
           @click="handleNavigation({ name: 'super-admin' })"
         />
       </div>
@@ -295,7 +289,6 @@ onUnmounted(() => {
           :expanded="isExpanded"
           :active="['/groups', '/groups/'].includes($route.path)"
           :icon="UsersRound"
-          :page="true"
           @click="handleNavigation('/groups')"
         />
 
@@ -304,7 +297,6 @@ onUnmounted(() => {
           :expanded="isExpanded"
           :active="$route.path.startsWith('/private')"
           :icon="LockIcon"
-          :page="true"
           @click="handleNavigation('/private')"
         />
       </div>

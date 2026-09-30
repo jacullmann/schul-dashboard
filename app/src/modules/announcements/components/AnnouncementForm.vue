@@ -92,7 +92,7 @@ async function submit() {
     <template #content>
       <BaseFormContent :error="submitError">
         <BaseFormGroup id="announcement-content-input" :error="contentError">
-          <BaseLabel for="announcement-content-input" :required="true">{{
+          <BaseLabel for="announcement-content-input" required>{{
             t('announcements.form.content_label')
           }}</BaseLabel>
           <BaseInput
@@ -108,7 +108,7 @@ async function submit() {
         </BaseFormGroup>
 
         <BaseFormGroup id="announcement-importance-input">
-          <BaseLabel for="announcement-importance-input" :required="true">{{
+          <BaseLabel for="announcement-importance-input" required>{{
             t('announcements.form.importance_label')
           }}</BaseLabel>
           <BaseSelect

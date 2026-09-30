@@ -128,7 +128,7 @@ function handleCancel() {
 
 <template>
   <BaseModal
-    :open="true"
+    open
     :sheet="false"
     :submit="submitAction"
     :loading="joining"

@@ -24,7 +24,7 @@ const closeModal = () => (isModalOpen.value = false);
   </div>
 
   <Teleport to="body">
-    <BaseModal :open="isModalOpen" :sheet="true" @cancel="closeModal">
+    <BaseModal :open="isModalOpen" sheet @cancel="closeModal">
       <template #title>
         <template v-if="props.title">{{ props.title }}</template>
       </template>

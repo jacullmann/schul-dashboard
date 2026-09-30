@@ -184,7 +184,7 @@ const {
       v-model:reason="reportReason"
       :open="showReportConfirm"
       message=""
-      :show-reason-input="true"
+      show-reason-input
       @confirm="doReport"
       @cancel="cancelReport"
     />

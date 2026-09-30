@@ -310,7 +310,7 @@ const {
                   :class="{ 'animate-enter': isCardEntering(task.id) }"
                   :style="cardEntranceStyle(task.id)"
                   :item="task"
-                  :show-type="true"
+                  show-type
                   :is-archive-view="showOldEntries"
                   :is-checked="isChecked(task.id)"
                   :is-pinned="isPinned(task.id)"

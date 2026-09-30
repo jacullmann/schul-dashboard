@@ -183,7 +183,7 @@ function confirmRemove() {
       v-if="canModerateMembers"
       class="flex flex-col max-w-200 mx-auto mb-6 max-md:-mx-6"
     >
-      <BaseList :chevron="true" :separator="true" @click="goToInvites">
+      <BaseList @click="goToInvites">
         <template #icon>
           <span class="flex size-10 justify-center items-center text-on-ghost">
             <UserRoundPlus :size="24" />
@@ -201,7 +201,7 @@ function confirmRemove() {
         </template>
       </BaseList>
 
-      <BaseList :chevron="true" :separator="false" @click="goToBanned">
+      <BaseList :separator="false" @click="goToBanned">
         <template #icon>
           <span class="flex size-10 justify-center items-center text-on-ghost">
             <Ban :size="24" />
@@ -315,7 +315,7 @@ function confirmRemove() {
 
     <BaseModal
       :open="removeModal.isOpen"
-      :danger="true"
+      danger
       :submit="confirmRemove"
       @cancel="closeRemoveModal"
     >

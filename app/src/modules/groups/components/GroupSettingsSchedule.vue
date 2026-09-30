@@ -1062,7 +1062,7 @@ onBeforeUnmount(() => {
         <AdminSchedule
           :lessons="draftLessons"
           :subjects="subjects"
-          :is-editable="true"
+          is-editable
           :individual-courses="schedulesCoursesIndividually"
           :selected-lesson-ids="selectedLessonIds"
           :time-slots="slotTimes"
@@ -1463,7 +1463,7 @@ onBeforeUnmount(() => {
 
         <template v-else>
           <BaseFormGroup id="lesson-subject">
-            <BaseLabel for="lesson-subject-select" :required="true">{{
+            <BaseLabel for="lesson-subject-select" required>{{
               t('groups.settings.schedule.editor.subject_label')
             }}</BaseLabel>
             <BaseSelect
@@ -1503,7 +1503,7 @@ onBeforeUnmount(() => {
           </BaseFormGroup>
 
           <BaseFormGroup id="lesson-dur">
-            <BaseLabel for="lesson-dur-input" :required="true">{{
+            <BaseLabel for="lesson-dur-input" required>{{
               t('groups.settings.schedule.editor.duration_label')
             }}</BaseLabel>
             <BaseInput

@@ -370,11 +370,7 @@ onDeactivated(() => {
       </div>
     </div>
 
-    <BaseModal
-      :open="showFilterModal"
-      :sheet="true"
-      @cancel="showFilterModal = false"
-    >
+    <BaseModal :open="showFilterModal" sheet @cancel="showFilterModal = false">
       <template #title>
         {{ t('tasks.list.filter') }}
       </template>

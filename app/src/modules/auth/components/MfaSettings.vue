@@ -248,7 +248,7 @@ onUnmounted(() => {
       v-if="!mfaEnabled && !setupMode"
       :disabled="loading"
       variant="action"
-      :full="true"
+      full
       @click="startSetup"
     >
       {{ t('auth.mfa.actions.activate') }}
@@ -405,7 +405,7 @@ onUnmounted(() => {
     <BaseButton
       v-if="mfaEnabled && !deactivateMode"
       variant="danger"
-      :full="true"
+      full
       @click="startDeactivate"
     >
       {{ t('auth.mfa.actions.deactivate') }}

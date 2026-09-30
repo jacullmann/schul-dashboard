@@ -130,7 +130,7 @@ const imageEntrance = useAddedEntrance(
       </BaseFormGroup>
 
       <BaseFormGroup id="title" :error="titleError">
-        <BaseLabel for="title" :required="true">{{
+        <BaseLabel for="title" required>{{
           t('tasks.list.task_form.title')
         }}</BaseLabel>
         <BaseInput
@@ -142,7 +142,7 @@ const imageEntrance = useAddedEntrance(
       </BaseFormGroup>
 
       <BaseFormGroup id="subject" :error="subjectError">
-        <BaseLabel for="subject" :required="true">{{
+        <BaseLabel for="subject" required>{{
           t('tasks.list.task_form.subject')
         }}</BaseLabel>
         <BaseSelect
@@ -158,7 +158,7 @@ const imageEntrance = useAddedEntrance(
         id="courseSel"
         :error="courseError"
       >
-        <BaseLabel for="courseSel" :required="true">{{
+        <BaseLabel for="courseSel" required>{{
           t('tasks.list.task_form.course')
         }}</BaseLabel>
         <BaseSelect
@@ -174,7 +174,7 @@ const imageEntrance = useAddedEntrance(
         id="subjectOther"
         :error="subjectOtherError"
       >
-        <BaseLabel for="subjectOther" :required="true">{{
+        <BaseLabel for="subjectOther" required>{{
           t('tasks.list.task_form.custom_subject')
         }}</BaseLabel>
         <BaseInput
@@ -188,7 +188,7 @@ const imageEntrance = useAddedEntrance(
       </BaseFormGroup>
 
       <BaseFormGroup id="dueDate" :error="dueDateError">
-        <BaseLabel for="dueDate" :required="true">{{
+        <BaseLabel for="dueDate" required>{{
           t('tasks.list.task_form.due_date')
         }}</BaseLabel>
         <BaseDatePicker
@@ -285,7 +285,7 @@ const imageEntrance = useAddedEntrance(
 
   <BaseModal
     :open="showDoubleTaskConfirm"
-    :sheet="true"
+    sheet
     :submit="viewExisting"
     :cancel="confirmDoubleTaskSubmit"
     :loading="submitting"

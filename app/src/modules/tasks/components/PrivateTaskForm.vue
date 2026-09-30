@@ -115,7 +115,7 @@ async function submit() {
     <template #content>
       <BaseFormContent :error="submitError">
         <BaseFormGroup id="private-task-title-input" :error="titleError">
-          <BaseLabel for="private-task-title-input" :required="true">{{
+          <BaseLabel for="private-task-title-input" required>{{
             t('tasks.list.task_form.title')
           }}</BaseLabel>
           <BaseInput

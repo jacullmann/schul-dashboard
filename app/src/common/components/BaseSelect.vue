@@ -178,7 +178,7 @@ onClickOutside(
           v-for="option in options"
           :key="option.value"
           type="button"
-          :is-select="true"
+          is-select
           :active="modelValue === option.value"
           :disabled="option.disabled"
           @click="selectOption(option.value)"

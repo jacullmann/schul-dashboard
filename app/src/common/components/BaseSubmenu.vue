@@ -115,7 +115,7 @@ const submenuStyles = computed(() => ({
     <div ref="triggerRef">
       <BaseMenuButton
         :icon="icon"
-        :is-submenu="true"
+        is-submenu
         :disabled="disabled"
         :force-hover="isOpen && !isMobile"
         type="button"

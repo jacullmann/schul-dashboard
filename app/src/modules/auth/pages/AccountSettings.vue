@@ -118,7 +118,6 @@ function goBack() {
               v-for="(item, index) in navItems"
               :key="item.id"
               :separator="index !== navItems.length - 1"
-              :chevron="true"
               @click="selectTab(item.id)"
             >
               <template #icon>

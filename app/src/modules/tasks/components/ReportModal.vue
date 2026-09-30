@@ -22,7 +22,7 @@ const emit = defineEmits(['confirm', 'cancel', 'update:reason']);
     :open="open"
     :submit="() => emit('confirm')"
     :loading="loading"
-    :danger="true"
+    danger
     @cancel="emit('cancel')"
   >
     <template #title>

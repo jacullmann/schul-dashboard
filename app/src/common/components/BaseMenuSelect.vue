@@ -88,7 +88,7 @@ function selectOption(value: string) {
       :icon="option.icon"
       type="button"
       :disabled="disabled"
-      :is-select="true"
+      is-select
       :active="modelValue === option.value"
       @click="selectOption(option.value)"
     >

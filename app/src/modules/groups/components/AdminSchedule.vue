@@ -225,7 +225,7 @@ const phoneEntranceStyle = (group: Lesson[]) => ({
         :key="key"
         :group="group"
         :group-key="key"
-        :is-clickable="true"
+        is-clickable
         :has-context-menu="isEditable"
         :selected-lesson-id="selectedLessonId"
         :selected-lesson-ids="selectedLessonIds"
@@ -282,7 +282,7 @@ const phoneEntranceStyle = (group: Lesson[]) => ({
         :key="key"
         :group="group"
         :group-key="key"
-        :is-clickable="true"
+        is-clickable
         :has-context-menu="isEditable"
         :selected-lesson-id="selectedLessonId"
         :selected-lesson-ids="selectedLessonIds"

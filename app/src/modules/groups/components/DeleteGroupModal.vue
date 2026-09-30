@@ -52,7 +52,7 @@ function submit() {
     :open="open"
     :submit="submit"
     :loading="loading"
-    :danger="true"
+    danger
     :requirement="nameMatches"
     @cancel="cancel"
   >
