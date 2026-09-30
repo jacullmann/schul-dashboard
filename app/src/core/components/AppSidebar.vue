@@ -11,13 +11,13 @@ import {
   Settings,
   Crown,
   Lock as LockIcon,
-  // TODO(search-chat): disabled until search and chat are ready.
-  // Search,
+  Search,
+  // TODO(chat): disabled until chat is ready.
   // MessageCircle,
   Plus,
 } from '@lucide/vue';
 import AccountMenu from '@/modules/auth/components/AccountMenu.vue';
-// import { useSearchModal } from '@/core/composables/useSearchModal';
+import { useSearchModal } from '@/core/composables/useSearchModal';
 import { useTaskForm } from '@/core/composables/useTaskForm';
 import { useAnnouncementForm } from '@/core/composables/useAnnouncementForm';
 import { useModalStore } from '@/stores/modalStore';
@@ -44,7 +44,7 @@ const router = useRouter();
 
 const modalStore = useModalStore();
 const { sidebarExpanded: isExpanded } = storeToRefs(modalStore);
-// const { openSearch } = useSearchModal();
+const { openSearch } = useSearchModal();
 const { openTaskForm } = useTaskForm();
 const { openAnnouncementForm } = useAnnouncementForm();
 const { withGroup } = useGroupAction();
@@ -219,7 +219,6 @@ onUnmounted(() => {
           @click="handleAnnouncement"
         />
 
-        <!-- TODO(search-chat): disabled until search and chat are ready.
         <SidebarButton
           :label="t('common.sidebar.search')"
           :shortcut="['ctrl', 'k']"
@@ -228,7 +227,6 @@ onUnmounted(() => {
           :page="false"
           @click="openSearch"
         />
-        -->
       </div>
 
       <div class="flex flex-col gap-0 w-full">
@@ -259,7 +257,7 @@ onUnmounted(() => {
           @click="openGroupPage('group-schedule')"
         />
 
-        <!-- TODO(search-chat): disabled until search and chat are ready.
+        <!-- TODO(chat): disabled until chat is ready.
         <SidebarButton
           :label="t('common.sidebar.messages')"
           :expanded="isExpanded"

@@ -10,15 +10,14 @@ export function useAppShortcuts() {
   const { withGroup } = useGroupAction();
   const { canInAnyGroup } = useAppAuth();
 
-  // TODO(search-chat): disabled until search and chat are ready.
-  // onKeyStroke(['k', 'K'], (e: KeyboardEvent) => {
-  //   if (!userStore.user) return;
-  //
-  //   if (e.ctrlKey || e.metaKey) {
-  //     e.preventDefault();
-  //     modalStore.openSearch();
-  //   }
-  // });
+  onKeyStroke(['k', 'K'], (e: KeyboardEvent) => {
+    if (!userStore.user) return;
+
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      modalStore.openSearch();
+    }
+  });
 
   onKeyStroke(['n', 'N'], (e: KeyboardEvent) => {
     if (!userStore.user) return;
@@ -51,15 +50,14 @@ export function useAppShortcuts() {
     }
   });
 
-  // TODO(search-chat): disabled until search and chat are ready.
-  // onKeyStroke(['g', 'G'], (e: KeyboardEvent) => {
-  //   if (!userStore.user) return;
-  //
-  //   if (e.ctrlKey || e.metaKey) {
-  //     e.preventDefault();
-  //     modalStore.openSearch('group');
-  //   }
-  // });
+  onKeyStroke(['g', 'G'], (e: KeyboardEvent) => {
+    if (!userStore.user) return;
+
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      modalStore.openSearch('group');
+    }
+  });
 
   onKeyStroke(['d', 'D'], (e: KeyboardEvent) => {
     if (!userStore.user) return;

@@ -12,8 +12,7 @@ import {
   UserRoundPlus,
   Settings,
   ArrowLeftRight,
-  // TODO(search-chat): disabled until search and chat are ready.
-  // Search,
+  Search,
 } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import { useModalStore } from '@/stores/modalStore';
@@ -21,7 +20,7 @@ import Avatar from '@/modules/auth/components/Avatar.vue';
 import AccountMenu from '@/modules/auth/components/AccountMenu.vue';
 import { useLogout } from '@/core/composables/useLogout';
 import { useIsMobileViewport } from '@/common/composables/useViewport';
-// import { useSearchModal } from '@/core/composables/useSearchModal';
+import { useSearchModal } from '@/core/composables/useSearchModal';
 import { useGroupMenuActions } from '@/modules/groups/composables/useGroupMenuActions';
 
 const userStore = useUserStore();
@@ -29,7 +28,7 @@ const { user } = storeToRefs(userStore);
 const { t } = useI18n();
 const performLogout = useLogout();
 const isMobile = useIsMobileViewport();
-// const { openSearch } = useSearchModal();
+const { openSearch } = useSearchModal();
 const { y: scrollY } = useWindowScroll();
 const isScrolled = computed(() => scrollY.value > 0);
 
@@ -192,7 +191,6 @@ onMounted(() => {
         v-if="user && isMobile"
         class="ml-auto flex items-center gap-2 shrink-0"
       >
-        <!-- TODO(search-chat): disabled until search and chat are ready.
         <BaseButton
           variant="ghost"
           on="ghost"
@@ -200,7 +198,6 @@ onMounted(() => {
           :icon="Search"
           @click="openSearch"
         />
-        -->
 
         <AccountMenu
           :email="user.email"
