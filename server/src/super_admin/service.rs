@@ -5,6 +5,7 @@ use crate::{
         token::{ADMIN_REVOKE, TokenService},
     },
     common::{
+        cloudinary::Cloudinary,
         name_generator::generate_user_name,
         pagination::{PAGE_SIZE, Page, contains_pattern, search_term},
         role::{MemberRole, Role},
@@ -14,6 +15,7 @@ use crate::{
         member_policy::{self, Caller, Target},
         service::role_from_db,
     },
+    items::assets,
     state::AppState,
 };
 use serde_json::{Value, json};
@@ -58,6 +60,7 @@ fn search_params(raw: Option<&str>) -> (Option<String>, Option<Uuid>) {
 pub struct SuperAdminService {
     db: PgPool,
     tokens: TokenService,
+    cloudinary: Cloudinary,
 }
 
 impl SuperAdminService {
@@ -65,7 +68,19 @@ impl SuperAdminService {
         Self {
             db: s.db.clone(),
             tokens: TokenService::from_state(s),
+            cloudinary: s.cloudinary.clone(),
         }
+    }
+
+    fn delete_item_assets(&self, images: Vec<Option<Value>>) {
+        assets::delete_detached(
+            self.db.clone(),
+            self.cloudinary.clone(),
+            images
+                .iter()
+                .flatten()
+                .flat_map(assets::referenced_public_ids),
+        );
     }
 
     /// One round trip that scans each large table once.
@@ -146,13 +161,14 @@ impl SuperAdminService {
     pub async fn cleanup_old_items(&self, admin_id: Uuid) -> AppResult<Value> {
         let mut tx = self.db.begin().await?;
 
-        let deleted = sqlx::query!(
-            r#"DELETE FROM items WHERE created_at < now() - make_interval(days => $1)"#,
+        let images = sqlx::query_scalar!(
+            r#"DELETE FROM items WHERE created_at < now() - make_interval(days => $1)
+               RETURNING images"#,
             ITEM_RETENTION_DAYS
         )
-        .execute(&mut *tx)
-        .await?
-        .rows_affected();
+        .fetch_all(&mut *tx)
+        .await?;
+        let deleted = images.len();
 
         log_admin_action(
             &mut tx,
@@ -163,6 +179,8 @@ impl SuperAdminService {
         .await?;
 
         tx.commit().await?;
+
+        self.delete_item_assets(images);
 
         Ok(json!({ "ok": true, "deletedCount": deleted }))
     }
@@ -265,6 +283,13 @@ impl SuperAdminService {
     pub async fn delete_group(&self, group_id: Uuid, admin_id: Uuid) -> AppResult<Value> {
         let mut tx = self.db.begin().await?;
 
+        let images = sqlx::query_scalar!(
+            r#"DELETE FROM items WHERE tenant_id = $1 RETURNING images"#,
+            group_id
+        )
+        .fetch_all(&mut *tx)
+        .await?;
+
         let name = sqlx::query_scalar!(
             r#"DELETE FROM groups WHERE id = $1 RETURNING name"#,
             group_id
@@ -282,6 +307,8 @@ impl SuperAdminService {
         .await?;
 
         tx.commit().await?;
+
+        self.delete_item_assets(images);
 
         Ok(json!({ "ok": true, "deletedGroupId": group_id }))
     }

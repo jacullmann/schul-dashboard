@@ -1,7 +1,11 @@
 use crate::{
-    common::names::{CUSTOM_SUBJECT_MAX_CHARS, DisplayName},
+    common::{
+        cloudinary::Cloudinary,
+        names::{CUSTOM_SUBJECT_MAX_CHARS, DisplayName},
+    },
     error::{AppError, AppResult},
     items::{
+        assets,
         dto::{AddImageDto, CreateItemDto, ImageDto, ItemSubjectDto, UpdateItemDto},
         policy::ItemActor,
     },
@@ -9,7 +13,6 @@ use crate::{
 };
 use chrono::Utc;
 use serde_json::{Value, json};
-use sha2::{Digest, Sha256};
 use sqlx::PgPool;
 use uuid::Uuid;
 
@@ -94,20 +97,14 @@ pub struct ItemList {
 
 pub struct ItemsService {
     db: PgPool,
-    cloudinary_cloud_name: String,
-    cloudinary_api_key: String,
-    cloudinary_api_secret: String,
-    cloudinary_folder: String,
+    cloudinary: Cloudinary,
 }
 
 impl ItemsService {
     pub fn from_state(s: &AppState) -> Self {
         Self {
             db: s.db.clone(),
-            cloudinary_cloud_name: s.config.cloudinary_cloud_name.clone(),
-            cloudinary_api_key: s.config.cloudinary_api_key.clone(),
-            cloudinary_api_secret: s.config.cloudinary_api_secret.clone(),
-            cloudinary_folder: s.config.cloudinary_folder.clone(),
+            cloudinary: s.cloudinary.clone(),
         }
     }
 
@@ -116,7 +113,7 @@ impl ItemsService {
     fn validate_image(&self, image: &ImageDto) -> AppResult<()> {
         let public_id = image.public_id.as_str();
         let in_folder = public_id
-            .strip_prefix(self.cloudinary_folder.as_str())
+            .strip_prefix(self.cloudinary.folder())
             .is_some_and(|rest| rest.starts_with('/'));
         let well_formed = public_id
             .chars()
@@ -682,14 +679,13 @@ impl ItemsService {
             return Err(AppError::forbidden("Not allowed to delete this image."));
         }
 
-        let updated: Vec<Value> = images
+        let (removed, kept): (Vec<Value>, Vec<Value>) = images
             .into_iter()
-            .filter(|img| img["publicId"].as_str() != Some(public_id))
-            .collect();
+            .partition(|img| img["publicId"].as_str() == Some(public_id));
 
         sqlx::query!(
             r#"UPDATE items SET images = $1, updated_at = now() WHERE id = $2"#,
-            json!(updated),
+            json!(kept),
             item_id
         )
         .execute(&mut *tx)
@@ -704,6 +700,12 @@ impl ItemsService {
             .await?;
 
         tx.commit().await?;
+
+        assets::delete_detached(
+            self.db.clone(),
+            self.cloudinary.clone(),
+            assets::referenced_public_ids(&Value::Array(removed)),
+        );
 
         Ok(json!({ "ok": true }))
     }
@@ -727,13 +729,14 @@ impl ItemsService {
             return Err(AppError::forbidden("Not allowed to delete this item."));
         }
 
-        sqlx::query!(
-            r#"DELETE FROM items WHERE id = $1 AND tenant_id = $2"#,
+        let images = sqlx::query_scalar!(
+            r#"DELETE FROM items WHERE id = $1 AND tenant_id = $2 RETURNING images"#,
             id,
             tenant_id
         )
-        .execute(&self.db)
-        .await?;
+        .fetch_optional(&self.db)
+        .await?
+        .flatten();
 
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:delete', $2)"#,
@@ -742,6 +745,14 @@ impl ItemsService {
         )
         .execute(&self.db)
         .await?;
+
+        if let Some(images) = images {
+            assets::delete_detached(
+                self.db.clone(),
+                self.cloudinary.clone(),
+                assets::referenced_public_ids(&images),
+            );
+        }
 
         Ok(json!({ "ok": true }))
     }
@@ -781,28 +792,5 @@ impl ItemsService {
             .await?;
 
         Ok(json!({ "ok": true, "editorNote": trimmed }))
-    }
-
-    pub fn create_upload_signature(&self) -> Value {
-        let folder = &self.cloudinary_folder;
-        let timestamp = Utc::now().timestamp();
-
-        let to_sign = format!(
-            "folder={folder}&timestamp={timestamp}{}",
-            self.cloudinary_api_secret
-        );
-
-        let mut hasher = Sha256::new();
-
-        hasher.update(to_sign.as_bytes());
-        let sig = hex::encode(hasher.finalize());
-
-        json!({
-            "cloudName": self.cloudinary_cloud_name,
-            "apiKey": self.cloudinary_api_key,
-            "timestamp": timestamp,
-            "signature": sig,
-            "folder": folder,
-        })
     }
 }

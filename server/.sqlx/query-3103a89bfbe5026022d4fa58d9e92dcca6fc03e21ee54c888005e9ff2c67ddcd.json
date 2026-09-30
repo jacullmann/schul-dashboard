@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM items WHERE created_at < now() - make_interval(days => $1)\n               RETURNING images",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "images",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "items",
+            "name": "images"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "3103a89bfbe5026022d4fa58d9e92dcca6fc03e21ee54c888005e9ff2c67ddcd"
+}

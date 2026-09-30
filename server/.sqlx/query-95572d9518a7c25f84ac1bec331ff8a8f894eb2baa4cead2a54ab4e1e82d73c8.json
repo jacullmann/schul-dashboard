@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM items\n               WHERE tenant_id = $1 AND created_at < now() - interval '90 days'\n               RETURNING images",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "images",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "items",
+            "name": "images"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "95572d9518a7c25f84ac1bec331ff8a8f894eb2baa4cead2a54ab4e1e82d73c8"
+}

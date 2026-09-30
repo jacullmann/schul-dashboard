@@ -8,7 +8,6 @@ use crate::{
     common::path_params::{IdPath, MemberPath, SubjectPath},
     common::role::Role,
     error::{AppError, AppResult},
-    items::service::ItemsService,
     state::AppState,
 };
 use axum::{
@@ -101,7 +100,7 @@ pub async fn create_group(
 /// A new group's avatar is uploaded before the group exists, so this is the
 /// one upload signature that needs no group membership.
 pub async fn sign_group_avatar_upload(State(s): State<AppState>, _user: AuthUser) -> Json<Value> {
-    Json(ItemsService::from_state(&s).create_upload_signature())
+    Json(s.cloudinary.sign_upload())
 }
 
 pub async fn get_status(

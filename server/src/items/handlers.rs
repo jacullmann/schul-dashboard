@@ -168,5 +168,5 @@ pub async fn create_upload_signature(
 ) -> AppResult<Json<Value>> {
     require_permission!(tc, Permission::UploadImages);
 
-    Ok(Json(ItemsService::from_state(&s).create_upload_signature()))
+    Ok(Json(s.cloudinary.sign_upload()))
 }

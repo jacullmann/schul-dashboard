@@ -1,5 +1,7 @@
 use crate::{
-    common::{email::EmailService, encryption::EncryptionService, jwt::JwtService},
+    common::{
+        cloudinary::Cloudinary, email::EmailService, encryption::EncryptionService, jwt::JwtService,
+    },
     config::Config,
     messages::gateway::MessageBus,
 };
@@ -12,6 +14,7 @@ pub struct AppState {
     pub db: PgPool,
     pub config: Arc<Config>,
     pub http: Client,
+    pub cloudinary: Cloudinary,
     pub jwt: JwtService,
     pub email: EmailService,
     pub encryption: EncryptionService,
@@ -26,6 +29,7 @@ impl AppState {
             .build()
             .expect("Failed to build HTTP client");
 
+        let cloudinary = Cloudinary::new(http.clone(), &config);
         let jwt = JwtService::new(&config);
 
         let email = EmailService::new(
@@ -42,6 +46,7 @@ impl AppState {
             db,
             config: Arc::new(config),
             http,
+            cloudinary,
             jwt,
             email,
             encryption,
