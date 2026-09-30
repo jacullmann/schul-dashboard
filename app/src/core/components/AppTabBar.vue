@@ -42,9 +42,15 @@ const routeTab = computed(() => {
 const activeTab = computed(() => pendingTab.value ?? routeTab.value);
 
 async function openTab(name: string, location: RouteLocationRaw) {
+  const isSwitchingTab = routeTab.value !== name;
   pendingTab.value = name;
   try {
-    await router.push(location);
+    const failure = await router.push(location);
+    // Another tab opens at its top, like a native tab bar. Tapping the current
+    // tab, e.g. from an opened task, leaves the page to restore its own place.
+    if (!failure && isSwitchingTab) {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
   } finally {
     // A blocked or failed navigation hands the selection back to the route,
     // unless a later tap has already claimed it.
