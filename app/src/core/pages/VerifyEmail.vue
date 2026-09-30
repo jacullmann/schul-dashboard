@@ -36,18 +36,18 @@ onMounted(async () => {
         <div class="verify-icon loading-icon">
           <div class="spinner"></div>
         </div>
-        <h1 class="verify-title">{{ t('groups.verify.verifying') }}</h1>
+        <h1 class="verify-title">{{ t('auth.verify_email.verifying') }}</h1>
         <p class="verify-description">
-          {{ t('groups.verify.wait') }}
+          {{ t('auth.verify_email.wait') }}
         </p>
       </template>
       <template v-else-if="ok">
         <div class="verify-icon success-icon">
           <CheckCircle2 :size="64" />
         </div>
-        <h1 class="verify-title">{{ t('groups.verify.success') }}</h1>
+        <h1 class="verify-title">{{ t('auth.verify_email.success') }}</h1>
         <p class="verify-description">
-          {{ t('groups.verify.successDescription') }}
+          {{ t('auth.verify_email.success_description') }}
         </p>
 
         <div class="info-card">
@@ -55,7 +55,7 @@ onMounted(async () => {
             <Info :size="20" />
           </div>
           <div class="info-card-text">
-            {{ t('groups.verify.closeTab') }}
+            {{ t('auth.verify_email.close_tab') }}
           </div>
         </div>
       </template>
@@ -63,20 +63,20 @@ onMounted(async () => {
         <div class="verify-icon error-icon">
           <XCircle :size="64" />
         </div>
-        <h1 class="verify-title">{{ t('groups.verify.error') }}</h1>
+        <h1 class="verify-title">{{ t('auth.verify_email.error') }}</h1>
         <p class="verify-description">
-          {{ t('groups.verify.errorDescription') }}
+          {{ t('auth.verify_email.error_description') }}
         </p>
 
         <div class="error-card">
           <div class="error-card-header">
             <AlertTriangle :size="20" />
-            <span>{{ t('groups.verify.possibleCauses') }}</span>
+            <span>{{ t('auth.verify_email.possible_causes') }}</span>
           </div>
           <ul class="error-reasons">
-            <li>{{ t('groups.verify.causes.usedLink') }}</li>
-            <li>{{ t('groups.verify.causes.expiredLink') }}</li>
-            <li>{{ t('groups.verify.causes.copiedLink') }}</li>
+            <li>{{ t('auth.verify_email.causes.used_link') }}</li>
+            <li>{{ t('auth.verify_email.causes.expired_link') }}</li>
+            <li>{{ t('auth.verify_email.causes.copied_link') }}</li>
           </ul>
         </div>
 
