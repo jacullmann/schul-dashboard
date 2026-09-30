@@ -15,7 +15,7 @@
     "general": {
       "avatar": {
         "errors": {
-          "invalid_file": "Bitte wählen Sie eine gültige Bilddatei aus.",
+          "invalid_file": "Bitte wähle eine gültige Bilddatei aus.",
           "read_failed": "Fehler beim Lesen der Datei.",
           "upload_failed": "Cloudinary Upload fehlgeschlagen",
           "invalid_response": "Ungültige Antwort von Cloudinary",
@@ -27,7 +27,7 @@
         },
         "delete_modal": {
           "title": "Gruppenbild löschen",
-          "message": "Sind Sie sicher, dass Sie das Gruppen-Profilbild löschen möchten?"
+          "message": "Bist du sicher, dass du das Gruppen-Profilbild löschen möchtest?"
         },
         "actions": {
           "upload": "Bild hochladen",
@@ -37,7 +37,7 @@
         "description": "Wähle optional ein Gruppenbild",
         "cropper": {
           "title": "Bild anpassen",
-          "hint": "Ziehen Sie das Bild zum Ausrichten. Benutzen Sie das Mausrad oder den Schieberegler zum Zoomen."
+          "hint": "Zieh das Bild zum Ausrichten. Benutze das Mausrad oder den Schieberegler zum Zoomen."
         }
       },
       "password": {
@@ -260,7 +260,7 @@
         "select_lesson_slot": "Stunde auswählen",
         "select_instruction": "Klicke in der Stundenplanansicht die Stunden an, die du ändern möchtest.",
         "submit_instruction": "Schreibe in die passenden Textfelder die neuen Daten. Falls ein Wert gleichbleiben soll, kannst du das Feld freilassen. Mit den entsprechenden Checkboxen kannst du auch markieren ob Stunden ausfallen oder Stunden ganz verbergen.",
-        "select_lesson_warning": "Bitte wählen Sie eine Stunde aus dem Stundenplan.",
+        "select_lesson_warning": "Bitte wähle eine Stunde aus dem Stundenplan.",
         "new_room_label": "Neuer Raum",
         "new_slot_label": "Neue Stunde",
         "new_duration_label": "Neue Dauer",
