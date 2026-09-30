@@ -14,6 +14,10 @@ import { provideTasks } from '@/modules/tasks/composables/useTasks';
 import TaskCard from '@/modules/tasks/components/TaskCard.vue';
 import TaskDialogs from '@/modules/tasks/components/TaskDialogs.vue';
 import TaskSkeleton from '@/modules/tasks/components/TaskSkeleton.vue';
+import {
+  holdPendingEntrances,
+  vEntranceStart,
+} from '@/common/composables/useSkeletonHandoff';
 import { useCardEntrance } from '@/modules/tasks/composables/useCardEntrance';
 import { entranceDelay } from '@/modules/tasks/utils/entrance';
 import { lessonMinutes } from '@/modules/schedule/utils/slotTimes';
@@ -216,12 +220,14 @@ const NEXT_LESSON_REVEAL_ORDER = 0;
 const SUBSTITUTIONS_REVEAL_ORDER = 1;
 
 const {
+  entranceStart: cardEntranceStart,
   isEntering: isCardEntering,
   entranceStyle: cardEntranceStyle,
   handleEntranceEnd: handleCardAnimationEnd,
 } = useCardEntrance(
   computed(() => visibleTasks.value.map((task) => task.id)),
   showTaskSkeleton,
+  TASKS_LIST_ENTRANCE_ORDER,
 );
 </script>
 
@@ -278,13 +284,15 @@ const {
           <!-- Taken out of the flow while it fades, so the cards arriving in its
                place overlap it instead of waiting below it. -->
           <Transition
-            leave-active-class="skeleton-leaving absolute inset-x-0 top-0 transition-opacity duration-300 ease-out"
+            leave-active-class="absolute inset-x-0 top-0 transition-opacity duration-300 ease-out"
             leave-to-class="opacity-0"
+            @before-leave="holdPendingEntrances"
           >
             <TaskSkeleton
               v-if="showTaskSkeleton"
               :count="TASK_COUNT"
               :entrance-order="TASKS_LIST_ENTRANCE_ORDER"
+              :entrance-start="cardEntranceStart"
             />
           </Transition>
 
@@ -301,11 +309,13 @@ const {
               <template v-for="(task, index) in visibleTasks" :key="task.id">
                 <div
                   v-if="index > 0"
+                  v-entrance-start="cardEntranceStart"
                   class="border-b border-ghost-border ml-10.5 mr-4"
                   :class="{ 'animate-enter': isCardEntering(task.id) }"
                   :style="cardEntranceStyle(task.id)"
                 ></div>
                 <TaskCard
+                  v-entrance-start="cardEntranceStart"
                   :class="{ 'animate-enter': isCardEntering(task.id) }"
                   :style="cardEntranceStyle(task.id)"
                   :item="task"

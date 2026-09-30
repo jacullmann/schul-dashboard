@@ -6,6 +6,10 @@ import { useDismissibleNotice } from '@/common/composables/useDismissibleNotice'
 import { Plus, ListFilter } from '@lucide/vue';
 
 import { useTasks } from '@/modules/tasks/composables/useTasks';
+import {
+  holdPendingEntrances,
+  vEntranceStart,
+} from '@/common/composables/useSkeletonHandoff';
 import { useCardEntrance } from '@/modules/tasks/composables/useCardEntrance';
 import { TASK_PAGE_SIZE } from '@/modules/tasks/composables/hw/useHwList';
 import { useTaskForm } from '@/core/composables/useTaskForm';
@@ -147,6 +151,7 @@ function beforeLeave(el: Element) {
 
 // Behind the skeleton the list still sorts itself as checks and pins load.
 const {
+  entranceStart: cardEntranceStart,
   isEntering: isCardEntering,
   entranceStyle: cardEntranceStyle,
   handleEntranceEnd: handleCardAnimationEnd,
@@ -154,6 +159,7 @@ const {
 } = useCardEntrance(
   computed(() => visibleItems.value.map((item) => item.id)),
   showSkeleton,
+  LIST_ENTRANCE_ORDER,
 );
 
 const emptyStateEntered = ref(false);
@@ -283,12 +289,14 @@ onDeactivated(() => {
       <!-- Taken out of the flow while it fades, so the cards arriving in its
            place overlap it instead of waiting below it. -->
       <Transition
-        leave-active-class="skeleton-leaving absolute inset-x-0 top-0 transition-opacity duration-300 ease-out"
+        leave-active-class="absolute inset-x-0 top-0 transition-opacity duration-300 ease-out"
         leave-to-class="opacity-0"
+        @before-leave="holdPendingEntrances"
       >
         <TaskSkeleton
           v-if="showSkeleton"
           :entrance-order="LIST_ENTRANCE_ORDER"
+          :entrance-start="cardEntranceStart"
         />
       </Transition>
 
@@ -305,11 +313,13 @@ onDeactivated(() => {
         <template v-for="(item, index) in visibleItems" :key="item.id">
           <div
             v-if="index > 0"
+            v-entrance-start="cardEntranceStart"
             class="border-b border-ghost-border ml-10.5 mr-4"
             :class="{ 'animate-enter': isCardEntering(item.id) }"
             :style="cardEntranceStyle(item.id)"
           ></div>
           <TaskCard
+            v-entrance-start="cardEntranceStart"
             :class="{ 'animate-enter': isCardEntering(item.id) }"
             :style="cardEntranceStyle(item.id)"
             :item="item"

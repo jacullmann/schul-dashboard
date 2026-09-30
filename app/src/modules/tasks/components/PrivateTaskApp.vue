@@ -20,6 +20,10 @@ import { computed, ref, onUnmounted, watch } from 'vue';
 import { useIsMobileViewport } from '@/common/composables/useViewport';
 import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/vue';
 import BaseSkeleton from '@/common/components/BaseSkeleton.vue';
+import {
+  holdPendingEntrances,
+  vEntranceStart,
+} from '@/common/composables/useSkeletonHandoff';
 import { useCardEntrance } from '@/modules/tasks/composables/useCardEntrance';
 import {
   entranceDelay,
@@ -170,12 +174,14 @@ const SKELETON_COUNT = 10;
 const showSkeleton = computed(() => loading.value && initialLoad.value);
 
 const {
+  entranceStart: cardEntranceStart,
   isEntering: isCardEntering,
   entranceStyle: cardEntranceStyle,
   handleEntranceEnd: handleCardAnimationEnd,
 } = useCardEntrance(
   computed(() => displayPrivateTasks.value.map((task) => task.id)),
   showSkeleton,
+  LIST_ENTRANCE_ORDER,
 );
 
 const emptyStateEntered = ref(false);
@@ -210,15 +216,16 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
       <!-- Taken out of the flow while it fades, so the cards arriving in its
            place overlap it instead of waiting below it. -->
       <Transition
-        leave-active-class="skeleton-leaving absolute inset-x-0 top-0 transition-opacity duration-300 ease-out"
+        leave-active-class="absolute inset-x-0 top-0 transition-opacity duration-300 ease-out"
         leave-to-class="opacity-0"
+        @before-leave="holdPendingEntrances"
       >
         <div v-if="showSkeleton" class="flex flex-col gap-8 pt-4">
-          <!-- A row still waiting for its entrance stays hidden while the skeleton leaves. -->
           <div
             v-for="n in SKELETON_COUNT"
             :key="n"
-            class="animate-enter in-[.skeleton-leaving]:[animation-play-state:paused]"
+            v-entrance-start="cardEntranceStart"
+            class="animate-enter"
             :style="{
               '--enter-delay': entranceDelay(LIST_ENTRANCE_ORDER + n - 1),
             }"
@@ -256,6 +263,7 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
               <!-- The entrance plays on the card, not the wrapper, whose
                  transform belongs to the drag reorder. -->
               <PrivateTaskCard
+                v-entrance-start="cardEntranceStart"
                 :class="{ 'animate-enter': isCardEntering(privateTask.id) }"
                 :style="cardEntranceStyle(privateTask.id)"
                 :task="privateTask"

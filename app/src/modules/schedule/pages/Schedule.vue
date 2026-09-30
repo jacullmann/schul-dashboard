@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, shallowRef, computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useIsPhoneViewport } from '@/common/composables/useViewport';
 import { useDismissibleNotice } from '@/common/composables/useDismissibleNotice';
@@ -11,7 +11,12 @@ import type {
   ScheduleLayout,
   ScheduleRow,
 } from '@/modules/schedule/types';
-import { entranceDelay, REVEAL_PACE } from '@/modules/schedule/utils/entrance';
+import {
+  holdPendingEntrances,
+  useSkeletonHandoff,
+  vEntranceStart,
+} from '@/common/composables/useSkeletonHandoff';
+import { entranceDelay } from '@/modules/schedule/utils/entrance';
 
 import BaseTableWrapper from '@/common/components/BaseTableWrapper.vue';
 import PersonalizedViewNotice from '@/common/components/PersonalizedViewNotice.vue';
@@ -65,27 +70,27 @@ const enterDay = (index: number) => {
 
 enterDay(defaultDayIndex.value);
 
-const lessonEntrancePace = ref(loadingLessons.value ? REVEAL_PACE : 1);
-
 watch(loadingLessons, (loading) => {
-  if (loading) {
-    lessonEntrancePace.value = REVEAL_PACE;
-  } else if (!hasPaged.value) {
-    enterDay(defaultDayIndex.value);
-  }
+  if (!loading && !hasPaged.value) enterDay(defaultDayIndex.value);
 });
+
+const entranceStart = useSkeletonHandoff(loadingLessons);
+
+/*
+ * The row each slot's skeleton timed its entrance by. The loaded layout can
+ * insert rows, so a lesson keeps its skeleton's timing to continue its motion.
+ */
+const skeletonRowOfSlot = shallowRef(new Map<number, number>());
 
 const lessonEntranceStyle = (
   group: Lesson[],
   column: number,
   layout: ScheduleLayout,
-) => ({
-  '--enter-delay': entranceDelay(
-    column,
-    layout.gridRowOfSlot(group[0]?.slot ?? 1),
-    lessonEntrancePace.value,
-  ),
-});
+) => {
+  const slot = group[0]?.slot ?? 1;
+  const row = skeletonRowOfSlot.value.get(slot) ?? layout.gridRowOfSlot(slot);
+  return { '--enter-delay': entranceDelay(column, row) };
+};
 
 type BreakRow = Extract<ScheduleRow, { kind: 'break' }>;
 
@@ -224,6 +229,17 @@ const skeletonCells = computed(() => {
     })),
   );
 });
+
+watch(
+  skeletonCells,
+  (cells) => {
+    if (!cells.length) return;
+    skeletonRowOfSlot.value = new Map(
+      cells.map(({ slot, row }) => [slot, row]),
+    );
+  },
+  { immediate: true },
+);
 </script>
 
 <template>
@@ -274,8 +290,9 @@ const skeletonCells = computed(() => {
         />
 
         <TransitionGroup
-          leave-active-class="skeleton-leaving transition-opacity duration-400 ease-out"
+          leave-active-class="transition-opacity duration-400 ease-out"
           leave-to-class="opacity-0"
+          @before-leave="holdPendingEntrances"
         >
           <ScheduleCellSkeleton
             v-for="cell in skeletonCells"
@@ -284,12 +301,14 @@ const skeletonCells = computed(() => {
             :grid-row="cell.row"
             :slot-number="cell.slot"
             radius="lg"
+            :entrance-start="entranceStart"
           />
         </TransitionGroup>
 
         <ScheduleLessonGroup
           v-for="{ key, lessons } in panel.lessonGroups"
           :key="key"
+          v-entrance-start="entranceStart"
           :group="lessons"
           :group-key="key"
           :is-active="key === activeOrNextGroupKey"
@@ -333,8 +352,9 @@ const skeletonCells = computed(() => {
         />
 
         <TransitionGroup
-          leave-active-class="skeleton-leaving transition-opacity duration-400 ease-out"
+          leave-active-class="transition-opacity duration-400 ease-out"
           leave-to-class="opacity-0"
+          @before-leave="holdPendingEntrances"
         >
           <ScheduleCellSkeleton
             v-for="cell in skeletonCells"
@@ -343,12 +363,14 @@ const skeletonCells = computed(() => {
             :grid-row="cell.row"
             :slot-number="cell.slot"
             radius="md"
+            :entrance-start="entranceStart"
           />
         </TransitionGroup>
 
         <ScheduleLessonGroup
           v-for="{ key, lessons, day, dayIndex } in lessonGroups"
           :key="key"
+          v-entrance-start="entranceStart"
           :group="lessons"
           :group-key="key"
           :is-active="key === activeOrNextGroupKey"

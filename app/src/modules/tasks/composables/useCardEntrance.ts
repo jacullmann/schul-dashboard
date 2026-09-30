@@ -1,4 +1,5 @@
 import { ref, watch, type Ref } from 'vue';
+import { useSkeletonHandoff } from '@/common/composables/useSkeletonHandoff';
 import {
   entranceDelay,
   hasSettledEntrance,
@@ -11,21 +12,25 @@ import {
  * animations.
  *
  * While `held`, the list sits behind a skeleton and may still reorder as it
- * loads, so the order is only taken once the cards are actually shown.
+ * loads, so the order is only taken once the cards are actually shown. The
+ * cards then take over the skeleton rows' places in the entrance, starting at
+ * `skeletonOrder`, and continue from wherever those rows had got to.
  */
 export function useCardEntrance(
   ids: Readonly<Ref<string[]>>,
   held: Readonly<Ref<boolean>>,
+  skeletonOrder = 0,
 ) {
   const enteringOrder = ref(new Map<string, number>());
   let shownIds = new Set<string>();
+  const entranceStart = useSkeletonHandoff(held);
 
   watch(
     [ids, held],
-    ([currentIds, isHeld]) => {
+    ([currentIds, isHeld], [, wasHeld]) => {
       if (isHeld) return;
       const entering = new Map(enteringOrder.value);
-      let order = 0;
+      let order = wasHeld ? skeletonOrder : 0;
       for (const id of currentIds) {
         if (!shownIds.has(id)) entering.set(id, order++);
       }
@@ -56,5 +61,11 @@ export function useCardEntrance(
     enteringOrder.value = new Map();
   }
 
-  return { isEntering, entranceStyle, handleEntranceEnd, settleAll };
+  return {
+    entranceStart,
+    isEntering,
+    entranceStyle,
+    handleEntranceEnd,
+    settleAll,
+  };
 }

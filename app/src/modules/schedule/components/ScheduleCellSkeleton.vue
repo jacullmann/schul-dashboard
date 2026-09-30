@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import BaseSkeleton from '@/common/components/BaseSkeleton.vue';
-import { entranceDelay, REVEAL_PACE } from '@/modules/schedule/utils/entrance';
+import { vEntranceStart } from '@/common/composables/useSkeletonHandoff';
+import { entranceDelay } from '@/modules/schedule/utils/entrance';
 
 defineProps<{
   gridColumn: number;
@@ -9,6 +10,8 @@ defineProps<{
   /** Placed in the row the grid names for this slot, see --slot-N-row. */
   slotNumber: number;
   radius: 'md' | 'lg';
+  /** Shared with the lessons that replace it, see useSkeletonHandoff. */
+  entranceStart: number | null;
 }>();
 </script>
 
@@ -17,16 +20,15 @@ defineProps<{
     :style="{
       gridColumn,
       gridRow: `var(--slot-${slotNumber}-row, ${gridRow})`,
-      transitionDelay: entranceDelay(gridColumn, gridRow, REVEAL_PACE),
     }"
   >
     <!--
-      This box fades out when the lessons arrive, delayed like the lesson that
-      takes its place, so each cell crossfades rather than blinking empty.
-      A skeleton still waiting for its entrance stays hidden while it leaves.
+      The lesson taking this cell's place picks up the entrance where this box
+      has got to, so the box can fade out at once and the two crossfade.
     -->
     <div
-      class="h-full animate-enter in-[.skeleton-leaving]:[animation-play-state:paused]"
+      v-entrance-start="entranceStart"
+      class="h-full animate-enter"
       :style="{ '--enter-delay': entranceDelay(gridColumn, gridRow) }"
     >
       <BaseSkeleton

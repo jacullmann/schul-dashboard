@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { vEntranceStart } from '@/common/composables/useSkeletonHandoff';
 import { entranceDelay } from '@/modules/tasks/utils/entrance';
 
 withDefaults(
@@ -6,10 +7,13 @@ withDefaults(
     count?: number;
     /** Where the first card falls in the page's entrance order. */
     entranceOrder?: number;
+    /** Shared with the cards that replace it, see useSkeletonHandoff. */
+    entranceStart?: number | null;
   }>(),
   {
     count: 5,
     entranceOrder: 0,
+    entranceStart: null,
   },
 );
 
@@ -19,11 +23,11 @@ const TITLE_WIDTHS = ['60%', '75%', '50%', '68%'];
 <template>
   <!-- Mirrors the list of cards, so each line sits where its text will. -->
   <div class="flex flex-col gap-0.25 max-md:-mx-4">
-    <!-- A card still waiting for its entrance stays hidden while the skeleton leaves. -->
     <div
       v-for="n in count"
       :key="n"
-      class="animate-enter in-[.skeleton-leaving]:[animation-play-state:paused]"
+      v-entrance-start="entranceStart"
+      class="animate-enter"
       :style="{ '--enter-delay': entranceDelay(entranceOrder + n - 1) }"
     >
       <div class="p-1">
