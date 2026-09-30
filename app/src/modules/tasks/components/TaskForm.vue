@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { HwItem } from '@/modules/tasks/composables/useTasks';
 import type { ItemType } from '@/modules/tasks/types';
@@ -7,6 +8,7 @@ import {
   OTHER_SUBJECT,
   useTaskFormLogic,
 } from '../composables/useTaskFormLogic';
+import { useAddedEntrance } from '../composables/useAddedEntrance';
 import { CUSTOM_SUBJECT_MAX_LENGTH } from '@/types/subjects';
 import GroupSelect from '@/modules/groups/components/GroupSelect.vue';
 import ItemCard from './ItemCard.vue';
@@ -72,6 +74,10 @@ const {
   doubleTaskDueDate,
   doubleTaskConfirmMessage,
 } = useTaskFormLogic(props.groupId, props.initial, props.initialType, emit);
+
+const imageEntrance = useAddedEntrance(
+  computed(() => imgImages.value.map((img) => img.publicId)),
+);
 </script>
 
 <template>
@@ -220,6 +226,11 @@ const {
             v-for="img in imgImages"
             :key="img.publicId"
             class="relative w-32 h-32 rounded-xl overflow-hidden bg-[rgba(26, 26, 26, 0.5)] backdrop-blur-sm"
+            :class="{ 'animate-enter': imageEntrance.isEntering(img.publicId) }"
+            :style="imageEntrance.entranceStyle(img.publicId)"
+            @animationend="
+              imageEntrance.handleEntranceEnd($event, img.publicId)
+            "
           >
             <BaseLink :to="makeUrl(img.publicId)">
               <img
