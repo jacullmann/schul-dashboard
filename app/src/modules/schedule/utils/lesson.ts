@@ -5,7 +5,7 @@ import type {
   ScheduleSubject,
 } from '@/modules/schedule/types';
 import { DALTON_SUBJECT_KEY } from '@/types/subjects';
-import { courseLabel, subjectLabel } from '@/utils/subject-formatter';
+import { subjectLabel } from '@/utils/subject-formatter';
 
 /**
  * The stored subject name of a lesson, or the Dalton key for the pseudo-subject.
@@ -18,20 +18,11 @@ export function lessonSubjectName(
   return lesson.subjects?.name || lesson.subject || lesson.subjectAbbr || '';
 }
 
-/** WPU lessons are known by their course, the subject only says which block. */
-const WPU_BLOCK_KEYS = new Set(['wpu1', 'wpu2']);
-
 /** The name a lesson is shown with, in the reader's language. */
 export function lessonDisplayName(
   lesson: Pick<
     Lesson,
-    | 'isDalton'
-    | 'subjects'
-    | 'subject'
-    | 'subjectAbbr'
-    | 'courses'
-    | 'courseName'
-    | 'isSubstitutedSubject'
+    'isDalton' | 'subjects' | 'subject' | 'subjectAbbr' | 'isSubstitutedSubject'
   >,
   t: (key: string) => string,
   te: (key: string) => boolean,
@@ -41,14 +32,7 @@ export function lessonDisplayName(
   }
 
   const subjectName = lessonSubjectName(lesson);
-  if (!subjectName) return '';
-
-  const courseName = lesson.courses?.name || lesson.courseName;
-  if (courseName && WPU_BLOCK_KEYS.has(subjectName.toLowerCase())) {
-    return `WPU ${courseLabel(courseName, t, te)}`;
-  }
-
-  return subjectLabel(subjectName, t, te);
+  return subjectName ? subjectLabel(subjectName, t, te) : '';
 }
 
 /** How many slots a lesson fills; a missing or zero duration still fills its own. */

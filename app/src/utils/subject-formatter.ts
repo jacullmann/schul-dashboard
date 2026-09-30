@@ -38,13 +38,6 @@ export function courseLabel(
     .replace(/^Frau\s+/, `${t('common.titles.abbr.ms')} `);
 }
 
-/** Subjects whose courses carry the whole name, so the subject shrinks to a prefix. */
-const COURSE_PREFIXES: Readonly<Record<string, string>> = {
-  enrichment: 'ENR',
-  wpu1: 'WPU 1',
-  wpu2: 'WPU 2',
-};
-
 export function formatSubjectDisplay(
   subjectName: string,
   courseName: string | null | undefined,
@@ -53,9 +46,7 @@ export function formatSubjectDisplay(
 ): string {
   if (!courseName) return subjectLabel(subjectName, t, te);
 
-  const subject =
-    COURSE_PREFIXES[subjectName] ?? subjectLabel(subjectName, t, te);
-  return `${subject} ${courseLabel(courseName, t, te)}`;
+  return `${subjectLabel(subjectName, t, te)} ${courseLabel(courseName, t, te)}`;
 }
 
 const BUILT_IN_SUBJECT_KEYS = (() => {
