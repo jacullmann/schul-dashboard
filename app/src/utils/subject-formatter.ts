@@ -53,11 +53,9 @@ export function formatSubjectDisplay(
 ): string {
   if (!courseName) return subjectLabel(subjectName, t, te);
 
-  const course = courseLabel(courseName, t, te);
-  const prefix = COURSE_PREFIXES[subjectName];
-  if (prefix) return `${prefix} ${course}`;
-
-  return `${subjectLabel(subjectName, t, te)} - ${course}`;
+  const subject =
+    COURSE_PREFIXES[subjectName] ?? subjectLabel(subjectName, t, te);
+  return `${subject} ${courseLabel(courseName, t, te)}`;
 }
 
 const BUILT_IN_SUBJECT_KEYS = (() => {
