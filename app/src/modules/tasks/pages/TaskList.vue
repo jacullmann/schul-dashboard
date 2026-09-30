@@ -12,9 +12,7 @@ import {
 } from '@/common/composables/useSkeletonHandoff';
 import { useCardEntrance } from '@/modules/tasks/composables/useCardEntrance';
 import { TASK_PAGE_SIZE } from '@/modules/tasks/composables/hw/useHwList';
-import { useTaskForm } from '@/core/composables/useTaskForm';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
-import { useGroupPageId } from '@/core/composables/useGroupPageId';
 
 import InfoModal from '@/common/components/InfoModal.vue';
 import TaskSkeleton from '@/modules/tasks/components/TaskSkeleton.vue';
@@ -36,7 +34,6 @@ const t = i18n.t.bind(i18n);
 const tm = i18n.tm.bind(i18n);
 
 const { activeGroupDaltonEnabled } = useAppAuth();
-const groupId = useGroupPageId();
 
 const tabItems = computed(() => [
   { id: 'all', label: t('tasks.list.tabs.all') },
@@ -78,6 +75,7 @@ const {
   triggerImageDrop,
   subjectOptions,
   resetFilters,
+  openCreateForm,
 } = useTasks();
 
 const visibleItems = computed(() =>
@@ -97,12 +95,6 @@ const showPersonalizedNotice = computed(
     hiddenByCourses.value > 0 &&
     !initialLoad.value,
 );
-
-const { openTaskForm } = useTaskForm();
-
-function openNewTask() {
-  openTaskForm(groupId, { local: true });
-}
 
 // The Dalton tab disappears with the setting, also for a link that opened it.
 watch(
@@ -225,7 +217,7 @@ onDeactivated(() => {
                 :aria-label="t('tasks.list.task_form.new_task')"
                 :icon="Plus"
                 icon-classes="size-6"
-                @click="openNewTask"
+                @click="openCreateForm"
               />
             </BaseTooltip>
           </BaseRow>
@@ -337,7 +329,7 @@ onDeactivated(() => {
       <BaseEmptyState
         v-if="!loading && !limitedItems.length"
         :class="{ 'animate-enter': !emptyStateEntered }"
-        :primary-action="openNewTask"
+        :primary-action="openCreateForm"
         :secondary-action="resetFilters"
         @animationend="handleEmptyStateAnimationEnd"
       >

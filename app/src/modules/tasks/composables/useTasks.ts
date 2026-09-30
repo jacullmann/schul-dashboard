@@ -334,6 +334,7 @@ function createTasks(fixedFilters: Partial<TaskFilters>) {
     canEdit: actions.canEdit,
     canDelete: actions.canDelete,
     canDeleteImage: actions.canDeleteImage,
+    openCreateForm: forms.openCreateForm,
     canEditNote: forms.canEditNote,
     editingNoteForId: forms.editingNoteForId,
     noteEditContent: forms.noteEditContent,

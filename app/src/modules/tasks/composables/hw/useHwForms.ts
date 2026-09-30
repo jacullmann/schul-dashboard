@@ -1,6 +1,6 @@
 import { onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import type { HwItem, ItemType } from '@/modules/tasks/types';
+import type { HwItem } from '@/modules/tasks/types';
 import hw from '@/api/api.ts';
 import { groupPath } from '@/api/groupPath';
 import { useToast } from '@/common/composables/useToast';
@@ -30,8 +30,12 @@ export function useHwForms(ctx: HwContext) {
     openEditForm(ctx.groupId, item);
   }
 
-  function openCreateFormByType(type: Exclude<ItemType, 'all'>) {
-    openTaskForm(ctx.groupId, { type, local: true });
+  function openCreateForm() {
+    const tab = ctx.tab.value;
+    openTaskForm(ctx.groupId, {
+      type: tab === 'all' ? undefined : tab,
+      local: true,
+    });
   }
 
   function canEditNote() {
@@ -106,7 +110,7 @@ export function useHwForms(ctx: HwContext) {
     savingNote,
     onItemFormError,
     editItem,
-    openCreateFormByType,
+    openCreateForm,
     canEditNote,
     startEditNote,
     cancelEditNote,
