@@ -67,6 +67,7 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
         v-bind="$attrs"
         :labelledby="titleId"
         :elevated="elevated"
+        :round="!closeButton"
         @cancel="handleCancel"
       >
         <!-- pr-12 reserves the close button's width plus gap -->
@@ -80,7 +81,7 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
                drops its masks in Chromium, and on the scroller or card it
                drops the blur in Firefox. -->
           <BaseScrollFade
-            class="-inset-x-4 -top-4 -bottom-4 firefox:overflow-hidden firefox:rounded-t-2xl"
+            class="-inset-x-4 -top-4 -bottom-4 firefox:overflow-hidden firefox:rounded-t-(--card-radius)"
           />
 
           <BaseRow>

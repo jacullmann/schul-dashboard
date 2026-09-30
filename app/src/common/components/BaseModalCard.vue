@@ -10,6 +10,8 @@ defineProps<{
    * the same on a phone and on a desktop.
    */
   elevated?: boolean;
+  /** Rounder corners for cards without a close button in the corner. */
+  round?: boolean;
 }>();
 
 defineEmits<{
@@ -26,8 +28,11 @@ defineEmits<{
   >
     <div
       v-bind="$attrs"
-      class="bg-canvas rounded-2xl w-[calc(100%-2rem)] max-w-160 max-h-[min(56rem,calc(100dvh-5rem))] flex flex-col fixed text-left z-(--z-modal)"
+      class="bg-canvas rounded-(--card-radius) w-[calc(100%-2rem)] max-w-160 max-h-[min(56rem,calc(100dvh-5rem))] flex flex-col fixed text-left z-(--z-modal)"
       :class="elevated ? 'z-[100004]!' : ''"
+      :style="{
+        '--card-radius': round ? '36px' : 'var(--radius-2xl)',
+      }"
       role="dialog"
       aria-modal="true"
       :aria-labelledby="labelledby"
@@ -38,7 +43,7 @@ defineEmits<{
            along the scroller's clip would let the page show through. -->
       <div
         aria-hidden="true"
-        class="pointer-events-none absolute inset-0 z-30 rounded-2xl border border-ghost-border"
+        class="pointer-events-none absolute inset-0 z-30 rounded-(--card-radius) border border-ghost-border"
       />
 
       <!-- Outside the scroller, so a scrollbar never shifts it. First in the
@@ -59,7 +64,7 @@ defineEmits<{
            blur, hence the opaque background: over a transparent one the
            blurred copy is translucent, and the sharp content shows through. -->
       <div
-        class="min-h-0 p-4 overflow-x-hidden overflow-y-auto overscroll-contain bg-canvas opacity-[.999] [clip-path:inset(0_round_var(--radius-2xl))]"
+        class="min-h-0 p-4 overflow-x-hidden overflow-y-auto overscroll-contain bg-canvas opacity-[.999] [clip-path:inset(0_round_var(--card-radius))]"
       >
         <slot></slot>
       </div>
