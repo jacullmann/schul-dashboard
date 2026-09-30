@@ -210,6 +210,19 @@ onMounted(() => {
           </BaseTooltip>
 
           <BaseTooltip
+            v-else
+            :content="t('tasks.list.tasks.menu.upload_images')"
+            placement="bottom"
+          >
+            <BaseButton
+              variant="ghost"
+              :aria-label="t('tasks.list.tasks.menu.upload_images')"
+              :icon="Upload"
+              @click="onDetailMenuAction('images')"
+            />
+          </BaseTooltip>
+
+          <BaseTooltip
             :content="t('tasks.list.tasks.menu.share')"
             placement="bottom"
           >
