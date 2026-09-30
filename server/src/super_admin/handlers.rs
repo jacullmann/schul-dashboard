@@ -158,11 +158,12 @@ pub async fn ban_user(
     SuperAdmin(admin): SuperAdmin,
     Path(target): Path<Uuid>,
 ) -> AppResult<Json<Value>> {
-    Ok(Json(
-        SuperAdminService::from_state(&s)
-            .ban_user(target, admin.user_id)
-            .await?,
-    ))
+    let body = SuperAdminService::from_state(&s)
+        .ban_user(target, admin.user_id)
+        .await?;
+    s.message_bus.end_sessions(target);
+
+    Ok(Json(body))
 }
 
 pub async fn unban_user(
@@ -182,11 +183,12 @@ pub async fn delete_user(
     SuperAdmin(admin): SuperAdmin,
     Path(target): Path<Uuid>,
 ) -> AppResult<Json<Value>> {
-    Ok(Json(
-        SuperAdminService::from_state(&s)
-            .delete_user(target, admin.user_id)
-            .await?,
-    ))
+    let body = SuperAdminService::from_state(&s)
+        .delete_user(target, admin.user_id)
+        .await?;
+    s.message_bus.end_sessions(target);
+
+    Ok(Json(body))
 }
 
 pub async fn update_user_role(

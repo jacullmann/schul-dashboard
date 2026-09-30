@@ -1,6 +1,7 @@
 use crate::{
-    auth::session_context::is_superadmin,
+    auth::session_context::{account_is_active, is_superadmin},
     common::{
+        jwt::JwtService,
         path_params::GroupPath,
         permission::{GroupPermissions, Permission},
         role::Role,
@@ -35,6 +36,24 @@ pub struct AuthUser {
     pub email: String,
 }
 
+impl AuthUser {
+    /// The identity the access token vouches for, before the account behind
+    /// it is confirmed active.
+    fn from_access_token(jar: &CookieJar, jwt: &JwtService) -> AppResult<Self> {
+        let token = jar.get(ACCESS_COOKIE).ok_or(AppError::AuthRequired)?;
+        let claims = jwt.verify_access(token.value())?;
+        let user_id = claims
+            .sub
+            .parse::<Uuid>()
+            .map_err(|_| AppError::TokenExpired)?;
+
+        Ok(AuthUser {
+            user_id,
+            email: claims.email,
+        })
+    }
+}
+
 impl<S> FromRequestParts<S> for AuthUser
 where
     AppState: FromRef<S>,
@@ -49,22 +68,15 @@ where
             .await
             .map_err(|_| AppError::AuthRequired)?;
 
-        let token = jar
-            .get(ACCESS_COOKIE)
-            .map(|c| c.value().to_owned())
-            .ok_or(AppError::AuthRequired)?;
+        let user = Self::from_access_token(&jar, &app_state.jwt)?;
 
-        let claims = app_state.jwt.verify_access(&token)?;
+        // A 401 sends the client to refresh, which the revoked session fails,
+        // so a banned or deleted user is signed out on their next request.
+        if !account_is_active(&app_state.db, user.user_id).await? {
+            return Err(AppError::TokenExpired);
+        }
 
-        let user_id = claims
-            .sub
-            .parse::<Uuid>()
-            .map_err(|_| AppError::TokenExpired)?;
-
-        Ok(AuthUser {
-            user_id,
-            email: claims.email,
-        })
+        Ok(user)
     }
 }
 
@@ -76,12 +88,14 @@ where
     AppState: FromRef<S>,
     S: Send + Sync,
 {
-    type Rejection = Infallible;
+    type Rejection = AppError;
 
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
-        Ok(OptionalAuth(
-            AuthUser::from_request_parts(parts, state).await.ok(),
-        ))
+        match AuthUser::from_request_parts(parts, state).await {
+            Ok(user) => Ok(OptionalAuth(Some(user))),
+            Err(AppError::AuthRequired | AppError::TokenExpired) => Ok(OptionalAuth(None)),
+            Err(e) => Err(e),
+        }
     }
 }
 
@@ -159,7 +173,12 @@ impl TenantContext {
                    EXISTS (
                        SELECT 1 FROM user_roles
                        WHERE user_id = $1 AND tenant_id IS NULL AND role_id = $3
-                   ) AS "is_superadmin!"
+                   ) AS "is_superadmin!",
+                   EXISTS (
+                       SELECT 1 FROM users u
+                       WHERE u.id = $1
+                         AND NOT EXISTS (SELECT 1 FROM banned_users b WHERE b.user_id = u.id)
+                   ) AS "account_active!"
             FROM groups g
             WHERE g.id = $2
             "#,
@@ -171,6 +190,10 @@ impl TenantContext {
         .await?;
 
         let row = row.ok_or_else(group_not_found)?;
+
+        if !row.account_active {
+            return Err(AppError::TokenExpired);
+        }
 
         let tenant_role = match (row.is_superadmin, row.tenant_role.as_deref()) {
             (true, _) => Role::Superadmin,
@@ -218,14 +241,17 @@ fn group_not_found() -> AppError {
     AppError::not_found("Group not found.")
 }
 
-/// Route layer for everything nested under `/groups/{group_id}`.
+/// Route layer for everything nested under `/groups/{group_id}`. It reads
+/// the token without the [`AuthUser`] extractor because the tenant query
+/// already confirms the account is active, saving a round trip per request.
 pub async fn resolve_tenant(
     State(state): State<AppState>,
-    user: AuthUser,
+    jar: CookieJar,
     path: Result<Path<GroupPath>, PathRejection>,
     mut request: Request,
     next: Next,
 ) -> AppResult<Response> {
+    let user = AuthUser::from_access_token(&jar, &state.jwt)?;
     let Path(GroupPath { group_id }) = path.map_err(|_| group_not_found())?;
     let tenant = TenantContext::resolve(&state.db, user, group_id).await?;
     request.extensions_mut().insert(tenant);

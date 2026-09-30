@@ -1,4 +1,5 @@
 use crate::{
+    auth::session_context::account_is_active,
     common::{
         extractors::{AuthUser, TenantContext},
         jwt::now_secs,
@@ -29,10 +30,25 @@ const CLOSE_ACCESS_REVOKED: u16 = 4003;
 /// revocations that do not (e.g. a withdrawn superadmin role). Checking on
 /// every broadcast instead would cost a query per recipient per message.
 const ACCESS_RECHECK_INTERVAL: Duration = Duration::from_secs(30);
+/// Closing with the token-expired code makes the client refresh, which the
+/// revoked session fails, so it signs out instead of reconnecting.
+const SESSION_ENDED: (u16, &str) = (CLOSE_TOKEN_EXPIRED, "Session ended");
+/// Ended sessions are rare; a socket that still lags behind asks the database.
+const ENDED_SESSIONS_CAPACITY: usize = 64;
 
-#[derive(Clone, Default)]
+#[derive(Clone)]
 pub struct MessageBus {
     inner: Arc<tokio::sync::Mutex<HashMap<Uuid, broadcast::Sender<BusEvent>>>>,
+    ended_sessions: broadcast::Sender<Uuid>,
+}
+
+impl Default for MessageBus {
+    fn default() -> Self {
+        Self {
+            inner: Arc::default(),
+            ended_sessions: broadcast::channel(ENDED_SESSIONS_CAPACITY).0,
+        }
+    }
 }
 #[derive(Clone, Debug, Serialize)]
 #[serde(tag = "type", rename_all = "camelCase")]
@@ -70,6 +86,12 @@ impl MessageBus {
     /// member loses access, instead of at the next periodic recheck.
     pub async fn membership_changed(&self, tenant_id: Uuid) {
         self.broadcast(tenant_id, BusEvent::MembershipChanged).await;
+    }
+
+    /// Closes every open socket of a banned or deleted user right away,
+    /// whether or not it has joined a group.
+    pub fn end_sessions(&self, user_id: Uuid) {
+        let _ = self.ended_sessions.send(user_id);
     }
 }
 #[derive(Deserialize)]
@@ -120,13 +142,21 @@ pub async fn ws_handler(
         return StatusCode::UNAUTHORIZED.into_response();
     };
 
+    // Subscribing before the check leaves no gap in which a ban is missed.
+    let ended_sessions = state.message_bus.ended_sessions.subscribe();
+    match account_is_active(&state.db, user_id).await {
+        Ok(true) => {}
+        Ok(false) => return StatusCode::UNAUTHORIZED.into_response(),
+        Err(e) => return e.into_response(),
+    }
+
     let user = AuthUser {
         user_id,
         email: claims.email,
     };
     let token_ttl = Duration::from_secs(claims.exp.saturating_sub(now_secs()));
 
-    ws.on_upgrade(move |socket| handle_socket(socket, state, user, token_ttl))
+    ws.on_upgrade(move |socket| handle_socket(socket, state, user, token_ttl, ended_sessions))
 }
 
 async fn close(socket: &mut WebSocket, code: u16, reason: &'static str) {
@@ -137,15 +167,21 @@ async fn close(socket: &mut WebSocket, code: u16, reason: &'static str) {
     let _ = socket.send(Message::Close(Some(frame))).await;
 }
 
-/// Only a definite "no access" counts; a failing database keeps the
-/// subscription rather than disconnecting every member.
-async fn group_access_revoked(state: &AppState, user: &AuthUser, group_id: Uuid) -> bool {
+/// The close frame for a socket whose user lost access to its group. Only a
+/// definite "no access" counts; a failing database keeps the subscription
+/// rather than disconnecting every member.
+async fn lost_group_access(
+    state: &AppState,
+    user: &AuthUser,
+    group_id: Uuid,
+) -> Option<(u16, &'static str)> {
     match TenantContext::resolve(&state.db, user.clone(), group_id).await {
-        Ok(_) => false,
-        Err(AppError::NotFound(_)) => true,
+        Ok(_) => None,
+        Err(AppError::NotFound(_)) => Some((CLOSE_ACCESS_REVOKED, "Group access revoked")),
+        Err(AppError::TokenExpired) => Some(SESSION_ENDED),
         Err(e) => {
             tracing::warn!("WebSocket access recheck failed: {e:?}");
-            false
+            None
         }
     }
 }
@@ -155,6 +191,7 @@ async fn handle_socket(
     state: AppState,
     user: AuthUser,
     token_ttl: Duration,
+    mut ended_sessions: broadcast::Receiver<Uuid>,
 ) {
     let user_id = user.user_id;
     let token_expiry = tokio::time::sleep(token_ttl);
@@ -172,11 +209,25 @@ async fn handle_socket(
                 close(&mut socket, CLOSE_TOKEN_EXPIRED, "Token expired").await;
                 break;
             }
+            ended = ended_sessions.recv() => {
+                let session_ended = match ended {
+                    Ok(ended_user_id) => ended_user_id == user_id,
+                    Err(broadcast::error::RecvError::Lagged(_)) => {
+                        matches!(account_is_active(&state.db, user_id).await, Ok(false))
+                    }
+                    Err(broadcast::error::RecvError::Closed) => break,
+                };
+                if session_ended {
+                    let (code, reason) = SESSION_ENDED;
+                    close(&mut socket, code, reason).await;
+                    break;
+                }
+            }
             _ = access_recheck.tick(), if joined_group.is_some() => {
                 if let Some(group_id) = joined_group
-                    && group_access_revoked(&state, &user, group_id).await
+                    && let Some((code, reason)) = lost_group_access(&state, &user, group_id).await
                 {
-                    close(&mut socket, CLOSE_ACCESS_REVOKED, "Group access revoked").await;
+                    close(&mut socket, code, reason).await;
                     break;
                 }
             }
@@ -235,9 +286,9 @@ async fn handle_socket(
                 match event {
                     Ok(BusEvent::MembershipChanged) => {
                         if let Some(group_id) = joined_group
-                            && group_access_revoked(&state, &user, group_id).await
+                            && let Some((code, reason)) = lost_group_access(&state, &user, group_id).await
                         {
-                            close(&mut socket, CLOSE_ACCESS_REVOKED, "Group access revoked").await;
+                            close(&mut socket, code, reason).await;
                             break;
                         }
                     }

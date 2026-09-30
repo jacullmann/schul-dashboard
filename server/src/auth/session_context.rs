@@ -19,6 +19,24 @@ pub async fn is_superadmin(db: &PgPool, user_id: Uuid) -> AppResult<bool> {
     Ok(is_superadmin)
 }
 
+/// A banned or deleted account keeps a signed access token until it expires,
+/// so every authenticated request confirms the account is still in good
+/// standing.
+pub async fn account_is_active(db: &PgPool, user_id: Uuid) -> AppResult<bool> {
+    let is_active = sqlx::query_scalar!(
+        r#"SELECT EXISTS (
+               SELECT 1 FROM users u
+               WHERE u.id = $1
+                 AND NOT EXISTS (SELECT 1 FROM banned_users b WHERE b.user_id = u.id)
+           ) AS "is_active!""#,
+        user_id
+    )
+    .fetch_one(db)
+    .await?;
+
+    Ok(is_active)
+}
+
 /// Where the app opens after sign-in. The last visited group only wins while
 /// the user is still a member of it, so a group they left or only visited as
 /// superadmin falls back to their newest one.
