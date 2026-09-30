@@ -69,6 +69,7 @@ const {
           :name="email"
           :aria-expanded="open"
           :title="t('auth.account_menu.label')"
+          :size="8"
           @keydown.enter="toggle"
           @keydown.space.prevent="toggle"
         />

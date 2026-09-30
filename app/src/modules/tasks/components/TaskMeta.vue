@@ -22,8 +22,8 @@ const t = i18n.t.bind(i18n);
 const te = i18n.te.bind(i18n);
 
 const leadingParts = computed(() => [
-  ...(props.showType ? [t(`tasks.list.types.${props.item.type}`)] : []),
   formatSubjectDisplay(props.item.subjectName, props.item.courseName, t, te),
+  ...(props.showType ? [t(`tasks.list.types.${props.item.type}`)] : []),
 ]);
 const dueDate = computed(() =>
   new Date(props.item.dueDate).toLocaleDateString(),
