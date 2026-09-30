@@ -952,6 +952,46 @@ html.is-long-pressing {
     scale 300ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* The hover tint is translucent, so it is layered over the element's own
+   background instead of replacing it: beneath the content, above the fill. */
+@utility hover-overlay {
+  isolation: isolate;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background-color: var(--color-ghost-hover);
+    opacity: 0;
+    transition: opacity var(--duration-hover) var(--ease-hover);
+    pointer-events: none;
+  }
+
+  @media (hover: hover) {
+    &:hover::before {
+      opacity: 1;
+    }
+  }
+
+  &:active::before {
+    opacity: 1;
+  }
+}
+
+/* A swiped task card turns into the tinted strip behind it, which the
+   separators beside it would cut into, so they fade with it. The one left
+   behind by a dismissed card returns once the card is gone. */
+@utility task-separator {
+  transition: border-color var(--duration-focus) var(--ease-focus);
+
+  &:has(+ [data-revealed]),
+  [data-revealed] + & {
+    border-color: transparent;
+  }
+}
+
 /* Only the sidebar's width is laid out per frame. Its labels stay mounted and
    fade on the compositor, clipped by the sidebar instead of squeezed by
    max-width, so a toggle neither reflows every button nor remounts them. */

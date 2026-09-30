@@ -145,6 +145,7 @@ function runSecondarySwipeAction(event: MouseEvent) {
 <template>
   <div
     class="long-press-target relative z-20 focus-within:z-30 hover:z-30 has-[[role=menu]]:z-50"
+    :data-revealed="isRevealed || undefined"
     v-on="longPressHandlers"
   >
     <SwipeActionTray
