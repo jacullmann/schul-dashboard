@@ -96,7 +96,7 @@ onMounted(() => {
 
 <template>
   <header
-    class="sticky flex w-full justify-center items-center overflow-x-clip text-on-ghost font-display p-0 top-0 h-(--header-height) z-(--z-header)"
+    class="relative flex w-full justify-center items-center overflow-x-clip text-on-ghost font-display p-0 h-(--header-height) z-(--z-header)"
   >
     <!-- Stays within the header, so it never covers the announcement bar
          docked below. The x-clip trims the fade's sideways bleed, which would

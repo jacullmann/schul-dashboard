@@ -126,7 +126,7 @@ onUnmounted(() => {
   </BaseModal>
 
   <div
-    class="sticky top-[var(--header-height)] z-[100] grid transition-[grid-template-rows,opacity] duration-500 ease-out"
+    class="relative z-[100] grid transition-[grid-template-rows,opacity] duration-500 ease-out"
     :class="
       announcements.length
         ? 'grid-rows-[1fr] opacity-100'
