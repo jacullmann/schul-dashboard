@@ -174,14 +174,12 @@ function handleCancel() {
 
       <!-- Invalid/Expired Token Error State -->
       <template v-else>
-        <div class="error-container py-6">
-          <div class="error-icon-wrapper mb-4 text-danger animate-bounce-slow">
-            <AlertCircle :size="64" />
-          </div>
-          <h1 class="invite-title text-danger mb-3 font-display">
+        <div class="flex flex-col items-center">
+          <AlertCircle class="mb-4 text-danger" :size="64" />
+          <h2>
             {{ t('auth.groups.invite.invalid_title') }}
-          </h1>
-          <p class="invite-description text-on-ghost-muted mb-8 max-w-sm">
+          </h2>
+          <p class="mt-0! max-w-sm">
             {{ errorMsg }}
           </p>
         </div>
@@ -204,30 +202,6 @@ function handleCancel() {
 </template>
 
 <style scoped>
-@keyframes pulse-glow {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 0.2;
-  }
-  50% {
-    transform: scale(1.15);
-    opacity: 0.45;
-  }
-}
-
-.invite-title {
-  font-size: var(--text-2xl);
-  font-weight: 700;
-  color: var(--color-on-ghost);
-  line-height: 1.25;
-}
-
-.invite-description {
-  font-size: var(--text-base);
-  line-height: 1.6;
-}
-
 .loading-container {
   display: flex;
   flex-direction: column;
@@ -262,20 +236,6 @@ function handleCancel() {
   to {
     transform: scale(1);
     opacity: 1;
-  }
-}
-
-.animate-bounce-slow {
-  animation: bounce-slow 3s infinite;
-}
-
-@keyframes bounce-slow {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-8px);
   }
 }
 </style>
