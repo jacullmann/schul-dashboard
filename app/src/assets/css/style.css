@@ -1049,7 +1049,9 @@ hr {
 .full {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  /* Mobile browsers size vh as if their toolbars were hidden, which would make
+     viewport-filling pages scroll by the toolbar's height. */
+  min-height: 100dvh;
 }
 
 .full-c {

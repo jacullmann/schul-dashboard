@@ -253,7 +253,7 @@ function goBack() {
         </header>
 
         <div class="flex-1 overflow-y-auto overscroll-contain p-0 md:p-4">
-          <div class="flex flex-col max-w-200 mx-auto pb-(--tab-bar-height)">
+          <div class="flex flex-col max-w-200 mx-auto">
             <BaseList
               v-for="(item, index) in navItems"
               :key="item.id"
@@ -308,7 +308,7 @@ function goBack() {
         <div
           class="flex-1 overflow-y-auto overscroll-contain p-4 md:py-8 px-6 bg-canvas"
         >
-          <div class="w-full max-w-250 mx-auto pb-(--tab-bar-height)">
+          <div class="w-full max-w-250 mx-auto">
             <GroupSettingsMyCourses v-if="activeTab === 'courses'" />
 
             <GroupSettingsOverview
@@ -407,9 +407,6 @@ function goBack() {
   position: relative;
   width: 100%;
   height: calc(100dvh - var(--header-height) - var(--announcement-height));
-  /* Cancels the layout's tab bar padding so the page itself never scrolls;
-     the panes pad their own scroll areas instead, keeping content behind the glass bar. */
-  margin-bottom: calc(-1 * var(--tab-bar-height));
   overflow: hidden;
   background: var(--color-canvas);
   display: flex;
