@@ -19,8 +19,7 @@ export function useLogin(
   const email = ref('');
   const password = ref('');
   const submitting = ref(false);
-  const message = ref('');
-  const isError = ref(false);
+  const formError = ref('');
 
   const emailInputRef = ref<FocusableInput | null>(null);
 
@@ -40,8 +39,7 @@ export function useLogin(
 
   function clearFieldError(field: 'email' | 'password') {
     errors[field] = undefined;
-    message.value = '';
-    isError.value = false;
+    formError.value = '';
   }
 
   function validateBeforeSubmit(): boolean {
@@ -68,8 +66,7 @@ export function useLogin(
   }
 
   async function submit() {
-    message.value = '';
-    isError.value = false;
+    formError.value = '';
 
     if (!validateBeforeSubmit()) {
       return;
@@ -91,8 +88,7 @@ export function useLogin(
         }
       }
     } catch (e: unknown) {
-      message.value = apiErrorMessage(e, t('common.errors.unknown'));
-      isError.value = true;
+      formError.value = apiErrorMessage(e, t('common.errors.unknown'));
     } finally {
       submitting.value = false;
     }
@@ -102,8 +98,7 @@ export function useLogin(
     email,
     password,
     submitting,
-    message,
-    isError,
+    formError,
     emailInputRef,
     errors,
 

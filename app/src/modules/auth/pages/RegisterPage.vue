@@ -17,8 +17,7 @@ const {
   passwordConfirm,
   acceptedPrivacy,
   submitting,
-  message,
-  isError,
+  formError,
   emailInputRef,
   errors,
   clearFieldError,
@@ -43,7 +42,7 @@ function navigateToLogin() {
         <h1 class="text-center!">
           {{ t('auth.login.register') }}
         </h1>
-        <p class="text-sm text-on-ghost-muted mt-2">
+        <p class="text-sm text-on-ghost-muted mt-1!">
           {{
             t('auth.login.register_description', {
               defaultValue: 'Create your account',
@@ -52,7 +51,12 @@ function navigateToLogin() {
         </p>
       </div>
 
-      <BaseForm :submit="handleSubmit" :loading="submitting" class="mb-6">
+      <BaseForm
+        :submit="handleSubmit"
+        :loading="submitting"
+        :error="formError"
+        class="mb-4"
+      >
         <template #content>
           <BaseFormGroup id="register-email" :error="errors.email">
             <BaseLabel for="register-email">
@@ -132,27 +136,6 @@ function navigateToLogin() {
               </i18n-t>
             </BaseCheckbox>
           </BaseFormGroup>
-
-          <Transition
-            enter-active-class="transition-opacity duration-200 ease-out"
-            enter-from-class="opacity-0"
-            enter-to-class="opacity-100"
-            leave-active-class="transition-opacity duration-200 ease-in"
-            leave-from-class="opacity-100"
-            leave-to-class="opacity-0"
-          >
-            <div
-              v-if="message"
-              class="text-sm p-3 rounded-md"
-              :class="
-                isError
-                  ? 'bg-danger-hover text-danger'
-                  : 'bg-success-hover text-success'
-              "
-            >
-              {{ message }}
-            </div>
-          </Transition>
         </template>
 
         <template #action-text>
@@ -160,7 +143,7 @@ function navigateToLogin() {
         </template>
       </BaseForm>
 
-      <div class="flex items-center gap-3 mb-6">
+      <div class="flex items-center gap-3 mb-4">
         <div class="flex-1 h-px bg-ghost-border" />
         <span class="text-xs text-on-ghost-muted">
           {{ t('auth.login.or_continue_with') }}
@@ -170,6 +153,7 @@ function navigateToLogin() {
 
       <BaseButton
         type="button"
+        surface
         variant="ghost"
         class="w-full justify-center"
         @click="initiateGoogleLogin"

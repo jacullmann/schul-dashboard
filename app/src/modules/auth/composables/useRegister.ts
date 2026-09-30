@@ -3,6 +3,7 @@ import { useI18n } from 'vue-i18n';
 import hw from '@/api/api.ts';
 import { usePreferences } from '@/common/composables/usePreferences';
 import { apiErrorMessage } from '@/api/errors';
+import { useToast } from '@/common/composables/useToast';
 
 /** Subset of `BaseInput`'s exposed API that these forms rely on. */
 interface FocusableInput {
@@ -18,8 +19,7 @@ export function useRegister(onRegistered: () => void | Promise<void>) {
   const passwordConfirm = ref('');
   const acceptedPrivacy = ref(false);
   const submitting = ref(false);
-  const message = ref('');
-  const isError = ref(false);
+  const formError = ref('');
 
   const emailInputRef = ref<FocusableInput | null>(null);
 
@@ -45,8 +45,7 @@ export function useRegister(onRegistered: () => void | Promise<void>) {
     field: 'email' | 'password' | 'passwordConfirm' | 'privacy',
   ) {
     errors[field] = undefined;
-    message.value = '';
-    isError.value = false;
+    formError.value = '';
   }
 
   function validateBeforeSubmit(): boolean {
@@ -86,8 +85,7 @@ export function useRegister(onRegistered: () => void | Promise<void>) {
   }
 
   async function submit() {
-    message.value = '';
-    isError.value = false;
+    formError.value = '';
 
     if (!validateBeforeSubmit()) {
       return;
@@ -107,12 +105,10 @@ export function useRegister(onRegistered: () => void | Promise<void>) {
         preferences,
       });
 
-      message.value = t('auth.login.success_register');
-      isError.value = false;
+      useToast().success(t('auth.login.success_register'));
       void onRegistered();
     } catch (e: unknown) {
-      message.value = apiErrorMessage(e, t('common.errors.unknown'));
-      isError.value = true;
+      formError.value = apiErrorMessage(e, t('common.errors.unknown'));
     } finally {
       submitting.value = false;
     }
@@ -124,8 +120,7 @@ export function useRegister(onRegistered: () => void | Promise<void>) {
     passwordConfirm,
     acceptedPrivacy,
     submitting,
-    message,
-    isError,
+    formError,
     emailInputRef,
     errors,
 
