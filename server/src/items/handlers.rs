@@ -1,6 +1,7 @@
 use super::{
     dto::*,
-    service::{DeleteItemParams, GetItemsFilter, ItemsService},
+    policy::ItemActor,
+    service::{GetItemsFilter, ItemsService},
 };
 use crate::{
     common::{
@@ -68,7 +69,7 @@ pub async fn create_item(
 
     Ok(Json(
         ItemsService::from_state(&s)
-            .create_item(tc.tenant_id, tc.user.user_id, &dto)
+            .create_item(tc.tenant_id, ItemActor::from_context(&tc), &dto)
             .await?,
     ))
 }
@@ -81,7 +82,7 @@ pub async fn update_item(
 ) -> AppResult<Json<Value>> {
     Ok(Json(
         ItemsService::from_state(&s)
-            .update_item(tc.tenant_id, id, tc.user.user_id, &dto)
+            .update_item(tc.tenant_id, id, ItemActor::from_context(&tc), &dto)
             .await?,
     ))
 }
@@ -93,14 +94,7 @@ pub async fn delete_item(
 ) -> AppResult<Json<Value>> {
     Ok(Json(
         ItemsService::from_state(&s)
-            .delete_item(DeleteItemParams {
-                tenant_id: tc.tenant_id,
-                id,
-                user_id: tc.user.user_id,
-                is_superadmin: tc.is_superadmin,
-                is_owner: tc.is_owner(),
-                can_delete_others: tc.can(Permission::DeleteOtherContent),
-            })
+            .delete_item(tc.tenant_id, id, ItemActor::from_context(&tc))
             .await?,
     ))
 }
@@ -126,11 +120,11 @@ pub async fn add_image(
     Path(IdPath { id }): Path<IdPath>,
     Json(dto): Json<AddImageDto>,
 ) -> AppResult<Json<Value>> {
-    let can_upload = tc.can(Permission::UploadImages);
+    require_permission!(tc, Permission::UploadImages);
 
     Ok(Json(
         ItemsService::from_state(&s)
-            .add_image(tc.tenant_id, id, tc.user.user_id, can_upload, &dto)
+            .add_image(tc.tenant_id, id, tc.user.user_id, &dto)
             .await?,
     ))
 }
@@ -145,13 +139,7 @@ pub async fn remove_image(
 
     Ok(Json(
         ItemsService::from_state(&s)
-            .remove_image(
-                tc.tenant_id,
-                id,
-                tc.user.user_id,
-                tc.is_superadmin,
-                &decoded,
-            )
+            .remove_image(tc.tenant_id, id, ItemActor::from_context(&tc), &decoded)
             .await?,
     ))
 }

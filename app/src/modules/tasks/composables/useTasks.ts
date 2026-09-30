@@ -13,6 +13,7 @@ import { useUserStore } from '@/stores/userStore';
 import { useSubjectStore } from '@/stores/subjectStore';
 import { useGroupPageId } from '@/core/composables/useGroupPageId';
 import { useImageUpload } from '@/modules/tasks/composables/useImageUpload';
+import { useTaskPermissions } from '@/modules/tasks/composables/useTaskPermissions';
 import { useI18n } from 'vue-i18n';
 import { useToast } from '@/common/composables/useToast';
 import { subjectLabel } from '@/utils/subject-formatter';
@@ -65,6 +66,7 @@ function createTasks(fixedFilters: Partial<TaskFilters>) {
   const subjectStore = useSubjectStore();
   const groupId = useGroupPageId();
   const imageUpload = useImageUpload(groupId);
+  const permissions = useTaskPermissions(groupId);
   const { user } = storeToRefs(userStore);
   const i18n = useI18n();
   const t = i18n.t.bind(i18n);
@@ -145,7 +147,7 @@ function createTasks(fixedFilters: Partial<TaskFilters>) {
   ctx.refreshItem = list.refreshItem;
 
   const forms = useHwForms(ctx);
-  const images = useHwImages(ctx, imageUpload);
+  const images = useHwImages(ctx, imageUpload, permissions);
   const detail = useHwDetail(ctx);
 
   async function archiveItem(item: HwItem) {
@@ -331,11 +333,8 @@ function createTasks(fixedFilters: Partial<TaskFilters>) {
     showMore: list.showMore,
     showLess: list.showLess,
     onMenuAction,
-    canEdit: actions.canEdit,
-    canDelete: actions.canDelete,
-    canDeleteImage: actions.canDeleteImage,
+    ...permissions,
     openCreateForm: forms.openCreateForm,
-    canEditNote: forms.canEditNote,
     editingNoteForId: forms.editingNoteForId,
     noteEditContent: forms.noteEditContent,
     savingNote: forms.savingNote,

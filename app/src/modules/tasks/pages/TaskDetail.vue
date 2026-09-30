@@ -39,7 +39,9 @@ const {
   canEdit,
   canDelete,
   canDeleteImage,
-  canEditNote,
+  canManageNotes,
+  canUploadImages,
+  canSeeCreator,
   editingNoteForId,
   noteEditContent,
   savingNote,
@@ -151,9 +153,12 @@ watchEffect(() => {
 });
 
 // Files dropped anywhere on the task's view are attached to it.
-const { isDragOver: isDroppingFiles } = useFileDrop((files) => {
-  if (isReady.value && item.value) triggerImageDrop(item.value, files);
-}, useTemplateRef<HTMLElement>('view'));
+const { isDragOver: isDroppingFiles } = useFileDrop(
+  (files) => {
+    if (isReady.value && item.value) triggerImageDrop(item.value, files);
+  },
+  { target: useTemplateRef<HTMLElement>('view'), enabled: canUploadImages },
+);
 
 onMounted(() => {
   window.scrollTo({ top: 0, behavior: 'instant' });
@@ -182,7 +187,7 @@ onMounted(() => {
 
         <BaseRow v-if="isReady && item" class="flex-nowrap!">
           <BaseTooltip
-            v-if="canEdit(item.createdBy)"
+            v-if="canEdit(item)"
             :content="t('common.buttons.edit')"
             placement="bottom"
           >
@@ -195,7 +200,7 @@ onMounted(() => {
           </BaseTooltip>
 
           <BaseTooltip
-            v-else
+            v-else-if="canUploadImages"
             :content="t('tasks.list.tasks.menu.upload_images')"
             placement="bottom"
           >
@@ -233,9 +238,10 @@ onMounted(() => {
             :anchor="menuPosition"
             :is-pinned="isPinned(item.id)"
             :is-in-archive="isInArchive(item)"
-            :can-edit="canEdit(item.createdBy)"
-            :can-add-note="canEditNote() && !item.editorNote"
-            :can-delete="canDelete(item.createdBy)"
+            :can-upload-images="canUploadImages"
+            :can-edit="canEdit(item)"
+            :can-add-note="canManageNotes && !item.editorNote"
+            :can-delete="canDelete(item)"
             @action="onDetailMenuAction"
             @close="menuPosition = null"
           />
@@ -258,7 +264,11 @@ onMounted(() => {
               {{ item.title }}
             </h2>
           </div>
-          <TaskMeta :item="item" :show-type="true" :show-creator="true" />
+          <TaskMeta
+            :item="item"
+            :show-type="true"
+            :show-creator="canSeeCreator"
+          />
         </header>
 
         <TaskNote
@@ -268,7 +278,7 @@ onMounted(() => {
           :note="item.editorNote"
           :editing="editingNoteForId === item.id"
           :saving="savingNote"
-          :can-edit="canEditNote()"
+          :can-edit="canManageNotes"
           :model-value="noteEditContent"
           @update:model-value="noteEditContent = $event"
           @edit-start="startEditNote(item)"
@@ -364,9 +374,10 @@ onMounted(() => {
       :visible="imageMenu.visible"
       :x="imageMenu.x"
       :y="imageMenu.y"
+      :can-upload="canUploadImages"
       :can-delete="
         imageMenu.image && imageMenu.item
-          ? canDeleteImage(imageMenu.item.createdBy, imageMenu.image.createdBy)
+          ? canDeleteImage(imageMenu.item, imageMenu.image)
           : false
       "
       @upload="triggerImageUpload"

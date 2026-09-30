@@ -224,6 +224,7 @@
         "manage_schedule_changes": "Add and delete schedule changes",
         "manage_announcements": "Add and delete announcements",
         "moderate_members": "Remove and ban/unban members, view and revoke invite links",
+        "edit_other_content": "Edit tasks from users",
         "delete_other_content": "Delete tasks, images, and messages from users"
       },
       "options": {

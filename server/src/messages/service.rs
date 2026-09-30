@@ -179,9 +179,9 @@ impl MessagesService {
         )
         .fetch_optional(&self.db)
         .await?
-        .ok_or_else(|| AppError::not_found("Nachricht nicht gefunden"))?;
+        .ok_or_else(|| AppError::not_found("Message not found."))?;
         if msg.user_id != user_id && !caller_can_delete_others {
-            return Err(AppError::forbidden("Keine Berechtigung zum Löschen."));
+            return Err(AppError::forbidden("Not allowed to delete this message."));
         }
         sqlx::query!(
             r#"UPDATE group_messages SET parent_id = NULL WHERE parent_id = $1"#,

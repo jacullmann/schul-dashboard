@@ -66,7 +66,8 @@ const {
   useListTransitions,
   canEdit,
   canDelete,
-  canEditNote,
+  canManageNotes,
+  canUploadImages,
   goTab,
   isChecked,
   toggleCheck,
@@ -311,9 +312,10 @@ onDeactivated(() => {
             :is-pinned="isPinned(item.id)"
             :is-menu-open="openMenuId === item.id"
             :can-check="!!user"
-            :can-edit="canEdit(item.createdBy)"
-            :can-add-note="canEditNote() && !item.editorNote"
-            :can-delete="canDelete(item.createdBy)"
+            :can-upload-images="canUploadImages"
+            :can-edit="canEdit(item)"
+            :can-add-note="canManageNotes && !item.editorNote"
+            :can-delete="canDelete(item)"
             @toggle-check="toggleCheck(item)"
             @toggle-pin="togglePin(item)"
             @swipe="archiveItem(item)"

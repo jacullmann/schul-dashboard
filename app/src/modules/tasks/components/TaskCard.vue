@@ -31,6 +31,7 @@ const props = defineProps<{
   isPinned: boolean;
   isMenuOpen: boolean;
   canCheck: boolean;
+  canUploadImages: boolean;
   canEdit: boolean;
   canAddNote: boolean;
   canDelete: boolean;
@@ -83,8 +84,9 @@ const { handlers: longPressHandlers } = useLongPress(openMenuAt, {
   grow: '.item-card',
 });
 
-const { isDragOver, handlers: dropHandlers } = useFileDrop((files) =>
-  emit('image-drop', files),
+const { isDragOver, handlers: dropHandlers } = useFileDrop(
+  (files) => emit('image-drop', files),
+  { enabled: () => props.canUploadImages },
 );
 
 const secondarySwipeAction = computed(() => (props.canEdit ? 'edit' : 'menu'));
@@ -245,6 +247,7 @@ function runSecondarySwipeAction(event: MouseEvent) {
           :anchor="menuPosition"
           :is-pinned="isPinned"
           :is-in-archive="isArchiveView"
+          :can-upload-images="canUploadImages"
           :can-edit="canEdit"
           :can-add-note="canAddNote"
           :can-delete="canDelete"

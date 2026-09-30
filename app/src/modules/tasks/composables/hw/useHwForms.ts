@@ -6,13 +6,11 @@ import { groupPath } from '@/api/groupPath';
 import { useToast } from '@/common/composables/useToast';
 import { useTaskForm } from '@/core/composables/useTaskForm';
 import { useModalStore } from '@/stores/modalStore';
-import { useUserStore } from '@/stores/userStore';
 import { findLoadedItem, type HwContext } from './types';
 import { apiErrorMessage } from '@/api/errors';
 
 export function useHwForms(ctx: HwContext) {
   const { t } = useI18n();
-  const userStore = useUserStore();
   const { openTaskForm, openEditForm, onFormSuccess } = useTaskForm();
 
   const unregister = onFormSuccess(() => void ctx.reloadList());
@@ -36,10 +34,6 @@ export function useHwForms(ctx: HwContext) {
       type: tab === 'all' ? undefined : tab,
       local: true,
     });
-  }
-
-  function canEditNote() {
-    return ctx.user.value !== null && userStore.isGroupAdmin;
   }
 
   function startEditNote(item: HwItem) {
@@ -111,7 +105,6 @@ export function useHwForms(ctx: HwContext) {
     onItemFormError,
     editItem,
     openCreateForm,
-    canEditNote,
     startEditNote,
     cancelEditNote,
     saveNote,

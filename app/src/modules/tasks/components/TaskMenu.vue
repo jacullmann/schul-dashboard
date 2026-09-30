@@ -23,6 +23,7 @@ const props = defineProps<{
   anchor: MenuAnchor | null;
   isPinned: boolean;
   isInArchive: boolean;
+  canUploadImages: boolean;
   canEdit: boolean;
   canAddNote: boolean;
   canDelete: boolean;
@@ -82,7 +83,11 @@ function select(action: TaskMenuAction) {
       @close="$emit('close')"
       @click.stop
     >
-      <BaseMenuButton :icon="Upload" @click="select('images')">
+      <BaseMenuButton
+        v-if="canUploadImages"
+        :icon="Upload"
+        @click="select('images')"
+      >
         {{ t('tasks.list.tasks.menu.upload_images') }}
       </BaseMenuButton>
 
@@ -98,7 +103,7 @@ function select(action: TaskMenuAction) {
         {{ t('tasks.list.tasks.menu.add_note') }}
       </BaseMenuButton>
 
-      <BaseMenuDivider />
+      <BaseMenuDivider v-if="canUploadImages || canEdit || canAddNote" />
 
       <BaseMenuButton
         :icon="Pin"

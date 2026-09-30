@@ -35,9 +35,10 @@ const { t } = useI18n();
 const performLogout = useLogout();
 
 const userStore = useUserStore();
-const { user, isGroupAdmin, isSuperadmin } = storeToRefs(userStore);
+const { user, isSuperadmin } = storeToRefs(userStore);
 
-const { activeGroupId, contextGroupId, userGroups } = useAppAuth();
+const { activeGroupId, contextGroupId, userGroups, canInAnyGroup } =
+  useAppAuth();
 const router = useRouter();
 
 const modalStore = useModalStore();
@@ -48,13 +49,7 @@ const { openAnnouncementForm } = useAnnouncementForm();
 const { withGroup } = useGroupAction();
 const { openGroup } = useOpenGroup();
 
-const isAnyGroupAdmin = computed(() => {
-  if (isSuperadmin?.value) return true;
-  if (isGroupAdmin?.value) return true;
-  return userGroups.value?.some(
-    (g) => g.role === 'admin' || g.role === 'moderator',
-  );
-});
+const canAnnounce = computed(() => canInAnyGroup('manage_announcements'));
 
 function toggleExpanded() {
   modalStore.toggleSidebar();
@@ -73,7 +68,7 @@ function handleTask() {
 }
 
 function handleAnnouncement() {
-  withGroup((groupId) => openAnnouncementForm(groupId));
+  withGroup((groupId) => openAnnouncementForm(groupId), 'manage_announcements');
 }
 
 const sidebarScrollEl = ref<HTMLElement | null>(null);
@@ -214,7 +209,7 @@ onUnmounted(() => {
         />
 
         <SidebarButton
-          v-if="isAnyGroupAdmin"
+          v-if="canAnnounce"
           :label="t('common.sidebar.announcement')"
           :shortcut="['alt', 'a']"
           :expanded="isExpanded"

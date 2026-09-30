@@ -69,6 +69,7 @@ const PERMISSION_KEYS: readonly string[] = [
   'manage_schedule_changes',
   'manage_announcements',
   'moderate_members',
+  'edit_other_content',
   'delete_other_content',
   'invite_members',
 ] satisfies PermissionKey[];
@@ -310,6 +311,12 @@ export function useAppAuth() {
     return activePermissions.value.has(permissionKey);
   }
 
+  function canInAnyGroup(permissionKey: PermissionKey): boolean {
+    return userGroups.value.some((group) =>
+      group.effectivePermissions.includes(permissionKey),
+    );
+  }
+
   async function createInvite(
     groupId: string,
   ): Promise<{ ok: boolean; token?: string; error?: string }> {
@@ -396,6 +403,7 @@ export function useAppAuth() {
     activeScheduleConfig,
     userGroups,
     findGroup,
+    canInAnyGroup,
     initAuth,
     checkAuthStatus,
     canShowGroup,

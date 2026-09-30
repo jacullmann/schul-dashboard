@@ -65,8 +65,13 @@ const emit = defineEmits<{ (e: 'cancel'): void }>();
 
 const { t } = useI18n();
 const router = useRouter();
-const { activeGroupId, userGroups, checkPermission, createInvite } =
-  useAppAuth();
+const {
+  activeGroupId,
+  userGroups,
+  checkPermission,
+  canInAnyGroup,
+  createInvite,
+} = useAppAuth();
 const { openTaskForm } = useTaskForm();
 const { openPrivateTaskForm } = usePrivateTaskForm();
 const { openAnnouncementForm } = useAnnouncementForm();
@@ -79,13 +84,7 @@ const { currentTheme, currentLanguage, setPreference } = usePreferences();
 const { withGroup } = useGroupAction();
 const { openGroup } = useOpenGroup();
 
-const isAnyGroupAdmin = computed(() => {
-  if (userStore.isSuperadmin) return true;
-  if (userStore.isGroupAdmin) return true;
-  return userGroups.value?.some(
-    (g) => g.role === 'admin' || g.role === 'moderator',
-  );
-});
+const canAnnounce = computed(() => canInAnyGroup('manage_announcements'));
 
 const query = ref('');
 
@@ -333,9 +332,12 @@ const defaultResults = computed<SearchResult[]>(() => [
     category: 'action',
     icon: Megaphone,
     action: () =>
-      withGroup((groupId) => runAndClose(() => openAnnouncementForm(groupId))),
+      withGroup(
+        (groupId) => runAndClose(() => openAnnouncementForm(groupId)),
+        'manage_announcements',
+      ),
     shortcut: ['alt', 'a'],
-    condition: isAnyGroupAdmin.value,
+    condition: canAnnounce.value,
   },
   {
     id: 'switch-group',

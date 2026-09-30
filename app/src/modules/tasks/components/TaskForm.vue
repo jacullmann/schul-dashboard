@@ -39,10 +39,9 @@ const {
   makeUrl,
   isPdf,
   isDragging,
-  handleDragEnter,
-  handleDragLeave,
-  handleDragOver,
-  handleDrop,
+  dropHandlers,
+  canUploadImages,
+  canRemoveImage,
   title,
   subjectSel,
   subjectOther,
@@ -83,11 +82,8 @@ const {
     :loading="submitting"
     class="outline-2 transition-[outline-color] duration-(--duration-focus) ease-(--ease-focus)"
     :class="isDragging ? 'outline-accent' : 'outline-transparent'"
+    v-on="dropHandlers"
     @cancel="emit('cancel')"
-    @dragenter="handleDragEnter"
-    @dragleave="handleDragLeave"
-    @dragover="handleDragOver"
-    @drop="handleDrop"
   >
     <template #title>
       <span class="flex items-center gap-2 min-w-0">
@@ -211,7 +207,11 @@ const {
         ></BaseMarkdownTextarea>
       </BaseFormGroup>
 
-      <BaseFormGroup id="images" :error="imgUploadError">
+      <BaseFormGroup
+        v-if="canUploadImages || imgImages.length"
+        id="images"
+        :error="imgUploadError"
+      >
         <BaseLabel for="images">{{
           t('tasks.list.task_form.images')
         }}</BaseLabel>
@@ -238,7 +238,7 @@ const {
               <FileText class="w-2.5 h-2.5 text-white" />
               <span>PDF</span>
             </div>
-            <div class="absolute top-1 right-1">
+            <div v-if="canRemoveImage(img)" class="absolute top-1 right-1">
               <BaseButton
                 type="button"
                 variant="danger"
@@ -250,6 +250,7 @@ const {
           </div>
 
           <BaseTooltip
+            v-if="canUploadImages"
             :content="t('tasks.list.tasks.menu.upload_images')"
             placement="right"
           >

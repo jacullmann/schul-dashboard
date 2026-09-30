@@ -1,7 +1,10 @@
 use crate::{
     common::names::{CUSTOM_SUBJECT_MAX_CHARS, DisplayName},
     error::{AppError, AppResult},
-    items::dto::{CreateItemDto, ItemSubjectDto, UpdateItemDto},
+    items::{
+        dto::{AddImageDto, CreateItemDto, ImageDto, ItemSubjectDto, UpdateItemDto},
+        policy::ItemActor,
+    },
     state::AppState,
 };
 use chrono::Utc;
@@ -29,6 +32,19 @@ fn time_left_color(due: &chrono::DateTime<Utc>) -> &'static str {
 }
 
 const TITLE_MAX_CHARS: usize = 60;
+const MAX_IMAGES_PER_ITEM: usize = 12;
+/// Metadata is stored verbatim in the item row, so its size is capped.
+const IMAGE_METADATA_MAX_BYTES: usize = 2048;
+
+/// Uploaders are recorded by the server, never taken from the client, since
+/// they may remove their image again from a task they do not own.
+fn image_record(image: &ImageDto, uploader: Uuid) -> Value {
+    json!({
+        "publicId": image.public_id,
+        "createdBy": uploader,
+        "metadata": image.metadata,
+    })
+}
 
 /// A task's subject once it is known to exist in the task's group.
 enum ItemSubject {
@@ -76,15 +92,6 @@ pub struct ItemList {
     pub hidden_by_courses: usize,
 }
 
-pub struct DeleteItemParams {
-    pub tenant_id: Uuid,
-    pub id: Uuid,
-    pub user_id: Uuid,
-    pub is_superadmin: bool,
-    pub is_owner: bool,
-    pub can_delete_others: bool,
-}
-
 pub struct ItemsService {
     db: PgPool,
     cloudinary_cloud_name: String,
@@ -102,6 +109,28 @@ impl ItemsService {
             cloudinary_api_secret: s.config.cloudinary_api_secret.clone(),
             cloudinary_folder: s.config.cloudinary_folder.clone(),
         }
+    }
+
+    /// Only images signed for this deployment's folder may be attached, so a
+    /// task cannot point at someone else's Cloudinary assets.
+    fn validate_image(&self, image: &ImageDto) -> AppResult<()> {
+        let public_id = image.public_id.as_str();
+        let in_folder = public_id
+            .strip_prefix(self.cloudinary_folder.as_str())
+            .is_some_and(|rest| rest.starts_with('/'));
+        let well_formed = public_id
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || matches!(c, '/' | '_' | '-'));
+        if !in_folder || !well_formed {
+            return Err(AppError::bad_request("Invalid publicId."));
+        }
+
+        let metadata_len = serde_json::to_string(&image.metadata).map_or(usize::MAX, |s| s.len());
+        if metadata_len > IMAGE_METADATA_MAX_BYTES {
+            return Err(AppError::bad_request("Image metadata too large."));
+        }
+
+        Ok(())
     }
 
     /// Checks a subject reference against the group. A hand-typed name that the
@@ -339,7 +368,7 @@ impl ItemsService {
     pub async fn create_item(
         &self,
         tenant_id: Uuid,
-        user_id: Uuid,
+        actor: ItemActor,
         dto: &CreateItemDto,
     ) -> AppResult<Value> {
         let title = DisplayName::parse(&dto.title, TITLE_MAX_CHARS, "title")?;
@@ -347,6 +376,19 @@ impl ItemsService {
             .due_date
             .parse::<chrono::DateTime<Utc>>()
             .map_err(|_| AppError::bad_request("Invalid due_date format"))?;
+
+        let images = dto.images.as_deref().unwrap_or_default();
+        if !images.is_empty() && !actor.can_upload_images {
+            return Err(AppError::forbidden("Insufficient permissions."));
+        }
+        if images.len() > MAX_IMAGES_PER_ITEM {
+            return Err(AppError::bad_request(format!(
+                "Maximum of {MAX_IMAGES_PER_ITEM} images per item reached."
+            )));
+        }
+        for image in images {
+            self.validate_image(image)?;
+        }
 
         if dto.r#type == DALTON_ITEM_TYPE {
             let dalton_enabled = sqlx::query_scalar!(
@@ -422,12 +464,9 @@ impl ItemsService {
             }
         }
 
-        let images: Vec<Value> = dto
-            .images
-            .as_deref()
-            .unwrap_or(&[])
+        let images: Vec<Value> = images
             .iter()
-            .map(|img| json!({ "publicId": img.public_id, "createdBy": user_id, "metadata": img.metadata }))
+            .map(|image| image_record(image, actor.user_id))
             .collect();
 
         let row = sqlx::query!(
@@ -438,14 +477,14 @@ impl ItemsService {
             dto.description.as_deref().unwrap_or("").trim(),
             json!(images),
             due_date,
-            user_id, tenant_id
+            actor.user_id, tenant_id
         )
             .fetch_one(&self.db)
             .await?;
 
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:create', $2)"#,
-            user_id,
+            actor.user_id,
             json!({ "id": row.id, "type": dto.r#type })
         )
         .execute(&self.db)
@@ -458,7 +497,7 @@ impl ItemsService {
         &self,
         tenant_id: Uuid,
         id: Uuid,
-        user_id: Uuid,
+        actor: ItemActor,
         dto: &UpdateItemDto,
     ) -> AppResult<Value> {
         let title = dto
@@ -483,8 +522,8 @@ impl ItemsService {
         .await?
         .ok_or_else(|| AppError::not_found("Not found."))?;
 
-        if item.created_by != Some(user_id) {
-            return Err(AppError::forbidden("Only the creator can edit this item."));
+        if !actor.may_edit(item.created_by) {
+            return Err(AppError::forbidden("Not allowed to edit this item."));
         }
 
         if let Some(title) = &title {
@@ -533,23 +572,13 @@ impl ItemsService {
             .await?;
         }
 
-        if let Some(ref images) = dto.images {
-            sqlx::query!(
-                r#"UPDATE items SET images = $1 WHERE id = $2"#,
-                json!(images),
-                id
-            )
-            .execute(&mut *tx)
-            .await?;
-        }
-
         sqlx::query!(r#"UPDATE items SET updated_at = now() WHERE id = $1"#, id)
             .execute(&mut *tx)
             .await?;
 
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:update', $2)"#,
-            user_id,
+            actor.user_id,
             json!({ "id": id })
         )
         .execute(&mut *tx)
@@ -565,33 +594,14 @@ impl ItemsService {
         tenant_id: Uuid,
         item_id: Uuid,
         user_id: Uuid,
-        can_upload: bool,
-        dto: &crate::items::dto::AddImageDto,
+        dto: &AddImageDto,
     ) -> AppResult<Value> {
-        let public_id = dto.image.public_id.as_str();
-
-        let expected_prefix = format!("{}/", self.cloudinary_folder);
-        if !public_id.starts_with(&expected_prefix)
-            || !public_id
-                .chars()
-                .all(|c| c.is_ascii_alphanumeric() || matches!(c, '/' | '_' | '-'))
-        {
-            return Err(AppError::bad_request("Invalid publicId."));
-        }
-
-        if serde_json::to_string(&dto.image.metadata)
-            .map(|s| s.len())
-            .unwrap_or(usize::MAX)
-            > 2048
-        {
-            return Err(AppError::bad_request("Image metadata too large."));
-        }
+        self.validate_image(&dto.image)?;
 
         let mut tx = self.db.begin().await?;
 
         let item = sqlx::query!(
-            r#"SELECT id, created_by as "created_by?: Uuid", images FROM items
-               WHERE id = $1 AND tenant_id = $2 FOR UPDATE"#,
+            r#"SELECT images FROM items WHERE id = $1 AND tenant_id = $2 FOR UPDATE"#,
             item_id,
             tenant_id
         )
@@ -599,26 +609,18 @@ impl ItemsService {
         .await?
         .ok_or_else(|| AppError::not_found("Item not found."))?;
 
-        if (item.created_by != Some(user_id)) && !can_upload {
-            return Err(AppError::forbidden("Only the creator can add images."));
-        }
-
         let mut images: Vec<Value> = match item.images {
             Some(Value::Array(arr)) => arr,
             _ => Vec::new(),
         };
 
-        if images.len() >= 12 {
-            return Err(AppError::bad_request(
-                "Maximum of 12 images per item reached.",
-            ));
+        if images.len() >= MAX_IMAGES_PER_ITEM {
+            return Err(AppError::bad_request(format!(
+                "Maximum of {MAX_IMAGES_PER_ITEM} images per item reached."
+            )));
         }
 
-        let new_image = json!({
-            "publicId": public_id,
-            "createdBy": user_id,
-            "metadata": dto.image.metadata,
-        });
+        let new_image = image_record(&dto.image, user_id);
 
         images.push(new_image.clone());
 
@@ -633,7 +635,7 @@ impl ItemsService {
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:image:add', $2)"#,
             user_id,
-            json!({ "itemId": item_id, "publicId": public_id })
+            json!({ "itemId": item_id, "publicId": dto.image.public_id })
         )
         .execute(&mut *tx)
         .await?;
@@ -647,8 +649,7 @@ impl ItemsService {
         &self,
         tenant_id: Uuid,
         item_id: Uuid,
-        user_id: Uuid,
-        is_superadmin: bool,
+        actor: ItemActor,
         public_id: &str,
     ) -> AppResult<Value> {
         let mut tx = self.db.begin().await?;
@@ -677,8 +678,8 @@ impl ItemsService {
             .as_str()
             .and_then(|s| s.parse::<Uuid>().ok());
 
-        if (item.created_by != Some(user_id)) && image_uploader != Some(user_id) && !is_superadmin {
-            return Err(AppError::forbidden("Not authorized to delete this image."));
+        if !actor.may_remove_image(item.created_by, image_uploader) {
+            return Err(AppError::forbidden("Not allowed to delete this image."));
         }
 
         let updated: Vec<Value> = images
@@ -696,7 +697,7 @@ impl ItemsService {
 
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:image:remove', $2)"#,
-            user_id,
+            actor.user_id,
             json!({ "itemId": item_id, "publicId": public_id })
         )
             .execute(&mut *tx)
@@ -707,34 +708,37 @@ impl ItemsService {
         Ok(json!({ "ok": true }))
     }
 
-    pub async fn delete_item(&self, params: DeleteItemParams) -> AppResult<Value> {
+    pub async fn delete_item(
+        &self,
+        tenant_id: Uuid,
+        id: Uuid,
+        actor: ItemActor,
+    ) -> AppResult<Value> {
         let item = sqlx::query!(
             r#"SELECT id, created_by as "created_by?: Uuid" FROM items WHERE id = $1 AND tenant_id = $2"#,
-            params.id,
-            params.tenant_id
+            id,
+            tenant_id
         )
             .fetch_optional(&self.db)
             .await?
             .ok_or_else(|| AppError::not_found("Not found."))?;
 
-        let is_creator = item.created_by == Some(params.user_id);
-
-        if !is_creator && !params.is_superadmin && !params.is_owner && !params.can_delete_others {
-            return Err(AppError::forbidden("Nicht autorisiert."));
+        if !actor.may_delete(item.created_by) {
+            return Err(AppError::forbidden("Not allowed to delete this item."));
         }
 
         sqlx::query!(
             r#"DELETE FROM items WHERE id = $1 AND tenant_id = $2"#,
-            params.id,
-            params.tenant_id
+            id,
+            tenant_id
         )
         .execute(&self.db)
         .await?;
 
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:delete', $2)"#,
-            params.user_id,
-            json!({ "id": params.id })
+            actor.user_id,
+            json!({ "id": id })
         )
         .execute(&self.db)
         .await?;

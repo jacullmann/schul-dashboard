@@ -108,7 +108,7 @@ impl ReportsService {
         )
         .fetch_optional(&self.db)
         .await?
-        .ok_or_else(|| AppError::not_found("Nachricht nicht gefunden."))?;
+        .ok_or_else(|| AppError::not_found("Message not found."))?;
 
         let details = json!({
             "messageId": msg.id,

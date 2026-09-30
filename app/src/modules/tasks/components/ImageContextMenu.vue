@@ -10,6 +10,7 @@ const props = defineProps<{
   visible?: boolean;
   x: number;
   y: number;
+  canUpload: boolean;
   canDelete: boolean;
 }>();
 
@@ -63,7 +64,7 @@ const contextMenuStyles = computed(() => ({
       :style="contextMenuStyles"
       @close="emit('cancel')"
     >
-      <BaseMenuButton :icon="Upload" @click="emit('upload')">
+      <BaseMenuButton v-if="canUpload" :icon="Upload" @click="emit('upload')">
         {{ t('tasks.list.tasks.menu.upload_images') }}
       </BaseMenuButton>
 

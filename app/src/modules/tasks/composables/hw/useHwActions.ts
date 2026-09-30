@@ -3,7 +3,6 @@ import { useI18n } from 'vue-i18n';
 import { useEventListener } from '@vueuse/core';
 import { useRouter } from 'vue-router';
 import { useModalStore } from '@/stores/modalStore';
-import { useUserStore } from '@/stores/userStore';
 import type { HwItem } from '@/modules/tasks/types';
 import hw from '@/api/api.ts';
 import { groupPath } from '@/api/groupPath';
@@ -17,7 +16,6 @@ export function useHwActions(
 ) {
   const { t } = useI18n();
   const modalStore = useModalStore();
-  const userStore = useUserStore();
   const router = useRouter();
   const deletingEntry = ref(false);
 
@@ -310,28 +308,6 @@ export function useHwActions(
     }
   }
 
-  function canEdit(createdBy: string) {
-    return ctx.user.value?.id === createdBy;
-  }
-
-  function canDelete(createdBy: string) {
-    if (!ctx.user.value) return false;
-    return userStore.isGroupAdmin || ctx.user.value.id === createdBy;
-  }
-
-  function canDeleteImage(
-    itemCreatedBy: string | undefined,
-    imageCreatedBy: string | undefined,
-  ) {
-    if (!ctx.user.value) return false;
-    const userId = ctx.user.value.id;
-    return (
-      userStore.isGroupAdmin ||
-      userId === imageCreatedBy ||
-      userId === itemCreatedBy
-    );
-  }
-
   /** Resolves to whether the task is gone, so a view of it knows to close. */
   async function deleteItem(id: string): Promise<boolean> {
     const isConfirmed = await modalStore.confirm({
@@ -432,9 +408,6 @@ export function useHwActions(
     toggleCheck,
     togglePin,
     toggleVisibility,
-    canEdit,
-    canDelete,
-    canDeleteImage,
     deleteItem,
     reportItem,
     doReport,

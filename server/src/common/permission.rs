@@ -14,6 +14,7 @@ pub enum Permission {
     ManageScheduleChanges,
     ManageAnnouncements,
     ModerateMembers,
+    EditOtherContent,
     DeleteOtherContent,
     InviteMembers,
 }
@@ -31,12 +32,13 @@ impl Permission {
             Self::ManageScheduleChanges => "manage_schedule_changes",
             Self::ManageAnnouncements => "manage_announcements",
             Self::ModerateMembers => "moderate_members",
+            Self::EditOtherContent => "edit_other_content",
             Self::DeleteOtherContent => "delete_other_content",
             Self::InviteMembers => "invite_members",
         }
     }
 
-    pub const ALL: [Permission; 12] = [
+    pub const ALL: [Permission; 13] = [
         Self::EditGroupGeneral,
         Self::EditSubjectsCourses,
         Self::EditSchedule,
@@ -47,6 +49,7 @@ impl Permission {
         Self::ManageScheduleChanges,
         Self::ManageAnnouncements,
         Self::ModerateMembers,
+        Self::EditOtherContent,
         Self::DeleteOtherContent,
         Self::InviteMembers,
     ];
@@ -64,6 +67,7 @@ impl Permission {
             "manage_schedule_changes" => Some(Self::ManageScheduleChanges),
             "manage_announcements" => Some(Self::ManageAnnouncements),
             "moderate_members" => Some(Self::ModerateMembers),
+            "edit_other_content" => Some(Self::EditOtherContent),
             "delete_other_content" => Some(Self::DeleteOtherContent),
             "invite_members" => Some(Self::InviteMembers),
             _ => None,
@@ -83,6 +87,7 @@ pub struct GroupPermissions {
     pub manage_schedule_changes: Role,
     pub manage_announcements: Role,
     pub moderate_members: Role,
+    pub edit_other_content: Role,
     pub delete_other_content: Role,
     pub invite_members: Role,
 }
@@ -100,6 +105,7 @@ impl Default for GroupPermissions {
             manage_schedule_changes: Role::Moderator,
             manage_announcements: Role::Moderator,
             moderate_members: Role::Moderator,
+            edit_other_content: Role::Moderator,
             delete_other_content: Role::Moderator,
             invite_members: Role::User,
         }
@@ -119,6 +125,7 @@ impl GroupPermissions {
             Permission::ManageScheduleChanges => self.manage_schedule_changes,
             Permission::ManageAnnouncements => self.manage_announcements,
             Permission::ModerateMembers => self.moderate_members,
+            Permission::EditOtherContent => self.edit_other_content,
             Permission::DeleteOtherContent => self.delete_other_content,
             Permission::InviteMembers => self.invite_members,
         }
@@ -153,6 +160,7 @@ impl GroupPermissions {
                 "manage_schedule_changes" => perms.manage_schedule_changes = role,
                 "manage_announcements" => perms.manage_announcements = role,
                 "moderate_members" => perms.moderate_members = role,
+                "edit_other_content" => perms.edit_other_content = role,
                 "delete_other_content" => perms.delete_other_content = role,
                 "invite_members" => perms.invite_members = role,
                 _ => {}
@@ -174,6 +182,7 @@ impl GroupPermissions {
             "manage_schedule_changes": self.manage_schedule_changes.as_str(),
             "manage_announcements": self.manage_announcements.as_str(),
             "moderate_members": self.moderate_members.as_str(),
+            "edit_other_content": self.edit_other_content.as_str(),
             "delete_other_content": self.delete_other_content.as_str(),
             "invite_members": self.invite_members.as_str(),
         })
@@ -222,6 +231,7 @@ mod tests {
         assert_eq!(p.manage_schedule_changes, Role::Moderator);
         assert_eq!(p.manage_announcements, Role::Moderator);
         assert_eq!(p.moderate_members, Role::Moderator);
+        assert_eq!(p.edit_other_content, Role::Moderator);
         assert_eq!(p.delete_other_content, Role::Moderator);
         assert_eq!(p.edit_subjects_courses, Role::Admin);
         assert_eq!(p.edit_schedule, Role::Admin);
@@ -253,6 +263,7 @@ mod tests {
         let keys = p.allowed_keys_for_role(Role::User);
         assert!(keys.contains(&"send_messages"));
         assert!(keys.contains(&"create_items"));
+        assert!(!keys.contains(&"edit_other_content"));
         assert!(!keys.contains(&"delete_other_content"));
         assert!(!keys.contains(&"edit_subjects_courses"));
     }

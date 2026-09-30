@@ -2,11 +2,13 @@ import { onKeyStroke } from '@vueuse/core';
 import { useModalStore } from '@/stores/modalStore';
 import { useUserStore } from '@/stores/userStore';
 import { useGroupAction } from '@/core/composables/useGroupAction';
+import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 
 export function useAppShortcuts() {
   const modalStore = useModalStore();
   const userStore = useUserStore();
   const { withGroup } = useGroupAction();
+  const { canInAnyGroup } = useAppAuth();
 
   onKeyStroke(['k', 'K'], (e: KeyboardEvent) => {
     if (!userStore.user) return;
@@ -37,11 +39,14 @@ export function useAppShortcuts() {
 
   onKeyStroke(['a', 'A'], (e: KeyboardEvent) => {
     if (!userStore.user) return;
-    if (!userStore.isGroupAdmin && !userStore.isSuperadmin) return;
+    if (!canInAnyGroup('manage_announcements')) return;
 
     if (e.altKey && !e.ctrlKey && !e.metaKey) {
       e.preventDefault();
-      withGroup((groupId) => modalStore.openAnnouncementForm(groupId));
+      withGroup(
+        (groupId) => modalStore.openAnnouncementForm(groupId),
+        'manage_announcements',
+      );
     }
   });
 

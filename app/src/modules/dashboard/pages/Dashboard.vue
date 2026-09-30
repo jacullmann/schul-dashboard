@@ -55,7 +55,8 @@ const {
   useListTransitions,
   canEdit,
   canDelete,
-  canEditNote,
+  canManageNotes,
+  canUploadImages,
   isChecked,
   toggleCheck,
   isPinned,
@@ -315,9 +316,10 @@ const {
                   :is-pinned="isPinned(task.id)"
                   :is-menu-open="openMenuId === task.id"
                   :can-check="!!user"
-                  :can-edit="canEdit(task.createdBy)"
-                  :can-add-note="canEditNote() && !task.editorNote"
-                  :can-delete="canDelete(task.createdBy)"
+                  :can-upload-images="canUploadImages"
+                  :can-edit="canEdit(task)"
+                  :can-add-note="canManageNotes && !task.editorNote"
+                  :can-delete="canDelete(task)"
                   @toggle-check="toggleCheck(task)"
                   @toggle-pin="togglePin(task)"
                   @swipe="archiveItem(task)"

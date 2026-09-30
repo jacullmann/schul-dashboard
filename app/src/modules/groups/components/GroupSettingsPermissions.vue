@@ -30,6 +30,7 @@ const permissions = ref<Record<PermissionKey, string>>({
   manage_schedule_changes: 'moderator',
   manage_announcements: 'moderator',
   moderate_members: 'moderator',
+  edit_other_content: 'moderator',
   delete_other_content: 'moderator',
   invite_members: 'user',
 });
@@ -433,6 +434,30 @@ onMounted(() => {
           ]"
           classes="w-38!"
           @update:model-value="savePermission('moderate_members', $event)"
+        />
+      </BaseRow>
+
+      <BaseRow justify="between" class="flex-nowrap!">
+        <div class="text-base text-on-ghost">
+          {{ t('groups.settings.permissions.items.edit_other_content') }}
+        </div>
+
+        <BaseSelect
+          :form="false"
+          :model-value="permissions.edit_other_content"
+          :disabled="!canManage || saving"
+          :options="[
+            {
+              label: t('groups.settings.permissions.options.moderators'),
+              value: 'moderator',
+            },
+            {
+              label: t('groups.settings.permissions.options.admins'),
+              value: 'admin',
+            },
+          ]"
+          classes="w-38!"
+          @update:model-value="savePermission('edit_other_content', $event)"
         />
       </BaseRow>
 

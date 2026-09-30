@@ -2,7 +2,6 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import hw from '@/api/api.ts';
 import { usePreferences } from '@/common/composables/usePreferences';
-import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 
 export type DismissibleNotice = 'personalizedTasks' | 'personalizedSchedule';
 
@@ -38,14 +37,6 @@ export const useUserStore = defineStore('user', () => {
     () => user.value !== null && !user.value.doneSetup,
   );
   const mfaEnabled = computed(() => user.value?.mfaEnabled === true);
-  const { activeGroupRole } = useAppAuth();
-  /** Admin or moderator of the group the current route shows. */
-  const isGroupAdmin = computed(
-    () =>
-      isSuperadmin.value ||
-      activeGroupRole.value === 'admin' ||
-      activeGroupRole.value === 'moderator',
-  );
 
   let fetchPromise: Promise<void> | null = null;
 
@@ -145,6 +136,5 @@ export const useUserStore = defineStore('user', () => {
     setMfaEnabled,
     isNoticeDismissed,
     markNoticeDismissed,
-    isGroupAdmin,
   };
 });

@@ -4,9 +4,15 @@ import { useEventListener } from '@vueuse/core';
 import hw from '../../../api/api';
 import { groupPath } from '@/api/groupPath';
 import type { HwItem } from '@/modules/tasks/composables/useTasks';
-import type { ItemSubjectPayload, ItemType } from '@/modules/tasks/types';
+import type {
+  ImageItem,
+  ItemSubjectPayload,
+  ItemType,
+} from '@/modules/tasks/types';
 import { taskRoute } from '@/modules/tasks/utils/routes';
 import { useImageUpload } from '@/modules/tasks/composables/useImageUpload';
+import { useFileDrop } from '@/modules/tasks/composables/useFileDrop';
+import { useTaskPermissions } from '@/modules/tasks/composables/useTaskPermissions';
 import { useI18n } from 'vue-i18n';
 import {
   CUSTOM_SUBJECT_MAX_LENGTH,
@@ -89,42 +95,17 @@ export function useTaskFormLogic(
 
   const isPdf = (img: any) => img.metadata?.format === 'pdf';
 
-  const isDragging = ref(false);
-  let dragCounter = 0;
+  const { canUploadImages, canDeleteImage } = useTaskPermissions(groupId);
 
-  const isFileDrag = (e: DragEvent) =>
-    e.dataTransfer?.types.includes('Files') ?? false;
-
-  const handleDragEnter = (e: DragEvent) => {
-    if (!isFileDrag(e)) return;
-    e.preventDefault();
-    dragCounter++;
-    isDragging.value = true;
-  };
-
-  const handleDragLeave = (e: DragEvent) => {
-    if (!isFileDrag(e)) return;
-    dragCounter--;
-    if (dragCounter === 0) isDragging.value = false;
-  };
-
-  const handleDragOver = (e: DragEvent) => {
-    if (!isFileDrag(e)) return;
-    e.preventDefault();
-    e.dataTransfer!.dropEffect = 'copy';
-  };
+  /** Images of a new task are only local until it is created. */
+  const canRemoveImage = (img: ImageItem) =>
+    !initial || canDeleteImage(initial, img);
 
   // uploadFiles filters unsupported types and enforces the size limits.
-  const handleDrop = async (e: DragEvent) => {
-    if (!isFileDrag(e)) return;
-    e.preventDefault();
-    dragCounter = 0;
-    isDragging.value = false;
-    const files = Array.from(e.dataTransfer?.files ?? []);
-    if (files.length === 0) return;
-
-    await uploadFiles(files, !!initial, initial?.id);
-  };
+  const { isDragOver: isDragging, handlers: dropHandlers } = useFileDrop(
+    (files) => void uploadFiles(files, !!initial, initial?.id),
+    { enabled: canUploadImages },
+  );
 
   const title = ref(initial?.title || '');
   /** A subject id, or {@link OTHER_SUBJECT} for a name typed in by hand. */
@@ -394,10 +375,6 @@ export function useTaskFormLogic(
         title: cleanTitle,
         subject,
         description: cleanDesc,
-        images: imgImages.value.map((img) => ({
-          publicId: img.publicId,
-          metadata: img.metadata || {},
-        })),
       };
       const dueDate = selectedDate.toISOString();
 
@@ -411,6 +388,11 @@ export function useTaskFormLogic(
           ...payload,
           dueDate,
           type: activeType.value,
+          // An existing task's images are changed through their own endpoints.
+          images: imgImages.value.map((img) => ({
+            publicId: img.publicId,
+            metadata: img.metadata || {},
+          })),
           confirmDoubleTask: doubleCheckPassed.value,
         });
       }
@@ -511,10 +493,9 @@ export function useTaskFormLogic(
     makeUrl,
     isPdf,
     isDragging,
-    handleDragEnter,
-    handleDragLeave,
-    handleDragOver,
-    handleDrop,
+    dropHandlers,
+    canUploadImages,
+    canRemoveImage,
     title,
     subjectSel,
     subjectOther,

@@ -39,7 +39,6 @@ pub struct UpdateItemDto {
     pub subject: Option<ItemSubjectDto>,
     #[validate(length(max = 1000))]
     pub description: Option<String>,
-    pub images: Option<Vec<serde_json::Value>>,
     pub due_date: Option<String>,
 }
 

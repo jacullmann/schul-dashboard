@@ -1,4 +1,4 @@
-import { ref, type MaybeRefOrGetter } from 'vue';
+import { ref, toValue, type MaybeRefOrGetter } from 'vue';
 import { useEventListener } from '@vueuse/core';
 
 const OFFICE_TYPES = new Set([
@@ -20,39 +20,47 @@ function isAttachment(file: File) {
 const isFileDrag = (e: DragEvent) =>
   e.dataTransfer?.types.includes('Files') ?? false;
 
+interface FileDropOptions {
+  /** Registers the handlers on this element instead of returning them for binding. */
+  target?: MaybeRefOrGetter<EventTarget | null | undefined>;
+  /** While false, drags pass through untouched, so the browser shows no drop target. */
+  enabled?: MaybeRefOrGetter<boolean>;
+}
+
 /**
  * Lets an element take attachments dragged onto it. Bind the returned
  * handlers to it, or pass `target` to have them registered on it.
  */
 export function useFileDrop(
   onFiles: (files: File[]) => void,
-  target?: MaybeRefOrGetter<EventTarget | null | undefined>,
+  { target, enabled = true }: FileDropOptions = {},
 ) {
+  const accepts = (e: DragEvent) => toValue(enabled) && isFileDrag(e);
   const isDragOver = ref(false);
   // Entering a child fires dragleave on the parent, so only the last leave counts.
   let depth = 0;
 
   function dragenter(e: DragEvent) {
-    if (!isFileDrag(e)) return;
+    if (!accepts(e)) return;
     e.preventDefault();
     depth++;
     isDragOver.value = true;
   }
 
   function dragover(e: DragEvent) {
-    if (!isFileDrag(e)) return;
+    if (!accepts(e)) return;
     e.preventDefault();
     e.dataTransfer!.dropEffect = 'copy';
   }
 
   function dragleave(e: DragEvent) {
-    if (!isFileDrag(e)) return;
+    if (!accepts(e)) return;
     depth--;
     if (depth === 0) isDragOver.value = false;
   }
 
   function drop(e: DragEvent) {
-    if (!isFileDrag(e)) return;
+    if (!accepts(e)) return;
     e.preventDefault();
     depth = 0;
     isDragOver.value = false;

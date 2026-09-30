@@ -9,6 +9,7 @@ export type PermissionKey =
   | 'manage_schedule_changes'
   | 'manage_announcements'
   | 'moderate_members'
+  | 'edit_other_content'
   | 'delete_other_content'
   | 'invite_members';
 

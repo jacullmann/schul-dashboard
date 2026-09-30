@@ -4,8 +4,13 @@ import type { HwItem, ImageItem } from '@/modules/tasks/types';
 import { useModalStore } from '@/stores/modalStore';
 import { useToast } from '@/common/composables/useToast';
 import type { HwContext } from './types';
+import type { TaskPermissions } from '../useTaskPermissions';
 
-export function useHwImages(ctx: HwContext, imageUpload: any) {
+export function useHwImages(
+  ctx: HwContext,
+  imageUpload: any,
+  permissions: TaskPermissions,
+) {
   const { t } = useI18n();
 
   const imageMenu = reactive({
@@ -30,6 +35,10 @@ export function useHwImages(ctx: HwContext, imageUpload: any) {
 
   function openImageMenu(event: MouseEvent, item: HwItem, img: ImageItem) {
     if (!ctx.user.value) return;
+    const hasActions =
+      permissions.canUploadImages.value ||
+      permissions.canDeleteImage(item, img);
+    if (!hasActions) return;
     imageMenu.item = item;
     imageMenu.image = img;
     imageMenu.x = event.clientX;
@@ -46,7 +55,7 @@ export function useHwImages(ctx: HwContext, imageUpload: any) {
 
   function triggerImageUpload(item?: HwItem) {
     const targetItem = item || imageMenu.item;
-    if (!targetItem) return;
+    if (!targetItem || !permissions.canUploadImages.value) return;
 
     imageUpload.init(targetItem.images);
     currentUploadItemId.value = targetItem.id;
@@ -55,7 +64,7 @@ export function useHwImages(ctx: HwContext, imageUpload: any) {
   }
 
   function triggerImageDrop(item: HwItem, files: File[]) {
-    if (!item || !files.length) return;
+    if (!item || !files.length || !permissions.canUploadImages.value) return;
 
     imageUpload.init(item.images);
     currentUploadItemId.value = item.id;
