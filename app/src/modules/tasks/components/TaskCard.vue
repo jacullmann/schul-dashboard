@@ -165,8 +165,8 @@ function runSecondarySwipeAction(event: MouseEvent) {
     />
 
     <div
-      v-wave
       ref="card"
+      v-wave
       class="item-card relative bg-canvas border-ghost-border p-1 shadow-input cursor-default touch-pan-y outline-2 transition-[outline-color,background-color] duration-(--duration-focus) ease-(--ease-focus) [@media(hover:hover)]:has-[.item-card-link:hover]:bg-ghost-hover has-[.item-card-link:active]:bg-ghost-hover has-[.item-card-link:focus-visible]:shadow-focus-ring"
       :class="[
         isDragOver ? 'outline-accent' : 'outline-transparent',
@@ -180,7 +180,7 @@ function runSecondarySwipeAction(event: MouseEvent) {
       <!-- Not positioned itself: the title's link has to stretch over the
            whole card, so the controls are lifted above it instead. -->
       <div class="flex justify-between items-start gap-2 select-none">
-        <div class="flex gap-3 min-w-0 mt-2 ml-3 md:ml-2 mb-1.5">
+        <div class="flex flex-1 gap-3 min-w-0 mt-2 ml-3 md:ml-2 mb-1.5">
           <span v-if="canCheck" class="relative z-10 flex">
             <BaseCheckbox
               class="checkbox"

@@ -13,7 +13,7 @@ const props = defineProps<{
    * moderate the group. The email only arrives for superadmins.
    */
   showCreator: boolean;
-  /** Spreads the parts across the row instead of joining them with dots. */
+  /** Pushes the due date to the far end of the row. */
   spread?: boolean;
 }>();
 
@@ -21,10 +21,16 @@ const i18n = useI18n();
 const t = i18n.t.bind(i18n);
 const te = i18n.te.bind(i18n);
 
-const parts = computed(() => [
+const leadingParts = computed(() => [
   ...(props.showType ? [t(`tasks.list.types.${props.item.type}`)] : []),
   formatSubjectDisplay(props.item.subjectName, props.item.courseName, t, te),
+]);
+const dueDate = computed(() =>
   new Date(props.item.dueDate).toLocaleDateString(),
+);
+const parts = computed(() => [
+  ...leadingParts.value,
+  dueDate.value,
   ...(props.showCreator
     ? [props.item.createdByName || t('common.selection.unknown')]
     : []),
@@ -36,7 +42,8 @@ const parts = computed(() => [
     v-if="spread"
     class="text-on-ghost-muted flex justify-between gap-2 text-base"
   >
-    <span v-for="part in parts" :key="part">{{ part }}</span>
+    <span class="min-w-0 truncate">{{ leadingParts.join(' • ') }}</span>
+    <span class="shrink-0">{{ dueDate }}</span>
   </div>
   <div v-else class="text-on-ghost-muted text-base">
     {{ parts.join(' • ') }}
