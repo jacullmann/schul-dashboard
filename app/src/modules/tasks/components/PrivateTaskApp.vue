@@ -3,7 +3,6 @@ import {
   Pencil,
   Copy,
   Trash2,
-  Lock,
   ChevronUp,
   ChevronDown,
 } from '@lucide/vue';
@@ -166,7 +165,7 @@ function handleItemDoubleClick(task: PrivateTask, event: MouseEvent) {
   togglePrivateTaskCompletion(task);
 }
 
-/** After the page header: the privacy notice, then the list. */
+/** After the page header: the login notice, then the list. */
 const NOTICE_ENTRANCE_ORDER = 1;
 const LIST_ENTRANCE_ORDER = 2;
 const SKELETON_COUNT = 10;
@@ -196,20 +195,11 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
 <template>
   <div class="private-task-app-integrated">
     <div
-      class="private-task-header animate-enter"
+      v-if="!user"
+      class="private-task-header animate-enter p-8 text-center"
       :style="{ '--enter-delay': entranceDelay(NOTICE_ENTRANCE_ORDER) }"
     >
-      <div
-        class="flex gap-2 items-center justify-center text-on-ghost-muted mb-4"
-      >
-        <Lock :size="20" />
-        <span class="font-medium text-base">
-          {{ t('tasks.private_tasks.only_visible_to_you') }}
-        </span>
-      </div>
-      <div v-if="!user" class="p-8 text-center">
-        <p>{{ t('tasks.private_tasks.requires_account') }}</p>
-      </div>
+      <p>{{ t('tasks.private_tasks.requires_account') }}</p>
     </div>
 
     <div v-if="user" class="private-task-list relative">
