@@ -179,8 +179,8 @@ function runSecondarySwipeAction(event: MouseEvent) {
     >
       <!-- Not positioned itself: the title's link has to stretch over the
            whole card, so the controls are lifted above it instead. -->
-      <div class="flex justify-between items-start gap-2 select-none">
-        <div class="flex flex-1 gap-3 min-w-0 mt-2 ml-3 md:ml-2 mb-1.5">
+      <div class="flex select-none">
+        <div class="flex flex-1 gap-3 min-w-0 mt-2 mx-3 md:mx-2 mb-1.5">
           <span v-if="canCheck" class="relative z-10 flex">
             <BaseCheckbox
               class="checkbox"
@@ -189,16 +189,25 @@ function runSecondarySwipeAction(event: MouseEvent) {
             />
           </span>
           <div class="flex flex-col gap-1 flex-1 min-w-0">
-            <h3
-              class="min-w-0 text-lg/6! overflow-hidden text-ellipsis whitespace-nowrap -my-[3px]!"
-              :title="item.title"
-            >
-              <RouterLink
-                :to="to"
-                class="item-card-link outline-none after:absolute after:inset-0"
-                >{{ item.title }}</RouterLink
+            <div class="flex justify-between">
+              <h3
+                class="min-w-0 text-lg/6! overflow-hidden text-ellipsis whitespace-nowrap -my-0.75!"
+                :title="item.title"
               >
-            </h3>
+                <RouterLink
+                  :to="to"
+                  class="item-card-link outline-none after:absolute after:inset-0"
+                  >{{ item.title }}</RouterLink
+                >
+              </h3>
+
+              <Pin
+                v-if="isPinned && isMobile"
+                :size="18"
+                class="text-on-ghost-muted fill-current"
+                aria-hidden="true"
+              />
+            </div>
 
             <TaskMeta
               :item="item"
@@ -209,17 +218,9 @@ function runSecondarySwipeAction(event: MouseEvent) {
           </div>
         </div>
 
-        <div
-          v-if="isPinned || !isMobile"
-          class="relative z-10 flex items-start gap-2"
-        >
-          <Pin
-            v-if="isPinned && isMobile"
-            class="text-on-ghost-muted m-1.5 size-4 fill-current"
-            aria-hidden="true"
-          />
+        <div v-if="!isMobile" class="relative z-10 flex items-start gap-2">
           <BaseTooltip
-            v-else-if="isPinned"
+            v-if="isPinned && !isMobile"
             :content="t('tasks.list.tasks.menu.unpin')"
             placement="bottom"
           >

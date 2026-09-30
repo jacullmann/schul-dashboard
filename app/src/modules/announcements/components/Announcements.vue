@@ -50,6 +50,11 @@ function nextAnnouncement() {
 const announcementEl = ref<HTMLElement | null>(null);
 let resizeObserver: ResizeObserver | null = null;
 
+function setAnnouncementHeight(height: string) {
+  document.documentElement.style.setProperty('--announcement-height', height);
+  window.dispatchEvent(new CustomEvent('announcement-height-changed'));
+}
+
 function updateAnnouncementHeight() {
   let height = '0px';
   if (
@@ -59,8 +64,7 @@ function updateAnnouncementHeight() {
   ) {
     height = `${announcementEl.value.getBoundingClientRect().height}px`;
   }
-  document.documentElement.style.setProperty('--announcement-height', height);
-  window.dispatchEvent(new CustomEvent('announcement-height-changed'));
+  setAnnouncementHeight(height);
 }
 
 watch(announcements, updateAnnouncementHeight);
@@ -70,9 +74,6 @@ watch(activeGroupId, async (newVal, oldVal) => {
     currentIndex.value = 0;
     showMenu.value = false;
     await checkAndNotifyUnread();
-  } else if (!newVal) {
-    announcements.value = [];
-    updateAnnouncementHeight();
   }
 });
 
@@ -97,6 +98,7 @@ onUnmounted(() => {
   if (resizeObserver) {
     resizeObserver.disconnect();
   }
+  setAnnouncementHeight('0px');
 });
 </script>
 

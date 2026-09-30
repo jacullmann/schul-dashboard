@@ -102,30 +102,28 @@ const GROUPS_LIST_ENTRANCE_ORDER = 2;
   <div class="md:p-4">
     <section v-if="userGroups.length > 0" class="max-md:pt-4 mb-9">
       <div
-        class="flex items-center gap-2.5 mb-4 max-md:px-4 animate-enter"
+        class="animate-enter"
         :style="{
           '--enter-delay': entranceDelay(GROUPS_HEADER_ENTRANCE_ORDER),
         }"
       >
-        <h2 class="text-2xl font-bold text-on-ghost m-0">
+        <PageHeader class="max-md:px-4">
           {{ t('groups.list.your_groups') }}
-        </h2>
-        <span
-          class="text-on-ghost-muted bg-ghost-hover rounded-full text-sm font-semibold px-2.5 py-0.5"
-          >{{ userGroups.length }}</span
-        >
-        <BaseTooltip
-          class="ml-auto"
-          :content="t('groups.list.tooltip.create_group')"
-          placement="bottom"
-        >
-          <BaseButton
-            variant="action"
-            :icon="Plus"
-            icon-classes="size-6"
-            @click="modalStore.openCreateGroup()"
-          />
-        </BaseTooltip>
+
+          <template #action>
+            <BaseTooltip
+              :content="t('groups.list.tooltip.create_group')"
+              placement="bottom"
+            >
+              <BaseButton
+                variant="action"
+                :icon="Plus"
+                icon-classes="size-6"
+                @click="modalStore.openCreateGroup()"
+              />
+            </BaseTooltip>
+          </template>
+        </PageHeader>
       </div>
       <div class="flex flex-col" v-on="longPressHandlers">
         <div
