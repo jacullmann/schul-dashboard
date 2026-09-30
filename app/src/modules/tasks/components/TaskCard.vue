@@ -204,6 +204,7 @@ function runSecondarySwipeAction(event: MouseEvent) {
               :item="item"
               :show-type="showType"
               :show-creator="false"
+              spread
             />
           </div>
         </div>
@@ -212,8 +213,13 @@ function runSecondarySwipeAction(event: MouseEvent) {
           v-if="isPinned || !isMobile"
           class="relative z-10 flex items-start gap-2"
         >
+          <Pin
+            v-if="isPinned && isMobile"
+            class="text-on-ghost-muted m-1.5 size-4 fill-current"
+            aria-hidden="true"
+          />
           <BaseTooltip
-            v-if="isPinned"
+            v-else-if="isPinned"
             :content="t('tasks.list.tasks.menu.unpin')"
             placement="bottom"
           >

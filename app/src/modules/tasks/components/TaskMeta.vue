@@ -13,6 +13,8 @@ const props = defineProps<{
    * moderate the group. The email only arrives for superadmins.
    */
   showCreator: boolean;
+  /** Spreads the parts across the row instead of joining them with dots. */
+  spread?: boolean;
 }>();
 
 const i18n = useI18n();
@@ -30,7 +32,15 @@ const parts = computed(() => [
 </script>
 
 <template>
-  <div class="text-on-ghost-muted text-base">{{ parts.join(' • ') }}</div>
+  <div
+    v-if="spread"
+    class="text-on-ghost-muted flex justify-between gap-2 text-base"
+  >
+    <span v-for="part in parts" :key="part">{{ part }}</span>
+  </div>
+  <div v-else class="text-on-ghost-muted text-base">
+    {{ parts.join(' • ') }}
+  </div>
   <div
     v-if="showCreator && item.createdByEmail"
     class="text-on-ghost-subtle text-base"
