@@ -39,6 +39,26 @@ const MAX_IMAGES_PER_ITEM: usize = 12;
 /// Metadata is stored verbatim in the item row, so its size is capped.
 const IMAGE_METADATA_MAX_BYTES: usize = 2048;
 
+/// Office documents are uploaded as raw assets, whose public ID keeps the file
+/// extension; images and PDFs never carry one.
+const RAW_EXTENSIONS: [&str; 3] = ["docx", "pptx", "xlsx"];
+
+fn is_well_formed_public_id(public_id: &str) -> bool {
+    let stem = match public_id.rsplit_once('.') {
+        Some((stem, extension))
+            if RAW_EXTENSIONS
+                .iter()
+                .any(|raw| raw.eq_ignore_ascii_case(extension)) =>
+        {
+            stem
+        }
+        Some(_) => return false,
+        None => public_id,
+    };
+    stem.chars()
+        .all(|c| c.is_ascii_alphanumeric() || matches!(c, '/' | '_' | '-'))
+}
+
 /// Uploaders are recorded by the server, never taken from the client, since
 /// they may remove their image again from a task they do not own.
 fn image_record(image: &ImageDto, uploader: Uuid) -> Value {
@@ -112,11 +132,7 @@ impl ItemsService {
     /// task cannot point at someone else's Cloudinary assets.
     fn validate_image(&self, image: &ImageDto) -> AppResult<()> {
         let public_id = image.public_id.as_str();
-        let in_folder = self.cloudinary.owns(public_id);
-        let well_formed = public_id
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || matches!(c, '/' | '_' | '-'));
-        if !in_folder || !well_formed {
+        if !self.cloudinary.owns(public_id) || !is_well_formed_public_id(public_id) {
             return Err(AppError::bad_request("Invalid publicId."));
         }
 
@@ -784,5 +800,25 @@ impl ItemsService {
             .await?;
 
         Ok(json!({ "ok": true, "editorNote": trimmed }))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn accepts_image_and_office_public_ids() {
+        assert!(is_well_formed_public_id("hausaufgaben/abc_123-x"));
+        assert!(is_well_formed_public_id("hausaufgaben/abc123.docx"));
+        assert!(is_well_formed_public_id("hausaufgaben/abc123.PPTX"));
+    }
+
+    #[test]
+    fn rejects_other_extensions_and_characters() {
+        assert!(!is_well_formed_public_id("hausaufgaben/abc.exe"));
+        assert!(!is_well_formed_public_id("hausaufgaben/abc.docx.docx"));
+        assert!(!is_well_formed_public_id("hausaufgaben/../abc.docx"));
+        assert!(!is_well_formed_public_id("hausaufgaben/a b"));
     }
 }
