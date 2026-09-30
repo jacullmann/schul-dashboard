@@ -204,7 +204,6 @@
     },
     "new_task": "Neue Aufgabe",
     "no_tasks_found": "Keine privaten Aufgaben gefunden.",
-    "only_visible_to_you": "Nur für dich sichtbar",
     "requires_account": "Du musst angemeldet sein, um private Aufgaben zu verwenden.",
     "success_create": "Private Aufgabe erstellt",
     "success_delete": "Private Aufgabe erfolgreich gelöscht",
