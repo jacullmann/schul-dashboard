@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { computed, useTemplateRef, type Component } from 'vue';
+import { computed, type Component } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useElementSize } from '@vueuse/core';
 import {
   Archive,
   ArchiveRestore,
@@ -105,19 +104,24 @@ const trayStyle = computed(() => ({
   transition: props.isSwiping ? 'none' : `width ${SWIPE_SETTLE_TIMING}`,
 }));
 
-const strip = useTemplateRef<HTMLElement>('strip');
-// Measured rather than taken from `offset`, which jumps to where a released
-// card is headed while the card itself is still sliding there.
-const { width: uncoveredWidth } = useElementSize(strip, undefined, {
-  box: 'border-box',
-});
+/**
+ * A button grows from its centre, so once the card's edge is past that, the
+ * growing button never reaches under the card.
+ */
+const POP_IN_START = SWIPE_BUTTON_SIZE / 2;
+/** Fully grown by the time the card rests a gap past the button. */
+const POP_IN_DISTANCE = SWIPE_BUTTON_SIZE / 2 + SWIPE_BUTTON_GAP;
 
-/** 1 once the card's edge has moved past the button's far side, 0 before. */
+/** 0 until the card's edge has passed the button's centre, 1 once the card could rest. */
 function buttonProgress(buttonIndex: number) {
-  const farSide =
-    SWIPE_BUTTON_GAP + buttonIndex * BUTTON_STEP + SWIPE_BUTTON_SIZE;
-  return uncoveredWidth.value >= farSide ? 1 : 0;
+  const pastCentre =
+    props.offset - SWIPE_BUTTON_GAP - buttonIndex * BUTTON_STEP - POP_IN_START;
+  return Math.min(1, Math.max(0, pastCentre / POP_IN_DISTANCE));
 }
+
+const popInTransition = computed(() =>
+  props.isSwiping ? '0s' : SWIPE_SETTLE_TIMING,
+);
 
 // Widths and offsets are expressed against the strip (`100%`) so they follow
 // the finger without a transition, which only the takeover needs.
@@ -138,7 +142,7 @@ const primarySlotStyle = computed(() => {
     width: props.isTakingOver
       ? `calc(100% - ${STRIP_INSET}px)`
       : `max(${SWIPE_BUTTON_SIZE}px, calc(100% - ${restingInset}px))`,
-    transition: `width ${TAKEOVER_TIMING}, scale ${SWIPE_SETTLE_TIMING}, opacity ${SWIPE_SETTLE_TIMING}`,
+    transition: `width ${TAKEOVER_TIMING}, scale ${popInTransition.value}, opacity ${popInTransition.value}`,
   };
 });
 
@@ -147,13 +151,12 @@ const secondarySlotStyle = computed(() => ({
   [props.side]: `max(${SWIPE_BUTTON_GAP + BUTTON_STEP}px, calc(100% - ${BUTTON_STEP}px))`,
   width: `${SWIPE_BUTTON_SIZE}px`,
   opacity: props.isTakingOver ? 0 : buttonProgress(1),
-  transition: `opacity ${props.isTakingOver ? SECONDARY_FADE_TIMING : SWIPE_SETTLE_TIMING}, scale ${SWIPE_SETTLE_TIMING}`,
+  transition: `opacity ${SECONDARY_FADE_TIMING}, scale ${popInTransition.value}`,
 }));
 </script>
 
 <template>
   <div
-    ref="strip"
     class="absolute inset-y-0 isolate overflow-hidden"
     :class="side === 'left' ? 'left-0' : 'right-0'"
     :style="trayStyle"
