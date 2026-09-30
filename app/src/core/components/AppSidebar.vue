@@ -12,7 +12,8 @@ import {
   Crown,
   Lock as LockIcon,
   Search,
-  MessageCircle,
+  // TODO(chat): disabled until chat is ready.
+  // MessageCircle,
   Plus,
 } from '@lucide/vue';
 import AccountMenu from '@/modules/auth/components/AccountMenu.vue';
@@ -256,6 +257,7 @@ onUnmounted(() => {
           @click="openGroupPage('group-schedule')"
         />
 
+        <!-- TODO(chat): disabled until chat is ready.
         <SidebarButton
           :label="t('common.sidebar.messages')"
           :expanded="isExpanded"
@@ -264,6 +266,7 @@ onUnmounted(() => {
           :page="true"
           @click="openGroupPage('group-messages')"
         />
+        -->
 
         <SidebarButton
           v-if="contextGroupId"

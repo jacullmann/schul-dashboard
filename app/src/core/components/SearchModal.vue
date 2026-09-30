@@ -15,7 +15,8 @@ import {
   House,
   ListTodo,
   CalendarDays,
-  MessageCircle,
+  // TODO(chat): disabled until chat is ready.
+  // MessageCircle,
   Lock,
   Megaphone,
   UsersRound,
@@ -184,14 +185,15 @@ const defaultResults = computed<SearchResult[]>(() => [
     icon: CalendarDays,
     action: () => navigateInGroup('group-schedule'),
   },
-  {
-    id: 'messages',
-    label: t('common.sidebar.messages'),
-    description: t('search.descriptions.messages'),
-    category: 'page',
-    icon: MessageCircle,
-    action: () => navigateInGroup('group-messages'),
-  },
+  // TODO(chat): disabled until chat is ready.
+  // {
+  //   id: 'messages',
+  //   label: t('common.sidebar.messages'),
+  //   description: t('search.descriptions.messages'),
+  //   category: 'page',
+  //   icon: MessageCircle,
+  //   action: () => navigateInGroup('group-messages'),
+  // },
   {
     id: 'admin',
     label: t('common.sidebar.admin'),
