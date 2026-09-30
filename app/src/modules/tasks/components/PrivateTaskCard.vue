@@ -3,6 +3,7 @@ import { computed, useTemplateRef, type ComponentPublicInstance } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { Ellipsis } from '@lucide/vue';
 import { useSwipeCard } from '@/modules/tasks/composables/useSwipeCard';
+import { collapseHeight } from '@/modules/tasks/utils/collapse';
 import type { PrivateTask } from '@/modules/tasks/types';
 import SwipeActionTray from './SwipeActionTray.vue';
 
@@ -37,7 +38,6 @@ const {
   dismiss,
   close: closeSwipe,
 } = useSwipeCard(
-  container,
   card,
   computed(() => tray.value?.$el ?? null),
   {
@@ -45,7 +45,11 @@ const {
     hasSecondaryAction: true,
     hasStartAction: true,
     confirmDismiss: props.confirmDelete,
-    onDismissed: () => emit('delete'),
+    onDismissed: () => {
+      if (container.value)
+        collapseHeight(container.value, () => emit('delete'));
+      else emit('delete');
+    },
     onStartCommit: () => emit('edit'),
   },
 );

@@ -20,6 +20,7 @@ import {
 } from '@/common/composables/useSkeletonHandoff';
 import { useCardEntrance } from '@/modules/tasks/composables/useCardEntrance';
 import { entranceDelay } from '@/modules/tasks/utils/entrance';
+import { collapseHeight } from '@/modules/tasks/utils/collapse';
 import { lessonMinutes } from '@/modules/schedule/utils/slotTimes';
 
 const i18n = useI18n();
@@ -95,21 +96,10 @@ onUnmounted(() => {
   }
 });
 
-function beforeLeave(el: Element) {
-  const h = el as HTMLElement;
-  const rect = h.getBoundingClientRect();
-  const parent = h.offsetParent as HTMLElement | null;
-  const parentRect = parent?.getBoundingClientRect();
-
-  if (parentRect) {
-    h.style.left = `${rect.left - parentRect.left}px`;
-    h.style.top = `${rect.top - parentRect.top}px`;
-  } else {
-    h.style.left = `${h.offsetLeft}px`;
-    h.style.top = `${h.offsetTop}px`;
-  }
-  h.style.width = `${rect.width}px`;
-  h.style.position = 'absolute';
+// Stays in the flow while it folds away, so the rows below follow it up.
+function collapseLeavingRow(el: Element, done: () => void) {
+  if (!useListTransitions.value) done();
+  else collapseHeight(el as HTMLElement, done);
 }
 
 const upcomingLesson = computed(() => {
@@ -302,10 +292,10 @@ const {
               name="task-list"
               tag="div"
               class="flex flex-col relative max-md:-mx-4"
-              @before-leave="beforeLeave"
+              @leave="collapseLeavingRow"
             >
               <!-- The fragment key prefixes both children's keys, so a separator
-                   slides out with the card below it and the next one takes over. -->
+                   folds away with the card below it and the next one takes over. -->
               <template v-for="(task, index) in visibleTasks" :key="task.id">
                 <div
                   v-if="index > 0"
@@ -577,20 +567,10 @@ const {
 
 <style scoped>
 .task-list-leave-active {
-  transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
   animation: none !important;
 }
 
 .task-list-move {
   transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
-}
-
-/* Delay the moving animation only when an item is leaving */
-.relative:has(.task-list-leave-active) .task-list-move {
-  transition-delay: 0.2s;
-}
-
-.task-list-leave-to {
-  transform: translateX(-110%);
 }
 </style>

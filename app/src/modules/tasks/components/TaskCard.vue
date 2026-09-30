@@ -100,7 +100,6 @@ const trayAction = computed<SwipeAction>(() => {
   return props.isArchiveView ? 'keep' : 'archive';
 });
 
-const container = useTemplateRef<HTMLElement>('container');
 const card = useTemplateRef<HTMLElement>('card');
 const tray = useTemplateRef<ComponentPublicInstance>('tray');
 
@@ -115,13 +114,13 @@ const {
   dismiss,
   close: closeSwipe,
 } = useSwipeCard(
-  container,
   card,
   computed(() => tray.value?.$el ?? null),
   {
     enabled: true,
     hasSecondaryAction: true,
     hasStartAction: () => !!startSwipeAction.value,
+    // The list folds the row away together with the separator above it.
     onDismissed: () => emit('swipe'),
     onStartCommit: () => emit('menu-action', 'pin'),
   },
@@ -145,7 +144,6 @@ function runSecondarySwipeAction(event: MouseEvent) {
 
 <template>
   <div
-    ref="container"
     class="long-press-target relative z-20 focus-within:z-30 hover:z-30 has-[[role=menu]]:z-50"
     v-on="longPressHandlers"
   >
