@@ -1,7 +1,7 @@
 use crate::common::role::Role;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Permission {
     EditGroupGeneral,
@@ -56,6 +56,30 @@ impl Permission {
 
     pub fn from_str(s: &str) -> Option<Self> {
         Self::ALL.into_iter().find(|p| p.as_str() == s)
+    }
+
+    /// Moderation-grade permissions are never granted to every member.
+    pub const fn lowest_role(self) -> Role {
+        match self {
+            Self::EditSubjectsCourses
+            | Self::EditSchedule
+            | Self::ManageAnnouncements
+            | Self::ModerateMembers
+            | Self::EditOtherContent
+            | Self::DeleteOtherContent => Role::Moderator,
+            Self::EditGroupGeneral
+            | Self::CreateItems
+            | Self::UploadImages
+            | Self::ManageNotes
+            | Self::SendMessages
+            | Self::ManageScheduleChanges
+            | Self::InviteMembers => Role::User,
+        }
+    }
+
+    /// Superadmin is never a requirement: it would lock the group's own owner out.
+    pub fn accepts(self, required: Role) -> bool {
+        required != Role::Superadmin && required.dominates(self.lowest_role())
     }
 }
 
@@ -141,24 +165,26 @@ impl GroupPermissions {
         perms
     }
 
-    /// Unknown keys and unknown roles are skipped. Superadmin is never a
-    /// requirement: it would lock the group's own owner out.
-    pub fn apply_overrides(&mut self, raw: &serde_json::Value) {
+    /// Stored overrides are read leniently: unknown keys and roles a
+    /// permission does not accept keep the default.
+    fn apply_overrides(&mut self, raw: &serde_json::Value) {
         let Some(obj) = raw.as_object() else {
             return;
         };
 
-        for (key, val) in obj {
-            let Some(permission) = Permission::from_str(key) else {
-                continue;
-            };
-            let Some(role) = val.as_str().and_then(Role::from_str) else {
-                continue;
-            };
-            if role != Role::Superadmin {
+        let overrides = obj.iter().filter_map(|(key, val)| {
+            Some((Permission::from_str(key)?, Role::from_str(val.as_str()?)?))
+        });
+        for (permission, role) in overrides {
+            if permission.accepts(role) {
                 *self.required_role_mut(permission) = role;
             }
         }
+    }
+
+    /// Callers validate the roles first (see [`Permission::accepts`]).
+    pub fn set_required_role(&mut self, permission: Permission, role: Role) {
+        *self.required_role_mut(permission) = role;
     }
 
     pub fn allowed_keys_for_role(&self, role: Role) -> Vec<&'static str> {
@@ -231,18 +257,26 @@ mod tests {
     }
 
     #[test]
-    fn overrides_keep_unmentioned_and_invalid_entries() {
-        let mut p = GroupPermissions::from_json_with_defaults(&serde_json::json!({
+    fn stored_overrides_skip_roles_a_permission_does_not_accept() {
+        let p = GroupPermissions::from_json_with_defaults(&serde_json::json!({
             "edit_other_content": "admin",
-        }));
-        p.apply_overrides(&serde_json::json!({
-            "delete_other_content": "admin",
-            "edit_other_content": "superadmin",
-            "create_items": "nobody",
+            "delete_other_content": "user",
+            "manage_notes": "user",
         }));
         assert_eq!(p.edit_other_content, Role::Admin);
-        assert_eq!(p.delete_other_content, Role::Admin);
-        assert_eq!(p.create_items, Role::User);
+        assert_eq!(p.delete_other_content, Role::Moderator);
+        assert_eq!(p.manage_notes, Role::User);
+    }
+
+    #[test]
+    fn defaults_are_accepted_by_their_permissions() {
+        let p = GroupPermissions::default();
+        for permission in Permission::ALL {
+            assert!(
+                permission.accepts(p.required_role(permission)),
+                "{permission:?}"
+            );
+        }
     }
 
     #[test]

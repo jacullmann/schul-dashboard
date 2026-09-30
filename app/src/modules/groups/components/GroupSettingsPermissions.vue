@@ -21,7 +21,7 @@ const props = defineProps<{
 
 interface PermissionSection {
   category: 'general' | 'tasks' | 'chat' | 'info' | 'moderation';
-  /** `lowestRole` keeps moderation-grade permissions from every member. */
+  /** Mirrors `Permission::lowest_role`, which the server enforces. */
   permissions: { key: PermissionKey; lowestRole: PermissionRole }[];
 }
 

@@ -5,7 +5,10 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use validator::Validate;
 
-use crate::common::{permission::GroupPermissions, role::MemberRole};
+use crate::common::{
+    permission::{GroupPermissions, Permission},
+    role::{MemberRole, Role},
+};
 
 #[derive(Debug, Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
@@ -154,10 +157,25 @@ pub struct UpdateSubjectDto {
     pub is_dalton: Option<bool>,
 }
 
-#[derive(Debug, Deserialize)]
+/// Only the permissions to change; the others keep their current role.
+#[derive(Debug, Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateGroupPermissionsDto {
-    pub permissions: serde_json::Value,
+    #[validate(custom(function = "validate_required_roles"))]
+    pub permissions: BTreeMap<Permission, Role>,
+}
+
+fn validate_required_roles(
+    permissions: &BTreeMap<Permission, Role>,
+) -> Result<(), validator::ValidationError> {
+    if permissions
+        .iter()
+        .all(|(permission, role)| permission.accepts(*role))
+    {
+        Ok(())
+    } else {
+        Err(validator::ValidationError::new("role_not_accepted"))
+    }
 }
 
 #[derive(Debug, Deserialize)]

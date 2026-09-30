@@ -1,6 +1,8 @@
 use super::{dto::*, invite_token::InviteToken, service::GroupService};
 use crate::{
-    common::extractors::{AuthUser, ClientIp, OptionalAuth, TenantContext, UserAgent},
+    common::extractors::{
+        AuthUser, ClientIp, OptionalAuth, TenantContext, UserAgent, ValidatedJson,
+    },
     common::group_type::GroupType,
     common::names::{COURSE_NAME_MAX_CHARS, DisplayName, SUBJECT_NAME_MAX_CHARS},
     common::path_params::{IdPath, MemberPath, SubjectPath},
@@ -291,7 +293,7 @@ pub async fn get_permissions(
 pub async fn update_permissions(
     State(s): State<AppState>,
     tc: TenantContext,
-    Json(dto): Json<UpdateGroupPermissionsDto>,
+    ValidatedJson(dto): ValidatedJson<UpdateGroupPermissionsDto>,
 ) -> AppResult<Json<Value>> {
     if !tc.has_owner_rights() {
         return Err(AppError::forbidden(
@@ -300,7 +302,7 @@ pub async fn update_permissions(
     }
     Ok(Json(
         GroupAdminService::from_state(&s)
-            .update_permissions(tc.tenant_id, tc.user.user_id, dto.permissions)
+            .update_permissions(tc.tenant_id, tc.user.user_id, &dto.permissions)
             .await?,
     ))
 }

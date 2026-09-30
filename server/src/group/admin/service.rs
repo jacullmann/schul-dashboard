@@ -2,7 +2,7 @@ use crate::{
     common::{
         group_type::{DEFAULT_COURSE_TYPE, GroupType, ZUSATZKURS_CATEGORY, resolve_course_type},
         names::DisplayName,
-        permission::GroupPermissions,
+        permission::{GroupPermissions, Permission},
         role::{MemberRole, Role},
     },
     error::{AppError, AppResult},
@@ -16,7 +16,7 @@ use crate::{
 use chrono::NaiveTime;
 use serde_json::{Value, json};
 use sqlx::{PgConnection, PgPool};
-use std::collections::HashSet;
+use std::collections::{BTreeMap, HashSet};
 use uuid::Uuid;
 
 const SUBJECT_NAME_TAKEN: &str = "A subject with this name already exists.";
@@ -588,7 +588,7 @@ impl GroupAdminService {
         &self,
         tenant_id: Uuid,
         user_id: Uuid,
-        permissions: serde_json::Value,
+        changes: &BTreeMap<Permission, Role>,
     ) -> AppResult<Value> {
         let group = sqlx::query!(r#"SELECT permissions FROM groups WHERE id = $1"#, tenant_id)
             .fetch_optional(&self.db)
@@ -596,7 +596,9 @@ impl GroupAdminService {
             .ok_or_else(|| AppError::not_found("Group not found"))?;
 
         let mut merged = GroupPermissions::from_json_with_defaults(&group.permissions);
-        merged.apply_overrides(&permissions);
+        for (&permission, &role) in changes {
+            merged.set_required_role(permission, role);
+        }
         let merged_json = json!(merged);
 
         sqlx::query!(
