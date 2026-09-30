@@ -4,8 +4,11 @@ import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useMfa } from '@/modules/auth/composables/useMfa';
 
 /**
- * Ends the session and returns to the app root. `useAppAuth().logout()` is what
+ * Ends the session and shows the login page. `useAppAuth().logout()` is what
  * calls `/auth/logout`; local state is cleared even if that request fails.
+ *
+ * The login route is targeted directly: `/` redirects to `/groups`, which is a
+ * no-op navigation when the user is already there, so the auth guard never runs.
  */
 export function useLogout(): () => Promise<void> {
   const router = useRouter();
@@ -17,6 +20,6 @@ export function useLogout(): () => Promise<void> {
     userStore.clearUser();
     resetMfaState();
     await appAuthLogout();
-    await router.push('/');
+    await router.push({ name: 'login' });
   };
 }
