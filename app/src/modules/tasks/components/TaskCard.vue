@@ -180,7 +180,7 @@ function runSecondarySwipeAction(event: MouseEvent) {
       <!-- Not positioned itself: the title's link has to stretch over the
            whole card, so the controls are lifted above it instead. -->
       <div class="flex justify-between items-start gap-2 select-none">
-        <div class="flex gap-2 min-w-0 mt-2 ml-3 md:ml-2 mb-1">
+        <div class="flex gap-3 min-w-0 mt-2 ml-3 md:ml-2 mb-1.5">
           <span v-if="canCheck" class="relative z-10 flex">
             <BaseCheckbox
               class="checkbox"
