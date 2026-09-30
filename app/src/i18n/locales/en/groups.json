@@ -50,15 +50,9 @@
         "confirm_label": "Confirm New Password"
       },
       "delete_group": {
-        "modal": {
-          "title": "Delete Group",
-          "message": "Are you sure you want to permanently delete this group?"
-        },
         "warning_text": "Deleting the group is permanent and cannot be undone. All associated data (tasks, exams, announcements, etc.) will be deleted for all users.",
-        "confirmation_label_prefix": "Please type ",
-        "confirmation_label_suffix": " to proceed:",
-        "submit_button": "Permanently delete group",
-        "danger_zone_title": "Danger Zone"
+        "danger_zone_title": "Danger Zone",
+        "button": "Delete group"
       },
       "errors": {
         "unauthorized": "You do not have permission to change the settings."
@@ -491,5 +485,19 @@
       "subject_info": "Subject info"
     },
     "go_back": "Go Back"
+  },
+  "delete_modal": {
+    "title": "Delete group",
+    "warn_title": "Permanently delete “{name}”?",
+    "counts": "Affected: {members} members · {items} tasks",
+    "consequences": {
+      "content": "All of the group's tasks, exams, announcements and chat messages are deleted.",
+      "schedule": "Subjects, courses and the timetable including substitutions are removed.",
+      "members": "All members immediately lose access to the group.",
+      "invites": "Existing invite links stop working."
+    },
+    "irreversible": "Deleting is permanent and cannot be undone.",
+    "confirmation_label": "To confirm, type the group name {name}:",
+    "submit": "Delete permanently"
   }
 }

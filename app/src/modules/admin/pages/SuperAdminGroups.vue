@@ -10,6 +10,7 @@ import { useSuperAdminFormat } from '../composables/useSuperAdminFormat';
 import AdminListToolbar from '../components/AdminListToolbar.vue';
 import AdminPagination from '../components/AdminPagination.vue';
 import AdminSortHeader from '../components/AdminSortHeader.vue';
+import DeleteGroupModal from '@/modules/groups/components/DeleteGroupModal.vue';
 import type { GroupTypeFilter } from '../types';
 
 const {
@@ -26,7 +27,12 @@ const {
   reload,
   invitingGroupId,
   inviteToGroup,
-  deleteGroup,
+  groupPendingDelete,
+  deleteModalOpen,
+  deletingGroup,
+  requestDeleteGroup,
+  cancelDeleteGroup,
+  confirmDeleteGroup,
 } = useSuperAdminGroups();
 const { fmtDate } = useSuperAdminFormat();
 const { t } = useI18n();
@@ -148,7 +154,7 @@ const typeOptions = computed(() =>
                   <BaseButton
                     size="sm"
                     :icon="Trash2"
-                    @click="deleteGroup(g)"
+                    @click="requestDeleteGroup(g)"
                   />
                 </BaseTooltip>
               </div>
@@ -165,4 +171,14 @@ const typeOptions = computed(() =>
       @update:page="setPage"
     />
   </template>
+
+  <DeleteGroupModal
+    :open="deleteModalOpen"
+    :group-name="groupPendingDelete?.name ?? ''"
+    :member-count="groupPendingDelete?.memberCount"
+    :item-count="groupPendingDelete?.itemCount"
+    :loading="deletingGroup"
+    @cancel="cancelDeleteGroup"
+    @confirm="confirmDeleteGroup"
+  />
 </template>

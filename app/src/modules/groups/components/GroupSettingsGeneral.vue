@@ -12,6 +12,7 @@ import { useGroupPageId } from '@/core/composables/useGroupPageId';
 import GroupAvatarCropper from './GroupAvatarCropper.vue';
 import GroupTypeRadioGroup from './GroupTypeRadioGroup.vue';
 import SettingToggleCard from './SettingToggleCard.vue';
+import DeleteGroupModal from './DeleteGroupModal.vue';
 import Avatar from '@/modules/auth/components/Avatar.vue';
 import type { GroupType } from '@/types/groups';
 
@@ -36,7 +37,7 @@ const canEditGroupType = computed(
     checkPermission('edit_schedule'),
 );
 
-const props = defineProps<{
+defineProps<{
   isAdmin: boolean;
   hasOwnerRights?: boolean;
   groupName: string;
@@ -245,22 +246,10 @@ async function deleteAvatar() {
   }
 }
 
-const deleteConfirmText = ref('');
+const deleteModalOpen = ref(false);
 const deletingGroup = ref(false);
 
 async function confirmDeleteGroup() {
-  const expectedConfirmation = `delete ${props.groupName}`;
-  if (deleteConfirmText.value !== expectedConfirmation) return;
-
-  const isConfirmed = await modalStore.confirm({
-    title: t('groups.settings.general.delete_group.modal.title'),
-    content: t('groups.settings.general.delete_group.modal.message'),
-    submitText: t('common.buttons.delete'),
-    danger: true,
-  });
-
-  if (!isConfirmed) return;
-
   deletingGroup.value = true;
   try {
     await deleteGroup();
@@ -270,6 +259,7 @@ async function confirmDeleteGroup() {
     return;
   }
 
+  deleteModalOpen.value = false;
   await checkAuthStatus();
   void router.push({ name: 'groups' });
 }
@@ -532,41 +522,21 @@ async function confirmDeleteGroup() {
         {{ t('groups.settings.general.delete_group.warning_text') }}
       </p>
 
-      <BaseForm
-        :submit="confirmDeleteGroup"
-        :loading="deletingGroup"
-        :requirement="deleteConfirmText === `delete ${groupName}`"
-        :danger="true"
-        class="max-w-160"
+      <BaseButton
+        variant="danger"
+        :icon="Trash2"
+        @click="deleteModalOpen = true"
       >
-        <template #content>
-          <BaseFormGroup id="delete-confirm">
-            <BaseLabel for="delete-confirm"
-              >{{
-                t(
-                  'groups.settings.general.delete_group.confirmation_label_prefix',
-                )
-              }}<strong>delete {{ groupName }}</strong
-              >{{
-                t(
-                  'groups.settings.general.delete_group.confirmation_label_suffix',
-                )
-              }}
-            </BaseLabel>
-            <BaseInput
-              id="delete-confirm"
-              v-model="deleteConfirmText"
-              type="text"
-              class="border-danger"
-              :placeholder="'delete ' + groupName"
-            />
-          </BaseFormGroup>
-        </template>
+        {{ t('groups.settings.general.delete_group.button') }}
+      </BaseButton>
 
-        <template #action-text>
-          {{ t('groups.settings.general.delete_group.submit_button') }}
-        </template>
-      </BaseForm>
+      <DeleteGroupModal
+        :open="deleteModalOpen"
+        :group-name="groupName"
+        :loading="deletingGroup"
+        @cancel="deleteModalOpen = false"
+        @confirm="confirmDeleteGroup"
+      />
     </div>
   </div>
 </template>

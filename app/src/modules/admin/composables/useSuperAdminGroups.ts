@@ -69,23 +69,46 @@ export function useSuperAdminGroups() {
     }
   }
 
-  async function deleteGroup(group: SuperAdminGroup) {
-    const confirmed = await modalStore.confirm({
-      title: t('admin.groups.delete_modal.title'),
-      content: t('admin.groups.delete_modal.content', { name: group.name }),
-      submitText: t('common.buttons.delete'),
-      danger: true,
-    });
-    if (!confirmed) return;
+  // Kept after closing so the modal still names the group while it animates out.
+  const groupPendingDelete = ref<SuperAdminGroup | null>(null);
+  const deleteModalOpen = ref(false);
+  const deletingGroup = ref(false);
 
+  function requestDeleteGroup(group: SuperAdminGroup) {
+    groupPendingDelete.value = group;
+    deleteModalOpen.value = true;
+  }
+
+  function cancelDeleteGroup() {
+    deleteModalOpen.value = false;
+  }
+
+  async function confirmDeleteGroup() {
+    const group = groupPendingDelete.value;
+    if (!group) return;
+
+    deletingGroup.value = true;
     try {
       await hw.delete(`/admin/groups/${group.id}`);
       toast.success(t('admin.groups.delete_success', { name: group.name }));
+      deleteModalOpen.value = false;
       await list.reload();
     } catch {
       toast.error(t('admin.groups.errors.delete'));
+    } finally {
+      deletingGroup.value = false;
     }
   }
 
-  return { ...list, invitingGroupId, inviteToGroup, deleteGroup };
+  return {
+    ...list,
+    invitingGroupId,
+    inviteToGroup,
+    groupPendingDelete,
+    deleteModalOpen,
+    deletingGroup,
+    requestDeleteGroup,
+    cancelDeleteGroup,
+    confirmDeleteGroup,
+  };
 }

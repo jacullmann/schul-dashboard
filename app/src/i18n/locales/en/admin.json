@@ -155,10 +155,6 @@
     },
     "invite_tooltip": "Generate invite link",
     "delete_tooltip": "Delete group",
-    "delete_modal": {
-      "title": "Delete group?",
-      "content": "Delete group \"{name}\"?\n\nThis will permanently delete the group and all associated data. This cannot be undone."
-    },
     "delete_success": "Group \"{name}\" deleted.",
     "errors": {
       "load": "Failed to load groups.",

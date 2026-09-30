@@ -51,14 +51,9 @@
         "confirm_label": "Neues Passwort bestätigen"
       },
       "delete_group": {
-        "modal": {
-          "title": "Gruppe löschen",
-          "message": "Sind Sie sicher, dass Sie diese Gruppe unwiderruflich löschen möchten?"
-        },
         "warning_text": "Das Löschen der Gruppe ist endgültig und kann nicht rückgängig gemacht werden. Alle damit verbundenen Daten (Aufgaben, Klausuren, Ankündigungen etc.) werden für alle Benutzer gelöscht.",
-        "confirmation_label_prefix": "Bitte geben Sie ",
-        "confirmation_label_suffix": " ein, um fortzufahren:",
-        "submit_button": "Gruppe unwiderruflich löschen"
+        "danger_zone_title": "Gefahrenzone",
+        "button": "Gruppe löschen"
       },
       "errors": {
         "unauthorized": "Du hast keine Berechtigung, die Einstellungen zu ändern."
@@ -463,5 +458,19 @@
       }
     },
     "go_back": "Zurück"
+  },
+  "delete_modal": {
+    "title": "Gruppe löschen",
+    "warn_title": "„{name}“ endgültig löschen?",
+    "counts": "Betroffen: {members} Mitglieder · {items} Aufgaben",
+    "consequences": {
+      "content": "Alle Aufgaben, Klausuren, Ankündigungen und Chatnachrichten der Gruppe werden gelöscht.",
+      "schedule": "Fächer, Kurse und der Stundenplan samt Vertretungen werden entfernt.",
+      "members": "Alle Mitglieder verlieren sofort den Zugriff auf die Gruppe.",
+      "invites": "Bestehende Einladungslinks werden ungültig."
+    },
+    "irreversible": "Das Löschen ist endgültig und kann nicht rückgängig gemacht werden.",
+    "confirmation_label": "Gib zur Bestätigung den Gruppennamen {name} ein:",
+    "submit": "Endgültig löschen"
   }
 }

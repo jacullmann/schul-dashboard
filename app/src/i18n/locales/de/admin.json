@@ -155,10 +155,6 @@
     },
     "invite_tooltip": "Einladungslink generieren",
     "delete_tooltip": "Gruppe löschen",
-    "delete_modal": {
-      "title": "Gruppe löschen?",
-      "content": "Gruppe \"{name}\" löschen?\n\nDies wird die Gruppe und alle damit verbundenen Daten unwiderruflich löschen."
-    },
     "delete_success": "Gruppe \"{name}\" gelöscht.",
     "errors": {
       "load": "Gruppen konnten nicht geladen werden.",
