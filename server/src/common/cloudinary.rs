@@ -1,12 +1,10 @@
 use crate::config::Config;
 use chrono::Utc;
 use reqwest::Client;
+use serde::Deserialize;
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::sync::Arc;
-
-/// The Admin API accepts at most this many public IDs per delete request.
-const DELETE_BATCH_SIZE: usize = 100;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum ResourceType {
@@ -34,6 +32,19 @@ impl ResourceType {
     }
 }
 
+#[derive(Debug, thiserror::Error)]
+pub enum CloudinaryError {
+    #[error(transparent)]
+    Http(#[from] reqwest::Error),
+    #[error("Cloudinary rejected the request: {0}")]
+    Rejected(String),
+}
+
+#[derive(Deserialize)]
+struct DestroyResponse {
+    result: String,
+}
+
 #[derive(Clone)]
 pub struct Cloudinary(Arc<Inner>);
 
@@ -56,92 +67,78 @@ impl Cloudinary {
         }))
     }
 
-    pub fn folder(&self) -> &str {
-        &self.0.folder
+    /// Whether the asset lives in this deployment's folder. Nothing outside it
+    /// may be attached to a task or deleted, so a tampered image record cannot
+    /// reach other assets in the account.
+    pub fn owns(&self, public_id: &str) -> bool {
+        public_id
+            .strip_prefix(self.0.folder.as_str())
+            .is_some_and(|rest| rest.starts_with('/'))
     }
 
-    /// Only assets in this deployment's folder may ever be deleted, so a
-    /// tampered image record cannot reach anything else in the account.
-    pub fn owns(&self, public_id: &str) -> bool {
-        let in_folder = public_id
-            .strip_prefix(self.0.folder.as_str())
-            .is_some_and(|rest| rest.starts_with('/'));
-        let well_formed = !public_id.contains("..")
-            && public_id
-                .chars()
-                .all(|c| c.is_ascii_alphanumeric() || matches!(c, '/' | '_' | '-' | '.'));
-        in_folder && well_formed
+    /// Signs `params` as Cloudinary expects: sorted by name, joined as a query
+    /// string suffixed with the API secret. Only `&` is escaped, so a value
+    /// cannot smuggle in another signed parameter.
+    fn sign(&self, params: &mut [(&str, &str)]) -> String {
+        params.sort_unstable_by_key(|&(name, _)| name);
+        let joined = params
+            .iter()
+            .map(|(name, value)| format!("{name}={}", value.replace('&', "%26")))
+            .collect::<Vec<_>>()
+            .join("&");
+        hex::encode(Sha256::digest(format!("{joined}{}", self.0.api_secret)))
     }
 
     pub fn sign_upload(&self) -> Value {
-        let Inner {
-            cloud_name,
-            api_key,
-            api_secret,
-            folder,
-            ..
-        } = &*self.0;
+        let folder = &self.0.folder;
         let timestamp = Utc::now().timestamp();
-
-        let signature = hex::encode(Sha256::digest(format!(
-            "folder={folder}&timestamp={timestamp}{api_secret}"
-        )));
+        let signature = self.sign(&mut [("folder", folder), ("timestamp", &timestamp.to_string())]);
 
         json!({
-            "cloudName": cloud_name,
-            "apiKey": api_key,
+            "cloudName": self.0.cloud_name,
+            "apiKey": self.0.api_key,
             "timestamp": timestamp,
             "signature": signature,
             "folder": folder,
         })
     }
 
-    /// Deletes the assets and purges them from the CDN cache. IDs outside this
-    /// deployment's folder are skipped.
-    pub async fn delete(&self, public_ids: &[String]) -> reqwest::Result<()> {
-        let owned = public_ids.iter().filter(|id| self.owns(id));
-        let (raw, image): (Vec<&String>, Vec<&String>) =
-            owned.partition(|id| ResourceType::of(id) == ResourceType::Raw);
-
-        for (resource_type, ids) in [(ResourceType::Image, image), (ResourceType::Raw, raw)] {
-            for batch in ids.chunks(DELETE_BATCH_SIZE) {
-                self.delete_batch(resource_type, batch).await?;
-            }
-        }
-
-        Ok(())
-    }
-
-    async fn delete_batch(
-        &self,
-        resource_type: ResourceType,
-        public_ids: &[&String],
-    ) -> reqwest::Result<()> {
-        let Inner {
-            http,
-            cloud_name,
-            api_key,
-            api_secret,
-            ..
-        } = &*self.0;
+    /// Deletes the asset and purges it from the CDN. An asset that is already
+    /// gone counts as deleted.
+    pub async fn destroy(&self, public_id: &str) -> Result<(), CloudinaryError> {
         let url = format!(
-            "https://api.cloudinary.com/v1_1/{cloud_name}/resources/{}/upload",
-            resource_type.as_str()
+            "https://api.cloudinary.com/v1_1/{}/{}/destroy",
+            self.0.cloud_name,
+            ResourceType::of(public_id).as_str()
         );
-        let query: Vec<(&str, &str)> = public_ids
-            .iter()
-            .map(|id| ("public_ids[]", id.as_str()))
-            .chain([("invalidate", "true")])
-            .collect();
+        let timestamp = Utc::now().timestamp().to_string();
+        let mut params = [
+            ("public_id", public_id),
+            ("invalidate", "true"),
+            ("timestamp", timestamp.as_str()),
+        ];
+        let signature = self.sign(&mut params);
+        let form = [
+            params.as_slice(),
+            &[("api_key", &self.0.api_key), ("signature", &signature)],
+        ]
+        .concat();
 
-        http.delete(url)
-            .basic_auth(api_key, Some(api_secret))
-            .query(&query)
+        let response: DestroyResponse = self
+            .0
+            .http
+            .post(url)
+            .form(&form)
             .send()
             .await?
-            .error_for_status()?;
+            .error_for_status()?
+            .json()
+            .await?;
 
-        Ok(())
+        match response.result.as_str() {
+            "ok" | "not found" => Ok(()),
+            other => Err(CloudinaryError::Rejected(other.to_owned())),
+        }
     }
 }
 
@@ -167,7 +164,6 @@ mod tests {
         assert!(!c.owns("hausaufgaben"));
         assert!(!c.owns("hausaufgaben-other/abc"));
         assert!(!c.owns("other/abc"));
-        assert!(!c.owns("hausaufgaben/../other/abc"));
         assert!(!c.owns("http://localhost:3000/mock/upload/worksheet-mathe.svg"));
     }
 
@@ -176,5 +172,28 @@ mod tests {
         assert_eq!(ResourceType::of("hausaufgaben/abc.docx"), ResourceType::Raw);
         assert_eq!(ResourceType::of("hausaufgaben/abc"), ResourceType::Image);
         assert_eq!(ResourceType::of("hausaufgaben.v2/abc"), ResourceType::Image);
+    }
+
+    /// Expected value computed with the official Python SDK's `api_sign_request`.
+    #[test]
+    fn signs_like_the_official_sdk() {
+        let signature = cloudinary().sign(&mut [
+            ("timestamp", "1"),
+            ("public_id", "a/b"),
+            ("invalidate", "true"),
+        ]);
+        assert_eq!(
+            signature,
+            "c72af05206ba30163c7595bfd0025674f705077a7c99fdb9a8fdbce395161b50"
+        );
+    }
+
+    #[test]
+    fn escapes_ampersands_in_signed_values() {
+        let signature = cloudinary().sign(&mut [("public_id", "a&timestamp=2")]);
+        assert_eq!(
+            signature,
+            hex::encode(Sha256::digest("public_id=a%26timestamp=2secret"))
+        );
     }
 }

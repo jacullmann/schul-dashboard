@@ -4,31 +4,33 @@ use sqlx::PgPool;
 
 /// Public IDs of every file an item's `images` column points at, including the
 /// preview images generated for office documents.
-pub fn referenced_public_ids(images: &Value) -> impl Iterator<Item = String> + '_ {
+fn referenced_public_ids(images: &Value) -> impl Iterator<Item = &str> {
     images
         .as_array()
         .into_iter()
         .flatten()
         .flat_map(|img| [&img["publicId"], &img["metadata"]["thumbnailId"]])
         .filter_map(Value::as_str)
-        .map(str::to_owned)
 }
 
-/// Deletes the files from Cloudinary once the request is done, so neither its
-/// latency nor its failure affects the deletion the user asked for.
+/// Deletes the files behind the given `images` columns from Cloudinary once the
+/// request is done, so neither its latency nor its failure affects the
+/// deletion the user asked for.
 ///
 /// Public IDs are chosen by the client, so another task or a group avatar may
 /// point at the same file. Only files no longer referenced anywhere are
 /// deleted; otherwise removing one's own task could delete someone else's
 /// image.
-pub fn delete_detached(
+pub fn delete_detached<'a>(
     db: PgPool,
     cloudinary: Cloudinary,
-    public_ids: impl IntoIterator<Item = String>,
+    images: impl IntoIterator<Item = &'a Value>,
 ) {
-    let mut public_ids: Vec<String> = public_ids
+    let mut public_ids: Vec<String> = images
         .into_iter()
+        .flat_map(referenced_public_ids)
         .filter(|id| cloudinary.owns(id))
+        .map(str::to_owned)
         .collect();
     public_ids.sort_unstable();
     public_ids.dedup();
@@ -45,8 +47,10 @@ pub fn delete_detached(
             }
         };
 
-        if let Err(e) = cloudinary.delete(&detached).await {
-            tracing::warn!(count = detached.len(), "Cloudinary delete failed: {e}");
+        for public_id in &detached {
+            if let Err(e) = cloudinary.destroy(public_id).await {
+                tracing::warn!(public_id, "Cloudinary delete failed: {e}");
+            }
         }
     });
 }

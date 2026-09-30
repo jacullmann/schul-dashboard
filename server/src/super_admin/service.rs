@@ -72,17 +72,6 @@ impl SuperAdminService {
         }
     }
 
-    fn delete_item_assets(&self, images: Vec<Option<Value>>) {
-        assets::delete_detached(
-            self.db.clone(),
-            self.cloudinary.clone(),
-            images
-                .iter()
-                .flatten()
-                .flat_map(assets::referenced_public_ids),
-        );
-    }
-
     /// One round trip that scans each large table once.
     pub async fn get_stats(&self) -> AppResult<StatsDto> {
         let row = sqlx::query!(
@@ -180,7 +169,11 @@ impl SuperAdminService {
 
         tx.commit().await?;
 
-        self.delete_item_assets(images);
+        assets::delete_detached(
+            self.db.clone(),
+            self.cloudinary.clone(),
+            images.iter().flatten(),
+        );
 
         Ok(json!({ "ok": true, "deletedCount": deleted }))
     }
@@ -308,7 +301,11 @@ impl SuperAdminService {
 
         tx.commit().await?;
 
-        self.delete_item_assets(images);
+        assets::delete_detached(
+            self.db.clone(),
+            self.cloudinary.clone(),
+            images.iter().flatten(),
+        );
 
         Ok(json!({ "ok": true, "deletedGroupId": group_id }))
     }

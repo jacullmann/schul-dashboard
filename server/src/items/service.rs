@@ -112,9 +112,7 @@ impl ItemsService {
     /// task cannot point at someone else's Cloudinary assets.
     fn validate_image(&self, image: &ImageDto) -> AppResult<()> {
         let public_id = image.public_id.as_str();
-        let in_folder = public_id
-            .strip_prefix(self.cloudinary.folder())
-            .is_some_and(|rest| rest.starts_with('/'));
+        let in_folder = self.cloudinary.owns(public_id);
         let well_formed = public_id
             .chars()
             .all(|c| c.is_ascii_alphanumeric() || matches!(c, '/' | '_' | '-'));
@@ -685,7 +683,7 @@ impl ItemsService {
 
         sqlx::query!(
             r#"UPDATE items SET images = $1, updated_at = now() WHERE id = $2"#,
-            json!(kept),
+            Value::Array(kept),
             item_id
         )
         .execute(&mut *tx)
@@ -704,7 +702,7 @@ impl ItemsService {
         assets::delete_detached(
             self.db.clone(),
             self.cloudinary.clone(),
-            assets::referenced_public_ids(&Value::Array(removed)),
+            [&Value::Array(removed)],
         );
 
         Ok(json!({ "ok": true }))
@@ -746,13 +744,7 @@ impl ItemsService {
         .execute(&self.db)
         .await?;
 
-        if let Some(images) = images {
-            assets::delete_detached(
-                self.db.clone(),
-                self.cloudinary.clone(),
-                assets::referenced_public_ids(&images),
-            );
-        }
+        assets::delete_detached(self.db.clone(), self.cloudinary.clone(), &images);
 
         Ok(json!({ "ok": true }))
     }

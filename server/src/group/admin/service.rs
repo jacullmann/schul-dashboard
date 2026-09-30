@@ -150,17 +150,6 @@ impl GroupAdminService {
         }
     }
 
-    fn delete_item_assets(&self, images: Vec<Option<Value>>) {
-        assets::delete_detached(
-            self.db.clone(),
-            self.cloudinary.clone(),
-            images
-                .iter()
-                .flatten()
-                .flat_map(assets::referenced_public_ids),
-        );
-    }
-
     async fn group_type(&self, tenant_id: Uuid) -> AppResult<GroupType> {
         let row = sqlx::query_scalar!(r#"SELECT group_type FROM groups WHERE id = $1"#, tenant_id)
             .fetch_optional(&self.db)
@@ -680,7 +669,11 @@ impl GroupAdminService {
 
         tx.commit().await?;
 
-        self.delete_item_assets(images);
+        assets::delete_detached(
+            self.db.clone(),
+            self.cloudinary.clone(),
+            images.iter().flatten(),
+        );
 
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta)
@@ -705,7 +698,11 @@ impl GroupAdminService {
         .await?;
         let count = images.len();
 
-        self.delete_item_assets(images);
+        assets::delete_detached(
+            self.db.clone(),
+            self.cloudinary.clone(),
+            images.iter().flatten(),
+        );
 
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta)
