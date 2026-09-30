@@ -252,7 +252,7 @@ function goBack() {
           </div>
         </header>
 
-        <div class="p-0 md:p-4">
+        <div class="flex-1 overflow-y-auto overscroll-contain p-0 md:p-4">
           <div class="flex flex-col max-w-200 mx-auto">
             <BaseList
               v-for="(item, index) in navItems"
@@ -305,7 +305,9 @@ function goBack() {
           </div>
         </header>
 
-        <div class="flex-1 overflow-y-auto p-4 md:py-8 px-6 bg-canvas">
+        <div
+          class="flex-1 overflow-y-auto overscroll-contain p-4 md:py-8 px-6 bg-canvas"
+        >
           <div class="w-full max-w-250 mx-auto">
             <GroupSettingsMyCourses v-if="activeTab === 'courses'" />
 
@@ -404,7 +406,7 @@ function goBack() {
 .phone-settings-container {
   position: relative;
   width: 100%;
-  height: calc(100vh - var(--header-height) - var(--announcement-height));
+  height: calc(100dvh - var(--header-height) - var(--announcement-height));
   overflow: hidden;
   background: var(--color-canvas);
   display: flex;

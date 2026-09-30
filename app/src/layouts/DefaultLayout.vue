@@ -18,7 +18,7 @@ useAppShortcuts();
 </script>
 
 <template>
-  <div class="flex min-h-screen w-full">
+  <div class="flex min-h-dvh w-full">
     <AppSidebar v-if="user && !isMobile" />
 
     <div class="flex-1 min-w-0 flex flex-col bg-canvas">
