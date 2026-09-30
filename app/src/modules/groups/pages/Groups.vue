@@ -20,7 +20,7 @@ const router = useRouter();
 const userStore = useUserStore();
 const modalStore = useModalStore();
 const { user } = storeToRefs(userStore);
-const { contextGroupId, userGroups } = useAppAuth();
+const { userGroups } = useAppAuth();
 
 const loading = ref(false);
 const navigatingGroupId = ref<string | null>(null);
@@ -173,11 +173,9 @@ const GROUPS_LIST_ENTRANCE_ORDER = 3;
           }"
         >
           <BaseList
-            :active="group.id === contextGroupId"
             :separator="index !== userGroups.length - 1"
             :disabled="navigatingGroupId === group.id"
-            :chevron="true"
-            :indicator="false"
+            :chevron="false"
             @click="navigateToGroup(group.id)"
           >
             <template #icon>
