@@ -29,6 +29,8 @@ const props = withDefaults(
      * BaseSheet's own `elevated`.
      */
     elevated?: boolean;
+    /** The sheet is dismissed by dragging it down, so it never has one. */
+    closeButton?: boolean;
   }>(),
   {
     danger: false,
@@ -37,6 +39,7 @@ const props = withDefaults(
     requirement: true,
     sheet: false,
     elevated: false,
+    closeButton: true,
   },
 );
 
@@ -67,7 +70,10 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
         @cancel="handleCancel"
       >
         <!-- pr-12 reserves the close button's width plus gap -->
-        <BaseRow class="sticky top-0 z-10 items-start h-[30px] mb-4 pr-12">
+        <BaseRow
+          class="sticky top-0 z-10 items-start h-[30px] mb-4"
+          :class="{ 'pr-12': closeButton }"
+        >
           <!-- Firefox leaves backdrop filters outside the scroller's clip
                path, so the blur would square off the card's top corners.
                The fade clips itself there instead: a rounded overflow clip
@@ -86,7 +92,7 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
           </BaseRow>
         </BaseRow>
 
-        <template #corner>
+        <template v-if="closeButton" #corner>
           <BaseButton
             type="button"
             variant="ghost"

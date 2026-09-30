@@ -37,6 +37,7 @@ withDefaults(
     :submit="() => $emit('confirm')"
     :loading="loading"
     :danger="danger"
+    :close-button="false"
     @cancel="$emit('cancel')"
   >
     <template #title>{{ title }}</template>
