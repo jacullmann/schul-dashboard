@@ -11,6 +11,7 @@
   "scripts": {
     "dev": "vite --host",
     "build": "vite build",
+    "build:playground": "vite build -c playground/vite.config.ts",
     "preview": "vite preview",
     "lint": "eslint \"src/**/*.{ts,vue}\" --fix",
     "format": "prettier --write \"src/**/*.{ts,vue,css}\"",
