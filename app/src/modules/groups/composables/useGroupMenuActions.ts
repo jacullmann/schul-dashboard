@@ -1,0 +1,91 @@
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { storeToRefs } from 'pinia';
+import { useI18n } from 'vue-i18n';
+import hw from '@/api/api';
+import { groupPath } from '@/api/groupPath';
+import { useUserStore } from '@/stores/userStore';
+import { useModalStore } from '@/stores/modalStore';
+import { useToast } from '@/common/composables/useToast';
+import {
+  useAppAuth,
+  type UserGroup,
+} from '@/modules/auth/composables/useAppAuth';
+
+/** The per-group actions offered by the header's group menu and the groups list. */
+export function useGroupMenuActions() {
+  const { t } = useI18n();
+  const router = useRouter();
+  const modalStore = useModalStore();
+  const toast = useToast();
+  const { user } = storeToRefs(useUserStore());
+  const { createInvite, checkAuthStatus } = useAppAuth();
+
+  const pending = ref(false);
+
+  function canInviteMembers(group: UserGroup): boolean {
+    return group.effectivePermissions.includes('invite_members');
+  }
+
+  async function inviteMember(groupId: string) {
+    pending.value = true;
+    try {
+      const res = await createInvite(groupId);
+      if (res.ok && res.token) {
+        modalStore.openInviteModal(res.token, groupId);
+      } else {
+        toast.error(res.error || t('auth.groups.errors.invite_failed'));
+      }
+    } catch (err) {
+      console.error('Failed to generate invite link:', err);
+      toast.error(t('auth.groups.errors.invite_failed'));
+    } finally {
+      pending.value = false;
+    }
+  }
+
+  function openGroupSettings(groupId: string) {
+    void router.push({ name: 'group-admin', params: { groupId } });
+  }
+
+  async function leaveGroup(group: {
+    id: string;
+    name: string;
+    ownerId: string | null;
+  }) {
+    if (group.ownerId === user.value?.id) {
+      toast.error(t('auth.groups.errors.owner_cannot_leave'));
+      return;
+    }
+
+    const isConfirmed = await modalStore.confirm({
+      title: t('common.header.leave_group_confirm.title'),
+      content: t('common.header.leave_group_confirm.content', {
+        group: group.name,
+      }),
+      submitText: t('common.header.leave_group_confirm.submit'),
+      danger: true,
+    });
+    if (!isConfirmed) return;
+
+    pending.value = true;
+    try {
+      await hw.delete(groupPath(group.id, '/leave'));
+      await checkAuthStatus();
+      await router.push({ name: 'groups' });
+    } catch (err) {
+      console.error('Failed to leave group:', err);
+      toast.error(t('auth.groups.errors.leave_failed'));
+    } finally {
+      pending.value = false;
+    }
+  }
+
+  return {
+    pending,
+    canInviteMembers,
+    inviteMember,
+    openGroupSettings,
+    leaveGroup,
+  };
+}

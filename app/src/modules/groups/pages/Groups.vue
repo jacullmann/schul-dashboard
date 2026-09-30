@@ -10,6 +10,9 @@ import hw from '@/api/api';
 import { useI18n } from 'vue-i18n';
 import Avatar from '@/modules/auth/components/Avatar.vue';
 import { entranceDelay } from '@/modules/tasks/utils/entrance';
+import { menuAnchor, type MenuAnchor } from '@/modules/tasks/utils/menuAnchor';
+import { useLongPress } from '@/common/composables/useLongPress';
+import GroupContextMenu from '../components/GroupContextMenu.vue';
 
 const { t } = useI18n();
 
@@ -75,6 +78,29 @@ onMounted(() => {
   void loadAllGroups();
 });
 
+const isMenuOpen = ref(false);
+const menuGroupId = ref<string | null>(null);
+const menuPosition = ref<MenuAnchor | null>(null);
+const menuGroup = computed(
+  () => userGroups.value.find((g) => g.id === menuGroupId.value) ?? null,
+);
+
+// One hold is tracked for the whole list and resolved to a row from the event
+// target, so each row needs no gesture state of its own.
+const { handlers: longPressHandlers } = useLongPress(
+  (event) => {
+    const row = (event.target as HTMLElement | null)?.closest<HTMLElement>(
+      '[data-group-id]',
+    );
+    if (!row?.dataset.groupId) return;
+
+    menuGroupId.value = row.dataset.groupId;
+    menuPosition.value = menuAnchor(event);
+    isMenuOpen.value = true;
+  },
+  { within: '[data-group-id]', grow: '[data-group-id]' },
+);
+
 /** The greeting, the prompt and its action, then the groups one by one. */
 const PROMPT_ENTRANCE_ORDER = 1;
 const GROUPS_HEADER_ENTRANCE_ORDER = 2;
@@ -136,37 +162,52 @@ const GROUPS_LIST_ENTRANCE_ORDER = 3;
           >{{ userGroups.length }}</span
         >
       </div>
-      <div class="flex flex-col">
-        <BaseList
+      <div class="flex flex-col" v-on="longPressHandlers">
+        <div
           v-for="(group, index) in userGroups"
           :key="group.id"
-          class="animate-enter"
+          :data-group-id="group.id"
+          class="long-press-target animate-enter"
           :style="{
             '--enter-delay': entranceDelay(GROUPS_LIST_ENTRANCE_ORDER + index),
           }"
-          :active="group.id === contextGroupId"
-          :separator="index !== userGroups.length - 1"
-          :disabled="navigatingGroupId === group.id"
-          :chevron="true"
-          :indicator="false"
-          @click="navigateToGroup(group.id)"
         >
-          <template #icon>
-            <Avatar :name="group.name" :picture="group.avatarUrl" :size="10" />
-          </template>
+          <BaseList
+            :active="group.id === contextGroupId"
+            :separator="index !== userGroups.length - 1"
+            :disabled="navigatingGroupId === group.id"
+            :chevron="true"
+            :indicator="false"
+            @click="navigateToGroup(group.id)"
+          >
+            <template #icon>
+              <Avatar
+                :name="group.name"
+                :picture="group.avatarUrl"
+                :size="10"
+              />
+            </template>
 
-          <template #label>
-            <span class="flex items-center gap-1.5 overflow-hidden">
-              <span class="font-semibold text-base text-on-ghost truncate">
-                {{ group.name }}
+            <template #label>
+              <span class="flex items-center gap-1.5 overflow-hidden">
+                <span class="font-semibold text-base text-on-ghost truncate">
+                  {{ group.name }}
+                </span>
               </span>
-            </span>
-            <span class="font-normal text-sm text-on-ghost-muted">
-              {{ roleLabel(group.role) }}
-            </span>
-          </template>
-        </BaseList>
+              <span class="font-normal text-sm text-on-ghost-muted">
+                {{ roleLabel(group.role) }}
+              </span>
+            </template>
+          </BaseList>
+        </div>
       </div>
+
+      <GroupContextMenu
+        :open="isMenuOpen"
+        :group="menuGroup"
+        :anchor="menuPosition"
+        @close="isMenuOpen = false"
+      />
     </section>
 
     <section

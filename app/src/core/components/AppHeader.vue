@@ -21,9 +21,7 @@ import AccountMenu from '@/modules/auth/components/AccountMenu.vue';
 import { useLogout } from '@/core/composables/useLogout';
 import { useIsMobileViewport } from '@/common/composables/useViewport';
 import { useSearchModal } from '@/core/composables/useSearchModal';
-import { useToast } from '@/common/composables/useToast';
-import hw from '../../api/api';
-import { groupPath } from '@/api/groupPath';
+import { useGroupMenuActions } from '@/modules/groups/composables/useGroupMenuActions';
 
 const userStore = useUserStore();
 const { user } = storeToRefs(userStore);
@@ -40,13 +38,10 @@ const {
   activeGroupAvatarUrl,
   activeGroupOwnerId,
   checkPermission,
-  createInvite,
-  checkAuthStatus,
 } = useAppAuth();
 const router = useRouter();
 
 const modalStore = useModalStore();
-const toast = useToast();
 
 function onPersonalizationChanged(value: boolean) {
   userStore.updateUser({ personalized: value });
@@ -70,68 +65,26 @@ onClickOutside(groupMenuRef, () => {
   groupMenuOpen.value = false;
 });
 
-const loading = ref(false);
+const { pending, inviteMember, openGroupSettings, leaveGroup } =
+  useGroupMenuActions();
 
-async function leaveGroup() {
-  const groupId = activeGroupId.value;
-  if (!groupId) return;
-
-  if (activeGroupOwnerId.value === user.value?.id) {
-    toast.error(t('auth.groups.errors.owner_cannot_leave'));
-    return;
-  }
-
-  const isConfirmed = await modalStore.confirm({
-    title: t('common.header.leave_group_confirm.title'),
-    content: t('common.header.leave_group_confirm.content', {
-      group: groupName.value,
-    }),
-    submitText: t('common.header.leave_group_confirm.submit'),
-    danger: true,
-  });
-  if (!isConfirmed) return;
-
-  loading.value = true;
-  try {
-    await hw.delete(groupPath(groupId, '/leave'));
-    await checkAuthStatus();
-    await router.push({ name: 'groups' });
-  } catch (err) {
-    console.error('Failed to leave group:', err);
-    toast.error(t('auth.groups.errors.leave_failed'));
-  } finally {
-    loading.value = false;
-  }
-}
-
-function openGroupSettings() {
-  groupMenuOpen.value = false;
-  if (!activeGroupId.value) return;
-
-  void router.push({
-    name: 'group-admin',
-    params: { groupId: activeGroupId.value },
+function leaveActiveGroup() {
+  if (!activeGroupId.value || !groupName.value) return;
+  void leaveGroup({
+    id: activeGroupId.value,
+    name: groupName.value,
+    ownerId: activeGroupOwnerId.value,
   });
 }
 
-async function inviteMember() {
+function openActiveGroupSettings() {
   groupMenuOpen.value = false;
-  const groupId = activeGroupId.value;
-  if (!groupId) return;
-  loading.value = true;
-  try {
-    const res = await createInvite(groupId);
-    if (res.ok && res.token) {
-      modalStore.openInviteModal(res.token, groupId);
-    } else {
-      toast.error(res.error || t('auth.groups.errors.invite_failed'));
-    }
-  } catch (err) {
-    console.error('Failed to generate invite link:', err);
-    toast.error(t('auth.groups.errors.invite_failed'));
-  } finally {
-    loading.value = false;
-  }
+  if (activeGroupId.value) openGroupSettings(activeGroupId.value);
+}
+
+function inviteToActiveGroup() {
+  groupMenuOpen.value = false;
+  if (activeGroupId.value) void inviteMember(activeGroupId.value);
 }
 
 onMounted(() => {
@@ -211,13 +164,13 @@ onMounted(() => {
           <BaseMenuButton
             v-if="checkPermission('invite_members')"
             :icon="UserRoundPlus"
-            :disabled="loading"
-            @click="inviteMember"
+            :disabled="pending"
+            @click="inviteToActiveGroup"
           >
             {{ t('auth.groups.invite.invite_button_header') }}
           </BaseMenuButton>
 
-          <BaseMenuButton :icon="Settings" @click="openGroupSettings">
+          <BaseMenuButton :icon="Settings" @click="openActiveGroupSettings">
             {{ t('common.sidebar.admin') }}
           </BaseMenuButton>
 
@@ -226,8 +179,8 @@ onMounted(() => {
           <BaseMenuButton
             :icon="LogOut"
             variant="danger"
-            :disabled="loading"
-            @click="leaveGroup"
+            :disabled="pending"
+            @click="leaveActiveGroup"
           >
             {{ t('common.header.leave_group') }}
           </BaseMenuButton>
