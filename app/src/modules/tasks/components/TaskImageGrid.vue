@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { FileText, PieChart, Table } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import { useLongPress } from '@/common/composables/useLongPress';
+import { useAddedEntrance } from '@/modules/tasks/composables/useAddedEntrance';
 
 const props = defineProps<{
   images: any[];
@@ -15,6 +17,10 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+
+const { isEntering, entranceStyle, handleEntranceEnd } = useAddedEntrance(
+  computed(() => props.images.map((img) => img.publicId as string)),
+);
 
 const getFileBadge = (img: any) => {
   const format = img.metadata?.format?.toLowerCase();
@@ -95,6 +101,9 @@ const { handlers: longPressHandlers } = useLongPress(
         :key="img.publicId"
         :data-image-index="idx"
         class="long-press-target relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-sm border-none bg-black/[0.12] select-none"
+        :class="{ 'animate-enter': isEntering(img.publicId) }"
+        :style="entranceStyle(img.publicId)"
+        @animationend="handleEntranceEnd($event, img.publicId)"
       >
         <button
           type="button"

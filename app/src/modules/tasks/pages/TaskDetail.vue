@@ -288,6 +288,7 @@ onMounted(() => {
 
         <TaskImageGrid
           v-if="item.images.length"
+          :key="item.id"
           class="animate-enter"
           :style="{ '--enter-delay': entranceDelay(IMAGES_ENTRANCE_ORDER) }"
           :images="item.images"
