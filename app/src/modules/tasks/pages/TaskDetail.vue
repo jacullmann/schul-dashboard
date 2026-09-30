@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, useTemplateRef, watchEffect } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { ArrowLeft, Ellipsis, Pencil, Pin, Send, Upload } from '@lucide/vue';
+import { ArrowLeft, Ellipsis, Pencil, Send, Upload } from '@lucide/vue';
 
 import { useTasks } from '@/modules/tasks/composables/useTasks';
 import { useImageViewer } from '@/core/composables/useImageViewer';
@@ -50,7 +50,6 @@ const {
   isChecked,
   toggleCheck,
   isPinned,
-  togglePin,
   isInArchive,
   makeThumb,
   imageMenu,
@@ -182,20 +181,6 @@ onMounted(() => {
         </BaseTooltip>
 
         <BaseRow v-if="isReady && item" class="flex-nowrap!">
-          <BaseTooltip
-            v-if="isPinned(item.id)"
-            :content="t('tasks.list.tasks.menu.unpin')"
-            placement="bottom"
-          >
-            <BaseButton
-              variant="ghost"
-              :aria-label="t('tasks.list.tasks.menu.unpin')"
-              :icon="Pin"
-              icon-classes="fill-current"
-              @click="togglePin(item)"
-            />
-          </BaseTooltip>
-
           <BaseTooltip
             v-if="canEdit(item.createdBy)"
             :content="t('common.buttons.edit')"
