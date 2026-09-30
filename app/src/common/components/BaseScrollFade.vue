@@ -26,25 +26,23 @@ const MIN_BLUR = 0.5;
 const MAX_BLUR = 12;
 
 /*
- * Each layer covers an overlapping band (fade in, hold, fade out) one step
- * higher than the previous one, with a geometrically growing blur. The last
- * layer holds up to the top edge. Neighbouring bands cross-fade, so there
- * are no visible steps between blur strengths.
+ * No masks: WebKit drops a mask's backing store once it takes the layer for
+ * off-screen, and rubber-banding past the end of the page does that to a fixed
+ * header, so its blur vanished outright. Instead each layer reaches from the
+ * top edge down to its band and they stack, each blurring what the ones below
+ * already blurred. Blurs compose as the root of the sum of squares, so a layer
+ * only adds what brings the total up to its band's step on a geometric scale.
+ * The last layer's band holds up to the top edge.
  */
 const step = 100 / (LAYER_COUNT + 1);
+const totalBlur = (i: number) =>
+  MIN_BLUR * (MAX_BLUR / MIN_BLUR) ** (i / (LAYER_COUNT - 1));
 const layers = Array.from({ length: LAYER_COUNT }, (_, i) => {
-  const isLast = i === LAYER_COUNT - 1;
-  const blur = MIN_BLUR * (MAX_BLUR / MIN_BLUR) ** (i / (LAYER_COUNT - 1));
-  const stops = [
-    `transparent ${i * step}%`,
-    `#000 ${(i + 1) * step}%`,
-    isLast ? '#000 100%' : `#000 ${(i + 2) * step}%`,
-    isLast ? '' : `transparent ${Math.min((i + 3) * step, 100)}%`,
-  ].filter(Boolean);
+  const blur = Math.sqrt(totalBlur(i) ** 2 - (i ? totalBlur(i - 1) ** 2 : 0));
 
   return {
     '--blur': `${blur.toFixed(2)}px`,
-    '--mask': `linear-gradient(to top, ${stops.join(', ')})`,
+    '--band-bottom': `${(i + 1) * step}%`,
   };
 });
 </script>
@@ -77,10 +75,9 @@ const layers = Array.from({ length: LAYER_COUNT }, (_, i) => {
 }
 
 .scroll-fade__blur {
+  bottom: var(--band-bottom);
   -webkit-backdrop-filter: blur(var(--blur));
   backdrop-filter: blur(var(--blur));
-  -webkit-mask-image: var(--mask);
-  mask-image: var(--mask);
 }
 
 /* Eased fade instead of a linear one, which would show a visible edge. */
