@@ -17,9 +17,10 @@
     "no_substitutions": "No schedule changes this week.",
     "view_full": "View full schedule",
     "cancelled": "Cancelled",
-    "room_change": "Room change: {room}",
+    "room_change": "Room {room} instead of {original}",
     "setup_cta": "No schedule has been created for this group yet.",
-    "setup_button": "Set Up Schedule"
+    "setup_button": "Set Up Schedule",
+    "slot": "Period {slot}"
   },
   "edit_layout": "Edit Layout"
 }

@@ -282,7 +282,8 @@
         "selected_count": "{count} ausgewählt",
         "new_subject_placeholder": "Deutsch",
         "delete_modal": {
-          "title": "Stundenplanänderung löschen?"
+          "title": "Stundenplanänderung löschen?",
+          "message": "Wenn du diese Änderung löschst, wird sie dauerhaft entfernt"
         },
         "table": {
           "subject": "Fach",
@@ -414,6 +415,15 @@
       "role_updated": "Rolle aktualisiert",
       "member_removed_banned": "Mitglied entfernt und gebannt",
       "member_removed": "Mitglied entfernt",
+      "load_schedule_failed": "Stundenplan konnte nicht geladen werden",
+      "lesson_delete_failed": "Stunde konnte nicht gelöscht werden",
+      "load_substitutions_failed": "Vertretungen konnten nicht geladen werden",
+      "substitution_saved": "Vertretung gespeichert",
+      "substitution_save_failed": "Vertretung konnte nicht gespeichert werden",
+      "schedule_config_updated": "Stundenplan-Einstellungen aktualisiert",
+      "schedule_config_update_failed": "Stundenplan-Einstellungen konnten nicht aktualisiert werden",
+      "substitution_deleted": "Vertretung gelöscht",
+      "substitution_delete_failed": "Vertretung konnte nicht gelöscht werden",
       "announcement_created": "Ankündigung erstellt",
       "announcement_deleted": "Ankündigung gelöscht",
       "group_name_updated": "Gruppenname aktualisiert",
