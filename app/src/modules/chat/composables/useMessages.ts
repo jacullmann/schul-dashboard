@@ -15,6 +15,7 @@ import { useToast } from '@/common/composables/useToast';
 import { useModalStore } from '@/stores/modalStore';
 import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/vue';
 import { apiErrorMessage } from '@/api/errors';
+import { preferredScrollBehavior } from '@/utils/motion';
 
 export function useMessages() {
   const i18n = useI18n();
@@ -380,7 +381,10 @@ export function useMessages() {
   const scrollToMessage = (id: string) => {
     const el = document.getElementById(`msg-${id}`);
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.scrollIntoView({
+        behavior: preferredScrollBehavior(),
+        block: 'center',
+      });
       el.classList.add('flash-message');
       setTimeout(() => {
         el.classList.remove('flash-message');

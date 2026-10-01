@@ -42,6 +42,7 @@ import {
 import { formatWeekday } from '@/modules/schedule/utils/weekday';
 import { DALTON_SUBJECT_KEY } from '@/types/subjects';
 import { courseLabel, subjectLabel } from '@/utils/subject-formatter';
+import { preferredScrollBehavior } from '@/utils/motion';
 
 const i18n = useI18n();
 const { t, locale } = i18n;
@@ -307,7 +308,7 @@ function onLessonSelected(lesson: Lesson) {
   subForm.value.day = null;
   subForm.value.cancelled = false;
   subForm.value.hide = false;
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  window.scrollTo({ top: 0, behavior: preferredScrollBehavior() });
 }
 
 function handleSaveSub() {

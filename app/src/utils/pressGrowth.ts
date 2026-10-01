@@ -1,3 +1,5 @@
+import { prefersReducedMotion } from './motion';
+
 /** A pause before the swell begins, so taps and the start of a scroll never show it. */
 const GROW_DELAY_MS = 100;
 
@@ -32,10 +34,6 @@ export interface PressGrowth {
 }
 
 const NO_GROWTH: PressGrowth = { release() {}, settle() {}, handOver: () => 1 };
-
-function prefersReducedMotion() {
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-}
 
 function currentScale(el: HTMLElement) {
   const scale = parseFloat(getComputedStyle(el).scale);

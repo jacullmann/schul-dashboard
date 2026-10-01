@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 import { Ellipsis } from '@lucide/vue';
 import { useSwipeCard } from '@/modules/tasks/composables/useSwipeCard';
 import { collapseHeight } from '@/modules/tasks/utils/collapse';
+import { prefersReducedMotion } from '@/utils/motion';
 import type { PrivateTask } from '@/modules/tasks/types';
 import SwipeActionTray from './SwipeActionTray.vue';
 
@@ -69,9 +70,6 @@ function duplicateFromSwipe() {
 
 const COLLAPSE_DURATION = '350ms';
 const COLLAPSE_EASING = 'cubic-bezier(0.25, 1, 0.5, 1)';
-
-const prefersReducedMotion = () =>
-  window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // A completed task folds away its description to make room for open ones.
 function onEnter(el: Element) {

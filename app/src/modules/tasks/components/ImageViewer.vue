@@ -8,6 +8,7 @@ import {
   type CSSProperties,
 } from 'vue';
 import { useWindowSize } from '@vueuse/core';
+import { prefersReducedMotion } from '@/utils/motion';
 import { X, Ellipsis, ChevronLeft, ChevronRight } from '@lucide/vue';
 import {
   makeUrl,
@@ -713,10 +714,6 @@ function restoreTiles(except: HTMLElement | null) {
   for (const el of tileFades.keys()) {
     if (el !== except) fadeTile(el, null, TILE_FADE_IN_DURATION);
   }
-}
-
-function prefersReducedMotion() {
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
 // The tile to grow out of, or null when there is nothing sensible to grow

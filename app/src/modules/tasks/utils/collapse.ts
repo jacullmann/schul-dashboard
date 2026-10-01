@@ -1,3 +1,5 @@
+import { prefersReducedMotion } from '@/utils/motion';
+
 const COLLAPSE_MS = 360;
 const COLLAPSE_EASING = 'cubic-bezier(0.65, 0, 0.35, 1)';
 /** The content is gone before the gap has halfway closed, so it never reads as squeezed. */
@@ -5,9 +7,6 @@ const FADE_MS = 180;
 const FADE_EASING = 'ease-out';
 /** Covers a transitionend that never arrives, as for an element already out of view. */
 const FALLBACK_SLACK_MS = 50;
-
-const prefersReducedMotion = () =>
-  window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /**
  * Folds an element away to nothing, so what follows it in the list moves up
