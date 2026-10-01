@@ -440,7 +440,8 @@
             "the creation of groups and the acceptance of invites with IP address and browser identifier."
           ],
           "outro": [
-            "This lets us detect and prevent abuse and unauthorised access. The legal basis is our legitimate interest in the security of the service (Art. 6(1)(f) GDPR)."
+            "This lets us detect and prevent abuse and unauthorised access. The legal basis is our legitimate interest in the security of the service (Art. 6(1)(f) GDPR).",
+            "This product includes GeoLite2 data created by MaxMind, available from https://www.maxmind.com."
           ]
         },
         {
@@ -485,8 +486,9 @@
             "We delete session data with IP address and browser identifier about 7 days after it was last used.",
             "We delete the activity log and security events after 30 days.",
             "We delete chat messages automatically after 7 days.",
+            "We delete tasks and exams in groups automatically 90 days after their due date.",
             "We keep reports until we have handled them.",
-            "Group content is kept until you, the group admins or we delete it, or the group is deleted."
+            "All other group content is kept until you, the group admins or we delete it, or the group is deleted."
           ]
         },
         {

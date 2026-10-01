@@ -440,7 +440,8 @@
             "das Erstellen von Gruppen und das Annehmen von Einladungen mit IP-Adresse und Browserkennung."
           ],
           "outro": [
-            "So erkennen und verhindern wir Missbrauch und unbefugte Zugriffe. Rechtsgrundlage ist unser berechtigtes Interesse an der Sicherheit des Dienstes (Art. 6 Abs. 1 lit. f DSGVO)."
+            "So erkennen und verhindern wir Missbrauch und unbefugte Zugriffe. Rechtsgrundlage ist unser berechtigtes Interesse an der Sicherheit des Dienstes (Art. 6 Abs. 1 lit. f DSGVO).",
+            "Für die Ortsbestimmung verwenden wir GeoLite2-Daten von MaxMind: This product includes GeoLite2 data created by MaxMind, available from https://www.maxmind.com."
           ]
         },
         {
@@ -485,8 +486,9 @@
             "Sitzungsdaten mit IP-Adresse und Browserkennung löschen wir etwa 7 Tage nach ihrer letzten Nutzung.",
             "Aktivitätsprotokoll und Sicherheitsereignisse löschen wir nach 30 Tagen.",
             "Chatnachrichten löschen wir nach 7 Tagen automatisch.",
+            "Aufgaben und Klausuren in Gruppen löschen wir automatisch 90 Tage nach ihrem Fälligkeitsdatum.",
             "Meldungen speichern wir, bis wir sie bearbeitet haben.",
-            "Inhalte in Gruppen bleiben gespeichert, bis du, die Gruppenadmins oder wir sie löschen oder die Gruppe gelöscht wird."
+            "Alle anderen Inhalte in Gruppen bleiben gespeichert, bis du, die Gruppenadmins oder wir sie löschen oder die Gruppe gelöscht wird."
           ]
         },
         {
