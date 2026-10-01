@@ -35,7 +35,6 @@ pub fn group_router() -> Router<AppState> {
             "/admin/permissions",
             get(get_permissions).patch(update_permissions),
         )
-        .route("/admin/schedule-config", patch(update_schedule_config))
         .route("/admin/cleanup/old-items", delete(cleanup_old_items))
         .route(
             "/admin/subjects",
@@ -54,7 +53,6 @@ pub fn group_router() -> Router<AppState> {
             "/admin/schedule",
             get(get_schedule_admin).put(replace_schedule_admin),
         )
-        .route("/admin/schedule/{id}", delete(delete_schedule_admin))
         .route(
             "/admin/schedule/subs",
             get(get_schedule_subs_admin).post(create_schedule_sub),

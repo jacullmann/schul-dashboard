@@ -627,32 +627,6 @@ impl GroupAdminService {
         Ok(json!({ "ok": true, "permissions": merged_json }))
     }
 
-    pub async fn update_schedule_config(
-        &self,
-        tenant_id: Uuid,
-        user_id: Uuid,
-        schedule_config: serde_json::Value,
-    ) -> AppResult<Value> {
-        sqlx::query!(
-            r#"UPDATE groups SET schedule_config = $1 WHERE id = $2"#,
-            schedule_config,
-            tenant_id
-        )
-        .execute(&self.db)
-        .await?;
-
-        sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta)
-               VALUES ($1, 'group-admin:schedule-config-update', $2)"#,
-            user_id,
-            json!({ "tenantId": tenant_id })
-        )
-        .execute(&self.db)
-        .await?;
-
-        Ok(json!({ "ok": true }))
-    }
-
     pub async fn delete_group(&self, tenant_id: Uuid, user_id: Uuid) -> AppResult<Value> {
         let mut tx = self.db.begin().await?;
 
@@ -1133,18 +1107,6 @@ impl GroupAdminService {
         .await?;
 
         tx.commit().await?;
-
-        Ok(json!({ "ok": true }))
-    }
-
-    pub async fn delete_schedule_lesson(&self, tenant_id: Uuid, id: Uuid) -> AppResult<Value> {
-        sqlx::query!(
-            r#"DELETE FROM schedules WHERE id = $1 AND tenant_id = $2"#,
-            id,
-            tenant_id
-        )
-        .execute(&self.db)
-        .await?;
 
         Ok(json!({ "ok": true }))
     }

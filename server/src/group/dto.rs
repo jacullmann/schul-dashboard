@@ -84,12 +84,6 @@ pub struct RenameGroupDto {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct UpdateScheduleConfigDto {
-    pub schedule_config: serde_json::Value,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct ReplaceScheduleDto {
     pub lessons: Vec<ScheduleLessonDto>,
     pub schedule_config: ScheduleConfigDto,

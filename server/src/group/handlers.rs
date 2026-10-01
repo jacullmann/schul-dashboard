@@ -307,20 +307,6 @@ pub async fn update_permissions(
     ))
 }
 
-pub async fn update_schedule_config(
-    State(s): State<AppState>,
-    tc: TenantContext,
-    Json(dto): Json<UpdateScheduleConfigDto>,
-) -> AppResult<Json<Value>> {
-    crate::require_permission!(tc, crate::common::permission::Permission::EditSchedule);
-
-    Ok(Json(
-        GroupAdminService::from_state(&s)
-            .update_schedule_config(tc.tenant_id, tc.user.user_id, dto.schedule_config)
-            .await?,
-    ))
-}
-
 pub async fn delete_group(State(s): State<AppState>, tc: TenantContext) -> AppResult<Json<Value>> {
     if !tc.has_owner_rights() {
         return Err(AppError::forbidden(
@@ -525,20 +511,6 @@ pub async fn replace_schedule_admin(
     Ok(Json(
         GroupAdminService::from_state(&s)
             .replace_schedule(tc.tenant_id, tc.user.user_id, dto)
-            .await?,
-    ))
-}
-
-pub async fn delete_schedule_admin(
-    State(s): State<AppState>,
-    tc: TenantContext,
-    Path(IdPath { id }): Path<IdPath>,
-) -> AppResult<Json<Value>> {
-    crate::require_permission!(tc, crate::common::permission::Permission::EditSchedule);
-
-    Ok(Json(
-        GroupAdminService::from_state(&s)
-            .delete_schedule_lesson(tc.tenant_id, id)
             .await?,
     ))
 }
