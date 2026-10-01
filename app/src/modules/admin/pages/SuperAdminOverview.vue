@@ -2,8 +2,17 @@
 import { computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { Trash2 } from '@lucide/vue';
-import DailyBarChart from '../components/DailyBarChart.vue';
+import DailyBarChart, {
+  type DailySummary,
+} from '../components/DailyBarChart.vue';
 import { useSuperAdminStats } from '../composables/useSuperAdminStats';
+import type { DailyMetric } from '../types';
+
+interface DailyChart {
+  metric: DailyMetric;
+  i18nKey: string;
+  summary?: DailySummary;
+}
 
 const {
   stats,
@@ -42,11 +51,24 @@ const userStats = computed(() =>
     : [],
 );
 
-const newUserPoints = computed(() =>
-  dailyActivity.value.map((d) => ({ day: d.day, value: d.newUsers })),
-);
-const newItemPoints = computed(() =>
-  dailyActivity.value.map((d) => ({ day: d.day, value: d.newItems })),
+// Paired for the two-column grid: usage, growth, then content and security.
+const dailyCharts: readonly DailyChart[] = [
+  { metric: 'appOpens', i18nKey: 'app_opens' },
+  { metric: 'activeUsers', i18nKey: 'active_users', summary: 'average' },
+  { metric: 'newUsers', i18nKey: 'new_users' },
+  { metric: 'newGroups', i18nKey: 'new_groups' },
+  { metric: 'newItems', i18nKey: 'new_tasks' },
+  { metric: 'failedLogins', i18nKey: 'failed_logins' },
+];
+
+const charts = computed(() =>
+  dailyCharts.map((chart) => ({
+    ...chart,
+    points: dailyActivity.value.map((d) => ({
+      day: d.day,
+      value: d[chart.metric],
+    })),
+  })),
 );
 
 const cleanups = computed(() =>
@@ -109,12 +131,11 @@ onMounted(loadDailyActivity);
       <h3>{{ t('admin.overview.chart.title') }}</h3>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <DailyBarChart
-          :title="t('admin.overview.chart.new_users')"
-          :points="newUserPoints"
-        />
-        <DailyBarChart
-          :title="t('admin.overview.chart.new_tasks')"
-          :points="newItemPoints"
+          v-for="chart in charts"
+          :key="chart.metric"
+          :title="t(`admin.overview.chart.${chart.i18nKey}`)"
+          :points="chart.points"
+          :summary="chart.summary"
         />
       </div>
     </section>

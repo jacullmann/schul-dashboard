@@ -7,10 +7,18 @@ export interface DailyPoint {
   value: number;
 }
 
-const props = defineProps<{
-  title: string;
-  points: DailyPoint[];
-}>();
+/** How the idle readout condenses the series: counts of events add up,
+ *  counts of distinct users per day do not. */
+export type DailySummary = 'total' | 'average';
+
+const props = withDefaults(
+  defineProps<{
+    title: string;
+    points: DailyPoint[];
+    summary?: DailySummary;
+  }>(),
+  { summary: 'total' },
+);
 
 const { t, locale } = useI18n();
 
@@ -30,12 +38,20 @@ function formatDay(day: string) {
   });
 }
 
+const summaryText = computed(() => {
+  if (props.summary === 'total') {
+    return t('admin.overview.chart.total', { count: total.value });
+  }
+  const average = props.points.length ? total.value / props.points.length : 0;
+  return t('admin.overview.chart.average', {
+    value: average.toLocaleString(locale.value, { maximumFractionDigits: 1 }),
+  });
+});
+
 const readout = computed(() => {
   const point =
     hoveredIndex.value === null ? null : props.points[hoveredIndex.value];
-  return point
-    ? `${formatDay(point.day)}: ${point.value}`
-    : t('admin.overview.chart.total', { count: total.value });
+  return point ? `${formatDay(point.day)}: ${point.value}` : summaryText.value;
 });
 </script>
 

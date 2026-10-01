@@ -30,9 +30,14 @@
     },
     "chart": {
       "title": "Letzte 30 Tage",
+      "app_opens": "App-Aufrufe pro Tag",
+      "active_users": "Aktive Benutzer pro Tag",
       "new_users": "Neue Benutzer pro Tag",
+      "new_groups": "Neue Gruppen pro Tag",
       "new_tasks": "Neue Aufgaben pro Tag",
-      "total": "Gesamt: {count}"
+      "failed_logins": "Fehlgeschlagene Logins pro Tag",
+      "total": "Gesamt: {count}",
+      "average": "Ø {value} pro Tag"
     },
     "cleanup": {
       "title": "Aufräumen",

@@ -28,8 +28,14 @@ export interface SuperAdminStats {
 export interface DailyActivity {
   day: string;
   newUsers: number;
+  newGroups: number;
   newItems: number;
+  appOpens: number;
+  activeUsers: number;
+  failedLogins: number;
 }
+
+export type DailyMetric = Exclude<keyof DailyActivity, 'day'>;
 
 export type UserStatusFilter =
   | 'all'

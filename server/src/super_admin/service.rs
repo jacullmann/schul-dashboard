@@ -117,20 +117,36 @@ impl SuperAdminService {
         })
     }
 
-    /// Sign-ups and new tasks per day, oldest first, with empty days included.
+    /// Growth, usage and failed logins per day, oldest first, with empty days included.
+    /// A failed login is an attempt against an account, not activity of its owner.
     pub async fn get_daily_activity(&self) -> AppResult<Vec<DailyActivityDto>> {
         let rows = sqlx::query!(
-            r#"SELECT current_date - d.offset_days AS "day!",
+            r#"SELECT d.day AS "day!",
                       COALESCE(u.n, 0) AS "new_users!",
-                      COALESCE(i.n, 0) AS "new_items!"
-               FROM generate_series($1 - 1, 0, -1) AS d(offset_days)
+                      COALESCE(g.n, 0) AS "new_groups!",
+                      COALESCE(i.n, 0) AS "new_items!",
+                      COALESCE(a.app_opens, 0) AS "app_opens!",
+                      COALESCE(a.active_users, 0) AS "active_users!",
+                      COALESCE(a.failed_logins, 0) AS "failed_logins!"
+               FROM (SELECT current_date - offset_days AS day
+                     FROM generate_series($1 - 1, 0, -1) AS offset_days) d
                LEFT JOIN (SELECT created_at::date AS day, COUNT(*) AS n FROM users
                           WHERE created_at >= current_date - ($1 - 1)
-                          GROUP BY 1) u ON u.day = current_date - d.offset_days
+                          GROUP BY 1) u USING (day)
+               LEFT JOIN (SELECT created_at::date AS day, COUNT(*) AS n FROM groups
+                          WHERE created_at >= current_date - ($1 - 1)
+                          GROUP BY 1) g USING (day)
                LEFT JOIN (SELECT created_at::date AS day, COUNT(*) AS n FROM items
                           WHERE created_at >= current_date - ($1 - 1)
-                          GROUP BY 1) i ON i.day = current_date - d.offset_days
-               ORDER BY 1"#,
+                          GROUP BY 1) i USING (day)
+               LEFT JOIN (SELECT created_at::date AS day,
+                                 COUNT(*) FILTER (WHERE type = 'page:load') AS app_opens,
+                                 COUNT(DISTINCT user_id) FILTER (WHERE type <> 'auth:login_failed') AS active_users,
+                                 COUNT(*) FILTER (WHERE type = 'auth:login_failed') AS failed_logins
+                          FROM user_activity
+                          WHERE created_at >= current_date - ($1 - 1)
+                          GROUP BY 1) a USING (day)
+               ORDER BY d.day"#,
             DAILY_ACTIVITY_DAYS,
         )
         .fetch_all(&self.db)
@@ -141,7 +157,11 @@ impl SuperAdminService {
             .map(|r| DailyActivityDto {
                 day: r.day,
                 new_users: r.new_users,
+                new_groups: r.new_groups,
                 new_items: r.new_items,
+                app_opens: r.app_opens,
+                active_users: r.active_users,
+                failed_logins: r.failed_logins,
             })
             .collect())
     }

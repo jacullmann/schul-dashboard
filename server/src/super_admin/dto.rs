@@ -168,7 +168,11 @@ pub struct StatsDto {
 pub struct DailyActivityDto {
     pub day: NaiveDate,
     pub new_users: i64,
+    pub new_groups: i64,
     pub new_items: i64,
+    pub app_opens: i64,
+    pub active_users: i64,
+    pub failed_logins: i64,
 }
 
 #[derive(Debug, Serialize)]
