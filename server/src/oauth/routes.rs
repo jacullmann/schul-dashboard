@@ -23,6 +23,7 @@ pub fn router() -> Router<AppState> {
         .route("/auth/google", get(initiate_google_oauth))
         .route("/auth/google/callback", get(handle_google_callback))
         .route("/auth/google/link", post(link_google_account))
+        .route("/auth/google/link/start", post(start_google_link))
         .layer(GovernorLayer::new(oauth_limiter));
 
     let normal = Router::new()

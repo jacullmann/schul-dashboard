@@ -6,7 +6,7 @@ import GoogleIcon from '@/modules/auth/components/GoogleIcon.vue';
 
 const { t } = useI18n();
 
-const { fetchLinkedProviders, unlinkGoogleAccount, initiateGoogleLogin } =
+const { fetchLinkedProviders, unlinkGoogleAccount, initiateGoogleLink } =
   useOAuth();
 
 interface Provider {
@@ -45,8 +45,18 @@ async function handleUnlink() {
   }
 }
 
-function handleLink() {
-  initiateGoogleLogin();
+async function handleLink() {
+  errorMsg.value = '';
+  successMsg.value = '';
+  actionLoading.value = true;
+
+  const result = await initiateGoogleLink();
+
+  // On success the page is already navigating to Google.
+  if (!result.ok) {
+    actionLoading.value = false;
+    errorMsg.value = result.error;
+  }
 }
 </script>
 

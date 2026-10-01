@@ -1,6 +1,6 @@
 use super::{
     dto::*,
-    service::{OAUTH_PENDING_COOKIE, OAuthService},
+    service::{OAUTH_PENDING_COOKIE, OAuthIntent, OAuthService},
 };
 use crate::{
     common::extractors::AuthUser,
@@ -24,8 +24,20 @@ pub struct OAuthCallbackQuery {
 }
 
 pub async fn initiate_google_oauth(State(s): State<AppState>) -> AppResult<(CookieJar, Redirect)> {
-    let (url, jar) = OAuthService::from_state(&s).build_google_auth_url()?;
+    let (url, jar) = OAuthService::from_state(&s).build_google_auth_url(OAuthIntent::Login)?;
     Ok((jar, Redirect::temporary(&url)))
+}
+
+/// A POST rather than a navigation: it needs the CSRF check and lets the
+/// client refresh an expired access token before the flow starts.
+pub async fn start_google_link(
+    State(s): State<AppState>,
+    user: AuthUser,
+) -> AppResult<(CookieJar, Json<GoogleAuthUrlResponse>)> {
+    let (url, jar) = OAuthService::from_state(&s).build_google_auth_url(OAuthIntent::Link {
+        user_id: user.user_id,
+    })?;
+    Ok((jar, Json(GoogleAuthUrlResponse { url })))
 }
 
 pub async fn handle_google_callback(

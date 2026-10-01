@@ -13,6 +13,8 @@ interface LinkedProvider {
   email: string;
 }
 
+type ActionResult = { ok: true } | { ok: false; error: string };
+
 export function useOAuth() {
   const { t } = useI18n();
   const router = useRouter();
@@ -24,7 +26,16 @@ export function useOAuth() {
     token_exchange_failed: t('auth.google_link.errors.token_exchange_failed'),
     invalid_request: t('auth.google_link.errors.invalid_request'),
     server_error: t('auth.google_link.errors.server_error'),
+    google_account_taken: t('auth.google_link.errors.google_account_taken'),
+    provider_already_linked: t(
+      'auth.google_link.errors.provider_already_linked',
+    ),
+    session_expired: t('auth.google_link.errors.session_expired'),
   };
+
+  function errorMessage(reason: string | null): string {
+    return (reason && ERROR_MESSAGES[reason]) || ERROR_MESSAGES.server_error;
+  }
 
   function initiateGoogleLogin(): void {
     const base =
@@ -32,6 +43,26 @@ export function useOAuth() {
         ? (import.meta.env.VITE_API_URL ?? '')
         : '';
     window.location.href = `${base}/auth/google`;
+  }
+
+  // The backend binds the flow to the signed-in user before Google is
+  // opened, so the Google account may use a different email address.
+  async function initiateGoogleLink(): Promise<ActionResult> {
+    try {
+      const { data } = await hw.post<{ url: string }>(
+        '/auth/google/link/start',
+      );
+      window.location.assign(data.url);
+      return { ok: true };
+    } catch (err: unknown) {
+      return {
+        ok: false,
+        error: apiErrorMessage(
+          err,
+          t('auth.connected_accounts.errors.link_failed'),
+        ),
+      };
+    }
   }
 
   // Stripped through the router: a raw history.replaceState would be undone
@@ -45,10 +76,33 @@ export function useOAuth() {
     await router.replace({ query });
   }
 
+  async function returnToConnectedAccounts(
+    result: string,
+    reason: string | null,
+  ): Promise<void> {
+    if (result === 'success') {
+      useToast().success(t('auth.connected_accounts.linked_success'));
+    } else {
+      useToast().error(errorMessage(reason));
+    }
+    await router.isReady();
+    await router.replace({
+      name: 'account-settings',
+      params: { tab: 'security' },
+    });
+  }
+
   // The backend redirect is a full page load, so App calls this exactly once
   // with the landing URL, before the router has resolved or redirected it.
   function handleOAuthReturn(onSuccess: () => void | Promise<void>): void {
     const params = new URLSearchParams(window.location.search);
+
+    const link = params.get('link');
+    if (link) {
+      void returnToConnectedAccounts(link, params.get('reason'));
+      return;
+    }
+
     const auth = params.get('auth');
     if (!auth) return;
 
@@ -67,16 +121,13 @@ export function useOAuth() {
         showMfaModal.value = true;
         break;
 
-      case 'error': {
-        const reason = params.get('reason') ?? 'server_error';
-        useToast().error(ERROR_MESSAGES[reason] ?? ERROR_MESSAGES.server_error);
+      case 'error':
+        useToast().error(errorMessage(params.get('reason')));
         break;
-      }
     }
   }
-  async function linkGoogleAccount(
-    password: string,
-  ): Promise<{ ok: true } | { ok: false; error: string }> {
+
+  async function linkGoogleAccount(password: string): Promise<ActionResult> {
     try {
       const { data } = await hw.post('/auth/google/link', { password });
       if (data.ok) {
@@ -92,9 +143,7 @@ export function useOAuth() {
     }
   }
 
-  async function unlinkGoogleAccount(): Promise<
-    { ok: true } | { ok: false; error: string }
-  > {
+  async function unlinkGoogleAccount(): Promise<ActionResult> {
     try {
       await hw.delete('/auth/google/unlink');
       return { ok: true };
@@ -132,6 +181,7 @@ export function useOAuth() {
     showLinkModal,
     showMfaModal,
     initiateGoogleLogin,
+    initiateGoogleLink,
     handleOAuthReturn,
     linkGoogleAccount,
     unlinkGoogleAccount,

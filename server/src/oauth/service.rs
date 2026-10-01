@@ -1,5 +1,5 @@
 use crate::{
-    auth::{cookies::*, token::TokenService},
+    auth::{cookies::*, session_context::account_is_active, token::TokenService},
     common::{csrf::generate_csrf_token, jwt::now_secs, password::verify_password},
     config::Config,
     error::{AppError, AppResult},
@@ -21,13 +21,88 @@ const PENDING_COOKIE_TTL_MINS: i64 = 15;
 const STATE_COOKIE_TTL_SECS: u64 = STATE_COOKIE_TTL_MINS as u64 * 60;
 const PENDING_COOKIE_TTL_SECS: u64 = PENDING_COOKIE_TTL_MINS as u64 * 60;
 
+/// Query parameter under which the frontend reads the result of a sign-in.
+const LOGIN_RESULT_PARAM: &str = "auth";
+/// Query parameter under which the frontend reads the result of a link from
+/// the account settings.
+const LINK_RESULT_PARAM: &str = "link";
+
+const GOOGLE_ACCOUNT_TAKEN_CONSTRAINT: &str = "oauth_accounts_provider_provider_user_id_key";
+const PROVIDER_ALREADY_LINKED_CONSTRAINT: &str = "oauth_accounts_user_id_provider_key";
+
+/// Why the user went to Google. It travels inside the signed state cookie, so
+/// only a request authenticated as `user_id` can make the callback link a
+/// Google account to that user.
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[serde(tag = "intent", rename_all = "snake_case")]
+pub enum OAuthIntent {
+    Login,
+    Link { user_id: Uuid },
+}
+
+impl OAuthIntent {
+    fn result_param(&self) -> &'static str {
+        match self {
+            Self::Login => LOGIN_RESULT_PARAM,
+            Self::Link { .. } => LINK_RESULT_PARAM,
+        }
+    }
+}
+
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 struct OAuthStateClaims {
     state: String,
     nonce: String,
+    #[serde(flatten)]
+    intent: OAuthIntent,
     purpose: String,
     iat: u64,
     exp: u64,
+}
+
+struct GoogleProfile {
+    subject: String,
+    email: String,
+}
+
+enum LinkError {
+    GoogleAccountTaken,
+    ProviderAlreadyLinked,
+    Database(sqlx::Error),
+}
+
+impl LinkError {
+    fn reason(&self) -> &'static str {
+        match self {
+            Self::GoogleAccountTaken => "google_account_taken",
+            Self::ProviderAlreadyLinked => "provider_already_linked",
+            Self::Database(_) => "server_error",
+        }
+    }
+}
+
+impl From<sqlx::Error> for LinkError {
+    fn from(e: sqlx::Error) -> Self {
+        match e.as_database_error().and_then(|db| db.constraint()) {
+            Some(GOOGLE_ACCOUNT_TAKEN_CONSTRAINT) => Self::GoogleAccountTaken,
+            Some(PROVIDER_ALREADY_LINKED_CONSTRAINT) => Self::ProviderAlreadyLinked,
+            _ => Self::Database(e),
+        }
+    }
+}
+
+impl From<LinkError> for AppError {
+    fn from(e: LinkError) -> Self {
+        match e {
+            LinkError::GoogleAccountTaken => {
+                AppError::bad_request("This Google account is already linked to an account.")
+            }
+            LinkError::ProviderAlreadyLinked => {
+                AppError::bad_request("This account is already linked to a Google account.")
+            }
+            LinkError::Database(e) => AppError::Database(e),
+        }
+    }
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
@@ -56,7 +131,7 @@ impl OAuthService {
         }
     }
 
-    pub fn build_google_auth_url(&self) -> AppResult<(String, CookieJar)> {
+    pub fn build_google_auth_url(&self, intent: OAuthIntent) -> AppResult<(String, CookieJar)> {
         let state_bytes: [u8; 32] = rand::random();
 
         let state_val = hex::encode(state_bytes);
@@ -65,7 +140,7 @@ impl OAuthService {
 
         let nonce = hex::encode(nonce_bytes);
 
-        let token = self.sign_state_cookie(&state_val, &nonce)?;
+        let token = self.sign_state_cookie(&state_val, &nonce, intent)?;
 
         let opts = self.config.base_cookie_options();
 
@@ -109,34 +184,35 @@ impl OAuthService {
         error_param: Option<&str>,
         state_cookie: Option<&str>,
     ) -> (CookieJar, String) {
-        let frontend = &self.config.cors_origin;
         let empty_jar = CookieJar::new();
 
-        if error_param == Some("access_denied") {
+        let Some(state_param) = state_param else {
             return (
                 empty_jar,
-                format!("{frontend}/?auth=error&reason=access_denied"),
+                self.error_url(LOGIN_RESULT_PARAM, "invalid_request"),
             );
-        }
+        };
 
-        let (code, state_param) = match (code, state_param) {
-            (Some(c), Some(s)) => (c, s),
-            _ => {
+        // The state is verified first so that every later result, including a
+        // cancelled consent screen, reaches the page the flow started from.
+        let state = match self.verify_state_cookie(state_cookie, state_param) {
+            Ok(s) => s,
+            Err(_) => {
                 return (
                     empty_jar,
-                    format!("{frontend}/?auth=error&reason=invalid_request"),
+                    self.error_url(LOGIN_RESULT_PARAM, "invalid_state"),
                 );
             }
         };
 
-        let nonce = match self.verify_state_cookie(state_cookie, state_param) {
-            Ok(n) => n,
-            Err(_) => {
-                return (
-                    empty_jar,
-                    format!("{frontend}/?auth=error&reason=invalid_state"),
-                );
-            }
+        let result_param = state.intent.result_param();
+
+        if error_param == Some("access_denied") {
+            return (empty_jar, self.error_url(result_param, "access_denied"));
+        }
+
+        let Some(code) = code else {
+            return (empty_jar, self.error_url(result_param, "invalid_request"));
         };
 
         let id_token = match self.exchange_code(code).await {
@@ -144,22 +220,28 @@ impl OAuthService {
             Err(_) => {
                 return (
                     empty_jar,
-                    format!("{frontend}/?auth=error&reason=token_exchange_failed"),
+                    self.error_url(result_param, "token_exchange_failed"),
                 );
             }
         };
 
-        let profile = match self.verify_id_token(&id_token, &nonce).await {
+        let profile = match self.verify_id_token(&id_token, &state.nonce).await {
             Ok(p) => p,
-            Err(_) => {
-                return (
-                    empty_jar,
-                    format!("{frontend}/?auth=error&reason=token_invalid"),
-                );
-            }
+            Err(_) => return (empty_jar, self.error_url(result_param, "token_invalid")),
         };
 
-        match self.resolve_account(&profile.0, &profile.1).await {
+        match state.intent {
+            OAuthIntent::Login => self.complete_login(&profile).await,
+            OAuthIntent::Link { user_id } => {
+                (empty_jar, self.complete_link(user_id, &profile).await)
+            }
+        }
+    }
+
+    async fn complete_login(&self, profile: &GoogleProfile) -> (CookieJar, String) {
+        let empty_jar = CookieJar::new();
+
+        match self.resolve_account(&profile.subject, &profile.email).await {
             Ok(OAuthResolution::Login {
                 user_id,
                 email,
@@ -167,7 +249,10 @@ impl OAuthService {
                 mfa_secret,
             }) => {
                 if mfa_enabled && mfa_secret.is_some() {
-                    (empty_jar, format!("{frontend}/?auth=mfa-pending"))
+                    (
+                        empty_jar,
+                        self.result_url(LOGIN_RESULT_PARAM, "mfa-pending"),
+                    )
                 } else {
                     let _ = sqlx::query!(
                         r#"UPDATE users SET last_login_at = now() WHERE id = $1"#,
@@ -177,10 +262,10 @@ impl OAuthService {
                     .await;
 
                     match self.generate_auth_jar(user_id, &email).await {
-                        Ok(jar) => (jar, format!("{frontend}/?auth=success")),
+                        Ok(jar) => (jar, self.result_url(LOGIN_RESULT_PARAM, "success")),
                         Err(_) => (
                             empty_jar,
-                            format!("{frontend}/?auth=error&reason=server_error"),
+                            self.error_url(LOGIN_RESULT_PARAM, "server_error"),
                         ),
                     }
                 }
@@ -202,27 +287,77 @@ impl OAuthService {
 
                     let jar = CookieJar::new().add(c);
 
-                    (jar, format!("{frontend}/?auth=link-required"))
+                    (jar, self.result_url(LOGIN_RESULT_PARAM, "link-required"))
                 }
                 Err(_) => (
                     empty_jar,
-                    format!("{frontend}/?auth=error&reason=server_error"),
+                    self.error_url(LOGIN_RESULT_PARAM, "server_error"),
                 ),
             },
             Ok(OAuthResolution::NewUser { user_id, email }) => {
                 match self.generate_auth_jar(user_id, &email).await {
-                    Ok(jar) => (jar, format!("{frontend}/?auth=success")),
+                    Ok(jar) => (jar, self.result_url(LOGIN_RESULT_PARAM, "success")),
                     Err(_) => (
                         empty_jar,
-                        format!("{frontend}/?auth=error&reason=server_error"),
+                        self.error_url(LOGIN_RESULT_PARAM, "server_error"),
                     ),
                 }
             }
             Err(_) => (
                 empty_jar,
-                format!("{frontend}/?auth=error&reason=server_error"),
+                self.error_url(LOGIN_RESULT_PARAM, "server_error"),
             ),
         }
+    }
+
+    /// Links by Google subject, so the Google email may differ from the
+    /// account email: the signed-in session already proves who the user is.
+    async fn complete_link(&self, user_id: Uuid, profile: &GoogleProfile) -> String {
+        match account_is_active(&self.db, user_id).await {
+            Ok(true) => {}
+            Ok(false) => return self.error_url(LINK_RESULT_PARAM, "session_expired"),
+            Err(_) => return self.error_url(LINK_RESULT_PARAM, "server_error"),
+        }
+
+        match self
+            .insert_google_link(user_id, &profile.subject, &profile.email)
+            .await
+        {
+            Ok(()) => self.result_url(LINK_RESULT_PARAM, "success"),
+            Err(e) => {
+                if let LinkError::Database(db_err) = &e {
+                    tracing::error!(error = %db_err, "failed to link google account");
+                }
+                self.error_url(LINK_RESULT_PARAM, e.reason())
+            }
+        }
+    }
+
+    async fn insert_google_link(
+        &self,
+        user_id: Uuid,
+        google_id: &str,
+        google_email: &str,
+    ) -> Result<(), LinkError> {
+        sqlx::query!(
+            r#"INSERT INTO oauth_accounts (user_id, provider, provider_user_id, provider_email)
+               VALUES ($1, 'google', $2, $3)"#,
+            user_id,
+            google_id,
+            google_email
+        )
+        .execute(&self.db)
+        .await?;
+
+        Ok(())
+    }
+
+    fn result_url(&self, param: &str, result: &str) -> String {
+        format!("{}/?{param}={result}", self.config.cors_origin)
+    }
+
+    fn error_url(&self, param: &str, reason: &str) -> String {
+        format!("{}/?{param}=error&reason={reason}", self.config.cors_origin)
     }
 
     pub async fn link_google_account(
@@ -251,18 +386,8 @@ impl OAuthService {
             ));
         }
 
-        sqlx::query!(
-            r#"INSERT INTO oauth_accounts (user_id, provider, provider_user_id, provider_email)
-               VALUES ($1, 'google', $2, $3)"#,
-            user.id,
-            google_id,
-            google_email
-        )
-        .execute(&self.db)
-        .await
-        .map_err(|_| {
-            AppError::bad_request("This Google account is already linked to another account.")
-        })?;
+        self.insert_google_link(user.id, google_id, google_email)
+            .await?;
 
         let jar = self.generate_auth_jar(user.id, &user.email).await?;
         Ok((jar, json!({ "ok": true })))
@@ -418,7 +543,7 @@ impl OAuthService {
         &self,
         id_token: &str,
         expected_nonce: &str,
-    ) -> AppResult<(String, String)> {
+    ) -> AppResult<GoogleProfile> {
         let parts: Vec<&str> = id_token.split('.').collect();
 
         if parts.len() != 3 {
@@ -464,7 +589,10 @@ impl OAuthService {
             return Err(AppError::Unauthorized("ID token expired.".into()));
         }
 
-        Ok((sub, email))
+        Ok(GoogleProfile {
+            subject: sub,
+            email,
+        })
     }
 
     fn sign_oauth_cookie<T: serde::Serialize>(&self, claims: &T) -> AppResult<String> {
@@ -478,12 +606,18 @@ impl OAuthService {
         .map_err(|e| AppError::internal(e.to_string()))
     }
 
-    fn sign_state_cookie(&self, state: &str, nonce: &str) -> AppResult<String> {
+    fn sign_state_cookie(
+        &self,
+        state: &str,
+        nonce: &str,
+        intent: OAuthIntent,
+    ) -> AppResult<String> {
         let now = now_secs();
 
         self.sign_oauth_cookie(&OAuthStateClaims {
             state: state.to_string(),
             nonce: nonce.to_string(),
+            intent,
             purpose: "oauth_state".into(),
             iat: now,
             exp: now + STATE_COOKIE_TTL_SECS,
@@ -502,7 +636,11 @@ impl OAuthService {
         })
     }
 
-    fn verify_state_cookie(&self, cookie: Option<&str>, state_param: &str) -> AppResult<String> {
+    fn verify_state_cookie(
+        &self,
+        cookie: Option<&str>,
+        state_param: &str,
+    ) -> AppResult<OAuthStateClaims> {
         let token =
             cookie.ok_or_else(|| AppError::Unauthorized("OAuth state cookie missing.".into()))?;
 
@@ -523,7 +661,7 @@ impl OAuthService {
             return Err(AppError::Unauthorized("OAuth state mismatch.".into()));
         }
 
-        Ok(data.claims.nonce)
+        Ok(data.claims)
     }
 
     async fn generate_auth_jar(&self, user_id: Uuid, email: &str) -> AppResult<CookieJar> {
@@ -563,4 +701,56 @@ enum OAuthResolution {
         user_id: Uuid,
         email: String,
     },
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn state_claims(intent: OAuthIntent) -> OAuthStateClaims {
+        OAuthStateClaims {
+            state: "state".into(),
+            nonce: "nonce".into(),
+            intent,
+            purpose: "oauth_state".into(),
+            iat: 0,
+            exp: 0,
+        }
+    }
+
+    fn round_trip(intent: OAuthIntent) -> OAuthIntent {
+        let json = serde_json::to_string(&state_claims(intent)).unwrap();
+        serde_json::from_str::<OAuthStateClaims>(&json)
+            .unwrap()
+            .intent
+    }
+
+    #[test]
+    fn link_intent_keeps_its_user_through_the_state_cookie() {
+        let user_id = Uuid::new_v4();
+
+        assert!(matches!(
+            round_trip(OAuthIntent::Link { user_id }),
+            OAuthIntent::Link { user_id: decoded } if decoded == user_id
+        ));
+        assert!(matches!(round_trip(OAuthIntent::Login), OAuthIntent::Login));
+    }
+
+    #[test]
+    fn state_without_intent_is_rejected() {
+        let json = r#"{"state":"s","nonce":"n","purpose":"oauth_state","iat":0,"exp":0}"#;
+        assert!(serde_json::from_str::<OAuthStateClaims>(json).is_err());
+    }
+
+    #[test]
+    fn link_results_return_to_the_settings_flow() {
+        assert_eq!(OAuthIntent::Login.result_param(), LOGIN_RESULT_PARAM);
+        assert_eq!(
+            OAuthIntent::Link {
+                user_id: Uuid::new_v4()
+            }
+            .result_param(),
+            LINK_RESULT_PARAM
+        );
+    }
 }
