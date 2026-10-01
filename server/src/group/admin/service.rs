@@ -957,38 +957,6 @@ impl GroupAdminService {
         Ok(json!({ "ok": true }))
     }
 
-    pub async fn get_schedule(&self, tenant_id: Uuid) -> AppResult<Value> {
-        let rows = sqlx::query!(
-            r#"SELECT s.id, s.day, s.slot, s.duration, s.room, s.course_id, s.is_dalton,
-                  sub.id as "sid?", sub.name as "sname?",
-                  c.name as "cname?"
-           FROM schedules s
-           LEFT JOIN subjects sub ON sub.id = s.subject_id
-           LEFT JOIN courses c ON c.id = s.course_id
-           WHERE s.tenant_id = $1"#,
-            tenant_id
-        )
-        .fetch_all(&self.db)
-        .await?;
-
-        Ok(json!(
-            rows.into_iter()
-                .map(|l| json!({
-                    "id": l.id,
-                    "day": l.day,
-                    "slot": l.slot,
-                    "duration": l.duration,
-                    "room": l.room,
-                    "subjectId": l.sid,
-                    "subjects": l.sid.map(|id| json!({ "id": id, "name": l.sname })),
-                    "courseId": l.course_id,
-                    "courses": l.course_id.map(|id| json!({ "id": id, "name": l.cname })),
-                    "isDalton": l.is_dalton,
-                }))
-                .collect::<Vec<_>>()
-        ))
-    }
-
     pub async fn replace_schedule(
         &self,
         tenant_id: Uuid,
@@ -1179,27 +1147,6 @@ impl GroupAdminService {
         .await?;
 
         Ok(json!({ "ok": true }))
-    }
-
-    pub async fn get_schedule_subs(&self, tenant_id: Uuid) -> AppResult<Value> {
-        let rows = sqlx::query!(
-            r#"SELECT id, lesson_id, course_id, day, slot, duration, subject, room,
-                      cancelled, hide, created_at
-               FROM schedule_subs WHERE tenant_id = $1"#,
-            tenant_id
-        )
-        .fetch_all(&self.db)
-        .await?;
-
-        Ok(json!(
-            rows.into_iter()
-                .map(|s| json!({
-                    "id": s.id, "lessonId": s.lesson_id, "courseId": s.course_id, "day": s.day, "slot": s.slot,
-                    "duration": s.duration, "subject": s.subject, "room": s.room,
-                    "cancelled": s.cancelled, "hide": s.hide, "createdAt": s.created_at,
-                }))
-                .collect::<Vec<_>>()
-        ))
     }
 
     pub async fn create_schedule_sub(

@@ -8,6 +8,7 @@ use crate::{
     common::path_params::{IdPath, MemberPath, SubjectPath},
     common::role::Role,
     error::{AppError, AppResult},
+    schedule::service::ScheduleService,
     state::AppState,
 };
 use axum::{
@@ -507,9 +508,10 @@ pub async fn get_schedule_admin(
     // Read-only for every member: /schedule already returns the whole
     // timetable to members without course personalization.
     Ok(Json(
-        GroupAdminService::from_state(&s)
-            .get_schedule(tc.tenant_id)
-            .await?,
+        ScheduleService::from_state(&s)
+            .get_schedule(tc.tenant_id, None)
+            .await?
+            .lessons,
     ))
 }
 
@@ -547,8 +549,8 @@ pub async fn get_schedule_subs_admin(
 ) -> AppResult<Json<Value>> {
     // Read-only for every member, like /schedule/subs.
     Ok(Json(
-        GroupAdminService::from_state(&s)
-            .get_schedule_subs(tc.tenant_id)
+        ScheduleService::from_state(&s)
+            .get_subs(tc.tenant_id)
             .await?,
     ))
 }

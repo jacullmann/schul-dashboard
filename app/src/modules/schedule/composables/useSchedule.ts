@@ -4,7 +4,6 @@ import { groupPath } from '@/api/groupPath';
 import { useGroupPageId } from '@/core/composables/useGroupPageId';
 import { hiddenByCourses } from '@/api/personalization';
 import { useUserStore } from '@/stores/userStore';
-import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import type {
   Lesson,
   LessonGroup,
@@ -35,10 +34,10 @@ import {
 export function useSchedule() {
   const { locale } = useI18n();
   const userStore = useUserStore();
-  const { activeGroupType } = useAppAuth();
   const {
     days,
     scheduleConfig,
+    schedulesCoursesIndividually,
     timeSlots,
     formatDayName,
     getDisplayName,
@@ -49,10 +48,6 @@ export function useSchedule() {
   const isPersonalized = computed(() => {
     return userStore.user?.personalized && userStore.user?.doneSetup;
   });
-
-  const schedulesCoursesIndividually = computed(
-    () => activeGroupType.value === 'abitur',
-  );
 
   const lessons = ref<Lesson[]>([]);
   const subjects = ref<ScheduleSubject[]>([]);

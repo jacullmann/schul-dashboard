@@ -1,12 +1,5 @@
 <script setup lang="ts">
-import {
-  ref,
-  computed,
-  watch,
-  onMounted,
-  onBeforeUnmount,
-  nextTick,
-} from 'vue';
+import { ref, computed, watch, onMounted, nextTick } from 'vue';
 import {
   RefreshCw,
   Trash2,
@@ -21,17 +14,27 @@ import {
 import AdminSchedule from '@/modules/groups/components/AdminSchedule.vue';
 import BaseMenu from '@/common/components/BaseMenu.vue';
 import BaseMenuButton from '@/common/components/BaseMenuButton.vue';
-import type { AdminCourse, ScheduleSubstitution } from '@/modules/groups/types';
+import type {
+  AdminCourse,
+  AdminSubject,
+  ScheduleSubstitution,
+} from '@/modules/groups/types';
 import type { Lesson, ScheduleConfig } from '@/modules/schedule/types';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useSubjectAdmin } from '@/modules/groups/composables/useSubjectAdmin';
+import { useLessonSelection } from '@/modules/groups/composables/useLessonSelection';
+import { useScheduleDisplay } from '@/modules/schedule/composables/useScheduleDisplay';
 import { useI18n } from 'vue-i18n';
-import { useWindowSize } from '@vueuse/core';
+import {
+  cloneFnJSON,
+  useEventListener,
+  useManualRefHistory,
+  useWindowSize,
+} from '@vueuse/core';
 import { useIsMobileViewport } from '@/common/composables/useViewport';
 import {
+  findLessonSubject,
   lessonLastSlot,
-  lessonSpan,
-  lessonDisplayName,
 } from '@/modules/schedule/utils/lesson';
 import {
   DEFAULT_SCHEDULE_CONFIG,
@@ -39,14 +42,13 @@ import {
   slotRangeMinutes,
   timeSlotsOf,
 } from '@/modules/schedule/utils/slotTimes';
-import { formatWeekday } from '@/modules/schedule/utils/weekday';
 import { DALTON_SUBJECT_KEY } from '@/types/subjects';
 import { courseLabel, subjectLabel } from '@/utils/subject-formatter';
 import { preferredScrollBehavior } from '@/utils/motion';
 
 const i18n = useI18n();
 const { t, locale } = i18n;
-const te = (key: string) => i18n.te(key);
+const te = i18n.te.bind(i18n);
 const { width: windowWidth } = useWindowSize();
 const isMobile = useIsMobileViewport();
 
@@ -57,40 +59,40 @@ const props = defineProps<{
   loadingLessons: boolean;
   savingSub: boolean;
   savingScheduleConfig: boolean;
-  savingLesson?: boolean;
 }>();
 
 const emit = defineEmits<{
   (e: 'refresh'): void;
   (e: 'save-sub', payload: Record<string, unknown>): void;
   (e: 'delete-sub', id: string): void;
-  (e: 'update-schedule-config', payload: ScheduleConfig): void;
   (
     e: 'save-schedule-batch',
     updatedLessons: Lesson[],
     configPayload: ScheduleConfig,
     onSuccess?: () => void,
   ): void;
-  (e: 'delete-lesson', id: string): void;
 }>();
 
-const {
-  activeScheduleConfig,
-  activeGroupType,
-  activeGroupDaltonEnabled,
-  checkPermission,
-} = useAppAuth();
+const { activeGroupDaltonEnabled, checkPermission } = useAppAuth();
 const { subjects, loadSubjects } = useSubjectAdmin();
-
-// Abitur groups schedule each course on its own, so lessons carry a course.
-const schedulesCoursesIndividually = computed(
-  () => activeGroupType.value === 'abitur',
-);
+const {
+  scheduleConfig,
+  schedulesCoursesIndividually,
+  formatDayName,
+  getDisplayName,
+} = useScheduleDisplay();
 
 const canEditScheduleConfig = computed(() => checkPermission('edit_schedule'));
 const canManageScheduleChanges = computed(() =>
   checkPermission('manage_schedule_changes'),
 );
+
+const TOOLBAR_TRANSITION_MS = 300;
+const MAX_UNDO_STEPS = 50;
+
+let draftSequence = 0;
+// Never a UUID, so the server stores a draft lesson as a new one.
+const draftId = (prefix: string) => `${prefix}_${++draftSequence}`;
 
 // ----------------------------------------------------
 // Editor Mode & Draft Transaction State
@@ -99,54 +101,74 @@ const isEditMode = ref(false);
 const showToolbar = ref(false);
 const draftLessons = ref<Lesson[]>([]);
 const hasSwitchedFromEditor = ref(false);
+const mobileMenuOpen = ref(false);
 
-const emptyConfigForm = () => ({
-  startTime: DEFAULT_SCHEDULE_CONFIG.startTime,
-  totalSlots: DEFAULT_SCHEDULE_CONFIG.totalSlots,
-  lessonDurationMins: DEFAULT_SCHEDULE_CONFIG.lessonDurationMins,
-  breaks: [] as { id: string; slot: number; duration: number }[],
+const configFormOf = (config: ScheduleConfig) => ({
+  startTime: config.startTime,
+  totalSlots: config.totalSlots,
+  lessonDurationMins: config.lessonDurationMins,
+  breaks: Object.entries(config.breaks).map(([slot, duration]) => ({
+    id: draftId('break'),
+    slot: Number(slot),
+    duration: Number(duration),
+  })),
 });
 
-const configForm = ref(emptyConfigForm());
-const draftConfigForm = ref(emptyConfigForm());
+const draftConfigForm = ref(configFormOf(scheduleConfig.value));
 
-watch(
-  activeScheduleConfig,
-  (newConfig) => {
-    if (newConfig) {
-      const cfg = {
-        startTime: newConfig.startTime ?? DEFAULT_SCHEDULE_CONFIG.startTime,
-        totalSlots: newConfig.totalSlots ?? DEFAULT_SCHEDULE_CONFIG.totalSlots,
-        lessonDurationMins:
-          newConfig.lessonDurationMins ??
-          DEFAULT_SCHEDULE_CONFIG.lessonDurationMins,
-        breaks: Object.entries(newConfig.breaks || {}).map(
-          ([slot, duration]) => ({
-            id: Math.random().toString(36).substring(2, 9),
-            slot: Number(slot),
-            duration: Number(duration),
-          }),
-        ),
-      };
-      configForm.value = cfg;
-      if (!isEditMode.value) {
-        draftConfigForm.value = JSON.parse(JSON.stringify(cfg));
-      }
-    }
+/** The draft as the grid, the time labels and the save read it, with a blank duration read as the default. */
+const draftConfig = computed<ScheduleConfig>(() => {
+  const form = draftConfigForm.value;
+  return {
+    startTime: form.startTime,
+    totalSlots: form.totalSlots,
+    lessonDurationMins:
+      Number(form.lessonDurationMins) ||
+      DEFAULT_SCHEDULE_CONFIG.lessonDurationMins,
+    breaks: Object.fromEntries(
+      form.breaks
+        .filter((brk) => brk.slot)
+        .map((brk) => [brk.slot, Number(brk.duration || 0)]),
+    ),
+  };
+});
+
+const slotTimes = computed(() => timeSlotsOf(draftConfig.value));
+
+const {
+  selectedLessonIds,
+  singleSelectedLesson,
+  deselectAll,
+  selectOnly,
+  selectByClick,
+  selectDay,
+} = useLessonSelection(draftLessons);
+
+function clearSelection() {
+  deselectAll();
+  mobileMenuOpen.value = false;
+}
+
+const draftHistory = useManualRefHistory(draftLessons, {
+  clone: true,
+  capacity: MAX_UNDO_STEPS,
+  // The selection can name lessons the restored draft no longer has.
+  setSource: (source, lessons) => {
+    source.value = lessons;
+    clearSelection();
   },
-  { immediate: true, deep: true },
-);
+});
+const { canUndo, canRedo, undo, redo } = draftHistory;
 
 function enterEditMode() {
   if (!canEditScheduleConfig.value) return;
   hasSwitchedFromEditor.value = true;
   void loadSubjects();
-  draftLessons.value = JSON.parse(JSON.stringify(props.lessons || []));
-  draftConfigForm.value = JSON.parse(JSON.stringify(configForm.value));
+  draftLessons.value = cloneFnJSON(props.lessons);
+  draftConfigForm.value = configFormOf(scheduleConfig.value);
   clearSelection();
-  historyStack.value = [];
-  historyIndex.value = -1;
-  pushHistoryState(draftLessons.value);
+  draftHistory.commit();
+  draftHistory.clear();
   showToolbar.value = false;
   isEditMode.value = true;
   void nextTick(() => {
@@ -156,50 +178,23 @@ function enterEditMode() {
   });
 }
 
-function cancelEditMode() {
+/** Lets the toolbar fold away before the editor gives way to the substitutions. */
+function leaveEditMode() {
   showToolbar.value = false;
   setTimeout(() => {
     isEditMode.value = false;
     draftLessons.value = [];
-    draftConfigForm.value = JSON.parse(JSON.stringify(configForm.value));
     clearSelection();
-  }, 300);
+  }, TOOLBAR_TRANSITION_MS);
 }
 
-const draftBreaks = computed(() => {
-  const breaks: Record<number, number> = {};
-  draftConfigForm.value.breaks.forEach((b) => {
-    if (b.slot) {
-      breaks[Number(b.slot)] = Number(b.duration || 0);
-    }
-  });
-  return breaks;
-});
-
-/** The draft as the grid and the time labels read it, with a blank duration read as the default. */
-const draftTiming = computed<ScheduleConfig>(() => ({
-  startTime: draftConfigForm.value.startTime,
-  totalSlots: draftConfigForm.value.totalSlots,
-  lessonDurationMins:
-    Number(draftConfigForm.value.lessonDurationMins) ||
-    DEFAULT_SCHEDULE_CONFIG.lessonDurationMins,
-  breaks: draftBreaks.value,
-}));
-
 function handleSaveAll() {
-  const configPayload = {
-    startTime: draftConfigForm.value.startTime,
-    totalSlots: draftConfigForm.value.totalSlots,
-    lessonDurationMins: draftConfigForm.value.lessonDurationMins,
-    breaks: draftBreaks.value,
-  };
-
-  emit('save-schedule-batch', draftLessons.value, configPayload, () => {
-    showToolbar.value = false;
-    setTimeout(() => {
-      isEditMode.value = false;
-    }, 300);
-  });
+  emit(
+    'save-schedule-batch',
+    draftLessons.value,
+    draftConfig.value,
+    leaveEditMode,
+  );
 }
 
 // Config Breaks Logic for Draft
@@ -208,16 +203,15 @@ const sortedBreaks = computed(() => {
 });
 
 function addBreak() {
-  const maxSlot = draftConfigForm.value.totalSlots;
-  const existingSlots = draftConfigForm.value.breaks.map((b) => b.slot);
-  for (let i = 1; i <= maxSlot; i++) {
-    if (!existingSlots.includes(i)) {
+  const takenSlots = new Set(draftConfigForm.value.breaks.map((b) => b.slot));
+  for (let slot = 1; slot <= draftConfigForm.value.totalSlots; slot++) {
+    if (!takenSlots.has(slot)) {
       draftConfigForm.value.breaks.push({
-        id: Math.random().toString(36).substring(2, 9),
-        slot: i,
+        id: draftId('break'),
+        slot,
         duration: 10,
       });
-      break;
+      return;
     }
   }
 }
@@ -229,7 +223,7 @@ function removeBreak(id: string) {
 }
 
 // Substitution Form State
-const subForm = ref({
+const emptySubForm = () => ({
   lessonId: '',
   courseId: null as string | null,
   subject: '',
@@ -241,21 +235,15 @@ const subForm = ref({
   hide: false,
 });
 
+const subForm = ref(emptySubForm());
+
 const selectedLesson = ref<Lesson | null>(null);
 
-const selectedLessonSubject = computed(() => {
-  if (!selectedLesson.value) return null;
-  const subId =
-    selectedLesson.value.subjectId || selectedLesson.value.subjects?.id;
-  return (
-    subjects.value.find(
-      (s) =>
-        s.id === subId ||
-        s.name.toLowerCase() ===
-          (selectedLesson.value?.subject || '').toLowerCase(),
-    ) || null
-  );
-});
+const selectedLessonSubject = computed(() =>
+  selectedLesson.value
+    ? (findLessonSubject(selectedLesson.value, subjects.value) ?? null)
+    : null,
+);
 
 // A course carries its own GK/LK/ZK type, so it goes into the label that tells
 // two courses of the same subject apart.
@@ -266,48 +254,37 @@ function courseOptionLabel(course: AdminCourse): string {
     : courseLabel(course.name, t, te);
 }
 
-const targetCourseOptions = computed(() => {
-  const sub = selectedLessonSubject.value;
-  const opts = [
-    {
-      label: t('groups.settings.schedule.changes.all_subject_courses'),
-      value: '',
-    },
-  ];
-  if (sub && sub.courses && sub.courses.length > 0) {
-    sub.courses.forEach((c: AdminCourse) => {
-      opts.push({ label: courseOptionLabel(c), value: c.id });
-    });
-  }
-  return opts;
-});
+const courseOptionsOf = (subject: AdminSubject | null, placeholder: string) => [
+  { label: placeholder, value: '' },
+  ...(subject?.courses ?? []).map((course) => ({
+    label: courseOptionLabel(course),
+    value: course.id,
+  })),
+];
+
+const targetCourseOptions = computed(() =>
+  courseOptionsOf(
+    selectedLessonSubject.value,
+    t('groups.settings.schedule.changes.all_subject_courses'),
+  ),
+);
 
 function getSubCourseName(courseId?: string | null): string {
   if (!courseId) return t('groups.settings.schedule.changes.all_courses');
   for (const s of subjects.value) {
-    if (s.courses) {
-      const c = s.courses.find((crs: any) => crs.id === courseId);
-      if (c) return courseLabel(c.name, t, te);
-    }
+    const c = s.courses?.find((course) => course.id === courseId);
+    if (c) return courseLabel(c.name, t, te);
   }
   return t('groups.settings.schedule.changes.specific_course');
 }
 
-function getDisplayName(lesson: Lesson): string {
-  return lessonDisplayName(lesson, t, te) || t('common.selection.unknown');
-}
-
 function onLessonSelected(lesson: Lesson) {
   selectedLesson.value = lesson;
-  subForm.value.lessonId = lesson._originalId || lesson.id;
-  subForm.value.courseId = lesson.courseId || null;
-  subForm.value.subject = '';
-  subForm.value.room = '';
-  subForm.value.slot = null;
-  subForm.value.duration = null;
-  subForm.value.day = null;
-  subForm.value.cancelled = false;
-  subForm.value.hide = false;
+  subForm.value = {
+    ...emptySubForm(),
+    lessonId: lesson._originalId || lesson.id,
+    courseId: lesson.courseId || null,
+  };
   window.scrollTo({ top: 0, behavior: preferredScrollBehavior() });
 }
 
@@ -326,196 +303,18 @@ function handleSaveSub() {
   if (subForm.value.hide) payload.hide = true;
 
   emit('save-sub', payload);
-  subForm.value = {
-    lessonId: '',
-    courseId: null,
-    subject: '',
-    room: '',
-    slot: null,
-    duration: null,
-    day: null,
-    cancelled: false,
-    hide: false,
-  };
+  subForm.value = emptySubForm();
   selectedLesson.value = null;
-}
-
-// ----------------------------------------------------
-// Visual Schedule Grid Calculation (Using Draft State)
-// ----------------------------------------------------
-
-const slotTimes = computed(() => timeSlotsOf(draftTiming.value));
-
-// ----------------------------------------------------
-// Undo / Redo History System State
-// ----------------------------------------------------
-const historyStack = ref<Lesson[][]>([]);
-const historyIndex = ref<number>(-1);
-const MAX_HISTORY = 50;
-
-function pushHistoryState(lessons: Lesson[]) {
-  const currentStack = historyStack.value.slice(0, historyIndex.value + 1);
-  const snapshot = JSON.parse(JSON.stringify(lessons));
-  currentStack.push(snapshot);
-  if (currentStack.length > MAX_HISTORY) {
-    currentStack.shift();
-  }
-  historyStack.value = currentStack;
-  historyIndex.value = currentStack.length - 1;
-}
-
-const canUndo = computed(() => historyIndex.value > 0);
-const canRedo = computed(
-  () => historyIndex.value < historyStack.value.length - 1,
-);
-
-function undo() {
-  if (!canUndo.value) return;
-  historyIndex.value--;
-  draftLessons.value = JSON.parse(
-    JSON.stringify(historyStack.value[historyIndex.value]),
-  );
-  clearSelection();
-}
-
-function redo() {
-  if (!canRedo.value) return;
-  historyIndex.value++;
-  draftLessons.value = JSON.parse(
-    JSON.stringify(historyStack.value[historyIndex.value]),
-  );
-  clearSelection();
 }
 
 // ----------------------------------------------------
 // Lesson Selection & Context Menu Action State
 // ----------------------------------------------------
-const selectedLessonIds = ref<string[]>([]);
-const lastSelectedLessonId = ref<string | null>(null);
-const mobileMenuOpen = ref(false);
-
-function isLessonSelected(id: string): boolean {
-  return selectedLessonIds.value.includes(id);
-}
-
-function clearSelection() {
-  selectedLessonIds.value = [];
-  lastSelectedLessonId.value = null;
-  mobileMenuOpen.value = false;
-}
-
-function selectSingleLesson(id: string) {
-  selectedLessonIds.value = [id];
-  lastSelectedLessonId.value = id;
-}
-
-function toggleLessonSelection(id: string) {
-  if (isLessonSelected(id)) {
-    selectedLessonIds.value = selectedLessonIds.value.filter((i) => i !== id);
-  } else {
-    selectedLessonIds.value.push(id);
-  }
-  lastSelectedLessonId.value = id;
-}
-
-function selectRangeToLesson(targetId: string, isCtrlPressed = false) {
-  if (!lastSelectedLessonId.value) {
-    selectSingleLesson(targetId);
-    return;
-  }
-
-  const anchorLesson = draftLessons.value.find(
-    (l) => l.id === lastSelectedLessonId.value,
-  );
-  const targetLesson = draftLessons.value.find((l) => l.id === targetId);
-
-  if (!anchorLesson || !targetLesson) {
-    selectSingleLesson(targetId);
-    return;
-  }
-
-  const dayMin = Math.min(Number(anchorLesson.day), Number(targetLesson.day));
-  const dayMax = Math.max(Number(anchorLesson.day), Number(targetLesson.day));
-
-  const anchorEndSlot = lessonLastSlot(anchorLesson);
-  const targetEndSlot = lessonLastSlot(targetLesson);
-
-  const slotMin = Math.min(
-    Number(anchorLesson.slot),
-    Number(targetLesson.slot),
-  );
-  const slotMax = Math.max(anchorEndSlot, targetEndSlot);
-
-  const rangeLessons = draftLessons.value.filter((l) => {
-    const lDay = Number(l.day);
-    const lStart = Number(l.slot);
-    const lEnd = lessonLastSlot(l);
-
-    const dayMatches = lDay >= dayMin && lDay <= dayMax;
-    const slotMatches = lStart <= slotMax && lEnd >= slotMin;
-
-    return dayMatches && slotMatches;
-  });
-
-  const rangeIds = rangeLessons.map((l) => l.id);
-
-  if (isCtrlPressed) {
-    const set = new Set([...selectedLessonIds.value, ...rangeIds]);
-    selectedLessonIds.value = Array.from(set);
-  } else {
-    selectedLessonIds.value = rangeIds;
-  }
-}
-
-function selectDayColumn(dayNumber: number, event?: MouseEvent) {
-  if (!isEditMode.value) return;
-
-  const dayLessons = draftLessons.value.filter(
-    (l) => Number(l.day) === dayNumber,
-  );
-  if (dayLessons.length === 0) return;
-
-  const dayLessonIds = dayLessons.map((l) => l.id);
-  const isCtrlPressed = event ? event.ctrlKey || event.metaKey : false;
-  const isAllDaySelected = dayLessonIds.every((id) =>
-    selectedLessonIds.value.includes(id),
-  );
-
-  if (isCtrlPressed) {
-    if (isAllDaySelected) {
-      const daySet = new Set(dayLessonIds);
-      selectedLessonIds.value = selectedLessonIds.value.filter(
-        (id) => !daySet.has(id),
-      );
-    } else {
-      const set = new Set([...selectedLessonIds.value, ...dayLessonIds]);
-      selectedLessonIds.value = Array.from(set);
-    }
-  } else {
-    if (
-      isAllDaySelected &&
-      selectedLessonIds.value.length === dayLessonIds.length
-    ) {
-      clearSelection();
-    } else {
-      selectedLessonIds.value = dayLessonIds;
-    }
-  }
-
-  const firstDayLesson = dayLessons[0];
-  if (firstDayLesson) {
-    lastSelectedLessonId.value = firstDayLesson.id;
-  }
-}
 
 // Native contextmenu handling (Hold on Mobile / Right-click on Desktop)
 function handleContextMenu(lesson: Lesson, event?: UIEvent) {
-  if (event) {
-    event.preventDefault();
-  }
-  if (!isEditMode.value) return;
-
-  selectSingleLesson(lesson.id);
+  event?.preventDefault();
+  selectOnly(lesson.id);
   mobileMenuOpen.value = true;
 }
 
@@ -525,33 +324,21 @@ function handleLessonClick(lesson: Lesson, event?: MouseEvent) {
     openEditLessonModal(lesson);
     return;
   }
-
-  // On Desktop: Perform selection logic
-  if (event.shiftKey) {
-    selectRangeToLesson(lesson.id, event.ctrlKey || event.metaKey);
-  } else if (event.ctrlKey || event.metaKey) {
-    toggleLessonSelection(lesson.id);
-  } else {
-    selectSingleLesson(lesson.id);
-  }
+  selectByClick(lesson.id, event);
 }
 
 function handleAddLessonFromSelection() {
-  if (selectedLessonIds.value.length !== 1) return;
-  const selId = selectedLessonIds.value[0];
-  const targetLesson = draftLessons.value.find((l) => l.id === selId);
-  if (!targetLesson) return;
+  const lesson = singleSelectedLesson.value;
+  if (!lesson) return;
   mobileMenuOpen.value = false;
-  openAddLessonModal(targetLesson.day, targetLesson.slot);
+  openAddLessonModal(lesson.day, lesson.slot);
 }
 
 function handleEditLessonFromSelection() {
-  if (selectedLessonIds.value.length !== 1) return;
-  const selId = selectedLessonIds.value[0];
-  const targetLesson = draftLessons.value.find((l) => l.id === selId);
-  if (!targetLesson) return;
+  const lesson = singleSelectedLesson.value;
+  if (!lesson) return;
   mobileMenuOpen.value = false;
-  openEditLessonModal(targetLesson);
+  openEditLessonModal(lesson);
 }
 
 function handleDeleteSelection() {
@@ -559,7 +346,7 @@ function handleDeleteSelection() {
   const toDelete = new Set(selectedLessonIds.value);
   draftLessons.value = draftLessons.value.filter((l) => !toDelete.has(l.id));
   clearSelection();
-  pushHistoryState(draftLessons.value);
+  draftHistory.commit();
 }
 
 function handleWindowKeyDown(e: KeyboardEvent) {
@@ -624,6 +411,9 @@ function handleGlobalClick(e: MouseEvent) {
   }
 }
 
+useEventListener('keydown', handleWindowKeyDown);
+useEventListener('click', handleGlobalClick);
+
 // ----------------------------------------------------
 // Lesson Edit / Add Modal (Relational Schema Best Practices)
 // ----------------------------------------------------
@@ -670,18 +460,12 @@ const selectedSubjectObj = computed(() => {
   );
 });
 
-const lessonCourseOptions = computed(() => {
-  const opts = [
-    {
-      label: t('groups.settings.schedule.editor.select_course_prompt'),
-      value: '',
-    },
-  ];
-  selectedSubjectObj.value?.courses?.forEach((c: AdminCourse) =>
-    opts.push({ label: courseOptionLabel(c), value: c.id }),
-  );
-  return opts;
-});
+const lessonCourseOptions = computed(() =>
+  courseOptionsOf(
+    selectedSubjectObj.value,
+    t('groups.settings.schedule.editor.select_course_prompt'),
+  ),
+);
 
 // The course field stays visible for a lesson that still carries one after the
 // group switched back to regular, so it can be cleared there too.
@@ -696,9 +480,7 @@ watch(
   () => lessonForm.value.subjectId,
   () => {
     const courses = selectedSubjectObj.value?.courses ?? [];
-    if (
-      !courses.some((c: { id: string }) => c.id === lessonForm.value.courseId)
-    ) {
+    if (!courses.some((c) => c.id === lessonForm.value.courseId)) {
       lessonForm.value.courseId = '';
     }
   },
@@ -706,43 +488,28 @@ watch(
 
 // Summary text for selected day & slot at top of modal
 const selectedSlotSummary = computed(() => {
-  const dayName = formatWeekday(Number(lessonForm.value.day), locale.value);
-
-  const startSlot = Number(lessonForm.value.slot);
-  const duration = lessonSpan(lessonForm.value);
-  const endSlot = startSlot + duration - 1;
-
-  const timeStr =
-    startSlot >= 1
-      ? ` (${formatMinuteRange(slotRangeMinutes(draftTiming.value, startSlot, endSlot))})`
-      : '';
-
-  const slotRangeStr =
-    duration > 1 ? `${startSlot}.-${endSlot}.` : `${startSlot}.`;
-
-  return `${dayName}, ${slotRangeStr} Stunde${timeStr}`;
+  const { day, slot } = lessonForm.value;
+  const lastSlot = lessonLastSlot(lessonForm.value);
+  const periods =
+    slot === lastSlot
+      ? t('schedule.period', { slot })
+      : t('schedule.periods', { first: slot, last: lastSlot });
+  const time = formatMinuteRange(
+    slotRangeMinutes(draftConfig.value, slot, lastSlot),
+  );
+  return `${formatDayName(day)}, ${periods} (${time})`;
 });
 
 const editingLessonRef = ref<Lesson | null>(null);
 
-watch(subjects, (newSubjects) => {
-  if (
-    isLessonModalOpen.value &&
-    newSubjects.length > 0 &&
-    !lessonForm.value.subjectId
-  ) {
-    if (editingLessonRef.value) {
-      const matchedSub = newSubjects.find(
-        (s) =>
-          s.id === editingLessonRef.value?.subjects?.id ||
-          (editingLessonRef.value?.subjectId &&
-            s.id === editingLessonRef.value.subjectId) ||
-          s.name.toLowerCase() ===
-            (editingLessonRef.value?.subject || '').toLowerCase(),
-      );
-      lessonForm.value.subjectId = matchedSub ? matchedSub.id : '';
-    }
+// An edited lesson opened before the subjects arrived gets its subject once they do.
+watch(subjects, (loadedSubjects) => {
+  const lesson = editingLessonRef.value;
+  if (!isLessonModalOpen.value || !lesson || lessonForm.value.subjectId) {
+    return;
   }
+  lessonForm.value.subjectId =
+    findLessonSubject(lesson, loadedSubjects)?.id ?? '';
 });
 
 function openAddLessonModal(day: number, slot: number) {
@@ -769,12 +536,7 @@ function openEditLessonModal(lesson: Lesson) {
     void loadSubjects();
   }
 
-  const matchedSub = subjects.value.find(
-    (s) =>
-      s.id === lesson.subjects?.id ||
-      (lesson.subjectId && s.id === lesson.subjectId) ||
-      s.name.toLowerCase() === (lesson.subject || '').toLowerCase(),
-  );
+  const matchedSub = findLessonSubject(lesson, subjects.value);
 
   const matchedSubId = lesson.isDalton
     ? DALTON_LESSON_OPTION
@@ -782,7 +544,7 @@ function openEditLessonModal(lesson: Lesson) {
 
   const lessonCourseId = lesson.courseId || lesson.courses?.id || '';
   const matchedCourseId = matchedSub?.courses?.some(
-    (c: { id: string }) => c.id === lessonCourseId,
+    (c) => c.id === lessonCourseId,
   )
     ? lessonCourseId
     : '';
@@ -805,9 +567,7 @@ function closeLessonModal() {
 }
 
 function submitLessonForm() {
-  const targetId =
-    lessonForm.value.id ||
-    `les_draft_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+  const targetId = lessonForm.value.id || draftId('les_draft');
 
   const newLesson = isDaltonSelected.value
     ? draftDaltonLesson(targetId)
@@ -821,17 +581,25 @@ function submitLessonForm() {
     draftLessons.value.push(newLesson);
   }
 
-  pushHistoryState(draftLessons.value);
+  draftHistory.commit();
   closeLessonModal();
+}
+
+/** Where and in which room the form places a lesson, whatever it teaches. */
+function draftLessonPlacement(id: string) {
+  const form = lessonForm.value;
+  return {
+    id,
+    day: Number(form.day),
+    slot: Number(form.slot),
+    duration: Number(form.duration || 1),
+    room: form.room.trim() || null,
+  };
 }
 
 function draftDaltonLesson(id: string): Lesson {
   return {
-    id,
-    day: Number(lessonForm.value.day),
-    slot: Number(lessonForm.value.slot),
-    duration: Number(lessonForm.value.duration || 1),
-    room: lessonForm.value.room.trim() || null,
+    ...draftLessonPlacement(id),
     subjectId: null,
     subjects: null,
     courseId: null,
@@ -845,16 +613,10 @@ function draftSubjectLesson(id: string): Lesson | null {
   if (!subObj) return null;
 
   const courseObj =
-    subObj.courses?.find(
-      (c: { id: string }) => c.id === lessonForm.value.courseId,
-    ) ?? null;
+    subObj.courses?.find((c) => c.id === lessonForm.value.courseId) ?? null;
 
   return {
-    id,
-    day: Number(lessonForm.value.day),
-    slot: Number(lessonForm.value.slot),
-    duration: Number(lessonForm.value.duration || 1),
-    room: lessonForm.value.room.trim() || null,
+    ...draftLessonPlacement(id),
     subjectId: subObj.id,
     subject: subObj.name,
     subjectAbbr: subObj.name.substring(0, 3).toUpperCase(),
@@ -867,16 +629,6 @@ function draftSubjectLesson(id: string): Lesson | null {
 
 onMounted(() => {
   void loadSubjects();
-  window.addEventListener('keydown', handleWindowKeyDown);
-  window.addEventListener('click', handleGlobalClick);
-  if (isEditMode.value) {
-    showToolbar.value = true;
-  }
-});
-
-onBeforeUnmount(() => {
-  window.removeEventListener('keydown', handleWindowKeyDown);
-  window.removeEventListener('click', handleGlobalClick);
 });
 </script>
 
@@ -938,13 +690,13 @@ onBeforeUnmount(() => {
                 v-if="windowWidth <= 768"
                 variant="ghost"
                 :icon="X"
-                @click="cancelEditMode"
+                @click="leaveEditMode"
               />
               <BaseButton
                 v-else
                 variant="ghost"
                 :icon="X"
-                @click="cancelEditMode"
+                @click="leaveEditMode"
               >
                 {{ t('groups.settings.schedule.editor.cancel_button') }}
               </BaseButton>
@@ -977,12 +729,6 @@ onBeforeUnmount(() => {
 
     <div v-if="isEditMode" class="flex flex-col gap-6">
       <div class="sm:p-6">
-        <!--div class="flex items-center justify-between mb-4">
-          <h3 class="text-base font-semibold text-on-ghost">
-            {{ t('groups.settings.schedule.editor.grid_title') }}
-          </h3>
-        </div-->
-
         <div
           class="grid transition-[grid-template-rows,opacity] duration-500 ease-out"
           :class="
@@ -1039,7 +785,7 @@ onBeforeUnmount(() => {
                   <BaseButton
                     variant="ghost"
                     :icon="Plus"
-                    :disabled="selectedLessonIds.length !== 1"
+                    :disabled="!singleSelectedLesson"
                     @click="handleAddLessonFromSelection"
                   >
                     {{ t('groups.settings.schedule.editor.add_lesson_slot') }}
@@ -1047,7 +793,7 @@ onBeforeUnmount(() => {
                   <BaseButton
                     variant="ghost"
                     :icon="Pencil"
-                    :disabled="selectedLessonIds.length !== 1"
+                    :disabled="!singleSelectedLesson"
                     @click="handleEditLessonFromSelection"
                   >
                     {{ t('groups.settings.schedule.editor.edit_lesson_title') }}
@@ -1077,7 +823,7 @@ onBeforeUnmount(() => {
           :time-slots="slotTimes"
           :animated="false"
           @select-lesson="handleLessonClick"
-          @select-day="selectDayColumn"
+          @select-day="selectDay"
           @add-lesson="({ day, slot }) => openAddLessonModal(day, slot)"
           @contextmenu-lesson="handleContextMenu"
         />
@@ -1185,7 +931,7 @@ onBeforeUnmount(() => {
       </div>
 
       <div class="flex items-center justify-end gap-3 pt-2">
-        <BaseButton variant="ghost" :icon="X" @click="cancelEditMode">
+        <BaseButton variant="ghost" :icon="X" @click="leaveEditMode">
           {{ t('groups.settings.schedule.editor.cancel_button') }}
         </BaseButton>
         <BaseButton
@@ -1228,12 +974,13 @@ onBeforeUnmount(() => {
         </h3>
         <p class="m-0 mb-4 text-on-ghost-muted text-sm">
           {{ t('groups.settings.schedule.changes.replaces_prefix') }}
-          <strong>{{ getDisplayName(selectedLesson) }}</strong> ({{
-            t('groups.settings.schedule.changes.lesson_label')
-          }}
+          <strong>{{
+            getDisplayName(selectedLesson) || t('common.selection.unknown')
+          }}</strong>
+          ({{ t('groups.settings.schedule.changes.lesson_label') }}
           {{ selectedLesson.slot }},
           {{ t('groups.settings.schedule.changes.last_lesson_label') }}
-          {{ selectedLesson.slot + selectedLesson.duration - 1 }},
+          {{ lessonLastSlot(selectedLesson) }},
           <template v-if="selectedLesson.room">
             {{ t('groups.settings.schedule.changes.room_label') }}
             {{ selectedLesson.room }},
@@ -1246,10 +993,7 @@ onBeforeUnmount(() => {
           <input v-model="subForm.lessonId" type="hidden" />
           <div
             v-if="
-              !selectedLesson.courseId &&
-              selectedLessonSubject &&
-              selectedLessonSubject.courses &&
-              selectedLessonSubject.courses.length > 0
+              !selectedLesson.courseId && selectedLessonSubject?.courses?.length
             "
             class="form-field col-span-2 sm:col-span-1"
           >
@@ -1541,14 +1285,14 @@ onBeforeUnmount(() => {
     >
       <BaseMenuButton
         :icon="Plus"
-        :disabled="selectedLessonIds.length !== 1"
+        :disabled="!singleSelectedLesson"
         @click="handleAddLessonFromSelection"
       >
         {{ t('groups.settings.schedule.editor.add_lesson_slot') }}
       </BaseMenuButton>
       <BaseMenuButton
         :icon="Pencil"
-        :disabled="selectedLessonIds.length !== 1"
+        :disabled="!singleSelectedLesson"
         @click="handleEditLessonFromSelection"
       >
         {{ t('groups.settings.schedule.editor.edit_lesson_title') }}

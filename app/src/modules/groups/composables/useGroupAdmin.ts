@@ -204,8 +204,6 @@ export function useGroupAdmin() {
     }
   }
 
-  const savingLesson = ref(false);
-
   async function loadSchedule() {
     loadingLessons.value = true;
     try {
@@ -217,29 +215,6 @@ export function useGroupAdmin() {
       showMessage(t('groups.settings.messages.load_schedule_failed'), true);
     } finally {
       loadingLessons.value = false;
-    }
-  }
-
-  async function deleteLesson(lessonId: string): Promise<boolean> {
-    const isConfirmed = await modalStore.confirm({
-      title: t('groups.settings.schedule.editor.delete_confirm_title'),
-      content: t('groups.settings.schedule.editor.delete_confirm_message'),
-      submitText: t('common.buttons.delete'),
-      danger: true,
-    });
-
-    if (!isConfirmed) return false;
-    savingLesson.value = true;
-    try {
-      await hw.delete(groupPath(groupId.value, `/admin/schedule/${lessonId}`));
-      await loadSchedule();
-      showMessage(t('groups.settings.schedule.editor.success_delete_lesson'));
-      return true;
-    } catch {
-      showMessage(t('groups.settings.messages.lesson_delete_failed'), true);
-      return false;
-    } finally {
-      savingLesson.value = false;
     }
   }
 
@@ -341,24 +316,6 @@ export function useGroupAdmin() {
     } catch (error: unknown) {
       showMessage(getScheduleSaveError(error), true);
       return false;
-    } finally {
-      savingScheduleConfig.value = false;
-    }
-  }
-
-  async function updateScheduleConfig(scheduleConfig: ScheduleConfig) {
-    savingScheduleConfig.value = true;
-    try {
-      await hw.patch(groupPath(groupId.value, '/admin/schedule-config'), {
-        scheduleConfig,
-      });
-      await useAppAuth().checkAuthStatus();
-      showMessage(t('groups.settings.messages.schedule_config_updated'));
-    } catch {
-      showMessage(
-        t('groups.settings.messages.schedule_config_update_failed'),
-        true,
-      );
     } finally {
       savingScheduleConfig.value = false;
     }
@@ -663,15 +620,12 @@ export function useGroupAdmin() {
     savingScheduleConfig,
     loadSubs,
     saveSub,
-    updateScheduleConfig,
     saveScheduleBatch,
     deleteSub,
 
     lessons,
     loadingLessons,
-    savingLesson,
     loadSchedule,
-    deleteLesson,
 
     announcements,
     loadAnnouncements,

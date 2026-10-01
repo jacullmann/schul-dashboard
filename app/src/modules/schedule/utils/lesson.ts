@@ -135,3 +135,17 @@ export function resolveLessonSubject(
         : null),
   };
 }
+
+/** The group subject a lesson belongs to, by its id or, for a lesson that only carries a name, by that name. */
+export function findLessonSubject<Subject extends ScheduleSubject>(
+  lesson: Pick<Lesson, 'subjectId' | 'subjects' | 'subject'>,
+  subjects: readonly Subject[],
+): Subject | undefined {
+  const subjectId = lesson.subjectId || lesson.subjects?.id;
+  const subjectName = lesson.subject?.toLowerCase();
+  return subjects.find(
+    (subject) =>
+      subject.id === subjectId ||
+      (!!subjectName && subject.name.toLowerCase() === subjectName),
+  );
+}

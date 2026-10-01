@@ -37,8 +37,13 @@ export function buildGroupStyle(
 export function useScheduleDisplay() {
   const i18n = useI18n();
   const { t, locale } = i18n;
-  const te = (key: string) => i18n.te(key);
-  const { activeScheduleConfig } = useAppAuth();
+  const te = i18n.te.bind(i18n);
+  const { activeScheduleConfig, activeGroupType } = useAppAuth();
+
+  // Abitur groups schedule each course on its own, so lessons carry a course.
+  const schedulesCoursesIndividually = computed(
+    () => activeGroupType.value === 'abitur',
+  );
 
   const scheduleConfig = computed(() =>
     scheduleConfigOrDefault(activeScheduleConfig.value),
@@ -62,6 +67,7 @@ export function useScheduleDisplay() {
   return {
     days: SCHOOL_DAYS,
     scheduleConfig,
+    schedulesCoursesIndividually,
     timeSlots,
     formatDayName,
     getDisplayName,
