@@ -23,7 +23,7 @@ withDefaults(
 
 const LAYER_COUNT = 8;
 const MIN_BLUR = 0.5;
-const MAX_BLUR = 8;
+const MAX_BLUR = 4;
 const MAX_BLUR_FROM_BOTTOM = 70;
 
 /*
