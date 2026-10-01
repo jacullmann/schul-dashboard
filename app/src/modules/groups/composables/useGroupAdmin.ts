@@ -9,10 +9,10 @@ import type {
   GroupMember,
   GroupStats,
   ScheduleSubstitution,
-  AdminAnnouncement,
   GroupInviteLog,
 } from '@/modules/groups/types';
 import type { Lesson, ScheduleConfig } from '@/modules/schedule/types';
+import type { Announcement } from '@/modules/announcements/types';
 import type { GroupType } from '@/types/groups';
 import { useToast } from '@/common/composables/useToast';
 import { useModalStore } from '@/stores/modalStore';
@@ -64,8 +64,7 @@ export function useGroupAdmin() {
   const lessons = ref<Lesson[]>([]);
   const loadingLessons = ref(false);
 
-  const announcements = ref<AdminAnnouncement[]>([]);
-  const creatingAnn = ref(false);
+  const announcements = ref<Announcement[]>([]);
 
   const cleaningUp = ref(false);
 
@@ -388,30 +387,12 @@ export function useGroupAdmin() {
 
   async function loadAnnouncements() {
     try {
-      const { data } = await hw.get(groupPath(groupId.value, '/announcements'));
+      const { data } = await hw.get<Announcement[]>(
+        groupPath(groupId.value, '/announcements'),
+      );
       announcements.value = data;
     } catch {
       // Announcements are supplementary; keep the previously loaded list.
-    }
-  }
-
-  async function createAnnouncement(content: string, color: string) {
-    if (!content.trim()) return;
-    creatingAnn.value = true;
-    try {
-      await hw.post(groupPath(groupId.value, '/admin/announcements'), {
-        content: content.trim(),
-        color,
-      });
-      await loadAnnouncements();
-      showMessage(t('groups.settings.messages.announcement_created'));
-    } catch {
-      showMessage(
-        t('groups.settings.messages.announcement_create_failed'),
-        true,
-      );
-    } finally {
-      creatingAnn.value = false;
     }
   }
 
@@ -693,9 +674,7 @@ export function useGroupAdmin() {
     deleteLesson,
 
     announcements,
-    creatingAnn,
     loadAnnouncements,
-    createAnnouncement,
     deleteAnnouncement,
 
     cleaningUp,

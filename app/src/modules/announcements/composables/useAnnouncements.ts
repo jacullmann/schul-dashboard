@@ -1,16 +1,10 @@
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useModalStore } from '@/stores/modalStore';
 import hw from '@/api/api.ts';
 import { groupPath } from '@/api/groupPath';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useToast } from '@/common/composables/useToast';
 import type { Announcement } from '@/modules/announcements/types';
-import { apiErrorMessage } from '@/api/errors';
-
-const modalStore = useModalStore();
-
-export type { Announcement };
 
 export function useAnnouncements() {
   const { t } = useI18n();
@@ -18,12 +12,10 @@ export function useAnnouncements() {
   const { activeGroupId } = useAppAuth();
 
   const announcements = ref<Announcement[]>([]);
-  const loading = ref(false);
 
   async function loadAnnouncements(): Promise<void> {
     const groupId = activeGroupId.value;
     if (!groupId) return;
-    loading.value = true;
     try {
       const { data } = await hw.get<Announcement[]>(
         groupPath(groupId, '/announcements'),
@@ -31,8 +23,6 @@ export function useAnnouncements() {
       announcements.value = data;
     } catch (e) {
       console.error('Failed to load announcements', e);
-    } finally {
-      loading.value = false;
     }
   }
 
@@ -64,9 +54,7 @@ export function useAnnouncements() {
         ? t('announcements.notifications.new_single', { preview })
         : t('announcements.notifications.new_plural', { count, preview });
 
-    const hasDanger = unread.some(
-      (a) => a.color === 'danger' || a.priority === 'high',
-    );
+    const hasDanger = unread.some((a) => a.color === 'danger');
     const hasWarn = unread.some((a) => a.color === 'warn');
     const duration = Math.min(10000, 5000 + count * 1000);
 
@@ -81,38 +69,8 @@ export function useAnnouncements() {
     void markAsRead(unread);
   }
 
-  async function deleteAnnouncement(id: string): Promise<void> {
-    const groupId = activeGroupId.value;
-    if (!groupId) return;
-    const isConfirmed = await modalStore.confirm({
-      title: t('announcements.delete_modal.title'),
-      content: t('announcements.delete_modal.message'),
-      submitText: t('common.buttons.delete'),
-      danger: true,
-    });
-
-    if (!isConfirmed) return;
-    try {
-      await hw.delete(groupPath(groupId, `/admin/announcements/${id}`));
-      announcements.value = announcements.value.filter((a) => a.id !== id);
-    } catch (e: unknown) {
-      toast.error(apiErrorMessage(e, t('announcements.errors.delete_failed')));
-    }
-  }
-
-  function colorFor(color?: string, priority?: string): string {
-    const resolvedColor = color || (priority === 'high' ? 'danger' : 'info');
-    if (resolvedColor === 'info') return 'is-surface';
-    const list = ['warn', 'danger'];
-    return list.includes(resolvedColor) ? `is-${resolvedColor}` : 'is-surface';
-  }
-
   return {
     announcements,
-    loading,
-    loadAnnouncements,
     checkAndNotifyUnread,
-    deleteAnnouncement,
-    colorFor,
   };
 }

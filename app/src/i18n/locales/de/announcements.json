@@ -30,12 +30,5 @@
   "notifications": {
     "new_single": "Neue Ankündigung: {preview}",
     "new_plural": "{count} neue Ankündigungen: {preview}"
-  },
-  "delete_modal": {
-    "title": "Diese Ankündigung löschen?",
-    "message": "Wenn du diese Ankündigung löschst, wird sie unwiderruflich entfernt."
-  },
-  "errors": {
-    "delete_failed": "Ankündigung konnte nicht gelöscht werden."
   }
 }

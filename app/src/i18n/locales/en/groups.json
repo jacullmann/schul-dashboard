@@ -431,8 +431,6 @@
       "schedule_config_update_failed": "Failed to update schedule config",
       "substitution_deleted": "Substitution deleted",
       "substitution_delete_failed": "Failed to delete substitution",
-      "announcement_created": "Announcement created",
-      "announcement_create_failed": "Failed to create announcement",
       "announcement_deleted": "Announcement deleted",
       "announcement_delete_failed": "Failed to delete announcement",
       "cleanup_completed": "Cleanup completed",

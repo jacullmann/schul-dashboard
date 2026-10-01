@@ -1,13 +1,10 @@
+export type AnnouncementColor = 'info' | 'warn' | 'danger';
+
 export interface Announcement {
   id: string;
   content: string;
-  title?: string;
-  color?: AnnouncementColor;
-  priority?: string;
-  createdBy?: string;
-  authorName?: string;
+  color: AnnouncementColor;
+  createdBy: string | null;
   createdAt: string;
   read: boolean;
 }
-
-export type AnnouncementColor = 'info' | 'warn' | 'danger';

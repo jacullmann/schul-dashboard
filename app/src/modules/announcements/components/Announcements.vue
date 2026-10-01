@@ -4,13 +4,22 @@ import { useI18n } from 'vue-i18n';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useAnnouncements } from '@/modules/announcements/composables/useAnnouncements';
 import { Ellipsis } from '@lucide/vue';
-import type { Announcement } from '@/modules/announcements/types';
+import type {
+  Announcement,
+  AnnouncementColor,
+} from '@/modules/announcements/types';
 
 const { t } = useI18n();
 
 const { activeGroupId } = useAppAuth();
 
-const { announcements, colorFor, checkAndNotifyUnread } = useAnnouncements();
+const { announcements, checkAndNotifyUnread } = useAnnouncements();
+
+const BANNER_BACKGROUND: Record<AnnouncementColor, string> = {
+  info: 'bg-surface',
+  warn: 'bg-warn',
+  danger: 'bg-danger',
+};
 
 const currentIndex = ref<number>(0);
 const showMenu = ref<boolean>(false);
@@ -19,6 +28,7 @@ const EMPTY_ANNOUNCEMENT: Announcement = {
   id: '',
   content: '',
   color: 'info',
+  createdBy: null,
   createdAt: '',
   read: true,
 };
@@ -27,11 +37,7 @@ const currentAnnouncement = computed<Announcement>(
   () => announcements.value[currentIndex.value] ?? EMPTY_ANNOUNCEMENT,
 );
 
-const isDanger = computed(
-  () =>
-    currentAnnouncement.value.color === 'danger' ||
-    currentAnnouncement.value.priority === 'high',
-);
+const isDanger = computed(() => currentAnnouncement.value.color === 'danger');
 
 function toggleMenu() {
   showMenu.value = !showMenu.value;
@@ -120,7 +126,7 @@ onUnmounted(() => {
         >
           <div
             class="w-2 h-2 rounded-full flex-shrink-0"
-            :class="colorFor(ann.color, ann.priority).replace('is-', 'bg-')"
+            :class="BANNER_BACKGROUND[ann.color]"
           ></div>
           <span class="truncate">{{ ann.content }}</span>
         </BaseButton>
@@ -141,10 +147,7 @@ onUnmounted(() => {
         ref="announcementEl"
         class="p-0 text-on-ghost text-sm flex items-center justify-center shadow-menu border-b cursor-pointer"
         :class="[
-          colorFor(
-            currentAnnouncement.color,
-            currentAnnouncement.priority,
-          ).replace('is-', 'bg-'),
+          BANNER_BACKGROUND[currentAnnouncement.color],
           isDanger ? 'border-danger-highlight' : 'border-ghost-border',
         ]"
         @click="nextAnnouncement"
