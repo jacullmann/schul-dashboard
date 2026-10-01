@@ -94,6 +94,12 @@ onMounted(() => {
         />
       </BaseFormGroup>
 
+      <div class="flex justify-end">
+        <BaseLink :to="{ name: 'forgot-password' }" @click="$emit('cancel')">
+          {{ t('auth.login.forgot') }}
+        </BaseLink>
+      </div>
+
       <span v-if="message && !isError">
         {{ message }}
       </span>

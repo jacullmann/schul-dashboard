@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from 'vue';
+import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
 import { LucideKeyRound } from '@lucide/vue';
 import MfaSettings from '@/modules/auth/components/MfaSettings.vue';
@@ -14,6 +15,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 const userStore = useUserStore();
+const { hasPassword } = storeToRefs(userStore);
 const { mfaEnabled, fetchMfaStatus, setMfaEnabled } = useMfa();
 
 function onMfaChanged(enabled: boolean) {
@@ -35,7 +37,11 @@ onMounted(async () => {
     <section class="flex flex-col gap-2">
       <h3>{{ t('auth.account_settings.password.title') }}</h3>
       <p class="text-sm/relaxed text-on-ghost-muted m-0!">
-        {{ t('auth.account_settings.password.description') }}
+        {{
+          hasPassword
+            ? t('auth.account_settings.password.description')
+            : t('auth.account_settings.password.description_set')
+        }}
       </p>
       <div>
         <BaseButton
@@ -43,7 +49,11 @@ onMounted(async () => {
           :icon="LucideKeyRound"
           @click="emit('changePassword')"
         >
-          {{ t('auth.change_password.title') }}
+          {{
+            hasPassword
+              ? t('auth.change_password.title')
+              : t('auth.set_password.title')
+          }}
         </BaseButton>
       </div>
     </section>

@@ -29,10 +29,10 @@ async function submit() {
 
   submitting.value = false;
 
-  if (result.ok) {
-    emit('linked');
-  } else {
+  if (!result.ok) {
     errorMsg.value = result.error;
+  } else if (!result.requiresMfa) {
+    emit('linked');
   }
 }
 

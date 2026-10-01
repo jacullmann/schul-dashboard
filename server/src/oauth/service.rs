@@ -1,6 +1,9 @@
 use crate::{
-    auth::{cookies::*, session_context::account_is_active, token::TokenService},
-    common::{csrf::generate_csrf_token, jwt::now_secs, password::verify_password},
+    auth::{
+        service::{AuthService, ClientInfo, LoginResult},
+        session_context::account_is_active,
+    },
+    common::{jwt::now_secs, password::verify_password},
     config::Config,
     error::{AppError, AppResult},
     state::AppState,
@@ -183,6 +186,7 @@ impl OAuthService {
         state_param: Option<&str>,
         error_param: Option<&str>,
         state_cookie: Option<&str>,
+        client: ClientInfo<'_>,
     ) -> (CookieJar, String) {
         let empty_jar = CookieJar::new();
 
@@ -231,83 +235,77 @@ impl OAuthService {
         };
 
         match state.intent {
-            OAuthIntent::Login => self.complete_login(&profile).await,
+            OAuthIntent::Login => self.complete_login(&profile, client).await,
             OAuthIntent::Link { user_id } => {
                 (empty_jar, self.complete_link(user_id, &profile).await)
             }
         }
     }
 
-    async fn complete_login(&self, profile: &GoogleProfile) -> (CookieJar, String) {
-        let empty_jar = CookieJar::new();
+    async fn complete_login(
+        &self,
+        profile: &GoogleProfile,
+        client: ClientInfo<'_>,
+    ) -> (CookieJar, String) {
+        let server_error = || {
+            (
+                CookieJar::new(),
+                self.error_url(LOGIN_RESULT_PARAM, "server_error"),
+            )
+        };
 
-        match self.resolve_account(&profile.subject, &profile.email).await {
-            Ok(OAuthResolution::Login {
+        let Ok(resolution) = self.resolve_account(&profile.subject, &profile.email).await else {
+            return server_error();
+        };
+
+        let sign_in = match resolution {
+            OAuthResolution::SignIn {
                 user_id,
                 email,
-                mfa_enabled,
-                mfa_secret,
-            }) => {
-                if mfa_enabled && mfa_secret.is_some() {
-                    (
-                        empty_jar,
-                        self.result_url(LOGIN_RESULT_PARAM, "mfa-pending"),
-                    )
-                } else {
-                    let _ = sqlx::query!(
-                        r#"UPDATE users SET last_login_at = now() WHERE id = $1"#,
-                        user_id
-                    )
-                    .execute(&self.db)
-                    .await;
-
-                    match self.generate_auth_jar(user_id, &email).await {
-                        Ok(jar) => (jar, self.result_url(LOGIN_RESULT_PARAM, "success")),
-                        Err(_) => (
-                            empty_jar,
-                            self.error_url(LOGIN_RESULT_PARAM, "server_error"),
-                        ),
-                    }
-                }
+                mfa_required,
+            } => {
+                self.auth()
+                    .complete_sign_in(user_id, &email, mfa_required, client)
+                    .await
             }
-            Ok(OAuthResolution::LinkRequired {
+            OAuthResolution::LinkRequired {
                 google_id,
                 google_email,
-            }) => match self.sign_pending_cookie(&google_id, &google_email) {
-                Ok(pending_token) => {
-                    let opts = self.config.base_cookie_options();
-
-                    let mut c = Cookie::new(OAUTH_PENDING_COOKIE, pending_token);
-
-                    c.set_http_only(true);
-                    c.set_secure(opts.secure);
-                    c.set_path("/");
-                    c.set_same_site(SameSite::Lax);
-                    c.set_max_age(Duration::minutes(PENDING_COOKIE_TTL_MINS));
-
-                    let jar = CookieJar::new().add(c);
-
-                    (jar, self.result_url(LOGIN_RESULT_PARAM, "link-required"))
-                }
-                Err(_) => (
-                    empty_jar,
-                    self.error_url(LOGIN_RESULT_PARAM, "server_error"),
-                ),
-            },
-            Ok(OAuthResolution::NewUser { user_id, email }) => {
-                match self.generate_auth_jar(user_id, &email).await {
-                    Ok(jar) => (jar, self.result_url(LOGIN_RESULT_PARAM, "success")),
-                    Err(_) => (
-                        empty_jar,
-                        self.error_url(LOGIN_RESULT_PARAM, "server_error"),
-                    ),
-                }
+            } => {
+                return match self.pending_link_jar(&google_id, &google_email) {
+                    Ok(jar) => (jar, self.result_url(LOGIN_RESULT_PARAM, "link-required")),
+                    Err(_) => server_error(),
+                };
             }
-            Err(_) => (
-                empty_jar,
-                self.error_url(LOGIN_RESULT_PARAM, "server_error"),
-            ),
+        };
+
+        match sign_in {
+            Ok(LoginResult::Success(jar)) => (jar, self.result_url(LOGIN_RESULT_PARAM, "success")),
+            Ok(LoginResult::MfaRequired(jar)) => {
+                (jar, self.result_url(LOGIN_RESULT_PARAM, "mfa-pending"))
+            }
+            Err(_) => server_error(),
         }
+    }
+
+    fn pending_link_jar(&self, google_id: &str, google_email: &str) -> AppResult<CookieJar> {
+        let pending_token = self.sign_pending_cookie(google_id, google_email)?;
+
+        let opts = self.config.base_cookie_options();
+
+        let mut c = Cookie::new(OAUTH_PENDING_COOKIE, pending_token);
+
+        c.set_http_only(true);
+        c.set_secure(opts.secure);
+        c.set_path("/");
+        c.set_same_site(SameSite::Lax);
+        c.set_max_age(Duration::minutes(PENDING_COOKIE_TTL_MINS));
+
+        Ok(CookieJar::new().add(c))
+    }
+
+    fn auth(&self) -> AuthService {
+        AuthService::from_state(&self.state)
     }
 
     /// Links by Google subject, so the Google email may differ from the
@@ -365,9 +363,12 @@ impl OAuthService {
         google_id: &str,
         google_email: &str,
         password: &str,
-    ) -> AppResult<(CookieJar, Value)> {
+        client: ClientInfo<'_>,
+    ) -> AppResult<LoginResult> {
         let user = sqlx::query!(
-            r#"SELECT id, email, password_hash, email_verified FROM users WHERE email = $1"#,
+            r#"SELECT id, email, password_hash, email_verified,
+                      mfa_enabled AND mfa_secret IS NOT NULL AS "mfa_required!"
+               FROM users WHERE email = $1"#,
             google_email.to_lowercase()
         )
         .fetch_optional(&self.db)
@@ -389,8 +390,11 @@ impl OAuthService {
         self.insert_google_link(user.id, google_id, google_email)
             .await?;
 
-        let jar = self.generate_auth_jar(user.id, &user.email).await?;
-        Ok((jar, json!({ "ok": true })))
+        // The password is only the first factor: linking is safe on it alone,
+        // since signing in with Google still demands the second one.
+        self.auth()
+            .complete_sign_in(user.id, &user.email, user.mfa_required, client)
+            .await
     }
 
     pub async fn unlink_google_account(&self, user_id: Uuid) -> AppResult<Value> {
@@ -447,26 +451,18 @@ impl OAuthService {
 
         if let Some(row) = linked {
             let user = sqlx::query!(
-                r#"SELECT id, email, mfa_enabled, mfa_secret FROM users WHERE id = $1"#,
+                r#"SELECT id, email, mfa_enabled AND mfa_secret IS NOT NULL AS "mfa_required!"
+                   FROM users WHERE id = $1"#,
                 row.user_id
             )
             .fetch_optional(&self.db)
             .await?
             .ok_or_else(|| AppError::internal("Linked user not found"))?;
 
-            let ban = sqlx::query!(r#"SELECT id FROM banned_users WHERE user_id = $1"#, user.id)
-                .fetch_optional(&self.db)
-                .await?;
-
-            if ban.is_some() {
-                return Err(AppError::forbidden("Your account has been suspended."));
-            }
-
-            return Ok(OAuthResolution::Login {
+            return Ok(OAuthResolution::SignIn {
                 user_id: user.id,
                 email: user.email,
-                mfa_enabled: user.mfa_enabled,
-                mfa_secret: user.mfa_secret,
+                mfa_required: user.mfa_required,
             });
         }
 
@@ -495,9 +491,10 @@ impl OAuthService {
             .execute(&self.db)
             .await?;
 
-        Ok(OAuthResolution::NewUser {
+        Ok(OAuthResolution::SignIn {
             user_id: user.id,
             email: user.email,
+            mfa_required: false,
         })
     }
 
@@ -663,43 +660,17 @@ impl OAuthService {
 
         Ok(data.claims)
     }
-
-    async fn generate_auth_jar(&self, user_id: Uuid, email: &str) -> AppResult<CookieJar> {
-        let tokens = TokenService::from_state(&self.state)
-            .issue_pair(crate::auth::token::IssueTokenParams {
-                user_id,
-                email,
-                user_agent: None,
-                ip_address: None,
-                parent: None,
-            })
-            .await?;
-
-        let opts = self.config.base_cookie_options();
-
-        let csrf = generate_csrf_token();
-
-        Ok(CookieJar::new()
-            .add(access_cookie(tokens.access_token, &opts))
-            .add(refresh_cookie(tokens.refresh_token, &opts))
-            .add(crate::common::csrf::csrf_cookie(&csrf, &opts)))
-    }
 }
 
 enum OAuthResolution {
-    Login {
+    SignIn {
         user_id: Uuid,
         email: String,
-        mfa_enabled: bool,
-        mfa_secret: Option<serde_json::Value>,
+        mfa_required: bool,
     },
     LinkRequired {
         google_id: String,
         google_email: String,
-    },
-    NewUser {
-        user_id: Uuid,
-        email: String,
     },
 }
 

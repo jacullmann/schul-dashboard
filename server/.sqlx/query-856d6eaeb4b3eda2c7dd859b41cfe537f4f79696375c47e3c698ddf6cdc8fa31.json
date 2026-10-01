@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT id, email, email_verified, mfa_enabled, done_setup, personalized, preferences\n            FROM users WHERE id = $1\n            ",
+  "query": "\n            SELECT id, email, email_verified, mfa_enabled, done_setup, personalized, preferences,\n                   password_hash IS NOT NULL AS \"has_password!\"\n            FROM users WHERE id = $1\n            ",
   "describe": {
     "columns": [
       {
@@ -79,6 +79,12 @@
             "name": "preferences"
           }
         }
+      },
+      {
+        "ordinal": 7,
+        "name": "has_password!",
+        "type_info": "Bool",
+        "origin": "Expression"
       }
     ],
     "parameters": {
@@ -93,8 +99,9 @@
       false,
       false,
       false,
-      false
+      false,
+      null
     ]
   },
-  "hash": "54d6cac244d34ec9b62f37f70bab7a926252a661f93e7a8f2448105c7db80871"
+  "hash": "856d6eaeb4b3eda2c7dd859b41cfe537f4f79696375c47e3c698ddf6cdc8fa31"
 }

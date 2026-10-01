@@ -3,7 +3,8 @@ use super::{
     service::{OAUTH_PENDING_COOKIE, OAuthIntent, OAuthService},
 };
 use crate::{
-    common::extractors::AuthUser,
+    auth::service::{ClientInfo, LoginResult},
+    common::extractors::{AuthUser, ClientIp, UserAgent, ValidatedJson},
     error::{AppError, AppResult},
     state::AppState,
 };
@@ -14,7 +15,7 @@ use axum::{
 };
 use axum_extra::extract::CookieJar;
 use serde::Deserialize;
-use serde_json::Value;
+use serde_json::{Value, json};
 
 #[derive(Deserialize)]
 pub struct OAuthCallbackQuery {
@@ -42,6 +43,8 @@ pub async fn start_google_link(
 
 pub async fn handle_google_callback(
     State(s): State<AppState>,
+    ClientIp(ip): ClientIp,
+    UserAgent(ua): UserAgent,
     jar: CookieJar,
     Query(q): Query<OAuthCallbackQuery>,
 ) -> (CookieJar, Redirect) {
@@ -53,6 +56,10 @@ pub async fn handle_google_callback(
             q.state.as_deref(),
             q.error.as_deref(),
             state_cookie.as_deref(),
+            ClientInfo {
+                user_agent: ua.as_deref(),
+                ip: ip.as_deref(),
+            },
         )
         .await;
 
@@ -61,8 +68,10 @@ pub async fn handle_google_callback(
 
 pub async fn link_google_account(
     State(s): State<AppState>,
+    ClientIp(ip): ClientIp,
+    UserAgent(ua): UserAgent,
     jar: CookieJar,
-    Json(dto): Json<LinkGoogleAccountDto>,
+    ValidatedJson(dto): ValidatedJson<LinkGoogleAccountDto>,
 ) -> AppResult<(CookieJar, Json<Value>)> {
     let pending_token = jar
         .get(OAUTH_PENDING_COOKIE)
@@ -80,15 +89,22 @@ pub async fn link_google_account(
     )
     .map_err(|_| AppError::Unauthorized("Authentication failed.".into()))?;
 
-    let (new_jar, body) = OAuthService::from_state(&s)
+    let result = OAuthService::from_state(&s)
         .link_google_account(
             &data.claims.google_id,
             &data.claims.google_email,
             &dto.password,
+            ClientInfo {
+                user_agent: ua.as_deref(),
+                ip: ip.as_deref(),
+            },
         )
         .await?;
 
-    Ok((new_jar, Json(body)))
+    Ok(match result {
+        LoginResult::Success(jar) => (jar, Json(json!({ "ok": true }))),
+        LoginResult::MfaRequired(jar) => (jar, Json(json!({ "ok": true, "requiresMfa": true }))),
+    })
 }
 
 pub async fn unlink_google_account(

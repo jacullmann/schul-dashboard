@@ -77,6 +77,22 @@ impl EmailService {
         .await
     }
 
+    pub async fn send_password_setup_email(&self, to: &str, code: &str) -> Result<(), AppError> {
+        self.send(
+            to,
+            "Passwort festlegen",
+            &format!(
+                r"
+                <h3>Bestätigungscode</h3>
+                <p>Gib folgenden Code auf der schul-dashboard Seite ein, um ein Passwort für dein Konto festzulegen:</p>
+                <p><strong>{code}</strong></p>
+                <p>Dieser Code ist für 30 Minuten gültig.</p>
+            "
+            ),
+        )
+        .await
+    }
+
     pub async fn send_security_email(&self, to: &str) -> Result<(), AppError> {
         self.send(
             to,

@@ -25,6 +25,8 @@ pub fn router() -> Router<AppState> {
         .route("/auth/forgot", post(forgot_password))
         .route("/auth/reset/verify", post(verify_reset_token))
         .route("/auth/reset", post(reset_password))
+        .route("/auth/set-password/code", post(request_password_setup_code))
+        .route("/auth/set-password", post(set_password))
         .layer(GovernorLayer::new(brute_force_limiter));
 
     let normal = Router::new()

@@ -32,3 +32,9 @@ export interface ChangePasswordErrors {
   new?: string;
   confirm?: string;
 }
+
+export interface SetPasswordErrors {
+  code?: string;
+  new?: string;
+  confirm?: string;
+}

@@ -71,3 +71,17 @@ pub struct ChangePasswordDto {
     ))]
     pub new_password: String,
 }
+
+#[derive(Debug, Deserialize, Validate)]
+#[serde(rename_all = "camelCase")]
+pub struct SetPasswordDto {
+    #[validate(length(equal = 6, message = "Invalid code."))]
+    pub code: String,
+
+    #[validate(length(
+        min = 8,
+        max = 255,
+        message = "Password must be at least 8 characters long and contain letters and numbers."
+    ))]
+    pub new_password: String,
+}

@@ -97,7 +97,8 @@ impl AuthService {
 
         let user = sqlx::query!(
             r#"
-            SELECT id, email, password_hash, email_verified, mfa_enabled, mfa_secret
+            SELECT id, email, password_hash, email_verified,
+                   mfa_enabled AND mfa_secret IS NOT NULL AS "mfa_required!"
             FROM users WHERE email = $1
             "#,
             email
@@ -137,44 +138,64 @@ impl AuthService {
             ));
         }
 
-        let ban = sqlx::query!(r#"SELECT id FROM banned_users WHERE user_id = $1"#, user.id)
-            .fetch_optional(&self.db)
-            .await?;
-        if ban.is_some() {
+        let client = ClientInfo { user_agent, ip };
+
+        self.complete_sign_in(user.id, &user.email, user.mfa_required, client)
+            .await
+    }
+
+    /// The one gate every sign-in passes once its first factor (password or
+    /// Google) is verified, so no entry point can skip the ban check or the
+    /// second factor.
+    pub async fn complete_sign_in(
+        &self,
+        user_id: Uuid,
+        email: &str,
+        mfa_required: bool,
+        client: ClientInfo<'_>,
+    ) -> AppResult<LoginResult> {
+        let banned = sqlx::query_scalar!(
+            r#"SELECT EXISTS (SELECT 1 FROM banned_users WHERE user_id = $1) AS "banned!""#,
+            user_id
+        )
+        .fetch_one(&self.db)
+        .await?;
+
+        if banned {
             return Err(AppError::Forbidden(
                 "Your account has been suspended.".into(),
             ));
         }
 
-        if user.mfa_enabled && user.mfa_secret.is_some() {
-            let opts = self.config.base_cookie_options();
-
+        if mfa_required {
             let mfa_token = self
                 .jwt
-                .sign_mfa_pending(user.id, &user.email, MFA_PENDING_TTL)
+                .sign_mfa_pending(user_id, email, MFA_PENDING_TTL)
                 .map_err(|e| AppError::internal(e.to_string()))?;
 
-            let jar = CookieJar::new().add(mfa_pending_cookie(mfa_token, &opts));
+            let opts = self.config.base_cookie_options();
 
-            return Ok(LoginResult::MfaRequired(jar));
+            return Ok(LoginResult::MfaRequired(
+                CookieJar::new().add(mfa_pending_cookie(mfa_token, &opts)),
+            ));
         }
 
         sqlx::query!(
             r#"UPDATE users SET last_login_at = now() WHERE id = $1"#,
-            user.id
+            user_id
         )
         .execute(&self.db)
         .await?;
 
         sqlx::query!(
             r#"DELETE FROM mfa_pending_secrets WHERE user_id = $1"#,
-            user.id
+            user_id
         )
         .execute(&self.db)
         .await?;
 
         let (jar, _csrf) = self
-            .issue_session(user.id, &user.email, user_agent, ip)
+            .issue_session(user_id, email, client.user_agent, client.ip)
             .await?;
 
         Ok(LoginResult::Success(jar))
@@ -351,7 +372,8 @@ impl AuthService {
     pub async fn get_me(&self, user_id: Uuid) -> AppResult<serde_json::Value> {
         let user = sqlx::query!(
             r#"
-            SELECT id, email, email_verified, mfa_enabled, done_setup, personalized, preferences
+            SELECT id, email, email_verified, mfa_enabled, done_setup, personalized, preferences,
+                   password_hash IS NOT NULL AS "has_password!"
             FROM users WHERE id = $1
             "#,
             user_id
@@ -392,6 +414,7 @@ impl AuthService {
             "doneSetup": user.done_setup,
             "personalized": user.personalized,
             "mfaEnabled": user.mfa_enabled,
+            "hasPassword": user.has_password,
             "preferences": user.preferences,
             "username": pseudonym,
         }))
@@ -494,6 +517,37 @@ impl AuthService {
             }));
         }
 
+        let code = self.issue_email_code(&email).await?;
+
+        let _ = self.email.send_password_reset_email(&email, &code).await;
+
+        Ok(json!({
+            "ok": true,
+            "message": "If the email exists, a recovery email has been sent."
+        }))
+    }
+
+    pub async fn verify_reset_token(
+        &self,
+        email: &str,
+        code: &str,
+    ) -> AppResult<serde_json::Value> {
+        let email = email.to_lowercase();
+
+        self.consume_email_code(&email, code).await?;
+
+        let reset_token = self
+            .jwt
+            .sign_password_reset(&email, PASSWORD_RESET_TTL)
+            .map_err(|e| AppError::internal(e.to_string()))?;
+
+        Ok(json!({ "ok": true, "resetToken": reset_token }))
+    }
+
+    /// Codes proving control of the account email. Password reset and the
+    /// first password of a Google-only account share them: both grant the
+    /// same thing, a password for that email.
+    async fn issue_email_code(&self, email: &str) -> AppResult<String> {
         let code = hex::encode_upper(rand::random::<[u8; 3]>());
 
         let expires_at = Utc::now() + chrono_ttl(PASSWORD_RESET_CODE_TTL);
@@ -514,22 +568,11 @@ impl AuthService {
         .execute(&self.db)
         .await?;
 
-        let _ = self.email.send_password_reset_email(&email, &code).await;
-
-        Ok(json!({
-            "ok": true,
-            "message": "If the email exists, a recovery email has been sent."
-        }))
+        Ok(code)
     }
 
-    pub async fn verify_reset_token(
-        &self,
-        email: &str,
-        code: &str,
-    ) -> AppResult<serde_json::Value> {
+    async fn consume_email_code(&self, email: &str, code: &str) -> AppResult<()> {
         const MAX_RESET_CODE_ATTEMPTS: i32 = 5;
-
-        let email = email.to_lowercase();
 
         let code = code.trim();
 
@@ -549,7 +592,7 @@ impl AuthService {
         )
         .fetch_optional(&mut *tx)
         .await?
-        .ok_or_else(|| AppError::BadRequest("Invalid reset code.".into()))?;
+        .ok_or_else(|| AppError::BadRequest("Invalid code.".into()))?;
 
         if pr.attempts > MAX_RESET_CODE_ATTEMPTS {
             sqlx::query!(
@@ -566,12 +609,12 @@ impl AuthService {
 
         if pr.expires_at < Utc::now() {
             tx.commit().await?;
-            return Err(AppError::BadRequest("Reset code has expired.".into()));
+            return Err(AppError::BadRequest("Code has expired.".into()));
         }
 
         if !constant_time_str_eq(code, &pr.code) {
             tx.commit().await?;
-            return Err(AppError::BadRequest("Invalid reset code.".into()));
+            return Err(AppError::BadRequest("Invalid code.".into()));
         }
 
         sqlx::query!(
@@ -583,12 +626,88 @@ impl AuthService {
 
         tx.commit().await?;
 
-        let reset_token = self
-            .jwt
-            .sign_password_reset(&email, PASSWORD_RESET_TTL)
-            .map_err(|e| AppError::internal(e.to_string()))?;
+        Ok(())
+    }
 
-        Ok(json!({ "ok": true, "resetToken": reset_token }))
+    pub async fn request_password_setup_code(&self, user_id: Uuid) -> AppResult<serde_json::Value> {
+        let email = self.passwordless_account_email(user_id).await?;
+
+        let code = self.issue_email_code(&email).await?;
+
+        self.email.send_password_setup_email(&email, &code).await?;
+
+        Ok(json!({ "ok": true }))
+    }
+
+    /// Unlike a reset this leaves MFA untouched and signs the caller straight
+    /// back in: they are already authenticated, and the email code proves
+    /// the same as a reset would.
+    pub async fn set_initial_password(
+        &self,
+        user_id: Uuid,
+        code: &str,
+        new_password: String,
+        user_agent: Option<&str>,
+        ip: Option<&str>,
+    ) -> AppResult<(CookieJar, serde_json::Value)> {
+        validate_password_strength(&new_password).map_err(|e| AppError::BadRequest(e.into()))?;
+
+        let email = self.passwordless_account_email(user_id).await?;
+
+        self.consume_email_code(&email, code).await?;
+
+        let hash = hash_password(new_password).await?;
+
+        // The IS NULL guard keeps a concurrent request from overwriting a
+        // password that was set in the meantime.
+        let updated = sqlx::query!(
+            r#"UPDATE users SET password_hash = $1 WHERE id = $2 AND password_hash IS NULL"#,
+            hash,
+            user_id
+        )
+        .execute(&self.db)
+        .await?
+        .rows_affected();
+
+        if updated == 0 {
+            return Err(AppError::bad_request(
+                "Your account already has a password.",
+            ));
+        }
+
+        self.tokens
+            .revoke_all_for_user(user_id, PASSWORD_CHANGE, None)
+            .await?;
+
+        let (jar, _) = self.issue_session(user_id, &email, user_agent, ip).await?;
+
+        sqlx::query!(
+            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'account:password_set', $2)"#,
+            user_id,
+            json!({ "by": "self" })
+        )
+        .execute(&self.db)
+        .await?;
+
+        Ok((jar, json!({ "ok": true })))
+    }
+
+    async fn passwordless_account_email(&self, user_id: Uuid) -> AppResult<String> {
+        let user = sqlx::query!(
+            r#"SELECT email, password_hash IS NOT NULL AS "has_password!" FROM users WHERE id = $1"#,
+            user_id
+        )
+        .fetch_optional(&self.db)
+        .await?
+        .ok_or_else(|| AppError::not_found("User not found."))?;
+
+        if user.has_password {
+            return Err(AppError::bad_request(
+                "Your account already has a password.",
+            ));
+        }
+
+        Ok(user.email)
     }
 
     pub async fn reset_password(
@@ -664,7 +783,11 @@ impl AuthService {
         .await?
         .ok_or_else(|| AppError::BadRequest("User not found.".into()))?;
 
-        let ok = verify_password(current_password, user.password_hash.unwrap_or_default()).await?;
+        let Some(current_hash) = user.password_hash else {
+            return Err(AppError::bad_request("Your account has no password yet."));
+        };
+
+        let ok = verify_password(current_password, current_hash).await?;
 
         if !ok {
             return Err(AppError::Forbidden("Current password is incorrect.".into()));
@@ -733,6 +856,13 @@ impl AuthService {
 
         Ok(json!({ "groups": groups }))
     }
+}
+
+/// Recorded with the session, so the session list can name the device.
+#[derive(Clone, Copy)]
+pub struct ClientInfo<'a> {
+    pub user_agent: Option<&'a str>,
+    pub ip: Option<&'a str>,
 }
 
 pub enum LoginResult {
