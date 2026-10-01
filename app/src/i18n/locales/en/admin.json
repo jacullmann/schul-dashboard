@@ -43,6 +43,8 @@
       "title": "Automatic cleanup",
       "description": "The database deletes old data on its own every 6 hours. Overdue entries should have been deleted at least two runs ago, which means the job is not running.",
       "ok": "OK",
+      "all_ok": "All OK",
+      "jobs_overdue": "Overdue jobs: {count}",
       "overdue": "Overdue: {count}",
       "error": "Could not load the status.",
       "retry": "Try again",
