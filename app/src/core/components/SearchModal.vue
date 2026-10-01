@@ -116,7 +116,7 @@ interface SearchResult {
   parent?: string;
   category: ResultCategory;
   icon: Component;
-  action: () => void | Promise<void>;
+  action: () => unknown;
   shortcut?: string[];
   condition?: boolean;
   /** Too specific for the unfiltered list; only shown once it matches a query. */
