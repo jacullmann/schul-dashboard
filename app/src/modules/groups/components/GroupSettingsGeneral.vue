@@ -37,7 +37,7 @@ const canEditGroupType = computed(
     checkPermission('edit_schedule'),
 );
 
-defineProps<{
+const props = defineProps<{
   hasOwnerRights?: boolean;
   groupName: string;
   newGroupName: string;
@@ -51,6 +51,40 @@ const emit = defineEmits<{
   (e: 'save-edit'): void;
   (e: 'update:newGroupName', value: string): void;
 }>();
+
+const groupNameInputRef = ref<HTMLInputElement | null>(null);
+
+watch(
+  () => props.editingGroupName,
+  (editing) => {
+    if (editing) groupNameInputRef.value?.focus();
+  },
+  { flush: 'post' },
+);
+
+// The name text doubles as the sizer for the inline input, so it mirrors the
+// draft while editing and keeps showing the saved draft until the refreshed
+// group name arrives, avoiding a flash of the old name.
+const groupNameText = computed(() => {
+  if (props.editingGroupName)
+    return (
+      props.newGroupName ||
+      t('groups.settings.general.appearance.name_placeholder')
+    );
+  if (props.savingGroupName) return props.newGroupName.trim();
+  return props.groupName;
+});
+
+const canSaveGroupName = computed(
+  () =>
+    canEditSettings.value &&
+    !props.savingGroupName &&
+    !!props.newGroupName.trim(),
+);
+
+function saveGroupName() {
+  if (canSaveGroupName.value) emit('save-edit');
+}
 
 const {
   deleteGroup,
@@ -280,20 +314,34 @@ async function confirmDeleteGroup() {
       <div class="flex items-center gap-6">
         <!-- Avatar Preview Circle -->
         <div class="relative flex-shrink-0">
+          <button
+            v-if="canEditSettings"
+            type="button"
+            class="group relative block rounded-full cursor-pointer outline-none transition-focus focus-visible:shadow-focus-ring disabled:cursor-not-allowed"
+            :aria-label="t('groups.settings.general.avatar.actions.change')"
+            aria-haspopup="menu"
+            :aria-expanded="isMenuOpen"
+            :disabled="savingAvatar"
+            @click.stop="toggleMenu"
+          >
+            <Avatar
+              :name="groupName"
+              :picture="activeGroupAvatarUrl"
+              :size="24"
+            />
+            <span
+              class="absolute bottom-0 right-0 flex p-2 rounded-full bg-action text-on-action ring-4 ring-canvas transition-hover group-hover:bg-action-hover group-active:bg-action-hover group-disabled:opacity-50"
+              aria-hidden="true"
+            >
+              <Pencil :size="18" />
+            </span>
+          </button>
+
           <Avatar
+            v-else
             :name="groupName"
             :picture="activeGroupAvatarUrl"
             :size="24"
-          />
-
-          <BaseButton
-            v-if="canEditSettings"
-            variant="action"
-            :icon="Pencil"
-            size="sm"
-            class="absolute! bottom-0 right-0 ring-4 ring-canvas"
-            :disabled="savingAvatar"
-            @click.stop="toggleMenu"
           />
 
           <div
@@ -340,53 +388,92 @@ async function confirmDeleteGroup() {
           </BaseMenu>
         </div>
 
-        <div class="flex-1 w-full flex flex-col">
+        <div class="flex-1 min-w-0 flex flex-col">
           <BaseLabel for="group-name">{{
             t('groups.settings.general.appearance.name_label')
           }}</BaseLabel>
-          <div v-if="!editingGroupName" class="flex items-center gap-2 h-6">
-            <span class="font-semibold text-xl">{{ groupName }}</span>
-            <BaseTooltip :content="t('common.buttons.edit')">
-              <BaseButton
-                v-if="canEditSettings"
-                class="w-8 h-8 p-0"
-                variant="ghost"
-                :icon="Pencil"
-                @click="emit('start-edit')"
-              />
-            </BaseTooltip>
-          </div>
-
-          <template v-else>
+          <div
+            class="flex items-center gap-2 min-h-10 max-md:grid max-md:grid-cols-[repeat(2,minmax(0,auto))]"
+            :class="{ 'max-md:justify-start': !editingGroupName }"
+          >
             <div
-              class="flex flex-col items-stretch sm:items-center gap-2 w-full max-w-[400px]"
+              class="relative max-w-full justify-self-start font-semibold text-xl"
+              :class="
+                editingGroupName
+                  ? 'min-w-48 max-md:col-span-2 max-md:w-full'
+                  : 'min-w-0'
+              "
             >
-              <BaseInput
+              <span
+                class="block overflow-hidden text-ellipsis whitespace-pre"
+                :class="{ invisible: editingGroupName }"
+                :aria-hidden="editingGroupName"
+                >{{ groupNameText }}</span
+              >
+              <input
+                v-if="editingGroupName"
                 id="group-name"
-                class="flex-1"
+                ref="groupNameInputRef"
+                class="peer absolute inset-0 w-full p-0 bg-transparent border-0 outline-none placeholder:text-on-ghost-subtle"
+                autocomplete="off"
                 :value="newGroupName"
                 :placeholder="
                   t('groups.settings.general.appearance.name_placeholder')
                 "
-                :disabled="!canEditSettings"
+                :readonly="savingGroupName"
                 @input="
                   emit(
                     'update:newGroupName',
                     ($event.target as HTMLInputElement).value,
                   )
                 "
-                @keyup.enter="emit('save-edit')"
+                @keydown.enter.prevent="saveGroupName"
+                @keydown.esc.stop="emit('cancel-edit')"
               />
-              <BaseRow justify="end" class="w-full mt-2">
+              <Transition
+                enter-from-class="scale-x-0"
+                leave-to-class="scale-x-0"
+              >
+                <span
+                  v-if="editingGroupName"
+                  class="absolute inset-x-0 -bottom-0.5 h-0.5 rounded-full origin-left bg-ghost-border peer-focus:bg-focus transition-[scale,background-color] duration-(--duration-focus) ease-(--ease-settle)"
+                  aria-hidden="true"
+                />
+              </Transition>
+            </div>
+
+            <Transition
+              v-if="canEditSettings"
+              mode="out-in"
+              enter-active-class="transition-[opacity,scale] duration-(--duration-focus) ease-(--ease-settle)"
+              enter-from-class="opacity-0 scale-90"
+              leave-active-class="transition-[opacity,scale] duration-(--duration-hover) ease-(--ease-focus)"
+              leave-to-class="opacity-0 scale-90"
+            >
+              <BaseTooltip
+                v-if="!editingGroupName"
+                :content="t('common.buttons.edit')"
+              >
+                <BaseButton
+                  variant="ghost"
+                  :icon="Pencil"
+                  :aria-label="t('common.buttons.edit')"
+                  @click="emit('start-edit')"
+                />
+              </BaseTooltip>
+
+              <BaseRow
+                v-else
+                justify="end"
+                class="shrink-0 flex-nowrap max-md:col-span-2"
+              >
                 <BaseButton variant="ghost" @click="emit('cancel-edit')">{{
                   t('common.buttons.cancel')
                 }}</BaseButton>
                 <BaseButton
-                  :disabled="
-                    savingGroupName || !newGroupName.trim() || !canEditSettings
-                  "
+                  :disabled="!canSaveGroupName"
                   variant="action"
-                  @click="emit('save-edit')"
+                  @click="saveGroupName"
                 >
                   {{
                     savingGroupName
@@ -395,8 +482,8 @@ async function confirmDeleteGroup() {
                   }}
                 </BaseButton>
               </BaseRow>
-            </div>
-          </template>
+            </Transition>
+          </div>
 
           <span
             v-if="avatarError"

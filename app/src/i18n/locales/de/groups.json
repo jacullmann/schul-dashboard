@@ -30,6 +30,7 @@
           "message": "Bist du sicher, dass du das Gruppen-Profilbild löschen möchtest?"
         },
         "actions": {
+          "change": "Gruppenbild ändern",
           "upload": "Bild hochladen",
           "capture": "Bild aufnehmen",
           "delete": "Bild löschen"
@@ -99,7 +100,7 @@
       }
     },
     "members": {
-      "joined": "{time} beigetreten",
+      "joined": "{time}",
       "title": "Mitglieder",
       "count_one": "1 Mitglied in dieser Gruppe",
       "count_other": "{count} Mitglieder in dieser Gruppe",
@@ -252,7 +253,7 @@
       },
       "changes": {
         "tooltip": "Übersicht des Stundenplanänderungsmenüs",
-        "title": "Stundenplanänderungen",
+        "title": "Änderungen",
         "headline": "Trage Änderungen Live und anschaulich ein",
         "select_lessons": "Stunden auswählen",
         "submit_changes": "Änderungen eintragen",
@@ -296,7 +297,7 @@
       },
       "editor": {
         "edit_schedule_button": "Stundenplan bearbeiten",
-        "title": "Stundenplan-Editor",
+        "title": "Editor",
         "exit_button": "Fertig",
         "plan_config_title": "Plan-Einstellungen",
         "grid_title": "Unterrichtsstunden",
@@ -410,7 +411,7 @@
       "dalton_description": "Wird als Fach für Daltonaufträge angeboten. Ist kein Fach markiert, stehen bei Daltonaufträgen alle Fächer zur Auswahl.",
       "dalton_badge": "Daltonfach"
     },
-    "title": "Gruppen Verwaltung",
+    "title": "Gruppeneinstellungen",
     "messages": {
       "role_updated": "Rolle aktualisiert",
       "member_removed_banned": "Mitglied entfernt und gebannt",
@@ -445,7 +446,7 @@
       },
       "general": {
         "label": "Allgemein",
-        "description": "Aussehen • Passwort • Löschen"
+        "description": "Aussehen • Einstellungen • Löschen"
       },
       "members": {
         "label": "Mitglieder",
@@ -457,7 +458,7 @@
       },
       "schedule": {
         "label": "Stundenplan",
-        "description": "Stunden • Stundenplanänderungen"
+        "description": "Änderungen • Editor"
       },
       "subjects": {
         "label": "Fächer",

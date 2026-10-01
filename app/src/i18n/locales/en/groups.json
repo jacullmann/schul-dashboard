@@ -30,6 +30,7 @@
           "message": "Are you sure you want to delete the group profile picture?"
         },
         "actions": {
+          "change": "Change group picture",
           "upload": "Upload image",
           "capture": "Take photo",
           "delete": "Delete image"
@@ -98,7 +99,7 @@
       }
     },
     "members": {
-      "joined": "Joined {time}",
+      "joined": "{time}",
       "title": "Members",
       "count_one": "1 member in this group",
       "count_other": "{count} members in this group",
@@ -252,7 +253,7 @@
       },
       "changes": {
         "tooltip": "Overview of the schedule changes menu",
-        "title": "Schedule Changes",
+        "title": "Changes",
         "headline": "Enter changes live and clearly",
         "select_lessons": "Select Lessons",
         "submit_changes": "Submit changes",
@@ -296,7 +297,7 @@
       },
       "editor": {
         "edit_schedule_button": "Edit Schedule",
-        "title": "Schedule Editor",
+        "title": "Editor",
         "exit_button": "Done",
         "plan_config_title": "Schedule Settings",
         "grid_title": "Lessons",

@@ -114,49 +114,41 @@ const navItems = computed<AdminNavItem[]>(() => [
     id: 'overview',
     label: 'Overview',
     icon: markRaw(LayoutDashboard),
-    description: 'Activity • Status • Quick actions',
   }, */
   {
     id: 'courses',
     label: t('groups.settings.nav.courses.label'),
     icon: markRaw(GraduationCap),
-    description: t('groups.settings.nav.courses.description'),
   },
   {
     id: 'general',
     label: t('groups.settings.nav.general.label'),
     icon: markRaw(SlidersHorizontal),
-    description: t('groups.settings.nav.general.description'),
   },
   {
     id: 'members',
     label: t('groups.settings.nav.members.label'),
     icon: markRaw(UsersRound),
-    description: t('groups.settings.nav.members.description'),
   },
   {
     id: 'permissions',
     label: t('groups.settings.nav.permissions.label'),
     icon: markRaw(Key),
-    description: t('groups.settings.nav.permissions.description'),
   },
   {
     id: 'schedule',
     label: t('groups.settings.nav.schedule.label'),
     icon: markRaw(CalendarDays),
-    description: t('groups.settings.nav.schedule.description'),
   },
   {
     id: 'subjects',
     label: t('groups.settings.nav.subjects.label'),
     icon: markRaw(BookOpen),
-    description: t('groups.settings.nav.subjects.description'),
   },
   {
     id: 'announcements',
     label: t('groups.settings.nav.announcements.label'),
     icon: markRaw(Megaphone),
-    description: t('groups.settings.nav.announcements.description'),
   },
 ]);
 
@@ -225,7 +217,7 @@ function goBack() {
     <Transition :name="transitionName">
       <div v-if="!activeTab" key="master" class="settings-pane master-pane">
         <header
-          class="p-4 pt-2 md:px-6 bg-canvas border-b border-ghost-border shrink-0"
+          class="px-4 py-2 md:px-6 bg-canvas border-b border-ghost-border shrink-0"
         >
           <div class="w-full max-w-200 mx-auto flex items-center gap-2">
             <BaseButton
@@ -236,13 +228,7 @@ function goBack() {
               @click="leaveSettings"
             />
             <div>
-              <h1>{{ t('groups.settings.title') }}</h1>
-              <div
-                v-if="groupName"
-                class="text-on-ghost-muted font-semibold text-base"
-              >
-                {{ groupName }}
-              </div>
+              <h2>{{ t('groups.settings.title') }}</h2>
             </div>
           </div>
         </header>
@@ -256,19 +242,17 @@ function goBack() {
               @click="selectTab(item.id)"
             >
               <template #icon>
-                <span class="flex size-10 justify-center items-center">
-                  <component :is="item.icon" :size="24" />
-                </span>
+                <component
+                  :is="item.icon"
+                  :size="24"
+                  :stroke-width="1.8"
+                  class="mx-2"
+                />
               </template>
               <template #label>
-                <span class="flex flex-col min-h-10 justify-between">
-                  <span class="text-on-ghost text-base/tight font-medium">{{
-                    item.label
-                  }}</span>
-                  <span class="text-on-ghost-muted text-xs/tight font-normal">{{
-                    item.description
-                  }}</span>
-                </span>
+                <div class="text-on-ghost text-base font-normal">
+                  {{ item.label }}
+                </div>
               </template>
             </BaseList>
           </div>
@@ -283,7 +267,7 @@ function goBack() {
         class="settings-pane detail-pane"
       >
         <header
-          class="flex items-center py-4 md:py-6 h-16 bg-canvas border-b border-ghost-border shrink-0"
+          class="flex items-center py-2 px-4 md:px-6 bg-canvas border-b border-ghost-border shrink-0"
         >
           <div
             class="header-left max-w-250 my-0 mx-auto flex items-center w-full gap-2"

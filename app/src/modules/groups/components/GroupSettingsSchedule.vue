@@ -882,11 +882,16 @@ onBeforeUnmount(() => {
 <template>
   <div>
     <PageHeader>
-      <span>{{
-        isEditMode
-          ? t('groups.settings.schedule.editor.title')
-          : t('groups.settings.schedule.changes.title')
-      }}</span>
+      <span class="swap-stack">
+        <Transition :name="isEditMode ? 'swap-wheel-down' : 'swap-wheel-up'">
+          <span v-if="isEditMode" class="swap-text">
+            {{ t('groups.settings.schedule.editor.title') }}
+          </span>
+          <span v-else class="swap-text">
+            {{ t('groups.settings.schedule.changes.title') }}
+          </span>
+        </Transition>
+      </span>
 
       <template #info>
         <InfoModal
@@ -900,68 +905,71 @@ onBeforeUnmount(() => {
       </template>
 
       <template #action>
-        <div class="flex items-center gap-2">
-          <BaseTooltip
-            v-if="!isEditMode"
-            :content="t('common.buttons.refresh')"
-          >
-            <BaseButton
-              :disabled="loadingLessons || loadingSubs"
-              variant="ghost"
-              :icon="RefreshCw"
-              @click="emit('refresh')"
-            />
-          </BaseTooltip>
+        <div class="swap-stack justify-items-end">
+          <Transition name="swap-icon">
+            <div v-if="!isEditMode" class="flex items-center gap-2">
+              <BaseTooltip :content="t('common.buttons.refresh')">
+                <BaseButton
+                  :disabled="loadingLessons || loadingSubs"
+                  variant="ghost"
+                  :icon="RefreshCw"
+                  @click="emit('refresh')"
+                />
+              </BaseTooltip>
 
-          <BaseTooltip
-            :content="t('groups.settings.schedule.editor.edit_schedule_button')"
-            placement="bottom"
-          >
-            <BaseButton
-              v-if="!isEditMode && canEditScheduleConfig"
-              variant="ghost"
-              :icon="Pencil"
-              @click="enterEditMode"
-            />
-          </BaseTooltip>
+              <BaseTooltip
+                v-if="canEditScheduleConfig"
+                :content="
+                  t('groups.settings.schedule.editor.edit_schedule_button')
+                "
+                placement="bottom"
+              >
+                <BaseButton
+                  variant="ghost"
+                  :icon="Pencil"
+                  @click="enterEditMode"
+                />
+              </BaseTooltip>
+            </div>
 
-          <template v-if="isEditMode">
-            <BaseButton
-              v-if="windowWidth <= 768"
-              variant="ghost"
-              :icon="X"
-              @click="cancelEditMode"
-            />
-            <BaseButton
-              v-else
-              variant="ghost"
-              :icon="X"
-              @click="cancelEditMode"
-            >
-              {{ t('groups.settings.schedule.editor.cancel_button') }}
-            </BaseButton>
+            <div v-else class="flex items-center gap-2">
+              <BaseButton
+                v-if="windowWidth <= 768"
+                variant="ghost"
+                :icon="X"
+                @click="cancelEditMode"
+              />
+              <BaseButton
+                v-else
+                variant="ghost"
+                :icon="X"
+                @click="cancelEditMode"
+              >
+                {{ t('groups.settings.schedule.editor.cancel_button') }}
+              </BaseButton>
 
-            <BaseButton
-              v-if="windowWidth <= 768"
-              variant="action"
-              :icon="Check"
-              :disabled="savingScheduleConfig"
-              @click="handleSaveAll"
-            />
-            <BaseButton
-              v-else
-              variant="action"
-              :icon="Check"
-              :disabled="savingScheduleConfig"
-              @click="handleSaveAll"
-            >
-              {{
-                savingScheduleConfig
-                  ? t('common.buttons.saving')
-                  : t('groups.settings.schedule.editor.save_all_button')
-              }}
-            </BaseButton>
-          </template>
+              <BaseButton
+                v-if="windowWidth <= 768"
+                variant="action"
+                :icon="Check"
+                :disabled="savingScheduleConfig"
+                @click="handleSaveAll"
+              />
+              <BaseButton
+                v-else
+                variant="action"
+                :icon="Check"
+                :disabled="savingScheduleConfig"
+                @click="handleSaveAll"
+              >
+                {{
+                  savingScheduleConfig
+                    ? t('common.buttons.saving')
+                    : t('groups.settings.schedule.editor.save_all_button')
+                }}
+              </BaseButton>
+            </div>
+          </Transition>
         </div>
       </template>
     </PageHeader>
