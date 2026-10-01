@@ -1,38 +1,17 @@
 use super::handlers::*;
-use crate::state::AppState;
+use crate::{common::rate_limit, state::AppState};
 use axum::{
     Router,
     routing::{delete, get, post},
 };
-use std::sync::Arc;
-use tower_governor::{
-    GovernorLayer, governor::GovernorConfigBuilder, key_extractor::SmartIpKeyExtractor,
-};
+use std::time::Duration;
 
 pub fn router() -> Router<AppState> {
-    let brute_force_limiter = Arc::new(
-        GovernorConfigBuilder::default()
-            .per_second(10)
-            .burst_size(5)
-            .key_extractor(SmartIpKeyExtractor)
-            .finish()
-            .expect("valid auth rate limit config"),
-    );
-
     // A separate bucket from the password routes, so mistyped 2FA codes do not
     // eat into the login budget of everyone sharing an IP (e.g. a school NAT).
-    let mfa_limiter = Arc::new(
-        GovernorConfigBuilder::default()
-            .per_second(10)
-            .burst_size(5)
-            .key_extractor(SmartIpKeyExtractor)
-            .finish()
-            .expect("valid mfa verify rate limit config"),
-    );
-
     let mfa = Router::new()
         .route("/auth/mfa/verify", post(verify_mfa))
-        .layer(GovernorLayer::new(mfa_limiter));
+        .layer(rate_limit::per_ip(20, Duration::from_secs(1)));
 
     let sensitive = Router::new()
         .route("/auth/login", post(login))
@@ -42,7 +21,7 @@ pub fn router() -> Router<AppState> {
         .route("/auth/reset", post(reset_password))
         .route("/auth/set-password/code", post(request_password_setup_code))
         .route("/auth/set-password", post(set_password))
-        .layer(GovernorLayer::new(brute_force_limiter));
+        .layer(rate_limit::per_ip(30, Duration::from_secs(1)));
 
     let normal = Router::new()
         .route("/auth/mfa/cancel", post(cancel_mfa))

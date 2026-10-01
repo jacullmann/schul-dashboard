@@ -1,28 +1,16 @@
 use super::handlers::*;
-use crate::state::AppState;
+use crate::{common::rate_limit, state::AppState};
 use axum::{
     Router,
     routing::{get, post},
 };
-use std::sync::Arc;
-use tower_governor::{
-    GovernorLayer, governor::GovernorConfigBuilder, key_extractor::SmartIpKeyExtractor,
-};
+use std::time::Duration;
 
 pub fn router() -> Router<AppState> {
-    let totp_limiter = Arc::new(
-        GovernorConfigBuilder::default()
-            .per_second(30)
-            .burst_size(3)
-            .key_extractor(SmartIpKeyExtractor)
-            .finish()
-            .expect("valid mfa rate limit config"),
-    );
-
     let sensitive = Router::new()
         .route("/mfa/activate", post(activate))
         .route("/mfa/deactivate", post(deactivate))
-        .layer(GovernorLayer::new(totp_limiter));
+        .layer(rate_limit::per_ip(10, Duration::from_secs(2)));
 
     let normal = Router::new()
         .route("/mfa/status", get(get_status))
