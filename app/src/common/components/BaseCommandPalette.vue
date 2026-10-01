@@ -1,22 +1,16 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, nextTick } from 'vue';
-import { useEventListener } from '@vueuse/core';
+import { ref, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { Search } from '@lucide/vue';
+import {
+  commandPaletteDefaults,
+  useCommandPalette,
+  type CommandPaletteProps,
+} from '@/common/composables/useCommandPalette';
 
 const props = withDefaults(
-  defineProps<{
-    modelValue: string;
-    itemCount: number;
-    placeholder?: string;
-    title?: string;
-    idPrefix?: string;
-  }>(),
-  {
-    placeholder: '',
-    title: undefined,
-    idPrefix: 'command-result-',
-  },
+  defineProps<CommandPaletteProps>(),
+  commandPaletteDefaults,
 );
 
 const emit = defineEmits<{
@@ -27,51 +21,14 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 const inputRef = ref<HTMLInputElement | null>(null);
-const selectedIndex = ref(0);
 
-watch(
-  () => props.itemCount,
-  () => {
-    selectedIndex.value = 0;
+const { selectedIndex, handleKeydown, setSelectedIndex } = useCommandPalette(
+  props,
+  {
+    select: (index) => emit('select', index),
+    cancel: () => emit('cancel'),
   },
 );
-
-watch(
-  () => props.modelValue,
-  () => {
-    selectedIndex.value = 0;
-  },
-);
-
-async function scrollToSelected() {
-  await nextTick();
-  const el = document.getElementById(`${props.idPrefix}${selectedIndex.value}`);
-  if (el) {
-    el.scrollIntoView({ behavior: 'auto', block: 'nearest' });
-  }
-}
-
-function handleKeydown(e: KeyboardEvent) {
-  if (!props.itemCount) return;
-
-  if (e.key === 'ArrowDown') {
-    e.preventDefault();
-    selectedIndex.value = (selectedIndex.value + 1) % props.itemCount;
-    void scrollToSelected();
-  } else if (e.key === 'ArrowUp') {
-    e.preventDefault();
-    selectedIndex.value =
-      (selectedIndex.value - 1 + props.itemCount) % props.itemCount;
-    void scrollToSelected();
-  } else if (e.key === 'Enter') {
-    e.preventDefault();
-    emit('select', selectedIndex.value);
-  }
-}
-
-useEventListener(window, 'keydown', (e: KeyboardEvent) => {
-  if (e.key === 'Escape') emit('cancel');
-});
 
 onMounted(() => {
   setTimeout(() => inputRef.value?.focus(), 50);
@@ -79,10 +36,6 @@ onMounted(() => {
 
 function onInput(e: Event) {
   emit('update:modelValue', (e.target as HTMLInputElement).value);
-}
-
-function setSelectedIndex(idx: number) {
-  selectedIndex.value = idx;
 }
 </script>
 

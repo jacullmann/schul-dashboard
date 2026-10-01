@@ -1,11 +1,12 @@
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 import hw from '@/api/api.ts';
 import { apiErrorMessage } from '@/api/errors';
+import { useToast } from '@/common/composables/useToast';
 
 const showLinkModal = ref(false);
 const showMfaModal = ref(false);
-const oauthError = ref<string | null>(null);
 
 interface LinkedProvider {
   provider: string;
@@ -14,6 +15,7 @@ interface LinkedProvider {
 
 export function useOAuth() {
   const { t } = useI18n();
+  const router = useRouter();
 
   const ERROR_MESSAGES: Record<string, string> & { server_error: string } = {
     access_denied: t('auth.google_link.errors.access_denied'),
@@ -32,13 +34,25 @@ export function useOAuth() {
     window.location.href = `${base}/auth/google`;
   }
 
+  // Stripped through the router: a raw history.replaceState would be undone
+  // when the pending initial navigation commits its own URL.
+  async function stripOAuthParams(): Promise<void> {
+    await router.isReady();
+    const query = { ...router.currentRoute.value.query };
+    if (!('auth' in query)) return;
+    delete query.auth;
+    delete query.reason;
+    await router.replace({ query });
+  }
+
+  // The backend redirect is a full page load, so App calls this exactly once
+  // with the landing URL, before the router has resolved or redirected it.
   function handleOAuthReturn(onSuccess: () => void | Promise<void>): void {
     const params = new URLSearchParams(window.location.search);
     const auth = params.get('auth');
     if (!auth) return;
 
-    const cleanUrl = window.location.pathname;
-    window.history.replaceState({}, '', cleanUrl);
+    void stripOAuthParams();
 
     switch (auth) {
       case 'success':
@@ -55,8 +69,7 @@ export function useOAuth() {
 
       case 'error': {
         const reason = params.get('reason') ?? 'server_error';
-        oauthError.value =
-          ERROR_MESSAGES[reason] ?? ERROR_MESSAGES.server_error;
+        useToast().error(ERROR_MESSAGES[reason] ?? ERROR_MESSAGES.server_error);
         break;
       }
     }
@@ -115,14 +128,9 @@ export function useOAuth() {
     showMfaModal.value = false;
   }
 
-  function clearOAuthError(): void {
-    oauthError.value = null;
-  }
-
   return {
     showLinkModal,
     showMfaModal,
-    oauthError,
     initiateGoogleLogin,
     handleOAuthReturn,
     linkGoogleAccount,
@@ -130,6 +138,5 @@ export function useOAuth() {
     fetchLinkedProviders,
     closeLinkModal,
     closeMfaModal,
-    clearOAuthError,
   };
 }

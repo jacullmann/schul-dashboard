@@ -28,13 +28,20 @@ export type SearchMode =
 export const useModalStore = defineStore('modals', () => {
   const searchOpen = ref(false);
   const searchMode = ref<SearchMode>('default');
+  /** Unlike searchOpen, stays set while the search animates closed. */
+  const searchVisible = ref(false);
 
   function openSearch(mode: SearchMode = 'default') {
     searchMode.value = mode;
     searchOpen.value = true;
+    searchVisible.value = true;
   }
   function closeSearch() {
     searchOpen.value = false;
+  }
+  /** A search reopened mid-animation is still visible when the old one finishes. */
+  function onSearchHidden() {
+    searchVisible.value = searchOpen.value;
   }
   function toggleSearch() {
     if (searchOpen.value) {
@@ -297,8 +304,10 @@ export const useModalStore = defineStore('modals', () => {
   return {
     searchOpen,
     searchMode,
+    searchVisible,
     openSearch,
     closeSearch,
+    onSearchHidden,
     toggleSearch,
 
     createGroupOpen,

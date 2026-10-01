@@ -43,6 +43,21 @@ const router = useRouter();
 
 const modalStore = useModalStore();
 
+// The search takes over the row on phones (HeaderSearchPalette): its bar
+// replaces the group and its cancel button the account button.
+const isSearching = computed(() => isMobile.value && modalStore.searchOpen);
+
+// Timed against the search backdrop's blur: gone while it is still faint on
+// the way in, and back only once it has nearly cleared on the way out.
+// Returning under strong blur, they would bloom into a bright smudge. Not a
+// time-reversed exit, though: that would accelerate into place and land with a
+// thud, so they return easing out, settling after the backdrop is gone.
+const searchHandoverTiming = computed(() =>
+  isSearching.value
+    ? 'duration-200 ease-out'
+    : 'duration-250 delay-200 ease-[cubic-bezier(0.33,1,0.68,1)]',
+);
+
 function onPersonalizationChanged(value: boolean) {
   userStore.updateUser({ personalized: value });
 }
@@ -109,14 +124,22 @@ onMounted(() => {
       <router-link
         v-if="!(activeGroupId && groupName)"
         :to="logoLink"
-        class="logo-group min-w-0"
+        class="logo-group min-w-0 transition-opacity"
+        :class="[
+          searchHandoverTiming,
+          { 'opacity-0 pointer-events-none': isSearching },
+        ]"
       >
         <span class="logo-text truncate">schul-dashboard</span>
       </router-link>
       <div
         v-if="activeGroupId && groupName"
         ref="groupMenuRef"
-        class="relative flex items-center min-w-0 max-w-full"
+        class="relative flex items-center min-w-0 max-w-full transition-opacity"
+        :class="[
+          searchHandoverTiming,
+          { 'opacity-0 pointer-events-none': isSearching },
+        ]"
       >
         <button
           v-wave
@@ -191,12 +214,15 @@ onMounted(() => {
         v-if="user && isMobile"
         class="ml-auto flex items-center gap-2 shrink-0"
       >
+        <!-- Hidden without a fade: the search bar carries its icon away from
+             here and brings it back once closed. -->
         <BaseButton
           variant="ghost"
           on="ghost"
           :aria-label="t('common.sidebar.search')"
           :icon="Search"
-          @click="openSearch"
+          :class="{ 'opacity-0': modalStore.searchVisible }"
+          @click="openSearch()"
         />
 
         <AccountMenu
@@ -204,6 +230,11 @@ onMounted(() => {
           :user-data="user"
           icon-only
           tooltip-placement="left"
+          class="transition-[opacity,scale,filter]"
+          :class="[
+            searchHandoverTiming,
+            { 'opacity-0 scale-50 blur-xs pointer-events-none': isSearching },
+          ]"
           @logout="performLogout"
           @personalization-changed="onPersonalizationChanged"
         />

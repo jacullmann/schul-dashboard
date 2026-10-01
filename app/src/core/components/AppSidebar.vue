@@ -225,7 +225,7 @@ onUnmounted(() => {
           :expanded="isExpanded"
           :icon="Search"
           :page="false"
-          @click="openSearch"
+          @click="openSearch()"
         />
       </div>
 

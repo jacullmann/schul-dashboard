@@ -6,12 +6,10 @@ import { useLogin } from '@/modules/auth/composables/useLogin';
 import { useOAuth } from '@/modules/auth/composables/useOAuth';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useI18n } from 'vue-i18n';
-import { onMounted } from 'vue';
 
 const router = useRouter();
 const userStore = useUserStore();
 const { t } = useI18n();
-const { handleOAuthReturn } = useOAuth();
 const { initiateGoogleLogin } = useOAuth();
 const { checkAuthStatus, homeRoute } = useAppAuth();
 
@@ -46,18 +44,6 @@ async function handleSubmit() {
 function navigateToRegister() {
   void router.push({ name: 'register' });
 }
-
-onMounted(() => {
-  handleOAuthReturn(async () => {
-    try {
-      await checkAuthStatus();
-      await userStore.fetchUser();
-    } catch {
-      // Login succeeded; navigate anyway and let the route guard re-sync.
-    }
-    await router.push(homeRoute.value);
-  });
-});
 </script>
 
 <template>

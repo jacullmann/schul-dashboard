@@ -1,8 +1,16 @@
 <script setup lang="ts">
-import { useWindowSize } from '@vueuse/core';
 import { ChevronRight } from '@lucide/vue';
+import { useIsMobileViewport } from '@/common/composables/useViewport';
 
-const { width: windowWidth } = useWindowSize();
+const isMobile = useIsMobileViewport();
+
+// Like BaseList's separator: drawn only between neighbouring items, so section
+// titles stay unlined, and inset to where the label starts.
+const separatorClass = [
+  '[button+&]:before:absolute [button+&]:before:top-0',
+  '[button+&]:before:left-15 [button+&]:before:right-4',
+  '[button+&]:before:border-t [button+&]:before:border-ghost-border',
+].join(' ');
 
 defineProps<{
   active?: boolean;
@@ -24,15 +32,13 @@ defineEmits<{
   <button
     :id="id"
     v-wave
-    class="w-full flex items-center gap-3 px-4 py-2.5 cursor-pointer border-none text-left transition-colors"
+    class="relative w-full flex items-center gap-3 px-4 py-2.5 cursor-pointer border-none text-left transition-colors"
     :class="
-      windowWidth > 640
-        ? active
-          ? 'bg-ghost-hover'
-          : 'bg-transparent hover:bg-surface-highlight active:bg-surface-highlight'
+      isMobile
+        ? ['bg-transparent active:bg-ghost-hover', separatorClass]
         : active
           ? 'bg-ghost-hover'
-          : 'bg-transparent active:bg-ghost-hover'
+          : 'bg-transparent hover:bg-surface-highlight active:bg-surface-highlight'
     "
     @click="$emit('click')"
     @mouseenter="$emit('mouseenter')"

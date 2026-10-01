@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineAsyncComponent, onMounted } from 'vue';
+import { computed, defineAsyncComponent, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useToast } from '@/common/composables/useToast';
@@ -10,6 +10,7 @@ import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useLogout } from '@/core/composables/useLogout';
 import { useOAuth } from '@/modules/auth/composables/useOAuth';
 import { consumePendingInviteRoute } from '@/modules/auth/utils/pendingInvite';
+import { useIsMobileViewport } from '@/common/composables/useViewport';
 
 // Modals are split out of the entry chunk so they never delay first paint.
 // The v-if ones are prefetched on mount so opening them stays instant.
@@ -64,14 +65,17 @@ const userStore = useUserStore();
 const { user } = storeToRefs(userStore);
 const { checkAuthStatus } = useAppAuth();
 const performLogout = useLogout();
-const {
-  showLinkModal,
-  showMfaModal,
-  oauthError,
-  closeLinkModal,
-  closeMfaModal,
-  clearOAuthError,
-} = useOAuth();
+const { showLinkModal, showMfaModal, closeLinkModal, closeMfaModal } =
+  useOAuth();
+const isMobile = useIsMobileViewport();
+
+// On phones the search grows out of the header (HeaderSearchPalette). Its
+// parts animate on their own, so the transition is told the longest one.
+const searchTransition = computed(() =>
+  isMobile.value
+    ? { name: 'header-search', duration: { enter: 500, leave: 300 } }
+    : { name: 'fade-scale' },
+);
 
 const {
   searchOpen,
@@ -180,22 +184,11 @@ async function onAuthSuccess() {
   </Teleport>
 
   <Teleport to="body">
-    <Transition name="fade-down" appear>
-      <div v-if="oauthError" class="oauth-error-banner" role="alert">
-        <span>{{ oauthError }}</span>
-        <button
-          class="oauth-error-close"
-          :aria-label="t('common.actions.close_aria_label')"
-          @click="clearOAuthError"
-        >
-          ✕
-        </button>
-      </div>
-    </Transition>
-  </Teleport>
-
-  <Teleport to="body">
-    <Transition name="fade-scale" appear>
+    <Transition
+      v-bind="searchTransition"
+      appear
+      @after-leave="modalStore.onSearchHidden()"
+    >
       <SearchModal v-if="searchOpen" @cancel="modalStore.closeSearch()" />
     </Transition>
   </Teleport>
@@ -293,47 +286,3 @@ async function onAuthSuccess() {
     {{ confirmOptions.content }}
   </BaseDialog>
 </template>
-
-<style scoped>
-.oauth-error-banner {
-  position: fixed;
-  top: 16px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: calc(var(--z-auth-loading) - 1);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: var(--color-danger-hover);
-  color: var(--color-danger);
-  border: 1px solid var(--color-danger);
-  border-radius: var(--radius-lg);
-  padding: 10px 16px;
-  font-size: var(--text-sm);
-  box-shadow: var(--shadow-menu);
-  white-space: nowrap;
-}
-
-.oauth-error-close {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: inherit;
-  font-size: 14px;
-  padding: 0;
-  line-height: 1;
-}
-
-.fade-down-enter-active,
-.fade-down-leave-active {
-  transition:
-    opacity 0.25s ease,
-    transform 0.25s ease;
-}
-
-.fade-down-enter-from,
-.fade-down-leave-to {
-  opacity: 0;
-  transform: translateX(-50%) translateY(-8px);
-}
-</style>

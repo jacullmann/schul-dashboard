@@ -60,7 +60,10 @@ import type { ThemeMode } from '@/common/composables/useTheme';
 import { useGroupAction } from '@/core/composables/useGroupAction';
 import { useOpenGroup } from '@/core/composables/useOpenGroup';
 import { rankByQuery } from '@/utils/search-rank';
+import { useIsMobileViewport } from '@/common/composables/useViewport';
 import Avatar from '@/modules/auth/components/Avatar.vue';
+import BaseCommandPalette from '@/common/components/BaseCommandPalette.vue';
+import HeaderSearchPalette from '@/core/components/HeaderSearchPalette.vue';
 
 const emit = defineEmits<{ (e: 'cancel'): void }>();
 
@@ -84,6 +87,7 @@ const modalStore = useModalStore();
 const { currentTheme, currentLanguage, setPreference } = usePreferences();
 const { withGroup } = useGroupAction();
 const { openGroup } = useOpenGroup();
+const isMobile = useIsMobileViewport();
 
 const canAnnounce = computed(() => canInAnyGroup('manage_announcements'));
 
@@ -307,6 +311,7 @@ const defaultResults = computed<SearchResult[]>(() => [
     icon: PanelLeft,
     action: () => runAndClose(modalStore.toggleSidebar),
     shortcut: ['ctrl', 'shift', 'd'],
+    condition: !isMobile.value,
   },
   {
     id: 'create-entry',
@@ -610,7 +615,8 @@ function handleSelect(index: number) {
 </script>
 
 <template>
-  <BaseCommandPalette
+  <component
+    :is="isMobile ? HeaderSearchPalette : BaseCommandPalette"
     v-model="query"
     :item-count="paletteProps.itemCount"
     :placeholder="paletteProps.placeholder"
@@ -725,5 +731,5 @@ function handleSelect(index: number) {
         </p>
       </div>
     </template>
-  </BaseCommandPalette>
+  </component>
 </template>
