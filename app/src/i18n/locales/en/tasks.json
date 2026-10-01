@@ -15,27 +15,27 @@
       "sections": [
         {
           "title": "Tasks",
-          "text": "Anyone with an account can add a task. Whether it's a <strong>homework assignment</strong>, <strong>Dalton task</strong>, or <strong>exam</strong> – anything you need to keep track of for school can be uploaded. All tasks are public and visible at any time, so you can track together with others. Open a task to see its description, images and notes."
+          "text": "Every member of your group can add tasks, unless your group's permissions say otherwise. Whether it's a <strong>homework assignment</strong>, <strong>Dalton task</strong> or <strong>exam</strong> – anything you need to keep track of for school can be added. All tasks are visible to the members of your group, so you can keep track of everything together. Open a task to see its description, files and notes."
         },
         {
           "title": "Adding tasks",
-          "text": "To add a task, click the <strong>+</strong> and select the type. Homework, Dalton tasks, and exams are always public; private tasks are encrypted and only visible to you. Fill out the form and select the subject and due date. Optionally, related images can be uploaded such as board photos, model solutions, notes, study sheets, etc."
+          "text": "To add a task, click the <strong>+</strong> and choose the matching <strong>type</strong> (homework, Dalton or exam). Enter a short <strong>title</strong> describing the task and select the <strong>subject</strong> and <strong>due date</strong>. Optionally, you can add more details in the <strong>description</strong> or – unless your group's permissions say otherwise – upload related <strong>media</strong> such as board photos, model solutions, notes or study sheets. Images, PDFs and Office files are supported."
         },
         {
-          "title": "Uploading images",
-          "text": "Images can also be uploaded to other people's tasks if relevant; click the <strong>3-dot menu</strong>, select <strong>Upload images</strong> and choose the desired images. To remove your own images, <strong>hold</strong> the image <strong>pressed</strong> or <strong>right-click</strong> on your image and select <strong>Delete</strong> from the menu."
+          "title": "Uploading files",
+          "text": "You can also upload files to tasks created by others, even if you can't edit them – unless your group's permissions say otherwise. Open the task, click the <strong>3-dot menu</strong>, select <strong>Upload Images</strong> and choose the files. To remove files you uploaded, <strong>right-click</strong> or <strong>press and hold</strong> them and select <strong>Delete</strong> from the menu."
         },
         {
           "title": "Tracking completed tasks",
-          "text": "If you have an account, you can check off any task you've completed using the <strong>checkbox</strong>. Your progress is saved in the cloud. With the <strong>Hide checked off</strong> filter you only see what you still need to do."
+          "text": "Use the <strong>checkbox</strong> to check off every task you've completed. That way you can easily see what's still left to do and what's already done. Your progress is saved to your account in the cloud. With the <strong>Hide checked off</strong> filter you only see tasks you haven't completed yet."
         },
         {
           "title": "Personalized courses",
-          "text": "If you've saved which courses/electives you're enrolled in, you can automatically hide tasks for other subjects. You can adjust your selection in the group settings under <strong>My courses</strong>. If you still want to see all tasks, you can disable this option in your account menu."
+          "text": "If you've saved which <strong>courses/electives</strong> you take, tasks for other courses that don't concern you can be <strong>hidden</strong> automatically, so you only see what really matters to you. You can adjust your selection in the group settings under <strong>My courses</strong>. If you still want to see all tasks, you can change the display option in your <strong>account menu</strong>."
         },
         {
           "title": "Archive",
-          "text": "Tasks older than <strong>24 hours</strong> are automatically hidden to keep the view tidy. If you're looking for an older task, you can click the <strong>Archive</strong> button and view tasks up to <strong>30 days</strong> old."
+          "text": "Checked-off tasks are <strong>automatically hidden</strong> once their due date has passed to keep the view tidy – pinned tasks stay visible. If you're looking for an old task, you can turn on the <strong>Archive</strong> filter. You can also move tasks into and out of the archive manually using <strong>Archive</strong> and <strong>Unarchive</strong> in the menu. This only affects your own view."
         }
       ],
       "tooltip": "Overview and features for tasks"
@@ -181,8 +181,12 @@
           "text": "Unlike regular tasks, these are <strong>encrypted</strong> and only visible to you. This way you can also track personal tasks and to-dos – all within <strong>one app</strong>."
         },
         {
+          "title": "Order",
+          "text": "Sort your tasks by importance. Move them up or down by <strong>pressing and dragging</strong> or via the <strong>menu</strong> in the list, so you can see your priorities at a glance."
+        },
+        {
           "title": "Security",
-          "text": "Thanks to <strong>AES-256 encryption</strong> you don't need to worry about unwanted readers: only <strong>your password</strong> can be used to access your private tasks."
+          "text": "Your private tasks are <strong>stored encrypted</strong> with <strong>AES-256</strong>, which keeps them well protected from unwanted readers."
         }
       ],
       "tooltip": "Overview and features for private tasks"
@@ -218,7 +222,8 @@
   },
   "report": {
     "info_tooltip": "Report Info",
-    "info_title": "Information About Reporting Tasks"
+    "info_title": "Information About Reporting Tasks",
+    "info_text": "Tasks and uploaded files that violate our terms of use or applicable law are removed after we review them. If more background on a statement or file is needed, please describe it as precisely as possible so we can take action. If the violation is obvious, you can still help us by describing what's wrong, but we always review the entire item, even if you don't give a specific reason."
   },
   "actions": {
     "delete_modal": {

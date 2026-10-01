@@ -1,7 +1,7 @@
 {
   "break": "{minutes} Min. Pause",
   "cancelled": "Entfällt",
-  "disclaimer": "Schul-dashboard und das Admin-Team übernehmen keine Gewähr für die Richtigkeit, Vollständigkeit und Aktualität der der bereitgestellten Informationen.",
+  "disclaimer": "schul-dashboard und das Admin-Team übernehmen keine Gewähr für die Richtigkeit, Vollständigkeit und Aktualität der bereitgestellten Informationen.",
   "infopop": {
     "description": "Die bessere digitale Version",
     "sections": [
@@ -11,7 +11,7 @@
       },
       {
         "title": "Live-Änderungen",
-        "text": "Vertretung, Ausfall, Raumänderungen usw. können von Admins eingetragen und gleich im digitalen Stundenplan angezeigt werden."
+        "text": "Vertretungen, Ausfälle, Raumänderungen usw. werden von Moderatoren und Admins eingetragen – sofern in den Gruppenberechtigungen nicht anders festgelegt – und erscheinen direkt im digitalen Stundenplan."
       }
     ],
     "tooltip": "Überblick und Funktionen zum Stundenplan"

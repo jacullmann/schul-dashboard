@@ -76,7 +76,7 @@
       "label": "Tasks",
       "title": "Homework gets written down once. {emphasis} has it.",
       "title_emphasis": "Everyone",
-      "body": "Anyone your class trusts can add homework, exams and Dalton assignments — with a due date, a description and a photo of the board or the worksheet. Everyone ticks tasks off for themselves.",
+      "body": "Everyone in your class — or only those your group allows — can add homework, exams and Dalton assignments, with a due date, a description and a photo of the board or the worksheet. Everyone ticks tasks off for themselves.",
       "filter_label": "Filter tasks",
       "due": "due {day}",
       "added_by": "added by {name}",
@@ -116,7 +116,7 @@
         "cancelled": "Cancelled"
       },
       "announcement": "Because of the heat, lessons on Friday end after period 4.",
-      "announcement_caption": "Announcements stay at the top of the app for every member until an admin takes them down."
+      "announcement_caption": "Announcements stay at the top of the app for every member until they are taken down."
     },
     "groups": {
       "label": "Groups",
@@ -130,7 +130,7 @@
         },
         "invites": {
           "title": "Invite links",
-          "body": "Send one link and your classmates are in. Links expire on their own, and admins can revoke them at any time."
+          "body": "Create a link, send it, done. Each link works for one person, expires on its own after seven days and can be revoked at any time."
         },
         "many": {
           "title": "More than one group",
@@ -202,7 +202,7 @@
       },
       "announcements": {
         "title": "Announcements",
-        "body": "Admins post a short notice — a school trip, an early finish, a moved exam — and it appears at the top of the app for every member. Anyone who hasn't read it yet gets a notification.",
+        "body": "Moderators and admins post a short notice — a school trip, an early finish, a moved exam — and it appears at the top of the app for every member. Anyone who hasn't read it yet gets a notification.",
         "items": [
           "Shown to every member at once",
           "Three levels: info, warning and important",
@@ -234,7 +234,7 @@
       },
       "private": {
         "title": "Private space",
-        "body": "A to-do list that belongs to you alone — shopping, training, the book you promised to finish. Private tasks are encrypted, and only your password unlocks them; not even your group's admins can see them.",
+        "body": "A to-do list that belongs to you alone — shopping, training, the book you promised to finish. Private tasks are stored encrypted and visible only to you; not even your group's admins can see them.",
         "items": [
           "Encrypted with AES-256-GCM",
           "Visible only to you",
@@ -284,7 +284,7 @@
         },
         "private": {
           "title": "Private by default",
-          "body": "Personal data is encrypted. We don't sell data, we don't show ads, and we don't collect more than the service needs to run."
+          "body": "Private tasks are stored encrypted, passwords only as a hash. We don't sell data, we don't show ads, and we don't collect more than the service needs to run."
         },
         "students": {
           "title": "By students",

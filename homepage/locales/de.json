@@ -76,7 +76,7 @@
       "label": "Aufgaben",
       "title": "Hausaufgaben werden einmal eingetragen. {emphasis} haben sie.",
       "title_emphasis": "Alle",
-      "body": "Wem die Klasse vertraut, der trägt Hausaufgaben, Klausuren und Dalton-Aufgaben ein — mit Abgabedatum, Beschreibung und einem Foto von der Tafel oder dem Arbeitsblatt. Abhaken kann jeder für sich.",
+      "body": "Alle in der Klasse — oder nur, wem die Gruppe es erlaubt — tragen Hausaufgaben, Klausuren und Dalton-Aufgaben ein, mit Abgabedatum, Beschreibung und einem Foto von der Tafel oder dem Arbeitsblatt. Abhaken kann jeder für sich.",
       "filter_label": "Aufgaben filtern",
       "due": "bis {day}",
       "added_by": "von {name}",
@@ -116,7 +116,7 @@
         "cancelled": "Entfall"
       },
       "announcement": "Wegen der Hitze endet der Unterricht am Freitag nach der 4. Stunde.",
-      "announcement_caption": "Ankündigungen stehen für alle Mitglieder ganz oben in der App, bis ein Admin sie entfernt."
+      "announcement_caption": "Ankündigungen stehen für alle Mitglieder ganz oben in der App, bis sie wieder entfernt werden."
     },
     "groups": {
       "label": "Gruppen",
@@ -130,7 +130,7 @@
         },
         "invites": {
           "title": "Einladungslinks",
-          "body": "Einen Link verschicken, und die Klasse ist drin. Links laufen von selbst ab, und Admins können sie jederzeit widerrufen."
+          "body": "Link erstellen, verschicken, fertig. Jeder Link gilt für eine Person, läuft nach sieben Tagen von selbst ab und lässt sich jederzeit widerrufen."
         },
         "many": {
           "title": "Mehrere Gruppen",
@@ -202,7 +202,7 @@
       },
       "announcements": {
         "title": "Ankündigungen",
-        "body": "Admins schreiben eine kurze Nachricht — ein Ausflug, früher Schluss, eine verschobene Klausur — und sie erscheint für alle Mitglieder ganz oben in der App. Wer sie noch nicht gelesen hat, bekommt eine Benachrichtigung.",
+        "body": "Moderatoren und Admins schreiben eine kurze Nachricht — ein Ausflug, früher Schluss, eine verschobene Klausur — und sie erscheint für alle Mitglieder ganz oben in der App. Wer sie noch nicht gelesen hat, bekommt eine Benachrichtigung.",
         "items": [
           "Für alle Mitglieder gleichzeitig",
           "Drei Stufen: Info, Warnung und Wichtig",
@@ -234,7 +234,7 @@
       },
       "private": {
         "title": "Privater Bereich",
-        "body": "Eine Todo-Liste, die nur dir gehört — Einkaufen, Training, das Buch, das du endlich fertig lesen wolltest. Private Aufgaben sind verschlüsselt und nur mit deinem Passwort lesbar; nicht einmal die Admins deiner Gruppe sehen sie.",
+        "body": "Eine Todo-Liste, die nur dir gehört — Einkaufen, Training, das Buch, das du endlich fertig lesen wolltest. Private Aufgaben werden verschlüsselt gespeichert und sind nur für dich sichtbar; nicht einmal die Admins deiner Gruppe sehen sie.",
         "items": [
           "Verschlüsselt mit AES-256-GCM",
           "Nur für dich sichtbar",
@@ -284,7 +284,7 @@
         },
         "private": {
           "title": "Privat als Standard",
-          "body": "Persönliche Daten sind verschlüsselt. Wir verkaufen keine Daten, zeigen keine Werbung und erfassen nicht mehr, als der Dienst zum Laufen braucht."
+          "body": "Private Aufgaben werden verschlüsselt gespeichert, Passwörter nur als Hash. Wir verkaufen keine Daten, zeigen keine Werbung und erfassen nicht mehr, als der Dienst zum Laufen braucht."
         },
         "students": {
           "title": "Von Schülern",

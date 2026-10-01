@@ -15,19 +15,19 @@
       "sections": [
         {
           "title": "Aufgaben",
-          "text": "Jede/r, die/der ein Konto hat, kann eine Aufgabe hinzufügen. Ob <strong>Hausaufgabe</strong>, <strong>Daltonauftrag</strong> oder <strong>Prüfung</strong> – alles, was du für die Schule im Überblick haben musst, kann hochgeladen werden. Alle Aufgaben sind öffentlich und jederzeit einsehbar, du kannst also gemeinsam mit anderen tracken. Öffne eine Aufgabe, um ihre Beschreibung, Bilder und Notizen zu sehen."
+          "text": "Jedes Mitglied deiner Gruppe kann Aufgaben hinzufügen, sofern in den Gruppenberechtigungen nicht anders festgelegt. Ob <strong>Hausaufgabe</strong>, <strong>Daltonauftrag</strong> oder <strong>Prüfung</strong> – alles, was du für die Schule im Überblick haben musst, kann eingetragen werden. Alle Aufgaben sind für die Mitglieder deiner Gruppe sichtbar, so behaltet ihr gemeinsam den Überblick. Öffne eine Aufgabe, um ihre Beschreibung, Dateien und Notizen zu sehen."
         },
         {
           "title": "Aufgaben hinzufügen",
-          "text": "Um eine Aufgabe hinzuzufügen, klicke auf das <strong>+</strong> und wähle den passenden <strong>Typ</strong> (Hausaufgabe, Dalton oder Prüfung) aus. Trage nun einen <strong>Titel</strong>, der die Aufgabe kurz beschreibt, ein und wähle <strong>Fach</strong> sowie <strong>Abgabedatum</strong> aus. Optional kannst du genauere Details in der <strong>Beschreibung</strong> hinzufügen oder dazugehörige <strong>Medien</strong> wie Tafelbilder, Musterlösungen, Notizen, Lernzettel o. ä. hochladen. Unterstützt werden Bilder, PDFs und Office-Dateien"
+          "text": "Um eine Aufgabe hinzuzufügen, klicke auf das <strong>+</strong> und wähle den passenden <strong>Typ</strong> (Hausaufgabe, Dalton oder Prüfung) aus. Trage nun einen <strong>Titel</strong>, der die Aufgabe kurz beschreibt, ein und wähle <strong>Fach</strong> sowie <strong>Abgabedatum</strong> aus. Optional kannst du genauere Details in der <strong>Beschreibung</strong> hinzufügen oder – sofern in den Gruppenberechtigungen nicht anders festgelegt – dazugehörige <strong>Medien</strong> wie Tafelbilder, Musterlösungen, Notizen, Lernzettel o. ä. hochladen. Unterstützt werden Bilder, PDFs und Office-Dateien."
         },
         {
           "title": "Medien hochladen",
-          "text": "Dateien können bei Aufgaben, die von anderen erstellt wurden, hochgeladen werden, auch wenn du sie nicht bearbeiten kannst. Öffne dafür die Aufgabe und klicke auf das <strong>3-Punkte-Menü</strong>, wähle <strong>Bilder hochladen</strong> aus und wähle die gewünschten Dateien aus. Um deine hochgeladenen Bilder zu entfernen, klicke mit der <strong>rechten Maustaste</strong> oder <strong>halte</strong> das Bild <strong>gedrückt</strong> und wähle im Menü <strong>Löschen</strong> aus."
+          "text": "Du kannst auch bei Aufgaben, die von anderen erstellt wurden, Dateien hochladen, selbst wenn du sie nicht bearbeiten darfst – sofern in den Gruppenberechtigungen nicht anders festgelegt. Öffne dafür die Aufgabe, klicke auf das <strong>3-Punkte-Menü</strong>, wähle <strong>Bilder hochladen</strong> und dann die gewünschten Dateien aus. Um deine hochgeladenen Dateien zu entfernen, klicke mit der <strong>rechten Maustaste</strong> darauf oder <strong>halte</strong> sie <strong>gedrückt</strong> und wähle im Menü <strong>Löschen</strong> aus."
         },
         {
           "title": "Abgeschlossene Aufgaben tracken",
-          "text": "Du kannst mit der <strong>Checkbox</strong> jede Aufgabe, die du erledigt hast, abhaken. So behältst du leicht den Überblick darüber, was du noch machen musst und was schon fertig ist. Dein Fortschritt wird in der Cloud für dein Konto gespeichert. Mit dem Filter <strong>Erledigte ausblenden</strong> siehst du nur noch Aufgaben, die du noch nicht abgeschlossen hast"
+          "text": "Du kannst mit der <strong>Checkbox</strong> jede Aufgabe, die du erledigt hast, abhaken. So behältst du leicht den Überblick darüber, was du noch machen musst und was schon fertig ist. Dein Fortschritt wird in der Cloud für dein Konto gespeichert. Mit dem Filter <strong>Erledigte ausblenden</strong> siehst du nur noch Aufgaben, die du noch nicht abgeschlossen hast."
         },
         {
           "title": "Personalisierte Kurse",
@@ -35,7 +35,7 @@
         },
         {
           "title": "Archiv",
-          "text": "Abgeschlossene Aufgaben werden <strong>automatisch</strong> 24 Stunden nach dem angegebenen Datum <strong>ausgeblendet</strong>, um die Ansicht übersichtlich zu halten. Falls du trotzdem eine alte Aufgabe finden willst, kannst du den Filter <strong>Archiv</strong> aktivieren. Du kannst Aufgaben auch manuell über das Menü mit den Optionen <strong>Archivieren</strong> und <strong>Wiederherstellen</strong> in das Archiv rein und raus verschieben, um sie besser zu organisieren."
+          "text": "Abgehakte Aufgaben werden nach Ablauf ihres Abgabetags <strong>automatisch ausgeblendet</strong>, um die Ansicht übersichtlich zu halten – angeheftete Aufgaben bleiben sichtbar. Falls du trotzdem eine alte Aufgabe finden willst, kannst du den Filter <strong>Archiv</strong> aktivieren. Über das Menü kannst du Aufgaben mit <strong>Archivieren</strong> und <strong>Wiederherstellen</strong> auch manuell ins Archiv verschieben und zurückholen. Das betrifft nur deine eigene Ansicht."
         }
       ],
       "tooltip": "Übersicht und Funktionen für Aufgaben"
@@ -180,7 +180,7 @@
       }
     ],
     "infopop": {
-      "description": "Verwalte deine private Aufgaben",
+      "description": "Verwalte deine privaten Aufgaben",
       "sections": [
         {
           "title": "Nur für dich sichtbar",
@@ -192,7 +192,7 @@
         },
         {
           "title": "Sicherheit",
-          "text": "Dank <strong>AES-256 Verschlüsselung</strong> musst du dir keine Sorgen um ungewollte Mitleser machen: Man kann nur mit <strong>deinem Passwort</strong> auf deine privaten Aufgaben zugreifen."
+          "text": "Deine privaten Aufgaben werden mit <strong>AES-256</strong> <strong>verschlüsselt gespeichert</strong> und sind damit besonders gut vor ungewollten Mitlesern geschützt."
         }
       ],
       "tooltip": "Überblick und Funktionen zu privaten Aufgaben"
@@ -229,7 +229,7 @@
   "report": {
     "info_tooltip": "Melden Info",
     "info_title": "Infos zum Melden von Aufgaben",
-    "info_text": "Aufgaben und hochgeladene Bilder, die gegen unsere Nutzungsbedingungen oder geltendes Recht verstoßen, werden umgehend entfernt. Falls genaueres Wissen über den Hintergrund einer Aussage/eines Bildes nötig ist, beschreibe es bitte möglichst genau, sodass wir etwas unternehmen können. Wenn der Verstoß offensichtlich ist, kannst du uns trotzdem helfen, indem du beschreibst, was nicht stimmt, aber wir untersuchen immer den ganzen Artikel, auch wenn du keinen konkreten Grund nennst."
+    "info_text": "Aufgaben und hochgeladene Dateien, die gegen unsere Nutzungsbedingungen oder geltendes Recht verstoßen, werden nach unserer Prüfung entfernt. Falls genaueres Wissen über den Hintergrund einer Aussage/einer Datei nötig ist, beschreibe es bitte möglichst genau, sodass wir etwas unternehmen können. Wenn der Verstoß offensichtlich ist, kannst du uns trotzdem helfen, indem du beschreibst, was nicht stimmt, aber wir untersuchen immer den ganzen Artikel, auch wenn du keinen konkreten Grund nennst."
   },
   "actions": {
     "delete_modal": {
