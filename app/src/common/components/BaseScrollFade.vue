@@ -21,9 +21,10 @@ withDefaults(
   },
 );
 
-const LAYER_COUNT = 12;
+const LAYER_COUNT = 8;
 const MIN_BLUR = 0.5;
-const MAX_BLUR = 12;
+const MAX_BLUR = 8;
+const MAX_BLUR_FROM_BOTTOM = 70;
 
 /*
  * No masks: WebKit drops a mask's backing store once it takes the layer for
@@ -32,9 +33,10 @@ const MAX_BLUR = 12;
  * top edge down to its band and they stack, each blurring what the ones below
  * already blurred. Blurs compose as the root of the sum of squares, so a layer
  * only adds what brings the total up to its band's step on a geometric scale.
- * The last layer's band holds up to the top edge.
+ * The blur peaks below the tint's full color so content is fully blurred
+ * before it fades out; the last layer holds that from its band to the top edge.
  */
-const step = 100 / (LAYER_COUNT + 1);
+const step = MAX_BLUR_FROM_BOTTOM / LAYER_COUNT;
 const totalBlur = (i: number) =>
   MIN_BLUR * (MAX_BLUR / MIN_BLUR) ** (i / (LAYER_COUNT - 1));
 const layers = Array.from({ length: LAYER_COUNT }, (_, i) => {
