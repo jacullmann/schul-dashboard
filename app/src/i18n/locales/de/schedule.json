@@ -16,7 +16,6 @@
     ],
     "tooltip": "Überblick und Funktionen zum Stundenplan"
   },
-  "lesson": "Stunde",
   "loading": "Lade Stundenplan...",
   "period": "{slot}. Std.",
   "periods": "{first}.–{last}. Std.",

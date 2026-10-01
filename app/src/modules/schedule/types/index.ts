@@ -71,7 +71,6 @@ export interface Substitution {
 
 export interface TimeSlot {
   slot: number;
-  time: string;
   startTime: string;
 }
 

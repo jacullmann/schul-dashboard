@@ -8,9 +8,10 @@ import type {
   TimeSlot,
 } from '@/modules/schedule/types';
 import { useIsPhoneViewport } from '@/common/composables/useViewport';
-import { useSchedule } from '@/modules/schedule/composables/useSchedule';
+import { useScheduleDisplay } from '@/modules/schedule/composables/useScheduleDisplay';
 import { useScheduleDayPager } from '@/modules/schedule/composables/useScheduleDayPager';
 import { entranceDelay } from '@/modules/schedule/utils/entrance';
+import { daysSinceMonday } from '@/modules/schedule/utils/weekday';
 import {
   groupOverlappingLessons,
   lessonSpan,
@@ -19,8 +20,8 @@ import {
 } from '@/modules/schedule/utils/lesson';
 
 import ScheduleDayTrack from '@/modules/schedule/components/ScheduleDayTrack.vue';
-import ScheduleTimeColumn from '@/modules/schedule/components/ScheduleTimeColumn.vue';
 import ScheduleStartTimeColumn from '@/modules/schedule/components/ScheduleStartTimeColumn.vue';
+import ScheduleDayHeader from '@/modules/schedule/components/ScheduleDayHeader.vue';
 import ScheduleLessonGroup from '@/modules/schedule/components/ScheduleLessonGroup.vue';
 
 const {
@@ -29,8 +30,7 @@ const {
   timeSlots: fallbackTimeSlots,
   getGroupStyle,
   getDisplayName,
-  defaultDayIndex,
-} = useSchedule({ autoLoad: false });
+} = useScheduleDisplay();
 
 const props = withDefaults(
   defineProps<{
@@ -158,7 +158,8 @@ const isPhone = useIsPhoneViewport();
 const dayPager = useScheduleDayPager(days.length);
 const { hasPaged } = dayPager;
 
-dayPager.showDay(defaultDayIndex.value);
+const todayIndex = daysSinceMonday(new Date());
+dayPager.showDay(todayIndex < days.length ? todayIndex : 0);
 
 // The admin schedule is a template for every week, so its days carry no date.
 const dayTabLabel = (day: number) => formatDayName(day, 'short');
@@ -172,12 +173,12 @@ const slotRows = computed<ScheduleRow[]>(() =>
   })),
 );
 
-const phoneGridStyle = computed(() => ({
+const gridStyle = computed(() => ({
   gridTemplateRows: `auto repeat(${slotRows.value.length}, auto)`,
 }));
 
 const phonePanelOf = (day: number) => ({
-  gridStyle: phoneGridStyle.value,
+  gridStyle: gridStyle.value,
   lessonGroups: groupedLessons.value.filter((group) => group.day === day),
 });
 
@@ -208,17 +209,13 @@ const phoneEntranceStyle = (group: Lesson[]) => ({
         :animated="animated && !hasPaged"
       />
 
-      <div
-        class="px-2 text-center font-bold text-base text-on-ghost-muted [grid-column:2] [grid-row:1]"
-        :class="{
-          'animate-enter': animated && !hasPaged,
-          'cursor-pointer select-none': isEditable,
-        }"
-        :style="{ '--enter-delay': entranceDelay(2, 1) }"
+      <ScheduleDayHeader
+        :grid-column="2"
+        :label="formatDayName(day)"
+        :is-clickable="isEditable"
+        :animated="animated && !hasPaged"
         @click.stop="onSelectDay(day, $event)"
-      >
-        {{ formatDayName(day) }}
-      </div>
+      />
 
       <ScheduleLessonGroup
         v-for="{ key, lessons: group } in panel.lessonGroups"
@@ -259,23 +256,20 @@ const phoneEntranceStyle = (group: Lesson[]) => ({
 
   <BaseTableWrapper v-else>
     <div
-      class="grid grid-cols-[80px_repeat(5,minmax(9rem,1fr))] grid-rows-[auto_repeat(9,auto)] gap-2 items-stretch"
+      class="grid grid-cols-[3.25rem_repeat(5,minmax(9rem,1fr))] gap-2 items-stretch"
+      :style="gridStyle"
     >
-      <ScheduleTimeColumn :time-slots="effectiveTimeSlots" />
+      <ScheduleStartTimeColumn :rows="slotRows" :animated="animated" />
 
-      <div
-        v-for="day in days"
+      <ScheduleDayHeader
+        v-for="(day, dayIdx) in days"
         :key="day"
-        class="bg-surface text-on-ghost p-2 border border-ghost-border text-center font-bold rounded-md text-base shadow-input [grid-row:1]"
-        :class="[
-          isEditable
-            ? 'cursor-pointer hover:bg-surface-highlight select-none transition-colors'
-            : '',
-        ]"
+        :grid-column="dayIdx + 2"
+        :label="formatDayName(day)"
+        :is-clickable="isEditable"
+        :animated="animated"
         @click.stop="onSelectDay(day, $event)"
-      >
-        {{ formatDayName(day) }}
-      </div>
+      />
 
       <ScheduleLessonGroup
         v-for="{ key, lessons: group } in groupedLessons"

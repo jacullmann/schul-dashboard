@@ -74,11 +74,9 @@ export function formatMinuteRange({ start, end }: MinuteRange): string {
 export function timeSlotsOf(config: ScheduleConfig): TimeSlot[] {
   return Array.from({ length: config.totalSlots }, (_, index) => {
     const slot = index + 1;
-    const range = slotRangeMinutes(config, slot);
     return {
       slot,
-      time: formatMinuteRange(range),
-      startTime: formatTimeOfDay(range.start),
+      startTime: formatTimeOfDay(slotStartMinutes(config, slot)),
     };
   });
 }

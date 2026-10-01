@@ -21,6 +21,7 @@ import { entranceDelay } from '@/modules/schedule/utils/entrance';
 import BaseTableWrapper from '@/common/components/BaseTableWrapper.vue';
 import PersonalizedViewNotice from '@/common/components/PersonalizedViewNotice.vue';
 import ScheduleHeader from '../components/ScheduleHeader.vue';
+import ScheduleDayHeader from '../components/ScheduleDayHeader.vue';
 import ScheduleStartTimeColumn from '../components/ScheduleStartTimeColumn.vue';
 import ScheduleBreakDivider from '../components/ScheduleBreakDivider.vue';
 import ScheduleLessonGroup from '../components/ScheduleLessonGroup.vue';
@@ -270,17 +271,13 @@ watch(
           :animated="!hasPaged"
         />
 
-        <div
+        <ScheduleDayHeader
           :key="day"
-          class="px-2 text-center font-bold text-base [grid-column:2] [grid-row:1]"
-          :class="[
-            day === currentDay ? 'text-action' : 'text-on-ghost-muted',
-            { 'animate-enter': !hasPaged },
-          ]"
-          :style="{ '--enter-delay': entranceDelay(2, 1) }"
-        >
-          {{ formatDayName(day) }}
-        </div>
+          :grid-column="2"
+          :label="formatDayName(day)"
+          :is-current="day === currentDay"
+          :animated="!hasPaged"
+        />
 
         <ScheduleBreakDivider
           v-for="{ key, ...divider } in panel.rows.dividers"
@@ -329,20 +326,13 @@ watch(
       >
         <ScheduleStartTimeColumn :rows="weekLayout.rows" />
 
-        <div
+        <ScheduleDayHeader
           v-for="(day, dayIdx) in days"
           :key="day"
-          :style="{
-            gridColumn: dayIdx + 2,
-            '--enter-delay': entranceDelay(dayIdx + 2, 1),
-          }"
-          class="text-on-ghost-muted px-2 text-center font-bold text-base [grid-row:1] animate-enter"
-          :class="{
-            'text-on-ghost!': day === currentDay,
-          }"
-        >
-          {{ formatDayName(day) }}
-        </div>
+          :grid-column="dayIdx + 2"
+          :label="formatDayName(day)"
+          :is-current="day === currentDay"
+        />
 
         <ScheduleBreakDivider
           v-for="{ key, ...divider } in weekDividers"

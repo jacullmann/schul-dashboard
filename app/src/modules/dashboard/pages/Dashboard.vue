@@ -47,9 +47,7 @@ const {
   dayLayouts,
   currentDay,
   activeOrNextGroupKey,
-} = useSchedule({
-  autoLoad: true,
-});
+} = useSchedule();
 
 // The open tasks, in the task list's order: pinned ones first, then by due date.
 const {

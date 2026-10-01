@@ -19,28 +19,31 @@ import {
   groupOverlappingLessons,
   lessonLastSlot,
   lessonsSlotRange,
-  lessonDisplayName,
   resolveLessonSubject,
   subjectsById,
 } from '@/modules/schedule/utils/lesson';
 import {
   lessonMinutes,
-  scheduleConfigOrDefault,
   slotRangeMinutes,
-  timeSlotsOf,
 } from '@/modules/schedule/utils/slotTimes';
-import { formatWeekday } from '@/modules/schedule/utils/weekday';
+import { daysSinceMonday } from '@/modules/schedule/utils/weekday';
+import {
+  buildGroupStyle,
+  useScheduleDisplay,
+} from '@/modules/schedule/composables/useScheduleDisplay';
 
-export interface UseScheduleOptions {
-  autoLoad?: boolean;
-}
-
-export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
-  const i18n = useI18n();
-  const { t, locale } = i18n;
-  const te = (key: string) => i18n.te(key);
+export function useSchedule() {
+  const { locale } = useI18n();
   const userStore = useUserStore();
-  const { activeScheduleConfig, activeGroupType } = useAppAuth();
+  const { activeGroupType } = useAppAuth();
+  const {
+    days,
+    scheduleConfig,
+    timeSlots,
+    formatDayName,
+    getDisplayName,
+    getGroupStyle,
+  } = useScheduleDisplay();
   const groupId = useGroupPageId();
 
   const isPersonalized = computed(() => {
@@ -57,8 +60,6 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
   const loadingSubs = ref(true);
   const loadingLessons = ref(true);
   const lessonsHiddenByServer = ref(0);
-
-  const days = [1, 2, 3, 4, 5];
 
   const weekDates = computed<Record<number, Date>>(() => {
     const d = now.value;
@@ -93,16 +94,6 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
       ? new Intl.DateTimeFormat(locale.value, { day: 'numeric' }).format(date)
       : '';
   };
-
-  const formatDayName = (day: number, weekday: 'long' | 'short' = 'long') =>
-    formatWeekday(day, locale.value, weekday);
-
-  const scheduleConfig = computed(() =>
-    scheduleConfigOrDefault(activeScheduleConfig.value),
-  );
-
-  const getDisplayName = (lesson: Lesson): string =>
-    lessonDisplayName(lesson, t, te);
 
   async function loadSubstitutions() {
     try {
@@ -279,8 +270,6 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
     return result;
   });
 
-  const timeSlots = computed(() => timeSlotsOf(scheduleConfig.value));
-
   const groupedLessons = computed<LessonGroup[]>(() =>
     groupOverlappingLessons(effectiveLessons.value),
   );
@@ -309,35 +298,6 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
       ),
     ),
   );
-
-  const buildGroupStyle = (
-    groupLessons: Lesson[],
-    rowOfSlot: (slot: number) => number,
-    mobileColumn: (desktopColumn: number) => number,
-  ): Record<string, string> => {
-    const firstLesson = groupLessons[0];
-    if (!firstLesson) return {};
-    const { firstSlot, lastSlot } = lessonsSlotRange(groupLessons);
-    const dayIndex = days.indexOf(firstLesson.day);
-    const colStart = dayIndex + 2;
-    const rowStart = rowOfSlot(firstSlot);
-    const rowEnd = rowOfSlot(lastSlot) + 1;
-    const minHeight = Math.max(58, groupLessons.length * 54);
-    return {
-      '--col-desktop': `${colStart} / span 1`,
-      '--col-mobile': `${mobileColumn(colStart)} / span 1`,
-      gridColumn: `var(--col-desktop)`,
-      gridRow: `${rowStart} / ${rowEnd}`,
-      minHeight: `${minHeight}px`,
-    };
-  };
-
-  const getGroupStyle = (groupLessons: Lesson[]) =>
-    buildGroupStyle(
-      groupLessons,
-      (slot) => slot + 1,
-      (column) => column - 1,
-    );
 
   /*
    * Lesson rows interleaved with breaks. A day that ends where no break
@@ -392,7 +352,9 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
     };
   };
 
-  const attendedDayEndSlots = (dayList: number[]): ReadonlySet<number> => {
+  const attendedDayEndSlots = (
+    dayList: readonly number[],
+  ): ReadonlySet<number> => {
     if (loadingLessons.value) return new Set();
     return new Set(
       dayList.flatMap((day) => lastAttendedSlotByDay.value.get(day) ?? []),
@@ -419,17 +381,14 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
   let timer: number | undefined;
   onMounted(() => {
     timer = window.setInterval(updateTime, 1000 * 60);
-    if (options.autoLoad) {
-      void loadSchedule();
-      void loadSubstitutions();
-    }
+    void loadSchedule();
+    void loadSubstitutions();
   });
 
   watch(
     () => [userStore.user?.personalized, userStore.user?.courses],
     (newVal, oldVal) => {
       if (
-        options.autoLoad &&
         oldVal !== undefined &&
         JSON.stringify(newVal) !== JSON.stringify(oldVal)
       ) {
@@ -443,25 +402,17 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
     clearInterval(timer);
   });
 
-  const dayMap: Record<number, number> = days.reduce(
-    (acc, day, i) => {
-      acc[day] = i;
-      return acc;
-    },
-    {} as Record<number, number>,
-  );
-
   const currentDay = computed(() => {
-    const dayIndex = (now.value.getDay() + 6) % 7;
-    if (dayIndex >= 0 && dayIndex < days.length) {
+    const dayIndex = daysSinceMonday(now.value);
+    if (dayIndex < days.length) {
       return days[dayIndex];
     }
     return null;
   });
 
   const defaultDayIndex = computed(() => {
-    const dayIndex = (now.value.getDay() + 6) % 7;
-    if (dayIndex >= 5) {
+    const dayIndex = daysSinceMonday(now.value);
+    if (dayIndex >= days.length) {
       return 0;
     }
 
@@ -477,14 +428,14 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
 
       const currentMinutes = now.value.getHours() * 60 + now.value.getMinutes();
       if (currentMinutes > maxEndMins + 10) {
-        return (dayIndex + 1) % 5;
+        return (dayIndex + 1) % days.length;
       }
     }
     return dayIndex;
   });
 
   const activeOrNextGroupKey = computed<string | null>(() => {
-    const currentDayIndex = (now.value.getDay() + 6) % 7;
+    const currentDayIndex = daysSinceMonday(now.value);
     const currentMinutes = now.value.getHours() * 60 + now.value.getMinutes();
     const currentTotalWeekMinutes = currentDayIndex * 24 * 60 + currentMinutes;
 
@@ -492,7 +443,7 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
       .map(({ key, lessons: group }) => {
         const first = group[0];
         if (!first) return null;
-        const dayIdx = dayMap[first.day] ?? -1;
+        const dayIdx = days.indexOf(first.day);
         if (dayIdx === -1) return null;
 
         const { firstSlot, lastSlot } = lessonsSlotRange(group);

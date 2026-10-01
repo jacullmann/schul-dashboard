@@ -16,7 +16,6 @@
     ],
     "tooltip": "Overview and features for the schedule"
   },
-  "lesson": "Lesson",
   "loading": "Loading schedule...",
   "period": "Period {slot}",
   "periods": "Periods {first}–{last}",
