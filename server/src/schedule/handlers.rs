@@ -1,17 +1,11 @@
 use super::service::ScheduleService;
 use crate::{
-    common::{
-        extractors::TenantContext, path_params::IdPath, personalization::hidden_by_courses_header,
-    },
+    common::{extractors::TenantContext, personalization::hidden_by_courses_header},
     error::AppResult,
     state::AppState,
 };
-use axum::{
-    Json,
-    extract::{Path, State},
-    response::IntoResponse,
-};
-use serde_json::{Value, json};
+use axum::{Json, extract::State, response::IntoResponse};
+use serde_json::Value;
 
 pub async fn get_schedule(
     State(s): State<AppState>,
@@ -39,35 +33,4 @@ pub async fn get_subjects(State(s): State<AppState>, tc: TenantContext) -> AppRe
             .get_subjects(tc.tenant_id)
             .await?,
     ))
-}
-pub async fn get_announcements(
-    State(s): State<AppState>,
-    tc: TenantContext,
-) -> AppResult<Json<Value>> {
-    Ok(Json(
-        ScheduleService::from_state(&s)
-            .get_announcements(tc.tenant_id)
-            .await?,
-    ))
-}
-pub async fn get_announcement_read_status(
-    State(s): State<AppState>,
-    tc: TenantContext,
-) -> AppResult<Json<Value>> {
-    let ids = ScheduleService::from_state(&s)
-        .get_announcement_read_status(tc.user.user_id, tc.tenant_id)
-        .await?;
-
-    Ok(Json(json!(ids)))
-}
-pub async fn mark_announcement_read(
-    State(s): State<AppState>,
-    tc: TenantContext,
-    Path(IdPath { id }): Path<IdPath>,
-) -> AppResult<Json<Value>> {
-    ScheduleService::from_state(&s)
-        .mark_announcement_read(tc.user.user_id, tc.tenant_id, id)
-        .await?;
-
-    Ok(Json(json!({ "ok": true })))
 }

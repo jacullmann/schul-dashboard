@@ -7,6 +7,7 @@ export interface Announcement {
   createdBy?: string;
   authorName?: string;
   createdAt: string;
+  read: boolean;
 }
 
-export type AnnouncementColor = 'ok' | 'warn' | 'danger' | 'expired' | 'info';
+export type AnnouncementColor = 'info' | 'warn' | 'danger';

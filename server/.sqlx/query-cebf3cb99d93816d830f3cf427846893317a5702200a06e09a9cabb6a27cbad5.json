@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, content, color, created_by, created_at FROM announcements\n             WHERE tenant_id = $1 ORDER BY created_at DESC LIMIT 5",
+  "query": "SELECT a.id, a.content, a.color AS \"color: AnnouncementColor\",\n                      a.created_by, a.created_at,\n                      EXISTS (\n                          SELECT 1 FROM user_announcement_read_status r\n                          WHERE r.announcement_id = a.id AND r.user_id = $2\n                      ) AS \"read!\"\n               FROM announcements a\n               WHERE a.tenant_id = $1\n               ORDER BY a.created_at DESC\n               LIMIT $3",
   "describe": {
     "columns": [
       {
@@ -27,7 +27,7 @@
       },
       {
         "ordinal": 2,
-        "name": "color",
+        "name": "color: AnnouncementColor",
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -57,11 +57,19 @@
             "name": "created_at"
           }
         }
+      },
+      {
+        "ordinal": 5,
+        "name": "read!",
+        "type_info": "Bool",
+        "origin": "Expression"
       }
     ],
     "parameters": {
       "Left": [
-        "Uuid"
+        "Uuid",
+        "Uuid",
+        "Int8"
       ]
     },
     "nullable": [
@@ -69,8 +77,9 @@
       false,
       false,
       true,
-      false
+      false,
+      null
     ]
   },
-  "hash": "7dfba22f9be992fbad2af7e8c9e8ab47ed683e02c24ce1bebd112fe791d0502d"
+  "hash": "cebf3cb99d93816d830f3cf427846893317a5702200a06e09a9cabb6a27cbad5"
 }

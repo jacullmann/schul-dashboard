@@ -60,6 +60,4 @@ pub fn group_router() -> Router<AppState> {
             get(get_schedule_subs_admin).post(create_schedule_sub),
         )
         .route("/admin/schedule/subs/{id}", delete(delete_schedule_sub))
-        .route("/admin/announcements", post(create_announcement))
-        .route("/admin/announcements/{id}", delete(delete_announcement))
 }

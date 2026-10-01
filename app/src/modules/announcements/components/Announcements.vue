@@ -20,6 +20,7 @@ const EMPTY_ANNOUNCEMENT: Announcement = {
   content: '',
   color: 'info',
   createdAt: '',
+  read: true,
 };
 
 const currentAnnouncement = computed<Announcement>(

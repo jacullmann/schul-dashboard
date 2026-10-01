@@ -1,7 +1,5 @@
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { storeToRefs } from 'pinia';
-import { useUserStore } from '@/stores/userStore';
 import { useModalStore } from '@/stores/modalStore';
 import hw from '@/api/api.ts';
 import { groupPath } from '@/api/groupPath';
@@ -16,14 +14,11 @@ export type { Announcement };
 
 export function useAnnouncements() {
   const { t } = useI18n();
-  const userStore = useUserStore();
-  const { user } = storeToRefs(userStore);
   const toast = useToast();
   const { activeGroupId } = useAppAuth();
 
   const announcements = ref<Announcement[]>([]);
   const loading = ref(false);
-  const seenIds = ref<Set<string>>(new Set());
 
   async function loadAnnouncements(): Promise<void> {
     const groupId = activeGroupId.value;
@@ -31,7 +26,7 @@ export function useAnnouncements() {
     loading.value = true;
     try {
       const { data } = await hw.get<Announcement[]>(
-        groupPath(groupId, '/schedule/announcements'),
+        groupPath(groupId, '/announcements'),
       );
       announcements.value = data;
     } catch (e) {
@@ -41,41 +36,23 @@ export function useAnnouncements() {
     }
   }
 
-  async function loadSeenIds(): Promise<void> {
+  async function markAsRead(unread: Announcement[]): Promise<void> {
     const groupId = activeGroupId.value;
-    if (!user.value || !groupId) return;
+    if (!groupId) return;
+    for (const announcement of unread) announcement.read = true;
     try {
-      const { data } = await hw.get<string[]>(
-        groupPath(groupId, '/schedule/announcements/read-status'),
-      );
-      seenIds.value = new Set(data);
+      await hw.post(groupPath(groupId, '/announcements/read'), {
+        ids: unread.map((a) => a.id),
+      });
     } catch {
-      seenIds.value = new Set();
-    }
-  }
-
-  async function markAsSeen(announcementId: string): Promise<void> {
-    const groupId = activeGroupId.value;
-    if (!groupId || seenIds.value.has(announcementId)) return;
-    seenIds.value.add(announcementId);
-    try {
-      await hw.post(
-        groupPath(groupId, `/schedule/announcements/${announcementId}/read`),
-      );
-    } catch {
-      // Already marked locally; a failed sync retries on the next load.
+      // Already marked locally; a failed sync shows them again on the next load.
     }
   }
 
   async function checkAndNotifyUnread(): Promise<void> {
-    if (user.value) {
-      await Promise.all([loadAnnouncements(), loadSeenIds()]);
-    } else {
-      await loadAnnouncements();
-      return;
-    }
+    await loadAnnouncements();
 
-    const unread = announcements.value.filter((a) => !seenIds.value.has(a.id));
+    const unread = announcements.value.filter((a) => !a.read);
     if (!unread.length) return;
 
     const count = unread.length;
@@ -101,7 +78,7 @@ export function useAnnouncements() {
       toast.info(msg, duration);
     }
 
-    void Promise.all(unread.map((a) => markAsSeen(a.id)));
+    void markAsRead(unread);
   }
 
   async function deleteAnnouncement(id: string): Promise<void> {

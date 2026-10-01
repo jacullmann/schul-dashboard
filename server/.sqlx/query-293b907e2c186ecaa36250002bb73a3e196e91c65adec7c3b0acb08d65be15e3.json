@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO announcements (tenant_id, content, color, created_by)\n               VALUES ($1, $2, $3, $4)\n               RETURNING id, content, color, created_by, created_at",
+  "query": "INSERT INTO announcements (tenant_id, content, color, created_by)\n               VALUES ($1, $2, $3, $4)\n               RETURNING id, content, color AS \"color: AnnouncementColor\",\n                         created_by, created_at, false AS \"read!\"",
   "describe": {
     "columns": [
       {
@@ -27,7 +27,7 @@
       },
       {
         "ordinal": 2,
-        "name": "color",
+        "name": "color: AnnouncementColor",
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -57,6 +57,12 @@
             "name": "created_at"
           }
         }
+      },
+      {
+        "ordinal": 5,
+        "name": "read!",
+        "type_info": "Bool",
+        "origin": "Expression"
       }
     ],
     "parameters": {
@@ -72,8 +78,9 @@
       false,
       false,
       true,
-      false
+      false,
+      null
     ]
   },
-  "hash": "3d9653013ef371233348ac93c4754d0f69f2948f5f9b5ec01f9c7558c04d2b8c"
+  "hash": "293b907e2c186ecaa36250002bb73a3e196e91c65adec7c3b0acb08d65be15e3"
 }

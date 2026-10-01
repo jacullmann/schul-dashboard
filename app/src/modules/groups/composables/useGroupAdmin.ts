@@ -388,9 +388,7 @@ export function useGroupAdmin() {
 
   async function loadAnnouncements() {
     try {
-      const { data } = await hw.get(
-        groupPath(groupId.value, '/schedule/announcements'),
-      );
+      const { data } = await hw.get(groupPath(groupId.value, '/announcements'));
       announcements.value = data;
     } catch {
       // Announcements are supplementary; keep the previously loaded list.

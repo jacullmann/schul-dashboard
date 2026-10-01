@@ -135,13 +135,6 @@ pub struct CreateScheduleSubDto {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct CreateAnnouncementDto {
-    pub content: String,
-    pub color: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct CreateSubjectDto {
     pub name: String,
     pub category: Option<String>,
