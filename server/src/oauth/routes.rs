@@ -1,31 +1,20 @@
 use super::handlers::*;
-use crate::state::AppState;
+use crate::{common::rate_limit, state::AppState};
 use axum::{
     Router,
     routing::{delete, get, post},
 };
-use std::sync::Arc;
-use tower_governor::{
-    GovernorLayer, governor::GovernorConfigBuilder, key_extractor::SmartIpKeyExtractor,
-};
+use std::time::Duration;
 
 pub fn router() -> Router<AppState> {
-    let oauth_limiter = Arc::new(
-        GovernorConfigBuilder::default()
-            .per_second(5)
-            .burst_size(10)
-            .key_extractor(SmartIpKeyExtractor)
-            .finish()
-            .expect("valid oauth rate limit config"),
-    );
-
+    // A Google sign-in takes two requests (start and callback) per person.
     let sensitive = Router::new()
         .route("/auth/google", get(initiate_google_oauth))
-        .route("/auth/google/signup", get(initiate_google_sign_up))
+        .route("/auth/google/signup", post(sign_up_with_google))
         .route("/auth/google/callback", get(handle_google_callback))
         .route("/auth/google/link", post(link_google_account))
         .route("/auth/google/link/start", post(start_google_link))
-        .layer(GovernorLayer::new(oauth_limiter));
+        .layer(rate_limit::per_ip(60, Duration::from_millis(500)));
 
     let normal = Router::new()
         .route("/auth/google/unlink", delete(unlink_google_account))

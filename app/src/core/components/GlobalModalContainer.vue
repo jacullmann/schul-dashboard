@@ -9,7 +9,6 @@ import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useLogout } from '@/core/composables/useLogout';
 import { useOAuth } from '@/modules/auth/composables/useOAuth';
-import { consumePendingInviteRoute } from '@/modules/auth/utils/pendingInvite';
 import { useIsMobileViewport } from '@/common/composables/useViewport';
 
 // Modals are split out of the entry chunk so they never delay first paint.
@@ -19,6 +18,9 @@ const loadSearchModal = () => import('@/core/components/SearchModal.vue');
 const SearchModal = defineAsyncComponent(loadSearchModal);
 const GoogleLinkModal = defineAsyncComponent(
   () => import('@/modules/auth/components/GoogleLinkModal.vue'),
+);
+const GoogleSignUpModal = defineAsyncComponent(
+  () => import('@/modules/auth/components/GoogleSignUpModal.vue'),
 );
 const TaskForm = defineAsyncComponent(
   () => import('@/modules/tasks/components/TaskForm.vue'),
@@ -62,9 +64,10 @@ const toast = useToast();
 const modalStore = useModalStore();
 const userStore = useUserStore();
 const { user, hasPassword } = storeToRefs(userStore);
-const { checkAuthStatus } = useAppAuth();
+const { checkAuthStatus, homeRoute } = useAppAuth();
 const performLogout = useLogout();
-const { showLinkModal, closeLinkModal } = useOAuth();
+const { showLinkModal, closeLinkModal, showSignUpModal, closeSignUpModal } =
+  useOAuth();
 const isMobile = useIsMobileViewport();
 
 // On phones the search grows out of the header (HeaderSearchPalette). Its
@@ -155,12 +158,12 @@ function onAccountDeleteError(msg: string) {
   toast.error(msg);
 }
 
+// The Google dialogs open on the sign-in pages; the route guard forwards to
+// a pending invite instead of the home route if there is one.
 async function onAuthSuccess() {
   await checkAuthStatus();
   await userStore.fetchUser();
-
-  const inviteRoute = consumePendingInviteRoute();
-  if (inviteRoute) await router.replace(inviteRoute);
+  await router.replace(homeRoute.value);
 }
 </script>
 
@@ -169,6 +172,11 @@ async function onAuthSuccess() {
     :open="showLinkModal"
     @linked="onAuthSuccess"
     @cancel="closeLinkModal"
+  />
+  <GoogleSignUpModal
+    :open="showSignUpModal"
+    @signed-up="onAuthSuccess"
+    @cancel="closeSignUpModal"
   />
 
   <Teleport to="body">

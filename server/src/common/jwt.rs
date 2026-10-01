@@ -20,7 +20,7 @@ pub(crate) fn exp_secs(ttl: Duration) -> u64 {
 
 /// The project signs every token with HS256; `Validation::default()` would
 /// also accept other HMAC variants advertised in the token header.
-fn hs256_validation() -> Validation {
+pub(crate) fn hs256_validation() -> Validation {
     let mut v = Validation::default();
     v.algorithms = vec![jsonwebtoken::Algorithm::HS256];
     v

@@ -1,11 +1,11 @@
 use super::{
     dto::*,
-    service::{OAUTH_PENDING_COOKIE, OAuthIntent, OAuthService},
+    service::{OAUTH_PENDING_COOKIE, OAuthIntent, OAuthService, PendingPurpose},
 };
 use crate::{
     auth::service::{ClientInfo, LoginResult},
     common::extractors::{AuthUser, ClientIp, UserAgent, ValidatedJson},
-    error::{AppError, AppResult},
+    error::AppResult,
     state::AppState,
 };
 use axum::{
@@ -13,7 +13,7 @@ use axum::{
     extract::{Query, State},
     response::Redirect,
 };
-use axum_extra::extract::CookieJar;
+use axum_extra::extract::{CookieJar, cookie::Cookie};
 use serde::Deserialize;
 use serde_json::{Value, json};
 
@@ -26,14 +26,6 @@ pub struct OAuthCallbackQuery {
 
 pub async fn initiate_google_oauth(State(s): State<AppState>) -> AppResult<(CookieJar, Redirect)> {
     redirect_to_google(&s, OAuthIntent::Login)
-}
-
-/// Linked from the registration form only once the privacy policy and terms
-/// are accepted; it is the only entry point that may create an account.
-pub async fn initiate_google_sign_up(
-    State(s): State<AppState>,
-) -> AppResult<(CookieJar, Redirect)> {
-    redirect_to_google(&s, OAuthIntent::SignUp)
 }
 
 fn redirect_to_google(s: &AppState, intent: OAuthIntent) -> AppResult<(CookieJar, Redirect)> {
@@ -85,26 +77,13 @@ pub async fn link_google_account(
     jar: CookieJar,
     ValidatedJson(dto): ValidatedJson<LinkGoogleAccountDto>,
 ) -> AppResult<(CookieJar, Json<Value>)> {
-    let pending_token = jar
-        .get(OAUTH_PENDING_COOKIE)
-        .map(|c| c.value().to_string())
-        .ok_or_else(|| AppError::Unauthorized("Authentication failed.".into()))?;
+    let svc = OAuthService::from_state(&s);
+    let pending = svc.verify_pending_cookie(pending_cookie(&jar), PendingPurpose::Link)?;
 
-    let mut v = jsonwebtoken::Validation::default();
-
-    v.algorithms = vec![jsonwebtoken::Algorithm::HS256];
-
-    let data = jsonwebtoken::decode::<super::service::OAuthPendingClaims>(
-        &pending_token,
-        &jsonwebtoken::DecodingKey::from_secret(s.config.oauth_pending_jwt_secret.as_bytes()),
-        &v,
-    )
-    .map_err(|_| AppError::Unauthorized("Authentication failed.".into()))?;
-
-    let result = OAuthService::from_state(&s)
+    let result = svc
         .link_google_account(
-            &data.claims.google_id,
-            &data.claims.google_email,
+            &pending.google_id,
+            &pending.google_email,
             &dto.password,
             ClientInfo {
                 user_agent: ua.as_deref(),
@@ -113,10 +92,49 @@ pub async fn link_google_account(
         )
         .await?;
 
-    Ok(match result {
-        LoginResult::Success(jar) => (jar, Json(json!({ "ok": true }))),
-        LoginResult::MfaRequired(jar) => (jar, Json(json!({ "ok": true, "requiresMfa": true }))),
-    })
+    Ok(sign_in_response(result, svc.clear_pending_cookie()))
+}
+
+/// Finishes a Google sign-up the callback could not complete on its own: the
+/// user has to accept the terms before an account is created.
+pub async fn sign_up_with_google(
+    State(s): State<AppState>,
+    ClientIp(ip): ClientIp,
+    UserAgent(ua): UserAgent,
+    jar: CookieJar,
+    ValidatedJson(_accepted): ValidatedJson<GoogleSignUpDto>,
+) -> AppResult<(CookieJar, Json<Value>)> {
+    let svc = OAuthService::from_state(&s);
+    let pending = svc.verify_pending_cookie(pending_cookie(&jar), PendingPurpose::SignUp)?;
+
+    let result = svc
+        .sign_up_with_google(
+            &pending,
+            ClientInfo {
+                user_agent: ua.as_deref(),
+                ip: ip.as_deref(),
+            },
+        )
+        .await?;
+
+    Ok(sign_in_response(result, svc.clear_pending_cookie()))
+}
+
+fn pending_cookie(jar: &CookieJar) -> Option<&str> {
+    jar.get(OAUTH_PENDING_COOKIE).map(|c| c.value())
+}
+
+fn sign_in_response(
+    result: LoginResult,
+    clear_pending: Cookie<'static>,
+) -> (CookieJar, Json<Value>) {
+    match result {
+        LoginResult::Success(jar) => (jar.add(clear_pending), Json(json!({ "ok": true }))),
+        LoginResult::MfaRequired(jar) => (
+            jar.add(clear_pending),
+            Json(json!({ "ok": true, "requiresMfa": true })),
+        ),
+    }
 }
 
 pub async fn unlink_google_account(

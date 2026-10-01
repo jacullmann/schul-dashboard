@@ -24,7 +24,20 @@ pub struct RegisterDto {
     ))]
     pub password: String,
 
+    #[validate(custom(function = "must_be_accepted"))]
+    pub accepted_terms: bool,
+
     pub preferences: Option<serde_json::Value>,
+}
+
+/// Every sign-up path has to send the acceptance of the terms explicitly, so
+/// no client can create an account without having asked for it.
+pub(crate) fn must_be_accepted(accepted: &bool) -> Result<(), validator::ValidationError> {
+    if *accepted {
+        Ok(())
+    } else {
+        Err(validator::ValidationError::new("terms_not_accepted"))
+    }
 }
 
 #[derive(Debug, Deserialize, Validate)]

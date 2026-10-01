@@ -6,6 +6,7 @@ import { apiErrorMessage } from '@/api/errors';
 import { useToast } from '@/common/composables/useToast';
 
 const showLinkModal = ref(false);
+const showSignUpModal = ref(false);
 
 interface LinkedProvider {
   provider: string;
@@ -33,7 +34,6 @@ export function useOAuth() {
       'auth.google_link.errors.provider_already_linked',
     ),
     session_expired: t('auth.google_link.errors.session_expired'),
-    signup_required: t('auth.google_link.errors.signup_required'),
   };
 
   function errorMessage(reason: string | null): string {
@@ -49,14 +49,10 @@ export function useOAuth() {
     window.location.href = `${base}${path}`;
   }
 
+  // Signs in and signs up alike: an unknown Google account comes back as
+  // `signup-required` and is only created once the terms are accepted.
   function initiateGoogleLogin(): void {
     navigateToApi('/auth/google');
-  }
-
-  // Only this entry point lets the backend create an account, so callers
-  // must have obtained consent to the privacy policy and terms first.
-  function initiateGoogleSignUp(): void {
-    navigateToApi('/auth/google/signup');
   }
 
   // The backend binds the flow to the signed-in user before Google is
@@ -84,14 +80,6 @@ export function useOAuth() {
   async function openMfaChallenge(): Promise<void> {
     await router.isReady();
     await router.replace({ name: 'verify-mfa' });
-  }
-
-  // A new Google user who started from the login page has not accepted the
-  // privacy policy and terms yet; the registration form asks for that.
-  async function openRegistration(): Promise<void> {
-    useToast().info(errorMessage('signup_required'));
-    await router.isReady();
-    await router.replace({ name: 'register' });
   }
 
   // Stripped through the router: a raw history.replaceState would be undone
@@ -140,11 +128,6 @@ export function useOAuth() {
       return;
     }
 
-    if (auth === 'error' && params.get('reason') === 'signup_required') {
-      void openRegistration();
-      return;
-    }
-
     void stripOAuthParams();
 
     switch (auth) {
@@ -154,6 +137,10 @@ export function useOAuth() {
 
       case 'link-required':
         showLinkModal.value = true;
+        break;
+
+      case 'signup-required':
+        showSignUpModal.value = true;
         break;
 
       case 'error':
@@ -181,6 +168,21 @@ export function useOAuth() {
       return {
         ok: false,
         error: apiErrorMessage(err, t('auth.google_link.errors.failed')),
+      };
+    }
+  }
+
+  // The account is created only here, after the user accepted the terms for
+  // the Google identity the callback verified.
+  async function signUpWithGoogle(): Promise<ActionResult> {
+    try {
+      await hw.post('/auth/google/signup', { acceptedTerms: true });
+      showSignUpModal.value = false;
+      return { ok: true };
+    } catch (err: unknown) {
+      return {
+        ok: false,
+        error: apiErrorMessage(err, t('auth.google_signup.failed')),
       };
     }
   }
@@ -215,15 +217,21 @@ export function useOAuth() {
     showLinkModal.value = false;
   }
 
+  function closeSignUpModal(): void {
+    showSignUpModal.value = false;
+  }
+
   return {
     showLinkModal,
+    showSignUpModal,
     initiateGoogleLogin,
-    initiateGoogleSignUp,
     initiateGoogleLink,
     handleOAuthReturn,
     linkGoogleAccount,
+    signUpWithGoogle,
     unlinkGoogleAccount,
     fetchLinkedProviders,
     closeLinkModal,
+    closeSignUpModal,
   };
 }

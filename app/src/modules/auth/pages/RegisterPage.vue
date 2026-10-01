@@ -1,26 +1,26 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
 import GoogleIcon from '@/modules/auth/components/GoogleIcon.vue';
+import TermsConsentCheckbox from '@/modules/auth/components/TermsConsentCheckbox.vue';
 import { useRegister } from '@/modules/auth/composables/useRegister';
-import { useLegalLinks } from '@/modules/auth/composables/useLegalLinks';
+import { useOAuth } from '@/modules/auth/composables/useOAuth';
 import { useI18n } from 'vue-i18n';
 
 const router = useRouter();
 const { t } = useI18n();
-const { privacyPolicyUrl, termsUrl } = useLegalLinks();
+const { initiateGoogleLogin } = useOAuth();
 
 const {
   email,
   password,
   passwordConfirm,
-  acceptedPrivacy,
+  acceptedTerms,
   submitting,
   formError,
   emailInputRef,
   errors,
   clearFieldError,
   submit: submitRegister,
-  registerWithGoogle,
 } = useRegister(async () => {
   await router.push({ name: 'login' });
 });
@@ -112,28 +112,13 @@ function navigateToLogin() {
             />
           </BaseFormGroup>
 
-          <BaseFormGroup id="register-privacy" :error="errors.privacy">
-            <BaseCheckbox
-              v-model="acceptedPrivacy"
+          <BaseFormGroup id="register-terms" :error="errors.terms">
+            <TermsConsentCheckbox
+              v-model="acceptedTerms"
               class="mt-1"
-              :aria-describedby="
-                errors.privacy ? 'register-privacy-error' : undefined
-              "
-              @change="clearFieldError('privacy')"
-            >
-              <i18n-t keypath="auth.login.terms">
-                <template #privacy>
-                  <BaseLink :to="privacyPolicyUrl" inline>
-                    {{ t('legal.privacy.title') }}
-                  </BaseLink>
-                </template>
-                <template #terms>
-                  <BaseLink :to="termsUrl" inline>
-                    {{ t('legal.terms.title') }}
-                  </BaseLink>
-                </template>
-              </i18n-t>
-            </BaseCheckbox>
+              :described-by="errors.terms ? 'register-terms-error' : undefined"
+              @update:model-value="clearFieldError('terms')"
+            />
           </BaseFormGroup>
         </template>
 
@@ -155,7 +140,7 @@ function navigateToLogin() {
         surface
         variant="ghost"
         class="w-full justify-center"
-        @click="registerWithGoogle"
+        @click="initiateGoogleLogin"
       >
         <GoogleIcon :size="16" />
         <span>{{ t('auth.login.register_google') }}</span>
