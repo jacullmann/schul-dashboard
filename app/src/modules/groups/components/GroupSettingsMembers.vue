@@ -3,6 +3,7 @@ import { RefreshCw, CircleMinus, UserRoundPlus, Ban } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import { computed, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import Avatar from '@/modules/auth/components/Avatar.vue';
 import InfoModal from '@/common/components/InfoModal.vue';
 import type {
   AssignableMemberRole,
@@ -185,37 +186,23 @@ function confirmRemove() {
     >
       <BaseList @click="goToInvites">
         <template #icon>
-          <span class="flex size-10 justify-center items-center text-on-ghost">
-            <UserRoundPlus :size="24" />
-          </span>
+          <UserRoundPlus :size="24" :stroke-width="1.8" class="mx-2" />
         </template>
         <template #label>
-          <span class="flex flex-col min-h-10 justify-between">
-            <span class="text-on-ghost text-base/tight font-medium">
-              {{ t('groups.settings.members.invite_links.title') }}
-            </span>
-            <span class="text-on-ghost-muted text-xs/tight font-normal">
-              {{ t('groups.settings.members.invite_links.description') }}
-            </span>
-          </span>
+          <div class="text-on-ghost text-base font-normal">
+            {{ t('groups.settings.members.invite_links.title') }}
+          </div>
         </template>
       </BaseList>
 
       <BaseList :separator="false" @click="goToBanned">
         <template #icon>
-          <span class="flex size-10 justify-center items-center text-on-ghost">
-            <Ban :size="24" />
-          </span>
+          <Ban :size="24" :stroke-width="1.8" class="mx-2" />
         </template>
         <template #label>
-          <span class="flex flex-col min-h-10 justify-between">
-            <span class="text-on-ghost text-base/tight font-medium">
-              {{ t('groups.settings.members.ban_list.title') }}
-            </span>
-            <span class="text-on-ghost-muted text-xs/tight font-normal">
-              {{ t('groups.settings.members.ban_list.description') }}
-            </span>
-          </span>
+          <div class="text-on-ghost text-base font-normal">
+            {{ t('groups.settings.members.ban_list.title') }}
+          </div>
         </template>
       </BaseList>
     </div>
@@ -266,51 +253,67 @@ function confirmRemove() {
     <div v-else class="flex flex-col gap-2 max-w-200 mx-auto">
       <p class="text-on-ghost-muted text-sm m-0!">{{ memberCountLabel }}</p>
 
-      <div
-        v-for="member in members"
-        :key="member.userId"
-        class="flex max-md:flex-col items-center justify-between p-2 px-3 bg-surface border border-ghost-border shadow-input rounded-xl gap-3"
-      >
-        <div class="flex items-center gap-2.5 min-w-0">
-          <span
-            class="font-semibold text-base whitespace-nowrap overflow-hidden text-ellipsis"
-            >{{ member.generatedName }}</span
-          >
-          <span
-            v-if="isSelf(member)"
-            class="rounded-full bg-action px-2 text-xs/5 font-semibold text-on-action"
-            >{{ t('groups.settings.members.you') }}</span
-          >
-          <span class="text-on-ghost-muted text-sm">{{
-            t('groups.settings.members.joined', {
-              time: formatRelativeTime(member.joinedAt),
-            })
-          }}</span>
-        </div>
-        <div class="flex items-center gap-2 flex-shrink-0">
-          <BaseTooltip
-            v-if="canModerateMembers"
-            :content="t('groups.settings.members.actions.remove')"
-            placement="bottom"
-          >
-            <BaseButton
-              variant="ghost"
-              :disabled="!member.canRemove"
-              :icon="CircleMinus"
-              @click="openRemoveModal(member.userId, member.generatedName)"
+      <template v-for="(member, index) in members" :key="member.userId">
+        <div
+          v-if="index > 0"
+          class="task-separator border-b border-ghost-border md:ml-14 md:mr-3"
+        ></div>
+        <div class="flex items-center justify-between py-2 gap-2">
+          <div class="flex items-center gap-4 min-w-0">
+            <Avatar
+              class="max-md:hidden"
+              :name="member.generatedName"
+              :size="10"
             />
-          </BaseTooltip>
+            <div class="flex flex-col gap-1">
+              <div class="flex items-center gap-2">
+                <span
+                  class="font-semibold text-base/tight whitespace-nowrap overflow-hidden text-ellipsis"
+                  >{{ member.generatedName }}</span
+                >
+                <span
+                  v-if="isSelf(member)"
+                  class="rounded-full bg-action px-2 text-xs/5 font-semibold text-on-action"
+                  >{{ t('groups.settings.members.you') }}</span
+                >
+              </div>
+              <span class="md:hidden text-on-ghost-muted text-sm/4">{{
+                t('groups.settings.members.joined', {
+                  time: formatRelativeTime(member.joinedAt),
+                })
+              }}</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-1 flex-shrink-0">
+            <span class="max-md:hidden text-on-ghost-muted text-sm">{{
+              t('groups.settings.members.joined', {
+                time: formatRelativeTime(member.joinedAt),
+              })
+            }}</span>
+            <BaseTooltip
+              v-if="canModerateMembers"
+              :content="t('groups.settings.members.actions.remove')"
+              placement="bottom"
+            >
+              <BaseButton
+                variant="ghost"
+                :disabled="!member.canRemove"
+                :icon="CircleMinus"
+                @click="openRemoveModal(member.userId, member.generatedName)"
+              />
+            </BaseTooltip>
 
-          <BaseSelect
-            :model-value="member.role"
-            :disabled="member.assignableRoles.length === 0"
-            :form="false"
-            classes="w-40!"
-            :options="roleOptionsFor(member)"
-            @update:model-value="(val: string) => onRoleChange(member, val)"
-          />
+            <BaseSelect
+              :model-value="member.role"
+              :disabled="member.assignableRoles.length === 0"
+              :form="false"
+              classes="w-36!"
+              :options="roleOptionsFor(member)"
+              @update:model-value="(val: string) => onRoleChange(member, val)"
+            />
+          </div>
         </div>
-      </div>
+      </template>
     </div>
 
     <BaseModal

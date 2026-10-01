@@ -39,6 +39,7 @@ withDefaults(
   <div
     v-if="separator"
     v-bind="$attrs"
-    class="border-b border-ghost-border ml-18 mr-4 md:ml-15 md:mr-6"
+    class="border-b border-ghost-border"
+    :class="$slots.icon ? 'ml-18 md:ml-15 mr-6' : 'mx-6'"
   ></div>
 </template>
