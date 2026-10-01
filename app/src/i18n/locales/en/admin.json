@@ -39,28 +39,50 @@
       "total": "Total: {count}",
       "average": "Avg. {value} per day"
     },
-    "cleanup": {
-      "title": "Cleanup",
-      "action": "Delete",
-      "success": "Deleted entries: {count}",
-      "error": "Cleanup failed.",
-      "items": {
-        "label": "Tasks older than 90 days",
-        "count": "Affected: {count}",
-        "modal_title": "Delete old tasks?",
-        "modal_content": "Every task created more than 90 days ago will be permanently deleted in all groups."
-      },
-      "activity": {
-        "label": "Log entries older than 30 days",
-        "count": "Affected: {count}",
-        "modal_title": "Delete old logs?",
-        "modal_content": "Every activity log entry older than 30 days will be permanently deleted for all users."
-      },
-      "unverifiable_users": {
-        "label": "Unverified accounts older than 2 days",
-        "count": "Affected: {count}",
-        "modal_title": "Delete unverified accounts?",
-        "modal_content": "Every account whose email address was not confirmed within 2 days will be permanently deleted. Their confirmation link has already expired; the addresses can be registered again afterwards."
+    "cleanup_jobs": {
+      "title": "Automatic cleanup",
+      "description": "The database deletes old data on its own every 6 hours. Overdue entries should have been deleted at least two runs ago, which means the job is not running.",
+      "ok": "OK",
+      "overdue": "Overdue: {count}",
+      "error": "Could not load the status.",
+      "retry": "Try again",
+      "jobs": {
+        "cleanup-refresh-tokens": {
+          "label": "Sessions",
+          "rule": "Expired sign-ins, revoked ones after 7 days"
+        },
+        "cleanup-mfa-pending": {
+          "label": "2FA setup",
+          "rule": "Abandoned setups once expired"
+        },
+        "cleanup-group-messages": {
+          "label": "Chat messages",
+          "rule": "Older than 7 days"
+        },
+        "cleanup-group-invites": {
+          "label": "Invite links",
+          "rule": "30 days after expiry, use or revocation"
+        },
+        "cleanup-user-activity": {
+          "label": "Activity log",
+          "rule": "Older than 30 days"
+        },
+        "cleanup-security-events": {
+          "label": "Security events",
+          "rule": "Older than 30 days"
+        },
+        "cleanup-unverified-users": {
+          "label": "Unverified accounts",
+          "rule": "Not confirmed within 2 days"
+        },
+        "cleanup-old-items": {
+          "label": "Tasks",
+          "rule": "Older than 90 days"
+        },
+        "asset-deletion-queue": {
+          "label": "Files on Cloudinary",
+          "rule": "Deleted files, removed by the server every minute"
+        }
       }
     },
     "errors": {

@@ -5,7 +5,6 @@ use crate::{
     },
     error::{AppError, AppResult},
     items::{
-        assets,
         dto::{AddImageDto, CreateItemDto, ImageDto, ItemSubjectDto, UpdateItemDto},
         policy::ItemActor,
     },
@@ -693,9 +692,10 @@ impl ItemsService {
             return Err(AppError::forbidden("Not allowed to delete this image."));
         }
 
-        let (removed, kept): (Vec<Value>, Vec<Value>) = images
+        let kept: Vec<Value> = images
             .into_iter()
-            .partition(|img| img["publicId"].as_str() == Some(public_id));
+            .filter(|img| img["publicId"].as_str() != Some(public_id))
+            .collect();
 
         sqlx::query!(
             r#"UPDATE items SET images = $1, updated_at = now() WHERE id = $2"#,
@@ -714,12 +714,6 @@ impl ItemsService {
             .await?;
 
         tx.commit().await?;
-
-        assets::delete_detached(
-            self.db.clone(),
-            self.cloudinary.clone(),
-            [&Value::Array(removed)],
-        );
 
         Ok(json!({ "ok": true }))
     }
@@ -743,14 +737,13 @@ impl ItemsService {
             return Err(AppError::forbidden("Not allowed to delete this item."));
         }
 
-        let images = sqlx::query_scalar!(
-            r#"DELETE FROM items WHERE id = $1 AND tenant_id = $2 RETURNING images"#,
+        sqlx::query!(
+            r#"DELETE FROM items WHERE id = $1 AND tenant_id = $2"#,
             id,
             tenant_id
         )
-        .fetch_optional(&self.db)
-        .await?
-        .flatten();
+        .execute(&self.db)
+        .await?;
 
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:delete', $2)"#,
@@ -759,8 +752,6 @@ impl ItemsService {
         )
         .execute(&self.db)
         .await?;
-
-        assets::delete_detached(self.db.clone(), self.cloudinary.clone(), &images);
 
         Ok(json!({ "ok": true }))
     }

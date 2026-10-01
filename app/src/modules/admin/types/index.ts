@@ -20,10 +20,14 @@ export interface SuperAdminStats {
   activeUsersThisWeek: number;
   itemCount: number;
   newItemsThisWeek: number;
-  oldItemsCount: number;
-  oldActivityCount: number;
-  unverifiableUsersCount: number;
   reportCount: number;
+}
+
+/** A scheduled cleanup, named as in `database/pg_cron_setup.sql`, with the
+ * rows it should already have removed. */
+export interface CleanupJob {
+  job: string;
+  overdueCount: number;
 }
 
 export interface DailyActivity {

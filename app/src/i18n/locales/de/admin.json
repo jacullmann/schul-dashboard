@@ -39,28 +39,50 @@
       "total": "Gesamt: {count}",
       "average": "Ø {value} pro Tag"
     },
-    "cleanup": {
-      "title": "Aufräumen",
-      "action": "Löschen",
-      "success": "Gelöschte Einträge: {count}",
-      "error": "Aufräumen fehlgeschlagen.",
-      "items": {
-        "label": "Aufgaben älter als 90 Tage",
-        "count": "Betroffen: {count}",
-        "modal_title": "Alte Aufgaben löschen?",
-        "modal_content": "Alle Aufgaben, die vor mehr als 90 Tagen erstellt wurden, werden in allen Gruppen unwiderruflich gelöscht."
-      },
-      "activity": {
-        "label": "Protokolleinträge älter als 30 Tage",
-        "count": "Betroffen: {count}",
-        "modal_title": "Alte Protokolle löschen?",
-        "modal_content": "Alle Aktivitätsprotokolle aller Benutzer, die älter als 30 Tage sind, werden unwiderruflich gelöscht."
-      },
-      "unverifiable_users": {
-        "label": "Unbestätigte Konten älter als 2 Tage",
-        "count": "Betroffen: {count}",
-        "modal_title": "Unbestätigte Konten löschen?",
-        "modal_content": "Alle Konten, deren E-Mail-Adresse nicht innerhalb von 2 Tagen bestätigt wurde, werden unwiderruflich gelöscht. Ihr Bestätigungslink ist bereits abgelaufen, die Adressen können danach neu registriert werden."
+    "cleanup_jobs": {
+      "title": "Automatische Bereinigung",
+      "description": "Die Datenbank löscht alte Daten alle 6 Stunden selbst. Überfällig sind Einträge, die schon seit mindestens zwei Durchläufen gelöscht sein müssten – dann läuft der Job nicht.",
+      "ok": "In Ordnung",
+      "overdue": "Überfällig: {count}",
+      "error": "Status konnte nicht geladen werden.",
+      "retry": "Erneut versuchen",
+      "jobs": {
+        "cleanup-refresh-tokens": {
+          "label": "Sitzungen",
+          "rule": "Abgelaufene Anmeldungen, widerrufene nach 7 Tagen"
+        },
+        "cleanup-mfa-pending": {
+          "label": "2FA-Einrichtung",
+          "rule": "Abgebrochene Einrichtungen nach Ablauf"
+        },
+        "cleanup-group-messages": {
+          "label": "Chatnachrichten",
+          "rule": "Älter als 7 Tage"
+        },
+        "cleanup-group-invites": {
+          "label": "Einladungslinks",
+          "rule": "30 Tage nach Ablauf, Nutzung oder Widerruf"
+        },
+        "cleanup-user-activity": {
+          "label": "Aktivitätsprotokoll",
+          "rule": "Älter als 30 Tage"
+        },
+        "cleanup-security-events": {
+          "label": "Sicherheitsereignisse",
+          "rule": "Älter als 30 Tage"
+        },
+        "cleanup-unverified-users": {
+          "label": "Unbestätigte Konten",
+          "rule": "Nicht innerhalb von 2 Tagen bestätigt"
+        },
+        "cleanup-old-items": {
+          "label": "Aufgaben",
+          "rule": "Älter als 90 Tage"
+        },
+        "asset-deletion-queue": {
+          "label": "Dateien bei Cloudinary",
+          "rule": "Gelöschte Dateien, jede Minute vom Server entfernt"
+        }
       }
     },
     "errors": {

@@ -1,14 +1,11 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { Trash2 } from '@lucide/vue';
 import DailyBarChart, {
   type DailySummary,
 } from '../components/DailyBarChart.vue';
-import {
-  CLEANUP_I18N_KEYS,
-  useSuperAdminStats,
-} from '../composables/useSuperAdminStats';
+import CleanupJobList from '../components/CleanupJobList.vue';
+import { useSuperAdminStats } from '../composables/useSuperAdminStats';
 import type { DailyMetric } from '../types';
 
 interface DailyChart {
@@ -17,14 +14,8 @@ interface DailyChart {
   summary?: DailySummary;
 }
 
-const {
-  stats,
-  dailyActivity,
-  loadingStats,
-  cleaningUp,
-  loadDailyActivity,
-  cleanup,
-} = useSuperAdminStats();
+const { stats, dailyActivity, loadingStats, loadDailyActivity } =
+  useSuperAdminStats();
 const { t } = useI18n();
 
 const headlineStats = computed(() =>
@@ -72,19 +63,6 @@ const charts = computed(() =>
       value: d[chart.metric],
     })),
   })),
-);
-
-const cleanups = computed(() =>
-  stats.value
-    ? ([
-        { target: 'old-items', count: stats.value.oldItemsCount },
-        { target: 'old-activity', count: stats.value.oldActivityCount },
-        {
-          target: 'unverifiable-users',
-          count: stats.value.unverifiableUsersCount,
-        },
-      ] as const)
-    : [],
 );
 
 // The stats themselves are loaded once by the dashboard shell.
@@ -139,36 +117,7 @@ onMounted(loadDailyActivity);
       </div>
     </section>
 
-    <section class="flex flex-col gap-3">
-      <h3>{{ t('admin.overview.cleanup.title') }}</h3>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div
-          v-for="c in cleanups"
-          :key="c.target"
-          class="stat-card flex items-center justify-between gap-3 text-left!"
-        >
-          <div>
-            <div class="font-semibold">
-              {{ t(`${CLEANUP_I18N_KEYS[c.target]}.label`) }}
-            </div>
-            <div class="text-sm text-on-ghost-muted">
-              {{
-                t(`${CLEANUP_I18N_KEYS[c.target]}.count`, { count: c.count })
-              }}
-            </div>
-          </div>
-          <BaseButton
-            variant="ghost"
-            :icon="Trash2"
-            :disabled="c.count === 0 || cleaningUp !== null"
-            :loading="cleaningUp === c.target"
-            @click="cleanup(c.target)"
-          >
-            {{ t('admin.overview.cleanup.action') }}
-          </BaseButton>
-        </div>
-      </div>
-    </section>
+    <CleanupJobList />
   </div>
 </template>
 

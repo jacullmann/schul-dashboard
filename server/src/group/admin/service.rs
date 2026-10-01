@@ -1,6 +1,5 @@
 use crate::{
     common::{
-        cloudinary::Cloudinary,
         group_type::{DEFAULT_COURSE_TYPE, GroupType, ZUSATZKURS_CATEGORY, resolve_course_type},
         names::DisplayName,
         permission::{GroupPermissions, Permission},
@@ -12,7 +11,6 @@ use crate::{
         member_policy::{self, Actor, Caller, Target},
         service::{lock_group_owner, role_from_db},
     },
-    items::assets,
     state::AppState,
 };
 use chrono::NaiveTime;
@@ -79,7 +77,6 @@ struct LockedMembership {
 
 pub struct GroupAdminService {
     db: PgPool,
-    cloudinary: Cloudinary,
 }
 
 /// The category a new subject gets when the client does not send one.
@@ -144,10 +141,7 @@ fn validate_dalton_lesson(
 
 impl GroupAdminService {
     pub fn from_state(s: &AppState) -> Self {
-        Self {
-            db: s.db.clone(),
-            cloudinary: s.cloudinary.clone(),
-        }
+        Self { db: s.db.clone() }
     }
 
     async fn group_type(&self, tenant_id: Uuid) -> AppResult<GroupType> {
@@ -628,26 +622,11 @@ impl GroupAdminService {
     }
 
     pub async fn delete_group(&self, tenant_id: Uuid, user_id: Uuid) -> AppResult<Value> {
-        let mut tx = self.db.begin().await?;
-
-        let images = sqlx::query_scalar!(
-            r#"DELETE FROM items WHERE tenant_id = $1 RETURNING images"#,
-            tenant_id
-        )
-        .fetch_all(&mut *tx)
-        .await?;
-
+        // Everything in the group cascades with it; the items' files are
+        // queued for deletion by the database.
         sqlx::query!(r#"DELETE FROM groups WHERE id = $1"#, tenant_id)
-            .execute(&mut *tx)
+            .execute(&self.db)
             .await?;
-
-        tx.commit().await?;
-
-        assets::delete_detached(
-            self.db.clone(),
-            self.cloudinary.clone(),
-            images.iter().flatten(),
-        );
 
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta)
@@ -662,21 +641,14 @@ impl GroupAdminService {
     }
 
     pub async fn cleanup_old_items(&self, tenant_id: Uuid, user_id: Uuid) -> AppResult<Value> {
-        let images = sqlx::query_scalar!(
+        let count = sqlx::query!(
             r#"DELETE FROM items
-               WHERE tenant_id = $1 AND created_at < now() - interval '90 days'
-               RETURNING images"#,
+               WHERE tenant_id = $1 AND created_at < now() - interval '90 days'"#,
             tenant_id
         )
-        .fetch_all(&self.db)
-        .await?;
-        let count = images.len();
-
-        assets::delete_detached(
-            self.db.clone(),
-            self.cloudinary.clone(),
-            images.iter().flatten(),
-        );
+        .execute(&self.db)
+        .await?
+        .rows_affected();
 
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta)

@@ -5,27 +5,21 @@ use crate::{
         token::{ADMIN_REVOKE, TokenService},
     },
     common::{
-        cloudinary::Cloudinary,
         name_generator::generate_user_name,
         pagination::{PAGE_SIZE, Page, contains_pattern, search_term},
         role::{MemberRole, Role},
     },
-    config::{EMAIL_VERIFY_TTL, chrono_ttl},
     error::{AppError, AppResult},
     group::{
         member_policy::{self, Caller, Target},
         service::role_from_db,
     },
-    items::assets,
     state::AppState,
 };
-use chrono::{DateTime, Utc};
 use serde_json::{Value, json};
 use sqlx::{PgConnection, PgPool};
 use uuid::Uuid;
 
-const ITEM_RETENTION_DAYS: i32 = 90;
-const ACTIVITY_RETENTION_DAYS: i32 = 30;
 const STATS_WINDOW_DAYS: i32 = 7;
 const DAILY_ACTIVITY_DAYS: i32 = 30;
 const ACTIVITY_LOG_LIMIT: i64 = 200;
@@ -50,12 +44,6 @@ async fn log_admin_action(
     Ok(())
 }
 
-/// Accounts created before this instant can no longer be verified, because
-/// their confirmation link has expired.
-fn unverifiable_before() -> DateTime<Utc> {
-    Utc::now() - chrono_ttl(EMAIL_VERIFY_TTL)
-}
-
 /// Splits a search into the text pattern and, when it is one, the exact id.
 fn search_params(raw: Option<&str>) -> (Option<String>, Option<Uuid>) {
     let term = search_term(raw);
@@ -68,7 +56,6 @@ fn search_params(raw: Option<&str>) -> (Option<String>, Option<Uuid>) {
 pub struct SuperAdminService {
     db: PgPool,
     tokens: TokenService,
-    cloudinary: Cloudinary,
 }
 
 impl SuperAdminService {
@@ -76,7 +63,6 @@ impl SuperAdminService {
         Self {
             db: s.db.clone(),
             tokens: TokenService::from_state(s),
-            cloudinary: s.cloudinary.clone(),
         }
     }
 
@@ -84,30 +70,22 @@ impl SuperAdminService {
     pub async fn get_stats(&self) -> AppResult<StatsDto> {
         let row = sqlx::query!(
             r#"SELECT u.total AS "user_count!", u.verified AS "verified_users!",
-                      u.unverifiable AS "unverifiable_users!",
                       u.new_recently AS "new_users!", u.active_recently AS "active_users!",
-                      i.total AS "item_count!", i.new_recently AS "new_items!", i.expired AS "old_items!",
+                      i.total AS "item_count!", i.new_recently AS "new_items!",
                       (SELECT COUNT(*) FROM user_roles
                        WHERE tenant_id IS NULL AND role_id = $1) AS "admin_count!",
                       (SELECT COUNT(*) FROM banned_users) AS "banned_count!",
-                      (SELECT COUNT(*) FROM reports) AS "report_count!",
-                      (SELECT COUNT(*) FROM user_activity
-                       WHERE created_at < now() - make_interval(days => $4)) AS "old_activity!"
+                      (SELECT COUNT(*) FROM reports) AS "report_count!"
                FROM (SELECT COUNT(*) AS total,
                             COUNT(*) FILTER (WHERE email_verified) AS verified,
-                            COUNT(*) FILTER (WHERE NOT email_verified AND created_at < $5) AS unverifiable,
                             COUNT(*) FILTER (WHERE created_at >= now() - make_interval(days => $2)) AS new_recently,
                             COUNT(*) FILTER (WHERE last_login_at >= now() - make_interval(days => $2)) AS active_recently
                      FROM users) u,
                     (SELECT COUNT(*) AS total,
-                            COUNT(*) FILTER (WHERE created_at >= now() - make_interval(days => $2)) AS new_recently,
-                            COUNT(*) FILTER (WHERE created_at < now() - make_interval(days => $3)) AS expired
+                            COUNT(*) FILTER (WHERE created_at >= now() - make_interval(days => $2)) AS new_recently
                      FROM items) i"#,
             Role::Superadmin.db_id_i32(),
             STATS_WINDOW_DAYS,
-            ITEM_RETENTION_DAYS,
-            ACTIVITY_RETENTION_DAYS,
-            unverifiable_before(),
         )
         .fetch_one(&self.db)
         .await?;
@@ -122,9 +100,6 @@ impl SuperAdminService {
             active_users_this_week: row.active_users,
             item_count: row.item_count,
             new_items_this_week: row.new_items,
-            old_items_count: row.old_items,
-            old_activity_count: row.old_activity,
-            unverifiable_users_count: row.unverifiable_users,
             report_count: row.report_count,
         })
     }
@@ -178,99 +153,19 @@ impl SuperAdminService {
             .collect())
     }
 
-    /// Platform-wide counterpart of the per-group cleanup in group admin.
-    pub async fn cleanup_old_items(&self, admin_id: Uuid) -> AppResult<Value> {
-        let mut tx = self.db.begin().await?;
-
-        let images = sqlx::query_scalar!(
-            r#"DELETE FROM items WHERE created_at < now() - make_interval(days => $1)
-               RETURNING images"#,
-            ITEM_RETENTION_DAYS
+    /// Whether each scheduled cleanup keeps up, judged by the rows it should
+    /// already have removed. That is what the retention promised in the privacy
+    /// policy depends on, and unlike pg_cron's run history (the `cron` schema)
+    /// it exists in every environment, including ones without pg_cron.
+    pub async fn get_cleanup_jobs(&self) -> AppResult<Vec<CleanupJobDto>> {
+        let jobs = sqlx::query_as!(
+            CleanupJobDto,
+            r#"SELECT job AS "job!", overdue AS "overdue_count!" FROM cleanup_job_backlog()"#
         )
-        .fetch_all(&mut *tx)
-        .await?;
-        let deleted = images.len();
-
-        log_admin_action(
-            &mut tx,
-            admin_id,
-            "admin:cleanup:old_items",
-            json!({ "deletedCount": deleted }),
-        )
+        .fetch_all(&self.db)
         .await?;
 
-        tx.commit().await?;
-
-        assets::delete_detached(
-            self.db.clone(),
-            self.cloudinary.clone(),
-            images.iter().flatten(),
-        );
-
-        Ok(json!({ "ok": true, "deletedCount": deleted }))
-    }
-
-    /// The admin's own entry is written after the purge so it is never swept up.
-    pub async fn cleanup_old_activity(&self, admin_id: Uuid) -> AppResult<Value> {
-        let mut tx = self.db.begin().await?;
-
-        let deleted = sqlx::query!(
-            r#"DELETE FROM user_activity WHERE created_at < now() - make_interval(days => $1)"#,
-            ACTIVITY_RETENTION_DAYS
-        )
-        .execute(&mut *tx)
-        .await?
-        .rows_affected();
-
-        log_admin_action(
-            &mut tx,
-            admin_id,
-            "admin:cleanup:old_activity",
-            json!({ "deletedCount": deleted }),
-        )
-        .await?;
-
-        tx.commit().await?;
-
-        Ok(json!({ "ok": true, "deletedCount": deleted }))
-    }
-
-    /// Removes accounts whose confirmation link expired unused. They never
-    /// signed in, so they own no groups or content; deleting them frees the
-    /// address for a new registration. Codes and links are keyed by email
-    /// rather than user id and are removed alongside.
-    pub async fn cleanup_unverifiable_users(&self, admin_id: Uuid) -> AppResult<Value> {
-        let mut tx = self.db.begin().await?;
-
-        let deleted = sqlx::query_scalar!(
-            r#"WITH deleted_users AS (
-                   DELETE FROM users
-                   WHERE NOT email_verified AND created_at < $1
-                   RETURNING email
-               ),
-               deleted_verifications AS (
-                   DELETE FROM verifications WHERE email IN (SELECT email FROM deleted_users)
-               ),
-               deleted_password_resets AS (
-                   DELETE FROM password_resets WHERE email IN (SELECT email FROM deleted_users)
-               )
-               SELECT COUNT(*) AS "count!" FROM deleted_users"#,
-            unverifiable_before()
-        )
-        .fetch_one(&mut *tx)
-        .await?;
-
-        log_admin_action(
-            &mut tx,
-            admin_id,
-            "admin:cleanup:unverifiable_users",
-            json!({ "deletedCount": deleted }),
-        )
-        .await?;
-
-        tx.commit().await?;
-
-        Ok(json!({ "ok": true, "deletedCount": deleted }))
+        Ok(jobs)
     }
 
     pub async fn list_groups(&self, query: &GroupsQuery) -> AppResult<Page<AdminGroupDto>> {
@@ -346,13 +241,8 @@ impl SuperAdminService {
     pub async fn delete_group(&self, group_id: Uuid, admin_id: Uuid) -> AppResult<Value> {
         let mut tx = self.db.begin().await?;
 
-        let images = sqlx::query_scalar!(
-            r#"DELETE FROM items WHERE tenant_id = $1 RETURNING images"#,
-            group_id
-        )
-        .fetch_all(&mut *tx)
-        .await?;
-
+        // Everything in the group cascades with it; the items' files are
+        // queued for deletion by the database.
         let name = sqlx::query_scalar!(
             r#"DELETE FROM groups WHERE id = $1 RETURNING name"#,
             group_id
@@ -370,12 +260,6 @@ impl SuperAdminService {
         .await?;
 
         tx.commit().await?;
-
-        assets::delete_detached(
-            self.db.clone(),
-            self.cloudinary.clone(),
-            images.iter().flatten(),
-        );
 
         Ok(json!({ "ok": true, "deletedGroupId": group_id }))
     }

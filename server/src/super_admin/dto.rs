@@ -158,9 +158,6 @@ pub struct StatsDto {
     pub active_users_this_week: i64,
     pub item_count: i64,
     pub new_items_this_week: i64,
-    pub old_items_count: i64,
-    pub old_activity_count: i64,
-    pub unverifiable_users_count: i64,
     pub report_count: i64,
 }
 
@@ -211,4 +208,13 @@ pub struct UserMembershipDto {
     pub role: MemberRole,
     pub joined_at: DateTime<Utc>,
     pub assignable_roles: Vec<MemberRole>,
+}
+
+/// A pg_cron cleanup (or the asset worker), named as scheduled, with the rows
+/// it should already have removed. Anything above zero means it is not running.
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CleanupJobDto {
+    pub job: String,
+    pub overdue_count: i64,
 }

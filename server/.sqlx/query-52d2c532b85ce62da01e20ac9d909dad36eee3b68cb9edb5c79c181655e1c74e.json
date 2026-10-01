@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM items\n               WHERE tenant_id = $1 AND created_at < now() - interval '90 days'",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "52d2c532b85ce62da01e20ac9d909dad36eee3b68cb9edb5c79c181655e1c74e"
+}

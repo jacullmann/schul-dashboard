@@ -1,9 +1,10 @@
 # Database: PostgreSQL 18 + pg_cron
 
 This directory contains the custom Postgres image and the cleanup setup for the
-application. Database maintenance (expired tokens, expired MFA pendings, old
-group messages) runs via **pg_cron** *inside* the database — deliberately
-decoupled from the application process.
+application. Database maintenance (expired tokens and invites, expired MFA
+pendings, and the retention periods promised in the privacy policy) runs via
+**pg_cron** *inside* the database — deliberately decoupled from the application
+process.
 
 **Why not in the app code?** The deploy pipeline (GitHub Actions -> Coolify
 webhook) restarts the app container on every deploy, which resets in-memory
@@ -20,14 +21,33 @@ therefore almost never fire. pg_cron runs in the DB container and is unaffected.
 | Registry        | `ghcr.io/jacullmann/schul-dashboard-database`               |
 | Target database | `postgres` (the app uses the default DB, no separate one)   |
 | DB user         | `postgres`                                                  |
-| Schedule        | every 6h, staggered on minute 0 / 15 / 30                   |
-| Retention       | tokens 7 days, messages 7 days                              |
+| Schedule        | every 6h, staggered on minutes 0 / 5 / 15 / 20 / 30 / 35 / 45 / 50 |
+| Retention       | see the job table below                                     |
+
+### Jobs
+
+| Job (`jobname`)            | Function                           | Deletes                                         |
+|----------------------------|------------------------------------|-------------------------------------------------|
+| `cleanup-refresh-tokens`   | `cleanup_expired_refresh_tokens()` | expired tokens, revoked ones after 7 days       |
+| `cleanup-mfa-pending`      | `cleanup_expired_mfa_pending()`    | expired 2FA setups                              |
+| `cleanup-group-messages`   | `cleanup_old_group_messages()`     | chat messages older than 7 days                 |
+| `cleanup-group-invites`    | `cleanup_expired_group_invites()`  | invites 30 days after expiry, use or revocation |
+| `cleanup-user-activity`    | `cleanup_old_user_activity()`      | activity log older than 30 days                 |
+| `cleanup-security-events`  | `cleanup_old_security_events()`    | security events older than 30 days              |
+| `cleanup-unverified-users` | `cleanup_unverified_users()`       | accounts unverified after 2 days                |
+| `cleanup-old-items`        | `cleanup_old_items()`              | tasks older than 90 days                        |
+
+Deleted tasks queue their files in `asset_deletion_queue` (a trigger on
+`items`); the server deletes them from Cloudinary every minute. The superadmin
+overview shows, per job, how many rows it should already have removed
+(`cleanup_job_backlog()`); anything above zero means the job is not running.
 
 ### Files
 - `Dockerfile` — Postgres 18 with pg_cron, built by GitHub Actions.
 - `pg_cron_setup.sql` — one-time scheduling (`CREATE EXTENSION` + `cron.schedule`).
-- The cleanup **functions** are created by the app migration
-  `server/migrations/0006_consolidate_cleanup.sql`, not here.
+- The cleanup **functions** are created by the app migrations
+  (`server/migrations/0006_consolidate_cleanup.sql`, `0012_…` and
+  `0040_scheduled_retention.sql`), not here.
 
 ---
 
@@ -86,9 +106,7 @@ psql -U postgres -c "SHOW shared_preload_libraries;"   # must show pg_cron
 The cleanup functions must exist before the cron jobs call them.
 `sqlx::migrate!` embeds migrations at **compile time**, so rebuild and deploy
 the `server` image (push to `server/**`). On startup the server applies
-`0006_consolidate_cleanup.sql`, creating:
-`cleanup_expired_refresh_tokens` (7 days), `cleanup_expired_mfa_pending`,
-`cleanup_old_group_messages` (two-step, to survive `ON DELETE CASCADE`).
+the migrations, creating the functions listed in the job table above.
 
 > If you schedule the jobs *before* the migration, they run into nothing and
 > report `failed` until the functions exist.
@@ -98,18 +116,19 @@ In the **DB container terminal**, run the contents of `pg_cron_setup.sql`:
 ```bash
 psql -U postgres -d postgres
 ```
-Then paste the SQL (or pipe it in). The three jobs are created idempotently by
-their `jobname` — re-running updates them instead of creating duplicates.
+Then paste the SQL (or pipe it in). The jobs are created idempotently by
+their `jobname` — re-running updates them instead of creating duplicates, so
+after adding jobs you can simply run the whole file again.
 
 ---
 
 ## Verification
 
 ```sql
--- Scheduled jobs (expect three cleanup-*, active = true)
+-- Scheduled jobs (expect eight cleanup-*, active = true)
 SELECT jobid, schedule, command, database, active, jobname FROM cron.job;
 
--- Functions present? (all three cleanup_* must be listed)
+-- Functions present? (all eight cleanup_* must be listed)
 \df cleanup_*
 
 -- Run history (status should be 'succeeded', not 'failed')
@@ -123,6 +142,9 @@ A single job can be triggered manually for testing:
 SELECT public.cleanup_expired_refresh_tokens();
 SELECT public.cleanup_expired_mfa_pending();
 SELECT public.cleanup_old_group_messages();
+
+-- Rows each job should already have removed (all 0 when healthy)
+SELECT * FROM public.cleanup_job_backlog();
 ```
 
 ---

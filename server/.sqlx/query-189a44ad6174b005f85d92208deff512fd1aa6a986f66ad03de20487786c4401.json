@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT job AS \"job!\", overdue AS \"overdue_count!\" FROM cleanup_job_backlog()",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "job!",
+        "type_info": "Text",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 1,
+        "name": "overdue_count!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      null,
+      null
+    ]
+  },
+  "hash": "189a44ad6174b005f85d92208deff512fd1aa6a986f66ad03de20487786c4401"
+}

@@ -10,12 +10,7 @@ pub fn router(state: AppState) -> Router<AppState> {
     Router::new()
         .route("/admin/stats", get(get_stats))
         .route("/admin/stats/daily", get(get_daily_activity))
-        .route("/admin/cleanup/old-items", delete(cleanup_old_items))
-        .route("/admin/cleanup/old-activity", delete(cleanup_old_activity))
-        .route(
-            "/admin/cleanup/unverifiable-users",
-            delete(cleanup_unverifiable_users),
-        )
+        .route("/admin/cleanup-jobs", get(get_cleanup_jobs))
         .route("/admin/groups", get(list_groups))
         .route("/admin/groups/{id}", delete(delete_group))
         .route("/admin/users", get(list_users))

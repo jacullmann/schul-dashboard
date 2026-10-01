@@ -23,3 +23,27 @@ SELECT cron.schedule(
                '45 */6 * * *',
                $$SELECT public.cleanup_expired_group_invites()$$
        );
+
+SELECT cron.schedule(
+               'cleanup-user-activity',
+               '5 */6 * * *',
+               $$SELECT public.cleanup_old_user_activity()$$
+       );
+
+SELECT cron.schedule(
+               'cleanup-security-events',
+               '20 */6 * * *',
+               $$SELECT public.cleanup_old_security_events()$$
+       );
+
+SELECT cron.schedule(
+               'cleanup-unverified-users',
+               '35 */6 * * *',
+               $$SELECT public.cleanup_unverified_users()$$
+       );
+
+SELECT cron.schedule(
+               'cleanup-old-items',
+               '50 */6 * * *',
+               $$SELECT public.cleanup_old_items()$$
+       );
