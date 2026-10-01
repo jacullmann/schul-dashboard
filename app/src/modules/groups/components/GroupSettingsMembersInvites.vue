@@ -6,6 +6,8 @@ import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useGroupPageId } from '@/core/composables/useGroupPageId';
 import { useModalStore } from '@/stores/modalStore';
 import { useToast } from '@/common/composables/useToast';
+import { useAbsoluteUrl } from '@/common/composables/useAbsoluteUrl';
+import { inviteRoute } from '@/modules/auth/utils/routes';
 import type { GroupInviteLog } from '@/modules/groups/types';
 
 defineProps<{
@@ -23,6 +25,7 @@ const { createInvite } = useAppAuth();
 const groupId = useGroupPageId();
 const modalStore = useModalStore();
 const toast = useToast();
+const { absoluteUrl } = useAbsoluteUrl();
 
 const loadingInvite = ref(false);
 const copiedId = ref<string | null>(null);
@@ -95,7 +98,7 @@ function getBadgeLabel(invite: GroupInviteLog): string {
 }
 
 function getInviteUrl(token: string): string {
-  return `${window.location.origin}/invite/${token}`;
+  return absoluteUrl(inviteRoute(token));
 }
 </script>
 

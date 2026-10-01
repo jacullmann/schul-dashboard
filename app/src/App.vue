@@ -31,16 +31,7 @@ function logPageload() {
 
 async function handleAuthExpired() {
   userStore.clearUser();
-  const currentPath = router.currentRoute.value.path;
-  const isPublicRoute =
-    currentPath === '/' ||
-    currentPath.startsWith('/login') ||
-    currentPath.startsWith('/register') ||
-    currentPath.startsWith('/forgot') ||
-    currentPath.startsWith('/verify') ||
-    currentPath.startsWith('/auth');
-
-  if (!isPublicRoute) {
+  if (!router.currentRoute.value.meta.access) {
     await router.push({ name: 'login' });
   }
 }

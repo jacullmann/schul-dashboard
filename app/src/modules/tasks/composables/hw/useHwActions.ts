@@ -1,7 +1,6 @@
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useEventListener } from '@vueuse/core';
-import { useRouter } from 'vue-router';
 import { useModalStore } from '@/stores/modalStore';
 import type { HwItem } from '@/modules/tasks/types';
 import hw from '@/api/api.ts';
@@ -9,6 +8,7 @@ import { groupPath } from '@/api/groupPath';
 import type { HwContext } from './types';
 import { taskRoute } from '@/modules/tasks/utils/routes';
 import { apiErrorMessage } from '@/api/errors';
+import { useAbsoluteUrl } from '@/common/composables/useAbsoluteUrl';
 
 export function useHwActions(
   ctx: HwContext,
@@ -16,7 +16,7 @@ export function useHwActions(
 ) {
   const { t } = useI18n();
   const modalStore = useModalStore();
-  const router = useRouter();
+  const { absoluteUrl } = useAbsoluteUrl();
   const deletingEntry = ref(false);
 
   const showReportConfirm = ref(false);
@@ -371,8 +371,7 @@ export function useHwActions(
   }
 
   async function shareItem(item: HwItem) {
-    const { href } = router.resolve(taskRoute(ctx.groupId, item.id));
-    const shareUrl = new URL(href, window.location.origin).href;
+    const shareUrl = absoluteUrl(taskRoute(ctx.groupId, item.id));
 
     if (navigator.share) {
       try {

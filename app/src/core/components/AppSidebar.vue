@@ -277,7 +277,7 @@ onUnmounted(() => {
           v-if="isSuperadmin"
           :label="t('common.roles.superadmin')"
           :expanded="isExpanded"
-          :active="$route.path.startsWith('/admin')"
+          :active="$route.meta.navItem === 'super-admin'"
           :icon="Crown"
           @click="handleNavigation({ name: 'super-admin' })"
         />
@@ -287,17 +287,17 @@ onUnmounted(() => {
         <SidebarButton
           :label="t('common.sidebar.groups')"
           :expanded="isExpanded"
-          :active="['/groups', '/groups/'].includes($route.path)"
+          :active="$route.name === 'groups'"
           :icon="UsersRound"
-          @click="handleNavigation('/groups')"
+          @click="handleNavigation({ name: 'groups' })"
         />
 
         <SidebarButton
           :label="t('common.sidebar.private')"
           :expanded="isExpanded"
-          :active="$route.path.startsWith('/private')"
+          :active="$route.name === 'private-todos'"
           :icon="LockIcon"
-          @click="handleNavigation('/private')"
+          @click="handleNavigation({ name: 'private-todos' })"
         />
       </div>
 

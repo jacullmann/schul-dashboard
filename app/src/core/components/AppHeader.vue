@@ -65,8 +65,6 @@ function onPersonalizationChanged(value: boolean) {
 const groupMenuOpen = ref(false);
 const groupMenuRef = ref<HTMLElement | null>(null);
 
-const logoLink = computed(() => '/groups');
-
 function toggleGroupMenu() {
   groupMenuOpen.value = !groupMenuOpen.value;
 }
@@ -123,7 +121,7 @@ onMounted(() => {
     <div class="relative h-full w-full flex items-center gap-2 px-4 max-w-325">
       <router-link
         v-if="!(activeGroupId && groupName)"
-        :to="logoLink"
+        :to="{ name: 'groups' }"
         class="logo-group min-w-0 transition-opacity"
         :class="[
           searchHandoverTiming,

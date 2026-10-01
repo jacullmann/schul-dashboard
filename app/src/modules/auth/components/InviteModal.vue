@@ -5,11 +5,14 @@ import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useModalStore } from '@/stores/modalStore';
 import { Copy, Check, RefreshCw } from '@lucide/vue';
 import { useToast } from '@/common/composables/useToast';
+import { useAbsoluteUrl } from '@/common/composables/useAbsoluteUrl';
+import { inviteRoute } from '@/modules/auth/utils/routes';
 
 const { t } = useI18n();
 const auth = useAppAuth();
 const modalStore = useModalStore();
 const toast = useToast();
+const { absoluteUrl } = useAbsoluteUrl();
 
 const props = defineProps<{
   open: boolean;
@@ -34,10 +37,9 @@ watch(
   { immediate: true },
 );
 
-const inviteUrl = computed(() => {
-  if (!currentToken.value) return '';
-  return `${window.location.origin}/invite/${currentToken.value}`;
-});
+const inviteUrl = computed(() =>
+  currentToken.value ? absoluteUrl(inviteRoute(currentToken.value)) : '',
+);
 
 const qrCodeUrl = ref<string | null>(null);
 

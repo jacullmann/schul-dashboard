@@ -9,7 +9,7 @@ import { consumePendingInviteRoute } from '@/modules/auth/utils/pendingInvite';
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
-    redirect: '/groups',
+    redirect: { name: 'groups' },
   },
   {
     path: '/login',
@@ -19,7 +19,7 @@ const routes: RouteRecordRaw[] = [
         path: '',
         name: 'login',
         component: () => import('@/modules/auth/pages/LoginPage.vue'),
-        meta: { title: 'auth.login.login' },
+        meta: { title: 'auth.login.login', access: 'guest' },
       },
     ],
   },
@@ -31,7 +31,7 @@ const routes: RouteRecordRaw[] = [
         path: '',
         name: 'register',
         component: () => import('@/modules/auth/pages/RegisterPage.vue'),
-        meta: { title: 'auth.login.register' },
+        meta: { title: 'auth.login.register', access: 'guest' },
       },
     ],
   },
@@ -43,7 +43,7 @@ const routes: RouteRecordRaw[] = [
         path: '',
         name: 'verify-mfa',
         component: () => import('@/modules/auth/pages/MfaPage.vue'),
-        meta: { title: 'auth.mfa.verify.title' },
+        meta: { title: 'auth.mfa.verify.title', access: 'guest' },
       },
     ],
   },
@@ -55,7 +55,7 @@ const routes: RouteRecordRaw[] = [
         path: '',
         name: 'forgot-password',
         component: () => import('@/modules/auth/pages/ForgotPasswordPage.vue'),
-        meta: { title: 'auth.login.reset.title' },
+        meta: { title: 'auth.login.reset.title', access: 'public' },
       },
     ],
   },
@@ -76,24 +76,20 @@ const routes: RouteRecordRaw[] = [
         children: [
           {
             path: '',
-            redirect: (to: any) => `/groups/${to.params.groupId}/dashboard`,
+            redirect: { name: 'group-dashboard' },
           },
           {
             path: 'dashboard',
             name: 'group-dashboard',
             component: () => import('@/modules/dashboard/pages/Dashboard.vue'),
             props: true,
-            meta: {
-              title: 'tasks.list.title',
-              groupContext: true,
-            },
+            meta: { title: 'tasks.list.title' },
           },
           {
             path: 'tasks',
             component: () => import('@/modules/tasks/pages/Tasks.vue'),
             meta: {
               title: 'tasks.list.title',
-              groupContext: true,
               // An opened task keeps the tasks entry of the navigation active.
               navItem: 'group-tasks',
             },
@@ -130,19 +126,13 @@ const routes: RouteRecordRaw[] = [
             path: 'schedule',
             name: 'group-schedule',
             component: () => import('@/modules/schedule/pages/Schedule.vue'),
-            meta: {
-              title: 'schedule.title',
-              groupContext: true,
-            },
+            meta: { title: 'schedule.title' },
           },
           {
             path: 'messages',
             name: 'group-messages',
             component: () => import('@/modules/chat/pages/Messages.vue'),
-            meta: {
-              title: 'common.sidebar.messages',
-              groupContext: true,
-            },
+            meta: { title: 'common.sidebar.messages' },
           },
           {
             path: 'settings/:tab?/:subTab?',
@@ -150,7 +140,6 @@ const routes: RouteRecordRaw[] = [
             component: () => import('@/modules/groups/pages/GroupSettings.vue'),
             meta: {
               title: 'navigation.group_admin',
-              groupContext: true,
               fullWidth: true,
             },
           },
@@ -172,7 +161,7 @@ const routes: RouteRecordRaw[] = [
       },
       {
         path: 'todos',
-        redirect: '/private',
+        redirect: { name: 'private-todos' },
       },
     ],
   },
@@ -183,6 +172,7 @@ const routes: RouteRecordRaw[] = [
     meta: {
       title: 'navigation.super_admin',
       requiresSuperAdmin: true,
+      navItem: 'super-admin',
       fullWidth: true,
     },
     children: [
@@ -229,7 +219,7 @@ const routes: RouteRecordRaw[] = [
         path: '',
         name: 'verify-email',
         component: () => import('@/core/pages/VerifyEmail.vue'),
-        meta: { title: 'navigation.verify_email' },
+        meta: { title: 'navigation.verify_email', access: 'public' },
       },
     ],
   },
@@ -242,7 +232,7 @@ const routes: RouteRecordRaw[] = [
         name: 'group-invite',
         component: () => import('@/core/pages/GroupInvite.vue'),
         props: true,
-        meta: { title: 'navigation.group_invite' },
+        meta: { title: 'navigation.group_invite', access: 'public' },
       },
     ],
   },
@@ -276,24 +266,14 @@ const {
   showGroup,
 } = useAppAuth();
 
-router.beforeEach(async (to, from, next) => {
+router.beforeEach(async (to, from) => {
   if (to.path !== from.path) start();
 
   if (!isAuthReady.value) await initAuth();
 
-  const isPublicRoute =
-    to.path === '/' ||
-    to.path === '/login' ||
-    to.path === '/register' ||
-    to.path === '/verify-mfa' ||
-    to.path === '/reset-password' ||
-    to.path === '/forgot-password' ||
-    to.path.startsWith('/verify') ||
-    to.path.startsWith('/invite');
-
-  if (!isPublicRoute && !isLoggedIn.value) {
+  if (!to.meta.access && !isLoggedIn.value) {
     finish();
-    return next({ path: '/login', replace: true });
+    return { name: 'login', replace: true };
   }
 
   // Resume an invite that was opened before signing in, regardless of which
@@ -302,37 +282,21 @@ router.beforeEach(async (to, from, next) => {
     const inviteRoute = consumePendingInviteRoute();
     if (inviteRoute) {
       finish();
-      return next({ ...inviteRoute, replace: true });
+      return { ...inviteRoute, replace: true };
     }
   }
 
-  if (
-    (to.path === '/' ||
-      to.path === '/auth' ||
-      to.path === '/login' ||
-      to.path === '/register' ||
-      to.path === '/verify-mfa' ||
-      to.path === '/reset-password') &&
-    isLoggedIn.value
-  ) {
+  if (to.meta.access === 'guest' && isLoggedIn.value) {
     finish();
-    return next({ ...homeRoute.value, replace: true });
+    return { ...homeRoute.value, replace: true };
   }
 
-  if (to.meta.title) {
-    const translated = i18n.global.t(to.meta.title as string);
-    if (to.path === '/') {
-      document.title =
-        translated || 'schul-dashboard | Free Management Tool For Students';
-    } else {
-      document.title = `${translated} | Dashboard`;
-    }
-  } else {
-    document.title = 'Dashboard';
-  }
+  document.title = to.meta.title
+    ? `${i18n.global.t(to.meta.title)} | Dashboard`
+    : 'Dashboard';
 
   const userStore = useUserStore();
-  if (isLoggedIn.value && !isPublicRoute && !userStore.initialized) {
+  if (isLoggedIn.value && !to.meta.access && !userStore.initialized) {
     try {
       await userStore.fetchUser();
     } catch {
@@ -344,17 +308,15 @@ router.beforeEach(async (to, from, next) => {
     if (!userStore.initialized) await userStore.fetchUser();
     if (!userStore.isSuperadmin) {
       finish();
-      return next({ path: '/groups', replace: true });
+      return { name: 'groups', replace: true };
     }
   }
 
   const routeGroupId = to.params.groupId;
   if (typeof routeGroupId === 'string' && !(await canShowGroup(routeGroupId))) {
     finish();
-    return next({ name: 'groups', replace: true });
+    return { name: 'groups', replace: true };
   }
-
-  next();
 });
 
 router.afterEach((to, _from, failure) => {
