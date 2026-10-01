@@ -587,45 +587,6 @@ pub async fn delete_schedule_sub(
     ))
 }
 
-pub async fn create_announcement(
-    State(s): State<AppState>,
-    tc: TenantContext,
-    Json(dto): Json<CreateAnnouncementDto>,
-) -> AppResult<Json<Value>> {
-    crate::require_permission!(
-        tc,
-        crate::common::permission::Permission::ManageAnnouncements
-    );
-
-    Ok(Json(
-        GroupAdminService::from_state(&s)
-            .create_announcement(
-                tc.tenant_id,
-                tc.user.user_id,
-                &dto.content,
-                dto.color.as_deref(),
-            )
-            .await?,
-    ))
-}
-
-pub async fn delete_announcement(
-    State(s): State<AppState>,
-    tc: TenantContext,
-    Path(IdPath { id }): Path<IdPath>,
-) -> AppResult<Json<Value>> {
-    crate::require_permission!(
-        tc,
-        crate::common::permission::Permission::ManageAnnouncements
-    );
-
-    Ok(Json(
-        GroupAdminService::from_state(&s)
-            .delete_announcement(tc.tenant_id, id)
-            .await?,
-    ))
-}
-
 pub async fn get_invites(State(s): State<AppState>, tc: TenantContext) -> AppResult<Json<Value>> {
     crate::require_permission!(tc, crate::common::permission::Permission::ModerateMembers);
     Ok(Json(

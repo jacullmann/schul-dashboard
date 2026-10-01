@@ -28,12 +28,5 @@
   "notifications": {
     "new_single": "New Announcement: {preview}",
     "new_plural": "{count} new Announcements: {preview}"
-  },
-  "delete_modal": {
-    "title": "Delete this announcement?",
-    "message": "If you delete this announcement, it will be removed permanently."
-  },
-  "errors": {
-    "delete_failed": "Announcement couldn't be deleted."
   }
 }

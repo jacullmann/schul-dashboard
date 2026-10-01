@@ -1,3 +1,4 @@
+mod announcements;
 mod auth;
 mod common;
 mod config;
@@ -113,6 +114,7 @@ async fn main() -> anyhow::Result<()> {
     // membership once per request, so no handler below can be reached for a
     // group the caller does not belong to.
     let group_scoped = Router::new()
+        .merge(announcements::routes::group_router())
         .merge(group::routes::group_router())
         .merge(items::routes::group_router())
         .merge(messages::routes::group_router())

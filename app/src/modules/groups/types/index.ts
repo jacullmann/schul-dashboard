@@ -45,13 +45,6 @@ export interface ScheduleSubstitution {
   createdAt?: string;
 }
 
-export interface AdminAnnouncement {
-  id: string;
-  content: string;
-  color: string;
-  createdAt: string;
-}
-
 export interface AdminCourse {
   id: string;
   name: string;

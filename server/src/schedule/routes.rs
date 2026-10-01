@@ -1,9 +1,6 @@
 use super::handlers::*;
 use crate::state::AppState;
-use axum::{
-    Router,
-    routing::{get, post},
-};
+use axum::{Router, routing::get};
 
 /// Mounted under `/groups/{group_id}` behind the tenant middleware.
 pub fn group_router() -> Router<AppState> {
@@ -11,13 +8,4 @@ pub fn group_router() -> Router<AppState> {
         .route("/schedule", get(get_schedule))
         .route("/schedule/subs", get(get_subs))
         .route("/schedule/subjects", get(get_subjects))
-        .route("/schedule/announcements", get(get_announcements))
-        .route(
-            "/schedule/announcements/read-status",
-            get(get_announcement_read_status),
-        )
-        .route(
-            "/schedule/announcements/{id}/read",
-            post(mark_announcement_read),
-        )
 }

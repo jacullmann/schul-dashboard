@@ -6,6 +6,7 @@ import { useI18n } from 'vue-i18n';
 import { apiErrorMessage } from '@/api/errors';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import GroupSelect from '@/modules/groups/components/GroupSelect.vue';
+import type { AnnouncementColor } from '@/modules/announcements/types';
 
 const { t } = useI18n();
 
@@ -24,7 +25,7 @@ const { userGroups } = useAppAuth();
 const groupId = ref(props.groupId);
 
 const annContent = ref('');
-const annColor = ref('warn');
+const annColor = ref<AnnouncementColor>('warn');
 
 const submitting = ref(false);
 const contentError = ref('');

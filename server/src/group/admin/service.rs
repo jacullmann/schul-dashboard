@@ -1305,48 +1305,6 @@ impl GroupAdminService {
         Ok(json!({ "ok": true }))
     }
 
-    pub async fn create_announcement(
-        &self,
-        tenant_id: Uuid,
-        user_id: Uuid,
-        content: &str,
-        color: Option<&str>,
-    ) -> AppResult<Value> {
-        let row = sqlx::query!(
-            r#"INSERT INTO announcements (tenant_id, content, color, created_by)
-               VALUES ($1, $2, $3, $4)
-               RETURNING id, content, color, created_by, created_at"#,
-            tenant_id,
-            content,
-            color.unwrap_or("warn"),
-            user_id
-        )
-        .fetch_one(&self.db)
-        .await?;
-
-        Ok(json!({
-            "id": row.id, "content": row.content, "color": row.color,
-            "createdBy": row.created_by, "createdAt": row.created_at,
-        }))
-    }
-
-    pub async fn delete_announcement(&self, tenant_id: Uuid, id: Uuid) -> AppResult<Value> {
-        sqlx::query!(
-            r#"SELECT id FROM announcements WHERE id = $1 AND tenant_id = $2"#,
-            id,
-            tenant_id
-        )
-        .fetch_optional(&self.db)
-        .await?
-        .ok_or_else(|| AppError::not_found("Announcement not found"))?;
-
-        sqlx::query!(r#"DELETE FROM announcements WHERE id = $1"#, id)
-            .execute(&self.db)
-            .await?;
-
-        Ok(json!({ "ok": true }))
-    }
-
     /// The type a course of this subject has to get, which only a GK/LK subject
     /// in an Abitur group leaves up to the client.
     async fn course_type_for_subject(

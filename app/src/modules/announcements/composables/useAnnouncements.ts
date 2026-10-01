@@ -1,81 +1,48 @@
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { storeToRefs } from 'pinia';
-import { useUserStore } from '@/stores/userStore';
-import { useModalStore } from '@/stores/modalStore';
 import hw from '@/api/api.ts';
 import { groupPath } from '@/api/groupPath';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useToast } from '@/common/composables/useToast';
 import type { Announcement } from '@/modules/announcements/types';
-import { apiErrorMessage } from '@/api/errors';
-
-const modalStore = useModalStore();
-
-export type { Announcement };
 
 export function useAnnouncements() {
   const { t } = useI18n();
-  const userStore = useUserStore();
-  const { user } = storeToRefs(userStore);
   const toast = useToast();
   const { activeGroupId } = useAppAuth();
 
   const announcements = ref<Announcement[]>([]);
-  const loading = ref(false);
-  const seenIds = ref<Set<string>>(new Set());
 
   async function loadAnnouncements(): Promise<void> {
     const groupId = activeGroupId.value;
     if (!groupId) return;
-    loading.value = true;
     try {
       const { data } = await hw.get<Announcement[]>(
-        groupPath(groupId, '/schedule/announcements'),
+        groupPath(groupId, '/announcements'),
       );
       announcements.value = data;
     } catch (e) {
       console.error('Failed to load announcements', e);
-    } finally {
-      loading.value = false;
     }
   }
 
-  async function loadSeenIds(): Promise<void> {
+  async function markAsRead(unread: Announcement[]): Promise<void> {
     const groupId = activeGroupId.value;
-    if (!user.value || !groupId) return;
+    if (!groupId) return;
+    for (const announcement of unread) announcement.read = true;
     try {
-      const { data } = await hw.get<string[]>(
-        groupPath(groupId, '/schedule/announcements/read-status'),
-      );
-      seenIds.value = new Set(data);
+      await hw.post(groupPath(groupId, '/announcements/read'), {
+        ids: unread.map((a) => a.id),
+      });
     } catch {
-      seenIds.value = new Set();
-    }
-  }
-
-  async function markAsSeen(announcementId: string): Promise<void> {
-    const groupId = activeGroupId.value;
-    if (!groupId || seenIds.value.has(announcementId)) return;
-    seenIds.value.add(announcementId);
-    try {
-      await hw.post(
-        groupPath(groupId, `/schedule/announcements/${announcementId}/read`),
-      );
-    } catch {
-      // Already marked locally; a failed sync retries on the next load.
+      // Already marked locally; a failed sync shows them again on the next load.
     }
   }
 
   async function checkAndNotifyUnread(): Promise<void> {
-    if (user.value) {
-      await Promise.all([loadAnnouncements(), loadSeenIds()]);
-    } else {
-      await loadAnnouncements();
-      return;
-    }
+    await loadAnnouncements();
 
-    const unread = announcements.value.filter((a) => !seenIds.value.has(a.id));
+    const unread = announcements.value.filter((a) => !a.read);
     if (!unread.length) return;
 
     const count = unread.length;
@@ -87,9 +54,7 @@ export function useAnnouncements() {
         ? t('announcements.notifications.new_single', { preview })
         : t('announcements.notifications.new_plural', { count, preview });
 
-    const hasDanger = unread.some(
-      (a) => a.color === 'danger' || a.priority === 'high',
-    );
+    const hasDanger = unread.some((a) => a.color === 'danger');
     const hasWarn = unread.some((a) => a.color === 'warn');
     const duration = Math.min(10000, 5000 + count * 1000);
 
@@ -101,41 +66,11 @@ export function useAnnouncements() {
       toast.info(msg, duration);
     }
 
-    void Promise.all(unread.map((a) => markAsSeen(a.id)));
-  }
-
-  async function deleteAnnouncement(id: string): Promise<void> {
-    const groupId = activeGroupId.value;
-    if (!groupId) return;
-    const isConfirmed = await modalStore.confirm({
-      title: t('announcements.delete_modal.title'),
-      content: t('announcements.delete_modal.message'),
-      submitText: t('common.buttons.delete'),
-      danger: true,
-    });
-
-    if (!isConfirmed) return;
-    try {
-      await hw.delete(groupPath(groupId, `/admin/announcements/${id}`));
-      announcements.value = announcements.value.filter((a) => a.id !== id);
-    } catch (e: unknown) {
-      toast.error(apiErrorMessage(e, t('announcements.errors.delete_failed')));
-    }
-  }
-
-  function colorFor(color?: string, priority?: string): string {
-    const resolvedColor = color || (priority === 'high' ? 'danger' : 'info');
-    if (resolvedColor === 'info') return 'is-surface';
-    const list = ['warn', 'danger'];
-    return list.includes(resolvedColor) ? `is-${resolvedColor}` : 'is-surface';
+    void markAsRead(unread);
   }
 
   return {
     announcements,
-    loading,
-    loadAnnouncements,
     checkAndNotifyUnread,
-    deleteAnnouncement,
-    colorFor,
   };
 }

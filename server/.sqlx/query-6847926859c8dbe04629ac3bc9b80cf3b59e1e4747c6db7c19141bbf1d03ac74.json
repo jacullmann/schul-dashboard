@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO user_announcement_read_status (user_id, announcement_id)\n               SELECT $1, a.id FROM announcements a\n               WHERE a.tenant_id = $2 AND a.id = ANY($3)\n               ON CONFLICT (user_id, announcement_id) DO NOTHING",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "UuidArray"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "6847926859c8dbe04629ac3bc9b80cf3b59e1e4747c6db7c19141bbf1d03ac74"
+}

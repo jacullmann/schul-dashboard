@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { Plus, Trash2 } from '@lucide/vue';
-import type { AdminAnnouncement } from '@/modules/groups/types';
+import type {
+  Announcement,
+  AnnouncementColor,
+} from '@/modules/announcements/types';
 import { useAnnouncementForm } from '@/core/composables/useAnnouncementForm';
 import { useI18n } from 'vue-i18n';
 import { computed } from 'vue';
@@ -8,13 +11,19 @@ import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 
 defineProps<{
   groupId: string;
-  announcements: AdminAnnouncement[];
+  announcements: Announcement[];
 }>();
 
 const emit = defineEmits<{
   (e: 'delete', id: string): void;
   (e: 'refresh'): void;
 }>();
+
+const ACCENT_BORDER: Record<AnnouncementColor, string> = {
+  info: 'border-l-action',
+  warn: 'border-l-warn',
+  danger: 'border-l-danger',
+};
 
 const { t } = useI18n();
 
@@ -72,15 +81,7 @@ function formatDate(iso: string) {
         v-for="ann in announcements"
         :key="ann.id"
         class="flex justify-between gap-2 p-1 rounded-xl bg-surface border border-ghost-border border-l-[3px]"
-        :class="[
-          ann.color === 'info'
-            ? 'border-l-action'
-            : ann.color === 'warn'
-              ? 'border-l-warn'
-              : ann.color === 'danger'
-                ? 'border-l-danger'
-                : 'border-l-ghost-border',
-        ]"
+        :class="ACCENT_BORDER[ann.color]"
       >
         <div class="flex flex-col ml-3 my-1">
           <div class="text-base/relaxed text-on-ghost mb-2">
