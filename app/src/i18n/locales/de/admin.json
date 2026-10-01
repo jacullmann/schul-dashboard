@@ -83,7 +83,7 @@
         },
         "cleanup-old-items": {
           "label": "Aufgaben",
-          "rule": "Älter als 90 Tage"
+          "rule": "90 Tage nach Fälligkeit"
         },
         "asset-sweep": {
           "label": "Dateien bei Cloudinary",

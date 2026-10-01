@@ -36,7 +36,7 @@ therefore almost never fire. pg_cron runs in the DB container and is unaffected.
 | `cleanup-security-events`  | `cleanup_old_security_events()`     | security events older than 30 days              |
 | `cleanup-unverified-users` | `cleanup_unverified_users()`        | accounts unverified after 2 days                |
 | `cleanup-password-resets`  | `cleanup_expired_password_resets()` | expired password reset/setup codes              |
-| `cleanup-old-items`        | `cleanup_old_items()`               | tasks older than 90 days                        |
+| `cleanup-old-items`        | `cleanup_old_items()`               | tasks 90 days after their due date              |
 
 Files in Cloudinary are outside the database's reach, so the server cleans
 them up itself: it records every upload in `uploaded_assets` before signing it,
@@ -49,8 +49,9 @@ means the job is not running.
 - `Dockerfile` — Postgres 18 with pg_cron, built by GitHub Actions.
 - `pg_cron_setup.sql` — one-time scheduling (`CREATE EXTENSION` + `cron.schedule`).
 - The cleanup **functions** are created by the app migrations
-  (`server/migrations/0006_consolidate_cleanup.sql`, `0012_…` and
-  `0040_scheduled_retention.sql`), not here.
+  (`server/migrations/0006_consolidate_cleanup.sql`, `0012_…`,
+  `0040_scheduled_retention.sql` and `0041_delete_items_after_due_date.sql`),
+  not here.
 
 ---
 

@@ -83,7 +83,7 @@
         },
         "cleanup-old-items": {
           "label": "Tasks",
-          "rule": "Older than 90 days"
+          "rule": "90 days after their due date"
         },
         "asset-sweep": {
           "label": "Files on Cloudinary",
