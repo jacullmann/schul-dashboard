@@ -27,7 +27,6 @@ import {
   Crown,
   Flag,
   Building2,
-  Crop,
   SquarePen,
   UserRoundPlus,
   UserRoundCog,
@@ -294,14 +293,6 @@ const defaultResults = computed<SearchResult[]>(() => [
     action: () =>
       navigate({ name: 'account-settings', params: { tab: 'account' } }),
     searchOnly: true,
-  },
-  {
-    id: 'image-tool',
-    label: t('search.items.image_tool'),
-    description: t('search.descriptions.image_tool'),
-    category: 'page',
-    icon: Crop,
-    action: () => navigate({ name: 'imagetool' }),
   },
   {
     id: 'toggle-sidebar',

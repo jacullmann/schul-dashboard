@@ -9,7 +9,6 @@ import navigation from './navigation.json';
 import tasks from './tasks.json';
 import welcome from './welcome.json';
 import search from './search.json';
-import tools from './tools.json';
 import dashboard from './dashboard.json';
 import admin from './admin.json';
 
@@ -25,7 +24,6 @@ export default {
   tasks,
   welcome,
   search,
-  tools,
   dashboard,
   admin,
 };

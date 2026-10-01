@@ -16,7 +16,6 @@
     "edit_courses": "Deine Kursauswahl anpassen",
     "groups": "Gruppen verwalten",
     "home": "Zur Startseite",
-    "image_tool": "Bilder zuschneiden und bearbeiten",
     "invite_member": "Mitglieder zu dieser Gruppe einladen",
     "logout": "Sicher von deinem Konto abmelden",
     "messages": "Mit deiner Gruppe chatten und Nachrichten schreiben",
@@ -33,7 +32,6 @@
     "create_task": "Neue Aufgabe erstellen",
     "create_group": "Gruppe erstellen",
     "create_private_task": "Neue private Aufgabe erstellen",
-    "image_tool": "Bild-Tool",
     "invite_member": "Mitglieder einladen",
     "switch_group": "Gruppe wechseln"
   },

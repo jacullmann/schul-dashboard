@@ -174,12 +174,6 @@ const routes: RouteRecordRaw[] = [
         path: 'todos',
         redirect: '/private',
       },
-      {
-        path: 'imagetool',
-        name: 'imagetool',
-        component: () => import('@/modules/tools/pages/ImageToolPage.vue'),
-        meta: { title: 'navigation.image_tool' },
-      },
     ],
   },
 
