@@ -1,18 +1,23 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
+import { storeToRefs } from 'pinia';
 import { useEventListener } from '@vueuse/core';
 import { useI18n } from 'vue-i18n';
 import hw from '../../../api/api';
 import { useToast } from '@/common/composables/useToast';
 import CenteredAuthModal from '@/common/components/CenteredAuthModal.vue';
 import { apiErrorMessage } from '@/api/errors';
+import { useUserStore } from '@/stores/userStore';
+import { useLogout } from '@/core/composables/useLogout';
 
 const router = useRouter();
 const { t } = useI18n();
+const { user } = storeToRefs(useUserStore());
+const logout = useLogout();
 
 const step = ref(1);
-const email = ref('');
+const email = ref(user.value?.email ?? '');
 const code = ref('');
 const password = ref('');
 const password2 = ref('');
@@ -27,7 +32,7 @@ const passwordInputRef = ref<HTMLInputElement | null>(null);
 
 function onKeyDown(e: KeyboardEvent) {
   if (e.key === 'Escape' && !submitting.value) {
-    goBackToLogin();
+    leave();
   }
   if (e.key === 'Enter' && !submitting.value) {
     void handleNext();
@@ -60,8 +65,13 @@ function goBack() {
   }
 }
 
-function goBackToLogin() {
-  void router.push({ name: 'login' });
+// Signed-in users arrive from their account settings and return there.
+function leave() {
+  void router.push(
+    user.value
+      ? { name: 'account-settings', params: { tab: 'security' } }
+      : { name: 'login' },
+  );
 }
 
 async function handleNext() {
@@ -128,7 +138,15 @@ async function handleNext() {
       });
       const msg = data.message || t('auth.login.reset_success');
       useToast().success(msg);
-      await router.push({ name: 'login' });
+      // A reset revokes every session of that account, so resetting your
+      // own signs you out here as well.
+      if (user.value?.email === email.value.trim().toLowerCase()) {
+        await logout();
+      } else if (user.value) {
+        leave();
+      } else {
+        await router.push({ name: 'login' });
+      }
     } catch (e: unknown) {
       setMessage(
         apiErrorMessage(e, t('auth.login.reset.errors.reset_failed')),
@@ -156,7 +174,7 @@ async function handleNext() {
               })
       "
       :close-on-backdrop="false"
-      @close="goBackToLogin"
+      @close="leave"
     >
       <div v-if="step === 1" class="space-y-4">
         <p class="text-sm text-on-ghost-muted">
@@ -249,7 +267,7 @@ async function handleNext() {
         </div>
       </Transition>
       <template #actions>
-        <BaseButton type="button" variant="ghost" @click="goBackToLogin">
+        <BaseButton type="button" variant="ghost" @click="leave">
           {{ t('common.buttons.cancel') }}
         </BaseButton>
         <BaseButton

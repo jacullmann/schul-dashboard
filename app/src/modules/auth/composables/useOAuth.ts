@@ -6,7 +6,6 @@ import { apiErrorMessage } from '@/api/errors';
 import { useToast } from '@/common/composables/useToast';
 
 const showLinkModal = ref(false);
-const showMfaModal = ref(false);
 
 interface LinkedProvider {
   provider: string;
@@ -14,6 +13,9 @@ interface LinkedProvider {
 }
 
 type ActionResult = { ok: true } | { ok: false; error: string };
+type LinkResult =
+  | { ok: true; requiresMfa: boolean }
+  | { ok: false; error: string };
 
 export function useOAuth() {
   const { t } = useI18n();
@@ -65,6 +67,13 @@ export function useOAuth() {
     }
   }
 
+  // Every second-factor challenge, whatever the first factor was, is answered
+  // on the same page.
+  async function openMfaChallenge(): Promise<void> {
+    await router.isReady();
+    await router.replace({ name: 'verify-mfa' });
+  }
+
   // Stripped through the router: a raw history.replaceState would be undone
   // when the pending initial navigation commits its own URL.
   async function stripOAuthParams(): Promise<void> {
@@ -106,6 +115,11 @@ export function useOAuth() {
     const auth = params.get('auth');
     if (!auth) return;
 
+    if (auth === 'mfa-pending') {
+      void openMfaChallenge();
+      return;
+    }
+
     void stripOAuthParams();
 
     switch (auth) {
@@ -117,22 +131,25 @@ export function useOAuth() {
         showLinkModal.value = true;
         break;
 
-      case 'mfa-pending':
-        showMfaModal.value = true;
-        break;
-
       case 'error':
         useToast().error(errorMessage(params.get('reason')));
         break;
     }
   }
 
-  async function linkGoogleAccount(password: string): Promise<ActionResult> {
+  // The password only links the account: an account with 2FA still has to
+  // pass its second factor before a session is issued.
+  async function linkGoogleAccount(password: string): Promise<LinkResult> {
     try {
-      const { data } = await hw.post('/auth/google/link', { password });
+      const { data } = await hw.post<{ ok: boolean; requiresMfa?: boolean }>(
+        '/auth/google/link',
+        { password },
+      );
       if (data.ok) {
+        const requiresMfa = data.requiresMfa === true;
         showLinkModal.value = false;
-        return { ok: true };
+        if (requiresMfa) await openMfaChallenge();
+        return { ok: true, requiresMfa };
       }
       return { ok: false, error: t('auth.google_link.errors.failed') };
     } catch (err: unknown) {
@@ -173,13 +190,8 @@ export function useOAuth() {
     showLinkModal.value = false;
   }
 
-  function closeMfaModal(): void {
-    showMfaModal.value = false;
-  }
-
   return {
     showLinkModal,
-    showMfaModal,
     initiateGoogleLogin,
     initiateGoogleLink,
     handleOAuthReturn,
@@ -187,6 +199,5 @@ export function useOAuth() {
     unlinkGoogleAccount,
     fetchLinkedProviders,
     closeLinkModal,
-    closeMfaModal,
   };
 }

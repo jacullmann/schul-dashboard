@@ -20,6 +20,7 @@ export interface UserData {
   doneSetup: boolean;
   personalized: boolean;
   mfaEnabled: boolean;
+  hasPassword: boolean;
   preferences?: UserPreferences;
   username: string;
 }
@@ -37,6 +38,8 @@ export const useUserStore = defineStore('user', () => {
     () => user.value !== null && !user.value.doneSetup,
   );
   const mfaEnabled = computed(() => user.value?.mfaEnabled === true);
+  // Google-only accounts have no password until they set one.
+  const hasPassword = computed(() => user.value?.hasPassword !== false);
 
   let fetchPromise: Promise<void> | null = null;
 
@@ -57,6 +60,7 @@ export const useUserStore = defineStore('user', () => {
             doneSetup: data.doneSetup,
             personalized: data.personalized,
             mfaEnabled: data.mfaEnabled ?? false,
+            hasPassword: data.hasPassword ?? true,
             preferences: data.preferences,
             username: data.username || '',
           };
@@ -129,6 +133,7 @@ export const useUserStore = defineStore('user', () => {
     isSuperadmin,
     needsSetup,
     mfaEnabled,
+    hasPassword,
     fetchUser,
     clearUser,
     updateUser,

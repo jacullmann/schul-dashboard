@@ -163,6 +163,37 @@ pub async fn change_password(
     Ok((jar, Json(body)))
 }
 
+pub async fn request_password_setup_code(
+    State(state): State<AppState>,
+    user: AuthUser,
+) -> AppResult<Json<Value>> {
+    let svc = AuthService::from_state(&state);
+
+    Ok(Json(svc.request_password_setup_code(user.user_id).await?))
+}
+
+pub async fn set_password(
+    State(state): State<AppState>,
+    user: AuthUser,
+    ClientIp(ip): ClientIp,
+    UserAgent(ua): UserAgent,
+    ValidatedJson(dto): ValidatedJson<SetPasswordDto>,
+) -> AppResult<(CookieJar, Json<Value>)> {
+    let svc = AuthService::from_state(&state);
+
+    let (jar, body) = svc
+        .set_initial_password(
+            user.user_id,
+            &dto.code,
+            dto.new_password,
+            ua.as_deref(),
+            ip.as_deref(),
+        )
+        .await?;
+
+    Ok((jar, Json(body)))
+}
+
 pub async fn get_groups(State(state): State<AppState>, user: AuthUser) -> AppResult<Json<Value>> {
     let svc = AuthService::from_state(&state);
 

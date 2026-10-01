@@ -15,11 +15,8 @@ import { useIsMobileViewport } from '@/common/composables/useViewport';
 // Modals are split out of the entry chunk so they never delay first paint.
 // The v-if ones are prefetched on mount so opening them stays instant.
 const loadSearchModal = () => import('@/core/components/SearchModal.vue');
-const loadMfaVerifyModal = () =>
-  import('@/modules/auth/components/MfaVerifyModal.vue');
 
 const SearchModal = defineAsyncComponent(loadSearchModal);
-const MfaVerifyModal = defineAsyncComponent(loadMfaVerifyModal);
 const GoogleLinkModal = defineAsyncComponent(
   () => import('@/modules/auth/components/GoogleLinkModal.vue'),
 );
@@ -31,6 +28,9 @@ const PrivateTaskForm = defineAsyncComponent(
 );
 const ChangePasswordModal = defineAsyncComponent(
   () => import('@/modules/auth/components/ChangePasswordModal.vue'),
+);
+const SetPasswordModal = defineAsyncComponent(
+  () => import('@/modules/auth/components/SetPasswordModal.vue'),
 );
 const DeleteAccountModal = defineAsyncComponent(
   () => import('@/modules/auth/components/DeleteAccountModal.vue'),
@@ -53,7 +53,6 @@ const ImageViewer = defineAsyncComponent(
 
 onMounted(() => {
   void loadSearchModal().catch(() => {});
-  void loadMfaVerifyModal().catch(() => {});
 });
 
 const { t } = useI18n();
@@ -62,11 +61,10 @@ const toast = useToast();
 
 const modalStore = useModalStore();
 const userStore = useUserStore();
-const { user } = storeToRefs(userStore);
+const { user, hasPassword } = storeToRefs(userStore);
 const { checkAuthStatus } = useAppAuth();
 const performLogout = useLogout();
-const { showLinkModal, showMfaModal, closeLinkModal, closeMfaModal } =
-  useOAuth();
+const { showLinkModal, closeLinkModal } = useOAuth();
 const isMobile = useIsMobileViewport();
 
 // On phones the search grows out of the header (HeaderSearchPalette). Its
@@ -132,6 +130,11 @@ function onPasswordChanged() {
   modalStore.showChangePassword = false;
 }
 
+function onPasswordSet() {
+  toast.success(t('auth.set_password.success'));
+  modalStore.showChangePassword = false;
+}
+
 function onSetupSuccess(updatedUser: any) {
   if (updatedUser) {
     userStore.updateUser(updatedUser);
@@ -167,21 +170,6 @@ async function onAuthSuccess() {
     @linked="onAuthSuccess"
     @cancel="closeLinkModal"
   />
-
-  <Teleport to="body">
-    <Transition name="fade-scale" appear>
-      <MfaVerifyModal
-        v-if="showMfaModal"
-        @verified="
-          () => {
-            closeMfaModal();
-            onAuthSuccess();
-          }
-        "
-        @cancelled="closeMfaModal"
-      />
-    </Transition>
-  </Teleport>
 
   <Teleport to="body">
     <Transition
@@ -232,7 +220,17 @@ async function onAuthSuccess() {
     @cancel="modalStore.closeImageViewer()"
   />
 
+  <!-- Every "password" entry point opens this slot; an account without a
+       password can only set its first one. -->
+  <SetPasswordModal
+    v-if="user && !hasPassword"
+    :open="showChangePassword"
+    :email="user.email"
+    @cancel="modalStore.showChangePassword = false"
+    @success="onPasswordSet"
+  />
   <ChangePasswordModal
+    v-else
     :open="showChangePassword"
     @cancel="modalStore.showChangePassword = false"
     @success="onPasswordChanged"
