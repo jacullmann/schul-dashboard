@@ -63,7 +63,13 @@ onMounted(loadJobs);
         {{ t(`${I18N_BASE}.retry`) }}
       </BaseButton>
     </div>
-    <div v-else class="flex-1 min-h-0 overflow-y-auto mt-2">
+    <!-- Focusable so keyboard users can scroll the list when it overflows. -->
+    <div
+      v-else
+      class="flex-1 min-h-0 overflow-y-auto mt-2"
+      tabindex="0"
+      :aria-labelledby="titleId"
+    >
       <ul class="divide-y divide-ghost-border">
         <li
           v-for="row in rows"
