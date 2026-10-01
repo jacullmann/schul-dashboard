@@ -331,7 +331,7 @@
     "link": "Back to the homepage"
   },
   "cookie": {
-    "text": "We only use cookies the site needs to work — no tracking.",
+    "text": "We only use cookies the site needs to work. We measure reach with Umami, without cookies or profiles.",
     "link": "Privacy policy",
     "dismiss": "Okay"
   },
@@ -360,52 +360,167 @@
     },
     "privacy": {
       "title": "Privacy Policy",
-      "description": "How schul-dashboard handles your personal data.",
-      "intro": {
-        "title": "Introduction",
-        "text": "We take your privacy seriously. This policy explains what data we collect, why we collect it, and how we protect it."
-      },
-      "controller": {
-        "title": "Data Controller",
-        "text": "The data controller responsible for this service is schul-dashboard, reachable at contact{'@'}schul-dashboard.com."
-      },
-      "dataCollected": {
-        "title": "Data We Collect",
-        "item0": "Email address (for account creation and verification)",
-        "item1": "Username (randomly generated to protect your identity in groups)",
-        "item2": "Usage data necessary to provide the service (tasks, schedule, group memberships)"
-      },
-      "purpose": {
-        "title": "Purpose of Processing",
-        "text": "We collect and process your data solely to provide and improve the schul-dashboard service. We do not sell data to third parties and do not use it for advertising purposes."
-      },
-      "retention": {
-        "title": "Data Retention",
-        "text": "Your data is stored for as long as your account exists. You can delete your account at any time, after which your data will be permanently removed."
-      },
-      "rights": {
-        "title": "Your Rights",
-        "intro": "Under applicable data protection law, you have the following rights:",
-        "item0": "Right of access to your personal data",
-        "item1": "Right to rectification of inaccurate data",
-        "item2": "Right to erasure of your data",
-        "item3": "Right to restriction of processing",
-        "item4": "Right to data portability",
-        "item5": "Right to object to processing",
-        "contact": "To exercise these rights, please contact us at contact{'@'}schul-dashboard.com."
-      },
-      "cookies": {
-        "title": "Cookies",
-        "text": "We use only technically necessary cookies — for session management, language preference, and color mode. We do not use tracking or advertising cookies."
-      },
-      "security": {
-        "title": "Security",
-        "text": "Personal data is protected using industry-standard encryption (AES-256-GCM). We use HTTPS throughout and employ CSRF protection and two-factor authentication options to secure your account."
-      },
-      "changes": {
-        "title": "Changes to This Policy",
-        "text": "We may update this privacy policy from time to time. We will notify users of significant changes via email or in-app notification."
-      }
+      "description": "What data schul-dashboard processes, why, and what rights you have.",
+      "sections": [
+        {
+          "title": "Overview",
+          "paragraphs": [
+            "This privacy policy covers the website schul-dashboard.com and the app at app.schul-dashboard.com. It explains which personal data we process, why we need it, how long we keep it and what rights you have.",
+            "Last updated: October 1, 2026"
+          ]
+        },
+        {
+          "title": "Controller",
+          "paragraphs": [
+            "The controller responsible for data processing is Deniz Keskin, Berlin, Germany. You can reach us by email at contact{'@'}schul-dashboard.com.",
+            "schul-dashboard is a private, non-commercial project. We do not sell data, show ads or share data for advertising."
+          ]
+        },
+        {
+          "title": "Visiting the website and app",
+          "paragraphs": [
+            "When you open the website or the app, our server processes your IP address, the date and time, the requested address and your browser identifier (user agent). Without this data we cannot deliver the pages or fend off attacks.",
+            "To protect passwords and two-factor codes from guessing, we limit the number of sign-in attempts per IP address. The counters for this are kept in memory only and expire after a short time.",
+            "Our servers and database are operated for us by Hetzner Online GmbH, Industriestr. 25, 91710 Gunzenhausen, Germany, in data centres in Germany. Hetzner processes the data on our behalf.",
+            "The legal basis is our legitimate interest in a secure and working service (Art. 6(1)(f) GDPR)."
+          ]
+        },
+        {
+          "title": "Your account",
+          "paragraphs": [
+            "To create an account we need your email address and a password. We only store a hash of your password (Argon2), never the password itself. We also store for your account:"
+          ],
+          "items": [
+            "your settings (language, colour scheme, personalisation) and your course selection,",
+            "when you registered and when you last signed in,",
+            "whether two-factor authentication is enabled, and the secret it needs (encrypted),",
+            "if you sign in with Google, your Google account ID and that Google account's email address."
+          ],
+          "outro": [
+            "We only send you emails your account needs: the confirmation link after registration, codes to reset or set your password, and a security notice when your password was reset. We do not send newsletters or ads.",
+            "We cannot create an account without an email address. The legal basis is the performance of our terms of use (Art. 6(1)(b) GDPR)."
+          ]
+        },
+        {
+          "title": "Groups and content",
+          "paragraphs": [
+            "In groups we process the content you and other members create: tasks and exams with descriptions, images and files, announcements, timetables and substitutions, and chat messages. We also store your membership, your role and when you last opened the group, so we can show you what is new.",
+            "Other members only see you under a randomly generated name, not your email address. They do see everything you post in the group.",
+            "We store private tasks encrypted (AES-256-GCM). Encryption happens on our server: it protects the data in the database but is not end-to-end encryption.",
+            "The legal basis is the performance of our terms of use (Art. 6(1)(b) GDPR)."
+          ]
+        },
+        {
+          "title": "Images and files",
+          "paragraphs": [
+            "Images and files you attach to tasks, and group pictures, are stored with Cloudinary Inc. (USA). Each file can be opened via a randomly generated address; anyone who knows that address can open the file. When a task is deleted, we delete its files too.",
+            "Cloudinary processes the data on our behalf. The transfer to the USA is based on the European Commission's adequacy decision for the EU-U.S. Data Privacy Framework, under which Cloudinary is certified (Art. 45 GDPR)."
+          ]
+        },
+        {
+          "title": "Sending emails",
+          "paragraphs": [
+            "We send emails via Resend, Inc. (USA). Resend receives your email address and the content of the email. Resend processes the data on our behalf and is certified under the EU-U.S. Data Privacy Framework (Art. 45 GDPR)."
+          ]
+        },
+        {
+          "title": "Sign in with Google",
+          "paragraphs": [
+            "You can register and sign in with your Google account. We then redirect you to Google (Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Ireland). Google sends us your Google account ID, your email address and whether Google has verified it. We do not request any other data.",
+            "What Google processes during sign-in is governed by Google's own privacy policy. Data may be transferred to Google LLC in the USA, which is certified under the EU-U.S. Data Privacy Framework.",
+            "Signing in with Google is optional; you can just as well register with an email address and password. The legal basis is Art. 6(1)(b) GDPR."
+          ]
+        },
+        {
+          "title": "Sign-ins and security",
+          "paragraphs": ["To protect your account and the service, we store:"],
+          "items": [
+            "for each sign-in (session) the IP address, browser identifier and timestamps. In your account settings we use this to show your signed-in devices with an approximate location. We determine the location with a database on our own server and do not pass your IP address on for this;",
+            "failed sign-in attempts with the IP address;",
+            "the creation of groups and the acceptance of invites with IP address and browser identifier."
+          ],
+          "outro": [
+            "This lets us detect and prevent abuse and unauthorised access. The legal basis is our legitimate interest in the security of the service (Art. 6(1)(f) GDPR)."
+          ]
+        },
+        {
+          "title": "Activity log",
+          "paragraphs": [
+            "We log which actions happen in your account, for example opening the app (with browser identifier), creating, editing or checking off tasks, and changes to settings or two-factor authentication. We only store the type, time and IDs of the affected entries, not their content.",
+            "We use the log to investigate errors and abuse and to see how many people use the service. Only we as operators can view it. The legal basis is our legitimate interest (Art. 6(1)(f) GDPR)."
+          ]
+        },
+        {
+          "title": "Reports",
+          "paragraphs": [
+            "When you report a task or message, we store the reported content, your reason, your email address and the email address of the person who created the content. This lets us review the report and follow up if needed. The legal basis is our legitimate interest in a safe service (Art. 6(1)(f) GDPR)."
+          ]
+        },
+        {
+          "title": "Audience measurement",
+          "paragraphs": [
+            "To understand which pages are used, we use Umami Cloud (Umami Software, Inc., USA) on the website and in the app. The data is stored on servers in the EU (Germany).",
+            "Umami records the page visited and its title, the referring page, browser, operating system, device type, screen size, language and country. In the app we first remove query parameters and the secret part of invite links.",
+            "Umami does not set cookies or track you across other websites; according to Umami, your IP address is not stored. We only see aggregated statistics.",
+            "The legal basis is our legitimate interest in improving our service (Art. 6(1)(f) GDPR). You can object at any time."
+          ]
+        },
+        {
+          "title": "Cookies and local storage",
+          "paragraphs": [
+            "We only use cookies and local storage that are technically necessary or that store a setting you chose (Section 25(2) no. 2 TDDDG). We do not use tracking or advertising cookies."
+          ],
+          "items": [
+            "App, sign-in: access_token (15 minutes), refresh_token (7 days), csrf_token (30 days, protection against forged requests), mfa_pending_token (5 minutes, during the two-factor prompt), oauth_state_token and oauth_pending_token (10 and 15 minutes, during sign-in with Google).",
+            "App, local browser storage: language, colour scheme, time of the last session renewal and, until you are signed in, an opened invite link (at most 24 hours).",
+            "Website: i18n_locale (language, 1 year), nuxt-homepage-color-mode (colour scheme, 1 year), cookie_notice_dismissed (notice closed, 180 days)."
+          ]
+        },
+        {
+          "title": "Retention",
+          "items": [
+            "We keep account data until you delete your account.",
+            "We delete unconfirmed accounts once their confirmation link has expired after 2 days.",
+            "Codes to reset or set your password are valid for 30 minutes.",
+            "We delete session data with IP address and browser identifier about 7 days after it was last used.",
+            "We delete the activity log and security events after 30 days.",
+            "We delete chat messages automatically after 7 days.",
+            "We keep reports until we have handled them.",
+            "Group content is kept until you, the group admins or we delete it, or the group is deleted."
+          ]
+        },
+        {
+          "title": "Deleting your account",
+          "paragraphs": [
+            "You can delete your account at any time in your account settings. If you own a group, you need to transfer or delete it first.",
+            "On deletion we immediately remove your account data, sessions, group memberships, chat messages, private tasks, your Google link and your activity log.",
+            "Tasks and announcements you created in groups remain available to the group but are no longer linked to your account. Security events are deleted once their 30-day period ends, reports once they have been handled."
+          ]
+        },
+        {
+          "title": "Your rights",
+          "paragraphs": ["Under the GDPR you have the right to:"],
+          "items": [
+            "access the data we hold about you (Art. 15 GDPR),",
+            "rectification of inaccurate data (Art. 16 GDPR),",
+            "erasure of your data (Art. 17 GDPR),",
+            "restriction of processing (Art. 18 GDPR),",
+            "data portability (Art. 20 GDPR),",
+            "object to processing based on our legitimate interest (Art. 21 GDPR)."
+          ],
+          "outro": [
+            "Just email us at contact{'@'}schul-dashboard.com.",
+            "You also have the right to lodge a complaint with a data protection supervisory authority (Art. 77 GDPR). The authority responsible for us is the Berlin Commissioner for Data Protection and Freedom of Information (Berliner Beauftragte für Datenschutz und Informationsfreiheit), Alt-Moabit 59–61, 10555 Berlin, Germany.",
+            "We do not use automated decision-making or profiling."
+          ]
+        },
+        {
+          "title": "Changes",
+          "paragraphs": [
+            "We update this privacy policy when the service or the law changes. You can always find the current version on this page."
+          ]
+        }
+      ]
     },
     "terms": {
       "title": "Terms of Service",

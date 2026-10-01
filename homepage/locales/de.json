@@ -331,7 +331,7 @@
     "link": "Zurück zur Startseite"
   },
   "cookie": {
-    "text": "Wir verwenden nur Cookies, die die Seite zum Funktionieren braucht — kein Tracking.",
+    "text": "Wir verwenden nur technisch notwendige Cookies. Die Reichweite messen wir mit Umami, ohne Cookies und ohne Profile.",
     "link": "Datenschutz",
     "dismiss": "Okay"
   },
@@ -360,52 +360,167 @@
     },
     "privacy": {
       "title": "Datenschutzerklärung",
-      "description": "Wie schul-dashboard mit deinen persönlichen Daten umgeht.",
-      "intro": {
-        "title": "Einleitung",
-        "text": "Wir nehmen deinen Datenschutz ernst. Diese Richtlinie erläutert, welche Daten wir erheben, warum wir sie erheben und wie wir sie schützen."
-      },
-      "controller": {
-        "title": "Verantwortlicher",
-        "text": "Verantwortlicher für diese Datenverarbeitung ist schul-dashboard, erreichbar unter contact{'@'}schul-dashboard.com."
-      },
-      "dataCollected": {
-        "title": "Erhobene Daten",
-        "item0": "E-Mail-Adresse (für Kontoerstellung und Verifizierung)",
-        "item1": "Benutzername (zufällig generiert, um deine Identität in Gruppen zu schützen)",
-        "item2": "Nutzungsdaten, die zur Bereitstellung des Dienstes erforderlich sind (Aufgaben, Stundenplan, Gruppenmitgliedschaften)"
-      },
-      "purpose": {
-        "title": "Zweck der Verarbeitung",
-        "text": "Wir erheben und verarbeiten deine Daten ausschließlich zur Bereitstellung und Verbesserung von schul-dashboard. Wir verkaufen keine Daten an Dritte und nutzen sie nicht zu Werbezwecken."
-      },
-      "retention": {
-        "title": "Datenspeicherung",
-        "text": "Deine Daten werden gespeichert, solange dein Konto existiert. Du kannst dein Konto jederzeit löschen – danach werden deine Daten dauerhaft entfernt."
-      },
-      "rights": {
-        "title": "Deine Rechte",
-        "intro": "Nach geltendem Datenschutzrecht hast du folgende Rechte:",
-        "item0": "Recht auf Auskunft über deine personenbezogenen Daten",
-        "item1": "Recht auf Berichtigung unrichtiger Daten",
-        "item2": "Recht auf Löschung deiner Daten",
-        "item3": "Recht auf Einschränkung der Verarbeitung",
-        "item4": "Recht auf Datenübertragbarkeit",
-        "item5": "Widerspruchsrecht gegen die Verarbeitung",
-        "contact": "Zur Ausübung dieser Rechte wende dich bitte an contact{'@'}schul-dashboard.com."
-      },
-      "cookies": {
-        "title": "Cookies",
-        "text": "Wir verwenden ausschließlich technisch notwendige Cookies – für die Sitzungsverwaltung, Sprachpräferenz und Farbmodus. Wir setzen keine Tracking- oder Werbe-Cookies ein."
-      },
-      "security": {
-        "title": "Sicherheit",
-        "text": "Persönliche Daten sind mit branchenüblicher Verschlüsselung geschützt (AES-256-GCM). Wir verwenden HTTPS durchgehend sowie CSRF-Schutz und optionale Zwei-Faktor-Authentifizierung."
-      },
-      "changes": {
-        "title": "Änderungen dieser Richtlinie",
-        "text": "Wir können diese Datenschutzerklärung von Zeit zu Zeit aktualisieren. Über wesentliche Änderungen informieren wir per E-Mail oder In-App-Benachrichtigung."
-      }
+      "description": "Welche Daten schul-dashboard verarbeitet, wofür und welche Rechte du hast.",
+      "sections": [
+        {
+          "title": "Überblick",
+          "paragraphs": [
+            "Diese Datenschutzerklärung gilt für die Website schul-dashboard.com und die App unter app.schul-dashboard.com. Sie erklärt, welche personenbezogenen Daten wir verarbeiten, wofür wir sie brauchen, wie lange wir sie speichern und welche Rechte du hast.",
+            "Stand: 1. Oktober 2026"
+          ]
+        },
+        {
+          "title": "Verantwortlicher",
+          "paragraphs": [
+            "Verantwortlich für die Datenverarbeitung ist Deniz Keskin, Berlin. Du erreichst uns per E-Mail an contact{'@'}schul-dashboard.com.",
+            "schul-dashboard ist ein privates, nicht-kommerzielles Projekt. Wir verkaufen keine Daten, zeigen keine Werbung und geben Daten nicht zu Werbezwecken weiter."
+          ]
+        },
+        {
+          "title": "Aufruf von Website und App",
+          "paragraphs": [
+            "Wenn du die Website oder die App aufrufst, verarbeitet unser Server deine IP-Adresse, Datum und Uhrzeit, die aufgerufene Adresse und die Kennung deines Browsers (User-Agent). Ohne diese Daten können wir die Seiten nicht ausliefern und Angriffe nicht abwehren.",
+            "Um Passwörter und Zwei-Faktor-Codes vor dem Durchprobieren zu schützen, begrenzen wir die Zahl der Anmeldeversuche pro IP-Adresse. Die Zähler dafür liegen nur im Arbeitsspeicher und verfallen nach kurzer Zeit.",
+            "Server und Datenbank betreibt für uns die Hetzner Online GmbH, Industriestr. 25, 91710 Gunzenhausen, in Rechenzentren in Deutschland. Hetzner verarbeitet die Daten in unserem Auftrag.",
+            "Rechtsgrundlage ist unser berechtigtes Interesse an einem sicheren und funktionierenden Angebot (Art. 6 Abs. 1 lit. f DSGVO)."
+          ]
+        },
+        {
+          "title": "Dein Konto",
+          "paragraphs": [
+            "Für ein Konto brauchen wir deine E-Mail-Adresse und ein Passwort. Das Passwort speichern wir nur als Hash (Argon2), nie im Klartext. Außerdem speichern wir zu deinem Konto:"
+          ],
+          "items": [
+            "deine Einstellungen (Sprache, Farbschema, Personalisierung) und deine Kurswahl,",
+            "den Zeitpunkt der Registrierung und der letzten Anmeldung,",
+            "ob die Zwei-Faktor-Authentifizierung aktiv ist, und das dafür nötige Geheimnis (verschlüsselt),",
+            "bei Anmeldung mit Google deine Google-Konto-ID und die E-Mail-Adresse dieses Google-Kontos."
+          ],
+          "outro": [
+            "Wir schicken dir nur E-Mails, die für dein Konto nötig sind: den Bestätigungslink nach der Registrierung, Codes zum Zurücksetzen oder Festlegen deines Passworts und einen Sicherheitshinweis, wenn dein Passwort zurückgesetzt wurde. Newsletter oder Werbung verschicken wir nicht.",
+            "Ohne E-Mail-Adresse können wir kein Konto anlegen. Rechtsgrundlage ist die Erfüllung des Nutzungsvertrags (Art. 6 Abs. 1 lit. b DSGVO)."
+          ]
+        },
+        {
+          "title": "Gruppen und Inhalte",
+          "paragraphs": [
+            "In Gruppen verarbeiten wir die Inhalte, die du und andere Mitglieder anlegen: Aufgaben und Klausuren mit Beschreibungen, Bildern und Dateien, Ankündigungen, Stundenplan und Vertretungen sowie Chatnachrichten. Dazu speichern wir deine Mitgliedschaft, deine Rolle und wann du die Gruppe zuletzt geöffnet hast, damit wir dir neue Inhalte anzeigen können.",
+            "Andere Mitglieder sehen dich nur unter einem zufällig erzeugten Namen, nicht unter deiner E-Mail-Adresse. Sie sehen aber alles, was du in der Gruppe veröffentlichst.",
+            "Private Aufgaben speichern wir verschlüsselt (AES-256-GCM). Die Verschlüsselung geschieht auf unserem Server: Sie schützt die Daten in der Datenbank, ist aber keine Ende-zu-Ende-Verschlüsselung.",
+            "Rechtsgrundlage ist die Erfüllung des Nutzungsvertrags (Art. 6 Abs. 1 lit. b DSGVO)."
+          ]
+        },
+        {
+          "title": "Bilder und Dateien",
+          "paragraphs": [
+            "Bilder und Dateien, die du an Aufgaben anhängst, und Gruppenbilder speichern wir bei der Cloudinary Inc. (USA). Jede Datei ist über eine zufällig erzeugte Adresse abrufbar; wer diese Adresse kennt, kann die Datei öffnen. Wird eine Aufgabe gelöscht, löschen wir auch ihre Dateien.",
+            "Cloudinary verarbeitet die Daten in unserem Auftrag. Die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission zum EU-US Data Privacy Framework, unter dem Cloudinary zertifiziert ist (Art. 45 DSGVO)."
+          ]
+        },
+        {
+          "title": "E-Mail-Versand",
+          "paragraphs": [
+            "E-Mails verschicken wir über die Resend, Inc. (USA). Resend erhält dafür deine E-Mail-Adresse und den Inhalt der jeweiligen E-Mail. Resend verarbeitet die Daten in unserem Auftrag und ist unter dem EU-US Data Privacy Framework zertifiziert (Art. 45 DSGVO)."
+          ]
+        },
+        {
+          "title": "Anmeldung mit Google",
+          "paragraphs": [
+            "Du kannst dich mit deinem Google-Konto registrieren und anmelden. Dazu leiten wir dich zu Google weiter (Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Irland). Google übermittelt uns deine Google-Konto-ID, deine E-Mail-Adresse und ob Google sie bestätigt hat. Weitere Daten fragen wir nicht ab.",
+            "Was Google bei der Anmeldung verarbeitet, regelt Googles eigene Datenschutzerklärung. Dabei können Daten an die Google LLC in den USA übermittelt werden, die unter dem EU-US Data Privacy Framework zertifiziert ist.",
+            "Die Anmeldung mit Google ist freiwillig; du kannst dich genauso mit E-Mail-Adresse und Passwort registrieren. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO."
+          ]
+        },
+        {
+          "title": "Anmeldungen und Sicherheit",
+          "paragraphs": ["Zum Schutz deines Kontos und des Dienstes speichern wir:"],
+          "items": [
+            "für jede Anmeldung (Sitzung) IP-Adresse, Browserkennung und Zeitpunkte. In den Kontoeinstellungen zeigen wir dir daraus deine angemeldeten Geräte mit ungefährem Ort. Den Ort ermitteln wir mit einer Datenbank auf unserem eigenen Server, die IP-Adresse geben wir dafür nicht weiter;",
+            "fehlgeschlagene Anmeldeversuche mit IP-Adresse;",
+            "das Erstellen von Gruppen und das Annehmen von Einladungen mit IP-Adresse und Browserkennung."
+          ],
+          "outro": [
+            "So erkennen und verhindern wir Missbrauch und unbefugte Zugriffe. Rechtsgrundlage ist unser berechtigtes Interesse an der Sicherheit des Dienstes (Art. 6 Abs. 1 lit. f DSGVO)."
+          ]
+        },
+        {
+          "title": "Aktivitätsprotokoll",
+          "paragraphs": [
+            "Wir protokollieren, welche Aktionen in deinem Konto stattfinden, zum Beispiel das Öffnen der App (mit Browserkennung), das Anlegen, Bearbeiten oder Abhaken von Aufgaben und Änderungen an Einstellungen oder an der Zwei-Faktor-Authentifizierung. Gespeichert werden dabei nur Art, Zeitpunkt und Kennungen der betroffenen Einträge, keine Inhalte.",
+            "Wir nutzen das Protokoll, um Fehler und Missbrauch aufzuklären und um zu sehen, wie viele Personen den Dienst nutzen. Einsehen können es nur wir als Betreiber. Rechtsgrundlage ist unser berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO)."
+          ]
+        },
+        {
+          "title": "Meldungen",
+          "paragraphs": [
+            "Wenn du eine Aufgabe oder Nachricht meldest, speichern wir den gemeldeten Inhalt, deine Begründung, deine E-Mail-Adresse und die E-Mail-Adresse der Person, die den Inhalt erstellt hat. So können wir die Meldung prüfen und bei Bedarf nachfragen. Rechtsgrundlage ist unser berechtigtes Interesse an einem sicheren Dienst (Art. 6 Abs. 1 lit. f DSGVO)."
+          ]
+        },
+        {
+          "title": "Reichweitenmessung",
+          "paragraphs": [
+            "Um zu verstehen, welche Seiten genutzt werden, verwenden wir auf der Website und in der App Umami Cloud (Umami Software, Inc., USA). Die Daten werden auf Servern in der EU (Deutschland) gespeichert.",
+            "Erfasst werden die aufgerufene Seite und ihr Titel, die verweisende Seite, Browser, Betriebssystem, Gerätetyp, Bildschirmgröße, Sprache und Land. In der App entfernen wir vorher Suchparameter und den geheimen Teil von Einladungslinks.",
+            "Umami setzt keine Cookies und verfolgt dich nicht über andere Websites hinweg; deine IP-Adresse wird nach Angaben von Umami nicht gespeichert. Wir sehen nur zusammengefasste Statistiken.",
+            "Rechtsgrundlage ist unser berechtigtes Interesse daran, unser Angebot zu verbessern (Art. 6 Abs. 1 lit. f DSGVO). Du kannst dem jederzeit widersprechen."
+          ]
+        },
+        {
+          "title": "Cookies und lokale Speicherung",
+          "paragraphs": [
+            "Wir verwenden nur Cookies und lokalen Speicher, die für den Betrieb technisch nötig sind oder eine Einstellung speichern, die du gewählt hast (§ 25 Abs. 2 Nr. 2 TDDDG). Tracking- oder Werbe-Cookies setzen wir nicht."
+          ],
+          "items": [
+            "App, Anmeldung: access_token (15 Minuten), refresh_token (7 Tage), csrf_token (30 Tage, Schutz vor gefälschten Anfragen), mfa_pending_token (5 Minuten, während der Zwei-Faktor-Abfrage), oauth_state_token und oauth_pending_token (10 bzw. 15 Minuten, während der Anmeldung mit Google).",
+            "App, lokaler Speicher im Browser: Sprache, Farbschema, Zeitpunkt der letzten Sitzungsverlängerung und, bis du angemeldet bist, ein geöffneter Einladungslink (höchstens 24 Stunden).",
+            "Website: i18n_locale (Sprache, 1 Jahr), nuxt-homepage-color-mode (Farbschema, 1 Jahr), cookie_notice_dismissed (Hinweis geschlossen, 180 Tage)."
+          ]
+        },
+        {
+          "title": "Speicherdauer",
+          "items": [
+            "Kontodaten speichern wir, bis du dein Konto löschst.",
+            "Unbestätigte Konten löschen wir, nachdem der Bestätigungslink nach 2 Tagen abgelaufen ist.",
+            "Codes zum Zurücksetzen oder Festlegen des Passworts sind 30 Minuten gültig.",
+            "Sitzungsdaten mit IP-Adresse und Browserkennung löschen wir etwa 7 Tage nach ihrer letzten Nutzung.",
+            "Aktivitätsprotokoll und Sicherheitsereignisse löschen wir nach 30 Tagen.",
+            "Chatnachrichten löschen wir nach 7 Tagen automatisch.",
+            "Meldungen speichern wir, bis wir sie bearbeitet haben.",
+            "Inhalte in Gruppen bleiben gespeichert, bis du, die Gruppenadmins oder wir sie löschen oder die Gruppe gelöscht wird."
+          ]
+        },
+        {
+          "title": "Löschung deines Kontos",
+          "paragraphs": [
+            "Du kannst dein Konto jederzeit in den Kontoeinstellungen löschen. Wenn du Eigentümer einer Gruppe bist, musst du sie vorher übertragen oder löschen.",
+            "Beim Löschen entfernen wir sofort deine Kontodaten, Sitzungen, Gruppenmitgliedschaften, Chatnachrichten, privaten Aufgaben, die Verknüpfung mit Google und dein Aktivitätsprotokoll.",
+            "Aufgaben und Ankündigungen, die du in Gruppen erstellt hast, bleiben für die Gruppe erhalten, sind aber nicht mehr deinem Konto zugeordnet. Sicherheitsereignisse löschen wir nach Ablauf ihrer Frist von 30 Tagen, Meldungen nach ihrer Bearbeitung."
+          ]
+        },
+        {
+          "title": "Deine Rechte",
+          "paragraphs": ["Nach der DSGVO hast du gegenüber uns das Recht auf:"],
+          "items": [
+            "Auskunft über deine gespeicherten Daten (Art. 15 DSGVO),",
+            "Berichtigung unrichtiger Daten (Art. 16 DSGVO),",
+            "Löschung deiner Daten (Art. 17 DSGVO),",
+            "Einschränkung der Verarbeitung (Art. 18 DSGVO),",
+            "Datenübertragbarkeit (Art. 20 DSGVO),",
+            "Widerspruch gegen Verarbeitungen, die auf unserem berechtigten Interesse beruhen (Art. 21 DSGVO)."
+          ],
+          "outro": [
+            "Schreib uns dafür einfach an contact{'@'}schul-dashboard.com.",
+            "Du hast außerdem das Recht, dich bei einer Datenschutz-Aufsichtsbehörde zu beschweren (Art. 77 DSGVO). Für uns zuständig ist die Berliner Beauftragte für Datenschutz und Informationsfreiheit, Alt-Moabit 59–61, 10555 Berlin.",
+            "Eine automatisierte Entscheidungsfindung oder ein Profiling findet nicht statt."
+          ]
+        },
+        {
+          "title": "Änderungen",
+          "paragraphs": [
+            "Wir passen diese Datenschutzerklärung an, wenn sich der Dienst oder die Rechtslage ändert. Die aktuelle Fassung findest du immer auf dieser Seite."
+          ]
+        }
+      ]
     },
     "terms": {
       "title": "Nutzungsbedingungen",
