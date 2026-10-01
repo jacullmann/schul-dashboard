@@ -60,8 +60,6 @@ const {
   announcements,
   loadAnnouncements,
   deleteAnnouncement,
-  cleaningUp,
-  cleanupOldItems,
   editingGroupName,
   newGroupName,
   savingGroupName,
@@ -289,8 +287,6 @@ function goBack() {
             <GroupSettingsOverview
               v-if="activeTab === 'overview'"
               :stats="stats"
-              :cleaning-up="cleaningUp"
-              @cleanup="cleanupOldItems"
             />
 
             <GroupSettingsMembers

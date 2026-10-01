@@ -6,11 +6,6 @@ const { t } = useI18n();
 
 defineProps<{
   stats: GroupStats | null;
-  cleaningUp: boolean;
-}>();
-
-const emit = defineEmits<{
-  (e: 'cleanup'): void;
 }>();
 </script>
 
@@ -47,45 +42,6 @@ const emit = defineEmits<{
           t('groups.settings.overview.stats.schedule_changes')
         }}</span>
       </div>
-      <div
-        class="bg-surface border border-ghost-border shadow-input rounded-xl p-4.5 flex flex-col gap-1"
-        :class="{
-          'border-[rgba(245,158,11,0.3)]': (stats?.oldItemsCount ?? 0) > 0,
-        }"
-      >
-        <span class="text-[1.5rem]/4 font-bold">{{
-          stats?.oldItemsCount ?? '–'
-        }}</span>
-        <span class="text-sm text-on-ghost-muted">{{
-          t('groups.settings.overview.stats.old_tasks')
-        }}</span>
-      </div>
-    </div>
-
-    <div
-      v-if="(stats?.oldItemsCount ?? 0) === 0"
-      class="flex items-center justify-between bg-surface border border-ghost-border rounded-2xl p-4 gap-4 mb-6 sm:flex-col sm:items-start"
-    >
-      <div class="flex items-center gap-2 text-base text-on-ghost-muted">
-        <span>{{
-          t('groups.settings.overview.cleanup.info', {
-            count: stats?.oldItemsCount,
-          })
-        }}</span>
-      </div>
-      <BaseRow justify="end" class="w-full">
-        <BaseButton
-          :disabled="cleaningUp"
-          variant="danger"
-          @click="emit('cleanup')"
-        >
-          {{
-            cleaningUp
-              ? t('common.buttons.deleting')
-              : t('groups.settings.overview.cleanup.action_button')
-          }}
-        </BaseButton>
-      </BaseRow>
     </div>
   </div>
 </template>

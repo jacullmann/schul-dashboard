@@ -166,10 +166,10 @@ export default defineNuxtConfig({
                 name: 'schul-dashboard',
                 url: 'https://schul-dashboard.com/',
                 logo: 'https://schul-dashboard.com/apple-touch-icon.png',
-                email: 'contact@schul-dashboard.com',
+                email: 'kontakt@schul-dashboard.com',
                 contactPoint: {
                   '@type': 'ContactPoint',
-                  email: 'contact@schul-dashboard.com',
+                  email: 'kontakt@schul-dashboard.com',
                   contactType: 'customer support',
                 },
               },

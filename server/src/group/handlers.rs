@@ -329,23 +329,6 @@ pub async fn delete_group(State(s): State<AppState>, tc: TenantContext) -> AppRe
     Ok(Json(body))
 }
 
-pub async fn cleanup_old_items(
-    State(s): State<AppState>,
-    tc: TenantContext,
-) -> AppResult<Json<Value>> {
-    if !tc.has_owner_rights() {
-        return Err(AppError::forbidden(
-            "Only the group owner or superadmin can run cleanup.",
-        ));
-    }
-
-    Ok(Json(
-        GroupAdminService::from_state(&s)
-            .cleanup_old_items(tc.tenant_id, tc.user.user_id)
-            .await?,
-    ))
-}
-
 pub async fn get_subjects_admin(
     State(s): State<AppState>,
     tc: TenantContext,

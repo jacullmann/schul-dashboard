@@ -10,7 +10,6 @@ export type GroupAdminTab =
 export interface GroupStats {
   itemCount: number;
   subsCount: number;
-  oldItemsCount: number;
   memberCount: number;
 }
 

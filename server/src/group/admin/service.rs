@@ -260,15 +260,6 @@ impl GroupAdminService {
         .await?
         .unwrap_or(0);
 
-        let old_items = sqlx::query_scalar!(
-            r#"SELECT COUNT(*) FROM items
-               WHERE tenant_id = $1 AND created_at < now() - interval '90 days'"#,
-            tenant_id
-        )
-        .fetch_one(&self.db)
-        .await?
-        .unwrap_or(0);
-
         let subs = sqlx::query_scalar!(
             r#"SELECT COUNT(*) FROM schedule_subs WHERE tenant_id = $1"#,
             tenant_id
@@ -278,8 +269,7 @@ impl GroupAdminService {
         .unwrap_or(0);
 
         Ok(json!({
-            "itemCount": item_count, "subsCount": subs,
-            "oldItemsCount": old_items, "memberCount": member_count,
+            "itemCount": item_count, "subsCount": subs, "memberCount": member_count,
         }))
     }
 
@@ -638,28 +628,6 @@ impl GroupAdminService {
         .await?;
 
         Ok(json!({ "ok": true }))
-    }
-
-    pub async fn cleanup_old_items(&self, tenant_id: Uuid, user_id: Uuid) -> AppResult<Value> {
-        let count = sqlx::query!(
-            r#"DELETE FROM items
-               WHERE tenant_id = $1 AND created_at < now() - interval '90 days'"#,
-            tenant_id
-        )
-        .execute(&self.db)
-        .await?
-        .rows_affected();
-
-        sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta)
-               VALUES ($1, 'group-admin:cleanup:old_items', $2)"#,
-            user_id,
-            json!({ "deletedCount": count })
-        )
-        .execute(&self.db)
-        .await?;
-
-        Ok(json!({ "ok": true, "deletedItems": count }))
     }
 
     pub async fn get_subjects(&self, tenant_id: Uuid) -> AppResult<Value> {

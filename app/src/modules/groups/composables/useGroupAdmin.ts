@@ -66,8 +66,6 @@ export function useGroupAdmin() {
 
   const announcements = ref<Announcement[]>([]);
 
-  const cleaningUp = ref(false);
-
   const editingGroupName = ref(false);
   const newGroupName = ref('');
   const savingGroupName = ref(false);
@@ -374,31 +372,6 @@ export function useGroupAdmin() {
     }
   }
 
-  async function cleanupOldItems() {
-    const isConfirmed = await modalStore.confirm({
-      title: t('groups.settings.overview.cleanup.modal.title'),
-      content: t('groups.settings.overview.cleanup.modal.message'),
-      submitText: t('common.buttons.confirm'),
-      danger: true,
-    });
-
-    if (!isConfirmed) return;
-    cleaningUp.value = true;
-    try {
-      const { data } = await hw.delete(
-        groupPath(groupId.value, '/admin/cleanup/old-items'),
-      );
-      showMessage(
-        data.message || t('groups.settings.messages.cleanup_completed'),
-      );
-      await loadStats();
-    } catch {
-      showMessage(t('groups.settings.messages.cleanup_failed'), true);
-    } finally {
-      cleaningUp.value = false;
-    }
-  }
-
   function startEditGroupName() {
     newGroupName.value = groupName.value || '';
     editingGroupName.value = true;
@@ -630,9 +603,6 @@ export function useGroupAdmin() {
     announcements,
     loadAnnouncements,
     deleteAnnouncement,
-
-    cleaningUp,
-    cleanupOldItems,
 
     editingGroupName,
     newGroupName,

@@ -23,10 +23,10 @@ useSeoMeta({
       <p class="text-on-ghost-muted leading-[1.7] m-0">
         {{ t('legal.imprint.contact_label') }}
         <a
-          href="mailto:contact@schul-dashboard.com"
+          href="mailto:kontakt@schul-dashboard.com"
           class="text-on-ghost underline hover:no-underline transition-all"
         >
-          contact@schul-dashboard.com
+          kontakt@schul-dashboard.com
         </a>
       </p>
     </LegalSection>

@@ -180,15 +180,7 @@
       "stats": {
         "active_tasks": "Aktive Aufgaben",
         "members": "Mitglieder",
-        "schedule_changes": "Stundenplanänderungen",
-        "old_tasks": "Alte Aufgaben (90+ Tage)"
-      },
-      "cleanup": {
-        "info": "{count} Aufgaben älter als 90 Tage können gelöscht werden.",
-        "action_button": "Bereinigen",
-        "modal": {
-          "message": "Alle Aufgaben älter als 90 Tage löschen?"
-        }
+        "schedule_changes": "Stundenplanänderungen"
       }
     },
     "permissions": {

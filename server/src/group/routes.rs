@@ -35,7 +35,6 @@ pub fn group_router() -> Router<AppState> {
             "/admin/permissions",
             get(get_permissions).patch(update_permissions),
         )
-        .route("/admin/cleanup/old-items", delete(cleanup_old_items))
         .route(
             "/admin/subjects",
             get(get_subjects_admin).post(create_subject),
