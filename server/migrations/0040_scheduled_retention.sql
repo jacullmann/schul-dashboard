@@ -58,6 +58,22 @@ BEGIN
 END;
 $$;
 
+-- Codes to reset or set a password are valid for 30 minutes (the server's
+-- PASSWORD_RESET_CODE_TTL); used or not, an expired code is worthless.
+CREATE FUNCTION public.cleanup_expired_password_resets()
+    RETURNS integer
+    LANGUAGE plpgsql
+    SET search_path TO 'public'
+AS $$
+DECLARE
+    deleted_count integer;
+BEGIN
+    DELETE FROM password_resets WHERE expires_at < now();
+    GET DIAGNOSTICS deleted_count = ROW_COUNT;
+    RETURN deleted_count;
+END;
+$$;
+
 -- The items' files are left to the asset sweep below.
 CREATE FUNCTION public.cleanup_old_items()
     RETURNS integer
@@ -181,10 +197,13 @@ AS $$
             SELECT count(*) FROM users
             WHERE NOT email_verified AND created_at < cutoff.at - interval '2 days'
         )),
-        (8, 'cleanup-old-items', (
+        (8, 'cleanup-password-resets', (
+            SELECT count(*) FROM password_resets WHERE expires_at < cutoff.at
+        )),
+        (9, 'cleanup-old-items', (
             SELECT count(*) FROM items WHERE created_at < cutoff.at - interval '90 days'
         )),
-        (9, 'asset-sweep', (
+        (10, 'asset-sweep', (
             SELECT CASE
                 WHEN EXISTS (
                     SELECT 1 FROM worker_heartbeats

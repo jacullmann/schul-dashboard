@@ -75,6 +75,10 @@
           "label": "Unverified accounts",
           "rule": "Not confirmed within 2 days"
         },
+        "cleanup-password-resets": {
+          "label": "Password codes",
+          "rule": "Once expired (30 minutes)"
+        },
         "cleanup-old-items": {
           "label": "Tasks",
           "rule": "Older than 90 days"

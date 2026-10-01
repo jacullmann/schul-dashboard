@@ -79,7 +79,7 @@ pub struct ReportItemDto {
 
 /// Office documents are uploaded as raw files and need their extension in the
 /// public ID; everything else is uploaded as an image.
-#[derive(Debug, Default, Deserialize)]
+#[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SignUploadDto {
     pub raw_extension: Option<RawExtension>,

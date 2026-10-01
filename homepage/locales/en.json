@@ -481,7 +481,7 @@
           "items": [
             "We keep account data until you delete your account.",
             "We delete unconfirmed accounts once their confirmation link has expired after 2 days.",
-            "Codes to reset or set your password are valid for 30 minutes.",
+            "Codes to reset or set your password are valid for 30 minutes and are deleted afterwards.",
             "We delete session data with IP address and browser identifier about 7 days after it was last used.",
             "We delete the activity log and security events after 30 days.",
             "We delete chat messages automatically after 7 days.",

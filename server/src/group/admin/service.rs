@@ -622,8 +622,8 @@ impl GroupAdminService {
     }
 
     pub async fn delete_group(&self, tenant_id: Uuid, user_id: Uuid) -> AppResult<Value> {
-        // Everything in the group cascades with it; the items' files are
-        // queued for deletion by the database.
+        // Everything in the group cascades with it; the asset sweep deletes
+        // the files its items and avatar leave behind.
         sqlx::query!(r#"DELETE FROM groups WHERE id = $1"#, tenant_id)
             .execute(&self.db)
             .await?;

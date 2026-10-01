@@ -75,6 +75,10 @@
           "label": "Unbestätigte Konten",
           "rule": "Nicht innerhalb von 2 Tagen bestätigt"
         },
+        "cleanup-password-resets": {
+          "label": "Passwort-Codes",
+          "rule": "Nach Ablauf (30 Minuten)"
+        },
         "cleanup-old-items": {
           "label": "Aufgaben",
           "rule": "Älter als 90 Tage"

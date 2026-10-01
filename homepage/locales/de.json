@@ -481,7 +481,7 @@
           "items": [
             "Kontodaten speichern wir, bis du dein Konto löschst.",
             "Unbestätigte Konten löschen wir, nachdem der Bestätigungslink nach 2 Tagen abgelaufen ist.",
-            "Codes zum Zurücksetzen oder Festlegen des Passworts sind 30 Minuten gültig.",
+            "Codes zum Zurücksetzen oder Festlegen des Passworts sind 30 Minuten gültig und werden danach gelöscht.",
             "Sitzungsdaten mit IP-Adresse und Browserkennung löschen wir etwa 7 Tage nach ihrer letzten Nutzung.",
             "Aktivitätsprotokoll und Sicherheitsereignisse löschen wir nach 30 Tagen.",
             "Chatnachrichten löschen wir nach 7 Tagen automatisch.",

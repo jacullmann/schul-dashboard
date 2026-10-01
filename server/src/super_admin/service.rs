@@ -241,8 +241,8 @@ impl SuperAdminService {
     pub async fn delete_group(&self, group_id: Uuid, admin_id: Uuid) -> AppResult<Value> {
         let mut tx = self.db.begin().await?;
 
-        // Everything in the group cascades with it; the items' files are
-        // queued for deletion by the database.
+        // Everything in the group cascades with it; the asset sweep deletes
+        // the files its items and avatar leave behind.
         let name = sqlx::query_scalar!(
             r#"DELETE FROM groups WHERE id = $1 RETURNING name"#,
             group_id

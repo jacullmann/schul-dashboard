@@ -43,6 +43,12 @@ SELECT cron.schedule(
        );
 
 SELECT cron.schedule(
+               'cleanup-password-resets',
+               '10 */6 * * *',
+               $$SELECT public.cleanup_expired_password_resets()$$
+       );
+
+SELECT cron.schedule(
                'cleanup-old-items',
                '50 */6 * * *',
                $$SELECT public.cleanup_old_items()$$
