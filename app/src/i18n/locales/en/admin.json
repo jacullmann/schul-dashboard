@@ -79,9 +79,9 @@
           "label": "Tasks",
           "rule": "Older than 90 days"
         },
-        "asset-deletion-queue": {
+        "asset-sweep": {
           "label": "Files on Cloudinary",
-          "rule": "Deleted files, removed by the server every minute"
+          "rule": "Unused files after 24 hours, deleted by the server every 5 minutes"
         }
       }
     },

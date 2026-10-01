@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO worker_heartbeats (worker, succeeded_at) VALUES ($1, now())\n               ON CONFLICT (worker) DO UPDATE SET succeeded_at = EXCLUDED.succeeded_at",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "8aca44ad52e66416a34f261004a3a65c176a1358fab88df02dd2aeddf91acc7b"
+}

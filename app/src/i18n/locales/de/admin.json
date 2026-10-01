@@ -79,9 +79,9 @@
           "label": "Aufgaben",
           "rule": "Älter als 90 Tage"
         },
-        "asset-deletion-queue": {
+        "asset-sweep": {
           "label": "Dateien bei Cloudinary",
-          "rule": "Gelöschte Dateien, jede Minute vom Server entfernt"
+          "rule": "Ungenutzte Dateien nach 24 Stunden, alle 5 Minuten vom Server gelöscht"
         }
       }
     },

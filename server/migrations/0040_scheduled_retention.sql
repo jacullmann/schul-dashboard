@@ -1,83 +1,5 @@
--- Retention jobs run by pg_cron (scheduled in database/pg_cron_setup.sql) and
--- the queue that lets them delete item files, which live in Cloudinary and are
--- out of the database's reach.
-
--- Files whose last reference may be gone. The server's asset worker deletes
--- them from Cloudinary unless something still points at them. Queueing a file
--- again refreshes `queued_at`, which tells the worker that a reference it saw
--- may have disappeared since, so it must not drop the entry.
-CREATE TABLE public.asset_deletion_queue (
-    public_id text PRIMARY KEY,
-    queued_at timestamp with time zone NOT NULL DEFAULT now()
-);
-
-CREATE INDEX idx_asset_deletion_queue_queued_at ON public.asset_deletion_queue (queued_at);
-
--- Every file an item's `images` column points at, including the previews
--- generated for office documents.
-CREATE FUNCTION public.item_asset_ids(images jsonb)
-    RETURNS SETOF text
-    LANGUAGE sql
-    IMMUTABLE
-AS $$
-    SELECT ids.public_id
-    FROM jsonb_array_elements(
-             CASE jsonb_typeof(images) WHEN 'array' THEN images ELSE '[]'::jsonb END
-         ) AS image,
-         LATERAL (VALUES (image->>'publicId'), (image->'metadata'->>'thumbnailId')) AS ids(public_id)
-    WHERE ids.public_id IS NOT NULL
-$$;
-
--- Statement-level triggers with transition tables see a bulk delete (a cleanup
--- job, a cascading group deletion) as one set instead of firing per row. They
--- catch every code path, so no caller can forget to release an item's files.
-CREATE FUNCTION public.queue_deleted_item_assets()
-    RETURNS trigger
-    LANGUAGE plpgsql
-    SET search_path TO 'public'
-AS $$
-BEGIN
-    INSERT INTO asset_deletion_queue (public_id)
-    SELECT DISTINCT ids.public_id
-    FROM deleted_items, LATERAL item_asset_ids(deleted_items.images) AS ids(public_id)
-    ON CONFLICT (public_id) DO UPDATE SET queued_at = EXCLUDED.queued_at;
-
-    RETURN NULL;
-END;
-$$;
-
-CREATE FUNCTION public.queue_detached_item_assets()
-    RETURNS trigger
-    LANGUAGE plpgsql
-    SET search_path TO 'public'
-AS $$
-BEGIN
-    INSERT INTO asset_deletion_queue (public_id)
-    SELECT DISTINCT ids.public_id
-    FROM old_items
-    JOIN new_items USING (id),
-         LATERAL item_asset_ids(old_items.images) AS ids(public_id)
-    WHERE old_items.images IS DISTINCT FROM new_items.images
-      AND ids.public_id NOT IN (SELECT item_asset_ids(new_items.images))
-    ON CONFLICT (public_id) DO UPDATE SET queued_at = EXCLUDED.queued_at;
-
-    RETURN NULL;
-END;
-$$;
-
-CREATE TRIGGER items_queue_deleted_assets
-    AFTER DELETE ON public.items
-    REFERENCING OLD TABLE AS deleted_items
-    FOR EACH STATEMENT
-    EXECUTE FUNCTION public.queue_deleted_item_assets();
-
--- Postgres allows neither a column list nor a second event on a trigger with
--- transition tables, hence a separate trigger that compares `images` itself.
-CREATE TRIGGER items_queue_detached_assets
-    AFTER UPDATE ON public.items
-    REFERENCING OLD TABLE AS old_items NEW TABLE AS new_items
-    FOR EACH STATEMENT
-    EXECUTE FUNCTION public.queue_detached_item_assets();
+-- Retention: pg_cron cleanups (scheduled in database/pg_cron_setup.sql) and the
+-- inventory that lets the server delete Cloudinary files nothing uses anymore.
 
 CREATE FUNCTION public.cleanup_old_user_activity()
     RETURNS integer
@@ -136,7 +58,7 @@ BEGIN
 END;
 $$;
 
--- The items' files are queued for deletion by the trigger above.
+-- The items' files are left to the asset sweep below.
 CREATE FUNCTION public.cleanup_old_items()
     RETURNS integer
     LANGUAGE plpgsql
@@ -151,11 +73,79 @@ BEGIN
 END;
 $$;
 
+-- Every file this deployment let a client upload. The server records an entry
+-- before it signs the upload, so no file can exist in Cloudinary that the sweep
+-- does not know about, and the sweep never touches a file it did not issue.
+CREATE TABLE public.uploaded_assets (
+    public_id text PRIMARY KEY,
+    uploaded_at timestamp with time zone NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_uploaded_assets_uploaded_at ON public.uploaded_assets (uploaded_at);
+
+-- Every file an item's `images` column points at, including the previews
+-- generated for office documents.
+CREATE FUNCTION public.item_asset_ids(images jsonb)
+    RETURNS SETOF text
+    LANGUAGE sql
+    IMMUTABLE
+AS $$
+    SELECT ids.public_id
+    FROM jsonb_array_elements(
+             CASE jsonb_typeof(images) WHEN 'array' THEN images ELSE '[]'::jsonb END
+         ) AS image,
+         LATERAL (VALUES (image->>'publicId'), (image->'metadata'->>'thumbnailId')) AS ids(public_id)
+    WHERE ids.public_id IS NOT NULL
+$$;
+
+-- Everything that keeps a file alive. Group avatars are stored as delivery
+-- URLs (…/upload/v123/<public_id>.<format>), so their public ID is read back
+-- out of the URL.
+CREATE VIEW public.referenced_assets AS
+    SELECT ids.public_id
+    FROM items, LATERAL item_asset_ids(items.images) AS ids(public_id)
+    UNION ALL
+    SELECT substring(avatar_url FROM '/upload/(?:v[0-9]+/)?(.+)\.[^./]+$')
+    FROM groups
+    WHERE avatar_url IS NOT NULL;
+
+-- Files nothing references. A day's grace keeps uploads alive that are still on
+-- their way into a task or group: the file goes up before the form is saved.
+CREATE FUNCTION public.orphaned_assets()
+    RETURNS SETOF public.uploaded_assets
+    LANGUAGE sql
+    STABLE
+    SET search_path TO 'public'
+AS $$
+    SELECT uploaded_assets.*
+    FROM uploaded_assets
+    WHERE uploaded_at < now() - interval '1 day'
+      AND NOT EXISTS (
+          SELECT 1 FROM referenced_assets
+          WHERE referenced_assets.public_id = uploaded_assets.public_id
+      )
+$$;
+
+-- Files uploaded before this inventory existed. Only referenced ones can be
+-- known; earlier orphans stay in Cloudinary.
+INSERT INTO public.uploaded_assets (public_id)
+SELECT DISTINCT public_id FROM public.referenced_assets WHERE public_id IS NOT NULL
+ON CONFLICT DO NOTHING;
+
+-- When each server-side worker last completed a pass without errors.
+CREATE TABLE public.worker_heartbeats (
+    worker text PRIMARY KEY,
+    succeeded_at timestamp with time zone NOT NULL
+);
+
 -- Rows each cleanup should already have removed, per pg_cron job name. The
 -- jobs run every 6 hours, so a row past its limit by more than 12 hours has
 -- survived two runs: the job is not running. The limits mirror the cleanup
--- functions (0006, 0012 and this migration) and must change with them. The
--- asset worker runs every minute, so its queue gets an hour.
+-- functions (0006, 0012 and this migration) and must change with them.
+--
+-- The asset sweep runs every 5 minutes in the server. Its orphans have no
+-- "orphaned since" time (a task deleted a minute ago frees files of any age),
+-- so it counts as behind once it has not completed a pass for 30 minutes.
 CREATE FUNCTION public.cleanup_job_backlog()
     RETURNS TABLE (job text, overdue bigint)
     LANGUAGE sql
@@ -194,8 +184,14 @@ AS $$
         (8, 'cleanup-old-items', (
             SELECT count(*) FROM items WHERE created_at < cutoff.at - interval '90 days'
         )),
-        (9, 'asset-deletion-queue', (
-            SELECT count(*) FROM asset_deletion_queue WHERE queued_at < now() - interval '1 hour'
+        (9, 'asset-sweep', (
+            SELECT CASE
+                WHEN EXISTS (
+                    SELECT 1 FROM worker_heartbeats
+                    WHERE worker = 'asset-sweep' AND succeeded_at > now() - interval '30 minutes'
+                ) THEN 0
+                ELSE (SELECT count(*) FROM orphaned_assets())
+            END
         ))
     ) AS backlog(position, job, overdue)
     ORDER BY backlog.position

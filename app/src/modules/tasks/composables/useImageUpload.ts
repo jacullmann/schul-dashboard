@@ -2,6 +2,11 @@ import { ref, toValue, type MaybeRefOrGetter } from 'vue';
 import { useI18n } from 'vue-i18n';
 import hw from '@/api/api.ts';
 import { groupPath } from '@/api/groupPath';
+import {
+  rawExtensionOf,
+  uploadToCloudinary,
+  type UploadSignature,
+} from '@/api/cloudinary';
 import { processImageBeforeUpload } from '@/modules/tasks/composables/useConvertImage';
 import { useToast } from '@/common/composables/useToast';
 import type { ImageItem } from '@/modules/tasks/types';
@@ -202,10 +207,9 @@ export function useImageUpload(groupId: MaybeRefOrGetter<string>) {
 
     try {
       const uploadFile = async (file: File) => {
-        const isOffice = /\.(docx|pptx|xlsx)$/i.test(file.name);
+        const ext = rawExtensionOf(file.name);
 
-        if (isOffice) {
-          const ext = file.name.split('.').pop()?.toLowerCase() || '';
+        if (ext) {
           let thumbnailId: string | null = null;
 
           // 1. Try to extract thumbnail client-side
@@ -213,8 +217,9 @@ export function useImageUpload(groupId: MaybeRefOrGetter<string>) {
             const thumbFile = await extractOfficeThumbnail(file);
             if (thumbFile) {
               const processedThumb = await processImageBeforeUpload(thumbFile);
-              const { data: sign } = await hw.post(
+              const { data: sign } = await hw.post<UploadSignature>(
                 groupPath(toValue(groupId), '/items/uploads/sign'),
+                {},
               );
 
               let json;
@@ -228,22 +233,7 @@ export function useImageUpload(groupId: MaybeRefOrGetter<string>) {
                   format: 'svg',
                 };
               } else {
-                const form = new FormData();
-                form.set('file', processedThumb);
-                form.set('api_key', sign.apiKey);
-                form.set('timestamp', String(sign.timestamp));
-                form.set('signature', sign.signature);
-                form.set('folder', sign.folder);
-
-                const res = await fetch(
-                  `https://api.cloudinary.com/v1_1/${sign.cloudName}/image/upload`,
-                  { method: 'POST', body: form },
-                );
-                if (!res.ok) {
-                  console.warn('Cloudinary thumbnail upload failed');
-                } else {
-                  json = await res.json();
-                }
+                json = await uploadToCloudinary(sign, processedThumb);
               }
 
               if (json && json.public_id) {
@@ -258,8 +248,9 @@ export function useImageUpload(groupId: MaybeRefOrGetter<string>) {
           }
 
           // 2. Upload the original Office file as a RAW resource
-          const { data: sign } = await hw.post(
+          const { data: sign } = await hw.post<UploadSignature>(
             groupPath(toValue(groupId), '/items/uploads/sign'),
+            { rawExtension: ext },
           );
           let json;
 
@@ -271,19 +262,7 @@ export function useImageUpload(groupId: MaybeRefOrGetter<string>) {
               version: 1,
             };
           } else {
-            const form = new FormData();
-            form.set('file', file);
-            form.set('api_key', sign.apiKey);
-            form.set('timestamp', String(sign.timestamp));
-            form.set('signature', sign.signature);
-            form.set('folder', sign.folder);
-
-            const res = await fetch(
-              `https://api.cloudinary.com/v1_1/${sign.cloudName}/raw/upload`,
-              { method: 'POST', body: form },
-            );
-            if (!res.ok) throw new Error('Cloudinary raw upload failed');
-            json = await res.json();
+            json = await uploadToCloudinary(sign, file, 'raw');
           }
 
           if (!json.secure_url || !json.public_id)
@@ -318,8 +297,9 @@ export function useImageUpload(groupId: MaybeRefOrGetter<string>) {
         } else {
           // Existing behavior for standard images and PDFs
           const processedFile = await processImageBeforeUpload(file);
-          const { data: sign } = await hw.post(
+          const { data: sign } = await hw.post<UploadSignature>(
             groupPath(toValue(groupId), '/items/uploads/sign'),
+            {},
           );
 
           let json;
@@ -339,19 +319,7 @@ export function useImageUpload(groupId: MaybeRefOrGetter<string>) {
               height: 600,
             };
           } else {
-            const form = new FormData();
-            form.set('file', processedFile);
-            form.set('api_key', sign.apiKey);
-            form.set('timestamp', String(sign.timestamp));
-            form.set('signature', sign.signature);
-            form.set('folder', sign.folder);
-
-            const res = await fetch(
-              `https://api.cloudinary.com/v1_1/${sign.cloudName}/image/upload`,
-              { method: 'POST', body: form },
-            );
-            if (!res.ok) throw new Error('Cloudinary Upload failed');
-            json = await res.json();
+            json = await uploadToCloudinary(sign, processedFile);
           }
 
           if (!json.secure_url || !json.public_id)

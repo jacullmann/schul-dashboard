@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM uploaded_assets WHERE public_id = ANY($1)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "TextArray"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "86befa071aa44692961b3f496f55d4e0812dd30a5b05a706055fa602d6f2d52b"
+}

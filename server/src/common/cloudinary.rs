@@ -1,10 +1,50 @@
 use crate::config::Config;
 use chrono::Utc;
 use reqwest::Client;
-use serde::Deserialize;
-use serde_json::{Value, json};
+use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::sync::Arc;
+use uuid::Uuid;
+
+/// Office documents are uploaded as raw assets, whose public ID keeps the file
+/// extension; images and PDFs never carry one.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum RawExtension {
+    Docx,
+    Pptx,
+    Xlsx,
+}
+
+impl RawExtension {
+    const ALL: [Self; 3] = [Self::Docx, Self::Pptx, Self::Xlsx];
+
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Docx => "docx",
+            Self::Pptx => "pptx",
+            Self::Xlsx => "xlsx",
+        }
+    }
+
+    pub fn parse(extension: &str) -> Option<Self> {
+        Self::ALL
+            .into_iter()
+            .find(|raw| raw.as_str().eq_ignore_ascii_case(extension))
+    }
+}
+
+/// Everything a client needs to upload exactly one file, under the public ID
+/// the server chose for it.
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UploadSignature {
+    cloud_name: String,
+    api_key: String,
+    timestamp: i64,
+    signature: String,
+    public_id: String,
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum ResourceType {
@@ -89,18 +129,32 @@ impl Cloudinary {
         hex::encode(Sha256::digest(format!("{joined}{}", self.0.api_secret)))
     }
 
-    pub fn sign_upload(&self) -> Value {
-        let folder = &self.0.folder;
-        let timestamp = Utc::now().timestamp();
-        let signature = self.sign(&mut [("folder", folder), ("timestamp", &timestamp.to_string())]);
+    /// A fresh, unguessable public ID in this deployment's folder. Raw assets
+    /// keep their extension in the ID, as Cloudinary requires.
+    pub fn new_public_id(&self, raw_extension: Option<RawExtension>) -> String {
+        let stem = format!("{}/{}", self.0.folder, Uuid::new_v4().simple());
+        match raw_extension {
+            Some(raw) => format!("{stem}.{}", raw.as_str()),
+            None => stem,
+        }
+    }
 
-        json!({
-            "cloudName": self.0.cloud_name,
-            "apiKey": self.0.api_key,
-            "timestamp": timestamp,
-            "signature": signature,
-            "folder": folder,
-        })
+    /// Signing the public ID binds the upload to it: the client can upload one
+    /// file, and only under the ID the server recorded.
+    pub fn sign_upload(&self, public_id: &str) -> UploadSignature {
+        let timestamp = Utc::now().timestamp();
+        let signature = self.sign(&mut [
+            ("public_id", public_id),
+            ("timestamp", &timestamp.to_string()),
+        ]);
+
+        UploadSignature {
+            cloud_name: self.0.cloud_name.clone(),
+            api_key: self.0.api_key.clone(),
+            timestamp,
+            signature,
+            public_id: public_id.to_owned(),
+        }
     }
 
     /// Deletes the asset and purges it from the CDN. An asset that is already
@@ -165,6 +219,25 @@ mod tests {
         assert!(!c.owns("hausaufgaben-other/abc"));
         assert!(!c.owns("other/abc"));
         assert!(!c.owns("http://localhost:3000/mock/upload/worksheet-mathe.svg"));
+    }
+
+    #[test]
+    fn new_public_ids_are_owned_and_keep_raw_extensions() {
+        let c = cloudinary();
+        let image = c.new_public_id(None);
+        let raw = c.new_public_id(Some(RawExtension::Docx));
+
+        assert!(c.owns(&image) && c.owns(&raw));
+        assert_eq!(ResourceType::of(&image), ResourceType::Image);
+        assert_eq!(ResourceType::of(&raw), ResourceType::Raw);
+        assert!(raw.ends_with(".docx"));
+        assert_ne!(image, c.new_public_id(None));
+    }
+
+    #[test]
+    fn parses_raw_extensions_case_insensitively() {
+        assert_eq!(RawExtension::parse("PPTX"), Some(RawExtension::Pptx));
+        assert_eq!(RawExtension::parse("pdf"), None);
     }
 
     #[test]

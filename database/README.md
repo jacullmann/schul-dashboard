@@ -37,10 +37,12 @@ therefore almost never fire. pg_cron runs in the DB container and is unaffected.
 | `cleanup-unverified-users` | `cleanup_unverified_users()`       | accounts unverified after 2 days                |
 | `cleanup-old-items`        | `cleanup_old_items()`              | tasks older than 90 days                        |
 
-Deleted tasks queue their files in `asset_deletion_queue` (a trigger on
-`items`); the server deletes them from Cloudinary every minute. The superadmin
-overview shows, per job, how many rows it should already have removed
-(`cleanup_job_backlog()`); anything above zero means the job is not running.
+Files in Cloudinary are outside the database's reach, so the server cleans
+them up itself: it records every upload in `uploaded_assets` before signing it,
+and every 5 minutes deletes recorded files that nothing has referenced for a
+day (`orphaned_assets()`). The superadmin overview shows, per job, how many rows
+it should already have removed (`cleanup_job_backlog()`); anything above zero
+means the job is not running.
 
 ### Files
 - `Dockerfile` — Postgres 18 with pg_cron, built by GitHub Actions.

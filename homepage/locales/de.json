@@ -413,7 +413,7 @@
         {
           "title": "Bilder und Dateien",
           "paragraphs": [
-            "Bilder und Dateien, die du an Aufgaben anhängst, und Gruppenbilder speichern wir bei der Cloudinary Inc. (USA). Jede Datei ist über eine zufällig erzeugte Adresse abrufbar; wer diese Adresse kennt, kann die Datei öffnen. Wird eine Aufgabe gelöscht, löschen wir auch ihre Dateien.",
+            "Bilder und Dateien, die du an Aufgaben anhängst, und Gruppenbilder speichern wir bei der Cloudinary Inc. (USA). Jede Datei ist über eine zufällig erzeugte Adresse abrufbar; wer diese Adresse kennt, kann die Datei öffnen. Dateien, die nicht mehr verwendet werden, etwa weil die Aufgabe gelöscht oder das Gruppenbild ersetzt wurde, löschen wir automatisch, spätestens nach etwa einem Tag.",
             "Cloudinary verarbeitet die Daten in unserem Auftrag. Die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission zum EU-US Data Privacy Framework, unter dem Cloudinary zertifiziert ist (Art. 45 DSGVO)."
           ]
         },

@@ -5,6 +5,8 @@ use super::{
 };
 use crate::{
     common::{
+        assets,
+        cloudinary::UploadSignature,
         extractors::{TenantContext, ValidatedJson},
         path_params::{IdPath, ItemImagePath},
         permission::Permission,
@@ -165,8 +167,11 @@ pub async fn report_item(
 pub async fn create_upload_signature(
     State(s): State<AppState>,
     tc: TenantContext,
-) -> AppResult<Json<Value>> {
+    Json(dto): Json<SignUploadDto>,
+) -> AppResult<Json<UploadSignature>> {
     require_permission!(tc, Permission::UploadImages);
 
-    Ok(Json(s.cloudinary.sign_upload()))
+    Ok(Json(
+        assets::issue_upload(&s.db, &s.cloudinary, dto.raw_extension).await?,
+    ))
 }

@@ -1,5 +1,7 @@
 use super::{dto::*, invite_token::InviteToken, service::GroupService};
 use crate::{
+    common::assets,
+    common::cloudinary::UploadSignature,
     common::extractors::{
         AuthUser, ClientIp, OptionalAuth, TenantContext, UserAgent, ValidatedJson,
     },
@@ -100,8 +102,13 @@ pub async fn create_group(
 
 /// A new group's avatar is uploaded before the group exists, so this is the
 /// one upload signature that needs no group membership.
-pub async fn sign_group_avatar_upload(State(s): State<AppState>, _user: AuthUser) -> Json<Value> {
-    Json(s.cloudinary.sign_upload())
+pub async fn sign_group_avatar_upload(
+    State(s): State<AppState>,
+    _user: AuthUser,
+) -> AppResult<Json<UploadSignature>> {
+    Ok(Json(
+        assets::issue_upload(&s.db, &s.cloudinary, None).await?,
+    ))
 }
 
 pub async fn get_status(

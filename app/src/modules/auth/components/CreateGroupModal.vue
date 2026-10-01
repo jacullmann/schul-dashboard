@@ -8,6 +8,7 @@ import { Camera, ImagePlus, Trash2, Upload } from '@lucide/vue';
 import GroupAvatarCropper from '@/modules/groups/components/GroupAvatarCropper.vue';
 import GroupTypeRadioGroup from '@/modules/groups/components/GroupTypeRadioGroup.vue';
 import hw from '@/api/api.ts';
+import { uploadToCloudinary, type UploadSignature } from '@/api/cloudinary';
 import Avatar from '@/modules/auth/components/Avatar.vue';
 import { apiErrorMessage } from '@/api/errors';
 import type { GroupType } from '@/types/groups';
@@ -96,30 +97,14 @@ async function onCropConfirmed(blob: Blob) {
   avatarError.value = '';
 
   try {
-    const { data: sign } = await hw.post('/uploads/group-avatar/sign');
-
-    const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
-    const form = new FormData();
-    form.set('file', file);
-    form.set('api_key', sign.apiKey);
-    form.set('timestamp', String(sign.timestamp));
-    form.set('signature', sign.signature);
-    form.set('folder', sign.folder);
-
-    const res = await fetch(
-      `https://api.cloudinary.com/v1_1/${sign.cloudName}/image/upload`,
-      {
-        method: 'POST',
-        body: form,
-      },
+    const { data: sign } = await hw.post<UploadSignature>(
+      '/uploads/group-avatar/sign',
     );
 
-    if (!res.ok)
-      throw new Error(
-        t('groups.settings.general.avatar.errors.upload_failed') ||
-          'Upload fehlgeschlagen',
-      );
-    const json = await res.json();
+    const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
+    const json = await uploadToCloudinary(sign, file).catch(() => {
+      throw new Error(t('groups.settings.general.avatar.errors.upload_failed'));
+    });
     if (!json.secure_url)
       throw new Error(
         t('groups.settings.general.avatar.errors.invalid_response') ||

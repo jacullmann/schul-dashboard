@@ -413,7 +413,7 @@
         {
           "title": "Images and files",
           "paragraphs": [
-            "Images and files you attach to tasks, and group pictures, are stored with Cloudinary Inc. (USA). Each file can be opened via a randomly generated address; anyone who knows that address can open the file. When a task is deleted, we delete its files too.",
+            "Images and files you attach to tasks, and group pictures, are stored with Cloudinary Inc. (USA). Each file can be opened via a randomly generated address; anyone who knows that address can open the file. Files that are no longer used, for example because the task was deleted or the group picture replaced, are deleted automatically, within about a day.",
             "Cloudinary processes the data on our behalf. The transfer to the USA is based on the European Commission's adequacy decision for the EU-U.S. Data Privacy Framework, under which Cloudinary is certified (Art. 45 GDPR)."
           ]
         },

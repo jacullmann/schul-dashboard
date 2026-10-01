@@ -67,7 +67,7 @@ async fn main() -> anyhow::Result<()> {
 
     let state = AppState::new(db, config);
 
-    items::assets::spawn_purge_worker(state.db.clone(), state.cloudinary.clone());
+    common::assets::spawn_sweeper(state.db.clone(), state.cloudinary.clone());
 
     let cors = CorsLayer::new()
         .allow_origin(

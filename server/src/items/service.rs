@@ -1,6 +1,6 @@
 use crate::{
     common::{
-        cloudinary::Cloudinary,
+        cloudinary::{Cloudinary, RawExtension},
         names::{CUSTOM_SUBJECT_MAX_CHARS, DisplayName},
     },
     error::{AppError, AppResult},
@@ -38,19 +38,9 @@ const MAX_IMAGES_PER_ITEM: usize = 12;
 /// Metadata is stored verbatim in the item row, so its size is capped.
 const IMAGE_METADATA_MAX_BYTES: usize = 2048;
 
-/// Office documents are uploaded as raw assets, whose public ID keeps the file
-/// extension; images and PDFs never carry one.
-const RAW_EXTENSIONS: [&str; 3] = ["docx", "pptx", "xlsx"];
-
 fn is_well_formed_public_id(public_id: &str) -> bool {
     let stem = match public_id.rsplit_once('.') {
-        Some((stem, extension))
-            if RAW_EXTENSIONS
-                .iter()
-                .any(|raw| raw.eq_ignore_ascii_case(extension)) =>
-        {
-            stem
-        }
+        Some((stem, extension)) if RawExtension::parse(extension).is_some() => stem,
         Some(_) => return false,
         None => public_id,
     };

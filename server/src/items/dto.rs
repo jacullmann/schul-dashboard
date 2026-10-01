@@ -1,3 +1,4 @@
+use crate::common::cloudinary::RawExtension;
 use serde::Deserialize;
 use uuid::Uuid;
 use validator::Validate;
@@ -74,6 +75,14 @@ pub struct UpdateEditorNoteDto {
 pub struct ReportItemDto {
     pub item_id: Uuid,
     pub reason: Option<String>,
+}
+
+/// Office documents are uploaded as raw files and need their extension in the
+/// public ID; everything else is uploaded as an image.
+#[derive(Debug, Default, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SignUploadDto {
+    pub raw_extension: Option<RawExtension>,
 }
 
 #[derive(Debug, Deserialize)]
