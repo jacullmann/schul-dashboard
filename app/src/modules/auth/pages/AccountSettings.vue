@@ -10,6 +10,7 @@ import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useReturnRoute } from '@/common/composables/useReturnRoute';
 import AccountSettingsSecurity from '@/modules/auth/components/AccountSettingsSecurity.vue';
 import AccountSettingsAccount from '@/modules/auth/components/AccountSettingsAccount.vue';
+import LegalLinks from '@/modules/auth/components/LegalLinks.vue';
 
 interface AccountNavItem {
   id: string;
@@ -136,6 +137,8 @@ function goBack() {
                 </span>
               </template>
             </BaseList>
+
+            <LegalLinks class="mt-8 mb-4" />
           </div>
         </div>
       </div>
