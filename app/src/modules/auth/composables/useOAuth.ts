@@ -33,18 +33,30 @@ export function useOAuth() {
       'auth.google_link.errors.provider_already_linked',
     ),
     session_expired: t('auth.google_link.errors.session_expired'),
+    signup_required: t('auth.google_link.errors.signup_required'),
   };
 
   function errorMessage(reason: string | null): string {
     return (reason && ERROR_MESSAGES[reason]) || ERROR_MESSAGES.server_error;
   }
 
-  function initiateGoogleLogin(): void {
+  // A full navigation: the API answers with a redirect to Google.
+  function navigateToApi(path: string): void {
     const base =
       typeof import.meta !== 'undefined' && import.meta.env
         ? (import.meta.env.VITE_API_URL ?? '')
         : '';
-    window.location.href = `${base}/auth/google`;
+    window.location.href = `${base}${path}`;
+  }
+
+  function initiateGoogleLogin(): void {
+    navigateToApi('/auth/google');
+  }
+
+  // Only this entry point lets the backend create an account, so callers
+  // must have obtained consent to the privacy policy and terms first.
+  function initiateGoogleSignUp(): void {
+    navigateToApi('/auth/google/signup');
   }
 
   // The backend binds the flow to the signed-in user before Google is
@@ -72,6 +84,14 @@ export function useOAuth() {
   async function openMfaChallenge(): Promise<void> {
     await router.isReady();
     await router.replace({ name: 'verify-mfa' });
+  }
+
+  // A new Google user who started from the login page has not accepted the
+  // privacy policy and terms yet; the registration form asks for that.
+  async function openRegistration(): Promise<void> {
+    useToast().info(errorMessage('signup_required'));
+    await router.isReady();
+    await router.replace({ name: 'register' });
   }
 
   // Stripped through the router: a raw history.replaceState would be undone
@@ -117,6 +137,11 @@ export function useOAuth() {
 
     if (auth === 'mfa-pending') {
       void openMfaChallenge();
+      return;
+    }
+
+    if (auth === 'error' && params.get('reason') === 'signup_required') {
+      void openRegistration();
       return;
     }
 
@@ -193,6 +218,7 @@ export function useOAuth() {
   return {
     showLinkModal,
     initiateGoogleLogin,
+    initiateGoogleSignUp,
     initiateGoogleLink,
     handleOAuthReturn,
     linkGoogleAccount,

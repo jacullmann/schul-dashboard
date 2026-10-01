@@ -5,7 +5,13 @@ import { useToast } from '@/common/composables/useToast';
 import { useModalStore } from '@/stores/modalStore';
 import type { DailyActivity, SuperAdminStats } from '../types';
 
-type CleanupTarget = 'old-items' | 'old-activity';
+type CleanupTarget = 'old-items' | 'old-activity' | 'unverifiable-users';
+
+export const CLEANUP_I18N_KEYS: Record<CleanupTarget, string> = {
+  'old-items': 'admin.overview.cleanup.items',
+  'old-activity': 'admin.overview.cleanup.activity',
+  'unverifiable-users': 'admin.overview.cleanup.unverifiable_users',
+};
 
 // Shared across the dashboard shell (nav badge) and the overview page, so
 // the stats are fetched once per visit and refreshed only after changes.
@@ -41,10 +47,7 @@ export function useSuperAdminStats() {
   }
 
   async function cleanup(target: CleanupTarget) {
-    const i18nKey =
-      target === 'old-items'
-        ? 'admin.overview.cleanup.items'
-        : 'admin.overview.cleanup.activity';
+    const i18nKey = CLEANUP_I18N_KEYS[target];
 
     const confirmed = await modalStore.confirm({
       title: t(`${i18nKey}.modal_title`),

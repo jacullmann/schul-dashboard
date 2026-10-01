@@ -55,6 +55,12 @@
         "count": "Affected: {count}",
         "modal_title": "Delete old logs?",
         "modal_content": "Every activity log entry older than 30 days will be permanently deleted for all users."
+      },
+      "unverifiable_users": {
+        "label": "Unverified accounts older than 2 days",
+        "count": "Affected: {count}",
+        "modal_title": "Delete unverified accounts?",
+        "modal_content": "Every account whose email address was not confirmed within 2 days will be permanently deleted. Their confirmation link has already expired; the addresses can be registered again afterwards."
       }
     },
     "errors": {

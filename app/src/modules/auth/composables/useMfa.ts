@@ -2,7 +2,7 @@ import { ref, computed } from 'vue';
 import hw from '@/api/api.ts';
 import i18n from '@/i18n';
 import type { MfaSetupResponse, MfaStatusResponse } from '@/modules/auth/types';
-import { apiErrorMessage } from '@/api/errors';
+import { apiErrorMessage, apiErrorStatus } from '@/api/errors';
 
 interface MfaResult {
   ok: boolean;
@@ -65,10 +65,14 @@ export function useMfa() {
       onSuccess?.();
       return { ok: true };
     } catch (err: unknown) {
-      const errorMsg = apiErrorMessage(
-        err,
-        i18n.global.t('auth.mfa.verify.errors.failed'),
-      );
+      // The rate limiter answers in plain text, so it carries no `error` field.
+      const errorMsg =
+        apiErrorStatus(err) === 429
+          ? i18n.global.t('auth.mfa.verify.errors.rate_limited')
+          : apiErrorMessage(
+              err,
+              i18n.global.t('auth.mfa.verify.errors.failed'),
+            );
       mfaError.value = errorMsg;
       return { ok: false, error: errorMsg };
     } finally {

@@ -160,6 +160,7 @@ pub struct StatsDto {
     pub new_items_this_week: i64,
     pub old_items_count: i64,
     pub old_activity_count: i64,
+    pub unverifiable_users_count: i64,
     pub report_count: i64,
 }
 

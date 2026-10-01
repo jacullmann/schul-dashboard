@@ -2,13 +2,11 @@
 import { useRouter } from 'vue-router';
 import GoogleIcon from '@/modules/auth/components/GoogleIcon.vue';
 import { useRegister } from '@/modules/auth/composables/useRegister';
-import { useOAuth } from '@/modules/auth/composables/useOAuth';
 import { useLegalLinks } from '@/modules/auth/composables/useLegalLinks';
 import { useI18n } from 'vue-i18n';
 
 const router = useRouter();
 const { t } = useI18n();
-const { initiateGoogleLogin } = useOAuth();
 const { privacyPolicyUrl, termsUrl } = useLegalLinks();
 
 const {
@@ -22,6 +20,7 @@ const {
   errors,
   clearFieldError,
   submit: submitRegister,
+  registerWithGoogle,
 } = useRegister(async () => {
   await router.push({ name: 'login' });
 });
@@ -156,7 +155,7 @@ function navigateToLogin() {
         surface
         variant="ghost"
         class="w-full justify-center"
-        @click="initiateGoogleLogin"
+        @click="registerWithGoogle"
       >
         <GoogleIcon :size="16" />
         <span>{{ t('auth.login.register_google') }}</span>

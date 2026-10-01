@@ -64,6 +64,17 @@ pub async fn cleanup_old_activity(
     ))
 }
 
+pub async fn cleanup_unverifiable_users(
+    State(s): State<AppState>,
+    SuperAdmin(admin): SuperAdmin,
+) -> AppResult<Json<Value>> {
+    Ok(Json(
+        SuperAdminService::from_state(&s)
+            .cleanup_unverifiable_users(admin.user_id)
+            .await?,
+    ))
+}
+
 pub async fn list_groups(
     State(s): State<AppState>,
     _: SuperAdmin,

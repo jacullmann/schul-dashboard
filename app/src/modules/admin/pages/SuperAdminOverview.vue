@@ -5,7 +5,10 @@ import { Trash2 } from '@lucide/vue';
 import DailyBarChart, {
   type DailySummary,
 } from '../components/DailyBarChart.vue';
-import { useSuperAdminStats } from '../composables/useSuperAdminStats';
+import {
+  CLEANUP_I18N_KEYS,
+  useSuperAdminStats,
+} from '../composables/useSuperAdminStats';
 import type { DailyMetric } from '../types';
 
 interface DailyChart {
@@ -74,15 +77,11 @@ const charts = computed(() =>
 const cleanups = computed(() =>
   stats.value
     ? ([
+        { target: 'old-items', count: stats.value.oldItemsCount },
+        { target: 'old-activity', count: stats.value.oldActivityCount },
         {
-          target: 'old-items',
-          i18nKey: 'admin.overview.cleanup.items',
-          count: stats.value.oldItemsCount,
-        },
-        {
-          target: 'old-activity',
-          i18nKey: 'admin.overview.cleanup.activity',
-          count: stats.value.oldActivityCount,
+          target: 'unverifiable-users',
+          count: stats.value.unverifiableUsersCount,
         },
       ] as const)
     : [],
@@ -149,9 +148,13 @@ onMounted(loadDailyActivity);
           class="stat-card flex items-center justify-between gap-3 text-left!"
         >
           <div>
-            <div class="font-semibold">{{ t(`${c.i18nKey}.label`) }}</div>
+            <div class="font-semibold">
+              {{ t(`${CLEANUP_I18N_KEYS[c.target]}.label`) }}
+            </div>
             <div class="text-sm text-on-ghost-muted">
-              {{ t(`${c.i18nKey}.count`, { count: c.count }) }}
+              {{
+                t(`${CLEANUP_I18N_KEYS[c.target]}.count`, { count: c.count })
+              }}
             </div>
           </div>
           <BaseButton

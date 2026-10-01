@@ -19,6 +19,21 @@ pub fn router() -> Router<AppState> {
             .expect("valid auth rate limit config"),
     );
 
+    // A separate bucket from the password routes, so mistyped 2FA codes do not
+    // eat into the login budget of everyone sharing an IP (e.g. a school NAT).
+    let mfa_limiter = Arc::new(
+        GovernorConfigBuilder::default()
+            .per_second(10)
+            .burst_size(5)
+            .key_extractor(SmartIpKeyExtractor)
+            .finish()
+            .expect("valid mfa verify rate limit config"),
+    );
+
+    let mfa = Router::new()
+        .route("/auth/mfa/verify", post(verify_mfa))
+        .layer(GovernorLayer::new(mfa_limiter));
+
     let sensitive = Router::new()
         .route("/auth/login", post(login))
         .route("/auth/register", post(register))
@@ -30,7 +45,6 @@ pub fn router() -> Router<AppState> {
         .layer(GovernorLayer::new(brute_force_limiter));
 
     let normal = Router::new()
-        .route("/auth/mfa/verify", post(verify_mfa))
         .route("/auth/mfa/cancel", post(cancel_mfa))
         .route("/auth/me", get(get_me).delete(delete_me))
         .route("/auth/verify", get(verify_email))
@@ -43,5 +57,5 @@ pub fn router() -> Router<AppState> {
         .route("/auth/sessions", get(list_sessions))
         .route("/auth/sessions/{family_id}", delete(revoke_session));
 
-    Router::new().merge(sensitive).merge(normal)
+    Router::new().merge(mfa).merge(sensitive).merge(normal)
 }

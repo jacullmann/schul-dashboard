@@ -55,6 +55,12 @@
         "count": "Betroffen: {count}",
         "modal_title": "Alte Protokolle löschen?",
         "modal_content": "Alle Aktivitätsprotokolle aller Benutzer, die älter als 30 Tage sind, werden unwiderruflich gelöscht."
+      },
+      "unverifiable_users": {
+        "label": "Unbestätigte Konten älter als 2 Tage",
+        "count": "Betroffen: {count}",
+        "modal_title": "Unbestätigte Konten löschen?",
+        "modal_content": "Alle Konten, deren E-Mail-Adresse nicht innerhalb von 2 Tagen bestätigt wurde, werden unwiderruflich gelöscht. Ihr Bestätigungslink ist bereits abgelaufen, die Adressen können danach neu registriert werden."
       }
     },
     "errors": {

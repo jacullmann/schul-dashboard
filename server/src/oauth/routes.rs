@@ -21,6 +21,7 @@ pub fn router() -> Router<AppState> {
 
     let sensitive = Router::new()
         .route("/auth/google", get(initiate_google_oauth))
+        .route("/auth/google/signup", get(initiate_google_sign_up))
         .route("/auth/google/callback", get(handle_google_callback))
         .route("/auth/google/link", post(link_google_account))
         .route("/auth/google/link/start", post(start_google_link))

@@ -39,14 +39,20 @@ const PROVIDER_ALREADY_LINKED_CONSTRAINT: &str = "oauth_accounts_user_id_provide
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 #[serde(tag = "intent", rename_all = "snake_case")]
 pub enum OAuthIntent {
+    /// Signs in to an existing account only.
     Login,
-    Link { user_id: Uuid },
+    /// Started from the registration form after the privacy policy and terms
+    /// were accepted, so an account may be created for a new Google user.
+    SignUp,
+    Link {
+        user_id: Uuid,
+    },
 }
 
 impl OAuthIntent {
     fn result_param(&self) -> &'static str {
         match self {
-            Self::Login => LOGIN_RESULT_PARAM,
+            Self::Login | Self::SignUp => LOGIN_RESULT_PARAM,
             Self::Link { .. } => LINK_RESULT_PARAM,
         }
     }
@@ -235,7 +241,8 @@ impl OAuthService {
         };
 
         match state.intent {
-            OAuthIntent::Login => self.complete_login(&profile, client).await,
+            OAuthIntent::Login => self.complete_login(&profile, client, false).await,
+            OAuthIntent::SignUp => self.complete_login(&profile, client, true).await,
             OAuthIntent::Link { user_id } => {
                 (empty_jar, self.complete_link(user_id, &profile).await)
             }
@@ -246,6 +253,7 @@ impl OAuthService {
         &self,
         profile: &GoogleProfile,
         client: ClientInfo<'_>,
+        may_create_account: bool,
     ) -> (CookieJar, String) {
         let server_error = || {
             (
@@ -254,7 +262,10 @@ impl OAuthService {
             )
         };
 
-        let Ok(resolution) = self.resolve_account(&profile.subject, &profile.email).await else {
+        let Ok(resolution) = self
+            .resolve_account(&profile.subject, &profile.email, may_create_account)
+            .await
+        else {
             return server_error();
         };
 
@@ -276,6 +287,12 @@ impl OAuthService {
                     Ok(jar) => (jar, self.result_url(LOGIN_RESULT_PARAM, "link-required")),
                     Err(_) => server_error(),
                 };
+            }
+            OAuthResolution::SignUpRequired => {
+                return (
+                    CookieJar::new(),
+                    self.error_url(LOGIN_RESULT_PARAM, "signup_required"),
+                );
             }
         };
 
@@ -439,6 +456,7 @@ impl OAuthService {
         &self,
         google_id: &str,
         google_email: &str,
+        may_create_account: bool,
     ) -> AppResult<OAuthResolution> {
         let email = google_email.to_lowercase();
 
@@ -475,6 +493,10 @@ impl OAuthService {
                 google_id: google_id.to_string(),
                 google_email: email,
             });
+        }
+
+        if !may_create_account {
+            return Ok(OAuthResolution::SignUpRequired);
         }
 
         let user = sqlx::query!(
@@ -672,6 +694,9 @@ enum OAuthResolution {
         google_id: String,
         google_email: String,
     },
+    /// A new Google user came from the login page, where the privacy policy
+    /// and terms were never accepted.
+    SignUpRequired,
 }
 
 #[cfg(test)]
@@ -705,6 +730,10 @@ mod tests {
             OAuthIntent::Link { user_id: decoded } if decoded == user_id
         ));
         assert!(matches!(round_trip(OAuthIntent::Login), OAuthIntent::Login));
+        assert!(matches!(
+            round_trip(OAuthIntent::SignUp),
+            OAuthIntent::SignUp
+        ));
     }
 
     #[test]
@@ -716,6 +745,7 @@ mod tests {
     #[test]
     fn link_results_return_to_the_settings_flow() {
         assert_eq!(OAuthIntent::Login.result_param(), LOGIN_RESULT_PARAM);
+        assert_eq!(OAuthIntent::SignUp.result_param(), LOGIN_RESULT_PARAM);
         assert_eq!(
             OAuthIntent::Link {
                 user_id: Uuid::new_v4()

@@ -22,6 +22,7 @@ export interface SuperAdminStats {
   newItemsThisWeek: number;
   oldItemsCount: number;
   oldActivityCount: number;
+  unverifiableUsersCount: number;
   reportCount: number;
 }
 

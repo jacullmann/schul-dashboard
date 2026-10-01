@@ -25,7 +25,19 @@ pub struct OAuthCallbackQuery {
 }
 
 pub async fn initiate_google_oauth(State(s): State<AppState>) -> AppResult<(CookieJar, Redirect)> {
-    let (url, jar) = OAuthService::from_state(&s).build_google_auth_url(OAuthIntent::Login)?;
+    redirect_to_google(&s, OAuthIntent::Login)
+}
+
+/// Linked from the registration form only once the privacy policy and terms
+/// are accepted; it is the only entry point that may create an account.
+pub async fn initiate_google_sign_up(
+    State(s): State<AppState>,
+) -> AppResult<(CookieJar, Redirect)> {
+    redirect_to_google(&s, OAuthIntent::SignUp)
+}
+
+fn redirect_to_google(s: &AppState, intent: OAuthIntent) -> AppResult<(CookieJar, Redirect)> {
+    let (url, jar) = OAuthService::from_state(s).build_google_auth_url(intent)?;
     Ok((jar, Redirect::temporary(&url)))
 }
 

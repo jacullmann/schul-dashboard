@@ -10,6 +10,7 @@ use crate::{
         pagination::{PAGE_SIZE, Page, contains_pattern, search_term},
         role::{MemberRole, Role},
     },
+    config::{EMAIL_VERIFY_TTL, chrono_ttl},
     error::{AppError, AppResult},
     group::{
         member_policy::{self, Caller, Target},
@@ -18,6 +19,7 @@ use crate::{
     items::assets,
     state::AppState,
 };
+use chrono::{DateTime, Utc};
 use serde_json::{Value, json};
 use sqlx::{PgConnection, PgPool};
 use uuid::Uuid;
@@ -48,6 +50,12 @@ async fn log_admin_action(
     Ok(())
 }
 
+/// Accounts created before this instant can no longer be verified, because
+/// their confirmation link has expired.
+fn unverifiable_before() -> DateTime<Utc> {
+    Utc::now() - chrono_ttl(EMAIL_VERIFY_TTL)
+}
+
 /// Splits a search into the text pattern and, when it is one, the exact id.
 fn search_params(raw: Option<&str>) -> (Option<String>, Option<Uuid>) {
     let term = search_term(raw);
@@ -76,6 +84,7 @@ impl SuperAdminService {
     pub async fn get_stats(&self) -> AppResult<StatsDto> {
         let row = sqlx::query!(
             r#"SELECT u.total AS "user_count!", u.verified AS "verified_users!",
+                      u.unverifiable AS "unverifiable_users!",
                       u.new_recently AS "new_users!", u.active_recently AS "active_users!",
                       i.total AS "item_count!", i.new_recently AS "new_items!", i.expired AS "old_items!",
                       (SELECT COUNT(*) FROM user_roles
@@ -86,6 +95,7 @@ impl SuperAdminService {
                        WHERE created_at < now() - make_interval(days => $4)) AS "old_activity!"
                FROM (SELECT COUNT(*) AS total,
                             COUNT(*) FILTER (WHERE email_verified) AS verified,
+                            COUNT(*) FILTER (WHERE NOT email_verified AND created_at < $5) AS unverifiable,
                             COUNT(*) FILTER (WHERE created_at >= now() - make_interval(days => $2)) AS new_recently,
                             COUNT(*) FILTER (WHERE last_login_at >= now() - make_interval(days => $2)) AS active_recently
                      FROM users) u,
@@ -97,6 +107,7 @@ impl SuperAdminService {
             STATS_WINDOW_DAYS,
             ITEM_RETENTION_DAYS,
             ACTIVITY_RETENTION_DAYS,
+            unverifiable_before(),
         )
         .fetch_one(&self.db)
         .await?;
@@ -113,6 +124,7 @@ impl SuperAdminService {
             new_items_this_week: row.new_items,
             old_items_count: row.old_items,
             old_activity_count: row.old_activity,
+            unverifiable_users_count: row.unverifiable_users,
             report_count: row.report_count,
         })
     }
@@ -214,6 +226,44 @@ impl SuperAdminService {
             &mut tx,
             admin_id,
             "admin:cleanup:old_activity",
+            json!({ "deletedCount": deleted }),
+        )
+        .await?;
+
+        tx.commit().await?;
+
+        Ok(json!({ "ok": true, "deletedCount": deleted }))
+    }
+
+    /// Removes accounts whose confirmation link expired unused. They never
+    /// signed in, so they own no groups or content; deleting them frees the
+    /// address for a new registration. Codes and links are keyed by email
+    /// rather than user id and are removed alongside.
+    pub async fn cleanup_unverifiable_users(&self, admin_id: Uuid) -> AppResult<Value> {
+        let mut tx = self.db.begin().await?;
+
+        let deleted = sqlx::query_scalar!(
+            r#"WITH deleted_users AS (
+                   DELETE FROM users
+                   WHERE NOT email_verified AND created_at < $1
+                   RETURNING email
+               ),
+               deleted_verifications AS (
+                   DELETE FROM verifications WHERE email IN (SELECT email FROM deleted_users)
+               ),
+               deleted_password_resets AS (
+                   DELETE FROM password_resets WHERE email IN (SELECT email FROM deleted_users)
+               )
+               SELECT COUNT(*) AS "count!" FROM deleted_users"#,
+            unverifiable_before()
+        )
+        .fetch_one(&mut *tx)
+        .await?;
+
+        log_admin_action(
+            &mut tx,
+            admin_id,
+            "admin:cleanup:unverifiable_users",
             json!({ "deletedCount": deleted }),
         )
         .await?;

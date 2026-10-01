@@ -4,6 +4,7 @@ import hw from '@/api/api.ts';
 import { usePreferences } from '@/common/composables/usePreferences';
 import { apiErrorMessage } from '@/api/errors';
 import { useToast } from '@/common/composables/useToast';
+import { useOAuth } from '@/modules/auth/composables/useOAuth';
 
 /** Subset of `BaseInput`'s exposed API that these forms rely on. */
 interface FocusableInput {
@@ -13,6 +14,7 @@ interface FocusableInput {
 export function useRegister(onRegistered: () => void | Promise<void>) {
   const { t } = useI18n();
   const { currentTheme, currentLanguage } = usePreferences();
+  const { initiateGoogleSignUp } = useOAuth();
 
   const email = ref('');
   const password = ref('');
@@ -76,12 +78,19 @@ export function useRegister(onRegistered: () => void | Promise<void>) {
       ok = false;
     }
 
-    if (!acceptedPrivacy.value) {
-      errors.privacy = t('auth.login.errors.terms_missing');
-      ok = false;
-    }
+    return validateConsent() && ok;
+  }
 
-    return ok;
+  // Shared by both sign-up paths, so neither can skip the consent.
+  function validateConsent(): boolean {
+    if (acceptedPrivacy.value) return true;
+    errors.privacy = t('auth.login.errors.terms_missing');
+    return false;
+  }
+
+  function registerWithGoogle() {
+    formError.value = '';
+    if (validateConsent()) initiateGoogleSignUp();
   }
 
   async function submit() {
@@ -126,5 +135,6 @@ export function useRegister(onRegistered: () => void | Promise<void>) {
 
     clearFieldError,
     submit,
+    registerWithGoogle,
   };
 }
