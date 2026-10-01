@@ -1,6 +1,7 @@
 /// <reference types="vite/client" />
 
 import type { DefineComponent } from 'vue';
+import type { UmamiPayload } from '@/core/analytics';
 
 declare module '*.vue' {
   const component: DefineComponent<
@@ -13,6 +14,6 @@ declare module '*.vue' {
 
 declare global {
   interface Window {
-    __removeInitialLoadingScreen?: () => void;
+    umamiBeforeSend?: (type: string, payload: UmamiPayload) => UmamiPayload;
   }
 }

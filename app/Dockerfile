@@ -24,7 +24,15 @@ RUN pnpm run build
 
 FROM nginx:alpine AS runner
 
+ARG VITE_API_URL
+
+COPY nginx/render-security-headers.sh nginx/security-headers.conf.template /tmp/nginx/
+RUN mkdir -p /etc/nginx/snippets \
+    && /tmp/nginx/render-security-headers.sh \
+        /tmp/nginx/security-headers.conf.template /etc/nginx/snippets/security-headers.conf \
+    && rm -r /tmp/nginx
+
 COPY --from=builder /app/dist /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx/default.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80

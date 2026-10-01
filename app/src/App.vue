@@ -40,18 +40,16 @@ watch(user, (newUser, oldUser) => {
   if (newUser && !oldUser) logPageload();
 });
 
+// index.html paints this screen before the bundle loads; App shows its own
+// spinner from here on.
+function removeInitialLoadingScreen() {
+  document.getElementById('initial-loading-screen')?.remove();
+}
+
 watch(
   isAuthReady,
   (ready) => {
-    if (
-      ready &&
-      typeof window !== 'undefined' &&
-      window.__removeInitialLoadingScreen
-    ) {
-      requestAnimationFrame(() => {
-        window.__removeInitialLoadingScreen?.();
-      });
-    }
+    if (ready) requestAnimationFrame(removeInitialLoadingScreen);
   },
   { immediate: true },
 );

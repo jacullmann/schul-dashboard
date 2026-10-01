@@ -15,16 +15,6 @@
     <link rel="preconnect" href="https://api.fontshare.com" />
     <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet" />
 
-    <script>
-        // Invite links carry their secret in the path, which the tracker's
-        // exclude-search/exclude-hash options cannot strip.
-        window.umamiBeforeSend = (type, payload) => {
-            const redact = (url) => url?.replace(/\/invite\/[^/?#]+/, '/invite/:token');
-            return { ...payload, url: redact(payload.url), referrer: redact(payload.referrer) };
-        };
-    </script>
-    <script defer src="https://cloud.umami.is/script.js" data-website-id="5a9ea238-5aa1-4c7e-bf0f-d9577b223b3d" data-exclude-search="true" data-exclude-hash="true" data-before-send="umamiBeforeSend"></script>
-
     <style>
         body {
             background: oklch(0.1684 0 0);
@@ -41,11 +31,6 @@
             background: oklch(0.1684 0 0);
             z-index: 99999;
             opacity: 1;
-        }
-
-        #initial-loading-screen.hidden {
-            opacity: 0;
-            pointer-events: none;
         }
 
         .initial-loading-spinner {
@@ -107,14 +92,5 @@
 
 <div id="app"></div>
 <script type="module" src="/src/main.ts"></script>
-<script>
-    window.__removeInitialLoadingScreen = function() {
-        const loader = document.getElementById('initial-loading-screen');
-        if (loader) {
-            loader.classList.add('hidden');
-            setTimeout(() => loader.remove(), 500);
-        }
-    };
-</script>
 </body>
 </html>
