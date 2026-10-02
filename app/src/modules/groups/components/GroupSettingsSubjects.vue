@@ -102,6 +102,12 @@ function subjectHasCourses(category: string | undefined): boolean {
   return courseSelectionFor(category) !== 'none';
 }
 
+function coursesCountLabel(count: number): string {
+  if (count === 0) return t('groups.settings.subjects.courses_count_zero');
+  if (count === 1) return t('groups.settings.subjects.courses_count_singular');
+  return t('groups.settings.subjects.courses_count_plural', { count });
+}
+
 function courseTypeLabel(courseType: string): string {
   const key = `groups.settings.subjects.course_types.${courseType}`;
   return i18n.te(key) ? t(key) : courseType.toUpperCase();
@@ -383,15 +389,7 @@ onMounted(() => {
             <span class="font-normal text-sm text-on-ghost-muted">{{
               categoryLabel(sub.category || '') +
               (subjectHasCourses(sub.category)
-                ? `, ${
-                    (sub.coursesCount || 0) === 0
-                      ? t('groups.settings.subjects.courses_count_zero')
-                      : (sub.coursesCount || 0) === 1
-                        ? t('groups.settings.subjects.courses_count_singular')
-                        : t('groups.settings.subjects.courses_count_plural', {
-                            count: sub.coursesCount,
-                          })
-                  }`
+                ? `, ${coursesCountLabel(sub.courses?.length ?? 0)}`
                 : '') +
               (activeGroupDaltonEnabled && sub.isDalton
                 ? `, ${t('groups.settings.subjects.dalton_badge')}`

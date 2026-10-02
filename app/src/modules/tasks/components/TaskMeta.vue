@@ -5,6 +5,7 @@ import { formatSubjectDisplay } from '@/utils/subject-formatter';
 import { useIsPhoneViewport } from '@/common/composables/useViewport';
 import type { HwItem } from '@/modules/tasks/types';
 import { formatDueDate } from '@/modules/tasks/utils/dueDate';
+import { useImpliedCourse } from '@/modules/tasks/composables/useImpliedCourse';
 
 const props = defineProps<{
   item: HwItem;
@@ -23,8 +24,14 @@ const i18n = useI18n();
 const t = i18n.t.bind(i18n);
 const te = i18n.te.bind(i18n);
 
+const courseIsImplied = useImpliedCourse(() => props.item);
 const leadingParts = computed(() => [
-  formatSubjectDisplay(props.item.subjectName, props.item.courseName, t, te),
+  formatSubjectDisplay(
+    props.item.subjectName,
+    courseIsImplied.value ? null : props.item.courseName,
+    t,
+    te,
+  ),
   ...(props.showType ? [t(`tasks.list.types.${props.item.type}`)] : []),
 ]);
 const isPhoneViewport = useIsPhoneViewport();

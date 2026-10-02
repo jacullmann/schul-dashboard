@@ -654,7 +654,6 @@ impl GroupAdminService {
                     "category": s.category,
                     "isDalton": s.is_dalton,
                     "courses": s.courses,
-                    "coursesCount": s.courses.as_array().map_or(0, std::vec::Vec::len)
                 }))
                 .collect::<Vec<_>>()
         ))

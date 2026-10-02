@@ -163,7 +163,6 @@ export function useSubjectAdmin() {
           courseType: data.courseType,
         });
         subject.courses.sort((a, b) => a.name.localeCompare(b.name));
-        subject.coursesCount = (subject.coursesCount || 0) + 1;
       }
       subjectStore.reset();
       success(t('groups.settings.subjects.errors.course_create_success'));
@@ -227,7 +226,6 @@ export function useSubjectAdmin() {
       const subject = subjects.value.find((s) => s.id === subjectId);
       if (subject && subject.courses) {
         subject.courses = subject.courses.filter((c) => c.id !== courseId);
-        subject.coursesCount = Math.max(0, (subject.coursesCount || 1) - 1);
       }
       subjectStore.reset();
       success(t('groups.settings.subjects.errors.course_delete_success'));

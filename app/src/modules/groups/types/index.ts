@@ -58,7 +58,6 @@ export interface AdminSubject {
   /** Offered for Dalton tasks; always set on the whole subject. */
   isDalton?: boolean;
   courses?: AdminCourse[];
-  coursesCount?: number;
 }
 
 export interface GroupInviteLog {
