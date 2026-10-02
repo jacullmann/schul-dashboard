@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import hw from '../../api/api';
 import {
   CheckCircle2,
@@ -14,6 +14,23 @@ const { t } = useI18n();
 
 const loading = ref(true);
 const ok = ref(false);
+
+const heading = computed(() => {
+  if (loading.value)
+    return {
+      title: t('auth.verify_email.verifying'),
+      description: t('auth.verify_email.wait'),
+    };
+  return ok.value
+    ? {
+        title: t('auth.verify_email.success'),
+        description: t('auth.verify_email.success_description'),
+      }
+    : {
+        title: t('auth.verify_email.error'),
+        description: t('auth.verify_email.error_description'),
+      };
+});
 
 onMounted(async () => {
   const params = new URLSearchParams(location.search);
@@ -30,254 +47,70 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="card verify-container">
-    <div class="verify-content">
-      <template v-if="loading">
-        <div class="verify-icon loading-icon">
-          <div class="spinner"></div>
-        </div>
-        <h1 class="verify-title">{{ t('auth.verify_email.verifying') }}</h1>
-        <p class="verify-description">
-          {{ t('auth.verify_email.wait') }}
-        </p>
-      </template>
-      <template v-else-if="ok">
-        <div class="verify-icon success-icon">
-          <CheckCircle2 :size="64" />
-        </div>
-        <h1 class="verify-title">{{ t('auth.verify_email.success') }}</h1>
-        <p class="verify-description">
-          {{ t('auth.verify_email.success_description') }}
-        </p>
+  <div class="card w-full max-w-150">
+    <div
+      class="flex flex-col items-center text-center py-10 px-5 max-md:py-5 max-md:px-2.5"
+    >
+      <div
+        v-if="loading"
+        class="size-16 mb-6 rounded-full border-4 border-ghost-border border-t-primary animate-spin max-[500px]:size-13 max-[500px]:mb-5"
+      />
+      <CheckCircle2
+        v-else-if="ok"
+        class="size-16 mb-6 text-success max-[500px]:size-13 max-[500px]:mb-5"
+      />
+      <XCircle
+        v-else
+        class="size-16 mb-6 text-danger max-[500px]:size-13 max-[500px]:mb-5"
+      />
 
-        <div class="info-card">
-          <div class="info-card-icon">
-            <Info :size="20" />
-          </div>
-          <div class="info-card-text">
-            {{ t('auth.verify_email.close_tab') }}
-          </div>
-        </div>
-      </template>
-      <template v-else>
-        <div class="verify-icon error-icon">
-          <XCircle :size="64" />
-        </div>
-        <h1 class="verify-title">{{ t('auth.verify_email.error') }}</h1>
-        <p class="verify-description">
-          {{ t('auth.verify_email.error_description') }}
-        </p>
+      <h1
+        class="font-display text-[32px] font-semibold leading-[1.2] text-on-ghost mb-4 max-md:text-[26px] max-[500px]:text-2xl"
+      >
+        {{ heading.title }}
+      </h1>
+      <p
+        class="text-base leading-normal text-on-ghost-muted max-w-120 mb-8 max-md:text-[15px] max-md:mb-6 max-[500px]:text-sm"
+      >
+        {{ heading.description }}
+      </p>
 
-        <div class="error-card">
-          <div class="error-card-header">
+      <div
+        v-if="!loading && ok"
+        class="flex items-start gap-3 w-full max-w-120 p-4 text-left bg-success/10 border border-success/30 rounded-md max-md:max-w-full max-[500px]:p-3.5"
+      >
+        <Info :size="20" class="shrink-0 mt-0.5 text-success" />
+        <p class="text-sm leading-normal text-on-ghost">
+          {{ t('auth.verify_email.close_tab') }}
+        </p>
+      </div>
+
+      <template v-else-if="!loading">
+        <div
+          class="w-full max-w-120 p-5 mb-6 text-left bg-danger/8 border border-danger/25 rounded-md max-md:max-w-full max-[500px]:p-4"
+        >
+          <div
+            class="flex items-center gap-2 mb-3 text-[15px] font-semibold text-danger"
+          >
             <AlertTriangle :size="20" />
             <span>{{ t('auth.verify_email.possible_causes') }}</span>
           </div>
-          <ul class="error-reasons">
+          <ul class="pl-6 space-y-1 text-sm leading-[1.8] text-on-ghost-muted">
             <li>{{ t('auth.verify_email.causes.used_link') }}</li>
             <li>{{ t('auth.verify_email.causes.expired_link') }}</li>
             <li>{{ t('auth.verify_email.causes.copied_link') }}</li>
           </ul>
         </div>
 
-        <div class="action-section">
-          <BaseButton
-            variant="ghost"
-            :icon="ArrowLeft"
-            @click="$router.push({ name: 'groups' })"
-          >
-            {{ t('common.buttons.back') }}
-          </BaseButton>
-        </div>
+        <BaseButton
+          class="mt-2"
+          variant="ghost"
+          :icon="ArrowLeft"
+          @click="$router.push({ name: 'groups' })"
+        >
+          {{ t('common.buttons.back') }}
+        </BaseButton>
       </template>
     </div>
   </div>
 </template>
-
-<style scoped>
-.verify-container {
-  max-width: 600px;
-  width: 100%;
-}
-
-.verify-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 40px 20px;
-}
-
-.verify-icon {
-  margin-bottom: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.loading-icon {
-  width: 64px;
-  height: 64px;
-}
-
-.spinner {
-  width: 64px;
-  height: 64px;
-  border: 4px solid var(--color-ghost-border);
-  border-top-color: var(--color-primary);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.success-icon {
-  color: var(--color-success);
-}
-
-.error-icon {
-  color: var(--color-danger);
-}
-
-.verify-title {
-  font-family: var(--font-display), sans-serif;
-  font-size: 32px;
-  font-weight: 600;
-  color: var(--color-on-ghost);
-  margin: 0 0 16px 0;
-  line-height: 1.2;
-}
-
-.verify-description {
-  font-size: 16px;
-  color: var(--color-on-ghost-muted);
-  margin: 0 0 32px 0;
-  max-width: 480px;
-  line-height: 1.5;
-}
-
-.info-card {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 16px;
-  background: rgba(106, 237, 139, 0.1);
-  border: 1px solid rgba(106, 237, 139, 0.3);
-  border-radius: var(--radius-md);
-  width: 100%;
-  max-width: 480px;
-  text-align: left;
-}
-
-.info-card-icon {
-  flex-shrink: 0;
-  color: var(--color-success);
-  margin-top: 2px;
-}
-
-.info-card-text {
-  font-size: 14px;
-  color: var(--color-on-ghost);
-  line-height: 1.5;
-}
-
-.error-card {
-  padding: 20px;
-  background: rgba(239, 68, 68, 0.08);
-  border: 1px solid rgba(239, 68, 68, 0.25);
-  border-radius: var(--radius-md);
-  width: 100%;
-  max-width: 480px;
-  text-align: left;
-  margin-bottom: 24px;
-}
-
-.error-card-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 600;
-  color: var(--color-danger);
-  margin-bottom: 12px;
-  font-size: 15px;
-}
-
-.error-reasons {
-  margin: 0;
-  padding-left: 24px;
-  color: var(--color-on-ghost-muted);
-  font-size: 14px;
-  line-height: 1.8;
-}
-
-.error-reasons li {
-  margin-bottom: 4px;
-}
-
-.error-reasons li:last-child {
-  margin-bottom: 0;
-}
-
-.action-section {
-  margin-top: 8px;
-}
-
-@media (max-width: 768px) {
-  .verify-content {
-    padding: 20px 10px;
-  }
-
-  .verify-title {
-    font-size: 26px;
-  }
-
-  .verify-description {
-    font-size: 15px;
-    margin-bottom: 24px;
-  }
-
-  .info-card,
-  .error-card {
-    max-width: 100%;
-  }
-}
-
-@media (max-width: 500px) {
-  .verify-icon {
-    margin-bottom: 20px;
-  }
-
-  .loading-icon,
-  .spinner {
-    width: 52px;
-    height: 52px;
-  }
-
-  .success-icon svg,
-  .error-icon svg {
-    width: 52px;
-    height: 52px;
-  }
-
-  .verify-title {
-    font-size: 24px;
-  }
-
-  .verify-description {
-    font-size: 14px;
-  }
-
-  .info-card,
-  .error-card {
-    padding: 14px;
-  }
-
-  .error-card {
-    padding: 16px;
-  }
-}
-</style>

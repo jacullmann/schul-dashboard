@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { House, ListTodo, CalendarDays, Lock, ArrowLeft } from '@lucide/vue';
@@ -8,6 +9,20 @@ const router = useRouter();
 const { t } = useI18n();
 
 const { contextGroupId } = useAppAuth();
+
+const groupLinks = computed(() => {
+  const params = { groupId: contextGroupId.value };
+  return [
+    { key: 'dashboard', icon: House, to: { name: 'group-dashboard', params } },
+    { key: 'tasks', icon: ListTodo, to: { name: 'group-tasks', params } },
+    {
+      key: 'schedule',
+      icon: CalendarDays,
+      to: { name: 'group-schedule', params },
+    },
+    { key: 'private', icon: Lock, to: { name: 'private-todos' } },
+  ];
+});
 
 const goBack = () => {
   if (window.history.length > 1) {
@@ -23,7 +38,7 @@ const goBack = () => {
 </script>
 
 <template>
-  <div class="p-4 max-w-[800px] my-0 mx-0 md:my-10 md:mx-auto">
+  <div class="p-4 max-w-200 my-0 mx-0 md:my-10 md:mx-auto">
     <div class="flex flex-col items-center text-center py-5 max-[500px]:py-2.5">
       <div
         class="font-display text-[96px] font-bold text-on-ghost leading-none mb-4 tracking-[-0.02em] max-md:text-[72px] max-[500px]:text-[64px]"
@@ -36,7 +51,7 @@ const goBack = () => {
         {{ t('common.not_found.title') }}
       </h1>
       <p
-        class="text-base text-on-ghost-muted m-0 mb-12 max-w-[500px] max-md:text-sm max-md:mb-8"
+        class="text-base text-on-ghost-muted m-0 mb-12 max-w-125 max-md:text-sm max-md:mb-8"
       >
         {{ t('common.not_found.description') }}
       </p>
@@ -46,83 +61,22 @@ const goBack = () => {
           class="grid w-full gap-3 grid-cols-[repeat(auto-fit,minmax(280px,1fr))] max-md:grid-cols-1"
         >
           <router-link
-            :to="{
-              name: 'group-dashboard',
-              params: { groupId: contextGroupId },
-            }"
-            class="flex items-center gap-3 p-3 bg-surface border border-ghost-border shadow-input rounded-xl no-underline transition-all duration-150 ease cursor-pointer hover:bg-surface-highlight"
+            v-for="link in groupLinks"
+            :key="link.key"
+            :to="link.to"
+            class="flex items-center gap-2 p-3 bg-surface border border-ghost-border shadow-input rounded-xl no-underline transition-all duration-150 ease cursor-pointer hover:bg-surface-highlight"
           >
             <div
               class="shrink-0 w-10 h-10 flex items-center justify-center text-on-ghost-muted"
             >
-              <House :size="24" />
+              <component :is="link.icon" :size="24" />
             </div>
             <div class="flex-1 text-left">
-              <div class="text-[15px] font-semibold text-on-ghost mb-[2px]">
-                {{ t('common.sidebar.dashboard') }}
+              <div class="text-base/tight font-semibold text-on-ghost">
+                {{ t(`common.sidebar.${link.key}`) }}
               </div>
-              <div class="text-[13px] text-on-ghost-muted">
-                {{ t('common.not_found.links.dashboard') }}
-              </div>
-            </div>
-          </router-link>
-
-          <router-link
-            :to="{ name: 'group-tasks', params: { groupId: contextGroupId } }"
-            class="flex items-center gap-3 p-3 bg-surface border border-ghost-border shadow-input rounded-xl no-underline transition-all duration-150 ease cursor-pointer hover:bg-surface-highlight"
-          >
-            <div
-              class="shrink-0 w-10 h-10 flex items-center justify-center text-on-ghost-muted"
-            >
-              <ListTodo :size="24" />
-            </div>
-            <div class="flex-1 text-left">
-              <div class="text-[15px] font-semibold text-on-ghost mb-[2px]">
-                {{ t('common.sidebar.tasks') }}
-              </div>
-              <div class="text-[13px] text-on-ghost-muted">
-                {{ t('common.not_found.links.tasks') }}
-              </div>
-            </div>
-          </router-link>
-
-          <router-link
-            :to="{
-              name: 'group-schedule',
-              params: { groupId: contextGroupId },
-            }"
-            class="flex items-center gap-3 p-3 bg-surface border border-ghost-border shadow-input rounded-xl no-underline transition-all duration-150 ease cursor-pointer hover:bg-surface-highlight"
-          >
-            <div
-              class="shrink-0 w-10 h-10 flex items-center justify-center text-on-ghost-muted"
-            >
-              <CalendarDays :size="24" />
-            </div>
-            <div class="flex-1 text-left">
-              <div class="text-[15px] font-semibold text-on-ghost mb-[2px]">
-                {{ t('common.sidebar.schedule') }}
-              </div>
-              <div class="text-[13px] text-on-ghost-muted">
-                {{ t('common.not_found.links.schedule') }}
-              </div>
-            </div>
-          </router-link>
-
-          <router-link
-            :to="{ name: 'private-todos' }"
-            class="flex items-center gap-3 p-3 bg-surface border border-ghost-border shadow-input rounded-xl no-underline transition-all duration-150 ease cursor-pointer hover:bg-surface-highlight"
-          >
-            <div
-              class="shrink-0 w-10 h-10 flex items-center justify-center text-on-ghost-muted"
-            >
-              <Lock :size="24" />
-            </div>
-            <div class="flex-1 text-left">
-              <div class="text-[15px] font-semibold text-on-ghost mb-[2px]">
-                {{ t('common.sidebar.private') }}
-              </div>
-              <div class="text-[13px] text-on-ghost-muted">
-                {{ t('common.not_found.links.private') }}
+              <div class="text-sm text-on-ghost-muted">
+                {{ t(`common.not_found.links.${link.key}`) }}
               </div>
             </div>
           </router-link>
