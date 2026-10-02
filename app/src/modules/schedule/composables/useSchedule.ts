@@ -73,6 +73,9 @@ export function useSchedule() {
     const monday = new Date(d);
     monday.setHours(0, 0, 0, 0);
     monday.setDate(d.getDate() + (offsetToMonday[jsDay] ?? 0));
+    if (daysSinceMonday(d) === days.length - 1 && isSchoolDayOver.value) {
+      monday.setDate(monday.getDate() + 7);
+    }
 
     const map: Record<number, Date> = {};
     days.forEach((day, idx) => {
@@ -405,28 +408,28 @@ export function useSchedule() {
     return null;
   });
 
+  const isSchoolDayOver = computed(() => {
+    const dayIndex = daysSinceMonday(now.value);
+    const lessonsToday = effectiveLessons.value.filter(
+      (l) => l.day === days[dayIndex],
+    );
+    if (lessonsToday.length === 0) return false;
+
+    const maxEndMins = Math.max(
+      ...lessonsToday.map(
+        (lesson) => lessonMinutes(scheduleConfig.value, lesson).end,
+      ),
+    );
+    const currentMinutes = now.value.getHours() * 60 + now.value.getMinutes();
+    return currentMinutes > maxEndMins + 10;
+  });
+
   const defaultDayIndex = computed(() => {
     const dayIndex = daysSinceMonday(now.value);
     if (dayIndex >= days.length) {
       return 0;
     }
-
-    const lessonsToday = effectiveLessons.value.filter(
-      (l) => l.day === days[dayIndex],
-    );
-    if (lessonsToday.length > 0) {
-      const maxEndMins = Math.max(
-        ...lessonsToday.map(
-          (lesson) => lessonMinutes(scheduleConfig.value, lesson).end,
-        ),
-      );
-
-      const currentMinutes = now.value.getHours() * 60 + now.value.getMinutes();
-      if (currentMinutes > maxEndMins + 10) {
-        return (dayIndex + 1) % days.length;
-      }
-    }
-    return dayIndex;
+    return isSchoolDayOver.value ? (dayIndex + 1) % days.length : dayIndex;
   });
 
   const activeOrNextGroupKey = computed<string | null>(() => {
