@@ -22,11 +22,6 @@ export function usePersonalization() {
       if (!data.ok) return null;
 
       userStore.updateUser({ personalized: data.personalized });
-      useToast().success(
-        value
-          ? t('auth.personalization.enabled_toast')
-          : t('auth.personalization.disabled_toast'),
-      );
       return data.personalized;
     } catch (e: unknown) {
       useToast().error(apiErrorMessage(e, t('common.errors.update')));
