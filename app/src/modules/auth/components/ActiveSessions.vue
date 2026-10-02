@@ -195,12 +195,9 @@ onMounted(() => {
 
 <template>
   <div class="flex flex-col gap-4">
-    <div class="flex flex-col gap-2">
-      <h3>{{ t('auth.sessions.title') }}</h3>
-      <div class="text-sm/relaxed text-on-ghost-muted">
-        {{ t('auth.sessions.description') }}
-      </div>
-    </div>
+    <p class="text-sm/relaxed text-on-ghost-muted m-0!">
+      {{ t('auth.sessions.description') }}
+    </p>
 
     <div
       v-if="error"

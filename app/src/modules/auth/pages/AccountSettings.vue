@@ -46,9 +46,19 @@ const activeTab = computed<string>({
   },
 });
 
-const activeTabLabel = computed(
-  () => navItems.value.find((n) => n.id === activeTab.value)?.label ?? '',
-);
+const securitySubTabLabels = computed<Record<string, string>>(() => ({
+  'two-factor': t('auth.security.2fa'),
+  'connected-accounts': t('auth.account_settings.connected_accounts.title'),
+  sessions: t('auth.sessions.title'),
+}));
+
+const activeTabLabel = computed(() => {
+  const subTab = route.params.subTab as string | undefined;
+  if (activeTab.value === 'security' && subTab) {
+    return securitySubTabLabels.value[subTab] ?? '';
+  }
+  return navItems.value.find((n) => n.id === activeTab.value)?.label ?? '';
+});
 
 const transitionDirection = ref<'forward' | 'backward'>('forward');
 
@@ -57,11 +67,18 @@ const transitionName = computed(() =>
 );
 
 watch(
-  () => route.params.tab as string | undefined,
-  (newTab, oldTab) => {
-    if (newTab && !oldTab) {
+  () => ({
+    tab: route.params.tab as string | undefined,
+    subTab: route.params.subTab as string | undefined,
+  }),
+  (newVal, oldVal) => {
+    const [next, prev] =
+      newVal.tab !== oldVal.tab
+        ? [newVal.tab, oldVal.tab]
+        : [newVal.subTab, oldVal.subTab];
+    if (next && !prev) {
       transitionDirection.value = 'forward';
-    } else if (!newTab && oldTab) {
+    } else if (!next && prev) {
       transitionDirection.value = 'backward';
     }
   },
@@ -74,7 +91,14 @@ function selectTab(id: string) {
 
 function goBack() {
   transitionDirection.value = 'backward';
-  activeTab.value = '';
+  if (route.params.subTab) {
+    void router.push({
+      name: 'account-settings',
+      params: { tab: activeTab.value },
+    });
+  } else {
+    activeTab.value = '';
+  }
 }
 </script>
 
@@ -133,7 +157,13 @@ function goBack() {
         </div>
       </div>
 
-      <div v-else :key="activeTab" class="settings-pane detail-pane">
+      <div
+        v-else
+        :key="
+          activeTab + (route.params.subTab ? '-' + route.params.subTab : '')
+        "
+        class="settings-pane detail-pane"
+      >
         <header
           class="flex items-center py-2 px-4 md:px-6 bg-canvas border-b border-ghost-border shrink-0"
         >

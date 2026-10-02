@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { computed, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
-import { LucideKeyRound } from '@lucide/vue';
+import { KeyRound, Link2, MonitorSmartphone, ShieldCheck } from '@lucide/vue';
 import MfaSettings from '@/modules/auth/components/MfaSettings.vue';
 import ConnectedAccounts from '@/modules/auth/components/ConnectedAccounts.vue';
 import ActiveSessions from '@/modules/auth/components/ActiveSessions.vue';
@@ -13,10 +14,21 @@ const emit = defineEmits<{
   (e: 'changePassword'): void;
 }>();
 
+const route = useRoute();
+const router = useRouter();
 const { t } = useI18n();
 const userStore = useUserStore();
 const { hasPassword } = storeToRefs(userStore);
 const { mfaEnabled, fetchMfaStatus, setMfaEnabled } = useMfa();
+
+const subTab = computed(() => route.params.subTab as string | undefined);
+
+function openSubTab(id: string) {
+  void router.push({
+    name: 'account-settings',
+    params: { tab: 'security', subTab: id },
+  });
+}
 
 function onMfaChanged(enabled: boolean) {
   setMfaEnabled(enabled);
@@ -33,46 +45,71 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-10">
-    <section class="flex flex-col gap-2">
-      <h3>{{ t('auth.account_settings.password.title') }}</h3>
-      <p class="text-sm/relaxed text-on-ghost-muted m-0!">
-        {{
-          hasPassword
-            ? t('auth.account_settings.password.description')
-            : t('auth.account_settings.password.description_set')
-        }}
-      </p>
-      <div>
-        <BaseButton
-          variant="ghost"
-          :icon="LucideKeyRound"
-          @click="emit('changePassword')"
-        >
+  <div v-if="!subTab" class="flex flex-col max-w-200 mx-auto max-md:-mx-6">
+    <BaseList @click="emit('changePassword')">
+      <template #icon>
+        <KeyRound :size="24" :stroke-width="1.8" class="mx-2" />
+      </template>
+      <template #label>
+        <div class="text-on-ghost text-base font-normal">
           {{
             hasPassword
               ? t('auth.change_password.title')
               : t('auth.set_password.title')
           }}
-        </BaseButton>
-      </div>
-    </section>
+        </div>
+      </template>
+    </BaseList>
 
-    <section class="flex flex-col gap-2 max-w-160">
-      <h3>{{ t('auth.security.2fa') }}</h3>
-      <MfaSettings :mfa-enabled="mfaEnabled" @mfa-changed="onMfaChanged" />
-    </section>
+    <BaseList @click="openSubTab('two-factor')">
+      <template #icon>
+        <ShieldCheck :size="24" :stroke-width="1.8" class="mx-2" />
+      </template>
+      <template #label>
+        <div class="text-on-ghost text-base font-normal">
+          {{ t('auth.security.2fa') }}
+        </div>
+      </template>
+    </BaseList>
 
-    <section class="flex flex-col gap-2 max-w-160">
-      <h3>{{ t('auth.account_settings.connected_accounts.title') }}</h3>
-      <p class="text-sm/relaxed text-on-ghost-muted m-0!">
-        {{ t('auth.account_settings.connected_accounts.description') }}
-      </p>
-      <ConnectedAccounts />
-    </section>
+    <BaseList @click="openSubTab('connected-accounts')">
+      <template #icon>
+        <Link2 :size="24" :stroke-width="1.8" class="mx-2" />
+      </template>
+      <template #label>
+        <div class="text-on-ghost text-base font-normal">
+          {{ t('auth.account_settings.connected_accounts.title') }}
+        </div>
+      </template>
+    </BaseList>
 
-    <section class="max-w-160">
-      <ActiveSessions />
-    </section>
+    <BaseList :separator="false" @click="openSubTab('sessions')">
+      <template #icon>
+        <MonitorSmartphone :size="24" :stroke-width="1.8" class="mx-2" />
+      </template>
+      <template #label>
+        <div class="text-on-ghost text-base font-normal">
+          {{ t('auth.sessions.title') }}
+        </div>
+      </template>
+    </BaseList>
   </div>
+
+  <section v-else-if="subTab === 'two-factor'" class="max-w-160">
+    <MfaSettings :mfa-enabled="mfaEnabled" @mfa-changed="onMfaChanged" />
+  </section>
+
+  <section
+    v-else-if="subTab === 'connected-accounts'"
+    class="flex flex-col gap-2 max-w-160"
+  >
+    <p class="text-sm/relaxed text-on-ghost-muted m-0!">
+      {{ t('auth.account_settings.connected_accounts.description') }}
+    </p>
+    <ConnectedAccounts />
+  </section>
+
+  <section v-else-if="subTab === 'sessions'" class="max-w-160">
+    <ActiveSessions />
+  </section>
 </template>

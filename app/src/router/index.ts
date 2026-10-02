@@ -147,7 +147,7 @@ const routes: RouteRecordRaw[] = [
       },
 
       {
-        path: 'account/:tab?',
+        path: 'account/:tab?/:subTab?',
         name: 'account-settings',
         component: () => import('@/modules/auth/pages/AccountSettings.vue'),
         meta: { title: 'navigation.account_settings', fullWidth: true },

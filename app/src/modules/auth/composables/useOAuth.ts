@@ -105,7 +105,7 @@ export function useOAuth() {
     await router.isReady();
     await router.replace({
       name: 'account-settings',
-      params: { tab: 'security' },
+      params: { tab: 'security', subTab: 'connected-accounts' },
     });
   }
 
