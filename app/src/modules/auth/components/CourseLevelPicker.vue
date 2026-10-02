@@ -38,13 +38,13 @@ function choose(subjectId: string, id: string) {
 </script>
 
 <template>
-  <ul class="flex flex-col gap-3 m-0 p-0 list-none">
+  <ul class="flex flex-col m-0 p-0 list-none divide-y divide-ghost-border">
     <li
       v-for="subject in subjects"
       :key="subject.id"
       role="group"
       :aria-labelledby="`level-${subject.id}`"
-      class="flex items-center justify-between gap-4"
+      class="flex items-center justify-between gap-4 py-2 first:pt-0 last:pb-0"
     >
       <span :id="`level-${subject.id}`" class="min-w-0 truncate text-on-ghost">
         {{ subjectLabel(subject.name, t, te) }}

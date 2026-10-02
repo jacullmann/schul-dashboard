@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { RotateCcw } from '@lucide/vue';
 import { useSubjectStore } from '@/stores/subjectStore';
 import { useUserStore } from '@/stores/userStore';
+import { useModalStore } from '@/stores/modalStore';
 import { useCourseSelection } from '@/common/composables/useCourseSelection';
 import { useGroupPageId } from '@/core/composables/useGroupPageId';
 import { useToast } from '@/common/composables/useToast';
@@ -13,6 +15,7 @@ const groupId = useGroupPageId();
 const toast = useToast();
 const subjectStore = useSubjectStore();
 const userStore = useUserStore();
+const modalStore = useModalStore();
 const {
   selections,
   resetSelections,
@@ -44,16 +47,41 @@ function discardChanges() {
   error.value = '';
 }
 
+// The setup dialog saves on its own, so its result replaces what is shown.
 watch(
   () => [
     subjectStore.requiredCourseSubjects,
     subjectStore.optionalCourseSubjects,
+    userStore.user?.courses,
   ],
   discardChanges,
   { immediate: true },
 );
 
 void subjectStore.loadSubjects(groupId);
+
+const redoing = ref(false);
+
+async function redoSetup() {
+  const confirmed = await modalStore.confirm({
+    title: t('auth.courses.redo_setup.title'),
+    content: t('auth.courses.redo_setup.message'),
+    submitText: t('auth.courses.redo_setup.submit'),
+    danger: true,
+  });
+  if (!confirmed) return;
+
+  redoing.value = true;
+  error.value = '';
+  try {
+    await saveCourses([]);
+    modalStore.openSetup(groupId);
+  } catch (e: unknown) {
+    error.value = apiErrorMessage(e, t('auth.courses.errors.save_failed'));
+  } finally {
+    redoing.value = false;
+  }
+}
 
 async function save() {
   saving.value = true;
@@ -72,9 +100,23 @@ async function save() {
 
 <template>
   <div>
-    <p class="text-base/relaxed text-on-ghost-muted m-0 mb-4 max-w-160">
-      {{ t('auth.courses.description') }}
-    </p>
+    <div
+      class="flex flex-col items-start gap-3 mb-4 md:flex-row md:items-center md:justify-between max-w-120"
+    >
+      <p class="text-base/relaxed text-on-ghost-muted m-0">
+        {{ t('auth.courses.description') }}
+      </p>
+      <BaseButton
+        v-if="hasCourseSubjects"
+        class="shrink-0"
+        :icon="RotateCcw"
+        :loading="redoing"
+        :disabled="redoing || saving"
+        @click="redoSetup"
+      >
+        {{ t('auth.courses.redo_setup.button') }}
+      </BaseButton>
+    </div>
 
     <div v-if="subjectStore.loading" class="flex justify-center">
       <BaseSpinner />

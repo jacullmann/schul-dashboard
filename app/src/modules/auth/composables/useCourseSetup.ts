@@ -43,18 +43,16 @@ export function useCourseSetup(groupId: string) {
 
   const levels = ref<Record<string, CourseLevel | null>>({});
 
-  watch(
-    levelOptions,
-    (options) => {
-      levels.value = Object.fromEntries(
-        [...options].map(([subjectId, offered]) => [
-          subjectId,
-          defaultCourseLevel(offered),
-        ]),
-      );
-    },
-    { immediate: true },
-  );
+  function resetLevels() {
+    levels.value = Object.fromEntries(
+      [...levelOptions.value].map(([subjectId, offered]) => [
+        subjectId,
+        defaultCourseLevel(offered),
+      ]),
+    );
+  }
+
+  watch(levelOptions, resetLevels, { immediate: true });
 
   const hasAllLevels = computed(() =>
     subjects.value.every((subject) => levels.value[subject.id] != null),
@@ -122,6 +120,12 @@ export function useCourseSetup(groupId: string) {
     );
   }
 
+  /** Starts the choice over from the default levels and no picks. */
+  function reset() {
+    resetLevels();
+    picks.value = new Map();
+  }
+
   const canToggleCourse = (courseId: string) =>
     resolver.value.isPickable(resolution.value, courseId);
 
@@ -161,6 +165,7 @@ export function useCourseSetup(groupId: string) {
   );
 
   return {
+    reset,
     subjects,
     levelOptions,
     levels,

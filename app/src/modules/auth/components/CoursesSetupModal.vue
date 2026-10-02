@@ -36,6 +36,7 @@ const {
 } = useCourseSelection(props.groupId);
 
 const {
+  reset: resetCourseSetup,
   subjects: abiturSubjects,
   levelOptions,
   levels,
@@ -67,6 +68,8 @@ watch(
     if (!isOpen) return;
     error.value = '';
     step.value = 'levels';
+    resetSelections(userStore.user?.courses ?? []);
+    resetCourseSetup();
     void subjectStore.loadSubjects(props.groupId);
   },
   { immediate: true },
