@@ -1,5 +1,5 @@
 //! Per-IP rate limits for the routes that check a secret (password, code or
-//! OAuth round trip).
+//! OAuth round trip) or that create content.
 //!
 //! Schools reach the internet through one shared public IP, so a whole class
 //! signing in at the start of a lesson looks like a single client. The burst
@@ -25,4 +25,12 @@ pub fn per_ip(burst: u32, replenish_every: Duration) -> IpRateLimit {
         .expect("rate limits use a non-zero burst and period");
 
     GovernorLayer::new(config)
+}
+
+/// Every file reaching Cloudinary needs a signature first, so this bounds
+/// storage abuse even by clients that never attach their uploads to anything.
+/// The burst covers a class sharing photos at once; an Office file takes two
+/// signatures (file and thumbnail).
+pub fn upload_signatures() -> IpRateLimit {
+    per_ip(60, Duration::from_secs(2))
 }
