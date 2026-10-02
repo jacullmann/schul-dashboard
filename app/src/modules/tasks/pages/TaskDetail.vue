@@ -41,7 +41,6 @@ const {
   canDeleteImage,
   canManageNotes,
   canUploadImages,
-  canSeeCreator,
   editingNoteForId,
   noteEditContent,
   savingNote,
@@ -264,12 +263,7 @@ onMounted(() => {
               {{ item.title }}
             </h2>
           </div>
-          <TaskMeta
-            :item="item"
-            show-type
-            spread
-            :show-creator="canSeeCreator"
-          />
+          <TaskMeta :item="item" show-type />
         </header>
 
         <TaskNote

@@ -207,12 +207,7 @@ function runSecondarySwipeAction(event: MouseEvent) {
               />
             </div>
 
-            <TaskMeta
-              :item="item"
-              :show-type="showType"
-              :show-creator="false"
-              spread
-            />
+            <TaskMeta :item="item" :show-type="showType" />
           </div>
         </div>
 

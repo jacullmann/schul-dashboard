@@ -11,13 +11,6 @@ const props = defineProps<{
   item: HwItem;
   /** Redundant under a tab that holds a single type. */
   showType: boolean;
-  /**
-   * Left to the task's own page, so list rows stay short, and to members who
-   * moderate the group. The email only arrives for superadmins.
-   */
-  showCreator: boolean;
-  /** Pushes the due date to the far end of the row. */
-  spread?: boolean;
 }>();
 
 const i18n = useI18n();
@@ -42,30 +35,11 @@ const dueDate = computed(() =>
     isPhoneViewport.value ? 'short' : 'long',
   ),
 );
-const parts = computed(() => [
-  ...leadingParts.value,
-  dueDate.value,
-  ...(props.showCreator
-    ? [props.item.createdByName || t('common.selection.unknown')]
-    : []),
-]);
 </script>
 
 <template>
-  <div
-    v-if="spread"
-    class="text-on-ghost-muted flex justify-between gap-2 text-base"
-  >
+  <div class="text-on-ghost-muted flex justify-between gap-2 text-base">
     <span class="min-w-0 truncate">{{ leadingParts.join(' • ') }}</span>
     <span class="shrink-0">{{ dueDate }}</span>
-  </div>
-  <div v-else class="text-on-ghost-muted text-base">
-    {{ parts.join(' • ') }}
-  </div>
-  <div
-    v-if="showCreator && item.createdByEmail"
-    class="text-on-ghost-subtle text-base"
-  >
-    ({{ item.createdByEmail }})
   </div>
 </template>

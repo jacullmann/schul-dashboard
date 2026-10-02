@@ -30,7 +30,7 @@ onMounted(loadReports);
   </div>
   <div
     v-else
-    class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-2.5"
+    class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-x-8 gap-y-16"
   >
     <ReportCard
       v-for="r in reports"

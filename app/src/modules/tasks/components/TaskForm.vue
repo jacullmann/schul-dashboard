@@ -12,8 +12,8 @@ import {
 import { useAddedEntrance } from '../composables/useAddedEntrance';
 import { CUSTOM_SUBJECT_MAX_LENGTH } from '@/types/subjects';
 import GroupSelect from '@/modules/groups/components/GroupSelect.vue';
-import ItemCard from './ItemCard.vue';
-import TaskDescription from './TaskDescription.vue';
+import TaskMeta from './TaskMeta.vue';
+import TaskPreview from './TaskPreview.vue';
 
 const { t } = useI18n();
 
@@ -68,9 +68,6 @@ const {
   doubleTaskOriginalItem,
   confirmDoubleTaskSubmit,
   viewExisting,
-  doubleTaskSubjectName,
-  doubleTaskTypeLabel,
-  doubleTaskDueDate,
   doubleTaskConfirmMessage,
 } = useTaskFormLogic(props.groupId, props.initial, props.initialType, emit);
 
@@ -303,70 +300,21 @@ const imageEntrance = useAddedEntrance(
     </template>
 
     <template #content>
-      <p class="m-0!">
+      <p class="mt-0! mb-4!">
         {{ doubleTaskConfirmMessage }}
       </p>
 
-      <ItemCard
+      <TaskPreview
         v-if="doubleTaskOriginalItem"
         :title="doubleTaskOriginalItem.title"
+        :description="doubleTaskOriginalItem.description"
+        :note="doubleTaskOriginalItem.editorNote"
+        :attachments="doubleTaskOriginalItem.attachments"
       >
-        <template #badges>
-          <div class="text-on-ghost-muted text-base">
-            {{ doubleTaskTypeLabel }} • {{ doubleTaskSubjectName }} •
-            {{ doubleTaskDueDate }}
-            <template v-if="doubleTaskOriginalItem.createdByName">
-              • {{ doubleTaskOriginalItem.createdByName }}
-            </template>
-          </div>
+        <template #meta>
+          <TaskMeta :item="doubleTaskOriginalItem" show-type />
         </template>
-
-        <template v-if="doubleTaskOriginalItem.description" #body>
-          <TaskDescription :description="doubleTaskOriginalItem.description" />
-        </template>
-
-        <template
-          v-if="
-            doubleTaskOriginalItem.attachments.length ||
-            doubleTaskOriginalItem.editorNote
-          "
-          #content-after
-        >
-          <!-- Images block (non-interactive) -->
-          <div
-            v-if="doubleTaskOriginalItem.attachments.length"
-            class="grid grid-cols-4 gap-2 mt-2 mb-2"
-          >
-            <div
-              v-for="img in doubleTaskOriginalItem.attachments"
-              :key="img.id"
-              class="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-md border-none bg-black/[0.12] select-none"
-            >
-              <img
-                v-if="previewUrl(img)"
-                :src="previewUrl(img) ?? undefined"
-                class="block h-full w-full object-cover [pointer-events:none]"
-                :alt="t('common.preview')"
-              />
-            </div>
-          </div>
-
-          <!-- Notes block (non-interactive) -->
-          <div
-            v-if="doubleTaskOriginalItem.editorNote"
-            class="note-section mt-2 pt-1 border-t border-ghost-border"
-          >
-            <div class="text-on-ghost text-base font-bold mb-1">
-              {{ t('tasks.list.notes.note') }}
-            </div>
-            <div
-              class="text-on-ghost text-base whitespace-pre-wrap break-words"
-            >
-              {{ doubleTaskOriginalItem.editorNote }}
-            </div>
-          </div>
-        </template>
-      </ItemCard>
+      </TaskPreview>
     </template>
 
     <template #action-text>

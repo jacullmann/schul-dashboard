@@ -30,7 +30,6 @@ export function useTaskPermissions(groupId: MaybeRefOrGetter<string>) {
 
   const canUploadImages = computed(() => can('upload_images'));
   const canManageNotes = computed(() => can('manage_notes'));
-  const canSeeCreator = computed(() => can('moderate_members'));
 
   const canEdit = (item: Pick<HwItem, 'createdBy'>) =>
     isOwn(item) || can('edit_other_content');
@@ -46,7 +45,6 @@ export function useTaskPermissions(groupId: MaybeRefOrGetter<string>) {
   return {
     canUploadImages,
     canManageNotes,
-    canSeeCreator,
     canEdit,
     canDelete,
     canDeleteImage,

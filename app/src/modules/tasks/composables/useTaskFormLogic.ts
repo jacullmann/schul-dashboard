@@ -159,22 +159,6 @@ export function useTaskFormLogic(
     return getSubjectName(doubleTaskOriginalItem.value);
   });
 
-  const doubleTaskTypeLabel = computed(() => {
-    if (!doubleTaskOriginalItem.value) return '';
-    return getTypeLabel(doubleTaskOriginalItem.value.type);
-  });
-
-  const doubleTaskDueDate = computed(() => {
-    if (!doubleTaskOriginalItem.value) return '';
-    try {
-      return new Date(
-        doubleTaskOriginalItem.value.dueDate,
-      ).toLocaleDateString();
-    } catch {
-      return doubleTaskOriginalItem.value.dueDate;
-    }
-  });
-
   const doubleTaskConfirmMessage = computed(() => {
     if (!doubleTaskOriginalItem.value) return '';
     return t('tasks.list.double_task_confirm.message', {
@@ -528,9 +512,6 @@ export function useTaskFormLogic(
     viewExisting,
     getSubjectName,
     getTypeLabel,
-    doubleTaskSubjectName,
-    doubleTaskTypeLabel,
-    doubleTaskDueDate,
     doubleTaskConfirmMessage,
   };
 }
