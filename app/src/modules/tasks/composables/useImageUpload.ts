@@ -20,7 +20,15 @@ import {
 export type { ImageItem };
 
 const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME as string;
-const MAX_DOCUMENT_BYTES = 5 * 1024 * 1024;
+const BYTES_PER_MB = 1024 * 1024;
+// Images are measured after compression, so a large phone photo still fits;
+// documents are uploaded as they are and get more room.
+const MAX_IMAGE_BYTES = 2 * BYTES_PER_MB;
+const MAX_DOCUMENT_BYTES = 5 * BYTES_PER_MB;
+
+const isImage = (file: File) => file.type.startsWith('image/');
+const maxBytesOf = (file: File) =>
+  isImage(file) ? MAX_IMAGE_BYTES : MAX_DOCUMENT_BYTES;
 
 const images = ref<ImageItem[]>([]);
 const uploading = ref(false);
@@ -174,13 +182,7 @@ export function useImageUpload(groupId: MaybeRefOrGetter<string>) {
 
     const validFilesList: File[] = [];
     for (const f of files) {
-      if (f.type.startsWith('image/')) {
-        validFilesList.push(f);
-      } else if (f.type === 'application/pdf') {
-        if (f.size > MAX_DOCUMENT_BYTES) {
-          failUpload(t('tasks.images.upload.pdf_too_large'));
-          return;
-        }
+      if (isImage(f) || f.type === 'application/pdf') {
         validFilesList.push(f);
       } else if (
         f.type ===
@@ -191,10 +193,6 @@ export function useImageUpload(groupId: MaybeRefOrGetter<string>) {
           'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
         /\.(docx|pptx|xlsx)$/i.test(f.name)
       ) {
-        if (f.size > MAX_DOCUMENT_BYTES) {
-          failUpload(t('tasks.images.upload.office_too_large'));
-          return;
-        }
         validFilesList.push(f);
       }
     }
@@ -216,9 +214,29 @@ export function useImageUpload(groupId: MaybeRefOrGetter<string>) {
       return;
     }
 
+    // Every file is prepared and measured before the first upload starts, so
+    // one oversized file stops the whole selection like the quota does.
+    const prepared = await Promise.all(
+      validFilesList.map(async (original) => ({
+        original,
+        file: await processImageBeforeUpload(original),
+      })),
+    );
+    const oversized = prepared.find(({ file }) => file.size > maxBytesOf(file));
+    if (oversized) {
+      failUpload(
+        t('tasks.images.upload.file_too_large', {
+          name: oversized.original.name,
+          max: maxBytesOf(oversized.file) / BYTES_PER_MB,
+        }),
+      );
+      return;
+    }
+    const preparedFiles = prepared.map(({ file }) => file);
+
     const progressToast = toast.progress(
       t('tasks.images.upload.progress'),
-      validFilesList.length,
+      preparedFiles.length,
     );
 
     try {
@@ -311,8 +329,6 @@ export function useImageUpload(groupId: MaybeRefOrGetter<string>) {
             });
           }
         } else {
-          // Existing behavior for standard images and PDFs
-          const processedFile = await processImageBeforeUpload(file);
           const { data: sign } = await hw.post<UploadSignature>(
             groupPath(toValue(groupId), '/items/uploads/sign'),
             {},
@@ -335,7 +351,7 @@ export function useImageUpload(groupId: MaybeRefOrGetter<string>) {
               height: 600,
             };
           } else {
-            json = await uploadToCloudinary(sign, processedFile);
+            json = await uploadToCloudinary(sign, file);
           }
 
           if (!json.secure_url || !json.public_id)
@@ -371,20 +387,20 @@ export function useImageUpload(groupId: MaybeRefOrGetter<string>) {
       };
 
       const results = await Promise.allSettled(
-        validFilesList.map((file) =>
+        preparedFiles.map((file) =>
           uploadFile(file).finally(() => progressToast.increment()),
         ),
       );
 
       const uploaded = results.filter((r) => r.status === 'fulfilled').length;
 
-      if (uploaded === validFilesList.length) {
+      if (uploaded === preparedFiles.length) {
         uploadSuccess.value = true;
         progressToast.settle(t('tasks.images.upload.success'));
       } else if (uploaded > 0) {
         uploadError.value = t('tasks.images.upload.partial', {
           uploaded,
-          total: validFilesList.length,
+          total: preparedFiles.length,
         });
         progressToast.settle(uploadError.value, { type: 'warning' });
       } else {

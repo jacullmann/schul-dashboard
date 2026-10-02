@@ -253,9 +253,8 @@
     },
     "upload": {
       "failed": "Images could not be uploaded",
-      "office_too_large": "Office files may be no larger than 5 MB.",
+      "file_too_large": "“{name}” is too large, the maximum is {max} MB. Nothing was uploaded.",
       "partial": "{uploaded} of {total} images uploaded",
-      "pdf_too_large": "PDF files may be no larger than 5 MB.",
       "progress": "Uploading images",
       "quota": {
         "own_exceeded": "You can upload at most {max} images to this task, so {remaining} more. Nothing was uploaded – please select fewer files.",

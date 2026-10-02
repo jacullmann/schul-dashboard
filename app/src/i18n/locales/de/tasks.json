@@ -259,9 +259,8 @@
     },
     "upload": {
       "failed": "Bilder konnten nicht hochgeladen werden",
-      "office_too_large": "Office-Dateien dürfen maximal 5 MB groß sein.",
+      "file_too_large": "„{name}“ ist zu groß, erlaubt sind maximal {max} MB. Es wurde nichts hochgeladen.",
       "partial": "{uploaded} von {total} Bildern hochgeladen",
-      "pdf_too_large": "PDF-Dateien dürfen maximal 5 MB groß sein.",
       "progress": "Bilder werden hochgeladen",
       "quota": {
         "own_exceeded": "Du kannst maximal {max} Bilder zu dieser Aufgabe hochladen, also noch {remaining}. Es wurde nichts hochgeladen – bitte wähle weniger Dateien aus.",
