@@ -153,15 +153,15 @@ const {
 );
 
 // Every task is loaded already, so the next page is only rendered once the
-// list's end comes within a screen's height, before it is reached. It waits for
-// the cards' entrance to settle: shown at once beneath cards still cascading
-// in, it would arrive ahead of them.
+// list's end comes within a screen's height, before it is reached. While the
+// first cards still cascade in, a page fills a tall screen and joins them.
 const pageEnd = useTemplateRef<HTMLElement>('pageEnd');
 useIntersectionObserver(
   pageEnd,
   ([entry]) => {
     if (!entry?.isIntersecting) return;
-    showCardsWithoutEntrance(showMore().map((item) => item.id));
+    const revealedIds = showMore().map((item) => item.id);
+    if (hasCardEntranceSettled.value) showCardsWithoutEntrance(revealedIds);
   },
   { rootMargin: '0px 0px 100% 0px' },
 );
@@ -374,7 +374,7 @@ onDeactivated(() => {
            end may still be in range after a page too short to reach past it.
            Out of the flow, so the list's gap does not open beneath it. -->
       <div
-        v-if="hasMoreItems && hasCardEntranceSettled"
+        v-if="hasMoreItems && !showSkeleton"
         ref="pageEnd"
         :key="visibleCount"
         aria-hidden="true"

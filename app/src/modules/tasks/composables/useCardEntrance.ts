@@ -7,9 +7,9 @@ import {
 
 /**
  * Cards that just appeared, by their place in the batch they arrived with, so
- * each batch cascades in from its first card. A card leaves the map once
- * settled: moving a card in the list re-inserts its node, which restarts its
- * animations.
+ * each batch cascades in from its first card, or after the cards still
+ * entering. A card leaves the map once settled: moving a card in the list
+ * re-inserts its node, which restarts its animations.
  *
  * While `held`, the list sits behind a skeleton and may still reorder as it
  * loads, so the order is only taken once the cards are actually shown. The
@@ -34,7 +34,12 @@ export function useCardEntrance(
       const entering = new Map(
         [...enteringOrder.value].filter(([id]) => currentIdSet.has(id)),
       );
-      let order = wasHeld ? skeletonOrder : 0;
+      // Cards arriving while others still cascade in queue up behind them.
+      let order = wasHeld
+        ? skeletonOrder
+        : entering.size
+          ? Math.max(...entering.values()) + 1
+          : 0;
       for (const id of currentIds) {
         if (!shownIds.has(id)) entering.set(id, order++);
       }
