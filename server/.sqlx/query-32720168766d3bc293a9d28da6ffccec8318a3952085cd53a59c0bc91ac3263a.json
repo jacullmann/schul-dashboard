@@ -1,10 +1,21 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT images FROM items WHERE id = $1 AND tenant_id = $2 FOR UPDATE",
+  "query": "SELECT type, images FROM items WHERE id = $1 AND tenant_id = $2 FOR UPDATE",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
+        "name": "type",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "items",
+            "name": "type"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
         "name": "images",
         "type_info": "Jsonb",
         "origin": {
@@ -22,8 +33,9 @@
       ]
     },
     "nullable": [
+      false,
       true
     ]
   },
-  "hash": "0de885475536907f0393b2ff3521f5d0bb8f86e54c4d5185219ae5ee8949b7ae"
+  "hash": "32720168766d3bc293a9d28da6ffccec8318a3952085cd53a59c0bc91ac3263a"
 }

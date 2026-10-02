@@ -7,6 +7,7 @@ use crate::{
     error::{AppError, AppResult},
     items::{
         dto::{AddImageDto, CreateItemDto, ImageDto, ItemSubjectDto, UpdateItemDto},
+        item_type::ItemType,
         policy::ItemActor,
     },
     state::AppState,
@@ -15,9 +16,6 @@ use chrono::Utc;
 use serde_json::{Value, json};
 use sqlx::PgPool;
 use uuid::Uuid;
-
-/// Only groups that enabled Dalton may create items of this type.
-const DALTON_ITEM_TYPE: &str = "dalton";
 
 fn time_left_color(due: &chrono::DateTime<Utc>) -> &'static str {
     let diff = (*due - Utc::now()).num_seconds() as f64 / 86400.0;
@@ -35,7 +33,6 @@ fn time_left_color(due: &chrono::DateTime<Utc>) -> &'static str {
 }
 
 const TITLE_MAX_CHARS: usize = 60;
-const MAX_IMAGES_PER_ITEM: usize = 12;
 /// Metadata is stored verbatim in the item row, so its size is capped.
 const IMAGE_METADATA_MAX_BYTES: usize = 2048;
 
@@ -47,6 +44,10 @@ fn image_record(image: &ImageDto, uploader: Uuid) -> Value {
         "createdBy": uploader,
         "metadata": image.metadata,
     })
+}
+
+fn image_uploader(image: &Value) -> Option<Uuid> {
+    image["createdBy"].as_str()?.parse().ok()
 }
 
 /// A task's subject once it is known to exist in the task's group.
@@ -372,16 +373,16 @@ impl ItemsService {
         if !images.is_empty() && !actor.can_upload_images {
             return Err(AppError::forbidden("Insufficient permissions."));
         }
-        if images.len() > MAX_IMAGES_PER_ITEM {
-            return Err(AppError::bad_request(format!(
-                "Maximum of {MAX_IMAGES_PER_ITEM} images per item reached."
-            )));
-        }
+        // Every image of a new task is the creator's own.
+        dto.r#type
+            .image_quota()
+            .ensure_room_for(images.len(), 0, 0)?;
         for image in images {
             self.validate_image(image)?;
         }
 
-        if dto.r#type == DALTON_ITEM_TYPE {
+        // Only groups that enabled Dalton may create items of this type.
+        if dto.r#type == ItemType::Dalton {
             let dalton_enabled = sqlx::query_scalar!(
                 r#"SELECT dalton_enabled FROM groups WHERE id = $1"#,
                 tenant_id
@@ -416,7 +417,7 @@ impl ItemsService {
                      AND (i.due_date AT TIME ZONE 'Europe/Berlin')::date = ($6 AT TIME ZONE 'Europe/Berlin')::date
                    LIMIT 1"#,
                 tenant_id,
-                dto.r#type,
+                dto.r#type.as_str(),
                 subject.subject_id(),
                 subject.course_id(),
                 subject.custom_name(),
@@ -463,7 +464,7 @@ impl ItemsService {
         let row = sqlx::query!(
             r#"INSERT INTO items (type, title, subject_id, course_id, custom_subject, description, images, due_date, created_by, tenant_id)
                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id"#,
-            dto.r#type, title.as_str(),
+            dto.r#type.as_str(), title.as_str(),
             subject.subject_id(), subject.course_id(), subject.custom_name(),
             dto.description.as_deref().unwrap_or("").trim(),
             json!(images),
@@ -591,8 +592,10 @@ impl ItemsService {
 
         let mut tx = self.db.begin().await?;
 
+        // The row lock serialises concurrent uploads, so parallel requests
+        // cannot each see room for one more image and overshoot the quota.
         let item = sqlx::query!(
-            r#"SELECT images FROM items WHERE id = $1 AND tenant_id = $2 FOR UPDATE"#,
+            r#"SELECT type, images FROM items WHERE id = $1 AND tenant_id = $2 FOR UPDATE"#,
             item_id,
             tenant_id
         )
@@ -600,16 +603,21 @@ impl ItemsService {
         .await?
         .ok_or_else(|| AppError::not_found("Item not found."))?;
 
+        let item_type = ItemType::from_str(&item.r#type)
+            .ok_or_else(|| AppError::internal(format!("Unknown item type {}", item.r#type)))?;
+
         let mut images: Vec<Value> = match item.images {
             Some(Value::Array(arr)) => arr,
             _ => Vec::new(),
         };
 
-        if images.len() >= MAX_IMAGES_PER_ITEM {
-            return Err(AppError::bad_request(format!(
-                "Maximum of {MAX_IMAGES_PER_ITEM} images per item reached."
-            )));
-        }
+        let own = images
+            .iter()
+            .filter(|img| image_uploader(img) == Some(user_id))
+            .count();
+        item_type
+            .image_quota()
+            .ensure_room_for(1, own, images.len())?;
 
         let new_image = image_record(&dto.image, user_id);
 
@@ -665,11 +673,7 @@ impl ItemsService {
             .find(|img| img["publicId"].as_str() == Some(public_id))
             .ok_or_else(|| AppError::not_found("Image not found."))?;
 
-        let image_uploader = target["createdBy"]
-            .as_str()
-            .and_then(|s| s.parse::<Uuid>().ok());
-
-        if !actor.may_remove_image(item.created_by, image_uploader) {
+        if !actor.may_remove_image(item.created_by, image_uploader(target)) {
             return Err(AppError::forbidden("Not allowed to delete this image."));
         }
 

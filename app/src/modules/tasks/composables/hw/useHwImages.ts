@@ -59,7 +59,7 @@ export function useHwImages(
 
     imageUpload.init(targetItem.images);
     currentUploadItemId.value = targetItem.id;
-    imageUpload.uploadImage(true, targetItem.id);
+    imageUpload.uploadImage(targetItem.type, targetItem.id);
     closeImageMenu();
   }
 
@@ -68,7 +68,7 @@ export function useHwImages(
 
     imageUpload.init(item.images);
     currentUploadItemId.value = item.id;
-    imageUpload.uploadFiles(files, true, item.id);
+    imageUpload.uploadFiles(files, item.type, item.id);
   }
 
   async function triggerImageDelete() {

@@ -259,12 +259,17 @@
     },
     "upload": {
       "failed": "Bilder konnten nicht hochgeladen werden",
-      "limit_reached": "Limit erreicht. Maximal {max} Bilder.",
-      "max_per_upload": "Maximal {max} Bilder pro Upload erlaubt.",
       "office_too_large": "Office-Dateien dürfen maximal 5 MB groß sein.",
       "partial": "{uploaded} von {total} Bildern hochgeladen",
       "pdf_too_large": "PDF-Dateien dürfen maximal 5 MB groß sein.",
       "progress": "Bilder werden hochgeladen",
+      "quota": {
+        "own_exceeded": "Du kannst maximal {max} Bilder zu dieser Aufgabe hochladen, also noch {remaining}. Es wurde nichts hochgeladen – bitte wähle weniger Dateien aus.",
+        "own_reached": "Du hast bereits die maximale Anzahl von {max} Bildern zu dieser Aufgabe hochgeladen.",
+        "task_exceeded": "Eine Aufgabe kann maximal {max} Bilder enthalten, hier passen noch {remaining}. Es wurde nichts hochgeladen – bitte wähle weniger Dateien aus.",
+        "task_reached": "Diese Aufgabe enthält bereits die maximale Anzahl von {max} Bildern.",
+        "type_exceeded": "Für diesen Aufgabentyp sind maximal {max} Bilder erlaubt. Bitte entferne die überzähligen Bilder."
+      },
       "success": "Bilder erfolgreich hochgeladen"
     },
     "document": "Dokument"

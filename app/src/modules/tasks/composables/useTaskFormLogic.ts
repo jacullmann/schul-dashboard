@@ -12,6 +12,7 @@ import type {
 import { taskRoute } from '@/modules/tasks/utils/routes';
 import { useImageUpload } from '@/modules/tasks/composables/useImageUpload';
 import { useFileDrop } from '@/modules/tasks/composables/useFileDrop';
+import { IMAGE_QUOTAS } from '@/modules/tasks/utils/imageQuota';
 import { useTaskPermissions } from '@/modules/tasks/composables/useTaskPermissions';
 import { useI18n } from 'vue-i18n';
 import {
@@ -101,9 +102,20 @@ export function useTaskFormLogic(
   const canRemoveImage = (img: ImageItem) =>
     !initial || canDeleteImage(initial, img);
 
-  // uploadFiles filters unsupported types and enforces the size limits.
+  const pickImages = () => uploadImage(activeType.value, initial?.id);
+
+  /** Switching a new task to a type with a smaller quota can leave too many images. */
+  const imageQuotaError = computed(() => {
+    if (initial) return '';
+    const max = IMAGE_QUOTAS[activeType.value].perUploader;
+    return imgImages.value.length > max
+      ? t('tasks.images.upload.quota.type_exceeded', { max })
+      : '';
+  });
+
+  // uploadFiles filters unsupported types and enforces the size and quota limits.
   const { isDragOver: isDragging, handlers: dropHandlers } = useFileDrop(
-    (files) => void uploadFiles(files, !!initial, initial?.id),
+    (files) => void uploadFiles(files, activeType.value, initial?.id),
     { enabled: canUploadImages },
   );
 
@@ -351,6 +363,8 @@ export function useTaskFormLogic(
       hasValidationErrors = true;
     }
 
+    if (imageQuotaError.value) hasValidationErrors = true;
+
     const selectedDate = new Date(dueLocal.value);
     selectedDate.setHours(23, 59, 0, 0);
 
@@ -487,8 +501,9 @@ export function useTaskFormLogic(
     imgImages,
     imgUploading,
     imgUploadError,
+    imageQuotaError,
     makeThumb,
-    uploadImage,
+    pickImages,
     removeImg,
     makeUrl,
     isPdf,

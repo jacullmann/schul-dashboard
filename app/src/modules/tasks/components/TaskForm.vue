@@ -35,8 +35,9 @@ const {
   imgImages,
   imgUploading,
   imgUploadError,
+  imageQuotaError,
   makeThumb,
-  uploadImage,
+  pickImages,
   removeImg,
   makeUrl,
   isPdf,
@@ -216,7 +217,7 @@ const imageEntrance = useAddedEntrance(
       <BaseFormGroup
         v-if="canUploadImages || imgImages.length"
         id="images"
-        :error="imgUploadError"
+        :error="imageQuotaError || imgUploadError"
       >
         <BaseLabel for="images">{{
           t('tasks.list.task_form.images')
@@ -271,7 +272,7 @@ const imageEntrance = useAddedEntrance(
               variant="ghost"
               :loading="imgUploading"
               :icon="Upload"
-              @click="uploadImage(!!initial, initial?.id)"
+              @click="pickImages"
             />
           </BaseTooltip>
         </BaseRow>

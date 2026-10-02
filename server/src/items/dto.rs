@@ -1,3 +1,4 @@
+use super::item_type::ItemType;
 use crate::common::cloudinary::RawExtension;
 use serde::Deserialize;
 use uuid::Uuid;
@@ -20,8 +21,7 @@ pub enum ItemSubjectDto {
 #[derive(Debug, Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateItemDto {
-    #[validate(custom(function = "validate_item_type"))]
-    pub r#type: String,
+    pub r#type: ItemType,
     #[validate(length(min = 1, max = 60))]
     pub title: String,
     pub subject: ItemSubjectDto,
@@ -41,14 +41,6 @@ pub struct UpdateItemDto {
     #[validate(length(max = 1000))]
     pub description: Option<String>,
     pub due_date: Option<String>,
-}
-
-fn validate_item_type(t: &str) -> Result<(), validator::ValidationError> {
-    if matches!(t, "homework" | "dalton" | "exam") {
-        Ok(())
-    } else {
-        Err(validator::ValidationError::new("invalid_type"))
-    }
 }
 
 #[derive(Debug, Deserialize)]

@@ -9,7 +9,13 @@ import {
 } from '@/api/cloudinary';
 import { processImageBeforeUpload } from '@/modules/tasks/composables/useConvertImage';
 import { useToast } from '@/common/composables/useToast';
-import type { ImageItem } from '@/modules/tasks/types';
+import { useUserStore } from '@/stores/userStore';
+import type { HwItem, ImageItem } from '@/modules/tasks/types';
+import {
+  imageQuotaViolation,
+  type HeldImages,
+  type ImageQuotaViolation,
+} from '@/modules/tasks/utils/imageQuota';
 
 export type { ImageItem };
 
@@ -123,6 +129,7 @@ export function makeRawUrl(input?: string): string {
 export function useImageUpload(groupId: MaybeRefOrGetter<string>) {
   const { t } = useI18n();
   const toast = useToast();
+  const userStore = useUserStore();
 
   function failUpload(message: string) {
     uploadError.value = message;
@@ -137,9 +144,26 @@ export function useImageUpload(groupId: MaybeRefOrGetter<string>) {
     uploadSuccess.value = false;
   }
 
+  /** Without an `itemId` the images belong to a task not created yet. */
+  function heldImages(itemId?: string): HeldImages {
+    const total = images.value.length;
+    if (!itemId) return { own: total, total };
+
+    const userId = userStore.user?.id;
+    const own = images.value.filter((img) => img.createdBy === userId).length;
+    return { own, total };
+  }
+
+  function quotaMessage({ limit, max, remaining }: ImageQuotaViolation) {
+    const scope = limit === 'perUploader' ? 'own' : 'task';
+    return remaining === 0
+      ? t(`tasks.images.upload.quota.${scope}_reached`, { max })
+      : t(`tasks.images.upload.quota.${scope}_exceeded`, { max, remaining });
+  }
+
   async function uploadFiles(
     files: File[],
-    isEditMode: boolean,
+    itemType: HwItem['type'],
     itemId?: string,
   ) {
     if (files.length === 0) return;
@@ -147,17 +171,6 @@ export function useImageUpload(groupId: MaybeRefOrGetter<string>) {
     uploading.value = true;
     uploadError.value = '';
     uploadSuccess.value = false;
-
-    const TOTAL_MAX_IMAGES = 12;
-    const PER_USER_MAX_IMAGES = 8;
-    const MAX_IMAGES = isEditMode ? TOTAL_MAX_IMAGES : PER_USER_MAX_IMAGES;
-
-    const remaining = MAX_IMAGES - (images.value || []).length;
-
-    if (remaining <= 0) {
-      failUpload(t('tasks.images.upload.limit_reached', { max: MAX_IMAGES }));
-      return;
-    }
 
     const validFilesList: File[] = [];
     for (const f of files) {
@@ -186,23 +199,26 @@ export function useImageUpload(groupId: MaybeRefOrGetter<string>) {
       }
     }
 
-    const slicedFiles = validFilesList.slice(0, remaining);
-
-    if (slicedFiles.length === 0) {
+    if (validFilesList.length === 0) {
       uploading.value = false;
       return;
     }
 
-    if (slicedFiles.length > PER_USER_MAX_IMAGES) {
-      failUpload(
-        t('tasks.images.upload.max_per_upload', { max: PER_USER_MAX_IMAGES }),
-      );
+    // A selection that does not fit is rejected as a whole rather than cut
+    // down, so the member decides which files to leave out.
+    const violation = imageQuotaViolation(
+      itemType,
+      heldImages(itemId),
+      validFilesList.length,
+    );
+    if (violation) {
+      failUpload(quotaMessage(violation));
       return;
     }
 
     const progressToast = toast.progress(
       t('tasks.images.upload.progress'),
-      slicedFiles.length,
+      validFilesList.length,
     );
 
     try {
@@ -355,20 +371,20 @@ export function useImageUpload(groupId: MaybeRefOrGetter<string>) {
       };
 
       const results = await Promise.allSettled(
-        slicedFiles.map((file) =>
+        validFilesList.map((file) =>
           uploadFile(file).finally(() => progressToast.increment()),
         ),
       );
 
       const uploaded = results.filter((r) => r.status === 'fulfilled').length;
 
-      if (uploaded === slicedFiles.length) {
+      if (uploaded === validFilesList.length) {
         uploadSuccess.value = true;
         progressToast.settle(t('tasks.images.upload.success'));
       } else if (uploaded > 0) {
         uploadError.value = t('tasks.images.upload.partial', {
           uploaded,
-          total: slicedFiles.length,
+          total: validFilesList.length,
         });
         progressToast.settle(uploadError.value, { type: 'warning' });
       } else {
@@ -383,7 +399,7 @@ export function useImageUpload(groupId: MaybeRefOrGetter<string>) {
     }
   }
 
-  function uploadImage(isEditMode: boolean, itemId?: string) {
+  function uploadImage(itemType: HwItem['type'], itemId?: string) {
     uploading.value = true;
     uploadError.value = '';
     uploadSuccess.value = false;
@@ -399,7 +415,7 @@ export function useImageUpload(groupId: MaybeRefOrGetter<string>) {
 
     input.onchange = async () => {
       const files = Array.from(input.files || []);
-      await uploadFiles(files, isEditMode, itemId);
+      await uploadFiles(files, itemType, itemId);
     };
 
     input.click();
