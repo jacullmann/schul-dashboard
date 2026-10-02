@@ -452,7 +452,7 @@ const {
 
                 <div
                   v-else
-                  class="p-4 rounded-xl border border-dashed border-ghost-border text-center text-xs text-on-ghost-muted animate-enter"
+                  class="p-4 text-center text-xs text-on-ghost-muted animate-enter"
                   :style="{
                     '--enter-delay': entranceDelay(NEXT_LESSON_REVEAL_ORDER),
                   }"
@@ -538,7 +538,7 @@ const {
 
                 <div
                   v-else
-                  class="flex-1 flex items-center justify-center p-4 rounded-xl border border-dashed border-ghost-border text-center text-xs text-on-ghost-muted animate-enter"
+                  class="flex-1 flex items-center justify-center p-4 text-center text-xs text-on-ghost-muted animate-enter"
                   :style="{
                     '--enter-delay': entranceDelay(SUBSTITUTIONS_REVEAL_ORDER),
                   }"

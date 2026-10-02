@@ -1,28 +1,17 @@
 <script setup lang="ts"></script>
 
 <template>
-  <div class="simple-layout">
-    <main class="main-content">
+  <div class="flex min-h-screen w-full flex-col bg-canvas">
+    <header class="w-full px-6 py-2">
+      <div class="flex items-center justify-center text-2xl font-bold">
+        schul-dashboard
+        <!-- TODO: implement theme and language switch -->
+      </div>
+    </header>
+    <main
+      class="flex flex-1 justify-center items-center p-6 main-content box-border"
+    >
       <router-view />
     </main>
   </div>
 </template>
-
-<style scoped>
-.simple-layout {
-  min-height: 100vh;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  background: var(--color-canvas);
-}
-
-.main-content {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 24px;
-  box-sizing: border-box;
-}
-</style>
