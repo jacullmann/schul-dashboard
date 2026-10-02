@@ -50,13 +50,13 @@ export function coursesAtLevel(subject: Subject, level: CourseLevel): Course[] {
 }
 
 /**
- * Preselected where the answer goes without saying: nothing for a subject that
- * can be dropped, the only level for one that cannot. A Pflichtfach with a
- * real choice stays open, so the member has to make it.
+ * Nothing for a subject that can be dropped; otherwise GK, the common case,
+ * or whatever single level the subject runs.
  */
 export function defaultCourseLevel(
   levels: readonly CourseLevel[],
 ): CourseLevel | null {
   if (levels.includes('no')) return 'no';
-  return levels.length === 1 ? (levels[0] ?? null) : null;
+  if (levels.includes('gk')) return 'gk';
+  return levels[0] ?? null;
 }

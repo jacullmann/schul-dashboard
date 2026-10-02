@@ -37,7 +37,7 @@ const {
 
 const {
   reset: resetCourseSetup,
-  subjects: abiturSubjects,
+  levelChoiceSubjects,
   levelOptions,
   levels,
   hasAllLevels,
@@ -60,7 +60,11 @@ const saving = ref(false);
 const error = ref('');
 
 const isAbitur = computed(() => subjectStore.groupType === 'abitur');
-const isLessonStep = computed(() => isAbitur.value && step.value === 'lessons');
+const hasLevelChoices = computed(() => levelChoiceSubjects.value.length > 0);
+// Without a level to choose, the timetable is all there is to ask.
+const isLessonStep = computed(
+  () => isAbitur.value && (step.value === 'lessons' || !hasLevelChoices.value),
+);
 
 watch(
   () => props.open,
@@ -88,7 +92,15 @@ watch(
 watch(
   () => props.open && isAbitur.value,
   (preload) => {
-    if (preload) void loadLessons().catch(() => {});
+    if (!preload) return;
+    loadLessons().catch((e: unknown) => {
+      if (isLessonStep.value) {
+        error.value = apiErrorMessage(
+          e,
+          t('auth.courses.errors.schedule_load_failed'),
+        );
+      }
+    });
   },
   { immediate: true },
 );
@@ -205,7 +217,7 @@ function goBack() {
       <CourseLevelPicker
         v-else-if="isAbitur"
         v-model="levels"
-        :subjects="abiturSubjects"
+        :subjects="levelChoiceSubjects"
         :options="levelOptions"
       />
 
@@ -246,7 +258,7 @@ function goBack() {
 
     <template #secondary-action>
       <BaseButton
-        v-if="isLessonStep"
+        v-if="isLessonStep && hasLevelChoices"
         type="button"
         surface
         variant="ghost"

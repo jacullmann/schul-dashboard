@@ -54,6 +54,13 @@ export function useCourseSetup(groupId: string) {
 
   watch(levelOptions, resetLevels, { immediate: true });
 
+  /** A subject offering a single level has it settled without asking. */
+  const levelChoiceSubjects = computed(() =>
+    subjects.value.filter(
+      (subject) => (levelOptions.value.get(subject.id)?.length ?? 0) > 1,
+    ),
+  );
+
   const hasAllLevels = computed(() =>
     subjects.value.every((subject) => levels.value[subject.id] != null),
   );
@@ -168,6 +175,7 @@ export function useCourseSetup(groupId: string) {
     reset,
     subjects,
     levelOptions,
+    levelChoiceSubjects,
     levels,
     hasAllLevels,
     needsLessonChoice,
