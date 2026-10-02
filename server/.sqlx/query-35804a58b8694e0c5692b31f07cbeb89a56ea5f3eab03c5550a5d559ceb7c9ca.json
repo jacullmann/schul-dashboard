@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT g.id, g.name, g.group_type, g.owner_id, g.created_at,\n                      u.email AS owner_email,\n                      members.n AS \"member_count!\", items.n AS \"item_count!\"\n               FROM groups g\n               JOIN users u ON u.id = g.owner_id\n               CROSS JOIN LATERAL (SELECT COUNT(*) AS n FROM user_roles WHERE tenant_id = g.id) members\n               CROSS JOIN LATERAL (SELECT COUNT(*) AS n FROM items WHERE tenant_id = g.id) items\n               WHERE ($1::text IS NULL OR g.name ILIKE $1 OR u.email ILIKE $1 OR g.id = $2)\n                 AND ($3::text IS NULL OR g.group_type = $3)\n               ORDER BY\n                 CASE WHEN $4 = 'name' AND $5 = 'asc' THEN g.name END ASC,\n                 CASE WHEN $4 = 'name' AND $5 = 'desc' THEN g.name END DESC,\n                 CASE WHEN $4 = 'memberCount' AND $5 = 'asc' THEN members.n END ASC,\n                 CASE WHEN $4 = 'memberCount' AND $5 = 'desc' THEN members.n END DESC,\n                 CASE WHEN $4 = 'itemCount' AND $5 = 'asc' THEN items.n END ASC,\n                 CASE WHEN $4 = 'itemCount' AND $5 = 'desc' THEN items.n END DESC,\n                 CASE WHEN $5 = 'asc' THEN g.created_at END ASC,\n                 g.created_at DESC,\n                 g.id\n               LIMIT $6 OFFSET $7",
+  "query": "SELECT g.id, g.name, g.avatar_url, g.group_type, g.owner_id, g.created_at,\n                      u.email AS owner_email,\n                      members.n AS \"member_count!\", items.n AS \"item_count!\"\n               FROM groups g\n               JOIN users u ON u.id = g.owner_id\n               CROSS JOIN LATERAL (SELECT COUNT(*) AS n FROM user_roles WHERE tenant_id = g.id) members\n               CROSS JOIN LATERAL (SELECT COUNT(*) AS n FROM items WHERE tenant_id = g.id) items\n               WHERE ($1::text IS NULL OR g.name ILIKE $1 OR u.email ILIKE $1 OR g.id = $2)\n                 AND ($3::text IS NULL OR g.group_type = $3)\n               ORDER BY\n                 CASE WHEN $4 = 'name' AND $5 = 'asc' THEN g.name END ASC,\n                 CASE WHEN $4 = 'name' AND $5 = 'desc' THEN g.name END DESC,\n                 CASE WHEN $4 = 'memberCount' AND $5 = 'asc' THEN members.n END ASC,\n                 CASE WHEN $4 = 'memberCount' AND $5 = 'desc' THEN members.n END DESC,\n                 CASE WHEN $4 = 'itemCount' AND $5 = 'asc' THEN items.n END ASC,\n                 CASE WHEN $4 = 'itemCount' AND $5 = 'desc' THEN items.n END DESC,\n                 CASE WHEN $5 = 'asc' THEN g.created_at END ASC,\n                 g.created_at DESC,\n                 g.id\n               LIMIT $6 OFFSET $7",
   "describe": {
     "columns": [
       {
@@ -27,6 +27,17 @@
       },
       {
         "ordinal": 2,
+        "name": "avatar_url",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "groups",
+            "name": "avatar_url"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
         "name": "group_type",
         "type_info": "Text",
         "origin": {
@@ -37,7 +48,7 @@
         }
       },
       {
-        "ordinal": 3,
+        "ordinal": 4,
         "name": "owner_id",
         "type_info": "Uuid",
         "origin": {
@@ -48,7 +59,7 @@
         }
       },
       {
-        "ordinal": 4,
+        "ordinal": 5,
         "name": "created_at",
         "type_info": "Timestamptz",
         "origin": {
@@ -59,7 +70,7 @@
         }
       },
       {
-        "ordinal": 5,
+        "ordinal": 6,
         "name": "owner_email",
         "type_info": "Text",
         "origin": {
@@ -70,13 +81,13 @@
         }
       },
       {
-        "ordinal": 6,
+        "ordinal": 7,
         "name": "member_count!",
         "type_info": "Int8",
         "origin": "Expression"
       },
       {
-        "ordinal": 7,
+        "ordinal": 8,
         "name": "item_count!",
         "type_info": "Int8",
         "origin": "Expression"
@@ -96,6 +107,7 @@
     "nullable": [
       false,
       false,
+      true,
       false,
       false,
       false,
@@ -104,5 +116,5 @@
       null
     ]
   },
-  "hash": "24a629bd157f996d71f6ca38d7e866ba54a136a92ba10d9ea5168f8a711eb3c7"
+  "hash": "35804a58b8694e0c5692b31f07cbeb89a56ea5f3eab03c5550a5d559ceb7c9ca"
 }
