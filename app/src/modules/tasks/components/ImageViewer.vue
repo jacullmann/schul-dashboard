@@ -140,6 +140,20 @@ const DISMISS_SCALE = 0.4;
 const DISMISS_RETURN_DURATION = 200;
 const DISMISS_RETURN_EASING = 'cubic-bezier(0.22, 1, 0.36, 1)';
 
+// Pinch to zoom. The image never grows past this many times the size it fits
+// the screen at.
+const MAX_ZOOM = 4;
+// A pinch past either end of the range follows the fingers at a falling rate,
+// as the share of the scale it approaches but never reaches past that end.
+const ZOOM_RUBBER_BAND = 0.5;
+// How far a zoomed in image can be pulled past its top or bottom edge, as the
+// share of the viewport height it approaches but never reaches. Sideways the
+// edge hands the drag on to the slide track instead.
+const PAN_OVERSCROLL = 0.15;
+// A pan that is let go of carries on as far as it would travel in this many
+// ms at the speed it was released at.
+const PAN_MOMENTUM = 200;
+
 const hasNext = computed(() => currentIndex.value < props.images.length - 1);
 const hasPrev = computed(() => currentIndex.value > 0);
 
@@ -151,6 +165,9 @@ const isOffice = (img: any) => {
   const format = img?.metadata?.format?.toLowerCase();
   return ['docx', 'pptx', 'xlsx', 'doc', 'ppt', 'xls'].includes(format);
 };
+
+// Documents bring their own viewer, which handles its own pinch.
+const isZoomable = (img: any) => !!img && !isPdf(img) && !isOffice(img);
 
 function getImageSrc(img: any): string {
   if (!img) return '';
@@ -200,7 +217,17 @@ function frameSize(index: number) {
 
 function frameStyle(index: number) {
   const size = frameSize(index);
-  return size ? { width: `${size.w}px`, height: `${size.h}px` } : undefined;
+  if (!size) return undefined;
+
+  return {
+    width: `${size.w}px`,
+    height: `${size.h}px`,
+    // The zoom scales the corners along with the picture, so they are
+    // counter scaled to stay the size they are at rest.
+    borderRadius: zoomedAt(index)
+      ? `${FRAME_RADIUS / zoomScale.value}px`
+      : undefined,
+  };
 }
 
 const currentFrameSize = computed(() => frameSize(currentIndex.value));
@@ -295,6 +322,8 @@ function settleTrack(duration: number) {
     settleTimer = null;
     slideTransition.value = null;
     travellingFrom.value = null;
+    // An image zoomed in on keeps its zoom until it has left the screen.
+    if (zoomedIndex.value !== currentIndex.value) resetZoom();
   }, duration + 40);
 }
 
@@ -306,6 +335,7 @@ function slideTo(index: number, duration = SLIDE_DURATION) {
     slideTransition.value = null;
     travellingFrom.value = null;
     clearSettleTimer();
+    resetZoom();
   } else {
     slideTransition.value = `transform ${duration}ms ${SLIDE_EASING}`;
     travellingFrom.value = currentIndex.value;
@@ -434,6 +464,259 @@ function takeOverOpenDim() {
   animation.cancel();
 }
 
+// Pinch to zoom ----------------------------------------------------------
+//
+// The zoom sits on a layer of its own between the slide and the frame, so the
+// open and close animations keep the frame to themselves. It is held in
+// screen pixels from the viewport centre, around which the layer scales. The
+// image it belongs to keeps it while a page turn carries it off screen.
+
+const zoomedIndex = ref<number | null>(null);
+const zoomScale = ref(1);
+const zoomX = ref(0);
+const zoomY = ref(0);
+const zoomTransition = ref<string | null>(null);
+let zoomTimer: ReturnType<typeof setTimeout> | null = null;
+
+const isZoomed = computed(
+  () => zoomedIndex.value === currentIndex.value && zoomScale.value > 1,
+);
+
+function zoomedAt(index: number) {
+  return zoomedIndex.value === index && zoomScale.value !== 1;
+}
+
+function zoomStyle(index: number): CSSProperties | undefined {
+  if (index !== zoomedIndex.value) return undefined;
+  return {
+    transform: `translate3d(${zoomX.value}px, ${zoomY.value}px, 0) scale(${zoomScale.value})`,
+    transition: zoomTransition.value ?? 'none',
+  };
+}
+
+function zoomLayer() {
+  const backdrop = overlayRef.value?.$el as HTMLElement | undefined;
+  return backdrop?.querySelector<HTMLElement>('[data-viewer-zoom]') ?? null;
+}
+
+function clearZoomTimer() {
+  if (zoomTimer) {
+    clearTimeout(zoomTimer);
+    zoomTimer = null;
+  }
+}
+
+function resetZoom() {
+  clearZoomTimer();
+  zoomedIndex.value = null;
+  zoomScale.value = 1;
+  zoomX.value = 0;
+  zoomY.value = 0;
+  zoomTransition.value = null;
+}
+
+function clampTo(value: number, limit: number) {
+  return Math.min(limit, Math.max(-limit, value));
+}
+
+// Past either end of the range the scale follows the pinch less and less.
+function bandZoom(scale: number) {
+  if (scale < 1) return 1 - rubberBand(1 - scale, ZOOM_RUBBER_BAND);
+  if (scale > MAX_ZOOM) {
+    return MAX_ZOOM * (1 + rubberBand(scale / MAX_ZOOM - 1, ZOOM_RUBBER_BAND));
+  }
+  return scale;
+}
+
+// How far off centre the image can sit at a scale before an edge of it comes
+// away from the edge of the viewport. Read from the layout, which transforms
+// leave alone, so it holds for a frame of known size and a bare image alike.
+function panLimits(scale: number) {
+  const content = zoomLayer()?.firstElementChild as HTMLElement | null;
+  if (!content) return { x: 0, y: 0 };
+
+  return {
+    x: Math.max(0, (content.offsetWidth * scale - windowWidth.value) / 2),
+    y: Math.max(0, (content.offsetHeight * scale - windowHeight.value) / 2),
+  };
+}
+
+// The nearest state inside the limits: the scale brought back into range
+// around `focus`, which stays where it is on screen, and the image moved no
+// further than its edges allow at that scale.
+function zoomTarget(
+  scale: number,
+  x: number,
+  y: number,
+  focusX = 0,
+  focusY = 0,
+) {
+  const target = Math.min(Math.max(scale, 1), MAX_ZOOM);
+  if (target === 1) return { scale: 1, x: 0, y: 0 };
+
+  const ratio = target / scale;
+  const limits = panLimits(target);
+  return {
+    scale: target,
+    x: clampTo(focusX - ratio * (focusX - x), limits.x),
+    y: clampTo(focusY - ratio * (focusY - y), limits.y),
+  };
+}
+
+function animateZoom(
+  target: { scale: number; x: number; y: number },
+  duration: number,
+) {
+  clearZoomTimer();
+  if (
+    target.scale === zoomScale.value &&
+    target.x === zoomX.value &&
+    target.y === zoomY.value
+  ) {
+    return;
+  }
+
+  if (prefersReducedMotion()) {
+    zoomTransition.value = null;
+  } else {
+    zoomTransition.value = `transform ${duration}ms ${SLIDE_EASING}`;
+    zoomTimer = setTimeout(() => {
+      zoomTimer = null;
+      zoomTransition.value = null;
+    }, duration + 40);
+  }
+
+  zoomScale.value = target.scale;
+  zoomX.value = target.x;
+  zoomY.value = target.y;
+}
+
+function settleZoom() {
+  if (zoomedIndex.value !== currentIndex.value) return;
+  animateZoom(
+    zoomTarget(zoomScale.value, zoomX.value, zoomY.value),
+    SNAP_DURATION,
+  );
+}
+
+// The same handover as for the track: a zoom still easing into place is
+// picked up where it is drawn, not where it is heading.
+function takeOverZoom() {
+  if (!zoomTransition.value) return;
+
+  const layer = zoomLayer();
+  if (layer) {
+    const matrix = matrixOf(layer);
+    zoomScale.value = matrix.a || 1;
+    zoomX.value = matrix.e;
+    zoomY.value = matrix.f;
+  }
+
+  clearZoomTimer();
+  zoomTransition.value = null;
+}
+
+let pinching = false;
+let pinchIds: [number, number] = [0, 0];
+let pinchStartDistance = 1;
+let pinchStartScale = 1;
+let pinchStartX = 0;
+let pinchStartY = 0;
+// Relative to the viewport centre, like the zoom itself.
+let pinchStartFocusX = 0;
+let pinchStartFocusY = 0;
+let pinchFocusX = 0;
+let pinchFocusY = 0;
+
+function pinchTouches(touches: TouchList) {
+  const list = Array.from(touches);
+  const first = list.find((touch) => touch.identifier === pinchIds[0]);
+  const second = list.find((touch) => touch.identifier === pinchIds[1]);
+  return first && second ? ([first, second] as const) : null;
+}
+
+function startPinch(e: TouchEvent) {
+  if (pinching || !isZoomable(props.images[currentIndex.value])) return;
+  // A drag that already turns the page or pushes the image away keeps the
+  // gesture: scaling the image under it would leave neither in a sensible
+  // place.
+  if (dragging && (dragAxis === 'x' || dragAxis === 'y')) return;
+  if (dragOffset.value !== 0 || dismissActive.value) return;
+
+  const [first, second] = [e.touches[0], e.touches[1]];
+  if (!first || !second) return;
+
+  const distance = Math.hypot(
+    second.clientX - first.clientX,
+    second.clientY - first.clientY,
+  );
+  if (!distance) return;
+
+  // The finger that was already down gives up its drag to the pinch.
+  dragging = false;
+  settleTrack(0);
+  takeOverZoom();
+  hideControls();
+
+  if (zoomedIndex.value !== currentIndex.value) resetZoom();
+  zoomedIndex.value = currentIndex.value;
+
+  pinching = true;
+  pinchIds = [first.identifier, second.identifier];
+  pinchStartDistance = distance;
+  pinchStartScale = zoomScale.value;
+  pinchStartX = zoomX.value;
+  pinchStartY = zoomY.value;
+  pinchStartFocusX =
+    (first.clientX + second.clientX) / 2 - windowWidth.value / 2;
+  pinchStartFocusY =
+    (first.clientY + second.clientY) / 2 - windowHeight.value / 2;
+  pinchFocusX = pinchStartFocusX;
+  pinchFocusY = pinchStartFocusY;
+}
+
+// The point of the image that was between the fingers when the pinch started
+// stays between them, so the image scales around the fingers and follows them
+// when they move together.
+function onPinchMove(e: TouchEvent) {
+  const touches = pinchTouches(e.touches);
+  if (!touches) return;
+  if (e.cancelable) e.preventDefault();
+
+  const [first, second] = touches;
+  const distance = Math.hypot(
+    second.clientX - first.clientX,
+    second.clientY - first.clientY,
+  );
+  const scale = bandZoom((pinchStartScale * distance) / pinchStartDistance);
+  const ratio = scale / pinchStartScale;
+
+  pinchFocusX = (first.clientX + second.clientX) / 2 - windowWidth.value / 2;
+  pinchFocusY = (first.clientY + second.clientY) / 2 - windowHeight.value / 2;
+  zoomScale.value = scale;
+  zoomX.value = pinchFocusX - ratio * (pinchStartFocusX - pinchStartX);
+  zoomY.value = pinchFocusY - ratio * (pinchStartFocusY - pinchStartY);
+}
+
+// Ends once either pinching finger lifts. The other one is left without a
+// gesture until it lifts too, since the one it started with is over.
+function onPinchEnd(e: TouchEvent) {
+  if (pinchTouches(e.touches)) return;
+
+  pinching = false;
+  dragEndedAt = Date.now();
+  animateZoom(
+    zoomTarget(
+      zoomScale.value,
+      zoomX.value,
+      zoomY.value,
+      pinchFocusX,
+      pinchFocusY,
+    ),
+    SNAP_DURATION,
+  );
+}
+
 // Slide gesture ----------------------------------------------------------
 
 let dragStartX = 0;
@@ -444,16 +727,25 @@ let sidewaysBase = 0;
 let lastDragX = 0;
 let lastDragY = 0;
 let lastDragTime = 0;
-let dragVelocity = 0;
-let dismissVelocity = 0;
+let dragVelocityX = 0;
+let dragVelocityY = 0;
 let dragging = false;
-let dragAxis: 'none' | 'x' | 'y' = 'none';
+// A drag on a zoomed in image pans it rather than turning the page or
+// pushing the image away.
+let dragAxis: 'none' | 'x' | 'y' | 'pan' = 'none';
 let dragMoved = false;
 // When a drag last let go. The click a touch sequence ends with belongs to
 // that drag, not to the backdrop, so it must not close the viewer.
 let dragEndedAt = 0;
+let panBaseX = 0;
+let panBaseY = 0;
 
 function onSlideStart(e: TouchEvent) {
+  if (e.touches.length === 2) {
+    startPinch(e);
+    return;
+  }
+
   // The open does not lock the gesture out: the frame keeps growing on its
   // own layer while the stage above it follows the finger.
   if (e.touches.length !== 1) return;
@@ -479,19 +771,27 @@ function onSlideStart(e: TouchEvent) {
   clearDismissTimer();
   dismissTransition.value = null;
 
+  takeOverZoom();
+  panBaseX = zoomX.value;
+  panBaseY = zoomY.value;
+
   dragStartX = touch.clientX;
   dragStartY = touch.clientY;
   lastDragX = touch.clientX;
   lastDragY = touch.clientY;
   lastDragTime = e.timeStamp;
-  dragVelocity = 0;
-  dismissVelocity = 0;
+  dragVelocityX = 0;
+  dragVelocityY = 0;
   dragging = true;
   dragAxis = 'none';
   dragMoved = false;
 }
 
 function onSlideMove(e: TouchEvent) {
+  if (pinching) {
+    onPinchMove(e);
+    return;
+  }
   if (!dragging) return;
 
   const touch = e.touches[0];
@@ -504,7 +804,8 @@ function onSlideMove(e: TouchEvent) {
     if (Math.max(Math.abs(deltaX), Math.abs(deltaY)) < AXIS_LOCK_THRESHOLD) {
       return;
     }
-    dragAxis = Math.abs(deltaX) > Math.abs(deltaY) ? 'x' : 'y';
+    if (isZoomed.value) dragAxis = 'pan';
+    else dragAxis = Math.abs(deltaX) > Math.abs(deltaY) ? 'x' : 'y';
     if (dragAxis === 'y') takeOverOpenDim();
   }
 
@@ -514,8 +815,8 @@ function onSlideMove(e: TouchEvent) {
   // ends at a standstill should not turn the page.
   const elapsed = e.timeStamp - lastDragTime;
   if (elapsed > 0) {
-    dragVelocity = (touch.clientX - lastDragX) / elapsed;
-    dismissVelocity = (touch.clientY - lastDragY) / elapsed;
+    dragVelocityX = (touch.clientX - lastDragX) / elapsed;
+    dragVelocityY = (touch.clientY - lastDragY) / elapsed;
     lastDragX = touch.clientX;
     lastDragY = touch.clientY;
     lastDragTime = e.timeStamp;
@@ -537,6 +838,11 @@ function onSlideMove(e: TouchEvent) {
     return;
   }
 
+  if (dragAxis === 'pan') {
+    onPanMove(deltaX, deltaY);
+    return;
+  }
+
   const raw = dragBase + deltaX;
   const pulling = raw > 0 ? !hasPrev.value : !hasNext.value;
   dragOffset.value = pulling ? raw * EDGE_RESISTANCE : raw;
@@ -544,10 +850,42 @@ function onSlideMove(e: TouchEvent) {
   showControls();
 }
 
+// Within its edges the image follows the finger. Sideways, what is left of
+// the drag past an edge goes to the track, so the next image can be pulled in
+// without zooming out first. Upwards and downwards there is nothing to turn
+// to, so the image only gives a little.
+function onPanMove(deltaX: number, deltaY: number) {
+  const limits = panLimits(zoomScale.value);
+
+  const rawX = panBaseX + deltaX;
+  zoomX.value = clampTo(rawX, limits.x);
+  const overflow = dragBase + rawX - zoomX.value;
+  const pulling = overflow > 0 ? !hasPrev.value : !hasNext.value;
+  dragOffset.value = pulling ? overflow * EDGE_RESISTANCE : overflow;
+
+  const rawY = panBaseY + deltaY;
+  const clampedY = clampTo(rawY, limits.y);
+  zoomY.value =
+    clampedY + rubberBand(rawY - clampedY, windowHeight.value * PAN_OVERSCROLL);
+
+  dragMoved = true;
+}
+
+function onPanEnd() {
+  animateZoom(
+    zoomTarget(
+      zoomScale.value,
+      zoomX.value + dragVelocityX * PAN_MOMENTUM,
+      zoomY.value + dragVelocityY * PAN_MOMENTUM,
+    ),
+    SLIDE_DURATION,
+  );
+}
+
 // A thrown track keeps the speed it was released at, so the animation carries
 // the gesture on instead of restarting it.
 function throwDuration(remaining: number) {
-  const speed = Math.abs(dragVelocity);
+  const speed = Math.abs(dragVelocityX);
   if (speed < 0.1) return SLIDE_DURATION;
   return Math.min(
     SLIDE_DURATION,
@@ -555,14 +893,20 @@ function throwDuration(remaining: number) {
   );
 }
 
-function onSlideEnd() {
+function onSlideEnd(e: TouchEvent) {
+  if (pinching) {
+    onPinchEnd(e);
+    return;
+  }
   if (!dragging) return;
   dragging = false;
 
   // A tap leaves the track where it was, but may still have taken a running
-  // slide's transition off it, so the track is handed back either way.
+  // slide's transition off it, so the track is handed back either way. The
+  // same goes for a zoom it caught on its way back into its limits.
   if (dragAxis === 'none' || !dragMoved) {
     settleTrack(0);
+    settleZoom();
     return;
   }
 
@@ -573,11 +917,15 @@ function onSlideEnd() {
     return;
   }
 
+  // What the pan pushed past the image's edge is on the track, which turns
+  // the page or falls back like any other drag.
+  if (dragAxis === 'pan') onPanEnd();
+
   const offset = dragOffset.value;
   const distance = Math.abs(offset);
   const enough =
     distance > windowWidth.value * SLIDE_DISTANCE_RATIO ||
-    (Math.abs(dragVelocity) > SLIDE_VELOCITY && distance > 10);
+    (Math.abs(dragVelocityX) > SLIDE_VELOCITY && distance > 10);
   const target = offset < 0 ? currentIndex.value + 1 : currentIndex.value - 1;
   const canTurn = offset < 0 ? hasNext.value : hasPrev.value;
 
@@ -602,7 +950,7 @@ function onDismissEnd() {
   const pulled = dismissOffset.value;
   const enough =
     pulled > DISMISS_DISTANCE ||
-    (dismissVelocity > DISMISS_VELOCITY && pulled > DISMISS_FLICK_DISTANCE);
+    (dragVelocityY > DISMISS_VELOCITY && pulled > DISMISS_FLICK_DISTANCE);
 
   // The stage keeps the offset it was let go at, and the close animation picks
   // the frame up from there and carries it into its tile.
@@ -836,23 +1184,25 @@ function frameState(frame: HTMLElement, inner: HTMLElement): FrameState {
 }
 
 // The way into the tile, from wherever the frame is: at rest, still growing
-// out of the tile, or pushed away by the swipe. `frame` is the frame's rect
-// with no animation on it. `stageScale` is what the dismiss gesture left on
-// the stage above the frame. The frame's own translation is measured on screen
-// but applied underneath that scale, so it has to be divided back out or the
-// frame lands short of its tile.
+// out of the tile, zoomed in on, or pushed away by the swipe. `frame` is the
+// frame's rect with no animation on it. `ancestorScale` is what the zoom and
+// the dismiss gesture left on the layers above the frame. The frame's own
+// translation and corners are measured on screen but applied underneath that
+// scale, so it has to be divided back out or the frame lands off its tile.
 function closeKeyframes(
   tile: DOMRect,
   frame: DOMRect,
   from: FrameState,
-  stageScale = 1,
+  ancestorScale = 1,
 ) {
   const sx = tile.width / frame.width;
   const sy = tile.height / frame.height;
   const dx =
-    (tile.left + tile.width / 2 - (frame.left + frame.width / 2)) / stageScale;
+    (tile.left + tile.width / 2 - (frame.left + frame.width / 2)) /
+    ancestorScale;
   const dy =
-    (tile.top + tile.height / 2 - (frame.top + frame.height / 2)) / stageScale;
+    (tile.top + tile.height / 2 - (frame.top + frame.height / 2)) /
+    ancestorScale;
   const cover = Math.max(sx, sy);
 
   return {
@@ -863,7 +1213,7 @@ function closeKeyframes(
       },
       {
         transform: `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`,
-        borderRadius: `${THUMB_RADIUS / sx}px / ${THUMB_RADIUS / sy}px`,
+        borderRadius: `${THUMB_RADIUS / (sx * ancestorScale)}px / ${THUMB_RADIUS / (sy * ancestorScale)}px`,
       },
     ],
     // Sampled along the frame's path for the same reason as on the way in.
@@ -1055,8 +1405,10 @@ function onLeave(el: Element, done: () => void) {
   if (hideTimeout) clearTimeout(hideTimeout);
 
   const stage = backdrop.querySelector<HTMLElement>('[data-viewer-stage]');
+  const zoom = backdrop.querySelector<HTMLElement>('[data-viewer-zoom]');
   freezeAt(stage);
   freezeAt(backdrop.querySelector<HTMLElement>('[data-viewer-track]'));
+  freezeAt(zoom);
 
   const parts = zoomParts(backdrop);
   const tile = parts ? originTile() : null;
@@ -1111,7 +1463,10 @@ function onLeave(el: Element, done: () => void) {
     controlsStyle && controlsStyle.display !== 'none'
       ? Number(controlsStyle.opacity)
       : 0;
-  const stageScale = matrixOf(stage).a || 1;
+  // The zoom only counts when it is on the frame that flies home, not on an
+  // image a page turn is still carrying off.
+  const zoomScaleFrom = zoom?.contains(parts.frame) ? matrixOf(zoom).a || 1 : 1;
+  const ancestorScale = (matrixOf(stage).a || 1) * zoomScaleFrom;
 
   for (const part of [
     backdrop,
@@ -1136,7 +1491,7 @@ function onLeave(el: Element, done: () => void) {
     tile.getBoundingClientRect(),
     parts.frame.getBoundingClientRect(),
     from,
-    stageScale,
+    ancestorScale,
   );
   const animations = [
     backdrop.animate([dimFrom, dimAt(0)], options),
@@ -1200,6 +1555,8 @@ watch(
       travellingFrom.value = null;
       clearSettleTimer();
       resetDismiss();
+      resetZoom();
+      pinching = false;
       // The controls arrive with the frame, driven by the open animation, so
       // they are up from the first render and start out transparent.
       controlsVisible.value = true;
@@ -1217,6 +1574,7 @@ onBeforeUnmount(() => {
   if (hideTimeout) clearTimeout(hideTimeout);
   clearSettleTimer();
   clearDismissTimer();
+  clearZoomTimer();
 });
 </script>
 
@@ -1259,69 +1617,86 @@ onBeforeUnmount(() => {
             <div
               v-for="slide in slides"
               :key="slide.index"
-              class="absolute inset-0 flex items-center justify-center"
+              class="absolute inset-0"
               :style="slideStyle(slide.index)"
-              @click.self="onBackdropClick"
             >
-              <iframe
-                v-if="slide.image && isOffice(slide.image)"
-                :src="getOfficeViewerSrc(slide.image)"
-                class="w-[90vw] h-[85vh] max-w-5xl rounded-xl border-none bg-white"
-                @click.stop
-              ></iframe>
-              <iframe
-                v-else-if="slide.image && isPdf(slide.image)"
-                :src="getImageSrc(slide.image)"
-                class="w-[90vw] h-[85vh] max-w-5xl rounded-xl border-none bg-white"
-                @click.stop
-              ></iframe>
+              <!-- Covers the whole slide, so the zoom scales around the
+                   viewport centre. -->
               <div
-                v-else-if="slide.image && frameSize(slide.index)"
-                :data-viewer-frame="slide.index === currentIndex ? '' : null"
-                class="relative max-w-full max-h-full overflow-hidden rounded-xl will-change-transform"
-                :style="frameStyle(slide.index)"
-                @click.stop
+                :data-viewer-zoom="slide.index === zoomedIndex ? '' : null"
+                class="absolute inset-0 flex items-center justify-center"
+                :style="zoomStyle(slide.index)"
+                @click.self="onBackdropClick"
               >
+                <iframe
+                  v-if="slide.image && isOffice(slide.image)"
+                  :src="getOfficeViewerSrc(slide.image)"
+                  class="w-[90vw] h-[85vh] max-w-5xl rounded-xl border-none bg-white"
+                  @click.stop
+                ></iframe>
+                <iframe
+                  v-else-if="slide.image && isPdf(slide.image)"
+                  :src="getImageSrc(slide.image)"
+                  class="w-[90vw] h-[85vh] max-w-5xl rounded-xl border-none bg-white"
+                  @click.stop
+                ></iframe>
+                <!-- A layer promoted with will-change keeps the resolution it
+                     was first drawn at, which would leave a zoomed in picture
+                     blurry, so it is only promoted at rest. -->
                 <div
-                  :data-viewer-inner="slide.index === currentIndex ? '' : null"
-                  class="absolute inset-0 will-change-transform"
+                  v-else-if="slide.image && frameSize(slide.index)"
+                  :data-viewer-frame="slide.index === currentIndex ? '' : null"
+                  class="relative max-w-full max-h-full overflow-hidden rounded-xl"
+                  :class="{ 'will-change-transform': !zoomedAt(slide.index) }"
+                  :style="frameStyle(slide.index)"
+                  @click.stop
                 >
-                  <img
-                    :src="getImageSrc(slide.image)"
-                    class="absolute inset-0 w-full h-full object-contain"
-                    draggable="false"
-                    alt=""
-                    @load="onFullLoad($event, slide.index)"
-                  />
-                </div>
+                  <div
+                    :data-viewer-inner="
+                      slide.index === currentIndex ? '' : null
+                    "
+                    class="absolute inset-0"
+                    :class="{ 'will-change-transform': !zoomedAt(slide.index) }"
+                  >
+                    <img
+                      :src="getImageSrc(slide.image)"
+                      class="absolute inset-0 w-full h-full object-contain"
+                      draggable="false"
+                      alt=""
+                      @load="onFullLoad($event, slide.index)"
+                    />
+                  </div>
 
-                <!-- Sits on top of the image and outside the counter scaled
+                  <!-- Sits on top of the image and outside the counter scaled
                    layer. object-fill, because the frame is squashed onto the
                    tile at that end of the zoom and the two stretches cancel
                    out: the square thumbnail then lands on the tile exactly as
                    the tile draws it. That is what makes the handover
                    invisible. -->
+                  <img
+                    v-if="thumbSrc(slide.image)"
+                    :src="thumbSrc(slide.image)"
+                    :data-viewer-thumb="
+                      slide.index === currentIndex ? '' : null
+                    "
+                    class="absolute inset-0 w-full h-full object-fill transition-opacity duration-200 ease-out"
+                    :class="
+                      loadedSlides[slide.index] ? 'opacity-0' : 'opacity-100'
+                    "
+                    draggable="false"
+                    aria-hidden="true"
+                    alt=""
+                  />
+                </div>
                 <img
-                  v-if="thumbSrc(slide.image)"
-                  :src="thumbSrc(slide.image)"
-                  :data-viewer-thumb="slide.index === currentIndex ? '' : null"
-                  class="absolute inset-0 w-full h-full object-fill transition-opacity duration-200 ease-out"
-                  :class="
-                    loadedSlides[slide.index] ? 'opacity-0' : 'opacity-100'
-                  "
+                  v-else-if="slide.image"
+                  :src="getImageSrc(slide.image)"
+                  class="max-w-full max-h-full rounded-xl object-contain"
                   draggable="false"
-                  aria-hidden="true"
                   alt=""
+                  @click.stop
                 />
               </div>
-              <img
-                v-else-if="slide.image"
-                :src="getImageSrc(slide.image)"
-                class="max-w-full max-h-full rounded-xl object-contain"
-                draggable="false"
-                alt=""
-                @click.stop
-              />
             </div>
           </div>
         </div>
