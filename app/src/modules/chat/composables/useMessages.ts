@@ -226,7 +226,6 @@ export function useMessages() {
     ws = new WebSocket(`${wsUrl}/messages/ws`);
 
     ws.onopen = () => {
-      console.log('WebSocket connected');
       reconnectAttempts = 0;
       if (groupId.value) {
         sendWsMessage({ type: 'joinGroup', groupId: groupId.value });
@@ -275,7 +274,6 @@ export function useMessages() {
     };
 
     ws.onclose = (event: CloseEvent) => {
-      console.log('WebSocket disconnected');
       ws = null;
       if (event.code === WS_CLOSE_ACCESS_REVOKED) return;
       if (event.code === WS_CLOSE_TOKEN_EXPIRED) {
@@ -394,7 +392,6 @@ export function useMessages() {
 
   const typingDisplay = computed(() => {
     const users = Array.from(typingUsers.value.values());
-    console.log(users);
     if (users.length === 0) return '';
     if (users.length === 1) {
       return `${users[0]} ${t('chat.typing')}`;
@@ -466,14 +463,14 @@ export function useMessages() {
         messageId: msg.id,
         reason: reason || undefined,
       });
-      toast.success(
-        t('chat.report_success') || 'Nachricht erfolgreich gemeldet',
-      );
-    } catch (err: any) {
+      toast.success(t('chat.report_success'));
+    } catch (err) {
       console.error('Failed to report message:', err);
+      const detail = apiErrorMessage(err, '');
       toast.error(
-        (t('chat.report_error') || 'Fehler beim Melden: ') +
-          apiErrorMessage(err, ''),
+        detail
+          ? `${t('chat.report_error')}: ${detail}`
+          : t('chat.report_error'),
       );
     }
   };
@@ -544,10 +541,12 @@ export function useMessages() {
     document.body.style.overflow = '';
   });
 
-  watch(groupId, () => {
-    if (pendingMarkRead.value) {
+  watch(groupId, (_, previousGroupId) => {
+    if (pendingMarkRead.value && previousGroupId) {
       pendingMarkRead.value = false;
-      void hw.post(groupPath(groupId.value, '/messages/read')).catch(() => {});
+      void hw
+        .post(groupPath(previousGroupId, '/messages/read'))
+        .catch(() => {});
     }
     dismissedNewMessagesDivider.value = false;
     isInitialScroll.value = true;
