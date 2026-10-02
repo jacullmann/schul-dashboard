@@ -1,4 +1,6 @@
-const AVATAR_COLORS = [
+const FALLBACK_COLOR = '#777';
+
+const AVATAR_COLORS: readonly string[] = [
   '#AA47BD',
   '#7B1FA2',
   '#77919D',
@@ -12,18 +14,25 @@ const AVATAR_COLORS = [
   '#F6511E',
 ];
 
-function getColorIndexFromEmail(email: string): number {
-  if (!email || email.length === 0) return 0;
-  const charToHash = email.length >= 2 ? email.charAt(1) : email.charAt(0);
-  if (!charToHash) return 0;
-  const charCode = charToHash.charCodeAt(0);
-  return charCode % AVATAR_COLORS.length;
+// FNV-1a: cheap, and a single changed character scrambles the whole hash.
+function hashString(value: string): number {
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < value.length; i++) {
+    hash ^= value.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return hash >>> 0;
 }
 
-export function getAvatarData(email: string) {
-  const letter =
-    email && email.length > 0 ? email.charAt(0).toUpperCase() : '?';
-  const color = AVATAR_COLORS[getColorIndexFromEmail(email)] || '#777';
+export function getAvatarData(name: string) {
+  if (!name) return { letter: '?', background: FALLBACK_COLOR };
 
-  return { letter, color };
+  const color =
+    AVATAR_COLORS[hashString(name.toLowerCase()) % AVATAR_COLORS.length] ??
+    FALLBACK_COLOR;
+
+  return {
+    letter: name.charAt(0).toUpperCase(),
+    background: color,
+  };
 }

@@ -12,33 +12,25 @@ const props = withDefaults(
   },
 );
 
-const avatarLetter = computed(() => {
-  if (props.name) return getAvatarData(props.name).letter;
-  return '?';
-});
-
-const avatarColor = computed(() => {
-  if (props.name) return getAvatarData(props.name).color;
-  return '#777';
-});
+const avatarData = computed(() => getAvatarData(props.name ?? ''));
 
 const avatarStyle = computed(() => {
   const px = props.size * 4;
-  const fontSize = px / 2;
+  const fontSize = (px / 5) * 3;
   return {
     width: `${px}px`,
     height: `${px}px`,
     fontSize: `${fontSize}px`,
-    backgroundColor: avatarColor.value,
+    background: avatarData.value.background,
   };
 });
 </script>
 
 <template>
   <div
-    class="flex items-center justify-center font-semibold text-white select-none rounded-full shrink-0"
+    class="flex items-center justify-center font-bold text-white select-none rounded-full shrink-0"
     :style="avatarStyle"
   >
-    {{ avatarLetter }}
+    {{ avatarData.letter }}
   </div>
 </template>
