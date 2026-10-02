@@ -39,9 +39,10 @@ therefore almost never fire. pg_cron runs in the DB container and is unaffected.
 | `cleanup-old-items`        | `cleanup_old_items()`               | tasks 90 days after their due date              |
 
 Files in Cloudinary are outside the database's reach, so the server cleans
-them up itself: it records every upload in `uploaded_assets` before signing it,
-and every 5 minutes deletes recorded files that nothing has referenced for a
-day (`orphaned_assets()`). The superadmin overview shows, per job, how many rows
+them up itself. Uploads go through the server, which records every file in
+`assets` before it uploads it, and every 5 minutes deletes recorded files that
+neither a task attachment (`item_attachments`), a group picture nor a
+document's preview has referenced for a day (`orphaned_assets()`). The superadmin overview shows, per job, how many rows
 it should already have removed (`cleanup_job_backlog()`); anything above zero
 means the job is not running.
 
@@ -163,3 +164,7 @@ SELECT * FROM public.cleanup_job_backlog();
   `pg_cron_setup.sql` and re-run (idempotent). The retention logic itself lives
   in the functions -> change it via a new migration.
 - **Pause a job:** `SELECT cron.unschedule('cleanup-group-messages');`
+- **Once after migration 0043:** clients used to upload straight to
+  Cloudinary, where the server could not check what arrived. In the Media
+  Library, filter the deployment's folder by type *video* and delete anything
+  listed; images and raw files nothing references are removed by the sweep.

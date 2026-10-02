@@ -3,7 +3,7 @@ import { ref } from 'vue';
 import i18n from '@/i18n';
 import type { HwItem, PrivateTask } from '@/modules/tasks/types';
 import type { ItemType } from '@/modules/tasks/types';
-import type { ImageItem } from '@/modules/tasks/types';
+import type { StoredFile } from '@/api/files';
 
 export interface TaskFormOptions {
   type?: Exclude<ItemType, 'all'>;
@@ -186,7 +186,7 @@ export const useModalStore = defineStore('modals', () => {
   }
 
   const imageViewerOpen = ref(false);
-  const imageViewerImages = ref<ImageItem[]>([]);
+  const imageViewerImages = ref<StoredFile[]>([]);
   const imageViewerInitialIndex = ref(0);
   // Resolves the grid tile an image was opened from, so the viewer can grow
   // out of it. Set by the page that owns the tiles.
@@ -210,7 +210,7 @@ export const useModalStore = defineStore('modals', () => {
   }
 
   function openImageViewer(
-    images: ImageItem[],
+    images: StoredFile[],
     initialIndex = 0,
     origin: ((index: number) => HTMLElement | null) | null = null,
     menu: ((event: MouseEvent, index: number) => void) | null = null,

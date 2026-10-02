@@ -1,14 +1,13 @@
 use super::{
+    attachments::AttachmentDto,
     dto::*,
     policy::ItemActor,
     service::{GetItemsFilter, ItemsService},
 };
 use crate::{
     common::{
-        assets,
-        cloudinary::UploadSignature,
         extractors::{TenantContext, ValidatedJson},
-        path_params::{IdPath, ItemImagePath},
+        path_params::{IdPath, ItemAttachmentPath},
         permission::Permission,
         personalization::hidden_by_courses_header,
         text::DisplayText,
@@ -21,6 +20,7 @@ use crate::{
 use axum::{
     Json,
     extract::{Path, Query, State},
+    http::StatusCode,
     response::IntoResponse,
 };
 use serde_json::Value;
@@ -118,34 +118,36 @@ pub async fn update_item_note(
     ))
 }
 
-pub async fn add_image(
+pub async fn add_attachment(
     State(s): State<AppState>,
     tc: TenantContext,
     Path(IdPath { id }): Path<IdPath>,
-    Json(dto): Json<AddImageDto>,
-) -> AppResult<Json<Value>> {
+    Json(dto): Json<AddAttachmentDto>,
+) -> AppResult<Json<AttachmentDto>> {
     require_permission!(tc, Permission::UploadImages);
 
     Ok(Json(
         ItemsService::from_state(&s)
-            .add_image(tc.tenant_id, id, tc.user.user_id, &dto)
+            .add_attachment(tc.tenant_id, id, tc.user.user_id, dto.asset_id)
             .await?,
     ))
 }
 
-pub async fn remove_image(
+pub async fn remove_attachment(
     State(s): State<AppState>,
     tc: TenantContext,
-    Path(ItemImagePath { id, public_id }): Path<ItemImagePath>,
-) -> AppResult<Json<Value>> {
-    let decoded = urlencoding::decode(&public_id)
-        .map_err(|_| crate::error::AppError::bad_request("Invalid public_id encoding"))?;
+    Path(ItemAttachmentPath { id, attachment_id }): Path<ItemAttachmentPath>,
+) -> AppResult<StatusCode> {
+    ItemsService::from_state(&s)
+        .remove_attachment(
+            tc.tenant_id,
+            id,
+            ItemActor::from_context(&tc),
+            attachment_id,
+        )
+        .await?;
 
-    Ok(Json(
-        ItemsService::from_state(&s)
-            .remove_image(tc.tenant_id, id, ItemActor::from_context(&tc), &decoded)
-            .await?,
-    ))
+    Ok(StatusCode::NO_CONTENT)
 }
 
 pub async fn report_item(
@@ -165,17 +167,5 @@ pub async fn report_item(
                 reason.as_ref(),
             )
             .await?,
-    ))
-}
-
-pub async fn create_upload_signature(
-    State(s): State<AppState>,
-    tc: TenantContext,
-    Json(dto): Json<SignUploadDto>,
-) -> AppResult<Json<UploadSignature>> {
-    require_permission!(tc, Permission::UploadImages);
-
-    Ok(Json(
-        assets::issue_upload(&s.db, &s.cloudinary, dto.raw_extension).await?,
     ))
 }

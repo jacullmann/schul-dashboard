@@ -1,0 +1,33 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO item_attachments (id, item_id, asset_id, created_by)\n           SELECT requested.id, $1, a.id, $2\n           FROM unnest($3::uuid[], $4::uuid[]) AS requested (id, asset_id)\n           JOIN assets a ON a.id = requested.asset_id\n           WHERE a.purpose = $5 AND a.uploaded_by = $2\n             AND a.uploaded_at > now() - make_interval(hours => $6)\n           ON CONFLICT (asset_id) DO NOTHING\n           RETURNING id",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "item_attachments",
+            "name": "id"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "UuidArray",
+        "UuidArray",
+        "Text",
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "9be4b06e613b2d0b9c6b53d303ea3d68ccf006ba638eab604637420156249f7d"
+}

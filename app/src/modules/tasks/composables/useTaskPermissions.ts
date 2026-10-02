@@ -2,7 +2,7 @@ import { computed, toValue, type MaybeRefOrGetter } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useUserStore } from '@/stores/userStore';
-import type { HwItem, ImageItem } from '@/modules/tasks/types';
+import type { Attachment, HwItem } from '@/modules/tasks/types';
 import type { PermissionKey } from '@/types/permissions';
 
 type OwnedBy = { createdBy?: string | null };
@@ -38,8 +38,10 @@ export function useTaskPermissions(groupId: MaybeRefOrGetter<string>) {
   const canDelete = (item: Pick<HwItem, 'createdBy'>) =>
     isOwn(item) || can('delete_other_content');
 
-  const canDeleteImage = (item: Pick<HwItem, 'createdBy'>, image: ImageItem) =>
-    isOwn(item) || isOwn(image) || can('delete_other_content');
+  const canDeleteImage = (
+    item: Pick<HwItem, 'createdBy'>,
+    image: Pick<Attachment, 'createdBy'>,
+  ) => isOwn(item) || isOwn(image) || can('delete_other_content');
 
   return {
     canUploadImages,

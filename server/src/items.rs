@@ -1,3 +1,4 @@
+pub mod attachments;
 pub mod dto;
 pub mod handlers;
 pub mod item_type;

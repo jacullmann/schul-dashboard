@@ -354,7 +354,6 @@ function createTasks(fixedFilters: Partial<TaskFilters>) {
     shareItem: actions.shareItem,
     dismissedItems,
     useListTransitions,
-    makeThumb: images.makeThumb,
     doReport: actions.doReport,
     cancelReport: actions.cancelReport,
     initialLoad: finalInitialLoad,

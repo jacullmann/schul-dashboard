@@ -1,5 +1,5 @@
 import { useModalStore } from '@/stores/modalStore';
-import type { ImageItem } from '@/modules/tasks/types';
+import type { StoredFile } from '@/api/files';
 
 export function useImageViewer() {
   const store = useModalStore();
@@ -13,7 +13,7 @@ export function useImageViewer() {
     >,
     imageViewerInitialIndex: store.imageViewerInitialIndex,
     openImageViewer: (
-      images: ImageItem[],
+      images: StoredFile[],
       initialIndex?: number,
       origin?: ((index: number) => HTMLElement | null) | null,
       menu?: ((event: MouseEvent, index: number) => void) | null,

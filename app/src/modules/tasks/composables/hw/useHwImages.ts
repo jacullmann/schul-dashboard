@@ -1,14 +1,15 @@
 import { ref, reactive } from 'vue';
 import { useI18n } from 'vue-i18n';
-import type { HwItem, ImageItem } from '@/modules/tasks/types';
+import type { Attachment, HwItem } from '@/modules/tasks/types';
 import { useModalStore } from '@/stores/modalStore';
 import { useToast } from '@/common/composables/useToast';
 import type { HwContext } from './types';
 import type { TaskPermissions } from '../useTaskPermissions';
+import type { useImageUpload } from '../useImageUpload';
 
 export function useHwImages(
   ctx: HwContext,
-  imageUpload: any,
+  imageUpload: ReturnType<typeof useImageUpload>,
   permissions: TaskPermissions,
 ) {
   const { t } = useI18n();
@@ -18,7 +19,7 @@ export function useHwImages(
     x: 0,
     y: 0,
     item: null as HwItem | null,
-    image: null as ImageItem | null,
+    image: null as Attachment | null,
   });
 
   const modalStore = useModalStore();
@@ -28,12 +29,12 @@ export function useHwImages(
   function handleImageContextMenu(
     event: MouseEvent,
     item: HwItem,
-    img: ImageItem,
+    img: Attachment,
   ) {
     openImageMenu(event, item, img);
   }
 
-  function openImageMenu(event: MouseEvent, item: HwItem, img: ImageItem) {
+  function openImageMenu(event: MouseEvent, item: HwItem, img: Attachment) {
     if (!ctx.user.value) return;
     const hasActions =
       permissions.canUploadImages.value ||
@@ -44,7 +45,7 @@ export function useHwImages(
     imageMenu.x = event.clientX;
     imageMenu.y = event.clientY;
     imageMenu.visible = true;
-    imageUpload.init(item.images);
+    imageUpload.init(item.attachments);
   }
 
   function closeImageMenu() {
@@ -57,7 +58,7 @@ export function useHwImages(
     const targetItem = item || imageMenu.item;
     if (!targetItem || !permissions.canUploadImages.value) return;
 
-    imageUpload.init(targetItem.images);
+    imageUpload.init(targetItem.attachments);
     currentUploadItemId.value = targetItem.id;
     imageUpload.uploadImage(targetItem.type, targetItem.id);
     closeImageMenu();
@@ -66,9 +67,9 @@ export function useHwImages(
   function triggerImageDrop(item: HwItem, files: File[]) {
     if (!item || !files.length || !permissions.canUploadImages.value) return;
 
-    imageUpload.init(item.images);
+    imageUpload.init(item.attachments);
     currentUploadItemId.value = item.id;
-    imageUpload.uploadFiles(files, item.type, item.id);
+    void imageUpload.uploadFiles(files, item.type, item.id);
   }
 
   async function triggerImageDelete() {
@@ -100,10 +101,6 @@ export function useHwImages(
     }
   }
 
-  function makeThumb(input: string) {
-    return imageUpload.makeThumb(input);
-  }
-
   return {
     imageMenu,
     deletingImage,
@@ -114,6 +111,5 @@ export function useHwImages(
     triggerImageUpload,
     triggerImageDrop,
     triggerImageDelete,
-    makeThumb,
   };
 }

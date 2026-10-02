@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO groups (name, avatar_url, owner_id, group_type, dalton_enabled)\n               VALUES ($1, $2, $3, $4, $5) RETURNING id, name",
+  "query": "INSERT INTO groups (name, avatar_id, owner_id, group_type, dalton_enabled)\n               VALUES ($1, $2, $3, $4, $5) RETURNING id, name",
   "describe": {
     "columns": [
       {
@@ -29,7 +29,7 @@
     "parameters": {
       "Left": [
         "Text",
-        "Text",
+        "Uuid",
         "Uuid",
         "Text",
         "Bool"
@@ -40,5 +40,5 @@
       false
     ]
   },
-  "hash": "6ec7dee04fe9ba8b057c821b5b3967213a60f91bf454cf251ab2fa8401a38e35"
+  "hash": "4a9d2168db1e731fc8617dd2a70055b9978740a17f1afa3fdfe3eaedd5747336"
 }

@@ -27,10 +27,9 @@ pub fn per_ip(burst: u32, replenish_every: Duration) -> IpRateLimit {
     GovernorLayer::new(config)
 }
 
-/// Every file reaching Cloudinary needs a signature first, so this bounds
-/// storage abuse even by clients that never attach their uploads to anything.
-/// The burst covers a class sharing photos at once; an Office file takes two
-/// signatures (file and thumbnail).
-pub fn upload_signatures() -> IpRateLimit {
+/// Every stored file passes through the upload routes, so this bounds storage
+/// abuse even by clients that never attach their uploads to anything. The
+/// burst covers a class sharing photos at once.
+pub fn uploads() -> IpRateLimit {
     per_ip(60, Duration::from_secs(2))
 }

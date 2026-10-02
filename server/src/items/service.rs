@@ -1,12 +1,12 @@
 use crate::{
     common::{
-        cloudinary::{Cloudinary, is_well_formed_public_id},
         names::{CUSTOM_SUBJECT_MAX_CHARS, DisplayName},
         text::DisplayText,
     },
     error::{AppError, AppResult},
     items::{
-        dto::{AddImageDto, CreateItemDto, ImageDto, ItemSubjectDto, UpdateItemDto},
+        attachments::{self, AttachmentDto},
+        dto::{CreateItemDto, ItemSubjectDto, UpdateItemDto},
         item_type::ItemType,
         policy::ItemActor,
     },
@@ -33,22 +33,6 @@ fn time_left_color(due: &chrono::DateTime<Utc>) -> &'static str {
 }
 
 const TITLE_MAX_CHARS: usize = 60;
-/// Metadata is stored verbatim in the item row, so its size is capped.
-const IMAGE_METADATA_MAX_BYTES: usize = 2048;
-
-/// Uploaders are recorded by the server, never taken from the client, since
-/// they may remove their image again from a task they do not own.
-fn image_record(image: &ImageDto, uploader: Uuid) -> Value {
-    json!({
-        "publicId": image.public_id,
-        "createdBy": uploader,
-        "metadata": image.metadata,
-    })
-}
-
-fn image_uploader(image: &Value) -> Option<Uuid> {
-    image["createdBy"].as_str()?.parse().ok()
-}
 
 /// A task's subject once it is known to exist in the task's group.
 enum ItemSubject {
@@ -98,31 +82,11 @@ pub struct ItemList {
 
 pub struct ItemsService {
     db: PgPool,
-    cloudinary: Cloudinary,
 }
 
 impl ItemsService {
     pub fn from_state(s: &AppState) -> Self {
-        Self {
-            db: s.db.clone(),
-            cloudinary: s.cloudinary.clone(),
-        }
-    }
-
-    /// Only images signed for this deployment's folder may be attached, so a
-    /// task cannot point at someone else's Cloudinary assets.
-    fn validate_image(&self, image: &ImageDto) -> AppResult<()> {
-        let public_id = image.public_id.as_str();
-        if !self.cloudinary.owns(public_id) || !is_well_formed_public_id(public_id) {
-            return Err(AppError::bad_request("Invalid publicId."));
-        }
-
-        let metadata_len = serde_json::to_string(&image.metadata).map_or(usize::MAX, |s| s.len());
-        if metadata_len > IMAGE_METADATA_MAX_BYTES {
-            return Err(AppError::bad_request("Image metadata too large."));
-        }
-
-        Ok(())
+        Self { db: s.db.clone() }
     }
 
     /// Checks a subject reference against the group. A hand-typed name that the
@@ -215,7 +179,7 @@ impl ItemsService {
         let mut rows = sqlx::query!(
             r#"SELECT i.id, i.type, i.title, i.subject_id, i.course_id,
                       COALESCE(s.name, i.custom_subject) as "subject_name!", c.name as "course_name?",
-                      i.description, i.images, i.due_date,
+                      i.description, i.due_date,
                       i.created_by as "created_by?: Uuid", i.editor_note, i.created_at, i.updated_at,
                       u.email as "creator_email?: String",
                       (
@@ -274,9 +238,13 @@ impl ItemsService {
             rows.sort_by_key(|row| std::cmp::Reverse(row.due_date));
         }
 
+        let item_ids: Vec<Uuid> = rows.iter().map(|r| r.id).collect();
+        let mut attachments = attachments::of_items(&self.db, &item_ids).await?;
+
         let items: Vec<Value> = rows
             .into_iter()
             .map(|r| {
+                let item_attachments = attachments.remove(&r.id).unwrap_or_default();
                 let creator_deleted = r.created_by.is_none();
                 let created_by_name = r.created_by.map(|uid| {
                     crate::common::name_generator::generate_user_name(&uid.to_string())
@@ -291,7 +259,7 @@ impl ItemsService {
                     "subjectId": r.subject_id, "courseId": r.course_id,
                     "subjectName": r.subject_name, "courseName": r.course_name,
                     "description": r.description,
-                    "images": r.images, "dueDate": r.due_date,
+                    "attachments": item_attachments, "dueDate": r.due_date,
                     "createdBy": r.created_by,
                     "createdByName": created_by_name,
                     "createdByEmail": created_by_email,
@@ -317,7 +285,7 @@ impl ItemsService {
         let row = sqlx::query!(
             r#"SELECT i.id, i.type, i.title, i.subject_id, i.course_id,
                       COALESCE(s.name, i.custom_subject) as "subject_name!", c.name as "course_name?",
-                      i.description, i.images, i.due_date as "due_date!",
+                      i.description, i.due_date as "due_date!",
                       i.created_by as "created_by?: Uuid", i.editor_note, i.created_at, i.updated_at,
                       u.email as "creator_email?: String"
                FROM items i
@@ -332,6 +300,7 @@ impl ItemsService {
             .await?
             .ok_or_else(|| AppError::not_found("Item not found."))?;
 
+        let item_attachments = attachments::of_item(&self.db, row.id).await?;
         let creator_deleted = row.created_by.is_none();
         let created_by_name = row
             .created_by
@@ -347,7 +316,7 @@ impl ItemsService {
             "subjectId": row.subject_id, "courseId": row.course_id,
             "subjectName": row.subject_name, "courseName": row.course_name,
             "description": row.description,
-            "images": row.images, "dueDate": row.due_date,
+            "attachments": item_attachments, "dueDate": row.due_date,
             "createdBy": row.created_by,
             "createdByName": created_by_name,
             "createdByEmail": created_by_email,
@@ -369,17 +338,14 @@ impl ItemsService {
             .parse::<chrono::DateTime<Utc>>()
             .map_err(|_| AppError::bad_request("Invalid due_date format"))?;
 
-        let images = dto.images.as_deref().unwrap_or_default();
-        if !images.is_empty() && !actor.can_upload_images {
+        let attachment_ids = dto.attachment_ids.as_slice();
+        if !attachment_ids.is_empty() && !actor.can_attach_files {
             return Err(AppError::forbidden("Insufficient permissions."));
         }
-        // Every image of a new task is the creator's own.
+        // Every attachment of a new task is the creator's own.
         dto.r#type
             .image_quota()
-            .ensure_room_for(images.len(), 0, 0)?;
-        for image in images {
-            self.validate_image(image)?;
-        }
+            .ensure_room_for(attachment_ids.len(), 0, 0)?;
 
         // Only groups that enabled Dalton may create items of this type.
         if dto.r#type == ItemType::Dalton {
@@ -404,7 +370,7 @@ impl ItemsService {
             let duplicate = sqlx::query!(
                 r#"SELECT i.id, i.type, i.title, i.subject_id, i.course_id,
                           COALESCE(s.name, i.custom_subject) as "subject_name!", c.name as "course_name?",
-                          i.description, i.images, i.due_date,
+                          i.description, i.due_date,
                           i.created_by, i.editor_note, i.created_at, i.updated_at
                    FROM items i
                    LEFT JOIN subjects s ON s.id = i.subject_id
@@ -439,7 +405,7 @@ impl ItemsService {
                     "subjectName": row.subject_name,
                     "courseName": row.course_name,
                     "description": row.description,
-                    "images": row.images,
+                    "attachments": attachments::of_item(&self.db, row.id).await?,
                     "dueDate": row.due_date,
                     "createdBy": row.created_by,
                     "createdByName": created_by_name,
@@ -456,31 +422,31 @@ impl ItemsService {
             }
         }
 
-        let images: Vec<Value> = images
-            .iter()
-            .map(|image| image_record(image, actor.user_id))
-            .collect();
+        let mut tx = self.db.begin().await?;
 
         let row = sqlx::query!(
-            r#"INSERT INTO items (type, title, subject_id, course_id, custom_subject, description, images, due_date, created_by, tenant_id)
-               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id"#,
+            r#"INSERT INTO items (type, title, subject_id, course_id, custom_subject, description, due_date, created_by, tenant_id)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id"#,
             dto.r#type.as_str(), title.as_str(),
             subject.subject_id(), subject.course_id(), subject.custom_name(),
             dto.description.as_deref().unwrap_or("").trim(),
-            json!(images),
             due_date,
             actor.user_id, tenant_id
         )
-            .fetch_one(&self.db)
+            .fetch_one(&mut *tx)
             .await?;
+
+        attachments::attach(&mut tx, row.id, actor.user_id, attachment_ids).await?;
 
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:create', $2)"#,
             actor.user_id,
             json!({ "id": row.id, "type": dto.r#type })
         )
-        .execute(&self.db)
+        .execute(&mut *tx)
         .await?;
+
+        tx.commit().await?;
 
         Ok(json!({ "ok": true, "id": row.id }))
     }
@@ -581,21 +547,19 @@ impl ItemsService {
         Ok(json!({ "ok": true }))
     }
 
-    pub async fn add_image(
+    pub async fn add_attachment(
         &self,
         tenant_id: Uuid,
         item_id: Uuid,
         user_id: Uuid,
-        dto: &AddImageDto,
-    ) -> AppResult<Value> {
-        self.validate_image(&dto.image)?;
-
+        asset_id: Uuid,
+    ) -> AppResult<AttachmentDto> {
         let mut tx = self.db.begin().await?;
 
         // The row lock serialises concurrent uploads, so parallel requests
-        // cannot each see room for one more image and overshoot the quota.
-        let item = sqlx::query!(
-            r#"SELECT type, images FROM items WHERE id = $1 AND tenant_id = $2 FOR UPDATE"#,
+        // cannot each see room for one more attachment and overshoot the quota.
+        let item_type = sqlx::query_scalar!(
+            r#"SELECT type FROM items WHERE id = $1 AND tenant_id = $2 FOR UPDATE"#,
             item_id,
             tenant_id
         )
@@ -603,58 +567,59 @@ impl ItemsService {
         .await?
         .ok_or_else(|| AppError::not_found("Item not found."))?;
 
-        let item_type = ItemType::from_str(&item.r#type)
-            .ok_or_else(|| AppError::internal(format!("Unknown item type {}", item.r#type)))?;
+        let item_type = ItemType::from_str(&item_type)
+            .ok_or_else(|| AppError::internal(format!("Unknown item type {item_type}")))?;
 
-        let mut images: Vec<Value> = match item.images {
-            Some(Value::Array(arr)) => arr,
-            _ => Vec::new(),
-        };
-
-        let own = images
-            .iter()
-            .filter(|img| image_uploader(img) == Some(user_id))
-            .count();
+        let held = attachments::count(&mut *tx, item_id, user_id).await?;
         item_type
             .image_quota()
-            .ensure_room_for(1, own, images.len())?;
+            .ensure_room_for(1, held.own, held.total)?;
 
-        let new_image = image_record(&dto.image, user_id);
-
-        images.push(new_image.clone());
+        let [attachment_id] =
+            attachments::attach(&mut tx, item_id, user_id, &[asset_id]).await?[..]
+        else {
+            return Err(AppError::internal(
+                "Attaching one upload yielded another count",
+            ));
+        };
 
         sqlx::query!(
-            r#"UPDATE items SET images = $1, updated_at = now() WHERE id = $2"#,
-            json!(images),
+            r#"UPDATE items SET updated_at = now() WHERE id = $1"#,
             item_id
         )
         .execute(&mut *tx)
         .await?;
 
         sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:image:add', $2)"#,
+            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:attachment:add', $2)"#,
             user_id,
-            json!({ "itemId": item_id, "publicId": dto.image.public_id })
+            json!({ "itemId": item_id, "attachmentId": attachment_id })
         )
         .execute(&mut *tx)
         .await?;
 
+        let attachment = attachments::of_item(&mut *tx, item_id)
+            .await?
+            .into_iter()
+            .find(|attachment| attachment.id == attachment_id)
+            .ok_or_else(|| AppError::internal("Attachment vanished within its transaction"))?;
+
         tx.commit().await?;
 
-        Ok(json!({ "ok": true, "image": new_image }))
+        Ok(attachment)
     }
 
-    pub async fn remove_image(
+    pub async fn remove_attachment(
         &self,
         tenant_id: Uuid,
         item_id: Uuid,
         actor: ItemActor,
-        public_id: &str,
-    ) -> AppResult<Value> {
+        attachment_id: Uuid,
+    ) -> AppResult<()> {
         let mut tx = self.db.begin().await?;
 
-        let item = sqlx::query!(
-            r#"SELECT id, created_by as "created_by?: Uuid", images FROM items
+        let item_creator = sqlx::query_scalar!(
+            r#"SELECT created_by AS "created_by?: Uuid" FROM items
                WHERE id = $1 AND tenant_id = $2 FOR UPDATE"#,
             item_id,
             tenant_id
@@ -663,44 +628,33 @@ impl ItemsService {
         .await?
         .ok_or_else(|| AppError::not_found("Item not found."))?;
 
-        let images: Vec<Value> = match item.images {
-            Some(Value::Array(arr)) => arr,
-            _ => Vec::new(),
-        };
-
-        let target = images
-            .iter()
-            .find(|img| img["publicId"].as_str() == Some(public_id))
-            .ok_or_else(|| AppError::not_found("Image not found."))?;
-
-        if !actor.may_remove_image(item.created_by, image_uploader(target)) {
-            return Err(AppError::forbidden("Not allowed to delete this image."));
+        let attachment_creator = attachments::creator_of(&mut *tx, item_id, attachment_id).await?;
+        if !actor.may_remove_attachment(item_creator, attachment_creator) {
+            return Err(AppError::forbidden(
+                "Not allowed to delete this attachment.",
+            ));
         }
 
-        let kept: Vec<Value> = images
-            .into_iter()
-            .filter(|img| img["publicId"].as_str() != Some(public_id))
-            .collect();
+        attachments::detach(&mut tx, item_id, attachment_id).await?;
 
         sqlx::query!(
-            r#"UPDATE items SET images = $1, updated_at = now() WHERE id = $2"#,
-            Value::Array(kept),
+            r#"UPDATE items SET updated_at = now() WHERE id = $1"#,
             item_id
         )
         .execute(&mut *tx)
         .await?;
 
         sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:image:remove', $2)"#,
+            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'item:attachment:remove', $2)"#,
             actor.user_id,
-            json!({ "itemId": item_id, "publicId": public_id })
+            json!({ "itemId": item_id, "attachmentId": attachment_id })
         )
-            .execute(&mut *tx)
-            .await?;
+        .execute(&mut *tx)
+        .await?;
 
         tx.commit().await?;
 
-        Ok(json!({ "ok": true }))
+        Ok(())
     }
 
     pub async fn delete_item(

@@ -1,3 +1,5 @@
+import type { Attachment, StoredFile, Upload } from '@/api/files';
+
 export interface HwItem {
   id: string;
   type: 'homework' | 'dalton' | 'exam';
@@ -9,7 +11,7 @@ export interface HwItem {
   subjectName: string;
   courseName: string | null;
   description: string;
-  images: ImageItem[];
+  attachments: Attachment[];
   dueDate: string;
   createdBy: string;
   createdByEmail?: string;
@@ -42,20 +44,13 @@ export type TaskMenuAction =
   | 'report'
   | 'delete';
 
-export interface ImageItem {
-  publicId: string;
-  url?: string;
-  thumbUrl?: string;
-  createdBy?: string;
-  metadata?: {
-    version?: number;
-    format?: string;
-    width?: number;
-    height?: number;
-    name?: string;
-    thumbnailId?: string | null;
-  };
-}
+export type { Attachment, StoredFile, Upload };
+
+/**
+ * A file in the task form: an attachment of an existing task, or an upload
+ * that becomes one when a new task is created.
+ */
+export type TaskFile = Attachment | Upload;
 
 export interface PrivateTask {
   id: string;

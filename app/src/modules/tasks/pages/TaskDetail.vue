@@ -11,7 +11,7 @@ import { useFileDrop } from '@/modules/tasks/composables/useFileDrop';
 import { taskListRoute } from '@/modules/tasks/utils/routes';
 import { menuAnchor, type MenuAnchor } from '@/modules/tasks/utils/menuAnchor';
 import { entranceDelay } from '@/modules/tasks/utils/entrance';
-import type { HwItem, ImageItem, TaskMenuAction } from '@/modules/tasks/types';
+import type { Attachment, HwItem, TaskMenuAction } from '@/modules/tasks/types';
 
 import BaseSkeleton from '@/common/components/BaseSkeleton.vue';
 import ImageContextMenu from '@/modules/tasks/components/ImageContextMenu.vue';
@@ -53,7 +53,6 @@ const {
   toggleCheck,
   isPinned,
   isInArchive,
-  makeThumb,
   imageMenu,
   closeImageMenu,
   triggerImageUpload,
@@ -132,19 +131,19 @@ function openImage(index: number) {
   const task = item.value;
   if (!task) return;
   openImageViewer(
-    task.images,
+    task.attachments,
     index,
     (tileIndex) => imageTile(task, tileIndex),
     // The viewer carries no context of its own, so it is handed the same menu
     // the tiles open on a right click, bound to the image it is showing.
     (event, imageIndex) => {
-      const img = task.images[imageIndex];
+      const img = task.attachments[imageIndex];
       if (img) handleImageContextMenu(event, task, img);
     },
   );
 }
 
-function openImageMenu(event: MouseEvent, img: ImageItem) {
+function openImageMenu(event: MouseEvent, img: Attachment) {
   if (item.value) handleImageContextMenu(event, item.value, img);
 }
 
@@ -299,13 +298,12 @@ onMounted(() => {
         />
 
         <TaskImageGrid
-          v-if="item.images.length"
+          v-if="item.attachments.length"
           :key="item.id"
           class="animate-enter"
           :style="{ '--enter-delay': entranceDelay(IMAGES_ENTRANCE_ORDER) }"
-          :images="item.images"
+          :images="item.attachments"
           :item-id="item.id"
-          :make-thumb="makeThumb"
           @open-viewer="openImage"
           @context-menu="openImageMenu"
         />

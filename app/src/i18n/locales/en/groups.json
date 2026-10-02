@@ -18,7 +18,6 @@
           "invalid_file": "Please select a valid image file.",
           "read_failed": "Failed to read file.",
           "upload_failed": "Cloudinary upload failed",
-          "invalid_response": "Invalid response from Cloudinary",
           "save_failed": "Failed to upload profile picture.",
           "delete_failed": "Failed to delete profile picture.",
           "update_success": "Group picture updated",

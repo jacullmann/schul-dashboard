@@ -18,7 +18,6 @@
           "invalid_file": "Bitte wähle eine gültige Bilddatei aus.",
           "read_failed": "Fehler beim Lesen der Datei.",
           "upload_failed": "Cloudinary Upload fehlgeschlagen",
-          "invalid_response": "Ungültige Antwort von Cloudinary",
           "save_failed": "Fehler beim Hochladen des Profilbildes.",
           "delete_failed": "Fehler beim Löschen des Profilbildes.",
           "update_success": "Group-Bild aktualisiert",

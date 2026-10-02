@@ -6,10 +6,7 @@ import { useGroupAdmin } from '@/modules/groups/composables/useGroupAdmin';
 import { Pencil, Camera, Trash2, Upload } from '@lucide/vue';
 import { useModalStore } from '@/stores/modalStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
-import hw from '../../../api/api';
-import { uploadToCloudinary, type UploadSignature } from '@/api/cloudinary';
-import { groupPath } from '@/api/groupPath';
-import { useGroupPageId } from '@/core/composables/useGroupPageId';
+import { uploadGroupAvatar } from '@/api/files';
 import GroupAvatarCropper from './GroupAvatarCropper.vue';
 import GroupTypeRadioGroup from './GroupTypeRadioGroup.vue';
 import SettingToggleCard from './SettingToggleCard.vue';
@@ -26,7 +23,6 @@ const {
   checkPermission,
   checkAuthStatus,
 } = useAppAuth();
-const groupId = useGroupPageId();
 const canEditSettings = computed(() => checkPermission('edit_group_general'));
 
 // Switching the type or Dalton rewires subjects and the schedule, so it takes
@@ -221,21 +217,11 @@ async function onCropConfirmed(blob: Blob) {
   avatarError.value = '';
 
   try {
-    const { data: sign } = await hw.post<UploadSignature>(
-      groupPath(groupId, '/items/uploads/sign'),
-      {},
-    );
-
-    const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
-    const json = await uploadToCloudinary(sign, file).catch(() => {
+    const upload = await uploadGroupAvatar(blob).catch(() => {
       throw new Error(t('groups.settings.general.avatar.errors.upload_failed'));
     });
-    if (!json.secure_url)
-      throw new Error(
-        t('groups.settings.general.avatar.errors.invalid_response'),
-      );
 
-    await saveGroupAvatar(json.secure_url);
+    await saveGroupAvatar(upload.id);
   } catch (err: any) {
     avatarError.value =
       err.message || t('groups.settings.general.avatar.errors.save_failed');

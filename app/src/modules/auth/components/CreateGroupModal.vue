@@ -7,8 +7,7 @@ import { useUserStore } from '@/stores/userStore';
 import { Camera, ImagePlus, Trash2, Upload } from '@lucide/vue';
 import GroupAvatarCropper from '@/modules/groups/components/GroupAvatarCropper.vue';
 import GroupTypeRadioGroup from '@/modules/groups/components/GroupTypeRadioGroup.vue';
-import hw from '@/api/api.ts';
-import { uploadToCloudinary, type UploadSignature } from '@/api/cloudinary';
+import { uploadGroupAvatar, type GroupAvatarUpload } from '@/api/files';
 import Avatar from '@/modules/auth/components/Avatar.vue';
 import { apiErrorMessage } from '@/api/errors';
 import { GROUP_NAME_MAX_LENGTH, type GroupType } from '@/types/groups';
@@ -43,7 +42,8 @@ const selectedImageSrc = ref('');
 const savingAvatar = ref(false);
 const avatarError = ref('');
 const isMenuOpen = ref(false);
-const avatarUrl = ref<string | null>(null);
+const avatar = ref<GroupAvatarUpload | null>(null);
+const avatarUrl = computed(() => avatar.value?.url ?? null);
 
 function toggleMenu() {
   isMenuOpen.value = !isMenuOpen.value;
@@ -61,7 +61,7 @@ function triggerCameraCaptureAndClose() {
 
 function deleteAvatar() {
   isMenuOpen.value = false;
-  avatarUrl.value = null;
+  avatar.value = null;
 }
 
 function onFileSelected(e: Event) {
@@ -97,21 +97,9 @@ async function onCropConfirmed(blob: Blob) {
   avatarError.value = '';
 
   try {
-    const { data: sign } = await hw.post<UploadSignature>(
-      '/uploads/group-avatar/sign',
-    );
-
-    const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
-    const json = await uploadToCloudinary(sign, file).catch(() => {
+    avatar.value = await uploadGroupAvatar(blob).catch(() => {
       throw new Error(t('groups.settings.general.avatar.errors.upload_failed'));
     });
-    if (!json.secure_url)
-      throw new Error(
-        t('groups.settings.general.avatar.errors.invalid_response') ||
-          'Ungültige Serverantwort',
-      );
-
-    avatarUrl.value = json.secure_url;
   } catch (err: any) {
     avatarError.value =
       err.message ||
@@ -145,7 +133,7 @@ async function submit() {
   try {
     const res = await auth.createGroup(
       groupName.value.trim(),
-      avatarUrl.value || undefined,
+      avatar.value?.id,
       groupType.value,
       daltonEnabled.value,
     );
@@ -188,7 +176,7 @@ async function submit() {
       <div class="flex flex-col items-center gap-4">
         <!-- Avatar Preview Circle -->
         <div class="relative flex-shrink-0">
-          <Avatar v-if="avatarUrl" picture="avatarUrl" :size="24"></Avatar
+          <Avatar v-if="avatarUrl" :picture="avatarUrl" :size="24"></Avatar
           ><span
             v-if="avatarUrl"
             class="absolute inset-0 hover:bg-[#8886] rounded-full z-10000 cursor-pointer touch-target transition-hover"

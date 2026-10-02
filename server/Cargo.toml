@@ -14,7 +14,7 @@ strip = true
 opt-level = 3
 
 [dependencies]
-axum = { version = "0.8", features = ["macros", "http2", "ws"] }
+axum = { version = "0.8", features = ["macros", "http2", "ws", "multipart"] }
 axum-extra = { version = "0.12", features = ["cookie", "cookie-private", "typed-header"] }
 tower-http = { version = "0.6", features = ["trace", "cors", "compression-gzip", "request-id", "timeout"] }
 tokio = { version = "1", features = ["full"] }
@@ -43,8 +43,8 @@ base64 = "0.22"
 subtle = "2.6"
 rand = "0.10"
 totp-rs = { version = "5.7", features = ["otpauth"] }
-uuid = { version = "1.23", features = ["v4", "serde"] }
-reqwest = { version = "0.13", default-features = false, features = ["json", "rustls", "form"] }
+uuid = { version = "1.23", features = ["v4", "serde", "v7"] }
+reqwest = { version = "0.13", default-features = false, features = ["json", "rustls", "form", "multipart"] }
 resend-rs = "0.25"
 chrono = { version = "0.4", default-features = false, features = ["clock", "serde"] }
 url = "2.5"
@@ -64,3 +64,4 @@ ipnetwork = "0.21.1"
 tower = "0.5.3"
 tower_governor = { version = "0.8", features = ["axum"]}
 governor = "0.10.4"
+zip = { version = "8.6", default-features = false, features = ["deflate-flate2-zlib-rs"] }

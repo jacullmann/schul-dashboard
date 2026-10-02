@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO items (type, title, subject_id, course_id, custom_subject, description, images, due_date, created_by, tenant_id)\n               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id",
+  "query": "INSERT INTO items (type, title, subject_id, course_id, custom_subject, description, due_date, created_by, tenant_id)\n               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id",
   "describe": {
     "columns": [
       {
@@ -23,7 +23,6 @@
         "Uuid",
         "Text",
         "Text",
-        "Jsonb",
         "Timestamptz",
         "Uuid",
         "Uuid"
@@ -33,5 +32,5 @@
       false
     ]
   },
-  "hash": "ea64c0beb20809cd1a41903ec1670b41b7ae455f3229ff3ee2d6e52714e4c893"
+  "hash": "f019902744210ec278d8a135ad7c474d3c3005251e6abbade55885c5f7fdbf60"
 }

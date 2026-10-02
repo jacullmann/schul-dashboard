@@ -1,6 +1,6 @@
 use crate::{
+    assets::service::{AssetPurpose, ensure_claimable},
     common::{
-        cloudinary::OwnImageUrl,
         group_type::{DEFAULT_COURSE_TYPE, GroupType, ZUSATZKURS_CATEGORY, resolve_course_type},
         names::DisplayName,
         permission::{GroupPermissions, Permission},
@@ -10,7 +10,7 @@ use crate::{
     group::{
         dto::{CreateScheduleSubDto, ReplaceScheduleDto, ScheduleLessonDto},
         member_policy::{self, Actor, Caller, Target},
-        service::{lock_group_owner, role_from_db},
+        service::{avatar_in_use_on_conflict, lock_group_owner, role_from_db},
     },
     state::AppState,
 };
@@ -492,7 +492,7 @@ impl GroupAdminService {
         tenant_id: Uuid,
         user_id: Uuid,
         name: Option<&DisplayName>,
-        avatar_url: Option<Option<&OwnImageUrl>>,
+        avatar_id: Option<Option<Uuid>>,
         group_type: Option<GroupType>,
         dalton_enabled: Option<bool>,
     ) -> AppResult<Value> {
@@ -541,14 +541,23 @@ impl GroupAdminService {
             .await?;
         }
 
-        if let Some(url) = avatar_url {
+        if let Some(avatar_id) = avatar_id {
+            let mut tx = self.db.begin().await?;
+
+            // The previous picture is left to the asset sweep.
+            if let Some(avatar_id) = avatar_id {
+                ensure_claimable(&mut *tx, avatar_id, AssetPurpose::GroupAvatar, user_id).await?;
+            }
             sqlx::query!(
-                r#"UPDATE groups SET avatar_url = $1 WHERE id = $2"#,
-                url.map(OwnImageUrl::as_str),
+                r#"UPDATE groups SET avatar_id = $1 WHERE id = $2"#,
+                avatar_id,
                 tenant_id
             )
-            .execute(&self.db)
-            .await?;
+            .execute(&mut *tx)
+            .await
+            .map_err(avatar_in_use_on_conflict)?;
+
+            tx.commit().await?;
         }
 
         sqlx::query!(
@@ -557,7 +566,7 @@ impl GroupAdminService {
             user_id,
             json!({
                 "name": name.map(DisplayName::as_str),
-                "avatarUrl": avatar_url.map(|url| url.map(OwnImageUrl::as_str)),
+                "avatarId": avatar_id,
                 "groupType": group_type.map(GroupType::as_str),
                 "daltonEnabled": dalton_enabled,
             })

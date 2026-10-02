@@ -11,20 +11,16 @@ import { useWindowSize } from '@vueuse/core';
 import { prefersReducedMotion } from '@/utils/motion';
 import { X, Ellipsis, ChevronLeft, ChevronRight } from '@lucide/vue';
 import {
-  makeUrl,
-  makeRawUrl,
-  makeThumb,
-} from '@/modules/tasks/composables/useImageUpload';
+  fileUrl,
+  isOfficeDocument,
+  isPdf,
+  previewUrl,
+  type StoredFile,
+} from '@/api/files';
 
 const props = defineProps<{
   visible: boolean;
-  images: Array<{
-    publicId?: string;
-    url?: string;
-    thumbUrl?: string;
-    metadata?: Record<string, unknown>;
-    [key: string]: unknown;
-  }>;
+  images: StoredFile[];
   initialIndex: number;
   // Resolves the grid tile an image was opened from, so the viewer can grow
   // out of it and shrink back into it.
@@ -160,49 +156,31 @@ const PAN_MOMENTUM = 200;
 const hasNext = computed(() => currentIndex.value < props.images.length - 1);
 const hasPrev = computed(() => currentIndex.value > 0);
 
-const isPdf = (img: any) =>
-  img?.metadata?.format === 'pdf' ||
-  img?.publicId?.toLowerCase().endsWith('.pdf');
-
-const isOffice = (img: any) => {
-  const format = img?.metadata?.format?.toLowerCase();
-  return ['docx', 'pptx', 'xlsx', 'doc', 'ppt', 'xls'].includes(format);
-};
-
 // Documents bring their own viewer, which handles its own pinch.
-const isZoomable = (img: any) => !!img && !isPdf(img) && !isOffice(img);
+const isZoomable = (img: StoredFile | undefined) =>
+  !!img && !isPdf(img) && !isOfficeDocument(img);
 
-function getImageSrc(img: any): string {
-  if (!img) return '';
-  if (isOffice(img)) {
-    return img.url || makeRawUrl(img.publicId);
-  }
-  return img.url || makeUrl(img.publicId);
-}
-
-function getOfficeViewerSrc(img: any): string {
-  const fileUrl = getImageSrc(img);
-  return `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileUrl)}`;
+function getOfficeViewerSrc(img: StoredFile): string {
+  return `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileUrl(img))}`;
 }
 
 // The thumbnail is already in the browser cache, so it stands in for the full
 // image while that one loads and the zoom runs.
-function thumbSrc(img: any): string {
-  if (!img) return '';
-  return img.thumbUrl || makeThumb(img.metadata?.thumbnailId || img.publicId);
+function thumbSrc(img: StoredFile): string | undefined {
+  return previewUrl(img) ?? undefined;
 }
 
 // Only a known aspect ratio lets the final frame be laid out before the full
-// image arrives, which is what the zoom animates towards. The stored metadata
+// image arrives, which is what the zoom animates towards. The stored size
 // can disagree with what the image really is, for example when it was rotated
 // on delivery, so the loaded image corrects it.
 function naturalSize(index: number) {
   const measured = measuredSizes.value[index];
   if (measured) return measured;
 
-  const metadata = props.images[index]?.metadata as any;
-  const w = Number(metadata?.width);
-  const h = Number(metadata?.height);
+  const image = props.images[index];
+  const w = image?.width ?? 0;
+  const h = image?.height ?? 0;
   return w > 0 && h > 0 ? { w, h } : null;
 }
 
@@ -1653,14 +1631,14 @@ onBeforeUnmount(() => {
                 @click.self="onBackdropClick"
               >
                 <iframe
-                  v-if="slide.image && isOffice(slide.image)"
+                  v-if="slide.image && isOfficeDocument(slide.image)"
                   :src="getOfficeViewerSrc(slide.image)"
                   class="w-[90vw] h-[85vh] max-w-5xl rounded-xl border-none bg-white"
                   @click.stop
                 ></iframe>
                 <iframe
                   v-else-if="slide.image && isPdf(slide.image)"
-                  :src="getImageSrc(slide.image)"
+                  :src="fileUrl(slide.image)"
                   class="w-[90vw] h-[85vh] max-w-5xl rounded-xl border-none bg-white"
                   @click.stop
                 ></iframe>
@@ -1683,7 +1661,7 @@ onBeforeUnmount(() => {
                     :class="{ 'will-change-transform': !zoomedAt(slide.index) }"
                   >
                     <img
-                      :src="getImageSrc(slide.image)"
+                      :src="fileUrl(slide.image)"
                       class="absolute inset-0 w-full h-full object-contain"
                       draggable="false"
                       alt=""
@@ -1714,7 +1692,7 @@ onBeforeUnmount(() => {
                 </div>
                 <img
                   v-else-if="slide.image"
-                  :src="getImageSrc(slide.image)"
+                  :src="fileUrl(slide.image)"
                   class="max-w-full max-h-full rounded-xl object-contain"
                   draggable="false"
                   alt=""

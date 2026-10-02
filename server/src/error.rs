@@ -39,6 +39,12 @@ pub enum AppError {
     #[error("{0}")]
     NotFound(String),
 
+    #[error("The file is larger than {max_bytes} bytes.")]
+    FileTooLarge { max_bytes: u64 },
+
+    #[error("Only images, PDFs and Word, PowerPoint or Excel documents can be uploaded.")]
+    UnsupportedFile,
+
     #[error("Conflict: {0}")]
     Conflict(String, serde_json::Value),
 
@@ -113,6 +119,14 @@ impl IntoResponse for AppError {
             }
             AppError::Forbidden(msg) => (StatusCode::FORBIDDEN, json!({ "error": msg })),
             AppError::NotFound(msg) => (StatusCode::NOT_FOUND, json!({ "error": msg })),
+            AppError::FileTooLarge { max_bytes } => (
+                StatusCode::PAYLOAD_TOO_LARGE,
+                json!({ "error": self.to_string(), "code": "FILE_TOO_LARGE", "maxBytes": max_bytes }),
+            ),
+            AppError::UnsupportedFile => (
+                StatusCode::UNSUPPORTED_MEDIA_TYPE,
+                json!({ "error": self.to_string(), "code": "UNSUPPORTED_FILE" }),
+            ),
             AppError::Conflict(msg, item) => (
                 StatusCode::CONFLICT,
                 json!({ "error": msg, "code": "DUPLICATE_ITEM", "item": item }),

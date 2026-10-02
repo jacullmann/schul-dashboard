@@ -1,3 +1,5 @@
+import type { StoredFile } from '@/api/files';
+
 export type AdminTab = 'overview' | 'users' | 'reports' | 'groups';
 
 export type SortOrder = 'asc' | 'desc';
@@ -78,11 +80,6 @@ export interface SuperAdminMembership {
   assignableRoles: MemberRole[];
 }
 
-export interface SuperAdminReportImage {
-  publicId: string;
-  metadata?: { thumbnailId?: string };
-}
-
 export interface SuperAdminReport {
   id: string;
   reportedAt: string;
@@ -96,7 +93,8 @@ export interface SuperAdminReport {
   itemSubject?: string;
   itemCourse?: string | null;
   itemDescription?: string;
-  itemImages?: SuperAdminReportImage[];
+  /** A snapshot taken when the task was reported. */
+  itemAttachments?: StoredFile[];
   itemDueDate?: string;
   itemEditorNote?: string;
   creatorEmail?: string;

@@ -1,4 +1,5 @@
 mod announcements;
+mod assets;
 mod auth;
 mod common;
 mod config;
@@ -67,7 +68,7 @@ async fn main() -> anyhow::Result<()> {
 
     let state = AppState::new(db, config);
 
-    common::assets::spawn_sweeper(state.db.clone(), state.cloudinary.clone());
+    assets::sweep::spawn(state.db.clone(), state.cloudinary.clone());
 
     let cors = CorsLayer::new()
         .allow_origin(
@@ -117,6 +118,7 @@ async fn main() -> anyhow::Result<()> {
     // group the caller does not belong to.
     let group_scoped = Router::new()
         .merge(announcements::routes::group_router())
+        .merge(assets::routes::group_router())
         .merge(group::routes::group_router())
         .merge(items::routes::group_router())
         .merge(messages::routes::group_router())
@@ -130,6 +132,7 @@ async fn main() -> anyhow::Result<()> {
     let api = Router::new()
         .nest("/groups/{group_id}", group_scoped)
         .merge(system::routes::router())
+        .merge(assets::routes::router())
         .merge(auth::routes::router())
         .merge(user::routes::router())
         .merge(group::routes::router())

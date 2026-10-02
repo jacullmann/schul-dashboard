@@ -1,6 +1,7 @@
 use crate::{
     common::text::DisplayText,
     error::{AppError, AppResult},
+    items::attachments,
     state::AppState,
 };
 use serde_json::{Value, json};
@@ -44,7 +45,7 @@ impl ReportsService {
         let item = sqlx::query!(
             r#"SELECT i.id, i.type, i.title,
                       COALESCE(s.name, i.custom_subject) AS "subject_name!", c.name AS "course_name?",
-                      i.description, i.images, i.due_date, i.editor_note, i.tenant_id,
+                      i.description, i.due_date, i.editor_note, i.tenant_id,
                       u.email AS "creator_email?: String"
                FROM items i
                LEFT JOIN subjects s ON s.id = i.subject_id
@@ -58,6 +59,10 @@ impl ReportsService {
         .await?
         .ok_or_else(|| AppError::not_found("Item not found."))?;
 
+        // A snapshot, so the report still shows what was reported after the
+        // task is gone.
+        let item_attachments = attachments::of_item(&self.db, item.id).await?;
+
         let details = json!({
             "itemId": item.id,
             "itemTitle": item.title,
@@ -65,7 +70,7 @@ impl ReportsService {
             "itemSubject": item.subject_name,
             "itemCourse": item.course_name,
             "itemDescription": item.description,
-            "itemImages": item.images,
+            "itemAttachments": item_attachments,
             "itemDueDate": item.due_date,
             "itemEditorNote": item.editor_note,
             "itemTenantId": item.tenant_id,

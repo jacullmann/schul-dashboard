@@ -1,0 +1,26 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT EXISTS (\n               SELECT 1 FROM assets\n               WHERE id = $1 AND purpose = $2 AND uploaded_by = $3\n                 AND uploaded_at > now() - make_interval(hours => $4)\n           ) AS \"claimable!\"",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "claimable!",
+        "type_info": "Bool",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Uuid",
+        "Int4"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "6becc38595e3ec2e59dc2772df2e45fff9ea42d0c37d6f4481f488ece8bc7cd5"
+}

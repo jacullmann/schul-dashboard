@@ -5,6 +5,7 @@ use crate::{
         token::{ADMIN_REVOKE, TokenService},
     },
     common::{
+        cloudinary::Cloudinary,
         name_generator::generate_user_name,
         pagination::{PAGE_SIZE, Page, contains_pattern, search_term},
         role::{MemberRole, Role},
@@ -56,6 +57,7 @@ fn search_params(raw: Option<&str>) -> (Option<String>, Option<Uuid>) {
 pub struct SuperAdminService {
     db: PgPool,
     tokens: TokenService,
+    cloudinary: Cloudinary,
 }
 
 impl SuperAdminService {
@@ -63,6 +65,7 @@ impl SuperAdminService {
         Self {
             db: s.db.clone(),
             tokens: TokenService::from_state(s),
+            cloudinary: s.cloudinary.clone(),
         }
     }
 
@@ -176,11 +179,12 @@ impl SuperAdminService {
         };
 
         let rows_query = sqlx::query!(
-            r#"SELECT g.id, g.name, g.avatar_url, g.group_type, g.owner_id, g.created_at,
-                      u.email AS owner_email,
+            r#"SELECT g.id, g.name, avatar.public_id AS "avatar_public_id?", g.group_type,
+                      g.owner_id, g.created_at, u.email AS owner_email,
                       members.n AS "member_count!", items.n AS "item_count!"
                FROM groups g
                JOIN users u ON u.id = g.owner_id
+               LEFT JOIN assets avatar ON avatar.id = g.avatar_id
                CROSS JOIN LATERAL (SELECT COUNT(*) AS n FROM user_roles WHERE tenant_id = g.id) members
                CROSS JOIN LATERAL (SELECT COUNT(*) AS n FROM items WHERE tenant_id = g.id) items
                WHERE ($1::text IS NULL OR g.name ILIKE $1 OR u.email ILIKE $1 OR g.id = $2)
@@ -226,7 +230,7 @@ impl SuperAdminService {
                 owner_name: generate_user_name(&g.owner_id.to_string()),
                 id: g.id,
                 name: g.name,
-                avatar_url: g.avatar_url,
+                avatar_url: g.avatar_public_id.map(|id| self.cloudinary.image_url(&id)),
                 group_type: g.group_type,
                 owner_id: g.owner_id,
                 owner_email: g.owner_email,

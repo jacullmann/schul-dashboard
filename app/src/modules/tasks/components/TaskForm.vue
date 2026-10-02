@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { fileUrl, isPdf, previewUrl } from '@/api/files';
 import type { HwItem } from '@/modules/tasks/composables/useTasks';
 import type { ItemType } from '@/modules/tasks/types';
 import { X, Upload, FileText } from '@lucide/vue';
@@ -36,11 +37,8 @@ const {
   imgUploading,
   imgUploadError,
   imageQuotaError,
-  makeThumb,
   pickImages,
   removeImg,
-  makeUrl,
-  isPdf,
   isDragging,
   dropHandlers,
   canUploadImages,
@@ -225,22 +223,30 @@ const imageEntrance = useAddedEntrance(
         <BaseRow id="images">
           <div
             v-for="img in imgImages"
-            :key="img.publicId"
+            :key="img.id"
             class="relative w-32 h-32 rounded-xl overflow-hidden bg-[rgba(26, 26, 26, 0.5)] backdrop-blur-sm"
-            :class="{ 'animate-enter': imageEntrance.isEntering(img.publicId) }"
-            :style="imageEntrance.entranceStyle(img.publicId)"
-            @animationend="
-              imageEntrance.handleEntranceEnd($event, img.publicId)
-            "
+            :class="{ 'animate-enter': imageEntrance.isEntering(img.id) }"
+            :style="imageEntrance.entranceStyle(img.id)"
+            @animationend="imageEntrance.handleEntranceEnd($event, img.id)"
           >
-            <BaseLink :to="makeUrl(img.publicId)">
+            <BaseLink :to="fileUrl(img)">
               <img
-                :src="makeThumb(img.publicId)"
+                v-if="previewUrl(img)"
+                :src="previewUrl(img) ?? undefined"
                 class="block w-full h-full object-cover"
                 loading="lazy"
                 decoding="async"
                 :alt="t('common.preview')"
               />
+              <span
+                v-else
+                class="flex h-full w-full flex-col items-center justify-center gap-1 p-2 text-center text-on-ghost"
+              >
+                <FileText class="h-6 w-6" />
+                <span class="text-xs font-bold uppercase">{{
+                  img.format
+                }}</span>
+              </span>
             </BaseLink>
 
             <div
@@ -321,27 +327,24 @@ const imageEntrance = useAddedEntrance(
 
         <template
           v-if="
-            (doubleTaskOriginalItem.images &&
-              doubleTaskOriginalItem.images.length) ||
+            doubleTaskOriginalItem.attachments.length ||
             doubleTaskOriginalItem.editorNote
           "
           #content-after
         >
           <!-- Images block (non-interactive) -->
           <div
-            v-if="
-              doubleTaskOriginalItem.images &&
-              doubleTaskOriginalItem.images.length
-            "
+            v-if="doubleTaskOriginalItem.attachments.length"
             class="grid grid-cols-4 gap-2 mt-2 mb-2"
           >
             <div
-              v-for="img in doubleTaskOriginalItem.images"
-              :key="img.publicId"
+              v-for="img in doubleTaskOriginalItem.attachments"
+              :key="img.id"
               class="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-md border-none bg-black/[0.12] select-none"
             >
               <img
-                :src="makeThumb(img.metadata?.thumbnailId || img.publicId)"
+                v-if="previewUrl(img)"
+                :src="previewUrl(img) ?? undefined"
                 class="block h-full w-full object-cover [pointer-events:none]"
                 :alt="t('common.preview')"
               />

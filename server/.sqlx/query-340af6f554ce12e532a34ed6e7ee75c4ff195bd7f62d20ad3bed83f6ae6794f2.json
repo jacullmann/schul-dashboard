@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT i.id, i.type, i.title, i.subject_id, i.course_id,\n                      COALESCE(s.name, i.custom_subject) as \"subject_name!\", c.name as \"course_name?\",\n                      i.description, i.images, i.due_date,\n                      i.created_by as \"created_by?: Uuid\", i.editor_note, i.created_at, i.updated_at,\n                      u.email as \"creator_email?: String\",\n                      (\n                          i.id IN (SELECT item_id FROM pinned_items WHERE user_id = $2)\n                          OR i.subject_id IS NULL\n                          OR s.category = 'core'\n                          OR NOT EXISTS (SELECT 1 FROM courses sc WHERE sc.subject_id = i.subject_id)\n                          OR EXISTS (\n                              SELECT 1 FROM user_courses uc\n                              WHERE uc.user_id = $2\n                                AND uc.subject_id = i.subject_id\n                                AND (i.course_id IS NULL OR uc.course_id = i.course_id)\n                          )\n                      ) as \"matches_courses!\"\n               FROM items i\n               LEFT JOIN subjects s ON s.id = i.subject_id\n               LEFT JOIN courses c ON c.id = i.course_id\n               LEFT JOIN users u ON u.id = i.created_by\n               LEFT JOIN user_item_visibility v ON v.item_id = i.id AND v.user_id = $2\n               WHERE i.tenant_id = $1\n                 AND ($3::text IS NULL OR $3 = 'all' OR i.type = $3)\n                 AND (\n                     ($4::boolean AND (v.status = 'archived' OR (i.due_date < now() AND i.id IN (SELECT item_id FROM keep_checked WHERE user_id = $2) AND i.id NOT IN (SELECT item_id FROM pinned_items WHERE user_id = $2))) AND v.status IS DISTINCT FROM 'kept')\n                     OR\n                     (NOT $4::boolean AND (v.status = 'kept' OR ((i.due_date >= now() OR i.id NOT IN (SELECT item_id FROM keep_checked WHERE user_id = $2) OR i.id IN (SELECT item_id FROM pinned_items WHERE user_id = $2)) AND v.status IS DISTINCT FROM 'archived')))\n                 )\n                 AND (\n                     $5::boolean IS FALSE\n                     OR i.id NOT IN (SELECT item_id FROM keep_checked WHERE user_id = $2)\n                 )\n                 AND (\n                     $6::uuid IS NULL\n                     OR i.subject_id = $6\n                     OR i.id IN (SELECT item_id FROM pinned_items WHERE user_id = $2)\n                 )\n               ORDER BY i.due_date ASC",
+  "query": "SELECT i.id, i.type, i.title, i.subject_id, i.course_id,\n                      COALESCE(s.name, i.custom_subject) as \"subject_name!\", c.name as \"course_name?\",\n                      i.description, i.due_date,\n                      i.created_by as \"created_by?: Uuid\", i.editor_note, i.created_at, i.updated_at,\n                      u.email as \"creator_email?: String\",\n                      (\n                          i.id IN (SELECT item_id FROM pinned_items WHERE user_id = $2)\n                          OR i.subject_id IS NULL\n                          OR s.category = 'core'\n                          OR NOT EXISTS (SELECT 1 FROM courses sc WHERE sc.subject_id = i.subject_id)\n                          OR EXISTS (\n                              SELECT 1 FROM user_courses uc\n                              WHERE uc.user_id = $2\n                                AND uc.subject_id = i.subject_id\n                                AND (i.course_id IS NULL OR uc.course_id = i.course_id)\n                          )\n                      ) as \"matches_courses!\"\n               FROM items i\n               LEFT JOIN subjects s ON s.id = i.subject_id\n               LEFT JOIN courses c ON c.id = i.course_id\n               LEFT JOIN users u ON u.id = i.created_by\n               LEFT JOIN user_item_visibility v ON v.item_id = i.id AND v.user_id = $2\n               WHERE i.tenant_id = $1\n                 AND ($3::text IS NULL OR $3 = 'all' OR i.type = $3)\n                 AND (\n                     ($4::boolean AND (v.status = 'archived' OR (i.due_date < now() AND i.id IN (SELECT item_id FROM keep_checked WHERE user_id = $2) AND i.id NOT IN (SELECT item_id FROM pinned_items WHERE user_id = $2))) AND v.status IS DISTINCT FROM 'kept')\n                     OR\n                     (NOT $4::boolean AND (v.status = 'kept' OR ((i.due_date >= now() OR i.id NOT IN (SELECT item_id FROM keep_checked WHERE user_id = $2) OR i.id IN (SELECT item_id FROM pinned_items WHERE user_id = $2)) AND v.status IS DISTINCT FROM 'archived')))\n                 )\n                 AND (\n                     $5::boolean IS FALSE\n                     OR i.id NOT IN (SELECT item_id FROM keep_checked WHERE user_id = $2)\n                 )\n                 AND (\n                     $6::uuid IS NULL\n                     OR i.subject_id = $6\n                     OR i.id IN (SELECT item_id FROM pinned_items WHERE user_id = $2)\n                 )\n               ORDER BY i.due_date ASC",
   "describe": {
     "columns": [
       {
@@ -88,17 +88,6 @@
       },
       {
         "ordinal": 8,
-        "name": "images",
-        "type_info": "Jsonb",
-        "origin": {
-          "Table": {
-            "table": "items",
-            "name": "images"
-          }
-        }
-      },
-      {
-        "ordinal": 9,
         "name": "due_date",
         "type_info": "Timestamptz",
         "origin": {
@@ -109,7 +98,7 @@
         }
       },
       {
-        "ordinal": 10,
+        "ordinal": 9,
         "name": "created_by?: Uuid",
         "type_info": "Uuid",
         "origin": {
@@ -120,7 +109,7 @@
         }
       },
       {
-        "ordinal": 11,
+        "ordinal": 10,
         "name": "editor_note",
         "type_info": "Text",
         "origin": {
@@ -131,7 +120,7 @@
         }
       },
       {
-        "ordinal": 12,
+        "ordinal": 11,
         "name": "created_at",
         "type_info": "Timestamptz",
         "origin": {
@@ -142,7 +131,7 @@
         }
       },
       {
-        "ordinal": 13,
+        "ordinal": 12,
         "name": "updated_at",
         "type_info": "Timestamptz",
         "origin": {
@@ -153,7 +142,7 @@
         }
       },
       {
-        "ordinal": 14,
+        "ordinal": 13,
         "name": "creator_email?: String",
         "type_info": "Text",
         "origin": {
@@ -164,7 +153,7 @@
         }
       },
       {
-        "ordinal": 15,
+        "ordinal": 14,
         "name": "matches_courses!",
         "type_info": "Bool",
         "origin": "Expression"
@@ -189,7 +178,6 @@
       null,
       false,
       true,
-      true,
       false,
       true,
       true,
@@ -199,5 +187,5 @@
       null
     ]
   },
-  "hash": "aa6038f2c2927c079d8688574a3b3222a2056c6a03f3238f3e3548cb0b5e6135"
+  "hash": "340af6f554ce12e532a34ed6e7ee75c4ff195bd7f62d20ad3bed83f6ae6794f2"
 }

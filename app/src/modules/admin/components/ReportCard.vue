@@ -3,7 +3,7 @@ import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { Trash2 } from '@lucide/vue';
 import ItemCard from '@/modules/tasks/components/ItemCard.vue';
-import { makeThumb } from '@/modules/tasks/composables/useImageUpload';
+import { previewUrl } from '@/api/files';
 import { useSuperAdminFormat } from '../composables/useSuperAdminFormat';
 import type { SuperAdminReport } from '../types';
 
@@ -71,16 +71,17 @@ const body = computed(() =>
 
     <template #content-after>
       <div
-        v-if="report.itemImages?.length"
+        v-if="report.itemAttachments?.length"
         class="grid grid-cols-4 gap-2 mt-2 mb-2"
       >
         <div
-          v-for="img in report.itemImages"
+          v-for="img in report.itemAttachments"
           :key="img.publicId"
           class="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-md bg-black/[0.12] select-none"
         >
           <img
-            :src="makeThumb(img.metadata?.thumbnailId || img.publicId)"
+            v-if="previewUrl(img)"
+            :src="previewUrl(img) ?? undefined"
             class="block h-full w-full object-cover pointer-events-none"
             :alt="t('common.preview')"
           />

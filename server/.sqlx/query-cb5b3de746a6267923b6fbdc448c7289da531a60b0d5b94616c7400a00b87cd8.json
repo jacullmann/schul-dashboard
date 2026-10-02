@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT i.id, i.type, i.title,\n                      COALESCE(s.name, i.custom_subject) AS \"subject_name!\", c.name AS \"course_name?\",\n                      i.description, i.images, i.due_date, i.editor_note, i.tenant_id,\n                      u.email AS \"creator_email?: String\"\n               FROM items i\n               LEFT JOIN subjects s ON s.id = i.subject_id\n               LEFT JOIN courses c ON c.id = i.course_id\n               LEFT JOIN users u ON u.id = i.created_by\n               WHERE i.id = $1 AND i.tenant_id = $2",
+  "query": "SELECT i.id, i.type, i.title,\n                      COALESCE(s.name, i.custom_subject) AS \"subject_name!\", c.name AS \"course_name?\",\n                      i.description, i.due_date, i.editor_note, i.tenant_id,\n                      u.email AS \"creator_email?: String\"\n               FROM items i\n               LEFT JOIN subjects s ON s.id = i.subject_id\n               LEFT JOIN courses c ON c.id = i.course_id\n               LEFT JOIN users u ON u.id = i.created_by\n               WHERE i.id = $1 AND i.tenant_id = $2",
   "describe": {
     "columns": [
       {
@@ -66,17 +66,6 @@
       },
       {
         "ordinal": 6,
-        "name": "images",
-        "type_info": "Jsonb",
-        "origin": {
-          "Table": {
-            "table": "items",
-            "name": "images"
-          }
-        }
-      },
-      {
-        "ordinal": 7,
         "name": "due_date",
         "type_info": "Timestamptz",
         "origin": {
@@ -87,7 +76,7 @@
         }
       },
       {
-        "ordinal": 8,
+        "ordinal": 7,
         "name": "editor_note",
         "type_info": "Text",
         "origin": {
@@ -98,7 +87,7 @@
         }
       },
       {
-        "ordinal": 9,
+        "ordinal": 8,
         "name": "tenant_id",
         "type_info": "Uuid",
         "origin": {
@@ -109,7 +98,7 @@
         }
       },
       {
-        "ordinal": 10,
+        "ordinal": 9,
         "name": "creator_email?: String",
         "type_info": "Text",
         "origin": {
@@ -133,12 +122,11 @@
       null,
       true,
       true,
-      true,
       false,
       true,
       false,
       true
     ]
   },
-  "hash": "565a54afec74f7f397ec26faf4301ee77e953c1f37d45bdff759ecb448471f82"
+  "hash": "cb5b3de746a6267923b6fbdc448c7289da531a60b0d5b94616c7400a00b87cd8"
 }

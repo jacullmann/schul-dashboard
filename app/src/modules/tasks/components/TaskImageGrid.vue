@@ -4,66 +4,49 @@ import { FileText, PieChart, Table } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import { useLongPress } from '@/common/composables/useLongPress';
 import { useAddedEntrance } from '@/modules/tasks/composables/useAddedEntrance';
+import { isPdf, previewUrl, type Attachment } from '@/api/files';
 
 const props = defineProps<{
-  images: any[];
+  images: Attachment[];
   itemId: string;
-  makeThumb: (id: string) => string;
 }>();
 
 const emit = defineEmits<{
   (e: 'open-viewer', index: number): void;
-  (e: 'context-menu', event: MouseEvent, img: any): void;
+  (e: 'context-menu', event: MouseEvent, img: Attachment): void;
 }>();
 
 const { t } = useI18n();
 
 const { isEntering, entranceStyle, handleEntranceEnd } = useAddedEntrance(
-  computed(() => props.images.map((img) => img.publicId as string)),
+  computed(() => props.images.map((img) => img.id)),
 );
 
-const getFileBadge = (img: any) => {
-  const format = img.metadata?.format?.toLowerCase();
-  if (format === 'pdf' || img.publicId?.toLowerCase().endsWith('.pdf')) {
-    return { label: 'PDF', icon: FileText };
-  }
-  if (format === 'docx' || format === 'doc') {
-    return { label: 'DOCX', icon: FileText };
-  }
-  if (format === 'pptx' || format === 'ppt') {
-    return { label: 'PPTX', icon: PieChart };
-  }
-  if (format === 'xlsx' || format === 'xls') {
-    return { label: 'XLSX', icon: Table };
-  }
-  return null;
-};
+const DOCUMENT_BADGES = {
+  docx: {
+    label: 'DOCX',
+    icon: FileText,
+    background: 'from-blue-400 to-indigo-800',
+  },
+  pptx: {
+    label: 'PPTX',
+    icon: PieChart,
+    background: 'from-orange-400 to-rose-700',
+  },
+  xlsx: {
+    label: 'XLSX',
+    icon: Table,
+    background: 'from-lime-400 to-green-800',
+  },
+} as const;
+const PDF_BADGE = { label: 'PDF', icon: FileText } as const;
+const FALLBACK_BACKGROUND = 'from-gray-500 to-gray-700';
 
-const isOfficeFileWithoutThumb = (img: any) => {
-  const format = img.metadata?.format?.toLowerCase();
-  const isOffice = ['docx', 'pptx', 'xlsx', 'doc', 'ppt', 'xls'].includes(
-    format,
-  );
-  return isOffice && !img.metadata?.thumbnailId;
-};
+const documentBadge = (img: Attachment) =>
+  DOCUMENT_BADGES[img.format as keyof typeof DOCUMENT_BADGES] ?? null;
 
-const getOfficeBgClass = (img: any) => {
-  const format = img.metadata?.format?.toLowerCase();
-  if (format === 'docx' || format === 'doc')
-    return 'from-blue-400 to-indigo-800';
-  if (format === 'pptx' || format === 'ppt')
-    return 'from-orange-400 to-rose-700';
-  if (format === 'xlsx' || format === 'xls')
-    return 'from-lime-400 to-green-800';
-  return 'from-gray-500 to-gray-700';
-};
-
-const getThumbSrc = (img: any) => {
-  if (img.metadata?.thumbnailId) {
-    return props.makeThumb(img.metadata.thumbnailId);
-  }
-  return props.makeThumb(img.publicId);
-};
+const fileBadge = (img: Attachment) =>
+  isPdf(img) ? PDF_BADGE : documentBadge(img);
 
 // One hold is tracked for the whole row and resolved to a tile from the event
 // target, so the tiles stay plain markup instead of a component each.
@@ -98,57 +81,51 @@ const { handlers: longPressHandlers } = useLongPress(
     >
       <div
         v-for="(img, idx) in images"
-        :key="img.publicId"
+        :key="img.id"
         :data-image-index="idx"
         class="long-press-target relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-sm border-none bg-black/[0.12] select-none"
-        :class="{ 'animate-enter': isEntering(img.publicId) }"
-        :style="entranceStyle(img.publicId)"
-        @animationend="handleEntranceEnd($event, img.publicId)"
+        :class="{ 'animate-enter': isEntering(img.id) }"
+        :style="entranceStyle(img.id)"
+        @animationend="handleEntranceEnd($event, img.id)"
       >
         <button
           type="button"
           class="img-clickable w-full h-full cursor-pointer bg-transparent block touch-target"
           @click.stop="$emit('open-viewer', idx)"
         >
-          <span
-            v-if="isOfficeFileWithoutThumb(img)"
-            class="flex flex-col items-center justify-center w-full h-full text-white p-3 text-center select-none bg-gradient-to-br"
-            :class="getOfficeBgClass(img)"
-          >
-            <component
-              :is="getFileBadge(img)?.icon"
-              :size="32"
-              class="mb-1.5 drop-shadow-md opacity-90"
-            />
-            <span class="text-sm font-bold uppercase">{{
-              img.metadata?.format
-            }}</span>
-            <span
-              class="text-xs text-white opacity-75 max-w-full truncate px-1"
-              :title="img.metadata?.name"
-              >{{ img.metadata?.name || t('tasks.images.document') }}</span
-            >
-          </span>
           <img
-            v-else
-            :src="getThumbSrc(img)"
+            v-if="previewUrl(img)"
+            :src="previewUrl(img) ?? undefined"
             class="block h-full w-full object-cover [pointer-events:none]"
             loading="lazy"
             draggable="false"
             :alt="t('common.preview')"
           />
+          <span
+            v-else
+            class="flex flex-col items-center justify-center w-full h-full text-white p-3 text-center select-none bg-gradient-to-br"
+            :class="documentBadge(img)?.background ?? FALLBACK_BACKGROUND"
+          >
+            <component
+              :is="fileBadge(img)?.icon ?? FileText"
+              :size="32"
+              class="mb-1.5 drop-shadow-md opacity-90"
+            />
+            <span class="text-sm font-bold uppercase">{{ img.format }}</span>
+            <span
+              class="text-xs text-white opacity-75 max-w-full truncate px-1"
+              :title="img.name ?? undefined"
+              >{{ img.name || t('tasks.images.document') }}</span
+            >
+          </span>
         </button>
 
         <div
-          v-if="getFileBadge(img) && !isOfficeFileWithoutThumb(img)"
+          v-if="fileBadge(img) && previewUrl(img)"
           class="absolute top-1 left-1 flex items-center gap-1.5 bg-black/40 border border-white/10 text-white p-1.5 pr-2 rounded-md text-sm/4 font-semibold select-none pointer-events-none backdrop-blur-sm"
         >
-          <component
-            :is="getFileBadge(img)?.icon"
-            :size="16"
-            class="text-white"
-          />
-          <span>{{ getFileBadge(img)?.label }}</span>
+          <component :is="fileBadge(img)?.icon" :size="16" class="text-white" />
+          <span>{{ fileBadge(img)?.label }}</span>
         </div>
       </div>
     </div>

@@ -46,7 +46,8 @@ fn lock_after(consecutive_misses: i32) -> Option<TimeDelta> {
 
 /// Verifies `code` for the user's enabled second factor and records the
 /// outcome. A locked factor fails with [`AppError::MfaLocked`] without the code
-/// being looked at; an account without an enabled factor is `Rejected`.
+/// being looked at, as does the miss that starts a lock; an account without an
+/// enabled factor is `Rejected`.
 pub async fn check_code(
     db: &PgPool,
     enc: &EncryptionService,
@@ -110,7 +111,13 @@ pub async fn check_code(
         }
 
         tx.commit().await?;
-        return Ok(CodeCheck::Rejected);
+
+        // The miss that starts a lock already says so, rather than leaving the
+        // user to find out with their next code.
+        return match lock {
+            Some(retry_after) => Err(AppError::MfaLocked { retry_after }),
+            None => Ok(CodeCheck::Rejected),
+        };
     };
 
     sqlx::query!(

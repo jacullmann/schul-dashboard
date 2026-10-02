@@ -5,9 +5,9 @@ import hw from '../../../api/api';
 import { groupPath } from '@/api/groupPath';
 import type { HwItem } from '@/modules/tasks/composables/useTasks';
 import type {
-  ImageItem,
   ItemSubjectPayload,
   ItemType,
+  TaskFile,
 } from '@/modules/tasks/types';
 import { taskRoute } from '@/modules/tasks/utils/routes';
 import { useImageUpload } from '@/modules/tasks/composables/useImageUpload';
@@ -87,20 +87,16 @@ export function useTaskFormLogic(
     uploading: imgUploading,
     uploadError: imgUploadError,
     init: imgInit,
-    makeThumb,
     uploadImage,
     removeImg,
     uploadFiles,
-    makeUrl,
   } = useImageUpload(groupId);
-
-  const isPdf = (img: any) => img.metadata?.format === 'pdf';
 
   const { canUploadImages, canDeleteImage } = useTaskPermissions(groupId);
 
   /** Images of a new task are only local until it is created. */
-  const canRemoveImage = (img: ImageItem) =>
-    !initial || canDeleteImage(initial, img);
+  const canRemoveImage = (file: TaskFile) =>
+    !initial || ('createdBy' in file && canDeleteImage(initial, file));
 
   const pickImages = () => uploadImage(activeType.value, initial?.id);
 
@@ -402,11 +398,8 @@ export function useTaskFormLogic(
           ...payload,
           dueDate,
           type: activeType.value,
-          // An existing task's images are changed through their own endpoints.
-          images: imgImages.value.map((img) => ({
-            publicId: img.publicId,
-            metadata: img.metadata || {},
-          })),
+          // An existing task's files are changed through their own endpoints.
+          attachmentIds: imgImages.value.map((file) => file.id),
           confirmDoubleTask: doubleCheckPassed.value,
         });
       }
@@ -486,7 +479,7 @@ export function useTaskFormLogic(
 
   onMounted(() => {
     void subjectStore.loadSubjects(groupId.value);
-    imgInit(initial?.images || []);
+    imgInit(initial?.attachments ?? []);
     titleInputRef.value?.focus();
   });
 
@@ -502,11 +495,8 @@ export function useTaskFormLogic(
     imgUploading,
     imgUploadError,
     imageQuotaError,
-    makeThumb,
     pickImages,
     removeImg,
-    makeUrl,
-    isPdf,
     isDragging,
     dropHandlers,
     canUploadImages,

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT g.id, g.name, g.owner_id, g.schedule_config, g.avatar_url, g.permissions,\n                      g.group_type, g.dalton_enabled, r.name AS role_name\n               FROM user_roles ur\n               JOIN groups g ON g.id = ur.tenant_id\n               JOIN roles r ON r.id = ur.role_id\n               WHERE ur.user_id = $1\n               ORDER BY ur.assigned_at",
+  "query": "SELECT g.id, g.name, g.owner_id, g.schedule_config, avatar.public_id AS \"avatar_public_id?\",\n                      g.permissions, g.group_type, g.dalton_enabled, r.name AS role_name\n               FROM user_roles ur\n               JOIN groups g ON g.id = ur.tenant_id\n               JOIN roles r ON r.id = ur.role_id\n               LEFT JOIN assets avatar ON avatar.id = g.avatar_id\n               WHERE ur.user_id = $1\n               ORDER BY ur.assigned_at",
   "describe": {
     "columns": [
       {
@@ -49,12 +49,12 @@
       },
       {
         "ordinal": 4,
-        "name": "avatar_url",
+        "name": "avatar_public_id?",
         "type_info": "Text",
         "origin": {
           "Table": {
-            "table": "groups",
-            "name": "avatar_url"
+            "table": "assets",
+            "name": "public_id"
           }
         }
       },
@@ -113,12 +113,12 @@
       false,
       false,
       false,
-      true,
+      false,
       false,
       false,
       false,
       false
     ]
   },
-  "hash": "7df9de7d168f1d50edca05289137a8b83bf1565d0f3d98c1d035877ec7bd7075"
+  "hash": "0530a4b2f391498338b1e1845c7e6b04ba1ded0da1fb6e9db52caf3acc3e506d"
 }

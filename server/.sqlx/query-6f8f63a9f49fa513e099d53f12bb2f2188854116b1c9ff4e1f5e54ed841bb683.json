@@ -1,11 +1,11 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT name, schedule_config, avatar_url, group_type, dalton_enabled\n               FROM groups WHERE id = $1",
+  "query": "SELECT g.name AS \"name!\", g.schedule_config AS \"schedule_config!\",\n                      avatar.public_id AS \"avatar_public_id?\",\n                      g.group_type AS \"group_type!\", g.dalton_enabled AS \"dalton_enabled!\"\n               FROM groups g\n               LEFT JOIN assets avatar ON avatar.id = g.avatar_id\n               WHERE g.id = $1",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
-        "name": "name",
+        "name": "name!",
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -16,7 +16,7 @@
       },
       {
         "ordinal": 1,
-        "name": "schedule_config",
+        "name": "schedule_config!",
         "type_info": "Jsonb",
         "origin": {
           "Table": {
@@ -27,18 +27,18 @@
       },
       {
         "ordinal": 2,
-        "name": "avatar_url",
+        "name": "avatar_public_id?",
         "type_info": "Text",
         "origin": {
           "Table": {
-            "table": "groups",
-            "name": "avatar_url"
+            "table": "assets",
+            "name": "public_id"
           }
         }
       },
       {
         "ordinal": 3,
-        "name": "group_type",
+        "name": "group_type!",
         "type_info": "Text",
         "origin": {
           "Table": {
@@ -49,7 +49,7 @@
       },
       {
         "ordinal": 4,
-        "name": "dalton_enabled",
+        "name": "dalton_enabled!",
         "type_info": "Bool",
         "origin": {
           "Table": {
@@ -65,12 +65,12 @@
       ]
     },
     "nullable": [
-      false,
-      false,
+      true,
       true,
       false,
-      false
+      true,
+      true
     ]
   },
-  "hash": "f2b34c39458330532ffdbc22b69065c46b75d5e5996dbf9be7c2251fb00c83ec"
+  "hash": "6f8f63a9f49fa513e099d53f12bb2f2188854116b1c9ff4e1f5e54ed841bb683"
 }

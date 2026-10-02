@@ -405,13 +405,14 @@ export function useGroupAdmin() {
     }
   }
 
-  async function saveGroupAvatar(avatarUrl: string | null) {
+  /** `avatarId` names an upload from `uploadGroupAvatar`; `null` removes the picture. */
+  async function saveGroupAvatar(avatarId: string | null) {
     try {
       await hw.patch(groupPath(groupId.value, '/admin/settings'), {
-        avatarUrl: avatarUrl ? avatarUrl.trim() : null,
+        avatarId,
       });
       showMessage(
-        avatarUrl
+        avatarId
           ? t('groups.settings.general.avatar.errors.update_success')
           : t('groups.settings.general.avatar.errors.delete_success'),
       );

@@ -1,8 +1,7 @@
 use super::handlers::*;
-use crate::{common::rate_limit, state::AppState};
+use crate::state::AppState;
 use axum::{
     Router,
-    handler::Handler,
     routing::{delete, get, patch, post},
 };
 
@@ -10,10 +9,6 @@ pub fn router() -> Router<AppState> {
     Router::new()
         .route("/groups", post(create_group))
         .route("/groups/status", get(get_status))
-        .route(
-            "/uploads/group-avatar/sign",
-            post(sign_group_avatar_upload.layer(rate_limit::upload_signatures())),
-        )
         .route("/invites/{token}", get(get_invite))
         .route("/invites/{token}/accept", post(accept_invite))
 }

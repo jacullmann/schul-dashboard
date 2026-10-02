@@ -1,5 +1,4 @@
 use super::item_type::ItemType;
-use crate::common::cloudinary::RawExtension;
 use serde::Deserialize;
 use uuid::Uuid;
 use validator::Validate;
@@ -27,7 +26,9 @@ pub struct CreateItemDto {
     pub subject: ItemSubjectDto,
     #[validate(length(max = 1000))]
     pub description: Option<String>,
-    pub images: Option<Vec<ImageDto>>,
+    /// Uploads of the creator to attach, in display order.
+    #[serde(default)]
+    pub attachment_ids: Vec<Uuid>,
     pub due_date: String,
     pub confirm_double_task: Option<bool>,
 }
@@ -45,15 +46,8 @@ pub struct UpdateItemDto {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ImageDto {
-    pub public_id: String,
-    pub metadata: Option<serde_json::Value>,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct AddImageDto {
-    pub image: ImageDto,
+pub struct AddAttachmentDto {
+    pub asset_id: Uuid,
 }
 
 pub const NOTE_MAX_CHARS: usize = 2000;
@@ -70,14 +64,6 @@ pub struct UpdateEditorNoteDto {
 pub struct ReportItemDto {
     pub item_id: Uuid,
     pub reason: Option<String>,
-}
-
-/// Office documents are uploaded as raw files and need their extension in the
-/// public ID; everything else is uploaded as an image.
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct SignUploadDto {
-    pub raw_extension: Option<RawExtension>,
 }
 
 #[derive(Debug, Deserialize)]

@@ -1,4 +1,3 @@
-pub mod assets;
 pub mod cloudinary;
 pub mod csrf;
 pub mod email;

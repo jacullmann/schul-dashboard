@@ -15,7 +15,8 @@ use crate::common::{
 #[serde(rename_all = "camelCase")]
 pub struct CreateGroupDto {
     pub group_name: String,
-    pub avatar_url: Option<String>,
+    /// An upload from `/uploads/group-avatar`.
+    pub avatar_id: Option<Uuid>,
     pub group_type: Option<String>,
     #[serde(default)]
     pub dalton_enabled: bool,
@@ -77,9 +78,9 @@ pub struct ChangeMemberRoleDto {
 #[serde(rename_all = "camelCase")]
 pub struct RenameGroupDto {
     pub name: Option<String>,
-    /// `null` removes the group picture.
+    /// An upload from `/uploads/group-avatar`; `null` removes the picture.
     #[serde(default, deserialize_with = "patch::nullable")]
-    pub avatar_url: Option<Option<String>>,
+    pub avatar_id: Option<Option<Uuid>>,
     pub group_type: Option<String>,
     pub dalton_enabled: Option<bool>,
 }

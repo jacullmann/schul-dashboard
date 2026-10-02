@@ -28,7 +28,7 @@ pub struct SubjectPath {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct ItemImagePath {
+pub struct ItemAttachmentPath {
     pub id: Uuid,
-    pub public_id: String,
+    pub attachment_id: Uuid,
 }

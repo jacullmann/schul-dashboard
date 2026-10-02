@@ -266,14 +266,15 @@ export function useAppAuth() {
 
   async function createGroup(
     name: string,
-    avatarUrl?: string,
+    /** An upload from `uploadGroupAvatar`. */
+    avatarId?: string,
     groupType: GroupType = 'regular',
     daltonEnabled = false,
   ): Promise<{ ok: true; groupId: string } | ErrResult> {
     try {
       const { data } = await hw.post<{ ok: boolean; groupId: string }>(
         '/groups',
-        { groupName: name, avatarUrl, groupType, daltonEnabled },
+        { groupName: name, avatarId, groupType, daltonEnabled },
       );
       await checkAuthStatus();
       return { ok: true, groupId: data.groupId };

@@ -1,7 +1,8 @@
 use crate::{
+    assets::service::{AssetPurpose, ensure_claimable},
     auth::session_context::{is_superadmin, remember_visited_group, resolve_landing_group},
     common::{
-        cloudinary::OwnImageUrl,
+        cloudinary::Cloudinary,
         extractors::TenantContext,
         group_type::GroupType,
         name_generator::generate_user_name,
@@ -45,7 +46,8 @@ pub(crate) fn role_from_db(id: i32) -> AppResult<Role> {
 pub struct CreateGroupParams<'a> {
     pub user_id: Uuid,
     pub group_name: &'a DisplayName,
-    pub avatar_url: Option<&'a OwnImageUrl>,
+    /// An upload of the creator for this purpose.
+    pub avatar_id: Option<Uuid>,
     pub group_type: GroupType,
     pub dalton_enabled: bool,
     pub ip: Option<&'a str>,
@@ -57,7 +59,7 @@ struct Membership {
     name: String,
     owner_id: Uuid,
     schedule_config: Value,
-    avatar_url: Option<String>,
+    avatar_public_id: Option<String>,
     permissions: Value,
     group_type: String,
     dalton_enabled: bool,
@@ -73,17 +75,21 @@ pub struct AcceptInviteParams<'a> {
 
 pub struct GroupService {
     db: PgPool,
+    cloudinary: Cloudinary,
 }
 
 impl GroupService {
     pub fn from_state(s: &AppState) -> Self {
-        Self { db: s.db.clone() }
+        Self {
+            db: s.db.clone(),
+            cloudinary: s.cloudinary.clone(),
+        }
     }
 
     pub async fn create_group(&self, params: CreateGroupParams<'_>) -> AppResult<Value> {
         let user_id = params.user_id;
         let group_name = params.group_name;
-        let avatar_url = params.avatar_url;
+        let avatar_id = params.avatar_id;
         let group_type = params.group_type;
         let dalton_enabled = params.dalton_enabled;
         let ip = params.ip;
@@ -92,17 +98,22 @@ impl GroupService {
 
         let mut tx = self.db.begin().await?;
 
+        if let Some(avatar_id) = avatar_id {
+            ensure_claimable(&mut *tx, avatar_id, AssetPurpose::GroupAvatar, user_id).await?;
+        }
+
         let group = sqlx::query!(
-            r#"INSERT INTO groups (name, avatar_url, owner_id, group_type, dalton_enabled)
+            r#"INSERT INTO groups (name, avatar_id, owner_id, group_type, dalton_enabled)
                VALUES ($1, $2, $3, $4, $5) RETURNING id, name"#,
             group_name.as_str(),
-            avatar_url.map(OwnImageUrl::as_str),
+            avatar_id,
             user_id,
             group_type.as_str(),
             dalton_enabled
         )
         .fetch_one(&mut *tx)
-        .await?;
+        .await
+        .map_err(avatar_in_use_on_conflict)?;
 
         let group_id = group.id;
         let group_name_str = group.name;
@@ -157,7 +168,7 @@ impl GroupService {
                     owner_id: g.owner_id,
                     role: role.as_str(),
                     schedule_config: g.schedule_config,
-                    avatar_url: g.avatar_url,
+                    avatar_url: g.avatar_public_id.map(|id| self.cloudinary.image_url(&id)),
                     permissions,
                     group_type: GroupType::from_str_or_regular(&g.group_type).as_str(),
                     dalton_enabled: g.dalton_enabled,
@@ -176,11 +187,12 @@ impl GroupService {
     async fn memberships(&self, user_id: Uuid) -> AppResult<Vec<Membership>> {
         Ok(sqlx::query_as!(
             Membership,
-            r#"SELECT g.id, g.name, g.owner_id, g.schedule_config, g.avatar_url, g.permissions,
-                      g.group_type, g.dalton_enabled, r.name AS role_name
+            r#"SELECT g.id, g.name, g.owner_id, g.schedule_config, avatar.public_id AS "avatar_public_id?",
+                      g.permissions, g.group_type, g.dalton_enabled, r.name AS role_name
                FROM user_roles ur
                JOIN groups g ON g.id = ur.tenant_id
                JOIN roles r ON r.id = ur.role_id
+               LEFT JOIN assets avatar ON avatar.id = g.avatar_id
                WHERE ur.user_id = $1
                ORDER BY ur.assigned_at"#,
             user_id
@@ -193,8 +205,12 @@ impl GroupService {
     /// which therefore is missing from their status list.
     pub async fn get_group(&self, tc: &TenantContext) -> AppResult<GroupSummaryDto> {
         let g = sqlx::query!(
-            r#"SELECT name, schedule_config, avatar_url, group_type, dalton_enabled
-               FROM groups WHERE id = $1"#,
+            r#"SELECT g.name AS "name!", g.schedule_config AS "schedule_config!",
+                      avatar.public_id AS "avatar_public_id?",
+                      g.group_type AS "group_type!", g.dalton_enabled AS "dalton_enabled!"
+               FROM groups g
+               LEFT JOIN assets avatar ON avatar.id = g.avatar_id
+               WHERE g.id = $1"#,
             tc.tenant_id
         )
         .fetch_optional(&self.db)
@@ -207,7 +223,7 @@ impl GroupService {
             owner_id: tc.group_owner_id,
             role: tc.tenant_role.as_str(),
             schedule_config: g.schedule_config,
-            avatar_url: g.avatar_url,
+            avatar_url: g.avatar_public_id.map(|id| self.cloudinary.image_url(&id)),
             permissions: tc.group_permissions.clone(),
             group_type: GroupType::from_str_or_regular(&g.group_type).as_str(),
             dalton_enabled: g.dalton_enabled,
@@ -350,13 +366,14 @@ impl GroupService {
         let invite = sqlx::query!(
             r#"SELECT g.id,
                       g.name,
-                      g.avatar_url,
+                      avatar.public_id AS "avatar_public_id?",
                       (SELECT COUNT(*) FROM user_roles WHERE tenant_id = g.id) AS "member_count!",
                       EXISTS (
                           SELECT 1 FROM user_roles WHERE tenant_id = g.id AND user_id = $2
                       ) AS "already_member!"
                FROM group_invites gi
                JOIN groups g ON g.id = gi.tenant_id
+               LEFT JOIN assets avatar ON avatar.id = g.avatar_id
                WHERE gi.token = $1 AND gi.expires_at > now() AND gi.used_at IS NULL AND gi.revoked_at IS NULL"#,
             token.as_str(),
             viewer_id
@@ -368,7 +385,7 @@ impl GroupService {
         Ok(json!({
             "valid": true,
             "groupName": invite.name,
-            "avatarUrl": invite.avatar_url,
+            "avatarUrl": invite.avatar_public_id.map(|id| self.cloudinary.image_url(&id)),
             "memberCount": invite.member_count,
             "alreadyMember": invite.already_member,
             "groupId": invite.already_member.then_some(invite.id),
@@ -473,5 +490,14 @@ impl GroupService {
         .ok_or_else(invalid_invite)?;
 
         Ok(json!({ "ok": true, "groupId": membership.tenant_id, "alreadyMember": true }))
+    }
+}
+
+/// Each upload can picture one group only; a second claim of the same upload
+/// loses the race to the unique `avatar_id`.
+pub(crate) fn avatar_in_use_on_conflict(err: sqlx::Error) -> AppError {
+    match err.as_database_error() {
+        Some(db) if db.is_unique_violation() => crate::assets::service::invalid_upload(),
+        _ => AppError::Database(err),
     }
 }

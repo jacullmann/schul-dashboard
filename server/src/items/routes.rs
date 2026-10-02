@@ -12,17 +12,18 @@ pub fn group_router() -> Router<AppState> {
     // 50 tasks per minute per IP: a whole class behind one school NAT never
     // gets near it, while a spam script is throttled to under one per second.
     let create_item = create_item.layer(rate_limit::per_ip(50, Duration::from_millis(1200)));
-    let create_upload_signature = create_upload_signature.layer(rate_limit::upload_signatures());
 
     Router::new()
         .route("/items", get(get_items).post(create_item))
         .route("/items/reports", post(report_item))
-        .route("/items/uploads/sign", post(create_upload_signature))
         .route(
             "/items/{id}",
             get(get_item_by_id).patch(update_item).delete(delete_item),
         )
         .route("/items/{id}/note", patch(update_item_note))
-        .route("/items/{id}/images", post(add_image))
-        .route("/items/{id}/images/{public_id}", delete(remove_image))
+        .route("/items/{id}/attachments", post(add_attachment))
+        .route(
+            "/items/{id}/attachments/{attachment_id}",
+            delete(remove_attachment),
+        )
 }

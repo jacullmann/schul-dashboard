@@ -1,7 +1,5 @@
 use super::{dto::*, invite_token::InviteToken, service::GroupService};
 use crate::{
-    common::assets,
-    common::cloudinary::{OwnImageUrl, UploadSignature},
     common::extractors::{
         AuthUser, ClientIp, OptionalAuth, TenantContext, UserAgent, ValidatedJson,
     },
@@ -78,14 +76,6 @@ fn parse_group_type(raw: Option<&str>) -> AppResult<Option<GroupType>> {
     .transpose()
 }
 
-/// Clients show a group picture straight from its URL, so only images this
-/// deployment uploaded may become one.
-fn parse_avatar_url(s: &AppState, url: &str) -> AppResult<OwnImageUrl> {
-    s.cloudinary
-        .own_image_url(url)
-        .ok_or_else(|| AppError::Validation(vec!["avatarUrl".to_owned()]))
-}
-
 pub async fn create_group(
     State(s): State<AppState>,
     user: AuthUser,
@@ -94,18 +84,13 @@ pub async fn create_group(
     Json(dto): Json<CreateGroupDto>,
 ) -> AppResult<Json<Value>> {
     let group_name = DisplayName::parse(&dto.group_name, GROUP_NAME_MAX_CHARS, "groupName")?;
-    let avatar_url = dto
-        .avatar_url
-        .as_deref()
-        .map(|url| parse_avatar_url(&s, url))
-        .transpose()?;
     let group_type = parse_group_type(dto.group_type.as_deref())?.unwrap_or_default();
 
     let body = GroupService::from_state(&s)
         .create_group(crate::group::service::CreateGroupParams {
             user_id: user.user_id,
             group_name: &group_name,
-            avatar_url: avatar_url.as_ref(),
+            avatar_id: dto.avatar_id,
             group_type,
             dalton_enabled: dto.dalton_enabled,
             ip: ip.as_deref(),
@@ -114,17 +99,6 @@ pub async fn create_group(
         .await?;
 
     Ok(Json(body))
-}
-
-/// A new group's avatar is uploaded before the group exists, so this is the
-/// one upload signature that needs no group membership.
-pub async fn sign_group_avatar_upload(
-    State(s): State<AppState>,
-    _user: AuthUser,
-) -> AppResult<Json<UploadSignature>> {
-    Ok(Json(
-        assets::issue_upload(&s.db, &s.cloudinary, None).await?,
-    ))
 }
 
 pub async fn get_status(
@@ -275,11 +249,6 @@ pub async fn rename_group(
         .as_deref()
         .map(|name| DisplayName::parse(name, GROUP_NAME_MAX_CHARS, "name"))
         .transpose()?;
-    let avatar_url = match dto.avatar_url {
-        None => None,
-        Some(None) => Some(None),
-        Some(Some(url)) => Some(Some(parse_avatar_url(&s, &url)?)),
-    };
     let group_type = parse_group_type(dto.group_type.as_deref())?;
 
     // The group type decides which subject categories exist and whether the
@@ -299,7 +268,7 @@ pub async fn rename_group(
                 tc.tenant_id,
                 tc.user.user_id,
                 name.as_ref(),
-                avatar_url.as_ref().map(Option::as_ref),
+                dto.avatar_id,
                 group_type,
                 dto.dalton_enabled,
             )
