@@ -17,16 +17,15 @@ import {
   vEntranceStart,
 } from '@/common/composables/useSkeletonHandoff';
 import { entranceDelay } from '@/modules/schedule/utils/entrance';
+import { lessonRowsOf } from '@/modules/schedule/utils/layout';
+import { lessonGroupsByDay } from '@/modules/schedule/utils/lesson';
 
-import BaseTableWrapper from '@/common/components/BaseTableWrapper.vue';
 import PersonalizedViewNotice from '@/common/components/PersonalizedViewNotice.vue';
 import ScheduleHeader from '../components/ScheduleHeader.vue';
-import ScheduleDayHeader from '../components/ScheduleDayHeader.vue';
-import ScheduleStartTimeColumn from '../components/ScheduleStartTimeColumn.vue';
+import ScheduleGrid from '../components/ScheduleGrid.vue';
 import ScheduleBreakDivider from '../components/ScheduleBreakDivider.vue';
 import ScheduleLessonGroup from '../components/ScheduleLessonGroup.vue';
 import ScheduleCellSkeleton from '../components/ScheduleCellSkeleton.vue';
-import ScheduleDayTrack from '../components/ScheduleDayTrack.vue';
 
 const {
   isPersonalized,
@@ -43,7 +42,6 @@ const {
   activeOrNextGroupKey,
   getDisplayName,
   defaultDayIndex,
-  formatDayName,
   formatDayDate,
 } = useSchedule();
 
@@ -160,53 +158,35 @@ const rowsOfDay = (
   return { dividers, labelledRows };
 };
 
-const weekDividers = computed(() =>
-  days.flatMap(
-    (day, dayIndex) => rowsOfDay(weekLayout.value, day, dayIndex + 2).dividers,
-  ),
+const dayLayoutOf = (day: number) =>
+  dayLayouts.value.get(day) ?? weekLayout.value;
+
+const weekRowsByDay = computed(
+  () =>
+    new Map(
+      days.map((day, dayIndex) => [
+        day,
+        rowsOfDay(weekLayout.value, day, dayIndex + 2),
+      ]),
+    ),
 );
 
-type LessonRow = Extract<ScheduleRow, { kind: 'lesson' }>;
-
-const lessonRowsOf = (layout: ScheduleLayout) =>
-  layout.rows.filter((row): row is LessonRow => row.kind === 'lesson');
-
-/*
- * Skeletons find their slot's row through the slot variables, not a fixed row
- * number: the loaded layout can insert rows, and a skeleton still fading out
- * would otherwise sit on the row that took its place and stretch it until
- * removed.
- */
-const gridStyleOf = (layout: ScheduleLayout) => ({
-  gridTemplateRows: `auto repeat(${layout.rows.length}, auto)`,
-  ...Object.fromEntries(
-    lessonRowsOf(layout).map((row) => [
-      `--slot-${row.slot}-row`,
-      String(row.gridRow),
-    ]),
-  ),
-});
-
-const weekGridStyle = computed(() => gridStyleOf(weekLayout.value));
-
-const lessonGroups = computed<Array<LessonGroup & { dayIndex: number }>>(() =>
-  loadingLessons.value
-    ? []
-    : groupedLessons.value.map((group) => ({
-        ...group,
-        dayIndex: days.indexOf(group.day),
-      })),
+const phoneRowsByDay = computed(
+  () => new Map(days.map((day) => [day, rowsOfDay(dayLayoutOf(day), day, 2)])),
 );
 
-const phonePanelOf = (day: number) => {
-  const layout = dayLayouts.value.get(day) ?? weekLayout.value;
-  return {
-    layout,
-    gridStyle: gridStyleOf(layout),
-    rows: rowsOfDay(layout, day, 2),
-    lessonGroups: lessonGroups.value.filter((group) => group.day === day),
-  };
-};
+const dividersOf = (day: number) =>
+  (isPhone.value ? phoneRowsByDay : weekRowsByDay).value.get(day)?.dividers ??
+  [];
+
+const labelledRowsOf = (day: number) =>
+  phoneRowsByDay.value.get(day)?.labelledRows;
+
+const lessonGroupsOfDay = computed<ReadonlyMap<number, LessonGroup[]>>(() =>
+  loadingLessons.value ? new Map() : lessonGroupsByDay(groupedLessons.value),
+);
+
+const lessonGroupsOf = (day: number) => lessonGroupsOfDay.value.get(day) ?? [];
 
 const personalizedNotice = useDismissibleNotice('personalizedSchedule');
 
@@ -218,25 +198,16 @@ const showPersonalizedNotice = computed(
     !loadingLessons.value,
 );
 
-const skeletonCells = computed(() => {
-  if (!loadingLessons.value) return [];
-  const columns = isPhone.value ? [2] : days.map((_, dayIdx) => dayIdx + 2);
-  return columns.flatMap((column) =>
-    lessonRowsOf(weekLayout.value).map((row) => ({
-      key: `skel-${column}-${row.slot}`,
-      column,
-      row: row.gridRow,
-      slot: row.slot,
-    })),
-  );
-});
+const skeletonRows = computed(() =>
+  loadingLessons.value ? lessonRowsOf(weekLayout.value) : [],
+);
 
 watch(
-  skeletonCells,
-  (cells) => {
-    if (!cells.length) return;
+  skeletonRows,
+  (rows) => {
+    if (!rows.length) return;
     skeletonRowOfSlot.value = new Map(
-      cells.map(({ slot, row }) => [slot, row]),
+      rows.map(({ slot, gridRow }) => [slot, gridRow]),
     );
   },
   { immediate: true },
@@ -256,34 +227,21 @@ watch(
       @dismiss="personalizedNotice.dismiss"
     />
 
-    <ScheduleDayTrack
-      v-if="isPhone"
+    <ScheduleGrid
       :pager="dayPager"
-      :days="days"
+      :layout="weekLayout"
+      :day-layout="dayLayoutOf"
+      :labelled-rows="labelledRowsOf"
       :tab-label="formatDayDate"
-      :panel-of="phonePanelOf"
       :panel-key="panelKey"
+      :current-day="currentDay"
     >
-      <template #default="{ day, dayIndex, panel }">
-        <ScheduleStartTimeColumn
-          :rows="panel.layout.rows"
-          :labelled-rows="panel.rows.labelledRows"
-          :animated="!hasPaged"
-        />
-
-        <ScheduleDayHeader
-          :key="day"
-          :grid-column="2"
-          :label="formatDayName(day)"
-          :is-current="day === currentDay"
-          :animated="!hasPaged"
-        />
-
+      <template #default="{ day, column, layout, animated }">
         <ScheduleBreakDivider
-          v-for="{ key, ...divider } in panel.rows.dividers"
+          v-for="{ key, ...divider } in dividersOf(day)"
           :key="key"
           v-bind="divider"
-          :animated="!hasPaged"
+          :animated="animated"
         />
 
         <TransitionGroup
@@ -292,84 +250,31 @@ watch(
           @before-leave="holdPendingEntrances"
         >
           <ScheduleCellSkeleton
-            v-for="cell in skeletonCells"
-            :key="cell.key"
-            :grid-column="cell.column"
-            :grid-row="cell.row"
-            :slot-number="cell.slot"
-            radius="lg"
+            v-for="row in skeletonRows"
+            :key="`skel-${column}-${row.slot}`"
+            :grid-column="column"
+            :grid-row="row.gridRow"
+            :slot-number="row.slot"
+            :radius="isPhone ? 'lg' : 'md'"
             :entrance-start="entranceStart"
           />
         </TransitionGroup>
 
         <ScheduleLessonGroup
-          v-for="{ key, lessons } in panel.lessonGroups"
+          v-for="{ key, lessons } in lessonGroupsOf(day)"
           :key="key"
           v-entrance-start="entranceStart"
           :group="lessons"
-          :group-key="key"
           :is-active="key === activeOrNextGroupKey"
           :is-current-day="day === currentDay"
-          :day-index="dayIndex"
-          :animated="!hasPaged"
+          :animated="animated"
           :get-display-name="getDisplayName"
-          :get-group-style="panel.layout.groupStyle"
-          :style="lessonEntranceStyle(lessons, 2, panel.layout)"
+          :style="[
+            layout.groupStyle(lessons, column),
+            lessonEntranceStyle(lessons, column, layout),
+          ]"
         />
       </template>
-    </ScheduleDayTrack>
-
-    <BaseTableWrapper v-else>
-      <div
-        class="grid grid-cols-[3.25rem_repeat(5,minmax(9rem,1fr))] gap-2 items-stretch"
-        :style="weekGridStyle"
-      >
-        <ScheduleStartTimeColumn :rows="weekLayout.rows" />
-
-        <ScheduleDayHeader
-          v-for="(day, dayIdx) in days"
-          :key="day"
-          :grid-column="dayIdx + 2"
-          :label="formatDayName(day)"
-          :is-current="day === currentDay"
-        />
-
-        <ScheduleBreakDivider
-          v-for="{ key, ...divider } in weekDividers"
-          :key="key"
-          v-bind="divider"
-        />
-
-        <TransitionGroup
-          leave-active-class="transition-opacity duration-400 ease-out"
-          leave-to-class="opacity-0"
-          @before-leave="holdPendingEntrances"
-        >
-          <ScheduleCellSkeleton
-            v-for="cell in skeletonCells"
-            :key="cell.key"
-            :grid-column="cell.column"
-            :grid-row="cell.row"
-            :slot-number="cell.slot"
-            radius="md"
-            :entrance-start="entranceStart"
-          />
-        </TransitionGroup>
-
-        <ScheduleLessonGroup
-          v-for="{ key, lessons, day, dayIndex } in lessonGroups"
-          :key="key"
-          v-entrance-start="entranceStart"
-          :group="lessons"
-          :group-key="key"
-          :is-active="key === activeOrNextGroupKey"
-          :is-current-day="day === currentDay"
-          :day-index="dayIndex"
-          :get-display-name="getDisplayName"
-          :get-group-style="weekLayout.groupStyle"
-          :style="lessonEntranceStyle(lessons, dayIndex + 2, weekLayout)"
-        />
-      </div>
-    </BaseTableWrapper>
+    </ScheduleGrid>
   </div>
 </template>

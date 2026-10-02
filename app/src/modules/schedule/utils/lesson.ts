@@ -91,6 +91,18 @@ export function groupOverlappingLessons(lessons: Lesson[]): LessonGroup[] {
   return groups;
 }
 
+export function lessonGroupsByDay(
+  groups: readonly LessonGroup[],
+): ReadonlyMap<number, LessonGroup[]> {
+  const byDay = new Map<number, LessonGroup[]>();
+  for (const group of groups) {
+    const dayGroups = byDay.get(group.day);
+    if (dayGroups) dayGroups.push(group);
+    else byDay.set(group.day, [group]);
+  }
+  return byDay;
+}
+
 export function subjectsById(
   subjects: readonly ScheduleSubject[],
 ): ReadonlyMap<string, ScheduleSubject> {

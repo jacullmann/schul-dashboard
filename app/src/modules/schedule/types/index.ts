@@ -27,6 +27,8 @@ export interface Lesson {
   isDalton?: boolean;
   /** Shown to the member although they take none of its courses. */
   outsideCourseSelection?: boolean;
+  /** How many courses a lesson for a whole subject stands for. */
+  courseCount?: number;
 }
 
 /** Lessons of the same day whose slots overlap share one cell, earliest first. */
@@ -88,7 +90,13 @@ export type ScheduleRow =
 export interface ScheduleLayout {
   rows: ScheduleRow[];
   gridRowOfSlot: (slot: number) => number;
-  groupStyle: (group: Lesson[]) => Record<string, string>;
+  /** The grid's rows, each slot's row also named as --slot-N-row. */
+  gridStyle: Record<string, string>;
+  /** Places a cell of lessons in the given column, across the rows of its slots. */
+  groupStyle: (
+    group: readonly Lesson[],
+    gridColumn: number,
+  ) => Record<string, string>;
 }
 
 /** What a phone shows for one day, laid out on a grid of its own. */

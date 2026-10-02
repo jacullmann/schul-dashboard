@@ -200,11 +200,10 @@ const upcomingLessonPreview = computed(() => {
   return {
     group,
     rows,
-    groupStyle: (groupLessons: Lesson[]) => ({
-      ...layout.groupStyle(groupLessons),
-      '--col-desktop': '2',
+    style: {
+      ...layout.groupStyle(group.lessons, 2),
       gridRow: `1 / ${rows.length + 1}`,
-    }),
+    },
   };
 });
 
@@ -437,7 +436,6 @@ const {
 
                   <ScheduleLessonGroup
                     :group="upcomingLessonPreview.group.lessons"
-                    :group-key="upcomingLessonPreview.group.key"
                     :is-active="
                       upcomingLessonPreview.group.key === activeOrNextGroupKey
                     "
@@ -446,7 +444,7 @@ const {
                     "
                     :animated="false"
                     :get-display-name="getDisplayName"
-                    :get-group-style="upcomingLessonPreview.groupStyle"
+                    :style="upcomingLessonPreview.style"
                   />
                 </div>
 

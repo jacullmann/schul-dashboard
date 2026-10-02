@@ -7,13 +7,10 @@ import { useUserStore } from '@/stores/userStore';
 import type {
   Lesson,
   LessonGroup,
-  ScheduleLayout,
-  ScheduleRow,
   ScheduleSubject,
   Substitution,
 } from '@/modules/schedule/types';
 import { useI18n } from 'vue-i18n';
-import { formatTimeOfDay } from '@/utils/time';
 import {
   groupOverlappingLessons,
   lessonLastSlot,
@@ -25,11 +22,9 @@ import {
   lessonMinutes,
   slotRangeMinutes,
 } from '@/modules/schedule/utils/slotTimes';
+import { buildScheduleLayout } from '@/modules/schedule/utils/layout';
 import { daysSinceMonday } from '@/modules/schedule/utils/weekday';
-import {
-  buildGroupStyle,
-  useScheduleDisplay,
-} from '@/modules/schedule/composables/useScheduleDisplay';
+import { useScheduleDisplay } from '@/modules/schedule/composables/useScheduleDisplay';
 
 export function useSchedule() {
   const { locale } = useI18n();
@@ -38,10 +33,8 @@ export function useSchedule() {
     days,
     scheduleConfig,
     schedulesCoursesIndividually,
-    timeSlots,
     formatDayName,
     getDisplayName,
-    getGroupStyle,
   } = useScheduleDisplay();
   const groupId = useGroupPageId();
 
@@ -297,58 +290,11 @@ export function useSchedule() {
     ),
   );
 
-  /*
-   * Lesson rows interleaved with breaks. A day that ends where no break
-   * follows gets a row of its own, so its end shows a time like a break does.
-   */
-  const buildLayout = (dayEndSlots: ReadonlySet<number>): ScheduleLayout => {
-    const config = scheduleConfig.value;
-    const rows: ScheduleRow[] = [];
-    let gridRow = 2;
-    for (let slot = 1; slot <= config.totalSlots; slot++) {
-      const { start, end } = slotRangeMinutes(config, slot);
-      const endTime = formatTimeOfDay(end);
-      rows.push({
-        kind: 'lesson',
-        gridRow: gridRow++,
-        slot,
-        startTime: formatTimeOfDay(start),
-      });
-
-      const durationMins = config.breaks[slot] ?? 0;
-      if (durationMins > 0 && slot < config.totalSlots) {
-        rows.push({
-          kind: 'break',
-          gridRow: gridRow++,
-          afterSlot: slot,
-          startTime: endTime,
-          durationMins,
-        });
-      } else if (dayEndSlots.has(slot)) {
-        rows.push({
-          kind: 'dayEnd',
-          gridRow: gridRow++,
-          afterSlot: slot,
-          startTime: endTime,
-        });
-      }
-    }
-
-    const lessonGridRows = new Map<number, number>();
-    rows.forEach((row) => {
-      if (row.kind === 'lesson') lessonGridRows.set(row.slot, row.gridRow);
+  const buildLayout = (dayEndSlots: ReadonlySet<number>) =>
+    buildScheduleLayout(scheduleConfig.value, {
+      showBreaks: true,
+      dayEndSlots,
     });
-    const gridRowOfSlot = (slot: number): number =>
-      lessonGridRows.get(slot) ?? slot + 1 + (rows.length - config.totalSlots);
-
-    return {
-      rows,
-      gridRowOfSlot,
-      // On a phone every day is its own table, its lessons beside the time column.
-      groupStyle: (groupLessons) =>
-        buildGroupStyle(groupLessons, gridRowOfSlot, () => 2),
-    };
-  };
 
   const attendedDayEndSlots = (
     dayList: readonly number[],
@@ -505,7 +451,6 @@ export function useSchedule() {
     days,
     weekDates,
     scheduleConfig,
-    timeSlots,
     weekLayout,
     dayLayouts,
     groupedLessons,
@@ -515,7 +460,6 @@ export function useSchedule() {
     activeOrNextGroupKey,
     defaultDayIndex,
     getDisplayName,
-    getGroupStyle,
     formatDayName,
     formatDayDate,
     lessons,

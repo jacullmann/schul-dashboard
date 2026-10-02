@@ -8,41 +8,48 @@ import { lessonsSlotRange } from '@/modules/schedule/utils/lesson';
 
 const props = withDefaults(
   defineProps<{
-    group: any[];
-    groupKey: string;
+    group: Lesson[];
     isActive?: boolean;
     isCurrentDay?: boolean;
-    isClickable?: boolean;
+    /** Every lesson of the cell, or only those the predicate accepts. */
+    isClickable?: boolean | ((lesson: Lesson) => boolean);
     hasContextMenu?: boolean;
-    selectedLessonId?: string;
-    selectedLessonIds?: string[];
-    dayIndex?: number;
-    elapsedLoadTime?: number;
+    /** Matches a lesson by its own id or the id it was expanded from. */
+    selectedLessonIds?: ReadonlySet<string>;
     animated?: boolean;
     canAddLesson?: boolean;
-    getDisplayName: (l: any) => string;
-    getGroupStyle: (g: any[]) => any;
+    getDisplayName: (lesson: Lesson) => string;
   }>(),
   {
-    animated: true,
+    isActive: false,
+    isCurrentDay: false,
+    isClickable: false,
     hasContextMenu: false,
+    selectedLessonIds: undefined,
+    animated: true,
     canAddLesson: false,
-    selectedLessonId: undefined,
-    selectedLessonIds: () => [],
-    dayIndex: undefined,
-    elapsedLoadTime: 0,
   },
 );
 
 const emit = defineEmits<{
-  (e: 'select-lesson', lesson: any, event?: MouseEvent): void;
-  (e: 'contextmenu-lesson', lesson: any, event: UIEvent): void;
+  (e: 'select-lesson', lesson: Lesson, event?: MouseEvent): void;
+  (e: 'contextmenu-lesson', lesson: Lesson, event: UIEvent): void;
   (e: 'add-lesson'): void;
 }>();
 
 const { t } = useI18n();
 
 const groupRange = computed(() => lessonsSlotRange(props.group));
+
+const isLessonClickable = (lesson: Lesson) =>
+  typeof props.isClickable === 'function'
+    ? props.isClickable(lesson)
+    : props.isClickable;
+
+const isLessonSelected = (lesson: Lesson) =>
+  !!props.selectedLessonIds &&
+  (props.selectedLessonIds.has(lesson.id) ||
+    (!!lesson._originalId && props.selectedLessonIds.has(lesson._originalId)));
 
 /*
  * A lesson filling only part of the cell's slots names its own, since the
@@ -72,10 +79,7 @@ const periodLabel = (lesson: Lesson) => {
         : isCurrentDay
           ? 'current-day xs:border-surface-hover-border xs:bg-linear-to-b xs:from-ghost-border xs:to-ghost-border'
           : '',
-      'xs:[grid-column:var(--col-desktop)]',
-      'max-xs:![grid-column:var(--col-mobile)] max-xs:[scroll-snap-align:start] max-xs:[scroll-margin-left:0]',
     ]"
-    :style="getGroupStyle(group)"
   >
     <ScheduleLessonItem
       v-for="(lesson, index) in group"
@@ -83,17 +87,9 @@ const periodLabel = (lesson: Lesson) => {
       :lesson="lesson"
       :has-border="index < group.length - 1"
       :period-label="periodLabel(lesson)"
-      :is-clickable="isClickable"
+      :is-clickable="isLessonClickable(lesson)"
       :has-context-menu="hasContextMenu"
-      :is-selected="
-        (Boolean(selectedLessonId) &&
-          (selectedLessonId === lesson.id ||
-            selectedLessonId === lesson._originalId)) ||
-        (Boolean(selectedLessonIds) &&
-          (selectedLessonIds.includes(lesson.id) ||
-            (Boolean(lesson._originalId) &&
-              selectedLessonIds.includes(lesson._originalId))))
-      "
+      :is-selected="isLessonSelected(lesson)"
       :get-display-name="getDisplayName"
       @select="(l, ev) => emit('select-lesson', l, ev)"
       @contextmenu="(l, ev) => emit('contextmenu-lesson', l, ev)"

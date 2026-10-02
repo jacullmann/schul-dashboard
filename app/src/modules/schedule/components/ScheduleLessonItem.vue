@@ -2,23 +2,29 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useLongPress } from '@/common/composables/useLongPress';
+import type { Lesson } from '@/modules/schedule/types';
 
 const emit = defineEmits<{
-  (e: 'select', lesson: any, event?: MouseEvent): void;
-  (e: 'contextmenu', lesson: any, event: UIEvent): void;
+  (e: 'select', lesson: Lesson, event?: MouseEvent): void;
+  (e: 'contextmenu', lesson: Lesson, event: UIEvent): void;
 }>();
 
 const props = withDefaults(
   defineProps<{
-    lesson: any;
+    lesson: Lesson;
     hasBorder: boolean;
     isClickable?: boolean;
     isSelected?: boolean;
     hasContextMenu?: boolean;
     periodLabel?: string;
-    getDisplayName: (l: any) => string;
+    getDisplayName: (lesson: Lesson) => string;
   }>(),
-  { hasContextMenu: false, periodLabel: undefined },
+  {
+    isClickable: false,
+    isSelected: false,
+    hasContextMenu: false,
+    periodLabel: undefined,
+  },
 );
 
 const { t } = useI18n();
@@ -28,7 +34,7 @@ const { handlers } = useLongPress(
   { grow: '.js-lesson-card' },
 );
 
-function onClick(event: MouseEvent) {
+function onClick(event?: MouseEvent) {
   if (!props.isClickable) return;
 
   emit('select', props.lesson, event);
@@ -45,19 +51,18 @@ const mutedText = computed(() => [
 ]);
 
 /* A cancelled lesson shows only that it is cancelled, not what else changed. */
-const nameChanged = computed(
-  () =>
-    !props.lesson.cancelled &&
-    props.lesson._original &&
-    props.getDisplayName(props.lesson) !==
-      props.getDisplayName(props.lesson._original),
+const shownOriginal = computed(() =>
+  props.lesson.cancelled ? undefined : props.lesson._original,
 );
 
+const originalName = computed(() => {
+  if (!shownOriginal.value) return undefined;
+  const name = props.getDisplayName(shownOriginal.value);
+  return name === props.getDisplayName(props.lesson) ? undefined : name;
+});
+
 const roomChanged = computed(
-  () =>
-    !props.lesson.cancelled &&
-    props.lesson._original &&
-    props.lesson.room !== props.lesson._original.room,
+  () => !!shownOriginal.value && props.lesson.room !== shownOriginal.value.room,
 );
 
 const showsRoom = computed(
@@ -78,8 +83,12 @@ const showsRoom = computed(
       isSelected ? 'bg-action! text-on-action!' : '',
       hasContextMenu ? 'long-press-target' : '',
     ]"
+    :role="isClickable ? 'button' : undefined"
+    :tabindex="isClickable ? 0 : undefined"
+    :aria-pressed="isClickable ? isSelected : undefined"
     v-on="hasContextMenu ? handlers : {}"
     @click.stop="onClick"
+    @keydown.enter.space.self.prevent="onClick()"
   >
     <div>
       <div
@@ -90,9 +99,9 @@ const showsRoom = computed(
           class="flex-1 min-w-0 truncate"
           :class="{ 'line-through': lesson.cancelled }"
         >
-          <template v-if="nameChanged">
+          <template v-if="originalName">
             <span class="line-through font-normal mr-1" :class="mutedText">
-              {{ getDisplayName(lesson._original) }}
+              {{ originalName }}
             </span>
             <span class="font-bold" :class="strongText">
               {{ getDisplayName(lesson) }}
@@ -142,7 +151,7 @@ const showsRoom = computed(
         >
           <template v-if="roomChanged">
             <span class="line-through font-normal mr-1" :class="mutedText">
-              {{ lesson._original.room }}
+              {{ shownOriginal?.room }}
             </span>
             <span class="font-bold" :class="strongText">
               {{ lesson.room }}

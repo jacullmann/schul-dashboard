@@ -44,7 +44,7 @@ const {
   needsLessonChoice,
   loadingLessons,
   loadLessons,
-  timeSlots,
+  scheduleConfig,
   setupLessons,
   resolution,
   toggleCourse,
@@ -204,7 +204,7 @@ function goBack() {
       <template v-else-if="isLessonStep">
         <CourseSetupSchedule
           :lessons="setupLessons"
-          :time-slots="timeSlots"
+          :config="scheduleConfig"
           :states="resolution.states"
           :can-toggle="canToggleCourse"
           @toggle="toggleCourse"

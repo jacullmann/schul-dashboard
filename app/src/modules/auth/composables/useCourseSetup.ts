@@ -5,10 +5,7 @@ import { useSubjectStore } from '@/stores/subjectStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import type { Enrollment } from '@/common/composables/useCourseSelection';
 import type { Lesson } from '@/modules/schedule/types';
-import {
-  scheduleConfigOrDefault,
-  timeSlotsOf,
-} from '@/modules/schedule/utils/slotTimes';
+import { scheduleConfigOrDefault } from '@/modules/schedule/utils/slotTimes';
 import {
   courseLevelsOf,
   coursesAtLevel,
@@ -109,8 +106,8 @@ export function useCourseSetup(groupId: string) {
     return lessonsRequest;
   }
 
-  const timeSlots = computed(() =>
-    timeSlotsOf(scheduleConfigOrDefault(findGroup(groupId)?.scheduleConfig)),
+  const scheduleConfig = computed(() =>
+    scheduleConfigOrDefault(findGroup(groupId)?.scheduleConfig),
   );
 
   const resolver = computed(() =>
@@ -181,7 +178,7 @@ export function useCourseSetup(groupId: string) {
     needsLessonChoice,
     loadingLessons,
     loadLessons,
-    timeSlots,
+    scheduleConfig,
     setupLessons,
     resolution,
     toggleCourse,

@@ -1,29 +1,21 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import type {
-  Lesson,
-  LessonGroup,
-  ScheduleRow,
-  TimeSlot,
-} from '@/modules/schedule/types';
+import type { Lesson, ScheduleConfig } from '@/modules/schedule/types';
 import type { CourseState } from '@/modules/auth/utils/courseResolution';
-import { useIsPhoneViewport } from '@/common/composables/useViewport';
 import { useScheduleDisplay } from '@/modules/schedule/composables/useScheduleDisplay';
 import { useScheduleDayPager } from '@/modules/schedule/composables/useScheduleDayPager';
+import { buildScheduleLayout } from '@/modules/schedule/utils/layout';
 import {
   groupOverlappingLessons,
-  lessonsSlotRange,
+  lessonGroupsByDay,
 } from '@/modules/schedule/utils/lesson';
-import { daysSinceMonday } from '@/modules/schedule/utils/weekday';
 
-import ScheduleDayTrack from '@/modules/schedule/components/ScheduleDayTrack.vue';
-import ScheduleStartTimeColumn from '@/modules/schedule/components/ScheduleStartTimeColumn.vue';
-import ScheduleDayHeader from '@/modules/schedule/components/ScheduleDayHeader.vue';
-import CourseSetupLessonCell from './CourseSetupLessonCell.vue';
+import ScheduleGrid from '@/modules/schedule/components/ScheduleGrid.vue';
+import ScheduleLessonGroup from '@/modules/schedule/components/ScheduleLessonGroup.vue';
 
 const props = defineProps<{
   lessons: Lesson[];
-  timeSlots: TimeSlot[];
+  config: ScheduleConfig;
   states: ReadonlyMap<string, CourseState>;
   canToggle: (courseId: string) => boolean;
 }>();
@@ -32,93 +24,58 @@ const emit = defineEmits<{
   toggle: [courseId: string];
 }>();
 
-const { days, formatDayName } = useScheduleDisplay();
+const SETTLED: ReadonlySet<CourseState> = new Set([
+  'locked',
+  'picked',
+  'implied',
+]);
+
+const { days, getDisplayName } = useScheduleDisplay();
+
+const layout = computed(() => buildScheduleLayout(props.config));
 
 // Parallel courses of one slot share a cell, the way the schedule shows them.
-const lessonGroups = computed(() => groupOverlappingLessons(props.lessons));
-
-const slotRows = computed<ScheduleRow[]>(() =>
-  props.timeSlots.map((ts) => ({
-    kind: 'lesson',
-    gridRow: ts.slot + 1,
-    slot: ts.slot,
-    startTime: ts.startTime,
-  })),
+const lessonGroupsOfDay = computed(() =>
+  lessonGroupsByDay(groupOverlappingLessons(props.lessons)),
 );
 
-const gridStyle = computed(() => ({
-  gridTemplateRows: `auto repeat(${slotRows.value.length}, auto)`,
-}));
+const lessonGroupsOf = (day: number) => lessonGroupsOfDay.value.get(day) ?? [];
 
-const cellStyle = (group: LessonGroup, column: number) => {
-  const { firstSlot, lastSlot } = lessonsSlotRange(group.lessons);
-  return { gridColumn: column, gridRow: `${firstSlot + 1} / ${lastSlot + 2}` };
+const isSettled = (lesson: Lesson) => {
+  const state = lesson.courseId ? props.states.get(lesson.courseId) : undefined;
+  return state !== undefined && SETTLED.has(state);
 };
 
-const isPhone = useIsPhoneViewport();
+// A settled course is highlighted the way a selected lesson is.
+const settledLessonIds = computed(
+  () => new Set(props.lessons.filter(isSettled).map((lesson) => lesson.id)),
+);
+
+const isToggleable = (lesson: Lesson) =>
+  !!lesson.courseId && props.canToggle(lesson.courseId);
+
+function toggle(lesson: Lesson) {
+  if (lesson.courseId && isToggleable(lesson)) emit('toggle', lesson.courseId);
+}
+
+// The choice reads as a week, so a phone starts on Monday whatever today is.
 const dayPager = useScheduleDayPager(days.length);
-const todayIndex = daysSinceMonday(new Date());
-dayPager.showDay(todayIndex < days.length ? todayIndex : 0);
-
-const phonePanelOf = (day: number) => ({
-  gridStyle: gridStyle.value,
-  lessonGroups: lessonGroups.value.filter((group) => group.day === day),
-});
-
-// A template for every week, so its days carry no date.
-const dayTabLabel = (day: number) => formatDayName(day, 'short');
 </script>
 
 <template>
-  <ScheduleDayTrack
-    v-if="isPhone"
-    :pager="dayPager"
-    :days="days"
-    :tab-label="dayTabLabel"
-    :panel-of="phonePanelOf"
-    :animated="false"
-  >
-    <template #default="{ day, panel }">
-      <ScheduleStartTimeColumn :rows="slotRows" :animated="false" />
-      <ScheduleDayHeader
-        :grid-column="2"
-        :label="formatDayName(day)"
-        :animated="false"
-      />
-      <CourseSetupLessonCell
-        v-for="group in panel.lessonGroups"
-        :key="group.key"
-        :style="cellStyle(group, 2)"
-        :lessons="group.lessons"
-        :states="states"
-        :can-toggle="canToggle"
-        @toggle="emit('toggle', $event)"
+  <ScheduleGrid :pager="dayPager" :layout="layout" :animated="false">
+    <template #default="{ day, column, layout: dayLayout, animated }">
+      <ScheduleLessonGroup
+        v-for="{ key, lessons: group } in lessonGroupsOf(day)"
+        :key="key"
+        :group="group"
+        :is-clickable="isToggleable"
+        :selected-lesson-ids="settledLessonIds"
+        :animated="animated"
+        :get-display-name="getDisplayName"
+        :style="dayLayout.groupStyle(group, column)"
+        @select-lesson="toggle"
       />
     </template>
-  </ScheduleDayTrack>
-
-  <BaseTableWrapper v-else>
-    <div
-      class="grid grid-cols-[3.25rem_repeat(5,minmax(9rem,1fr))] gap-2 items-stretch"
-      :style="gridStyle"
-    >
-      <ScheduleStartTimeColumn :rows="slotRows" :animated="false" />
-      <ScheduleDayHeader
-        v-for="(day, dayIndex) in days"
-        :key="day"
-        :grid-column="dayIndex + 2"
-        :label="formatDayName(day)"
-        :animated="false"
-      />
-      <CourseSetupLessonCell
-        v-for="group in lessonGroups"
-        :key="group.key"
-        :style="cellStyle(group, days.indexOf(group.day) + 2)"
-        :lessons="group.lessons"
-        :states="states"
-        :can-toggle="canToggle"
-        @toggle="emit('toggle', $event)"
-      />
-    </div>
-  </BaseTableWrapper>
+  </ScheduleGrid>
 </template>

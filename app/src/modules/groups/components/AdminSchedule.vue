@@ -3,51 +3,49 @@ import { computed } from 'vue';
 import { Plus } from '@lucide/vue';
 import type {
   Lesson,
-  ScheduleRow,
+  ScheduleConfig,
+  ScheduleLayout,
   ScheduleSubject,
-  TimeSlot,
 } from '@/modules/schedule/types';
-import { useIsPhoneViewport } from '@/common/composables/useViewport';
 import { useScheduleDisplay } from '@/modules/schedule/composables/useScheduleDisplay';
 import { useScheduleDayPager } from '@/modules/schedule/composables/useScheduleDayPager';
 import { entranceDelay } from '@/modules/schedule/utils/entrance';
+import {
+  buildScheduleLayout,
+  lessonRowsOf,
+} from '@/modules/schedule/utils/layout';
 import { daysSinceMonday } from '@/modules/schedule/utils/weekday';
 import {
   groupOverlappingLessons,
+  lessonGroupsByDay,
   lessonSpan,
   resolveLessonSubject,
   subjectsById,
 } from '@/modules/schedule/utils/lesson';
 
-import ScheduleDayTrack from '@/modules/schedule/components/ScheduleDayTrack.vue';
-import ScheduleStartTimeColumn from '@/modules/schedule/components/ScheduleStartTimeColumn.vue';
-import ScheduleDayHeader from '@/modules/schedule/components/ScheduleDayHeader.vue';
+import ScheduleGrid from '@/modules/schedule/components/ScheduleGrid.vue';
 import ScheduleLessonGroup from '@/modules/schedule/components/ScheduleLessonGroup.vue';
 
-const {
-  formatDayName,
-  days,
-  timeSlots: fallbackTimeSlots,
-  getGroupStyle,
-  getDisplayName,
-} = useScheduleDisplay();
+const { days, scheduleConfig, getDisplayName } = useScheduleDisplay();
 
 const props = withDefaults(
   defineProps<{
     lessons: Lesson[];
     subjects?: ScheduleSubject[];
-    selectedLessonId?: string;
-    selectedLessonIds?: string[];
+    selectedLessonIds?: ReadonlySet<string>;
     isEditable?: boolean;
     animated?: boolean;
     individualCourses?: boolean;
-    timeSlots?: TimeSlot[];
+    /** The group's saved configuration by default. */
+    config?: ScheduleConfig;
   }>(),
   {
+    subjects: undefined,
+    selectedLessonIds: undefined,
     animated: true,
     isEditable: false,
     individualCourses: false,
-    selectedLessonIds: () => [],
+    config: undefined,
   },
 );
 
@@ -58,8 +56,8 @@ const emit = defineEmits<{
   (e: 'contextmenu-lesson', lesson: Lesson, event: UIEvent): void;
 }>();
 
-const effectiveTimeSlots = computed(() =>
-  props.timeSlots?.length ? props.timeSlots : fallbackTimeSlots.value,
+const layout = computed(() =>
+  buildScheduleLayout(props.config ?? scheduleConfig.value),
 );
 
 const displayLessons = computed(() => {
@@ -114,136 +112,93 @@ const displayLessons = computed(() => {
   });
 });
 
-const groupedLessons = computed(() =>
-  groupOverlappingLessons(displayLessons.value),
+const lessonGroupsOfDay = computed(() =>
+  lessonGroupsByDay(groupOverlappingLessons(displayLessons.value)),
 );
+
+const lessonGroupsOf = (day: number) => lessonGroupsOfDay.value.get(day) ?? [];
 
 const coveredSlots = computed(() => {
   const set = new Set<string>();
-  (props.lessons || []).forEach((lesson) => {
-    const d = Number(lesson.day);
-    const s = Number(lesson.slot);
+  props.lessons.forEach((lesson) => {
+    const slot = Number(lesson.slot);
     for (let i = 0; i < lessonSpan(lesson); i++) {
-      set.add(`${d}-${s + i}`);
+      set.add(`${lesson.day}-${slot + i}`);
     }
   });
   return set;
 });
 
-const emptySlotsOf = (day: number) =>
-  effectiveTimeSlots.value.filter(
-    (ts) => !coveredSlots.value.has(`${day}-${ts.slot}`),
+const emptyRowsOf = (day: number, dayLayout: ScheduleLayout) =>
+  lessonRowsOf(dayLayout).filter(
+    (row) => !coveredSlots.value.has(`${day}-${row.slot}`),
   );
-
-const onSelectLesson = (lesson: Lesson, event?: MouseEvent) => {
-  emit('select-lesson', lesson, event);
-};
 
 // Adds another lesson to a slot that is already taken, which in an Abitur
 // group is how a second course of the same hour gets scheduled.
 const onAddToGroup = (group: Lesson[]) => {
   const [first] = group;
   if (!first) return;
-  emit('add-lesson', { day: Number(first.day), slot: Number(first.slot) });
+  emit('add-lesson', { day: first.day, slot: first.slot });
 };
-
-const onSelectDay = (day: number, event?: MouseEvent) => {
-  if (props.isEditable) {
-    emit('select-day', day, event);
-  }
-};
-
-const isPhone = useIsPhoneViewport();
 
 const dayPager = useScheduleDayPager(days.length);
-const { hasPaged } = dayPager;
-
 const todayIndex = daysSinceMonday(new Date());
 dayPager.showDay(todayIndex < days.length ? todayIndex : 0);
 
-// The admin schedule is a template for every week, so its days carry no date.
-const dayTabLabel = (day: number) => formatDayName(day, 'short');
-
-const slotRows = computed<ScheduleRow[]>(() =>
-  effectiveTimeSlots.value.map((ts) => ({
-    kind: 'lesson',
-    gridRow: ts.slot + 1,
-    slot: ts.slot,
-    startTime: ts.startTime,
-  })),
-);
-
-const gridStyle = computed(() => ({
-  gridTemplateRows: `auto repeat(${slotRows.value.length}, auto)`,
-}));
-
-const phonePanelOf = (day: number) => ({
-  gridStyle: gridStyle.value,
-  lessonGroups: groupedLessons.value.filter((group) => group.day === day),
-});
-
-// On a phone every day is its own table, its lessons beside the time column.
-const phoneGroupStyle = (group: Lesson[]) => ({
-  ...getGroupStyle(group),
-  '--col-mobile': '2 / span 1',
-});
-
-const phoneEntranceStyle = (group: Lesson[]) => ({
-  '--enter-delay': entranceDelay(2, (group[0]?.slot ?? 1) + 1),
+const entranceStyle = (
+  group: Lesson[],
+  column: number,
+  dayLayout: ScheduleLayout,
+) => ({
+  '--enter-delay': entranceDelay(
+    column,
+    dayLayout.gridRowOfSlot(group[0]?.slot ?? 1),
+  ),
 });
 </script>
 
 <template>
-  <ScheduleDayTrack
-    v-if="isPhone"
+  <ScheduleGrid
     :pager="dayPager"
-    :days="days"
-    :tab-label="dayTabLabel"
-    :panel-of="phonePanelOf"
+    :layout="layout"
+    :clickable-days="isEditable"
     :animated="animated"
     bleed-class="-mx-6 px-6"
+    @select-day="(day, event) => emit('select-day', day, event)"
   >
-    <template #default="{ day, panel }">
-      <ScheduleStartTimeColumn
-        :rows="slotRows"
-        :animated="animated && !hasPaged"
-      />
-
-      <ScheduleDayHeader
-        :grid-column="2"
-        :label="formatDayName(day)"
-        :is-clickable="isEditable"
-        :animated="animated && !hasPaged"
-        @click.stop="onSelectDay(day, $event)"
-      />
-
+    <template
+      #default="{ day, column, layout: dayLayout, animated: cellsAnimated }"
+    >
       <ScheduleLessonGroup
-        v-for="{ key, lessons: group } in panel.lessonGroups"
+        v-for="{ key, lessons: group } in lessonGroupsOf(day)"
         :key="key"
         :group="group"
-        :group-key="key"
         is-clickable
         :has-context-menu="isEditable"
-        :selected-lesson-id="selectedLessonId"
         :selected-lesson-ids="selectedLessonIds"
-        :animated="animated && !hasPaged"
+        :animated="cellsAnimated"
         :can-add-lesson="isEditable && individualCourses"
         :get-display-name="getDisplayName"
-        :get-group-style="phoneGroupStyle"
-        :style="phoneEntranceStyle(group)"
-        @select-lesson="onSelectLesson"
-        @contextmenu-lesson="(l, ev) => emit('contextmenu-lesson', l, ev)"
+        :style="[
+          dayLayout.groupStyle(group, column),
+          entranceStyle(group, column, dayLayout),
+        ]"
+        @select-lesson="(lesson, event) => emit('select-lesson', lesson, event)"
+        @contextmenu-lesson="
+          (lesson, event) => emit('contextmenu-lesson', lesson, event)
+        "
         @add-lesson="onAddToGroup(group)"
       />
 
       <template v-if="isEditable">
         <button
-          v-for="ts in emptySlotsOf(day)"
-          :key="`empty-${ts.slot}`"
+          v-for="row in emptyRowsOf(day, dayLayout)"
+          :key="`empty-${row.slot}`"
           type="button"
-          class="min-h-[54px] border border-dashed border-ghost-border hover:border-action/50 hover:bg-action/5 rounded-lg transition-all flex items-center justify-center group cursor-pointer [grid-column:2]"
-          :style="{ gridRow: ts.slot + 1 }"
-          @click.stop="emit('add-lesson', { day, slot: ts.slot })"
+          class="min-h-[54px] border border-dashed border-ghost-border hover:border-action/50 hover:bg-action/5 rounded-md max-xs:rounded-lg transition-all flex items-center justify-center group cursor-pointer"
+          :style="{ gridColumn: column, gridRow: row.gridRow }"
+          @click.stop="emit('add-lesson', { day, slot: row.slot })"
         >
           <Plus
             class="text-on-ghost-muted group-hover:text-action transition-transform group-hover:scale-110"
@@ -252,60 +207,5 @@ const phoneEntranceStyle = (group: Lesson[]) => ({
         </button>
       </template>
     </template>
-  </ScheduleDayTrack>
-
-  <BaseTableWrapper v-else>
-    <div
-      class="grid grid-cols-[3.25rem_repeat(5,minmax(9rem,1fr))] gap-2 items-stretch"
-      :style="gridStyle"
-    >
-      <ScheduleStartTimeColumn :rows="slotRows" :animated="animated" />
-
-      <ScheduleDayHeader
-        v-for="(day, dayIdx) in days"
-        :key="day"
-        :grid-column="dayIdx + 2"
-        :label="formatDayName(day)"
-        :is-clickable="isEditable"
-        :animated="animated"
-        @click.stop="onSelectDay(day, $event)"
-      />
-
-      <ScheduleLessonGroup
-        v-for="{ key, lessons: group } in groupedLessons"
-        :key="key"
-        :group="group"
-        :group-key="key"
-        is-clickable
-        :has-context-menu="isEditable"
-        :selected-lesson-id="selectedLessonId"
-        :selected-lesson-ids="selectedLessonIds"
-        :animated="animated"
-        :can-add-lesson="isEditable && individualCourses"
-        :get-display-name="getDisplayName"
-        :get-group-style="getGroupStyle"
-        @select-lesson="onSelectLesson"
-        @contextmenu-lesson="(l, ev) => emit('contextmenu-lesson', l, ev)"
-        @add-lesson="onAddToGroup(group)"
-      />
-
-      <template v-if="isEditable">
-        <template v-for="day in days" :key="`empty-day-${day}`">
-          <button
-            v-for="ts in emptySlotsOf(day)"
-            :key="`empty-${day}-${ts.slot}`"
-            type="button"
-            class="min-h-[54px] border border-dashed border-ghost-border hover:border-action/50 hover:bg-action/5 rounded-xl transition-all flex items-center justify-center group cursor-pointer"
-            :style="{ gridColumn: day + 1, gridRow: ts.slot + 1 }"
-            @click.stop="emit('add-lesson', { day, slot: ts.slot })"
-          >
-            <Plus
-              class="text-on-ghost-muted group-hover:text-action transition-transform group-hover:scale-110"
-              :size="20"
-            />
-          </button>
-        </template>
-      </template>
-    </div>
-  </BaseTableWrapper>
+  </ScheduleGrid>
 </template>

@@ -40,7 +40,6 @@ import {
   DEFAULT_SCHEDULE_CONFIG,
   formatMinuteRange,
   slotRangeMinutes,
-  timeSlotsOf,
 } from '@/modules/schedule/utils/slotTimes';
 import { DALTON_SUBJECT_KEY } from '@/types/subjects';
 import { courseLabel, subjectLabel } from '@/utils/subject-formatter';
@@ -133,8 +132,6 @@ const draftConfig = computed<ScheduleConfig>(() => {
   };
 });
 
-const slotTimes = computed(() => timeSlotsOf(draftConfig.value));
-
 const {
   selectedLessonIds,
   singleSelectedLesson,
@@ -143,6 +140,8 @@ const {
   selectByClick,
   selectDay,
 } = useLessonSelection(draftLessons);
+
+const selectedDraftLessonIds = computed(() => new Set(selectedLessonIds.value));
 
 function clearSelection() {
   deselectAll();
@@ -238,6 +237,10 @@ const emptySubForm = () => ({
 const subForm = ref(emptySubForm());
 
 const selectedLesson = ref<Lesson | null>(null);
+
+const selectedSubLessonIds = computed(
+  () => new Set(subForm.value.lessonId ? [subForm.value.lessonId] : []),
+);
 
 const selectedLessonSubject = computed(() =>
   selectedLesson.value
@@ -819,8 +822,8 @@ onMounted(() => {
           :subjects="subjects"
           is-editable
           :individual-courses="schedulesCoursesIndividually"
-          :selected-lesson-ids="selectedLessonIds"
-          :time-slots="slotTimes"
+          :selected-lesson-ids="selectedDraftLessonIds"
+          :config="draftConfig"
           :animated="false"
           @select-lesson="handleLessonClick"
           @select-day="selectDay"
@@ -962,7 +965,7 @@ onMounted(() => {
           :lessons="lessons"
           :subjects="subjects"
           :individual-courses="schedulesCoursesIndividually"
-          :selected-lesson-id="subForm.lessonId"
+          :selected-lesson-ids="selectedSubLessonIds"
           :animated="!hasSwitchedFromEditor"
           @select-lesson="onLessonSelected"
         />
