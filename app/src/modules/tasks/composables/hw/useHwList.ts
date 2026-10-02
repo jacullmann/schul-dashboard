@@ -5,7 +5,7 @@ import hw from '@/api/api.ts';
 import { groupPath } from '@/api/groupPath';
 import { hiddenByCourses } from '@/api/personalization';
 
-/** Tasks shown at first, and added or taken away per step. */
+/** Tasks shown at first, and added each time the list is scrolled to its end. */
 export const TASK_PAGE_SIZE = 10;
 
 export function useHwList(ctx: HwContext) {
@@ -36,18 +36,18 @@ export function useHwList(ctx: HwContext) {
     ctx.visibleCount.value = TASK_PAGE_SIZE;
   }
 
-  function showMore() {
+  const hasMoreItems = computed(
+    () => ctx.visibleCount.value < filteredItems.value.length,
+  );
+
+  /** Shows the next page and returns the tasks it brought into view. */
+  function showMore(): HwItem[] {
+    const previousCount = ctx.visibleCount.value;
     ctx.visibleCount.value = Math.min(
-      ctx.visibleCount.value + TASK_PAGE_SIZE,
+      previousCount + TASK_PAGE_SIZE,
       filteredItems.value.length,
     );
-  }
-
-  function showLess() {
-    ctx.visibleCount.value = Math.max(
-      TASK_PAGE_SIZE,
-      ctx.visibleCount.value - TASK_PAGE_SIZE,
-    );
+    return filteredItems.value.slice(previousCount, ctx.visibleCount.value);
   }
 
   async function loadCheckedForMe() {
@@ -121,9 +121,9 @@ export function useHwList(ctx: HwContext) {
   return {
     filteredItems,
     limitedItems,
+    hasMoreItems,
     resetVisibleCount,
     showMore,
-    showLess,
     loadCheckedForMe,
     loadVisibilityForMe,
     reloadList,

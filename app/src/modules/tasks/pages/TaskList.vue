@@ -1,7 +1,15 @@
 <script setup lang="ts">
-import { computed, onActivated, onDeactivated, ref, watch } from 'vue';
+import {
+  computed,
+  onActivated,
+  onDeactivated,
+  ref,
+  useTemplateRef,
+  watch,
+} from 'vue';
 import { onBeforeRouteLeave } from 'vue-router';
 import { useI18n } from 'vue-i18n';
+import { useIntersectionObserver } from '@vueuse/core';
 import { useDismissibleNotice } from '@/common/composables/useDismissibleNotice';
 import { Plus, ListFilter } from '@lucide/vue';
 
@@ -11,7 +19,6 @@ import {
   vEntranceStart,
 } from '@/common/composables/useSkeletonHandoff';
 import { useCardEntrance } from '@/modules/tasks/composables/useCardEntrance';
-import { TASK_PAGE_SIZE } from '@/modules/tasks/composables/hw/useHwList';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 
 import InfoModal from '@/common/components/InfoModal.vue';
@@ -55,11 +62,11 @@ const {
   hideChecked,
   visibleCount,
   limitedItems,
+  hasMoreItems,
   filteredItems,
   tab,
   openMenuId,
   showMore,
-  showLess,
   onMenuAction,
   archiveItem,
   dismissedItems,
@@ -123,8 +130,6 @@ const showSkeleton = computed(() => loading.value && initialLoad.value);
 const TABS_ENTRANCE_ORDER = 1;
 const FILTER_ENTRANCE_ORDER = 2;
 const LIST_ENTRANCE_ORDER = 3;
-/** Counted from the loaded cards: after the first page. */
-const PAGING_ENTRANCE_ORDER = TASK_PAGE_SIZE;
 
 // Stays in the flow while it folds away, so the rows below follow it up.
 function collapseLeavingRow(el: Element, done: () => void) {
@@ -137,12 +142,28 @@ const {
   entranceStart: cardEntranceStart,
   isEntering: isCardEntering,
   entranceStyle: cardEntranceStyle,
+  hasSettled: hasCardEntranceSettled,
   handleEntranceEnd: handleCardAnimationEnd,
+  showWithoutEntrance: showCardsWithoutEntrance,
   settleAll: settleCardEntrance,
 } = useCardEntrance(
   computed(() => visibleItems.value.map((item) => item.id)),
   showSkeleton,
   LIST_ENTRANCE_ORDER,
+);
+
+// Every task is loaded already, so the next page is only rendered once the
+// list's end comes within a screen's height, before it is reached. It waits for
+// the cards' entrance to settle: shown at once beneath cards still cascading
+// in, it would arrive ahead of them.
+const pageEnd = useTemplateRef<HTMLElement>('pageEnd');
+useIntersectionObserver(
+  pageEnd,
+  ([entry]) => {
+    if (!entry?.isIntersecting) return;
+    showCardsWithoutEntrance(showMore().map((item) => item.id));
+  },
+  { rootMargin: '0px 0px 100% 0px' },
 );
 
 const emptyStateEntered = ref(false);
@@ -349,25 +370,16 @@ onDeactivated(() => {
         }}</template>
       </BaseEmptyState>
 
+      <!-- Replaced with every page: an observer only reports changes, and the
+           end may still be in range after a page too short to reach past it.
+           Out of the flow, so the list's gap does not open beneath it. -->
       <div
-        v-if="filteredItems.length > TASK_PAGE_SIZE"
-        class="mt-1 flex justify-center gap-3"
-        :class="{ 'animate-enter': !hasEntered }"
-        :style="{ '--enter-delay': entranceDelay(PAGING_ENTRANCE_ORDER) }"
-      >
-        <BaseButton
-          v-if="visibleCount < filteredItems.length"
-          variant="ghost"
-          @click="showMore"
-          >{{ t('common.buttons.show_more') }}</BaseButton
-        >
-        <BaseButton
-          v-if="visibleCount > TASK_PAGE_SIZE"
-          variant="ghost"
-          @click="showLess"
-          >{{ t('common.buttons.show_less') }}</BaseButton
-        >
-      </div>
+        v-if="hasMoreItems && hasCardEntranceSettled"
+        ref="pageEnd"
+        :key="visibleCount"
+        aria-hidden="true"
+        class="absolute inset-x-0 bottom-0"
+      ></div>
     </div>
 
     <BaseModal :open="showFilterModal" sheet @cancel="showFilterModal = false">
