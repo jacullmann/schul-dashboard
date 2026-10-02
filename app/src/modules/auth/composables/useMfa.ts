@@ -1,7 +1,7 @@
 import { ref, computed } from 'vue';
 import hw from '@/api/api.ts';
 import i18n from '@/i18n';
-import type { AxiosRequestConfig } from 'axios';
+import { isAxiosError, type AxiosRequestConfig } from 'axios';
 import type {
   MfaChallengeResponse,
   MfaSetupResponse,
@@ -16,6 +16,8 @@ interface MfaResult {
 }
 
 const MFA_CHALLENGE_EXPIRED = 'MFA_CHALLENGE_EXPIRED';
+const MFA_LOCKED = 'MFA_LOCKED';
+const SECONDS_PER_MINUTE = 60;
 
 // The sign-in challenge is carried by its own cookie, not by a session, so a
 // 401 there must not trigger a session refresh or the global logout handling.
@@ -23,6 +25,32 @@ const challengeRequestConfig: AxiosRequestConfig = {
   _skipAuthRetry: true,
   _silent: true,
 };
+
+/** Whole minutes until a locked second factor accepts codes again. */
+function lockedMinutes(err: unknown): number {
+  const seconds = isAxiosError<{ retryAfter?: unknown }>(err)
+    ? err.response?.data?.retryAfter
+    : undefined;
+  return typeof seconds === 'number'
+    ? Math.max(1, Math.ceil(seconds / SECONDS_PER_MINUTE))
+    : 1;
+}
+
+function mfaErrorMessage(err: unknown): string {
+  const { t } = i18n.global;
+
+  switch (apiErrorCode(err)) {
+    case MFA_CHALLENGE_EXPIRED:
+      return t('auth.mfa.verify.errors.challenge_expired');
+    case MFA_LOCKED:
+      return t('auth.mfa.verify.errors.locked', lockedMinutes(err));
+  }
+  // The rate limiter answers in plain text, so it carries no `error` field.
+  if (apiErrorStatus(err) === 429) {
+    return t('auth.mfa.verify.errors.rate_limited');
+  }
+  return apiErrorMessage(err, t('auth.mfa.verify.errors.failed'));
+}
 
 const mfaEnabled = ref(false);
 const mfaLoading = ref(false);
@@ -84,15 +112,7 @@ export function useMfa() {
       return { ok: true };
     } catch (err: unknown) {
       const challengeExpired = apiErrorCode(err) === MFA_CHALLENGE_EXPIRED;
-      // The rate limiter answers in plain text, so it carries no `error` field.
-      const errorMsg = challengeExpired
-        ? i18n.global.t('auth.mfa.verify.errors.challenge_expired')
-        : apiErrorStatus(err) === 429
-          ? i18n.global.t('auth.mfa.verify.errors.rate_limited')
-          : apiErrorMessage(
-              err,
-              i18n.global.t('auth.mfa.verify.errors.failed'),
-            );
+      const errorMsg = mfaErrorMessage(err);
       mfaError.value = errorMsg;
       return { ok: false, error: errorMsg, challengeExpired };
     } finally {

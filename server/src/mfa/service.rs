@@ -1,12 +1,15 @@
+use super::{
+    second_factor::{self, CodeCheck},
+    totp::Totp,
+};
 use crate::{
     auth::token::{MFA_CHANGE, TokenService},
-    common::encryption::EncryptionService,
+    common::{encryption::EncryptionService, jwt::now_secs},
     error::{AppError, AppResult},
     state::AppState,
 };
 use serde_json::{Value, json};
-use sqlx::PgPool;
-use totp_rs::{Algorithm, TOTP};
+use sqlx::{PgConnection, PgPool};
 use uuid::Uuid;
 
 pub struct MfaService {
@@ -22,19 +25,6 @@ impl MfaService {
             enc: state.encryption.clone(),
             state: state.clone(),
         }
-    }
-
-    fn make_totp(secret_bytes: &[u8], account: &str) -> AppResult<TOTP> {
-        TOTP::new(
-            Algorithm::SHA1,
-            6,
-            1,
-            30,
-            secret_bytes.to_vec(),
-            Some("Schul-Dashboard".to_string()),
-            account.to_string(),
-        )
-        .map_err(|e| AppError::internal(format!("TOTP init failed: {e}")))
     }
 
     pub async fn get_status(&self, user_id: Uuid) -> AppResult<Value> {
@@ -66,10 +56,7 @@ impl MfaService {
         .execute(&self.db)
         .await?;
 
-        let secret_bytes: Vec<u8> = (0..20).map(|_| rand::random::<u8>()).collect();
-
-        let secret_b32 =
-            base32::encode(base32::Alphabet::Rfc4648 { padding: false }, &secret_bytes);
+        let secret_b32 = Totp::generate_secret();
 
         let uid = user_id.to_string();
 
@@ -87,9 +74,7 @@ impl MfaService {
             .execute(&self.db)
             .await?;
 
-        let totp = Self::make_totp(&secret_bytes, &user.email)?;
-
-        let otpauth = totp.get_url();
+        let otpauth = Totp::from_base32(&secret_b32, &user.email)?.otpauth_url();
 
         let qr = qrcode_generator::to_png_to_vec(
             otpauth.as_bytes(),
@@ -114,7 +99,7 @@ impl MfaService {
     }
 
     pub async fn activate(&self, user_id: Uuid, code: &str) -> AppResult<Value> {
-        let row = sqlx::query!(
+        let pending = sqlx::query!(
             r#"SELECT p.encrypted_secret, u.email
                FROM mfa_pending_secrets p
                JOIN users u ON u.id = p.user_id
@@ -123,60 +108,54 @@ impl MfaService {
         )
         .fetch_optional(&self.db)
         .await?
-        .ok_or_else(|| AppError::bad_request("Authentication failed."))?;
+        .ok_or_else(invalid_code)?;
 
-        let uid = user_id.to_string();
-
-        let enc: crate::common::encryption::EncryptedPayload =
-            serde_json::from_value(row.encrypted_secret)
-                .map_err(|_| AppError::internal("Invalid encrypted secret"))?;
-
-        let secret_b32 = self.enc.decrypt(&enc, &uid).await?;
-
-        let secret_bytes =
-            base32::decode(base32::Alphabet::Rfc4648 { padding: false }, &secret_b32)
-                .ok_or_else(|| AppError::internal("Invalid TOTP secret encoding"))?;
-
-        let totp = Self::make_totp(&secret_bytes, &row.email)?;
-
-        if !totp
-            .check_current(code)
-            .map_err(|_| AppError::bad_request("Authentication failed."))?
-        {
-            tokio::time::sleep(std::time::Duration::from_millis(
-                100 + rand::random::<u64>() % 100,
-            ))
-            .await;
-
-            return Err(AppError::bad_request("Authentication failed."));
-        }
-
-        let enc_for_storage = self.enc.encrypt(&secret_b32, &uid).await?;
-
-        sqlx::query!(
-            r#"UPDATE users SET mfa_enabled = true, mfa_secret = $1 WHERE id = $2"#,
-            enc_for_storage.to_json(),
-            user_id
+        // The secret was only just shown to the signed-in user, so guessing a
+        // code would gain nothing; the per-IP limit is enough here.
+        let totp = Totp::from_stored(
+            &self.enc,
+            pending.encrypted_secret.clone(),
+            user_id,
+            &pending.email,
         )
-        .execute(&self.db)
+        .await?;
+        let step = totp
+            .matching_step(code, now_secs())
+            .ok_or_else(invalid_code)?;
+
+        let mut tx = self.db.begin().await?;
+
+        // The confirming code counts as used, so it cannot sign in afterwards.
+        sqlx::query!(
+            r#"UPDATE users
+               SET mfa_enabled = true, mfa_secret = $2, mfa_last_used_step = $3,
+                   mfa_failed_attempts = 0, mfa_locked_until = NULL
+               WHERE id = $1"#,
+            user_id,
+            pending.encrypted_secret,
+            step.as_db()
+        )
+        .execute(&mut *tx)
         .await?;
 
         sqlx::query!(
             r#"DELETE FROM mfa_pending_secrets WHERE user_id = $1"#,
             user_id
         )
-        .execute(&self.db)
+        .execute(&mut *tx)
         .await?;
-
-        TokenService::from_state(&self.state)
-            .revoke_all_for_user(user_id, MFA_CHANGE, None)
-            .await?;
 
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'mfa:activated', '{}'::jsonb)"#,
             user_id
         )
-            .execute(&self.db)
+        .execute(&mut *tx)
+        .await?;
+
+        tx.commit().await?;
+
+        TokenService::from_state(&self.state)
+            .revoke_all_for_user(user_id, MFA_CHANGE, None)
             .await?;
 
         Ok(json!({ "ok": true, "message": "MFA activated successfully." }))
@@ -188,63 +167,52 @@ impl MfaService {
         code: &str,
         ip: Option<&str>,
     ) -> AppResult<Value> {
-        let user = sqlx::query!(
-            r#"SELECT email, mfa_enabled, mfa_secret FROM users WHERE id = $1"#,
-            user_id
-        )
-        .fetch_optional(&self.db)
-        .await?
-        .ok_or_else(|| AppError::not_found("User not found."))?;
-
-        let Some(mfa_secret) = user.mfa_secret.filter(|_| user.mfa_enabled) else {
-            tokio::time::sleep(std::time::Duration::from_millis(100)).await;
-            return Err(AppError::bad_request("Authentication failed."));
-        };
-
-        let uid = user_id.to_string();
-
-        let enc: crate::common::encryption::EncryptedPayload =
-            serde_json::from_value(mfa_secret)
-                .map_err(|_| AppError::internal("Invalid encrypted secret"))?;
-
-        let secret_b32 = self.enc.decrypt(&enc, &uid).await?;
-
-        let secret_bytes =
-            base32::decode(base32::Alphabet::Rfc4648 { padding: false }, &secret_b32)
-                .ok_or_else(|| AppError::internal("Invalid TOTP secret encoding"))?;
-
-        let totp = Self::make_totp(&secret_bytes, &user.email)?;
-
-        if !totp
-            .check_current(code)
-            .map_err(|_| AppError::bad_request("Authentication failed."))?
+        if second_factor::check_code(&self.db, &self.enc, user_id, code).await?
+            == CodeCheck::Rejected
         {
-            tokio::time::sleep(std::time::Duration::from_millis(
-                100 + rand::random::<u64>() % 100,
-            ))
-            .await;
-            return Err(AppError::bad_request("Authentication failed."));
+            return Err(invalid_code());
         }
 
-        sqlx::query!(
-            r#"UPDATE users SET mfa_enabled = false, mfa_secret = NULL WHERE id = $1"#,
-            user_id
-        )
-        .execute(&self.db)
-        .await?;
+        let mut tx = self.db.begin().await?;
 
-        TokenService::from_state(&self.state)
-            .revoke_all_for_user(user_id, MFA_CHANGE, None)
-            .await?;
+        disable_mfa(&mut tx, user_id).await?;
 
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'mfa:deactivated', $2)"#,
             user_id,
             json!({ "ip": ip })
         )
-        .execute(&self.db)
+        .execute(&mut *tx)
         .await?;
+
+        tx.commit().await?;
+
+        TokenService::from_state(&self.state)
+            .revoke_all_for_user(user_id, MFA_CHANGE, None)
+            .await?;
 
         Ok(json!({ "ok": true, "message": "MFA deactivated successfully." }))
     }
+}
+
+/// Removes the second factor together with its attempt state, so a factor set
+/// up later starts without inherited misses or a stale last-used step.
+pub async fn disable_mfa(conn: &mut PgConnection, user_id: Uuid) -> AppResult<()> {
+    sqlx::query!(
+        r#"UPDATE users
+           SET mfa_enabled = false, mfa_secret = NULL, mfa_failed_attempts = 0,
+               mfa_locked_until = NULL, mfa_last_used_step = NULL
+           WHERE id = $1"#,
+        user_id
+    )
+    .execute(conn)
+    .await?;
+
+    Ok(())
+}
+
+/// Codes for setting up or removing the factor come from a signed-in user, who
+/// must not be sent to refresh their session, so this is no 401.
+fn invalid_code() -> AppError {
+    AppError::bad_request("Authentication failed.")
 }

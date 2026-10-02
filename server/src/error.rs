@@ -1,6 +1,6 @@
 use axum::{
     Json,
-    http::StatusCode,
+    http::{StatusCode, header},
     response::{IntoResponse, Response},
 };
 use serde_json::json;
@@ -27,6 +27,11 @@ pub enum AppError {
     /// means the same to the client: the sign-in has to start over.
     #[error("Two-factor sign-in has expired. Please sign in again.")]
     MfaChallengeExpired,
+
+    /// Too many wrong second-factor codes in a row; the factor accepts none
+    /// until the lock ends.
+    #[error("Too many incorrect codes. Please try again later.")]
+    MfaLocked { retry_after: chrono::TimeDelta },
 
     #[error("{0}")]
     Forbidden(String),
@@ -95,6 +100,17 @@ impl IntoResponse for AppError {
                 StatusCode::UNAUTHORIZED,
                 json!({ "error": self.to_string(), "code": "MFA_CHALLENGE_EXPIRED" }),
             ),
+            AppError::MfaLocked { retry_after } => {
+                // Whole seconds, rounded up, so a client that waits exactly
+                // this long is never still locked out.
+                let secs = (retry_after.num_milliseconds().max(0) + 999) / 1000;
+                return (
+                    StatusCode::TOO_MANY_REQUESTS,
+                    [(header::RETRY_AFTER, secs.to_string())],
+                    Json(json!({ "error": self.to_string(), "code": "MFA_LOCKED", "retryAfter": secs })),
+                )
+                    .into_response();
+            }
             AppError::Forbidden(msg) => (StatusCode::FORBIDDEN, json!({ "error": msg })),
             AppError::NotFound(msg) => (StatusCode::NOT_FOUND, json!({ "error": msg })),
             AppError::Conflict(msg, item) => (

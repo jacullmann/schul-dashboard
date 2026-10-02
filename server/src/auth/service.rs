@@ -17,6 +17,10 @@ use crate::{
         chrono_ttl,
     },
     error::{AppError, AppResult},
+    mfa::{
+        second_factor::{self, CodeCheck},
+        service::disable_mfa,
+    },
     state::AppState,
 };
 use axum_extra::extract::cookie::CookieJar;
@@ -209,52 +213,12 @@ impl AuthService {
         user_agent: Option<&str>,
         ip: Option<&str>,
     ) -> AppResult<CookieJar> {
-        let user = sqlx::query!(
-            r#"SELECT mfa_enabled, mfa_secret FROM users WHERE id = $1"#,
-            user_id
-        )
-        .fetch_optional(&self.db)
-        .await?
-        .ok_or_else(|| AppError::Unauthorized("Authentication failed.".into()))?;
-
-        let Some(mfa_secret) = user.mfa_secret.filter(|_| user.mfa_enabled) else {
-            return Err(AppError::Unauthorized("Authentication failed.".into()));
-        };
-
-        let encrypted: crate::common::encryption::EncryptedPayload =
-            serde_json::from_value(mfa_secret)
-                .map_err(|_| AppError::internal("Invalid MFA secret format"))?;
-
-        let uid = user_id.to_string();
-
-        let secret_b32 = self.enc.decrypt(&encrypted, &uid).await?;
-
-        let secret_bytes =
-            base32::decode(base32::Alphabet::Rfc4648 { padding: false }, &secret_b32)
-                .ok_or_else(|| AppError::internal("Invalid TOTP secret encoding"))?;
-
-        let totp = totp_rs::TOTP::new(
-            totp_rs::Algorithm::SHA1,
-            6,
-            1,
-            30,
-            secret_bytes,
-            None,
-            "".to_string(),
-        )
-        .map_err(|e| AppError::internal(format!("TOTP init: {e}")))?;
-
-        if !totp
-            .check_current(code)
-            .map_err(|_| AppError::Unauthorized("Authentication failed.".into()))?
+        if second_factor::check_code(&self.db, &self.enc, user_id, code).await?
+            == CodeCheck::Rejected
         {
-            tokio::time::sleep(std::time::Duration::from_millis(
-                100 + rand::random::<u64>() % 100,
-            ))
-            .await;
-
             return Err(AppError::Unauthorized("Authentication failed.".into()));
         }
+
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'auth:mfa_login', '{}')"#,
             user_id
@@ -735,12 +699,19 @@ impl AuthService {
 
         let hash = hash_password(password.to_string()).await?;
 
+        let mut tx = self.db.begin().await?;
+
         sqlx::query!(
-            r#"UPDATE users SET password_hash = $1, mfa_enabled = false, mfa_secret = NULL WHERE id = $2"#,
-            hash, user.id
+            r#"UPDATE users SET password_hash = $1 WHERE id = $2"#,
+            hash,
+            user.id
         )
-            .execute(&self.db)
-            .await?;
+        .execute(&mut *tx)
+        .await?;
+
+        disable_mfa(&mut tx, user.id).await?;
+
+        tx.commit().await?;
 
         self.tokens
             .revoke_all_for_user(user.id, PASSWORD_CHANGE, None)
