@@ -9,7 +9,6 @@ const AVATAR_COLORS: readonly string[] = [
   '#C1175C',
   '#0388D2',
   '#0098A7',
-  '#004D40',
   '#EF6C00',
   '#F6511E',
 ];
