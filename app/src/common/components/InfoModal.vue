@@ -2,10 +2,14 @@
 import { ref } from 'vue';
 import { Info } from '@lucide/vue';
 
-const props = defineProps<{
-  title?: string;
-  tooltip: string;
-}>();
+const props = withDefaults(
+  defineProps<{
+    title?: string;
+    tooltip: string;
+    iconSize?: number;
+  }>(),
+  { iconSize: 20 },
+);
 
 const isModalOpen = ref(false);
 
@@ -19,7 +23,7 @@ const closeModal = () => (isModalOpen.value = false);
       class="relative flex items-center justify-center cursor-pointer text-on-ghost-muted transition-colors duration-100 hover:text-on-ghost touch-target after:min-w-12 after:min-h-12"
       @click="openModal"
     >
-      <Info :size="20" />
+      <Info :size="props.iconSize" />
     </div>
   </div>
 

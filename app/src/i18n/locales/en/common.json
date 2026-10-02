@@ -270,7 +270,21 @@
   },
   "personalized_view": {
     "notice": "Displaying your courses only.",
-    "edit_courses": "Edit my courses",
+    "info": {
+      "tooltip": "About courses and personalization",
+      "title": "Personalized view",
+      "description": "Some subjects are split into several courses, for example by level or as electives. With the personalized view, the schedule and tasks only show what belongs to your own courses.",
+      "sections": [
+        {
+          "title": "Your courses",
+          "text": "You choose your courses when you join a group. You can change your selection at any time in the group settings under “My courses”."
+        },
+        {
+          "title": "Showing all courses",
+          "text": "To see the lessons and tasks of every course again, set “Displayed Courses” to “All” in your account menu. Hiding this notice keeps the filter active."
+        }
+      ]
+    },
     "dismiss": "Hide notice"
   },
   "preview": "Preview",

@@ -270,7 +270,21 @@
   },
   "personalized_view": {
     "notice": "Nur deine Kurse angezeigt.",
-    "edit_courses": "Meine Kurse bearbeiten",
+    "info": {
+      "tooltip": "Über Kurse und Personalisierung",
+      "title": "Personalisierte Ansicht",
+      "description": "Manche Fächer sind in mehrere Kurse aufgeteilt, etwa nach Niveau oder als Wahlfächer. In der personalisierten Ansicht zeigen Stundenplan und Aufgaben nur, was zu deinen eigenen Kursen gehört.",
+      "sections": [
+        {
+          "title": "Deine Kurse",
+          "text": "Deine Kurse wählst du beim Beitritt zu einer Gruppe. Deine Auswahl kannst du jederzeit in den Gruppeneinstellungen unter „Meine Kurse“ ändern."
+        },
+        {
+          "title": "Alle Kurse anzeigen",
+          "text": "Um wieder die Stunden und Aufgaben aller Kurse zu sehen, stelle „Angezeigte Kurse“ in deinem Kontomenü auf „Alle“. Wenn du diesen Hinweis ausblendest, bleibt der Filter aktiv."
+        }
+      ]
+    },
     "dismiss": "Hinweis ausblenden"
   },
   "preview": "Vorschau",

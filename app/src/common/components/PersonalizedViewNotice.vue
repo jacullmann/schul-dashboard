@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 import { ListFilter, X } from '@lucide/vue';
-import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
+import InfoModal from '@/common/components/InfoModal.vue';
 
 withDefaults(
   defineProps<{
@@ -14,8 +14,9 @@ withDefaults(
 
 const emit = defineEmits<{ dismiss: [] }>();
 
-const { t } = useI18n();
-const { activeGroupId } = useAppAuth();
+const i18n = useI18n();
+const t = i18n.t.bind(i18n);
+const tm = i18n.tm.bind(i18n);
 </script>
 
 <template>
@@ -29,16 +30,22 @@ const { activeGroupId } = useAppAuth();
           <ListFilter :size="16" class="shrink-0" aria-hidden="true" />
           <span class="m-0 flex flex-1 flex-wrap items-center gap-x-1.5">
             <span>{{ t('common.personalized_view.notice') }}</span>
-            <BaseLink
-              v-if="activeGroupId"
-              inline
-              :to="{
-                name: 'group-admin',
-                params: { groupId: activeGroupId, tab: 'courses' },
-              }"
+            <InfoModal
+              :tooltip="t('common.personalized_view.info.tooltip')"
+              :title="t('common.personalized_view.info.title')"
+              :icon-size="16"
             >
-              {{ t('common.personalized_view.edit_courses') }}
-            </BaseLink>
+              <p>{{ t('common.personalized_view.info.description') }}</p>
+              <template
+                v-for="(section, index) in tm(
+                  'common.personalized_view.info.sections',
+                )"
+                :key="index"
+              >
+                <h3>{{ section.title }}</h3>
+                <p>{{ section.text }}</p>
+              </template>
+            </InfoModal>
           </span>
           <button
             type="button"
