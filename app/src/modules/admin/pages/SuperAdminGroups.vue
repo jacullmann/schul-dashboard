@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { Trash2, UserRoundPlus } from '@lucide/vue';
+import { useRouter } from 'vue-router';
+import { ArrowUpRight, Trash2, UserRoundPlus } from '@lucide/vue';
 import {
   useSuperAdminGroups,
   GROUP_TYPE_FILTERS,
@@ -36,6 +37,7 @@ const {
 } = useSuperAdminGroups();
 const { fmtDate } = useSuperAdminFormat();
 const { t } = useI18n();
+const router = useRouter();
 
 const typeOptions = computed(() =>
   GROUP_TYPE_FILTERS.map((type) => ({
@@ -126,8 +128,11 @@ const typeOptions = computed(() =>
               {{ t(`admin.groups.filters.${g.groupType}`) }}
             </td>
             <td>
-              <div class="font-medium whitespace-nowrap">{{ g.ownerName }}</div>
-              <div class="text-on-ghost-muted text-sm">{{ g.ownerEmail }}</div>
+              <RouterLink
+                :to="{ name: 'admin-users', query: { search: g.ownerEmail } }"
+                class="hover:underline"
+                >{{ g.ownerEmail }}</RouterLink
+              >
             </td>
             <td class="tabular-nums">{{ g.memberCount }}</td>
             <td class="tabular-nums">{{ g.itemCount }}</td>
@@ -136,6 +141,21 @@ const typeOptions = computed(() =>
             </td>
             <td class="py-0! px-2! min-w-0!">
               <div class="flex gap-0.5 justify-end">
+                <BaseTooltip
+                  :content="t('admin.groups.open_tooltip')"
+                  placement="bottom"
+                >
+                  <BaseButton
+                    size="sm"
+                    :icon="ArrowUpRight"
+                    @click="
+                      router.push({
+                        name: 'group-dashboard',
+                        params: { groupId: g.id },
+                      })
+                    "
+                  />
+                </BaseTooltip>
                 <BaseTooltip
                   :content="t('admin.groups.invite_tooltip')"
                   placement="bottom"

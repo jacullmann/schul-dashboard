@@ -19,14 +19,12 @@
     "details_title": "Details",
     "stats": {
       "users": "Users",
-      "active_week": "Active (7 days)",
+      "active_week": "Active last week",
       "tasks": "Tasks",
       "banned": "Banned",
       "verified": "Verified",
       "unverified": "Unverified",
-      "admins": "Superadmins",
-      "new_users_week": "New users (7 days)",
-      "new_tasks_week": "New tasks (7 days)"
+      "last_week": "last 7 days"
     },
     "chart": {
       "title": "Last 30 days",
@@ -192,6 +190,7 @@
       "created": "Created",
       "actions": "Actions"
     },
+    "open_tooltip": "Open group",
     "invite_tooltip": "Generate invite link",
     "delete_tooltip": "Delete group",
     "delete_success": "Group \"{name}\" deleted.",

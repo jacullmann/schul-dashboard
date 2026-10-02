@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { Lock as LockIcon, Unlock, Trash2, FileText } from '@lucide/vue';
+import { Ban, Unlock, Trash2, FileText } from '@lucide/vue';
 import {
   useSuperAdminUsers,
   USER_STATUS_FILTERS,
@@ -157,7 +157,7 @@ const selectedUser = ref<SuperAdminUser | null>(null);
                   >
                     <BaseButton
                       size="sm"
-                      :icon="u.isBanned ? Unlock : LockIcon"
+                      :icon="u.isBanned ? Unlock : Ban"
                       @click="toggleBan(u)"
                     />
                   </BaseTooltip>
@@ -192,7 +192,6 @@ const selectedUser = ref<SuperAdminUser | null>(null);
 
 <style scoped>
 .row-banned td {
-  text-decoration: line-through;
   color: var(--color-on-ghost-muted);
 }
 
