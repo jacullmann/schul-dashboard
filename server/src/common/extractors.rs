@@ -21,6 +21,7 @@ use axum::{
     response::Response,
 };
 use axum_extra::extract::CookieJar;
+use chrono::{DateTime, Utc};
 use serde::de::DeserializeOwned;
 use sqlx::PgPool;
 use std::convert::Infallible;
@@ -103,6 +104,7 @@ where
 pub struct MfaPending {
     pub user_id: Uuid,
     pub email: String,
+    pub expires_at: DateTime<Utc>,
 }
 
 impl<S> FromRequestParts<S> for MfaPending
@@ -119,27 +121,33 @@ where
 
         let jar = CookieJar::from_request_parts(parts, state)
             .await
-            .map_err(|_| AppError::Unauthorized("Authentication failed.".into()))?;
+            .map_err(|_| AppError::MfaChallengeExpired)?;
 
         let token = jar
             .get(MFA_PENDING_COOKIE)
             .map(|c| c.value().to_owned())
-            .ok_or_else(|| AppError::Unauthorized("Authentication failed.".into()))?;
+            .ok_or(AppError::MfaChallengeExpired)?;
 
         let claims = app_state.jwt.verify_mfa_pending(&token)?;
 
         if claims.purpose != "mfa_pending" {
-            return Err(AppError::Unauthorized("Authentication failed.".into()));
+            return Err(AppError::MfaChallengeExpired);
         }
 
         let user_id = claims
             .sub
             .parse::<Uuid>()
-            .map_err(|_| AppError::Unauthorized("Authentication failed.".into()))?;
+            .map_err(|_| AppError::MfaChallengeExpired)?;
+
+        let expires_at = i64::try_from(claims.exp)
+            .ok()
+            .and_then(|exp| DateTime::from_timestamp(exp, 0))
+            .ok_or(AppError::MfaChallengeExpired)?;
 
         Ok(MfaPending {
             user_id,
             email: claims.email,
+            expires_at,
         })
     }
 }

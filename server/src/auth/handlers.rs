@@ -14,6 +14,7 @@ use axum::{
     extract::{Query, State},
 };
 use axum_extra::extract::CookieJar;
+use chrono::Utc;
 use serde::Deserialize;
 use serde_json::{Value, json};
 
@@ -32,6 +33,12 @@ pub async fn login(
             Ok((jar, Json(json!({ "ok": true, "requiresMfa": true }))))
         }
     }
+}
+
+pub async fn get_mfa_challenge(pending: MfaPending) -> Json<Value> {
+    let expires_in = (pending.expires_at - Utc::now()).num_seconds().max(0);
+
+    Json(json!({ "expiresIn": expires_in }))
 }
 
 pub async fn verify_mfa(

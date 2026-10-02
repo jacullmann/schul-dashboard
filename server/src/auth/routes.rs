@@ -24,6 +24,7 @@ pub fn router() -> Router<AppState> {
         .layer(rate_limit::per_ip(30, Duration::from_secs(1)));
 
     let normal = Router::new()
+        .route("/auth/mfa/challenge", get(get_mfa_challenge))
         .route("/auth/mfa/cancel", post(cancel_mfa))
         .route("/auth/me", get(get_me).delete(delete_me))
         .route("/auth/verify", get(verify_email))

@@ -10,6 +10,7 @@ const { t } = useI18n();
 const emit = defineEmits<{
   (e: 'verified'): void;
   (e: 'cancelled'): void;
+  (e: 'expired'): void;
 }>();
 
 const { verifyMfaLogin, cancelMfaLogin } = useMfa();
@@ -41,15 +42,10 @@ async function verify() {
 
   if (result.ok) {
     emit('verified');
+  } else if (result.challengeExpired) {
+    emit('expired');
   } else {
-    const isExpired =
-      result.error?.includes('expired') || result.error?.includes('abgelaufen');
-    if (isExpired) {
-      error.value = t('auth.mfa.verify.errors.session_expired');
-      setTimeout(() => emit('cancelled'), 2000);
-    } else {
-      error.value = result.error || t('auth.mfa.verify.errors.failed');
-    }
+    error.value = result.error || t('auth.mfa.verify.errors.failed');
     code.value = '';
     shakeInput.value = true;
     setTimeout(() => {

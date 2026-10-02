@@ -115,9 +115,14 @@ impl JwtService {
     }
 
     pub fn verify_mfa_pending(&self, token: &str) -> Result<MfaPendingClaims, AppError> {
-        decode::<MfaPendingClaims>(token, &self.mfa_dec, &hs256_validation())
+        // Issuer and verifier share one clock, so a leeway would only stretch
+        // the challenge past the deadline the client was told about.
+        let mut validation = hs256_validation();
+        validation.leeway = 0;
+
+        decode::<MfaPendingClaims>(token, &self.mfa_dec, &validation)
             .map(|d| d.claims)
-            .map_err(|_| AppError::Unauthorized("Authentication failed.".into()))
+            .map_err(|_| AppError::MfaChallengeExpired)
     }
 
     pub fn sign_password_reset(&self, email: &str, ttl: Duration) -> anyhow::Result<String> {
@@ -136,5 +141,67 @@ impl JwtService {
         decode::<PasswordResetClaims>(token, &self.reset_dec, &hs256_validation())
             .map(|d| d.claims)
             .map_err(|_| AppError::BadRequest("Invalid or expired reset token.".into()))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const MFA_SECRET: &[u8] = b"mfa-pending-test-secret-of-32-bytes!";
+
+    fn service() -> JwtService {
+        let other = b"unrelated-test-secret-of-32-bytes-long";
+        JwtService {
+            user_enc: EncodingKey::from_secret(other),
+            user_dec: DecodingKey::from_secret(other),
+            mfa_enc: EncodingKey::from_secret(MFA_SECRET),
+            mfa_dec: DecodingKey::from_secret(MFA_SECRET),
+            reset_enc: EncodingKey::from_secret(other),
+            reset_dec: DecodingKey::from_secret(other),
+        }
+    }
+
+    fn pending_token(exp: u64, secret: &[u8]) -> String {
+        let claims = MfaPendingClaims {
+            sub: Uuid::new_v4().to_string(),
+            email: "user@example.com".into(),
+            purpose: "mfa_pending".into(),
+            iat: now_secs(),
+            exp,
+        };
+        encode(
+            &Header::default(),
+            &claims,
+            &EncodingKey::from_secret(secret),
+        )
+        .unwrap()
+    }
+
+    #[test]
+    fn mfa_pending_token_is_accepted_before_its_deadline() {
+        let token = pending_token(now_secs() + 60, MFA_SECRET);
+
+        assert!(service().verify_mfa_pending(&token).is_ok());
+    }
+
+    #[test]
+    fn mfa_pending_token_past_its_deadline_is_rejected_without_leeway() {
+        let token = pending_token(now_secs() - 1, MFA_SECRET);
+
+        assert!(matches!(
+            service().verify_mfa_pending(&token),
+            Err(AppError::MfaChallengeExpired)
+        ));
+    }
+
+    #[test]
+    fn mfa_pending_token_signed_with_another_key_is_rejected() {
+        let token = pending_token(now_secs() + 60, b"some-other-secret-of-32-bytes-long");
+
+        assert!(matches!(
+            service().verify_mfa_pending(&token),
+            Err(AppError::MfaChallengeExpired)
+        ));
     }
 }

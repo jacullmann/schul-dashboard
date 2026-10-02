@@ -23,6 +23,11 @@ pub enum AppError {
     #[error("Access token is invalid or has expired.")]
     TokenExpired,
 
+    /// The second-factor challenge is missing, expired or invalid. Every case
+    /// means the same to the client: the sign-in has to start over.
+    #[error("Two-factor sign-in has expired. Please sign in again.")]
+    MfaChallengeExpired,
+
     #[error("{0}")]
     Forbidden(String),
 
@@ -85,6 +90,10 @@ impl IntoResponse for AppError {
             AppError::TokenExpired => (
                 StatusCode::UNAUTHORIZED,
                 json!({ "error": "Access token is invalid or has expired.", "requiresAuth": true }),
+            ),
+            AppError::MfaChallengeExpired => (
+                StatusCode::UNAUTHORIZED,
+                json!({ "error": self.to_string(), "code": "MFA_CHALLENGE_EXPIRED" }),
             ),
             AppError::Forbidden(msg) => (StatusCode::FORBIDDEN, json!({ "error": msg })),
             AppError::NotFound(msg) => (StatusCode::NOT_FOUND, json!({ "error": msg })),

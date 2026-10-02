@@ -10,6 +10,10 @@ export interface MfaStatusResponse {
   mfaEnabled: boolean;
 }
 
+export interface MfaChallengeResponse {
+  expiresIn: number;
+}
+
 export interface MfaVerifyResult {
   ok: boolean;
   csrfToken?: string;

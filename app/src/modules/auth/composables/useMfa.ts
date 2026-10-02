@@ -1,13 +1,28 @@
 import { ref, computed } from 'vue';
 import hw from '@/api/api.ts';
 import i18n from '@/i18n';
-import type { MfaSetupResponse, MfaStatusResponse } from '@/modules/auth/types';
-import { apiErrorMessage, apiErrorStatus } from '@/api/errors';
+import type { AxiosRequestConfig } from 'axios';
+import type {
+  MfaChallengeResponse,
+  MfaSetupResponse,
+  MfaStatusResponse,
+} from '@/modules/auth/types';
+import { apiErrorCode, apiErrorMessage, apiErrorStatus } from '@/api/errors';
 
 interface MfaResult {
   ok: boolean;
   error?: string;
+  challengeExpired?: boolean;
 }
+
+const MFA_CHALLENGE_EXPIRED = 'MFA_CHALLENGE_EXPIRED';
+
+// The sign-in challenge is carried by its own cookie, not by a session, so a
+// 401 there must not trigger a session refresh or the global logout handling.
+const challengeRequestConfig: AxiosRequestConfig = {
+  _skipAuthRetry: true,
+  _silent: true,
+};
 
 const mfaEnabled = ref(false);
 const mfaLoading = ref(false);
@@ -55,43 +70,68 @@ export function useMfa() {
   async function submitMfaCode(
     url: string,
     code: string,
-    onSuccess?: () => void,
+    {
+      onSuccess,
+      config,
+    }: { onSuccess?: () => void; config?: AxiosRequestConfig } = {},
   ): Promise<MfaResult> {
     mfaLoading.value = true;
     mfaError.value = null;
 
     try {
-      await hw.post(url, { code });
+      await hw.post(url, { code }, config);
       onSuccess?.();
       return { ok: true };
     } catch (err: unknown) {
+      const challengeExpired = apiErrorCode(err) === MFA_CHALLENGE_EXPIRED;
       // The rate limiter answers in plain text, so it carries no `error` field.
-      const errorMsg =
-        apiErrorStatus(err) === 429
+      const errorMsg = challengeExpired
+        ? i18n.global.t('auth.mfa.verify.errors.challenge_expired')
+        : apiErrorStatus(err) === 429
           ? i18n.global.t('auth.mfa.verify.errors.rate_limited')
           : apiErrorMessage(
               err,
               i18n.global.t('auth.mfa.verify.errors.failed'),
             );
       mfaError.value = errorMsg;
-      return { ok: false, error: errorMsg };
+      return { ok: false, error: errorMsg, challengeExpired };
     } finally {
       mfaLoading.value = false;
     }
   }
 
   const activateMfa = (code: string): Promise<MfaResult> =>
-    submitMfaCode('/mfa/activate', code, () => {
-      mfaEnabled.value = true;
+    submitMfaCode('/mfa/activate', code, {
+      onSuccess: () => {
+        mfaEnabled.value = true;
+      },
     });
 
   const deactivateMfa = (code: string): Promise<MfaResult> =>
-    submitMfaCode('/mfa/deactivate', code, () => {
-      mfaEnabled.value = false;
+    submitMfaCode('/mfa/deactivate', code, {
+      onSuccess: () => {
+        mfaEnabled.value = false;
+      },
     });
 
   const verifyMfaLogin = (code: string): Promise<MfaResult> =>
-    submitMfaCode('/auth/mfa/verify', code);
+    submitMfaCode('/auth/mfa/verify', code, {
+      config: challengeRequestConfig,
+    });
+
+  /** Seconds left on the pending sign-in challenge, or `null` if there is none. */
+  async function fetchMfaChallengeExpiresIn(): Promise<number | null> {
+    try {
+      const { data } = await hw.get<MfaChallengeResponse>(
+        '/auth/mfa/challenge',
+        challengeRequestConfig,
+      );
+      return data.expiresIn;
+    } catch (err: unknown) {
+      if (apiErrorCode(err) === MFA_CHALLENGE_EXPIRED) return null;
+      throw err;
+    }
+  }
 
   async function cancelMfaLogin(): Promise<void> {
     try {
@@ -115,6 +155,7 @@ export function useMfa() {
     activateMfa,
     deactivateMfa,
     verifyMfaLogin,
+    fetchMfaChallengeExpiresIn,
     cancelMfaLogin,
     resetMfaState,
     setMfaEnabled: (value: boolean) => {
