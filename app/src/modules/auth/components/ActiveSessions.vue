@@ -241,7 +241,7 @@ onMounted(() => {
         </BaseButton>
       </div>
 
-      <div class="flex flex-col gap-3 max-h-[300px] overflow-y-auto pr-1">
+      <div class="flex flex-col gap-3 overflow-y-auto pr-1">
         <div
           v-for="session in sessions"
           :key="session.familyId"
