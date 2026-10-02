@@ -16,8 +16,20 @@
     <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet" />
 
     <style>
+        :root {
+            --initial-loading-background: oklch(1 0 0);
+            --initial-loading-spinner: oklch(0 0 0);
+            --initial-loading-label: oklch(0.3753 0 0);
+        }
+
+        :root.dark {
+            --initial-loading-background: oklch(0.1684 0 0);
+            --initial-loading-spinner: oklch(1 0 0);
+            --initial-loading-label: oklch(0.8452 0 0);
+        }
+
         body {
-            background: oklch(0.1684 0 0);
+            background: var(--initial-loading-background);
         }
 
         #initial-loading-screen {
@@ -28,7 +40,7 @@
             align-items: center;
             justify-content: center;
             gap: 28px;
-            background: oklch(0.1684 0 0);
+            background: var(--initial-loading-background);
             z-index: 99999;
             opacity: 1;
         }
@@ -42,7 +54,7 @@
 
         .initial-loading-spinner circle {
             fill: none;
-            stroke: oklch(1 0 0);
+            stroke: var(--initial-loading-spinner);
             stroke-width: 4;
             stroke-linecap: round;
             stroke-miterlimit: 10;
@@ -56,7 +68,7 @@
             font-size: 13px;
             font-weight: 500;
             letter-spacing: 0.18em;
-            color: oklch(0.8452 0 0);
+            color: var(--initial-loading-label);
             text-transform: lowercase;
         }
 

@@ -1,11 +1,45 @@
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import tailwindcss from '@tailwindcss/vite';
 import Components from 'unplugin-vue-components/vite';
 
+// The theme must be known before first paint, so this stays a classic blocking
+// script; the CSP forbids inline scripts, and nginx serves .js as immutable,
+// hence the content hash in the URL.
+function themeInitScript(): Plugin {
+  const fileName = 'theme-init.js';
+  let base = '/';
+  let publicDir = '';
+
+  return {
+    name: 'theme-init-script',
+    configResolved(config) {
+      base = config.base;
+      publicDir = config.publicDir;
+    },
+    transformIndexHtml() {
+      const source = readFileSync(path.join(publicDir, fileName));
+      const hash = createHash('sha256')
+        .update(source)
+        .digest('hex')
+        .slice(0, 8);
+      return [
+        {
+          tag: 'script',
+          attrs: { src: `${base}${fileName}?v=${hash}` },
+          injectTo: 'head-prepend',
+        },
+      ];
+    },
+  };
+}
+
 export default defineConfig({
   plugins: [
+    themeInitScript(),
     vue(),
     tailwindcss(),
     Components({

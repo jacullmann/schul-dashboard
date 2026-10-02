@@ -2,6 +2,7 @@ import { ref, watch } from 'vue';
 
 export type ThemeMode = 'system' | 'light' | 'dark';
 
+// public/theme-init.js reads this key before the bundle loads; keep them in sync.
 const LOCAL_STORAGE_KEY = 'theme-preference2gl';
 
 const selectedThemeMode = ref<ThemeMode>('system');
