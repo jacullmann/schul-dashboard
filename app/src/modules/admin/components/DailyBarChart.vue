@@ -57,7 +57,7 @@ const readout = computed(() => {
 
 <template>
   <figure
-    class="m-0 rounded-xl border border-ghost-border bg-surface shadow-input p-4"
+    class="m-0 rounded-xl border border-ghost-border bg-surface shadow-input px-4 py-3"
   >
     <figcaption class="flex items-baseline justify-between gap-2 mb-3">
       <span class="font-semibold">{{ title }}</span>
@@ -77,16 +77,21 @@ const readout = computed(() => {
         class="flex-1 h-full flex items-end"
         @mouseenter="hoveredIndex = i"
       >
+        <!-- A rounded top shorter than its radius renders as a blurry sliver,
+             so empty days get a flat stub and others at least the radius. -->
         <div
-          class="w-full rounded-t bg-accent transition-opacity"
-          :class="
+          class="w-full bg-accent transition-opacity"
+          :class="[
+            point.value ? 'rounded-t min-h-1' : 'h-px',
             hoveredIndex === null || hoveredIndex === i
               ? 'opacity-100'
-              : 'opacity-40'
+              : 'opacity-40',
+          ]"
+          :style="
+            point.value
+              ? { height: `${(point.value / maxValue) * 100}%` }
+              : undefined
           "
-          :style="{
-            height: point.value ? `${(point.value / maxValue) * 100}%` : '1px',
-          }"
         />
       </div>
     </div>
