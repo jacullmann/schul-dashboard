@@ -37,8 +37,8 @@ const SetPasswordModal = defineAsyncComponent(
 const DeleteAccountModal = defineAsyncComponent(
   () => import('@/modules/auth/components/DeleteAccountModal.vue'),
 );
-const EditCoursesModal = defineAsyncComponent(
-  () => import('@/modules/auth/components/EditCoursesModal.vue'),
+const CoursesSetupModal = defineAsyncComponent(
+  () => import('@/modules/auth/components/CoursesSetupModal.vue'),
 );
 const CreateGroupModal = defineAsyncComponent(
   () => import('@/modules/auth/components/CreateGroupModal.vue'),
@@ -136,13 +136,6 @@ function onPasswordChanged() {
 function onPasswordSet() {
   toast.success(t('auth.set_password.success'));
   modalStore.showChangePassword = false;
-}
-
-function onSetupSuccess(updatedUser: any) {
-  if (updatedUser) {
-    userStore.updateUser(updatedUser);
-  }
-  modalStore.showSetup = false;
 }
 
 async function logout() {
@@ -252,17 +245,13 @@ async function onAuthSuccess() {
     @error="onAccountDeleteError"
   />
 
-  <EditCoursesModal
+  <!-- Keyed by group: its course choices are bound to the group it opened for. -->
+  <CoursesSetupModal
     v-if="user && setupGroupId"
+    :key="setupGroupId"
     :open="showSetup"
     :group-id="setupGroupId"
-    :is-setup="!user?.doneSetup"
-    :initial-data="{
-      courses: user?.courses || [],
-    }"
-    @cancel="modalStore.showSetup = false"
-    @success="modalStore.showSetup = false"
-    @update:user="onSetupSuccess"
+    @close="modalStore.showSetup = false"
   />
 
   <CreateGroupModal

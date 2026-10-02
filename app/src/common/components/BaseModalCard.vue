@@ -12,6 +12,8 @@ defineProps<{
   elevated?: boolean;
   /** Rounder corners for cards without a close button in the corner. */
   round?: boolean;
+  /** Room for content that needs the width, such as a week's timetable. */
+  wide?: boolean;
 }>();
 
 defineEmits<{
@@ -28,8 +30,8 @@ defineEmits<{
   >
     <div
       v-bind="$attrs"
-      class="bg-canvas rounded-(--card-radius) w-[calc(100%-2rem)] max-w-160 max-h-[min(56rem,calc(100dvh-5rem))] flex flex-col fixed text-left z-(--z-modal)"
-      :class="elevated ? 'z-[100004]!' : ''"
+      class="bg-canvas rounded-(--card-radius) w-[calc(100%-2rem)] max-h-[min(56rem,calc(100dvh-5rem))] flex flex-col fixed text-left z-(--z-modal)"
+      :class="[wide ? 'max-w-5xl' : 'max-w-160', elevated ? 'z-[100004]!' : '']"
       :style="{
         '--card-radius': round ? '36px' : 'var(--radius-2xl)',
       }"

@@ -35,6 +35,10 @@ withDefaults(
          side by side. Reversed so the action sits above cancel while tab
          order stays cancel first. -->
     <div class="flex flex-col-reverse gap-2 mt-4 md:flex-row md:justify-end">
+      <!-- Last on mobile, at the far left on desktop: a way back, set apart
+           from the pair that finishes the form. -->
+      <slot name="secondary-action"></slot>
+
       <BaseButton
         v-if="cancel"
         type="button"

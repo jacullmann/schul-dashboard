@@ -31,6 +31,8 @@ const props = withDefaults(
     elevated?: boolean;
     /** The sheet is dismissed by dragging it down, so it never has one. */
     closeButton?: boolean;
+    /** See BaseModalCard's own `wide`; a sheet always spans the screen. */
+    wide?: boolean;
   }>(),
   {
     danger: false,
@@ -40,6 +42,7 @@ const props = withDefaults(
     sheet: false,
     elevated: false,
     closeButton: true,
+    wide: false,
   },
 );
 
@@ -68,6 +71,7 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
         :labelledby="titleId"
         :elevated="elevated"
         :round="!closeButton"
+        :wide="wide"
         @cancel="handleCancel"
       >
         <!-- pr-12 reserves the close button's width plus gap -->
