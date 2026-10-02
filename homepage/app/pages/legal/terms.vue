@@ -53,8 +53,8 @@ const conductItems = [
       <p class="text-on-ghost-muted leading-[1.7] m-0">{{ t('legal.terms.termination.text') }}</p>
     </LegalSection>
 
-    <LegalSection :title="t('legal.terms.liability.title')">
-      <p class="text-on-ghost-muted leading-[1.7] m-0">{{ t('legal.terms.liability.text') }}</p>
+    <LegalSection :title="t('legal.terms.availability.title')">
+      <p class="text-on-ghost-muted leading-[1.7] m-0">{{ t('legal.terms.availability.text') }}</p>
     </LegalSection>
 
     <LegalSection :title="t('legal.terms.changes.title')">

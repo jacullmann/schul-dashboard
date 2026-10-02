@@ -366,7 +366,7 @@
           "title": "Overview",
           "paragraphs": [
             "This privacy policy covers the website schul-dashboard.com and the app at app.schul-dashboard.com. It explains which personal data we process, why we need it, how long we keep it and what rights you have.",
-            "Last updated: October 1, 2026"
+            "Last updated: October 2, 2026"
           ]
         },
         {
@@ -413,8 +413,16 @@
         {
           "title": "Images and files",
           "paragraphs": [
-            "Images and files you attach to tasks, and group pictures, are stored with Cloudinary Inc. (USA). Each file can be opened via a randomly generated address; anyone who knows that address can open the file. Files that are no longer used, for example because the task was deleted or the group picture replaced, are deleted automatically, within about a day.",
+            "Images and files you attach to tasks, and group pictures, are stored with Cloudinary Inc. (USA). When you upload a file, our server first checks its type and size and only then passes it on to Cloudinary. Each file can be opened via a randomly generated address; anyone who knows that address can open the file. Files that are no longer used, for example because the task was deleted or the group picture replaced, are deleted automatically, within about a day.",
             "Cloudinary processes the data on our behalf. The transfer to the USA is based on the European Commission's adequacy decision for the EU-U.S. Data Privacy Framework, under which Cloudinary is certified (Art. 45 GDPR)."
+          ]
+        },
+        {
+          "title": "Previews of Office files",
+          "paragraphs": [
+            "Word, PowerPoint and Excel files attached to tasks are displayed in the app with Microsoft's Office viewer (Microsoft Ireland Operations Limited, One Microsoft Place, South County Business Park, Leopardstown, Dublin 18, Ireland). When you open such a file, your browser loads the preview from Microsoft's servers. Microsoft receives your IP address, your browser's identifier and the address of the file, and fetches the file itself to display it.",
+            "Microsoft processes this data as an independent controller; Microsoft's privacy statement applies. Data may be transferred to Microsoft Corporation in the USA, which is certified under the EU-U.S. Data Privacy Framework (Art. 45 GDPR).",
+            "The legal basis is our legitimate interest in displaying documents directly in the app, without you having to download them and have suitable software installed (Art. 6(1)(f) GDPR). Images and PDF files are displayed without Microsoft."
           ]
         },
         {
@@ -554,13 +562,13 @@
         "title": "Termination",
         "text": "We reserve the right to suspend or terminate accounts that violate these terms. You may delete your account at any time."
       },
-      "liability": {
-        "title": "Limitation of Liability",
-        "text": "schul-dashboard is provided as-is. We make no guarantees of uptime or data permanence. We are not liable for any loss or damage arising from use of the service."
+      "availability": {
+        "title": "Availability",
+        "text": "We do not guarantee that the service is always available or that your data is stored permanently."
       },
       "changes": {
         "title": "Changes to These Terms",
-        "text": "We may update these terms from time to time. Continued use of the service after changes constitutes acceptance of the new terms."
+        "text": "We may update these terms from time to time."
       },
       "governing": {
         "title": "Governing Law",

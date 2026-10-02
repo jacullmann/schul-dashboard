@@ -366,7 +366,7 @@
           "title": "Überblick",
           "paragraphs": [
             "Diese Datenschutzerklärung gilt für die Website schul-dashboard.com und die App unter app.schul-dashboard.com. Sie erklärt, welche personenbezogenen Daten wir verarbeiten, wofür wir sie brauchen, wie lange wir sie speichern und welche Rechte du hast.",
-            "Stand: 1. Oktober 2026"
+            "Stand: 2. Oktober 2026"
           ]
         },
         {
@@ -413,8 +413,16 @@
         {
           "title": "Bilder und Dateien",
           "paragraphs": [
-            "Bilder und Dateien, die du an Aufgaben anhängst, und Gruppenbilder speichern wir bei der Cloudinary Inc. (USA). Jede Datei ist über eine zufällig erzeugte Adresse abrufbar; wer diese Adresse kennt, kann die Datei öffnen. Dateien, die nicht mehr verwendet werden, etwa weil die Aufgabe gelöscht oder das Gruppenbild ersetzt wurde, löschen wir automatisch, spätestens nach etwa einem Tag.",
+            "Bilder und Dateien, die du an Aufgaben anhängst, und Gruppenbilder speichern wir bei der Cloudinary Inc. (USA). Beim Hochladen prüft zuerst unser Server Art und Größe der Datei und gibt sie erst dann an Cloudinary weiter. Jede Datei ist über eine zufällig erzeugte Adresse abrufbar; wer diese Adresse kennt, kann die Datei öffnen. Dateien, die nicht mehr verwendet werden, etwa weil die Aufgabe gelöscht oder das Gruppenbild ersetzt wurde, löschen wir automatisch, spätestens nach etwa einem Tag.",
             "Cloudinary verarbeitet die Daten in unserem Auftrag. Die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission zum EU-US Data Privacy Framework, unter dem Cloudinary zertifiziert ist (Art. 45 DSGVO)."
+          ]
+        },
+        {
+          "title": "Vorschau von Office-Dateien",
+          "paragraphs": [
+            "Word-, PowerPoint- und Excel-Dateien, die an Aufgaben hängen, zeigt die App mit dem Office-Viewer von Microsoft an (Microsoft Ireland Operations Limited, One Microsoft Place, South County Business Park, Leopardstown, Dublin 18, Irland). Öffnest du eine solche Datei, lädt dein Browser die Vorschau von Servern von Microsoft. Microsoft erhält dabei deine IP-Adresse, die Kennung deines Browsers und die Adresse der Datei und ruft die Datei selbst ab, um sie darzustellen.",
+            "Microsoft verarbeitet diese Daten in eigener Verantwortung; es gilt die Datenschutzerklärung von Microsoft. Dabei können Daten an die Microsoft Corporation in den USA übermittelt werden, die unter dem EU-US Data Privacy Framework zertifiziert ist (Art. 45 DSGVO).",
+            "Rechtsgrundlage ist unser berechtigtes Interesse daran, Dokumente direkt in der App anzeigen zu können, ohne dass du sie herunterladen und eine passende Software installiert haben musst (Art. 6 Abs. 1 lit. f DSGVO). Bilder und PDF-Dateien zeigen wir ohne Microsoft an."
           ]
         },
         {
@@ -554,13 +562,13 @@
         "title": "Kündigung",
         "text": "Wir behalten uns das Recht vor, Konten zu sperren oder zu kündigen, die gegen diese Bedingungen verstoßen. Du kannst dein Konto jederzeit löschen."
       },
-      "liability": {
-        "title": "Haftungsbeschränkung",
-        "text": "schul-dashboard wird so bereitgestellt, wie es ist. Wir geben keine Garantien für Verfügbarkeit oder Datenpermanenz. Wir haften nicht für Verluste oder Schäden, die aus der Nutzung des Dienstes entstehen."
+      "availability": {
+        "title": "Verfügbarkeit",
+        "text": "Wir garantieren keine ständige Verfügbarkeit des Dienstes und keine dauerhafte Speicherung deiner Daten."
       },
       "changes": {
         "title": "Änderungen dieser Bedingungen",
-        "text": "Wir können diese Bedingungen von Zeit zu Zeit aktualisieren. Die fortgesetzte Nutzung des Dienstes nach Änderungen gilt als Zustimmung zu den neuen Bedingungen."
+        "text": "Wir können diese Bedingungen von Zeit zu Zeit aktualisieren."
       },
       "governing": {
         "title": "Anwendbares Recht",
