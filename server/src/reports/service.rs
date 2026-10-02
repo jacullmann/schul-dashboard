@@ -1,10 +1,13 @@
 use crate::{
+    common::text::DisplayText,
     error::{AppError, AppResult},
     state::AppState,
 };
 use serde_json::{Value, json};
 use sqlx::PgPool;
 use uuid::Uuid;
+
+pub const REASON_MAX_CHARS: usize = 5000;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum ReportType {
@@ -36,7 +39,7 @@ impl ReportsService {
         reporter_id: Uuid,
         reporter_email: &str,
         item_id: Uuid,
-        reason: Option<&str>,
+        reason: Option<&DisplayText>,
     ) -> AppResult<Value> {
         let item = sqlx::query!(
             r#"SELECT i.id, i.type, i.title,
@@ -95,7 +98,7 @@ impl ReportsService {
         reporter_id: Uuid,
         reporter_email: &str,
         message_id: Uuid,
-        reason: Option<&str>,
+        reason: Option<&DisplayText>,
     ) -> AppResult<Value> {
         let msg = sqlx::query!(
             r#"SELECT m.id, m.content, m.user_id, m.tenant_id,
@@ -141,7 +144,7 @@ impl ReportsService {
     async fn insert(
         &self,
         report_type: ReportType,
-        reason: Option<&str>,
+        reason: Option<&DisplayText>,
         reporter_id: Uuid,
         reporter_email: &str,
         details: Value,
@@ -150,7 +153,7 @@ impl ReportsService {
             r#"INSERT INTO reports (report_type, reason, reporter_id, reporter_email, details)
                VALUES ($1, $2, $3, $4, $5)"#,
             report_type.as_str(),
-            reason.map(str::trim).filter(|r| !r.is_empty()),
+            reason.map(DisplayText::as_str),
             reporter_id,
             reporter_email,
             details

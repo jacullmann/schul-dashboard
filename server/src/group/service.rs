@@ -1,9 +1,11 @@
 use crate::{
     auth::session_context::{is_superadmin, remember_visited_group, resolve_landing_group},
     common::{
+        cloudinary::OwnImageUrl,
         extractors::TenantContext,
         group_type::GroupType,
         name_generator::generate_user_name,
+        names::DisplayName,
         permission::GroupPermissions,
         role::{MemberRole, Role},
     },
@@ -42,8 +44,8 @@ pub(crate) fn role_from_db(id: i32) -> AppResult<Role> {
 
 pub struct CreateGroupParams<'a> {
     pub user_id: Uuid,
-    pub group_name: &'a str,
-    pub avatar_url: Option<&'a str>,
+    pub group_name: &'a DisplayName,
+    pub avatar_url: Option<&'a OwnImageUrl>,
     pub group_type: GroupType,
     pub dalton_enabled: bool,
     pub ip: Option<&'a str>,
@@ -93,8 +95,8 @@ impl GroupService {
         let group = sqlx::query!(
             r#"INSERT INTO groups (name, avatar_url, owner_id, group_type, dalton_enabled)
                VALUES ($1, $2, $3, $4, $5) RETURNING id, name"#,
-            group_name,
-            avatar_url,
+            group_name.as_str(),
+            avatar_url.map(OwnImageUrl::as_str),
             user_id,
             group_type.as_str(),
             dalton_enabled

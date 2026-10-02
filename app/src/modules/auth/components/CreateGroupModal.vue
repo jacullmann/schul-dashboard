@@ -11,7 +11,7 @@ import hw from '@/api/api.ts';
 import { uploadToCloudinary, type UploadSignature } from '@/api/cloudinary';
 import Avatar from '@/modules/auth/components/Avatar.vue';
 import { apiErrorMessage } from '@/api/errors';
-import type { GroupType } from '@/types/groups';
+import { GROUP_NAME_MAX_LENGTH, type GroupType } from '@/types/groups';
 
 const { t } = useI18n();
 
@@ -265,6 +265,7 @@ async function submit() {
           id="group-name"
           ref="groupNameInputRef"
           v-model="groupName"
+          :maxlength="GROUP_NAME_MAX_LENGTH"
           :placeholder="
             t('groups.settings.general.appearance.name_placeholder')
           "

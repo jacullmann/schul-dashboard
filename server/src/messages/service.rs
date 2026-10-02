@@ -1,5 +1,5 @@
 use crate::{
-    common::name_generator::generate_user_name,
+    common::{name_generator::generate_user_name, text::DisplayText},
     error::{AppError, AppResult},
     state::AppState,
 };
@@ -119,7 +119,7 @@ impl MessagesService {
         &self,
         tenant_id: Uuid,
         user_id: Uuid,
-        content: &str,
+        content: &DisplayText,
         parent_id: Option<Uuid>,
     ) -> AppResult<Value> {
         if let Some(pid) = parent_id {
@@ -138,7 +138,7 @@ impl MessagesService {
                RETURNING id, tenant_id, user_id, content, parent_id, created_at, updated_at"#,
             tenant_id,
             user_id,
-            content.trim(),
+            content.as_str(),
             parent_id
         )
         .fetch_one(&self.db)

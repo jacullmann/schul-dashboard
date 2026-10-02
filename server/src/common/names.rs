@@ -1,5 +1,6 @@
 use crate::error::{AppError, AppResult};
 
+pub const GROUP_NAME_MAX_CHARS: usize = 100;
 pub const SUBJECT_NAME_MAX_CHARS: usize = 60;
 pub const COURSE_NAME_MAX_CHARS: usize = 60;
 pub const CUSTOM_SUBJECT_MAX_CHARS: usize = 100;

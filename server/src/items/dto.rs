@@ -64,13 +64,16 @@ pub struct AddImageDto {
     pub image: ImageDto,
 }
 
+pub const NOTE_MAX_CHARS: usize = 2000;
+
+/// An empty note removes the current one.
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateEditorNoteDto {
     pub editor_note: String,
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ReportItemDto {
     pub item_id: Uuid,

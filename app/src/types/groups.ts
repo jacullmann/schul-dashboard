@@ -16,3 +16,6 @@ export function isGroupType(value: unknown): value is GroupType {
 export function toGroupType(value: unknown): GroupType {
   return isGroupType(value) ? value : 'regular';
 }
+
+/** Mirrors the server's limit in `common::names`. */
+export const GROUP_NAME_MAX_LENGTH = 100;

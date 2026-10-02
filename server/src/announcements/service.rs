@@ -1,5 +1,6 @@
-use super::dto::{AnnouncementColor, AnnouncementContent, AnnouncementDto};
+use super::dto::{AnnouncementColor, AnnouncementDto};
 use crate::{
+    common::text::DisplayText,
     error::{AppError, AppResult},
     state::AppState,
 };
@@ -69,7 +70,7 @@ impl AnnouncementService {
         &self,
         tenant_id: Uuid,
         user_id: Uuid,
-        content: &AnnouncementContent,
+        content: &DisplayText,
         color: AnnouncementColor,
     ) -> AppResult<AnnouncementDto> {
         let announcement = sqlx::query_as!(

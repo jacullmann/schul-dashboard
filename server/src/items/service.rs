@@ -1,7 +1,8 @@
 use crate::{
     common::{
-        cloudinary::{Cloudinary, RawExtension},
+        cloudinary::{Cloudinary, is_well_formed_public_id},
         names::{CUSTOM_SUBJECT_MAX_CHARS, DisplayName},
+        text::DisplayText,
     },
     error::{AppError, AppResult},
     items::{
@@ -37,16 +38,6 @@ const TITLE_MAX_CHARS: usize = 60;
 const MAX_IMAGES_PER_ITEM: usize = 12;
 /// Metadata is stored verbatim in the item row, so its size is capped.
 const IMAGE_METADATA_MAX_BYTES: usize = 2048;
-
-fn is_well_formed_public_id(public_id: &str) -> bool {
-    let stem = match public_id.rsplit_once('.') {
-        Some((stem, extension)) if RawExtension::parse(extension).is_some() => stem,
-        Some(_) => return false,
-        None => public_id,
-    };
-    stem.chars()
-        .all(|c| c.is_ascii_alphanumeric() || matches!(c, '/' | '_' | '-'))
-}
 
 /// Uploaders are recorded by the server, never taken from the client, since
 /// they may remove their image again from a task they do not own.
@@ -279,7 +270,7 @@ impl ItemsService {
         let hidden_by_courses = row_count - rows.len();
 
         if old_filter {
-            rows.sort_by(|a, b| b.due_date.cmp(&a.due_date));
+            rows.sort_by_key(|row| std::cmp::Reverse(row.due_date));
         }
 
         let items: Vec<Value> = rows
@@ -751,7 +742,7 @@ impl ItemsService {
         tenant_id: Uuid,
         id: Uuid,
         user_id: Uuid,
-        note: &str,
+        note: Option<&DisplayText>,
     ) -> AppResult<Value> {
         sqlx::query!(
             r#"SELECT id FROM items WHERE id = $1 AND tenant_id = $2"#,
@@ -762,11 +753,12 @@ impl ItemsService {
         .await?
         .ok_or_else(|| AppError::not_found("Not found."))?;
 
-        let trimmed = note.trim();
+        // The column keeps '' rather than NULL for "no note", as clients expect.
+        let note = note.map_or("", DisplayText::as_str);
 
         sqlx::query!(
             r#"UPDATE items SET editor_note = $1, updated_at = now() WHERE id = $2"#,
-            trimmed,
+            note,
             id
         )
         .execute(&self.db)
@@ -780,26 +772,6 @@ impl ItemsService {
             .execute(&self.db)
             .await?;
 
-        Ok(json!({ "ok": true, "editorNote": trimmed }))
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn accepts_image_and_office_public_ids() {
-        assert!(is_well_formed_public_id("hausaufgaben/abc_123-x"));
-        assert!(is_well_formed_public_id("hausaufgaben/abc123.docx"));
-        assert!(is_well_formed_public_id("hausaufgaben/abc123.PPTX"));
-    }
-
-    #[test]
-    fn rejects_other_extensions_and_characters() {
-        assert!(!is_well_formed_public_id("hausaufgaben/abc.exe"));
-        assert!(!is_well_formed_public_id("hausaufgaben/abc.docx.docx"));
-        assert!(!is_well_formed_public_id("hausaufgaben/../abc.docx"));
-        assert!(!is_well_formed_public_id("hausaufgaben/a b"));
+        Ok(json!({ "ok": true, "editorNote": note }))
     }
 }

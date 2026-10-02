@@ -1,5 +1,6 @@
 use crate::{
     common::{
+        cloudinary::OwnImageUrl,
         group_type::{DEFAULT_COURSE_TYPE, GroupType, ZUSATZKURS_CATEGORY, resolve_course_type},
         names::DisplayName,
         permission::{GroupPermissions, Permission},
@@ -490,8 +491,8 @@ impl GroupAdminService {
         &self,
         tenant_id: Uuid,
         user_id: Uuid,
-        name: Option<&str>,
-        avatar_url: Option<&str>,
+        name: Option<&DisplayName>,
+        avatar_url: Option<Option<&OwnImageUrl>>,
         group_type: Option<GroupType>,
         dalton_enabled: Option<bool>,
     ) -> AppResult<Value> {
@@ -530,17 +531,20 @@ impl GroupAdminService {
             .await?;
         }
 
-        if let Some(n) = name {
-            sqlx::query!(r#"UPDATE groups SET name = $1 WHERE id = $2"#, n, tenant_id)
-                .execute(&self.db)
-                .await?;
+        if let Some(name) = name {
+            sqlx::query!(
+                r#"UPDATE groups SET name = $1 WHERE id = $2"#,
+                name.as_str(),
+                tenant_id
+            )
+            .execute(&self.db)
+            .await?;
         }
 
         if let Some(url) = avatar_url {
-            let val: Option<&str> = if url.is_empty() { None } else { Some(url) };
             sqlx::query!(
                 r#"UPDATE groups SET avatar_url = $1 WHERE id = $2"#,
-                val,
+                url.map(OwnImageUrl::as_str),
                 tenant_id
             )
             .execute(&self.db)
@@ -552,8 +556,8 @@ impl GroupAdminService {
                VALUES ($1, 'group-admin:rename', $2)"#,
             user_id,
             json!({
-                "name": name,
-                "avatarUrl": avatar_url,
+                "name": name.map(DisplayName::as_str),
+                "avatarUrl": avatar_url.map(|url| url.map(OwnImageUrl::as_str)),
                 "groupType": group_type.map(GroupType::as_str),
                 "daltonEnabled": dalton_enabled,
             })

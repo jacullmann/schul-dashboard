@@ -46,6 +46,17 @@ pub struct UploadSignature {
     public_id: String,
 }
 
+/// The delivery URL of an image this deployment uploaded, as checked by
+/// [`Cloudinary::own_image_url`].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct OwnImageUrl(String);
+
+impl OwnImageUrl {
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum ResourceType {
     Image,
@@ -114,6 +125,33 @@ impl Cloudinary {
         public_id
             .strip_prefix(self.0.folder.as_str())
             .is_some_and(|rest| rest.starts_with('/'))
+    }
+
+    /// `url` if it delivers an image of this deployment in the form an upload
+    /// response's `secure_url` names it: `…/image/upload/v<version>/<public
+    /// ID>.<format>`. Clients load stored URLs as they are, so anything else,
+    /// such as another host or a file outside this deployment's folder, must
+    /// never be stored. The `referenced_assets` view reads the public ID back
+    /// out of this same shape.
+    pub fn own_image_url(&self, url: &str) -> Option<OwnImageUrl> {
+        let path = url
+            .strip_prefix("https://res.cloudinary.com/")?
+            .strip_prefix(self.0.cloud_name.as_str())?
+            .strip_prefix("/image/upload/")?;
+
+        let path = match path.split_once('/') {
+            Some((version, rest)) if is_version(version) => rest,
+            _ => path,
+        };
+
+        let (public_id, format) = path.rsplit_once('.')?;
+        let is_own_image = !format.is_empty()
+            && format.bytes().all(|b| b.is_ascii_alphanumeric())
+            && ResourceType::of(public_id) == ResourceType::Image
+            && self.owns(public_id)
+            && is_well_formed_public_id(public_id);
+
+        is_own_image.then(|| OwnImageUrl(url.to_owned()))
     }
 
     /// Signs `params` as Cloudinary expects: sorted by name, joined as a query
@@ -196,6 +234,25 @@ impl Cloudinary {
     }
 }
 
+/// Whether the public ID uses only the characters this deployment generates,
+/// plus the extension of a raw office document.
+pub fn is_well_formed_public_id(public_id: &str) -> bool {
+    let stem = match public_id.rsplit_once('.') {
+        Some((stem, extension)) if RawExtension::parse(extension).is_some() => stem,
+        Some(_) => return false,
+        None => public_id,
+    };
+    stem.chars()
+        .all(|c| c.is_ascii_alphanumeric() || matches!(c, '/' | '_' | '-'))
+}
+
+/// The `v<digits>` segment Cloudinary puts in front of a public ID.
+fn is_version(segment: &str) -> bool {
+    segment
+        .strip_prefix('v')
+        .is_some_and(|digits| !digits.is_empty() && digits.bytes().all(|b| b.is_ascii_digit()))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -232,6 +289,54 @@ mod tests {
         assert_eq!(ResourceType::of(&raw), ResourceType::Raw);
         assert!(raw.ends_with(".docx"));
         assert_ne!(image, c.new_public_id(None));
+    }
+
+    #[test]
+    fn accepts_own_image_urls_as_uploads_return_them() {
+        let c = cloudinary();
+        for url in [
+            "https://res.cloudinary.com/cloud/image/upload/v1712345678/hausaufgaben/abc123.jpg",
+            "https://res.cloudinary.com/cloud/image/upload/hausaufgaben/abc.png",
+        ] {
+            assert_eq!(c.own_image_url(url).unwrap().as_str(), url);
+        }
+    }
+
+    #[test]
+    fn rejects_foreign_or_malformed_image_urls() {
+        let c = cloudinary();
+        for url in [
+            "",
+            "javascript:alert(1)",
+            "https://evil.example/hausaufgaben/abc.jpg",
+            "http://res.cloudinary.com/cloud/image/upload/v1/hausaufgaben/abc.jpg",
+            "https://res.cloudinary.com/other/image/upload/v1/hausaufgaben/abc.jpg",
+            "https://res.cloudinary.com/cloudx/image/upload/v1/hausaufgaben/abc.jpg",
+            "https://res.cloudinary.com/cloud/raw/upload/v1/hausaufgaben/abc.docx",
+            "https://res.cloudinary.com/cloud/image/upload/v1/other/abc.jpg",
+            "https://res.cloudinary.com/cloud/image/upload/v1/hausaufgaben/abc",
+            "https://res.cloudinary.com/cloud/image/upload/v1/hausaufgaben/abc.docx.jpg",
+            "https://res.cloudinary.com/cloud/image/upload/v1/hausaufgaben/../x/abc.jpg",
+            "https://res.cloudinary.com/cloud/image/upload/v1/hausaufgaben/abc.jpg?x=1",
+            "https://res.cloudinary.com/cloud/image/upload/w_9999/hausaufgaben/abc.jpg",
+        ] {
+            assert!(c.own_image_url(url).is_none(), "accepted {url:?}");
+        }
+    }
+
+    #[test]
+    fn accepts_image_and_office_public_ids() {
+        assert!(is_well_formed_public_id("hausaufgaben/abc_123-x"));
+        assert!(is_well_formed_public_id("hausaufgaben/abc123.docx"));
+        assert!(is_well_formed_public_id("hausaufgaben/abc123.PPTX"));
+    }
+
+    #[test]
+    fn rejects_other_extensions_and_characters() {
+        assert!(!is_well_formed_public_id("hausaufgaben/abc.exe"));
+        assert!(!is_well_formed_public_id("hausaufgaben/abc.docx.docx"));
+        assert!(!is_well_formed_public_id("hausaufgaben/../abc.docx"));
+        assert!(!is_well_formed_public_id("hausaufgaben/a b"));
     }
 
     #[test]

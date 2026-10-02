@@ -1,8 +1,10 @@
 use super::{dto::*, gateway::BusEvent, service::MessagesService};
 use crate::{
-    common::{extractors::TenantContext, path_params::IdPath, permission::Permission},
+    common::{
+        extractors::TenantContext, path_params::IdPath, permission::Permission, text::DisplayText,
+    },
     error::AppResult,
-    reports::service::ReportsService,
+    reports::service::{REASON_MAX_CHARS, ReportsService},
     require_permission,
     state::AppState,
 };
@@ -34,9 +36,10 @@ pub async fn create_message(
     Json(dto): Json<CreateMessageDto>,
 ) -> AppResult<Json<Value>> {
     require_permission!(tc, Permission::SendMessages);
+    let content = DisplayText::parse(&dto.content, CONTENT_MAX_CHARS, "content")?;
 
     let msg = MessagesService::from_state(&s)
-        .create_message(tc.tenant_id, tc.user.user_id, &dto.content, dto.parent_id)
+        .create_message(tc.tenant_id, tc.user.user_id, &content, dto.parent_id)
         .await?;
 
     s.message_bus
@@ -77,6 +80,8 @@ pub async fn report_message(
     tc: TenantContext,
     Json(dto): Json<ReportMessageDto>,
 ) -> AppResult<Json<Value>> {
+    let reason = DisplayText::parse_optional(dto.reason.as_deref(), REASON_MAX_CHARS, "reason")?;
+
     Ok(Json(
         ReportsService::from_state(&s)
             .report_message(
@@ -84,7 +89,7 @@ pub async fn report_message(
                 tc.user.user_id,
                 &tc.user.email,
                 dto.message_id,
-                dto.reason.as_deref(),
+                reason.as_ref(),
             )
             .await?,
     ))

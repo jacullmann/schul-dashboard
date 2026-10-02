@@ -11,9 +11,10 @@ use crate::{
         path_params::{IdPath, ItemImagePath},
         permission::Permission,
         personalization::hidden_by_courses_header,
+        text::DisplayText,
     },
     error::AppResult,
-    reports::service::ReportsService,
+    reports::service::{REASON_MAX_CHARS, ReportsService},
     require_permission,
     state::AppState,
 };
@@ -108,10 +109,11 @@ pub async fn update_item_note(
     Json(dto): Json<UpdateEditorNoteDto>,
 ) -> AppResult<Json<Value>> {
     require_permission!(tc, Permission::ManageNotes);
+    let note = DisplayText::parse_optional(Some(&dto.editor_note), NOTE_MAX_CHARS, "editorNote")?;
 
     Ok(Json(
         ItemsService::from_state(&s)
-            .update_item_note(tc.tenant_id, id, tc.user.user_id, &dto.editor_note)
+            .update_item_note(tc.tenant_id, id, tc.user.user_id, note.as_ref())
             .await?,
     ))
 }
@@ -151,6 +153,8 @@ pub async fn report_item(
     tc: TenantContext,
     Json(dto): Json<ReportItemDto>,
 ) -> AppResult<Json<Value>> {
+    let reason = DisplayText::parse_optional(dto.reason.as_deref(), REASON_MAX_CHARS, "reason")?;
+
     Ok(Json(
         ReportsService::from_state(&s)
             .report_task(
@@ -158,7 +162,7 @@ pub async fn report_item(
                 tc.user.user_id,
                 &tc.user.email,
                 dto.item_id,
-                dto.reason.as_deref(),
+                reason.as_ref(),
             )
             .await?,
     ))

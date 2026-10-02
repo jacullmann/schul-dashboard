@@ -1,3 +1,4 @@
+use super::dto::TodoContent;
 use crate::{
     common::encryption::EncryptionService,
     error::{AppError, AppResult},
@@ -80,12 +81,7 @@ impl TodoService {
         Ok(result)
     }
 
-    pub async fn create_todo(
-        &self,
-        user_id: Uuid,
-        title: &str,
-        description: Option<&str>,
-    ) -> AppResult<Value> {
+    pub async fn create_todo(&self, user_id: Uuid, content: &TodoContent) -> AppResult<Value> {
         let uid = user_id.to_string();
 
         let first = sqlx::query!(
@@ -109,12 +105,9 @@ impl TodoService {
 
         let new_pos_str = new_pos.to_string();
 
-        let enc_title = self.enc.encrypt(title.trim(), &uid).await?;
+        let enc_title = self.enc.encrypt(content.title(), &uid).await?;
 
-        let enc_desc = self
-            .enc
-            .encrypt(description.unwrap_or("").trim(), &uid)
-            .await?;
+        let enc_desc = self.enc.encrypt(content.description(), &uid).await?;
 
         let todo = sqlx::query!(
             r#"INSERT INTO encrypted_todos (user_id, encrypted_title, encrypted_description, position)
@@ -138,8 +131,8 @@ impl TodoService {
 
         Ok(json!({
             "id": todo.id,
-            "title": title.trim(),
-            "description": description.unwrap_or("").trim(),
+            "title": content.title(),
+            "description": content.description(),
             "completed": todo.completed,
             "position": todo.position.unwrap_or_default(),
             "createdAt": todo.created_at,
@@ -151,8 +144,7 @@ impl TodoService {
         &self,
         user_id: Uuid,
         id: Uuid,
-        title: &str,
-        description: Option<&str>,
+        content: &TodoContent,
     ) -> AppResult<Value> {
         let uid = user_id.to_string();
 
@@ -165,12 +157,9 @@ impl TodoService {
         .await?
         .ok_or_else(|| AppError::not_found("Private entry not found"))?;
 
-        let enc_title = self.enc.encrypt(title.trim(), &uid).await?;
+        let enc_title = self.enc.encrypt(content.title(), &uid).await?;
 
-        let enc_desc = self
-            .enc
-            .encrypt(description.unwrap_or("").trim(), &uid)
-            .await?;
+        let enc_desc = self.enc.encrypt(content.description(), &uid).await?;
 
         let updated = sqlx::query!(
             r#"UPDATE encrypted_todos
@@ -194,8 +183,8 @@ impl TodoService {
 
         Ok(json!({
             "id": updated.id,
-            "title": title.trim(),
-            "description": description.unwrap_or("").trim(),
+            "title": content.title(),
+            "description": content.description(),
             "completed": updated.completed,
             "position": updated.position.unwrap_or_default(),
             "createdAt": updated.created_at,

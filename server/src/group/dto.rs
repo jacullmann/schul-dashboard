@@ -6,14 +6,14 @@ use uuid::Uuid;
 use validator::Validate;
 
 use crate::common::{
+    patch,
     permission::{GroupPermissions, Permission},
     role::{MemberRole, Role},
 };
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateGroupDto {
-    #[validate(length(min = 1, max = 100))]
     pub group_name: String,
     pub avatar_url: Option<String>,
     pub group_type: Option<String>,
@@ -77,7 +77,9 @@ pub struct ChangeMemberRoleDto {
 #[serde(rename_all = "camelCase")]
 pub struct RenameGroupDto {
     pub name: Option<String>,
-    pub avatar_url: Option<String>,
+    /// `null` removes the group picture.
+    #[serde(default, deserialize_with = "patch::nullable")]
+    pub avatar_url: Option<Option<String>>,
     pub group_type: Option<String>,
     pub dalton_enabled: Option<bool>,
 }

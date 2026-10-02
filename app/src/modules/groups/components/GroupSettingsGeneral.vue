@@ -15,7 +15,7 @@ import GroupTypeRadioGroup from './GroupTypeRadioGroup.vue';
 import SettingToggleCard from './SettingToggleCard.vue';
 import DeleteGroupModal from './DeleteGroupModal.vue';
 import Avatar from '@/modules/auth/components/Avatar.vue';
-import type { GroupType } from '@/types/groups';
+import { GROUP_NAME_MAX_LENGTH, type GroupType } from '@/types/groups';
 
 const modalStore = useModalStore();
 const { t } = useI18n();
@@ -404,6 +404,7 @@ async function confirmDeleteGroup() {
                 class="peer absolute inset-0 w-full p-0 bg-transparent border-0 outline-none placeholder:text-on-ghost-subtle"
                 autocomplete="off"
                 :value="newGroupName"
+                :maxlength="GROUP_NAME_MAX_LENGTH"
                 :placeholder="
                   t('groups.settings.general.appearance.name_placeholder')
                 "

@@ -16,11 +16,13 @@ pub async fn get_todos(State(s): State<AppState>, user: AuthUser) -> AppResult<J
 pub async fn create_todo(
     State(s): State<AppState>,
     user: AuthUser,
-    Json(dto): Json<CreateTodoDto>,
+    Json(dto): Json<TodoDto>,
 ) -> AppResult<Json<Value>> {
+    let content = dto.parse()?;
+
     Ok(Json(
         TodoService::from_state(&s)
-            .create_todo(user.user_id, &dto.title, dto.description.as_deref())
+            .create_todo(user.user_id, &content)
             .await?,
     ))
 }
@@ -29,11 +31,13 @@ pub async fn update_todo(
     State(s): State<AppState>,
     user: AuthUser,
     Path(id): Path<Uuid>,
-    Json(dto): Json<UpdateTodoDto>,
+    Json(dto): Json<TodoDto>,
 ) -> AppResult<Json<Value>> {
+    let content = dto.parse()?;
+
     Ok(Json(
         TodoService::from_state(&s)
-            .update_todo(user.user_id, id, &dto.title, dto.description.as_deref())
+            .update_todo(user.user_id, id, &content)
             .await?,
     ))
 }

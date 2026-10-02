@@ -1,5 +1,5 @@
 use super::{
-    dto::{AnnouncementContent, AnnouncementDto, CreateAnnouncementDto, MarkAnnouncementsReadDto},
+    dto::{AnnouncementDto, CONTENT_MAX_CHARS, CreateAnnouncementDto, MarkAnnouncementsReadDto},
     service::AnnouncementService,
 };
 use crate::{
@@ -7,6 +7,7 @@ use crate::{
         extractors::{TenantContext, ValidatedJson},
         path_params::IdPath,
         permission::Permission,
+        text::DisplayText,
     },
     error::AppResult,
     require_permission,
@@ -47,7 +48,7 @@ pub async fn create_announcement(
     Json(dto): Json<CreateAnnouncementDto>,
 ) -> AppResult<(StatusCode, Json<AnnouncementDto>)> {
     require_permission!(tc, Permission::ManageAnnouncements);
-    let content = AnnouncementContent::parse(&dto.content)?;
+    let content = DisplayText::parse(&dto.content, CONTENT_MAX_CHARS, "content")?;
 
     let announcement = AnnouncementService::from_state(&s)
         .create(tc.tenant_id, tc.user.user_id, &content, dto.color)
