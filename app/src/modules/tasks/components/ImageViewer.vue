@@ -146,10 +146,13 @@ const MAX_ZOOM = 4;
 // A pinch past either end of the range follows the fingers at a falling rate,
 // as the share of the scale it approaches but never reaches past that end.
 const ZOOM_RUBBER_BAND = 0.5;
-// How far a zoomed in image can be pulled past its top or bottom edge, as the
-// share of the viewport height it approaches but never reaches. Sideways the
-// edge hands the drag on to the slide track instead.
+// How far a zoomed in image can be pulled past its edge, as the share of the
+// viewport it approaches but never reaches.
 const PAN_OVERSCROLL = 0.15;
+// How close in px an image has to sit to its edge for a pan to count as
+// starting there. Reading a zoom back off the screen can leave it a fraction
+// of a pixel short.
+const PAN_EDGE_TOLERANCE = 1;
 // A pan that is let go of carries on as far as it would travel in this many
 // ms at the speed it was released at.
 const PAN_MOMENTUM = 200;
@@ -739,6 +742,10 @@ let dragMoved = false;
 let dragEndedAt = 0;
 let panBaseX = 0;
 let panBaseY = 0;
+// Whether the pan started with the image against its left or right edge,
+// which is the only way it may turn the page towards that side.
+let panTurnsToPrev = false;
+let panTurnsToNext = false;
 
 function onSlideStart(e: TouchEvent) {
   if (e.touches.length === 2) {
@@ -774,6 +781,11 @@ function onSlideStart(e: TouchEvent) {
   takeOverZoom();
   panBaseX = zoomX.value;
   panBaseY = zoomY.value;
+  if (isZoomed.value) {
+    const limits = panLimits(zoomScale.value);
+    panTurnsToPrev = panBaseX >= limits.x - PAN_EDGE_TOLERANCE;
+    panTurnsToNext = panBaseX <= -limits.x + PAN_EDGE_TOLERANCE;
+  }
 
   dragStartX = touch.clientX;
   dragStartY = touch.clientY;
@@ -850,18 +862,30 @@ function onSlideMove(e: TouchEvent) {
   showControls();
 }
 
-// Within its edges the image follows the finger. Sideways, what is left of
-// the drag past an edge goes to the track, so the next image can be pulled in
-// without zooming out first. Upwards and downwards there is nothing to turn
-// to, so the image only gives a little.
+// Within its edges the image follows the finger, and past them it only gives
+// a little. A pan that started against a side edge hands what is left of the
+// drag past it to the track instead, so the next image can be pulled in
+// without zooming out first. One that only runs into the edge on the way
+// does not: it was moving the image, not asking for the next one.
 function onPanMove(deltaX: number, deltaY: number) {
   const limits = panLimits(zoomScale.value);
 
   const rawX = panBaseX + deltaX;
-  zoomX.value = clampTo(rawX, limits.x);
-  const overflow = dragBase + rawX - zoomX.value;
-  const pulling = overflow > 0 ? !hasPrev.value : !hasNext.value;
-  dragOffset.value = pulling ? overflow * EDGE_RESISTANCE : overflow;
+  const clampedX = clampTo(rawX, limits.x);
+  const overflowX = rawX - clampedX;
+  const turning =
+    overflowX > 0 ? panTurnsToPrev : overflowX < 0 && panTurnsToNext;
+
+  if (turning) {
+    zoomX.value = clampedX;
+    const raw = dragBase + overflowX;
+    const pulling = raw > 0 ? !hasPrev.value : !hasNext.value;
+    dragOffset.value = pulling ? raw * EDGE_RESISTANCE : raw;
+  } else {
+    zoomX.value =
+      clampedX + rubberBand(overflowX, windowWidth.value * PAN_OVERSCROLL);
+    dragOffset.value = dragBase;
+  }
 
   const rawY = panBaseY + deltaY;
   const clampedY = clampTo(rawY, limits.y);
