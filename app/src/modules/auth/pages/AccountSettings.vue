@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { markRaw, computed, ref, watch, type Component } from 'vue';
+import { markRaw, computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
@@ -8,16 +8,10 @@ import { useUserStore } from '@/stores/userStore';
 import { useModalStore } from '@/stores/modalStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useReturnRoute } from '@/common/composables/useReturnRoute';
+import { type AdminNavItem } from '@/layouts/AdminLayout.vue';
 import AccountSettingsSecurity from '@/modules/auth/components/AccountSettingsSecurity.vue';
 import AccountSettingsAccount from '@/modules/auth/components/AccountSettingsAccount.vue';
 import LegalLinks from '@/modules/auth/components/LegalLinks.vue';
-
-interface AccountNavItem {
-  id: string;
-  label: string;
-  description: string;
-  icon: Component;
-}
 
 const route = useRoute();
 const router = useRouter();
@@ -27,17 +21,15 @@ const modalStore = useModalStore();
 const { homeRoute } = useAppAuth();
 const { leave: leaveSettings } = useReturnRoute(homeRoute);
 
-const navItems = computed<AccountNavItem[]>(() => [
+const navItems = computed<AdminNavItem[]>(() => [
   {
     id: 'security',
     label: t('auth.account_settings.security.title'),
-    description: t('auth.account_settings.security.description'),
     icon: markRaw(Shield),
   },
   {
     id: 'account',
     label: t('auth.account_settings.account.title'),
-    description: t('auth.account_settings.account.description'),
     icon: markRaw(UserRound),
   },
 ]);
@@ -91,7 +83,7 @@ function goBack() {
     <Transition :name="transitionName">
       <div v-if="!activeTab" key="master" class="settings-pane master-pane">
         <header
-          class="p-4 pt-2 md:px-6 bg-canvas border-b border-ghost-border shrink-0"
+          class="px-4 py-2 md:px-6 bg-canvas border-b border-ghost-border shrink-0"
         >
           <div class="w-full max-w-200 mx-auto flex items-center gap-2">
             <BaseButton
@@ -102,7 +94,7 @@ function goBack() {
               @click="leaveSettings"
             />
             <div>
-              <h1>{{ t('auth.account_settings.title') }}</h1>
+              <h2>{{ t('auth.account_settings.title') }}</h2>
               <div
                 v-if="user?.email"
                 class="text-on-ghost-muted font-semibold text-base"
@@ -122,19 +114,17 @@ function goBack() {
               @click="selectTab(item.id)"
             >
               <template #icon>
-                <span class="flex size-10 justify-center items-center">
-                  <component :is="item.icon" :size="24" />
-                </span>
+                <component
+                  :is="item.icon"
+                  :size="24"
+                  :stroke-width="1.8"
+                  class="mx-2"
+                />
               </template>
               <template #label>
-                <span class="flex flex-col min-h-10 justify-between">
-                  <span class="text-on-ghost text-base/tight font-medium">{{
-                    item.label
-                  }}</span>
-                  <span class="text-on-ghost-muted text-xs/tight font-normal">{{
-                    item.description
-                  }}</span>
-                </span>
+                <div class="text-on-ghost text-base font-normal">
+                  {{ item.label }}
+                </div>
               </template>
             </BaseList>
 
@@ -145,7 +135,7 @@ function goBack() {
 
       <div v-else :key="activeTab" class="settings-pane detail-pane">
         <header
-          class="flex items-center py-4 md:py-6 h-16 bg-canvas border-b border-ghost-border shrink-0"
+          class="flex items-center py-2 px-4 md:px-6 bg-canvas border-b border-ghost-border shrink-0"
         >
           <div class="max-w-250 my-0 mx-auto flex items-center w-full gap-2">
             <BaseButton

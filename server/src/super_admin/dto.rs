@@ -191,6 +191,7 @@ pub struct AdminUserDto {
 pub struct AdminGroupDto {
     pub id: Uuid,
     pub name: String,
+    pub avatar_url: Option<String>,
     pub group_type: String,
     pub owner_id: Uuid,
     pub owner_email: String,

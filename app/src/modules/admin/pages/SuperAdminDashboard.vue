@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed, onMounted, markRaw, type Component } from 'vue';
+import { computed, onMounted, markRaw, ref, type Component } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { Home, UsersRound, Flag, Layers } from '@lucide/vue';
 import SuperAdminLayout from '@/layouts/AdminLayout.vue';
+import SuperAdminTabBar from '../components/SuperAdminTabBar.vue';
 import { useSuperAdminStats } from '../composables/useSuperAdminStats';
 import type { SuperAdminNavItem } from '../types';
 
@@ -44,13 +45,29 @@ const navItems = computed<(SuperAdminNavItem & { icon: Component })[]>(() => [
   },
 ]);
 
-const activeTab = computed(
+/** The tab being navigated to, shown as selected until the navigation settles. */
+const pendingTab = ref<string | null>(null);
+
+const routeTab = computed(
   () => navItems.value.find((i) => i.name === route.name)?.id ?? 'overview',
 );
+const activeTab = computed(() => pendingTab.value ?? routeTab.value);
 
-function onTabChange(id: string) {
+async function onTabChange(id: string) {
   const item = navItems.value.find((i) => i.id === id);
-  if (item && item.name !== route.name) void router.push({ name: item.name });
+  if (!item) return;
+  const isSwitchingTab = routeTab.value !== id;
+  pendingTab.value = id;
+  try {
+    const failure = await router.push({ name: item.name });
+    if (!failure && isSwitchingTab) {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
+  } finally {
+    // A blocked or failed navigation hands the selection back to the route,
+    // unless a later tap has already claimed it.
+    if (pendingTab.value === id) pendingTab.value = null;
+  }
 }
 
 // The only place the stats are fetched on entry; child pages share the result.
@@ -59,11 +76,16 @@ onMounted(loadStats);
 
 <template>
   <SuperAdminLayout
-    :title="t('navigation.super_admin')"
     :nav-items="navItems"
     :active-tab="activeTab"
     @update:active-tab="onTabChange"
   >
     <router-view />
+    <SuperAdminTabBar
+      :label="t('navigation.super_admin')"
+      :items="navItems"
+      :active-id="activeTab"
+      @change="onTabChange"
+    />
   </SuperAdminLayout>
 </template>

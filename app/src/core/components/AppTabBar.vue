@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watchEffect } from 'vue';
+import { computed, ref } from 'vue';
 import { useRoute, useRouter, type RouteLocationRaw } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { useElementSize } from '@vueuse/core';
 import { House, ListTodo, CalendarDays, Lock } from '@lucide/vue';
 import type { NavItem } from '@/common/components/BaseTabs.vue';
 import { useIsOnScreenKeyboardOpen } from '@/common/composables/useViewport';
 import { useGroupAction } from '@/core/composables/useGroupAction';
+import { useTabBarHeight } from '@/core/composables/useTabBarHeight';
 
 const PRIVATE_TAB = 'private-todos';
 
@@ -68,25 +68,7 @@ function selectTab(name: string) {
 }
 
 const barEl = ref<HTMLElement | null>(null);
-const { height } = useElementSize(
-  barEl,
-  { width: 0, height: 0 },
-  { box: 'border-box' },
-);
-
-// Pages pad their bottom by this, so nothing ends up permanently behind the
-// bar. Measured rather than derived from tokens: the bar's height depends on
-// the device's safe area and the user's font size.
-watchEffect(() => {
-  document.documentElement.style.setProperty(
-    '--tab-bar-height',
-    `${height.value}px`,
-  );
-});
-
-onBeforeUnmount(() => {
-  document.documentElement.style.removeProperty('--tab-bar-height');
-});
+useTabBarHeight(barEl);
 </script>
 
 <template>

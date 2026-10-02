@@ -12,6 +12,7 @@ import AdminListToolbar from '../components/AdminListToolbar.vue';
 import AdminPagination from '../components/AdminPagination.vue';
 import AdminSortHeader from '../components/AdminSortHeader.vue';
 import DeleteGroupModal from '@/modules/groups/components/DeleteGroupModal.vue';
+import Avatar from '@/modules/auth/components/Avatar.vue';
 import type { GroupTypeFilter } from '../types';
 
 const {
@@ -123,7 +124,12 @@ const typeOptions = computed(() =>
         </thead>
         <tbody>
           <tr v-for="g in groups" :key="g.id">
-            <td>{{ g.name }}</td>
+            <td>
+              <div class="flex items-center gap-2">
+                <Avatar :name="g.name" :picture="g.avatarUrl" :size="6" />
+                {{ g.name }}
+              </div>
+            </td>
             <td class="whitespace-nowrap">
               {{ t(`admin.groups.filters.${g.groupType}`) }}
             </td>

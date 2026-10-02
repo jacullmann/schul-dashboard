@@ -176,7 +176,7 @@ impl SuperAdminService {
         };
 
         let rows_query = sqlx::query!(
-            r#"SELECT g.id, g.name, g.group_type, g.owner_id, g.created_at,
+            r#"SELECT g.id, g.name, g.avatar_url, g.group_type, g.owner_id, g.created_at,
                       u.email AS owner_email,
                       members.n AS "member_count!", items.n AS "item_count!"
                FROM groups g
@@ -226,6 +226,7 @@ impl SuperAdminService {
                 owner_name: generate_user_name(&g.owner_id.to_string()),
                 id: g.id,
                 name: g.name,
+                avatar_url: g.avatar_url,
                 group_type: g.group_type,
                 owner_id: g.owner_id,
                 owner_email: g.owner_email,

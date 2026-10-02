@@ -12,8 +12,6 @@ export interface AdminNavItem {
 }
 
 const props = defineProps<{
-  title: string;
-  subtitle?: string | null;
   navItems: AdminNavItem[];
   activeTab: string;
 }>();
@@ -30,25 +28,11 @@ const activeTab = computed({
 
 <template>
   <div class="adm-layout">
-    <header class="adm-header">
-      <div class="adm-header-inner">
-        <div class="adm-header-left">
-          <div class="adm-header-titles">
-            <h1 class="adm-title">{{ title }}</h1>
-            <span v-if="subtitle" class="adm-subtitle">{{ subtitle }}</span>
-          </div>
-        </div>
-        <div class="adm-header-right">
-          <slot name="header-right" />
-        </div>
-      </div>
-    </header>
-
     <div class="adm-body">
       <aside
-        class="adm-sidebar p-3.5 w-full md:w-60 shrink-0 bg-surface border-b md:border-b-0 md:border-r border-ghost-border overflow-x-auto md:overflow-x-hidden md:overflow-y-auto flex md:flex-col gap-3.5 scrollbar-hide"
+        class="adm-sidebar p-3.5 w-60 shrink-0 bg-surface border-r border-ghost-border overflow-y-auto hidden md:flex flex-col gap-3.5 scrollbar-hide"
       >
-        <nav class="flex flex-row md:flex-col w-full">
+        <nav class="flex flex-col w-full">
           <SidebarButton
             v-for="item in navItems"
             :key="item.id"
@@ -77,70 +61,11 @@ const activeTab = computed({
 
 <style scoped>
 .adm-layout {
-  --adm-header-height: 56px;
   display: flex;
   flex-direction: column;
   min-height: calc(100dvh - var(--header-height));
   background: var(--color-canvas);
   color: var(--color-on-ghost);
-}
-
-.adm-header {
-  height: var(--adm-header-height);
-  border-bottom: 1px solid var(--color-ghost-border);
-  background: var(--color-canvas);
-  flex-shrink: 0;
-  position: sticky;
-  top: var(--header-height);
-  z-index: 200;
-}
-
-.adm-header-inner {
-  height: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.adm-header-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-}
-
-.adm-header-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.adm-header-titles {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  min-width: 0;
-}
-
-.adm-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  margin: 0;
-  white-space: nowrap;
-}
-
-.adm-subtitle {
-  font-size: var(--text-sm);
-  color: var(--color-on-ghost-muted);
-  font-weight: 500;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .adm-body {
@@ -151,9 +76,9 @@ const activeTab = computed({
 
 .adm-sidebar {
   position: sticky;
-  top: calc(var(--header-height) + var(--adm-header-height));
+  top: var(--header-height);
   align-self: flex-start;
-  height: calc(100dvh - var(--header-height) - var(--adm-header-height));
+  height: calc(100dvh - var(--header-height));
   z-index: 100;
 }
 
@@ -178,28 +103,8 @@ const activeTab = computed({
 }
 
 @media (max-width: 767px) {
-  .adm-body {
-    flex-direction: column;
-  }
-
-  .adm-sidebar {
-    align-self: stretch;
-    height: auto;
-    padding: 8px;
-  }
-
-  .adm-nav-badge {
-    display: none;
-  }
-
   .adm-main {
     padding: 20px 16px 48px;
-  }
-}
-
-@media (max-width: 480px) {
-  .adm-header-inner {
-    padding: 0 12px;
   }
 }
 </style>

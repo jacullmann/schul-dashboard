@@ -112,6 +112,7 @@ export type GroupSort = 'createdAt' | 'name' | 'memberCount' | 'itemCount';
 export interface SuperAdminGroup {
   id: string;
   name: string;
+  avatarUrl: string | null;
   groupType: 'regular' | 'abitur';
   ownerId: string;
   ownerEmail: string;
