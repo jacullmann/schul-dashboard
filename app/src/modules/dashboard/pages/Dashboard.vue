@@ -395,7 +395,7 @@ const {
              rather than inheriting the block's place in the page. -->
         <div
           v-if="loadingSchedule || hasLessons"
-          class="flex-1 flex flex-col gap-6 min-h-[220px]"
+          class="flex-1 flex flex-col gap-6 min-h-55"
         >
           <div
             class="animate-enter"
@@ -550,7 +550,7 @@ const {
 
         <div
           v-else-if="canEditScheduleConfig"
-          class="flex-1 flex items-center justify-center p-6 min-h-[220px] animate-enter"
+          class="flex-1 flex items-center justify-center p-6 min-h-55 animate-enter"
         >
           <BaseEmptyState
             :primary-action="

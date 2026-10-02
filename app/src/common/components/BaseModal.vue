@@ -76,7 +76,7 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
       >
         <!-- pr-12 reserves the close button's width plus gap -->
         <BaseRow
-          class="sticky top-0 z-10 items-start h-[30px]"
+          class="sticky top-0 z-10 items-start h-7.5"
           :class="closeButton ? 'pr-12 mb-4' : 'mx-4 mb-2 mt-1'"
         >
           <!-- Firefox leaves backdrop filters outside the scroller's clip

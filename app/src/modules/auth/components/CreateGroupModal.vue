@@ -203,7 +203,7 @@ async function submit() {
 
           <BaseMenu
             :open="isMenuOpen"
-            class="left-1/2 -translate-x-1/2 mt-2 z-30 min-w-[180px]"
+            class="left-1/2 -translate-x-1/2 mt-2 z-30 min-w-45"
             @close="isMenuOpen = false"
             @click.stop
           >

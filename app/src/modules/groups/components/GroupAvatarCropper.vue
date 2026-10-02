@@ -183,7 +183,7 @@ function applyCrop() {
     <template #content>
       <div class="flex flex-col items-center gap-6 py-2 select-none">
         <div
-          class="relative w-[320px] h-[320px] rounded-2xl bg-zinc-950/80 border border-white/10 overflow-hidden cursor-move touch-none"
+          class="relative w-80 h-80 rounded-2xl bg-zinc-950/80 border border-white/10 overflow-hidden cursor-move touch-none"
           @pointerdown="onPointerDown"
           @pointermove="onPointerMove"
           @pointerup="onPointerUp"
@@ -218,7 +218,7 @@ function applyCrop() {
           </svg>
         </div>
 
-        <div class="flex items-center gap-3 w-full max-w-[280px]">
+        <div class="flex items-center gap-3 w-full max-w-70">
           <ZoomOut class="w-4 h-4 text-on-ghost-muted" />
           <input
             v-model.number="zoom"

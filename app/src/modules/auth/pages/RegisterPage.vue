@@ -36,7 +36,7 @@ function navigateToLogin() {
 
 <template>
   <div class="flex w-full items-center justify-center">
-    <div class="w-full max-w-[420px]">
+    <div class="w-full max-w-105">
       <div class="text-center mb-8">
         <h1 class="text-center!">
           {{ t('auth.login.register') }}

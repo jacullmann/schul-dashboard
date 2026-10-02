@@ -327,7 +327,7 @@ async function confirmDeleteGroup() {
           <BaseMenu
             v-if="canEditSettings"
             :open="isMenuOpen"
-            class="left-0 mt-2 z-30 min-w-[180px]"
+            class="left-0 mt-2 z-30 min-w-45"
             @close="isMenuOpen = false"
             @click.stop
           >

@@ -15,7 +15,7 @@ defineProps<{
       <div
         class="bg-surface border border-ghost-border shadow-input rounded-xl p-4.5 flex flex-col gap-1"
       >
-        <span class="text-[1.5rem]/4 font-bold">{{
+        <span class="text-2xl/4 font-bold">{{
           stats?.itemCount ?? '–'
         }}</span>
         <span class="text-sm text-on-ghost-muted">{{
@@ -25,7 +25,7 @@ defineProps<{
       <div
         class="bg-surface border border-ghost-border shadow-input rounded-xl p-4.5 flex flex-col gap-1"
       >
-        <span class="text-[1.5rem]/4 font-bold">{{
+        <span class="text-2xl/4 font-bold">{{
           stats?.memberCount ?? '–'
         }}</span>
         <span class="text-sm text-on-ghost-muted">{{
@@ -35,7 +35,7 @@ defineProps<{
       <div
         class="bg-surface border border-ghost-border shadow-input rounded-xl p-4.5 flex flex-col gap-1"
       >
-        <span class="text-[1.5rem]/4 font-bold">{{
+        <span class="text-2xl/4 font-bold">{{
           stats?.subsCount ?? '–'
         }}</span>
         <span class="text-sm text-on-ghost-muted">{{

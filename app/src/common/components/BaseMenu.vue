@@ -390,7 +390,7 @@ defineExpose({ menuEl: desktopMenuEl, startClose });
           class="transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden"
           :class="
             !isAtRoot
-              ? 'max-h-[44px] opacity-100 pointer-events-auto mt-1'
+              ? 'max-h-11 opacity-100 pointer-events-auto mt-1'
               : 'max-h-0 opacity-0 pointer-events-none mt-0'
           "
         >

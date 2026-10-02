@@ -33,7 +33,7 @@ defineExpose({
     <BaseMenu
       ref="innerMenuRef"
       :open="!!activeMessage"
-      :class="!isMobile ? 'fixed! z-[10001]! min-w-[180px]' : ''"
+      :class="!isMobile ? 'fixed! z-[10001]! min-w-45' : ''"
       :style="!isMobile ? contextMenuStyles : undefined"
       @close="emit('close')"
     >

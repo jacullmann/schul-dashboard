@@ -306,7 +306,7 @@ onUnmounted(() => {
           <img
             :src="qrCodeUrl"
             :alt="t('auth.mfa.setup.qr_alt')"
-            class="w-[200px] h-[200px]"
+            class="w-50 h-50"
           />
         </div>
 

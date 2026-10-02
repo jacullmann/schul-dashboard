@@ -21,7 +21,7 @@ withDefaults(
     :key="row.gridRow"
     class="flex flex-col justify-center items-center bg-transparent text-sm text-on-ghost-muted h-full whitespace-nowrap [grid-column:1]"
     :class="{
-      'min-h-[58px]': row.kind === 'lesson',
+      'min-h-14.5': row.kind === 'lesson',
       'animate-enter': animated,
       invisible: labelledRows && !labelledRows.has(row.gridRow),
     }"

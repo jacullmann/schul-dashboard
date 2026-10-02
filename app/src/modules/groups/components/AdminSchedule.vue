@@ -196,7 +196,7 @@ const entranceStyle = (
           v-for="row in emptyRowsOf(day, dayLayout)"
           :key="`empty-${row.slot}`"
           type="button"
-          class="min-h-[54px] border border-dashed border-ghost-border hover:border-action/50 hover:bg-action/5 rounded-md max-xs:rounded-lg transition-all flex items-center justify-center group cursor-pointer"
+          class="min-h-13.5 border border-dashed border-ghost-border hover:border-action/50 hover:bg-action/5 rounded-md max-xs:rounded-lg transition-all flex items-center justify-center group cursor-pointer"
           :style="{ gridColumn: column, gridRow: row.gridRow }"
           @click.stop="emit('add-lesson', { day, slot: row.slot })"
         >

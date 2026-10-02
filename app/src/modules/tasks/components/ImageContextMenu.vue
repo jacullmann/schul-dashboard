@@ -60,7 +60,7 @@ const contextMenuStyles = computed(() => ({
       :ref="(el: any) => (menuRef = el?.menuEl)"
       :open="visible"
       elevated
-      class="fixed! z-[100003]! min-w-[180px]"
+      class="fixed! z-[100003]! min-w-45"
       :style="contextMenuStyles"
       @close="emit('cancel')"
     >

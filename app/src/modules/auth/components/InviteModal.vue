@@ -127,7 +127,7 @@ async function regenerate() {
         <img
           :src="qrCodeUrl"
           :alt="t('auth.groups.invite.qr_alt')"
-          class="w-[200px] h-[200px]"
+          class="w-50 h-50"
         />
       </div>
 

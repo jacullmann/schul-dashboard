@@ -78,7 +78,7 @@ function select(action: TaskMenuAction) {
     <BaseMenu
       ref="menu"
       :open="open"
-      :class="!isMobile ? 'fixed! z-[10000]! min-w-[180px]' : ''"
+      :class="!isMobile ? 'fixed! z-[10000]! min-w-45' : ''"
       :style="!isMobile ? menuStyles : undefined"
       @close="$emit('close')"
       @click.stop

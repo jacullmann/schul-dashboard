@@ -100,7 +100,7 @@ const {
       "
       :open="open"
       :title="email"
-      class="fixed pointer-events-auto z-[var(--z-modal)] origin-top-left min-w-[320px]"
+      class="fixed pointer-events-auto z-[var(--z-modal)] origin-top-left min-w-80"
       :style="popupStyle"
       role="menu"
       :aria-label="t('auth.account_menu.label')"

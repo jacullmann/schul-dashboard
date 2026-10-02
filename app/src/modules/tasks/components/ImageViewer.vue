@@ -1714,7 +1714,7 @@ onBeforeUnmount(() => {
                leaves the corner it came from to the menu. -->
           <button
             v-wave
-            class="absolute top-4 left-4 md:left-auto md:right-4 pointer-events-auto bg-[rgba(0,0,0,0.6)] border-none text-white cursor-pointer p-2 rounded-full flex items-center justify-center transition-colors hover:bg-[rgba(0,0,0,0.4)] active:bg-[rgba(0,0,0,0.4)] backdrop-blur-[4px]"
+            class="absolute top-4 left-4 md:left-auto md:right-4 pointer-events-auto bg-black/60 border-none text-white cursor-pointer p-2 rounded-full flex items-center justify-center transition-colors hover:bg-black/40 active:bg-black/40 backdrop-blur-xs"
             @click.stop="cancel"
           >
             <X />
@@ -1723,7 +1723,7 @@ onBeforeUnmount(() => {
           <button
             v-if="menu"
             v-wave
-            class="absolute top-4 right-4 md:hidden pointer-events-auto bg-[rgba(0,0,0,0.6)] border-none text-white cursor-pointer p-2 rounded-full flex items-center justify-center transition-colors hover:bg-[rgba(0,0,0,0.4)] active:bg-[rgba(0,0,0,0.4)] backdrop-blur-[4px]"
+            class="absolute top-4 right-4 md:hidden pointer-events-auto bg-black/60 border-none text-white cursor-pointer p-2 rounded-full flex items-center justify-center transition-colors hover:bg-black/40 active:bg-black/40 backdrop-blur-xs"
             @click.stop="openMenu"
           >
             <Ellipsis />
@@ -1733,7 +1733,7 @@ onBeforeUnmount(() => {
           <button
             v-if="hasPrev"
             v-wave
-            class="absolute top-1/2 left-4 -translate-y-1/2 pointer-events-auto bg-[rgba(0,0,0,0.6)] border-none text-white cursor-pointer p-2 rounded-full hidden md:flex items-center justify-center transition-colors hover:bg-[rgba(0,0,0,0.4)] active:bg-[rgba(0,0,0,0.4)] backdrop-blur-[4px]"
+            class="absolute top-1/2 left-4 -translate-y-1/2 pointer-events-auto bg-black/60 border-none text-white cursor-pointer p-2 rounded-full hidden md:flex items-center justify-center transition-colors hover:bg-black/40 active:bg-black/40 backdrop-blur-xs"
             @click.stop="prev"
           >
             <ChevronLeft />
@@ -1742,14 +1742,14 @@ onBeforeUnmount(() => {
           <button
             v-if="hasNext"
             v-wave
-            class="absolute top-1/2 right-4 -translate-y-1/2 pointer-events-auto bg-[rgba(0,0,0,0.6)] border-none text-white cursor-pointer p-2 rounded-full hidden md:flex items-center justify-center transition-colors hover:bg-[rgba(0,0,0,0.4)] active:bg-[rgba(0,0,0,0.4)] backdrop-blur-[4px]"
+            class="absolute top-1/2 right-4 -translate-y-1/2 pointer-events-auto bg-black/60 border-none text-white cursor-pointer p-2 rounded-full hidden md:flex items-center justify-center transition-colors hover:bg-black/40 active:bg-black/40 backdrop-blur-xs"
             @click.stop="next"
           >
             <ChevronRight />
           </button>
 
           <div
-            class="absolute bottom-4 left-1/2 -translate-x-1/2 text-white bg-[rgba(0,0,0,0.6)] px-3 py-1 rounded-full text-sm backdrop-blur-[4px] pointer-events-auto"
+            class="absolute bottom-4 left-1/2 -translate-x-1/2 text-white bg-black/60 px-3 py-1 rounded-full text-sm backdrop-blur-xs pointer-events-auto"
             @click.stop
           >
             {{ currentIndex + 1 }} / {{ images.length }}

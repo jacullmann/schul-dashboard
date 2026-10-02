@@ -48,7 +48,7 @@ const emit = defineEmits(['confirm', 'cancel', 'update:reason']);
         <BaseInput
           id="reportDescription"
           as="textarea"
-          class="w-full min-h-[120px] resize-vertical"
+          class="w-full min-h-30 resize-vertical"
           :model-value="reason"
           :placeholder="t('tasks.list.tasks.menu.report.illegal_placeholder')"
           :maxlength="MAX_LENGTH"

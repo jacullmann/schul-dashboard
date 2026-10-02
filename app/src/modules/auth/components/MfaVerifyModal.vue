@@ -90,7 +90,7 @@ onMounted(() => {
           pattern="[0-9]*"
           maxlength="6"
           placeholder="000000"
-          class="w-[180px] px-4 py-3 text-xl font-mono text-center bg-surface text-on-ghost border-2 border-ghost-border rounded-lg outline-none shadow-input transition-all focus:border-focus focus:shadow-focus-ring disabled:opacity-60 disabled:cursor-not-allowed"
+          class="w-45 px-4 py-3 text-xl font-mono text-center bg-surface text-on-ghost border-2 border-ghost-border rounded-lg outline-none shadow-input transition-all focus:border-focus focus:shadow-focus-ring disabled:opacity-60 disabled:cursor-not-allowed"
           :class="[
             { '!border-danger': error },
             shakeInput ? 'animate-[shake_0.4s_ease-in-out]' : '',

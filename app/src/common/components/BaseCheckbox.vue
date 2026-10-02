@@ -18,7 +18,7 @@ const sizeClasses = {
   md: {
     box: 'size-4.5 rounded-sm',
     fill: 'inset-0 rounded-[1px]',
-    hover: 'size-[34px]',
+    hover: 'size-8.5',
     check: 'size-4',
     checkStroke: 3,
   },

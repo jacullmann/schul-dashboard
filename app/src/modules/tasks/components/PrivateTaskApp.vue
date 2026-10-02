@@ -281,7 +281,7 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
                       "
                       :open="openMenuId === privateTask.id"
                       :class="
-                        !isMobile ? 'fixed! z-[10000]! min-w-[180px]' : ''
+                        !isMobile ? 'fixed! z-[10000]! min-w-45' : ''
                       "
                       :style="!isMobile ? itemMenuStyles : undefined"
                       @close="openMenuId = null"
