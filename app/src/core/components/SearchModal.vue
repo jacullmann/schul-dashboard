@@ -721,6 +721,8 @@ function handleSelect(index: number) {
           <strong class="text-on-ghost">„{{ query }}"</strong>
         </p>
       </div>
+
+      <div class="h-2 shrink-0" aria-hidden="true" />
     </template>
   </component>
 </template>

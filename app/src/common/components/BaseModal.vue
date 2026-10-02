@@ -76,8 +76,8 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
       >
         <!-- pr-12 reserves the close button's width plus gap -->
         <BaseRow
-          class="sticky top-0 z-10 items-start h-[30px] mb-4"
-          :class="{ 'pr-12': closeButton }"
+          class="sticky top-0 z-10 items-start h-[30px]"
+          :class="closeButton ? 'pr-12 mb-4' : 'mx-4 mb-2 mt-1'"
         >
           <!-- Firefox leaves backdrop filters outside the scroller's clip
                path, so the blur would square off the card's top corners.
@@ -85,7 +85,8 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
                drops its masks in Chromium, and on the scroller or card it
                drops the blur in Firefox. -->
           <BaseScrollFade
-            class="-inset-x-4 -top-4 -bottom-4 firefox:overflow-hidden firefox:rounded-t-(--card-radius)"
+            class="-top-4 -bottom-4 firefox:overflow-hidden firefox:rounded-t-(--card-radius)"
+            :class="closeButton ? '-inset-x-4' : '-inset-x-8'"
           />
 
           <BaseRow>
@@ -114,6 +115,7 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
           :danger="danger"
           :loading="loading"
           :requirement="requirement"
+          :margin="!closeButton"
         >
           <template v-for="(_, name) in $slots" #[name]="slotProps">
             <slot :name="name" v-bind="slotProps || {}"></slot>

@@ -15,19 +15,21 @@ withDefaults(
     error?: string;
     loading?: boolean;
     requirement?: boolean;
+    margin?: boolean;
   }>(),
   {
     error: '',
     danger: false,
     loading: false,
     requirement: true,
+    margin: false,
   },
 );
 </script>
 
 <template>
   <form novalidate @submit.prevent="submit">
-    <BaseFormContent :error="error">
+    <BaseFormContent :error="error" :class="margin ? 'mx-4' : ''">
       <slot name="content"></slot>
     </BaseFormContent>
 
