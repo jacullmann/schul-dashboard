@@ -140,6 +140,7 @@ function collapseLeavingRow(el: Element, done: () => void) {
 // Behind the skeleton the list still sorts itself as checks and pins load.
 const {
   entranceStart: cardEntranceStart,
+  entranceStartOf: cardEntranceStartOf,
   isEntering: isCardEntering,
   entranceStyle: cardEntranceStyle,
   hasSettled: hasCardEntranceSettled,
@@ -317,13 +318,13 @@ onDeactivated(() => {
         <template v-for="(item, index) in visibleItems" :key="item.id">
           <div
             v-if="index > 0"
-            v-entrance-start="cardEntranceStart"
+            v-entrance-start="cardEntranceStartOf(item.id)"
             class="task-separator border-b border-ghost-border ml-11.5 md:ml-10.5 mr-4"
             :class="{ 'animate-enter': isCardEntering(item.id) }"
             :style="cardEntranceStyle(item.id)"
           ></div>
           <TaskCard
-            v-entrance-start="cardEntranceStart"
+            v-entrance-start="cardEntranceStartOf(item.id)"
             :class="{ 'animate-enter': isCardEntering(item.id) }"
             :style="cardEntranceStyle(item.id)"
             :item="item"

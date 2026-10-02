@@ -23,6 +23,8 @@ export function useCardEntrance(
 ) {
   const enteringOrder = ref(new Map<string, number>());
   let shownIds = new Set<string>();
+  /** On the document timeline, shared by every card of the running cascade. */
+  let cascadeStart: number | null = null;
   const entranceStart = useSkeletonHandoff(held);
 
   watch(
@@ -34,7 +36,11 @@ export function useCardEntrance(
       const entering = new Map(
         [...enteringOrder.value].filter(([id]) => currentIdSet.has(id)),
       );
-      // Cards arriving while others still cascade in queue up behind them.
+      // Cards arriving while others still cascade in queue up behind them, on
+      // the same clock, so their delays line up with the cards ahead.
+      if (!entering.size) {
+        cascadeStart = wasHeld ? entranceStart.value : performance.now();
+      }
       let order = wasHeld
         ? skeletonOrder
         : entering.size
@@ -55,6 +61,11 @@ export function useCardEntrance(
 
   function isEntering(id: string) {
     return enteringOrder.value.has(id);
+  }
+
+  /** For `v-entrance-start` on a card. */
+  function entranceStartOf(id: string) {
+    return enteringOrder.value.has(id) ? cascadeStart : null;
   }
 
   function entranceStyle(id: string) {
@@ -85,6 +96,7 @@ export function useCardEntrance(
 
   return {
     entranceStart,
+    entranceStartOf,
     isEntering,
     hasSettled,
     entranceStyle,
