@@ -16,14 +16,14 @@ withDefaults(
 
 const sizeClasses = {
   md: {
-    box: 'size-4.5 rounded-sm',
+    box: 'size-4.5 rounded-sm border-2',
     fill: 'inset-0 rounded-[1px]',
     hover: 'size-8.5',
     check: 'size-4',
     checkStroke: 3,
   },
   lg: {
-    box: 'size-6 rounded-full',
+    box: 'size-6 rounded-full border-3',
     fill: '-inset-0.5 rounded-full checkbox-bg-clip-round',
     hover: 'size-10',
     check: 'size-4',
@@ -62,7 +62,7 @@ function handleLabelClick(event: MouseEvent) {
       @change="handleChange"
     />
     <span
-      class="relative shrink-0 touch-target after:min-w-12 after:min-h-12 border-2 border-on-ghost-muted inline-flex items-center justify-center bg-transparent group-hover:border-action peer-checked:border-action transition-colors duration-300 ease-out"
+      class="relative shrink-0 touch-target after:min-w-12 after:min-h-12 border-on-ghost-muted inline-flex items-center justify-center bg-transparent group-hover:border-action peer-checked:border-action transition-colors duration-300 ease-out"
       :class="sizeClasses[size].box"
       aria-hidden="true"
     >
