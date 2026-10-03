@@ -81,6 +81,9 @@ const emit = defineEmits<{
 const { checkPermission } = useAppAuth();
 const userStore = useUserStore();
 const canModerateMembers = computed(() => checkPermission('moderate_members'));
+const canChangeAnyRole = computed(() =>
+  props.members.some((member) => member.assignableRoles.length > 0),
+);
 
 const DROPDOWN_ROLES: readonly MemberRole[] = [
   'user',
@@ -286,6 +289,20 @@ function confirmRemove() {
                 time: formatRelativeTime(member.joinedAt),
               })
             }}</span>
+
+            <BaseSelect
+              v-if="canChangeAnyRole"
+              :model-value="member.role"
+              :disabled="member.assignableRoles.length === 0"
+              :form="false"
+              classes="w-33!"
+              :options="roleOptionsFor(member)"
+              @update:model-value="(val: string) => onRoleChange(member, val)"
+            />
+            <span v-else class="text-sm text-on-ghost-muted">{{
+              roleLabels[member.role]
+            }}</span>
+
             <BaseTooltip
               v-if="canModerateMembers"
               :content="t('groups.settings.members.actions.remove')"
@@ -298,15 +315,6 @@ function confirmRemove() {
                 @click="openRemoveModal(member.userId, member.generatedName)"
               />
             </BaseTooltip>
-
-            <BaseSelect
-              :model-value="member.role"
-              :disabled="member.assignableRoles.length === 0"
-              :form="false"
-              classes="w-36!"
-              :options="roleOptionsFor(member)"
-              @update:model-value="(val: string) => onRoleChange(member, val)"
-            />
           </div>
         </div>
       </template>
