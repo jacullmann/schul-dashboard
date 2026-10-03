@@ -6,8 +6,7 @@ import { useI18n } from 'vue-i18n';
 import { usePersonalization } from '@/modules/auth/composables/usePersonalization';
 
 const { t } = useI18n();
-const { updating, setPersonalization: savePersonalization } =
-  usePersonalization();
+const { setPersonalization: savePersonalization } = usePersonalization();
 
 const props = defineProps<{
   modelValue: boolean;
@@ -41,10 +40,13 @@ const options = computed(() => [
 async function setPersonalization(value: boolean) {
   if (value === currentPersonalized.value) return;
 
+  emit('update:modelValue', value);
   const saved = await savePersonalization(value);
-  if (saved === null) return;
+  if (saved === null) {
+    emit('update:modelValue', !value);
+    return;
+  }
 
-  emit('update:modelValue', saved);
   emit('change', saved);
 }
 </script>
@@ -54,6 +56,5 @@ async function setPersonalization(value: boolean) {
     v-model="dropdownValue"
     :options="options"
     :prefix="t('auth.settings.personalization')"
-    :disabled="updating"
   />
 </template>

@@ -10,20 +10,29 @@ export function usePersonalization() {
   const userStore = useUserStore();
   const updating = ref(false);
 
-  /** Resolves to the saved setting, or `null` when nothing was saved. */
+  /**
+   * Applies the setting optimistically and rolls it back if the save fails.
+   * Resolves to the saved setting, or `null` when nothing was saved.
+   */
   async function setPersonalization(value: boolean): Promise<boolean | null> {
-    if (updating.value) return null;
+    if (updating.value || !userStore.user) return null;
 
+    const previous = userStore.user.personalized;
     updating.value = true;
+    userStore.updateUser({ personalized: value });
     try {
       const { data } = await hw.patch('/user/personalization', {
         personalized: value,
       });
-      if (!data.ok) return null;
+      if (!data.ok) {
+        userStore.updateUser({ personalized: previous });
+        return null;
+      }
 
       userStore.updateUser({ personalized: data.personalized });
       return data.personalized;
     } catch (e: unknown) {
+      userStore.updateUser({ personalized: previous });
       useToast().error(apiErrorMessage(e, t('common.errors.update')));
       return null;
     } finally {
