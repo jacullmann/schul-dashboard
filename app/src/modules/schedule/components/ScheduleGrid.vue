@@ -21,6 +21,7 @@ const props = withDefaults(
     labelledRows?: (day: number) => ReadonlySet<number> | undefined;
     /** A template for every week carries no date, so the short weekday by default. */
     tabLabel?: (day: number) => string;
+    tabCaption?: (day: number) => string;
     panelKey?: (dayIndex: number) => PropertyKey;
     currentDay?: number | null;
     clickableDays?: boolean;
@@ -31,6 +32,7 @@ const props = withDefaults(
     dayLayout: undefined,
     labelledRows: undefined,
     tabLabel: undefined,
+    tabCaption: undefined,
     panelKey: undefined,
     currentDay: null,
     clickableDays: false,
@@ -81,6 +83,7 @@ function onDayClick(day: number, event: MouseEvent) {
     :pager="pager"
     :days="days"
     :tab-label="tabLabelOf"
+    :tab-caption="tabCaption"
     :panel-of="phonePanelOf"
     :panel-key="panelKey"
     :animated="animated"
@@ -114,7 +117,7 @@ function onDayClick(day: number, event: MouseEvent) {
 
   <BaseTableWrapper v-else>
     <div
-      class="grid grid-cols-[3.25rem_repeat(5,minmax(9rem,1fr))] gap-2 items-stretch"
+      class="grid grid-cols-[2.5rem_repeat(5,minmax(9rem,1fr))] gap-2 items-stretch"
       :style="layout.gridStyle"
     >
       <ScheduleStartTimeColumn :rows="layout.rows" :animated="animated" />

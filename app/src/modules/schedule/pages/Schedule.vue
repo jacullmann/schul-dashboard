@@ -43,6 +43,7 @@ const {
   getDisplayName,
   defaultDayIndex,
   formatDayDate,
+  formatDayInitials,
 } = useSchedule();
 
 const { t } = useI18n();
@@ -233,6 +234,7 @@ watch(
       :day-layout="dayLayoutOf"
       :labelled-rows="labelledRowsOf"
       :tab-label="formatDayDate"
+      :tab-caption="formatDayInitials"
       :panel-key="panelKey"
       :current-day="currentDay"
     >

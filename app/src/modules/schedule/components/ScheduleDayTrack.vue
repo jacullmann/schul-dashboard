@@ -1,6 +1,6 @@
 <script setup lang="ts" generic="Panel extends ScheduleDayPanel">
 import { computed } from 'vue';
-import BaseTabs from '@/common/components/BaseTabs.vue';
+import ScheduleDayPicker from './ScheduleDayPicker.vue';
 import type { ScheduleDayPanel } from '@/modules/schedule/types';
 import type { ScheduleDayPager } from '@/modules/schedule/composables/useScheduleDayPager';
 import { entranceDelay } from '@/modules/schedule/utils/entrance';
@@ -10,6 +10,7 @@ const props = withDefaults(
     pager: ScheduleDayPager;
     days: readonly number[];
     tabLabel: (day: number) => string;
+    tabCaption?: (day: number) => string;
     panelOf: (day: number) => Panel;
     /** Lets a panel stay mounted while its day changes; each day gets its own by default. */
     panelKey?: (dayIndex: number) => PropertyKey;
@@ -21,6 +22,7 @@ const props = withDefaults(
     bleedClass?: string;
   }>(),
   {
+    tabCaption: undefined,
     panelKey: undefined,
     animated: true,
     bleedClass: '-mx-4 px-4',
@@ -47,6 +49,7 @@ const tabs = computed(() =>
   props.days.map((day, index) => ({
     id: String(index),
     label: props.tabLabel(day),
+    caption: props.tabCaption?.(day),
   })),
 );
 
@@ -69,7 +72,7 @@ const panels = computed(() => {
 
 <template>
   <div class="space-y-4">
-    <BaseTabs
+    <ScheduleDayPicker
       :class="{ 'animate-enter': animated }"
       :style="{ '--enter-delay': entranceDelay(0, 1) }"
       :items="tabs"
@@ -82,7 +85,7 @@ const panels = computed(() => {
         <div
           v-for="{ dayIndex, day, key, panel } in panels"
           :key="key"
-          class="grid grid-cols-[3.25rem_1fr] gap-2 w-full"
+          class="grid grid-cols-[2.5rem_1fr] gap-2 w-full"
           :class="[
             dayIndex === activeDayIndex
               ? 'relative'

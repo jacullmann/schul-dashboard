@@ -33,6 +33,6 @@ withDefaults(
     <span v-if="row.kind === 'lesson'" class="font-bold text-lg text-on-ghost">
       {{ row.slot }}
     </span>
-    <span class="text-xs">{{ row.startTime }}</span>
+    <span class="text-xs tabular-nums">{{ row.startTime }}</span>
   </div>
 </template>

@@ -51,24 +51,15 @@ export function useSchedule() {
 
   const weekDates = computed<Record<number, Date>>(() => {
     const d = now.value;
-    const jsDay = d.getDay();
-
-    const offsetToMonday: Record<number, number> = {
-      0: 1, // Sun  → next Mon (+1)
-      1: 0, // Mon  → same Mon ( 0)
-      2: -1, // Tue  → Mon (-1)
-      3: -2, // Wed  → Mon (-2)
-      4: -3, // Thu  → Mon (-3)
-      5: -4, // Fri  → Mon (-4)
-      6: 1, // Sat  → next Mon (+1)
-    };
+    const sinceMonday = daysSinceMonday(d);
+    const lastSchoolDay = days.length - 1;
+    const isWeekOver =
+      sinceMonday > lastSchoolDay ||
+      (sinceMonday === lastSchoolDay && isSchoolDayOver.value);
 
     const monday = new Date(d);
     monday.setHours(0, 0, 0, 0);
-    monday.setDate(d.getDate() + (offsetToMonday[jsDay] ?? 0));
-    if (daysSinceMonday(d) === days.length - 1 && isSchoolDayOver.value) {
-      monday.setDate(monday.getDate() + 7);
-    }
+    monday.setDate(d.getDate() - sinceMonday + (isWeekOver ? 7 : 0));
 
     const map: Record<number, Date> = {};
     days.forEach((day, idx) => {
@@ -85,6 +76,10 @@ export function useSchedule() {
       ? new Intl.DateTimeFormat(locale.value, { day: 'numeric' }).format(date)
       : '';
   };
+
+  // Locales abbreviate weekdays to different lengths, some with a dot; two letters keep tabs even.
+  const formatDayInitials = (day: number): string =>
+    formatDayName(day, 'short').slice(0, 2);
 
   async function loadSubstitutions() {
     try {
@@ -462,6 +457,7 @@ export function useSchedule() {
     getDisplayName,
     formatDayName,
     formatDayDate,
+    formatDayInitials,
     lessons,
     substitutions,
     effectiveLessons,

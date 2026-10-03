@@ -422,7 +422,7 @@ const {
               <template v-if="!loadingSchedule">
                 <div
                   v-if="upcomingLessonPreview"
-                  class="grid grid-cols-[3.25rem_1fr] gap-2 w-full max-w-192 mx-auto animate-enter"
+                  class="grid grid-cols-[2.5rem_1fr] gap-2 w-full max-w-192 mx-auto animate-enter"
                   :style="{
                     '--enter-delay': entranceDelay(NEXT_LESSON_REVEAL_ORDER),
                   }"
