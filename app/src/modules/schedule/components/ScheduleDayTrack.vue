@@ -80,6 +80,13 @@ const panels = computed(() => {
       @change="(id) => goToDay(Number(id))"
     />
 
+    <div
+      class="h-px bg-ghost-border"
+      :class="{ 'animate-enter': animated }"
+      :style="{ '--enter-delay': entranceDelay(0, 1) }"
+      role="separator"
+    />
+
     <div class="overflow-hidden" :class="bleedClass">
       <div ref="trackRef" class="relative touch-pan-y">
         <div

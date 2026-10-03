@@ -99,6 +99,7 @@ function onDayClick(day: number, event: MouseEvent) {
       <ScheduleDayHeader
         :key="day"
         :grid-column="2"
+        standalone
         :label="formatDayName(day)"
         :is-current="day === currentDay"
         :is-clickable="clickableDays"
