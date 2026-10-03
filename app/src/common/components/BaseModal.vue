@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { useEventListener } from '@vueuse/core';
 import { useIsMobileViewport } from '@/common/composables/useViewport';
-import { X } from '@lucide/vue';
-import { useId } from 'vue';
+import { Check, X } from '@lucide/vue';
+import { computed, useId } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // Two roots (dialog and sheet), so attributes and listeners such as drag and
 // drop handlers are forwarded to whichever one is shown.
@@ -31,6 +32,12 @@ const props = withDefaults(
     elevated?: boolean;
     /** The sheet is dismissed by dragging it down, so it never has one. */
     closeButton?: boolean;
+    /**
+     * On mobile, moves the form's cancel and submit into the title row, in
+     * place of the close button and the buttons below the form. Like `sheet`,
+     * it changes nothing on desktop.
+     */
+    headerActions?: boolean;
     /** See BaseModalCard's own `wide`; a sheet always spans the screen. */
     wide?: boolean;
   }>(),
@@ -42,6 +49,7 @@ const props = withDefaults(
     sheet: false,
     elevated: false,
     closeButton: true,
+    headerActions: false,
     wide: false,
   },
 );
@@ -54,8 +62,24 @@ const handleCancel = () => {
   }
 };
 
+const { t } = useI18n();
 const isMobile = useIsMobileViewport();
 const titleId = useId();
+const formId = useId();
+
+const showHeaderActions = computed(
+  () => props.headerActions && isMobile.value && !!props.submit,
+);
+const showCornerCloseButton = computed(
+  () => props.closeButton && !showHeaderActions.value,
+);
+
+const titleRowClasses = computed(() => {
+  if (showHeaderActions.value) return 'flex-nowrap! h-10 mb-4';
+  if (!props.closeButton) return 'items-start h-7.5 mx-4 mb-2 mt-1';
+  // pr-12 reserves the corner close button's width plus gap
+  return 'items-start h-7.5 pr-12 mb-4';
+});
 
 useEventListener(window, 'keydown', (e: KeyboardEvent) => {
   if (e.key === 'Escape') handleCancel();
@@ -70,14 +94,14 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
         v-bind="$attrs"
         :labelledby="titleId"
         :elevated="elevated"
-        :round="!closeButton"
+        :round="!showCornerCloseButton"
         :wide="wide"
         @cancel="handleCancel"
       >
-        <!-- pr-12 reserves the close button's width plus gap -->
         <BaseRow
-          class="sticky top-0 z-10 items-start h-7.5"
-          :class="closeButton ? 'pr-12 mb-4' : 'mx-4 mb-2 mt-1'"
+          class="sticky top-0 z-10"
+          :class="titleRowClasses"
+          :justify="showHeaderActions ? 'between' : 'start'"
         >
           <!-- Firefox leaves backdrop filters outside the scroller's clip
                path, so the blur would square off the card's top corners.
@@ -86,19 +110,43 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
                drops the blur in Firefox. -->
           <BaseScrollFade
             class="-top-4 -bottom-4 firefox:overflow-hidden firefox:rounded-t-(--card-radius)"
-            :class="closeButton ? '-inset-x-4' : '-inset-x-8'"
+            :class="
+              showHeaderActions || closeButton ? '-inset-x-4' : '-inset-x-8'
+            "
           />
 
-          <BaseRow>
+          <BaseButton
+            v-if="showHeaderActions"
+            type="button"
+            variant="ghost"
+            :icon="X"
+            :aria-label="t('common.buttons.cancel')"
+            @click="handleCancel"
+          />
+
+          <BaseRow class="min-w-0">
             <h3 :id="titleId">
               <slot name="title"></slot>
             </h3>
 
             <slot name="title-infopop"></slot>
           </BaseRow>
+
+          <!-- Submits through the form, so validation and the submit
+               handler run exactly as for the button below it. -->
+          <BaseButton
+            v-if="showHeaderActions"
+            type="submit"
+            :form="formId"
+            :variant="danger ? 'danger' : 'action'"
+            :icon="Check"
+            :loading="loading"
+            :disabled="loading || !requirement"
+            :aria-label="t('common.buttons.confirm')"
+          />
         </BaseRow>
 
-        <template v-if="closeButton" #corner>
+        <template v-if="showCornerCloseButton" #corner>
           <BaseButton
             type="button"
             variant="ghost"
@@ -109,13 +157,14 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
 
         <BaseForm
           v-if="submit"
+          :id="formId"
           :submit="submit"
           :cancel="handleCancel"
           :error="error"
           :danger="danger"
           :loading="loading"
           :requirement="requirement"
-          :margin="!closeButton"
+          :margin="!showCornerCloseButton && !showHeaderActions"
         >
           <template v-for="(_, name) in $slots" #[name]="slotProps">
             <slot :name="name" v-bind="slotProps || {}"></slot>

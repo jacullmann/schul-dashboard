@@ -404,6 +404,7 @@ onMounted(() => {
         :submit="handleCreate"
         :loading="saving"
         :requirement="!!newSubjectNamePicker.storedName.value"
+        header-actions
         @cancel="closeCreateModal"
       >
         <template #title>
@@ -655,6 +656,7 @@ onMounted(() => {
         :submit="handleCreateCourse"
         :loading="saving"
         :requirement="!!newCourseName.trim()"
+        header-actions
         @cancel="showCreateCourseModal = false"
       >
         <template #title>

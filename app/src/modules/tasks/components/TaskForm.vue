@@ -82,6 +82,7 @@ const imageEntrance = useAddedEntrance(
     :submit="submit"
     :error="submitError"
     :loading="submitting"
+    header-actions
     class="outline-2 transition-[outline-color] duration-(--duration-focus) ease-(--ease-focus)"
     :class="isDragging ? 'outline-accent' : 'outline-transparent'"
     v-on="dropHandlers"

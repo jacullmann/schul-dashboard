@@ -33,7 +33,7 @@ defineEmits<{
       class="bg-canvas rounded-(--card-radius) w-[calc(100%-2rem)] max-h-[min(56rem,calc(100dvh-5rem))] flex flex-col fixed text-left z-(--z-modal)"
       :class="[wide ? 'max-w-5xl' : 'max-w-160', elevated ? 'z-[100004]!' : '']"
       :style="{
-        '--card-radius': round ? '36px' : 'var(--radius-2xl)',
+        '--card-radius': round ? 'var(--radius-3xl)' : 'var(--radius-2xl)',
       }"
       role="dialog"
       aria-modal="true"

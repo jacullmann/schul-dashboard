@@ -16,6 +16,7 @@ withDefaults(
     loading?: boolean;
     requirement?: boolean;
     margin?: boolean;
+    actions?: boolean;
   }>(),
   {
     error: '',
@@ -23,6 +24,7 @@ withDefaults(
     loading: false,
     requirement: true,
     margin: false,
+    actions: true,
   },
 );
 </script>
@@ -36,13 +38,16 @@ withDefaults(
     <!-- Stacked full width on mobile: German labels don't wrap and won't fit
          side by side. Reversed so the action sits above cancel while tab
          order stays cancel first. -->
-    <div class="flex flex-col-reverse gap-2 mt-4 md:flex-row md:justify-end">
+    <div
+      v-if="actions || $slots['secondary-action']"
+      class="flex flex-col-reverse gap-2 mt-4 md:flex-row md:justify-end"
+    >
       <!-- Last on mobile, at the far left on desktop: a way back, set apart
            from the pair that finishes the form. -->
       <slot name="secondary-action"></slot>
 
       <BaseButton
-        v-if="cancel"
+        v-if="actions && cancel"
         type="button"
         surface
         variant="ghost"
@@ -55,6 +60,7 @@ withDefaults(
       </BaseButton>
 
       <BaseButton
+        v-if="actions"
         type="submit"
         :variant="danger ? 'danger' : 'action'"
         :full="!cancel"

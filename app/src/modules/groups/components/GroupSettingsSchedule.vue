@@ -1194,6 +1194,7 @@ onMounted(() => {
       :open="isLessonModalOpen"
       :submit="submitLessonForm"
       :requirement="!!lessonForm.subjectId"
+      header-actions
       @cancel="closeLessonModal"
     >
       <template #title>

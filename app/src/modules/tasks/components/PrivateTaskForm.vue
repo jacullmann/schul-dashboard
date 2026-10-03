@@ -102,6 +102,7 @@ async function submit() {
     :open="open"
     :loading="submitting"
     :submit="submit"
+    header-actions
     @cancel="$emit('cancel')"
   >
     <template #title>
