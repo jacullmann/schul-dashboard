@@ -627,8 +627,8 @@ onMounted(() => {
                 {{ courseLabel(course.name, t, i18n.te) }}
                 <span
                   v-if="course.courseType"
-                  class="font-normal text-sm text-on-ghost-muted"
-                  >({{ courseTypeShortLabel(course.courseType) }})</span
+                  class="font-normal text-on-ghost-muted"
+                  >{{ courseTypeShortLabel(course.courseType) }}</span
                 >
               </span>
               <div v-if="canEditSubjects" class="flex gap-1">
