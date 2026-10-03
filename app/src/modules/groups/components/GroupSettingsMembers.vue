@@ -249,15 +249,17 @@ function confirmRemove() {
       {{ t('groups.settings.members.list.empty') }}
     </div>
 
-    <div v-else class="flex flex-col gap-2 max-w-200 mx-auto">
-      <p class="text-on-ghost-muted text-sm m-0!">{{ memberCountLabel }}</p>
+    <div v-else class="flex flex-col max-w-200 mx-auto">
+      <p class="text-on-ghost-muted text-sm mt-0! mb-2!">
+        {{ memberCountLabel }}
+      </p>
 
       <template v-for="(member, index) in members" :key="member.userId">
         <div
           v-if="index > 0"
           class="task-separator border-b border-ghost-border md:ml-14 md:mr-3"
         ></div>
-        <div class="flex items-center justify-between py-2 gap-2">
+        <div class="flex items-center justify-between py-3 gap-2">
           <div class="flex items-center gap-4 min-w-0">
             <Avatar
               class="max-md:hidden"

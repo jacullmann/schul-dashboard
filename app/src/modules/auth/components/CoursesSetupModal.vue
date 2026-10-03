@@ -262,7 +262,8 @@ function goBack() {
         type="button"
         surface
         variant="ghost"
-        class="max-md:w-full md:mr-auto"
+        form
+        class="md:mr-auto"
         :disabled="saving"
         @click="goBack"
       >

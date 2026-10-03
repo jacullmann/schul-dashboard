@@ -8,6 +8,8 @@ export interface Props {
   variant?: 'action' | 'ghost' | 'danger' | 'success' | 'input';
   on?: 'ghost' | 'action' | 'danger';
   full?: boolean;
+  form?: boolean;
+  formId?: string;
   icon?: Component;
   iconPlacement?: 'leading' | 'trailing';
   iconClasses?: string;
@@ -26,6 +28,8 @@ const props = withDefaults(defineProps<Props>(), {
   variant: 'ghost',
   on: 'ghost',
   full: false,
+  form: false,
+  formId: undefined,
   icon: undefined,
   iconPlacement: 'leading',
   iconClasses: '',
@@ -89,14 +93,16 @@ defineExpose({
     ref="buttonEl"
     v-wave="ripple && !(disabled || loading)"
     :type="type"
+    :form="formId"
     :disabled="disabled || loading"
     :class="[
       classes,
       full
         ? 'w-full justify-center font-semibold'
-        : variant === 'input'
-          ? 'font-normal w-fit'
-          : 'font-medium w-fit',
+        : [
+            variant === 'input' ? 'font-normal' : 'font-medium',
+            form ? 'max-md:w-full max-md:justify-center md:w-fit' : 'w-fit',
+          ],
       size === 'md' ? 'min-h-10 min-w-10' : '',
       touch ? 'touch-target after:min-w-12 after:min-h-12' : '',
       size === 'xs'

@@ -159,8 +159,9 @@ async function save() {
         />
       </BaseFormGroup>
 
-      <BaseRow justify="end" class="w-full mt-2 gap-2">
+      <BaseRow justify="end" stack-on-mobile class="w-full mt-2 gap-2">
         <BaseButton
+          form
           variant="ghost"
           :disabled="!isDirty || saving"
           @click="discardChanges"
@@ -168,6 +169,7 @@ async function save() {
           {{ t('common.buttons.cancel') }}
         </BaseButton>
         <BaseButton
+          form
           variant="action"
           :disabled="!isDirty || saving"
           @click="save"

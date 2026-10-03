@@ -19,10 +19,10 @@ const emit = defineEmits<{
   (e: 'refresh'): void;
 }>();
 
-const ACCENT_BORDER: Record<AnnouncementColor, string> = {
-  info: 'border-l-action',
-  warn: 'border-l-warn',
-  danger: 'border-l-danger',
+const ACCENT_COLOR: Record<AnnouncementColor, string> = {
+  info: 'bg-action',
+  warn: 'bg-warn',
+  danger: 'bg-danger',
 };
 
 const { t } = useI18n();
@@ -56,11 +56,11 @@ function formatDate(iso: string) {
 
       <template #action>
         <BaseTooltip
+          v-if="canManageAnnouncements"
           :content="t('announcements.list.create_button')"
           placement="bottom"
         >
           <BaseButton
-            v-if="canManageAnnouncements"
             variant="action"
             :icon="Plus"
             icon-classes="size-6"
@@ -76,34 +76,44 @@ function formatDate(iso: string) {
     >
       {{ t('announcements.list.empty_state') }}
     </div>
-    <div v-else class="flex flex-col gap-2">
-      <div
-        v-for="ann in announcements"
-        :key="ann.id"
-        class="flex justify-between gap-2 p-1 rounded-xl bg-surface border border-ghost-border border-l-[3px]"
-        :class="ACCENT_BORDER[ann.color]"
-      >
-        <div class="flex flex-col ml-3 my-1">
-          <div class="text-base/relaxed text-on-ghost mb-2">
-            {{ ann.content }}
+    <ul v-else class="flex flex-col">
+      <template v-for="(ann, index) in announcements" :key="ann.id">
+        <li
+          v-if="index > 0"
+          role="presentation"
+          class="task-separator border-b border-ghost-border ml-4"
+        ></li>
+        <li class="flex gap-3 py-2">
+          <span
+            class="w-1 shrink-0 my-1 rounded-full"
+            :class="ACCENT_COLOR[ann.color]"
+          ></span>
+          <div class="flex flex-col flex-1 min-w-0 gap-1">
+            <div class="text-base text-on-ghost break-words">
+              {{ ann.content }}
+            </div>
+            <div class="flex justify-between items-center gap-2">
+              <time
+                :datetime="ann.createdAt"
+                class="text-sm text-on-ghost-muted"
+                >{{ formatDate(ann.createdAt) }}</time
+              >
+              <BaseTooltip
+                v-if="canManageAnnouncements"
+                :content="t('common.buttons.delete')"
+                placement="bottom"
+              >
+                <BaseButton
+                  variant="ghost"
+                  size="sm"
+                  :icon="Trash2"
+                  @click="emit('delete', ann.id)"
+                />
+              </BaseTooltip>
+            </div>
           </div>
-          <span class="text-sm/relaxed text-on-ghost-muted">{{
-            formatDate(ann.createdAt)
-          }}</span>
-        </div>
-        <BaseTooltip
-          v-if="canManageAnnouncements"
-          :content="t('common.buttons.delete')"
-          placement="bottom"
-        >
-          <BaseButton
-            variant="ghost"
-            size="sm"
-            :icon="Trash2"
-            @click="emit('delete', ann.id)"
-          />
-        </BaseTooltip>
-      </div>
-    </div>
+        </li>
+      </template>
+    </ul>
   </div>
 </template>

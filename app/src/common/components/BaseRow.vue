@@ -6,9 +6,11 @@ type JustifyOption = 'start' | 'end' | 'center' | 'between' | 'around';
 const props = withDefaults(
   defineProps<{
     justify?: JustifyOption;
+    stackOnMobile?: boolean;
   }>(),
   {
     justify: 'start',
+    stackOnMobile: false,
   },
 );
 
@@ -21,10 +23,17 @@ const justifyClasses: Record<JustifyOption, string> = {
 };
 
 const alignmentClass = computed(() => justifyClasses[props.justify]);
+
+// Reversed so the primary action, placed last for tab order, sits on top.
+const layoutClass = computed(() =>
+  props.stackOnMobile
+    ? 'flex-col-reverse items-stretch md:flex-row md:flex-wrap md:items-center'
+    : 'flex-wrap items-center',
+);
 </script>
 
 <template>
-  <div class="flex flex-wrap gap-2 items-center" :class="alignmentClass">
+  <div class="flex gap-2" :class="[layoutClass, alignmentClass]">
     <slot></slot>
   </div>
 </template>

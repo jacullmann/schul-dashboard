@@ -933,13 +933,13 @@ onMounted(() => {
         </div>
       </div>
 
-      <div class="flex items-center justify-end gap-3 pt-2">
-        <BaseButton variant="ghost" :icon="X" @click="leaveEditMode">
+      <BaseRow stack-on-mobile justify="end">
+        <BaseButton form variant="ghost" @click="leaveEditMode">
           {{ t('groups.settings.schedule.editor.cancel_button') }}
         </BaseButton>
         <BaseButton
+          form
           variant="action"
-          :icon="Check"
           :disabled="savingScheduleConfig"
           @click="handleSaveAll"
         >
@@ -949,7 +949,7 @@ onMounted(() => {
               : t('groups.settings.schedule.editor.save_all_button')
           }}
         </BaseButton>
-      </div>
+      </BaseRow>
     </div>
 
     <div v-else class="flex flex-col gap-6">

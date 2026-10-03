@@ -560,8 +560,9 @@ onMounted(() => {
             </div>
           </BaseFormGroup>
 
-          <BaseRow v-if="canEditSubjects" justify="end">
+          <BaseRow v-if="canEditSubjects" stack-on-mobile justify="end">
             <BaseButton
+              form
               variant="ghost"
               :disabled="saving"
               @click="resetSubjectName"
@@ -569,6 +570,7 @@ onMounted(() => {
               {{ t('common.buttons.cancel') }}
             </BaseButton>
             <BaseButton
+              form
               :disabled="
                 saving || !subjectNamePicker.storedName.value || !subjectChanged
               "
@@ -614,36 +616,35 @@ onMounted(() => {
         >
           {{ t('groups.settings.subjects.list.empty') }}
         </div>
-        <div v-else class="flex flex-col gap-2 max-w-200 mx-auto">
-          <div
-            v-for="course in subject.courses"
-            :key="course.id"
-            class="flex items-center justify-between p-3 rounded-xl bg-surface border border-ghost-border"
-          >
-            <span class="font-medium text-base text-on-ghost truncate">
-              {{ courseLabel(course.name, t, i18n.te) }}
-              <span
-                v-if="course.courseType"
-                class="font-normal text-sm text-on-ghost-muted"
-                >({{ courseTypeShortLabel(course.courseType) }})</span
-              >
-            </span>
-            <div v-if="canEditSubjects" class="flex gap-1">
-              <BaseButton
-                variant="ghost"
-                size="sm"
-                :icon="Pencil"
-                @click="openEditCourseModal(course)"
-              />
-              <BaseButton
-                variant="ghost"
-                size="sm"
-                :icon="Trash2"
-                class="text-danger hover:text-danger"
-                @click="handleDeleteCourse(course.id)"
-              />
+        <div v-else class="flex flex-col max-w-200 mx-auto">
+          <template v-for="(course, index) in subject.courses" :key="course.id">
+            <div
+              v-if="index > 0"
+              class="task-separator border-b border-ghost-border"
+            ></div>
+            <div class="flex items-center justify-between py-3 gap-2">
+              <span class="font-medium text-base text-on-ghost truncate">
+                {{ courseLabel(course.name, t, i18n.te) }}
+                <span
+                  v-if="course.courseType"
+                  class="font-normal text-sm text-on-ghost-muted"
+                  >({{ courseTypeShortLabel(course.courseType) }})</span
+                >
+              </span>
+              <div v-if="canEditSubjects" class="flex gap-1">
+                <BaseButton
+                  variant="ghost"
+                  :icon="Pencil"
+                  @click="openEditCourseModal(course)"
+                />
+                <BaseButton
+                  variant="ghost"
+                  :icon="Trash2"
+                  @click="handleDeleteCourse(course.id)"
+                />
+              </div>
             </div>
-          </div>
+          </template>
         </div>
       </div>
 
@@ -751,7 +752,7 @@ onMounted(() => {
         <p class="text-base/relaxed text-on-ghost-muted m-0 mb-5">
           {{ t('groups.settings.subjects.delete_modal.message') }}
         </p>
-        <BaseButton type="button" variant="danger" @click="handleDelete">
+        <BaseButton form type="button" variant="danger" @click="handleDelete">
           {{ t('common.buttons.delete') }}
         </BaseButton>
       </div>

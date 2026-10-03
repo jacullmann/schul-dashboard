@@ -137,7 +137,7 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
           <BaseButton
             v-if="showHeaderActions"
             type="submit"
-            :form="formId"
+            :form-id="formId"
             :variant="danger ? 'danger' : 'action'"
             :icon="Check"
             :loading="loading"

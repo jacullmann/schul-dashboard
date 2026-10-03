@@ -508,10 +508,12 @@ async function confirmDeleteGroup() {
 
         <BaseRow
           v-if="canEditGroupType"
+          stack-on-mobile
           justify="end"
           class="w-full mt-2 gap-2"
         >
           <BaseButton
+            form
             variant="ghost"
             :disabled="!groupTypeChanged || savingGroupType"
             @click="groupTypeInput = activeGroupType"
@@ -519,6 +521,7 @@ async function confirmDeleteGroup() {
             {{ t('common.buttons.cancel') }}
           </BaseButton>
           <BaseButton
+            form
             variant="action"
             :disabled="!groupTypeChanged || savingGroupType"
             @click="confirmGroupTypeChange"
@@ -549,10 +552,12 @@ async function confirmDeleteGroup() {
 
         <BaseRow
           v-if="canEditGroupType"
+          stack-on-mobile
           justify="end"
           class="w-full mt-2 gap-2"
         >
           <BaseButton
+            form
             variant="ghost"
             :disabled="!daltonChanged || savingDaltonEnabled"
             @click="daltonInput = activeGroupDaltonEnabled"
@@ -560,6 +565,7 @@ async function confirmDeleteGroup() {
             {{ t('common.buttons.cancel') }}
           </BaseButton>
           <BaseButton
+            form
             variant="action"
             :disabled="!daltonChanged || savingDaltonEnabled"
             @click="confirmDaltonChange"
@@ -583,6 +589,7 @@ async function confirmDeleteGroup() {
       </p>
 
       <BaseButton
+        form
         variant="danger"
         :icon="Trash2"
         @click="deleteModalOpen = true"

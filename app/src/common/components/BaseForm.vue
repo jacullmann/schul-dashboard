@@ -51,7 +51,7 @@ withDefaults(
         type="button"
         surface
         variant="ghost"
-        class="max-md:w-full"
+        form
         @click="cancel"
       >
         <slot name="cancel-text">
@@ -66,7 +66,7 @@ withDefaults(
         :full="!cancel"
         :loading="loading"
         :disabled="loading || !requirement"
-        class="max-md:w-full"
+        form
       >
         <slot name="action-text">
           {{ t('common.buttons.confirm') }}
