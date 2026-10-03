@@ -25,10 +25,27 @@ withDefaults(
     :class="$slots.icon ? '' : 'md:pl-6'"
     :disabled="disabled"
   >
-    <slot name="icon"></slot>
+    <span
+      v-if="$slots.icon"
+      class="flex items-center justify-center"
+      :class="$slots.desc ? 'size-10' : 'w-9 h-5'"
+    >
+      <slot name="icon"></slot>
+    </span>
 
-    <span class="flex flex-col flex-1">
-      <slot name="label"></slot>
+    <span class="flex flex-col flex-1 gap-1">
+      <span
+        class="text-on-ghost text-base/5 truncate"
+        :class="$slots.desc ? 'font-semibold' : 'font-normal'"
+      >
+        <slot name="label"></slot>
+      </span>
+      <span
+        v-if="$slots.desc"
+        class="text-on-ghost-muted text-sm/4 font-normal"
+      >
+        <slot name="desc"></slot>
+      </span>
     </span>
 
     <ChevronRight v-if="chevron" :size="20" class="text-on-ghost-muted" />
@@ -39,7 +56,13 @@ withDefaults(
   <div
     v-if="separator"
     v-bind="$attrs"
-    class="border-b border-ghost-border"
-    :class="$slots.icon ? 'ml-18 md:ml-15 mr-6' : 'mx-6'"
+    class="border-b border-ghost-border mr-6"
+    :class="
+      $slots.icon
+        ? $slots.desc
+          ? 'ml-18 md:ml-15.5'
+          : 'ml-17 md:ml-14.5'
+        : 'ml-6'
+    "
   ></div>
 </template>

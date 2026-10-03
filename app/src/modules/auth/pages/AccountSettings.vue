@@ -140,15 +140,12 @@ function goBack() {
               <template #icon>
                 <component
                   :is="item.icon"
-                  :size="24"
+                  :size="20"
                   :stroke-width="1.8"
-                  class="mx-2"
                 />
               </template>
               <template #label>
-                <div class="text-on-ghost text-base font-normal">
-                  {{ item.label }}
-                </div>
+                {{ item.label }}
               </template>
             </BaseList>
 

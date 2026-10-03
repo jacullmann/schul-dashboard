@@ -381,12 +381,9 @@ onMounted(() => {
           :separator="index !== subjects.length - 1"
           @click="goToSubject(sub.id)"
         >
-          <template #label>
-            <span
-              class="font-medium text-base/relaxed text-on-ghost truncate"
-              >{{ subjectLabel(sub.name, t, i18n.te) }}</span
-            >
-            <span class="font-normal text-sm text-on-ghost-muted">{{
+          <template #label>{{ subjectLabel(sub.name, t, i18n.te) }}</template>
+          <template #desc>
+            {{
               categoryLabel(sub.category || '') +
               (subjectHasCourses(sub.category)
                 ? `, ${coursesCountLabel(sub.courses?.length ?? 0)}`
@@ -394,7 +391,7 @@ onMounted(() => {
               (activeGroupDaltonEnabled && sub.isDalton
                 ? `, ${t('groups.settings.subjects.dalton_badge')}`
                 : '')
-            }}</span>
+            }}
           </template>
         </BaseList>
       </div>

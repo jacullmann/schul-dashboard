@@ -186,23 +186,19 @@ function confirmRemove() {
     >
       <BaseList @click="goToInvites">
         <template #icon>
-          <UserRoundPlus :size="24" :stroke-width="1.8" class="mx-2" />
+          <UserRoundPlus :size="20" :stroke-width="1.8" />
         </template>
         <template #label>
-          <div class="text-on-ghost text-base font-normal">
-            {{ t('groups.settings.members.invite_links.title') }}
-          </div>
+          {{ t('groups.settings.members.invite_links.title') }}
         </template>
       </BaseList>
 
       <BaseList :separator="false" @click="goToBanned">
         <template #icon>
-          <Ban :size="24" :stroke-width="1.8" class="mx-2" />
+          <Ban :size="20" :stroke-width="1.8" />
         </template>
         <template #label>
-          <div class="text-on-ghost text-base font-normal">
-            {{ t('groups.settings.members.ban_list.title') }}
-          </div>
+          {{ t('groups.settings.members.ban_list.title') }}
         </template>
       </BaseList>
     </div>

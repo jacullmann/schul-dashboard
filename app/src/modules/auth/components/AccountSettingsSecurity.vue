@@ -48,49 +48,41 @@ onMounted(async () => {
   <div v-if="!subTab" class="flex flex-col max-w-200 mx-auto max-md:-mx-6">
     <BaseList @click="emit('changePassword')">
       <template #icon>
-        <KeyRound :size="24" :stroke-width="1.8" class="mx-2" />
+        <KeyRound :size="20" :stroke-width="1.8" />
       </template>
       <template #label>
-        <div class="text-on-ghost text-base font-normal">
-          {{
-            hasPassword
-              ? t('auth.change_password.title')
-              : t('auth.set_password.title')
-          }}
-        </div>
+        {{
+          hasPassword
+            ? t('auth.change_password.title')
+            : t('auth.set_password.title')
+        }}
       </template>
     </BaseList>
 
     <BaseList @click="openSubTab('two-factor')">
       <template #icon>
-        <ShieldCheck :size="24" :stroke-width="1.8" class="mx-2" />
+        <ShieldCheck :size="20" :stroke-width="1.8" />
       </template>
       <template #label>
-        <div class="text-on-ghost text-base font-normal">
-          {{ t('auth.security.2fa') }}
-        </div>
+        {{ t('auth.security.2fa') }}
       </template>
     </BaseList>
 
     <BaseList @click="openSubTab('connected-accounts')">
       <template #icon>
-        <Link2 :size="24" :stroke-width="1.8" class="mx-2" />
+        <Link2 :size="20" :stroke-width="1.8" />
       </template>
       <template #label>
-        <div class="text-on-ghost text-base font-normal">
-          {{ t('auth.account_settings.connected_accounts.title') }}
-        </div>
+        {{ t('auth.account_settings.connected_accounts.title') }}
       </template>
     </BaseList>
 
     <BaseList :separator="false" @click="openSubTab('sessions')">
       <template #icon>
-        <MonitorSmartphone :size="24" :stroke-width="1.8" class="mx-2" />
+        <MonitorSmartphone :size="20" :stroke-width="1.8" />
       </template>
       <template #label>
-        <div class="text-on-ghost text-base font-normal">
-          {{ t('auth.sessions.title') }}
-        </div>
+        {{ t('auth.sessions.title') }}
       </template>
     </BaseList>
   </div>

@@ -149,16 +149,9 @@ const GROUPS_LIST_ENTRANCE_ORDER = 2;
               />
             </template>
 
-            <template #label>
-              <span class="flex items-center gap-1.5 overflow-hidden">
-                <span class="font-semibold text-base text-on-ghost truncate">
-                  {{ group.name }}
-                </span>
-              </span>
-              <span class="font-normal text-sm text-on-ghost-muted">
-                {{ roleLabel(group.role) }}
-              </span>
-            </template>
+            <template #label>{{ group.name }}</template>
+
+            <template #desc>{{ roleLabel(group.role) }}</template>
           </BaseList>
         </div>
       </div>
