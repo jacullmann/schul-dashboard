@@ -39,7 +39,6 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'toggle-check'): void;
-  (e: 'toggle-pin'): void;
   (e: 'swipe'): void;
   (e: 'menu-action', action: TaskMenuAction): void;
   (e: 'open-menu'): void;
@@ -167,7 +166,7 @@ function runSecondarySwipeAction(event: MouseEvent) {
     <div
       ref="card"
       v-wave
-      class="item-card relative bg-canvas border-ghost-border p-1 cursor-default touch-pan-y outline-2 transition-[outline-color,background-color] duration-(--duration-focus) ease-(--ease-focus) [@media(hover:hover)]:has-[.item-card-link:hover]:bg-ghost-hover has-[.item-card-link:active]:bg-ghost-hover has-[.item-card-link:focus-visible]:shadow-focus-ring"
+      class="item-card group/task relative bg-canvas border-ghost-border p-1 cursor-default touch-pan-y outline-2 transition-[outline-color,background-color] duration-(--duration-hover) ease-(--ease-hover) [@media(hover:hover)]:has-[.item-card-link:hover]:bg-ghost-hover has-[.item-card-link:active]:bg-ghost-hover has-[.item-card-link:focus-visible]:shadow-focus-ring"
       :class="[
         isDragOver ? 'outline-accent' : 'outline-transparent',
         isRevealed ? 'rounded-xl bg-ghost-hover' : 'rounded-none md:rounded-xl',
@@ -187,9 +186,9 @@ function runSecondarySwipeAction(event: MouseEvent) {
             />
           </span>
           <div class="flex flex-col gap-1 flex-1 min-w-0">
-            <div class="flex justify-between">
+            <div class="flex items-center gap-2">
               <h3
-                class="min-w-0 text-lg/6! overflow-hidden text-ellipsis whitespace-nowrap -my-0.75!"
+                class="flex-1 min-w-0 text-lg/6! overflow-hidden text-ellipsis whitespace-nowrap -my-0.75!"
                 :title="item.title"
               >
                 <RouterLink
@@ -200,46 +199,37 @@ function runSecondarySwipeAction(event: MouseEvent) {
               </h3>
 
               <Pin
-                v-if="isPinned && isMobile"
+                v-if="isPinned"
                 :size="18"
-                class="text-on-ghost-muted fill-current"
+                class="shrink-0 text-on-ghost-muted fill-current"
                 aria-hidden="true"
+              />
+
+              <!-- Pulled into the title's line box so the row keeps its height.
+                   Collapsed rather than display:none, so it stays focusable. -->
+              <BaseButton
+                v-if="!isMobile"
+                variant="ghost"
+                size="sm"
+                class="z-10 -my-2 -mr-2"
+                :class="
+                  !isMenuOpen && [
+                    '[@media(hover:hover)]:not-group-hover/task:not-focus-visible:w-0',
+                    '[@media(hover:hover)]:not-group-hover/task:not-focus-visible:px-0',
+                    '[@media(hover:hover)]:not-group-hover/task:not-focus-visible:-ml-2',
+                    '[@media(hover:hover)]:not-group-hover/task:not-focus-visible:mr-0',
+                    '[@media(hover:hover)]:not-group-hover/task:not-focus-visible:overflow-hidden',
+                    '[@media(hover:hover)]:not-group-hover/task:not-focus-visible:opacity-0',
+                  ]
+                "
+                :aria-label="t('common.more')"
+                :icon="Ellipsis"
+                @click.stop="handleMenuClick"
               />
             </div>
 
             <TaskMeta :item="item" :show-type="showType" />
           </div>
-        </div>
-
-        <div v-if="!isMobile" class="relative z-10 flex items-start gap-2">
-          <BaseTooltip
-            v-if="isPinned && !isMobile"
-            :content="t('tasks.list.tasks.menu.unpin')"
-            placement="bottom"
-          >
-            <BaseButton
-              variant="ghost"
-              size="sm"
-              :aria-label="t('tasks.list.tasks.menu.unpin')"
-              :icon="Pin"
-              icon-classes="fill-current"
-              @click.stop="$emit('toggle-pin')"
-            />
-          </BaseTooltip>
-
-          <BaseTooltip
-            v-if="!isMobile"
-            :content="t('common.more')"
-            placement="bottom"
-          >
-            <BaseButton
-              variant="ghost"
-              size="sm"
-              :aria-label="t('common.more')"
-              :icon="Ellipsis"
-              @click.stop="handleMenuClick"
-            />
-          </BaseTooltip>
         </div>
 
         <TaskMenu

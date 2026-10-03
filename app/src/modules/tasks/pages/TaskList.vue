@@ -79,7 +79,6 @@ const {
   isChecked,
   toggleCheck,
   isPinned,
-  togglePin,
   triggerImageDrop,
   subjectOptions,
   resetFilters,
@@ -339,7 +338,6 @@ onDeactivated(() => {
             :can-add-note="canManageNotes && !item.editorNote"
             :can-delete="canDelete(item)"
             @toggle-check="toggleCheck(item)"
-            @toggle-pin="togglePin(item)"
             @swipe="archiveItem(item)"
             @menu-action="(action) => onMenuAction(action, item)"
             @open-menu="openMenuId = item.id"

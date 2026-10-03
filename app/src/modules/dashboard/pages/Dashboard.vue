@@ -67,7 +67,6 @@ const {
   isChecked,
   toggleCheck,
   isPinned,
-  togglePin,
   triggerImageDrop,
 } = provideTasks({
   tab: 'all',
@@ -339,7 +338,6 @@ const {
                   :can-add-note="canManageNotes && !task.editorNote"
                   :can-delete="canDelete(task)"
                   @toggle-check="toggleCheck(task)"
-                  @toggle-pin="togglePin(task)"
                   @swipe="archiveItem(task)"
                   @menu-action="(action) => onMenuAction(action, task)"
                   @open-menu="openMenuId = task.id"
