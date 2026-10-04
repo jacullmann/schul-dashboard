@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, inject, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter, type RouteLocationRaw } from 'vue-router';
 import { useSubjectStore } from '@/stores/subjectStore';
@@ -14,6 +14,7 @@ import { apiErrorMessage } from '@/api/errors';
 import { entranceDelay } from '@/modules/tasks/utils/entrance';
 import CourseLevelPicker from '@/modules/auth/components/CourseLevelPicker.vue';
 import CourseSetupSchedule from '@/modules/auth/components/CourseSetupSchedule.vue';
+import { SCROLL_LAYOUT_TO_TOP } from '@/layouts/SimpleLayout.vue';
 
 const DESCRIPTION_ENTRANCE_ORDER = 1;
 const CONTENT_ENTRANCE_ORDER = 2;
@@ -25,6 +26,9 @@ const router = useRouter();
 const groupId = useGroupPageId();
 const subjectStore = useSubjectStore();
 const userStore = useUserStore();
+const scrollLayoutToTop = inject(SCROLL_LAYOUT_TO_TOP, () =>
+  window.scrollTo({ top: 0, behavior: 'instant' }),
+);
 
 const {
   selections,
@@ -151,6 +155,7 @@ async function saveAndFinish(courses: Enrollment[]) {
 async function showLessonStep() {
   error.value = '';
   step.value = 'lessons';
+  scrollLayoutToTop();
   try {
     await loadLessons();
   } catch (e: unknown) {

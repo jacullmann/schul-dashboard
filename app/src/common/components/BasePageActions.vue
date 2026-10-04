@@ -32,9 +32,12 @@ const isMobile = useIsMobileViewport();
     class="relative z-10 flex flex-col gap-2 w-full max-md:sticky max-md:bottom-0 max-md:-mb-6 max-md:pt-6 max-md:pb-2"
   >
     <!-- Spans the screen however wide the gutters; flipped, so the content
-         fades out towards the scroller's edge. -->
+         fades out towards the scroller's edge. The flip turns its bleed
+         downwards, so it stops short by that much to end on the scroller's
+         edge instead of overflowing it, which left the page a few pixels to
+         scroll. -->
     <BaseScrollFade
-      class="hidden max-md:block inset-x-[calc(50%-50vw)] -top-4 bottom-0 -scale-y-100"
+      class="hidden max-md:block inset-x-[calc(50%-50vw)] -top-4 bottom-(--scroll-fade-bleed) -scale-y-100"
     />
     <slot></slot>
 

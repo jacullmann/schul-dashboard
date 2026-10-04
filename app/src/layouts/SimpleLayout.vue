@@ -1,11 +1,24 @@
+<script lang="ts">
+import type { InjectionKey } from 'vue';
+
+/** Scrolls a page in SimpleLayout back to its top, whichever element scrolls it. */
+export const SCROLL_LAYOUT_TO_TOP: InjectionKey<() => void> =
+  Symbol('scrollLayoutToTop');
+</script>
+
 <script setup lang="ts">
-import { computed, useTemplateRef } from 'vue';
+import { computed, provide, useTemplateRef } from 'vue';
 import { useScroll } from '@vueuse/core';
 import { PAGE_SECONDARY_ACTIONS_ID } from '@/common/components/BasePageActions.vue';
 
 const scroller = useTemplateRef('scroller');
 const { y: scrollY } = useScroll(scroller);
 const isScrolled = computed(() => scrollY.value > 0);
+
+provide(SCROLL_LAYOUT_TO_TOP, () => {
+  scroller.value?.scrollTo({ top: 0, behavior: 'instant' });
+  window.scrollTo({ top: 0, behavior: 'instant' });
+});
 </script>
 
 <template>
