@@ -15,13 +15,14 @@ import { apiErrorMessage } from '@/api/errors';
 import { entranceDelay } from '@/modules/tasks/utils/entrance';
 import CourseLevelPicker from '@/modules/auth/components/CourseLevelPicker.vue';
 import CourseSetupSchedule from '@/modules/auth/components/CourseSetupSchedule.vue';
+import CourseSetupStatus from '@/modules/auth/components/CourseSetupStatus.vue';
 import { SCROLL_LAYOUT_TO_TOP } from '@/layouts/SimpleLayout.vue';
 
 const DESCRIPTION_ENTRANCE_ORDER = 1;
 const CONTENT_ENTRANCE_ORDER = 2;
 const ACTIONS_ENTRANCE_ORDER = 3;
 
-const { t, locale } = useI18n();
+const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const groupId = useGroupPageId();
@@ -128,15 +129,9 @@ const submitLabel = computed(() =>
     : t('common.buttons.save'),
 );
 
-const openSubjectsHint = computed(() => {
-  if (openSubjects.value.length === 0) return t('auth.courses.all_settled');
-  const names = openSubjects.value.map((subject) =>
-    translatedName(subject.name),
-  );
-  return t('auth.courses.open_subjects', {
-    subjects: new Intl.ListFormat(locale.value).format(names),
-  });
-});
+const openSubjectNames = computed(() =>
+  openSubjects.value.map((subject) => translatedName(subject.name)),
+);
 
 // Skipping leaves the member without courses, so "only mine" would hide everything.
 async function saveAndFinish(courses: Enrollment[], personalized: boolean) {
@@ -231,6 +226,7 @@ function goBack() {
         :style="{ '--enter-delay': entranceDelay(CONTENT_ENTRANCE_ORDER) }"
       >
         <div v-if="isLessonStep" class="flex flex-col gap-4">
+          <CourseSetupStatus :open-subject-names="openSubjectNames" />
           <CourseSetupSchedule
             :lessons="setupLessons"
             :config="scheduleConfig"
@@ -238,12 +234,6 @@ function goBack() {
             :can-toggle="canToggleCourse"
             @toggle="toggleCourse"
           />
-          <p
-            class="text-sm text-center text-on-ghost-muted m-0!"
-            aria-live="polite"
-          >
-            {{ openSubjectsHint }}
-          </p>
         </div>
 
         <CourseLevelPicker
