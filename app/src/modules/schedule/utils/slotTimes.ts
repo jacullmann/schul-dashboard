@@ -13,9 +13,9 @@ import {
 /** What a group without a configured schedule gets. */
 export const DEFAULT_SCHEDULE_CONFIG: Readonly<ScheduleConfig> = {
   startTime: DEFAULT_START_TIME,
-  totalSlots: 9,
+  totalSlots: 8,
   lessonDurationMins: 45,
-  breaks: { 2: 25, 3: 5, 5: 40, 7: 10 },
+  breaks: {},
 };
 
 export function scheduleConfigOrDefault(
