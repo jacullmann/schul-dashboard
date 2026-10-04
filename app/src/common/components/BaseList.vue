@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 import { ChevronRight, ChevronsUpDown } from '@lucide/vue';
 import { useFloatingMenu } from '@/common/composables/useFloatingMenu';
 import type { UnitOption } from '@/common/components/BaseSelect.vue';
+import { haptic } from '@/utils/haptics';
 
 const { t } = useI18n();
 
@@ -79,7 +80,10 @@ function keepMenuForToggle(event: PointerEvent) {
 
 function handleClick() {
   if (props.select) toggleMenu();
-  else if (props.toggle) emit('update:checked', !props.checked);
+  else if (props.toggle) {
+    emit('update:checked', !props.checked);
+    haptic();
+  }
 }
 
 function selectOption(value: string) {
