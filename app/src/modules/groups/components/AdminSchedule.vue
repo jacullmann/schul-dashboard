@@ -174,7 +174,7 @@ const entranceStyle = (
         v-for="{ key, lessons: group } in lessonGroupsOf(day)"
         :key="key"
         :group="group"
-        is-clickable
+        :is-clickable="isEditable"
         :has-context-menu="isEditable"
         :selected-lesson-ids="selectedLessonIds"
         :animated="cellsAnimated"

@@ -7,9 +7,7 @@ import { apiErrorMessage } from '@/api/errors';
 import { useToast } from '@/common/composables/useToast';
 import { useGroupPageId } from '@/core/composables/useGroupPageId';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
-import type { ScheduleSubstitution } from '@/modules/groups/types';
 import type { Lesson, ScheduleConfig } from '@/modules/schedule/types';
-import { useConfirmModal } from '@/stores/modalStore';
 import { isUuid } from '@/utils/uuid';
 
 interface ScheduleLessonPayload {
@@ -40,21 +38,16 @@ function scheduleLessonPayload(lesson: Lesson): ScheduleLessonPayload {
   };
 }
 
-/** The group's weekly schedule and its substitutions, as admins edit them. */
+/** The group's weekly schedule, as admins edit it. */
 export function useGroupScheduleAdmin() {
   const groupId = useGroupPageId();
   const { t } = useI18n();
   const toast = useToast();
-  const confirmModal = useConfirmModal();
   const { checkAuthStatus, activeGroupDaltonEnabled } = useAppAuth();
 
   const lessons = ref<Lesson[]>([]);
   const loadingLessons = ref(false);
   const savingScheduleConfig = ref(false);
-
-  const subs = ref<ScheduleSubstitution[]>([]);
-  const loadingSubs = ref(false);
-  const savingSub = ref(false);
 
   async function loadSchedule() {
     loadingLessons.value = true;
@@ -67,20 +60,6 @@ export function useGroupScheduleAdmin() {
       toast.error(t('groups.settings.messages.load_schedule_failed'));
     } finally {
       loadingLessons.value = false;
-    }
-  }
-
-  async function loadSubs() {
-    loadingSubs.value = true;
-    try {
-      const { data } = await api.get<ScheduleSubstitution[]>(
-        groupPath(groupId, '/admin/schedule/subs'),
-      );
-      subs.value = data;
-    } catch {
-      toast.error(t('groups.settings.messages.load_substitutions_failed'));
-    } finally {
-      loadingSubs.value = false;
     }
   }
 
@@ -113,59 +92,16 @@ export function useGroupScheduleAdmin() {
     }
   }
 
-  async function saveSub(subData: Record<string, unknown>): Promise<boolean> {
-    if (!subData.lessonId) return false;
-    savingSub.value = true;
-    try {
-      await api.post(groupPath(groupId, '/admin/schedule/subs'), subData);
-      await loadSubs();
-      toast.success(t('groups.settings.messages.substitution_saved'));
-      return true;
-    } catch {
-      toast.error(t('groups.settings.messages.substitution_save_failed'));
-      return false;
-    } finally {
-      savingSub.value = false;
-    }
-  }
-
-  async function deleteSub(id: string) {
-    const isConfirmed = await confirmModal.ask({
-      title: t('groups.settings.schedule.changes.delete_modal.title'),
-      content: t('groups.settings.schedule.changes.delete_modal.message'),
-      submitText: t('common.buttons.delete'),
-      danger: true,
-    });
-    if (!isConfirmed) return;
-
-    try {
-      await api.delete(groupPath(groupId, `/admin/schedule/subs/${id}`));
-      subs.value = subs.value.filter((s) => s.id !== id);
-      toast.success(t('groups.settings.messages.substitution_deleted'));
-    } catch {
-      toast.error(t('groups.settings.messages.substitution_delete_failed'));
-    }
-  }
-
   // Turning Dalton off deletes its lessons on the server, so the schedule
   // handed to the editor has to be fetched again.
   watch(activeGroupDaltonEnabled, () => void loadSchedule());
 
-  onMounted(() => {
-    void loadSchedule();
-    void loadSubs();
-  });
+  onMounted(loadSchedule);
 
   return {
     lessons,
     loadingLessons,
     savingScheduleConfig,
     saveScheduleBatch,
-    subs,
-    loadingSubs,
-    savingSub,
-    loadSubs,
-    saveSub,
-    deleteSub,
   };
 }

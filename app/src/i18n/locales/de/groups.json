@@ -264,6 +264,9 @@
         "title": "Stundenplaneinstellungen"
       },
       "config": {
+        "title": "Plan-Einstellungen",
+        "edit_button": "Plan-Einstellungen bearbeiten",
+        "break_summary": "Nach Stunde {slot}: {minutes} Min.",
         "lesson_duration_label": "Stundenlänge (Minuten)",
         "after_lesson_label": "Nach Stunde",
         "save_button": "Einstellungen speichern",
@@ -274,6 +277,9 @@
         "breaks_title": "Pausen",
         "no_breaks": "Keine Pausen konfiguriert.",
         "break_duration_label": "Dauer (Minuten)"
+      },
+      "lessons": {
+        "title": "Stunden"
       },
       "changes": {
         "tooltip": "Übersicht des Stundenplanänderungsmenüs",
@@ -311,14 +317,12 @@
           "room": "Raum",
           "day": "Tag",
           "slot": "Slot"
-        },
-        "list_title": "Eingetragene Planänderungen"
+        }
       },
       "editor": {
-        "edit_schedule_button": "Stundenplan bearbeiten",
+        "edit_schedule_button": "Stunden bearbeiten",
         "title": "Editor",
         "exit_button": "Fertig",
-        "plan_config_title": "Plan-Einstellungen",
         "grid_title": "Unterrichtsstunden",
         "add_lesson_title": "Neue Stunde hinzufügen",
         "edit_lesson_title": "Stunde bearbeiten",

@@ -263,6 +263,9 @@
         "title": "Schedule Settings"
       },
       "config": {
+        "title": "Schedule Settings",
+        "edit_button": "Edit schedule settings",
+        "break_summary": "After lesson {slot}: {minutes} min",
         "lesson_duration_label": "Lesson Duration (minutes)",
         "after_lesson_label": "After lesson",
         "save_button": "Save settings",
@@ -273,6 +276,9 @@
         "breaks_title": "Breaks",
         "no_breaks": "No breaks configured.",
         "break_duration_label": "Duration (minutes)"
+      },
+      "lessons": {
+        "title": "Lessons"
       },
       "changes": {
         "tooltip": "Overview of the schedule changes menu",
@@ -310,14 +316,12 @@
           "room": "Room",
           "day": "Day",
           "slot": "Slot"
-        },
-        "list_title": "Scheduled changes"
+        }
       },
       "editor": {
-        "edit_schedule_button": "Edit Schedule",
+        "edit_schedule_button": "Edit lessons",
         "title": "Editor",
         "exit_button": "Done",
-        "plan_config_title": "Schedule Settings",
         "grid_title": "Lessons",
         "add_lesson_title": "Add New Lesson",
         "edit_lesson_title": "Edit Lesson",

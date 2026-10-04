@@ -52,6 +52,17 @@ export function courseTypeHint(
   return courseType && te(key) ? t(key) : undefined;
 }
 
+/** A course as a picker lists it, with its type when it has one. */
+export function courseOptionLabel(
+  course: { name: string; courseType?: CourseType | null },
+  t: Translate,
+  te: TranslationExists,
+): string {
+  const label = courseLabel(course.name, t, te);
+  const typeHint = courseTypeHint(course.courseType, t, te);
+  return typeHint ? `${label} (${typeHint})` : label;
+}
+
 export function formatSubjectDisplay(
   subjectName: string,
   courseName: string | null | undefined,

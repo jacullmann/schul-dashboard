@@ -499,6 +499,7 @@ export function useSchedule() {
     formatDayInitials,
     lessons,
     substitutions,
+    loadSubstitutions,
     effectiveLessons,
   };
 }

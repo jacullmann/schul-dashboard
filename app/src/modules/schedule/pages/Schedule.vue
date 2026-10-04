@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 import { useIsPhoneViewport } from '@/common/composables/useViewport';
 import { useDismissibleNotice } from '@/common/composables/useDismissibleNotice';
 import { useSchedule } from '@/modules/schedule/composables/useSchedule';
+import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useScheduleDayPager } from '@/modules/schedule/composables/useScheduleDayPager';
 import type {
   Lesson,
@@ -26,6 +27,7 @@ import ScheduleGrid from '../components/ScheduleGrid.vue';
 import ScheduleBreakDivider from '../components/ScheduleBreakDivider.vue';
 import ScheduleLessonGroup from '../components/ScheduleLessonGroup.vue';
 import ScheduleCellSkeleton from '../components/ScheduleCellSkeleton.vue';
+import ScheduleChangeModal from '../components/ScheduleChangeModal.vue';
 
 const {
   isPersonalized,
@@ -46,6 +48,8 @@ const {
   formatDayHeading,
   formatColumnHeading,
   formatDayInitials,
+  lessons: scheduledLessons,
+  loadSubstitutions,
 } = useSchedule();
 
 const { t } = useI18n();
@@ -191,6 +195,28 @@ const lessonGroupsOfDay = computed<ReadonlyMap<number, LessonGroup[]>>(() =>
 
 const lessonGroupsOf = (day: number) => lessonGroupsOfDay.value.get(day) ?? [];
 
+const { checkPermission } = useAppAuth();
+const canManageScheduleChanges = computed(() =>
+  checkPermission('manage_schedule_changes'),
+);
+
+const changedLesson = ref<Lesson | null>(null);
+
+/*
+ * A change targets the lesson as the weekly schedule holds it, not the copy
+ * split off for the member's own course or already showing earlier changes.
+ */
+function openChangeModal(lesson: Lesson) {
+  const scheduledId = lesson._originalId ?? lesson.id;
+  changedLesson.value =
+    scheduledLessons.value.find(({ id }) => id === scheduledId) ?? null;
+}
+
+function onChangeSaved() {
+  changedLesson.value = null;
+  void loadSubstitutions();
+}
+
 const personalizedNotice = useDismissibleNotice('personalizedSchedule');
 
 const showPersonalizedNotice = computed(
@@ -279,12 +305,21 @@ watch(
           :is-active="key === activeOrNextGroupKey"
           :animated="animated"
           :get-display-name="getDisplayName"
+          :is-clickable="canManageScheduleChanges"
           :style="[
             layout.groupStyle(lessons, column),
             lessonEntranceStyle(lessons, column, layout),
           ]"
+          @select-lesson="openChangeModal"
         />
       </template>
     </ScheduleGrid>
+
+    <ScheduleChangeModal
+      v-if="canManageScheduleChanges"
+      :lesson="changedLesson"
+      @close="changedLesson = null"
+      @saved="onChangeSaved"
+    />
   </div>
 </template>
