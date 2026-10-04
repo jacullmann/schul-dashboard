@@ -47,55 +47,42 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="card w-full max-w-150">
-    <div
-      class="flex flex-col items-center text-center py-10 px-5 max-md:py-5 max-md:px-2.5"
-    >
-      <div
-        v-if="loading"
-        class="size-16 mb-6 rounded-full border-4 border-ghost-border border-t-primary animate-spin max-[500px]:size-13 max-[500px]:mb-5"
-      />
-      <CheckCircle2
-        v-else-if="ok"
-        class="size-16 mb-6 text-success max-[500px]:size-13 max-[500px]:mb-5"
-      />
-      <XCircle
-        v-else
-        class="size-16 mb-6 text-danger max-[500px]:size-13 max-[500px]:mb-5"
-      />
+  <div class="w-full max-w-120">
+    <div class="flex flex-col items-center text-center">
+      <BaseSpinner v-if="loading" size="64px" border-thickness="6px" />
+      <CheckCircle2 v-else-if="ok" class="size-16 text-success" />
+      <XCircle v-else class="size-16 text-danger" />
 
-      <h1
-        class="font-display text-[32px] font-semibold leading-[1.2] text-on-ghost mb-4 max-md:text-[26px] max-[500px]:text-2xl"
-      >
+      <h1 class="text-center! leading-[1.2] mt-6! mb-2!">
         {{ heading.title }}
       </h1>
-      <p
-        class="text-base leading-normal text-on-ghost-muted max-w-120 mb-8 max-md:text-[15px] max-md:mb-6 max-[500px]:text-sm"
-      >
+      <div class="text-base leading-normal text-on-ghost-muted mb-8">
         {{ heading.description }}
-      </p>
+      </div>
 
       <div
         v-if="!loading && ok"
-        class="flex items-start gap-3 w-full max-w-120 p-4 text-left bg-success/10 border border-success/30 rounded-md max-md:max-w-full max-[500px]:p-3.5"
+        class="flex items-start gap-2 w-full p-3 text-left bg-success-hover border border-success rounded-xl"
       >
-        <Info :size="20" class="shrink-0 mt-0.5 text-success" />
-        <p class="text-sm leading-normal text-on-ghost">
+        <Info :size="20" class="shrink-0 text-success" />
+        <div class="text-sm leading-normal text-on-ghost">
           {{ t('auth.verify_email.close_tab') }}
-        </p>
+        </div>
       </div>
 
       <template v-else-if="!loading">
         <div
-          class="w-full max-w-120 p-5 mb-6 text-left bg-danger/8 border border-danger/25 rounded-md max-md:max-w-full max-[500px]:p-4"
+          class="w-full p-3 text-left bg-danger-hover border border-danger rounded-xl"
         >
-          <div
-            class="flex items-center gap-2 mb-3 text-[15px] font-semibold text-danger"
-          >
+          <div class="flex gap-2 mb-2 text-danger">
             <AlertTriangle :size="20" />
-            <span>{{ t('auth.verify_email.possible_causes') }}</span>
+            <span class="text-base/5 font-semibold">{{
+              t('auth.verify_email.possible_causes')
+            }}</span>
           </div>
-          <ul class="pl-6 space-y-1 text-sm leading-[1.8] text-on-ghost-muted">
+          <ul
+            class="flex flex-col gap-2 pl-5 list-disc text-sm text-on-ghost marker:text-danger"
+          >
             <li>{{ t('auth.verify_email.causes.used_link') }}</li>
             <li>{{ t('auth.verify_email.causes.expired_link') }}</li>
             <li>{{ t('auth.verify_email.causes.copied_link') }}</li>
@@ -103,7 +90,7 @@ onMounted(async () => {
         </div>
 
         <BaseButton
-          class="mt-2"
+          class="mt-4"
           variant="ghost"
           :icon="ArrowLeft"
           @click="$router.push({ name: 'groups' })"
