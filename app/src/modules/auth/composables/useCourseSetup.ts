@@ -17,6 +17,7 @@ import {
   type CourseCandidates,
   type CoursePicks,
 } from '@/modules/auth/utils/courseResolution';
+import { inScheduleOrder } from '@/modules/auth/utils/scheduleOrder';
 
 /**
  * An Abitur member's first course choice: a level per subject first, then the
@@ -161,10 +162,15 @@ export function useCourseSetup(groupId: string) {
 
   /** Subjects the member takes whose course is still undecided. */
   const openSubjects = computed(() =>
-    subjects.value.filter(
-      (subject) =>
-        candidates.value.has(subject.id) &&
-        !resolution.value.chosen.has(subject.id),
+    inScheduleOrder(
+      subjects.value.filter(
+        (subject) =>
+          candidates.value.has(subject.id) &&
+          !resolution.value.chosen.has(subject.id),
+      ),
+      candidates.value,
+      resolution.value.states,
+      lessons.value,
     ),
   );
 
