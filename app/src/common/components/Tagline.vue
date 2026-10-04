@@ -62,7 +62,7 @@ onMounted(() => {
     <span
       v-for="(char, index) in displayQuote"
       :key="index"
-      class="italic font-medium text-on-ghost-muted transition-[opacity,filter,transform] duration-250"
+      class="italic font-medium text-on-ghost-muted pr-1 -mr-1 transition-[opacity,filter,transform] duration-250"
       :class="isVisible ? 'opacity-100 blur-none' : 'opacity-0 blur-[3px]'"
       :style="{ transitionDelay: `${index * 6}ms` }"
     >

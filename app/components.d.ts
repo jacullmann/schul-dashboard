@@ -40,6 +40,7 @@ declare module 'vue' {
     BaseModalCard: typeof import('./src/common/components/BaseModalCard.vue')['default']
     BaseRow: typeof import('./src/common/components/BaseRow.vue')['default']
     BaseScrollFade: typeof import('./src/common/components/BaseScrollFade.vue')['default']
+    BaseSearchInput: typeof import('./src/common/components/BaseSearchInput.vue')['default']
     BaseSelect: typeof import('./src/common/components/BaseSelect.vue')['default']
     BaseSheet: typeof import('./src/common/components/BaseSheet.vue')['default']
     BaseSkeleton: typeof import('./src/common/components/BaseSkeleton.vue')['default']

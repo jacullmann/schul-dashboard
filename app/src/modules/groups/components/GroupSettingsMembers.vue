@@ -1,5 +1,11 @@
 <script setup lang="ts">
-import { RefreshCw, CircleMinus, UserRoundPlus, Ban } from '@lucide/vue';
+import {
+  RefreshCw,
+  CircleMinus,
+  UserRoundPlus,
+  Ban,
+  Search,
+} from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import { computed, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -12,6 +18,7 @@ import type {
 } from '@/modules/groups/types';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useUserStore } from '@/stores/userStore';
+import { rankByQuery } from '@/utils/search-rank';
 
 const { t, locale } = useI18n();
 const route = useRoute();
@@ -105,6 +112,14 @@ const memberCountLabel = computed(() =>
     : t('groups.settings.members.count_other', {
         count: props.members.length,
       }),
+);
+
+const searchQuery = ref('');
+const filteredMembers = computed(() =>
+  rankByQuery(props.members, searchQuery.value, (member) => [
+    { text: member.generatedName, weight: 1 },
+    { text: roleLabels.value[member.role], weight: 0.8 },
+  ]),
 );
 
 function isSelf(member: GroupMember): boolean {
@@ -250,11 +265,28 @@ function confirmRemove() {
     </div>
 
     <div v-else class="flex flex-col max-w-200 mx-auto">
+      <div class="mb-4">
+        <BaseSearchInput
+          id="group-member-search"
+          v-model="searchQuery"
+          :placeholder="t('groups.settings.members.search_placeholder')"
+        />
+      </div>
+
       <p class="text-on-ghost-muted text-sm mt-0! mb-2!">
         {{ memberCountLabel }}
       </p>
 
-      <template v-for="(member, index) in members" :key="member.userId">
+      <BaseEmptyState v-if="filteredMembers.length === 0" :icon="Search">
+        <template #title>{{
+          t('common.search_results.empty_title', { query: searchQuery.trim() })
+        }}</template>
+        <template #message>{{
+          t('common.search_results.empty_message')
+        }}</template>
+      </BaseEmptyState>
+
+      <template v-for="(member, index) in filteredMembers" :key="member.userId">
         <div
           v-if="index > 0"
           class="task-separator border-b border-ghost-border md:ml-14 md:mr-3"

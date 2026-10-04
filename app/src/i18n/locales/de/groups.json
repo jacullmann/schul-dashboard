@@ -104,6 +104,7 @@
       "count_one": "1 Mitglied in dieser Gruppe",
       "count_other": "{count} Mitglieder in dieser Gruppe",
       "you": "Du",
+      "search_placeholder": "Mitglieder suchen",
       "info": {
         "tooltip": "Übersicht des Mitgliedermenüs",
         "headline": "Verwalte Mitglieder deiner Gruppe",
@@ -356,6 +357,7 @@
     },
     "subjects": {
       "add_placeholder": "Neues Fach hinzufügen...",
+      "search_placeholder": "Fächer suchen",
       "create_title": "Neues Fach erstellen",
       "name_label": "Name",
       "custom_label": "Benutzerdefinierter Name",

@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, watch, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
-import { Plus, Pencil, Trash2 } from '@lucide/vue';
+import { Plus, Pencil, Trash2, Search } from '@lucide/vue';
 import { useSubjectAdmin } from '@/modules/groups/composables/useSubjectAdmin';
 import {
   CUSTOM_SUBJECT_OPTION,
@@ -27,6 +27,7 @@ import {
   type CourseType,
 } from '@/types/subjects';
 import type { AdminCourse } from '@/modules/groups/types';
+import { rankByQuery } from '@/utils/search-rank';
 
 const i18n = useI18n();
 const { t } = i18n;
@@ -107,6 +108,20 @@ function coursesCountLabel(count: number): string {
   if (count === 1) return t('groups.settings.subjects.courses_count_singular');
   return t('groups.settings.subjects.courses_count_plural', { count });
 }
+
+const translationExists = (key: string) => i18n.te(key);
+
+const searchQuery = ref('');
+const filteredSubjects = computed(() =>
+  rankByQuery(subjects.value, searchQuery.value, (sub) => [
+    { text: subjectLabel(sub.name, t, translationExists), weight: 1 },
+    { text: categoryLabel(sub.category || ''), weight: 0.6 },
+    ...(sub.courses ?? []).map((course) => ({
+      text: courseLabel(course.name, t, translationExists),
+      weight: 0.7,
+    })),
+  ]),
+);
 
 function courseTypeLabel(courseType: string): string {
   const key = `groups.settings.subjects.course_types.${courseType}`;
@@ -373,28 +388,49 @@ onMounted(() => {
         {{ t('groups.settings.subjects.list.empty') }}
       </div>
 
-      <div v-else class="flex flex-col max-w-200 mx-auto max-md:-mx-6">
-        <BaseList
-          v-for="(sub, index) in subjects"
-          :key="sub.id"
-          class="cursor-pointer"
-          :separator="index !== subjects.length - 1"
-          @click="goToSubject(sub.id)"
-        >
-          <template #label>{{ subjectLabel(sub.name, t, i18n.te) }}</template>
-          <template #desc>
-            {{
-              categoryLabel(sub.category || '') +
-              (subjectHasCourses(sub.category)
-                ? `, ${coursesCountLabel(sub.courses?.length ?? 0)}`
-                : '') +
-              (activeGroupDaltonEnabled && sub.isDalton
-                ? `, ${t('groups.settings.subjects.dalton_badge')}`
-                : '')
-            }}
-          </template>
-        </BaseList>
-      </div>
+      <template v-else>
+        <div class="max-w-200 mx-auto mb-4">
+          <BaseSearchInput
+            id="group-subject-search"
+            v-model="searchQuery"
+            :placeholder="t('groups.settings.subjects.search_placeholder')"
+          />
+        </div>
+
+        <BaseEmptyState v-if="filteredSubjects.length === 0" :icon="Search">
+          <template #title>{{
+            t('common.search_results.empty_title', {
+              query: searchQuery.trim(),
+            })
+          }}</template>
+          <template #message>{{
+            t('common.search_results.empty_message')
+          }}</template>
+        </BaseEmptyState>
+
+        <div v-else class="flex flex-col max-w-200 mx-auto max-md:-mx-6">
+          <BaseList
+            v-for="(sub, index) in filteredSubjects"
+            :key="sub.id"
+            class="cursor-pointer"
+            :separator="index !== filteredSubjects.length - 1"
+            @click="goToSubject(sub.id)"
+          >
+            <template #label>{{ subjectLabel(sub.name, t, i18n.te) }}</template>
+            <template #desc>
+              {{
+                categoryLabel(sub.category || '') +
+                (subjectHasCourses(sub.category)
+                  ? `, ${coursesCountLabel(sub.courses?.length ?? 0)}`
+                  : '') +
+                (activeGroupDaltonEnabled && sub.isDalton
+                  ? `, ${t('groups.settings.subjects.dalton_badge')}`
+                  : '')
+              }}
+            </template>
+          </BaseList>
+        </div>
+      </template>
 
       <BaseModal
         :open="showCreateModal"

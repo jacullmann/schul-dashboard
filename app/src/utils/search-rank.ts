@@ -62,6 +62,69 @@ function fuzzyScore(haystack: string, needle: string): number {
   return best;
 }
 
+/** Short queries tolerate no wrong letters: "ma" would match nearly anything. */
+function allowedTypos(needleLength: number): number {
+  if (needleLength < 4) return 0;
+  if (needleLength < 8) return 1;
+  return 2;
+}
+
+/**
+ * The fewest edits (wrong, missing, extra or swapped letters) that turn
+ * `needle` into some substring of `haystack`, or Infinity above `maxEdits`.
+ * Sellers' algorithm with the optimal-string-alignment transposition.
+ */
+function substringEditDistance(
+  haystack: string,
+  needle: string,
+  maxEdits: number,
+): number {
+  const width = haystack.length + 1;
+  let beforePrevious = new Array<number>(width).fill(0);
+  let previous = new Array<number>(width).fill(0);
+
+  for (let i = 1; i <= needle.length; i++) {
+    const current = new Array<number>(width);
+    current[0] = i;
+    let rowMin = i;
+
+    for (let j = 1; j < width; j++) {
+      const substitution = needle[i - 1] === haystack[j - 1] ? 0 : 1;
+      let edits = Math.min(
+        previous[j - 1]! + substitution,
+        previous[j]! + 1,
+        current[j - 1]! + 1,
+      );
+      if (
+        i > 1 &&
+        j > 1 &&
+        needle[i - 1] === haystack[j - 2] &&
+        needle[i - 2] === haystack[j - 1]
+      ) {
+        edits = Math.min(edits, beforePrevious[j - 2]! + 1);
+      }
+      current[j] = edits;
+      rowMin = Math.min(rowMin, edits);
+    }
+
+    if (rowMin > maxEdits) return Infinity;
+    beforePrevious = previous;
+    previous = current;
+  }
+
+  return Math.min(...previous);
+}
+
+/** Scores a match with a few typos, so "brsve" still finds "brave". */
+function typoScore(haystack: string, needle: string): number {
+  const maxEdits = allowedTypos(needle.length);
+  if (maxEdits === 0) return 0;
+
+  const edits = substringEditDistance(haystack, needle, maxEdits);
+  if (edits > maxEdits) return 0;
+  return FUZZY_MAX * (1 - edits / needle.length);
+}
+
 function scoreText(haystack: string, needle: string): number {
   if (haystack === needle) return EXACT;
   if (haystack.startsWith(needle)) return PREFIX;
@@ -75,7 +138,7 @@ function scoreText(haystack: string, needle: string): number {
     return SUBSTRING;
   }
 
-  return fuzzyScore(haystack, needle);
+  return Math.max(fuzzyScore(haystack, needle), typoScore(haystack, needle));
 }
 
 function bestFieldScore(fields: SearchField[], needle: string): number {

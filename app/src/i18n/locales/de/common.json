@@ -3,6 +3,7 @@
     "add": "Hinzufügen",
     "back": "Zurück",
     "cancel": "Abbrechen",
+    "clear": "Leeren",
     "close": "Schließen",
     "confirm": "Bestätigen",
     "continue": "Weiter",
@@ -291,5 +292,9 @@
   "connection": {
     "offline": "Keine Internetverbindung",
     "restored": "Wieder online"
+  },
+  "search_results": {
+    "empty_title": "Keine Ergebnisse für „{query}“",
+    "empty_message": "Überprüfe die Schreibweise oder starte eine neue Suche."
   }
 }

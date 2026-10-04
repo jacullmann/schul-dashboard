@@ -3,6 +3,7 @@
     "add": "Add",
     "back": "Back",
     "cancel": "Cancel",
+    "clear": "Clear",
     "close": "Close",
     "confirm": "Confirm",
     "continue": "Continue",
@@ -291,5 +292,9 @@
   "connection": {
     "offline": "No internet connection",
     "restored": "Back online"
+  },
+  "search_results": {
+    "empty_title": "No results for “{query}”",
+    "empty_message": "Check the spelling or try a new search."
   }
 }

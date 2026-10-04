@@ -103,6 +103,7 @@
       "count_one": "1 member in this group",
       "count_other": "{count} members in this group",
       "you": "You",
+      "search_placeholder": "Search members",
       "info": {
         "tooltip": "Overview of the member menu",
         "headline": "Manage members of your group",
@@ -355,6 +356,7 @@
     },
     "subjects": {
       "add_placeholder": "Add new subject...",
+      "search_placeholder": "Search subjects",
       "create_title": "Create new subject",
       "name_label": "Name",
       "custom_label": "Custom name",

@@ -22,7 +22,7 @@ defineProps<{
     <p class="mt-1! mb-6! max-w-96">
       <slot name="message"></slot>
     </p>
-    <BaseRow justify="center">
+    <BaseRow v-if="primaryAction || secondaryAction" justify="center">
       <BaseButton
         v-if="primaryAction"
         variant="action"
