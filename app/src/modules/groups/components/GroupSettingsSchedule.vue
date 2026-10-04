@@ -556,7 +556,8 @@ onMounted(() => {
       <div v-if="isEditMode" class="flex flex-col gap-6">
         <div class="sm:p-6">
           <div
-            class="grid transition-[grid-template-rows,opacity] duration-500 ease-out"
+            class="grid transition-[grid-template-rows,opacity] ease-out"
+            :style="{ transitionDuration: `${TOOLBAR_TRANSITION_MS}ms` }"
             :class="
               showToolbar
                 ? 'grid-rows-[1fr] opacity-100'
