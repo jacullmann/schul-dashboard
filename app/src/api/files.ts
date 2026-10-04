@@ -2,7 +2,10 @@ import hw from '@/api/api';
 import { groupPath } from '@/api/groupPath';
 
 const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME as string;
-const DELIVERY_BASE = `https://res.cloudinary.com/${CLOUD_NAME}`;
+// Lets development point delivery at the mock server's Cloudinary stand-in.
+const DELIVERY_BASE =
+  (import.meta.env.VITE_CLOUDINARY_DELIVERY_URL as string | undefined) ||
+  `https://res.cloudinary.com/${CLOUD_NAME}`;
 const PREVIEW_TRANSFORM = 'f_auto,q_auto,w_256,h_256,c_fill';
 const FULL_IMAGE_TRANSFORM = 'f_auto,q_auto';
 
