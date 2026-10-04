@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE user_roles SET done_course_setup = true\n               WHERE user_id = $1 AND tenant_id = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "011c8e9026d7e2bfb0648bc9ad6384c257c88249bee6bb90969e2bf8cf3e8f96"
+}

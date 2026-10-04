@@ -187,11 +187,6 @@ export const useDeleteAccountModal = defineStore('delete-account-modal', () =>
   useModalState(),
 );
 
-/** Course choices are per group, so the dialog is bound to one. */
-export const useCourseSetupModal = defineStore('course-setup-modal', () =>
-  useModalState<{ groupId: string }>(),
-);
-
 export interface ConfirmOptions {
   title: string;
   content: string;

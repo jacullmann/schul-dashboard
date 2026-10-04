@@ -19,3 +19,22 @@ export function toGroupType(value: unknown): GroupType {
 
 /** Mirrors the server's limit in `common::names`. */
 export const GROUP_NAME_MAX_LENGTH = 100;
+
+/**
+ * Where a member stands with picking their courses in a group: `pending`
+ * keeps them on the setup page, and only `done` personalizes the group.
+ */
+export type CourseSetup = 'done' | 'pending' | 'not_needed';
+
+const COURSE_SETUPS: readonly CourseSetup[] = [
+  'done',
+  'pending',
+  'not_needed',
+] as const;
+
+/** Unknown values from the API never lock anyone out of a group. */
+export function toCourseSetup(value: unknown): CourseSetup {
+  return COURSE_SETUPS.includes(value as CourseSetup)
+    ? (value as CourseSetup)
+    : 'not_needed';
+}

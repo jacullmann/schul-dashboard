@@ -38,6 +38,29 @@ pub struct GroupSummaryDto {
     pub group_type: &'static str,
     pub dalton_enabled: bool,
     pub effective_permissions: Vec<&'static str>,
+    pub course_setup: CourseSetup,
+}
+
+/// Where the caller stands with picking their courses in a group.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum CourseSetup {
+    /// Picked or skipped; the group's pages show only the chosen courses.
+    Done,
+    /// The group offers courses the member has not been asked about yet.
+    Pending,
+    /// Nothing to pick, or the caller is not a member.
+    NotNeeded,
+}
+
+impl CourseSetup {
+    pub fn of(done: bool, offers_course_choice: bool) -> Self {
+        match (done, offers_course_choice) {
+            (true, _) => Self::Done,
+            (false, true) => Self::Pending,
+            (false, false) => Self::NotNeeded,
+        }
+    }
 }
 
 #[derive(Debug, Serialize)]

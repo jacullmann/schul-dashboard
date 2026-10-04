@@ -12,7 +12,7 @@ use crate::{
     },
     error::{AppError, AppResult},
     group::{
-        dto::{GroupMemberDto, GroupStatusDto, GroupSummaryDto},
+        dto::{CourseSetup, GroupMemberDto, GroupStatusDto, GroupSummaryDto},
         invite_token::{InviteToken, invalid_invite},
         member_policy::{self, Caller, Target},
     },
@@ -64,6 +64,8 @@ struct Membership {
     group_type: String,
     dalton_enabled: bool,
     role_name: String,
+    done_course_setup: bool,
+    offers_course_choice: bool,
 }
 
 pub struct AcceptInviteParams<'a> {
@@ -173,6 +175,7 @@ impl GroupService {
                     group_type: GroupType::from_str_or_regular(&g.group_type).as_str(),
                     dalton_enabled: g.dalton_enabled,
                     effective_permissions,
+                    course_setup: CourseSetup::of(g.done_course_setup, g.offers_course_choice),
                 }
             })
             .collect();
@@ -188,7 +191,12 @@ impl GroupService {
         Ok(sqlx::query_as!(
             Membership,
             r#"SELECT g.id, g.name, g.owner_id, g.schedule_config, avatar.public_id AS "avatar_public_id?",
-                      g.permissions, g.group_type, g.dalton_enabled, r.name AS role_name
+                      g.permissions, g.group_type, g.dalton_enabled, r.name AS role_name,
+                      ur.done_course_setup,
+                      EXISTS (SELECT 1 FROM courses c
+                              JOIN subjects s ON s.id = c.subject_id
+                              WHERE s.tenant_id = g.id AND s.category <> 'core')
+                          AS "offers_course_choice!"
                FROM user_roles ur
                JOIN groups g ON g.id = ur.tenant_id
                JOIN roles r ON r.id = ur.role_id
@@ -207,11 +215,19 @@ impl GroupService {
         let g = sqlx::query!(
             r#"SELECT g.name AS "name!", g.schedule_config AS "schedule_config!",
                       avatar.public_id AS "avatar_public_id?",
-                      g.group_type AS "group_type!", g.dalton_enabled AS "dalton_enabled!"
+                      g.group_type AS "group_type!", g.dalton_enabled AS "dalton_enabled!",
+                      COALESCE(ur.done_course_setup, false) AS "done_course_setup!",
+                      ur.user_id IS NOT NULL AND EXISTS (
+                          SELECT 1 FROM courses c
+                          JOIN subjects s ON s.id = c.subject_id
+                          WHERE s.tenant_id = g.id AND s.category <> 'core'
+                      ) AS "offers_course_choice!"
                FROM groups g
                LEFT JOIN assets avatar ON avatar.id = g.avatar_id
+               LEFT JOIN user_roles ur ON ur.tenant_id = g.id AND ur.user_id = $2
                WHERE g.id = $1"#,
-            tc.tenant_id
+            tc.tenant_id,
+            tc.user.user_id
         )
         .fetch_optional(&self.db)
         .await?
@@ -228,6 +244,7 @@ impl GroupService {
             group_type: GroupType::from_str_or_regular(&g.group_type).as_str(),
             dalton_enabled: g.dalton_enabled,
             effective_permissions: tc.effective_permission_keys(),
+            course_setup: CourseSetup::of(g.done_course_setup, g.offers_course_choice),
         })
     }
 

@@ -17,7 +17,6 @@ export interface UserData {
   role: string;
   emailVerified: boolean;
   courses: { subjectId: string; courseId: string }[];
-  doneSetup: boolean;
   personalized: boolean;
   mfaEnabled: boolean;
   hasPassword: boolean;
@@ -29,14 +28,10 @@ export const useUserStore = defineStore('user', () => {
   const user = ref<UserData | null>(null);
   const loading = ref(false);
   const initialized = ref(false);
-  const hasShownSetup = ref(false);
 
   const isLoggedIn = computed(() => user.value !== null);
   const role = computed(() => user.value?.role);
   const isSuperadmin = computed(() => user.value?.role === 'superadmin');
-  const needsSetup = computed(
-    () => user.value !== null && !user.value.doneSetup,
-  );
   const mfaEnabled = computed(() => user.value?.mfaEnabled === true);
   // Google-only accounts have no password until they set one.
   const hasPassword = computed(() => user.value?.hasPassword !== false);
@@ -57,7 +52,6 @@ export const useUserStore = defineStore('user', () => {
             role: data.role || 'user',
             emailVerified: data.emailVerified,
             courses: data.courses || [],
-            doneSetup: data.doneSetup,
             personalized: data.personalized,
             mfaEnabled: data.mfaEnabled ?? false,
             hasPassword: data.hasPassword ?? true,
@@ -89,7 +83,6 @@ export const useUserStore = defineStore('user', () => {
 
   function clearUser(): void {
     user.value = null;
-    hasShownSetup.value = false;
     initialized.value = false;
   }
 
@@ -97,10 +90,6 @@ export const useUserStore = defineStore('user', () => {
     if (user.value) {
       user.value = { ...user.value, ...updates };
     }
-  }
-
-  function markSetupShown(): void {
-    hasShownSetup.value = true;
   }
 
   function setMfaEnabled(enabled: boolean): void {
@@ -127,17 +116,14 @@ export const useUserStore = defineStore('user', () => {
     user,
     loading,
     initialized,
-    hasShownSetup,
     isLoggedIn,
     role,
     isSuperadmin,
-    needsSetup,
     mfaEnabled,
     hasPassword,
     fetchUser,
     clearUser,
     updateUser,
-    markSetupShown,
     setMfaEnabled,
     isNoticeDismissed,
     markNoticeDismissed,

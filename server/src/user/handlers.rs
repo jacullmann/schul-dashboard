@@ -70,6 +70,14 @@ pub async fn update_setup(
     ))
 }
 
+pub async fn reset_setup(State(s): State<AppState>, tc: TenantContext) -> AppResult<Json<Value>> {
+    Ok(Json(
+        UserService::from_state(&s)
+            .reset_setup(tc.user.user_id, tc.tenant_id)
+            .await?,
+    ))
+}
+
 pub async fn get_checks(State(s): State<AppState>, user: AuthUser) -> AppResult<Json<Value>> {
     Ok(Json(
         UserService::from_state(&s).get_checks(user.user_id).await?,

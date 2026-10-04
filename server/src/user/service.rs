@@ -142,8 +142,10 @@ impl UserService {
         let mut tx = self.db.begin().await?;
 
         sqlx::query!(
-            r#"UPDATE users SET done_setup = true WHERE id = $1"#,
-            user_id
+            r#"UPDATE user_roles SET done_course_setup = true
+               WHERE user_id = $1 AND tenant_id = $2"#,
+            user_id,
+            tenant_id
         )
         .execute(&mut *tx)
         .await?;
@@ -185,7 +187,35 @@ impl UserService {
 
         tx.commit().await?;
 
-        Ok(json!({ "ok": true, "doneSetup": true }))
+        Ok(json!({ "ok": true }))
+    }
+
+    /// Clears the member's courses in this group and asks for them again.
+    pub async fn reset_setup(&self, user_id: Uuid, tenant_id: Uuid) -> AppResult<Value> {
+        let mut tx = self.db.begin().await?;
+
+        sqlx::query!(
+            r#"UPDATE user_roles SET done_course_setup = false
+               WHERE user_id = $1 AND tenant_id = $2"#,
+            user_id,
+            tenant_id
+        )
+        .execute(&mut *tx)
+        .await?;
+
+        sqlx::query!(
+            r#"DELETE FROM user_courses
+               WHERE user_id = $1
+                 AND subject_id IN (SELECT id FROM subjects WHERE tenant_id = $2)"#,
+            user_id,
+            tenant_id
+        )
+        .execute(&mut *tx)
+        .await?;
+
+        tx.commit().await?;
+
+        Ok(json!({ "ok": true }))
     }
 
     pub async fn get_checks(&self, user_id: Uuid) -> AppResult<Value> {

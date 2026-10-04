@@ -177,7 +177,7 @@ function goBack() {
         </header>
 
         <div
-          class="flex-1 overflow-y-auto overscroll-contain p-4 md:py-8 px-6 bg-canvas"
+          class="flex-1 overflow-y-auto overscroll-contain p-6 pt-4 md:py-8 bg-canvas"
         >
           <div class="w-full max-w-250 mx-auto">
             <AccountSettingsSecurity

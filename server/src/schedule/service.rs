@@ -42,12 +42,16 @@ WHERE s.tenant_id = $1"#,
             // A lesson bound to a course is only that course's lesson, which
             // matters most for Abitur groups where nearly every lesson is.
             let personalized = sqlx::query!(
-                r#"SELECT personalized, done_setup FROM users WHERE id = $1"#,
-                uid
+                r#"SELECT u.personalized, ur.done_course_setup
+                   FROM users u
+                   JOIN user_roles ur ON ur.user_id = u.id AND ur.tenant_id = $2
+                   WHERE u.id = $1"#,
+                uid,
+                tenant_id
             )
             .fetch_optional(&self.db)
             .await?
-            .is_some_and(|u| u.personalized && u.done_setup);
+            .is_some_and(|u| u.personalized && u.done_course_setup);
 
             if personalized {
                 let rows = sqlx::query_scalar!(

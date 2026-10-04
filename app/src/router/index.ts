@@ -238,6 +238,20 @@ const routes: RouteRecordRaw[] = [
   },
 
   {
+    // Kept out of the group's own layout until the member is done with it.
+    path: '/groups/:groupId/setup',
+    component: () => import('@/layouts/SimpleLayout.vue'),
+    children: [
+      {
+        path: '',
+        name: 'group-course-setup',
+        component: () => import('@/modules/auth/pages/CourseSetupPage.vue'),
+        meta: { title: 'navigation.course_setup' },
+      },
+    ],
+  },
+
+  {
     path: '/:pathMatch(.*)*',
     component: () => import('@/layouts/DefaultLayout.vue'),
     children: [
@@ -264,7 +278,15 @@ const {
   homeRoute,
   canShowGroup,
   showGroup,
+  findGroup,
 } = useAppAuth();
+
+/**
+ * Group pages a member with a pending course setup may still open: the setup
+ * itself, and the settings, where an admin adding the group's first courses
+ * must not be sent away from the subjects they are still editing.
+ */
+const OPEN_DURING_COURSE_SETUP = new Set(['group-course-setup', 'group-admin']);
 
 router.beforeEach(async (to, from) => {
   if (to.path !== from.path) start();
@@ -313,9 +335,23 @@ router.beforeEach(async (to, from) => {
   }
 
   const routeGroupId = to.params.groupId;
-  if (typeof routeGroupId === 'string' && !(await canShowGroup(routeGroupId))) {
-    finish();
-    return { name: 'groups', replace: true };
+  if (typeof routeGroupId === 'string') {
+    if (!(await canShowGroup(routeGroupId))) {
+      finish();
+      return { name: 'groups', replace: true };
+    }
+
+    if (
+      findGroup(routeGroupId)?.courseSetup === 'pending' &&
+      !OPEN_DURING_COURSE_SETUP.has(to.name as string)
+    ) {
+      finish();
+      return {
+        name: 'group-course-setup',
+        params: { groupId: routeGroupId },
+        replace: true,
+      };
+    }
   }
 });
 

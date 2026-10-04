@@ -327,7 +327,7 @@ impl AuthService {
     pub async fn get_me(&self, user_id: Uuid) -> AppResult<serde_json::Value> {
         let user = sqlx::query!(
             r#"
-            SELECT id, email, email_verified, mfa_enabled, done_setup, personalized, preferences,
+            SELECT id, email, email_verified, mfa_enabled, personalized, preferences,
                    password_hash IS NOT NULL AS "has_password!"
             FROM users WHERE id = $1
             "#,
@@ -366,7 +366,6 @@ impl AuthService {
             "role": global_role.as_str(),
             "emailVerified": user.email_verified,
             "courses": courses,
-            "doneSetup": user.done_setup,
             "personalized": user.personalized,
             "mfaEnabled": user.mfa_enabled,
             "hasPassword": user.has_password,

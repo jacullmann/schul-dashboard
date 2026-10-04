@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT g.id, g.name, g.owner_id, g.schedule_config, avatar.public_id AS \"avatar_public_id?\",\n                      g.permissions, g.group_type, g.dalton_enabled, r.name AS role_name\n               FROM user_roles ur\n               JOIN groups g ON g.id = ur.tenant_id\n               JOIN roles r ON r.id = ur.role_id\n               LEFT JOIN assets avatar ON avatar.id = g.avatar_id\n               WHERE ur.user_id = $1\n               ORDER BY ur.assigned_at",
+  "query": "SELECT g.id, g.name, g.owner_id, g.schedule_config, avatar.public_id AS \"avatar_public_id?\",\n                      g.permissions, g.group_type, g.dalton_enabled, r.name AS role_name,\n                      ur.done_course_setup,\n                      EXISTS (SELECT 1 FROM courses c\n                              JOIN subjects s ON s.id = c.subject_id\n                              WHERE s.tenant_id = g.id AND s.category <> 'core')\n                          AS \"offers_course_choice!\"\n               FROM user_roles ur\n               JOIN groups g ON g.id = ur.tenant_id\n               JOIN roles r ON r.id = ur.role_id\n               LEFT JOIN assets avatar ON avatar.id = g.avatar_id\n               WHERE ur.user_id = $1\n               ORDER BY ur.assigned_at",
   "describe": {
     "columns": [
       {
@@ -101,6 +101,23 @@
             "name": "name"
           }
         }
+      },
+      {
+        "ordinal": 9,
+        "name": "done_course_setup",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "user_roles",
+            "name": "done_course_setup"
+          }
+        }
+      },
+      {
+        "ordinal": 10,
+        "name": "offers_course_choice!",
+        "type_info": "Bool",
+        "origin": "Expression"
       }
     ],
     "parameters": {
@@ -117,8 +134,10 @@
       false,
       false,
       false,
-      false
+      false,
+      false,
+      null
     ]
   },
-  "hash": "0530a4b2f391498338b1e1845c7e6b04ba1ded0da1fb6e9db52caf3acc3e506d"
+  "hash": "eb8b56b0a3425af10437162ea0c42811e46cf79a71aec56ce07489215a8f52ec"
 }

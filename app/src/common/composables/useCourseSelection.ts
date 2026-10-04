@@ -4,6 +4,7 @@ import hw from '@/api/api';
 import { groupPath } from '@/api/groupPath';
 import { useSubjectStore, type Subject } from '@/stores/subjectStore';
 import { useUserStore, type UserData } from '@/stores/userStore';
+import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import {
   courseLabel,
   courseTypeHint,
@@ -25,6 +26,7 @@ export function useCourseSelection(groupId: string) {
   const te = i18n.te.bind(i18n);
   const subjectStore = useSubjectStore();
   const userStore = useUserStore();
+  const { setCourseSetup } = useAppAuth();
 
   const selections = reactive<Record<string, string>>({});
 
@@ -88,25 +90,26 @@ export function useCourseSelection(groupId: string) {
     }),
   );
 
-  async function saveCourses(
-    courses: Enrollment[],
-  ): Promise<Partial<UserData>> {
-    const { data } = await hw.patch(groupPath(groupId, '/me/courses'), {
-      courses,
-    });
-
+  function replaceGroupCourses(courses: Enrollment[]) {
     const groupSubjectIds = new Set(subjectStore.subjects.map((s) => s.id));
     const otherGroupsCourses = (userStore.user?.courses ?? []).filter(
       (c) => !groupSubjectIds.has(c.subjectId),
     );
+    userStore.updateUser({ courses: [...otherGroupsCourses, ...courses] });
+  }
 
-    const updatedUser: Partial<UserData> = {
-      ...(data?.user || userStore.user || {}),
-      doneSetup: true,
-      courses: [...otherGroupsCourses, ...courses],
-    };
-    userStore.updateUser(updatedUser);
-    return updatedUser;
+  /** Saving, even nothing, completes the member's course setup. */
+  async function saveCourses(courses: Enrollment[]): Promise<void> {
+    await hw.patch(groupPath(groupId, '/me/courses'), { courses });
+    replaceGroupCourses(courses);
+    setCourseSetup(groupId, 'done');
+  }
+
+  /** Clears the member's courses and asks for them again. */
+  async function resetCourses(): Promise<void> {
+    await hw.delete(groupPath(groupId, '/me/courses'));
+    replaceGroupCourses([]);
+    setCourseSetup(groupId, 'pending');
   }
 
   return {
@@ -117,5 +120,6 @@ export function useCourseSelection(groupId: string) {
     hasRequiredSelections,
     selectedCourses,
     saveCourses,
+    resetCourses,
   };
 }

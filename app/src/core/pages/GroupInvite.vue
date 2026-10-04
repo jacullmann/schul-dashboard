@@ -3,9 +3,6 @@ import { computed, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
-import { useUserStore } from '@/stores/userStore';
-import { useSubjectStore } from '@/stores/subjectStore';
-import { useCourseSetupModal } from '@/stores/modalStore';
 import { useToast } from '@/common/composables/useToast';
 import Avatar from '@/modules/auth/components/Avatar.vue';
 import { AlertCircle } from '@lucide/vue';
@@ -30,9 +27,6 @@ const DETAIL_SUBTITLE_ENTRANCE_ORDER = 2;
 const { t } = useI18n();
 const router = useRouter();
 const auth = useAppAuth();
-const userStore = useUserStore();
-const subjectStore = useSubjectStore();
-const courseSetupModal = useCourseSetupModal();
 const toast = useToast();
 
 const loading = ref(true);
@@ -89,20 +83,7 @@ async function handleJoin() {
     } else if (res.ok && res.groupId) {
       clearPendingInvite();
       toast.success(t('auth.groups.invite.success_join'));
-      try {
-        await userStore.fetchUser();
-
-        await subjectStore.loadSubjects(res.groupId);
-
-        if (
-          subjectStore.requiredCourseSubjects.length > 0 ||
-          subjectStore.optionalCourseSubjects.length > 0
-        ) {
-          courseSetupModal.open({ groupId: res.groupId });
-        }
-      } catch (err) {
-        console.error('Failed to load courses check after join:', err);
-      }
+      // The router sends a member who still has courses to pick to the setup.
       await router.push({
         name: 'group-dashboard',
         params: { groupId: res.groupId },
@@ -240,19 +221,10 @@ function handleLater() {
       </div>
     </div>
 
-    <div
-      class="flex flex-col-reverse gap-2 mt-16 animate-enter"
+    <BasePageActions
+      class="mt-16 animate-enter"
       :style="{ '--enter-delay': entranceDelay(ACTIONS_ENTRANCE_ORDER) }"
     >
-      <BaseButton
-        type="button"
-        surface
-        variant="ghost"
-        class="w-full"
-        @click="handleLater"
-        >{{ t('auth.groups.invite.btn_later') }}
-      </BaseButton>
-
       <BaseButton
         type="submit"
         variant="action"
@@ -266,7 +238,18 @@ function handleLater() {
           )
         }}
       </BaseButton>
-    </div>
+
+      <template #secondary>
+        <BaseButton
+          type="button"
+          surface
+          variant="ghost"
+          class="w-full"
+          @click="handleLater"
+          >{{ t('auth.groups.invite.btn_later') }}
+        </BaseButton>
+      </template>
+    </BasePageActions>
   </form>
 </template>
 

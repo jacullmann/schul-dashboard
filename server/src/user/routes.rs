@@ -20,7 +20,7 @@ pub fn router() -> Router<AppState> {
 /// caller's own state for this group and its items.
 pub fn group_router() -> Router<AppState> {
     Router::new()
-        .route("/me/courses", patch(update_setup))
+        .route("/me/courses", patch(update_setup).delete(reset_setup))
         .route(
             "/items/{id}/visibility",
             post(set_visibility).delete(remove_visibility),

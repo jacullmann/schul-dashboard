@@ -1,22 +1,23 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 import { RotateCcw } from '@lucide/vue';
 import { useSubjectStore } from '@/stores/subjectStore';
 import { useUserStore } from '@/stores/userStore';
-import { useConfirmModal, useCourseSetupModal } from '@/stores/modalStore';
+import { useConfirmModal } from '@/stores/modalStore';
 import { useCourseSelection } from '@/common/composables/useCourseSelection';
 import { useGroupPageId } from '@/core/composables/useGroupPageId';
 import { useToast } from '@/common/composables/useToast';
 import { apiErrorMessage } from '@/api/errors';
 
 const { t } = useI18n();
+const router = useRouter();
 const groupId = useGroupPageId();
 const toast = useToast();
 const subjectStore = useSubjectStore();
 const userStore = useUserStore();
 const confirmModal = useConfirmModal();
-const courseSetupModal = useCourseSetupModal();
 const {
   selections,
   resetSelections,
@@ -24,6 +25,7 @@ const {
   optionsForSubject,
   selectedCourses,
   saveCourses,
+  resetCourses,
 } = useCourseSelection(groupId);
 
 const saving = ref(false);
@@ -48,7 +50,7 @@ function discardChanges() {
   error.value = '';
 }
 
-// The setup dialog saves on its own, so its result replaces what is shown.
+// Saved courses can change outside this form, so they replace what is shown.
 watch(
   () => [
     subjectStore.requiredCourseSubjects,
@@ -75,8 +77,12 @@ async function redoSetup() {
   redoing.value = true;
   error.value = '';
   try {
-    await saveCourses([]);
-    courseSetupModal.open({ groupId: groupId });
+    await resetCourses();
+    await router.push({
+      name: 'group-course-setup',
+      params: { groupId },
+      query: { returnTo: 'settings' },
+    });
   } catch (e: unknown) {
     error.value = apiErrorMessage(e, t('auth.courses.errors.save_failed'));
   } finally {

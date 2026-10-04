@@ -8,7 +8,6 @@ import {
   useAnnouncementFormModal,
   useChangePasswordModal,
   useConfirmModal,
-  useCourseSetupModal,
   useCreateGroupModal,
   useDeleteAccountModal,
   useImageViewerModal,
@@ -49,9 +48,6 @@ const SetPasswordModal = defineAsyncComponent(
 );
 const DeleteAccountModal = defineAsyncComponent(
   () => import('@/modules/auth/components/DeleteAccountModal.vue'),
-);
-const CoursesSetupModal = defineAsyncComponent(
-  () => import('@/modules/auth/components/CoursesSetupModal.vue'),
 );
 const CreateGroupModal = defineAsyncComponent(
   () => import('@/modules/auth/components/CreateGroupModal.vue'),
@@ -97,7 +93,6 @@ const announcementForm = useAnnouncementFormModal();
 const imageViewer = useImageViewerModal();
 const changePassword = useChangePasswordModal();
 const deleteAccount = useDeleteAccountModal();
-const courseSetup = useCourseSetupModal();
 const createGroup = useCreateGroupModal();
 const invite = useInviteModal();
 const confirmModal = useConfirmModal();
@@ -237,15 +232,6 @@ async function onAuthSuccess() {
     @cancel="deleteAccount.close()"
     @deleted="onAccountDeleted"
     @error="onAccountDeleteError"
-  />
-
-  <!-- Keyed by group: its course choices are bound to the group it opened for. -->
-  <CoursesSetupModal
-    v-if="user && courseSetup.payload"
-    :key="courseSetup.payload.groupId"
-    :open="courseSetup.isOpen"
-    :group-id="courseSetup.payload.groupId"
-    @close="courseSetup.close()"
   />
 
   <CreateGroupModal :open="createGroup.isOpen" @cancel="createGroup.close()" />

@@ -70,10 +70,14 @@ const {
   revokeInvite,
 } = useGroupAdmin();
 
-const { leave: leaveSettings } = useReturnRoute(() => ({
-  name: 'group-dashboard',
-  params: { groupId: groupId.value },
-}));
+// Returning to a settings page would bounce between the two pages' back buttons.
+const { leave: leaveSettings } = useReturnRoute(
+  () => ({
+    name: 'group-dashboard',
+    params: { groupId: groupId.value },
+  }),
+  ['group-admin', 'account-settings'],
+);
 
 const activeTab = computed<string>({
   get() {
@@ -229,11 +233,7 @@ function goBack() {
               @click="selectTab(item.id)"
             >
               <template #icon>
-                <component
-                  :is="item.icon"
-                  :size="20"
-                  :stroke-width="1.8"
-                />
+                <component :is="item.icon" :size="20" :stroke-width="1.8" />
               </template>
               <template #label>
                 {{ item.label }}
@@ -268,7 +268,7 @@ function goBack() {
         </header>
 
         <div
-          class="flex-1 overflow-y-auto overscroll-contain p-4 md:py-8 px-6 bg-canvas"
+          class="flex-1 overflow-y-auto overscroll-contain p-6 pt-4 md:py-8 bg-canvas"
         >
           <div class="w-full max-w-250 mx-auto">
             <GroupSettingsMyCourses v-if="activeTab === 'courses'" />

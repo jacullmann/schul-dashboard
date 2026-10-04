@@ -1,0 +1,328 @@
+<script setup lang="ts">
+import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRoute, useRouter, type RouteLocationRaw } from 'vue-router';
+import { useSubjectStore } from '@/stores/subjectStore';
+import { useUserStore } from '@/stores/userStore';
+import {
+  useCourseSelection,
+  type Enrollment,
+} from '@/common/composables/useCourseSelection';
+import { useCourseSetup } from '@/modules/auth/composables/useCourseSetup';
+import { useGroupPageId } from '@/core/composables/useGroupPageId';
+import { apiErrorMessage } from '@/api/errors';
+import { entranceDelay } from '@/modules/tasks/utils/entrance';
+import CourseLevelPicker from '@/modules/auth/components/CourseLevelPicker.vue';
+import CourseSetupSchedule from '@/modules/auth/components/CourseSetupSchedule.vue';
+
+const DESCRIPTION_ENTRANCE_ORDER = 1;
+const CONTENT_ENTRANCE_ORDER = 2;
+const ACTIONS_ENTRANCE_ORDER = 3;
+
+const { t, locale } = useI18n();
+const route = useRoute();
+const router = useRouter();
+const groupId = useGroupPageId();
+const subjectStore = useSubjectStore();
+const userStore = useUserStore();
+
+const {
+  selections,
+  resetSelections,
+  translatedName,
+  optionsForSubject,
+  hasRequiredSelections,
+  selectedCourses,
+  saveCourses,
+} = useCourseSelection(groupId);
+
+const {
+  levelChoiceSubjects,
+  levelOptions,
+  levels,
+  hasAllLevels,
+  needsLessonChoice,
+  loadingLessons,
+  loadLessons,
+  scheduleConfig,
+  setupLessons,
+  resolution,
+  toggleCourse,
+  canToggleCourse,
+  enrollments,
+  openSubjects,
+} = useCourseSetup(groupId);
+
+type Step = 'levels' | 'lessons';
+
+const step = ref<Step>('levels');
+const saving = ref(false);
+const error = ref('');
+
+// Members redoing their setup from the settings go back there once done.
+const finishedRoute = computed<RouteLocationRaw>(() =>
+  route.query.returnTo === 'settings'
+    ? { name: 'group-admin', params: { groupId, tab: 'courses' } }
+    : { name: 'group-dashboard', params: { groupId } },
+);
+
+const isAbitur = computed(() => subjectStore.groupType === 'abitur');
+const hasLevelChoices = computed(() => levelChoiceSubjects.value.length > 0);
+// Without a level to choose, the timetable is all there is to ask.
+const isLessonStep = computed(
+  () => isAbitur.value && (step.value === 'lessons' || !hasLevelChoices.value),
+);
+const hasCourseSubjects = computed(
+  () =>
+    subjectStore.requiredCourseSubjects.length > 0 ||
+    subjectStore.optionalCourseSubjects.length > 0,
+);
+const loading = computed(
+  () => subjectStore.loading || (isLessonStep.value && loadingLessons.value),
+);
+
+void subjectStore.loadSubjects(groupId);
+
+watch(
+  () => [
+    subjectStore.requiredCourseSubjects,
+    subjectStore.optionalCourseSubjects,
+  ],
+  () => resetSelections(userStore.user?.courses ?? []),
+  { immediate: true },
+);
+
+// Fetched while the member picks levels, so the timetable is there on Continue.
+watch(
+  isAbitur,
+  (preload) => {
+    if (!preload) return;
+    loadLessons().catch((e: unknown) => {
+      if (isLessonStep.value) {
+        error.value = apiErrorMessage(
+          e,
+          t('auth.courses.errors.schedule_load_failed'),
+        );
+      }
+    });
+  },
+  { immediate: true },
+);
+
+const description = computed(() => {
+  if (!isAbitur.value) return t('auth.courses.description_creation');
+  return isLessonStep.value
+    ? t('auth.courses.description_lessons')
+    : t('auth.courses.description_levels');
+});
+
+const submitLabel = computed(() =>
+  isAbitur.value && !isLessonStep.value && needsLessonChoice.value
+    ? t('common.buttons.continue')
+    : t('common.buttons.save'),
+);
+
+const openSubjectsHint = computed(() => {
+  if (openSubjects.value.length === 0) return t('auth.courses.all_settled');
+  const names = openSubjects.value.map((subject) =>
+    translatedName(subject.name),
+  );
+  return t('auth.courses.open_subjects', {
+    subjects: new Intl.ListFormat(locale.value).format(names),
+  });
+});
+
+async function saveAndFinish(courses: Enrollment[]) {
+  if (saving.value) return;
+  saving.value = true;
+  error.value = '';
+  try {
+    await saveCourses(courses);
+    // Replaced, so going back never lands in a setup that is already done.
+    await router.replace(finishedRoute.value);
+  } catch (e: unknown) {
+    console.error('Course setup failed:', e);
+    error.value = apiErrorMessage(e, t('auth.courses.errors.save_failed'));
+  } finally {
+    saving.value = false;
+  }
+}
+
+async function showLessonStep() {
+  error.value = '';
+  step.value = 'lessons';
+  try {
+    await loadLessons();
+  } catch (e: unknown) {
+    error.value = apiErrorMessage(
+      e,
+      t('auth.courses.errors.schedule_load_failed'),
+    );
+  }
+}
+
+async function submit() {
+  if (isLessonStep.value) return saveAndFinish(enrollments.value);
+
+  if (isAbitur.value ? !hasAllLevels.value : !hasRequiredSelections.value) {
+    error.value = t('auth.setup.errors.required_courses');
+    return;
+  }
+
+  if (isAbitur.value) {
+    return needsLessonChoice.value
+      ? showLessonStep()
+      : saveAndFinish(enrollments.value);
+  }
+  return saveAndFinish(selectedCourses.value);
+}
+
+const skip = () => saveAndFinish([]);
+
+function goBack() {
+  error.value = '';
+  step.value = 'levels';
+}
+</script>
+
+<template>
+  <form
+    novalidate
+    class="flex flex-col w-full max-md:self-stretch"
+    :class="isLessonStep ? 'max-w-5xl' : 'max-w-120'"
+    @submit.prevent="submit"
+  >
+    <div class="w-full max-w-120 mx-auto mb-8">
+      <h1 class="text-center! animate-enter">
+        {{ t('auth.courses.title_creation') }}
+      </h1>
+      <!-- Keyed, so the next step's description enters like the page did. -->
+      <p
+        :key="description"
+        class="text-center m-0! animate-enter"
+        :style="{
+          '--enter-delay': entranceDelay(DESCRIPTION_ENTRANCE_ORDER),
+        }"
+      >
+        {{ description }}
+      </p>
+    </div>
+
+    <BaseFormContent class="flex-1" :error="error">
+      <div v-if="loading" class="flex justify-center">
+        <BaseSpinner />
+      </div>
+
+      <div
+        v-else
+        :key="step"
+        class="animate-enter"
+        :style="{ '--enter-delay': entranceDelay(CONTENT_ENTRANCE_ORDER) }"
+      >
+        <div v-if="isLessonStep" class="flex flex-col gap-4">
+          <CourseSetupSchedule
+            :lessons="setupLessons"
+            :config="scheduleConfig"
+            :states="resolution.states"
+            :can-toggle="canToggleCourse"
+            @toggle="toggleCourse"
+          />
+          <p
+            class="text-sm text-center text-on-ghost-muted m-0!"
+            aria-live="polite"
+          >
+            {{ openSubjectsHint }}
+          </p>
+        </div>
+
+        <CourseLevelPicker
+          v-else-if="isAbitur"
+          v-model="levels"
+          :subjects="levelChoiceSubjects"
+          :options="levelOptions"
+        />
+
+        <p
+          v-else-if="!hasCourseSubjects"
+          class="text-base text-center text-on-ghost-muted m-0!"
+        >
+          {{ t('auth.courses.none_offered') }}
+        </p>
+
+        <div v-else class="flex flex-col gap-5">
+          <BaseFormGroup
+            v-for="subject in subjectStore.requiredCourseSubjects"
+            :id="subject.id"
+            :key="subject.id"
+          >
+            <BaseLabel :for="subject.id">{{
+              translatedName(subject.name)
+            }}</BaseLabel>
+            <BaseSelect
+              :id="subject.id"
+              :model-value="selections[subject.id] ?? ''"
+              :options="optionsForSubject(subject, false)"
+              @update:model-value="(v) => (selections[subject.id] = v)"
+            />
+          </BaseFormGroup>
+
+          <BaseFormGroup
+            v-for="subject in subjectStore.optionalCourseSubjects"
+            :id="subject.id"
+            :key="subject.id"
+          >
+            <BaseLabel :for="subject.id">{{
+              translatedName(subject.name)
+            }}</BaseLabel>
+            <BaseSelect
+              :id="subject.id"
+              :model-value="selections[subject.id] ?? ''"
+              :options="optionsForSubject(subject, true)"
+              @update:model-value="(v) => (selections[subject.id] = v)"
+            />
+          </BaseFormGroup>
+        </div>
+      </div>
+    </BaseFormContent>
+
+    <BasePageActions
+      class="max-w-120 mx-auto mt-12 animate-enter"
+      :style="{ '--enter-delay': entranceDelay(ACTIONS_ENTRANCE_ORDER) }"
+    >
+      <BaseButton
+        type="submit"
+        variant="action"
+        class="w-full"
+        :loading="saving"
+        :disabled="saving || loading"
+      >
+        {{ submitLabel }}
+      </BaseButton>
+
+      <template #secondary>
+        <BaseButton
+          v-if="isLessonStep && hasLevelChoices"
+          type="button"
+          surface
+          variant="ghost"
+          class="w-full"
+          :disabled="saving"
+          @click="goBack"
+        >
+          {{ t('common.buttons.back') }}
+        </BaseButton>
+
+        <BaseButton
+          type="button"
+          surface
+          variant="ghost"
+          class="w-full"
+          :disabled="saving"
+          @click="skip"
+        >
+          {{ t('common.buttons.skip') }}
+        </BaseButton>
+      </template>
+    </BasePageActions>
+  </form>
+</template>

@@ -8,5 +8,7 @@
   "super_admin": "Super Admin",
   "update_history": "Update History",
   "verify_email": "Email Verification",
-  "account_settings": "Account Settings"
+  "account_settings": "Account Settings",
+  "course_setup": "Course Setup",
+  "group_invite": "Group Invite"
 }

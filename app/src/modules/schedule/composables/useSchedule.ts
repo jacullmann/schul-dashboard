@@ -4,6 +4,7 @@ import { groupPath } from '@/api/groupPath';
 import { useGroupPageId } from '@/core/composables/useGroupPageId';
 import { hiddenByCourses } from '@/api/personalization';
 import { useUserStore } from '@/stores/userStore';
+import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import type {
   Lesson,
   LessonGroup,
@@ -40,10 +41,14 @@ export function useSchedule() {
     getDisplayName,
   } = useScheduleDisplay();
   const groupId = useGroupPageId();
+  const { findGroup } = useAppAuth();
 
-  const isPersonalized = computed(() => {
-    return userStore.user?.personalized && userStore.user?.doneSetup;
-  });
+  const hasCourseSelection = computed(
+    () => findGroup(groupId)?.courseSetup === 'done',
+  );
+  const isPersonalized = computed(
+    () => !!userStore.user?.personalized && hasCourseSelection.value,
+  );
 
   const lessons = ref<Lesson[]>([]);
   const subjects = ref<ScheduleSubject[]>([]);
@@ -156,7 +161,6 @@ export function useSchedule() {
 
     const userCourses = userStore.user?.courses || [];
     const userCourseIds = new Set(userCourses.map((c: any) => c.courseId));
-    const hasCourseSelection = !!userStore.user?.doneSetup;
 
     lessons.value.forEach((lesson) => {
       const {
@@ -178,7 +182,7 @@ export function useSchedule() {
           courses: ownCourse,
           subjects: subjectRef,
           outsideCourseSelection:
-            hasCourseSelection && !userCourseIds.has(ownCourseId),
+            hasCourseSelection.value && !userCourseIds.has(ownCourseId),
         });
         return;
       }
@@ -192,7 +196,7 @@ export function useSchedule() {
           _originalId: lesson.id,
           subjects: subjectRef,
           outsideCourseSelection:
-            hasCourseSelection &&
+            hasCourseSelection.value &&
             !schedulesCoursesIndividually.value &&
             courses.length > 0 &&
             !courses.some((c) => userCourseIds.has(c.id)),

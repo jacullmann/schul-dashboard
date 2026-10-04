@@ -4,7 +4,12 @@ import hw, { ensureCsrf, refreshSession } from '@/api/api.ts';
 import { groupPath } from '@/api/groupPath';
 import i18n from '@/i18n';
 import type { ScheduleConfig } from '@/modules/schedule/types';
-import { toGroupType, type GroupType } from '@/types/groups';
+import {
+  toCourseSetup,
+  toGroupType,
+  type CourseSetup,
+  type GroupType,
+} from '@/types/groups';
 import type { PermissionKey, PermissionMatrix } from '@/types/permissions.ts';
 
 const STATUS_ENDPOINT = '/groups/status';
@@ -20,11 +25,16 @@ export type UserGroup = {
   groupType: GroupType;
   daltonEnabled: boolean;
   effectivePermissions: PermissionKey[];
+  courseSetup: CourseSetup;
 };
 
-type RawGroup = Omit<UserGroup, 'groupType' | 'effectivePermissions'> & {
+type RawGroup = Omit<
+  UserGroup,
+  'groupType' | 'effectivePermissions' | 'courseSetup'
+> & {
   groupType?: string;
   effectivePermissions?: string[];
+  courseSetup?: string;
 };
 
 type StatusResponse = {
@@ -86,6 +96,7 @@ function toUserGroup(raw: RawGroup): UserGroup {
     effectivePermissions: (raw.effectivePermissions ?? []).filter(
       isPermissionKey,
     ),
+    courseSetup: toCourseSetup(raw.courseSetup),
   };
 }
 
@@ -252,6 +263,12 @@ export function useAppAuth() {
     }
   }
 
+  /** Mirrors a course setup the server just saved or reset. */
+  function setCourseSetup(groupId: string, courseSetup: CourseSetup): void {
+    const group = findGroup(groupId);
+    if (group) group.courseSetup = courseSetup;
+  }
+
   /** Called once a navigation is confirmed, with the group its URL names. */
   function showGroup(groupId: string | null): void {
     if (groupId === activeGroupId.value) return;
@@ -407,6 +424,7 @@ export function useAppAuth() {
     checkAuthStatus,
     canShowGroup,
     showGroup,
+    setCourseSetup,
     createGroup,
     logout,
     logoutAllDevices,
