@@ -1,5 +1,5 @@
 import { ref } from 'vue';
-import hw from '@/api/api';
+import api from '@/api/api';
 import type { CleanupJob } from '../types';
 
 /**
@@ -15,7 +15,7 @@ export function useCleanupJobs() {
     loading.value = true;
     failed.value = false;
     try {
-      const { data } = await hw.get<CleanupJob[]>('/admin/cleanup-jobs');
+      const { data } = await api.get<CleanupJob[]>('/admin/cleanup-jobs');
       jobs.value = data;
     } catch {
       failed.value = true;

@@ -7,190 +7,214 @@ import {
   inject,
   type InjectionKey,
 } from 'vue';
-import { useRoute, useRouter, type LocationQuery } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
+import { useI18n } from 'vue-i18n';
+import { useEventListener } from '@vueuse/core';
 import { useUserStore } from '@/stores/userStore';
 import { useSubjectStore } from '@/stores/subjectStore';
+import { useTaskFormModal } from '@/stores/modalStore';
 import { useGroupPageId } from '@/core/composables/useGroupPageId';
+import { useToast } from '@/common/composables/useToast';
 import { useImageUpload } from '@/modules/tasks/composables/useImageUpload';
 import { useTaskPermissions } from '@/modules/tasks/composables/useTaskPermissions';
-import { useI18n } from 'vue-i18n';
-import { useToast } from '@/common/composables/useToast';
 import { subjectLabel } from '@/utils/subject-formatter';
-import type { HwItem, ItemType, TaskMenuAction } from '@/modules/tasks/types';
-import { isUuid } from '@/utils/uuid';
-import { isValidType } from '@/modules/tasks/types';
+import type { Task, TaskMenuAction } from '@/modules/tasks/types';
 import { taskRoute } from '@/modules/tasks/utils/routes';
 
-import type { HwContext } from './hw/types';
-import { useHwUi } from './hw/useHwUi';
-import { TASK_PAGE_SIZE, useHwList } from './hw/useHwList';
-import { useHwForms } from './hw/useHwForms';
-import { useHwImages } from './hw/useHwImages';
-import { useHwActions } from './hw/useHwActions';
-import { useHwDetail } from './hw/useHwDetail';
+import { useTaskFilters, type TaskFilters } from './taskPage/useTaskFilters';
+import { useTaskMarks } from './taskPage/useTaskMarks';
+import { useTaskDismissals } from './taskPage/useTaskDismissals';
+import { useTaskItems } from './taskPage/useTaskItems';
+import { useTaskListView } from './taskPage/useTaskListView';
+import { useOpenedTask } from './taskPage/useOpenedTask';
+import { useTaskActions } from './taskPage/useTaskActions';
+import { useTaskNotes } from './taskPage/useTaskNotes';
+import { useTaskImages } from './taskPage/useTaskImages';
 
-export type { HwItem };
+export type { TaskFilters };
 
-export interface TaskFilters {
-  tab: ItemType;
-  showOldEntries: boolean;
-  subject: string;
-  hideChecked: boolean;
-}
+/** Lets the menu start closing before the card it belongs to folds away. */
+const MENU_CLOSE_MS = 200;
 
-function filtersFromQuery(query: LocationQuery): TaskFilters {
-  return {
-    tab: isValidType(query.type) ? query.type : 'all',
-    showOldEntries: query.archived === 'true',
-    // Links from before tasks referenced subjects by id carry a subject name.
-    subject: isUuid(query.subject) ? query.subject : '',
-    hideChecked: query.hideChecked === 'true',
-  };
-}
-
-function queryFromFilters(filters: TaskFilters): LocationQuery {
-  const query: LocationQuery = {};
-  if (filters.tab !== 'all') query.type = filters.tab;
-  if (filters.showOldEntries) query.archived = 'true';
-  if (filters.subject) query.subject = filters.subject;
-  if (filters.hideChecked) query.hideChecked = 'true';
-  return query;
-}
-
-/** `fixedFilters` take precedence over the filters in the URL. */
 function createTasks(fixedFilters: Partial<TaskFilters>) {
   const route = useRoute();
   const router = useRouter();
-  const userStore = useUserStore();
   const subjectStore = useSubjectStore();
+  const taskFormModal = useTaskFormModal();
+  const { user, isLoggedIn } = storeToRefs(useUserStore());
   const groupId = useGroupPageId();
   const imageUpload = useImageUpload(groupId);
   const permissions = useTaskPermissions(groupId);
-  const { user } = storeToRefs(userStore);
+  const toast = useToast();
   const i18n = useI18n();
   const t = i18n.t.bind(i18n);
   const te = i18n.te.bind(i18n);
 
-  const isListRoute = computed(() => route.name === 'group-tasks');
   const openedItemId = computed(() =>
     route.name === 'group-task' && typeof route.params.taskId === 'string'
       ? route.params.taskId
       : null,
   );
-
-  const initialFilters = { ...filtersFromQuery(route.query), ...fixedFilters };
-  const tab = ref<ItemType>(initialFilters.tab);
-  const showOldEntries = ref(initialFilters.showOldEntries);
-  const subjectFilter = ref(initialFilters.subject);
-  const hideChecked = ref(initialFilters.hideChecked);
   const showPersonalized = computed(() => user.value?.personalized ?? false);
 
-  const items = ref<HwItem[]>([]);
-  const hiddenByCourses = ref(0);
-  const loadingList = ref(true);
-  const checksLoading = ref(true);
-  const pinsLoading = ref(true);
-  const initialLoad = ref(true);
-  const visibleCount = ref(TASK_PAGE_SIZE);
+  const filters = useTaskFilters(fixedFilters);
+  const { tab, showOldEntries, subjectFilter, hideChecked } = filters;
+  const marks = useTaskMarks(groupId, isLoggedIn);
+  const dismissals = useTaskDismissals({
+    showOldEntries,
+    hideChecked,
+    isPinned: marks.isPinned,
+  });
+  const taskItems = useTaskItems(groupId, filters.filters, showPersonalized);
+  const listView = useTaskListView({
+    items: taskItems.items,
+    hideChecked,
+    isChecked: marks.isChecked,
+    isPinned: marks.isPinned,
+    pendingCheckRemovals: dismissals.pendingCheckRemovals,
+  });
+  const opened = useOpenedTask({
+    openedItemId,
+    findInList: taskItems.findInList,
+    fetchTask: taskItems.fetchTask,
+  });
 
-  const checkedItems = ref(new Set<string>());
-  const pinnedItems = ref(new Set<string>());
-  const archivedItems = ref(new Set<string>());
-  const keptItems = ref(new Set<string>());
-  const dismissedItems = ref(new Set<string>());
-  const pendingCheckRemovals = ref(new Set<string>());
-  const useListTransitions = ref(false);
+  /** The loaded copy of a task, from the list or the task open on its own. */
+  function findLoadedTask(taskId: string): Task | undefined {
+    const openedTask = opened.openedItem.value;
+    return (
+      taskItems.findInList(taskId) ??
+      (openedTask?.id === taskId ? openedTask : undefined)
+    );
+  }
+
+  async function refreshTask(taskId: string) {
+    try {
+      const task = await taskItems.fetchTask(taskId);
+      taskItems.replaceInList(task);
+      opened.replaceOpenedItem(task);
+    } catch (e) {
+      console.error(`Failed to refresh item ${taskId}:`, e);
+    }
+  }
+
+  const actions = useTaskActions(groupId, taskItems.removeFromList);
+  const notes = useTaskNotes(groupId, findLoadedTask);
+  const images = useTaskImages({
+    isLoggedIn,
+    imageUpload,
+    permissions,
+    refreshTask,
+  });
 
   const openMenuId = ref<string | null>(null);
-  const openedItem = ref<HwItem | null>(null);
-  const infoItem = ref<HwItem | null>(null);
+  const infoItem = ref<Task | null>(null);
+
+  useEventListener(document, 'click', () => {
+    openMenuId.value = null;
+  });
 
   const loading = computed(
-    () => loadingList.value || checksLoading.value || pinsLoading.value,
+    () =>
+      taskItems.loading.value ||
+      marks.checksLoading.value ||
+      marks.pinsLoading.value,
   );
 
-  const ctx: HwContext = {
-    user,
-    tab,
-    showOldEntries,
-    subjectFilter,
-    hideChecked,
-    groupId,
-    showPersonalized,
-    items,
-    hiddenByCourses,
-    loading: loadingList,
-    checksLoading,
-    pinsLoading,
-    initialLoad,
-    visibleCount,
-    checkedItems,
-    pinnedItems,
-    archivedItems,
-    keptItems,
-    dismissedItems,
-    pendingCheckRemovals,
-    useListTransitions,
-    openMenuId,
-    openedItemId,
-    openedItem,
-    reloadList: async () => {},
-    refreshItem: async () => {},
-  };
+  const hasLoadedOnce = ref(false);
+  watch(
+    loading,
+    (isLoading) => {
+      if (!isLoading) hasLoadedOnce.value = true;
+    },
+    { immediate: true },
+  );
+  const initialLoad = computed(
+    () => !hasLoadedOnce.value || taskItems.initialLoad.value,
+  );
 
-  useHwUi(ctx);
-  const list = useHwList(ctx);
-  const actions = useHwActions(ctx, (msg) => useToast().success(msg));
+  function toggleCheck(task: Task) {
+    if (!isLoggedIn.value) return;
+    const isNowChecked = !marks.isChecked(task.id);
+    marks.setChecked(task, isNowChecked);
+    if (isNowChecked) dismissals.followCheck(task);
+    else dismissals.restore(task.id);
+  }
 
-  ctx.reloadList = list.reloadList;
-  ctx.refreshItem = list.refreshItem;
+  marks.onCheckReverted(({ task, checked }) => {
+    dismissals.followRevertedCheck(task, checked);
+    toast.error(t('tasks.list.tasks.errors.status_failed'));
+  });
 
-  const forms = useHwForms(ctx);
-  const images = useHwImages(ctx, imageUpload, permissions);
-  const detail = useHwDetail(ctx);
-
-  async function archiveItem(item: HwItem) {
-    useListTransitions.value = true;
-    dismissedItems.value.add(item.id);
-    dismissedItems.value = new Set(dismissedItems.value);
-    setTimeout(() => {
-      useListTransitions.value = false;
-    }, 1200);
-    const success = await actions.toggleVisibility(item, showOldEntries.value);
-    if (!success) {
-      dismissedItems.value.delete(item.id);
-      dismissedItems.value = new Set(dismissedItems.value);
-    }
+  async function archiveItem(task: Task) {
+    dismissals.dismiss(task.id);
+    const success = await marks.setInArchive(task, !showOldEntries.value);
+    if (!success) dismissals.restore(task.id);
   }
 
   /**
    * Moves a task into the archive or out of it by where the task is, not by
    * which of the two the list shows: an opened task may be in either.
    */
-  async function toggleArchive(item: HwItem) {
-    const isInArchive = actions.isInArchive(item);
-    if (isInArchive === showOldEntries.value) return archiveItem(item);
-    if (!(await actions.toggleVisibility(item, isInArchive))) return;
+  async function toggleArchive(task: Task) {
+    const isInArchive = marks.isInArchive(task);
+    if (isInArchive === showOldEntries.value) return archiveItem(task);
+    if (!(await marks.setInArchive(task, !isInArchive))) return;
     // It joins the list, which may still hide it from an earlier dismissal.
-    dismissedItems.value.delete(item.id);
-    dismissedItems.value = new Set(dismissedItems.value);
-    await list.reloadList();
+    dismissals.restore(task.id);
+    await taskItems.reloadList();
   }
 
-  const hasLoadedOnce = ref(false);
+  function openItem(task: Task) {
+    return router.push(taskRoute(groupId, task.id));
+  }
 
-  watch(
-    loading,
-    (val) => {
-      if (!val) hasLoadedOnce.value = true;
-    },
-    { immediate: true },
-  );
+  function editItem(task: Task) {
+    taskFormModal.openEdit(groupId, task);
+  }
 
-  const finalInitialLoad = computed(
-    () => !hasLoadedOnce.value || initialLoad.value,
-  );
+  function openCreateForm() {
+    taskFormModal.openNew(groupId, {
+      type: tab.value === 'all' ? undefined : tab.value,
+      local: true,
+    });
+  }
+
+  taskFormModal.onSuccess(() => {
+    void taskItems.reloadList();
+    // The reload misses a task the list does not hold.
+    const taskId = openedItemId.value;
+    if (taskId && opened.isOpenedOutsideList.value) void refreshTask(taskId);
+  });
+
+  async function onMenuAction(action: TaskMenuAction, task: Task) {
+    openMenuId.value = null;
+    switch (action) {
+      case 'archive':
+        await new Promise((resolve) => setTimeout(resolve, MENU_CLOSE_MS));
+        return archiveItem(task);
+      case 'images':
+        return images.triggerImageUpload(task);
+      case 'edit':
+        return editItem(task);
+      case 'addNote':
+        notes.startEditNote(task);
+        // The note is only shown on the task's own page.
+        if (openedItemId.value !== task.id) await openItem(task);
+        return;
+      case 'delete':
+        return actions.deleteItem(task.id);
+      case 'report':
+        return actions.reportItem(task);
+      case 'pin':
+        return marks.togglePin(task);
+      case 'share':
+        return actions.shareItem(task);
+      case 'info':
+        infoItem.value = task;
+    }
+  }
 
   const subjectOptions = computed(() => [
     { label: t('tasks.list.allsubjects'), value: '' },
@@ -200,171 +224,79 @@ function createTasks(fixedFilters: Partial<TaskFilters>) {
     })),
   ]);
 
-  function goTab(t_type: ItemType) {
-    tab.value = t_type;
-  }
-
-  function openItem(item: HwItem) {
-    return router.push(taskRoute(groupId, item.id));
-  }
-
-  async function onMenuAction(action: TaskMenuAction, item: HwItem) {
-    openMenuId.value = null;
-    if (action === 'archive') {
-      await new Promise((resolve) => setTimeout(resolve, 200));
-      return archiveItem(item);
-    }
-    if (action === 'images') return images.triggerImageUpload(item);
-    if (action === 'edit') return forms.editItem(item);
-    if (action === 'addNote') {
-      forms.startEditNote(item);
-      // The note is only shown on the task's own page.
-      if (openedItemId.value !== item.id) await openItem(item);
-      return;
-    }
-    if (action === 'delete') return actions.deleteItem(item.id);
-    if (action === 'report') return actions.reportItem(item);
-    if (action === 'pin') return actions.togglePin(item);
-    if (action === 'share') return actions.shareItem(item);
-    if (action === 'info') infoItem.value = item;
-  }
-
-  function resetFilters() {
-    subjectFilter.value = '';
-    showOldEntries.value = false;
-    hideChecked.value = false;
-    if (tab.value !== 'all') goTab('all');
-  }
-
-  // The filters live in the list's URL. An opened task has a URL of its own,
-  // so they keep their values behind it and the list comes back unchanged.
-  watch(
-    () => route.query,
-    (query) => {
-      if (!isListRoute.value) return;
-      const filters = filtersFromQuery(query);
-      tab.value = filters.tab;
-      showOldEntries.value = filters.showOldEntries;
-      subjectFilter.value = filters.subject;
-      hideChecked.value = filters.hideChecked;
-    },
-  );
-
-  watch([tab, showOldEntries, subjectFilter, hideChecked], () => {
-    if (!isListRoute.value) return;
-    void router.replace({
-      query: queryFromFilters({
-        tab: tab.value,
-        showOldEntries: showOldEntries.value,
-        subject: subjectFilter.value,
-        hideChecked: hideChecked.value,
-      }),
-    });
+  watch([filters.filters, showPersonalized], () => {
+    dismissals.clear();
+    listView.resetVisibleCount();
+    void taskItems.reloadList();
   });
 
-  watch(
-    [tab, showOldEntries, subjectFilter, hideChecked, showPersonalized],
-    () => {
-      dismissedItems.value.clear();
-      pendingCheckRemovals.value.clear();
-      list.resetVisibleCount();
-      void list.reloadList();
-    },
-  );
-
-  // Feedback lives in the upload progress toast; refresh so partial uploads show up too.
-  watch(imageUpload.uploading, async (val, oldVal) => {
-    if (oldVal && !val && images.currentUploadItemId.value) {
-      const itemId = images.currentUploadItemId.value;
-      images.currentUploadItemId.value = null;
-      await list.refreshItem(itemId);
-    }
-  });
-
-  watch(user, async (newUser, oldUser) => {
-    if (newUser && !oldUser) {
-      await Promise.all([
-        list.loadCheckedForMe(),
-        actions.loadPinnedForMe(),
-        list.loadVisibilityForMe(),
-      ]);
-      void list.reloadList();
-    }
-    if (!newUser && oldUser) {
-      checkedItems.value = new Set();
-      pinnedItems.value = new Set();
-      archivedItems.value = new Set();
-      keptItems.value = new Set();
-      void list.reloadList();
-    }
+  watch(isLoggedIn, async (loggedIn) => {
+    await marks.load();
+    if (!loggedIn) dismissals.clear();
+    void taskItems.reloadList();
   });
 
   onMounted(async () => {
     await subjectStore.loadSubjects(groupId);
-    await Promise.all([
-      list.reloadList(),
-      list.loadCheckedForMe(),
-      actions.loadPinnedForMe(),
-      list.loadVisibilityForMe(),
-    ]);
+    await Promise.all([taskItems.reloadList(), marks.load()]);
   });
 
   return {
     user,
     loading,
-    checksLoading,
-    pinsLoading,
+    initialLoad,
+    checksLoading: marks.checksLoading,
+    pinsLoading: marks.pinsLoading,
+    tab,
     subjectFilter,
-    showPersonalized,
-    hiddenByCourses,
     showOldEntries,
     hideChecked,
-    visibleCount,
-    limitedItems: list.limitedItems,
-    hasMoreItems: list.hasMoreItems,
-    filteredItems: list.filteredItems,
-    showReportConfirm: actions.showReportConfirm,
-    reportReason: actions.reportReason,
-    tab,
+    showPersonalized,
+    hiddenByCourses: taskItems.hiddenByCourses,
+    subjectOptions,
+    goTab: filters.goTab,
+    resetFilters: filters.resetFilters,
+    visibleCount: listView.visibleCount,
+    filteredItems: listView.filteredItems,
+    limitedItems: listView.limitedItems,
+    hasMoreItems: listView.hasMoreItems,
+    showMore: listView.showMore,
+    dismissedItems: dismissals.dismissedItems,
+    useListTransitions: dismissals.useListTransitions,
     openMenuId,
     infoItem,
-    openedItem,
-    openedItemError: detail.openedItemError,
-    retryOpenedItem: detail.retryOpenedItem,
-    showMore: list.showMore,
     onMenuAction,
+    openedItem: opened.openedItem,
+    openedItemError: opened.openedItemError,
+    retryOpenedItem: opened.retryOpenedItem,
     ...permissions,
-    openCreateForm: forms.openCreateForm,
-    editingNoteForId: forms.editingNoteForId,
-    noteEditContent: forms.noteEditContent,
-    savingNote: forms.savingNote,
-    startEditNote: forms.startEditNote,
-    cancelEditNote: forms.cancelEditNote,
-    saveNote: forms.saveNote,
-    deleteNote: forms.deleteNote,
-    goTab,
-    isChecked: actions.isChecked,
-    toggleCheck: actions.toggleCheck,
-    isPinned: actions.isPinned,
-    togglePin: actions.togglePin,
-    isInArchive: actions.isInArchive,
+    openCreateForm,
+    isChecked: marks.isChecked,
+    toggleCheck,
+    isPinned: marks.isPinned,
+    togglePin: marks.togglePin,
+    isInArchive: marks.isInArchive,
     archiveItem,
     toggleArchive,
     deleteItem: actions.deleteItem,
     shareItem: actions.shareItem,
-    dismissedItems,
-    useListTransitions,
+    showReportConfirm: actions.showReportConfirm,
+    reportReason: actions.reportReason,
     doReport: actions.doReport,
     cancelReport: actions.cancelReport,
-    initialLoad: finalInitialLoad,
+    editingNoteForId: notes.editingNoteForId,
+    noteEditContent: notes.noteEditContent,
+    savingNote: notes.savingNote,
+    startEditNote: notes.startEditNote,
+    cancelEditNote: notes.cancelEditNote,
+    saveNote: notes.saveNote,
+    deleteNote: notes.deleteNote,
     imageMenu: images.imageMenu,
     closeImageMenu: images.closeImageMenu,
     triggerImageUpload: images.triggerImageUpload,
     triggerImageDrop: images.triggerImageDrop,
     triggerImageDelete: images.triggerImageDelete,
     handleImageContextMenu: images.handleImageContextMenu,
-    subjectOptions,
-    resetFilters,
   };
 }
 

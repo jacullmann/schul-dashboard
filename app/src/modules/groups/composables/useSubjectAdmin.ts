@@ -1,6 +1,6 @@
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import hw from '@/api/api.ts';
+import api from '@/api/api.ts';
 import { groupPath } from '@/api/groupPath';
 import { useGroupPageId } from '@/core/composables/useGroupPageId';
 import type { AdminCourse, AdminSubject } from '@/modules/groups/types';
@@ -36,13 +36,13 @@ export function useSubjectAdmin() {
   async function loadSubjects() {
     loading.value = true;
     try {
-      const { data } = await hw.get<AdminSubject[]>(
+      const { data } = await api.get<AdminSubject[]>(
         groupPath(groupId, '/admin/subjects'),
       );
       subjects.value = data || [];
     } catch {
       try {
-        const { data } = await hw.get<AdminSubject[]>(
+        const { data } = await api.get<AdminSubject[]>(
           groupPath(groupId, '/schedule/subjects'),
         );
         subjects.value = data || [];
@@ -62,7 +62,7 @@ export function useSubjectAdmin() {
     if (!name.trim()) return;
     saving.value = true;
     try {
-      const { data } = await hw.post<AdminSubject>(
+      const { data } = await api.post<AdminSubject>(
         groupPath(groupId, '/admin/subjects'),
         {
           name: name.trim(),
@@ -87,7 +87,7 @@ export function useSubjectAdmin() {
   ): Promise<boolean> {
     saving.value = true;
     try {
-      await hw.patch(groupPath(groupId, `/admin/subjects/${id}`), updates);
+      await api.patch(groupPath(groupId, `/admin/subjects/${id}`), updates);
       const subject = subjects.value.find((s) => s.id === id);
       const categoryChanged =
         updates.category !== undefined &&
@@ -125,7 +125,7 @@ export function useSubjectAdmin() {
 
     if (!isConfirmed) return false;
     try {
-      await hw.delete(groupPath(groupId, `/admin/subjects/${id}`));
+      await api.delete(groupPath(groupId, `/admin/subjects/${id}`));
       subjects.value = subjects.value.filter((s) => s.id !== id);
       subjectStore.reset();
       success(t('groups.settings.subjects.errors.delete_success'));
@@ -149,7 +149,7 @@ export function useSubjectAdmin() {
     if (!name.trim()) return false;
     saving.value = true;
     try {
-      const { data } = await hw.post<AdminCourse & { subjectId: string }>(
+      const { data } = await api.post<AdminCourse & { subjectId: string }>(
         groupPath(groupId, `/admin/subjects/${subjectId}/courses`),
         { name: name.trim(), courseType },
       );
@@ -184,7 +184,7 @@ export function useSubjectAdmin() {
     if (!name.trim()) return false;
     saving.value = true;
     try {
-      const { data } = await hw.patch<{ courseType?: CourseType | null }>(
+      const { data } = await api.patch<{ courseType?: CourseType | null }>(
         groupPath(groupId, `/admin/courses/${courseId}`),
         { name: name.trim(), courseType },
       );
@@ -222,7 +222,7 @@ export function useSubjectAdmin() {
     if (!isConfirmed) return false;
     saving.value = true;
     try {
-      await hw.delete(groupPath(groupId, `/admin/courses/${courseId}`));
+      await api.delete(groupPath(groupId, `/admin/courses/${courseId}`));
       const subject = subjects.value.find((s) => s.id === subjectId);
       if (subject && subject.courses) {
         subject.courses = subject.courses.filter((c) => c.id !== courseId);

@@ -8,7 +8,7 @@ import {
   useIsMobileViewport,
   useVisualViewportHeight,
 } from '@/common/composables/useViewport';
-import hw, { refreshSession } from '../../../api/api';
+import api, { refreshSession } from '../../../api/api';
 import { groupPath } from '@/api/groupPath';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useToast } from '@/common/composables/useToast';
@@ -183,7 +183,7 @@ export function useMessages() {
     isInitialScroll.value = true;
     stickToBottom = true;
     try {
-      const { data } = await hw.get(groupPath(groupId.value, '/messages'));
+      const { data } = await api.get(groupPath(groupId.value, '/messages'));
       messages.value = data.messages;
       lastVisitAt.value = data.lastVisitAt;
 
@@ -336,7 +336,7 @@ export function useMessages() {
     }
 
     try {
-      await hw.post(groupPath(groupId.value, '/messages'), payload);
+      await api.post(groupPath(groupId.value, '/messages'), payload);
     } catch (err) {
       console.error('Failed to send message:', err);
       messageInput.value = text;
@@ -433,7 +433,7 @@ export function useMessages() {
     if (!isConfirmed) return;
 
     try {
-      await hw.delete(groupPath(groupId.value, `/messages/${msg.id}`));
+      await api.delete(groupPath(groupId.value, `/messages/${msg.id}`));
       toast.success(t('chat.delete_success'));
     } catch (err) {
       console.error('Failed to delete message:', err);
@@ -459,7 +459,7 @@ export function useMessages() {
     cancelReport();
 
     try {
-      await hw.post(groupPath(groupId.value, '/messages/reports'), {
+      await api.post(groupPath(groupId.value, '/messages/reports'), {
         messageId: msg.id,
         reason: reason || undefined,
       });
@@ -489,7 +489,7 @@ export function useMessages() {
 
     pendingMarkRead.value = false;
     try {
-      await hw.post(groupPath(groupId.value, '/messages/read'));
+      await api.post(groupPath(groupId.value, '/messages/read'));
       lastVisitAt.value = new Date().toISOString();
     } catch (err) {
       console.error('Failed to mark messages as read:', err);
@@ -533,7 +533,7 @@ export function useMessages() {
       if (navigator.sendBeacon) {
         navigator.sendBeacon(`${apiUrl}/messages/read`);
       } else {
-        void hw
+        void api
           .post(groupPath(groupId.value, '/messages/read'))
           .catch(() => {});
       }
@@ -544,7 +544,7 @@ export function useMessages() {
   watch(groupId, (_, previousGroupId) => {
     if (pendingMarkRead.value && previousGroupId) {
       pendingMarkRead.value = false;
-      void hw
+      void api
         .post(groupPath(previousGroupId, '/messages/read'))
         .catch(() => {});
     }

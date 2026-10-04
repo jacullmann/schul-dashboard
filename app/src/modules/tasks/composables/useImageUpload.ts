@@ -1,12 +1,12 @@
 import { ref, toValue, type MaybeRefOrGetter } from 'vue';
 import { useI18n } from 'vue-i18n';
-import hw from '@/api/api.ts';
+import api from '@/api/api.ts';
 import { groupPath } from '@/api/groupPath';
 import { uploadTaskFile, type Attachment } from '@/api/files';
 import { processImageBeforeUpload } from '@/modules/tasks/composables/useConvertImage';
 import { useToast } from '@/common/composables/useToast';
 import { useUserStore } from '@/stores/userStore';
-import type { HwItem, TaskFile } from '@/modules/tasks/types';
+import type { Task, TaskFile } from '@/modules/tasks/types';
 import {
   imageQuotaViolation,
   type HeldImages,
@@ -82,7 +82,7 @@ export function useImageUpload(groupId: MaybeRefOrGetter<string>) {
 
   async function uploadFiles(
     files: File[],
-    itemType: HwItem['type'],
+    itemType: Task['type'],
     itemId?: string,
   ) {
     if (files.length === 0) return;
@@ -146,7 +146,7 @@ export function useImageUpload(groupId: MaybeRefOrGetter<string>) {
           return;
         }
 
-        const { data: attachment } = await hw.post<Attachment>(
+        const { data: attachment } = await api.post<Attachment>(
           groupPath(toValue(groupId), `/items/${itemId}/attachments`),
           { assetId: upload.id },
         );
@@ -182,7 +182,7 @@ export function useImageUpload(groupId: MaybeRefOrGetter<string>) {
     }
   }
 
-  function uploadImage(itemType: HwItem['type'], itemId?: string) {
+  function uploadImage(itemType: Task['type'], itemId?: string) {
     uploading.value = true;
     uploadError.value = '';
     uploadSuccess.value = false;
@@ -209,7 +209,7 @@ export function useImageUpload(groupId: MaybeRefOrGetter<string>) {
   async function removeImg(file: TaskFile, parentId?: string) {
     if (parentId) {
       try {
-        await hw.delete(
+        await api.delete(
           groupPath(
             toValue(groupId),
             `/items/${parentId}/attachments/${file.id}`,

@@ -1,6 +1,6 @@
 import { ref, watch, type Ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import hw from '@/api/api';
+import api from '@/api/api';
 import { useToast } from '@/common/composables/useToast';
 import type {
   MemberRole,
@@ -21,8 +21,8 @@ export function useSuperAdminUserDetails(userId: Ref<string | null>) {
     loading.value = true;
     try {
       const [groupsRes, activityRes] = await Promise.all([
-        hw.get<SuperAdminMembership[]>(`/admin/users/${id}/groups`),
-        hw.get<SuperAdminUserActivity[]>(`/admin/users/${id}/activity`),
+        api.get<SuperAdminMembership[]>(`/admin/users/${id}/groups`),
+        api.get<SuperAdminUserActivity[]>(`/admin/users/${id}/activity`),
       ]);
       // A slow response for a previously opened user must not overwrite this one.
       if (userId.value !== id) return;
@@ -44,13 +44,13 @@ export function useSuperAdminUserDetails(userId: Ref<string | null>) {
 
     changingGroupId.value = membership.groupId;
     try {
-      await hw.patch(`/admin/users/${id}/groups/${membership.groupId}/role`, {
+      await api.patch(`/admin/users/${id}/groups/${membership.groupId}/role`, {
         role,
       });
       toast.success(t('admin.users.details.role_changed'));
       // Transferring ownership also changes the previous owner, and the
       // assignable roles follow the new role, so the server stays the source.
-      const { data } = await hw.get<SuperAdminMembership[]>(
+      const { data } = await api.get<SuperAdminMembership[]>(
         `/admin/users/${id}/groups`,
       );
       if (userId.value === id) memberships.value = data;

@@ -16,7 +16,7 @@ import {
   type SwipeAction,
 } from '@/modules/tasks/composables/useSwipeCard';
 import { useFileDrop } from '@/modules/tasks/composables/useFileDrop';
-import type { HwItem, TaskMenuAction } from '@/modules/tasks/types';
+import type { Task, TaskMenuAction } from '@/modules/tasks/types';
 import { taskRoute } from '@/modules/tasks/utils/routes';
 import { menuAnchor, type MenuAnchor } from '@/modules/tasks/utils/menuAnchor';
 import SwipeActionTray from './SwipeActionTray.vue';
@@ -24,7 +24,7 @@ import TaskMenu from './TaskMenu.vue';
 import TaskMeta from './TaskMeta.vue';
 
 const props = defineProps<{
-  item: HwItem;
+  item: Task;
   showType: boolean;
   isArchiveView: boolean;
   isChecked: boolean;

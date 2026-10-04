@@ -10,16 +10,14 @@ import { useToast } from '@/common/composables/useToast';
 import { useAbsoluteUrl } from '@/common/composables/useAbsoluteUrl';
 import { inviteRoute } from '@/modules/auth/utils/routes';
 import type { GroupInviteLog } from '@/modules/groups/types';
+import { useGroupInvites } from '@/modules/groups/composables/useGroupInvites';
 
-defineProps<{
-  invites: GroupInviteLog[];
-  loading: boolean;
-}>();
-
-const emit = defineEmits<{
-  (e: 'revoke-invite', id: string): void;
-  (e: 'refresh-invites'): void;
-}>();
+const {
+  invites,
+  loadingInvites: loading,
+  loadInvites,
+  revokeInvite,
+} = useGroupInvites();
 
 const { t } = useI18n();
 const { createInvite } = useAppAuth();
@@ -37,7 +35,7 @@ async function inviteMember() {
     const res = await createInvite(groupId);
     if (res.ok && res.token) {
       inviteModal.open({ groupId: groupId, token: res.token });
-      emit('refresh-invites');
+      void loadInvites();
     } else {
       toast.error(res.error || t('auth.groups.errors.invite_failed'));
     }
@@ -212,7 +210,7 @@ function getInviteUrl(token: string): string {
                   variant="ghost"
                   size="sm"
                   :icon="Undo2"
-                  @click="emit('revoke-invite', invite.id)"
+                  @click="revokeInvite(invite.id)"
                 />
               </BaseTooltip>
             </td>

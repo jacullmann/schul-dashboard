@@ -8,20 +8,17 @@ import {
 } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import { computed, ref } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRouter } from 'vue-router';
 import Avatar from '@/modules/auth/components/Avatar.vue';
 import InfoModal from '@/common/components/InfoModal.vue';
-import type {
-  AssignableMemberRole,
-  GroupMember,
-  MemberRole,
-} from '@/modules/groups/types';
+import type { GroupMember, MemberRole } from '@/modules/groups/types';
+import { useGroupMembers } from '@/modules/groups/composables/useGroupMembers';
+import { useGroupPageId } from '@/core/composables/useGroupPageId';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useUserStore } from '@/stores/userStore';
 import { rankByQuery } from '@/utils/search-rank';
 
 const { t, locale } = useI18n();
-const route = useRoute();
 const router = useRouter();
 
 function formatRelativeTime(dateStr: string | undefined): string {
@@ -73,23 +70,20 @@ function formatRelativeTime(dateStr: string | undefined): string {
   }
 }
 
-const props = defineProps<{
-  members: GroupMember[];
-  loading: boolean;
-}>();
-
-const emit = defineEmits<{
-  (e: 'refresh'): void;
-  (e: 'change-role', userId: string, newRole: AssignableMemberRole): void;
-  (e: 'remove', userId: string, name: string, ban: boolean): void;
-  (e: 'transfer-ownership', userId: string): void;
-}>();
+const {
+  members,
+  loadingMembers: loading,
+  loadMembers,
+  changeRole,
+  removeMember,
+  transferOwnership,
+} = useGroupMembers();
 
 const { checkPermission } = useAppAuth();
 const userStore = useUserStore();
 const canModerateMembers = computed(() => checkPermission('moderate_members'));
 const canChangeAnyRole = computed(() =>
-  props.members.some((member) => member.assignableRoles.length > 0),
+  members.value.some((member) => member.assignableRoles.length > 0),
 );
 
 const DROPDOWN_ROLES: readonly MemberRole[] = [
@@ -107,16 +101,16 @@ const roleLabels = computed<Record<MemberRole, string>>(() => ({
 }));
 
 const memberCountLabel = computed(() =>
-  props.members.length === 1
+  members.value.length === 1
     ? t('groups.settings.members.count_one')
     : t('groups.settings.members.count_other', {
-        count: props.members.length,
+        count: members.value.length,
       }),
 );
 
 const searchQuery = ref('');
 const filteredMembers = computed(() =>
-  rankByQuery(props.members, searchQuery.value, (member) => [
+  rankByQuery(members.value, searchQuery.value, (member) => [
     { text: member.generatedName, weight: 1 },
     { text: roleLabels.value[member.role], weight: 0.8 },
   ]),
@@ -138,19 +132,19 @@ function roleOptionsFor(member: GroupMember) {
   }));
 }
 
-const groupId = computed(() => route.params.groupId as string);
+const groupId = useGroupPageId();
 
 function goToInvites() {
   void router.push({
     name: 'group-admin',
-    params: { groupId: groupId.value, tab: 'members', subTab: 'invites' },
+    params: { groupId, tab: 'members', subTab: 'invites' },
   });
 }
 
 function goToBanned() {
   void router.push({
     name: 'group-admin',
-    params: { groupId: groupId.value, tab: 'members', subTab: 'banned' },
+    params: { groupId, tab: 'members', subTab: 'banned' },
   });
 }
 
@@ -158,9 +152,9 @@ function onRoleChange(member: GroupMember, value: string) {
   if (!isMemberRole(value) || value === member.role) return;
 
   if (value === 'owner') {
-    emit('transfer-ownership', member.userId);
+    void transferOwnership(member.userId);
   } else {
-    emit('change-role', member.userId, value);
+    void changeRole(member.userId, value);
   }
 }
 
@@ -185,12 +179,7 @@ function closeRemoveModal() {
 }
 
 function confirmRemove() {
-  emit(
-    'remove',
-    removeModal.value.userId,
-    removeModal.value.userName,
-    removeModal.value.ban,
-  );
+  void removeMember(removeModal.value.userId, removeModal.value.ban);
   closeRemoveModal();
 }
 </script>
@@ -248,7 +237,7 @@ function confirmRemove() {
             :disabled="loading"
             variant="ghost"
             :icon="RefreshCw"
-            @click="emit('refresh')"
+            @click="loadMembers"
           />
         </BaseTooltip>
       </template>

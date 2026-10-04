@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { getCurrentScope, onScopeDispose, ref, shallowRef } from 'vue';
 import i18n from '@/i18n';
-import type { HwItem, ItemType, PrivateTask } from '@/modules/tasks/types';
+import type { Task, ItemType, PrivateTask } from '@/modules/tasks/types';
 import type { StoredFile } from '@/api/files';
 
 type TaskType = Exclude<ItemType, 'all'>;
@@ -88,7 +88,7 @@ export interface TaskFormOptions {
 interface TaskFormPayload {
   /** Fixed when the form opens, so navigating away cannot retarget it. */
   groupId: string;
-  item: HwItem | null;
+  item: Task | null;
   type: TaskType;
   local: boolean;
 }
@@ -103,7 +103,7 @@ export const useTaskFormModal = defineStore('task-form-modal', () => {
     modal.open({ groupId, item: null, type, local });
   }
 
-  function openEdit(groupId: string, item: HwItem) {
+  function openEdit(groupId: string, item: Task) {
     modal.open({ groupId, item, type: item.type, local: false });
   }
 

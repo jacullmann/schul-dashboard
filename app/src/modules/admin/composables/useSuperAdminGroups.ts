@@ -1,6 +1,6 @@
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import hw from '@/api/api';
+import api from '@/api/api';
 import { useToast } from '@/common/composables/useToast';
 import { useInviteModal } from '@/stores/modalStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
@@ -89,7 +89,7 @@ export function useSuperAdminGroups() {
 
     deletingGroup.value = true;
     try {
-      await hw.delete(`/admin/groups/${group.id}`);
+      await api.delete(`/admin/groups/${group.id}`);
       toast.success(t('admin.groups.delete_success', { name: group.name }));
       deleteModalOpen.value = false;
       await list.reload();

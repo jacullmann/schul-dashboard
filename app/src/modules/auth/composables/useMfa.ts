@@ -1,5 +1,5 @@
 import { ref, computed } from 'vue';
-import hw from '@/api/api.ts';
+import api from '@/api/api.ts';
 import i18n from '@/i18n';
 import { isAxiosError, type AxiosRequestConfig } from 'axios';
 import type {
@@ -62,7 +62,7 @@ export function useMfa() {
     mfaError.value = null;
 
     try {
-      const { data } = await hw.get<MfaStatusResponse>('/mfa/status');
+      const { data } = await api.get<MfaStatusResponse>('/mfa/status');
       mfaEnabled.value = data.mfaEnabled;
       return data.mfaEnabled;
     } catch (err: unknown) {
@@ -81,7 +81,7 @@ export function useMfa() {
     mfaError.value = null;
 
     try {
-      const { data } = await hw.post<MfaSetupResponse>('/mfa/setup');
+      const { data } = await api.post<MfaSetupResponse>('/mfa/setup');
       return data;
     } catch (err: unknown) {
       mfaError.value = apiErrorMessage(
@@ -107,7 +107,7 @@ export function useMfa() {
     mfaError.value = null;
 
     try {
-      await hw.post(url, { code }, config);
+      await api.post(url, { code }, config);
       onSuccess?.();
       return { ok: true };
     } catch (err: unknown) {
@@ -142,7 +142,7 @@ export function useMfa() {
   /** Seconds left on the pending sign-in challenge, or `null` if there is none. */
   async function fetchMfaChallengeExpiresIn(): Promise<number | null> {
     try {
-      const { data } = await hw.get<MfaChallengeResponse>(
+      const { data } = await api.get<MfaChallengeResponse>(
         '/auth/mfa/challenge',
         challengeRequestConfig,
       );
@@ -155,7 +155,7 @@ export function useMfa() {
 
   async function cancelMfaLogin(): Promise<void> {
     try {
-      await hw.post('/auth/mfa/cancel');
+      await api.post('/auth/mfa/cancel');
     } catch {
       // Best-effort cleanup; the pending token expires on its own.
     }

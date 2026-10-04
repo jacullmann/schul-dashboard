@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import hw from '@/api/api.ts';
+import api from '@/api/api.ts';
 import { usePreferences } from '@/common/composables/usePreferences';
 
 export type DismissibleNotice = 'personalizedTasks' | 'personalizedSchedule';
@@ -44,7 +44,7 @@ export const useUserStore = defineStore('user', () => {
     fetchPromise = (async () => {
       loading.value = true;
       try {
-        const { data } = await hw.get('/auth/me');
+        const { data } = await api.get('/auth/me');
         if (data.authenticated) {
           user.value = {
             id: data.id,

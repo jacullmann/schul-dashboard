@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useEventListener } from '@vueuse/core';
 import { useI18n } from 'vue-i18n';
-import hw from '../../../api/api';
+import api from '../../../api/api';
 import { useToast } from '@/common/composables/useToast';
 import CenteredAuthModal from '@/common/components/CenteredAuthModal.vue';
 import { apiErrorMessage } from '@/api/errors';
@@ -83,7 +83,7 @@ async function handleNext() {
     }
     submitting.value = true;
     try {
-      await hw.post('/auth/forgot', { email: email.value });
+      await api.post('/auth/forgot', { email: email.value });
       setMessage(t('auth.login.reset.errors.code_sent'), false);
       step.value = 2;
     } catch (e: unknown) {
@@ -101,7 +101,7 @@ async function handleNext() {
     }
     submitting.value = true;
     try {
-      const { data } = await hw.post('/auth/reset/verify', {
+      const { data } = await api.post('/auth/reset/verify', {
         email: email.value,
         code: code.value.trim(),
       });
@@ -132,7 +132,7 @@ async function handleNext() {
     }
     submitting.value = true;
     try {
-      const { data } = await hw.post('/auth/reset', {
+      const { data } = await api.post('/auth/reset', {
         resetToken: savedResetToken,
         password: password.value,
       });

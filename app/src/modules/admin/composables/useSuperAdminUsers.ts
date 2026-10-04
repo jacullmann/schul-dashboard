@@ -1,5 +1,5 @@
 import { useI18n } from 'vue-i18n';
-import hw from '@/api/api';
+import api from '@/api/api';
 import { useToast } from '@/common/composables/useToast';
 import { useConfirmModal } from '@/stores/modalStore';
 import type {
@@ -67,9 +67,9 @@ export function useSuperAdminUsers() {
 
     try {
       if (user.isBanned) {
-        await hw.delete(`/admin/users/${user.id}/ban`);
+        await api.delete(`/admin/users/${user.id}/ban`);
       } else {
-        await hw.post(`/admin/users/${user.id}/ban`);
+        await api.post(`/admin/users/${user.id}/ban`);
       }
       user.isBanned = !user.isBanned;
       toast.success(t(`admin.users.${action}_success`));
@@ -89,7 +89,7 @@ export function useSuperAdminUsers() {
     if (!confirmed) return;
 
     try {
-      await hw.delete(`/admin/users/${user.id}`);
+      await api.delete(`/admin/users/${user.id}`);
       toast.success(t('admin.users.delete_success'));
       await Promise.all([list.reload(), loadStats()]);
     } catch {

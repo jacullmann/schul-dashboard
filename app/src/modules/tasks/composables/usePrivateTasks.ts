@@ -2,7 +2,7 @@ import { ref, watch, onMounted } from 'vue';
 import { useEventListener } from '@vueuse/core';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
-import hw from '@/api/api.ts';
+import api from '@/api/api.ts';
 import { useConfirmModal } from '@/stores/modalStore';
 import { useI18n } from 'vue-i18n';
 import type { PrivateTask } from '@/modules/tasks/types';
@@ -101,7 +101,7 @@ export function usePrivateTasks() {
     if (!user.value) return;
     loading.value = true;
     try {
-      const { data } = await hw.get('/todos');
+      const { data } = await api.get('/todos');
       privateTasks.value = data;
       syncState();
     } catch {
@@ -162,7 +162,7 @@ export function usePrivateTasks() {
     entry.inFlight = true;
     let error: unknown = null;
     try {
-      const { data } = await hw.patch(`/todos/${id}/toggle`);
+      const { data } = await api.patch(`/todos/${id}/toggle`);
       entry.serverCompleted = data.completed;
       entry.updatedAt = data.updatedAt;
     } catch (e) {
@@ -207,7 +207,7 @@ export function usePrivateTasks() {
   const duplicatePrivateTask = async (task: PrivateTask) => {
     loading.value = true;
     try {
-      const { data } = await hw.post('/todos', {
+      const { data } = await api.post('/todos', {
         title: task.title,
         description: task.description,
         completed: false,
@@ -244,7 +244,7 @@ export function usePrivateTasks() {
     syncState();
 
     try {
-      await hw.delete(`/todos/${id}`);
+      await api.delete(`/todos/${id}`);
       useToast().success(t('tasks.private_tasks.success_delete'));
     } catch (e: any) {
       privateTasks.value.splice(idx, 0, backup);
@@ -322,7 +322,7 @@ export function usePrivateTasks() {
         if (index === -1) continue;
 
         reorderInFlight = id;
-        const { data } = await hw.patch(`/todos/${id}/reorder`, {
+        const { data } = await api.patch(`/todos/${id}/reorder`, {
           prevPosition: confirmedNeighbourPosition(index, -1),
           nextPosition: confirmedNeighbourPosition(index, 1),
         });

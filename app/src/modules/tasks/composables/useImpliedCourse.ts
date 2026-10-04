@@ -1,13 +1,13 @@
 import { computed, type MaybeRefOrGetter, toValue } from 'vue';
 import { useSubjectStore } from '@/stores/subjectStore';
 import { useUserStore } from '@/stores/userStore';
-import type { HwItem } from '@/modules/tasks/types';
+import type { Task } from '@/modules/tasks/types';
 
 /**
  * A task's course goes without saying when its subject offers no other one,
  * or when the member only sees their own courses and this is one of them.
  */
-export function useImpliedCourse(item: MaybeRefOrGetter<HwItem>) {
+export function useImpliedCourse(item: MaybeRefOrGetter<Task>) {
   const subjectStore = useSubjectStore();
   const userStore = useUserStore();
 

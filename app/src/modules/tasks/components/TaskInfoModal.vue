@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 import { computed } from 'vue';
-import type { HwItem } from '@/modules/tasks/types';
+import type { Task } from '@/modules/tasks/types';
 import { formatDate as formatRelativeDate } from '@/utils/date-formatter';
 
 const props = defineProps<{
   open: boolean;
-  item: HwItem | null;
+  item: Task | null;
   isSuperAdmin?: boolean;
 }>();
 

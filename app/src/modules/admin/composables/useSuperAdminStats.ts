@@ -1,6 +1,6 @@
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import hw from '@/api/api';
+import api from '@/api/api';
 import { useToast } from '@/common/composables/useToast';
 import type { DailyActivity, SuperAdminStats } from '../types';
 
@@ -17,7 +17,7 @@ export function useSuperAdminStats() {
   async function loadStats() {
     loadingStats.value = true;
     try {
-      const { data } = await hw.get<SuperAdminStats>('/admin/stats');
+      const { data } = await api.get<SuperAdminStats>('/admin/stats');
       stats.value = data;
     } catch {
       toast.error(t('admin.overview.errors.load'));
@@ -28,7 +28,7 @@ export function useSuperAdminStats() {
 
   async function loadDailyActivity() {
     try {
-      const { data } = await hw.get<DailyActivity[]>('/admin/stats/daily');
+      const { data } = await api.get<DailyActivity[]>('/admin/stats/daily');
       dailyActivity.value = data;
     } catch {
       toast.error(t('admin.overview.errors.load'));

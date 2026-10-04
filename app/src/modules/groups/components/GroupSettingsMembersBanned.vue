@@ -3,15 +3,9 @@ import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import Avatar from '@/modules/auth/components/Avatar.vue';
+import { useGroupBans } from '@/modules/groups/composables/useGroupBans';
 
-defineProps<{
-  bannedUsers: { userId: string; generatedName: string; bannedAt: string }[];
-  loading: boolean;
-}>();
-
-const emit = defineEmits<{
-  (e: 'revert-ban', userId: string): void;
-}>();
+const { bannedUsers, loadingBannedUsers: loading, revertBan } = useGroupBans();
 
 const { t, locale } = useI18n();
 const { checkPermission } = useAppAuth();
@@ -31,7 +25,10 @@ function bannedOnLabel(bannedAt: string): string {
       {{ t('groups.settings.members.ban_list.title') }}
     </PageHeader>
 
-    <div v-if="loading && bannedUsers.length === 0" class="flex justify-center p-8">
+    <div
+      v-if="loading && bannedUsers.length === 0"
+      class="flex justify-center p-8"
+    >
       <BaseSpinner />
     </div>
     <BaseEmptyState
@@ -77,7 +74,7 @@ function bannedOnLabel(bannedAt: string): string {
             <BaseButton
               :disabled="!canModerateMembers"
               variant="ghost"
-              @click="emit('revert-ban', user.userId)"
+              @click="revertBan(user.userId)"
             >
               {{ t('groups.settings.members.ban_list.actions.unban') }}
             </BaseButton>

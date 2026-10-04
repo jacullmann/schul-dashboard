@@ -86,7 +86,7 @@ const {
 } = useTasks();
 
 const visibleItems = computed(() =>
-  limitedItems.value.filter((item) => !dismissedItems.value.has(item.id)),
+  limitedItems.value.filter((item) => !dismissedItems.has(item.id)),
 );
 
 const hasActiveFilters = computed(

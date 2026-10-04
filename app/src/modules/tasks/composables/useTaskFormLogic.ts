@@ -1,9 +1,9 @@
 import { onBeforeUnmount, onMounted, ref, watch, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useEventListener } from '@vueuse/core';
-import hw from '../../../api/api';
+import api from '../../../api/api';
 import { groupPath } from '@/api/groupPath';
-import type { HwItem } from '@/modules/tasks/composables/useTasks';
+import type { Task } from '@/modules/tasks/types';
 import type {
   ItemSubjectPayload,
   ItemType,
@@ -35,7 +35,7 @@ export const OTHER_SUBJECT = '__OTHER__';
 
 export function useTaskFormLogic(
   initialGroupId: string,
-  initial: HwItem | null | undefined,
+  initial: Task | null | undefined,
   initialType: Exclude<ItemType, 'all'> | undefined,
   emit: {
     (e: 'cancel'): void;
@@ -133,10 +133,10 @@ export function useTaskFormLogic(
   const dueDateError = ref('');
 
   const showDoubleTaskConfirm = ref(false);
-  const doubleTaskOriginalItem = ref<HwItem | null>(null);
+  const doubleTaskOriginalItem = ref<Task | null>(null);
   const doubleCheckPassed = ref(false);
 
-  const getSubjectName = (item: Pick<HwItem, 'subjectName' | 'courseName'>) =>
+  const getSubjectName = (item: Pick<Task, 'subjectName' | 'courseName'>) =>
     formatSubjectDisplay(item.subjectName, item.courseName, t, te);
 
   const getTypeLabel = (type: string) => {
@@ -375,12 +375,12 @@ export function useTaskFormLogic(
       const dueDate = selectedDate.toISOString();
 
       if (initial) {
-        await hw.patch(groupPath(groupId.value, `/items/${initial.id}`), {
+        await api.patch(groupPath(groupId.value, `/items/${initial.id}`), {
           ...payload,
           ...(dueDateUnchanged.value ? {} : { dueDate }),
         });
       } else {
-        await hw.post(groupPath(groupId.value, '/items'), {
+        await api.post(groupPath(groupId.value, '/items'), {
           ...payload,
           dueDate,
           type: activeType.value,
@@ -395,7 +395,7 @@ export function useTaskFormLogic(
       const err = e as {
         response?: {
           status?: number;
-          data?: { error?: string; code?: string; item?: HwItem };
+          data?: { error?: string; code?: string; item?: Task };
         };
         message?: string;
       };

@@ -8,7 +8,7 @@ import {
   LogOut,
   AlertCircle,
 } from '@lucide/vue';
-import hw from '../../../api/api';
+import api from '../../../api/api';
 import { useConfirmModal } from '@/stores/modalStore';
 import { useI18n } from 'vue-i18n';
 import { formatDate } from '@/utils/date-formatter';
@@ -49,7 +49,7 @@ async function fetchSessions() {
   loading.value = true;
   error.value = null;
   try {
-    const res = await hw.get<SessionsResponse>('/auth/sessions');
+    const res = await api.get<SessionsResponse>('/auth/sessions');
     sessions.value = res.data.sessions || [];
     currentFamilyId.value = res.data.currentFamilyId ?? null;
   } catch (err) {
@@ -81,7 +81,7 @@ async function revokeSession(session: ActiveSession) {
 
   revokingId.value = session.familyId;
   try {
-    await hw.delete(`/auth/sessions/${session.familyId}`);
+    await api.delete(`/auth/sessions/${session.familyId}`);
     sessions.value = sessions.value.filter(
       (s) => s.familyId !== session.familyId,
     );
@@ -105,7 +105,7 @@ async function logoutAllOtherSessions() {
 
   revokingAll.value = true;
   try {
-    await hw.post('/auth/logout-others');
+    await api.post('/auth/logout-others');
 
     sessions.value = sessions.value.filter((s) => isCurrentSession(s));
   } catch (err) {

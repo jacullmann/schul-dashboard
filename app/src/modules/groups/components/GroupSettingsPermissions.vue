@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import InfoModal from '@/common/components/InfoModal.vue';
-import hw from '../../../api/api';
+import api from '../../../api/api';
 import { groupPath } from '@/api/groupPath';
 import { useGroupPageId } from '@/core/composables/useGroupPageId';
 import { useToast } from '@/common/composables/useToast';
@@ -105,7 +105,7 @@ async function fetchPermissions() {
 
   loading.value = true;
   try {
-    const { data } = await hw.get<{ permissions: PermissionMatrix }>(
+    const { data } = await api.get<{ permissions: PermissionMatrix }>(
       groupPath(groupId, '/admin/permissions'),
     );
     permissions.value = data.permissions;
@@ -124,7 +124,7 @@ async function savePermission(key: PermissionKey, role: PermissionRole) {
   permissions.value[key] = role;
 
   try {
-    await hw.patch(groupPath(groupId, '/admin/permissions'), {
+    await api.patch(groupPath(groupId, '/admin/permissions'), {
       permissions: { [key]: role },
     });
     toast.success(t('groups.settings.permissions.errors.update_success'));

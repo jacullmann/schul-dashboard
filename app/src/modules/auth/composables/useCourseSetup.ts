@@ -1,5 +1,5 @@
 import { computed, ref, shallowRef, watch } from 'vue';
-import hw from '@/api/api';
+import api from '@/api/api';
 import { groupPath } from '@/api/groupPath';
 import { useSubjectStore } from '@/stores/subjectStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
@@ -92,7 +92,7 @@ export function useCourseSetup(groupId: string) {
     lessonsRequest ??= (async () => {
       loadingLessons.value = true;
       try {
-        const { data } = await hw.get<Lesson[]>(
+        const { data } = await api.get<Lesson[]>(
           groupPath(groupId, '/admin/schedule'),
         );
         lessons.value = data ?? [];

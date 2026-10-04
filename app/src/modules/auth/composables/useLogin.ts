@@ -1,6 +1,6 @@
 import { ref, reactive, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
-import hw from '@/api/api.ts';
+import api from '@/api/api.ts';
 import { useMfa } from '@/modules/auth/composables/useMfa';
 import { apiErrorMessage } from '@/api/errors';
 
@@ -74,7 +74,7 @@ export function useLogin(
 
     submitting.value = true;
     try {
-      const { data } = await hw.post('/auth/login', {
+      const { data } = await api.post('/auth/login', {
         email: email.value,
         password: password.value,
       });

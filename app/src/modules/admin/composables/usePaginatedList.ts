@@ -2,7 +2,7 @@ import { computed, ref, watch, type Ref } from 'vue';
 import { useRoute, useRouter, type LocationQueryRaw } from 'vue-router';
 import { watchDebounced } from '@vueuse/core';
 import axios from 'axios';
-import hw from '@/api/api';
+import api from '@/api/api';
 import type { Page, SortOrder } from '../types';
 
 const SEARCH_DEBOUNCE_MS = 300;
@@ -98,7 +98,7 @@ export function usePaginatedList<TItem, TParams extends ListParams>(
     loading.value = true;
 
     try {
-      const { data: result } = await hw.get<Page<TItem>>(options.endpoint, {
+      const { data: result } = await api.get<Page<TItem>>(options.endpoint, {
         params: { ...params.value, page: page.value },
         signal: current.signal,
       });

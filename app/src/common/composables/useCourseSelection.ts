@@ -1,6 +1,6 @@
 import { computed, reactive } from 'vue';
 import { useI18n } from 'vue-i18n';
-import hw from '@/api/api';
+import api from '@/api/api';
 import { groupPath } from '@/api/groupPath';
 import { useSubjectStore, type Subject } from '@/stores/subjectStore';
 import { useUserStore, type UserData } from '@/stores/userStore';
@@ -100,14 +100,14 @@ export function useCourseSelection(groupId: string) {
 
   /** Saving, even nothing, completes the member's course setup. */
   async function saveCourses(courses: Enrollment[]): Promise<void> {
-    await hw.patch(groupPath(groupId, '/me/courses'), { courses });
+    await api.patch(groupPath(groupId, '/me/courses'), { courses });
     replaceGroupCourses(courses);
     setCourseSetup(groupId, 'done');
   }
 
   /** Clears the member's courses and asks for them again. */
   async function resetCourses(): Promise<void> {
-    await hw.delete(groupPath(groupId, '/me/courses'));
+    await api.delete(groupPath(groupId, '/me/courses'));
     replaceGroupCourses([]);
     setCourseSetup(groupId, 'pending');
   }

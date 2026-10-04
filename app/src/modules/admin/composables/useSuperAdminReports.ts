@@ -1,6 +1,6 @@
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import hw from '@/api/api';
+import api from '@/api/api';
 import { useToast } from '@/common/composables/useToast';
 import { useConfirmModal } from '@/stores/modalStore';
 import type { SuperAdminReport } from '../types';
@@ -18,7 +18,7 @@ export function useSuperAdminReports() {
   async function loadReports() {
     loadingReports.value = true;
     try {
-      const { data } = await hw.get<SuperAdminReport[]>('/admin/reports');
+      const { data } = await api.get<SuperAdminReport[]>('/admin/reports');
       reports.value = data;
     } catch {
       toast.error(t('admin.reports.errors.load'));
@@ -37,7 +37,7 @@ export function useSuperAdminReports() {
     if (!confirmed) return;
 
     try {
-      await hw.delete(`/admin/reports/${id}`);
+      await api.delete(`/admin/reports/${id}`);
       reports.value = reports.value.filter((r) => r.id !== id);
       toast.success(t('admin.reports.delete_success'));
       await loadStats();

@@ -26,7 +26,7 @@ import {
 import { useCardEntrance } from '@/modules/tasks/composables/useCardEntrance';
 import { entranceDelay } from '@/modules/tasks/utils/entrance';
 import { collapseHeight } from '@/modules/tasks/utils/collapse';
-import { lessonMinutes } from '@/modules/schedule/utils/slotTimes';
+import { findUpcomingLesson } from '@/modules/schedule/utils/upcomingLesson';
 
 const i18n = useI18n();
 const t = i18n.t.bind(i18n);
@@ -77,7 +77,7 @@ const TASK_COUNT = 3;
 
 const visibleTasks = computed(() =>
   filteredItems.value
-    .filter((item) => !dismissedItems.value.has(item.id))
+    .filter((item) => !dismissedItems.has(item.id))
     .slice(0, TASK_COUNT),
 );
 
@@ -107,68 +107,18 @@ function collapseLeavingRow(el: Element, done: () => void) {
   else collapseHeight(el as HTMLElement, done);
 }
 
-const upcomingLesson = computed(() => {
-  if (!effectiveLessons.value.length) return null;
+const takenCourseIds = computed(
+  () => new Set(user.value?.courses.map(({ courseId }) => courseId)),
+);
 
-  const todayIndex = (now.value.getDay() + 6) % 7;
-  const currentMinutes = now.value.getHours() * 60 + now.value.getMinutes();
-  const currentTotalWeekMinutes = todayIndex * 24 * 60 + currentMinutes;
-
-  const lessonsWithTimes = effectiveLessons.value
-    .filter((l) => !l.cancelled)
-    .map((l) => {
-      const { start, end } = lessonMinutes(scheduleConfig.value, l);
-      const dayOffset = (l.day - 1) * 24 * 60;
-      return {
-        lesson: l,
-        startTotal: dayOffset + start,
-        endTotal: dayOffset + end,
-      };
-    });
-
-  if (!lessonsWithTimes.length) return null;
-
-  const isLessonCourseTaken = (lesson: any): boolean => {
-    if (!user.value?.courses || !Array.isArray(user.value.courses)) {
-      return false;
-    }
-    const lessonCourseId = lesson.courseId || lesson.courses?.id;
-    if (!lessonCourseId) {
-      return false;
-    }
-    return user.value.courses.some((c: any) => c.courseId === lessonCourseId);
-  };
-
-  let futureLessons = lessonsWithTimes.filter(
-    (l) => l.startTotal > currentTotalWeekMinutes,
-  );
-
-  if (futureLessons.length > 0) {
-    futureLessons.sort((a, b) => {
-      if (a.startTotal !== b.startTotal) {
-        return a.startTotal - b.startTotal;
-      }
-      const aTaken = isLessonCourseTaken(a.lesson);
-      const bTaken = isLessonCourseTaken(b.lesson);
-      if (aTaken && !bTaken) return -1;
-      if (!aTaken && bTaken) return 1;
-      return 0;
-    });
-    return futureLessons[0]?.lesson;
-  }
-
-  lessonsWithTimes.sort((a, b) => {
-    if (a.startTotal !== b.startTotal) {
-      return a.startTotal - b.startTotal;
-    }
-    const aTaken = isLessonCourseTaken(a.lesson);
-    const bTaken = isLessonCourseTaken(b.lesson);
-    if (aTaken && !bTaken) return -1;
-    if (!aTaken && bTaken) return 1;
-    return 0;
-  });
-  return lessonsWithTimes[0]?.lesson;
-});
+const upcomingLesson = computed(() =>
+  findUpcomingLesson(
+    effectiveLessons.value,
+    scheduleConfig.value,
+    takenCourseIds.value,
+    now.value,
+  ),
+);
 
 const getDisplayName = (lesson: Lesson): string =>
   lessonDisplayName(lesson, t, te);

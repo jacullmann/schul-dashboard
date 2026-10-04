@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue';
 import type { RouteLocationNamedRaw } from 'vue-router';
-import hw, { ensureCsrf, refreshSession } from '@/api/api.ts';
+import api, { ensureCsrf, refreshSession } from '@/api/api.ts';
 import { groupPath } from '@/api/groupPath';
 import i18n from '@/i18n';
 import type { ScheduleConfig } from '@/modules/schedule/types';
@@ -184,7 +184,7 @@ function installAuthExpiredHandlerOnce(): void {
 }
 
 async function fetchStatus(): Promise<boolean> {
-  const { data } = await hw.get<StatusResponse>(STATUS_ENDPOINT);
+  const { data } = await api.get<StatusResponse>(STATUS_ENDPOINT);
   applyStatusData(data);
   return data.authenticated === true;
 }
@@ -255,7 +255,7 @@ export function useAppAuth() {
   async function canShowGroup(groupId: string): Promise<boolean> {
     if (findGroup(groupId)) return true;
     try {
-      const { data } = await hw.get<RawGroup>(groupPath(groupId));
+      const { data } = await api.get<RawGroup>(groupPath(groupId));
       foreignGroup.value = toUserGroup(data);
       return true;
     } catch {
@@ -276,7 +276,7 @@ export function useAppAuth() {
     if (!groupId) return;
 
     recentGroupId.value = groupId;
-    hw.post(groupPath(groupId, '/visit')).catch(() => {
+    api.post(groupPath(groupId, '/visit')).catch(() => {
       // Only the next sign-in's landing page depends on it.
     });
   }
@@ -289,7 +289,7 @@ export function useAppAuth() {
     daltonEnabled = false,
   ): Promise<{ ok: true; groupId: string } | ErrResult> {
     try {
-      const { data } = await hw.post<{ ok: boolean; groupId: string }>(
+      const { data } = await api.post<{ ok: boolean; groupId: string }>(
         '/groups',
         { groupName: name, avatarId, groupType, daltonEnabled },
       );
@@ -305,7 +305,7 @@ export function useAppAuth() {
 
   async function logout(): Promise<void> {
     try {
-      await hw.post('/auth/logout');
+      await api.post('/auth/logout');
     } catch {
       // Local state is cleared regardless of what the server replies.
     } finally {
@@ -315,7 +315,7 @@ export function useAppAuth() {
 
   async function logoutAllDevices(): Promise<void> {
     try {
-      await hw.post('/auth/logout-all');
+      await api.post('/auth/logout-all');
     } catch {
       // Local state is cleared regardless of what the server replies.
     } finally {
@@ -338,7 +338,7 @@ export function useAppAuth() {
     groupId: string,
   ): Promise<{ ok: boolean; token?: string; error?: string }> {
     try {
-      const { data } = await hw.post<{ token: string }>(
+      const { data } = await api.post<{ token: string }>(
         groupPath(groupId, '/invites'),
       );
       return { ok: true, token: data.token };
@@ -363,7 +363,7 @@ export function useAppAuth() {
     error?: string;
   }> {
     try {
-      const { data } = await hw.get(`/invites/${encodeURIComponent(token)}`);
+      const { data } = await api.get(`/invites/${encodeURIComponent(token)}`);
       return {
         ok: true,
         groupName: data.groupName,
@@ -387,7 +387,7 @@ export function useAppAuth() {
     error?: string;
   }> {
     try {
-      const { data } = await hw.post(
+      const { data } = await api.post(
         `/invites/${encodeURIComponent(token)}/accept`,
       );
       const alreadyMember = data.alreadyMember === true;

@@ -4,7 +4,7 @@ import axios, {
   type InternalAxiosRequestConfig,
 } from 'axios';
 
-const hw = axios.create({
+const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '',
   withCredentials: true,
 });
@@ -14,7 +14,7 @@ const getCsrfFromCookie = (): string | null => {
   return match?.[1] ? decodeURIComponent(match[1]) : null;
 };
 
-hw.interceptors.request.use((config) => {
+api.interceptors.request.use((config) => {
   const token = getCsrfFromCookie();
   if (token) config.headers['x-csrf-token'] = token;
   return config;
@@ -52,7 +52,7 @@ const recordRefresh = (): void => {
 };
 
 const postRefresh = async (silent: boolean): Promise<void> => {
-  await hw.post(REFRESH_URL, null, {
+  await api.post(REFRESH_URL, null, {
     _skipAuthRetry: true,
     _silent: silent,
     timeout: REFRESH_TIMEOUT_MS,
@@ -86,7 +86,7 @@ function isRefreshCall(config?: AxiosRequestConfig): boolean {
   return !!config?.url && config.url.endsWith(REFRESH_URL);
 }
 
-hw.interceptors.response.use(
+api.interceptors.response.use(
   (r) => r,
   async (error: AxiosError) => {
     const original = error.config as RetryConfig | undefined;
@@ -123,13 +123,13 @@ hw.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    return hw(original);
+    return api(original);
   },
 );
 
 export const ensureCsrf = async (): Promise<void> => {
   if (!getCsrfFromCookie()) {
-    await hw.get('/system/csrf/init');
+    await api.get('/system/csrf/init');
   }
 };
 
@@ -144,7 +144,7 @@ export const onRefreshFailed = (fn: () => void): (() => void) => {
   };
 };
 
-export default hw;
+export default api;
 
 declare module 'axios' {
   export interface AxiosRequestConfig {

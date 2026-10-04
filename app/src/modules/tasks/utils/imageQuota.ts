@@ -1,6 +1,6 @@
-import type { HwItem } from '@/modules/tasks/types';
+import type { Task } from '@/modules/tasks/types';
 
-type TaskType = HwItem['type'];
+type TaskType = Task['type'];
 
 interface ImageQuota {
   perUploader: number;

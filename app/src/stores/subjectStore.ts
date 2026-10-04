@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import hw from '@/api/api.ts';
+import api from '@/api/api.ts';
 import { groupPath } from '@/api/groupPath';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import {
@@ -45,7 +45,7 @@ export const useSubjectStore = defineStore('subjectStore', () => {
     loaded.value = false;
     loading.value = true;
     try {
-      const { data } = await hw.get<Subject[]>(
+      const { data } = await api.get<Subject[]>(
         groupPath(target, '/schedule/subjects'),
       );
       // A newer load for another group wins over this late response.

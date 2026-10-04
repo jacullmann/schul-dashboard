@@ -1,5 +1,5 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
-import hw from '@/api/api.ts';
+import api from '@/api/api.ts';
 import { groupPath } from '@/api/groupPath';
 import { useGroupPageId } from '@/core/composables/useGroupPageId';
 import { hiddenByCourses } from '@/api/personalization';
@@ -118,7 +118,7 @@ export function useSchedule() {
 
   async function loadSubstitutions() {
     try {
-      const { data } = await hw.get(groupPath(groupId, '/schedule/subs'));
+      const { data } = await api.get(groupPath(groupId, '/schedule/subs'));
       substitutions.value = data;
     } catch (error) {
       console.error('Error loading substitutions:', error);
@@ -132,8 +132,8 @@ export function useSchedule() {
     loadingLessons.value = true;
     try {
       const [lessonRes, subjectRes] = await Promise.all([
-        hw.get(groupPath(groupId, '/schedule')),
-        hw
+        api.get(groupPath(groupId, '/schedule')),
+        api
           .get(groupPath(groupId, '/schedule/subjects'))
           .catch(() => ({ data: [] })),
       ]);

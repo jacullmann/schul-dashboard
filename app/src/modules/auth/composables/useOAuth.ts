@@ -1,7 +1,7 @@
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
-import hw from '@/api/api.ts';
+import api from '@/api/api.ts';
 import { apiErrorMessage } from '@/api/errors';
 import { useToast } from '@/common/composables/useToast';
 
@@ -59,7 +59,7 @@ export function useOAuth() {
   // opened, so the Google account may use a different email address.
   async function initiateGoogleLink(): Promise<ActionResult> {
     try {
-      const { data } = await hw.post<{ url: string }>(
+      const { data } = await api.post<{ url: string }>(
         '/auth/google/link/start',
       );
       window.location.assign(data.url);
@@ -153,7 +153,7 @@ export function useOAuth() {
   // pass its second factor before a session is issued.
   async function linkGoogleAccount(password: string): Promise<LinkResult> {
     try {
-      const { data } = await hw.post<{ ok: boolean; requiresMfa?: boolean }>(
+      const { data } = await api.post<{ ok: boolean; requiresMfa?: boolean }>(
         '/auth/google/link',
         { password },
       );
@@ -176,7 +176,7 @@ export function useOAuth() {
   // the Google identity the callback verified.
   async function signUpWithGoogle(): Promise<ActionResult> {
     try {
-      await hw.post('/auth/google/signup', { acceptedTerms: true });
+      await api.post('/auth/google/signup', { acceptedTerms: true });
       showSignUpModal.value = false;
       return { ok: true };
     } catch (err: unknown) {
@@ -189,7 +189,7 @@ export function useOAuth() {
 
   async function unlinkGoogleAccount(): Promise<ActionResult> {
     try {
-      await hw.delete('/auth/google/unlink');
+      await api.delete('/auth/google/unlink');
       return { ok: true };
     } catch (err: unknown) {
       return {
@@ -204,7 +204,7 @@ export function useOAuth() {
 
   async function fetchLinkedProviders(): Promise<LinkedProvider[]> {
     try {
-      const { data } = await hw.get<{ providers: LinkedProvider[] }>(
+      const { data } = await api.get<{ providers: LinkedProvider[] }>(
         '/auth/providers',
       );
       return data.providers ?? [];

@@ -1,6 +1,6 @@
 import { ref, reactive } from 'vue';
 import { useI18n } from 'vue-i18n';
-import hw from '@/api/api.ts';
+import api from '@/api/api.ts';
 import type { ChangePasswordErrors } from '@/modules/auth/types';
 import { useToast } from '@/common/composables/useToast';
 import { apiErrorMessage } from '@/api/errors';
@@ -82,7 +82,7 @@ export function useChangePassword(emit: {
 
     submitting.value = true;
     try {
-      await hw.post('/auth/change-password', {
+      await api.post('/auth/change-password', {
         currentPassword: currentPassword.value,
         newPassword: newPassword.value,
       });

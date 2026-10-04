@@ -11,7 +11,7 @@ import { useFileDrop } from '@/modules/tasks/composables/useFileDrop';
 import { taskListRoute } from '@/modules/tasks/utils/routes';
 import { menuAnchor, type MenuAnchor } from '@/modules/tasks/utils/menuAnchor';
 import { entranceDelay } from '@/modules/tasks/utils/entrance';
-import type { Attachment, HwItem, TaskMenuAction } from '@/modules/tasks/types';
+import type { Attachment, Task, TaskMenuAction } from '@/modules/tasks/types';
 
 import BaseSkeleton from '@/common/components/BaseSkeleton.vue';
 import ImageContextMenu from '@/modules/tasks/components/ImageContextMenu.vue';
@@ -120,7 +120,7 @@ const imageViewerModal = useImageViewerModal();
 
 // The viewer grows out of the tile it was opened from and shrinks back into
 // it, so it has to find that tile again, also after paging to another image.
-function imageTile(task: HwItem, index: number) {
+function imageTile(task: Task, index: number) {
   return document.querySelector<HTMLElement>(
     `[data-task-images="${CSS.escape(task.id)}"] [data-image-index="${index}"]`,
   );

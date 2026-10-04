@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import hw from '../../../api/api';
+import api from '../../../api/api';
 import { groupPath } from '@/api/groupPath';
 import { useI18n } from 'vue-i18n';
 import { apiErrorMessage } from '@/api/errors';
@@ -52,7 +52,7 @@ async function submit() {
 
   submitting.value = true;
   try {
-    await hw.post(groupPath(groupId.value, '/admin/announcements'), {
+    await api.post(groupPath(groupId.value, '/admin/announcements'), {
       content: annContent.value.trim(),
       color: annColor.value,
     });

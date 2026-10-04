@@ -10,7 +10,7 @@ import { useLoadingBar } from '@/common/composables/loadingState';
 import GlobalModalContainer from '@/core/components/GlobalModalContainer.vue';
 import BaseToast from '@/common/components/BaseToast.vue';
 import ConnectionStatus from '@/core/components/ConnectionStatus.vue';
-import hw from './api/api';
+import api from './api/api';
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -24,7 +24,7 @@ let pageloadLogged = false;
 function logPageload() {
   if (pageloadLogged || !user.value) return;
   pageloadLogged = true;
-  hw.post('/user/activity/pageload').catch(() => {
+  api.post('/user/activity/pageload').catch(() => {
     pageloadLogged = false;
   });
 }

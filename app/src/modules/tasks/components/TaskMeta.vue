@@ -3,12 +3,12 @@ import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { formatSubjectDisplay } from '@/utils/subject-formatter';
 import { useIsPhoneViewport } from '@/common/composables/useViewport';
-import type { HwItem } from '@/modules/tasks/types';
+import type { Task } from '@/modules/tasks/types';
 import { formatDueDate } from '@/modules/tasks/utils/dueDate';
 import { useImpliedCourse } from '@/modules/tasks/composables/useImpliedCourse';
 
 const props = defineProps<{
-  item: HwItem;
+  item: Task;
   /** Redundant under a tab that holds a single type. */
   showType: boolean;
 }>();

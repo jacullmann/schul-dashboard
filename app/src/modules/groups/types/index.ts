@@ -62,3 +62,9 @@ export interface GroupInviteLog {
   revokedBy: string | null;
   revokedByName: string | null;
 }
+
+export interface BannedMember {
+  userId: string;
+  generatedName: string;
+  bannedAt: string;
+}

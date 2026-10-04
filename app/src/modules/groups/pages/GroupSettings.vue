@@ -12,8 +12,7 @@ import {
   ArrowLeft,
   GraduationCap,
 } from '@lucide/vue';
-import { useGroupAdmin } from '@/modules/groups/composables/useGroupAdmin';
-import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
+import { useGroupPageId } from '@/core/composables/useGroupPageId';
 import { useGroupSettingsAccess } from '@/modules/groups/composables/useGroupSettingsAccess';
 import { useReturnRoute } from '@/common/composables/useReturnRoute';
 import { type AdminNavItem } from '@/layouts/AdminLayout.vue';
@@ -32,49 +31,13 @@ const route = useRoute();
 const router = useRouter();
 const { t } = useI18n();
 
-const {
-  groupId,
-  groupName,
-  members,
-  loadingMembers,
-  loadMembers,
-  changeRole,
-  removeMember,
-  bannedUsers,
-  loadingBannedUsers,
-  revertBan,
-  subs,
-  loadingSubs,
-  savingSub,
-  savingScheduleConfig,
-  loadSubs,
-  saveSub,
-  deleteSub,
-  saveScheduleBatch,
-  lessons,
-  loadingLessons,
-  loadSchedule,
-  announcements,
-  loadAnnouncements,
-  deleteAnnouncement,
-  editingGroupName,
-  newGroupName,
-  savingGroupName,
-  startEditGroupName,
-  cancelEditGroupName,
-  saveGroupName,
-  transferOwnership,
-  invites,
-  loadingInvites,
-  loadInvites,
-  revokeInvite,
-} = useGroupAdmin();
+const groupId = useGroupPageId();
 
 // Returning to a settings page would bounce between the two pages' back buttons.
 const { leave: leaveSettings } = useReturnRoute(
   () => ({
     name: 'group-dashboard',
-    params: { groupId: groupId.value },
+    params: { groupId },
   }),
   ['group-admin', 'account-settings'],
 );
@@ -87,23 +50,18 @@ const activeTab = computed<string>({
     if (val) {
       void router.push({
         name: 'group-admin',
-        params: { groupId: groupId.value, tab: val },
+        params: { groupId, tab: val },
       });
     } else {
       void router.push({
         name: 'group-admin',
-        params: { groupId: groupId.value },
+        params: { groupId },
       });
     }
   },
 });
 
-const { activeGroupDaltonEnabled } = useAppAuth();
 const { hasOwnerRights } = useGroupSettingsAccess();
-
-// Turning Dalton off deletes its lessons on the server, so the schedule this
-// page hands to its editor has to be fetched again.
-watch(activeGroupDaltonEnabled, () => void loadSchedule());
 
 const navItems = computed<AdminNavItem[]>(() => [
   {
@@ -195,7 +153,7 @@ function goBack() {
   if (route.params.subTab) {
     void router.push({
       name: 'group-admin',
-      params: { groupId: groupId.value, tab: activeTab.value },
+      params: { groupId, tab: activeTab.value },
     });
   } else {
     activeTab.value = '';
@@ -275,54 +233,23 @@ function goBack() {
 
             <GroupSettingsMembers
               v-if="activeTab === 'members' && !route.params.subTab"
-              :members="members"
-              :loading="loadingMembers"
-              @refresh="loadMembers"
-              @change-role="(userId, role) => changeRole(userId, role)"
-              @remove="(userId, name, ban) => removeMember(userId, name, ban)"
-              @transfer-ownership="transferOwnership"
             />
 
             <GroupSettingsMembersBanned
               v-else-if="
                 activeTab === 'members' && route.params.subTab === 'banned'
               "
-              :banned-users="bannedUsers"
-              :loading="loadingBannedUsers"
-              @revert-ban="revertBan"
             />
 
             <GroupSettingsMembersInvites
               v-else-if="
                 activeTab === 'members' && route.params.subTab === 'invites'
               "
-              :invites="invites"
-              :loading="loadingInvites"
-              @revoke-invite="revokeInvite"
-              @refresh-invites="loadInvites"
             />
 
-            <GroupSettingsSchedule
-              v-if="activeTab === 'schedule'"
-              :subs="subs"
-              :loading-subs="loadingSubs"
-              :lessons="lessons"
-              :loading-lessons="loadingLessons"
-              :saving-sub="savingSub"
-              :saving-schedule-config="savingScheduleConfig"
-              @refresh="loadSubs"
-              @save-sub="saveSub"
-              @delete-sub="deleteSub"
-              @save-schedule-batch="saveScheduleBatch"
-            />
+            <GroupSettingsSchedule v-if="activeTab === 'schedule'" />
 
-            <GroupSettingsAnnouncements
-              v-if="activeTab === 'announcements'"
-              :group-id="groupId"
-              :announcements="announcements"
-              @refresh="loadAnnouncements"
-              @delete="deleteAnnouncement"
-            />
+            <GroupSettingsAnnouncements v-if="activeTab === 'announcements'" />
 
             <GroupSettingsSubjects v-if="activeTab === 'subjects'" />
 
@@ -331,18 +258,7 @@ function goBack() {
               :can-manage="hasOwnerRights"
             />
 
-            <GroupSettingsGeneral
-              v-if="activeTab === 'general'"
-              :has-owner-rights="hasOwnerRights"
-              :group-name="groupName"
-              :new-group-name="newGroupName"
-              :editing-group-name="editingGroupName"
-              :saving-group-name="savingGroupName"
-              @start-edit="startEditGroupName"
-              @cancel-edit="cancelEditGroupName"
-              @save-edit="saveGroupName"
-              @update:new-group-name="newGroupName = $event"
-            />
+            <GroupSettingsGeneral v-if="activeTab === 'general'" />
           </div>
         </div>
       </div>

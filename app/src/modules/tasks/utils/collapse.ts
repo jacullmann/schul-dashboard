@@ -1,6 +1,6 @@
 import { prefersReducedMotion } from '@/utils/motion';
 
-const COLLAPSE_MS = 360;
+export const COLLAPSE_MS = 360;
 const COLLAPSE_EASING = 'cubic-bezier(0.65, 0, 0.35, 1)';
 /** The content is gone before the gap has halfway closed, so it never reads as squeezed. */
 const FADE_MS = 180;

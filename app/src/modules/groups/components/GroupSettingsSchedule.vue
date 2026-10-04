@@ -14,14 +14,11 @@ import {
 import AdminSchedule from '@/modules/groups/components/AdminSchedule.vue';
 import BaseMenu from '@/common/components/BaseMenu.vue';
 import BaseMenuButton from '@/common/components/BaseMenuButton.vue';
-import type {
-  AdminCourse,
-  AdminSubject,
-  ScheduleSubstitution,
-} from '@/modules/groups/types';
+import type { AdminCourse, AdminSubject } from '@/modules/groups/types';
 import type { Lesson, ScheduleConfig } from '@/modules/schedule/types';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useSubjectAdmin } from '@/modules/groups/composables/useSubjectAdmin';
+import { useGroupScheduleAdmin } from '@/modules/groups/composables/useGroupScheduleAdmin';
 import { useLessonSelection } from '@/modules/groups/composables/useLessonSelection';
 import { useScheduleDisplay } from '@/modules/schedule/composables/useScheduleDisplay';
 import { useI18n } from 'vue-i18n';
@@ -51,26 +48,18 @@ const te = i18n.te.bind(i18n);
 const { width: windowWidth } = useWindowSize();
 const isMobile = useIsMobileViewport();
 
-const props = defineProps<{
-  subs: ScheduleSubstitution[];
-  loadingSubs: boolean;
-  lessons: Lesson[];
-  loadingLessons: boolean;
-  savingSub: boolean;
-  savingScheduleConfig: boolean;
-}>();
-
-const emit = defineEmits<{
-  (e: 'refresh'): void;
-  (e: 'save-sub', payload: Record<string, unknown>): void;
-  (e: 'delete-sub', id: string): void;
-  (
-    e: 'save-schedule-batch',
-    updatedLessons: Lesson[],
-    configPayload: ScheduleConfig,
-    onSuccess?: () => void,
-  ): void;
-}>();
+const {
+  lessons,
+  loadingLessons,
+  savingScheduleConfig,
+  saveScheduleBatch,
+  subs,
+  loadingSubs,
+  savingSub,
+  loadSubs,
+  saveSub,
+  deleteSub,
+} = useGroupScheduleAdmin();
 
 const { activeGroupDaltonEnabled, checkPermission } = useAppAuth();
 const { subjects, loadSubjects } = useSubjectAdmin();
@@ -163,7 +152,7 @@ function enterEditMode() {
   if (!canEditScheduleConfig.value) return;
   hasSwitchedFromEditor.value = true;
   void loadSubjects();
-  draftLessons.value = cloneFnJSON(props.lessons);
+  draftLessons.value = cloneFnJSON(lessons.value);
   draftConfigForm.value = configFormOf(scheduleConfig.value);
   clearSelection();
   draftHistory.commit();
@@ -187,13 +176,10 @@ function leaveEditMode() {
   }, TOOLBAR_TRANSITION_MS);
 }
 
-function handleSaveAll() {
-  emit(
-    'save-schedule-batch',
-    draftLessons.value,
-    draftConfig.value,
-    leaveEditMode,
-  );
+async function handleSaveAll() {
+  if (await saveScheduleBatch(draftLessons.value, draftConfig.value)) {
+    leaveEditMode();
+  }
 }
 
 // Config Breaks Logic for Draft
@@ -305,7 +291,7 @@ function handleSaveSub() {
   if (subForm.value.cancelled) payload.cancelled = true;
   if (subForm.value.hide) payload.hide = true;
 
-  emit('save-sub', payload);
+  void saveSub(payload);
   subForm.value = emptySubForm();
   selectedLesson.value = null;
 }
@@ -669,7 +655,7 @@ onMounted(() => {
                   :disabled="loadingLessons || loadingSubs"
                   variant="ghost"
                   :icon="RefreshCw"
-                  @click="emit('refresh')"
+                  @click="loadSubs"
                 />
               </BaseTooltip>
 
@@ -1179,7 +1165,7 @@ onMounted(() => {
                       variant="ghost"
                       size="sm"
                       :icon="Trash2"
-                      @click="emit('delete-sub', sub.id)"
+                      @click="deleteSub(sub.id)"
                     />
                   </BaseTooltip>
                 </td>

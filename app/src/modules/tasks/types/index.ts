@@ -1,6 +1,6 @@
 import type { Attachment, StoredFile, Upload } from '@/api/files';
 
-export interface HwItem {
+export interface Task {
   id: string;
   type: 'homework' | 'dalton' | 'exam';
   title: string;

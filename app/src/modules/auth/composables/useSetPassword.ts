@@ -1,6 +1,6 @@
 import { ref, reactive } from 'vue';
 import { useI18n } from 'vue-i18n';
-import hw from '@/api/api.ts';
+import api from '@/api/api.ts';
 import type { SetPasswordErrors } from '@/modules/auth/types';
 import { useUserStore } from '@/stores/userStore';
 import { apiErrorMessage } from '@/api/errors';
@@ -71,7 +71,7 @@ export function useSetPassword(onSuccess: () => void) {
 
   async function requestCode() {
     try {
-      await hw.post('/auth/set-password/code');
+      await api.post('/auth/set-password/code');
       step.value = 'confirm';
     } catch (e: unknown) {
       error.value = apiErrorMessage(
@@ -85,7 +85,7 @@ export function useSetPassword(onSuccess: () => void) {
     if (!validate()) return;
 
     try {
-      await hw.post('/auth/set-password', {
+      await api.post('/auth/set-password', {
         code: code.value.trim(),
         newPassword: newPassword.value,
       });

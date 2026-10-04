@@ -2,7 +2,8 @@
 import { ref, computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
-import { useGroupAdmin } from '@/modules/groups/composables/useGroupAdmin';
+import { useGroupGeneralSettings } from '@/modules/groups/composables/useGroupGeneralSettings';
+import { useGroupSettingsAccess } from '@/modules/groups/composables/useGroupSettingsAccess';
 import { Pencil, Camera, Trash2, Upload } from '@lucide/vue';
 import { useConfirmModal } from '@/stores/modalStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
@@ -33,25 +34,27 @@ const canEditGroupType = computed(
     checkPermission('edit_schedule'),
 );
 
-const props = defineProps<{
-  hasOwnerRights?: boolean;
-  groupName: string;
-  newGroupName: string;
-  editingGroupName: boolean;
-  savingGroupName: boolean;
-}>();
-
-const emit = defineEmits<{
-  (e: 'start-edit'): void;
-  (e: 'cancel-edit'): void;
-  (e: 'save-edit'): void;
-  (e: 'update:newGroupName', value: string): void;
-}>();
+const { hasOwnerRights } = useGroupSettingsAccess();
+const {
+  groupName,
+  editingGroupName,
+  newGroupName,
+  savingGroupName,
+  startEditGroupName,
+  cancelEditGroupName,
+  saveGroupName: submitGroupName,
+  saveGroupAvatar,
+  savingGroupType,
+  saveGroupType,
+  savingDaltonEnabled,
+  saveDaltonEnabled,
+  deleteGroup,
+} = useGroupGeneralSettings();
 
 const groupNameInputRef = ref<HTMLInputElement | null>(null);
 
 watch(
-  () => props.editingGroupName,
+  editingGroupName,
   (editing) => {
     if (editing) groupNameInputRef.value?.focus();
   },
@@ -62,34 +65,26 @@ watch(
 // draft while editing and keeps showing the saved draft until the refreshed
 // group name arrives, avoiding a flash of the old name.
 const groupNameText = computed(() => {
-  if (props.editingGroupName)
+  if (editingGroupName.value)
     return (
-      props.newGroupName ||
+      newGroupName.value ||
       t('groups.settings.general.appearance.name_placeholder')
     );
-  if (props.savingGroupName) return props.newGroupName.trim();
-  return props.groupName;
+  if (savingGroupName.value) return newGroupName.value.trim();
+  return groupName.value;
 });
 
 const canSaveGroupName = computed(
   () =>
     canEditSettings.value &&
-    !props.savingGroupName &&
-    !!props.newGroupName.trim(),
+    !savingGroupName.value &&
+    !!newGroupName.value.trim(),
 );
 
 function saveGroupName() {
-  if (canSaveGroupName.value) emit('save-edit');
+  if (canSaveGroupName.value) void submitGroupName();
 }
 
-const {
-  deleteGroup,
-  saveGroupAvatar,
-  saveGroupType,
-  savingGroupType,
-  saveDaltonEnabled,
-  savingDaltonEnabled,
-} = useGroupAdmin();
 const router = useRouter();
 
 const groupTypeInput = ref<GroupType>(activeGroupType.value);
@@ -256,10 +251,7 @@ const deletingGroup = ref(false);
 
 async function confirmDeleteGroup() {
   deletingGroup.value = true;
-  try {
-    await deleteGroup();
-  } catch {
-    // deleteGroup already reports the failure via toast.
+  if (!(await deleteGroup())) {
     deletingGroup.value = false;
     return;
   }
@@ -386,22 +378,16 @@ async function confirmDeleteGroup() {
                 v-if="editingGroupName"
                 id="group-name"
                 ref="groupNameInputRef"
+                v-model="newGroupName"
                 class="peer absolute inset-0 w-full p-0 bg-transparent border-0 outline-none placeholder:text-on-ghost-subtle"
                 autocomplete="off"
-                :value="newGroupName"
                 :maxlength="GROUP_NAME_MAX_LENGTH"
                 :placeholder="
                   t('groups.settings.general.appearance.name_placeholder')
                 "
                 :readonly="savingGroupName"
-                @input="
-                  emit(
-                    'update:newGroupName',
-                    ($event.target as HTMLInputElement).value,
-                  )
-                "
                 @keydown.enter.prevent="saveGroupName"
-                @keydown.esc.stop="emit('cancel-edit')"
+                @keydown.esc.stop="cancelEditGroupName"
               />
               <Transition
                 enter-from-class="scale-x-0"
@@ -431,7 +417,7 @@ async function confirmDeleteGroup() {
                   variant="ghost"
                   :icon="Pencil"
                   :aria-label="t('common.buttons.edit')"
-                  @click="emit('start-edit')"
+                  @click="startEditGroupName"
                 />
               </BaseTooltip>
 
@@ -440,7 +426,7 @@ async function confirmDeleteGroup() {
                 justify="end"
                 class="shrink-0 flex-nowrap max-md:col-span-2"
               >
-                <BaseButton variant="ghost" @click="emit('cancel-edit')">{{
+                <BaseButton variant="ghost" @click="cancelEditGroupName">{{
                   t('common.buttons.cancel')
                 }}</BaseButton>
                 <BaseButton

@@ -2,7 +2,7 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
-import hw from '@/api/api';
+import api from '@/api/api';
 import { groupPath } from '@/api/groupPath';
 import { useUserStore } from '@/stores/userStore';
 import { useConfirmModal, useInviteModal } from '@/stores/modalStore';
@@ -71,7 +71,7 @@ export function useGroupMenuActions() {
 
     pending.value = true;
     try {
-      await hw.delete(groupPath(group.id, '/leave'));
+      await api.delete(groupPath(group.id, '/leave'));
       await checkAuthStatus();
       await router.push({ name: 'groups' });
     } catch (err) {

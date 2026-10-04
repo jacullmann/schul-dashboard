@@ -1,24 +1,17 @@
 <script setup lang="ts">
 import { Plus, Trash2 } from '@lucide/vue';
-import type {
-  Announcement,
-  AnnouncementColor,
-} from '@/modules/announcements/types';
+import type { AnnouncementColor } from '@/modules/announcements/types';
 import { useAnnouncementFormModal } from '@/stores/modalStore';
 import { useI18n } from 'vue-i18n';
 import { formatDate } from '@/utils/date-formatter';
 import { computed } from 'vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
+import { useGroupPageId } from '@/core/composables/useGroupPageId';
+import { useGroupAnnouncementsAdmin } from '@/modules/groups/composables/useGroupAnnouncementsAdmin';
 
-defineProps<{
-  groupId: string;
-  announcements: Announcement[];
-}>();
-
-const emit = defineEmits<{
-  (e: 'delete', id: string): void;
-  (e: 'refresh'): void;
-}>();
+const groupId = useGroupPageId();
+const { announcements, loadAnnouncements, deleteAnnouncement } =
+  useGroupAnnouncementsAdmin();
 
 const ACCENT_COLOR: Record<AnnouncementColor, string> = {
   info: 'bg-action',
@@ -35,9 +28,7 @@ const canManageAnnouncements = computed(() =>
   checkPermission('manage_announcements'),
 );
 
-announcementFormModal.onSuccess(() => {
-  emit('refresh');
-});
+announcementFormModal.onSuccess(() => void loadAnnouncements());
 </script>
 
 <template>
@@ -98,7 +89,7 @@ announcementFormModal.onSuccess(() => {
                   variant="ghost"
                   size="sm"
                   :icon="Trash2"
-                  @click="emit('delete', ann.id)"
+                  @click="deleteAnnouncement(ann.id)"
                 />
               </BaseTooltip>
             </div>

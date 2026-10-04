@@ -1,6 +1,6 @@
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import hw from '@/api/api.ts';
+import api from '@/api/api.ts';
 import { groupPath } from '@/api/groupPath';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useToast } from '@/common/composables/useToast';
@@ -17,7 +17,7 @@ export function useAnnouncements() {
     const groupId = activeGroupId.value;
     if (!groupId) return;
     try {
-      const { data } = await hw.get<Announcement[]>(
+      const { data } = await api.get<Announcement[]>(
         groupPath(groupId, '/announcements'),
       );
       announcements.value = data;
@@ -31,7 +31,7 @@ export function useAnnouncements() {
     if (!groupId) return;
     for (const announcement of unread) announcement.read = true;
     try {
-      await hw.post(groupPath(groupId, '/announcements/read'), {
+      await api.post(groupPath(groupId, '/announcements/read'), {
         ids: unread.map((a) => a.id),
       });
     } catch {

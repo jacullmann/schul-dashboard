@@ -56,3 +56,10 @@ export function formatDueDate(
     ? formatRecentDueDate(dueDate, locale, nameLength)
     : dueDate.toLocaleDateString(locale, DISTANT_FORMAT);
 }
+
+export function isPastDue(
+  task: { dueDate: string },
+  now: Date = new Date(),
+): boolean {
+  return new Date(task.dueDate) < now;
+}

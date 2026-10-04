@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
-import hw from '../../../api/api';
+import api from '../../../api/api';
 import type { PrivateTask } from '@/modules/tasks/types';
 import BaseFormGroup from '@/common/components/BaseFormGroup.vue';
 import { apiErrorMessage } from '@/api/errors';
@@ -74,10 +74,10 @@ async function submit() {
 
     let responseData: PrivateTask;
     if (props.initial) {
-      const { data } = await hw.put(`/todos/${props.initial.id}`, payload);
+      const { data } = await api.put(`/todos/${props.initial.id}`, payload);
       responseData = data;
     } else {
-      const { data } = await hw.post('/todos', payload);
+      const { data } = await api.post('/todos', payload);
       responseData = data;
     }
 

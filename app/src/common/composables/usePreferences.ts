@@ -1,5 +1,5 @@
 import { computed } from 'vue';
-import hw from '@/api/api.ts';
+import api from '@/api/api.ts';
 import { useTheme, type ThemeMode } from '@/common/composables/useTheme';
 import { useUserStore, type UserPreferences } from '@/stores/userStore';
 import i18n, { type SupportedLocale, LOCALE_KEY } from '@/i18n';
@@ -29,7 +29,7 @@ export function usePreferences() {
     if (!userStore.isLoggedIn) return;
 
     // Applied locally first, so a failed sync must not block the UI.
-    void hw.patch('/user/preferences', { [key]: value }).catch((err) => {
+    void api.patch('/user/preferences', { [key]: value }).catch((err) => {
       console.error(`Failed to sync preference ${key} to backend`, err);
     });
   }

@@ -1,4 +1,4 @@
-import hw from '@/api/api';
+import api from '@/api/api';
 import { groupPath } from '@/api/groupPath';
 
 const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME as string;
@@ -54,7 +54,7 @@ export async function uploadTaskFile(
   groupId: string,
   file: File,
 ): Promise<Upload> {
-  const { data } = await hw.post<Upload>(
+  const { data } = await api.post<Upload>(
     groupPath(groupId, '/items/uploads'),
     fileForm(file, file.name),
   );
@@ -64,7 +64,7 @@ export async function uploadTaskFile(
 export async function uploadGroupAvatar(
   image: Blob,
 ): Promise<GroupAvatarUpload> {
-  const { data } = await hw.post<GroupAvatarUpload>(
+  const { data } = await api.post<GroupAvatarUpload>(
     '/uploads/group-avatar',
     fileForm(image, 'avatar'),
   );

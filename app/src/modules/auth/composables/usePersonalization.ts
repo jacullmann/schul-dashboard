@@ -1,6 +1,6 @@
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import hw from '@/api/api';
+import api from '@/api/api';
 import { apiErrorMessage } from '@/api/errors';
 import { useToast } from '@/common/composables/useToast';
 import { useUserStore } from '@/stores/userStore';
@@ -21,7 +21,7 @@ export function usePersonalization() {
     updating.value = true;
     userStore.updateUser({ personalized: value });
     try {
-      const { data } = await hw.patch('/user/personalization', {
+      const { data } = await api.patch('/user/personalization', {
         personalized: value,
       });
       if (!data.ok) {

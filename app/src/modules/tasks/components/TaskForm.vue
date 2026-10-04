@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { fileUrl, isPdf, previewUrl } from '@/api/files';
-import type { HwItem } from '@/modules/tasks/composables/useTasks';
+import type { Task } from '@/modules/tasks/types';
 import type { ItemType } from '@/modules/tasks/types';
 import { X, Upload, FileText } from '@lucide/vue';
 import {
@@ -20,7 +20,7 @@ const { t } = useI18n();
 const props = defineProps<{
   groupId: string;
   initialType?: Exclude<ItemType, 'all'>;
-  initial?: HwItem | null;
+  initial?: Task | null;
   local?: boolean;
   open: boolean;
 }>();
