@@ -4,7 +4,11 @@ import hw from '@/api/api';
 import { groupPath } from '@/api/groupPath';
 import { useSubjectStore, type Subject } from '@/stores/subjectStore';
 import { useUserStore, type UserData } from '@/stores/userStore';
-import { courseLabel, subjectLabel } from '@/utils/subject-formatter';
+import {
+  courseLabel,
+  courseTypeHint,
+  subjectLabel,
+} from '@/utils/subject-formatter';
 import type { UnitOption } from '@/common/components/BaseSelect.vue';
 
 export type Enrollment = UserData['courses'][number];
@@ -53,17 +57,14 @@ export function useCourseSelection(groupId: string) {
     return subjectLabel(name, t, te);
   }
 
-  // GK/LK/ZK belongs to the course, so two courses of the same subject stay
-  // distinguishable in the list.
   function optionsForSubject(subject: Subject, isOptional: boolean) {
-    const options = (subject.courses ?? []).map((course): UnitOption => {
-      const typeKey = `groups.settings.subjects.course_types_short.${course.courseType}`;
-      return {
+    const options = (subject.courses ?? []).map(
+      (course): UnitOption => ({
         label: courseLabel(course.name, t, te),
         value: course.id,
-        hint: course.courseType && te(typeKey) ? t(typeKey) : undefined,
-      };
-    });
+        hint: courseTypeHint(course.courseType, t, te),
+      }),
+    );
     if (isOptional) {
       options.unshift({ label: t('common.selection.no'), value: NO_COURSE });
     }

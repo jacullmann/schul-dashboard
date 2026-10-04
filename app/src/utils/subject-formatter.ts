@@ -1,6 +1,6 @@
 import deCommon from '@/i18n/locales/de/common.json';
 import enCommon from '@/i18n/locales/en/common.json';
-import { DALTON_SUBJECT_KEY } from '@/types/subjects';
+import { DALTON_SUBJECT_KEY, type CourseType } from '@/types/subjects';
 
 type Translate = (key: string) => string;
 type TranslationExists = (key: string) => boolean;
@@ -37,6 +37,19 @@ export function courseLabel(
   return name
     .replace(/^Herr\s+/, `${t('common.titles.abbr.mr')} `)
     .replace(/^Frau\s+/, `${t('common.titles.abbr.ms')} `);
+}
+
+/**
+ * GK/LK/ZK belongs to the course, so two courses of the same subject stay
+ * distinguishable in a list.
+ */
+export function courseTypeHint(
+  courseType: CourseType | null | undefined,
+  t: Translate,
+  te: TranslationExists,
+): string | undefined {
+  const key = `groups.settings.subjects.course_types_short.${courseType}`;
+  return courseType && te(key) ? t(key) : undefined;
 }
 
 export function formatSubjectDisplay(

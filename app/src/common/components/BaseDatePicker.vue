@@ -113,18 +113,26 @@ const monthPanels = computed(() => {
   });
 });
 
-const shortcuts = computed(() => {
+const relativeLabel = computed(() => {
   const rtf = new Intl.RelativeTimeFormat(locale.value, { numeric: 'auto' });
-  const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+  return (value: number, unit: Intl.RelativeTimeFormatUnit) => {
+    const s = rtf.format(value, unit);
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  };
+});
+
+const shortcuts = computed(() => {
   const now = new Date();
   return [
-    { label: cap(rtf.format(1, 'day')), key: toKey(addDays(now, 1)) },
-    { label: cap(rtf.format(1, 'week')), key: toKey(addDays(now, 7)) },
+    { label: relativeLabel.value(1, 'day'), key: toKey(addDays(now, 1)) },
+    { label: relativeLabel.value(1, 'week'), key: toKey(addDays(now, 7)) },
   ].filter((s) => !isDisabled(s.key));
 });
 
-const selectedShortcutLabel = computed(
-  () => shortcuts.value.find((s) => s.key === model.value)?.label,
+const selectedRelativeLabel = computed(() =>
+  model.value === todayKey
+    ? relativeLabel.value(0, 'day')
+    : shortcuts.value.find((s) => s.key === model.value)?.label,
 );
 
 const displayLabel = computed(() =>
@@ -220,10 +228,10 @@ const onGridKeydown = (e: KeyboardEvent) => {
         {{ displayLabel }}
       </span>
       <span
-        v-if="selectedShortcutLabel"
+        v-if="selectedRelativeLabel"
         class="-ml-1 shrink-0 text-on-ghost-muted"
       >
-        · {{ selectedShortcutLabel }}
+        · {{ selectedRelativeLabel }}
       </span>
     </BaseButton>
 

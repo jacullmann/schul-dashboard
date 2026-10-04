@@ -24,6 +24,7 @@ import { useEnrolledCourses } from '@/common/composables/useEnrolledCourses';
 import {
   builtInSubjectKey,
   courseLabel,
+  courseTypeHint,
   formatSubjectDisplay,
   subjectLabel,
 } from '@/utils/subject-formatter';
@@ -263,6 +264,7 @@ export function useTaskFormLogic(
     (selectedSubject.value?.courses ?? []).map((c) => ({
       label: courseLabel(c.name, t, te),
       value: c.id,
+      hint: courseTypeHint(c.courseType, t, te),
     })),
   );
 
