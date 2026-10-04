@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
-import { useModalStore } from '@/stores/modalStore';
+import { useCreateGroupModal } from '@/stores/modalStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { Plus, UsersRound } from '@lucide/vue';
 import hw from '@/api/api';
@@ -18,7 +18,7 @@ const { t } = useI18n();
 
 const router = useRouter();
 const userStore = useUserStore();
-const modalStore = useModalStore();
+const createGroupModal = useCreateGroupModal();
 const { user } = storeToRefs(userStore);
 const { userGroups } = useAppAuth();
 
@@ -119,7 +119,7 @@ const GROUPS_LIST_ENTRANCE_ORDER = 2;
                 variant="action"
                 :icon="Plus"
                 icon-classes="size-6"
-                @click="modalStore.openCreateGroup()"
+                @click="createGroupModal.open()"
               />
             </BaseTooltip>
           </template>
@@ -171,7 +171,7 @@ const GROUPS_LIST_ENTRANCE_ORDER = 2;
     >
       <BaseEmptyState
         :icon="UsersRound"
-        :primary-action="() => modalStore.openCreateGroup()"
+        :primary-action="() => createGroupModal.open()"
       >
         <template #title>{{ t('groups.list.no_groups') }}</template>
         <template #message>{{ t('groups.list.join_group_text') }}</template>

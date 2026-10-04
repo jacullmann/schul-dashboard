@@ -1,11 +1,5 @@
 <script setup lang="ts">
-import {
-  Pencil,
-  Copy,
-  Trash2,
-  ChevronUp,
-  ChevronDown,
-} from '@lucide/vue';
+import { Pencil, Copy, Trash2, ChevronUp, ChevronDown } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import type { PrivateTask } from '@/modules/tasks/types';
 import { usePrivateTasks } from '@/modules/tasks/composables/usePrivateTasks';
@@ -14,8 +8,8 @@ import {
   REORDER_ITEM_ATTR,
 } from '@/modules/tasks/composables/useDragReorder';
 import PrivateTaskCard from '@/modules/tasks/components/PrivateTaskCard.vue';
-import { usePrivateTaskForm } from '@/core/composables/usePrivateTaskForm';
-import { computed, ref, onUnmounted, watch } from 'vue';
+import { usePrivateTaskFormModal } from '@/stores/modalStore';
+import { computed, ref, watch } from 'vue';
 import { useIsMobileViewport } from '@/common/composables/useViewport';
 import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/vue';
 import BaseSkeleton from '@/common/components/BaseSkeleton.vue';
@@ -31,7 +25,7 @@ import {
 
 const { t } = useI18n();
 
-const { openEditPrivateTaskForm, onFormSuccess } = usePrivateTaskForm();
+const privateTaskFormModal = usePrivateTaskFormModal();
 
 const {
   user,
@@ -119,16 +113,14 @@ watch(openMenuId, (newVal) => {
   }
 });
 
-onUnmounted(
-  onFormSuccess((task: PrivateTask) => {
-    const exists = privateTasks.value.some((t) => t.id === task.id);
-    if (exists) {
-      updatePrivateTask(task);
-    } else {
-      addPrivateTask(task);
-    }
-  }),
-);
+privateTaskFormModal.onSuccess((task) => {
+  const exists = privateTasks.value.some((t) => t.id === task.id);
+  if (exists) {
+    updatePrivateTask(task);
+  } else {
+    addPrivateTask(task);
+  }
+});
 
 function moveTask(from: number, to: number) {
   const order = [...displayPrivateTasks.value];
@@ -268,7 +260,7 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
                 :confirm-delete="confirmDeletePrivateTask"
                 @toggle-completion="togglePrivateTaskCompletion(privateTask)"
                 @delete="deletePrivateTask(privateTask.id, { confirm: false })"
-                @edit="openEditPrivateTaskForm(privateTask)"
+                @edit="privateTaskFormModal.openEdit(privateTask)"
                 @duplicate="duplicatePrivateTask(privateTask)"
                 @dblclick="handleItemDoubleClick(privateTask, $event)"
                 @contextmenu.prevent.stop="
@@ -287,9 +279,7 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
                         }
                       "
                       :open="openMenuId === privateTask.id"
-                      :class="
-                        !isMobile ? 'fixed! z-[10000]! min-w-45' : ''
-                      "
+                      :class="!isMobile ? 'fixed! z-[10000]! min-w-45' : ''"
                       :style="!isMobile ? itemMenuStyles : undefined"
                       @close="openMenuId = null"
                       @click.stop
@@ -297,7 +287,7 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
                       <BaseMenuButton
                         :icon="Pencil"
                         @click="
-                          openEditPrivateTaskForm(privateTask);
+                          privateTaskFormModal.openEdit(privateTask);
                           openMenuId = null;
                         "
                       >

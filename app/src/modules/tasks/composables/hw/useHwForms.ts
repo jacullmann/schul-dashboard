@@ -1,20 +1,17 @@
-import { onUnmounted, ref } from 'vue';
+import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { HwItem } from '@/modules/tasks/types';
 import hw from '@/api/api.ts';
 import { groupPath } from '@/api/groupPath';
 import { useToast } from '@/common/composables/useToast';
-import { useTaskForm } from '@/core/composables/useTaskForm';
-import { useModalStore } from '@/stores/modalStore';
+import { useConfirmModal, useTaskFormModal } from '@/stores/modalStore';
 import { findLoadedItem, type HwContext } from './types';
 import { apiErrorMessage } from '@/api/errors';
 
 export function useHwForms(ctx: HwContext) {
   const { t } = useI18n();
-  const { openTaskForm, openEditForm, onFormSuccess } = useTaskForm();
-
-  const unregister = onFormSuccess(() => void ctx.reloadList());
-  onUnmounted(unregister);
+  const taskFormModal = useTaskFormModal();
+  taskFormModal.onSuccess(() => void ctx.reloadList());
 
   const editingNoteForId = ref<string | null>(null);
   const noteEditContent = ref('');
@@ -25,12 +22,12 @@ export function useHwForms(ctx: HwContext) {
   }
 
   function editItem(item: HwItem) {
-    openEditForm(ctx.groupId, item);
+    taskFormModal.openEdit(ctx.groupId, item);
   }
 
   function openCreateForm() {
     const tab = ctx.tab.value;
-    openTaskForm(ctx.groupId, {
+    taskFormModal.openNew(ctx.groupId, {
       type: tab === 'all' ? undefined : tab,
       local: true,
     });
@@ -69,8 +66,8 @@ export function useHwForms(ctx: HwContext) {
   }
 
   async function deleteNote(itemId: string) {
-    const modalStore = useModalStore();
-    const isConfirmed = await modalStore.confirm({
+    const confirmModal = useConfirmModal();
+    const isConfirmed = await confirmModal.ask({
       title: t('tasks.notes.delete_modal.title'),
       content: t('tasks.notes.delete_modal.message'),
       submitText: t('tasks.notes.delete_modal.submit'),

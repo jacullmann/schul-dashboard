@@ -5,7 +5,10 @@ import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import { ArrowLeft, Shield, UserRound } from '@lucide/vue';
 import { useUserStore } from '@/stores/userStore';
-import { useModalStore } from '@/stores/modalStore';
+import {
+  useChangePasswordModal,
+  useDeleteAccountModal,
+} from '@/stores/modalStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useReturnRoute } from '@/common/composables/useReturnRoute';
 import { type AdminNavItem } from '@/layouts/AdminLayout.vue';
@@ -17,7 +20,8 @@ const route = useRoute();
 const router = useRouter();
 const { t } = useI18n();
 const { user } = storeToRefs(useUserStore());
-const modalStore = useModalStore();
+const changePasswordModal = useChangePasswordModal();
+const deleteAccountModal = useDeleteAccountModal();
 const { homeRoute } = useAppAuth();
 const { leave: leaveSettings } = useReturnRoute(homeRoute);
 
@@ -138,11 +142,7 @@ function goBack() {
               @click="selectTab(item.id)"
             >
               <template #icon>
-                <component
-                  :is="item.icon"
-                  :size="20"
-                  :stroke-width="1.8"
-                />
+                <component :is="item.icon" :size="20" :stroke-width="1.8" />
               </template>
               <template #label>
                 {{ item.label }}
@@ -182,13 +182,13 @@ function goBack() {
           <div class="w-full max-w-250 mx-auto">
             <AccountSettingsSecurity
               v-if="activeTab === 'security'"
-              @change-password="modalStore.openChangePassword()"
+              @change-password="changePasswordModal.open()"
             />
 
             <AccountSettingsAccount
               v-else-if="activeTab === 'account'"
               :email="user?.email ?? ''"
-              @delete-account="modalStore.openDeleteAccount()"
+              @delete-account="deleteAccountModal.open()"
             />
           </div>
         </div>

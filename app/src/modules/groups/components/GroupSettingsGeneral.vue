@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useGroupAdmin } from '@/modules/groups/composables/useGroupAdmin';
 import { Pencil, Camera, Trash2, Upload } from '@lucide/vue';
-import { useModalStore } from '@/stores/modalStore';
+import { useConfirmModal } from '@/stores/modalStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { uploadGroupAvatar } from '@/api/files';
 import GroupAvatarCropper from './GroupAvatarCropper.vue';
@@ -13,7 +13,7 @@ import DeleteGroupModal from './DeleteGroupModal.vue';
 import Avatar from '@/modules/auth/components/Avatar.vue';
 import { GROUP_NAME_MAX_LENGTH, type GroupType } from '@/types/groups';
 
-const modalStore = useModalStore();
+const confirmModal = useConfirmModal();
 const { t } = useI18n();
 const {
   activeGroupAvatarUrl,
@@ -106,7 +106,7 @@ async function confirmGroupTypeChange() {
   if (!groupTypeChanged.value) return;
 
   const target = groupTypeInput.value;
-  const isConfirmed = await modalStore.confirm({
+  const isConfirmed = await confirmModal.ask({
     title: t('groups.settings.general.group_type.modal.title'),
     content: t(`groups.settings.general.group_type.modal.message_${target}`),
     submitText: t('common.buttons.save'),
@@ -138,7 +138,7 @@ async function confirmDaltonChange() {
 
   // Disabling removes every Dalton lesson from the schedule.
   if (!target) {
-    const isConfirmed = await modalStore.confirm({
+    const isConfirmed = await confirmModal.ask({
       title: t('groups.settings.general.dalton.modal.title'),
       content: t('groups.settings.general.dalton.modal.message'),
       submitText: t('common.buttons.save'),
@@ -230,7 +230,7 @@ async function onCropConfirmed(blob: Blob) {
 }
 
 async function deleteAvatar() {
-  const isConfirmed = await modalStore.confirm({
+  const isConfirmed = await confirmModal.ask({
     title: t('groups.settings.general.avatar.delete_modal.title'),
     content: t('groups.settings.general.avatar.delete_modal.message'),
     submitText: t('common.buttons.delete'),

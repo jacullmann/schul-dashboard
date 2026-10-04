@@ -1,7 +1,7 @@
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useEventListener } from '@vueuse/core';
-import { useModalStore } from '@/stores/modalStore';
+import { useConfirmModal } from '@/stores/modalStore';
 import type { HwItem } from '@/modules/tasks/types';
 import hw from '@/api/api.ts';
 import { groupPath } from '@/api/groupPath';
@@ -15,7 +15,7 @@ export function useHwActions(
   handleSuccessAction: (msg: string) => void,
 ) {
   const { t } = useI18n();
-  const modalStore = useModalStore();
+  const confirmModal = useConfirmModal();
   const { absoluteUrl } = useAbsoluteUrl();
   const deletingEntry = ref(false);
 
@@ -310,7 +310,7 @@ export function useHwActions(
 
   /** Resolves to whether the task is gone, so a view of it knows to close. */
   async function deleteItem(id: string): Promise<boolean> {
-    const isConfirmed = await modalStore.confirm({
+    const isConfirmed = await confirmModal.ask({
       title: t('tasks.actions.delete_modal.title'),
       content: t('tasks.actions.delete_modal.message'),
       submitText: t('tasks.actions.delete_modal.submit'),

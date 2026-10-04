@@ -2,13 +2,13 @@ import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import hw from '@/api/api';
 import { useToast } from '@/common/composables/useToast';
-import { useModalStore } from '@/stores/modalStore';
+import { useConfirmModal } from '@/stores/modalStore';
 import type { SuperAdminReport } from '../types';
 import { useSuperAdminStats } from './useSuperAdminStats';
 
 export function useSuperAdminReports() {
   const toast = useToast();
-  const modalStore = useModalStore();
+  const confirmModal = useConfirmModal();
   const { t } = useI18n();
   const { loadStats } = useSuperAdminStats();
 
@@ -28,7 +28,7 @@ export function useSuperAdminReports() {
   }
 
   async function deleteReport(id: string) {
-    const confirmed = await modalStore.confirm({
+    const confirmed = await confirmModal.ask({
       title: t('admin.reports.delete_modal.title'),
       content: t('admin.reports.delete_modal.content'),
       submitText: t('common.buttons.delete'),

@@ -8,9 +8,6 @@ import {
 import { useI18n } from 'vue-i18n';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useLogout } from '@/core/composables/useLogout';
-import { useTaskForm } from '@/core/composables/useTaskForm';
-import { usePrivateTaskForm } from '@/core/composables/usePrivateTaskForm';
-import { useAnnouncementForm } from '@/core/composables/useAnnouncementForm';
 import {
   House,
   ListTodo,
@@ -50,8 +47,18 @@ import {
   Check,
   ArrowLeft,
 } from '@lucide/vue';
-import { useModalStore, type SearchMode } from '@/stores/modalStore';
-import { useAccountModals } from '@/modules/auth/composables/useAccountModals';
+import {
+  useAnnouncementFormModal,
+  useChangePasswordModal,
+  useCreateGroupModal,
+  useDeleteAccountModal,
+  useInviteModal,
+  usePrivateTaskFormModal,
+  useSearchModal,
+  useTaskFormModal,
+  type SearchMode,
+} from '@/stores/modalStore';
+import { useSidebarStore } from '@/stores/sidebarStore';
 import { usePersonalization } from '@/modules/auth/composables/usePersonalization';
 import { useUserStore } from '@/stores/userStore';
 import { usePreferences } from '@/common/composables/usePreferences';
@@ -78,14 +85,18 @@ const {
   canInAnyGroup,
   createInvite,
 } = useAppAuth();
-const { openTaskForm } = useTaskForm();
-const { openPrivateTaskForm } = usePrivateTaskForm();
-const { openAnnouncementForm } = useAnnouncementForm();
-const { openChangePassword, openDeleteAccount } = useAccountModals();
+const taskFormModal = useTaskFormModal();
+const privateTaskFormModal = usePrivateTaskFormModal();
+const announcementFormModal = useAnnouncementFormModal();
+const changePasswordModal = useChangePasswordModal();
+const deleteAccountModal = useDeleteAccountModal();
+const createGroupModal = useCreateGroupModal();
+const inviteModal = useInviteModal();
+const sidebarStore = useSidebarStore();
 const { setPersonalization } = usePersonalization();
 const userStore = useUserStore();
 const performLogout = useLogout();
-const modalStore = useModalStore();
+const searchModal = useSearchModal();
 const { currentTheme, currentLanguage, setPreference } = usePreferences();
 const { withGroup } = useGroupAction();
 const { openGroup } = useOpenGroup();
@@ -96,11 +107,11 @@ const canAnnounce = computed(() => canInAnyGroup('manage_announcements'));
 
 const query = ref('');
 
-const mode = computed(() => modalStore.searchMode);
+const mode = computed(() => searchModal.mode);
 
 function setMode(newMode: SearchMode) {
   query.value = '';
-  modalStore.searchMode = newMode;
+  searchModal.mode = newMode;
 }
 
 function onKeydown(e: KeyboardEvent) {
@@ -304,7 +315,7 @@ const defaultResults = computed<SearchResult[]>(() => [
     description: t('search.descriptions.toggle_sidebar'),
     category: 'action',
     icon: PanelLeft,
-    action: () => runAndClose(modalStore.toggleSidebar),
+    action: () => runAndClose(sidebarStore.toggle),
     shortcut: ['ctrl', 'shift', 'd'],
     condition: hasSidebar.value,
   },
@@ -315,7 +326,7 @@ const defaultResults = computed<SearchResult[]>(() => [
     category: 'action',
     icon: SquarePen,
     action: () =>
-      withGroup((groupId) => runAndClose(() => openTaskForm(groupId))),
+      withGroup((groupId) => runAndClose(() => taskFormModal.openNew(groupId))),
     shortcut: ['alt', 'n'],
   },
   {
@@ -324,7 +335,7 @@ const defaultResults = computed<SearchResult[]>(() => [
     description: t('search.descriptions.create_private_task'),
     category: 'action',
     icon: Lock,
-    action: () => runAndClose(openPrivateTaskForm),
+    action: () => runAndClose(privateTaskFormModal.openNew),
     shortcut: ['alt', 'p'],
   },
   {
@@ -335,7 +346,7 @@ const defaultResults = computed<SearchResult[]>(() => [
     icon: Megaphone,
     action: () =>
       withGroup(
-        (groupId) => runAndClose(() => openAnnouncementForm(groupId)),
+        (groupId) => runAndClose(() => announcementFormModal.openFor(groupId)),
         'manage_announcements',
       ),
     shortcut: ['alt', 'a'],
@@ -363,7 +374,7 @@ const defaultResults = computed<SearchResult[]>(() => [
       try {
         const res = await createInvite(groupId);
         if (res.ok && res.token) {
-          modalStore.openInviteModal(res.token, groupId);
+          inviteModal.open({ groupId, token: res.token });
         }
       } catch (err) {
         console.error('Failed to generate invite link', err);
@@ -377,7 +388,7 @@ const defaultResults = computed<SearchResult[]>(() => [
     description: t('search.descriptions.create_group'),
     category: 'action',
     icon: Plus,
-    action: () => runAndClose(modalStore.openCreateGroup),
+    action: () => runAndClose(createGroupModal.open),
   },
   {
     id: 'edit-courses',
@@ -418,7 +429,7 @@ const defaultResults = computed<SearchResult[]>(() => [
     description: t('search.descriptions.change_password'),
     category: 'action',
     icon: LucideKeyRound,
-    action: () => runAndClose(openChangePassword),
+    action: () => runAndClose(changePasswordModal.open),
   },
   {
     id: 'delete-account',
@@ -426,7 +437,7 @@ const defaultResults = computed<SearchResult[]>(() => [
     description: t('search.descriptions.delete_account'),
     category: 'action',
     icon: Trash2,
-    action: () => runAndClose(openDeleteAccount),
+    action: () => runAndClose(deleteAccountModal.open),
     searchOnly: true,
   },
   {

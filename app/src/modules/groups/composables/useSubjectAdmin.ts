@@ -6,7 +6,7 @@ import { useGroupPageId } from '@/core/composables/useGroupPageId';
 import type { AdminCourse, AdminSubject } from '@/modules/groups/types';
 import type { CourseType } from '@/types/subjects';
 import { useToast } from '@/common/composables/useToast';
-import { useModalStore } from '@/stores/modalStore';
+import { useConfirmModal } from '@/stores/modalStore';
 import { useSubjectStore } from '@/stores/subjectStore';
 import { apiErrorCode, apiErrorStatus } from '@/api/errors';
 
@@ -17,7 +17,7 @@ const saving = ref(false);
 export function useSubjectAdmin() {
   const { t } = useI18n();
   const groupId = useGroupPageId();
-  const modalStore = useModalStore();
+  const confirmModal = useConfirmModal();
   const subjectStore = useSubjectStore();
   const { success, error: toastError } = useToast();
 
@@ -116,7 +116,7 @@ export function useSubjectAdmin() {
   }
 
   async function deleteSubject(id: string): Promise<boolean> {
-    const isConfirmed = await modalStore.confirm({
+    const isConfirmed = await confirmModal.ask({
       title: t('groups.settings.subjects.delete_modal.title'),
       content: t('groups.settings.subjects.delete_modal.message'),
       submitText: t('common.buttons.delete'),
@@ -212,7 +212,7 @@ export function useSubjectAdmin() {
     subjectId: string,
     courseId: string,
   ): Promise<boolean> {
-    const isConfirmed = await modalStore.confirm({
+    const isConfirmed = await confirmModal.ask({
       title: t('groups.settings.subjects.course_delete_modal.title'),
       content: t('groups.settings.subjects.course_delete_modal.message'),
       submitText: t('common.buttons.delete'),

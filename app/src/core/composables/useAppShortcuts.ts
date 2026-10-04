@@ -1,11 +1,21 @@
 import { onKeyStroke } from '@vueuse/core';
-import { useModalStore } from '@/stores/modalStore';
+import {
+  useAnnouncementFormModal,
+  usePrivateTaskFormModal,
+  useSearchModal,
+  useTaskFormModal,
+} from '@/stores/modalStore';
+import { useSidebarStore } from '@/stores/sidebarStore';
 import { useUserStore } from '@/stores/userStore';
 import { useGroupAction } from '@/core/composables/useGroupAction';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 
 export function useAppShortcuts() {
-  const modalStore = useModalStore();
+  const searchModal = useSearchModal();
+  const taskFormModal = useTaskFormModal();
+  const privateTaskFormModal = usePrivateTaskFormModal();
+  const announcementFormModal = useAnnouncementFormModal();
+  const sidebarStore = useSidebarStore();
   const userStore = useUserStore();
   const { withGroup } = useGroupAction();
   const { canInAnyGroup } = useAppAuth();
@@ -15,7 +25,7 @@ export function useAppShortcuts() {
 
     if (e.ctrlKey || e.metaKey) {
       e.preventDefault();
-      modalStore.openSearch();
+      searchModal.open();
     }
   });
 
@@ -24,7 +34,7 @@ export function useAppShortcuts() {
 
     if (e.altKey && !e.ctrlKey && !e.metaKey) {
       e.preventDefault();
-      withGroup((groupId) => modalStore.openTaskForm(groupId));
+      withGroup((groupId) => taskFormModal.openNew(groupId));
     }
   });
 
@@ -33,7 +43,7 @@ export function useAppShortcuts() {
 
     if (e.altKey && !e.ctrlKey && !e.metaKey) {
       e.preventDefault();
-      modalStore.openPrivateTaskForm();
+      privateTaskFormModal.openNew();
     }
   });
 
@@ -44,7 +54,7 @@ export function useAppShortcuts() {
     if (e.altKey && !e.ctrlKey && !e.metaKey) {
       e.preventDefault();
       withGroup(
-        (groupId) => modalStore.openAnnouncementForm(groupId),
+        (groupId) => announcementFormModal.openFor(groupId),
         'manage_announcements',
       );
     }
@@ -55,7 +65,7 @@ export function useAppShortcuts() {
 
     if (e.ctrlKey || e.metaKey) {
       e.preventDefault();
-      modalStore.openSearch('group');
+      searchModal.open('group');
     }
   });
 
@@ -64,7 +74,7 @@ export function useAppShortcuts() {
 
     if ((e.ctrlKey || e.metaKey) && e.shiftKey) {
       e.preventDefault();
-      modalStore.toggleSidebar();
+      sidebarStore.toggle();
     }
   });
 }

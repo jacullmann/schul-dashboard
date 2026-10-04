@@ -15,7 +15,7 @@ import {
   Search,
 } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
-import { useModalStore } from '@/stores/modalStore';
+import { useCreateGroupModal, useSearchModal } from '@/stores/modalStore';
 import Avatar from '@/modules/auth/components/Avatar.vue';
 import AccountMenu from '@/modules/auth/components/AccountMenu.vue';
 import { useLogout } from '@/core/composables/useLogout';
@@ -23,7 +23,6 @@ import {
   useIsMobileViewport,
   useIsSidebarViewport,
 } from '@/common/composables/useViewport';
-import { useSearchModal } from '@/core/composables/useSearchModal';
 import { useGroupMenuActions } from '@/modules/groups/composables/useGroupMenuActions';
 
 const userStore = useUserStore();
@@ -32,7 +31,7 @@ const { t } = useI18n();
 const performLogout = useLogout();
 const isMobile = useIsMobileViewport();
 const hasSidebar = useIsSidebarViewport();
-const { openSearch } = useSearchModal();
+const searchModal = useSearchModal();
 const { y: scrollY } = useWindowScroll();
 const isScrolled = computed(() => scrollY.value > 0);
 
@@ -45,11 +44,11 @@ const {
 } = useAppAuth();
 const router = useRouter();
 
-const modalStore = useModalStore();
+const createGroupModal = useCreateGroupModal();
 
 // The search takes over the row on phones (HeaderSearchPalette): its bar
 // replaces the group and its cancel button the account button.
-const isSearching = computed(() => isMobile.value && modalStore.searchOpen);
+const isSearching = computed(() => isMobile.value && searchModal.isOpen);
 
 // Timed against the search backdrop's blur: gone while it is still faint on
 // the way in, and back only once it has nearly cleared on the way out.
@@ -174,7 +173,7 @@ onMounted(() => {
             :icon="Plus"
             @click="
               groupMenuOpen = false;
-              modalStore.openCreateGroup();
+              createGroupModal.open();
             "
           >
             {{ t('common.sidebar.create') }}
@@ -223,8 +222,8 @@ onMounted(() => {
           on="ghost"
           :aria-label="t('common.sidebar.search')"
           :icon="Search"
-          :class="{ 'opacity-0': modalStore.searchVisible }"
-          @click="openSearch()"
+          :class="{ 'opacity-0': searchModal.isVisible }"
+          @click="searchModal.open()"
         />
 
         <AccountMenu

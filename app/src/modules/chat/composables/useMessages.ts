@@ -12,7 +12,7 @@ import hw, { refreshSession } from '../../../api/api';
 import { groupPath } from '@/api/groupPath';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useToast } from '@/common/composables/useToast';
-import { useModalStore } from '@/stores/modalStore';
+import { useConfirmModal } from '@/stores/modalStore';
 import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/vue';
 import { apiErrorMessage } from '@/api/errors';
 import { preferredScrollBehavior } from '@/utils/motion';
@@ -27,7 +27,7 @@ export function useMessages() {
   const { user } = storeToRefs(userStore);
   const { checkPermission } = useAppAuth();
   const toast = useToast();
-  const modalStore = useModalStore();
+  const confirmModal = useConfirmModal();
 
   const canSend = computed(() => {
     return checkPermission('send_messages');
@@ -423,7 +423,7 @@ export function useMessages() {
 
   const deleteMessage = async (msg: any) => {
     activeMessage.value = null;
-    const isConfirmed = await modalStore.confirm({
+    const isConfirmed = await confirmModal.ask({
       title: t('chat.delete_confirm_title'),
       content: t('chat.delete_confirm'),
       submitText: t('common.buttons.delete'),

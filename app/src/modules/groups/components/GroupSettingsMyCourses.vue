@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n';
 import { RotateCcw } from '@lucide/vue';
 import { useSubjectStore } from '@/stores/subjectStore';
 import { useUserStore } from '@/stores/userStore';
-import { useModalStore } from '@/stores/modalStore';
+import { useConfirmModal, useCourseSetupModal } from '@/stores/modalStore';
 import { useCourseSelection } from '@/common/composables/useCourseSelection';
 import { useGroupPageId } from '@/core/composables/useGroupPageId';
 import { useToast } from '@/common/composables/useToast';
@@ -15,7 +15,8 @@ const groupId = useGroupPageId();
 const toast = useToast();
 const subjectStore = useSubjectStore();
 const userStore = useUserStore();
-const modalStore = useModalStore();
+const confirmModal = useConfirmModal();
+const courseSetupModal = useCourseSetupModal();
 const {
   selections,
   resetSelections,
@@ -63,7 +64,7 @@ void subjectStore.loadSubjects(groupId);
 const redoing = ref(false);
 
 async function redoSetup() {
-  const confirmed = await modalStore.confirm({
+  const confirmed = await confirmModal.ask({
     title: t('auth.courses.redo_setup.title'),
     content: t('auth.courses.redo_setup.message'),
     submitText: t('auth.courses.redo_setup.submit'),
@@ -75,7 +76,7 @@ async function redoSetup() {
   error.value = '';
   try {
     await saveCourses([]);
-    modalStore.openSetup(groupId);
+    courseSetupModal.open({ groupId: groupId });
   } catch (e: unknown) {
     error.value = apiErrorMessage(e, t('auth.courses.errors.save_failed'));
   } finally {

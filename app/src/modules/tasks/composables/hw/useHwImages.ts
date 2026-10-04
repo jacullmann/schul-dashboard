@@ -1,7 +1,7 @@
 import { ref, reactive } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { Attachment, HwItem } from '@/modules/tasks/types';
-import { useModalStore } from '@/stores/modalStore';
+import { useConfirmModal } from '@/stores/modalStore';
 import { useToast } from '@/common/composables/useToast';
 import type { HwContext } from './types';
 import type { TaskPermissions } from '../useTaskPermissions';
@@ -22,7 +22,7 @@ export function useHwImages(
     image: null as Attachment | null,
   });
 
-  const modalStore = useModalStore();
+  const confirmModal = useConfirmModal();
   const deletingImage = ref(false);
   const currentUploadItemId = ref<string | null>(null);
 
@@ -80,7 +80,7 @@ export function useHwImages(
 
     closeImageMenu();
 
-    const isConfirmed = await modalStore.confirm({
+    const isConfirmed = await confirmModal.ask({
       title: t('tasks.images.delete_modal.title'),
       content: t('tasks.images.delete_modal.message'),
       submitText: t('tasks.images.delete_modal.submit'),

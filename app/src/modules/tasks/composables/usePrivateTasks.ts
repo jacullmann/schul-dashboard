@@ -3,7 +3,7 @@ import { useEventListener } from '@vueuse/core';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
 import hw from '@/api/api.ts';
-import { useModalStore } from '@/stores/modalStore';
+import { useConfirmModal } from '@/stores/modalStore';
 import { useI18n } from 'vue-i18n';
 import type { PrivateTask } from '@/modules/tasks/types';
 import { useToast } from '@/common/composables/useToast';
@@ -46,7 +46,7 @@ function positionBetween(prev: string | null, next: string | null): string {
 export function usePrivateTasks() {
   const { t } = useI18n();
   const userStore = useUserStore();
-  const modalStore = useModalStore();
+  const confirmModal = useConfirmModal();
   const { user } = storeToRefs(userStore);
 
   const privateTasks = ref<PrivateTask[]>([]);
@@ -224,7 +224,7 @@ export function usePrivateTasks() {
   };
 
   const confirmDeletePrivateTask = () =>
-    modalStore.confirm({
+    confirmModal.ask({
       title: t('tasks.list.tasks.menu.delete.title'),
       content: t('tasks.private_tasks.delete_confirm'),
       submitText: t('common.buttons.delete'),

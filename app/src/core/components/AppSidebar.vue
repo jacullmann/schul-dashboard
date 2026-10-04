@@ -17,10 +17,13 @@ import {
   Plus,
 } from '@lucide/vue';
 import AccountMenu from '@/modules/auth/components/AccountMenu.vue';
-import { useSearchModal } from '@/core/composables/useSearchModal';
-import { useTaskForm } from '@/core/composables/useTaskForm';
-import { useAnnouncementForm } from '@/core/composables/useAnnouncementForm';
-import { useModalStore } from '@/stores/modalStore';
+import {
+  useAnnouncementFormModal,
+  useCreateGroupModal,
+  useSearchModal,
+  useTaskFormModal,
+} from '@/stores/modalStore';
+import { useSidebarStore } from '@/stores/sidebarStore';
 import { storeToRefs } from 'pinia';
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
@@ -42,18 +45,19 @@ const { activeGroupId, contextGroupId, userGroups, canInAnyGroup } =
   useAppAuth();
 const router = useRouter();
 
-const modalStore = useModalStore();
-const { sidebarExpanded: isExpanded } = storeToRefs(modalStore);
-const { openSearch } = useSearchModal();
-const { openTaskForm } = useTaskForm();
-const { openAnnouncementForm } = useAnnouncementForm();
+const sidebarStore = useSidebarStore();
+const { expanded: isExpanded } = storeToRefs(sidebarStore);
+const searchModal = useSearchModal();
+const taskFormModal = useTaskFormModal();
+const announcementFormModal = useAnnouncementFormModal();
+const createGroupModal = useCreateGroupModal();
 const { withGroup } = useGroupAction();
 const { openGroup } = useOpenGroup();
 
 const canAnnounce = computed(() => canInAnyGroup('manage_announcements'));
 
 function toggleExpanded() {
-  modalStore.toggleSidebar();
+  sidebarStore.toggle();
 }
 
 function onPersonalizationChanged(value: boolean) {
@@ -65,11 +69,14 @@ function handleNavigation(to: RouteLocationRaw) {
 }
 
 function handleTask() {
-  withGroup((groupId) => openTaskForm(groupId));
+  withGroup((groupId) => taskFormModal.openNew(groupId));
 }
 
 function handleAnnouncement() {
-  withGroup((groupId) => openAnnouncementForm(groupId), 'manage_announcements');
+  withGroup(
+    (groupId) => announcementFormModal.openFor(groupId),
+    'manage_announcements',
+  );
 }
 
 const sidebarScrollEl = ref<HTMLElement | null>(null);
@@ -225,7 +232,7 @@ onUnmounted(() => {
           :expanded="isExpanded"
           :icon="Search"
           :page="false"
-          @click="openSearch()"
+          @click="searchModal.open()"
         />
       </div>
 
@@ -343,7 +350,7 @@ onUnmounted(() => {
           :expanded="isExpanded"
           :icon="Plus"
           :page="false"
-          @click="modalStore.openCreateGroup()"
+          @click="createGroupModal.open()"
         />
       </div>
     </div>

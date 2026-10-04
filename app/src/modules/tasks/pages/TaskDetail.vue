@@ -5,7 +5,7 @@ import { useI18n } from 'vue-i18n';
 import { ArrowLeft, Ellipsis, Pencil, Send, Upload } from '@lucide/vue';
 
 import { useTasks } from '@/modules/tasks/composables/useTasks';
-import { useImageViewer } from '@/core/composables/useImageViewer';
+import { useImageViewerModal } from '@/stores/modalStore';
 import { useGroupPageId } from '@/core/composables/useGroupPageId';
 import { useFileDrop } from '@/modules/tasks/composables/useFileDrop';
 import { taskListRoute } from '@/modules/tasks/utils/routes';
@@ -116,7 +116,7 @@ async function onDetailMenuAction(action: TaskMenuAction) {
   await onMenuAction(action, task);
 }
 
-const { openImageViewer } = useImageViewer();
+const imageViewerModal = useImageViewerModal();
 
 // The viewer grows out of the tile it was opened from and shrinks back into
 // it, so it has to find that tile again, also after paging to another image.
@@ -129,7 +129,7 @@ function imageTile(task: HwItem, index: number) {
 function openImage(index: number) {
   const task = item.value;
   if (!task) return;
-  openImageViewer(
+  imageViewerModal.show(
     task.attachments,
     index,
     (tileIndex) => imageTile(task, tileIndex),

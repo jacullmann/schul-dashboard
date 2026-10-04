@@ -5,7 +5,7 @@ import { useI18n } from 'vue-i18n';
 import hw from '@/api/api';
 import { groupPath } from '@/api/groupPath';
 import { useUserStore } from '@/stores/userStore';
-import { useModalStore } from '@/stores/modalStore';
+import { useConfirmModal, useInviteModal } from '@/stores/modalStore';
 import { useToast } from '@/common/composables/useToast';
 import {
   useAppAuth,
@@ -16,7 +16,8 @@ import {
 export function useGroupMenuActions() {
   const { t } = useI18n();
   const router = useRouter();
-  const modalStore = useModalStore();
+  const confirmModal = useConfirmModal();
+  const inviteModal = useInviteModal();
   const toast = useToast();
   const { user } = storeToRefs(useUserStore());
   const { createInvite, checkAuthStatus } = useAppAuth();
@@ -32,7 +33,7 @@ export function useGroupMenuActions() {
     try {
       const res = await createInvite(groupId);
       if (res.ok && res.token) {
-        modalStore.openInviteModal(res.token, groupId);
+        inviteModal.open({ groupId: groupId, token: res.token });
       } else {
         toast.error(res.error || t('auth.groups.errors.invite_failed'));
       }
@@ -58,7 +59,7 @@ export function useGroupMenuActions() {
       return;
     }
 
-    const isConfirmed = await modalStore.confirm({
+    const isConfirmed = await confirmModal.ask({
       title: t('common.header.leave_group_confirm.title'),
       content: t('common.header.leave_group_confirm.content', {
         group: group.name,

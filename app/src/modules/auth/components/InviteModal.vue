@@ -2,7 +2,6 @@
 import { ref, computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
-import { useModalStore } from '@/stores/modalStore';
 import { Copy, Check, RefreshCw } from '@lucide/vue';
 import { useToast } from '@/common/composables/useToast';
 import { useAbsoluteUrl } from '@/common/composables/useAbsoluteUrl';
@@ -10,7 +9,6 @@ import { inviteRoute } from '@/modules/auth/utils/routes';
 
 const { t } = useI18n();
 const auth = useAppAuth();
-const modalStore = useModalStore();
 const toast = useToast();
 const { absoluteUrl } = useAbsoluteUrl();
 
@@ -92,7 +90,6 @@ async function regenerate() {
     if (res.ok && res.token) {
       currentToken.value = res.token;
       copied.value = false;
-      modalStore.inviteModalToken = res.token;
       toast.success(t('groups.settings.permissions.errors.update_success'));
     } else {
       toast.error(res.error || t('auth.groups.errors.regenerate_failed'));

@@ -2,7 +2,7 @@ import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import hw from '@/api/api';
 import { useToast } from '@/common/composables/useToast';
-import { useModalStore } from '@/stores/modalStore';
+import { useInviteModal } from '@/stores/modalStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import type {
   GroupSort,
@@ -29,7 +29,7 @@ const SORT_ORDERS = ['asc', 'desc'] as const satisfies readonly SortOrder[];
 
 export function useSuperAdminGroups() {
   const toast = useToast();
-  const modalStore = useModalStore();
+  const inviteModal = useInviteModal();
   const { createInvite } = useAppAuth();
   const { t } = useI18n();
 
@@ -60,7 +60,7 @@ export function useSuperAdminGroups() {
     try {
       const res = await createInvite(group.id);
       if (res.ok && res.token) {
-        modalStore.openInviteModal(res.token, group.id);
+        inviteModal.open({ groupId: group.id, token: res.token });
       } else {
         toast.error(res.error ?? t('auth.groups.errors.invite_failed'));
       }

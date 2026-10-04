@@ -1,15 +1,15 @@
-import { computed, onUnmounted, ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { isAxiosError } from 'axios';
 import type { HwItem } from '@/modules/tasks/types';
 import hw from '@/api/api.ts';
 import { groupPath } from '@/api/groupPath';
-import { useTaskForm } from '@/core/composables/useTaskForm';
+import { useTaskFormModal } from '@/stores/modalStore';
 import type { HwContext } from './types';
 
 export type OpenedItemError = 'not-found' | 'failed';
 
 export function useHwDetail(ctx: HwContext) {
-  const { onFormSuccess } = useTaskForm();
+  const taskFormModal = useTaskFormModal();
   const openedItemError = ref<OpenedItemError | null>(null);
 
   const listCopy = computed(() =>
@@ -50,11 +50,10 @@ export function useHwDetail(ctx: HwContext) {
   watch(ctx.openedItemId, loadOpenedItem, { immediate: true });
 
   // An edit reloads the list, which misses a task it does not hold.
-  const unregister = onFormSuccess(() => {
+  taskFormModal.onSuccess(() => {
     const itemId = ctx.openedItemId.value;
     if (itemId && !listCopy.value) void ctx.refreshItem(itemId);
   });
-  onUnmounted(unregister);
 
   return {
     openedItemError,

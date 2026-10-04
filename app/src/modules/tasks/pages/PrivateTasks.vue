@@ -4,14 +4,14 @@ import { useUserStore } from '@/stores/userStore';
 import PrivateTaskApp from '@/modules/tasks/components/PrivateTaskApp.vue';
 import { Plus } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
-import { usePrivateTaskForm } from '@/core/composables/usePrivateTaskForm';
+import { usePrivateTaskFormModal } from '@/stores/modalStore';
 import InfoModal from '@/common/components/InfoModal.vue';
 
 const i18n = useI18n();
 const t = i18n.t.bind(i18n);
 const tm = i18n.tm.bind(i18n);
 
-const { openPrivateTaskForm } = usePrivateTaskForm();
+const privateTaskFormModal = usePrivateTaskFormModal();
 
 const userStore = useUserStore();
 const { user } = storeToRefs(userStore);
@@ -52,7 +52,7 @@ const { user } = storeToRefs(userStore);
               variant="action"
               :icon="Plus"
               icon-classes="size-6"
-              @click="openPrivateTaskForm"
+              @click="privateTaskFormModal.openNew()"
             />
           </BaseTooltip>
         </template>

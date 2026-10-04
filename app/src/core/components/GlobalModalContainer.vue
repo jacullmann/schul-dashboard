@@ -4,7 +4,20 @@ import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useToast } from '@/common/composables/useToast';
 import { storeToRefs } from 'pinia';
-import { useModalStore } from '@/stores/modalStore';
+import {
+  useAnnouncementFormModal,
+  useChangePasswordModal,
+  useConfirmModal,
+  useCourseSetupModal,
+  useCreateGroupModal,
+  useDeleteAccountModal,
+  useImageViewerModal,
+  useInviteModal,
+  usePrivateTaskFormModal,
+  useSearchModal,
+  useTaskFormModal,
+} from '@/stores/modalStore';
+import type { PrivateTask } from '@/modules/tasks/types';
 import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useLogout } from '@/core/composables/useLogout';
@@ -61,7 +74,6 @@ const { t } = useI18n();
 const router = useRouter();
 const toast = useToast();
 
-const modalStore = useModalStore();
 const userStore = useUserStore();
 const { user, hasPassword } = storeToRefs(userStore);
 const { checkAuthStatus, homeRoute } = useAppAuth();
@@ -78,64 +90,44 @@ const searchTransition = computed(() =>
     : { name: 'fade-scale' },
 );
 
-const {
-  searchOpen,
-  taskFormOpen,
-  taskFormKey,
-  taskFormGroupId,
-  taskFormLocal,
-  taskToEdit,
-  taskFormInitialType,
-  showChangePassword,
-  showSetup,
-  setupGroupId,
-  showDeleteAccount,
-  createGroupOpen,
-  inviteModalOpen,
-  inviteModalToken,
-  inviteModalGroupId,
-  privateTaskFormOpen,
-  privateTaskFormKey,
-  privateTaskToEdit,
-  announcementFormOpen,
-  announcementFormKey,
-  announcementFormGroupId,
-  announcementFormLocal,
-  imageViewerOpen,
-  imageViewerImages,
-  imageViewerInitialIndex,
-  imageViewerOrigin,
-  imageViewerMenu,
-  confirmOpen,
-  confirmOptions,
-} = storeToRefs(modalStore);
+const searchModal = useSearchModal();
+const taskForm = useTaskFormModal();
+const privateTaskForm = usePrivateTaskFormModal();
+const announcementForm = useAnnouncementFormModal();
+const imageViewer = useImageViewerModal();
+const changePassword = useChangePasswordModal();
+const deleteAccount = useDeleteAccountModal();
+const courseSetup = useCourseSetupModal();
+const createGroup = useCreateGroupModal();
+const invite = useInviteModal();
+const confirmModal = useConfirmModal();
 
 function onTaskFormSuccess() {
   toast.success(t('tasks.list.task_form.success_edit'));
-  modalStore.notifyTaskFormSuccess();
+  taskForm.succeed();
 }
 
-function onPrivateTaskFormSuccess(task: any) {
-  const msg = modalStore.privateTaskToEdit
+function onPrivateTaskFormSuccess(task: PrivateTask) {
+  const msg = privateTaskForm.payload?.task
     ? t('tasks.private_tasks.success_update')
     : t('tasks.private_tasks.success_create');
   toast.success(msg);
-  modalStore.notifyPrivateTaskFormSuccess(task);
+  privateTaskForm.succeed(task);
 }
 
 function onAnnouncementFormSuccess() {
   toast.success(t('announcements.actions.publish_success_toast'));
-  modalStore.notifyAnnouncementFormSuccess();
+  announcementForm.succeed();
 }
 
 function onPasswordChanged() {
   toast.success(t('auth.change_password.success_toast'));
-  modalStore.showChangePassword = false;
+  changePassword.close();
 }
 
 function onPasswordSet() {
   toast.success(t('auth.set_password.success'));
-  modalStore.showChangePassword = false;
+  changePassword.close();
 }
 
 async function logout() {
@@ -144,7 +136,7 @@ async function logout() {
 
 async function onAccountDeleted() {
   await logout();
-  modalStore.showDeleteAccount = false;
+  deleteAccount.close();
 }
 
 function onAccountDeleteError(msg: string) {
@@ -176,108 +168,107 @@ async function onAuthSuccess() {
     <Transition
       v-bind="searchTransition"
       appear
-      @after-leave="modalStore.onSearchHidden()"
+      @after-leave="searchModal.onHidden()"
     >
-      <SearchModal v-if="searchOpen" @cancel="modalStore.closeSearch()" />
+      <SearchModal v-if="searchModal.isOpen" @cancel="searchModal.close()" />
     </Transition>
   </Teleport>
 
   <TaskForm
-    v-if="taskFormGroupId"
-    :key="taskFormKey"
-    :group-id="taskFormGroupId"
-    :local="taskFormLocal"
-    :open="taskFormOpen"
-    :initial-type="taskFormInitialType"
-    :initial="taskToEdit"
-    @cancel="modalStore.closeTaskForm()"
+    v-if="taskForm.payload"
+    :key="taskForm.key"
+    :group-id="taskForm.payload.groupId"
+    :local="taskForm.payload.local"
+    :open="taskForm.isOpen"
+    :initial-type="taskForm.payload.type"
+    :initial="taskForm.payload.item"
+    @cancel="taskForm.close()"
     @success="onTaskFormSuccess"
   />
 
   <PrivateTaskForm
-    :key="privateTaskFormKey"
-    :open="privateTaskFormOpen"
-    :initial="privateTaskToEdit || undefined"
-    @cancel="modalStore.closePrivateTaskForm()"
+    :key="privateTaskForm.key"
+    :open="privateTaskForm.isOpen"
+    :initial="privateTaskForm.payload?.task ?? undefined"
+    @cancel="privateTaskForm.close()"
     @success="onPrivateTaskFormSuccess"
   />
 
   <AnnouncementForm
-    v-if="announcementFormGroupId"
-    :key="announcementFormKey"
-    :group-id="announcementFormGroupId"
-    :local="announcementFormLocal"
-    :open="announcementFormOpen"
-    @cancel="modalStore.closeAnnouncementForm()"
+    v-if="announcementForm.payload"
+    :key="announcementForm.key"
+    :group-id="announcementForm.payload.groupId"
+    :local="announcementForm.payload.local"
+    :open="announcementForm.isOpen"
+    @cancel="announcementForm.close()"
     @success="onAnnouncementFormSuccess"
   />
 
+  <!-- Stays mounted while closed: its open animation needs the visible prop
+       to change, and its close animation still reads the images. -->
   <ImageViewer
-    :visible="imageViewerOpen"
-    :images="imageViewerImages"
-    :initial-index="imageViewerInitialIndex"
-    :origin="imageViewerOrigin"
-    :menu="imageViewerMenu"
-    @cancel="modalStore.closeImageViewer()"
+    :visible="imageViewer.isOpen"
+    :images="imageViewer.payload?.images ?? []"
+    :initial-index="imageViewer.payload?.initialIndex ?? 0"
+    :origin="imageViewer.payload?.origin"
+    :menu="imageViewer.payload?.menu"
+    @cancel="imageViewer.close()"
   />
 
   <!-- Every "password" entry point opens this slot; an account without a
        password can only set its first one. -->
   <SetPasswordModal
     v-if="user && !hasPassword"
-    :open="showChangePassword"
+    :open="changePassword.isOpen"
     :email="user.email"
-    @cancel="modalStore.showChangePassword = false"
+    @cancel="changePassword.close()"
     @success="onPasswordSet"
   />
   <ChangePasswordModal
     v-else
-    :open="showChangePassword"
-    @cancel="modalStore.showChangePassword = false"
+    :open="changePassword.isOpen"
+    @cancel="changePassword.close()"
     @success="onPasswordChanged"
   />
 
   <DeleteAccountModal
-    :open="showDeleteAccount"
+    :open="deleteAccount.isOpen"
     :email="user?.email || ''"
-    @cancel="modalStore.showDeleteAccount = false"
+    @cancel="deleteAccount.close()"
     @deleted="onAccountDeleted"
     @error="onAccountDeleteError"
   />
 
   <!-- Keyed by group: its course choices are bound to the group it opened for. -->
   <CoursesSetupModal
-    v-if="user && setupGroupId"
-    :key="setupGroupId"
-    :open="showSetup"
-    :group-id="setupGroupId"
-    @close="modalStore.showSetup = false"
+    v-if="user && courseSetup.payload"
+    :key="courseSetup.payload.groupId"
+    :open="courseSetup.isOpen"
+    :group-id="courseSetup.payload.groupId"
+    @close="courseSetup.close()"
   />
 
-  <CreateGroupModal
-    :open="createGroupOpen"
-    @cancel="modalStore.closeCreateGroup()"
-  />
+  <CreateGroupModal :open="createGroup.isOpen" @cancel="createGroup.close()" />
 
   <InviteModal
-    v-if="inviteModalGroupId"
-    :open="inviteModalOpen"
-    :token="inviteModalToken"
-    :group-id="inviteModalGroupId"
-    @cancel="modalStore.closeInviteModal()"
+    v-if="invite.payload"
+    :open="invite.isOpen"
+    :token="invite.payload.token"
+    :group-id="invite.payload.groupId"
+    @cancel="invite.close()"
   />
 
   <!-- The confirm is the only dialog the image viewer can raise while it is
        up, so it has to be lifted over the viewer's own layer. -->
   <BaseDialog
-    :open="confirmOpen"
-    :elevated="imageViewerOpen"
-    :title="confirmOptions.title"
-    :submit-text="confirmOptions.submitText ?? t('common.buttons.confirm')"
-    :danger="confirmOptions.danger"
-    @confirm="modalStore.resolveConfirm(true)"
-    @cancel="modalStore.resolveConfirm(false)"
+    :open="confirmModal.isOpen"
+    :elevated="imageViewer.isOpen"
+    :title="confirmModal.options.title"
+    :submit-text="confirmModal.options.submitText"
+    :danger="confirmModal.options.danger"
+    @confirm="confirmModal.answer(true)"
+    @cancel="confirmModal.answer(false)"
   >
-    {{ confirmOptions.content }}
+    {{ confirmModal.options.content }}
   </BaseDialog>
 </template>

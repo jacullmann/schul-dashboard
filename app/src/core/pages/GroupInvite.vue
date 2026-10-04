@@ -5,7 +5,7 @@ import { useI18n } from 'vue-i18n';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useUserStore } from '@/stores/userStore';
 import { useSubjectStore } from '@/stores/subjectStore';
-import { useModalStore } from '@/stores/modalStore';
+import { useCourseSetupModal } from '@/stores/modalStore';
 import { useToast } from '@/common/composables/useToast';
 import Avatar from '@/modules/auth/components/Avatar.vue';
 import { AlertCircle } from '@lucide/vue';
@@ -32,7 +32,7 @@ const router = useRouter();
 const auth = useAppAuth();
 const userStore = useUserStore();
 const subjectStore = useSubjectStore();
-const modalStore = useModalStore();
+const courseSetupModal = useCourseSetupModal();
 const toast = useToast();
 
 const loading = ref(true);
@@ -98,7 +98,7 @@ async function handleJoin() {
           subjectStore.requiredCourseSubjects.length > 0 ||
           subjectStore.optionalCourseSubjects.length > 0
         ) {
-          modalStore.openSetup(res.groupId);
+          courseSetupModal.open({ groupId: res.groupId });
         }
       } catch (err) {
         console.error('Failed to load courses check after join:', err);
