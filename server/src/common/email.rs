@@ -1,4 +1,12 @@
-use crate::error::AppError;
+mod messages;
+mod render;
+
+use crate::{
+    common::locale::Locale,
+    config::{EMAIL_VERIFY_TTL, PASSWORD_RESET_CODE_TTL},
+    error::AppError,
+};
+use messages::Message;
 use resend_rs::{Resend, types::CreateEmailBaseOptions};
 use tracing::warn;
 
@@ -26,13 +34,15 @@ impl EmailService {
         Self { resend, from }
     }
 
-    async fn send(&self, to: &str, subject: &str, html: &str) -> Result<(), AppError> {
+    async fn send(&self, to: &str, message: Message) -> Result<(), AppError> {
         let resend = self
             .resend
             .as_ref()
             .ok_or_else(|| AppError::internal("Email service not configured."))?;
 
-        let email = CreateEmailBaseOptions::new(&self.from, [to], subject).with_html(html);
+        let email = CreateEmailBaseOptions::new(&self.from, [to], message.subject)
+            .with_html(&message.to_html())
+            .with_text(&message.to_text());
 
         resend
             .emails
@@ -46,63 +56,37 @@ impl EmailService {
     pub async fn send_verification_email(
         &self,
         to: &str,
+        locale: Locale,
         verify_url: &str,
     ) -> Result<(), AppError> {
-        self.send(
-            to,
-            "Bitte bestätige deine E-Mail-Adresse",
-            &format!(r#"
-                <h3>Nur noch ein letzter Schritt</h3>
-                <p>Willkommen beim schul-dashboard. Bevor es losgehen kann, musst du noch deine E-Mail-Adresse bestätigen.</p>
-                <p><a href="{verify_url}">E-Mail bestätigen</a></p>
-                <p>Der Link ist für 48 Stunden gültig.</p>
-                <p>Das schul-dashboard-Team</p>
-            "#),
-        ).await
+        let valid_hours = EMAIL_VERIFY_TTL.as_secs() / 3600;
+        self.send(to, Message::verification(locale, verify_url, valid_hours))
+            .await
     }
 
-    pub async fn send_password_reset_email(&self, to: &str, code: &str) -> Result<(), AppError> {
-        self.send(
-            to,
-            "Passwort zurücksetzen",
-            &format!(
-                r"
-                <h3>Bestätigungscode</h3>
-                <p>Gib folgenden Code auf der schul-dashboard Seite ein:</p>
-                <p><strong>{code}</strong></p>
-                <p>Dieser Code ist für 30 Minuten gültig.</p>
-            "
-            ),
-        )
-        .await
+    pub async fn send_password_reset_email(
+        &self,
+        to: &str,
+        locale: Locale,
+        code: &str,
+    ) -> Result<(), AppError> {
+        let valid_minutes = PASSWORD_RESET_CODE_TTL.as_secs() / 60;
+        self.send(to, Message::password_reset(locale, code, valid_minutes))
+            .await
     }
 
-    pub async fn send_password_setup_email(&self, to: &str, code: &str) -> Result<(), AppError> {
-        self.send(
-            to,
-            "Passwort festlegen",
-            &format!(
-                r"
-                <h3>Bestätigungscode</h3>
-                <p>Gib folgenden Code auf der schul-dashboard Seite ein, um ein Passwort für dein Konto festzulegen:</p>
-                <p><strong>{code}</strong></p>
-                <p>Dieser Code ist für 30 Minuten gültig.</p>
-            "
-            ),
-        )
-        .await
+    pub async fn send_password_setup_email(
+        &self,
+        to: &str,
+        locale: Locale,
+        code: &str,
+    ) -> Result<(), AppError> {
+        let valid_minutes = PASSWORD_RESET_CODE_TTL.as_secs() / 60;
+        self.send(to, Message::password_setup(locale, code, valid_minutes))
+            .await
     }
 
-    pub async fn send_security_email(&self, to: &str) -> Result<(), AppError> {
-        self.send(
-            to,
-            "Dein Passwort wurde zurückgesetzt",
-            r"
-            <h3>Wichtige Sicherheitsmeldung</h3>
-            <p>Soeben wurde erfolgreich das Passwort deines Kontos zurückgesetzt.</p>
-            <p>Falls du dies nicht warst, kontaktiere sofort den Support.</p>
-            ",
-        )
-        .await
+    pub async fn send_security_email(&self, to: &str, locale: Locale) -> Result<(), AppError> {
+        self.send(to, Message::password_reset_notice(locale)).await
     }
 }

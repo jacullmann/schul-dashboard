@@ -5,6 +5,7 @@ pub mod encryption;
 pub mod extractors;
 pub mod group_type;
 pub mod jwt;
+pub mod locale;
 pub mod name_generator;
 pub mod names;
 pub mod pagination;

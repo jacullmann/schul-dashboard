@@ -1,3 +1,4 @@
+use crate::common::locale::Locale;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use validator::Validate;
@@ -63,7 +64,7 @@ pub struct NoticePath {
 #[serde(rename_all = "camelCase")]
 pub struct UpdatePreferencesDto {
     pub theme: Option<String>,
-    pub language: Option<String>,
+    pub language: Option<Locale>,
     pub personalized: Option<serde_json::Value>,
 }
 

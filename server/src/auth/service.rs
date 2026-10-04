@@ -9,6 +9,7 @@ use crate::{
         csrf::generate_csrf_token,
         email::EmailService,
         jwt::JwtService,
+        locale::Locale,
         password::{hash_password, validate_password_strength, verify_password},
         role::Role,
     },
@@ -35,6 +36,11 @@ fn constant_time_str_eq(a: &str, b: &str) -> bool {
 }
 
 const DUMMY_PASSWORD_HASH: &str = "$argon2id$v=19$m=19456,t=2,p=1$ptEx1UyXW3Vbni4hpQoKFA$CEEsGfXo9ruOgOAeAN4ZGpLiQK8gS+st5w9rVUimJlA";
+
+struct PasswordlessAccount {
+    email: String,
+    locale: Locale,
+}
 
 pub struct AuthService {
     db: PgPool,
@@ -265,28 +271,13 @@ impl AuthService {
 
         let password_hash = hash_password(dto.password).await?;
 
-        let default_prefs = json!({
-            "theme": "system",
-            "language": "de",
-            "personalized": "true"
+        let locale = dto.preferences.language;
+
+        let prefs = json!({
+            "theme": dto.preferences.theme.unwrap_or_else(|| "system".into()),
+            "language": locale,
+            "personalized": dto.preferences.personalized.unwrap_or_else(|| json!("true")),
         });
-
-        let prefs = if let Some(p) = dto.preferences {
-            let allowed = ["theme", "language", "personalized"];
-
-            let mut merged = default_prefs.clone();
-
-            if let (Some(obj), Some(m)) = (p.as_object(), merged.as_object_mut()) {
-                for (k, v) in obj {
-                    if allowed.contains(&k.as_str()) {
-                        m.insert(k.clone(), v.clone());
-                    }
-                }
-            }
-            merged
-        } else {
-            default_prefs
-        };
 
         let user = sqlx::query!(
             r#"
@@ -319,7 +310,7 @@ impl AuthService {
 
         match self
             .email
-            .send_verification_email(&user.email, &verify_url)
+            .send_verification_email(&user.email, locale, &verify_url)
             .await
         {
             Ok(_) => Ok(json!({
@@ -470,20 +461,27 @@ impl AuthService {
     pub async fn forgot_password(&self, email: &str) -> AppResult<serde_json::Value> {
         let email = email.to_lowercase();
 
-        let user = sqlx::query!(r#"SELECT id FROM users WHERE email = $1"#, email)
-            .fetch_optional(&self.db)
-            .await?;
+        let user = sqlx::query!(
+            r#"SELECT preferences->>'language' AS language FROM users WHERE email = $1"#,
+            email
+        )
+        .fetch_optional(&self.db)
+        .await?;
 
-        if user.is_none() {
+        let Some(user) = user else {
             return Ok(json!({
                 "ok": true,
                 "message": "If the email exists, a recovery email has been sent."
             }));
-        }
+        };
 
         let code = self.issue_email_code(&email).await?;
 
-        let _ = self.email.send_password_reset_email(&email, &code).await;
+        let locale = Locale::from_stored(user.language.as_deref());
+        let _ = self
+            .email
+            .send_password_reset_email(&email, locale, &code)
+            .await;
 
         Ok(json!({
             "ok": true,
@@ -594,11 +592,13 @@ impl AuthService {
     }
 
     pub async fn request_password_setup_code(&self, user_id: Uuid) -> AppResult<serde_json::Value> {
-        let email = self.passwordless_account_email(user_id).await?;
+        let account = self.passwordless_account(user_id).await?;
 
-        let code = self.issue_email_code(&email).await?;
+        let code = self.issue_email_code(&account.email).await?;
 
-        self.email.send_password_setup_email(&email, &code).await?;
+        self.email
+            .send_password_setup_email(&account.email, account.locale, &code)
+            .await?;
 
         Ok(json!({ "ok": true }))
     }
@@ -616,7 +616,7 @@ impl AuthService {
     ) -> AppResult<(CookieJar, serde_json::Value)> {
         validate_password_strength(&new_password).map_err(|e| AppError::BadRequest(e.into()))?;
 
-        let email = self.passwordless_account_email(user_id).await?;
+        let email = self.passwordless_account(user_id).await?.email;
 
         self.consume_email_code(&email, code).await?;
 
@@ -656,9 +656,11 @@ impl AuthService {
         Ok((jar, json!({ "ok": true })))
     }
 
-    async fn passwordless_account_email(&self, user_id: Uuid) -> AppResult<String> {
+    async fn passwordless_account(&self, user_id: Uuid) -> AppResult<PasswordlessAccount> {
         let user = sqlx::query!(
-            r#"SELECT email, password_hash IS NOT NULL AS "has_password!" FROM users WHERE id = $1"#,
+            r#"SELECT email, password_hash IS NOT NULL AS "has_password!",
+                      preferences->>'language' AS language
+               FROM users WHERE id = $1"#,
             user_id
         )
         .fetch_optional(&self.db)
@@ -671,7 +673,10 @@ impl AuthService {
             ));
         }
 
-        Ok(user.email)
+        Ok(PasswordlessAccount {
+            email: user.email,
+            locale: Locale::from_stored(user.language.as_deref()),
+        })
     }
 
     pub async fn reset_password(
@@ -690,7 +695,7 @@ impl AuthService {
         let email = claims.email.to_lowercase();
 
         let user = sqlx::query!(
-            r#"SELECT id, mfa_enabled FROM users WHERE email = $1"#,
+            r#"SELECT id, mfa_enabled, preferences->>'language' AS language FROM users WHERE email = $1"#,
             email
         )
         .fetch_optional(&self.db)
@@ -728,7 +733,8 @@ impl AuthService {
         .execute(&self.db)
         .await?;
 
-        let _ = self.email.send_security_email(&email).await;
+        let locale = Locale::from_stored(user.language.as_deref());
+        let _ = self.email.send_security_email(&email, locale).await;
 
         Ok(json!({
             "ok": true,

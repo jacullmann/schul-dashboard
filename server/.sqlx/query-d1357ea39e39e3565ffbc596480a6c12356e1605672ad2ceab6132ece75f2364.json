@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT email, password_hash IS NOT NULL AS \"has_password!\" FROM users WHERE id = $1",
+  "query": "SELECT email, password_hash IS NOT NULL AS \"has_password!\",\n                      preferences->>'language' AS language\n               FROM users WHERE id = $1",
   "describe": {
     "columns": [
       {
@@ -19,6 +19,12 @@
         "name": "has_password!",
         "type_info": "Bool",
         "origin": "Expression"
+      },
+      {
+        "ordinal": 2,
+        "name": "language",
+        "type_info": "Text",
+        "origin": "Expression"
       }
     ],
     "parameters": {
@@ -28,8 +34,9 @@
     },
     "nullable": [
       false,
+      null,
       null
     ]
   },
-  "hash": "534e07bca37155eadb2a0c237dda8485832629db77b7efa8f36d34a34eee2f63"
+  "hash": "d1357ea39e39e3565ffbc596480a6c12356e1605672ad2ceab6132ece75f2364"
 }
