@@ -9,8 +9,9 @@ import {
   AlertCircle,
 } from '@lucide/vue';
 import hw from '../../../api/api';
-import { useModalStore } from '@/stores/modalStore';
+import { useConfirmModal } from '@/stores/modalStore';
 import { useI18n } from 'vue-i18n';
+import { formatDate } from '@/utils/date-formatter';
 import { useToast } from '@/common/composables/useToast';
 
 interface SessionLocation {
@@ -41,7 +42,7 @@ const revokingAll = ref(false);
 const error = ref<string | null>(null);
 
 const { t } = useI18n();
-const modalStore = useModalStore();
+const confirmModal = useConfirmModal();
 const toast = useToast();
 
 async function fetchSessions() {
@@ -66,7 +67,7 @@ function isCurrentSession(session: ActiveSession): boolean {
 }
 
 async function revokeSession(session: ActiveSession) {
-  const isConfirmed = await modalStore.confirm({
+  const isConfirmed = await confirmModal.ask({
     title: t('auth.sessions.delete_modal.title'),
     content: t('auth.sessions.delete_modal.message', {
       browser: parseUserAgent(session.userAgent).browser,
@@ -93,7 +94,7 @@ async function revokeSession(session: ActiveSession) {
 }
 
 async function logoutAllOtherSessions() {
-  const isConfirmed = await modalStore.confirm({
+  const isConfirmed = await confirmModal.ask({
     title: t('auth.sessions.delete_all_modal.title'),
     content: t('auth.sessions.delete_all_modal.message'),
     submitText: t('auth.sessions.delete_all_modal.submit'),
@@ -171,21 +172,6 @@ function parseUserAgent(ua: string | null): {
   }
 
   return { browser, os, isMobile };
-}
-
-function formatDate(dateStr: string): string {
-  try {
-    const d = new Date(dateStr);
-    return d.toLocaleString('de-DE', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  } catch {
-    return dateStr;
-  }
 }
 
 onMounted(() => {
@@ -283,7 +269,7 @@ onMounted(() => {
               {{
                 isCurrentSession(session)
                   ? t('auth.sessions.this_device')
-                  : formatDate(session.issuedAt)
+                  : formatDate(session.issuedAt, t)
               }}
             </div>
           </div>

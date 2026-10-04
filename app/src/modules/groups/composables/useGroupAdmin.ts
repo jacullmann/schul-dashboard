@@ -14,7 +14,7 @@ import type { Lesson, ScheduleConfig } from '@/modules/schedule/types';
 import type { Announcement } from '@/modules/announcements/types';
 import type { GroupType } from '@/types/groups';
 import { useToast } from '@/common/composables/useToast';
-import { useModalStore } from '@/stores/modalStore';
+import { useConfirmModal } from '@/stores/modalStore';
 import { useI18n } from 'vue-i18n';
 import { apiErrorMessage } from '@/api/errors';
 import { isUuid } from '@/utils/uuid';
@@ -22,7 +22,7 @@ import { useUserStore } from '@/stores/userStore';
 import { useGroupSettingsAccess } from '@/modules/groups/composables/useGroupSettingsAccess';
 
 export function useGroupAdmin() {
-  const modalStore = useModalStore();
+  const confirmModal = useConfirmModal();
   const { t } = useI18n();
 
   const route = useRoute();
@@ -74,16 +74,6 @@ export function useGroupAdmin() {
     }
   }
 
-  function formatDate(iso: string) {
-    return new Date(iso).toLocaleDateString('de-DE', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  }
-
   async function loadMembers() {
     loadingMembers.value = true;
     try {
@@ -103,7 +93,7 @@ export function useGroupAdmin() {
 
     // Without owner rights, nobody can hand a lowered role back to themselves.
     if (isSelf && !hasOwnerRights.value) {
-      const isConfirmed = await modalStore.confirm({
+      const isConfirmed = await confirmModal.ask({
         title: t('groups.settings.members.step_down_modal.title'),
         content: t('groups.settings.members.step_down_modal.message'),
         submitText: t('groups.settings.members.step_down_modal.submit'),
@@ -300,7 +290,7 @@ export function useGroupAdmin() {
   }
 
   async function deleteSub(id: string) {
-    const isConfirmed = await modalStore.confirm({
+    const isConfirmed = await confirmModal.ask({
       title: t('groups.settings.schedule.changes.delete_modal.title'),
       content: t('groups.settings.schedule.changes.delete_modal.message'),
       submitText: t('common.buttons.delete'),
@@ -332,7 +322,7 @@ export function useGroupAdmin() {
   }
 
   async function deleteAnnouncement(id: string) {
-    const isConfirmed = await modalStore.confirm({
+    const isConfirmed = await confirmModal.ask({
       title: t('groups.settings.announcements.delete_modal.title'),
       content: t('groups.settings.announcements.delete_modal.message'),
       submitText: t('common.buttons.delete'),
@@ -481,7 +471,7 @@ export function useGroupAdmin() {
           ? 'message_take_over'
           : 'message_on_behalf';
 
-    const isConfirmed = await modalStore.confirm({
+    const isConfirmed = await confirmModal.ask({
       title: t('groups.settings.members.transfer_modal.title'),
       content: t(`groups.settings.members.transfer_modal.${messageKey}`, {
         name: target?.generatedName ?? '',
@@ -594,6 +584,5 @@ export function useGroupAdmin() {
     transferOwnership,
 
     showMessage,
-    formatDate,
   };
 }

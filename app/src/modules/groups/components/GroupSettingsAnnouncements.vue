@@ -4,8 +4,9 @@ import type {
   Announcement,
   AnnouncementColor,
 } from '@/modules/announcements/types';
-import { useAnnouncementForm } from '@/core/composables/useAnnouncementForm';
+import { useAnnouncementFormModal } from '@/stores/modalStore';
 import { useI18n } from 'vue-i18n';
+import { formatDate } from '@/utils/date-formatter';
 import { computed } from 'vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 
@@ -27,26 +28,16 @@ const ACCENT_COLOR: Record<AnnouncementColor, string> = {
 
 const { t } = useI18n();
 
-const { openAnnouncementForm, onFormSuccess } = useAnnouncementForm();
+const announcementFormModal = useAnnouncementFormModal();
 
 const { checkPermission } = useAppAuth();
 const canManageAnnouncements = computed(() =>
   checkPermission('manage_announcements'),
 );
 
-onFormSuccess(() => {
+announcementFormModal.onSuccess(() => {
   emit('refresh');
 });
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('de-DE', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
 </script>
 
 <template>
@@ -64,7 +55,7 @@ function formatDate(iso: string) {
             variant="action"
             :icon="Plus"
             icon-classes="size-6"
-            @click="openAnnouncementForm(groupId, { local: true })"
+            @click="announcementFormModal.openFor(groupId, { local: true })"
           />
         </BaseTooltip>
       </template>
@@ -96,7 +87,7 @@ function formatDate(iso: string) {
               <time
                 :datetime="ann.createdAt"
                 class="text-sm text-on-ghost-muted"
-                >{{ formatDate(ann.createdAt) }}</time
+                >{{ formatDate(ann.createdAt, t) }}</time
               >
               <BaseTooltip
                 v-if="canManageAnnouncements"

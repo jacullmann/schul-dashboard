@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { UserRoundPlus, Copy, Check, Undo2 } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
+import { formatDate } from '@/utils/date-formatter';
 import { ref } from 'vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useGroupPageId } from '@/core/composables/useGroupPageId';
-import { useModalStore } from '@/stores/modalStore';
+import { useInviteModal } from '@/stores/modalStore';
 import { useToast } from '@/common/composables/useToast';
 import { useAbsoluteUrl } from '@/common/composables/useAbsoluteUrl';
 import { inviteRoute } from '@/modules/auth/utils/routes';
@@ -23,7 +24,7 @@ const emit = defineEmits<{
 const { t } = useI18n();
 const { createInvite } = useAppAuth();
 const groupId = useGroupPageId();
-const modalStore = useModalStore();
+const inviteModal = useInviteModal();
 const toast = useToast();
 const { absoluteUrl } = useAbsoluteUrl();
 
@@ -35,7 +36,7 @@ async function inviteMember() {
   try {
     const res = await createInvite(groupId);
     if (res.ok && res.token) {
-      modalStore.openInviteModal(res.token, groupId);
+      inviteModal.open({ groupId: groupId, token: res.token });
       emit('refresh-invites');
     } else {
       toast.error(res.error || t('auth.groups.errors.invite_failed'));
@@ -164,15 +165,7 @@ function getInviteUrl(token: string): string {
               }}
             </td>
             <td>
-              {{
-                new Date(invite.createdAt).toLocaleString('de-DE', {
-                  day: '2-digit',
-                  month: '2-digit',
-                  year: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })
-              }}
+              {{ formatDate(invite.createdAt, t) }}
             </td>
             <td>
               <template v-if="invite.usedAt"
@@ -180,41 +173,17 @@ function getInviteUrl(token: string): string {
                 <strong>{{
                   invite.usedByName || t('common.selection.unknown')
                 }}</strong>
-                ({{
-                  new Date(invite.usedAt).toLocaleString('de-DE', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })
-                }})
+                ({{ formatDate(invite.usedAt, t) }})
               </template>
               <template v-else-if="invite.revokedAt"
                 >{{ t('groups.settings.members.invite_links.revoked_by') }}
                 <strong>{{
                   invite.revokedByName || t('common.selection.unknown')
                 }}</strong>
-                ({{
-                  new Date(invite.revokedAt).toLocaleString('de-DE', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })
-                }})
+                ({{ formatDate(invite.revokedAt, t) }})
               </template>
               <template v-else>
-                {{
-                  new Date(invite.expiresAt).toLocaleString('de-DE', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })
-                }}
+                {{ formatDate(invite.expiresAt, t) }}
               </template>
             </td>
 
