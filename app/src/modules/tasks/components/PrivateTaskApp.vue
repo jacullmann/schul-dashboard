@@ -242,7 +242,7 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
         </div>
 
         <div v-else class="private-tasks-container">
-          <div ref="listRef" class="flex flex-col gap-3 max-w-192 mx-auto">
+          <div ref="listRef" class="flex flex-col gap-3 pt-4 max-w-192 mx-auto">
             <div
               v-for="(privateTask, index) in displayPrivateTasks"
               :key="privateTask.id"
