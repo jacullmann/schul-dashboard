@@ -1,5 +1,14 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
+import {
+  DISMISS_BACKDROP_FADE,
+  lockAxis,
+  PULL_AGAINST_RESISTANCE,
+  SNAP_BACK_MS,
+  TOUCH_SLOP,
+  VelocityTracker,
+} from '@/utils/gesture';
+import { SETTLE_EASING } from '@/utils/motion';
 
 defineOptions({ inheritAttrs: false });
 
@@ -34,13 +43,14 @@ let dragStartY = 0;
 let currentDragY = 0;
 let isDragging = false;
 let isHorizontalDrag = false;
-let dragStartTime = 0;
+const dragVelocity = new VelocityTracker();
 let dragHandled = false;
 let isDragFromHandle = false;
 
 const isDraggingDismiss = ref(false);
 
 const DISMISS_THRESHOLD = 100;
+/** Firmer than the image viewer's: a sheet holds a form that is easy to lose. */
 const VELOCITY_THRESHOLD = 0.5;
 
 function getBackdropEl(): HTMLElement | null {
@@ -78,7 +88,8 @@ function onTouchStart(e: TouchEvent) {
   if (!touch) return;
   dragStartX = touch.clientX;
   dragStartY = touch.clientY;
-  dragStartTime = Date.now();
+  dragVelocity.reset();
+  dragVelocity.record(e.timeStamp, 0);
   currentDragY = 0;
   isDragging = true;
   isHorizontalDrag = false;
@@ -92,11 +103,7 @@ function onTouchMove(e: TouchEvent) {
   const deltaX = touch.clientX - dragStartX;
   const deltaY = touch.clientY - dragStartY;
 
-  if (
-    currentDragY === 0 &&
-    Math.abs(deltaX) > Math.abs(deltaY) &&
-    Math.abs(deltaX) > 5
-  ) {
+  if (currentDragY === 0 && lockAxis(deltaX, deltaY) === 'x') {
     isHorizontalDrag = true;
     isDragging = false;
     return;
@@ -110,7 +117,7 @@ function onTouchMove(e: TouchEvent) {
   }
 
   if (deltaY < 0) {
-    sheetEl.value.style.transform = `translateY(${deltaY * 0.1}px)`;
+    sheetEl.value.style.transform = `translateY(${deltaY * PULL_AGAINST_RESISTANCE}px)`;
     sheetEl.value.style.transition = 'none';
     return;
   }
@@ -120,13 +127,14 @@ function onTouchMove(e: TouchEvent) {
   }
 
   currentDragY = deltaY;
+  dragVelocity.record(e.timeStamp, deltaY);
   sheetEl.value.style.transform = `translateY(${deltaY}px)`;
   sheetEl.value.style.transition = 'none';
 
   const backdropEl = getBackdropEl();
   if (backdropEl) {
     const progress = Math.min(deltaY / DISMISS_THRESHOLD, 1);
-    backdropEl.style.opacity = String(1 - progress * 0.6);
+    backdropEl.style.opacity = String(1 - progress * DISMISS_BACKDROP_FADE);
     backdropEl.style.transition = 'none';
   }
 }
@@ -135,13 +143,12 @@ function onTouchEnd() {
   if (!isDragging || !sheetEl.value) return;
   isDragging = false;
 
-  const wasDrag = Math.abs(currentDragY) > 5;
+  const wasDrag = Math.abs(currentDragY) >= TOUCH_SLOP;
   if (wasDrag) {
     dragHandled = true;
   }
 
-  const elapsed = Date.now() - dragStartTime;
-  const velocity = currentDragY / elapsed;
+  const velocity = dragVelocity.velocity(performance.now());
   const shouldDismiss =
     currentDragY > DISMISS_THRESHOLD ||
     (velocity > VELOCITY_THRESHOLD && currentDragY > 20);
@@ -174,13 +181,12 @@ function onTouchEnd() {
       }, 300);
     }, 150);
   } else {
-    sheetEl.value.style.transition =
-      'transform 200ms cubic-bezier(0.22,1,0.36,1)';
+    sheetEl.value.style.transition = `transform ${SNAP_BACK_MS}ms ${SETTLE_EASING}`;
     sheetEl.value.style.transform = 'translateY(0)';
 
     const backdropEl = getBackdropEl();
     if (backdropEl) {
-      backdropEl.style.transition = 'opacity 200ms ease';
+      backdropEl.style.transition = `opacity ${SNAP_BACK_MS}ms ease`;
       backdropEl.style.opacity = '1';
     }
 

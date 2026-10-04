@@ -1,6 +1,7 @@
 import { onScopeDispose } from 'vue';
 import { haptic } from '@/utils/haptics';
 import { growWhilePressed, type PressGrowth } from '@/utils/pressGrowth';
+import { HOLD_TOLERANCE } from '@/utils/gesture';
 
 export type LongPressTrigger = (event: PointerEvent | MouseEvent) => void;
 
@@ -126,7 +127,13 @@ export function useLongPress(
   trigger: LongPressTrigger,
   options: UseLongPressOptions = {},
 ) {
-  const { delay = 450, moveThreshold = 10, ignore, within, grow } = options;
+  const {
+    delay = 450,
+    moveThreshold = HOLD_TOLERANCE,
+    ignore,
+    within,
+    grow,
+  } = options;
 
   let holdTimer: ReturnType<typeof setTimeout> | undefined;
   let suppressTimer: ReturnType<typeof setTimeout> | undefined;

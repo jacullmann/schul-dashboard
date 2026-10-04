@@ -1,19 +1,18 @@
 import { computed, nextTick, ref, shallowRef, watch } from 'vue';
 import { useEventListener, usePreferredReducedMotion } from '@vueuse/core';
+import {
+  EDGE_RESISTANCE,
+  FLICK_VELOCITY,
+  lockAxis,
+  PAGE_COMMIT_FRACTION,
+  VelocityTracker,
+} from '@/utils/gesture';
 
 /**
  * Space between the day on screen and the one sliding in, in px: the page's
  * 16px gutter on both sides, so each day slides as if it carried its padding.
  */
 const DAY_PAGE_GAP = 32;
-/** How far a touch travels before it is read as a swipe or a scroll, in px. */
-const SWIPE_SLOP = 8;
-/** The share of the width a swipe must cover to turn the page on release. */
-const COMMIT_FRACTION = 0.3;
-/** A release faster than this turns the page however short the swipe, in px/ms. */
-const FLICK_VELOCITY = 0.3;
-/** How much of a swipe past the first or last day the page follows. */
-const EDGE_RESISTANCE = 0.3;
 
 type Direction = 1 | -1;
 
@@ -115,9 +114,7 @@ export function useScheduleDayPager(dayCount: number) {
   let startX = 0;
   let startY = 0;
   let axis: 'x' | 'y' | null = null;
-  let lastX = 0;
-  let lastTime = 0;
-  let velocity = 0;
+  const tracker = new VelocityTracker();
 
   useEventListener(
     trackRef,
@@ -126,10 +123,10 @@ export function useScheduleDayPager(dayCount: number) {
       const touch = event.touches[0];
       if (!touch || event.touches.length > 1) return;
       if (settling.value) finishSettling();
-      startX = lastX = touch.clientX;
+      startX = touch.clientX;
       startY = touch.clientY;
-      lastTime = event.timeStamp;
-      velocity = 0;
+      tracker.reset();
+      tracker.record(event.timeStamp, touch.clientX);
       axis = null;
     },
     { passive: true },
@@ -145,16 +142,12 @@ export function useScheduleDayPager(dayCount: number) {
       const dx = touch.clientX - startX;
       if (axis === null) {
         const dy = touch.clientY - startY;
-        if (Math.max(Math.abs(dx), Math.abs(dy)) < SWIPE_SLOP) return;
-        axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
-        if (axis === 'y') return;
+        axis = lockAxis(dx, dy);
+        if (axis !== 'x') return;
       }
 
       event.preventDefault();
-      const elapsed = event.timeStamp - lastTime;
-      if (elapsed > 0) velocity = (touch.clientX - lastX) / elapsed;
-      lastX = touch.clientX;
-      lastTime = event.timeStamp;
+      tracker.record(event.timeStamp, touch.clientX);
 
       const neighbour = activeDayIndex.value - Math.sign(dx);
       const hasNeighbour = dx !== 0 && neighbour >= 0 && neighbour < dayCount;
@@ -164,14 +157,16 @@ export function useScheduleDayPager(dayCount: number) {
     { passive: false },
   );
 
-  const endSwipe = (cancelled: boolean) => {
+  const endSwipe = (event: TouchEvent, cancelled: boolean) => {
     if (axis !== 'x') return;
     axis = null;
 
+    const velocity = tracker.velocity(event.timeStamp);
     const flicked =
       Math.abs(velocity) > FLICK_VELOCITY &&
       Math.sign(velocity) === Math.sign(offset.value);
-    const farEnough = Math.abs(offset.value) > pageWidth() * COMMIT_FRACTION;
+    const farEnough =
+      Math.abs(offset.value) > pageWidth() * PAGE_COMMIT_FRACTION;
 
     if (
       !cancelled &&
@@ -184,10 +179,10 @@ export function useScheduleDayPager(dayCount: number) {
     }
   };
 
-  useEventListener(trackRef, 'touchend', () => endSwipe(false), {
+  useEventListener(trackRef, 'touchend', (e) => endSwipe(e, false), {
     passive: true,
   });
-  useEventListener(trackRef, 'touchcancel', () => endSwipe(true), {
+  useEventListener(trackRef, 'touchcancel', (e) => endSwipe(e, true), {
     passive: true,
   });
 

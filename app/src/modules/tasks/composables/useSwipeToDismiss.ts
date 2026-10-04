@@ -13,9 +13,10 @@ import {
   useEventListener,
   executeTransition,
   until,
-  type CubicBezierPoints,
 } from '@vueuse/core';
 import { haptic } from '@/utils/haptics';
+import { FLICK_VELOCITY, VelocityTracker } from '@/utils/gesture';
+import { SETTLE_CURVE, SETTLE_EASING } from '@/utils/motion';
 
 export interface SwipeToDismissOptions {
   enabled?: MaybeRefOrGetter<boolean>;
@@ -39,21 +40,20 @@ export type SwipeSide = 'left' | 'right';
 
 /** Shared with the card, whose corners round off on the same clock as it settles. */
 export const SWIPE_SETTLE_MS = 380;
-const SWIPE_SETTLE_CURVE: CubicBezierPoints = [0.22, 1, 0.36, 1];
-export const SWIPE_SETTLE_EASING = `cubic-bezier(${SWIPE_SETTLE_CURVE.join(', ')})`;
+export const SWIPE_SETTLE_EASING = SETTLE_EASING;
 
 const DEFAULT_REVEAL_WIDTH = 80;
 const DEFAULT_COMMIT_RATIO = 0.6;
 /** Keeps the full swipe clear of the resting point on narrow cards. */
 const MIN_COMMIT_TRAVEL = 64;
+/**
+ * Wider than a pager's slop, and biased towards vertical: the card sits in a
+ * list that scrolls, and a scroll that drifts sideways must stay a scroll.
+ */
 const POINTER_SWIPE_THRESHOLD = 10;
 const HORIZONTAL_LOCK_RATIO = 1.2;
 const SLIDE_OUT_OVERSHOOT = 20;
 const ARMED_VIBRATION_MS = 10;
-/** px/ms: a flick this fast opens or closes the card wherever it is let go. */
-const FLICK_VELOCITY = 0.35;
-/** Only the last stretch of the drag tells where the finger was heading. */
-const VELOCITY_WINDOW_MS = 80;
 
 /**
  * Touch only: a mouse has the card's menu for the same actions, and dragging
@@ -107,7 +107,7 @@ export function useSwipeToDismiss(
       }
       void executeTransition(animatedOffset, animatedOffset.value, offset, {
         duration: SWIPE_SETTLE_MS,
-        easing: SWIPE_SETTLE_CURVE,
+        easing: [...SETTLE_CURVE],
         abort: () => run !== settleRun,
       });
     },
@@ -135,7 +135,7 @@ export function useSwipeToDismiss(
   let gestureLockedHorizontal = false;
   let offsetAtGestureStart = 0;
   let swallowNextClick = false;
-  let velocitySamples: { time: number; offset: number }[] = [];
+  const tracker = new VelocityTracker();
 
   watch(animatedOffset, (offset) => {
     if (offset !== 0) activeSide.value = offset > 0 ? 'right' : 'left';
@@ -182,21 +182,12 @@ export function useSwipeToDismiss(
     options.onSlideOut();
   }
 
-  /** Positive while the card is heading left. */
-  function releaseVelocity() {
-    const first = velocitySamples[0];
-    const last = velocitySamples.at(-1);
-    if (!first || !last || last.time === first.time) return 0;
-    // A finger that came to rest before lifting has no momentum left.
-    if (performance.now() - last.time > VELOCITY_WINDOW_MS) return 0;
-    return (last.offset - first.offset) / (last.time - first.time);
-  }
-
   function settle() {
     if (isDismissing.value) return;
     isSwiping.value = false;
-    const velocity = releaseVelocity();
-    velocitySamples = [];
+    // Positive while the card is heading left.
+    const velocity = tracker.velocity(performance.now());
+    tracker.reset();
 
     if (!gestureLockedHorizontal) close();
     else if (isArmed.value) void dismiss();
@@ -227,7 +218,7 @@ export function useSwipeToDismiss(
       gestureLockedHorizontal = false;
       offsetAtGestureStart = swipeOffset.value;
       swallowNextClick = openSide.value !== null;
-      velocitySamples = [];
+      tracker.reset();
     },
     onSwipe() {
       if (isDismissing.value) return;
@@ -251,11 +242,7 @@ export function useSwipeToDismiss(
       const minOffset = hasStartSide.value ? -Infinity : 0;
       swipeOffset.value = Math.max(minOffset, offsetAtGestureStart + dx);
 
-      const now = performance.now();
-      velocitySamples.push({ time: now, offset: swipeOffset.value });
-      velocitySamples = velocitySamples.filter(
-        (sample) => now - sample.time <= VELOCITY_WINDOW_MS,
-      );
+      tracker.record(performance.now(), swipeOffset.value);
     },
     onSwipeEnd: settle,
   });

@@ -1,5 +1,13 @@
 <script lang="ts">
 import type { Component } from 'vue';
+import {
+  lockAxis,
+  MAX_FLING_SPEED,
+  rubberBand,
+  SCROLL_EDGE_STIFFNESS,
+  VelocityTracker,
+} from '@/utils/gesture';
+import { Spring, type SpringConfig } from '@/utils/spring';
 
 export interface NavItem {
   id: string;
@@ -13,17 +21,6 @@ export interface NavItem {
  * allow, with a large icon over a small label.
  */
 export type TabsVariant = 'segmented' | 'tab-bar';
-
-/**
- * A spring tuned the way designers describe one: `response` is how long one
- * swing takes in seconds, `dampingRatio` how much of the swing survives. At 1
- * it settles without overshooting; just below 1 it overshoots a hair and
- * settles, which is what lets motion read as a physical object.
- */
-interface SpringConfig {
-  response: number;
-  dampingRatio: number;
-}
 
 /** Tapping or arrowing to a tab: straight there, without overshooting. */
 const SELECT: SpringConfig = { response: 0.34, dampingRatio: 1 };
@@ -45,126 +42,19 @@ const PILL_PADDING = 20;
 /** The least the pill keeps clear of a neighbouring label, in px, giving up padding for it. */
 const LABEL_CLEARANCE = 6;
 /**
- * How far a touch must travel before its direction is settled, in px. Whichever
- * axis crosses it first decides: sideways and every touch move is the pill's,
- * up or down and the page scrolls while the pill goes back. Shorter than the
- * distance a browser lets a touch wander before it starts scrolling on its own,
- * so a sideways pan is claimed while a scroll can still be called off. Once
- * claimed, no amount of vertical travel takes the pill back.
- */
-const TOUCH_SLOP = 6;
-/**
  * How far ahead a release's momentum is projected when picking the tab it
  * lands on, in seconds: the reach of UIScrollView's fast deceleration.
  */
 const PROJECTION = 0.1;
-const MAX_SPEED = 4000;
-const VELOCITY_WINDOW = 100;
 /** The most the pill can be pushed past the first or last tab, in px. */
 const OVERDRAG_LIMIT = 12;
 const AUTOSCROLL_EDGE = 40;
 const AUTOSCROLL_SPEED = 900;
 /** How long after a drag the click its pointer may still produce is swallowed. */
 const CLICK_SUPPRESS_WINDOW = 400;
-/** Closer than this, in px and px/s, a motion is over. */
-const REST_DISTANCE = 0.05;
-const REST_SPEED = 1;
 
 const CAPTURE = { capture: true } as const;
 const CAPTURE_ACTIVE = { capture: true, passive: false } as const;
-
-/**
- * A damped spring solved in closed form instead of stepped frame by frame, so
- * its state is a function of the clock alone. A frame lost to a busy main
- * thread skips ahead rather than stretching the motion out, and retargeting
- * mid-flight starts from the exact position and velocity of that instant, so
- * an interrupted motion bends smoothly instead of restarting a curve.
- */
-class Spring {
-  private from = 0;
-  private velocity = 0;
-  private target = 0;
-  private start = 0;
-  private config: SpringConfig;
-
-  constructor(config: SpringConfig) {
-    this.config = config;
-  }
-
-  /** Position and velocity (per second) at `time` on the performance clock. */
-  sample(time: number): [position: number, velocity: number] {
-    const offset = this.from - this.target;
-    const speed = this.velocity;
-    if (offset === 0 && speed === 0) return [this.target, 0];
-
-    const { response, dampingRatio } = this.config;
-    const omega = (2 * Math.PI) / response;
-    const t = Math.max(0, time - this.start) / 1000;
-
-    if (dampingRatio < 1) {
-      const decay = dampingRatio * omega;
-      const frequency = omega * Math.sqrt(1 - dampingRatio * dampingRatio);
-      const swing = (speed + decay * offset) / frequency;
-      const envelope = Math.exp(-decay * t);
-      const cos = Math.cos(frequency * t);
-      const sin = Math.sin(frequency * t);
-
-      return [
-        this.target + envelope * (offset * cos + swing * sin),
-        envelope *
-          ((swing * frequency - decay * offset) * cos -
-            (offset * frequency + decay * swing) * sin),
-      ];
-    }
-
-    const drift = speed + omega * offset;
-    const envelope = Math.exp(-omega * t);
-
-    return [
-      this.target + (offset + drift * t) * envelope,
-      (speed - omega * drift * t) * envelope,
-    ];
-  }
-
-  /** Sets off from `position` at `velocity` towards `target`. */
-  launch(
-    position: number,
-    velocity: number,
-    target: number,
-    time: number,
-    config = this.config,
-  ) {
-    this.from = position;
-    this.velocity = velocity;
-    this.target = target;
-    this.start = time;
-    this.config = config;
-  }
-
-  /** Heads somewhere new from wherever the motion is at `time`, keeping its momentum. */
-  retarget(target: number, time: number, config = this.config) {
-    const [position, velocity] = this.sample(time);
-    this.launch(position, velocity, target, time, config);
-  }
-
-  /** Puts the spring at rest on `position`. */
-  jump(position: number) {
-    this.launch(position, 0, position, 0);
-  }
-
-  /** The position at `time`, ending the motion on target once it is too close to see. */
-  settle(time: number): [position: number, moving: boolean] {
-    const [position, velocity] = this.sample(time);
-    const resting =
-      Math.abs(position - this.target) < REST_DISTANCE &&
-      Math.abs(velocity) < REST_SPEED;
-
-    if (!resting) return [position, true];
-
-    this.jump(this.target);
-    return [this.target, false];
-  }
-}
 
 /** Where the pill sits on each tab along the row, in layout px. */
 interface Metrics {
@@ -175,12 +65,6 @@ interface Metrics {
   contentShifts: number[];
   /** The row's height: the narrowest the pill is ever squeezed to. */
   height: number;
-}
-
-interface Sample {
-  time: number;
-  /** The pointer, as a distance along the row. */
-  x: number;
 }
 
 interface Gesture {
@@ -194,7 +78,7 @@ interface Gesture {
   stops: number[];
   /** How far the pill still trails the finger, closing as it catches up. */
   lag: Spring;
-  samples: Sample[];
+  tracker: VelocityTracker;
   /** Where the row is being scrolled to, kept fractional. */
   scroll: number;
 }
@@ -229,18 +113,19 @@ function valueAlong(stops: readonly number[], progress: number) {
   return from + (stops[index + 1]! - from) * (progress - index);
 }
 
-/** Resistance that grows the further something is pushed past where it may go. */
-function rubberBand(distance: number, limit: number) {
-  return limit * (1 - 1 / ((distance * 0.55) / limit + 1));
-}
-
 /** Keeps a pill centre over the tabs, giving way ever more reluctantly past the ends. */
 function resist(metrics: Metrics, center: number) {
   const first = metrics.centers[0]!;
   const last = metrics.centers[metrics.centers.length - 1]!;
 
-  if (center < first) return first - rubberBand(first - center, OVERDRAG_LIMIT);
-  if (center > last) return last + rubberBand(center - last, OVERDRAG_LIMIT);
+  if (center < first)
+    return (
+      first - rubberBand(first - center, OVERDRAG_LIMIT, SCROLL_EDGE_STIFFNESS)
+    );
+  if (center > last)
+    return (
+      last + rubberBand(center - last, OVERDRAG_LIMIT, SCROLL_EDGE_STIFFNESS)
+    );
   return center;
 }
 
@@ -302,36 +187,6 @@ function landingIndex(metrics: Metrics, center: number, speed: number) {
   );
 
   return clamp(ahead, Math.max(here - 1, 0), Math.min(here + 1, last));
-}
-
-/**
- * Speed through the recent samples once `toPosition` has placed them, per
- * second. Fitted to all of them, so one jittery sample can't spike it, and a
- * finger that stopped before lifting leaves nothing recent enough to count.
- */
-function speedOf(
-  samples: readonly Sample[],
-  now: number,
-  toPosition: (x: number) => number,
-) {
-  const recent = samples
-    .filter((sample) => now - sample.time <= VELOCITY_WINDOW)
-    .map((sample) => ({ time: sample.time, position: toPosition(sample.x) }));
-  if (recent.length < 2) return 0;
-
-  const meanTime =
-    recent.reduce((sum, sample) => sum + sample.time, 0) / recent.length;
-  const meanPosition =
-    recent.reduce((sum, sample) => sum + sample.position, 0) / recent.length;
-
-  let covariance = 0;
-  let variance = 0;
-  for (const { time, position } of recent) {
-    covariance += (time - meanTime) * (position - meanPosition);
-    variance += (time - meanTime) ** 2;
-  }
-
-  return variance > 0 ? (covariance / variance) * 1000 : 0;
 }
 
 /** How much `el` is drawn scaled by the transforms around it; 1 when barely at all. */
@@ -838,11 +693,7 @@ function dragCenter(g: Gesture, m: Metrics, time: number) {
 }
 
 function record(g: Gesture, time: number) {
-  g.samples.push({ time, x: rowX(g.clientX) });
-
-  while (g.samples.length > 2 && time - g.samples[0]!.time > VELOCITY_WINDOW) {
-    g.samples.shift();
-  }
+  g.tracker.record(time, rowX(g.clientX));
 }
 
 function setPressed(pressed: boolean) {
@@ -896,7 +747,7 @@ function onPointerDown(event: PointerEvent) {
     claimed: event.pointerType === 'mouse',
     stops,
     lag: new Spring(CATCH_UP),
-    samples: [],
+    tracker: new VelocityTracker(),
     scroll: bar.scrollLeft,
   };
 
@@ -930,17 +781,17 @@ function onPointerMove(event: PointerEvent) {
   g.clientX = event.clientX;
 
   if (!g.claimed) {
-    const dx = Math.abs(event.clientX - g.startX);
-    const dy = Math.abs(event.clientY - g.startY);
+    const axis = lockAxis(event.clientX - g.startX, event.clientY - g.startY);
 
     // A pan that sets off up or down is the page's: bowing out now, before a
     // single touch move has been taken, leaves the browser free to scroll it.
-    if (dy > dx && dy >= TOUCH_SLOP) {
+    // Once claimed, no amount of vertical travel takes the pill back.
+    if (axis === 'y') {
       end(true);
       return;
     }
 
-    g.claimed = dx >= TOUCH_SLOP;
+    g.claimed = axis === 'x';
   }
 
   record(g, performance.now());
@@ -1019,17 +870,14 @@ function release(g: Gesture, cancelled: boolean) {
   const { stops } = g;
   const now = performance.now();
   const reach = follow(stops, m, rowX(g.clientX));
-  const speed = clamp(
-    speedOf(g.samples, now, (x) => follow(stops, m, x)),
-    -MAX_SPEED,
-    MAX_SPEED,
-  );
+  const speed = g.tracker.velocity(now, (x) => follow(stops, m, x)) * 1000;
 
   // On screen the pill may still be catching up, or giving way at an end, so
   // its real speed is measured across the next millisecond.
   const center = resist(m, reach + g.lag.sample(now)[0]);
   const ahead = resist(m, reach + speed / 1000 + g.lag.sample(now + 1)[0]);
-  const velocity = clamp((ahead - center) * 1000, -MAX_SPEED, MAX_SPEED);
+  const maxSpeed = MAX_FLING_SPEED * 1000;
+  const velocity = clamp((ahead - center) * 1000, -maxSpeed, maxSpeed);
 
   const index = cancelled
     ? targetIndex

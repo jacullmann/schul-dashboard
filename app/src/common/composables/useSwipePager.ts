@@ -1,5 +1,14 @@
 import { readonly, ref, watch, type Ref } from 'vue';
 import { useEventListener, usePreferredReducedMotion } from '@vueuse/core';
+import {
+  findTouch,
+  drawnMatrix,
+  FLICK_VELOCITY,
+  lockAxis,
+  MIN_GLIDE_MS,
+  VelocityTracker,
+} from '@/utils/gesture';
+import { GLIDE_EASING, glideDuration } from '@/utils/motion';
 
 export type PageStep = -1 | 1;
 
@@ -10,28 +19,19 @@ export interface SwipePagerOptions {
   onSwipe: (step: PageStep) => void;
 }
 
-/** The easing of the swap transitions in style.css. */
-const SLIDE_EASING = 'cubic-bezier(0.32, 0.72, 0, 1)';
-/** Start speed of SLIDE_EASING relative to a linear slide of the same length. */
-const SLIDE_EASING_START_SLOPE = 0.72 / 0.32;
+/** As long as the swap transitions in style.css, which share its easing. */
 const SLIDE_MS = 450;
-const MIN_FLING_MS = 180;
-/** How far a touch travels before it is read as a swipe or a scroll, in px. */
-const SWIPE_SLOP = 6;
-/** The share of the width a slow swipe must cover to turn the page. */
+/**
+ * The share of the width a slow swipe must cover to turn the page. Higher than
+ * elsewhere: a month is turned to look around, and half a page is how far a
+ * reader drags to peek at the next one without meaning to leave this one.
+ */
 const COMMIT_FRACTION = 0.5;
-/** A release faster than this decides the page by its direction, in px/ms. */
-const FLICK_VELOCITY = 0.3;
-/** Only the finger's most recent movement counts towards its release speed. */
-const VELOCITY_WINDOW_MS = 100;
 /** Pages rendered per side while a slide catches up with rapid page turns. */
 const MAX_REACH = 2;
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(Math.max(value, min), max);
-
-const findTouch = (touches: TouchList, id: number) =>
-  Array.from(touches).find((touch) => touch.identifier === id);
 
 /**
  * Pages a strip of equally wide panels, the current one at offset 0 and its
@@ -53,11 +53,7 @@ export function useSwipePager(
 
   const pageWidth = () => track.value?.offsetWidth ?? 0;
 
-  const currentOffset = () => {
-    if (!track.value) return 0;
-    const { transform } = getComputedStyle(track.value);
-    return transform === 'none' ? 0 : new DOMMatrixReadOnly(transform).m41;
-  };
+  const currentOffset = () => drawnMatrix(track.value).m41;
 
   const place = (offset: number) => {
     if (!track.value) return;
@@ -78,16 +74,15 @@ export function useSwipePager(
     // Commits the start position so the transition runs from it.
     void el.offsetWidth;
 
-    const speedHome = -Math.sign(from) * velocity;
-    const duration =
-      speedHome > 0
-        ? clamp(
-            (SLIDE_EASING_START_SLOPE * Math.abs(from)) / speedHome,
-            MIN_FLING_MS,
-            SLIDE_MS,
-          )
-        : SLIDE_MS;
-    el.style.transition = `transform ${duration}ms ${SLIDE_EASING}`;
+    const duration = glideDuration(
+      Math.abs(from),
+      -Math.sign(from) * velocity,
+      {
+        min: MIN_GLIDE_MS,
+        max: SLIDE_MS,
+      },
+    );
+    el.style.transition = `transform ${duration}ms ${GLIDE_EASING}`;
     el.style.transform = 'translateX(0px)';
   };
 
@@ -125,22 +120,7 @@ export function useSwipePager(
   let startY = 0;
   let dragFrom = 0;
   let swallowClick = false;
-  const samples: { time: number; x: number }[] = [];
-
-  const recordSample = (time: number, x: number) => {
-    samples.push({ time, x });
-    while (samples.length > 2 && time - samples[0]!.time > VELOCITY_WINDOW_MS) {
-      samples.shift();
-    }
-  };
-
-  const velocityAt = (time: number) => {
-    const first = samples[0];
-    const last = samples.at(-1);
-    if (!first || !last || last.time === first.time) return 0;
-    if (time - last.time > VELOCITY_WINDOW_MS) return 0;
-    return (last.x - first.x) / (last.time - first.time);
-  };
+  const tracker = new VelocityTracker();
 
   const endSwipe = (event: TouchEvent, cancelled: boolean) => {
     if (touchId === null || !findTouch(event.changedTouches, touchId)) return;
@@ -153,7 +133,7 @@ export function useSwipePager(
     axis = null;
 
     const offset = currentOffset();
-    const velocity = velocityAt(event.timeStamp);
+    const velocity = tracker.velocity(event.timeStamp);
     const turns =
       Math.abs(velocity) > FLICK_VELOCITY
         ? Math.sign(velocity) === Math.sign(offset)
@@ -181,8 +161,8 @@ export function useSwipePager(
       startX = touch.clientX;
       startY = touch.clientY;
       swallowClick = false;
-      samples.length = 0;
-      recordSample(event.timeStamp, touch.clientX);
+      tracker.reset();
+      tracker.record(event.timeStamp, touch.clientX);
       // Catches a running slide under the finger.
       dragFrom = currentOffset();
       if (dragFrom !== 0) place(dragFrom);
@@ -203,8 +183,8 @@ export function useSwipePager(
         // Held back until the axis is known, so an enclosing sheet does not
         // start dragging along with a swipe.
         event.stopPropagation();
-        if (Math.hypot(dx, dy) < SWIPE_SLOP) return;
-        axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+        axis = lockAxis(dx, dy);
+        if (axis === null) return;
         if (axis === 'y') {
           slideHome(dragFrom);
           return;
@@ -214,7 +194,7 @@ export function useSwipePager(
 
       if (event.cancelable) event.preventDefault();
       event.stopPropagation();
-      recordSample(event.timeStamp, touch.clientX);
+      tracker.record(event.timeStamp, touch.clientX);
       const limit = reach.value * pageWidth();
       place(clamp(dragFrom + dx, -limit, limit));
     },

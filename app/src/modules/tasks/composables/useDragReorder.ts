@@ -2,6 +2,13 @@ import { nextTick, onScopeDispose, readonly, ref, type Ref } from 'vue';
 import { useEventListener } from '@vueuse/core';
 import { haptic } from '@/utils/haptics';
 import { growWhilePressed, type PressGrowth } from '@/utils/pressGrowth';
+import {
+  HOLD_TOLERANCE,
+  rubberBand,
+  SCROLL_EDGE_STIFFNESS,
+  VelocityTracker,
+} from '@/utils/gesture';
+import { Spring, type SpringConfig } from '@/utils/spring';
 
 export interface DragReorderOptions {
   /** Called with DOM indices once a card is released in a new slot. */
@@ -15,76 +22,27 @@ export interface DragReorderOptions {
 /** Marks the direct children of the list that can be picked up. */
 export const REORDER_ITEM_ATTR = 'data-reorder-item';
 
-interface SpringConfig {
-  stiffness: number;
-  damping: number;
-}
-
-/**
- * A spring described the way designers tune them: how long one oscillation
- * takes, and how much of it survives. Below 1 the spring overshoots a little
- * and settles, which is what makes motion read as a physical object rather
- * than a timed curve.
- */
-function springConfig(response: number, dampingRatio: number): SpringConfig {
-  const omega = (2 * Math.PI) / response;
-  return { stiffness: omega * omega, damping: 2 * dampingRatio * omega };
-}
-
 /** Neighbours sliding out of the way. */
-const SHIFT = springConfig(0.36, 0.86);
+const SHIFT: SpringConfig = { response: 0.36, dampingRatio: 0.86 };
 /** A released card gliding into its slot, carrying the speed of the fling. */
-const SETTLE = springConfig(0.42, 0.8);
+const SETTLE: SpringConfig = { response: 0.42, dampingRatio: 0.8 };
 /** The pick-up: a quick swell that pops just past its size. */
-const LIFT = springConfig(0.24, 0.6);
+const LIFT: SpringConfig = { response: 0.24, dampingRatio: 0.6 };
 /** Setting the card down, without bouncing back up. */
-const LOWER = springConfig(0.3, 1);
+const LOWER: SpringConfig = { response: 0.3, dampingRatio: 1 };
 /** The rest of the list stepping back while a card is held, and returning. */
-const RECEDE = springConfig(0.34, 1);
+const RECEDE: SpringConfig = { response: 0.34, dampingRatio: 1 };
 
 const LIFT_SCALE = 0.03;
 const RECEDE_SCALE = 0.015;
 const MOUSE_DRAG_THRESHOLD = 4;
-const TOUCH_SLOP = 8;
 const AUTOSCROLL_EDGE = 72;
 const AUTOSCROLL_MAX_SPEED = 1100;
-const MAX_SUBSTEP = 1 / 240;
-const VELOCITY_WINDOW = 100;
-
-class Spring {
-  value: number;
-  velocity = 0;
-  target: number;
-  config: SpringConfig;
-  private readonly epsilon: number;
-
-  constructor(value: number, config: SpringConfig, epsilon: number) {
-    this.value = value;
-    this.target = value;
-    this.config = config;
-    this.epsilon = epsilon;
-  }
-
-  step(dt: number) {
-    const { stiffness, damping } = this.config;
-    const force =
-      -stiffness * (this.value - this.target) - damping * this.velocity;
-    this.velocity += force * dt;
-    this.value += this.velocity * dt;
-  }
-
-  snap() {
-    this.value = this.target;
-    this.velocity = 0;
-  }
-
-  get resting() {
-    return (
-      Math.abs(this.value - this.target) < this.epsilon &&
-      Math.abs(this.velocity) < this.epsilon
-    );
-  }
-}
+/** How far a held card gives way past the ends of the list, and sideways, in px. */
+const OVERDRAG_LIMIT_Y = 48;
+const OVERDRAG_LIMIT_X = 20;
+/** Lift and recede run from 0 to 1, so they rest far closer than pixels do. */
+const SCALAR_REST = 0.001;
 
 interface Entry {
   el: HTMLElement;
@@ -129,12 +87,11 @@ interface Gesture {
   gap: number;
   minY: number;
   maxY: number;
-  samples: { t: number; y: number }[];
+  tracker: VelocityTracker;
 }
 
-/** Resistance that grows the further something is pulled past where it may go. */
-function rubberBand(distance: number, dimension: number) {
-  return dimension * (1 - 1 / ((distance * 0.55) / dimension + 1));
+function overdrag(distance: number, limit: number) {
+  return rubberBand(distance, limit, SCROLL_EDGE_STIFFNESS);
 }
 
 function findScroller(el: HTMLElement): HTMLElement {
@@ -199,10 +156,10 @@ export function useDragReorder(
     if (!entry) {
       entry = {
         el,
-        x: new Spring(0, SETTLE, 0.05),
-        y: new Spring(0, SHIFT, 0.05),
-        lift: new Spring(0, LIFT, 0.001),
-        recede: new Spring(0, RECEDE, 0.001),
+        x: new Spring(SETTLE),
+        y: new Spring(SHIFT),
+        lift: new Spring(LIFT, SCALAR_REST),
+        recede: new Spring(RECEDE, SCALAR_REST),
         raised: false,
       };
       entries.set(el, entry);
@@ -236,17 +193,11 @@ export function useDragReorder(
         : [entry.x, entry.y, entry.lift, entry.recede];
 
       for (const spring of springs) {
-        if (reducedMotion.matches) {
-          spring.snap();
-          continue;
-        }
-        for (let left = dt; left > 0; left -= MAX_SUBSTEP) {
-          spring.step(Math.min(left, MAX_SUBSTEP));
-        }
-        if (spring.resting) spring.snap();
+        if (reducedMotion.matches) spring.jump(spring.target);
+        else spring.settle(now);
       }
 
-      if (render(entry, held)) moving = true;
+      if (render(entry, held, now)) moving = true;
     }
 
     if (moving) {
@@ -256,18 +207,13 @@ export function useDragReorder(
   }
 
   /** Paints one card, and reports whether it still has somewhere to go. */
-  function render(entry: Entry, held: boolean): boolean {
-    const { el, x, y, lift, recede } = entry;
+  function render(entry: Entry, held: boolean, now: number): boolean {
+    const { el } = entry;
     const atRest =
       !held &&
-      x.resting &&
-      y.resting &&
-      lift.resting &&
-      recede.resting &&
-      x.value === 0 &&
-      y.value === 0 &&
-      lift.value === 0 &&
-      recede.value === 0;
+      [entry.x, entry.y, entry.lift, entry.recede].every(
+        (spring) => spring.resting && spring.target === 0,
+      );
 
     if (atRest) {
       // A lingering transform would make every card its own stacking context
@@ -283,10 +229,14 @@ export function useDragReorder(
       return false;
     }
 
-    const amount = Math.max(0, lift.value);
-    const scale = 1 + lift.value * LIFT_SCALE - recede.value * RECEDE_SCALE;
-    el.style.transform = `translate3d(${x.value}px, ${y.value}px, 0) scale(${scale})`;
-    el.style.setProperty('--recede', Math.max(0, recede.value).toFixed(3));
+    const [x] = entry.x.sample(now);
+    const [y] = entry.y.sample(now);
+    const [lift] = entry.lift.sample(now);
+    const [recede] = entry.recede.sample(now);
+    const amount = Math.max(0, lift);
+    const scale = 1 + lift * LIFT_SCALE - recede * RECEDE_SCALE;
+    el.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${scale})`;
+    el.style.setProperty('--recede', Math.max(0, recede).toFixed(3));
 
     if (entry.raised) {
       // A card still landing from the last drop stays above its neighbours,
@@ -305,16 +255,15 @@ export function useDragReorder(
     const dx = pointerX - g.startX;
     let y = g.baseY + (pointerY - g.startY) + (scrollTop() - g.scrollStart);
 
-    if (y < g.minY) y = g.minY - rubberBand(g.minY - y, 48);
-    else if (y > g.maxY) y = g.maxY + rubberBand(y - g.maxY, 48);
-
-    g.entry.x.value = Math.sign(dx) * rubberBand(Math.abs(dx), 20);
-    g.entry.y.value = y;
-
-    g.samples.push({ t: now, y });
-    while (g.samples.length > 2 && now - g.samples[0]!.t > VELOCITY_WINDOW) {
-      g.samples.shift();
+    if (y < g.minY) {
+      y = g.minY - overdrag(g.minY - y, OVERDRAG_LIMIT_Y);
+    } else if (y > g.maxY) {
+      y = g.maxY + overdrag(y - g.maxY, OVERDRAG_LIMIT_Y);
     }
+
+    g.entry.x.jump(overdrag(dx, OVERDRAG_LIMIT_X));
+    g.entry.y.jump(y);
+    g.tracker.record(now, y);
 
     const self = g.slots[g.from]!;
     const top = self.top + y;
@@ -325,15 +274,15 @@ export function useDragReorder(
     g.slots.forEach((slot, index) => {
       if (index === g.from) return;
       const middle = slot.top + slot.height / 2;
+      let target = 0;
       if (index > g.from && bottom > middle) {
-        slot.entry.y.target = -room;
+        target = -room;
         to++;
       } else if (index < g.from && top < middle) {
-        slot.entry.y.target = room;
+        target = room;
         to--;
-      } else {
-        slot.entry.y.target = 0;
       }
+      slot.entry.y.retarget(target, now);
     });
 
     g.to = to;
@@ -383,15 +332,16 @@ export function useDragReorder(
     const last = slots[slots.length - 1]!;
 
     const entry = self.entry;
+    const now = performance.now();
     const grown = from.growth?.handOver() ?? 1;
     entry.raised = true;
-    entry.lift.config = LIFT;
-    entry.lift.value += (grown - 1) / LIFT_SCALE;
-    entry.lift.target = 1;
+    const [lifted, liftSpeed] = entry.lift.sample(now);
+    const liftFrom = lifted + (grown - 1) / LIFT_SCALE;
+    entry.lift.launch(liftFrom, liftSpeed, 1, now, LIFT);
     for (const slot of slots) {
       if (slot === self) continue;
-      slot.entry.y.config = SHIFT;
-      slot.entry.recede.target = 1;
+      slot.entry.y.retarget(slot.entry.y.target, now, SHIFT);
+      slot.entry.recede.retarget(1, now);
     }
 
     gesture = {
@@ -402,14 +352,14 @@ export function useDragReorder(
       startY: from.startY,
       scrollStart: scrollTop(),
       // A card grabbed while still sliding is picked up where it is.
-      baseY: entry.y.value,
+      baseY: entry.y.sample(now)[0],
       from: index,
       to: index,
       slots,
       gap: parseFloat(getComputedStyle(root).rowGap) || 0,
       minY: first.top - self.top,
       maxY: last.top + last.height - (self.top + self.height),
-      samples: [],
+      tracker: new VelocityTracker(),
     };
     pending = null;
     isDragging.value = true;
@@ -423,7 +373,7 @@ export function useDragReorder(
 
     // Painted now rather than on the next frame, so the card never drops back
     // to rest between the growth handing over and the lift taking it.
-    render(entry, true);
+    render(entry, true, now);
     schedule();
   }
 
@@ -438,24 +388,20 @@ export function useDragReorder(
     window.removeEventListener('blur', onBlur);
 
     const { entry } = g;
-    const [oldest, newest] = [g.samples[0], g.samples[g.samples.length - 1]];
-    const elapsed = oldest && newest ? (newest.t - oldest.t) / 1000 : 0;
-    const velocity =
-      !cancelled && elapsed > 0 ? (newest!.y - oldest!.y) / elapsed : 0;
+    const now = performance.now();
+    const velocity = cancelled ? 0 : g.tracker.velocity(now) * 1000;
+    const [y] = entry.y.sample(now);
 
-    entry.x.config = SETTLE;
-    entry.x.target = 0;
-    entry.y.config = SETTLE;
-    entry.y.velocity = Math.max(-4000, Math.min(4000, velocity));
-    entry.lift.config = LOWER;
-    entry.lift.target = 0;
-    for (const slot of g.slots) slot.entry.recede.target = 0;
+    entry.x.retarget(0, now, SETTLE);
+    entry.y.launch(y, velocity, y, now, SETTLE);
+    entry.lift.retarget(0, now, LOWER);
+    for (const slot of g.slots) slot.entry.recede.retarget(0, now);
 
     const to = cancelled ? g.from : g.to;
     const stillInPlace = items()[g.from] === entry.el;
 
     if (to === g.from || !stillInPlace) {
-      for (const slot of g.slots) slot.entry.y.target = 0;
+      for (const slot of g.slots) slot.entry.y.retarget(0, now);
       schedule();
       return;
     }
@@ -471,13 +417,16 @@ export function useDragReorder(
    */
   async function commit(from: number, to: number) {
     const before = new Map<HTMLElement, number>();
+    const drawnAt = performance.now();
     for (const el of items()) {
-      before.set(el, el.offsetTop + (entries.get(el)?.y.value ?? 0));
+      const shift = entries.get(el)?.y.sample(drawnAt)[0] ?? 0;
+      before.set(el, el.offsetTop + shift);
     }
 
     onMove(from, to);
     await nextTick();
 
+    const now = performance.now();
     for (const el of items()) {
       const visual = before.get(el);
       if (visual === undefined) continue;
@@ -485,8 +434,9 @@ export function useDragReorder(
       const entry = entries.get(el);
       if (!entry && Math.abs(offset) < 0.5) continue;
       const spring = (entry ?? entryFor(el)).y;
-      spring.value = offset;
-      spring.target = 0;
+      // Keeps the speed a flicked card was released at.
+      const [, velocity] = spring.sample(now);
+      spring.launch(offset, velocity, 0, now);
     }
 
     schedule();
@@ -639,7 +589,7 @@ export function useDragReorder(
     if (
       pending &&
       Math.hypot(pointerX - pending.startX, pointerY - pending.startY) >
-        TOUCH_SLOP
+        HOLD_TOLERANCE
     ) {
       stopTouchTracking();
     }
