@@ -1,11 +1,24 @@
 <script setup lang="ts">
-import type { Component } from 'vue';
+import { computed, type Component } from 'vue';
 
-defineProps<{
-  primaryAction?: () => void;
-  secondaryAction?: () => void;
-  icon?: Component;
-}>();
+const props = withDefaults(
+  defineProps<{
+    primaryAction?: () => void;
+    secondaryAction?: () => void;
+    icon?: Component;
+    fullPage?: boolean;
+  }>(),
+  {
+    primaryAction: undefined,
+    secondaryAction: undefined,
+    icon: undefined,
+    fullPage: false,
+  },
+);
+
+const actionButtonClass = computed(() =>
+  props.fullPage ? undefined : 'max-md:flex-1 max-md:min-w-fit',
+);
 </script>
 
 <template>
@@ -22,17 +35,23 @@ defineProps<{
     <p class="mt-1! mb-6! max-w-96">
       <slot name="message"></slot>
     </p>
+    <!-- flex-1 buttons share a line until their labels no longer fit; wrap-reverse
+         then stacks the primary action on top, matching the full page layout. -->
     <BaseRow
       v-if="primaryAction || secondaryAction"
-      stack-on-mobile
+      :stack-on-mobile="fullPage"
       justify="center"
-      class="md:flex-row-reverse w-full"
+      class="w-full"
+      :class="
+        fullPage ? 'md:flex-row-reverse' : 'flex-row-reverse flex-wrap-reverse!'
+      "
     >
       <BaseButton
         v-if="secondaryAction"
         form
         variant="ghost"
         surface
+        :class="actionButtonClass"
         @click="secondaryAction()"
       >
         <slot name="secondary-action-label"></slot>
@@ -41,6 +60,7 @@ defineProps<{
         v-if="primaryAction"
         form
         variant="action"
+        :class="actionButtonClass"
         @click="primaryAction()"
       >
         <slot name="primary-action-label"></slot>

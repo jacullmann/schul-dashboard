@@ -45,6 +45,7 @@ function navigateToLogin() {
     >
       <BaseEmptyState
         :icon="MailCheck"
+        full-page
         :primary-action="navigateToLogin"
         :secondary-action="restartRegistration"
       >
