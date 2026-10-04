@@ -9,6 +9,7 @@ import {
   type Enrollment,
 } from '@/common/composables/useCourseSelection';
 import { useCourseSetup } from '@/modules/auth/composables/useCourseSetup';
+import { usePersonalization } from '@/modules/auth/composables/usePersonalization';
 import { useGroupPageId } from '@/core/composables/useGroupPageId';
 import { apiErrorMessage } from '@/api/errors';
 import { entranceDelay } from '@/modules/tasks/utils/entrance';
@@ -26,6 +27,7 @@ const router = useRouter();
 const groupId = useGroupPageId();
 const subjectStore = useSubjectStore();
 const userStore = useUserStore();
+const { setPersonalization } = usePersonalization();
 const scrollLayoutToTop = inject(SCROLL_LAYOUT_TO_TOP, () =>
   window.scrollTo({ top: 0, behavior: 'instant' }),
 );
@@ -136,12 +138,16 @@ const openSubjectsHint = computed(() => {
   });
 });
 
-async function saveAndFinish(courses: Enrollment[]) {
+// Skipping leaves the member without courses, so "only mine" would hide everything.
+async function saveAndFinish(courses: Enrollment[], personalized: boolean) {
   if (saving.value) return;
   saving.value = true;
   error.value = '';
   try {
     await saveCourses(courses);
+    if (userStore.user?.personalized !== personalized) {
+      await setPersonalization(personalized);
+    }
     // Replaced, so going back never lands in a setup that is already done.
     await router.replace(finishedRoute.value);
   } catch (e: unknown) {
@@ -167,7 +173,7 @@ async function showLessonStep() {
 }
 
 async function submit() {
-  if (isLessonStep.value) return saveAndFinish(enrollments.value);
+  if (isLessonStep.value) return saveAndFinish(enrollments.value, true);
 
   if (isAbitur.value ? !hasAllLevels.value : !hasRequiredSelections.value) {
     error.value = t('auth.setup.errors.required_courses');
@@ -177,12 +183,12 @@ async function submit() {
   if (isAbitur.value) {
     return needsLessonChoice.value
       ? showLessonStep()
-      : saveAndFinish(enrollments.value);
+      : saveAndFinish(enrollments.value, true);
   }
-  return saveAndFinish(selectedCourses.value);
+  return saveAndFinish(selectedCourses.value, true);
 }
 
-const skip = () => saveAndFinish([]);
+const skip = () => saveAndFinish([], false);
 
 function goBack() {
   error.value = '';
