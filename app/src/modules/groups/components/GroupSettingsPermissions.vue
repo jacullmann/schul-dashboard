@@ -172,10 +172,7 @@ onMounted(() => {
         <BaseSpinner size="24px" />
       </div>
 
-      <div
-        v-if="!canManage"
-        class="text-xs text-warning bg-warning/10 border border-warning/20 p-3 rounded-lg mb-2"
-      >
+      <div v-if="!canManage" class="text-xs">
         {{ t('groups.settings.permissions.list.admin_only_warning') }}
       </div>
 
