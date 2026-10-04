@@ -715,16 +715,18 @@ function handleSelect(index: number) {
         </template>
       </template>
 
-      <div
+      <BaseEmptyState
         v-if="paletteProps.itemCount === 0"
-        class="px-4 py-10 flex flex-col items-center gap-2 text-center"
+        :icon="Search"
+        class="px-4"
       >
-        <Search :size="28" class="text-on-ghost-subtle mb-1" />
-        <p class="text-sm text-on-ghost-muted m-0">
-          {{ t('global.search.noResults') }}
-          <strong class="text-on-ghost">„{{ query }}"</strong>
-        </p>
-      </div>
+        <template #title>{{
+          t('common.search_results.empty_title', { query: query.trim() })
+        }}</template>
+        <template #message>{{
+          t('common.search_results.empty_message')
+        }}</template>
+      </BaseEmptyState>
 
       <div class="h-2 shrink-0" aria-hidden="true" />
     </template>
