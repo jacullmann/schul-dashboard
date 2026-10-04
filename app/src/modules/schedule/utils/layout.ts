@@ -21,8 +21,11 @@ export const lessonRowsOf = (layout: Pick<ScheduleLayout, 'rows'>) =>
   layout.rows.filter((row): row is LessonRow => row.kind === 'lesson');
 
 export interface ScheduleLayoutOptions {
-  /** Gives each break a row of its own; otherwise lessons follow each other directly. */
-  showBreaks?: boolean;
+  /**
+   * Gives each break before this slot a row of its own; later breaks, and all
+   * breaks by default, let lessons follow each other directly.
+   */
+  breaksBeforeSlot?: number;
   /** Slots a day ends after, each followed by a row that shows when it ends. */
   dayEndSlots?: ReadonlySet<number>;
   /** Slots that run into the next one without a gap, as a cell spanning both does. */
@@ -50,7 +53,7 @@ export function slotsJoinedToNext(groups: readonly LessonGroup[]): Set<number> {
 export function buildScheduleLayout(
   config: ScheduleConfig,
   {
-    showBreaks = false,
+    breaksBeforeSlot = 0,
     dayEndSlots = new Set(),
     joinedSlots = new Set(),
   }: ScheduleLayoutOptions = {},
@@ -72,7 +75,10 @@ export function buildScheduleLayout(
     });
 
     const durationMins = config.breaks[slot] ?? 0;
-    if (showBreaks && durationMins > 0 && slot < config.totalSlots) {
+    if (
+      durationMins > 0 &&
+      slot < Math.min(breaksBeforeSlot, config.totalSlots)
+    ) {
       rows.push({
         kind: 'break',
         gridRow: gridRow++,

@@ -325,6 +325,19 @@ export function useSchedule() {
     );
   };
 
+  /*
+   * A day shows no breaks past the last lesson the member attends, so rows
+   * no day of the layout shows a break in are left out instead of staying
+   * empty. While loading, every break holds its place for the skeletons.
+   */
+  const breaksBeforeSlotOf = (dayList: readonly number[]): number => {
+    if (loadingLessons.value) return Infinity;
+    return Math.max(
+      0,
+      ...dayList.map((day) => lastAttendedSlotByDay.value.get(day) ?? 0),
+    );
+  };
+
   const joinedSlotsOf = (dayList: readonly number[]): ReadonlySet<number> => {
     if (loadingLessons.value) return new Set();
     return slotsJoinedToNext(
@@ -334,7 +347,7 @@ export function useSchedule() {
 
   const buildLayout = (dayList: readonly number[]) =>
     buildScheduleLayout(scheduleConfig.value, {
-      showBreaks: true,
+      breaksBeforeSlot: breaksBeforeSlotOf(dayList),
       dayEndSlots: attendedDayEndSlots(dayList),
       joinedSlots: joinedSlotsOf(dayList),
     });
