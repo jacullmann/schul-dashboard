@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { toRef } from 'vue';
 import { useI18n } from 'vue-i18n';
-import type { Lesson } from '@/modules/schedule/types';
+import type { Lesson, Substitution } from '@/modules/schedule/types';
 import { useScheduleChangeForm } from '@/modules/schedule/composables/useScheduleChangeForm';
 
 const props = defineProps<{
   /** The lesson as the weekly schedule holds it, before any change. */
   lesson: Lesson | null;
+  /** The change the lesson already carries, which saving replaces. */
+  change: Substitution | null;
 }>();
 
 const emit = defineEmits<{
@@ -24,11 +26,11 @@ const {
   courseOptions,
   dayOptions,
   day,
-  hasChanges,
+  canSave,
   toggleCancelled,
   saveChange,
   formatDayName,
-} = useScheduleChangeForm(toRef(props, 'lesson'));
+} = useScheduleChangeForm(toRef(props, 'lesson'), toRef(props, 'change'));
 
 async function submit() {
   if (await saveChange()) emit('saved');
@@ -40,7 +42,7 @@ async function submit() {
     :open="!!lesson"
     :submit="submit"
     :loading="saving"
-    :requirement="hasChanges"
+    :requirement="canSave"
     header-actions
     @cancel="emit('close')"
   >

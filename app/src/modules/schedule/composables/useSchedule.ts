@@ -30,6 +30,25 @@ import {
 import { daysSinceMonday } from '@/modules/schedule/utils/weekday';
 import { useScheduleDisplay } from '@/modules/schedule/composables/useScheduleDisplay';
 
+const isSet = <T>(value: T | null | undefined | ''): value is T =>
+  value !== null && value !== undefined && value !== '';
+
+/** The lesson as its change turns it out, keeping the original to compare. */
+function applySubstitution(original: Lesson, sub: Substitution): Lesson {
+  const merged: Lesson = { ...original, _original: original };
+  if (isSet(sub.day)) merged.day = Number(sub.day);
+  if (isSet(sub.slot)) merged.slot = sub.slot;
+  if (isSet(sub.duration)) merged.duration = sub.duration;
+  if (isSet(sub.room)) merged.room = sub.room;
+  if (sub.cancelled) merged.cancelled = true;
+  if (isSet(sub.subject)) {
+    merged.subject = sub.subject;
+    merged.isSubstitutedSubject = true;
+  }
+  if (isSet(sub.subjectAbbr)) merged.subjectAbbr = sub.subjectAbbr;
+  return merged;
+}
+
 export function useSchedule() {
   const { locale } = useI18n();
   const userStore = useUserStore();
@@ -54,6 +73,8 @@ export function useSchedule() {
   const subjects = ref<ScheduleSubject[]>([]);
   const substitutions = ref<Substitution[]>([]);
   const loadingSubs = ref(true);
+  /** Whether the last load succeeded, so an empty list really means none. */
+  const substitutionsLoaded = ref(false);
   const loadingLessons = ref(true);
   const lessonsHiddenByServer = ref(0);
 
@@ -120,9 +141,11 @@ export function useSchedule() {
     try {
       const { data } = await api.get(groupPath(groupId, '/schedule/subs'));
       substitutions.value = data;
+      substitutionsLoaded.value = true;
     } catch (error) {
       console.error('Error loading substitutions:', error);
       substitutions.value = [];
+      substitutionsLoaded.value = false;
     } finally {
       loadingSubs.value = false;
     }
@@ -236,57 +259,33 @@ export function useSchedule() {
     () => lessonsHiddenByServer.value + personalLessons.value.hiddenCount,
   );
 
-  const effectiveLessons = computed<Lesson[]>(() => {
-    const result: Lesson[] = [];
-
-    const subMap = new Map<string, Substitution[]>();
+  /*
+   * A lesson carries at most one change. Should the server still hand over
+   * several, the latest wins, so a lesson never shows up twice.
+   */
+  const substitutionByLesson = computed(() => {
+    const byLesson = new Map<string, Substitution>();
     substitutions.value.forEach((sub) => {
-      if (!subMap.has(sub.lessonId)) subMap.set(sub.lessonId, []);
-      subMap.get(sub.lessonId)!.push(sub);
-    });
-
-    expandedLessons.value.forEach((original) => {
-      const origId = original._originalId || original.id;
-      const allSubs = subMap.get(origId) || [];
-
-      const subs = allSubs.filter((sub) => {
-        if (!sub.courseId) return true;
-        return original.courseId && sub.courseId === original.courseId;
-      });
-
-      if (!subs || subs.length === 0) {
-        result.push({ ...original, _original: original });
-        return;
+      const current = byLesson.get(sub.lessonId);
+      if (!current || (sub.createdAt ?? '') >= (current.createdAt ?? '')) {
+        byLesson.set(sub.lessonId, sub);
       }
-
-      subs.forEach((sub) => {
-        const merged: Lesson = {
-          ...original,
-          _original: original,
-        };
-
-        for (const key of Object.keys(sub)) {
-          const typedKey = key as keyof Substitution;
-          if (
-            sub[typedKey] !== null &&
-            sub[typedKey] !== undefined &&
-            sub[typedKey] !== ''
-          ) {
-            // @ts-expect-error Dynamic property assignment from substitution fields
-            merged[typedKey] = sub[typedKey];
-
-            if (typedKey === 'subject') {
-              merged.isSubstitutedSubject = true;
-            }
-          }
-        }
-
-        result.push(merged);
-      });
     });
-
-    return result;
+    return byLesson;
   });
+
+  const effectiveLessons = computed<Lesson[]>(() =>
+    expandedLessons.value.map((original) => {
+      const sub = substitutionByLesson.value.get(
+        original._originalId || original.id,
+      );
+      const applies =
+        sub && (!sub.courseId || sub.courseId === original.courseId);
+      return applies
+        ? applySubstitution(original, sub)
+        : { ...original, _original: original };
+    }),
+  );
 
   const groupedLessons = computed<LessonGroup[]>(() =>
     groupOverlappingLessons(effectiveLessons.value),
@@ -499,6 +498,7 @@ export function useSchedule() {
     formatDayInitials,
     lessons,
     substitutions,
+    substitutionsLoaded,
     loadSubstitutions,
     effectiveLessons,
   };

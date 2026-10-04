@@ -49,6 +49,8 @@ const {
   formatColumnHeading,
   formatDayInitials,
   lessons: scheduledLessons,
+  substitutions,
+  substitutionsLoaded,
   loadSubstitutions,
 } = useSchedule();
 
@@ -200,7 +202,22 @@ const canManageScheduleChanges = computed(() =>
   checkPermission('manage_schedule_changes'),
 );
 
+/*
+ * A lesson opens with its existing change filled in, so it only becomes
+ * clickable once the changes are known; otherwise saving would silently
+ * replace a change the form never showed.
+ */
+const canChangeLessons = computed(
+  () => canManageScheduleChanges.value && substitutionsLoaded.value,
+);
+
 const changedLesson = ref<Lesson | null>(null);
+
+const existingChange = computed(() => {
+  const lessonId = changedLesson.value?.id;
+  if (!lessonId) return null;
+  return substitutions.value.find((sub) => sub.lessonId === lessonId) ?? null;
+});
 
 /*
  * A change targets the lesson as the weekly schedule holds it, not the copy
@@ -305,7 +322,7 @@ watch(
           :is-active="key === activeOrNextGroupKey"
           :animated="animated"
           :get-display-name="getDisplayName"
-          :is-clickable="canManageScheduleChanges"
+          :is-clickable="canChangeLessons"
           :style="[
             layout.groupStyle(lessons, column),
             lessonEntranceStyle(lessons, column, layout),
@@ -318,6 +335,7 @@ watch(
     <ScheduleChangeModal
       v-if="canManageScheduleChanges"
       :lesson="changedLesson"
+      :change="existingChange"
       @close="changedLesson = null"
       @saved="onChangeSaved"
     />

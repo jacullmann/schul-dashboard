@@ -139,9 +139,10 @@ pub struct ScheduleConfigDto {
     pub breaks: BTreeMap<i32, i32>,
 }
 
+/// The one change a lesson carries, replacing whatever change it had before.
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct CreateScheduleSubDto {
+pub struct ScheduleSubDto {
     pub lesson_id: Uuid,
     pub course_id: Option<Uuid>,
     pub day: Option<i32>,

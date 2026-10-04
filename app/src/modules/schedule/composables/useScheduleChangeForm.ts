@@ -6,7 +6,7 @@ import { useToast } from '@/common/composables/useToast';
 import { useGroupPageId } from '@/core/composables/useGroupPageId';
 import { useSubjectAdmin } from '@/modules/groups/composables/useSubjectAdmin';
 import { useScheduleDisplay } from '@/modules/schedule/composables/useScheduleDisplay';
-import type { Lesson } from '@/modules/schedule/types';
+import type { Lesson, Substitution } from '@/modules/schedule/types';
 import { findLessonSubject } from '@/modules/schedule/utils/lesson';
 import { courseOptionLabel } from '@/utils/subject-formatter';
 import { haptic } from '@/utils/haptics';
@@ -33,8 +33,36 @@ const emptyChangeForm = () => ({
   cancelled: false,
 });
 
-/** The change an admin enters for one lesson of the group's weekly schedule. */
-export function useScheduleChangeForm(lesson: Ref<Lesson | null>) {
+type ChangeForm = ReturnType<typeof emptyChangeForm>;
+
+/**
+ * The form as the lesson's existing change fills it in. The lesson's own day
+ * stands for "no change", just as the day picker treats it.
+ */
+function changeFormOf(lesson: Lesson, change: Substitution | null): ChangeForm {
+  const form = { ...emptyChangeForm(), courseId: lesson.courseId ?? '' };
+  if (!change) return form;
+  const day = change.day == null ? null : Number(change.day);
+  return {
+    courseId: change.courseId ?? form.courseId,
+    subject: change.subject ?? '',
+    room: change.room ?? '',
+    slot: change.slot ?? '',
+    duration: change.duration ?? '',
+    day: day === lesson.day ? null : day,
+    cancelled: !!change.cancelled,
+  };
+}
+
+/**
+ * The change an admin enters for one lesson of the group's weekly schedule.
+ * A lesson holds at most one change, so a lesson that already has one opens
+ * with it filled in and saving replaces it.
+ */
+export function useScheduleChangeForm(
+  lesson: Ref<Lesson | null>,
+  existingChange: Ref<Substitution | null>,
+) {
   const i18n = useI18n();
   const { t } = i18n;
   const te = i18n.te.bind(i18n);
@@ -45,6 +73,7 @@ export function useScheduleChangeForm(lesson: Ref<Lesson | null>) {
     useScheduleDisplay();
 
   const form = ref(emptyChangeForm());
+  const savedPayload = ref('');
   const saving = ref(false);
 
   // An Abitur group runs too many courses for one to be moved or given another
@@ -53,11 +82,14 @@ export function useScheduleChangeForm(lesson: Ref<Lesson | null>) {
     () => !schedulesCoursesIndividually.value,
   );
 
+  // Only opening another lesson resets the form; the change reloading while
+  // the modal is open must not wipe what is being typed.
   watch(
     lesson,
     (opened) => {
       if (!opened) return;
-      form.value = { ...emptyChangeForm(), courseId: opened.courseId ?? '' };
+      form.value = changeFormOf(opened, existingChange.value);
+      savedPayload.value = JSON.stringify(changesPayload());
       if (subjects.value.length === 0) void loadSubjects();
     },
     { immediate: true },
@@ -110,7 +142,7 @@ export function useScheduleChangeForm(lesson: Ref<Lesson | null>) {
     },
   });
 
-  const hasChanges = computed(() => {
+  const changesLesson = computed(() => {
     const { subject, room, slot, duration, day, cancelled } = form.value;
     return (
       !!subject.trim() ||
@@ -121,6 +153,17 @@ export function useScheduleChangeForm(lesson: Ref<Lesson | null>) {
       cancelled
     );
   });
+
+  /*
+   * Emptying a lesson's existing change takes it back, so saving is possible
+   * whenever the form differs from what is stored, unless nothing is stored
+   * and nothing would be.
+   */
+  const canSave = computed(
+    () =>
+      JSON.stringify(changesPayload()) !== savedPayload.value &&
+      (changesLesson.value || !!existingChange.value),
+  );
 
   function toggleCancelled() {
     form.value.cancelled = !form.value.cancelled;
@@ -143,22 +186,42 @@ export function useScheduleChangeForm(lesson: Ref<Lesson | null>) {
     };
   }
 
-  async function saveChange(): Promise<boolean> {
-    const target = lesson.value;
-    if (!target) return false;
+  async function replaceChange(target: Lesson): Promise<boolean> {
     const payload: ScheduleChangePayload = {
       lessonId: target._originalId || target.id,
       ...changesPayload(),
     };
-
-    saving.value = true;
     try {
-      await api.post(groupPath(groupId, '/admin/schedule/subs'), payload);
+      await api.put(groupPath(groupId, '/admin/schedule/subs'), payload);
       toast.success(t('groups.settings.messages.substitution_saved'));
       return true;
     } catch {
       toast.error(t('groups.settings.messages.substitution_save_failed'));
       return false;
+    }
+  }
+
+  async function removeChange(change: Substitution): Promise<boolean> {
+    try {
+      await api.delete(groupPath(groupId, `/admin/schedule/subs/${change.id}`));
+      toast.success(t('groups.settings.messages.substitution_deleted'));
+      return true;
+    } catch {
+      toast.error(t('groups.settings.messages.substitution_delete_failed'));
+      return false;
+    }
+  }
+
+  async function saveChange(): Promise<boolean> {
+    const target = lesson.value;
+    if (!target || !canSave.value || saving.value) return false;
+    const change = existingChange.value;
+
+    saving.value = true;
+    try {
+      return change && !changesLesson.value
+        ? await removeChange(change)
+        : await replaceChange(target);
     } finally {
       saving.value = false;
     }
@@ -172,7 +235,7 @@ export function useScheduleChangeForm(lesson: Ref<Lesson | null>) {
     courseOptions,
     dayOptions,
     day,
-    hasChanges,
+    canSave,
     toggleCancelled,
     saveChange,
     formatDayName,

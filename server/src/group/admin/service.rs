@@ -8,7 +8,7 @@ use crate::{
     },
     error::{AppError, AppResult},
     group::{
-        dto::{CreateScheduleSubDto, ReplaceScheduleDto, ScheduleLessonDto},
+        dto::{ScheduleSubDto, ReplaceScheduleDto, ScheduleLessonDto},
         member_policy::{self, Actor, Caller, Target},
         service::{avatar_in_use_on_conflict, lock_group_owner, role_from_db},
     },
@@ -103,8 +103,19 @@ fn validate_category(group_type: GroupType, category: &str) -> AppResult<()> {
 
 const MAX_SCHEDULE_TEXT_CHARS: usize = 100;
 
-/// Bounds the free-form parts of a substitution to what the schedule can show.
-fn validate_schedule_sub(dto: &CreateScheduleSubDto) -> AppResult<()> {
+/// Blank text changes nothing, so it is stored as no change at all.
+fn non_blank(text: Option<String>) -> Option<String> {
+    text.map(|t| t.trim().to_owned()).filter(|t| !t.is_empty())
+}
+
+/// Bounds the free-form parts of a substitution to what the schedule can show,
+/// and rejects one that would leave the lesson as it is.
+fn validate_schedule_sub(dto: ScheduleSubDto) -> AppResult<ScheduleSubDto> {
+    let dto = ScheduleSubDto {
+        subject: non_blank(dto.subject),
+        room: non_blank(dto.room),
+        ..dto
+    };
     let too_long = |text: &Option<String>| {
         text.as_deref()
             .is_some_and(|t| t.chars().count() > MAX_SCHEDULE_TEXT_CHARS)
@@ -121,7 +132,19 @@ fn validate_schedule_sub(dto: &CreateScheduleSubDto) -> AppResult<()> {
         ));
     }
 
-    Ok(())
+    let changes_nothing = dto.cancelled != Some(true)
+        && dto.day.is_none()
+        && dto.slot.is_none()
+        && dto.duration.is_none()
+        && dto.subject.is_none()
+        && dto.room.is_none();
+    if changes_nothing {
+        return Err(AppError::bad_request(
+            "The substitution does not change the lesson.",
+        ));
+    }
+
+    Ok(dto)
 }
 
 /// Dalton stands in for a subject in the schedule, so a Dalton lesson cannot
@@ -1033,24 +1056,38 @@ impl GroupAdminService {
         Ok(json!({ "ok": true }))
     }
 
-    pub async fn create_schedule_sub(
+    /// Gives the lesson its change, replacing the one it had before, so a
+    /// lesson never shows up more than once on the schedule.
+    pub async fn save_schedule_sub(
         &self,
         tenant_id: Uuid,
         user_id: Uuid,
-        dto: CreateScheduleSubDto,
+        dto: ScheduleSubDto,
     ) -> AppResult<Value> {
-        validate_schedule_sub(&dto)?;
+        let dto = validate_schedule_sub(dto)?;
         self.validate_sub_target(tenant_id, dto.lesson_id, dto.course_id)
             .await?;
 
         let day_str = dto.day.map(|d| d.to_string());
 
+        let mut tx = self.db.begin().await?;
+
+        // The conflict guard keeps a change of another group untouched, even
+        // though the lesson was already checked to belong to this one.
         let row = sqlx::query!(
             r#"INSERT INTO schedule_subs
                 (tenant_id, lesson_id, course_id, day, slot, duration, subject, room, cancelled)
                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-               RETURNING id, lesson_id, course_id, day, slot, duration, subject, room,
-                         cancelled, created_at"#,
+               ON CONFLICT (lesson_id) DO UPDATE SET
+                 course_id = EXCLUDED.course_id,
+                 day = EXCLUDED.day,
+                 slot = EXCLUDED.slot,
+                 duration = EXCLUDED.duration,
+                 subject = EXCLUDED.subject,
+                 room = EXCLUDED.room,
+                 cancelled = EXCLUDED.cancelled
+               WHERE schedule_subs.tenant_id = EXCLUDED.tenant_id
+               RETURNING id, created_at, (xmax = 0) AS "created!""#,
             tenant_id,
             dto.lesson_id,
             dto.course_id,
@@ -1061,22 +1098,29 @@ impl GroupAdminService {
             dto.room,
             dto.cancelled.unwrap_or(false)
         )
-        .fetch_one(&self.db)
-        .await?;
+        .fetch_optional(&mut *tx)
+        .await?
+        .ok_or_else(|| AppError::not_found("Lesson not found"))?;
 
         sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta)
-               VALUES ($1, 'schedule:sub:create', $2)"#,
+            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, $2, $3)"#,
             user_id,
+            if row.created {
+                "schedule:sub:create"
+            } else {
+                "schedule:sub:update"
+            },
             json!({ "lessonId": dto.lesson_id, "courseId": dto.course_id })
         )
-        .execute(&self.db)
+        .execute(&mut *tx)
         .await?;
 
+        tx.commit().await?;
+
         Ok(json!({
-            "id": row.id, "lessonId": row.lesson_id, "courseId": row.course_id, "day": row.day, "slot": row.slot,
-            "duration": row.duration, "subject": row.subject, "room": row.room,
-            "cancelled": row.cancelled, "createdAt": row.created_at,
+            "id": row.id, "lessonId": dto.lesson_id, "courseId": dto.course_id, "day": dto.day,
+            "slot": dto.slot, "duration": dto.duration, "subject": dto.subject, "room": dto.room,
+            "cancelled": dto.cancelled.unwrap_or(false), "createdAt": row.created_at,
         }))
     }
 
@@ -1363,8 +1407,8 @@ mod tests {
         assert!(validate_dalton_lesson(false, id, id).is_ok());
     }
 
-    fn sub(day: Option<i32>, room: Option<&str>) -> CreateScheduleSubDto {
-        CreateScheduleSubDto {
+    fn sub(day: Option<i32>, room: Option<&str>) -> ScheduleSubDto {
+        ScheduleSubDto {
             lesson_id: Uuid::nil(),
             course_id: None,
             day,
@@ -1378,15 +1422,45 @@ mod tests {
 
     #[test]
     fn substitutions_stay_within_the_school_week() {
-        assert!(validate_schedule_sub(&sub(Some(5), None)).is_ok());
-        assert!(validate_schedule_sub(&sub(None, None)).is_ok());
-        assert!(validate_schedule_sub(&sub(Some(6), None)).is_err());
-        assert!(validate_schedule_sub(&sub(Some(0), None)).is_err());
+        assert!(validate_schedule_sub(sub(Some(5), None)).is_ok());
+        assert!(validate_schedule_sub(sub(None, None)).is_ok());
+        assert!(validate_schedule_sub(sub(Some(6), None)).is_err());
+        assert!(validate_schedule_sub(sub(Some(0), None)).is_err());
     }
 
     #[test]
     fn substitution_texts_are_bounded() {
         let long = "x".repeat(MAX_SCHEDULE_TEXT_CHARS + 1);
-        assert!(validate_schedule_sub(&sub(None, Some(&long))).is_err());
+        assert!(validate_schedule_sub(sub(None, Some(&long))).is_err());
+    }
+
+    #[test]
+    fn substitution_texts_are_trimmed() {
+        let saved = validate_schedule_sub(sub(None, Some("  R101 "))).unwrap();
+        assert_eq!(saved.room.as_deref(), Some("R101"));
+    }
+
+    #[test]
+    fn substitutions_have_to_change_the_lesson() {
+        let unchanged = || ScheduleSubDto {
+            slot: None,
+            duration: None,
+            ..sub(None, Some("   "))
+        };
+        assert!(validate_schedule_sub(unchanged()).is_err());
+        assert!(
+            validate_schedule_sub(ScheduleSubDto {
+                cancelled: Some(false),
+                ..unchanged()
+            })
+            .is_err()
+        );
+        assert!(
+            validate_schedule_sub(ScheduleSubDto {
+                cancelled: Some(true),
+                ..unchanged()
+            })
+            .is_ok()
+        );
     }
 }

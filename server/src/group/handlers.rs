@@ -22,7 +22,7 @@ use serde::Deserialize;
 use serde_json::{Value, json};
 
 use super::{admin::service::GroupAdminService, member_policy::Caller};
-use crate::group::dto::CreateScheduleSubDto;
+use crate::group::dto::ScheduleSubDto;
 
 pub async fn create_invite(State(s): State<AppState>, tc: TenantContext) -> AppResult<Json<Value>> {
     crate::require_permission!(tc, crate::common::permission::Permission::InviteMembers);
@@ -502,10 +502,10 @@ pub async fn get_schedule_subs_admin(
     ))
 }
 
-pub async fn create_schedule_sub(
+pub async fn save_schedule_sub(
     State(s): State<AppState>,
     tc: TenantContext,
-    Json(dto): Json<CreateScheduleSubDto>,
+    Json(dto): Json<ScheduleSubDto>,
 ) -> AppResult<Json<Value>> {
     crate::require_permission!(
         tc,
@@ -514,7 +514,7 @@ pub async fn create_schedule_sub(
 
     Ok(Json(
         GroupAdminService::from_state(&s)
-            .create_schedule_sub(tc.tenant_id, tc.user.user_id, dto)
+            .save_schedule_sub(tc.tenant_id, tc.user.user_id, dto)
             .await?,
     ))
 }

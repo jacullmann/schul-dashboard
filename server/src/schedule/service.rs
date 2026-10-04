@@ -111,7 +111,9 @@ WHERE s.tenant_id = $1"#,
         Ok(json!(
             subs.into_iter()
                 .map(|s| json!({
-                    "id": s.id, "lessonId": s.lesson_id, "courseId": s.course_id, "day": s.day, "slot": s.slot,
+                    // The column is text, while lessons name their day by number.
+                    "id": s.id, "lessonId": s.lesson_id, "courseId": s.course_id,
+                    "day": s.day.and_then(|day| day.parse::<i32>().ok()), "slot": s.slot,
                     "duration": s.duration, "subject": s.subject, "room": s.room,
                     "cancelled": s.cancelled, "createdAt": s.created_at,
                 }))
