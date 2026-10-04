@@ -59,7 +59,7 @@ function onInput(e: Event) {
   >
     <BaseBackdrop
       tint="frost"
-      opacity="light"
+      opacity="heavy"
       blur-size="lg"
       class="search-backdrop touch-none"
       @cancel="$emit('cancel')"
