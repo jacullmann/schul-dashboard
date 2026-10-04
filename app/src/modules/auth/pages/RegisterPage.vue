@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
+import { MailCheck } from '@lucide/vue';
 import GoogleIcon from '@/modules/auth/components/GoogleIcon.vue';
 import TermsConsentCheckbox from '@/modules/auth/components/TermsConsentCheckbox.vue';
 import { useRegister } from '@/modules/auth/composables/useRegister';
@@ -17,13 +18,13 @@ const {
   acceptedTerms,
   submitting,
   formError,
+  registeredEmail,
   emailInputRef,
   errors,
   clearFieldError,
+  restartRegistration,
   submit: submitRegister,
-} = useRegister(async () => {
-  await router.push({ name: 'login' });
-});
+} = useRegister();
 
 async function handleSubmit() {
   await submitRegister();
@@ -36,7 +37,39 @@ function navigateToLogin() {
 
 <template>
   <div class="flex w-full items-center justify-center">
-    <div class="w-full max-w-105">
+    <div
+      v-if="registeredEmail"
+      class="w-full max-w-105"
+      role="status"
+      aria-live="polite"
+    >
+      <BaseEmptyState
+        :icon="MailCheck"
+        :primary-action="navigateToLogin"
+        :secondary-action="restartRegistration"
+      >
+        <template #title>
+          {{ t('auth.login.verify_email.title') }}
+        </template>
+        <template #message>
+          <i18n-t keypath="auth.login.verify_email.message" tag="span">
+            <template #email>
+              <span class="font-medium text-on-ghost wrap-anywhere">
+                {{ registeredEmail }}
+              </span>
+            </template>
+          </i18n-t>
+        </template>
+        <template #primary-action-label>
+          {{ t('auth.login.verify_email.to_login') }}
+        </template>
+        <template #secondary-action-label>
+          {{ t('auth.login.verify_email.different_email') }}
+        </template>
+      </BaseEmptyState>
+    </div>
+
+    <div v-else class="w-full max-w-105">
       <div class="text-center mb-8">
         <h1 class="text-center!">
           {{ t('auth.login.register') }}

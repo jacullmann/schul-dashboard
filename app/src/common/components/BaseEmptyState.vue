@@ -22,20 +22,28 @@ defineProps<{
     <p class="mt-1! mb-6! max-w-96">
       <slot name="message"></slot>
     </p>
-    <BaseRow v-if="primaryAction || secondaryAction" justify="center">
+    <BaseRow
+      v-if="primaryAction || secondaryAction"
+      stack-on-mobile
+      justify="center"
+      class="md:flex-row-reverse w-full"
+    >
+      <BaseButton
+        v-if="secondaryAction"
+        form
+        variant="ghost"
+        surface
+        @click="secondaryAction()"
+      >
+        <slot name="secondary-action-label"></slot>
+      </BaseButton>
       <BaseButton
         v-if="primaryAction"
+        form
         variant="action"
         @click="primaryAction()"
       >
         <slot name="primary-action-label"></slot>
-      </BaseButton>
-      <BaseButton
-        v-if="secondaryAction"
-        variant="ghost"
-        @click="secondaryAction()"
-      >
-        <slot name="secondary-action-label"></slot>
       </BaseButton>
     </BaseRow>
   </div>

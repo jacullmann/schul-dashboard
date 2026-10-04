@@ -1,16 +1,15 @@
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 import api from '@/api/api.ts';
 import { usePreferences } from '@/common/composables/usePreferences';
 import { apiErrorMessage } from '@/api/errors';
-import { useToast } from '@/common/composables/useToast';
 
 /** Subset of `BaseInput`'s exposed API that these forms rely on. */
 interface FocusableInput {
   focus: () => void;
 }
 
-export function useRegister(onRegistered: () => void | Promise<void>) {
+export function useRegister() {
   const { t } = useI18n();
   const { currentTheme, currentLanguage } = usePreferences();
 
@@ -20,6 +19,7 @@ export function useRegister(onRegistered: () => void | Promise<void>) {
   const acceptedTerms = ref(false);
   const submitting = ref(false);
   const formError = ref('');
+  const registeredEmail = ref<string | null>(null);
 
   const emailInputRef = ref<FocusableInput | null>(null);
 
@@ -84,6 +84,13 @@ export function useRegister(onRegistered: () => void | Promise<void>) {
     return ok;
   }
 
+  async function restartRegistration() {
+    registeredEmail.value = null;
+    acceptedTerms.value = false;
+    await nextTick();
+    emailInputRef.value?.focus();
+  }
+
   async function submit() {
     formError.value = '';
 
@@ -106,8 +113,9 @@ export function useRegister(onRegistered: () => void | Promise<void>) {
         preferences,
       });
 
-      useToast().success(t('auth.login.success_register'));
-      void onRegistered();
+      registeredEmail.value = email.value.trim();
+      password.value = '';
+      passwordConfirm.value = '';
     } catch (e: unknown) {
       formError.value = apiErrorMessage(e, t('common.errors.unknown'));
     } finally {
@@ -122,10 +130,12 @@ export function useRegister(onRegistered: () => void | Promise<void>) {
     acceptedTerms,
     submitting,
     formError,
+    registeredEmail,
     emailInputRef,
     errors,
 
     clearFieldError,
+    restartRegistration,
     submit,
   };
 }
