@@ -1,5 +1,6 @@
 import type {
   Lesson,
+  LessonGroup,
   ScheduleConfig,
   ScheduleLayout,
   ScheduleRow,
@@ -24,6 +25,21 @@ export interface ScheduleLayoutOptions {
   showBreaks?: boolean;
   /** Slots a day ends after, each followed by a row that shows when it ends. */
   dayEndSlots?: ReadonlySet<number>;
+  /** Slots that run into the next one without a gap, as a cell spanning both does. */
+  joinedSlots?: ReadonlySet<number>;
+}
+
+/** Slots whose boundary to the next slot lies inside a cell and on no cell's edge. */
+export function slotsJoinedToNext(groups: readonly LessonGroup[]): Set<number> {
+  const spanned = new Set<number>();
+  const edges = new Set<number>();
+  for (const { lessons } of groups) {
+    const { firstSlot, lastSlot } = lessonsSlotRange(lessons);
+    edges.add(firstSlot - 1);
+    edges.add(lastSlot);
+    for (let slot = firstSlot; slot < lastSlot; slot++) spanned.add(slot);
+  }
+  return spanned.difference(edges);
 }
 
 /*
@@ -33,7 +49,11 @@ export interface ScheduleLayoutOptions {
  */
 export function buildScheduleLayout(
   config: ScheduleConfig,
-  { showBreaks = false, dayEndSlots = new Set() }: ScheduleLayoutOptions = {},
+  {
+    showBreaks = false,
+    dayEndSlots = new Set(),
+    joinedSlots = new Set(),
+  }: ScheduleLayoutOptions = {},
 ): ScheduleLayout {
   const rows: ScheduleRow[] = [];
   const lessonGridRows = new Map<number, number>();
@@ -47,6 +67,8 @@ export function buildScheduleLayout(
       gridRow: gridRow++,
       slot,
       startTime: formatTimeOfDay(start),
+      joinsPrevious:
+        joinedSlots.has(slot - 1) && rows.at(-1)?.kind === 'lesson',
     });
 
     const durationMins = config.breaks[slot] ?? 0;

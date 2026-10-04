@@ -125,7 +125,7 @@ function onDayClick(day: number, event: MouseEvent) {
 
   <BaseTableWrapper v-else>
     <div
-      class="grid grid-cols-[2.5rem_repeat(5,minmax(9rem,1fr))] gap-2 items-stretch"
+      class="relative grid grid-cols-[2.5rem_repeat(5,minmax(9rem,1fr))] gap-2 items-stretch"
       :style="layout.gridStyle"
     >
       <ScheduleStartTimeColumn :rows="layout.rows" :animated="animated" />

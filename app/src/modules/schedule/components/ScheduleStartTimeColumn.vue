@@ -15,6 +15,11 @@ withDefaults(
 );
 </script>
 
+<!--
+  A row joined to the previous one reaches back over the grid's row gap and
+  into the previous row, so its track shrinks and the cell spanning both rows
+  ends up shorter than two separate lessons.
+-->
 <template>
   <div
     v-for="row in rows"
@@ -22,6 +27,7 @@ withDefaults(
     class="flex flex-col justify-center items-center bg-transparent text-sm text-on-ghost-muted h-full whitespace-nowrap [grid-column:1]"
     :class="{
       'min-h-14.5': row.kind === 'lesson',
+      '-mt-4': row.kind === 'lesson' && row.joinsPrevious,
       'animate-enter': animated,
       invisible: labelledRows && !labelledRows.has(row.gridRow),
     }"

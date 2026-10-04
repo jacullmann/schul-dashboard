@@ -15,11 +15,15 @@ defineProps<{
 }>();
 </script>
 
+<!--
+  The cell names its end lines: positioned absolutely while it fades out, it
+  would otherwise stretch to the grid's edge.
+-->
 <template>
   <div
     :style="{
-      gridColumn,
-      gridRow: `var(--slot-${slotNumber}-row, ${gridRow})`,
+      gridColumn: `${gridColumn} / span 1`,
+      gridRow: `var(--slot-${slotNumber}-row, ${gridRow}) / span 1`,
     }"
   >
     <!--

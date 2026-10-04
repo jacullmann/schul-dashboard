@@ -251,8 +251,12 @@ watch(
           :animated="animated"
         />
 
+        <!--
+          Leaving skeletons fill their cell without sizing its row, so rows the
+          loaded lessons join take their final height as the lessons appear.
+        -->
         <TransitionGroup
-          leave-active-class="transition-opacity duration-400 ease-out"
+          leave-active-class="absolute inset-0 **:min-h-0 transition-opacity duration-400 ease-out"
           leave-to-class="opacity-0"
           @before-leave="holdPendingEntrances"
         >

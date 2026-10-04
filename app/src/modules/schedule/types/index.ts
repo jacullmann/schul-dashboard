@@ -77,7 +77,14 @@ export interface TimeSlot {
 }
 
 export type ScheduleRow =
-  | { kind: 'lesson'; gridRow: number; slot: number; startTime: string }
+  | {
+      kind: 'lesson';
+      gridRow: number;
+      slot: number;
+      startTime: string;
+      /** Runs into the previous slot's row without a gap between them. */
+      joinsPrevious: boolean;
+    }
   | {
       kind: 'break';
       gridRow: number;

@@ -22,7 +22,10 @@ import {
   lessonMinutes,
   slotRangeMinutes,
 } from '@/modules/schedule/utils/slotTimes';
-import { buildScheduleLayout } from '@/modules/schedule/utils/layout';
+import {
+  buildScheduleLayout,
+  slotsJoinedToNext,
+} from '@/modules/schedule/utils/layout';
 import { daysSinceMonday } from '@/modules/schedule/utils/weekday';
 import { useScheduleDisplay } from '@/modules/schedule/composables/useScheduleDisplay';
 
@@ -312,12 +315,6 @@ export function useSchedule() {
     ),
   );
 
-  const buildLayout = (dayEndSlots: ReadonlySet<number>) =>
-    buildScheduleLayout(scheduleConfig.value, {
-      showBreaks: true,
-      dayEndSlots,
-    });
-
   const attendedDayEndSlots = (
     dayList: readonly number[],
   ): ReadonlySet<number> => {
@@ -327,15 +324,26 @@ export function useSchedule() {
     );
   };
 
+  const joinedSlotsOf = (dayList: readonly number[]): ReadonlySet<number> => {
+    if (loadingLessons.value) return new Set();
+    return slotsJoinedToNext(
+      groupedLessons.value.filter((group) => dayList.includes(group.day)),
+    );
+  };
+
+  const buildLayout = (dayList: readonly number[]) =>
+    buildScheduleLayout(scheduleConfig.value, {
+      showBreaks: true,
+      dayEndSlots: attendedDayEndSlots(dayList),
+      joinedSlots: joinedSlotsOf(dayList),
+    });
+
   /** The whole week side by side, sharing its rows. */
-  const weekLayout = computed(() => buildLayout(attendedDayEndSlots(days)));
+  const weekLayout = computed(() => buildLayout(days));
 
   /** Each day on its own, as a phone shows it. */
   const dayLayouts = computed(
-    () =>
-      new Map(
-        days.map((day) => [day, buildLayout(attendedDayEndSlots([day]))]),
-      ),
+    () => new Map(days.map((day) => [day, buildLayout([day])])),
   );
 
   const now = ref(new Date());
