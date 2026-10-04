@@ -45,7 +45,6 @@ const {
   scheduleConfig,
   groupedLessons,
   dayLayouts,
-  activeOrNextGroupKey,
 } = useSchedule();
 
 // The open tasks, in the task list's order: pinned ones first, then by due date.
@@ -433,9 +432,6 @@ const {
 
                   <ScheduleLessonGroup
                     :group="upcomingLessonPreview.group.lessons"
-                    :is-active="
-                      upcomingLessonPreview.group.key === activeOrNextGroupKey
-                    "
                     :animated="false"
                     :get-display-name="getDisplayName"
                     :style="upcomingLessonPreview.style"
