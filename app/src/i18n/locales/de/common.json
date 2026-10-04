@@ -34,7 +34,6 @@
     "validation_failed": "Bitte Eingaben überprüfen."
   },
   "footer": {
-    "home": "Home",
     "quotes": [
       "I miss the old Kanye",
       "Kopf hoch. Nur noch {daysToHoliday} Tage bis zu den Ferien",
@@ -124,8 +123,7 @@
       "Whos callin my phone",
       "Saluden a Titi",
       "Hey Ya!"
-    ],
-    "remove_device": "Dieses Gerät abmelden"
+    ]
   },
   "language": "Sprache",
   "selection": {

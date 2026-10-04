@@ -34,7 +34,6 @@
     "validation_failed": "Please check your input."
   },
   "footer": {
-    "home": "Home",
     "quotes": [
       "I miss the old Kanye",
       "Keep your head up. Only {daysToHoliday} days left until the holidays",
@@ -124,8 +123,7 @@
       "Whos callin my phone",
       "Saluden a Titi",
       "Hey Ya!"
-    ],
-    "remove_device": "Sign out this device"
+    ]
   },
   "language": "Language",
   "selection": {
