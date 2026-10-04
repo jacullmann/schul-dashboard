@@ -260,8 +260,6 @@ export function useSchedule() {
       }
 
       subs.forEach((sub) => {
-        if (sub.hide) return;
-
         const merged: Lesson = {
           ...original,
           _original: original,

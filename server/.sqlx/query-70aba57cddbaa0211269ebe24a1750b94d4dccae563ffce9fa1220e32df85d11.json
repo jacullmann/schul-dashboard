@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO schedule_subs\n                (tenant_id, lesson_id, course_id, day, slot, duration, subject, room, cancelled, hide)\n               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)\n               RETURNING id, lesson_id, course_id, day, slot, duration, subject, room,\n                         cancelled, hide, created_at",
+  "query": "INSERT INTO schedule_subs\n                (tenant_id, lesson_id, course_id, day, slot, duration, subject, room, cancelled)\n               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)\n               RETURNING id, lesson_id, course_id, day, slot, duration, subject, room,\n                         cancelled, created_at",
   "describe": {
     "columns": [
       {
@@ -104,17 +104,6 @@
       },
       {
         "ordinal": 9,
-        "name": "hide",
-        "type_info": "Bool",
-        "origin": {
-          "Table": {
-            "table": "schedule_subs",
-            "name": "hide"
-          }
-        }
-      },
-      {
-        "ordinal": 10,
         "name": "created_at",
         "type_info": "Timestamptz",
         "origin": {
@@ -135,7 +124,6 @@
         "Int4",
         "Text",
         "Text",
-        "Bool",
         "Bool"
       ]
     },
@@ -149,9 +137,8 @@
       true,
       true,
       false,
-      false,
       false
     ]
   },
-  "hash": "fa843c515d52b3612c610611b0de74c94eaf85f7a907e27b8d2c16a635243536"
+  "hash": "70aba57cddbaa0211269ebe24a1750b94d4dccae563ffce9fa1220e32df85d11"
 }

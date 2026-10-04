@@ -67,7 +67,6 @@ export interface Substitution {
   subjectAbbr?: string;
   room?: string | null;
   cancelled?: boolean;
-  hide?: boolean;
   createdAt?: string;
 }
 

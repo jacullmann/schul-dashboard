@@ -1047,10 +1047,10 @@ impl GroupAdminService {
 
         let row = sqlx::query!(
             r#"INSERT INTO schedule_subs
-                (tenant_id, lesson_id, course_id, day, slot, duration, subject, room, cancelled, hide)
-               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+                (tenant_id, lesson_id, course_id, day, slot, duration, subject, room, cancelled)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
                RETURNING id, lesson_id, course_id, day, slot, duration, subject, room,
-                         cancelled, hide, created_at"#,
+                         cancelled, created_at"#,
             tenant_id,
             dto.lesson_id,
             dto.course_id,
@@ -1059,8 +1059,7 @@ impl GroupAdminService {
             dto.duration,
             dto.subject,
             dto.room,
-            dto.cancelled.unwrap_or(false),
-            dto.hide.unwrap_or(false)
+            dto.cancelled.unwrap_or(false)
         )
         .fetch_one(&self.db)
         .await?;
@@ -1077,7 +1076,7 @@ impl GroupAdminService {
         Ok(json!({
             "id": row.id, "lessonId": row.lesson_id, "courseId": row.course_id, "day": row.day, "slot": row.slot,
             "duration": row.duration, "subject": row.subject, "room": row.room,
-            "cancelled": row.cancelled, "hide": row.hide, "createdAt": row.created_at,
+            "cancelled": row.cancelled, "createdAt": row.created_at,
         }))
     }
 
@@ -1374,7 +1373,6 @@ mod tests {
             subject: None,
             room: room.map(str::to_owned),
             cancelled: None,
-            hide: None,
         }
     }
 

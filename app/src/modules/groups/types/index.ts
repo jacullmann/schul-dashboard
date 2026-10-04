@@ -27,7 +27,6 @@ export interface ScheduleSubstitution {
   teacher?: string | null;
   room?: string | null;
   cancelled?: boolean;
-  hide?: boolean;
   createdAt?: string;
 }
 

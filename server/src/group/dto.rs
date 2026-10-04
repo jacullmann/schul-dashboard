@@ -150,7 +150,6 @@ pub struct CreateScheduleSubDto {
     pub subject: Option<String>,
     pub room: Option<String>,
     pub cancelled: Option<bool>,
-    pub hide: Option<bool>,
 }
 
 #[derive(Debug, Deserialize)]

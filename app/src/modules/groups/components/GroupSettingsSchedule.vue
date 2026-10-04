@@ -74,6 +74,11 @@ const canEditScheduleConfig = computed(() => checkPermission('edit_schedule'));
 const canManageScheduleChanges = computed(() =>
   checkPermission('manage_schedule_changes'),
 );
+// An Abitur group runs too many courses for one to be moved or given another
+// subject, so its changes only cancel a lesson or send it to another room.
+const canRescheduleLessons = computed(
+  () => !schedulesCoursesIndividually.value,
+);
 
 const TOOLBAR_TRANSITION_MS = 300;
 const MAX_UNDO_STEPS = 50;
@@ -217,7 +222,6 @@ const emptySubForm = () => ({
   duration: null as number | null,
   day: null as number | null,
   cancelled: false,
-  hide: false,
 });
 
 const subForm = ref(emptySubForm());
@@ -289,7 +293,6 @@ function handleSaveSub() {
     payload.duration = subForm.value.duration;
   if (subForm.value.day !== null) payload.day = subForm.value.day;
   if (subForm.value.cancelled) payload.cancelled = true;
-  if (subForm.value.hide) payload.hide = true;
 
   void saveSub(payload);
   subForm.value = emptySubForm();
@@ -997,7 +1000,7 @@ onMounted(() => {
               :disabled="!canManageScheduleChanges"
             />
           </div>
-          <div class="form-field">
+          <div v-if="canRescheduleLessons" class="form-field">
             <BaseLabel for="sub-subject">{{
               t('groups.settings.schedule.changes.new_subject_label')
             }}</BaseLabel>
@@ -1010,7 +1013,10 @@ onMounted(() => {
               :disabled="!canManageScheduleChanges"
             />
           </div>
-          <div class="form-field">
+          <div
+            class="form-field"
+            :class="{ 'col-span-2 sm:col-span-1': !canRescheduleLessons }"
+          >
             <BaseLabel for="sub-room">{{
               t('groups.settings.schedule.changes.new_room_label')
             }}</BaseLabel>
@@ -1021,7 +1027,7 @@ onMounted(() => {
               :disabled="!canManageScheduleChanges"
             />
           </div>
-          <div class="form-field">
+          <div v-if="canRescheduleLessons" class="form-field">
             <BaseLabel for="sub-slot">{{
               t('groups.settings.schedule.changes.new_slot_label')
             }}</BaseLabel>
@@ -1033,7 +1039,7 @@ onMounted(() => {
               :disabled="!canManageScheduleChanges"
             />
           </div>
-          <div class="form-field">
+          <div v-if="canRescheduleLessons" class="form-field">
             <BaseLabel for="sub-duration">{{
               t('groups.settings.schedule.changes.new_duration_label')
             }}</BaseLabel>
@@ -1046,7 +1052,7 @@ onMounted(() => {
               :disabled="!canManageScheduleChanges"
             />
           </div>
-          <div class="form-field">
+          <div v-if="canRescheduleLessons" class="form-field">
             <BaseLabel for="sub-day">{{
               t('groups.settings.schedule.changes.new_day_label')
             }}</BaseLabel>
@@ -1070,12 +1076,6 @@ onMounted(() => {
             <span>{{
               t('groups.settings.schedule.changes.cancelled_label')
             }}</span>
-          </BaseCheckbox>
-          <BaseCheckbox
-            v-model="subForm.hide"
-            :disabled="!canManageScheduleChanges"
-          >
-            <span>{{ t('groups.settings.schedule.changes.hide_label') }}</span>
           </BaseCheckbox>
         </div>
 
@@ -1110,27 +1110,30 @@ onMounted(() => {
           <table>
             <thead>
               <tr>
-                <th>
+                <th v-if="canRescheduleLessons">
                   {{ t('groups.settings.schedule.changes.table.subject') }}
                 </th>
                 <th>
                   {{ t('groups.settings.schedule.changes.table.course') }}
                 </th>
                 <th>{{ t('groups.settings.schedule.changes.table.room') }}</th>
-                <th>{{ t('groups.settings.schedule.changes.table.day') }}</th>
-                <th>{{ t('groups.settings.schedule.changes.table.slot') }}</th>
+                <template v-if="canRescheduleLessons">
+                  <th>
+                    {{ t('groups.settings.schedule.changes.table.day') }}
+                  </th>
+                  <th>
+                    {{ t('groups.settings.schedule.changes.table.slot') }}
+                  </th>
+                </template>
                 <th>
                   {{ t('groups.settings.schedule.changes.cancelled_label') }}
-                </th>
-                <th>
-                  {{ t('groups.settings.schedule.changes.hidden_label') }}
                 </th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="sub in subs" :key="sub.id">
-                <td>
+                <td v-if="canRescheduleLessons">
                   {{
                     sub.subject
                       ? subjectLabel(sub.subject, t, te)
@@ -1139,19 +1142,14 @@ onMounted(() => {
                 </td>
                 <td>{{ getSubCourseName(sub.courseId) }}</td>
                 <td>{{ sub.room }}</td>
-                <td>{{ sub.day || '-' }}</td>
-                <td>{{ sub.slot || '-' }}</td>
+                <template v-if="canRescheduleLessons">
+                  <td>{{ sub.day || '-' }}</td>
+                  <td>{{ sub.slot || '-' }}</td>
+                </template>
                 <td class="text-danger">
                   {{
                     sub.cancelled
                       ? t('groups.settings.schedule.changes.cancelled_label')
-                      : '-'
-                  }}
-                </td>
-                <td>
-                  {{
-                    sub.hide
-                      ? t('groups.settings.schedule.changes.hidden_label')
                       : '-'
                   }}
                 </td>

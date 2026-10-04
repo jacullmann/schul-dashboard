@@ -101,7 +101,7 @@ WHERE s.tenant_id = $1"#,
 
     pub async fn get_subs(&self, tenant_id: Uuid) -> AppResult<Value> {
         let subs = sqlx::query!(
-            r#"SELECT id, lesson_id, course_id, day, slot, duration, subject, room, cancelled, hide, created_at
+            r#"SELECT id, lesson_id, course_id, day, slot, duration, subject, room, cancelled, created_at
              FROM schedule_subs WHERE tenant_id = $1"#,
             tenant_id
         )
@@ -113,7 +113,7 @@ WHERE s.tenant_id = $1"#,
                 .map(|s| json!({
                     "id": s.id, "lessonId": s.lesson_id, "courseId": s.course_id, "day": s.day, "slot": s.slot,
                     "duration": s.duration, "subject": s.subject, "room": s.room,
-                    "cancelled": s.cancelled, "hide": s.hide, "createdAt": s.created_at,
+                    "cancelled": s.cancelled, "createdAt": s.created_at,
                 }))
                 .collect::<Vec<_>>()
         ))

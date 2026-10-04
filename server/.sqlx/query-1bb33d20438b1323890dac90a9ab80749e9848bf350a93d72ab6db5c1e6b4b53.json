@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, lesson_id, course_id, day, slot, duration, subject, room, cancelled, hide, created_at\n             FROM schedule_subs WHERE tenant_id = $1",
+  "query": "SELECT id, lesson_id, course_id, day, slot, duration, subject, room, cancelled, created_at\n             FROM schedule_subs WHERE tenant_id = $1",
   "describe": {
     "columns": [
       {
@@ -104,17 +104,6 @@
       },
       {
         "ordinal": 9,
-        "name": "hide",
-        "type_info": "Bool",
-        "origin": {
-          "Table": {
-            "table": "schedule_subs",
-            "name": "hide"
-          }
-        }
-      },
-      {
-        "ordinal": 10,
         "name": "created_at",
         "type_info": "Timestamptz",
         "origin": {
@@ -140,9 +129,8 @@
       true,
       true,
       false,
-      false,
       false
     ]
   },
-  "hash": "9c1324408ca4fa3109ae4a76592fb5c8572e9ccc41f9954d7ff3ee4fa862c1dc"
+  "hash": "1bb33d20438b1323890dac90a9ab80749e9848bf350a93d72ab6db5c1e6b4b53"
 }
