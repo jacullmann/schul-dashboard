@@ -7,6 +7,7 @@ import {
   PAGE_COMMIT_FRACTION,
   VelocityTracker,
 } from '@/utils/gesture';
+import { haptic } from '@/utils/haptics';
 
 /**
  * Space between the day on screen and the one sliding in, in px: the page's
@@ -173,6 +174,7 @@ export function useScheduleDayPager(dayCount: number) {
       incomingDayIndex.value !== null &&
       (flicked || farEnough)
     ) {
+      haptic();
       turnPage();
     } else {
       cancelPage();

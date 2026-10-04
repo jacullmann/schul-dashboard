@@ -9,6 +9,7 @@ import {
   VelocityTracker,
 } from '@/utils/gesture';
 import { SETTLE_EASING } from '@/utils/motion';
+import { haptic } from '@/utils/haptics';
 
 defineOptions({ inheritAttrs: false });
 
@@ -126,7 +127,9 @@ function onTouchMove(e: TouchEvent) {
     e.preventDefault();
   }
 
+  const wasPastThreshold = currentDragY > DISMISS_THRESHOLD;
   currentDragY = deltaY;
+  if (wasPastThreshold !== currentDragY > DISMISS_THRESHOLD) haptic();
   dragVelocity.record(e.timeStamp, deltaY);
   sheetEl.value.style.transform = `translateY(${deltaY}px)`;
   sheetEl.value.style.transition = 'none';

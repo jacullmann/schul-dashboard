@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Check } from '@lucide/vue';
+import { haptic } from '@/utils/haptics';
 
 withDefaults(
   defineProps<{
@@ -38,6 +39,7 @@ const emit = defineEmits<{
 
 function handleChange(event: Event) {
   const target = event.target as HTMLInputElement;
+  haptic();
   emit('update:modelValue', target.checked);
   emit('change', event);
 }

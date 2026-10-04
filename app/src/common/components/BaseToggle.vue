@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { haptic } from '@/utils/haptics';
 
 const model = defineModel<boolean>({ default: false });
 
@@ -25,6 +26,7 @@ const props = withDefaults(
 const toggle = () => {
   if (!props.disabled) {
     model.value = !model.value;
+    haptic();
   }
 };
 

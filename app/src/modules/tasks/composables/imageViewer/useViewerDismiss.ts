@@ -7,6 +7,7 @@ import {
   SNAP_BACK_MS,
   unRubberBand,
 } from '@/utils/gesture';
+import { haptic } from '@/utils/haptics';
 import { prefersReducedMotion, SETTLE_EASING } from '@/utils/motion';
 import {
   dimAt,
@@ -116,9 +117,11 @@ export function useViewerDismiss({ viewport }: ViewerDismissOptions) {
   }
 
   function drag(dx: number, dy: number) {
+    const wasPastDistance = offset.value > DISMISS_DISTANCE;
     const pulled = offsetBase + dy;
     // A pull upwards has nowhere to go, so it only hints at the movement.
     offset.value = pulled < 0 ? pulled * PULL_AGAINST_RESISTANCE : pulled;
+    if (wasPastDistance !== offset.value > DISMISS_DISTANCE) haptic();
     // Sideways the image is not going anywhere, so it only leans after the
     // finger, and less the further it already leans.
     sideways.value = rubberBand(sidewaysBase + dx, sidewaysLimit());

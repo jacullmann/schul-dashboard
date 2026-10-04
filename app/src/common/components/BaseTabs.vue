@@ -8,6 +8,7 @@ import {
   VelocityTracker,
 } from '@/utils/gesture';
 import { Spring, type SpringConfig } from '@/utils/spring';
+import { haptic } from '@/utils/haptics';
 
 export interface NavItem {
   id: string;
@@ -81,6 +82,8 @@ interface Gesture {
   tracker: VelocityTracker;
   /** Where the row is being scrolled to, kept fractional. */
   scroll: number;
+  /** The tab the held pill sits nearest, so passing onto another one ticks. */
+  nearestTab: number;
 }
 
 function clamp(value: number, min: number, max: number) {
@@ -177,16 +180,21 @@ function tabAt(metrics: Metrics, x: number) {
  */
 function landingIndex(metrics: Metrics, center: number, speed: number) {
   const last = metrics.centers.length - 1;
-  const here = clamp(
-    Math.round(progressAlong(metrics.centers, center)),
-    0,
-    last,
-  );
+  const here = nearestTab(metrics, center);
   const ahead = Math.round(
     progressAlong(metrics.centers, center + speed * PROJECTION),
   );
 
   return clamp(ahead, Math.max(here - 1, 0), Math.min(here + 1, last));
+}
+
+/** The tab whose centre is closest to a pill centre. */
+function nearestTab(metrics: Metrics, center: number) {
+  return clamp(
+    Math.round(progressAlong(metrics.centers, center)),
+    0,
+    metrics.centers.length - 1,
+  );
 }
 
 /** How much `el` is drawn scaled by the transforms around it; 1 when barely at all. */
@@ -581,6 +589,7 @@ function frame(now: number) {
   if (g) {
     autoscroll(g, elapsed, now);
     center = dragCenter(g, m, now);
+    tickOnNewTab(g, m, center);
   } else {
     [center, moving] = pill.settle(now);
   }
@@ -692,6 +701,14 @@ function dragCenter(g: Gesture, m: Metrics, time: number) {
   return resist(m, follow(g.stops, m, rowX(g.clientX)) + g.lag.sample(time)[0]);
 }
 
+function tickOnNewTab(g: Gesture, m: Metrics, center: number) {
+  const tab = nearestTab(m, center);
+  if (tab === g.nearestTab) return;
+
+  g.nearestTab = tab;
+  haptic();
+}
+
 function record(g: Gesture, time: number) {
   g.tracker.record(time, rowX(g.clientX));
 }
@@ -749,6 +766,7 @@ function onPointerDown(event: PointerEvent) {
     lag: new Spring(CATCH_UP),
     tracker: new VelocityTracker(),
     scroll: bar.scrollLeft,
+    nearestTab: nearestTab(m, center),
   };
 
   if (reduceMotion()) g.lag.jump(0);
