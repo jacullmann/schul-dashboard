@@ -40,7 +40,7 @@ import {
 } from '@/modules/schedule/utils/slotTimes';
 import { DALTON_SUBJECT_KEY } from '@/types/subjects';
 import { courseLabel, subjectLabel } from '@/utils/subject-formatter';
-import { preferredScrollBehavior } from '@/utils/motion';
+import { haptic } from '@/utils/haptics';
 
 const i18n = useI18n();
 const { t, locale } = i18n;
@@ -64,6 +64,7 @@ const {
 const { activeGroupDaltonEnabled, checkPermission } = useAppAuth();
 const { subjects, loadSubjects } = useSubjectAdmin();
 const {
+  days,
   scheduleConfig,
   schedulesCoursesIndividually,
   formatDayName,
@@ -213,13 +214,14 @@ function removeBreak(id: string) {
 }
 
 // Substitution Form State
+// A cleared number input hands `v-model.number` back an empty string.
 const emptySubForm = () => ({
   lessonId: '',
   courseId: null as string | null,
   subject: '',
   room: '',
-  slot: null as number | null,
-  duration: null as number | null,
+  slot: '' as number | '',
+  duration: '' as number | '',
   day: null as number | null,
   cancelled: false,
 });
@@ -228,9 +230,47 @@ const subForm = ref(emptySubForm());
 
 const selectedLesson = ref<Lesson | null>(null);
 
-const selectedSubLessonIds = computed(
-  () => new Set(subForm.value.lessonId ? [subForm.value.lessonId] : []),
+const selectedLessonSubjectName = computed(() =>
+  selectedLesson.value
+    ? getDisplayName(selectedLesson.value) || t('common.selection.unknown')
+    : '',
 );
+
+// The lesson's own day stands for "no change", so picking it again sends none.
+const subDayOptions = computed(() =>
+  days.map((day) =>
+    day === selectedLesson.value?.day
+      ? {
+          label:
+            t('groups.settings.schedule.changes.no_change') +
+            ' (' +
+            formatDayName(day) +
+            ')',
+          value: String(day),
+        }
+      : { label: formatDayName(day), value: String(day) },
+  ),
+);
+
+const subDay = computed({
+  get: () => String(subForm.value.day ?? selectedLesson.value?.day ?? ''),
+  set: (value: string) => {
+    const day = Number(value);
+    subForm.value.day = day === selectedLesson.value?.day ? null : day;
+  },
+});
+
+const hasSubChanges = computed(() => {
+  const form = subForm.value;
+  return (
+    !!form.subject.trim() ||
+    !!form.room.trim() ||
+    form.slot !== '' ||
+    form.duration !== '' ||
+    form.day !== null ||
+    form.cancelled
+  );
+});
 
 const selectedLessonSubject = computed(() =>
   selectedLesson.value
@@ -271,32 +311,49 @@ function getSubCourseName(courseId?: string | null): string {
   return t('groups.settings.schedule.changes.specific_course');
 }
 
-function onLessonSelected(lesson: Lesson) {
+function openSubModal(lesson: Lesson) {
+  if (!canManageScheduleChanges.value) return;
   selectedLesson.value = lesson;
   subForm.value = {
     ...emptySubForm(),
     lessonId: lesson._originalId || lesson.id,
     courseId: lesson.courseId || null,
   };
-  window.scrollTo({ top: 0, behavior: preferredScrollBehavior() });
 }
 
-function handleSaveSub() {
+function toggleSubCancelled() {
+  subForm.value.cancelled = !subForm.value.cancelled;
+  haptic();
+}
+
+function closeSubModal() {
+  selectedLesson.value = null;
+}
+
+/** What the folded-away fields hold stays out of a cancellation. */
+function lessonChangesPayload(): Record<string, unknown> {
+  const form = subForm.value;
+  if (form.cancelled) return { cancelled: true };
+
+  const payload: Record<string, unknown> = {};
+  const subject = form.subject.trim();
+  const room = form.room.trim();
+  if (subject) payload.subject = subject;
+  if (room) payload.room = room;
+  if (form.slot !== '') payload.slot = form.slot;
+  if (form.duration !== '') payload.duration = form.duration;
+  if (form.day !== null) payload.day = form.day;
+  return payload;
+}
+
+async function handleSaveSub() {
   const payload: Record<string, unknown> = {
     lessonId: subForm.value.lessonId,
+    ...lessonChangesPayload(),
   };
   if (subForm.value.courseId) payload.courseId = subForm.value.courseId;
-  if (subForm.value.subject) payload.subject = subForm.value.subject;
-  if (subForm.value.room) payload.room = subForm.value.room;
-  if (subForm.value.slot !== null) payload.slot = subForm.value.slot;
-  if (subForm.value.duration !== null)
-    payload.duration = subForm.value.duration;
-  if (subForm.value.day !== null) payload.day = subForm.value.day;
-  if (subForm.value.cancelled) payload.cancelled = true;
 
-  void saveSub(payload);
-  subForm.value = emptySubForm();
-  selectedLesson.value = null;
+  if (await saveSub(payload)) closeSubModal();
 }
 
 // ----------------------------------------------------
@@ -954,147 +1011,9 @@ onMounted(() => {
           :lessons="lessons"
           :subjects="subjects"
           :individual-courses="schedulesCoursesIndividually"
-          :selected-lesson-ids="selectedSubLessonIds"
           :animated="!hasSwitchedFromEditor"
-          @select-lesson="onLessonSelected"
+          @select-lesson="openSubModal"
         />
-      </div>
-
-      <div v-if="selectedLesson" class="sm:p-6 animate-fade-down">
-        <h3 class="mt-0 mb-2 text-lg text-action font-semibold">
-          {{ t('groups.settings.schedule.changes.selected_lesson') }}
-        </h3>
-        <p class="m-0 mb-4 text-on-ghost-muted text-sm">
-          {{ t('groups.settings.schedule.changes.replaces_prefix') }}
-          <strong>{{
-            getDisplayName(selectedLesson) || t('common.selection.unknown')
-          }}</strong>
-          ({{ t('groups.settings.schedule.changes.lesson_label') }}
-          {{ selectedLesson.slot }},
-          {{ t('groups.settings.schedule.changes.last_lesson_label') }}
-          {{ lessonLastSlot(selectedLesson) }},
-          <template v-if="selectedLesson.room">
-            {{ t('groups.settings.schedule.changes.room_label') }}
-            {{ selectedLesson.room }},
-          </template>
-          {{ t('groups.settings.schedule.changes.day_label') }}
-          {{ selectedLesson.day }})
-        </p>
-
-        <div class="grid grid-cols-2 gap-3 mb-4 sm:grid-cols-1">
-          <input v-model="subForm.lessonId" type="hidden" />
-          <div
-            v-if="
-              !selectedLesson.courseId && selectedLessonSubject?.courses?.length
-            "
-            class="form-field col-span-2 sm:col-span-1"
-          >
-            <BaseLabel for="sub-course-select">{{
-              t('groups.settings.schedule.changes.affected_course_label')
-            }}</BaseLabel>
-            <BaseSelect
-              id="sub-course-select"
-              v-model="subForm.courseId"
-              :options="targetCourseOptions"
-              classes="w-full"
-              :disabled="!canManageScheduleChanges"
-            />
-          </div>
-          <div v-if="canRescheduleLessons" class="form-field">
-            <BaseLabel for="sub-subject">{{
-              t('groups.settings.schedule.changes.new_subject_label')
-            }}</BaseLabel>
-            <BaseInput
-              id="sub-subject"
-              v-model="subForm.subject"
-              :placeholder="
-                t('groups.settings.schedule.changes.new_subject_placeholder')
-              "
-              :disabled="!canManageScheduleChanges"
-            />
-          </div>
-          <div
-            class="form-field"
-            :class="{ 'col-span-2 sm:col-span-1': !canRescheduleLessons }"
-          >
-            <BaseLabel for="sub-room">{{
-              t('groups.settings.schedule.changes.new_room_label')
-            }}</BaseLabel>
-            <BaseInput
-              id="sub-room"
-              v-model="subForm.room"
-              placeholder="A101"
-              :disabled="!canManageScheduleChanges"
-            />
-          </div>
-          <div v-if="canRescheduleLessons" class="form-field">
-            <BaseLabel for="sub-slot">{{
-              t('groups.settings.schedule.changes.new_slot_label')
-            }}</BaseLabel>
-            <BaseInput
-              id="sub-slot"
-              v-model.number="subForm.slot"
-              type="number"
-              placeholder="4"
-              :disabled="!canManageScheduleChanges"
-            />
-          </div>
-          <div v-if="canRescheduleLessons" class="form-field">
-            <BaseLabel for="sub-duration">{{
-              t('groups.settings.schedule.changes.new_duration_label')
-            }}</BaseLabel>
-            <BaseInput
-              id="sub-duration"
-              v-model.number="subForm.duration"
-              type="number"
-              min="1"
-              placeholder="2"
-              :disabled="!canManageScheduleChanges"
-            />
-          </div>
-          <div v-if="canRescheduleLessons" class="form-field">
-            <BaseLabel for="sub-day">{{
-              t('groups.settings.schedule.changes.new_day_label')
-            }}</BaseLabel>
-            <BaseInput
-              id="sub-day"
-              v-model.number="subForm.day"
-              type="number"
-              min="1"
-              max="5"
-              placeholder="2"
-              :disabled="!canManageScheduleChanges"
-            />
-          </div>
-        </div>
-
-        <div class="flex gap-6 mt-4 mb-6">
-          <BaseCheckbox
-            v-model="subForm.cancelled"
-            :disabled="!canManageScheduleChanges"
-          >
-            <span>{{
-              t('groups.settings.schedule.changes.cancelled_label')
-            }}</span>
-          </BaseCheckbox>
-        </div>
-
-        <div class="flex gap-3">
-          <BaseButton
-            :disabled="
-              savingSub || !subForm.lessonId || !canManageScheduleChanges
-            "
-            variant="action"
-            @click="handleSaveSub"
-          >
-            {{
-              savingSub ? t('common.buttons.saving') : t('common.buttons.save')
-            }}
-          </BaseButton>
-          <BaseButton variant="ghost" @click="selectedLesson = null">
-            {{ t('common.buttons.cancel') }}
-          </BaseButton>
-        </div>
       </div>
 
       <div class="sm:p-6">
@@ -1262,6 +1181,146 @@ onMounted(() => {
 
       <template #action-text>
         {{ t('groups.settings.schedule.editor.save_lesson_button') }}
+      </template>
+    </BaseModal>
+
+    <BaseModal
+      :open="!!selectedLesson"
+      :submit="handleSaveSub"
+      :loading="savingSub"
+      :requirement="hasSubChanges"
+      header-actions
+      @cancel="closeSubModal"
+    >
+      <template #title>
+        {{ t('groups.settings.schedule.changes.edit_lesson_title') }}
+      </template>
+
+      <template #content>
+        <i18n-t
+          :keypath="
+            selectedLesson?.room
+              ? 'groups.settings.schedule.changes.editing_summary'
+              : 'groups.settings.schedule.changes.editing_summary_no_room'
+          "
+          tag="div"
+          class="text-base text-on-ghost-muted"
+        >
+          <template #subject>
+            <strong>{{ selectedLessonSubjectName }}</strong>
+          </template>
+          <template #room>
+            <strong>{{ selectedLesson?.room }}</strong>
+          </template>
+          <template #day>
+            {{ selectedLesson ? formatDayName(selectedLesson.day) : '' }}
+          </template>
+        </i18n-t>
+
+        <button
+          type="button"
+          role="switch"
+          :aria-checked="subForm.cancelled"
+          class="relative group flex items-center justify-between w-full h-10 cursor-pointer touch-target after:min-h-12"
+          @click="toggleSubCancelled"
+        >
+          <span class="text-base font-normal">{{
+            t('groups.settings.schedule.changes.cancelled_label')
+          }}</span>
+          <BaseToggle :model-value="subForm.cancelled" decorative />
+        </button>
+
+        <BaseFormGroup
+          v-if="
+            !selectedLesson?.courseId && selectedLessonSubject?.courses?.length
+          "
+          id="sub-course"
+        >
+          <BaseLabel for="sub-course-select">{{
+            t('groups.settings.schedule.changes.affected_course_label')
+          }}</BaseLabel>
+          <BaseSelect
+            id="sub-course-select"
+            v-model="subForm.courseId"
+            :options="targetCourseOptions"
+            classes="w-full"
+          />
+        </BaseFormGroup>
+
+        <!-- A cancelled lesson shows nothing else, so its other changes fold
+             away; they keep what was typed in case it is turned off again.
+             The negative margin takes back the form's gap while collapsed. -->
+        <div
+          class="grid -mt-4 transition-[grid-template-rows,opacity] duration-300 ease-out"
+          :class="
+            subForm.cancelled
+              ? 'grid-rows-[0fr] opacity-0'
+              : 'grid-rows-[1fr] opacity-100'
+          "
+          :inert="subForm.cancelled"
+        >
+          <div class="overflow-hidden min-h-0">
+            <div class="flex flex-col gap-4 pt-4">
+              <BaseFormGroup v-if="canRescheduleLessons" id="sub-subject">
+                <BaseLabel for="sub-subject-input">{{
+                  t('groups.settings.schedule.changes.new_subject_label')
+                }}</BaseLabel>
+                <BaseInput id="sub-subject-input" v-model="subForm.subject" />
+              </BaseFormGroup>
+
+              <BaseFormGroup id="sub-room">
+                <BaseLabel for="sub-room-input">{{
+                  t('groups.settings.schedule.changes.new_room_label')
+                }}</BaseLabel>
+                <BaseInput id="sub-room-input" v-model="subForm.room" />
+              </BaseFormGroup>
+
+              <template v-if="canRescheduleLessons">
+                <BaseFormGroup id="sub-slot">
+                  <BaseLabel for="sub-slot-input">{{
+                    t('groups.settings.schedule.changes.new_slot_label')
+                  }}</BaseLabel>
+                  <BaseInput
+                    id="sub-slot-input"
+                    v-model.number="subForm.slot"
+                    type="number"
+                    min="1"
+                    :placeholder="String(selectedLesson?.slot ?? '')"
+                  />
+                </BaseFormGroup>
+
+                <BaseFormGroup id="sub-duration">
+                  <BaseLabel for="sub-duration-input">{{
+                    t('groups.settings.schedule.changes.new_duration_label')
+                  }}</BaseLabel>
+                  <BaseInput
+                    id="sub-duration-input"
+                    v-model.number="subForm.duration"
+                    type="number"
+                    min="1"
+                    :placeholder="String(selectedLesson?.duration ?? 1)"
+                  />
+                </BaseFormGroup>
+
+                <BaseFormGroup id="sub-day">
+                  <BaseLabel for="sub-day-select">{{
+                    t('groups.settings.schedule.changes.new_day_label')
+                  }}</BaseLabel>
+                  <BaseSelect
+                    id="sub-day-select"
+                    v-model="subDay"
+                    :options="subDayOptions"
+                    classes="w-full"
+                  />
+                </BaseFormGroup>
+              </template>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <template #action-text>
+        {{ t('common.buttons.save') }}
       </template>
     </BaseModal>
 

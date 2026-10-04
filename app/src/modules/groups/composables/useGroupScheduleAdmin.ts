@@ -113,15 +113,17 @@ export function useGroupScheduleAdmin() {
     }
   }
 
-  async function saveSub(subData: Record<string, unknown>) {
-    if (!subData.lessonId) return;
+  async function saveSub(subData: Record<string, unknown>): Promise<boolean> {
+    if (!subData.lessonId) return false;
     savingSub.value = true;
     try {
       await api.post(groupPath(groupId, '/admin/schedule/subs'), subData);
       await loadSubs();
       toast.success(t('groups.settings.messages.substitution_saved'));
+      return true;
     } catch {
       toast.error(t('groups.settings.messages.substitution_save_failed'));
+      return false;
     } finally {
       savingSub.value = false;
     }
