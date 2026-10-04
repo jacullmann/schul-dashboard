@@ -25,10 +25,13 @@ provide(SCROLL_LAYOUT_TO_TOP, () => {
   <div class="flex w-full flex-col bg-canvas max-md:h-dvh md:min-h-screen">
     <!-- On phones the page scrolls inside the layout instead of the document,
          so its edge cuts content off above a page's secondary actions, which
-         BasePageActions moves out below it. -->
+         BasePageActions moves out below it. It must not rubber-band: WebKit
+         still bounces a scroller that only contains its overscroll, which
+         carried the main action, stuck inside it, away from the secondary
+         actions left behind outside. -->
     <div
       ref="scroller"
-      class="flex flex-1 flex-col max-md:min-h-0 max-md:overflow-x-hidden max-md:overflow-y-auto max-md:overscroll-contain"
+      class="flex flex-1 flex-col max-md:min-h-0 max-md:overflow-x-hidden max-md:overflow-y-auto max-md:overscroll-none"
     >
       <header class="relative z-10 w-full px-6 py-2 max-md:sticky max-md:top-0">
         <!-- Only shown once scrolled, like AppHeader's. -->
