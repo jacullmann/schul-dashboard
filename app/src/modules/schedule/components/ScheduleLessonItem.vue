@@ -95,10 +95,7 @@ const showsRoom = computed(
         class="font-bold text-base whitespace-nowrap overflow-hidden text-ellipsis flex items-center"
         :class="lesson.cancelled ? mutedText : strongText"
       >
-        <span
-          class="flex-1 min-w-0 truncate"
-          :class="{ 'line-through': lesson.cancelled }"
-        >
+        <span class="flex-1 min-w-0 truncate">
           <template v-if="originalName">
             <span class="line-through font-normal mr-1" :class="mutedText">
               {{ originalName }}
@@ -144,11 +141,7 @@ const showsRoom = computed(
         class="flex justify-between text-sm"
         :class="mutedText"
       >
-        <span
-          v-if="showsRoom"
-          class="inline-flex gap-1 items-center"
-          :class="{ 'line-through': lesson.cancelled }"
-        >
+        <span v-if="showsRoom" class="inline-flex gap-1 items-center">
           <template v-if="roomChanged">
             <span class="line-through font-normal mr-1" :class="mutedText">
               {{ shownOriginal?.room }}
