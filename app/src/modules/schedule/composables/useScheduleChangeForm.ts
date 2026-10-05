@@ -199,7 +199,6 @@ export function useScheduleChangeForm(
     };
     try {
       await api.put(groupPath(groupId, '/admin/schedule/subs'), payload);
-      toast.success(t('groups.settings.messages.substitution_saved'));
       return true;
     } catch {
       toast.error(t('groups.settings.messages.substitution_save_failed'));
@@ -210,7 +209,6 @@ export function useScheduleChangeForm(
   async function removeChange(change: Substitution): Promise<boolean> {
     try {
       await api.delete(groupPath(groupId, `/admin/schedule/subs/${change.id}`));
-      toast.success(t('groups.settings.messages.substitution_deleted'));
       return true;
     } catch {
       toast.error(t('groups.settings.messages.substitution_delete_failed'));

@@ -45,7 +45,6 @@ export function useGroupScheduleChanges() {
     try {
       await api.delete(groupPath(groupId, `/admin/schedule/subs/${id}`));
       changes.value = changes.value.filter((change) => change.id !== id);
-      toast.success(t('groups.settings.messages.substitution_deleted'));
     } catch {
       toast.error(t('groups.settings.messages.substitution_delete_failed'));
     }
