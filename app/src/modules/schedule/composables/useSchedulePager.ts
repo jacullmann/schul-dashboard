@@ -97,6 +97,12 @@ export function useSchedulePager(pageCount?: number) {
     selectedPage.value = page;
   };
 
+  /** Shows a page outright, as paged to rather than as the first one shown. */
+  const skipToPage = (page: number) => {
+    hasPaged.value = true;
+    showPage(page);
+  };
+
   const goToPage = async (page: number) => {
     if (settling.value) finishSettling();
     if (page === activePage.value) return;
@@ -209,6 +215,7 @@ export function useSchedulePager(pageCount?: number) {
     hasPaged,
     goToPage,
     showPage,
+    skipToPage,
     panelStyle,
     onPanelTransitionEnd,
   };

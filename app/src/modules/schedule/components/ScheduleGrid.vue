@@ -1,7 +1,10 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 import type { ScheduleLayout } from '@/modules/schedule/types';
-import type { SchedulePager } from '@/modules/schedule/composables/useSchedulePager';
+import {
+  useSchedulePager,
+  type SchedulePager,
+} from '@/modules/schedule/composables/useSchedulePager';
 import { useIsPhoneViewport } from '@/common/composables/useViewport';
 import { useScheduleDisplay } from '@/modules/schedule/composables/useScheduleDisplay';
 
@@ -20,6 +23,8 @@ const props = withDefaults(
     pager: SchedulePager;
     /** The shown week side by side, sharing its rows. */
     layout: ScheduleLayout;
+    /** Any week side by side, as it slides in or out; the shown week's rows by default. */
+    weekLayout?: (week: number) => ScheduleLayout;
     /** A day on its own, as a phone shows it; the week's rows by default. */
     dayLayout?: (day: number, week: number) => ScheduleLayout;
     /** The rows a phone labels for a day; every row by default. */
@@ -32,11 +37,8 @@ const props = withDefaults(
     tabCaption?: (day: number, week: number) => string;
     /** The heading above a phone's single day; the weekday by default. */
     dayHeading?: (day: number, week: number) => string;
-    /** The heading above each day of the week side by side; the weekday by default. */
-    columnHeading?: (
-      day: number,
-      week: number,
-    ) => readonly Intl.DateTimeFormatPart[];
+    /** The date below each weekday of the week side by side; none by default. */
+    columnDate?: (day: number, week: number) => string;
     panelKey?: (page: number) => PropertyKey;
     currentPage?: number | null;
     clickableDays?: boolean;
@@ -45,11 +47,12 @@ const props = withDefaults(
   }>(),
   {
     dayLayout: undefined,
+    weekLayout: undefined,
     labelledRows: undefined,
     tabLabel: undefined,
     tabCaption: undefined,
     dayHeading: undefined,
-    columnHeading: undefined,
+    columnDate: undefined,
     panelKey: undefined,
     currentPage: null,
     clickableDays: false,
@@ -77,14 +80,62 @@ const { days, formatDayName } = useScheduleDisplay();
 const isPhone = useIsPhoneViewport();
 
 // The parent creates the pager once and never swaps it.
-const { hasPaged, selectedPage } = props.pager;
+const { hasPaged, selectedPage, skipToPage } = props.pager;
 
 const shownWeek = computed(() => Math.floor(selectedPage.value / days.length));
-const isCurrent = (dayIndex: number) =>
-  shownWeek.value * days.length + dayIndex === props.currentPage;
+const isCurrent = (week: number, dayIndex: number) =>
+  week * days.length + dayIndex === props.currentPage;
 
-// A day paged to slides in whole instead of replaying the entrance.
-const phoneAnimated = computed(() => props.animated && !hasPaged.value);
+// A day or week paged to slides in whole instead of replaying the entrance.
+const pagedAnimated = computed(() => props.animated && !hasPaged.value);
+
+/** Slides the week side by side along as the shown week changes. */
+const {
+  trackRef: weekTrackRef,
+  activePage: activeWeek,
+  selectedPage: selectedWeek,
+  incomingPage: incomingWeek,
+  settling: weekSettling,
+  goToPage: goToWeek,
+  showPage: showWeek,
+  panelStyle: weekPanelStyle,
+  onPanelTransitionEnd: onWeekTransitionEnd,
+} = useSchedulePager();
+
+/*
+ * Until the days are paged, the first week shown keeps its panel when the
+ * selected day moves to another week, so its entrance carries on there.
+ */
+const entranceWeek = ref(shownWeek.value);
+showWeek(shownWeek.value);
+
+watch(shownWeek, (week) => {
+  if (week === selectedWeek.value) return;
+  if (hasPaged.value) {
+    void goToWeek(week);
+    return;
+  }
+  entranceWeek.value = week;
+  showWeek(week);
+});
+
+// A week swiped to keeps the weekday that was selected.
+watch(selectedWeek, (week) => {
+  const weeksAway = week - shownWeek.value;
+  if (weeksAway !== 0) skipToPage(selectedPage.value + weeksAway * days.length);
+});
+
+const weekPanels = computed(() => {
+  const weeks =
+    incomingWeek.value === null
+      ? [activeWeek.value]
+      : [activeWeek.value, incomingWeek.value];
+  return weeks.map((week) => ({
+    week,
+    key: week === entranceWeek.value ? 'entrance' : week,
+    layout: props.weekLayout?.(week) ?? props.layout,
+  }));
+});
 
 const tabLabelOf = (day: number, week: number) =>
   props.tabLabel?.(day, week) ?? formatDayName(day, 'short');
@@ -116,7 +167,7 @@ function onDayClick(day: number, event: MouseEvent) {
       <ScheduleStartTimeColumn
         :rows="panel.layout.rows"
         :labelled-rows="labelledRows?.(day, week)"
-        :animated="phoneAnimated"
+        :animated="pagedAnimated"
       />
 
       <ScheduleDayHeader
@@ -126,7 +177,7 @@ function onDayClick(day: number, event: MouseEvent) {
         :label="dayHeading?.(day, week) ?? formatDayName(day)"
         :is-current="page === currentPage"
         :is-clickable="clickableDays"
-        :animated="phoneAnimated"
+        :animated="pagedAnimated"
         @click.stop="onDayClick(day, $event)"
       />
 
@@ -135,36 +186,52 @@ function onDayClick(day: number, event: MouseEvent) {
         :week="week"
         :column="2"
         :layout="panel.layout"
-        :animated="phoneAnimated"
+        :animated="pagedAnimated"
       />
     </template>
   </ScheduleDayTrack>
 
   <BaseTableWrapper v-else>
     <div
-      class="relative grid grid-cols-[2.5rem_repeat(5,minmax(9rem,1fr))] gap-2 items-stretch"
-      :style="layout.gridStyle"
+      ref="weekTrackRef"
+      class="relative min-w-fit overflow-x-clip touch-pan-y"
     >
-      <ScheduleStartTimeColumn :rows="layout.rows" :animated="animated" />
-
-      <template v-for="(day, dayIndex) in days" :key="day">
-        <ScheduleDayHeader
-          :grid-column="dayIndex + 2"
-          :label="columnHeading?.(day, shownWeek) ?? formatDayName(day)"
-          :is-current="isCurrent(dayIndex)"
-          :is-clickable="clickableDays"
-          :animated="animated"
-          @click.stop="onDayClick(day, $event)"
+      <div
+        v-for="{ week, key, layout: panelLayout } in weekPanels"
+        :key="key"
+        class="grid grid-cols-[2.5rem_repeat(5,minmax(9rem,1fr))] gap-2 items-stretch w-full"
+        :class="[
+          week === activeWeek ? 'relative' : 'absolute inset-x-0 top-0',
+          { 'transition-transform duration-300 ease-out': weekSettling },
+        ]"
+        :style="[weekPanelStyle(week), panelLayout.gridStyle]"
+        @transitionend="onWeekTransitionEnd"
+      >
+        <ScheduleStartTimeColumn
+          :rows="panelLayout.rows"
+          :animated="pagedAnimated"
         />
 
-        <slot
-          :day="day"
-          :week="shownWeek"
-          :column="dayIndex + 2"
-          :layout="layout"
-          :animated="animated"
-        />
-      </template>
+        <template v-for="(day, dayIndex) in days" :key="day">
+          <ScheduleDayHeader
+            :grid-column="dayIndex + 2"
+            :label="formatDayName(day)"
+            :date="columnDate?.(day, week)"
+            :is-current="isCurrent(week, dayIndex)"
+            :is-clickable="clickableDays"
+            :animated="pagedAnimated"
+            @click.stop="onDayClick(day, $event)"
+          />
+
+          <slot
+            :day="day"
+            :week="week"
+            :column="dayIndex + 2"
+            :layout="panelLayout"
+            :animated="pagedAnimated"
+          />
+        </template>
+      </div>
     </div>
   </BaseTableWrapper>
 </template>

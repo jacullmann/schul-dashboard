@@ -40,5 +40,8 @@ const tm = i18n.tm.bind(i18n);
         </div>
       </InfoModal>
     </template>
+    <template #action>
+      <slot name="action"></slot>
+    </template>
   </PageHeader>
 </template>

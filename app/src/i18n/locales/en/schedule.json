@@ -23,5 +23,6 @@
   "title": "Schedule",
   "previous_week": "Previous week",
   "next_week": "Next week",
+  "today": "Today",
   "day_end": "End of day"
 }

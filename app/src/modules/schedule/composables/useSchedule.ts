@@ -119,6 +119,20 @@ export function useSchedule(shownWeek?: Ref<number>) {
   const pageOf = (week: number, dayIndex: number) =>
     week * days.length + dayIndex;
 
+  const dateOfPage = (page: number) => {
+    const week = Math.floor(page / days.length);
+    return addDays(weekStartOf(week), page - week * days.length);
+  };
+
+  /** The page showing a date; a weekend shows the Monday after. */
+  const pageOfDate = (date: Date) => {
+    const week = weeksBetween(firstMonday, mondayOf(date));
+    const dayIndex = daysSinceMonday(date);
+    return dayIndex < days.length
+      ? pageOf(week, dayIndex)
+      : pageOf(week + 1, 0);
+  };
+
   const formatDayDate = (day: number, week: number): string =>
     new Intl.DateTimeFormat(locale.value, { day: 'numeric' }).format(
       dateOf(day, week),
@@ -131,32 +145,14 @@ export function useSchedule(shownWeek?: Ref<number>) {
       month: 'long',
     }).format(dateOf(day, week));
 
-  // A week running into the next month names both.
-  const formatWeekMonth = (week: number): string =>
-    new Intl.DateTimeFormat(locale.value, {
-      month: 'long',
+  // A week running into the next month names both, shortened to stay on one line.
+  const formatWeekMonth = (week: number): Intl.DateTimeRangeFormatPart[] => {
+    const start = weekStartOf(week);
+    const end = addDays(start, days.length - 1);
+    return new Intl.DateTimeFormat(locale.value, {
+      month: start.getMonth() === end.getMonth() ? 'long' : 'short',
       year: 'numeric',
-    }).formatRange(
-      weekStartOf(week),
-      addDays(weekStartOf(week), days.length - 1),
-    );
-
-  // English CLDR orders a monthless date as "6 Tuesday", so the weekday is moved to the front.
-  const formatColumnHeading = (
-    day: number,
-    week: number,
-  ): Intl.DateTimeFormatPart[] => {
-    const date = dateOf(day, week);
-    const parts = new Intl.DateTimeFormat(locale.value, {
-      weekday: 'long',
-      day: 'numeric',
-    }).formatToParts(date);
-    if (parts[0]?.type === 'weekday') return parts;
-    return [
-      ...parts.filter(({ type }) => type === 'weekday'),
-      { type: 'literal', value: ' ' },
-      ...parts.filter(({ type }) => type === 'day'),
-    ];
+    }).formatRangeToParts(start, end);
   };
 
   // Locales abbreviate weekdays to different lengths, some with a dot; two letters keep tabs even.
@@ -571,13 +567,14 @@ export function useSchedule(shownWeek?: Ref<number>) {
     todayPage,
     activeOrNextGroupKey,
     defaultPage,
+    dateOfPage,
+    pageOfDate,
     weekKeyOf,
     getDisplayName,
     formatDayName,
     formatDayDate,
     formatDayHeading,
     formatWeekMonth,
-    formatColumnHeading,
     formatDayInitials,
     lessons,
     substitutionsOf,

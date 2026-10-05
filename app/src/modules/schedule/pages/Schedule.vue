@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, shallowRef, computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRoute, useRouter } from 'vue-router';
 import { useIsPhoneViewport } from '@/common/composables/useViewport';
 import { useDismissibleNotice } from '@/common/composables/useDismissibleNotice';
 import { useSchedule } from '@/modules/schedule/composables/useSchedule';
@@ -21,7 +22,11 @@ import {
 import { entranceDelay } from '@/modules/schedule/utils/entrance';
 import { lessonRowsOf } from '@/modules/schedule/utils/layout';
 import { lessonGroupsByDay } from '@/modules/schedule/utils/lesson';
-import { SCHOOL_DAYS } from '@/modules/schedule/utils/weekday';
+import {
+  isoDate,
+  parseIsoDate,
+  SCHOOL_DAYS,
+} from '@/modules/schedule/utils/weekday';
 
 import PersonalizedViewNotice from '@/common/components/PersonalizedViewNotice.vue';
 import ScheduleHeader from '../components/ScheduleHeader.vue';
@@ -34,7 +39,7 @@ import ScheduleWeekNav from '../components/ScheduleWeekNav.vue';
 
 // Pages run on past Friday into the following weeks, and back before Monday.
 const dayPager = useSchedulePager();
-const { hasPaged, selectedPage, showPage } = dayPager;
+const { hasPaged, selectedPage, showPage, skipToPage } = dayPager;
 
 const shownWeek = computed(() =>
   Math.floor(selectedPage.value / SCHOOL_DAYS.length),
@@ -52,11 +57,12 @@ const {
   activeOrNextGroupKey,
   getDisplayName,
   defaultPage,
+  dateOfPage,
+  pageOfDate,
   weekKeyOf,
   formatDayDate,
   formatDayHeading,
   formatWeekMonth,
-  formatColumnHeading,
   formatDayInitials,
   lessons: scheduledLessons,
   substitutionsOf,
@@ -68,12 +74,24 @@ const { t } = useI18n();
 
 const isPhone = useIsPhoneViewport();
 
+const route = useRoute();
+const router = useRouter();
+
+const pageOfQueryDate = (date: unknown) => {
+  if (typeof date !== 'string') return null;
+  const parsed = parseIsoDate(date);
+  return isoDate(parsed) === date ? pageOfDate(parsed) : null;
+};
+
+/** A linked date counts as paged to, so the loaded lessons never move off it. */
+const linkedPage = pageOfQueryDate(route.query.date);
+
 /*
  * The day first shown on a phone keeps its panel when the loaded lessons move
  * it to another day, so its skeletons crossfade into that day's lessons
  * instead of a fresh panel playing the entrance a second time.
  */
-const entrancePage = ref(defaultPage.value);
+const entrancePage = ref(linkedPage ?? defaultPage.value);
 
 const panelKey = (page: number) =>
   page === entrancePage.value ? 'entrance' : page;
@@ -83,7 +101,34 @@ const enterPage = (page: number) => {
   showPage(page);
 };
 
-enterPage(defaultPage.value);
+if (linkedPage === null) enterPage(defaultPage.value);
+else skipToPage(linkedPage);
+
+/*
+ * The URL names a date only away from what the schedule opens on: a phone
+ * pages through days, a wider screen through weeks, named by their Monday.
+ */
+const queryDate = computed(() => {
+  if (isPhone.value) {
+    return selectedPage.value === defaultPage.value
+      ? undefined
+      : isoDate(dateOfPage(selectedPage.value));
+  }
+  const defaultWeek = Math.floor(defaultPage.value / days.length);
+  return shownWeek.value === defaultWeek
+    ? undefined
+    : weekKeyOf(shownWeek.value);
+});
+
+// After the loaded lessons have moved the first page to its school day.
+watch(
+  queryDate,
+  (date) => {
+    if (route.query.date === date) return;
+    void router.replace({ query: { ...route.query, date } });
+  },
+  { immediate: true, flush: 'post' },
+);
 
 watch(loadingLessons, (loading) => {
   if (!loading && !hasPaged.value) enterPage(defaultPage.value);
@@ -91,7 +136,7 @@ watch(loadingLessons, (loading) => {
 
 /** The days stay selected as the weeks change. */
 const shiftWeek = (weeks: -1 | 1) =>
-  showPage(selectedPage.value + weeks * days.length);
+  skipToPage(selectedPage.value + weeks * days.length);
 
 const entranceStart = useSkeletonHandoff(loadingLessons);
 
@@ -297,7 +342,13 @@ watch(
       class="animate-enter"
       :loading="loadingSubs || loadingLessons"
       :is-personalized="!!isPersonalized"
-    />
+    >
+      <template v-if="isPhone" #action>
+        <BaseButton @click="skipToPage(defaultPage)">
+          {{ t('schedule.today') }}
+        </BaseButton>
+      </template>
+    </ScheduleHeader>
 
     <PersonalizedViewNotice
       :show="showPersonalizedNotice"
@@ -310,17 +361,19 @@ watch(
       class="mb-2 animate-enter"
       :label="formatWeekMonth(shownWeek)"
       @shift="shiftWeek"
+      @today="skipToPage(defaultPage)"
     />
 
     <ScheduleGrid
       :pager="dayPager"
       :layout="shownWeekLayout"
+      :week-layout="(week) => scheduleOfWeek(week).weekLayout"
       :day-layout="dayLayoutOf"
       :labelled-rows="labelledRowsOf"
       :tab-label="formatDayDate"
       :tab-caption="formatDayInitials"
       :day-heading="formatDayHeading"
-      :column-heading="formatColumnHeading"
+      :column-date="formatDayDate"
       :panel-key="panelKey"
       :current-page="todayPage"
     >

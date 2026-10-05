@@ -5,7 +5,7 @@ import { formatSubjectDisplay } from '@/utils/subject-formatter';
 import { useIsPhoneViewport } from '@/common/composables/useViewport';
 import type { Task } from '@/modules/tasks/types';
 import { formatDueDate } from '@/modules/tasks/utils/dueDate';
-import { useImpliedCourse } from '@/modules/tasks/composables/useImpliedCourse';
+import { useImpliedCourse } from '@/common/composables/useImpliedCourse';
 
 const props = defineProps<{
   item: Task;

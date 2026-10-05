@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useLongPress } from '@/common/composables/useLongPress';
+import { useImpliedCourse } from '@/common/composables/useImpliedCourse';
 import type { Lesson } from '@/modules/schedule/types';
 
 const emit = defineEmits<{
@@ -60,6 +61,15 @@ const originalName = computed(() => {
   const name = props.getDisplayName(shownOriginal.value);
   return name === props.getDisplayName(props.lesson) ? undefined : name;
 });
+
+const courseName = computed(
+  () => props.lesson.courses?.name || props.lesson.courseName,
+);
+
+const courseIsImplied = useImpliedCourse(() => ({
+  subjectId: props.lesson.subjectId ?? props.lesson.subjects?.id,
+  courseId: props.lesson.courseId ?? props.lesson.courses?.id,
+}));
 
 const roomChanged = computed(
   () => !!shownOriginal.value && props.lesson.room !== shownOriginal.value.room,
@@ -121,11 +131,11 @@ const showsRoom = computed(
           {{ lesson.courseCount }}
         </span>
         <span
-          v-else-if="lesson.courseName || lesson.courses?.name"
+          v-else-if="courseName && !courseIsImplied"
           class="font-normal truncate ml-1 min-w-0 max-w-[55%]"
           :class="mutedText"
         >
-          {{ lesson.courses?.name || lesson.courseName }}
+          {{ courseName }}
         </span>
       </div>
 
