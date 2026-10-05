@@ -42,3 +42,10 @@ export interface SetPasswordErrors {
   new?: string;
   confirm?: string;
 }
+
+export interface ForgotPasswordErrors {
+  email?: string;
+  code?: string;
+  password?: string;
+  confirm?: string;
+}

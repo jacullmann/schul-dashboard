@@ -1,312 +1,219 @@
 <script setup lang="ts">
-import { ref, onMounted, watch, nextTick } from 'vue';
+import { computed, useTemplateRef, watchPostEffect } from 'vue';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
-import { useEventListener } from '@vueuse/core';
 import { useI18n } from 'vue-i18n';
-import api from '../../../api/api';
 import { useToast } from '@/common/composables/useToast';
 import CenteredAuthModal from '@/common/components/CenteredAuthModal.vue';
-import { apiErrorMessage } from '@/api/errors';
 import { useUserStore } from '@/stores/userStore';
 import { useLogout } from '@/core/composables/useLogout';
+import {
+  type ForgotPasswordStep,
+  useForgotPassword,
+} from '@/modules/auth/composables/useForgotPassword';
 
 const router = useRouter();
 const { t } = useI18n();
+const toast = useToast();
 const { user } = storeToRefs(useUserStore());
 const logout = useLogout();
 
-const step = ref(1);
-const email = ref(user.value?.email ?? '');
-const code = ref('');
-const password = ref('');
-const password2 = ref('');
-const submitting = ref(false);
-const message = ref('');
-const isError = ref(false);
-let savedResetToken = '';
+const {
+  step,
+  email,
+  code,
+  password,
+  password2,
+  submitting,
+  error,
+  errors,
+  cooldownSeconds,
+  clearFieldError,
+  submit,
+  resendCode,
+  backToEmail,
+} = useForgotPassword(user.value?.email ?? '', onPasswordReset);
 
-const emailInputRef = ref<HTMLInputElement | null>(null);
-const codeInputRef = ref<HTMLInputElement | null>(null);
-const passwordInputRef = ref<HTMLInputElement | null>(null);
+const stepInput = useTemplateRef<{ focus: () => void }>('stepInput');
+watchPostEffect(() => stepInput.value?.focus());
 
-function onKeyDown(e: KeyboardEvent) {
-  if (e.key === 'Escape' && !submitting.value) {
-    leave();
+const titles = computed<Record<ForgotPasswordStep, string>>(() => ({
+  email: t('auth.login.reset.title'),
+  code: t('auth.login.reset.step2.title'),
+  password: t('auth.login.reset.step3.title'),
+}));
+
+const submitLabel = computed(() => {
+  if (step.value === 'code') return t('auth.login.reset.actions.verify_code');
+  if (step.value === 'password') {
+    return t('auth.login.reset.actions.set_password');
   }
-  if (e.key === 'Enter' && !submitting.value) {
-    void handleNext();
-  }
-}
-
-watch(step, async () => {
-  await nextTick();
-  if (step.value === 1) emailInputRef.value?.focus();
-  if (step.value === 2) codeInputRef.value?.focus();
-  if (step.value === 3) passwordInputRef.value?.focus();
+  return cooldownSeconds.value > 0
+    ? t('auth.login.reset.actions.resend_code_in', {
+        seconds: cooldownSeconds.value,
+      })
+    : t('auth.login.reset.actions.request_code');
 });
 
-useEventListener(window, 'keydown', onKeyDown);
-
-onMounted(() => {
-  emailInputRef.value?.focus();
-});
-
-function setMessage(txt: string, error = false) {
-  message.value = txt;
-  isError.value = error;
-}
-
-function goBack() {
-  if (step.value === 2) {
-    step.value = 1;
-    setMessage('');
-    code.value = '';
-  }
-}
+const resendLabel = computed(() =>
+  cooldownSeconds.value > 0
+    ? t('auth.login.reset.actions.resend_code_in', {
+        seconds: cooldownSeconds.value,
+      })
+    : t('auth.login.reset.actions.resend_code'),
+);
 
 // Signed-in users arrive from their account settings and return there.
-function leave() {
-  void router.push(
+function exitPage() {
+  return router.push(
     user.value
       ? { name: 'account-settings', params: { tab: 'security' } }
       : { name: 'login' },
   );
 }
 
-async function handleNext() {
-  setMessage('');
-  if (step.value === 1) {
-    if (!email.value || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
-      setMessage(t('auth.login.reset.errors.invalid_email'), true);
-      return;
-    }
-    submitting.value = true;
-    try {
-      await api.post('/auth/forgot', { email: email.value });
-      setMessage(t('auth.login.reset.errors.code_sent'), false);
-      step.value = 2;
-    } catch (e: unknown) {
-      setMessage(
-        apiErrorMessage(e, t('auth.login.reset.errors.request_failed')),
-        true,
-      );
-    } finally {
-      submitting.value = false;
-    }
-  } else if (step.value === 2) {
-    if (!code.value || code.value.trim().length !== 6) {
-      setMessage(t('auth.login.reset.errors.invalid_code'), true);
-      return;
-    }
-    submitting.value = true;
-    try {
-      const { data } = await api.post('/auth/reset/verify', {
-        email: email.value,
-        code: code.value.trim(),
-      });
-      savedResetToken = data.resetToken;
-      setMessage(t('auth.login.reset.errors.code_verified'), false);
-      step.value = 3;
-    } catch (e: unknown) {
-      setMessage(
-        apiErrorMessage(e, t('auth.login.reset.errors.code_expired')),
-        true,
-      );
-    } finally {
-      submitting.value = false;
-    }
-  } else if (step.value === 3) {
-    if (!password.value || password.value.length < 8) {
-      setMessage(t('auth.login.reset.errors.password_short'), true);
-      return;
-    }
-    if (password.value !== password2.value) {
-      setMessage(t('auth.login.reset.errors.password_mismatch'), true);
-      return;
-    }
-    if (!savedResetToken) {
-      setMessage(t('auth.login.reset.errors.no_token'), true);
-      step.value = 1;
-      return;
-    }
-    submitting.value = true;
-    try {
-      const { data } = await api.post('/auth/reset', {
-        resetToken: savedResetToken,
-        password: password.value,
-      });
-      const msg = data.message || t('auth.login.reset_success');
-      useToast().success(msg);
-      // A reset revokes every session of that account, so resetting your
-      // own signs you out here as well.
-      if (user.value?.email === email.value.trim().toLowerCase()) {
-        await logout();
-      } else if (user.value) {
-        leave();
-      } else {
-        await router.push({ name: 'login' });
-      }
-    } catch (e: unknown) {
-      setMessage(
-        apiErrorMessage(e, t('auth.login.reset.errors.reset_failed')),
-        true,
-      );
-    } finally {
-      submitting.value = false;
-    }
+function leave() {
+  if (!submitting.value) void exitPage();
+}
+
+async function onPasswordReset(resetEmail: string) {
+  toast.success(t('auth.login.reset_success'));
+  // A reset revokes every session of that account, so resetting your
+  // own signs you out here as well.
+  if (user.value?.email.toLowerCase() === resetEmail) {
+    await logout();
+  } else {
+    await exitPage();
   }
 }
 </script>
 
 <template>
-  <div class="flex items-center justify-center px-4 py-6">
-    <CenteredAuthModal
-      :title="
-        step === 1
-          ? t('auth.login.reset.title')
-          : step === 2
-            ? t('auth.login.reset.step2.title', {
-                defaultValue: 'Verify Code',
-              })
-            : t('auth.login.reset.step3.title', {
-                defaultValue: 'New Password',
-              })
-      "
-      :close-on-backdrop="false"
-      @close="leave"
+  <CenteredAuthModal
+    :title="titles[step]"
+    :close-on-backdrop="false"
+    @close="leave"
+  >
+    <BaseForm
+      :submit="submit"
+      :cancel="leave"
+      :error="error"
+      :loading="submitting"
+      :requirement="step !== 'email' || cooldownSeconds === 0"
     >
-      <div v-if="step === 1" class="space-y-4">
-        <p class="text-sm text-on-ghost-muted">
-          {{ t('auth.login.reset.step1.description') }}
-        </p>
-        <div>
-          <label
-            for="reset-email"
-            class="block text-base font-medium text-on-ghost mb-2"
+      <template #content>
+        <template v-if="step === 'email'">
+          <p class="mx-0! my-0!">
+            {{ t('auth.login.reset.step1.description') }}
+          </p>
+          <BaseFormGroup id="reset-email" :error="errors.email">
+            <BaseLabel for="reset-email">
+              {{ t('auth.login.email') }}
+            </BaseLabel>
+            <BaseInput
+              id="reset-email"
+              ref="stepInput"
+              v-model="email"
+              :placeholder="t('auth.login.reset.placeholders.email')"
+              type="email"
+              autocomplete="email"
+              required
+              :aria-describedby="errors.email ? 'reset-email-error' : undefined"
+              @input="clearFieldError('email')"
+            />
+          </BaseFormGroup>
+        </template>
+
+        <template v-else-if="step === 'code'">
+          <p class="mx-0! my-0!">
+            {{ t('auth.login.reset.errors.code_sent') }}
+            {{ t('auth.login.reset.step2.description') }}
+          </p>
+          <BaseFormGroup id="reset-code" :error="errors.code">
+            <BaseLabel for="reset-code">
+              {{ t('auth.login.reset.placeholders.code') }}
+            </BaseLabel>
+            <BaseInput
+              id="reset-code"
+              ref="stepInput"
+              v-model="code"
+              :placeholder="t('auth.login.reset.placeholders.code')"
+              autocomplete="one-time-code"
+              autocapitalize="characters"
+              spellcheck="false"
+              maxlength="6"
+              required
+              :aria-describedby="errors.code ? 'reset-code-error' : undefined"
+              @input="clearFieldError('code')"
+            />
+          </BaseFormGroup>
+          <BaseButton
+            type="button"
+            :disabled="submitting || cooldownSeconds > 0"
+            @click="resendCode"
           >
-            {{ t('auth.login.email') }}
-          </label>
-          <BaseInput
-            id="reset-email"
-            ref="emailInputRef"
-            v-model="email"
-            :placeholder="t('auth.login.reset.placeholders.email')"
-            type="email"
-            required
-          />
-        </div>
-      </div>
-      <div v-else-if="step === 2" class="space-y-4">
-        <p class="text-sm text-on-ghost-muted">
-          {{ t('auth.login.reset.step2.description') }}
-        </p>
-        <div>
-          <label
-            for="reset-code"
-            class="block text-base font-medium text-on-ghost mb-2"
-          >
-            {{ t('auth.login.reset.placeholders.code') }}
-          </label>
-          <BaseInput
-            id="reset-code"
-            ref="codeInputRef"
-            v-model="code"
-            :placeholder="t('auth.login.reset.placeholders.code')"
-            required
-          />
-        </div>
-      </div>
-      <div v-else-if="step === 3" class="space-y-4">
-        <p class="text-sm text-on-ghost-muted">
-          {{ t('auth.login.reset.step3.description') }}
-        </p>
-        <div>
-          <label
-            for="reset-password"
-            class="block text-base font-medium text-on-ghost mb-2"
-          >
-            {{ t('auth.login.reset.placeholders.new_password') }}
-          </label>
-          <BaseInput
-            id="reset-password"
-            ref="passwordInputRef"
-            v-model="password"
-            :placeholder="t('auth.login.reset.placeholders.new_password')"
-            type="password"
-            required
-          />
-        </div>
-        <div>
-          <label
-            for="reset-password-confirm"
-            class="block text-base font-medium text-on-ghost mb-2"
-          >
-            {{ t('auth.login.reset.placeholders.confirm_password') }}
-          </label>
-          <BaseInput
-            id="reset-password-confirm"
-            v-model="password2"
-            :placeholder="t('auth.login.reset.placeholders.confirm_password')"
-            type="password"
-            required
-          />
-        </div>
-      </div>
-      <Transition name="fade">
-        <div
-          v-if="message"
-          class="text-sm p-3 rounded-md mt-4"
-          :class="
-            isError
-              ? 'bg-danger-hover text-danger'
-              : 'bg-success-hover text-success'
-          "
-        >
-          {{ message }}
-        </div>
-      </Transition>
-      <template #actions>
-        <BaseButton type="button" variant="ghost" @click="leave">
-          {{ t('common.buttons.cancel') }}
-        </BaseButton>
+            {{ resendLabel }}
+          </BaseButton>
+        </template>
+
+        <template v-else>
+          <p class="mx-0! my-0!">
+            {{ t('auth.login.reset.step3.description') }}
+          </p>
+          <BaseFormGroup id="reset-password" :error="errors.password">
+            <BaseLabel for="reset-password">
+              {{ t('auth.login.reset.placeholders.new_password') }}
+            </BaseLabel>
+            <BaseInput
+              id="reset-password"
+              ref="stepInput"
+              v-model="password"
+              :placeholder="t('auth.login.reset.placeholders.new_password')"
+              type="password"
+              autocomplete="new-password"
+              required
+              :aria-describedby="
+                errors.password ? 'reset-password-error' : undefined
+              "
+              @input="clearFieldError('password')"
+            />
+          </BaseFormGroup>
+          <BaseFormGroup id="reset-password-confirm" :error="errors.confirm">
+            <BaseLabel for="reset-password-confirm">
+              {{ t('auth.login.reset.placeholders.confirm_password') }}
+            </BaseLabel>
+            <BaseInput
+              id="reset-password-confirm"
+              v-model="password2"
+              :placeholder="t('auth.login.reset.placeholders.confirm_password')"
+              type="password"
+              autocomplete="new-password"
+              required
+              :aria-describedby="
+                errors.confirm ? 'reset-password-confirm-error' : undefined
+              "
+              @input="clearFieldError('confirm')"
+            />
+          </BaseFormGroup>
+        </template>
+      </template>
+
+      <template v-if="step === 'code'" #secondary-action>
         <BaseButton
-          v-if="step === 2"
           type="button"
+          surface
           variant="ghost"
+          form
           :disabled="submitting"
-          @click="goBack"
+          @click="backToEmail"
         >
           {{ t('common.buttons.back') }}
         </BaseButton>
-        <BaseButton
-          type="button"
-          variant="action"
-          :disabled="submitting"
-          :loading="submitting"
-          @click="handleNext"
-        >
-          {{
-            step === 1
-              ? t('auth.login.reset.actions.request_code')
-              : step === 2
-                ? t('auth.login.reset.actions.verify_code')
-                : t('auth.login.reset.actions.set_password')
-          }}
-        </BaseButton>
       </template>
-    </CenteredAuthModal>
-  </div>
+
+      <template #action-text>
+        {{ submitLabel }}
+      </template>
+    </BaseForm>
+  </CenteredAuthModal>
 </template>
-
-<style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-</style>

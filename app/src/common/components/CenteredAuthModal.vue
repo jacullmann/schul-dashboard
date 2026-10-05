@@ -27,26 +27,20 @@ function handleBackdropClick() {
 
 <template>
   <div
-    class="fixed flex items-center justify-center p-4 z-50"
+    class="flex items-center justify-center"
     @click.self="closeOnBackdrop !== false && handleBackdropClick()"
   >
     <div
       role="dialog"
       aria-modal="true"
       :aria-labelledby="title"
-      class="w-full max-w-105 bg-canvas border border-ghost-border rounded-lg p-6 shadow-lg"
+      class="w-full max-w-105"
     >
-      <div class="mb-6">
-        <h2 :id="title" class="text-xl font-semibold text-on-ghost m-0">
-          {{ title }}
-        </h2>
-      </div>
-      <div class="mb-6">
-        <slot />
-      </div>
-      <div class="flex gap-3 justify-end">
-        <slot name="actions" />
-      </div>
+      <h2 :id="title" class="mb-2!">
+        {{ title }}
+      </h2>
+
+      <slot />
     </div>
   </div>
 </template>

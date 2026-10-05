@@ -41,12 +41,10 @@ async function handleMfaExpired() {
 </script>
 
 <template>
-  <div class="flex items-center justify-center px-4 py-6">
-    <MfaVerifyModal
-      v-if="ready"
-      @verified="handleMfaVerified"
-      @cancelled="handleMfaCancelled"
-      @expired="expire"
-    />
-  </div>
+  <MfaVerifyModal
+    v-if="ready"
+    @verified="handleMfaVerified"
+    @cancelled="handleMfaCancelled"
+    @expired="expire"
+  />
 </template>
