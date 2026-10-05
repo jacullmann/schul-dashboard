@@ -1056,8 +1056,8 @@ impl GroupAdminService {
         Ok(json!({ "ok": true }))
     }
 
-    /// Gives the lesson its change, replacing the one it had before, so a
-    /// lesson never shows up more than once on the schedule.
+    /// Gives the lesson its change for one week, replacing the one it had
+    /// that week, so a lesson never shows up more than once on the schedule.
     pub async fn save_schedule_sub(
         &self,
         tenant_id: Uuid,
@@ -1076,9 +1076,9 @@ impl GroupAdminService {
         // though the lesson was already checked to belong to this one.
         let row = sqlx::query!(
             r#"INSERT INTO schedule_subs
-                (tenant_id, lesson_id, course_id, day, slot, duration, subject, room, cancelled)
-               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-               ON CONFLICT (lesson_id) DO UPDATE SET
+                (tenant_id, lesson_id, week_start, course_id, day, slot, duration, subject, room, cancelled)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+               ON CONFLICT (lesson_id, week_start) DO UPDATE SET
                  course_id = EXCLUDED.course_id,
                  day = EXCLUDED.day,
                  slot = EXCLUDED.slot,
@@ -1090,6 +1090,7 @@ impl GroupAdminService {
                RETURNING id, created_at, (xmax = 0) AS "created!""#,
             tenant_id,
             dto.lesson_id,
+            dto.week_start.monday(),
             dto.course_id,
             day_str.as_deref(),
             dto.slot,
@@ -1110,7 +1111,7 @@ impl GroupAdminService {
             } else {
                 "schedule:sub:update"
             },
-            json!({ "lessonId": dto.lesson_id, "courseId": dto.course_id })
+            json!({ "lessonId": dto.lesson_id, "weekStart": dto.week_start, "courseId": dto.course_id })
         )
         .execute(&mut *tx)
         .await?;
@@ -1118,7 +1119,8 @@ impl GroupAdminService {
         tx.commit().await?;
 
         Ok(json!({
-            "id": row.id, "lessonId": dto.lesson_id, "courseId": dto.course_id, "day": dto.day,
+            "id": row.id, "lessonId": dto.lesson_id, "weekStart": dto.week_start,
+            "courseId": dto.course_id, "day": dto.day,
             "slot": dto.slot, "duration": dto.duration, "subject": dto.subject, "room": dto.room,
             "cancelled": dto.cancelled.unwrap_or(false), "createdAt": row.created_at,
         }))
@@ -1396,6 +1398,7 @@ impl GroupAdminService {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::common::school_week::WeekStart;
 
     #[test]
     fn dalton_lessons_cannot_point_at_a_subject_or_course() {
@@ -1410,6 +1413,9 @@ mod tests {
     fn sub(day: Option<i32>, room: Option<&str>) -> ScheduleSubDto {
         ScheduleSubDto {
             lesson_id: Uuid::nil(),
+            week_start: chrono::NaiveDate::from_ymd_opt(2026, 10, 5)
+                .and_then(|monday| WeekStart::try_from(monday).ok())
+                .unwrap(),
             course_id: None,
             day,
             slot: Some(1),

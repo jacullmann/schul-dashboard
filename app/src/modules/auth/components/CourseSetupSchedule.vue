@@ -3,7 +3,7 @@ import { computed } from 'vue';
 import type { Lesson, ScheduleConfig } from '@/modules/schedule/types';
 import type { CourseState } from '@/modules/auth/utils/courseResolution';
 import { useScheduleDisplay } from '@/modules/schedule/composables/useScheduleDisplay';
-import { useScheduleDayPager } from '@/modules/schedule/composables/useScheduleDayPager';
+import { useSchedulePager } from '@/modules/schedule/composables/useSchedulePager';
 import { buildScheduleLayout } from '@/modules/schedule/utils/layout';
 import {
   groupOverlappingLessons,
@@ -59,7 +59,7 @@ function toggle(lesson: Lesson) {
 }
 
 // The choice reads as a week, so a phone starts on Monday whatever today is.
-const dayPager = useScheduleDayPager(days.length);
+const dayPager = useSchedulePager(days.length);
 </script>
 
 <template>

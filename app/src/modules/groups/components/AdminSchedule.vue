@@ -8,7 +8,7 @@ import type {
   ScheduleSubject,
 } from '@/modules/schedule/types';
 import { useScheduleDisplay } from '@/modules/schedule/composables/useScheduleDisplay';
-import { useScheduleDayPager } from '@/modules/schedule/composables/useScheduleDayPager';
+import { useSchedulePager } from '@/modules/schedule/composables/useSchedulePager';
 import { entranceDelay } from '@/modules/schedule/utils/entrance';
 import {
   buildScheduleLayout,
@@ -142,9 +142,9 @@ const onAddToGroup = (group: Lesson[]) => {
   emit('add-lesson', { day: first.day, slot: first.slot });
 };
 
-const dayPager = useScheduleDayPager(days.length);
+const dayPager = useSchedulePager(days.length);
 const todayIndex = daysSinceMonday(new Date());
-dayPager.showDay(todayIndex < days.length ? todayIndex : 0);
+dayPager.showPage(todayIndex < days.length ? todayIndex : 0);
 
 const entranceStyle = (
   group: Lesson[],

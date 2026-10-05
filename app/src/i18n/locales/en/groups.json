@@ -311,6 +311,7 @@
           "message": "If you delete this change, it will be removed permanently"
         },
         "table": {
+          "week": "Week",
           "subject": "Subject",
           "course": "Course",
           "room": "Room",

@@ -7,8 +7,12 @@ import { useScheduleChangeForm } from '@/modules/schedule/composables/useSchedul
 const props = defineProps<{
   /** The lesson as the weekly schedule holds it, before any change. */
   lesson: Lesson | null;
-  /** The change the lesson already carries, which saving replaces. */
+  /** The change the lesson already carries that week, which saving replaces. */
   change: Substitution | null;
+  /** The Monday of the one week the change applies to, as YYYY-MM-DD. */
+  weekStart: string;
+  /** The lesson's date in that week. */
+  dayLabel: string;
 }>();
 
 const emit = defineEmits<{
@@ -29,8 +33,11 @@ const {
   canSave,
   toggleCancelled,
   saveChange,
-  formatDayName,
-} = useScheduleChangeForm(toRef(props, 'lesson'), toRef(props, 'change'));
+} = useScheduleChangeForm(
+  toRef(props, 'lesson'),
+  toRef(props, 'change'),
+  toRef(props, 'weekStart'),
+);
 
 async function submit() {
   if (await saveChange()) emit('saved');
@@ -67,7 +74,7 @@ async function submit() {
           <strong>{{ lesson?.room }}</strong>
         </template>
         <template #day>
-          {{ lesson ? formatDayName(lesson.day) : '' }}
+          {{ dayLabel }}
         </template>
       </i18n-t>
 

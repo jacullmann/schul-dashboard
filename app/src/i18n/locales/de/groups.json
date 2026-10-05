@@ -312,6 +312,7 @@
           "message": "Wenn du diese Änderung löschst, wird sie dauerhaft entfernt"
         },
         "table": {
+          "week": "Woche",
           "subject": "Fach",
           "course": "Kurs",
           "room": "Raum",

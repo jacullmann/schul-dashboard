@@ -10,40 +10,47 @@ import {
 import { haptic } from '@/utils/haptics';
 
 /**
- * Space between the day on screen and the one sliding in, in px: the page's
- * 16px gutter on both sides, so each day slides as if it carried its padding.
+ * Space between the page on screen and the one sliding in, in px: the page's
+ * 16px gutter on both sides, so each page slides as if it carried its padding.
  */
-const DAY_PAGE_GAP = 32;
+const PAGE_GAP = 32;
 
 type Direction = 1 | -1;
 
-export type ScheduleDayPager = ReturnType<typeof useScheduleDayPager>;
+export type SchedulePager = ReturnType<typeof useSchedulePager>;
 
-export function useScheduleDayPager(dayCount: number) {
+/**
+ * Pages through a schedule by swiping or picking a page. With a page count,
+ * the pages run from 0 to one short of it and a pull past either end gives;
+ * without one, every page has a neighbour on both sides.
+ */
+export function useSchedulePager(pageCount?: number) {
   const trackRef = shallowRef<HTMLElement | null>(null);
   const reducedMotion = usePreferredReducedMotion();
 
-  const activeDayIndex = ref(0);
-  const selectedDayIndex = ref(0);
-  const incomingDayIndex = ref<number | null>(null);
+  const activePage = ref(0);
+  const selectedPage = ref(0);
+  const incomingPage = ref<number | null>(null);
   const offset = ref(0);
   const settling = ref(false);
   const hasPaged = ref(false);
 
-  watch(incomingDayIndex, (index) => {
-    if (index !== null) hasPaged.value = true;
+  watch(incomingPage, (page) => {
+    if (page !== null) hasPaged.value = true;
   });
 
   let onSettled: (() => void) | null = null;
 
   const direction = computed<Direction>(() =>
-    incomingDayIndex.value !== null &&
-    incomingDayIndex.value < activeDayIndex.value
+    incomingPage.value !== null && incomingPage.value < activePage.value
       ? -1
       : 1,
   );
 
-  const pageWidth = () => (trackRef.value?.clientWidth ?? 0) + DAY_PAGE_GAP;
+  const exists = (page: number) =>
+    pageCount === undefined || (page >= 0 && page < pageCount);
+
+  const pageWidth = () => (trackRef.value?.clientWidth ?? 0) + PAGE_GAP;
 
   const finishSettling = () => {
     settling.value = false;
@@ -64,44 +71,44 @@ export function useScheduleDayPager(dayCount: number) {
   };
 
   const commitIncoming = () => {
-    if (incomingDayIndex.value !== null) {
-      activeDayIndex.value = incomingDayIndex.value;
+    if (incomingPage.value !== null) {
+      activePage.value = incomingPage.value;
     }
-    incomingDayIndex.value = null;
+    incomingPage.value = null;
     offset.value = 0;
   };
 
   const turnPage = () => {
-    selectedDayIndex.value = incomingDayIndex.value ?? activeDayIndex.value;
+    selectedPage.value = incomingPage.value ?? activePage.value;
     settleTo(-direction.value * pageWidth(), commitIncoming);
   };
 
   const cancelPage = () => {
     settleTo(0, () => {
-      incomingDayIndex.value = null;
+      incomingPage.value = null;
     });
   };
 
-  const showDay = (index: number) => {
+  const showPage = (page: number) => {
     if (settling.value) finishSettling();
-    incomingDayIndex.value = null;
+    incomingPage.value = null;
     offset.value = 0;
-    activeDayIndex.value = index;
-    selectedDayIndex.value = index;
+    activePage.value = page;
+    selectedPage.value = page;
   };
 
-  const goToDay = async (index: number) => {
+  const goToPage = async (page: number) => {
     if (settling.value) finishSettling();
-    if (index === activeDayIndex.value) return;
+    if (page === activePage.value) return;
     if (reducedMotion.value === 'reduce') {
-      showDay(index);
+      showPage(page);
       return;
     }
 
-    incomingDayIndex.value = index;
-    selectedDayIndex.value = index;
+    incomingPage.value = page;
+    selectedPage.value = page;
     await nextTick();
-    // Lays the incoming day out beside this one before the slide starts.
+    // Lays the incoming page out beside this one before the slide starts.
     void trackRef.value?.offsetWidth;
     turnPage();
   };
@@ -150,9 +157,9 @@ export function useScheduleDayPager(dayCount: number) {
       event.preventDefault();
       tracker.record(event.timeStamp, touch.clientX);
 
-      const neighbour = activeDayIndex.value - Math.sign(dx);
-      const hasNeighbour = dx !== 0 && neighbour >= 0 && neighbour < dayCount;
-      incomingDayIndex.value = hasNeighbour ? neighbour : null;
+      const neighbour = activePage.value - Math.sign(dx);
+      const hasNeighbour = dx !== 0 && exists(neighbour);
+      incomingPage.value = hasNeighbour ? neighbour : null;
       offset.value = hasNeighbour ? dx : dx * EDGE_RESISTANCE;
     },
     { passive: false },
@@ -169,11 +176,7 @@ export function useScheduleDayPager(dayCount: number) {
     const farEnough =
       Math.abs(offset.value) > pageWidth() * PAGE_COMMIT_FRACTION;
 
-    if (
-      !cancelled &&
-      incomingDayIndex.value !== null &&
-      (flicked || farEnough)
-    ) {
+    if (!cancelled && incomingPage.value !== null && (flicked || farEnough)) {
       haptic();
       turnPage();
     } else {
@@ -188,23 +191,24 @@ export function useScheduleDayPager(dayCount: number) {
     passive: true,
   });
 
-  const panelStyle = (dayIndex: number) => {
+  const panelStyle = (page: number) => {
     const shift =
-      dayIndex === activeDayIndex.value
+      page === activePage.value
         ? `${offset.value}px`
-        : `calc(${offset.value}px + ${direction.value * 100}% + ${direction.value * DAY_PAGE_GAP}px)`;
+        : `calc(${offset.value}px + ${direction.value * 100}% + ${direction.value * PAGE_GAP}px)`;
     return { transform: `translateX(${shift})` };
   };
 
   return {
     trackRef,
-    activeDayIndex,
-    selectedDayIndex,
-    incomingDayIndex,
+    pageCount,
+    activePage,
+    selectedPage,
+    incomingPage,
     settling,
     hasPaged,
-    goToDay,
-    showDay,
+    goToPage,
+    showPage,
     panelStyle,
     onPanelTransitionEnd,
   };

@@ -1,4 +1,12 @@
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+import {
+  ref,
+  computed,
+  onMounted,
+  onUnmounted,
+  shallowReactive,
+  watch,
+  type Ref,
+} from 'vue';
 import api from '@/api/api.ts';
 import { groupPath } from '@/api/groupPath';
 import { useGroupPageId } from '@/core/composables/useGroupPageId';
@@ -7,7 +15,6 @@ import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import type {
   Lesson,
-  LessonGroup,
   ScheduleSubject,
   Substitution,
 } from '@/modules/schedule/types';
@@ -27,8 +34,15 @@ import {
   buildScheduleLayout,
   slotsJoinedToNext,
 } from '@/modules/schedule/utils/layout';
-import { daysSinceMonday } from '@/modules/schedule/utils/weekday';
+import {
+  addDays,
+  daysSinceMonday,
+  isoDate,
+  mondayOf,
+  weeksBetween,
+} from '@/modules/schedule/utils/weekday';
 import { useScheduleDisplay } from '@/modules/schedule/composables/useScheduleDisplay';
+import { useWeekCache } from '@/modules/schedule/composables/useWeekCache';
 
 const isSet = <T>(value: T | null | undefined | ''): value is T =>
   value !== null && value !== undefined && value !== '';
@@ -49,7 +63,12 @@ function applySubstitution(original: Lesson, sub: Substitution): Lesson {
   return merged;
 }
 
-export function useSchedule() {
+/**
+ * The group's schedule with the changes of each week applied. The weeks of
+ * today and the next school day are always loaded; `shownWeek` adds the week
+ * on screen and its neighbours, so a swipe finds them ready.
+ */
+export function useSchedule(shownWeek?: Ref<number>) {
   const { locale } = useI18n();
   const userStore = useUserStore();
   const {
@@ -71,56 +90,63 @@ export function useSchedule() {
 
   const lessons = ref<Lesson[]>([]);
   const subjects = ref<ScheduleSubject[]>([]);
-  const substitutions = ref<Substitution[]>([]);
-  const loadingSubs = ref(true);
-  /** Whether the last load succeeded, so an empty list really means none. */
-  const substitutionsLoaded = ref(false);
+  /** Each loaded week's changes by its Monday; a missing week is not known yet. */
+  const substitutionsByWeek = shallowReactive(
+    new Map<string, Substitution[]>(),
+  );
+  const pendingSubstitutionLoads = ref(0);
+  const loadingSubs = computed(() => pendingSubstitutionLoads.value > 0);
   const loadingLessons = ref(true);
   const lessonsHiddenByServer = ref(0);
 
-  const weekDates = computed<Record<number, Date>>(() => {
-    const d = now.value;
-    const sinceMonday = daysSinceMonday(d);
-    const lastSchoolDay = days.length - 1;
-    const isWeekOver =
-      sinceMonday > lastSchoolDay ||
-      (sinceMonday === lastSchoolDay && isSchoolDayOver.value);
+  const now = ref(new Date());
 
-    const monday = new Date(d);
-    monday.setHours(0, 0, 0, 0);
-    monday.setDate(d.getDate() - sinceMonday + (isWeekOver ? 7 : 0));
+  /*
+   * Weeks are counted from the one the schedule was opened in, so a week keeps
+   * its number while the schedule stays open. Pages count days the same way,
+   * each week holding one page per school day.
+   */
+  const firstMonday = mondayOf(now.value);
+  const weekStartOf = (week: number) => addDays(firstMonday, week * 7);
+  const weekKeyOf = (week: number) => isoDate(weekStartOf(week));
+  const dateOf = (day: number, week: number) =>
+    addDays(weekStartOf(week), days.indexOf(day));
 
-    const map: Record<number, Date> = {};
-    days.forEach((day, idx) => {
-      const date = new Date(monday);
-      date.setDate(monday.getDate() + idx);
-      map[day] = date;
-    });
-    return map;
-  });
+  const todayWeek = computed(() =>
+    weeksBetween(firstMonday, mondayOf(now.value)),
+  );
 
-  const formatDayDate = (day: number): string => {
-    const date = weekDates.value[day];
-    return date
-      ? new Intl.DateTimeFormat(locale.value, { day: 'numeric' }).format(date)
-      : '';
-  };
+  const pageOf = (week: number, dayIndex: number) =>
+    week * days.length + dayIndex;
 
-  const formatDayHeading = (day: number): string => {
-    const date = weekDates.value[day];
-    return date
-      ? new Intl.DateTimeFormat(locale.value, {
-          weekday: 'long',
-          day: 'numeric',
-          month: 'long',
-        }).format(date)
-      : formatDayName(day);
-  };
+  const formatDayDate = (day: number, week: number): string =>
+    new Intl.DateTimeFormat(locale.value, { day: 'numeric' }).format(
+      dateOf(day, week),
+    );
+
+  const formatDayHeading = (day: number, week: number): string =>
+    new Intl.DateTimeFormat(locale.value, {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+    }).format(dateOf(day, week));
+
+  // A week running into the next month names both.
+  const formatWeekMonth = (week: number): string =>
+    new Intl.DateTimeFormat(locale.value, {
+      month: 'long',
+      year: 'numeric',
+    }).formatRange(
+      weekStartOf(week),
+      addDays(weekStartOf(week), days.length - 1),
+    );
 
   // English CLDR orders a monthless date as "6 Tuesday", so the weekday is moved to the front.
-  const formatColumnHeading = (day: number): Intl.DateTimeFormatPart[] => {
-    const date = weekDates.value[day];
-    if (!date) return [{ type: 'weekday', value: formatDayName(day) }];
+  const formatColumnHeading = (
+    day: number,
+    week: number,
+  ): Intl.DateTimeFormatPart[] => {
+    const date = dateOf(day, week);
     const parts = new Intl.DateTimeFormat(locale.value, {
       weekday: 'long',
       day: 'numeric',
@@ -137,19 +163,49 @@ export function useSchedule() {
   const formatDayInitials = (day: number): string =>
     formatDayName(day, 'short').slice(0, 2);
 
-  async function loadSubstitutions() {
+  /** The latest request for each week, so an older answer never overwrites a newer one. */
+  const requestOfWeek = new Map<string, number>();
+  let latestSubstitutionRequest = 0;
+
+  async function loadSubstitutions(fromWeek: number, toWeek = fromWeek) {
+    const request = ++latestSubstitutionRequest;
+    const weekKeys: string[] = [];
+    for (let week = fromWeek; week <= toWeek; week++) {
+      weekKeys.push(weekKeyOf(week));
+    }
+    const isLatest = (weekKey: string) =>
+      requestOfWeek.get(weekKey) === request;
+    weekKeys.forEach((weekKey) => requestOfWeek.set(weekKey, request));
+
+    pendingSubstitutionLoads.value++;
     try {
-      const { data } = await api.get(groupPath(groupId, '/schedule/subs'));
-      substitutions.value = data;
-      substitutionsLoaded.value = true;
+      const { data } = await api.get<Substitution[]>(
+        groupPath(groupId, '/schedule/subs'),
+        { params: { from: weekKeyOf(fromWeek), to: weekKeyOf(toWeek) } },
+      );
+      weekKeys.filter(isLatest).forEach((weekKey) => {
+        substitutionsByWeek.set(
+          weekKey,
+          data.filter((sub) => sub.weekStart === weekKey),
+        );
+      });
     } catch (error) {
       console.error('Error loading substitutions:', error);
-      substitutions.value = [];
-      substitutionsLoaded.value = false;
+      // Left unrequested, the weeks are asked for again once they are needed.
+      weekKeys.filter(isLatest).forEach((weekKey) => {
+        requestOfWeek.delete(weekKey);
+      });
     } finally {
-      loadingSubs.value = false;
+      pendingSubstitutionLoads.value--;
     }
   }
+
+  const substitutionsOf = (week: number): readonly Substitution[] =>
+    substitutionsByWeek.get(weekKeyOf(week)) ?? [];
+
+  /** Whether the week's changes loaded, so an empty list really means none. */
+  const substitutionsLoadedFor = (week: number) =>
+    substitutionsByWeek.has(weekKeyOf(week));
 
   /*
    * The server filters lessons by the member's saved course setting, so a
@@ -276,36 +332,31 @@ export function useSchedule() {
   );
 
   /*
-   * A lesson carries at most one change. Should the server still hand over
-   * several, the latest wins, so a lesson never shows up twice.
+   * A lesson carries at most one change a week. Should the server still hand
+   * over several, the latest wins, so a lesson never shows up twice.
    */
-  const substitutionByLesson = computed(() => {
+  const substitutionByLessonOf = (subs: readonly Substitution[]) => {
     const byLesson = new Map<string, Substitution>();
-    substitutions.value.forEach((sub) => {
+    subs.forEach((sub) => {
       const current = byLesson.get(sub.lessonId);
       if (!current || (sub.createdAt ?? '') >= (current.createdAt ?? '')) {
         byLesson.set(sub.lessonId, sub);
       }
     });
     return byLesson;
-  });
+  };
 
-  const effectiveLessons = computed<Lesson[]>(() =>
-    expandedLessons.value.map((original) => {
-      const sub = substitutionByLesson.value.get(
-        original._originalId || original.id,
-      );
+  const effectiveLessonsOf = (subs: readonly Substitution[]): Lesson[] => {
+    const substitutionByLesson = substitutionByLessonOf(subs);
+    return expandedLessons.value.map((original) => {
+      const sub = substitutionByLesson.get(original._originalId || original.id);
       const applies =
         sub && (!sub.courseId || sub.courseId === original.courseId);
       return applies
         ? applySubstitution(original, sub)
         : { ...original, _original: original };
-    }),
-  );
-
-  const groupedLessons = computed<LessonGroup[]>(() =>
-    groupOverlappingLessons(effectiveLessons.value),
-  );
+    });
+  };
 
   const lastSlotByDayOf = (dayLessons: Lesson[]) => {
     const byDay = new Map<number, number>();
@@ -318,65 +369,54 @@ export function useSchedule() {
     return byDay;
   };
 
-  /** The last slot of each day that shows a lesson at all. */
-  const lastShownSlotByDay = computed(() =>
-    lastSlotByDayOf(effectiveLessons.value),
-  );
-
-  /** The last slot of each day the member actually has to attend. */
-  const lastAttendedSlotByDay = computed(() =>
-    lastSlotByDayOf(
-      effectiveLessons.value.filter(
+  const scheduleOfWeek = useWeekCache((week) => {
+    const effectiveLessons = effectiveLessonsOf(substitutionsOf(week));
+    const groupedLessons = groupOverlappingLessons(effectiveLessons);
+    /** The last slot of each day that shows a lesson at all. */
+    const lastShownSlotByDay = lastSlotByDayOf(effectiveLessons);
+    /** The last slot of each day the member actually has to attend. */
+    const lastAttendedSlotByDay = lastSlotByDayOf(
+      effectiveLessons.filter(
         (lesson) => !lesson.cancelled && !lesson.outsideCourseSelection,
       ),
-    ),
-  );
-
-  const attendedDayEndSlots = (
-    dayList: readonly number[],
-  ): ReadonlySet<number> => {
-    if (loadingLessons.value) return new Set();
-    return new Set(
-      dayList.flatMap((day) => lastAttendedSlotByDay.value.get(day) ?? []),
     );
-  };
 
-  /*
-   * A day shows no breaks past the last lesson the member attends, so rows
-   * no day of the layout shows a break in are left out instead of staying
-   * empty. While loading, every break holds its place for the skeletons.
-   */
-  const breaksBeforeSlotOf = (dayList: readonly number[]): number => {
-    if (loadingLessons.value) return Infinity;
-    return Math.max(
-      0,
-      ...dayList.map((day) => lastAttendedSlotByDay.value.get(day) ?? 0),
-    );
-  };
+    /*
+     * A day shows no breaks past the last lesson the member attends, so rows
+     * no day of the layout shows a break in are left out instead of staying
+     * empty. While loading, every break holds its place for the skeletons.
+     */
+    const buildLayout = (dayList: readonly number[]) =>
+      loadingLessons.value
+        ? buildScheduleLayout(scheduleConfig.value, {
+            breaksBeforeSlot: Infinity,
+            dayEndSlots: new Set(),
+            joinedSlots: new Set(),
+          })
+        : buildScheduleLayout(scheduleConfig.value, {
+            breaksBeforeSlot: Math.max(
+              0,
+              ...dayList.map((day) => lastAttendedSlotByDay.get(day) ?? 0),
+            ),
+            dayEndSlots: new Set(
+              dayList.flatMap((day) => lastAttendedSlotByDay.get(day) ?? []),
+            ),
+            joinedSlots: slotsJoinedToNext(
+              groupedLessons.filter((group) => dayList.includes(group.day)),
+            ),
+          });
 
-  const joinedSlotsOf = (dayList: readonly number[]): ReadonlySet<number> => {
-    if (loadingLessons.value) return new Set();
-    return slotsJoinedToNext(
-      groupedLessons.value.filter((group) => dayList.includes(group.day)),
-    );
-  };
-
-  const buildLayout = (dayList: readonly number[]) =>
-    buildScheduleLayout(scheduleConfig.value, {
-      breaksBeforeSlot: breaksBeforeSlotOf(dayList),
-      dayEndSlots: attendedDayEndSlots(dayList),
-      joinedSlots: joinedSlotsOf(dayList),
-    });
-
-  /** The whole week side by side, sharing its rows. */
-  const weekLayout = computed(() => buildLayout(days));
-
-  /** Each day on its own, as a phone shows it. */
-  const dayLayouts = computed(
-    () => new Map(days.map((day) => [day, buildLayout([day])])),
-  );
-
-  const now = ref(new Date());
+    return {
+      effectiveLessons,
+      groupedLessons,
+      lastShownSlotByDay,
+      lastAttendedSlotByDay,
+      /** The whole week side by side, sharing its rows. */
+      weekLayout: buildLayout(days),
+      /** Each day on its own, as a phone shows it. */
+      dayLayouts: new Map(days.map((day) => [day, buildLayout([day])])),
+    };
+  });
 
   const updateTime = () => {
     now.value = new Date();
@@ -386,7 +426,6 @@ export function useSchedule() {
   onMounted(() => {
     timer = window.setInterval(updateTime, 1000 * 60);
     void loadSchedule();
-    void loadSubstitutions();
   });
 
   watch(savedCourseFilter, (filter) => {
@@ -397,19 +436,17 @@ export function useSchedule() {
     clearInterval(timer);
   });
 
-  const currentDay = computed(() => {
+  /** Today's page, unless today is no school day. */
+  const todayPage = computed(() => {
     const dayIndex = daysSinceMonday(now.value);
-    if (dayIndex < days.length) {
-      return days[dayIndex];
-    }
-    return null;
+    return dayIndex < days.length ? pageOf(todayWeek.value, dayIndex) : null;
   });
 
   const isSchoolDayOver = computed(() => {
     const dayIndex = daysSinceMonday(now.value);
-    const lessonsToday = effectiveLessons.value.filter(
-      (l) => l.day === days[dayIndex],
-    );
+    const lessonsToday = scheduleOfWeek(
+      todayWeek.value,
+    ).effectiveLessons.filter((l) => l.day === days[dayIndex]);
     if (lessonsToday.length === 0) return false;
 
     const maxEndMins = Math.max(
@@ -421,21 +458,46 @@ export function useSchedule() {
     return currentMinutes > maxEndMins + 10;
   });
 
-  const defaultDayIndex = computed(() => {
+  /** The next school day once today's lessons are over or the week is. */
+  const defaultPage = computed(() => {
     const dayIndex = daysSinceMonday(now.value);
-    if (dayIndex >= days.length) {
-      return 0;
-    }
-    return isSchoolDayOver.value ? (dayIndex + 1) % days.length : dayIndex;
+    if (dayIndex >= days.length) return pageOf(todayWeek.value + 1, 0);
+    return pageOf(todayWeek.value, dayIndex + (isSchoolDayOver.value ? 1 : 0));
   });
+
+  /** The week a glance at the schedule is about, the next one at its end. */
+  const schoolWeek = computed(() =>
+    Math.floor(defaultPage.value / days.length),
+  );
+  const schoolWeekSchedule = computed(() => scheduleOfWeek(schoolWeek.value));
+
+  const neededWeeks = computed(() => {
+    const weeks = [todayWeek.value, todayWeek.value + 1];
+    if (shownWeek) {
+      weeks.push(shownWeek.value - 1, shownWeek.value, shownWeek.value + 1);
+    }
+    return weeks;
+  });
+
+  watch(
+    neededWeeks,
+    (weeks) => {
+      const missing = weeks.filter(
+        (week) => !requestOfWeek.has(weekKeyOf(week)),
+      );
+      if (missing.length === 0) return;
+      void loadSubstitutions(Math.min(...missing), Math.max(...missing));
+    },
+    { immediate: true },
+  );
 
   const activeOrNextGroupKey = computed<string | null>(() => {
     const currentDayIndex = daysSinceMonday(now.value);
     const currentMinutes = now.value.getHours() * 60 + now.value.getMinutes();
     const currentTotalWeekMinutes = currentDayIndex * 24 * 60 + currentMinutes;
 
-    const timeBlocks = groupedLessons.value
-      .map(({ key, lessons: group }) => {
+    const timeBlocks = scheduleOfWeek(todayWeek.value)
+      .groupedLessons.map(({ key, lessons: group }) => {
         const first = group[0];
         if (!first) return null;
         const dayIdx = days.indexOf(first.day);
@@ -500,26 +562,26 @@ export function useSchedule() {
     loadingSubs,
     loadingLessons,
     days,
-    weekDates,
     scheduleConfig,
-    weekLayout,
-    dayLayouts,
-    groupedLessons,
-    lastShownSlotByDay,
-    lastAttendedSlotByDay,
-    currentDay,
+    scheduleOfWeek,
+    effectiveLessons: computed(() => schoolWeekSchedule.value.effectiveLessons),
+    groupedLessons: computed(() => schoolWeekSchedule.value.groupedLessons),
+    dayLayouts: computed(() => schoolWeekSchedule.value.dayLayouts),
+    todayWeek,
+    todayPage,
     activeOrNextGroupKey,
-    defaultDayIndex,
+    defaultPage,
+    weekKeyOf,
     getDisplayName,
     formatDayName,
     formatDayDate,
     formatDayHeading,
+    formatWeekMonth,
     formatColumnHeading,
     formatDayInitials,
     lessons,
-    substitutions,
-    substitutionsLoaded,
+    substitutionsOf,
+    substitutionsLoadedFor,
     loadSubstitutions,
-    effectiveLessons,
   };
 }

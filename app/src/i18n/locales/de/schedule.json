@@ -21,5 +21,7 @@
   "periods": "{first}.–{last}. Std.",
   "personalized": "Personalisiert",
   "title": "Stundenplan",
+  "previous_week": "Vorherige Woche",
+  "next_week": "Nächste Woche",
   "day_end": "Schluss"
 }

@@ -18,3 +18,37 @@ export function formatWeekday(
   const date = new Date(Date.UTC(MONDAY_BASED_YEAR, 0, day, 12));
   return new Intl.DateTimeFormat(locale, { weekday }).format(date);
 }
+
+const DAYS_PER_WEEK = 7;
+
+export function addDays(date: Date, days: number): Date {
+  const shifted = new Date(date);
+  shifted.setDate(shifted.getDate() + days);
+  return shifted;
+}
+
+/** Midnight at the start of the week the date lies in. */
+export function mondayOf(date: Date): Date {
+  const monday = addDays(date, -daysSinceMonday(date));
+  monday.setHours(0, 0, 0, 0);
+  return monday;
+}
+
+/** Whole weeks from one Monday to another; a daylight saving shift rounds away. */
+export function weeksBetween(fromMonday: Date, toMonday: Date): number {
+  const days = (toMonday.getTime() - fromMonday.getTime()) / 86_400_000;
+  return Math.round(days / DAYS_PER_WEEK);
+}
+
+/** A date as the server names a week by its Monday: YYYY-MM-DD in local time. */
+export function isoDate(date: Date): string {
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${date.getFullYear()}-${month}-${day}`;
+}
+
+/** Midnight of a YYYY-MM-DD date in local time. */
+export function parseIsoDate(iso: string): Date {
+  const [year = 0, month = 1, day = 1] = iso.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}

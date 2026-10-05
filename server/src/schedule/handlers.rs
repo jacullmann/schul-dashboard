@@ -1,10 +1,14 @@
-use super::service::ScheduleService;
+use super::{dto::ScheduleSubsQuery, service::ScheduleService};
 use crate::{
     common::{extractors::TenantContext, personalization::hidden_by_courses_header},
     error::AppResult,
     state::AppState,
 };
-use axum::{Json, extract::State, response::IntoResponse};
+use axum::{
+    Json,
+    extract::{Query, State},
+    response::IntoResponse,
+};
 use serde_json::Value;
 
 pub async fn get_schedule(
@@ -20,10 +24,14 @@ pub async fn get_schedule(
         Json(schedule.lessons),
     ))
 }
-pub async fn get_subs(State(s): State<AppState>, tc: TenantContext) -> AppResult<Json<Value>> {
+pub async fn get_subs(
+    State(s): State<AppState>,
+    tc: TenantContext,
+    Query(weeks): Query<ScheduleSubsQuery>,
+) -> AppResult<Json<Value>> {
     Ok(Json(
         ScheduleService::from_state(&s)
-            .get_subs(tc.tenant_id)
+            .get_subs(tc.tenant_id, weeks)
             .await?,
     ))
 }

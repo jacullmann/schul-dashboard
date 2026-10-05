@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO schedule_subs\n                (tenant_id, lesson_id, course_id, day, slot, duration, subject, room, cancelled)\n               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)\n               ON CONFLICT (lesson_id) DO UPDATE SET\n                 course_id = EXCLUDED.course_id,\n                 day = EXCLUDED.day,\n                 slot = EXCLUDED.slot,\n                 duration = EXCLUDED.duration,\n                 subject = EXCLUDED.subject,\n                 room = EXCLUDED.room,\n                 cancelled = EXCLUDED.cancelled\n               WHERE schedule_subs.tenant_id = EXCLUDED.tenant_id\n               RETURNING id, created_at, (xmax = 0) AS \"created!\"",
+  "query": "INSERT INTO schedule_subs\n                (tenant_id, lesson_id, week_start, course_id, day, slot, duration, subject, room, cancelled)\n               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)\n               ON CONFLICT (lesson_id, week_start) DO UPDATE SET\n                 course_id = EXCLUDED.course_id,\n                 day = EXCLUDED.day,\n                 slot = EXCLUDED.slot,\n                 duration = EXCLUDED.duration,\n                 subject = EXCLUDED.subject,\n                 room = EXCLUDED.room,\n                 cancelled = EXCLUDED.cancelled\n               WHERE schedule_subs.tenant_id = EXCLUDED.tenant_id\n               RETURNING id, created_at, (xmax = 0) AS \"created!\"",
   "describe": {
     "columns": [
       {
@@ -36,6 +36,7 @@
       "Left": [
         "Uuid",
         "Uuid",
+        "Date",
         "Uuid",
         "Text",
         "Int4",
@@ -51,5 +52,5 @@
       null
     ]
   },
-  "hash": "733d05c76fe51cd718b1f29e23c869ab3af53439cff4e4a96c4ffcea22bbd0d9"
+  "hash": "9a896efa01643078a56f8d7e3d33de82ecf62b932c50d0e1a140e8c81724944f"
 }

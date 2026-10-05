@@ -59,6 +59,8 @@ export interface ScheduleConfig {
 export interface Substitution {
   id: string;
   lessonId: string;
+  /** The Monday of the one week the change applies to, as YYYY-MM-DD. */
+  weekStart: string;
   courseId?: string | null;
   day?: number;
   slot?: number;

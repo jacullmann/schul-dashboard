@@ -9,6 +9,7 @@ use crate::common::{
     patch,
     permission::{GroupPermissions, Permission},
     role::{MemberRole, Role},
+    school_week::WeekStart,
 };
 
 #[derive(Debug, Deserialize)]
@@ -139,11 +140,13 @@ pub struct ScheduleConfigDto {
     pub breaks: BTreeMap<i32, i32>,
 }
 
-/// The one change a lesson carries, replacing whatever change it had before.
+/// The one change a lesson carries in one week, replacing whatever change it
+/// had that week before.
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ScheduleSubDto {
     pub lesson_id: Uuid,
+    pub week_start: WeekStart,
     pub course_id: Option<Uuid>,
     pub day: Option<i32>,
     pub slot: Option<i32>,

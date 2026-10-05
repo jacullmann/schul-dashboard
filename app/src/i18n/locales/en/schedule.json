@@ -21,5 +21,7 @@
   "periods": "Periods {first}–{last}",
   "personalized": "Personalized",
   "title": "Schedule",
+  "previous_week": "Previous week",
+  "next_week": "Next week",
   "day_end": "End of day"
 }

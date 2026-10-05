@@ -10,7 +10,7 @@ use crate::{
     common::path_params::{IdPath, MemberPath, SubjectPath},
     common::role::Role,
     error::{AppError, AppResult},
-    schedule::service::ScheduleService,
+    schedule::{dto::ScheduleSubsQuery, service::ScheduleService},
     state::AppState,
 };
 use axum::{
@@ -493,11 +493,12 @@ pub async fn replace_schedule_admin(
 pub async fn get_schedule_subs_admin(
     State(s): State<AppState>,
     tc: TenantContext,
+    Query(weeks): Query<ScheduleSubsQuery>,
 ) -> AppResult<Json<Value>> {
     // Read-only for every member, like /schedule/subs.
     Ok(Json(
         ScheduleService::from_state(&s)
-            .get_subs(tc.tenant_id)
+            .get_subs(tc.tenant_id, weeks)
             .await?,
     ))
 }

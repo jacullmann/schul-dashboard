@@ -5,7 +5,8 @@ import { useIsPhoneViewport } from '@/common/composables/useViewport';
 import { useDismissibleNotice } from '@/common/composables/useDismissibleNotice';
 import { useSchedule } from '@/modules/schedule/composables/useSchedule';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
-import { useScheduleDayPager } from '@/modules/schedule/composables/useScheduleDayPager';
+import { useSchedulePager } from '@/modules/schedule/composables/useSchedulePager';
+import { useWeekCache } from '@/modules/schedule/composables/useWeekCache';
 import type {
   Lesson,
   LessonGroup,
@@ -20,6 +21,7 @@ import {
 import { entranceDelay } from '@/modules/schedule/utils/entrance';
 import { lessonRowsOf } from '@/modules/schedule/utils/layout';
 import { lessonGroupsByDay } from '@/modules/schedule/utils/lesson';
+import { SCHOOL_DAYS } from '@/modules/schedule/utils/weekday';
 
 import PersonalizedViewNotice from '@/common/components/PersonalizedViewNotice.vue';
 import ScheduleHeader from '../components/ScheduleHeader.vue';
@@ -28,6 +30,15 @@ import ScheduleBreakDivider from '../components/ScheduleBreakDivider.vue';
 import ScheduleLessonGroup from '../components/ScheduleLessonGroup.vue';
 import ScheduleCellSkeleton from '../components/ScheduleCellSkeleton.vue';
 import ScheduleChangeModal from '../components/ScheduleChangeModal.vue';
+import ScheduleWeekNav from '../components/ScheduleWeekNav.vue';
+
+// Pages run on past Friday into the following weeks, and back before Monday.
+const dayPager = useSchedulePager();
+const { hasPaged, selectedPage, showPage } = dayPager;
+
+const shownWeek = computed(() =>
+  Math.floor(selectedPage.value / SCHOOL_DAYS.length),
+);
 
 const {
   isPersonalized,
@@ -35,52 +46,52 @@ const {
   loadingSubs,
   loadingLessons,
   days,
-  weekLayout,
-  dayLayouts,
-  groupedLessons,
-  lastShownSlotByDay,
-  lastAttendedSlotByDay,
-  currentDay,
+  scheduleOfWeek,
+  todayWeek,
+  todayPage,
   activeOrNextGroupKey,
   getDisplayName,
-  defaultDayIndex,
+  defaultPage,
+  weekKeyOf,
   formatDayDate,
   formatDayHeading,
+  formatWeekMonth,
   formatColumnHeading,
   formatDayInitials,
   lessons: scheduledLessons,
-  substitutions,
-  substitutionsLoaded,
+  substitutionsOf,
+  substitutionsLoadedFor,
   loadSubstitutions,
-} = useSchedule();
+} = useSchedule(shownWeek);
 
 const { t } = useI18n();
 
 const isPhone = useIsPhoneViewport();
-
-const dayPager = useScheduleDayPager(days.length);
-const { hasPaged, showDay } = dayPager;
 
 /*
  * The day first shown on a phone keeps its panel when the loaded lessons move
  * it to another day, so its skeletons crossfade into that day's lessons
  * instead of a fresh panel playing the entrance a second time.
  */
-const entranceDayIndex = ref(defaultDayIndex.value);
+const entrancePage = ref(defaultPage.value);
 
-const panelKey = (dayIndex: number) =>
-  dayIndex === entranceDayIndex.value ? 'entrance' : dayIndex;
+const panelKey = (page: number) =>
+  page === entrancePage.value ? 'entrance' : page;
 
-const enterDay = (index: number) => {
-  entranceDayIndex.value = index;
-  showDay(index);
+const enterPage = (page: number) => {
+  entrancePage.value = page;
+  showPage(page);
 };
 
-enterDay(defaultDayIndex.value);
+enterPage(defaultPage.value);
 
 watch(loadingLessons, (loading) => {
-  if (!loading && !hasPaged.value) enterDay(defaultDayIndex.value);
+  if (!loading && !hasPaged.value) enterPage(defaultPage.value);
 });
+
+/** The days stay selected as the weeks change. */
+const shiftWeek = (weeks: -1 | 1) =>
+  showPage(selectedPage.value + weeks * days.length);
 
 const entranceStart = useSkeletonHandoff(loadingLessons);
 
@@ -124,6 +135,7 @@ interface DayRows {
 const rowsOfDay = (
   layout: ScheduleLayout,
   day: number,
+  week: number,
   column: number,
 ): DayRows => {
   const breakDivider = (row: BreakRow): Divider => ({
@@ -137,8 +149,9 @@ const rowsOfDay = (
   );
   if (loadingLessons.value) return { dividers: breakRows.map(breakDivider) };
 
-  const lastAttendedSlot = lastAttendedSlotByDay.value.get(day);
-  const lastShownSlot = lastShownSlotByDay.value.get(day) ?? 0;
+  const { lastAttendedSlotByDay, lastShownSlotByDay } = scheduleOfWeek(week);
+  const lastAttendedSlot = lastAttendedSlotByDay.get(day);
+  const lastShownSlot = lastShownSlotByDay.get(day) ?? 0;
   const breaks = breakRows.filter(
     (row) => lastAttendedSlot !== undefined && row.afterSlot < lastAttendedSlot,
   );
@@ -167,35 +180,48 @@ const rowsOfDay = (
   return { dividers, labelledRows };
 };
 
-const dayLayoutOf = (day: number) =>
-  dayLayouts.value.get(day) ?? weekLayout.value;
+const shownWeekLayout = computed(
+  () => scheduleOfWeek(shownWeek.value).weekLayout,
+);
 
-const weekRowsByDay = computed(
-  () =>
+const dayLayoutOf = (day: number, week: number) =>
+  scheduleOfWeek(week).dayLayouts.get(day) ?? scheduleOfWeek(week).weekLayout;
+
+const weekRowsOf = useWeekCache(
+  (week) =>
     new Map(
       days.map((day, dayIndex) => [
         day,
-        rowsOfDay(weekLayout.value, day, dayIndex + 2),
+        rowsOfDay(scheduleOfWeek(week).weekLayout, day, week, dayIndex + 2),
       ]),
     ),
 );
 
-const phoneRowsByDay = computed(
-  () => new Map(days.map((day) => [day, rowsOfDay(dayLayoutOf(day), day, 2)])),
+const phoneRowsOf = useWeekCache(
+  (week) =>
+    new Map(
+      days.map((day) => [day, rowsOfDay(dayLayoutOf(day, week), day, week, 2)]),
+    ),
 );
 
-const dividersOf = (day: number) =>
-  (isPhone.value ? phoneRowsByDay : weekRowsByDay).value.get(day)?.dividers ??
-  [];
+const dividersOf = (day: number, week: number) =>
+  (isPhone.value ? phoneRowsOf : weekRowsOf)(week).get(day)?.dividers ?? [];
 
-const labelledRowsOf = (day: number) =>
-  phoneRowsByDay.value.get(day)?.labelledRows;
+const labelledRowsOf = (day: number, week: number) =>
+  phoneRowsOf(week).get(day)?.labelledRows;
 
-const lessonGroupsOfDay = computed<ReadonlyMap<number, LessonGroup[]>>(() =>
-  loadingLessons.value ? new Map() : lessonGroupsByDay(groupedLessons.value),
+const lessonGroupsOfWeek = useWeekCache<ReadonlyMap<number, LessonGroup[]>>(
+  (week) =>
+    loadingLessons.value
+      ? new Map()
+      : lessonGroupsByDay(scheduleOfWeek(week).groupedLessons),
 );
 
-const lessonGroupsOf = (day: number) => lessonGroupsOfDay.value.get(day) ?? [];
+const lessonGroupsOf = (day: number, week: number) =>
+  lessonGroupsOfWeek(week).get(day) ?? [];
+
+const isActiveGroup = (key: string, week: number) =>
+  week === todayWeek.value && key === activeOrNextGroupKey.value;
 
 const { checkPermission } = useAppAuth();
 const canManageScheduleChanges = computed(() =>
@@ -204,34 +230,39 @@ const canManageScheduleChanges = computed(() =>
 
 /*
  * A lesson opens with its existing change filled in, so it only becomes
- * clickable once the changes are known; otherwise saving would silently
- * replace a change the form never showed.
+ * clickable once its week's changes are known; otherwise saving would
+ * silently replace a change the form never showed.
  */
-const canChangeLessons = computed(
-  () => canManageScheduleChanges.value && substitutionsLoaded.value,
-);
+const canChangeLessonsIn = (week: number) =>
+  canManageScheduleChanges.value && substitutionsLoadedFor(week);
 
 const changedLesson = ref<Lesson | null>(null);
+const changedWeek = ref(0);
 
 const existingChange = computed(() => {
   const lessonId = changedLesson.value?.id;
   if (!lessonId) return null;
-  return substitutions.value.find((sub) => sub.lessonId === lessonId) ?? null;
+  return (
+    substitutionsOf(changedWeek.value).find(
+      (sub) => sub.lessonId === lessonId,
+    ) ?? null
+  );
 });
 
 /*
  * A change targets the lesson as the weekly schedule holds it, not the copy
  * split off for the member's own course or already showing earlier changes.
  */
-function openChangeModal(lesson: Lesson) {
+function openChangeModal(lesson: Lesson, week: number) {
   const scheduledId = lesson._originalId ?? lesson.id;
+  changedWeek.value = week;
   changedLesson.value =
     scheduledLessons.value.find(({ id }) => id === scheduledId) ?? null;
 }
 
 function onChangeSaved() {
   changedLesson.value = null;
-  void loadSubstitutions();
+  void loadSubstitutions(changedWeek.value);
 }
 
 const personalizedNotice = useDismissibleNotice('personalizedSchedule');
@@ -245,7 +276,7 @@ const showPersonalizedNotice = computed(
 );
 
 const skeletonRows = computed(() =>
-  loadingLessons.value ? lessonRowsOf(weekLayout.value) : [],
+  loadingLessons.value ? lessonRowsOf(shownWeekLayout.value) : [],
 );
 
 watch(
@@ -274,9 +305,16 @@ watch(
       @dismiss="personalizedNotice.dismiss"
     />
 
+    <ScheduleWeekNav
+      v-if="!isPhone"
+      class="mb-2 animate-enter"
+      :label="formatWeekMonth(shownWeek)"
+      @shift="shiftWeek"
+    />
+
     <ScheduleGrid
       :pager="dayPager"
-      :layout="weekLayout"
+      :layout="shownWeekLayout"
       :day-layout="dayLayoutOf"
       :labelled-rows="labelledRowsOf"
       :tab-label="formatDayDate"
@@ -284,11 +322,11 @@ watch(
       :day-heading="formatDayHeading"
       :column-heading="formatColumnHeading"
       :panel-key="panelKey"
-      :current-day="currentDay"
+      :current-page="todayPage"
     >
-      <template #default="{ day, column, layout, animated }">
+      <template #default="{ day, week, column, layout, animated }">
         <ScheduleBreakDivider
-          v-for="{ key, ...divider } in dividersOf(day)"
+          v-for="{ key, ...divider } in dividersOf(day, week)"
           :key="key"
           v-bind="divider"
           :animated="animated"
@@ -315,19 +353,19 @@ watch(
         </TransitionGroup>
 
         <ScheduleLessonGroup
-          v-for="{ key, lessons } in lessonGroupsOf(day)"
+          v-for="{ key, lessons } in lessonGroupsOf(day, week)"
           :key="key"
           v-entrance-start="entranceStart"
           :group="lessons"
-          :is-active="key === activeOrNextGroupKey"
+          :is-active="isActiveGroup(key, week)"
           :animated="animated"
           :get-display-name="getDisplayName"
-          :is-clickable="canChangeLessons"
+          :is-clickable="canChangeLessonsIn(week)"
           :style="[
             layout.groupStyle(lessons, column),
             lessonEntranceStyle(lessons, column, layout),
           ]"
-          @select-lesson="openChangeModal"
+          @select-lesson="(lesson) => openChangeModal(lesson, week)"
         />
       </template>
     </ScheduleGrid>
@@ -336,6 +374,10 @@ watch(
       v-if="canManageScheduleChanges"
       :lesson="changedLesson"
       :change="existingChange"
+      :week-start="weekKeyOf(changedWeek)"
+      :day-label="
+        changedLesson ? formatDayHeading(changedLesson.day, changedWeek) : ''
+      "
       @close="changedLesson = null"
       @saved="onChangeSaved"
     />

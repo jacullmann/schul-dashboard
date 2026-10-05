@@ -1,4 +1,5 @@
-use crate::{error::AppResult, state::AppState};
+use super::dto::ScheduleSubsQuery;
+use crate::{common::school_week::WeekStart, error::AppResult, state::AppState};
 use serde_json::{Value, json};
 use sqlx::PgPool;
 use std::collections::HashSet;
@@ -99,11 +100,16 @@ WHERE s.tenant_id = $1"#,
         })
     }
 
-    pub async fn get_subs(&self, tenant_id: Uuid) -> AppResult<Value> {
+    pub async fn get_subs(&self, tenant_id: Uuid, weeks: ScheduleSubsQuery) -> AppResult<Value> {
         let subs = sqlx::query!(
-            r#"SELECT id, lesson_id, course_id, day, slot, duration, subject, room, cancelled, created_at
-             FROM schedule_subs WHERE tenant_id = $1"#,
-            tenant_id
+            r#"SELECT id, lesson_id, course_id, week_start, day, slot, duration, subject, room,
+                      cancelled, created_at
+             FROM schedule_subs
+             WHERE tenant_id = $1 AND week_start >= $2 AND ($3::date IS NULL OR week_start <= $3)
+             ORDER BY week_start"#,
+            tenant_id,
+            weeks.from.monday(),
+            weeks.to.map(WeekStart::monday)
         )
         .fetch_all(&self.db)
         .await?;
@@ -113,6 +119,7 @@ WHERE s.tenant_id = $1"#,
                 .map(|s| json!({
                     // The column is text, while lessons name their day by number.
                     "id": s.id, "lessonId": s.lesson_id, "courseId": s.course_id,
+                    "weekStart": s.week_start,
                     "day": s.day.and_then(|day| day.parse::<i32>().ok()), "slot": s.slot,
                     "duration": s.duration, "subject": s.subject, "room": s.room,
                     "cancelled": s.cancelled, "createdAt": s.created_at,

@@ -7,16 +7,17 @@ import { useGroupScheduleChanges } from '@/modules/groups/composables/useGroupSc
 import { useSubjectAdmin } from '@/modules/groups/composables/useSubjectAdmin';
 import { useScheduleDisplay } from '@/modules/schedule/composables/useScheduleDisplay';
 import { courseLabel, subjectLabel } from '@/utils/subject-formatter';
+import { addDays, parseIsoDate } from '@/modules/schedule/utils/weekday';
 
 const i18n = useI18n();
-const { t } = i18n;
+const { t, locale } = i18n;
 const te = i18n.te.bind(i18n);
 
 const { changes, loadingChanges, loadChanges, deleteChange } =
   useGroupScheduleChanges();
 const { checkPermission } = useAppAuth();
 const { subjects } = useSubjectAdmin();
-const { schedulesCoursesIndividually } = useScheduleDisplay();
+const { days, schedulesCoursesIndividually } = useScheduleDisplay();
 
 const canManageScheduleChanges = computed(() =>
   checkPermission('manage_schedule_changes'),
@@ -26,6 +27,14 @@ const canManageScheduleChanges = computed(() =>
 const canRescheduleLessons = computed(
   () => !schedulesCoursesIndividually.value,
 );
+
+function formatWeek(weekStart: string): string {
+  const monday = parseIsoDate(weekStart);
+  return new Intl.DateTimeFormat(locale.value, {
+    day: 'numeric',
+    month: 'short',
+  }).formatRange(monday, addDays(monday, days.length - 1));
+}
 
 function changedCourseName(courseId?: string | null): string {
   if (!courseId) return t('groups.settings.schedule.changes.all_courses');
@@ -64,6 +73,7 @@ function changedCourseName(courseId?: string | null): string {
       <table>
         <thead>
           <tr>
+            <th>{{ t('groups.settings.schedule.changes.table.week') }}</th>
             <th v-if="canRescheduleLessons">
               {{ t('groups.settings.schedule.changes.table.subject') }}
             </th>
@@ -87,6 +97,9 @@ function changedCourseName(courseId?: string | null): string {
         </thead>
         <tbody>
           <tr v-for="change in changes" :key="change.id">
+            <td class="whitespace-nowrap">
+              {{ formatWeek(change.weekStart) }}
+            </td>
             <td v-if="canRescheduleLessons">
               {{
                 change.subject

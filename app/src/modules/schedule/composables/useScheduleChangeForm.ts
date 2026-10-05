@@ -13,6 +13,7 @@ import { haptic } from '@/utils/haptics';
 
 interface ScheduleChangePayload {
   lessonId: string;
+  weekStart: string;
   courseId?: string;
   cancelled?: true;
   subject?: string;
@@ -55,13 +56,14 @@ function changeFormOf(lesson: Lesson, change: Substitution | null): ChangeForm {
 }
 
 /**
- * The change an admin enters for one lesson of the group's weekly schedule.
- * A lesson holds at most one change, so a lesson that already has one opens
- * with it filled in and saving replaces it.
+ * The change an admin enters for one lesson of the group's schedule in one
+ * week. A lesson holds at most one change a week, so a lesson that already
+ * has one opens with it filled in and saving replaces it.
  */
 export function useScheduleChangeForm(
   lesson: Ref<Lesson | null>,
   existingChange: Ref<Substitution | null>,
+  weekStart: Ref<string>,
 ) {
   const i18n = useI18n();
   const { t } = i18n;
@@ -171,7 +173,10 @@ export function useScheduleChangeForm(
   }
 
   /** What the folded-away fields hold stays out of a cancellation. */
-  function changesPayload(): Omit<ScheduleChangePayload, 'lessonId'> {
+  function changesPayload(): Omit<
+    ScheduleChangePayload,
+    'lessonId' | 'weekStart'
+  > {
     const { courseId, cancelled, subject, room, slot, duration, day } =
       form.value;
     const course = courseId ? { courseId } : {};
@@ -189,6 +194,7 @@ export function useScheduleChangeForm(
   async function replaceChange(target: Lesson): Promise<boolean> {
     const payload: ScheduleChangePayload = {
       lessonId: target._originalId || target.id,
+      weekStart: weekStart.value,
       ...changesPayload(),
     };
     try {
@@ -238,6 +244,5 @@ export function useScheduleChangeForm(
     canSave,
     toggleCancelled,
     saveChange,
-    formatDayName,
   };
 }

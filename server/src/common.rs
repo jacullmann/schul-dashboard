@@ -16,4 +16,5 @@ pub mod permission;
 pub mod personalization;
 pub mod rate_limit;
 pub mod role;
+pub mod school_week;
 pub mod text;

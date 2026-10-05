@@ -1,20 +1,24 @@
 <script setup lang="ts" generic="Panel extends ScheduleDayPanel">
-import { computed } from 'vue';
+import { computed, watch, type ComponentPublicInstance } from 'vue';
 import ScheduleDayPicker from './ScheduleDayPicker.vue';
 import type { ScheduleDayPanel } from '@/modules/schedule/types';
-import type { ScheduleDayPager } from '@/modules/schedule/composables/useScheduleDayPager';
+import {
+  useSchedulePager,
+  type SchedulePager,
+} from '@/modules/schedule/composables/useSchedulePager';
 import { entranceDelay } from '@/modules/schedule/utils/entrance';
 
 const props = withDefaults(
   defineProps<{
-    pager: ScheduleDayPager;
+    /** Pages through the days, one page per school day of each week. */
+    pager: SchedulePager;
     days: readonly number[];
-    tabLabel: (day: number) => string;
-    tabCaption?: (day: number) => string;
-    panelOf: (day: number) => Panel;
-    /** Lets a panel stay mounted while its day changes; each day gets its own by default. */
-    panelKey?: (dayIndex: number) => PropertyKey;
-    currentDay?: number | null;
+    tabLabel: (day: number, week: number) => string;
+    tabCaption?: (day: number, week: number) => string;
+    panelOf: (day: number, week: number) => Panel;
+    /** Lets a panel stay mounted while its page changes; each page gets its own by default. */
+    panelKey?: (page: number) => PropertyKey;
+    currentPage?: number | null;
     animated?: boolean;
     /**
      * Pulls the track out through the padding around it, so days slide in
@@ -25,49 +29,110 @@ const props = withDefaults(
   {
     tabCaption: undefined,
     panelKey: undefined,
-    currentDay: null,
+    currentPage: null,
     animated: true,
     bleedClass: '-mx-4 px-4',
   },
 );
 
 defineSlots<{
-  default(slotProps: { day: number; dayIndex: number; panel: Panel }): unknown;
+  default(slotProps: {
+    day: number;
+    week: number;
+    page: number;
+    panel: Panel;
+  }): unknown;
 }>();
 
 // The parent creates the pager once and never swaps it.
 const {
   trackRef,
-  activeDayIndex,
-  selectedDayIndex,
-  incomingDayIndex,
+  pageCount,
+  activePage,
+  selectedPage,
+  incomingPage,
   settling,
-  goToDay,
+  goToPage,
   panelStyle,
   onPanelTransitionEnd,
 } = props.pager;
 
-const tabs = computed(() =>
-  props.days.map((day, index) => ({
-    id: String(index),
-    label: props.tabLabel(day),
-    caption: props.tabCaption?.(day),
-    isToday: day === props.currentDay,
-  })),
+const weekOf = (page: number) => Math.floor(page / props.days.length);
+const dayOf = (page: number) =>
+  props.days[page - weekOf(page) * props.days.length] ?? 0;
+
+// Only days that run on without end lead from one week into the next.
+const spansWeeks = pageCount === undefined;
+
+/** Swipes the day picker a week at a time, kept on the selected day's week. */
+const {
+  trackRef: weekTrackRef,
+  activePage: activeWeek,
+  selectedPage: selectedWeek,
+  incomingPage: incomingWeek,
+  settling: weekSettling,
+  goToPage: goToWeek,
+  showPage: showWeek,
+  panelStyle: weekPanelStyle,
+  onPanelTransitionEnd: onWeekTransitionEnd,
+} = useSchedulePager();
+showWeek(weekOf(selectedPage.value));
+
+const bindWeekTrack = (el: Element | ComponentPublicInstance | null) => {
+  weekTrackRef.value = spansWeeks && el instanceof HTMLElement ? el : null;
+};
+
+// A day reached by a swipe brings its week along the same way; one shown
+// outright replaces the week as well.
+watch(
+  () => weekOf(selectedPage.value),
+  (week) => {
+    if (week === selectedWeek.value) return;
+    if (incomingPage.value === null) showWeek(week);
+    else void goToWeek(week);
+  },
 );
 
+// Another week keeps the weekday that was picked.
+watch(selectedWeek, (week) => {
+  const weeksAway = week - weekOf(selectedPage.value);
+  if (weeksAway === 0) return;
+  void goToPage(selectedPage.value + weeksAway * props.days.length);
+});
+
+const pickerWeeks = computed(() => {
+  const weeks =
+    incomingWeek.value === null
+      ? [activeWeek.value]
+      : [activeWeek.value, incomingWeek.value];
+  return weeks.map((week) => ({
+    week,
+    tabs: props.days.map((day, dayIndex) => {
+      const page = week * props.days.length + dayIndex;
+      return {
+        id: String(page),
+        label: props.tabLabel(day, week),
+        caption: props.tabCaption?.(day, week),
+        isToday: page === props.currentPage,
+      };
+    }),
+  }));
+});
+
 const panels = computed(() => {
-  const dayIndexes =
-    incomingDayIndex.value === null
-      ? [activeDayIndex.value]
-      : [activeDayIndex.value, incomingDayIndex.value];
-  return dayIndexes.map((dayIndex) => {
-    const day = props.days[dayIndex] ?? 0;
+  const pages =
+    incomingPage.value === null
+      ? [activePage.value]
+      : [activePage.value, incomingPage.value];
+  return pages.map((page) => {
+    const day = dayOf(page);
+    const week = weekOf(page);
     return {
-      dayIndex,
+      page,
       day,
-      key: props.panelKey?.(dayIndex) ?? day,
-      panel: props.panelOf(day),
+      week,
+      key: props.panelKey?.(page) ?? page,
+      panel: props.panelOf(day, week),
     };
   });
 });
@@ -75,30 +140,43 @@ const panels = computed(() => {
 
 <template>
   <div class="flex flex-col gap-4">
-    <ScheduleDayPicker
-      :class="{ 'animate-enter': animated }"
+    <div
+      class="overflow-x-clip"
+      :class="[bleedClass, { 'animate-enter': animated }]"
       :style="{ '--enter-delay': entranceDelay(0, 1) }"
-      :items="tabs"
-      :active-id="String(selectedDayIndex)"
-      @change="(id) => goToDay(Number(id))"
-    />
+    >
+      <div :ref="bindWeekTrack" class="relative touch-pan-y">
+        <ScheduleDayPicker
+          v-for="{ week, tabs } in pickerWeeks"
+          :key="week"
+          class="w-full"
+          :class="[
+            week === activeWeek ? 'relative' : 'absolute inset-x-0 top-0',
+            { 'transition-transform duration-300 ease-out': weekSettling },
+          ]"
+          :style="weekPanelStyle(week)"
+          :items="tabs"
+          :active-id="String(selectedPage)"
+          @change="(id) => goToPage(Number(id))"
+          @transitionend="onWeekTransitionEnd"
+        />
+      </div>
+    </div>
 
     <div class="overflow-hidden" :class="bleedClass">
       <div ref="trackRef" class="relative touch-pan-y">
         <div
-          v-for="{ dayIndex, day, key, panel } in panels"
+          v-for="{ page, day, week, key, panel } in panels"
           :key="key"
           class="grid grid-cols-[2.5rem_1fr] gap-2 w-full"
           :class="[
-            dayIndex === activeDayIndex
-              ? 'relative'
-              : 'absolute inset-x-0 top-0',
+            page === activePage ? 'relative' : 'absolute inset-x-0 top-0',
             { 'transition-transform duration-300 ease-out': settling },
           ]"
-          :style="[panelStyle(dayIndex), panel.gridStyle]"
+          :style="[panelStyle(page), panel.gridStyle]"
           @transitionend="onPanelTransitionEnd"
         >
-          <slot :day="day" :day-index="dayIndex" :panel="panel" />
+          <slot :day="day" :week="week" :page="page" :panel="panel" />
         </div>
       </div>
     </div>
