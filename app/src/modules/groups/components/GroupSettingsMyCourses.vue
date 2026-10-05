@@ -29,25 +29,20 @@ const {
 } = useCourseSelection(groupId);
 
 const saving = ref(false);
-const error = ref('');
-const savedSelections = ref<Record<string, string>>({});
 
-const hasCourseSubjects = computed(
-  () =>
-    subjectStore.requiredCourseSubjects.length > 0 ||
-    subjectStore.optionalCourseSubjects.length > 0,
-);
+const courseSubjects = computed(() => [
+  ...subjectStore.requiredCourseSubjects.map((subject) => ({
+    subject,
+    optional: false,
+  })),
+  ...subjectStore.optionalCourseSubjects.map((subject) => ({
+    subject,
+    optional: true,
+  })),
+]);
 
-const isDirty = computed(() =>
-  Object.keys(selections).some(
-    (subjectId) => selections[subjectId] !== savedSelections.value[subjectId],
-  ),
-);
-
-function discardChanges() {
+function showSavedCourses() {
   resetSelections(userStore.user?.courses ?? []);
-  savedSelections.value = { ...selections };
-  error.value = '';
 }
 
 // Saved courses can change outside this form, so they replace what is shown.
@@ -57,11 +52,24 @@ watch(
     subjectStore.optionalCourseSubjects,
     userStore.user?.courses,
   ],
-  discardChanges,
+  showSavedCourses,
   { immediate: true },
 );
 
 void subjectStore.loadSubjects(groupId);
+
+async function selectCourse(subjectId: string, courseId: string) {
+  selections[subjectId] = courseId;
+  saving.value = true;
+  try {
+    await saveCourses(selectedCourses.value);
+  } catch (e: unknown) {
+    showSavedCourses();
+    toast.error(apiErrorMessage(e, t('auth.courses.errors.save_failed')));
+  } finally {
+    saving.value = false;
+  }
+}
 
 const redoing = ref(false);
 
@@ -75,7 +83,6 @@ async function redoSetup() {
   if (!confirmed) return;
 
   redoing.value = true;
-  error.value = '';
   try {
     await resetCourses();
     await router.push({
@@ -84,23 +91,9 @@ async function redoSetup() {
       query: { returnTo: 'settings' },
     });
   } catch (e: unknown) {
-    error.value = apiErrorMessage(e, t('auth.courses.errors.save_failed'));
+    toast.error(apiErrorMessage(e, t('auth.courses.errors.save_failed')));
   } finally {
     redoing.value = false;
-  }
-}
-
-async function save() {
-  saving.value = true;
-  error.value = '';
-  try {
-    await saveCourses(selectedCourses.value);
-    savedSelections.value = { ...selections };
-    toast.success(t('auth.courses.saved'));
-  } catch (e: unknown) {
-    error.value = apiErrorMessage(e, t('auth.courses.errors.save_failed'));
-  } finally {
-    saving.value = false;
   }
 }
 </script>
@@ -108,13 +101,14 @@ async function save() {
 <template>
   <div>
     <div
-      class="flex flex-col items-start gap-3 mb-4 md:flex-row md:items-center md:justify-between max-w-120"
+      class="flex flex-col items-start gap-3 mb-4 md:flex-row md:items-center md:justify-between max-w-160 mx-auto"
     >
-      <p class="text-base/relaxed text-on-ghost-muted m-0">
+      <p class="text-base/relaxed text-on-ghost-muted m-0!">
         {{ t('auth.courses.description') }}
       </p>
       <BaseButton
-        v-if="hasCourseSubjects"
+        v-if="courseSubjects.length > 0"
+        form
         class="shrink-0"
         :icon="RotateCcw"
         :loading="redoing"
@@ -129,61 +123,29 @@ async function save() {
       <BaseSpinner />
     </div>
 
-    <p v-else-if="!hasCourseSubjects" class="text-base text-on-ghost-muted m-0">
+    <p
+      v-else-if="courseSubjects.length === 0"
+      class="text-base text-on-ghost-muted m-0"
+    >
       {{ t('auth.courses.none_offered') }}
     </p>
 
-    <BaseFormContent v-else class="max-w-120" :error="error">
-      <BaseFormGroup
-        v-for="subject in subjectStore.requiredCourseSubjects"
-        :id="subject.id"
+    <div v-else class="flex flex-col max-w-150 mx-auto max-md:-mx-6">
+      <BaseList
+        v-for="({ subject, optional }, index) in courseSubjects"
         :key="subject.id"
+        select
+        :separator="index !== courseSubjects.length - 1"
+        :model-value="selections[subject.id] ?? ''"
+        :options="optionsForSubject(subject, optional)"
+        :title="translatedName(subject.name)"
+        :disabled="saving || redoing"
+        @update:model-value="selectCourse(subject.id, $event)"
       >
-        <BaseLabel :for="subject.id">{{
-          translatedName(subject.name)
-        }}</BaseLabel>
-        <BaseSelect
-          :id="subject.id"
-          :model-value="selections[subject.id] ?? ''"
-          :options="optionsForSubject(subject, false)"
-          @update:model-value="(v) => (selections[subject.id] = v)"
-        />
-      </BaseFormGroup>
-
-      <BaseFormGroup
-        v-for="subject in subjectStore.optionalCourseSubjects"
-        :id="subject.id"
-        :key="subject.id"
-      >
-        <BaseLabel :for="subject.id">{{
-          translatedName(subject.name)
-        }}</BaseLabel>
-        <BaseSelect
-          :id="subject.id"
-          :model-value="selections[subject.id] ?? ''"
-          :options="optionsForSubject(subject, true)"
-          @update:model-value="(v) => (selections[subject.id] = v)"
-        />
-      </BaseFormGroup>
-
-      <BaseRow justify="end" stack-on-mobile class="w-full mt-2 gap-2">
-        <BaseButton
-          form
-          variant="ghost"
-          :disabled="!isDirty || saving"
-          @click="discardChanges"
-        >
-          {{ t('common.buttons.cancel') }}
-        </BaseButton>
-        <BaseButton
-          form
-          variant="action"
-          :disabled="!isDirty || saving"
-          @click="save"
-        >
-          {{ saving ? t('common.buttons.saving') : t('common.buttons.save') }}
-        </BaseButton>
-      </BaseRow>
-    </BaseFormContent>
+        <template #label>
+          {{ translatedName(subject.name) }}
+        </template>
+      </BaseList>
+    </div>
   </div>
 </template>
