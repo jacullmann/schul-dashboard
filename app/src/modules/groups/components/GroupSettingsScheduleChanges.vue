@@ -78,7 +78,8 @@ function changeSummary(change: ScheduleSubstitution): string[] {
 
 /*
  * A change names its lesson by id and its week by the Monday, so each row
- * spells out the date the lesson falls on and which lesson it is.
+ * spells out the date the lesson falls on and which lesson it is. Past weeks
+ * pile up, so the latest dates come first.
  */
 const rows = computed(() =>
   changes.value
@@ -100,7 +101,7 @@ const rows = computed(() =>
         summary: changeSummary(change),
       };
     })
-    .sort((a, b) => a.date.getTime() - b.date.getTime() || a.slot - b.slot),
+    .sort((a, b) => b.date.getTime() - a.date.getTime() || a.slot - b.slot),
 );
 </script>
 

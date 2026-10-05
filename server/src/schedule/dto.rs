@@ -1,9 +1,9 @@
 use crate::common::school_week::WeekStart;
 use serde::Deserialize;
 
-/// The weeks whose changes to fetch; every week from `from` on without `to`.
+/// The weeks whose changes to fetch; a missing bound leaves that side open.
 #[derive(Debug, Deserialize)]
 pub struct ScheduleSubsQuery {
-    pub from: WeekStart,
+    pub from: Option<WeekStart>,
     pub to: Option<WeekStart>,
 }

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, lesson_id, course_id, week_start, day, slot, duration, subject, room,\n                      cancelled, created_at\n             FROM schedule_subs\n             WHERE tenant_id = $1 AND week_start >= $2 AND ($3::date IS NULL OR week_start <= $3)\n             ORDER BY week_start",
+  "query": "SELECT id, lesson_id, course_id, week_start, day, slot, duration, subject, room,\n                      cancelled, created_at\n             FROM schedule_subs\n             WHERE tenant_id = $1\n               AND ($2::date IS NULL OR week_start >= $2)\n               AND ($3::date IS NULL OR week_start <= $3)\n             ORDER BY week_start",
   "describe": {
     "columns": [
       {
@@ -146,5 +146,5 @@
       false
     ]
   },
-  "hash": "3eeb7c27a009609e9e4970dac0af63d366157c5f9b9184d72369163a51b8146b"
+  "hash": "623490058750b97171097168c69d2c064b17369a4091d0431937ad856446bda9"
 }

@@ -105,10 +105,12 @@ WHERE s.tenant_id = $1"#,
             r#"SELECT id, lesson_id, course_id, week_start, day, slot, duration, subject, room,
                       cancelled, created_at
              FROM schedule_subs
-             WHERE tenant_id = $1 AND week_start >= $2 AND ($3::date IS NULL OR week_start <= $3)
+             WHERE tenant_id = $1
+               AND ($2::date IS NULL OR week_start >= $2)
+               AND ($3::date IS NULL OR week_start <= $3)
              ORDER BY week_start"#,
             tenant_id,
-            weeks.from.monday(),
+            weeks.from.map(WeekStart::monday),
             weeks.to.map(WeekStart::monday)
         )
         .fetch_all(&self.db)

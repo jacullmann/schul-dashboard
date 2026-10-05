@@ -6,9 +6,8 @@ import { useToast } from '@/common/composables/useToast';
 import { useGroupPageId } from '@/core/composables/useGroupPageId';
 import type { ScheduleSubstitution } from '@/modules/groups/types';
 import { useConfirmModal } from '@/stores/modalStore';
-import { isoDate, mondayOf } from '@/modules/schedule/utils/weekday';
 
-/** The changes entered for this week and the weeks after it. */
+/** Every change entered against the group's schedule, past weeks included. */
 export function useGroupScheduleChanges() {
   const groupId = useGroupPageId();
   const { t } = useI18n();
@@ -23,7 +22,6 @@ export function useGroupScheduleChanges() {
     try {
       const { data } = await api.get<ScheduleSubstitution[]>(
         groupPath(groupId, '/admin/schedule/subs'),
-        { params: { from: isoDate(mondayOf(new Date())) } },
       );
       changes.value = data;
     } catch {
