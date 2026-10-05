@@ -1,0 +1,83 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT event_type, event_status, host(ip_address) AS \"ip_address?\",\n                      user_agent, metadata, created_at\n               FROM security_events\n               WHERE metadata->>'userId' = $1 OR metadata->>'createdBy' = $1\n               ORDER BY created_at",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "event_type",
+        "type_info": "Varchar",
+        "origin": {
+          "Table": {
+            "table": "security_events",
+            "name": "event_type"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "event_status",
+        "type_info": "Varchar",
+        "origin": {
+          "Table": {
+            "table": "security_events",
+            "name": "event_status"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "ip_address?",
+        "type_info": "Text",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 3,
+        "name": "user_agent",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "security_events",
+            "name": "user_agent"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "metadata",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "security_events",
+            "name": "metadata"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "security_events",
+            "name": "created_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      null,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "0ff8f9c561f73b24db85a5126e2c24c4e30c220563ea26c2a6fac99bf8633c1d"
+}

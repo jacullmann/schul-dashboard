@@ -1,0 +1,53 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT report_type, reported_at, details\n               FROM reports\n               WHERE details->>'messageSenderId' = $1 OR details->>'creatorEmail' = $2\n               ORDER BY reported_at",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "report_type",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "reports",
+            "name": "report_type"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "reported_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "reports",
+            "name": "reported_at"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "details",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "reports",
+            "name": "details"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "a7ecc7aa4d36e66e0ba17775ef5a217d844b082df5b33c017418680c24b63105"
+}

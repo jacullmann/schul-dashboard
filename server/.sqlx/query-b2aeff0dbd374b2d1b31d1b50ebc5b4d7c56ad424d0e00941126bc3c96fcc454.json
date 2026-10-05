@@ -1,0 +1,109 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT i.tenant_id AS group_id, g.name AS group_name,\n                      i.created_by IS NOT DISTINCT FROM $1 AS \"created_by_you!\",\n                      i.used_by IS NOT DISTINCT FROM $1 AS \"used_by_you!\",\n                      i.revoked_by IS NOT DISTINCT FROM $1 AS \"revoked_by_you!\",\n                      i.created_at, i.expires_at, i.used_at, i.revoked_at\n               FROM group_invites i\n               JOIN groups g ON g.id = i.tenant_id\n               WHERE $1 IN (i.created_by, i.used_by, i.revoked_by)\n               ORDER BY i.created_at",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "group_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "group_invites",
+            "name": "tenant_id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "group_name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "groups",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "created_by_you!",
+        "type_info": "Bool",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 3,
+        "name": "used_by_you!",
+        "type_info": "Bool",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 4,
+        "name": "revoked_by_you!",
+        "type_info": "Bool",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 5,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "group_invites",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "expires_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "group_invites",
+            "name": "expires_at"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "used_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "group_invites",
+            "name": "used_at"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "revoked_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "group_invites",
+            "name": "revoked_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      null,
+      null,
+      null,
+      false,
+      false,
+      true,
+      true
+    ]
+  },
+  "hash": "b2aeff0dbd374b2d1b31d1b50ebc5b4d7c56ad424d0e00941126bc3c96fcc454"
+}

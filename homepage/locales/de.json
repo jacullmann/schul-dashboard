@@ -366,7 +366,7 @@
           "title": "Überblick",
           "paragraphs": [
             "Diese Datenschutzerklärung gilt für die Website schul-dashboard.com und die App unter app.schul-dashboard.com. Sie erklärt, welche personenbezogenen Daten wir verarbeiten, wofür wir sie brauchen, wie lange wir sie speichern und welche Rechte du hast.",
-            "Stand: 2. Oktober 2026"
+            "Stand: 6. Oktober 2026"
           ]
         },
         {
@@ -519,7 +519,8 @@
             "Widerspruch gegen Verarbeitungen, die auf unserem berechtigten Interesse beruhen (Art. 21 DSGVO)."
           ],
           "outro": [
-            "Schreib uns dafür einfach an kontakt{'@'}schul-dashboard.com.",
+            "Eine Kopie aller Daten zu deinem Konto kannst du jederzeit selbst in den Kontoeinstellungen unter „Konto“ als ZIP-Datei herunterladen. Sie enthält deine Daten in einem maschinenlesbaren Format (JSON) und die Angaben nach Art. 15 DSGVO.",
+            "Für alle anderen Anliegen schreib uns an kontakt{'@'}schul-dashboard.com.",
             "Du hast außerdem das Recht, dich bei einer Datenschutz-Aufsichtsbehörde zu beschweren (Art. 77 DSGVO). Für uns zuständig ist die Berliner Beauftragte für Datenschutz und Informationsfreiheit, Alt-Moabit 59–61, 10555 Berlin.",
             "Eine automatisierte Entscheidungsfindung oder ein Profiling findet nicht statt."
           ]

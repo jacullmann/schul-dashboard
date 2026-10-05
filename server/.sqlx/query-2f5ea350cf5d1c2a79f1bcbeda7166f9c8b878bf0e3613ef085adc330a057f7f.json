@@ -1,0 +1,64 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT provider, provider_user_id, provider_email, linked_at\n               FROM oauth_accounts\n               WHERE user_id = $1\n               ORDER BY linked_at",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "provider",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "oauth_accounts",
+            "name": "provider"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "provider_user_id",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "oauth_accounts",
+            "name": "provider_user_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "provider_email",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "oauth_accounts",
+            "name": "provider_email"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "linked_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "oauth_accounts",
+            "name": "linked_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "2f5ea350cf5d1c2a79f1bcbeda7166f9c8b878bf0e3613ef085adc330a057f7f"
+}

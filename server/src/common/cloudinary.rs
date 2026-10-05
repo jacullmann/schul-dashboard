@@ -107,6 +107,25 @@ impl Cloudinary {
         )
     }
 
+    /// The file exactly as it was uploaded, without delivery transformations.
+    /// Raw public IDs already end in their extension.
+    pub fn original_url(
+        &self,
+        public_id: &str,
+        resource_type: ResourceType,
+        format: &str,
+    ) -> String {
+        let base = format!(
+            "https://res.cloudinary.com/{}/{}/upload/{public_id}",
+            self.0.cloud_name,
+            resource_type.as_str()
+        );
+        match resource_type {
+            ResourceType::Image => format!("{base}.{format}"),
+            ResourceType::Raw => base,
+        }
+    }
+
     /// Signs `params` as Cloudinary expects: sorted by name, joined as a query
     /// string suffixed with the API secret. Only `&` is escaped, so a value
     /// cannot smuggle in another signed parameter.
@@ -241,6 +260,19 @@ mod tests {
         assert_eq!(
             cloudinary().image_url("hausaufgaben/abc"),
             "https://res.cloudinary.com/cloud/image/upload/f_auto,q_auto/hausaufgaben/abc"
+        );
+    }
+
+    #[test]
+    fn original_urls_keep_the_uploaded_format() {
+        let c = cloudinary();
+        assert_eq!(
+            c.original_url("hausaufgaben/abc", ResourceType::Image, "png"),
+            "https://res.cloudinary.com/cloud/image/upload/hausaufgaben/abc.png"
+        );
+        assert_eq!(
+            c.original_url("hausaufgaben/abc.docx", ResourceType::Raw, "docx"),
+            "https://res.cloudinary.com/cloud/raw/upload/hausaufgaben/abc.docx"
         );
     }
 

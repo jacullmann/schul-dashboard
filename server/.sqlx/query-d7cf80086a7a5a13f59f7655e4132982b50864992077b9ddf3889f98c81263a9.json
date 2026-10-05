@@ -1,0 +1,76 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT s.tenant_id AS group_id, s.name AS subject, c.name AS course,\n                      c.course_type, uc.enrolled_at\n               FROM user_courses uc\n               JOIN subjects s ON s.id = uc.subject_id\n               JOIN courses c ON c.id = uc.course_id\n               WHERE uc.user_id = $1\n               ORDER BY s.tenant_id, s.name",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "group_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "subjects",
+            "name": "tenant_id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "subject",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "subjects",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "course",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "courses",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "course_type",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "courses",
+            "name": "course_type"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "enrolled_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "user_courses",
+            "name": "enrolled_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      false
+    ]
+  },
+  "hash": "d7cf80086a7a5a13f59f7655e4132982b50864992077b9ddf3889f98c81263a9"
+}

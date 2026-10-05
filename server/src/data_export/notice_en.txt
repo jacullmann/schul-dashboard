@@ -1,0 +1,158 @@
+schul-dashboard: copy of your stored data
+==========================================
+
+Created:  {exported_at} (UTC)
+Account:  {email}
+
+This archive is our answer to your right of access (Art. 15 GDPR) and your
+right to data portability (Art. 20 GDPR). It contains two files:
+
+  README.txt  this explanation
+  data.json   all data stored for your account, in a structured,
+              machine-readable format (JSON, UTF-8). You can open it in any
+              text editor or import it into another service.
+
+All times in data.json are ISO 8601 timestamps in Coordinated Universal Time
+(UTC). The export is free of charge, and you can download it again at any
+time in your account settings.
+
+
+1. What data.json contains
+--------------------------
+
+account            Your account: email address, whether it is verified,
+                   whether a password and two-factor authentication are set
+                   up, settings (language, theme, personalization), sign-up
+                   and last sign-in, and the randomly generated name other
+                   members see you as.
+linkedAccounts     Sign-in services linked to your account (e.g. Google) with
+                   your account ID and email address at that service.
+groups             Your group memberships and roles, when you last opened each
+                   group, your course selection, bans in groups and invite
+                   links you created, used or revoked.
+content            What you created yourself: tasks and exams, uploaded files
+                   and group pictures, announcements, chat messages and your
+                   private tasks (decrypted).
+interactions       Tasks you checked off, pinned, archived or kept, and
+                   announcements you have read.
+reports            Reports you filed and reports about content you created.
+security           Your sessions (signed-in devices) with IP addresses and
+                   browser identifiers, security events (e.g. creating a group,
+                   accepting an invite), requested password reset codes and
+                   confirmation links.
+activityLog        Your account's activity log, including failed sign-in
+                   attempts with their IP address.
+
+Uploaded files are listed under content.files with a link to the original
+file. Download them soon if you need them: files are deleted automatically
+once the task they are attached to is deleted.
+
+
+2. Purposes and legal bases
+---------------------------
+
+- Account, settings, linked sign-in services, groups, course selection and all
+  content: providing the service under our terms of use
+  (Art. 6(1)(b) GDPR).
+- Sessions, security events, failed sign-in attempts, codes and confirmation
+  links: protecting your account and the service against abuse and
+  unauthorized access (Art. 6(1)(b) and (f) GDPR).
+- Activity log: investigating errors and abuse and measuring how many people
+  use the service (Art. 6(1)(f) GDPR).
+- Reports: reviewing reported content (Art. 6(1)(f) GDPR).
+
+
+3. Recipients
+-------------
+
+- Members of your groups see the content you publish there, your role and
+  your randomly generated name, but not your email address.
+- Hetzner Online GmbH (Germany) runs our servers and database on our behalf.
+- Cloudinary Inc. (USA) stores uploaded images and files on our behalf.
+- Resend, Inc. (USA) sends emails about your account on our behalf.
+- Google receives the data required for signing in with Google and processes
+  it as an independent controller.
+- Microsoft receives your IP address, browser identifier and the file's
+  address when you open an Office file preview, and processes them as an
+  independent controller.
+
+We do not sell data or share it for advertising.
+
+
+4. Transfers to third countries
+-------------------------------
+
+Cloudinary and Resend are based in the USA. Transfers rely on the European
+Commission's adequacy decision for the EU-US Data Privacy Framework, under
+which both companies are certified (Art. 45 GDPR). The same applies to Google
+and Microsoft where they transfer data to the USA.
+
+
+5. Retention
+------------
+
+- Account data, group memberships, course selection and private tasks: until
+  you delete your account.
+- Sessions: about 7 days after they were last used.
+- Activity log and security events: 30 days.
+- Chat messages: 7 days.
+- Tasks and exams in groups: 90 days after their due date.
+- Password reset codes: 30 minutes; confirmation links for unverified
+  accounts: 2 days.
+- Reports: until we have reviewed them.
+- All other group content: until you, the group admins or we delete it, or the
+  group is deleted.
+
+If you delete your account, tasks and announcements you created in groups stay
+available to the group but are no longer linked to your account.
+
+
+6. Source of the data
+---------------------
+
+The data comes from you and from your use of the service. If you sign in with
+Google, we received your Google account ID and email address from Google.
+Roles, bans in groups and notes on your tasks may come from the admins or
+moderators of your groups.
+
+
+7. Automated decision-making
+----------------------------
+
+No automated decision-making, including profiling (Art. 22 GDPR), takes
+place.
+
+
+8. What this export deliberately leaves out
+-------------------------------------------
+
+- Access secrets: your password hash, your two-factor secret, session tokens,
+  invite tokens and password reset codes. They would put your account at risk
+  if the file fell into the wrong hands. Whether they exist is stated in
+  data.json (e.g. hasPassword, mfaEnabled).
+- Information about other people: who reported your content and why, who used
+  your invites or banned you, and who created other content. This protects
+  their rights (Art. 15(4) GDPR, Section 29(1) sentence 2 BDSG).
+- Data not linked to your account: technical access data recorded when the
+  website and app are loaded, and the aggregated analytics statistics (Umami).
+- Data in your browser: language, theme and similar settings in your device's
+  local storage. You can view and clear these in your browser.
+
+
+9. Your rights
+--------------
+
+You have the right to rectification (Art. 16 GDPR), erasure (Art. 17 GDPR),
+restriction of processing (Art. 18 GDPR) and to object to processing based on
+our legitimate interests (Art. 21 GDPR). You can delete your account yourself
+at any time in your account settings. For anything else, email us at
+kontakt@schul-dashboard.com.
+
+You also have the right to lodge a complaint with a data protection
+supervisory authority (Art. 77 GDPR). The authority responsible for us is the
+Berlin Commissioner for Data Protection and Freedom of Information
+(Berliner Beauftragte für Datenschutz und Informationsfreiheit),
+Alt-Moabit 59–61, 10555 Berlin, Germany.
+
+Our privacy policy has the full details:
+https://schul-dashboard.com/legal/privacy-policy

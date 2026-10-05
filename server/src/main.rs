@@ -3,6 +3,7 @@ mod assets;
 mod auth;
 mod common;
 mod config;
+mod data_export;
 mod error;
 mod group;
 mod items;
@@ -135,6 +136,7 @@ async fn main() -> anyhow::Result<()> {
         .merge(assets::routes::router())
         .merge(auth::routes::router())
         .merge(user::routes::router())
+        .merge(data_export::routes::router())
         .merge(group::routes::router())
         .merge(todos::routes::router())
         .merge(messages::routes::router())

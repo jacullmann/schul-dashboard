@@ -1,0 +1,167 @@
+schul-dashboard: Auskunft über deine gespeicherten Daten
+=========================================================
+
+Erstellt am: {exported_at} (UTC)
+Konto:       {email}
+
+Dieses Archiv ist unsere Antwort auf dein Recht auf Auskunft (Art. 15 DSGVO)
+und auf Datenübertragbarkeit (Art. 20 DSGVO). Es enthält zwei Dateien:
+
+  LIESMICH.txt  diese Erläuterung
+  data.json     alle Daten, die wir zu deinem Konto gespeichert haben, in einem
+                strukturierten, maschinenlesbaren Format (JSON, UTF-8). Du
+                kannst die Datei mit jedem Texteditor öffnen oder in einen
+                anderen Dienst übernehmen.
+
+Alle Zeitangaben in data.json sind nach ISO 8601 in koordinierter Weltzeit
+(UTC) angegeben. Der Export ist kostenlos, und du kannst ihn jederzeit in den
+Kontoeinstellungen erneut herunterladen.
+
+
+1. Inhalt von data.json
+-----------------------
+
+account            Dein Konto: E-Mail-Adresse, ob sie bestätigt ist, ob ein
+                   Passwort und die Zwei-Faktor-Authentifizierung eingerichtet
+                   sind, Einstellungen (Sprache, Farbschema, Personalisierung),
+                   Registrierung, letzte Anmeldung und der zufällig erzeugte
+                   Name, unter dem dich andere Mitglieder sehen.
+linkedAccounts     Mit deinem Konto verknüpfte Anmeldedienste (z. B. Google)
+                   mit der Konto-ID und E-Mail-Adresse bei diesem Dienst.
+groups             Deine Gruppenmitgliedschaften und Rollen, wann du welche
+                   Gruppe zuletzt geöffnet hast, deine Kurswahl, Sperren in
+                   Gruppen und Einladungslinks, die du erstellt, genutzt oder
+                   widerrufen hast.
+content            Was du selbst angelegt hast: Aufgaben und Klausuren, hoch-
+                   geladene Dateien und Gruppenbilder, Ankündigungen, Chat-
+                   nachrichten und deine privaten Aufgaben (entschlüsselt).
+interactions       Aufgaben, die du abgehakt, angeheftet, archiviert oder
+                   behalten hast, und gelesene Ankündigungen.
+reports            Meldungen, die du abgegeben hast, und Meldungen zu Inhalten,
+                   die du erstellt hast.
+security           Deine Sitzungen (angemeldete Geräte) mit IP-Adressen und
+                   Browserkennung, Sicherheitsereignisse (z. B. Erstellen einer
+                   Gruppe, Annehmen einer Einladung), angeforderte Codes zum
+                   Zurücksetzen des Passworts und Bestätigungslinks.
+activityLog        Das Aktivitätsprotokoll deines Kontos, einschließlich
+                   fehlgeschlagener Anmeldeversuche mit IP-Adresse.
+
+Hochgeladene Dateien sind unter content.files mit einem Link zur Original-
+datei aufgeführt. Lade sie bei Bedarf bald herunter: Dateien werden
+automatisch gelöscht, sobald die Aufgabe gelöscht wird, an der sie hängen.
+
+
+2. Zwecke und Rechtsgrundlagen
+------------------------------
+
+- Konto, Einstellungen, verknüpfte Anmeldedienste, Gruppen, Kurswahl und alle
+  Inhalte: Bereitstellung des Dienstes nach dem Nutzungsvertrag
+  (Art. 6 Abs. 1 lit. b DSGVO).
+- Sitzungen, Sicherheitsereignisse, fehlgeschlagene Anmeldeversuche, Codes
+  und Bestätigungslinks: Schutz deines Kontos und des Dienstes vor Missbrauch
+  und unbefugtem Zugriff (Art. 6 Abs. 1 lit. b und f DSGVO).
+- Aktivitätsprotokoll: Aufklärung von Fehlern und Missbrauch und Ermittlung,
+  wie viele Personen den Dienst nutzen (Art. 6 Abs. 1 lit. f DSGVO).
+- Meldungen: Prüfung gemeldeter Inhalte (Art. 6 Abs. 1 lit. f DSGVO).
+
+
+3. Empfänger
+------------
+
+- Mitglieder deiner Gruppen sehen die Inhalte, die du dort veröffentlichst,
+  deine Rolle und deinen zufällig erzeugten Namen, nicht deine E-Mail-Adresse.
+- Hetzner Online GmbH (Deutschland) betreibt Server und Datenbank in unserem
+  Auftrag.
+- Cloudinary Inc. (USA) speichert hochgeladene Bilder und Dateien in unserem
+  Auftrag.
+- Resend, Inc. (USA) verschickt E-Mails zu deinem Konto in unserem Auftrag.
+- Google erhält bei der Anmeldung mit Google die dafür nötigen Daten und
+  verarbeitet sie in eigener Verantwortung.
+- Microsoft erhält beim Öffnen einer Office-Datei in der Vorschau deine
+  IP-Adresse, deine Browserkennung und die Adresse der Datei und verarbeitet
+  sie in eigener Verantwortung.
+
+Wir verkaufen keine Daten und geben sie nicht zu Werbezwecken weiter.
+
+
+4. Übermittlung in Drittländer
+------------------------------
+
+Cloudinary und Resend sitzen in den USA. Die Übermittlung stützt sich auf den
+Angemessenheitsbeschluss der EU-Kommission zum EU-US Data Privacy Framework,
+unter dem beide Unternehmen zertifiziert sind (Art. 45 DSGVO). Dasselbe gilt
+für Google und Microsoft, soweit sie Daten in die USA übermitteln.
+
+
+5. Speicherdauer
+----------------
+
+- Kontodaten, Gruppenmitgliedschaften, Kurswahl und private Aufgaben: bis du
+  dein Konto löschst.
+- Sitzungen: etwa 7 Tage nach ihrer letzten Nutzung.
+- Aktivitätsprotokoll und Sicherheitsereignisse: 30 Tage.
+- Chatnachrichten: 7 Tage.
+- Aufgaben und Klausuren in Gruppen: 90 Tage nach dem Fälligkeitsdatum.
+- Codes zum Zurücksetzen des Passworts: 30 Minuten; Bestätigungslinks für
+  unbestätigte Konten: 2 Tage.
+- Meldungen: bis wir sie bearbeitet haben.
+- Alle anderen Inhalte in Gruppen: bis du, die Gruppenadmins oder wir sie
+  löschen oder die Gruppe gelöscht wird.
+
+Löschst du dein Konto, bleiben Aufgaben und Ankündigungen, die du in Gruppen
+erstellt hast, für die Gruppe erhalten, sind aber nicht mehr deinem Konto
+zugeordnet.
+
+
+6. Herkunft der Daten
+---------------------
+
+Die Daten stammen von dir selbst und aus deiner Nutzung des Dienstes. Bei der
+Anmeldung mit Google haben wir deine Google-Konto-ID und E-Mail-Adresse von
+Google erhalten. Rollen, Sperren in Gruppen und Hinweise an deinen Aufgaben
+können von den Admins oder Moderatoren deiner Gruppen stammen.
+
+
+7. Automatisierte Entscheidungen
+--------------------------------
+
+Eine automatisierte Entscheidungsfindung einschließlich Profiling
+(Art. 22 DSGVO) findet nicht statt.
+
+
+8. Was dieser Export bewusst nicht enthält
+------------------------------------------
+
+- Zugangsgeheimnisse: den Hash deines Passworts, das Geheimnis der
+  Zwei-Faktor-Authentifizierung, Sitzungs-Token, Einladungs-Token sowie Codes
+  zum Zurücksetzen des Passworts. Sie würden die Sicherheit deines Kontos
+  gefährden, wenn die Datei in falsche Hände gerät. Ob sie vorhanden sind,
+  steht in data.json (z. B. hasPassword, mfaEnabled).
+- Angaben über andere Personen: wer einen Inhalt von dir gemeldet hat und mit
+  welcher Begründung, wer deine Einladungen genutzt oder dich gesperrt hat
+  und wer andere Inhalte erstellt hat. Das schützt die Rechte dieser Personen
+  (Art. 15 Abs. 4 DSGVO, § 29 Abs. 1 Satz 2 BDSG).
+- Daten, die nicht deinem Konto zugeordnet sind: technische Zugriffsdaten
+  beim Aufruf von Website und App sowie die zusammengefassten Statistiken
+  der Reichweitenmessung (Umami).
+- Daten in deinem Browser: Sprache, Farbschema und ähnliche Einstellungen im
+  lokalen Speicher deines Geräts. Diese kannst du in deinem Browser selbst
+  einsehen und löschen.
+
+
+9. Deine Rechte
+---------------
+
+Du hast das Recht auf Berichtigung (Art. 16 DSGVO), Löschung (Art. 17 DSGVO),
+Einschränkung der Verarbeitung (Art. 18 DSGVO) und Widerspruch gegen
+Verarbeitungen, die auf unserem berechtigten Interesse beruhen
+(Art. 21 DSGVO). Dein Konto kannst du jederzeit selbst in den Konto-
+einstellungen löschen. Für alles andere schreib uns an
+kontakt@schul-dashboard.com.
+
+Du hast außerdem das Recht, dich bei einer Datenschutz-Aufsichtsbehörde zu
+beschweren (Art. 77 DSGVO). Für uns zuständig ist die Berliner Beauftragte
+für Datenschutz und Informationsfreiheit, Alt-Moabit 59–61, 10555 Berlin.
+
+Ausführliche Informationen findest du in unserer Datenschutzerklärung:
+https://schul-dashboard.com/de/legal/datenschutz

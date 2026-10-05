@@ -1,0 +1,37 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT x.task_id AS \"task_id!\", x.state AS \"state!\", x.at AS \"at!\"\n               FROM (\n                   SELECT item_id AS task_id, 'checked' AS state, checked_at AS at\n                   FROM keep_checked WHERE user_id = $1\n                   UNION ALL\n                   SELECT item_id, 'pinned', pinned_at\n                   FROM pinned_items WHERE user_id = $1\n                   UNION ALL\n                   SELECT item_id, status, archived_at\n                   FROM user_item_visibility WHERE user_id = $1 AND status IS NOT NULL\n               ) x\n               ORDER BY x.at",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "task_id!",
+        "type_info": "Uuid",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 1,
+        "name": "state!",
+        "type_info": "Text",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 2,
+        "name": "at!",
+        "type_info": "Timestamptz",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      null,
+      null,
+      null
+    ]
+  },
+  "hash": "c5b2d5ea387e26a970fa76608f54a0dd90a45081cdf82d5c41f29e783d8f457b"
+}

@@ -1,0 +1,76 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT report_type, reason, reporter_email, reported_at, details\n               FROM reports\n               WHERE reporter_id = $1\n               ORDER BY reported_at",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "report_type",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "reports",
+            "name": "report_type"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "reason",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "reports",
+            "name": "reason"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "reporter_email",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "reports",
+            "name": "reporter_email"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "reported_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "reports",
+            "name": "reported_at"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "details",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "reports",
+            "name": "details"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "98a247ce6e256ed9db06ffcde8ea404a994b4aeca73ee35d5aed21a3c03dea9a"
+}

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
-import { Trash2 } from '@lucide/vue';
+import { Download, Trash2 } from '@lucide/vue';
+import { useDataExport } from '@/modules/auth/composables/useDataExport';
 
 defineProps<{
   email: string;
@@ -11,6 +12,7 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+const { exporting, downloadDataExport } = useDataExport();
 </script>
 
 <template>
@@ -18,6 +20,23 @@ const { t } = useI18n();
     <section class="flex flex-col gap-2">
       <h3>{{ t('auth.account_settings.account.email') }}</h3>
       <span class="text-base font-semibold text-on-ghost">{{ email }}</span>
+    </section>
+
+    <section class="flex flex-col gap-3 max-w-160">
+      <h3>{{ t('auth.account_settings.data_export.title') }}</h3>
+      <p class="text-sm/relaxed text-on-ghost-muted m-0!">
+        {{ t('auth.account_settings.data_export.description') }}
+      </p>
+      <div>
+        <BaseButton
+          variant="action"
+          :icon="Download"
+          :loading="exporting"
+          @click="downloadDataExport"
+        >
+          {{ t('auth.account_settings.data_export.download') }}
+        </BaseButton>
+      </div>
     </section>
 
     <section

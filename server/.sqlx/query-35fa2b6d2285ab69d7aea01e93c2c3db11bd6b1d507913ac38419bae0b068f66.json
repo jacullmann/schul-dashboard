@@ -1,0 +1,77 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT family_id AS id,\n                      min(issued_at) AS \"started_at!\",\n                      max(last_used_at) AS \"last_used_at!\",\n                      max(expires_at) AS \"expires_at!\",\n                      max(revoked_at) AS \"revoked_at?\",\n                      (array_agg(revoked_reason ORDER BY issued_at DESC))[1] AS \"revoked_reason?\",\n                      COALESCE(array_agg(DISTINCT host(ip_address))\n                               FILTER (WHERE ip_address IS NOT NULL), '{}') AS \"ip_addresses!\",\n                      COALESCE(array_agg(DISTINCT user_agent)\n                               FILTER (WHERE user_agent IS NOT NULL), '{}') AS \"user_agents!\"\n               FROM refresh_tokens\n               WHERE user_id = $1\n               GROUP BY family_id\n               ORDER BY min(issued_at)",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "refresh_tokens",
+            "name": "family_id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "started_at!",
+        "type_info": "Timestamptz",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 2,
+        "name": "last_used_at!",
+        "type_info": "Timestamptz",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 3,
+        "name": "expires_at!",
+        "type_info": "Timestamptz",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 4,
+        "name": "revoked_at?",
+        "type_info": "Timestamptz",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 5,
+        "name": "revoked_reason?",
+        "type_info": "Text",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 6,
+        "name": "ip_addresses!",
+        "type_info": "TextArray",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 7,
+        "name": "user_agents!",
+        "type_info": "TextArray",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  "hash": "35fa2b6d2285ab69d7aea01e93c2c3db11bd6b1d507913ac38419bae0b068f66"
+}
