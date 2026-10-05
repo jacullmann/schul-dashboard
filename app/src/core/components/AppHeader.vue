@@ -13,9 +13,15 @@ import {
   Settings,
   ArrowLeftRight,
   Search,
+  Megaphone,
 } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
-import { useCreateGroupModal, useSearchModal } from '@/stores/modalStore';
+import {
+  useAnnouncementsModal,
+  useCreateGroupModal,
+  useSearchModal,
+} from '@/stores/modalStore';
+import { useAnnouncementStore } from '@/stores/announcementStore';
 import Avatar from '@/modules/auth/components/Avatar.vue';
 import AccountMenu from '@/modules/auth/components/AccountMenu.vue';
 import { useLogout } from '@/core/composables/useLogout';
@@ -45,6 +51,8 @@ const {
 const router = useRouter();
 
 const createGroupModal = useCreateGroupModal();
+const announcementsModal = useAnnouncementsModal();
+const { announcements } = storeToRefs(useAnnouncementStore());
 
 // The search takes over the row on phones (HeaderSearchPalette): its bar
 // replaces the group and its cancel button the account button.
@@ -67,6 +75,7 @@ function onPersonalizationChanged(value: boolean) {
 
 const groupMenuOpen = ref(false);
 const groupMenuRef = ref<HTMLElement | null>(null);
+const groupButtonRef = ref<HTMLElement | null>(null);
 
 function toggleGroupMenu() {
   groupMenuOpen.value = !groupMenuOpen.value;
@@ -103,11 +112,18 @@ function inviteToActiveGroup() {
   if (activeGroupId.value) void inviteMember(activeGroupId.value);
 }
 
+function openAnnouncements() {
+  groupMenuOpen.value = false;
+  announcementsModal.open();
+}
+
 onMounted(() => {
   if (!userStore.initialized) {
     void userStore.fetchUser();
   }
 });
+
+defineExpose({ groupButton: groupButtonRef });
 </script>
 
 <template>
@@ -143,6 +159,7 @@ onMounted(() => {
         ]"
       >
         <button
+          ref="groupButtonRef"
           v-wave
           class="relative flex items-center gap-2 cursor-pointer hover:bg-ghost-hover active:bg-ghost-hover transition-hover rounded-full p-1 min-w-0 touch-target after:min-w-12 after:min-h-12"
           @click="toggleGroupMenu"
@@ -192,6 +209,16 @@ onMounted(() => {
             @click="inviteToActiveGroup"
           >
             {{ t('auth.groups.invite.invite_button_header') }}
+          </BaseMenuButton>
+
+          <BaseMenuButton
+            v-if="
+              announcements.length || checkPermission('manage_announcements')
+            "
+            :icon="Megaphone"
+            @click="openAnnouncements"
+          >
+            {{ t('announcements.list.title') }}
           </BaseMenuButton>
 
           <BaseMenuButton :icon="Settings" @click="openActiveGroupSettings">

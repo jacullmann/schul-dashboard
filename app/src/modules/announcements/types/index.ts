@@ -1,10 +1,11 @@
-export type AnnouncementColor = 'info' | 'warn' | 'danger';
-
 export interface Announcement {
   id: string;
   content: string;
-  color: AnnouncementColor;
+  important: boolean;
   createdBy: string | null;
   createdAt: string;
   read: boolean;
 }
+
+/** Mirrors the backend's limit: as short as an SMS. */
+export const ANNOUNCEMENT_MAX_CHARS = 160;

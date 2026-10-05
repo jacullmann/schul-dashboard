@@ -6,7 +6,7 @@ import { useI18n } from 'vue-i18n';
 import { apiErrorMessage } from '@/api/errors';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import GroupSelect from '@/modules/groups/components/GroupSelect.vue';
-import type { AnnouncementColor } from '@/modules/announcements/types';
+import { ANNOUNCEMENT_MAX_CHARS } from '@/modules/announcements/types';
 
 const { t } = useI18n();
 
@@ -25,7 +25,7 @@ const { userGroups } = useAppAuth();
 const groupId = ref(props.groupId);
 
 const annContent = ref('');
-const annColor = ref<AnnouncementColor>('warn');
+const annImportant = ref(false);
 
 const submitting = ref(false);
 const contentError = ref('');
@@ -45,8 +45,10 @@ async function submit() {
     contentError.value = t('announcements.form.errors.empty');
     return;
   }
-  if (annContent.value.trim().length > 1000) {
-    contentError.value = t('announcements.form.errors.too_long');
+  if (annContent.value.trim().length > ANNOUNCEMENT_MAX_CHARS) {
+    contentError.value = t('announcements.form.errors.too_long', {
+      max: ANNOUNCEMENT_MAX_CHARS,
+    });
     return;
   }
 
@@ -54,7 +56,7 @@ async function submit() {
   try {
     await api.post(groupPath(groupId.value, '/admin/announcements'), {
       content: annContent.value.trim(),
-      color: annColor.value,
+      important: annImportant.value,
     });
     emit('success');
   } catch (e: unknown) {
@@ -102,30 +104,25 @@ async function submit() {
             ref="contentInputRef"
             v-model="annContent"
             :placeholder="t('announcements.form.content_placeholder')"
-            maxlength="1000"
+            :maxlength="ANNOUNCEMENT_MAX_CHARS"
             :aria-describedby="
               contentError ? 'announcement-content-input-error' : undefined
             "
           />
         </BaseFormGroup>
 
-        <BaseFormGroup id="announcement-importance-input">
-          <BaseLabel for="announcement-importance-input" required>{{
-            t('announcements.form.importance_label')
-          }}</BaseLabel>
-          <BaseSelect
-            id="announcement-importance-input"
-            v-model="annColor"
-            :options="[
-              { label: t('announcements.form.options.info'), value: 'info' },
-              { label: t('announcements.form.options.warning'), value: 'warn' },
-              {
-                label: t('announcements.form.options.important'),
-                value: 'danger',
-              },
-            ]"
-          />
-        </BaseFormGroup>
+        <button
+          type="button"
+          role="switch"
+          :aria-checked="annImportant"
+          class="relative group flex items-center justify-between w-full h-10 cursor-pointer touch-target after:min-h-12"
+          @click="annImportant = !annImportant"
+        >
+          <span class="text-base font-normal">{{
+            t('announcements.form.important_label')
+          }}</span>
+          <BaseToggle :model-value="annImportant" decorative />
+        </button>
       </BaseFormContent>
     </template>
 

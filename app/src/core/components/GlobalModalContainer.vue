@@ -6,6 +6,7 @@ import { useToast } from '@/common/composables/useToast';
 import { storeToRefs } from 'pinia';
 import {
   useAnnouncementFormModal,
+  useAnnouncementsModal,
   useChangePasswordModal,
   useConfirmModal,
   useCreateGroupModal,
@@ -58,6 +59,9 @@ const InviteModal = defineAsyncComponent(
 const AnnouncementForm = defineAsyncComponent(
   () => import('@/modules/announcements/components/AnnouncementForm.vue'),
 );
+const AnnouncementsModal = defineAsyncComponent(
+  () => import('@/modules/announcements/components/AnnouncementsModal.vue'),
+);
 const ImageViewer = defineAsyncComponent(
   () => import('@/modules/tasks/components/ImageViewer.vue'),
 );
@@ -90,6 +94,7 @@ const searchModal = useSearchModal();
 const taskForm = useTaskFormModal();
 const privateTaskForm = usePrivateTaskFormModal();
 const announcementForm = useAnnouncementFormModal();
+const announcements = useAnnouncementsModal();
 const imageViewer = useImageViewerModal();
 const changePassword = useChangePasswordModal();
 const deleteAccount = useDeleteAccountModal();
@@ -197,6 +202,11 @@ async function onAuthSuccess() {
     :open="announcementForm.isOpen"
     @cancel="announcementForm.close()"
     @success="onAnnouncementFormSuccess"
+  />
+
+  <AnnouncementsModal
+    :open="announcements.isOpen"
+    @cancel="announcements.close()"
   />
 
   <!-- Stays mounted while closed: its open animation needs the visible prop

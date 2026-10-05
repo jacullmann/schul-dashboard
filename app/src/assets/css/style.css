@@ -113,7 +113,6 @@
   --duration-page-push: 400ms;
 
   --header-height: 49px;
-  --announcement-height: 0px;
 
   --z-below: -10;
   --z-hide: -1;
@@ -181,7 +180,6 @@
   --animate-pulse: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 
   --header-height: 49px;
-  --announcement-height: 0px;
   /* Space the fixed mobile tab bar covers at the bottom; AppTabBar measures it. */
   --tab-bar-height: 0px;
   /*

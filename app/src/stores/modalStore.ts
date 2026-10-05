@@ -140,6 +140,10 @@ export const useAnnouncementFormModal = defineStore(
   },
 );
 
+export const useAnnouncementsModal = defineStore('announcements-modal', () =>
+  useModalState(),
+);
+
 interface ImageViewerPayload {
   images: StoredFile[];
   initialIndex: number;

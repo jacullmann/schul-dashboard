@@ -6,6 +6,7 @@ import { useToast } from '@/common/composables/useToast';
 import { useGroupPageId } from '@/core/composables/useGroupPageId';
 import type { Announcement } from '@/modules/announcements/types';
 import { useConfirmModal } from '@/stores/modalStore';
+import { useAnnouncementStore } from '@/stores/announcementStore';
 
 /** The group's announcements, as its admins manage them. */
 export function useGroupAnnouncementsAdmin() {
@@ -13,6 +14,7 @@ export function useGroupAnnouncementsAdmin() {
   const { t } = useI18n();
   const toast = useToast();
   const confirmModal = useConfirmModal();
+  const announcementStore = useAnnouncementStore();
 
   const announcements = ref<Announcement[]>([]);
 
@@ -39,6 +41,7 @@ export function useGroupAnnouncementsAdmin() {
     try {
       await api.delete(groupPath(groupId, `/admin/announcements/${id}`));
       announcements.value = announcements.value.filter((a) => a.id !== id);
+      announcementStore.remove(id);
       toast.success(t('groups.settings.messages.announcement_deleted'));
     } catch {
       toast.error(t('groups.settings.messages.announcement_delete_failed'));

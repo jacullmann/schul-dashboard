@@ -25,7 +25,7 @@ pub async fn list_announcements(
 ) -> AppResult<Json<Vec<AnnouncementDto>>> {
     Ok(Json(
         AnnouncementService::from_state(&s)
-            .list_visible(tc.tenant_id, tc.user.user_id)
+            .list(tc.tenant_id, tc.user.user_id)
             .await?,
     ))
 }
@@ -51,7 +51,7 @@ pub async fn create_announcement(
     let content = DisplayText::parse(&dto.content, CONTENT_MAX_CHARS, "content")?;
 
     let announcement = AnnouncementService::from_state(&s)
-        .create(tc.tenant_id, tc.user.user_id, &content, dto.color)
+        .create(tc.tenant_id, tc.user.user_id, &content, dto.important)
         .await?;
 
     Ok((StatusCode::CREATED, Json(announcement)))

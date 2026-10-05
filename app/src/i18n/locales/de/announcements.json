@@ -12,23 +12,16 @@
   "form": {
     "errors": {
       "empty": "Eine Ankündigung darf nicht leer sein.",
-      "too_long": "Die Ankündigung ist zu lang (max. 1000 Zeichen)."
+      "too_long": "Die Ankündigung ist zu lang (max. {max} Zeichen)."
     },
     "title": "Neue Ankündigung",
     "content_label": "Ankündigung",
-    "options": {
-      "info": "Info",
-      "warning": "Warnung",
-      "important": "Wichtig"
-    },
     "content_placeholder": "Verfasse deine Nachricht...",
-    "importance_label": "Wichtigkeit"
+    "important_label": "Wichtig"
   },
-  "all": {
-    "title": "Alle Ankündigungen"
-  },
-  "notifications": {
-    "new_single": "Neue Ankündigung: {preview}",
-    "new_plural": "{count} neue Ankündigungen: {preview}"
+  "card": {
+    "acknowledge": "Verstanden",
+    "acknowledge_all": "Alle ausblenden",
+    "more": "{count} weitere"
   }
 }

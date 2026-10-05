@@ -10,23 +10,16 @@
   "form": {
     "errors": {
       "empty": "An announcement can't be empty.",
-      "too_long": "The announcement is too long (max. 1000 characters)."
+      "too_long": "The announcement is too long (max. {max} characters)."
     },
     "title": "New Announcement",
     "content_label": "Announcement",
-    "options": {
-      "info": "Info",
-      "warning": "Warning",
-      "important": "Important"
-    },
     "content_placeholder": "Compose your message...",
-    "importance_label": "Importance"
+    "important_label": "Important"
   },
-  "all": {
-    "title": "All announcements"
-  },
-  "notifications": {
-    "new_single": "New Announcement: {preview}",
-    "new_plural": "{count} new Announcements: {preview}"
+  "card": {
+    "acknowledge": "Got it",
+    "acknowledge_all": "Clear all",
+    "more": "{count} more"
   }
 }

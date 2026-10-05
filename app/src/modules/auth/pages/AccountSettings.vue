@@ -201,7 +201,7 @@ function goBack() {
 .phone-settings-container {
   position: relative;
   width: 100%;
-  height: calc(100dvh - var(--header-height) - var(--announcement-height));
+  height: calc(100dvh - var(--header-height));
   overflow: hidden;
   background: var(--color-canvas);
   display: flex;

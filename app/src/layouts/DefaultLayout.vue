@@ -3,7 +3,7 @@ import { useAppShortcuts } from '@/core/composables/useAppShortcuts';
 import AppHeader from '@/core/components/AppHeader.vue';
 import AppSidebar from '@/core/components/AppSidebar.vue';
 import AppTabBar from '@/core/components/AppTabBar.vue';
-import Announcements from '../modules/announcements/components/Announcements.vue';
+import AnnouncementCard from '@/modules/announcements/components/AnnouncementCard.vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useUserStore } from '@/stores/userStore';
 import { storeToRefs } from 'pinia';
@@ -18,6 +18,7 @@ const hasSidebar = useIsSidebarViewport();
 
 useAppShortcuts();
 
+const header = useTemplateRef('header');
 const topBarSlot = useTemplateRef('topBarSlot');
 const { left: topBarLeft, width: topBarWidth } = useElementBounding(
   topBarSlot,
@@ -43,13 +44,13 @@ const topBarStyle = computed(() => ({
         class="fixed top-0 z-(--z-header) flex flex-col"
         :style="topBarStyle"
       >
-        <AppHeader />
-        <Announcements v-if="activeGroupId" />
+        <AppHeader ref="header" />
+        <AnnouncementCard
+          v-if="activeGroupId"
+          :collapse-target="header?.groupButton ?? null"
+        />
       </div>
-      <div
-        ref="topBarSlot"
-        class="shrink-0 h-[calc(var(--header-height)+var(--announcement-height))] transition-[height] duration-500 ease-out"
-      ></div>
+      <div ref="topBarSlot" class="shrink-0 h-(--header-height)"></div>
 
       <main class="full-c flex-1 overflow-x-clip pb-(--tab-bar-height)">
         <div

@@ -166,7 +166,7 @@ onMounted(() => {
 <template>
   <div
     ref="view"
-    class="card relative min-h-[calc(100dvh-var(--header-height)-var(--announcement-height)-var(--tab-bar-height))]"
+    class="card relative min-h-[calc(100dvh-var(--header-height)-var(--tab-bar-height))]"
   >
     <!-- The view fills the visible height below the header, so a short task
          still gives files the whole view to land on. It is the only root

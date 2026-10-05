@@ -205,8 +205,8 @@ const {
   );
 
   height: calc(
-    var(--chat-viewport-height, 100dvh) - var(--header-height, 49px) -
-      var(--announcement-height, 0px) - 8px - var(--chat-bottom-inset)
+    var(--chat-viewport-height, 100dvh) - var(--header-height, 49px) - 8px -
+      var(--chat-bottom-inset)
   );
 }
 

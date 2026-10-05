@@ -1,4 +1,4 @@
-use super::dto::{AnnouncementColor, AnnouncementDto};
+use super::dto::AnnouncementDto;
 use crate::{
     common::text::DisplayText,
     error::{AppError, AppResult},
@@ -6,9 +6,6 @@ use crate::{
 };
 use sqlx::PgPool;
 use uuid::Uuid;
-
-/// The banner rotates through only the newest announcements.
-const VISIBLE_LIMIT: i64 = 5;
 
 pub struct AnnouncementService {
     db: PgPool,
@@ -21,26 +18,33 @@ impl AnnouncementService {
 
     /// Carries the read flag along so a client learns what is unread in the
     /// same round-trip, instead of fetching every read receipt separately.
-    pub async fn list_visible(
-        &self,
-        tenant_id: Uuid,
-        user_id: Uuid,
-    ) -> AppResult<Vec<AnnouncementDto>> {
+    ///
+    /// Announcements posted before the user joined count as read: a new member
+    /// would otherwise have to click through the group's whole history. The
+    /// same goes for the author's own posts and for visitors without a
+    /// membership, such as superadmins, who are not the audience.
+    pub async fn list(&self, tenant_id: Uuid, user_id: Uuid) -> AppResult<Vec<AnnouncementDto>> {
         let announcements = sqlx::query_as!(
             AnnouncementDto,
-            r#"SELECT a.id, a.content, a.color AS "color: AnnouncementColor",
+            r#"SELECT a.id, a.content, a.important,
                       a.created_by, a.created_at,
-                      EXISTS (
-                          SELECT 1 FROM user_announcement_read_status r
-                          WHERE r.announcement_id = a.id AND r.user_id = $2
+                      (
+                          a.created_by IS NOT DISTINCT FROM $2
+                          OR a.created_at < COALESCE(
+                              (SELECT ur.assigned_at FROM user_roles ur
+                               WHERE ur.user_id = $2 AND ur.tenant_id = $1),
+                              'infinity'
+                          )
+                          OR EXISTS (
+                              SELECT 1 FROM user_announcement_read_status r
+                              WHERE r.announcement_id = a.id AND r.user_id = $2
+                          )
                       ) AS "read!"
                FROM announcements a
                WHERE a.tenant_id = $1
-               ORDER BY a.created_at DESC
-               LIMIT $3"#,
+               ORDER BY a.created_at DESC"#,
             tenant_id,
-            user_id,
-            VISIBLE_LIMIT
+            user_id
         )
         .fetch_all(&self.db)
         .await?;
@@ -71,17 +75,17 @@ impl AnnouncementService {
         tenant_id: Uuid,
         user_id: Uuid,
         content: &DisplayText,
-        color: AnnouncementColor,
+        important: bool,
     ) -> AppResult<AnnouncementDto> {
         let announcement = sqlx::query_as!(
             AnnouncementDto,
-            r#"INSERT INTO announcements (tenant_id, content, color, created_by)
+            r#"INSERT INTO announcements (tenant_id, content, important, created_by)
                VALUES ($1, $2, $3, $4)
-               RETURNING id, content, color AS "color: AnnouncementColor",
-                         created_by, created_at, false AS "read!""#,
+               RETURNING id, content, important,
+                         created_by, created_at, true AS "read!""#,
             tenant_id,
             content.as_str(),
-            color as AnnouncementColor,
+            important,
             user_id
         )
         .fetch_one(&self.db)
