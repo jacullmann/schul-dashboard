@@ -200,7 +200,8 @@
     "label": "Main navigation",
     "chat": "Chat",
     "account": "Account",
-    "private": "Private"
+    "private": "Private",
+    "schedule": "Schedule"
   },
   "contact": {
     "email": "Email",

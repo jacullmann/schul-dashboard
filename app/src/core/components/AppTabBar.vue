@@ -22,7 +22,7 @@ const tabs = computed<NavItem[]>(() => [
   { id: 'group-tasks', label: t('common.sidebar.tasks'), icon: ListTodo },
   {
     id: 'group-schedule',
-    label: t('common.sidebar.schedule'),
+    label: t('common.tab_bar.schedule'),
     icon: CalendarDays,
   },
   {
