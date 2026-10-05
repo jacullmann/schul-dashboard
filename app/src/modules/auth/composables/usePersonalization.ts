@@ -1,4 +1,3 @@
-import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import api from '@/api/api';
 import { apiErrorMessage } from '@/api/errors';
@@ -8,17 +7,16 @@ import { useUserStore } from '@/stores/userStore';
 export function usePersonalization() {
   const { t } = useI18n();
   const userStore = useUserStore();
-  const updating = ref(false);
 
   /**
    * Applies the setting optimistically and rolls it back if the save fails.
    * Resolves to the saved setting, or `null` when nothing was saved.
    */
   async function setPersonalization(value: boolean): Promise<boolean | null> {
-    if (updating.value || !userStore.user) return null;
+    if (userStore.savingPersonalization || !userStore.user) return null;
 
     const previous = userStore.user.personalized;
-    updating.value = true;
+    userStore.savingPersonalization = true;
     userStore.updateUser({ personalized: value });
     try {
       const { data } = await api.patch('/user/personalization', {
@@ -36,9 +34,9 @@ export function usePersonalization() {
       useToast().error(apiErrorMessage(e, t('common.errors.update')));
       return null;
     } finally {
-      updating.value = false;
+      userStore.savingPersonalization = false;
     }
   }
 
-  return { updating, setPersonalization };
+  return { setPersonalization };
 }

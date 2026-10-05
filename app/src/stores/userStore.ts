@@ -28,6 +28,7 @@ export const useUserStore = defineStore('user', () => {
   const user = ref<UserData | null>(null);
   const loading = ref(false);
   const initialized = ref(false);
+  const savingPersonalization = ref(false);
 
   const isLoggedIn = computed(() => user.value !== null);
   const role = computed(() => user.value?.role);
@@ -116,6 +117,7 @@ export const useUserStore = defineStore('user', () => {
     user,
     loading,
     initialized,
+    savingPersonalization,
     isLoggedIn,
     role,
     isSuperadmin,

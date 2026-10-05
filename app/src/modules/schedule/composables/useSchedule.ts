@@ -151,7 +151,21 @@ export function useSchedule() {
     }
   }
 
+  /*
+   * The server filters lessons by the member's saved course setting, so a
+   * setting still being saved would be answered with the old filter.
+   */
+  const savedCourseFilter = computed(() =>
+    userStore.savingPersonalization
+      ? null
+      : JSON.stringify([userStore.user?.personalized, userStore.user?.courses]),
+  );
+  let loadedCourseFilter: string | null = null;
+  let latestScheduleRequest = 0;
+
   async function loadSchedule() {
+    const request = ++latestScheduleRequest;
+    loadedCourseFilter = savedCourseFilter.value;
     loadingLessons.value = true;
     try {
       const [lessonRes, subjectRes] = await Promise.all([
@@ -160,16 +174,18 @@ export function useSchedule() {
           .get(groupPath(groupId, '/schedule/subjects'))
           .catch(() => ({ data: [] })),
       ]);
+      if (request !== latestScheduleRequest) return;
       lessons.value = lessonRes.data;
       lessonsHiddenByServer.value = hiddenByCourses(lessonRes);
       subjects.value = subjectRes.data || [];
     } catch (error) {
+      if (request !== latestScheduleRequest) return;
       console.error('Error loading schedule:', error);
       lessons.value = [];
       lessonsHiddenByServer.value = 0;
       subjects.value = [];
     } finally {
-      loadingLessons.value = false;
+      if (request === latestScheduleRequest) loadingLessons.value = false;
     }
   }
 
@@ -373,18 +389,9 @@ export function useSchedule() {
     void loadSubstitutions();
   });
 
-  watch(
-    () => [userStore.user?.personalized, userStore.user?.courses],
-    (newVal, oldVal) => {
-      if (
-        oldVal !== undefined &&
-        JSON.stringify(newVal) !== JSON.stringify(oldVal)
-      ) {
-        void loadSchedule();
-      }
-    },
-    { deep: false },
-  );
+  watch(savedCourseFilter, (filter) => {
+    if (filter !== null && filter !== loadedCourseFilter) void loadSchedule();
+  });
 
   onUnmounted(() => {
     clearInterval(timer);
