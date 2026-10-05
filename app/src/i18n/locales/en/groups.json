@@ -263,8 +263,8 @@
         "title": "Schedule Settings"
       },
       "config": {
-        "title": "Schedule Settings",
-        "edit_button": "Edit schedule settings",
+        "title": "Configuration",
+        "edit_button": "Edit configuration",
         "break_summary": "After lesson {slot}: {minutes} min",
         "lesson_duration_label": "Lesson Duration (minutes)",
         "after_lesson_label": "After lesson",

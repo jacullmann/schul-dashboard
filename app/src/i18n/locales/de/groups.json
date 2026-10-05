@@ -264,8 +264,8 @@
         "title": "Stundenplaneinstellungen"
       },
       "config": {
-        "title": "Plan-Einstellungen",
-        "edit_button": "Plan-Einstellungen bearbeiten",
+        "title": "Konfiguration",
+        "edit_button": "Konfiguration bearbeiten",
         "break_summary": "Nach Stunde {slot}: {minutes} Min.",
         "lesson_duration_label": "Stundenlänge (Minuten)",
         "after_lesson_label": "Nach Stunde",
