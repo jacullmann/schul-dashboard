@@ -311,12 +311,10 @@
           "message": "If you delete this change, it will be removed permanently"
         },
         "table": {
-          "week": "Week",
-          "subject": "Subject",
-          "course": "Course",
-          "room": "Room",
-          "day": "Day",
-          "slot": "Slot"
+          "date": "Date",
+          "lesson": "Lesson",
+          "change": "Change",
+          "course": "Course"
         }
       },
       "editor": {

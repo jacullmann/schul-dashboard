@@ -702,7 +702,7 @@ onMounted(() => {
         :saving="savingScheduleConfig"
         :save="saveConfig"
       />
-      <GroupSettingsScheduleChanges />
+      <GroupSettingsScheduleChanges :lessons="lessons" />
     </div>
 
     <BaseModal
