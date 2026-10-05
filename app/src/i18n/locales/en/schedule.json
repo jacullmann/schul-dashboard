@@ -1,7 +1,6 @@
 {
   "break": "{minutes} min break",
   "cancelled": "Canceled",
-  "disclaimer": "schul-dashboard and the admin team accept no liability for the accuracy, completeness, or timeliness of the information provided.",
   "infopop": {
     "description": "The digital version of the schedule.",
     "sections": [
@@ -19,7 +18,6 @@
   "loading": "Loading schedule…",
   "period": "Period {slot}",
   "periods": "Periods {first}–{last}",
-  "personalized": "Personalized",
   "title": "Schedule",
   "previous_week": "Previous week",
   "next_week": "Next week",

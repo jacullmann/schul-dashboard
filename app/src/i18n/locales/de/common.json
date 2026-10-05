@@ -16,23 +16,12 @@
     "skip": "Überspringen",
     "saving": "Wird gespeichert…",
     "refresh": "Aktualisieren",
-    "deleting": "Wird gelöscht…",
     "logout": "Abmelden"
   },
-  "cookies": {
-    "banner": {
-      "action": "Verstanden",
-      "text": "Wir nutzen Cookies, um grundlegende Funktionen wie Anmeldung, Sicherheit und den Betrieb des schul-dashboards zuverlässig bereitzustellen. Zusätzlich verwenden wir das datenschutzfreundliche Analyse-Tool Umami (Cloud-Dienst), um zu verstehen, wie unsere Seite genutzt wird und sie weiter zu verbessern. Umami arbeitet ohne Tracking-Cookies und speichert keine personenbezogenen Daten. Mehr dazu findest du in unserer Datenschutzerklärung.",
-      "title": "Cookies"
-    }
-  },
-  "design": "Design",
   "errors": {
     "delete": "Löschen fehlgeschlagen",
-    "save": "Speichern fehlgeschlagen",
     "unknown": "Unbekannter Fehler",
-    "update": "Aktualisieren fehlgeschlagen",
-    "validation_failed": "Bitte Eingaben überprüfen."
+    "update": "Aktualisieren fehlgeschlagen"
   },
   "footer": {
     "quotes": [
@@ -136,7 +125,6 @@
     "no": "Nein",
     "other": "Anderes…",
     "placeholder": "Bitte wählen",
-    "yes": "Ja",
     "unknown": "Unbekannt"
   },
   "subjects": {
@@ -175,9 +163,7 @@
     "abbr": {
       "mr": "Hr.",
       "ms": "Fr."
-    },
-    "mr": "Herr",
-    "ms": "Frau"
+    }
   },
   "sidebar": {
     "admin": "Gruppeneinstellungen",
@@ -199,16 +185,11 @@
   },
   "tab_bar": {
     "label": "Hauptnavigation",
-    "chat": "Chat",
-    "account": "Konto",
     "private": "Privat",
     "schedule": "Plan"
   },
   "contact": {
-    "email": "E-Mail",
-    "feedback": "Feedback",
-    "location": "Standort",
-    "title": "Kontakt"
+    "email": "E-Mail"
   },
   "roles": {
     "admin": "Admin",
@@ -216,29 +197,6 @@
     "moderator": "Moderator",
     "owner": "Besitzer",
     "superadmin": "Superadmin"
-  },
-  "video_player": {
-    "seek_slider": {
-      "aria_label": "Video spulen"
-    },
-    "play_button": {
-      "pause_aria_label": "Pausieren",
-      "play_aria_label": "Abspielen"
-    },
-    "volume_button": {
-      "unmute_aria_label": "Ton einschalten",
-      "mute_aria_label": "Stummschalten"
-    },
-    "volume_slider": {
-      "aria_label": "Lautstärke"
-    },
-    "fullscreen_button": {
-      "exit_aria_label": "Vollbildmodus beenden",
-      "enter_aria_label": "Vollbildmodus aktivieren"
-    }
-  },
-  "actions": {
-    "close_aria_label": "Schließen"
   },
   "date": {
     "seconds": "vor {n} Sek",

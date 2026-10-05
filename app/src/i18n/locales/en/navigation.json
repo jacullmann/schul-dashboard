@@ -1,8 +1,6 @@
 {
-  "auth": "Authentication",
   "group_admin": "Group Administration",
   "home": "Home",
-  "legal": "Legal",
   "not_found": "404",
   "private_todos": "Private Tasks",
   "super_admin": "Superadmin",

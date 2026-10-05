@@ -16,7 +16,6 @@
   },
   "overview": {
     "title": "Dashboard-Übersicht",
-    "details_title": "Details",
     "stats": {
       "users": "Benutzer",
       "active_week": "Aktiv",

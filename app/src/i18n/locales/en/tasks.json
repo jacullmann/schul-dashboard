@@ -5,9 +5,7 @@
     "filter_active": "Filter (active)",
     "hide_checked": "Hide completed",
     "archive": {
-      "archive": "Archive",
-      "archive_note": "You are currently viewing archived tasks",
-      "close_archive": "Close Archive"
+      "archive": "Archive"
     },
     "create_task": "Create task",
     "infopop": {
@@ -61,20 +59,14 @@
       "images": "Images",
       "new_task": "New Task",
       "subject": "Subject",
-      "success_create": "Task created",
       "success_edit": "Task edited",
-      "success_upload": "Images uploaded",
-      "title": "Title",
-      "upload_images": "Upload Images",
-      "uploading_image": "Uploading image…"
+      "title": "Title"
     },
     "tasks": {
       "menu": {
         "add_note": "Add note",
         "archive": "Archive",
         "delete": {
-          "action": "Delete Task",
-          "description": "The task and all its files will be permanently deleted.",
           "title": "Delete this task?"
         },
         "info": "Info",
@@ -129,8 +121,7 @@
       "all": "All",
       "dalton": "Dalton",
       "exams": "Exams",
-      "homework": "Homework",
-      "private": "Private"
+      "homework": "Homework"
     },
     "title": "Tasks",
     "types": {
@@ -147,8 +138,6 @@
   },
   "private_tasks": {
     "delete_confirm": "Do you really want to delete this private task?",
-    "task": "Private Task",
-    "task_delete_confirm": "Private task deleted",
     "error_duplicate": "Failed to duplicate task",
     "error_load": "Failed to load private tasks",
     "form_placeholders": [
@@ -190,7 +179,6 @@
       ],
       "tooltip": "Overview and features for private tasks"
     },
-    "loading": "Loading private tasks…",
     "menu": {
       "down": "Move down",
       "up": "Move up"

@@ -1,11 +1,8 @@
 {
   "list": {
     "create_group": "Create group",
-    "join_group": "Join group",
     "join_group_text": "Join an existing group or create a new one to get started.",
-    "members": "members",
     "no_groups": "No groups yet",
-    "title": "Home",
     "your_groups": "Your groups",
     "tooltip": {
       "create_group": "Create group"
@@ -114,7 +111,6 @@
       },
       "ban_list": {
         "title": "Banned Users",
-        "description": "View and lift bans",
         "empty": "No banned users",
         "banned_on": "Banned on {date}",
         "actions": {
@@ -124,7 +120,6 @@
       },
       "invite_links": {
         "title": "Invite Links",
-        "description": "Create and manage invite links",
         "empty": "No invite links available.",
         "generate_button": "Generate link",
         "status": {
@@ -258,7 +253,6 @@
         "break_summary": "After period {slot}: {minutes} min",
         "lesson_duration_label": "Lesson Duration (minutes)",
         "after_lesson_label": "After period",
-        "save_button": "Save settings",
         "instruction_text": "Set the start time, lesson length and breaks.",
         "add_break_button": "Add break",
         "start_time_label": "Start time",
@@ -271,19 +265,11 @@
         "title": "Lessons"
       },
       "changes": {
-        "tooltip": "Overview of the schedule changes menu",
         "title": "Changes",
         "edit_lesson_title": "Change lesson",
         "editing_summary": "Editing {subject} in room {room} on {day}",
         "editing_summary_no_room": "Editing {subject} on {day}",
-        "headline": "Enter changes live and clearly",
-        "select_lessons": "Select Lessons",
-        "submit_changes": "Submit changes",
         "new_subject_label": "New Subject",
-        "select_lesson_slot": "Select lesson",
-        "select_instruction": "Click on the lessons in the schedule view that you want to change.",
-        "submit_instruction": "Enter the new data in the appropriate text fields. If a value should remain the same, you can leave the field blank. With the corresponding checkboxes, you can also mark lessons as canceled.",
-        "select_lesson_warning": "Please select a lesson from the schedule.",
         "new_room_label": "New Room",
         "new_slot_label": "New Period",
         "new_duration_label": "New Duration",
@@ -310,22 +296,13 @@
       "editor": {
         "edit_schedule_button": "Edit lessons",
         "title": "Editor",
-        "exit_button": "Done",
-        "grid_title": "Lessons",
         "add_lesson_title": "Add New Lesson",
         "edit_lesson_title": "Edit Lesson",
         "subject_label": "Subject",
-        "select_subject_prompt": "Select subject",
-        "custom_subject_option": "Custom subject…",
-        "custom_subject_label": "Custom Subject",
         "course_label": "Course (optional)",
         "select_course_prompt": "No course (whole group)",
-        "custom_course_option": "Custom course…",
-        "custom_course_label": "Custom Course",
         "room_label": "Room",
         "room_placeholder": "e.g. A101",
-        "day_label": "Day of Week",
-        "slot_label": "Period",
         "duration_label": "Duration (Periods)",
         "save_lesson_button": "Save Lesson",
         "delete_lesson_button": "Delete Lesson",
@@ -335,7 +312,6 @@
         "save_all_failed": "The schedule could not be saved. No changes were applied.",
         "save_service_unavailable": "The schedule can't be saved right now. No changes were applied. Please try again later.",
         "add_lesson_slot": "Add lesson",
-        "empty_slot": "Free period",
         "course_hint": "Without a course the lesson applies to the whole group.",
         "undo": "Undo (Ctrl+Z)",
         "redo": "Redo (Ctrl+Y)",
@@ -396,7 +372,6 @@
         "message": "Are you sure you want to delete this course? Its lessons are removed from the schedule and its tasks then apply to the whole subject."
       },
       "title": "Subjects",
-      "rename": "Rename",
       "list": {
         "empty": "No subjects available."
       },
@@ -407,17 +382,8 @@
       "courses_count_zero": "0 Courses",
       "courses_count_singular": "1 Course",
       "courses_count_plural": "{count} Courses",
-      "categories_short": {
-        "core": "Core",
-        "elective": "Elective",
-        "extra": "Extra",
-        "mandatory": "Core",
-        "optional": "Elective",
-        "zk": "ZK"
-      },
       "category_mismatch": "This subject is still saved as \"{category}\", a category of the other group type. Saving moves it to the selected category.",
       "dalton_label": "Dalton subject",
-      "dalton_description": "Offered as a subject for Dalton tasks. If no subject is marked, Dalton tasks offer all subjects.",
       "dalton_badge": "Dalton subject"
     },
     "title": "Group Settings",

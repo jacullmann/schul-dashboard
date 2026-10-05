@@ -2,11 +2,7 @@
   "title": "Dashboard",
   "tasks_overview": {
     "title": "Tasks",
-    "last_edited": "Last edited",
-    "no_tasks": "No upcoming tasks in the next 2 days.",
-    "view_all": "View all tasks",
-    "due_today": "Due today",
-    "due_tomorrow": "Due tomorrow"
+    "no_tasks": "No upcoming tasks in the next 2 days."
   },
   "schedule_overview": {
     "title": "Schedule",
@@ -14,7 +10,6 @@
     "no_more_lessons": "No more lessons this week.",
     "changes": "Schedule Changes",
     "no_changes": "No schedule changes this week.",
-    "view_full": "View full schedule",
     "cancelled": "Canceled",
     "room_change": "Room {room} instead of {original}",
     "setup_cta": "This group has no schedule yet.",

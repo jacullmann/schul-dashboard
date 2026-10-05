@@ -16,23 +16,12 @@
     "skip": "Skip",
     "saving": "Saving…",
     "refresh": "Refresh",
-    "deleting": "Deleting…",
     "logout": "Sign out"
   },
-  "cookies": {
-    "banner": {
-      "action": "Got it",
-      "text": "We use cookies to reliably provide core functions such as login, security, and the operation of the schul-dashboard. Additionally, we use the privacy-friendly analytics tool Umami (cloud service) to understand how our site is used and to improve it further. Umami works without tracking cookies and does not store any personal data. You can find more information in our privacy policy.",
-      "title": "Cookies"
-    }
-  },
-  "design": "Design",
   "errors": {
     "delete": "Failed to delete",
-    "save": "Failed to save",
     "unknown": "Unknown error",
-    "update": "Failed to update",
-    "validation_failed": "Please check your input."
+    "update": "Failed to update"
   },
   "footer": {
     "quotes": [
@@ -136,7 +125,6 @@
     "no": "No",
     "other": "Other…",
     "placeholder": "Please select",
-    "yes": "Yes",
     "unknown": "Unknown"
   },
   "subjects": {
@@ -175,9 +163,7 @@
     "abbr": {
       "mr": "Mr.",
       "ms": "Ms."
-    },
-    "mr": "Mr.",
-    "ms": "Ms."
+    }
   },
   "sidebar": {
     "admin": "Group Settings",
@@ -199,16 +185,11 @@
   },
   "tab_bar": {
     "label": "Main navigation",
-    "chat": "Chat",
-    "account": "Account",
     "private": "Private",
     "schedule": "Schedule"
   },
   "contact": {
-    "email": "Email",
-    "feedback": "Feedback",
-    "location": "Location",
-    "title": "Contact"
+    "email": "Email"
   },
   "roles": {
     "admin": "Admin",
@@ -216,29 +197,6 @@
     "moderator": "Moderator",
     "owner": "Owner",
     "superadmin": "Superadmin"
-  },
-  "video_player": {
-    "seek_slider": {
-      "aria_label": "Seek"
-    },
-    "play_button": {
-      "pause_aria_label": "Pause",
-      "play_aria_label": "Play"
-    },
-    "volume_button": {
-      "unmute_aria_label": "Unmute",
-      "mute_aria_label": "Mute"
-    },
-    "volume_slider": {
-      "aria_label": "Volume"
-    },
-    "fullscreen_button": {
-      "exit_aria_label": "Exit fullscreen",
-      "enter_aria_label": "Fullscreen"
-    }
-  },
-  "actions": {
-    "close_aria_label": "Close"
   },
   "date": {
     "seconds": "{n}s ago",

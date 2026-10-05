@@ -5,9 +5,7 @@
     "filter_active": "Filter (aktiv)",
     "hide_checked": "Erledigte ausblenden",
     "archive": {
-      "archive": "Archiv",
-      "archive_note": "Du siehst gerade archivierte Aufgaben",
-      "close_archive": "Archiv schließen"
+      "archive": "Archiv"
     },
     "create_task": "Aufgabe erstellen",
     "infopop": {
@@ -61,20 +59,14 @@
       "images": "Bilder",
       "new_task": "Neue Aufgabe",
       "subject": "Fach",
-      "success_create": "Aufgabe erstellt",
       "success_edit": "Aufgabe bearbeitet",
-      "success_upload": "Bilder hochgeladen",
-      "title": "Titel",
-      "upload_images": "Bilder hochladen",
-      "uploading_image": "Lade Bild hoch…"
+      "title": "Titel"
     },
     "tasks": {
       "menu": {
         "add_note": "Notiz hinzufügen",
         "archive": "Archivieren",
         "delete": {
-          "action": "Aufgabe löschen",
-          "description": "Die Aufgabe wird mit allen dazugehörigen Dateien unwiderruflich gelöscht.",
           "title": "Diese Aufgabe löschen?"
         },
         "info": "Info",
@@ -129,8 +121,7 @@
       "all": "Alle",
       "dalton": "Dalton",
       "exams": "Prüfungen",
-      "homework": "Hausaufgaben",
-      "private": "Privat"
+      "homework": "Hausaufgaben"
     },
     "title": "Aufgaben",
     "types": {
@@ -147,8 +138,6 @@
   },
   "private_tasks": {
     "delete_confirm": "Möchtest du diese private Aufgabe wirklich löschen?",
-    "task": "Private Aufgabe",
-    "task_delete_confirm": "Private Aufgabe gelöscht",
     "error_duplicate": "Aufgabe konnte nicht dupliziert werden",
     "error_load": "Private Aufgaben konnten nicht geladen werden",
     "form_placeholders": [
@@ -196,7 +185,6 @@
       ],
       "tooltip": "Überblick und Funktionen zu privaten Aufgaben"
     },
-    "loading": "Lade private Aufgaben…",
     "menu": {
       "down": "Nach unten",
       "up": "Nach oben"

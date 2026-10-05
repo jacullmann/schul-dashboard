@@ -32,7 +32,6 @@
     "create_task": "Neue Aufgabe erstellen",
     "create_group": "Gruppe erstellen",
     "create_private_task": "Neue private Aufgabe erstellen",
-    "invite_member": "Mitglieder einladen",
     "switch_group": "Gruppe wechseln"
   },
   "modal": {

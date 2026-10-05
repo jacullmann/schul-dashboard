@@ -32,7 +32,6 @@
     "create_task": "Create new task",
     "create_group": "Create group",
     "create_private_task": "Create new private task",
-    "invite_member": "Invite members",
     "switch_group": "Switch group"
   },
   "modal": {

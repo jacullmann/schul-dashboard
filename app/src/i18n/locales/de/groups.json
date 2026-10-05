@@ -1,11 +1,8 @@
 {
   "list": {
     "create_group": "Gruppe erstellen",
-    "join_group": "Gruppe beitreten",
     "join_group_text": "Tritt einer bestehenden Gruppe bei oder erstelle eine neue, um loszulegen.",
-    "members": "Mitglieder",
     "no_groups": "Noch keine Gruppen",
-    "title": "Start",
     "your_groups": "Deine Gruppen",
     "tooltip": {
       "create_group": "Gruppe erstellen"
@@ -114,7 +111,6 @@
       },
       "ban_list": {
         "title": "Gesperrte Nutzer",
-        "description": "Bans einsehen und aufheben",
         "empty": "Keine gesperrten Nutzer",
         "banned_on": "Gesperrt am {date}",
         "actions": {
@@ -124,7 +120,6 @@
       },
       "invite_links": {
         "title": "Einladungslinks",
-        "description": "Links erstellen und verwalten",
         "empty": "Keine Einladungslinks vorhanden.",
         "generate_button": "Link generieren",
         "status": {
@@ -258,7 +253,6 @@
         "break_summary": "Nach Stunde {slot}: {minutes} Min.",
         "lesson_duration_label": "Stundenlänge (Minuten)",
         "after_lesson_label": "Nach Stunde",
-        "save_button": "Einstellungen speichern",
         "instruction_text": "Lege Unterrichtsbeginn, Stundenlänge und Pausen fest.",
         "add_break_button": "Pause hinzufügen",
         "start_time_label": "Startzeit",
@@ -271,19 +265,11 @@
         "title": "Stunden"
       },
       "changes": {
-        "tooltip": "Übersicht des Stundenplanänderungsmenüs",
         "title": "Änderungen",
         "edit_lesson_title": "Stunde ändern",
         "editing_summary": "Bearbeite {subject} in Raum {room} am {day}",
         "editing_summary_no_room": "Bearbeite {subject} am {day}",
-        "headline": "Trage Änderungen Live und anschaulich ein",
-        "select_lessons": "Stunden auswählen",
-        "submit_changes": "Änderungen eintragen",
         "new_subject_label": "Neues Fach",
-        "select_lesson_slot": "Stunde auswählen",
-        "select_instruction": "Klicke in der Stundenplanansicht die Stunden an, die du ändern möchtest.",
-        "submit_instruction": "Schreibe in die passenden Textfelder die neuen Daten. Falls ein Wert gleichbleiben soll, kannst du das Feld freilassen. Mit den entsprechenden Checkboxen kannst du auch markieren, ob Stunden ausfallen.",
-        "select_lesson_warning": "Bitte wähle eine Stunde aus dem Stundenplan.",
         "new_room_label": "Neuer Raum",
         "new_slot_label": "Neue Stunde",
         "new_duration_label": "Neue Dauer",
@@ -310,22 +296,13 @@
       "editor": {
         "edit_schedule_button": "Stunden bearbeiten",
         "title": "Editor",
-        "exit_button": "Fertig",
-        "grid_title": "Unterrichtsstunden",
         "add_lesson_title": "Neue Stunde hinzufügen",
         "edit_lesson_title": "Stunde bearbeiten",
         "subject_label": "Fach",
-        "select_subject_prompt": "Fach auswählen",
-        "custom_subject_option": "Eigenes Fach…",
-        "custom_subject_label": "Eigenes Fach",
         "course_label": "Kurs (optional)",
         "select_course_prompt": "Kein Kurs (ganze Gruppe)",
-        "custom_course_option": "Eigener Kurs…",
-        "custom_course_label": "Eigener Kurs",
         "room_label": "Raum",
         "room_placeholder": "z.B. A101",
-        "day_label": "Wochentag",
-        "slot_label": "Stunde",
         "duration_label": "Dauer (Schulstunden)",
         "save_lesson_button": "Stunde speichern",
         "delete_lesson_button": "Stunde löschen",
@@ -335,7 +312,6 @@
         "save_all_failed": "Der Stundenplan konnte nicht gespeichert werden. Es wurden keine Änderungen übernommen.",
         "save_service_unavailable": "Der Stundenplan kann gerade nicht gespeichert werden. Es wurden keine Änderungen übernommen. Bitte versuche es später erneut.",
         "add_lesson_slot": "Stunde hinzufügen",
-        "empty_slot": "Freistunde",
         "course_hint": "Ohne Kurs gilt die Stunde für die ganze Gruppe.",
         "no_subjects": "Es sind noch keine Fächer in dieser Gruppe vorhanden. Bitte erstelle zuerst Fächer unter „Fächer“ in den Gruppeneinstellungen.",
         "undo": "Rückgängig (Strg+Z)",
@@ -396,7 +372,6 @@
         "message": "Möchtest du diesen Kurs wirklich löschen? Die Stunden des Kurses werden aus dem Stundenplan entfernt. Seine Aufgaben gelten danach für alle Kurse des Fachs."
       },
       "title": "Fächer",
-      "rename": "Umbenennen",
       "list": {
         "empty": "Keine Fächer vorhanden."
       },
@@ -407,17 +382,8 @@
       "courses_count_zero": "0 Kurse",
       "courses_count_singular": "1 Kurs",
       "courses_count_plural": "{count} Kurse",
-      "categories_short": {
-        "core": "Pflicht",
-        "elective": "Wahl",
-        "extra": "Zusatz",
-        "mandatory": "Pflicht",
-        "optional": "Wahl",
-        "zk": "ZK"
-      },
       "category_mismatch": "Dieses Fach ist noch als „{category}“ gespeichert – eine Kategorie des anderen Gruppentyps. Beim Speichern wird die ausgewählte Kategorie übernommen.",
       "dalton_label": "Daltonfach",
-      "dalton_description": "Wird als Fach für Daltonaufträge angeboten. Ist kein Fach markiert, stehen bei Daltonaufträgen alle Fächer zur Auswahl.",
       "dalton_badge": "Daltonfach"
     },
     "title": "Gruppeneinstellungen",

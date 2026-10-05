@@ -2,11 +2,7 @@
   "title": "Dashboard",
   "tasks_overview": {
     "title": "Aufgaben",
-    "last_edited": "Zuletzt bearbeitet",
-    "no_tasks": "Keine anstehenden Aufgaben in den nächsten 2 Tagen.",
-    "view_all": "Alle Aufgaben anzeigen",
-    "due_today": "Heute fällig",
-    "due_tomorrow": "Morgen fällig"
+    "no_tasks": "Keine anstehenden Aufgaben in den nächsten 2 Tagen."
   },
   "schedule_overview": {
     "title": "Stundenplan",
@@ -14,7 +10,6 @@
     "no_more_lessons": "Keine weiteren Stunden für diese Woche.",
     "changes": "Planänderungen",
     "no_changes": "Keine Planänderungen in dieser Woche.",
-    "view_full": "Vollständigen Plan anzeigen",
     "cancelled": "Ausfall",
     "room_change": "Raum {room} statt {original}",
     "setup_cta": "Für diese Gruppe gibt es noch keinen Stundenplan.",
