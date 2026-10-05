@@ -12,10 +12,9 @@ const { checkPermission } = useAppAuth();
 const canModerateMembers = computed(() => checkPermission('moderate_members'));
 
 function bannedOnLabel(bannedAt: string): string {
-  return (
-    t('groups.settings.members.ban_list.banned_on_prefix') +
-    new Date(bannedAt).toLocaleDateString(locale.value)
-  );
+  return t('groups.settings.members.ban_list.banned_on', {
+    date: new Date(bannedAt).toLocaleDateString(locale.value),
+  });
 }
 </script>
 

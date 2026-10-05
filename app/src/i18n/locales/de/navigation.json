@@ -1,14 +1,13 @@
 {
   "auth": "Authentifizierung",
-  "group_admin": "Gruppen-Verwaltung",
-  "home": "Home",
+  "group_admin": "Gruppeneinstellungen",
+  "home": "Start",
   "legal": "Rechtliches",
   "not_found": "404",
-  "private_todos": "Meine Aufgaben",
-  "super_admin": "Super Admin",
-  "update_history": "Update History",
-  "verify_email": "E-Mail Verifizierung",
-  "account_settings": "Konto-Einstellungen",
+  "private_todos": "Private Aufgaben",
+  "super_admin": "Superadmin",
+  "verify_email": "E-Mail-Bestätigung",
+  "account_settings": "Kontoeinstellungen",
   "course_setup": "Kurse einrichten",
   "group_invite": "Gruppeneinladung"
 }

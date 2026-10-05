@@ -68,8 +68,11 @@ function submit() {
         <p v-if="hasCounts" class="text-sm text-on-ghost font-bold m-0 mb-2">
           {{
             t('groups.delete_modal.counts', {
-              members: memberCount,
-              items: itemCount,
+              members: t(
+                'groups.delete_modal.counts_members',
+                memberCount ?? 0,
+              ),
+              items: t('groups.delete_modal.counts_items', itemCount ?? 0),
             })
           }}
         </p>

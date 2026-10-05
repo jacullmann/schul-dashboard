@@ -6,21 +6,19 @@
     "no_tasks": "No upcoming tasks in the next 2 days.",
     "view_all": "View all tasks",
     "due_today": "Due today",
-    "due_tomorrow": "Due tomorrow",
-    "view_task": "View full task"
+    "due_tomorrow": "Due tomorrow"
   },
   "schedule_overview": {
     "title": "Schedule",
     "next_lesson": "Next Lesson",
-    "no_more_lessons": "No more lessons for this week.",
-    "substitutions": "Schedule Changes",
-    "no_substitutions": "No schedule changes this week.",
+    "no_more_lessons": "No more lessons this week.",
+    "changes": "Schedule Changes",
+    "no_changes": "No schedule changes this week.",
     "view_full": "View full schedule",
-    "cancelled": "Cancelled",
+    "cancelled": "Canceled",
     "room_change": "Room {room} instead of {original}",
-    "setup_cta": "No schedule has been created for this group yet.",
+    "setup_cta": "This group has no schedule yet.",
     "setup_button": "Set Up Schedule",
     "slot": "Period {slot}"
-  },
-  "edit_layout": "Edit Layout"
+  }
 }

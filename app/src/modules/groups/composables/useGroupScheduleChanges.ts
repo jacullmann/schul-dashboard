@@ -25,7 +25,7 @@ export function useGroupScheduleChanges() {
       );
       changes.value = data;
     } catch {
-      toast.error(t('groups.settings.messages.load_substitutions_failed'));
+      toast.error(t('groups.settings.messages.load_changes_failed'));
     } finally {
       loadingChanges.value = false;
     }
@@ -44,7 +44,7 @@ export function useGroupScheduleChanges() {
       await api.delete(groupPath(groupId, `/admin/schedule/subs/${id}`));
       changes.value = changes.value.filter((change) => change.id !== id);
     } catch {
-      toast.error(t('groups.settings.messages.substitution_delete_failed'));
+      toast.error(t('groups.settings.messages.change_delete_failed'));
     }
   }
 

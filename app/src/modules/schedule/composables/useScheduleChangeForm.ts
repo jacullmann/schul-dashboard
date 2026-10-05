@@ -201,7 +201,7 @@ export function useScheduleChangeForm(
       await api.put(groupPath(groupId, '/admin/schedule/subs'), payload);
       return true;
     } catch {
-      toast.error(t('groups.settings.messages.substitution_save_failed'));
+      toast.error(t('groups.settings.messages.change_save_failed'));
       return false;
     }
   }
@@ -211,7 +211,7 @@ export function useScheduleChangeForm(
       await api.delete(groupPath(groupId, `/admin/schedule/subs/${change.id}`));
       return true;
     } catch {
-      toast.error(t('groups.settings.messages.substitution_delete_failed'));
+      toast.error(t('groups.settings.messages.change_delete_failed'));
       return false;
     }
   }

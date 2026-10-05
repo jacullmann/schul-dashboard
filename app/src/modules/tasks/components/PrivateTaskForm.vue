@@ -15,6 +15,9 @@ const emit = defineEmits<{
   (e: 'success', task: PrivateTask): void;
 }>();
 
+const TITLE_MAX_LENGTH = 100;
+const DESCRIPTION_MAX_LENGTH = 2000;
+
 const { t, tm, rt } = useI18n();
 
 type PlaceholderMessage = { title: string; description: string };
@@ -53,13 +56,16 @@ async function submit() {
     titleError.value = t('tasks.private_tasks.form.errors.title_missing');
     return;
   }
-  if (title.value.trim().length > 100) {
-    titleError.value = t('tasks.private_tasks.form.errors.title_long');
+  if (title.value.trim().length > TITLE_MAX_LENGTH) {
+    titleError.value = t('tasks.private_tasks.form.errors.title_long', {
+      max: TITLE_MAX_LENGTH,
+    });
     return;
   }
-  if (description.value.trim().length > 2000) {
+  if (description.value.trim().length > DESCRIPTION_MAX_LENGTH) {
     descriptionError.value = t(
       'tasks.private_tasks.form.errors.description_long',
+      { max: DESCRIPTION_MAX_LENGTH },
     );
     return;
   }
@@ -124,7 +130,7 @@ async function submit() {
             ref="titleInputRef"
             v-model="title"
             :placeholder="placeholder.title"
-            maxlength="100"
+            :maxlength="TITLE_MAX_LENGTH"
           />
         </BaseFormGroup>
 
@@ -141,7 +147,7 @@ async function submit() {
             as="textarea"
             rows="4"
             :placeholder="placeholder.description"
-            maxlength="2000"
+            :maxlength="DESCRIPTION_MAX_LENGTH"
           />
         </BaseFormGroup>
       </BaseFormContent>

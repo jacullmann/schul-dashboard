@@ -1,6 +1,6 @@
 {
   "break": "{minutes} Min. Pause",
-  "cancelled": "Entfällt",
+  "cancelled": "Ausfall",
   "disclaimer": "schul-dashboard und das Admin-Team übernehmen keine Gewähr für die Richtigkeit, Vollständigkeit und Aktualität der bereitgestellten Informationen.",
   "infopop": {
     "description": "Die bessere digitale Version",
@@ -16,7 +16,7 @@
     ],
     "tooltip": "Überblick und Funktionen zum Stundenplan"
   },
-  "loading": "Lade Stundenplan...",
+  "loading": "Lade Stundenplan…",
   "period": "{slot}. Std.",
   "periods": "{first}.–{last}. Std.",
   "personalized": "Personalisiert",

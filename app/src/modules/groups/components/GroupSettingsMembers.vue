@@ -354,22 +354,29 @@ function confirmRemove() {
       }}</template>
 
       <template #content>
-        <p class="m-0!">
-          {{ t('groups.settings.members.remove_modal.confirm_prefix')
-          }}<strong>{{ removeModal.userName }}</strong
-          >{{ t('groups.settings.members.remove_modal.confirm_suffix') }}
-        </p>
+        <i18n-t
+          keypath="groups.settings.members.remove_modal.confirm"
+          tag="p"
+          class="m-0!"
+        >
+          <template #name>
+            <strong>{{ removeModal.userName }}</strong>
+          </template>
+        </i18n-t>
         <p class="m-0!">
           {{ t('groups.settings.members.remove_modal.rejoin_info') }}
         </p>
 
-        <BaseCheckbox v-model="removeModal.ban"
-          >{{ t('groups.settings.members.remove_modal.ban_checkbox_prefix')
-          }}<strong>{{ removeModal.userName }}</strong
-          >{{
-            t('groups.settings.members.remove_modal.ban_checkbox_suffix')
-          }}</BaseCheckbox
-        >
+        <BaseCheckbox v-model="removeModal.ban">
+          <i18n-t
+            keypath="groups.settings.members.remove_modal.ban_checkbox"
+            tag="span"
+          >
+            <template #name>
+              <strong>{{ removeModal.userName }}</strong>
+            </template>
+          </i18n-t>
+        </BaseCheckbox>
       </template>
 
       <template #action-text>

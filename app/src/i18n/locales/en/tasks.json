@@ -3,10 +3,10 @@
     "allsubjects": "All Subjects",
     "filter": "Filter",
     "filter_active": "Filter (active)",
-    "hide_checked": "Hide checked off",
+    "hide_checked": "Hide completed",
     "archive": {
       "archive": "Archive",
-      "archive_note": "You are currently viewing old tasks",
+      "archive_note": "You are currently viewing archived tasks",
       "close_archive": "Close Archive"
     },
     "create_task": "Create task",
@@ -15,19 +15,19 @@
       "sections": [
         {
           "title": "Tasks",
-          "text": "Every member of your group can add tasks, unless your group's permissions say otherwise. Whether it's <strong>homework</strong>, a <strong>Dalton assignment</strong> or <strong>exam</strong> – anything you need to keep track of for school can be added. All tasks are visible to the members of your group, so you can keep track of everything together. Open a task to see its description, files and notes."
+          "text": "Every member of your group can add tasks, unless your group's permissions say otherwise. Whether it's <strong>homework</strong>, a <strong>Dalton assignment</strong> or an <strong>exam</strong> – anything you need to keep track of for school can be added. All tasks are visible to the members of your group, so you can keep track of everything together. Open a task to see its description, files and notes."
         },
         {
           "title": "Adding tasks",
-          "text": "To add a task, click the <strong>+</strong> and choose the matching <strong>type</strong> (homework, Dalton or exam). Enter a <strong>title</strong> briefly describing the task and select the <strong>subject</strong> and <strong>due date</strong>. Optionally, you can add more details in the <strong>description</strong> or – unless your group's permissions say otherwise – upload related <strong>media</strong> such as board photos, model solutions, notes or study sheets. Images, PDFs and Office files are supported."
+          "text": "To add a task, click the <strong>+</strong> and choose the matching <strong>type</strong> (homework, Dalton or exam). Enter a <strong>title</strong> briefly describing the task and select the <strong>subject</strong> and <strong>due date</strong>. Optionally, you can add more details in the <strong>description</strong> or upload related <strong>media</strong> such as board photos, model solutions, notes or study sheets. Images, PDFs and Office files are supported."
         },
         {
           "title": "Uploading files",
-          "text": "You can also upload files to tasks created by others, even if you can't edit them – unless your group's permissions say otherwise. Open the task, click the <strong>3-dot menu</strong>, select <strong>Upload Images</strong> and choose the files. To remove files you uploaded, <strong>right-click</strong> or <strong>press and hold</strong> them and select <strong>Delete</strong> from the menu."
+          "text": "You can also upload files to tasks created by others, even if you can't edit them. Open the task, click the <strong>3-dot menu</strong>, select <strong>Upload Images</strong> and choose the files. To remove files you uploaded, <strong>right-click</strong> or <strong>press and hold</strong> them and select <strong>Delete</strong> from the menu."
         },
         {
           "title": "Tracking completed tasks",
-          "text": "Use the <strong>checkbox</strong> to check off every task you've completed. That way you can easily see what's still left to do and what's already done. Your progress is saved to your account in the cloud. With the <strong>Hide checked off</strong> filter you only see tasks you haven't completed yet."
+          "text": "Use the <strong>checkbox</strong> to check off every task you've completed. That way you can easily see what's still left to do and what's already done. Your progress is saved to your account in the cloud. With the <strong>Hide completed</strong> filter you only see tasks you haven't completed yet."
         },
         {
           "title": "Personalized courses",
@@ -48,12 +48,12 @@
       "edit_task": "Edit Task",
       "errors": {
         "course_missing": "Select a course",
-        "custom_long": "The custom subject is too long (max. 100 characters)",
+        "custom_long": "The custom subject is too long (max. {max} characters)",
         "custom_missing": "Enter a custom subject",
         "date_new": "The due date is too far in the future",
         "date_old": "The due date is too far in the past",
-        "description_long": "The description is too long (max. 1000 characters)",
-        "title_long": "The title is too long (max. 60 characters)",
+        "description_long": "The description is too long (max. {max} characters)",
+        "title_long": "The title is too long (max. {max} characters)",
         "title_missing": "Add a title",
         "check_input": "Please check your input.",
         "unexpected": "An unexpected error occurred. Please try again."
@@ -61,12 +61,12 @@
       "images": "Images",
       "new_task": "New Task",
       "subject": "Subject",
-      "success_create": "Task successfully created",
-      "success_edit": "Task successfully edited",
-      "success_upload": "Images successfully uploaded",
+      "success_create": "Task created",
+      "success_edit": "Task edited",
+      "success_upload": "Images uploaded",
       "title": "Title",
       "upload_images": "Upload Images",
-      "uploading_image": "Uploading image..."
+      "uploading_image": "Uploading image…"
     },
     "tasks": {
       "menu": {
@@ -74,7 +74,7 @@
         "archive": "Archive",
         "delete": {
           "action": "Delete Task",
-          "description": "If you delete this task, it and all associated images will be permanently deleted.",
+          "description": "The task and all its files will be permanently deleted.",
           "title": "Delete this task?"
         },
         "info": "Info",
@@ -89,14 +89,13 @@
         "report": {
           "action": "Report Task",
           "illegal_label": "What exactly is the problem? (optional)",
-          "illegal_placeholder": "Description...",
+          "illegal_placeholder": "Description…",
           "name": "Report",
           "title": "Report this task?",
           "success": "Task reported.",
-          "error": "Error while reporting: {error}"
+          "error": "Failed to report task: {error}"
         },
         "share": "Share",
-        "share_confirm": "Link copied to clipboard!",
         "unarchive": "Unarchive",
         "unpin": "Unpin",
         "upload_images": "Upload Images",
@@ -115,15 +114,15 @@
         "drop_files": "Drop to attach files"
       },
       "errors": {
-        "status_failed": "Error while setting the status."
+        "status_failed": "Failed to update the status."
       }
     },
     "notes": {
       "no_notes": "No notes",
       "note": "Note",
-      "saved": "Saved note.",
-      "save_failed": "Error while saving note.",
-      "placeholder": "Add a note..."
+      "saved": "Note saved.",
+      "save_failed": "Failed to save note.",
+      "placeholder": "Add a note…"
     },
     "reset_filters": "Reset filters",
     "tabs": {
@@ -141,7 +140,7 @@
     },
     "double_task_confirm": {
       "title": "Task Already Exists?",
-      "message": "On {date} there is already a {type} registered for the subject {subject}. Are you sure your task isn't about the same task?",
+      "message": "There's already a {type} entry for {subject} on {date}. Could this be the same task?",
       "create_anyway": "Create anyway",
       "view_existing": "View existing"
     }
@@ -149,7 +148,7 @@
   "private_tasks": {
     "delete_confirm": "Do you really want to delete this private task?",
     "task": "Private Task",
-    "task_delete_confirm": "Private task successfully deleted",
+    "task_delete_confirm": "Private task deleted",
     "error_duplicate": "Failed to duplicate task",
     "error_load": "Failed to load private tasks",
     "form_placeholders": [
@@ -186,12 +185,12 @@
         },
         {
           "title": "Security",
-          "text": "Your private tasks are <strong>stored encrypted</strong> with <strong>AES-256</strong>, which keeps them well protected from unwanted readers."
+          "text": "Your private tasks are <strong>stored encrypted</strong> with <strong>AES-256</strong> on our server. Other users can't see them."
         }
       ],
       "tooltip": "Overview and features for private tasks"
     },
-    "loading": "Loading private tasks...",
+    "loading": "Loading private tasks…",
     "menu": {
       "down": "Move down",
       "up": "Move up"
@@ -200,38 +199,33 @@
     "no_tasks_found": "No private tasks found.",
     "requires_account": "You must be logged in to use private tasks.",
     "success_create": "Private task created",
-    "success_delete": "Private task deleted successfully",
-    "success_duplicate": "Private task duplicated successfully",
+    "success_delete": "Private task deleted",
+    "success_duplicate": "Private task duplicated",
     "success_update": "Private task updated",
     "title": "Private Tasks",
-    "todo_form": {
-      "description_placeholder": "6 eggs...",
-      "title": "New Private Task",
-      "title_placeholder": "Go grocery shopping..."
-    },
     "form": {
       "new_title": "New Private Task",
       "edit_title": "Edit Private Task",
       "errors": {
         "title_missing": "A title is required.",
-        "title_long": "Title is too long (max. 100 characters).",
-        "description_long": "Description is too long (max. 2000 characters).",
+        "title_long": "The title is too long (max. {max} characters).",
+        "description_long": "The description is too long (max. {max} characters).",
         "unexpected": "An unexpected error occurred."
       }
     }
   },
   "report": {
-    "info_tooltip": "Report Info",
+    "info_tooltip": "About reporting",
     "info_title": "Information About Reporting Tasks",
-    "info_text": "Tasks and uploaded files that violate our terms of use or applicable law are removed after we review them. If more background on a statement or file is needed, please describe it as precisely as possible so we can take action. If the violation is obvious, you can still help us by describing what's wrong, but we always review the entire item, even if you don't give a specific reason."
+    "info_text": "We review every report and remove content that violates our terms of use or applicable law. A reason is optional – if the violation isn't obvious, a short explanation helps us."
   },
   "actions": {
     "delete_modal": {
       "title": "Delete this task?",
-      "message": "If you delete this task, it and all associated images will be permanently deleted.",
+      "message": "The task and all its files will be permanently deleted.",
       "submit": "Delete task",
       "success": "Task deleted.",
-      "error": "Error deleting."
+      "error": "Failed to delete task."
     }
   },
   "notes": {
@@ -240,7 +234,7 @@
       "message": "Are you sure you want to permanently delete this note?",
       "submit": "Delete note",
       "success": "Note deleted.",
-      "error": "Error deleting note."
+      "error": "Failed to delete note."
     }
   },
   "images": {
@@ -249,7 +243,7 @@
       "message": "If you delete this image, it will be permanently removed.",
       "submit": "Delete image",
       "success": "Image deleted.",
-      "error": "Error deleting image."
+      "error": "Failed to delete image."
     },
     "upload": {
       "failed": "Images could not be uploaded",
@@ -263,7 +257,7 @@
         "task_reached": "This task already holds the maximum of {max} images.",
         "type_exceeded": "This task type allows at most {max} images. Please remove the extra ones."
       },
-      "success": "Images uploaded successfully"
+      "success": "Images uploaded"
     },
     "document": "Document"
   }

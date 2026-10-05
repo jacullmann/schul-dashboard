@@ -1,11 +1,13 @@
 {
   "actions": {
-    "create": "Create announcement"
+    "publish_success_toast": "Announcement published!",
+    "create": "Create announcement",
+    "create_description": "Publish a new announcement for your group."
   },
   "list": {
     "title": "Announcements",
     "create_button": "New announcement",
-    "empty_state": "No announcements found."
+    "empty_state": "No announcements yet."
   },
   "form": {
     "errors": {
@@ -14,12 +16,11 @@
     },
     "title": "New Announcement",
     "content_label": "Announcement",
-    "content_placeholder": "Compose your message...",
+    "content_placeholder": "What do you want to announce?",
     "important_label": "Important"
   },
   "card": {
     "acknowledge": "Got it",
-    "acknowledge_all": "Clear all",
-    "more": "{count} more"
+    "acknowledge_all": "Dismiss all"
   }
 }

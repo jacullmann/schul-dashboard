@@ -32,6 +32,8 @@ import { apiErrorMessage } from '@/api/errors';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 
 export const OTHER_SUBJECT = '__OTHER__';
+const TITLE_MAX_LENGTH = 60;
+const DESCRIPTION_MAX_LENGTH = 1000;
 
 export function useTaskFormLogic(
   initialGroupId: string,
@@ -309,7 +311,9 @@ export function useTaskFormLogic(
         );
         hasValidationErrors = true;
       } else if (typed.length > CUSTOM_SUBJECT_MAX_LENGTH) {
-        subjectOtherError.value = t('tasks.list.task_form.errors.custom_long');
+        subjectOtherError.value = t('tasks.list.task_form.errors.custom_long', {
+          max: CUSTOM_SUBJECT_MAX_LENGTH,
+        });
         hasValidationErrors = true;
       } else if (offered) {
         subject = { subjectId: offered.id, courseId: null };
@@ -332,15 +336,18 @@ export function useTaskFormLogic(
     if (!cleanTitle) {
       titleError.value = t('tasks.list.task_form.errors.title_missing');
       hasValidationErrors = true;
-    } else if (cleanTitle.length > 60) {
-      titleError.value = t('tasks.list.task_form.errors.title_long');
+    } else if (cleanTitle.length > TITLE_MAX_LENGTH) {
+      titleError.value = t('tasks.list.task_form.errors.title_long', {
+        max: TITLE_MAX_LENGTH,
+      });
       hasValidationErrors = true;
     }
 
     const cleanDesc = description.value.trim();
-    if (cleanDesc.length > 1000) {
+    if (cleanDesc.length > DESCRIPTION_MAX_LENGTH) {
       descriptionError.value = t(
         'tasks.list.task_form.errors.description_long',
+        { max: DESCRIPTION_MAX_LENGTH },
       );
       hasValidationErrors = true;
     }

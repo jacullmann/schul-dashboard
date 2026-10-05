@@ -16,17 +16,17 @@
       "avatar": {
         "errors": {
           "invalid_file": "Bitte wähle eine gültige Bilddatei aus.",
-          "read_failed": "Fehler beim Lesen der Datei.",
-          "upload_failed": "Cloudinary Upload fehlgeschlagen",
-          "save_failed": "Fehler beim Hochladen des Profilbildes.",
-          "delete_failed": "Fehler beim Löschen des Profilbildes.",
-          "update_success": "Group-Bild aktualisiert",
-          "delete_success": "Group-Bild gelöscht",
-          "save_group_picture": "Fehler beim Speichern des Gruppenbildes"
+          "read_failed": "Datei konnte nicht gelesen werden.",
+          "upload_failed": "Hochladen fehlgeschlagen",
+          "save_failed": "Gruppenbild konnte nicht hochgeladen werden.",
+          "delete_failed": "Gruppenbild konnte nicht gelöscht werden.",
+          "update_success": "Gruppenbild aktualisiert",
+          "delete_success": "Gruppenbild gelöscht",
+          "save_group_picture": "Gruppenbild konnte nicht gespeichert werden"
         },
         "delete_modal": {
-          "title": "Gruppenbild löschen",
-          "message": "Bist du sicher, dass du das Gruppen-Profilbild löschen möchtest?"
+          "title": "Gruppenbild löschen?",
+          "message": "Bist du sicher, dass du das Gruppenbild löschen möchtest?"
         },
         "actions": {
           "change": "Gruppenbild ändern",
@@ -37,21 +37,12 @@
         "description": "Wähle optional ein Gruppenbild",
         "cropper": {
           "title": "Bild anpassen",
-          "hint": "Zieh das Bild zum Ausrichten. Benutze das Mausrad oder den Schieberegler zum Zoomen."
+          "hint": "Zieh das Bild zum Ausrichten. Benutze das Mausrad oder den Schieberegler zum Zoomen.",
+          "image_alt": "Bild zum Zuschneiden"
         }
       },
-      "password": {
-        "errors": {
-          "mismatch": "Passwörter stimmen nicht überein",
-          "generic": "Ein Fehler ist aufgetreten"
-        },
-        "title": "Passwort ändern",
-        "current_label": "Aktuelles Passwort",
-        "new_label": "Neues Passwort",
-        "confirm_label": "Neues Passwort bestätigen"
-      },
       "delete_group": {
-        "warning_text": "Das Löschen der Gruppe ist endgültig und kann nicht rückgängig gemacht werden. Alle damit verbundenen Daten (Aufgaben, Klausuren, Ankündigungen etc.) werden für alle Benutzer gelöscht.",
+        "warning_text": "Das Löschen der Gruppe ist endgültig und kann nicht rückgängig gemacht werden. Alle damit verbundenen Daten (Aufgaben, Stundenplan, Ankündigungen etc.) werden für alle Mitglieder gelöscht.",
         "danger_zone_title": "Gefahrenzone",
         "button": "Gruppe löschen"
       },
@@ -125,7 +116,7 @@
         "title": "Gesperrte Nutzer",
         "description": "Bans einsehen und aufheben",
         "empty": "Keine gesperrten Nutzer",
-        "banned_on_prefix": "Gesperrt am ",
+        "banned_on": "Gesperrt am {date}",
         "actions": {
           "unban": "Entsperren"
         },
@@ -155,12 +146,10 @@
         "revoked_by": "Widerrufen von"
       },
       "remove_modal": {
-        "title": "Mitglied entfernen",
-        "confirm_prefix": "Bist du sicher, dass du ",
-        "confirm_suffix": " aus der Gruppe entfernen möchten?",
-        "rejoin_info": "Benutzer können jederzeit wieder beitreten, wenn sie einen Einladungslink für die Gruppe erhalten. Um dies zu verhindern, kannst du sie bannen.",
-        "ban_checkbox_prefix": "Banne ",
-        "ban_checkbox_suffix": " dauerhaft",
+        "title": "Mitglied entfernen?",
+        "confirm": "Bist du sicher, dass du {name} aus der Gruppe entfernen möchtest?",
+        "rejoin_info": "Nutzer können jederzeit wieder beitreten, wenn sie einen Einladungslink für die Gruppe erhalten. Um dies zu verhindern, kannst du sie bannen.",
+        "ban_checkbox": "Banne {name} dauerhaft",
         "submit_button": "Entfernen"
       },
       "transfer_modal": {
@@ -178,9 +167,9 @@
     },
     "permissions": {
       "errors": {
-        "load_failed": "Fehler beim Laden der Berechtigungen",
-        "update_success": "Berechtigung erfolgreich aktualisiert",
-        "save_failed": "Fehler beim Speichern der Berechtigung"
+        "load_failed": "Berechtigungen konnten nicht geladen werden",
+        "update_success": "Berechtigung aktualisiert",
+        "save_failed": "Berechtigung konnte nicht gespeichert werden"
       },
       "title": "Berechtigungen",
       "info": {
@@ -188,8 +177,8 @@
         "headline": "Verwalte die Berechtigungen der Gruppenmitglieder"
       },
       "list": {
-        "loading": "Berechtigungen werden geladen...",
-        "admin_only_warning": "Nur der Gruppeninhaber kann Berechtigungen anpassen."
+        "loading": "Berechtigungen werden geladen…",
+        "admin_only_warning": "Nur der Besitzer kann Berechtigungen anpassen."
       },
       "categories": {
         "general": "Gruppeneinstellungen",
@@ -270,10 +259,10 @@
         "lesson_duration_label": "Stundenlänge (Minuten)",
         "after_lesson_label": "Nach Stunde",
         "save_button": "Einstellungen speichern",
-        "instruction_text": "Konfiguriere die globalen Einstellungen für den Stundenplan (Zeiten, Pausen).",
+        "instruction_text": "Lege Unterrichtsbeginn, Stundenlänge und Pausen fest.",
         "add_break_button": "Pause hinzufügen",
         "start_time_label": "Startzeit",
-        "slots_per_day_label": "Anzahl Stunden (Pro Tag)",
+        "slots_per_day_label": "Stunden pro Tag",
         "breaks_title": "Pausen",
         "no_breaks": "Keine Pausen konfiguriert.",
         "break_duration_label": "Dauer (Minuten)"
@@ -327,12 +316,12 @@
         "edit_lesson_title": "Stunde bearbeiten",
         "subject_label": "Fach",
         "select_subject_prompt": "Fach auswählen",
-        "custom_subject_option": "Benutzerdefiniertes Fach...",
-        "custom_subject_label": "Benutzerdefiniertes Fach",
+        "custom_subject_option": "Eigenes Fach…",
+        "custom_subject_label": "Eigenes Fach",
         "course_label": "Kurs (optional)",
-        "select_course_prompt": "Kein Kurs (Standard)",
-        "custom_course_option": "Benutzerdefinierter Kurs...",
-        "custom_course_label": "Benutzerdefinierter Kurs",
+        "select_course_prompt": "Kein Kurs (ganze Gruppe)",
+        "custom_course_option": "Eigener Kurs…",
+        "custom_course_label": "Eigener Kurs",
         "room_label": "Raum",
         "room_placeholder": "z.B. A101",
         "day_label": "Wochentag",
@@ -342,23 +331,23 @@
         "delete_lesson_button": "Stunde löschen",
         "save_all_button": "Änderungen speichern",
         "cancel_button": "Abbrechen",
-        "success_save_all": "Stundenplan erfolgreich gespeichert",
+        "success_save_all": "Stundenplan gespeichert",
         "save_all_failed": "Der Stundenplan konnte nicht gespeichert werden. Es wurden keine Änderungen übernommen.",
-        "save_service_unavailable": "Der Stundenplan-Speicherdienst ist derzeit nicht verfügbar. Es wurden keine Änderungen übernommen. Bitte versuche es später erneut.",
+        "save_service_unavailable": "Der Stundenplan kann gerade nicht gespeichert werden. Es wurden keine Änderungen übernommen. Bitte versuche es später erneut.",
         "add_lesson_slot": "Stunde hinzufügen",
         "empty_slot": "Freistunde",
         "course_hint": "Ohne Kurs gilt die Stunde für die ganze Gruppe.",
-        "no_subjects": "Es sind noch keine Fächer in dieser Gruppe vorhanden. Bitte erstelle zuerst Fächer unter \"Fächer\" in den Gruppeneinstellungen.",
+        "no_subjects": "Es sind noch keine Fächer in dieser Gruppe vorhanden. Bitte erstelle zuerst Fächer unter „Fächer“ in den Gruppeneinstellungen.",
         "undo": "Rückgängig (Strg+Z)",
         "redo": "Wiederholen (Strg+Y)"
       }
     },
     "subjects": {
-      "add_placeholder": "Neues Fach hinzufügen...",
+      "add_placeholder": "Neues Fach hinzufügen…",
       "search_placeholder": "Fächer suchen",
       "create_title": "Neues Fach erstellen",
       "name_label": "Name",
-      "custom_label": "Benutzerdefinierter Name",
+      "custom_label": "Eigener Name",
       "category_label": "Kategorie",
       "categories": {
         "core": "Pflichtfach",
@@ -381,30 +370,30 @@
       "course_type_label": "Kursart",
       "course_type_forced_zk": "Jeder Kurs eines Zusatzkurs-Fachs ist ein ZK.",
       "errors": {
-        "load_failed": "Fehler beim Laden der Fächer",
+        "load_failed": "Fächer konnten nicht geladen werden",
         "create_success": "Fach erstellt",
-        "create_failed": "Fehler beim Erstellen",
+        "create_failed": "Fach konnte nicht erstellt werden",
         "update_success": "Fach aktualisiert",
-        "update_failed": "Fehler beim Aktualisieren",
+        "update_failed": "Fach konnte nicht aktualisiert werden",
         "delete_success": "Fach gelöscht",
-        "delete_failed": "Fehler beim Löschen",
+        "delete_failed": "Fach konnte nicht gelöscht werden",
         "course_create_success": "Kurs erstellt",
-        "course_create_failed": "Fehler beim Erstellen des Kurses",
+        "course_create_failed": "Kurs konnte nicht erstellt werden",
         "course_update_success": "Kurs aktualisiert",
-        "course_update_failed": "Fehler beim Aktualisieren des Kurses",
+        "course_update_failed": "Kurs konnte nicht aktualisiert werden",
         "course_delete_success": "Kurs gelöscht",
-        "course_delete_failed": "Fehler beim Löschen des Kurses",
+        "course_delete_failed": "Kurs konnte nicht gelöscht werden",
         "name_taken": "Dieser Name ist bereits vergeben.",
         "invalid_input": "Bitte prüfe deine Eingabe.",
-        "delete_referenced": "Das Fach wird noch im Stundenplan oder von Kursen verwendet. Entferne diese zuerst."
+        "delete_referenced": "Das Fach wird noch im Stundenplan oder von Kursen verwendet. Entferne zuerst die Stunden und Kurse dieses Fachs."
       },
       "delete_modal": {
         "title": "Dieses Fach löschen?",
         "message": "Möchtest du dieses Fach wirklich löschen? Bestehende Aufgaben behalten den Fachnamen."
       },
       "course_delete_modal": {
-        "title": "Kurs löschen",
-        "message": "Möchtest du diesen Kurs wirklich löschen? Seine Stunden werden aus dem Stundenplan entfernt, seine Aufgaben gelten danach für das ganze Fach."
+        "title": "Kurs löschen?",
+        "message": "Möchtest du diesen Kurs wirklich löschen? Die Stunden des Kurses werden aus dem Stundenplan entfernt. Seine Aufgaben gelten danach für alle Kurse des Fachs."
       },
       "title": "Fächer",
       "rename": "Umbenennen",
@@ -433,25 +422,36 @@
     },
     "title": "Gruppeneinstellungen",
     "messages": {
+      "load_members_failed": "Mitglieder konnten nicht geladen werden",
       "role_updated": "Rolle aktualisiert",
+      "role_update_failed": "Rolle konnte nicht geändert werden",
       "member_removed_banned": "Mitglied entfernt und gebannt",
       "member_removed": "Mitglied entfernt",
+      "member_remove_failed": "Mitglied konnte nicht entfernt werden",
+      "load_banned_failed": "Gesperrte Nutzer konnten nicht geladen werden",
+      "ban_reverted": "Sperre aufgehoben",
+      "ban_revert_failed": "Sperre konnte nicht aufgehoben werden",
       "load_schedule_failed": "Stundenplan konnte nicht geladen werden",
-      "load_substitutions_failed": "Vertretungen konnten nicht geladen werden",
-      "substitution_save_failed": "Vertretung konnte nicht gespeichert werden",
-      "substitution_delete_failed": "Vertretung konnte nicht gelöscht werden",
+      "load_changes_failed": "Änderungen konnten nicht geladen werden",
+      "change_save_failed": "Änderung konnte nicht gespeichert werden",
+      "change_delete_failed": "Änderung konnte nicht gelöscht werden",
       "announcement_deleted": "Ankündigung gelöscht",
       "announcement_delete_failed": "Ankündigung konnte nicht gelöscht werden",
       "group_name_updated": "Gruppenname aktualisiert",
-      "group_deleted": "Gruppe erfolgreich gelöscht",
-      "ownership_transferred": "Besitz erfolgreich übertragen",
+      "group_name_save_failed": "Gruppenname konnte nicht gespeichert werden",
+      "group_deleted": "Gruppe gelöscht",
+      "group_delete_failed": "Gruppe konnte nicht gelöscht werden",
+      "ownership_transferred": "Besitz übertragen",
       "ownership_transfer_failed": "Übertragung fehlgeschlagen",
-      "invite_revoked": "Einladung widerrufen"
+      "load_invites_failed": "Einladungen konnten nicht geladen werden",
+      "invite_revoked": "Einladung widerrufen",
+      "invite_revoke_failed": "Einladung konnte nicht widerrufen werden"
     },
     "group_fallback": "Gruppe",
     "announcements": {
       "delete_modal": {
-        "title": "Ankündigung löschen?"
+        "title": "Ankündigung löschen?",
+        "message": "Möchtest du diese Ankündigung wirklich löschen?"
       }
     },
     "nav": {
@@ -482,17 +482,20 @@
       "announcements": {
         "label": "Ankündigungen",
         "description": "Ankündigungen verwalten"
-      }
+      },
+      "subject_info": "Fachinfo"
     },
     "go_back": "Zurück"
   },
   "delete_modal": {
     "title": "Gruppe löschen",
     "warn_title": "„{name}“ endgültig löschen?",
-    "counts": "Betroffen: {members} Mitglieder · {items} Aufgaben",
+    "counts": "Betroffen: {members} · {items}",
+    "counts_members": "{count} Mitglied | {count} Mitglieder",
+    "counts_items": "{count} Aufgabe | {count} Aufgaben",
     "consequences": {
-      "content": "Alle Aufgaben, Klausuren, Ankündigungen und Chatnachrichten der Gruppe werden gelöscht.",
-      "schedule": "Fächer, Kurse und der Stundenplan samt Vertretungen werden entfernt.",
+      "content": "Alle Aufgaben, Prüfungen, Ankündigungen und Chatnachrichten der Gruppe werden gelöscht.",
+      "schedule": "Fächer, Kurse und der Stundenplan samt Planänderungen werden entfernt.",
       "members": "Alle Mitglieder verlieren sofort den Zugriff auf die Gruppe.",
       "invites": "Bestehende Einladungslinks werden ungültig."
     },

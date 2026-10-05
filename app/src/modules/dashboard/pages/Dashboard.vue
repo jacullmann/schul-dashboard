@@ -408,7 +408,7 @@ const {
             }"
           >
             <h3 class="mb-1!">
-              {{ t('dashboard.schedule_overview.substitutions') }}
+              {{ t('dashboard.schedule_overview.changes') }}
             </h3>
 
             <div class="relative flex-1 flex flex-col">
@@ -481,7 +481,7 @@ const {
                     '--enter-delay': entranceDelay(SUBSTITUTIONS_REVEAL_ORDER),
                   }"
                 >
-                  {{ t('dashboard.schedule_overview.no_substitutions') }}
+                  {{ t('dashboard.schedule_overview.no_changes') }}
                 </div>
               </template>
             </div>

@@ -255,9 +255,12 @@ onMounted(() => {
 
           <div class="flex flex-col flex-1 min-w-0">
             <div class="text-base font-semibold text-on-ghost truncate">
-              {{ parseUserAgent(session.userAgent).browser }}
-              {{ t('auth.sessions.on_device') }}
-              {{ parseUserAgent(session.userAgent).os }}
+              {{
+                t(
+                  'auth.sessions.device_label',
+                  parseUserAgent(session.userAgent),
+                )
+              }}
             </div>
 
             <div class="flex items-center gap-1 text-sm text-on-ghost-muted">

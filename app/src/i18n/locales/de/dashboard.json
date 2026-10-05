@@ -12,12 +12,12 @@
     "title": "Stundenplan",
     "next_lesson": "Nächste Stunde",
     "no_more_lessons": "Keine weiteren Stunden für diese Woche.",
-    "substitutions": "Planänderungen & Vertretungen",
-    "no_substitutions": "Keine Planänderungen in dieser Woche.",
+    "changes": "Planänderungen",
+    "no_changes": "Keine Planänderungen in dieser Woche.",
     "view_full": "Vollständigen Plan anzeigen",
     "cancelled": "Ausfall",
-    "room_change": "In {room} statt {original}",
-    "setup_cta": "Es wurde noch kein Stundenplan für diese Gruppe erstellt.",
+    "room_change": "Raum {room} statt {original}",
+    "setup_cta": "Für diese Gruppe gibt es noch keinen Stundenplan.",
     "setup_button": "Stundenplan einrichten",
     "slot": "{slot}. Stunde"
   }

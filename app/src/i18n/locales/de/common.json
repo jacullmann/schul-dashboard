@@ -14,9 +14,10 @@
     "edit": "Bearbeiten",
     "save": "Speichern",
     "skip": "Überspringen",
-    "saving": "Speichert...",
+    "saving": "Wird gespeichert…",
     "refresh": "Aktualisieren",
-    "deleting": "Löscht..."
+    "deleting": "Wird gelöscht…",
+    "logout": "Abmelden"
   },
   "cookies": {
     "banner": {
@@ -27,10 +28,10 @@
   },
   "design": "Design",
   "errors": {
-    "delete": "Fehler beim Löschen",
-    "save": "Fehler beim Speichern",
+    "delete": "Löschen fehlgeschlagen",
+    "save": "Speichern fehlgeschlagen",
     "unknown": "Unbekannter Fehler",
-    "update": "Fehler beim Aktualisieren",
+    "update": "Aktualisieren fehlgeschlagen",
     "validation_failed": "Bitte Eingaben überprüfen."
   },
   "footer": {
@@ -69,11 +70,11 @@
       "100 Tage Geld-zurück-Garantie!",
       "Wenn das Leben dir Zitronen gibt, spritz den Saft in die Augen deiner Gegner.",
       "100% Fairtrade Codezeilen aus zertifiziertem Anbau",
-      "gleich /gleích/, Adverb: unbestimmter Zeitpunkt in der Zukunft, wahrscheinlich aber nie",
+      "gleich /ɡlaɪ̯ç/, Adverb: unbestimmter Zeitpunkt in der Zukunft, wahrscheinlich aber nie",
       "Wenn ich 5 Minuten vor der Abgabe anfange, brauche ich nur 5 Minuten.",
       "42",
       "When the Revolution Comes...",
-      "I can see dead people",
+      "I see dead people",
       "Who will survive in America?",
       "Alles, was man verbietet, macht man interessant.",
       "Der Kuchen ist eine Lüge.",
@@ -83,7 +84,6 @@
       "Wir schaffen das!",
       "Das Internet ist für uns alle Neuland.",
       "Schmeckt besser, als es aussieht.",
-      "Fragt nicht, was euer Land für euch tun kann – geht in den Krieg und sterbt.",
       "Ich lerne, also bin ich.",
       "Alle wollen die Welt verändern, aber keiner sich selbst.",
       "Dashboard benutzen oder Dashboard nicht benutzen, das ist hier die Frage.",
@@ -134,7 +134,7 @@
   "selection": {
     "group": "Gruppe",
     "no": "Nein",
-    "other": "Anderes...",
+    "other": "Anderes…",
     "placeholder": "Bitte wählen",
     "yes": "Ja",
     "unknown": "Unbekannt"
@@ -184,7 +184,7 @@
     "collapse": "Einklappen",
     "task": "Neue Aufgabe",
     "announcement": "Neue Ankündigung",
-    "expand": "Erweitern",
+    "expand": "Ausklappen",
     "groups": "Gruppen",
     "home": "Start",
     "messages": "Nachrichten",
@@ -194,7 +194,8 @@
     "tasks": "Aufgaben",
     "dashboard": "Dashboard",
     "create": "Gruppe erstellen",
-    "toggle": "Seitenleiste umschalten"
+    "toggle": "Seitenleiste ein-/ausblenden",
+    "others": "weitere"
   },
   "tab_bar": {
     "label": "Hauptnavigation",
@@ -240,23 +241,23 @@
     "close_aria_label": "Schließen"
   },
   "date": {
-    "seconds": "vor {n}s",
-    "minutes": "vor {n}m",
-    "hours": "vor {n}h",
-    "days": "vor {n}d",
+    "seconds": "vor {n} Sek",
+    "minutes": "vor {n} Min",
+    "hours": "vor {n} Std",
+    "days": "vor {n} T",
     "formatMD": "{day}-{month}",
     "formatYMD": "{year}-{month}-{day}",
     "previous_month": "Vorheriger Monat",
     "next_month": "Nächster Monat"
   },
-  "loading": "Laden...",
+  "loading": "Wird geladen…",
   "notifications": "Benachrichtigungen",
   "header": {
     "switch_group": "Gruppe wechseln",
     "leave_group": "Gruppe verlassen",
     "leave_group_confirm": {
       "title": "Gruppe verlassen?",
-      "content": "Bist du dir sicher, dass du die Gruppe \"{group}\" verlassen willst?",
+      "content": "Bist du dir sicher, dass du die Gruppe „{group}“ verlassen willst?",
       "submit": "Verlassen"
     }
   },
@@ -272,7 +273,7 @@
     "go_back": "Zurück"
   },
   "personalized_view": {
-    "notice": "Nur deine Kurse angezeigt.",
+    "notice": "Nur deine Kurse werden angezeigt",
     "info": {
       "tooltip": "Über Kurse und Personalisierung",
       "title": "Personalisierte Ansicht",

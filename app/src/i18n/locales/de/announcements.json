@@ -1,6 +1,6 @@
 {
   "actions": {
-    "publish_success_toast": "Ankündigung erfolgreich veröffentlicht!",
+    "publish_success_toast": "Ankündigung veröffentlicht!",
     "create": "Ankündigung erstellen",
     "create_description": "Eine neue Ankündigung für deine Gruppe veröffentlichen."
   },
@@ -16,12 +16,11 @@
     },
     "title": "Neue Ankündigung",
     "content_label": "Ankündigung",
-    "content_placeholder": "Verfasse deine Nachricht...",
+    "content_placeholder": "Was möchtest du ankündigen?",
     "important_label": "Wichtig"
   },
   "card": {
     "acknowledge": "Verstanden",
-    "acknowledge_all": "Alle ausblenden",
-    "more": "{count} weitere"
+    "acknowledge_all": "Alle ausblenden"
   }
 }

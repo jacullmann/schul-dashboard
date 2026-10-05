@@ -238,9 +238,7 @@ onUnmounted(() => {
         </div>
       </div>
       <p class="text-sm/relaxed text-on-ghost-muted m-0! font-sans">
-        {{ t('auth.mfa.setup.description_prefix') }}
-        {{ t('auth.mfa.setup.description_suffix') }}
-        {{ t('auth.mfa.setup.description_end') }}
+        {{ t('auth.security.description') }}
       </p>
     </template>
 
@@ -358,7 +356,6 @@ onUnmounted(() => {
         <p
           class="text-sm/relaxed text-on-ghost-muted m-0! text-center font-sans"
         >
-          {{ t('auth.mfa.setup.complete_instruction_prefix') }}
           {{ t('auth.mfa.setup.complete_instruction') }}
         </p>
 
@@ -417,9 +414,7 @@ onUnmounted(() => {
       >
         <AlertTriangle :size="24" class="flex-shrink-0 my-auto" />
         <p class="m-0! text-on-danger! text-sm/[1.4]">
-          {{ t('auth.mfa.deactivate.warning_prefix') }}
-          {{ t('auth.mfa.deactivate.warning_suffix') }}
-          {{ t('auth.mfa.deactivate.warning_end') }}
+          {{ t('auth.mfa.deactivate.warning') }}
         </p>
       </div>
 

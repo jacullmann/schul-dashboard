@@ -14,9 +14,10 @@
     "edit": "Edit",
     "save": "Save",
     "skip": "Skip",
-    "saving": "Saving...",
+    "saving": "Saving…",
     "refresh": "Refresh",
-    "deleting": "Deleting..."
+    "deleting": "Deleting…",
+    "logout": "Sign out"
   },
   "cookies": {
     "banner": {
@@ -47,9 +48,9 @@
       "Wake Up Mr. West!",
       "listen to the kids",
       "and then?",
-      "Who is the king of rap?",
+      "Wer ist der King of Rap?",
       "Ich bin ein Berliner!",
-      "No one has the intention to erect a wall.",
+      "Nobody has any intention of building a wall!",
       "I have a dream",
       "Because humans make mistakes.",
       "Upload your chaos to the cloud!",
@@ -68,25 +69,24 @@
       "Certified voluntary child labor—schul-dashboard",
       "100-day money-back guarantee!",
       "When life gives you lemons, squirt the juice in your opponents' eyes.",
-      "100% Fairtrade code lines from certified cultivation",
+      "100% Fairtrade lines of code from certified cultivation",
       "in a minute /ɪn ə ˈmɪnɪt/, phrase: an undetermined point in the future, but probably never",
       "If I start 5 minutes before the deadline, it only takes me 5 minutes.",
       "42",
       "When the Revolution Comes...",
-      "I can see dead people",
+      "I see dead people",
       "Who will survive in America?",
       "Everything you forbid becomes interesting.",
       "The cake is a lie.",
-      "Did you turn it off and on again?",
+      "Have you tried turning it off and on again?",
       "May contain traces of nuts.",
       "Run, Forrest, run!",
       "Wir schaffen das!",
       "Das Internet ist für uns alle Neuland.",
       "Tastes better than it looks.",
-      "Fragt nicht, was euer Land für euch tun kann – geht in den Krieg und sterbt.",
-      "Ich lerne, also bin ich.",
-      "Alle wollen die Welt verändern, aber keiner sich selbst.",
-      "Dashboard benutzen oder Dashboard nicht benutzen, das ist hier die Frage.",
+      "I learn, so I am.",
+      "Everyone thinks of changing the world, but no one thinks of changing himself.",
+      "To use dashboard, or not to use dashboard, that is the question",
       "I'm going to make him an offer he can't refuse",
       "One small step for man, one giant leap for studentkind—schul-dashboard",
       "um... sort of",
@@ -134,7 +134,7 @@
   "selection": {
     "group": "Group",
     "no": "No",
-    "other": "Other...",
+    "other": "Other…",
     "placeholder": "Please select",
     "yes": "Yes",
     "unknown": "Unknown"
@@ -194,7 +194,8 @@
     "tasks": "Tasks",
     "dashboard": "Dashboard",
     "create": "Create group",
-    "toggle": "Toggle Sidebar"
+    "toggle": "Toggle Sidebar",
+    "others": "others"
   },
   "tab_bar": {
     "label": "Main navigation",
@@ -249,7 +250,7 @@
     "previous_month": "Previous month",
     "next_month": "Next month"
   },
-  "loading": "Loading...",
+  "loading": "Loading…",
   "notifications": "Notifications",
   "header": {
     "switch_group": "Switch group",
@@ -272,7 +273,7 @@
     "go_back": "Go back"
   },
   "personalized_view": {
-    "notice": "Displaying your courses only.",
+    "notice": "Only your courses are displayed",
     "info": {
       "tooltip": "About courses and personalization",
       "title": "Personalized view",

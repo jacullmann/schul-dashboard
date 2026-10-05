@@ -19,7 +19,7 @@
     "details_title": "Details",
     "stats": {
       "users": "Users",
-      "active_week": "Active last week",
+      "active_week": "Active",
       "tasks": "Tasks",
       "banned": "Banned",
       "verified": "Verified",
@@ -39,7 +39,7 @@
     },
     "cleanup_jobs": {
       "title": "Automatic cleanup",
-      "description": "The database deletes old data on its own every 6 hours. Overdue entries should have been deleted at least two runs ago, which means the job is not running.",
+      "description": "The database deletes old data on its own every 6 hours. Overdue entries should have been deleted at least two runs ago – a sign that the job isn't running.",
       "ok": "OK",
       "all_ok": "All OK",
       "jobs_overdue": "Overdue jobs: {count}",
@@ -76,7 +76,7 @@
           "rule": "Not confirmed within 2 days"
         },
         "cleanup-password-resets": {
-          "label": "Password codes",
+          "label": "Password reset codes",
           "rule": "Once expired (30 minutes)"
         },
         "cleanup-old-items": {

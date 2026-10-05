@@ -1,6 +1,6 @@
 {
   "break": "{minutes} min break",
-  "cancelled": "Cancelled",
+  "cancelled": "Canceled",
   "disclaimer": "schul-dashboard and the admin team accept no liability for the accuracy, completeness, or timeliness of the information provided.",
   "infopop": {
     "description": "The digital version of the schedule.",
@@ -16,7 +16,7 @@
     ],
     "tooltip": "Overview and features for the schedule"
   },
-  "loading": "Loading schedule...",
+  "loading": "Loading schedule…",
   "period": "Period {slot}",
   "periods": "Periods {first}–{last}",
   "personalized": "Personalized",

@@ -6,7 +6,7 @@
     "hide_checked": "Erledigte ausblenden",
     "archive": {
       "archive": "Archiv",
-      "archive_note": "Du siehst gerade alte Aufgaben",
+      "archive_note": "Du siehst gerade archivierte Aufgaben",
       "close_archive": "Archiv schließen"
     },
     "create_task": "Aufgabe erstellen",
@@ -19,11 +19,11 @@
         },
         {
           "title": "Aufgaben hinzufügen",
-          "text": "Um eine Aufgabe hinzuzufügen, klicke auf das <strong>+</strong> und wähle den passenden <strong>Typ</strong> (Hausaufgabe, Dalton oder Prüfung) aus. Trage nun einen <strong>Titel</strong>, der die Aufgabe kurz beschreibt, ein und wähle <strong>Fach</strong> sowie <strong>Abgabedatum</strong> aus. Optional kannst du genauere Details in der <strong>Beschreibung</strong> hinzufügen oder – sofern in den Gruppenberechtigungen nicht anders festgelegt – dazugehörige <strong>Medien</strong> wie Tafelbilder, Musterlösungen, Notizen, Lernzettel o. ä. hochladen. Unterstützt werden Bilder, PDFs und Office-Dateien."
+          "text": "Um eine Aufgabe hinzuzufügen, klicke auf das <strong>+</strong> und wähle den passenden <strong>Typ</strong> (Hausaufgabe, Dalton oder Prüfung) aus. Trage nun einen <strong>Titel</strong>, der die Aufgabe kurz beschreibt, ein und wähle <strong>Fach</strong> sowie <strong>Datum</strong> aus. Optional kannst du genauere Details in der <strong>Beschreibung</strong> hinzufügen oder dazugehörige <strong>Medien</strong> wie Tafelbilder, Musterlösungen, Notizen, Lernzettel o. ä. hochladen. Unterstützt werden Bilder, PDFs und Office-Dateien."
         },
         {
           "title": "Medien hochladen",
-          "text": "Du kannst auch bei Aufgaben, die von anderen erstellt wurden, Dateien hochladen, selbst wenn du sie nicht bearbeiten darfst – sofern in den Gruppenberechtigungen nicht anders festgelegt. Öffne dafür die Aufgabe, klicke auf das <strong>3-Punkte-Menü</strong>, wähle <strong>Bilder hochladen</strong> und dann die gewünschten Dateien aus. Um deine hochgeladenen Dateien zu entfernen, klicke mit der <strong>rechten Maustaste</strong> darauf oder <strong>halte</strong> sie <strong>gedrückt</strong> und wähle im Menü <strong>Löschen</strong> aus."
+          "text": "Du kannst auch bei Aufgaben, die von anderen erstellt wurden, Dateien hochladen, selbst wenn du sie nicht bearbeiten darfst. Öffne dafür die Aufgabe, klicke auf das <strong>3-Punkte-Menü</strong>, wähle <strong>Bilder hochladen</strong> und dann die gewünschten Dateien aus. Um deine hochgeladenen Dateien zu entfernen, klicke mit der <strong>rechten Maustaste</strong> darauf oder <strong>halte</strong> sie <strong>gedrückt</strong> und wähle im Menü <strong>Löschen</strong> aus."
         },
         {
           "title": "Abgeschlossene Aufgaben tracken",
@@ -42,18 +42,18 @@
     },
     "task_form": {
       "course": "Kurs",
-      "custom_subject": "Benutzerdefiniertes Fach",
+      "custom_subject": "Eigenes Fach",
       "description": "Beschreibung",
       "due_date": "Datum",
       "edit_task": "Aufgabe bearbeiten",
       "errors": {
         "course_missing": "Wähle einen Kurs aus",
-        "custom_long": "Das benutzerdefinierte Fach ist zu lang (max. 100 Zeichen)",
-        "custom_missing": "Trage ein benutzerdefiniertes Fach ein",
+        "custom_long": "Der Fachname ist zu lang (max. {max} Zeichen)",
+        "custom_missing": "Gib einen Fachnamen ein",
         "date_new": "Das Datum liegt zu weit in der Zukunft",
         "date_old": "Das Datum liegt zu weit in der Vergangenheit",
-        "description_long": "Die Beschreibung ist zu lang (max. 1000 Zeichen)",
-        "title_long": "Der Titel ist zu lang (max. 60 Zeichen)",
+        "description_long": "Die Beschreibung ist zu lang (max. {max} Zeichen)",
+        "title_long": "Der Titel ist zu lang (max. {max} Zeichen)",
         "title_missing": "Füge einen Titel hinzu",
         "check_input": "Bitte überprüfe deine Eingaben.",
         "unexpected": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es erneut."
@@ -61,12 +61,12 @@
       "images": "Bilder",
       "new_task": "Neue Aufgabe",
       "subject": "Fach",
-      "success_create": "Aufgabe erfolgreich erstellt",
-      "success_edit": "Aufgabe erfolgreich bearbeitet",
-      "success_upload": "Bilder erfolgreich hochgeladen",
+      "success_create": "Aufgabe erstellt",
+      "success_edit": "Aufgabe bearbeitet",
+      "success_upload": "Bilder hochgeladen",
       "title": "Titel",
       "upload_images": "Bilder hochladen",
-      "uploading_image": "Lade Bild hoch..."
+      "uploading_image": "Lade Bild hoch…"
     },
     "tasks": {
       "menu": {
@@ -74,7 +74,7 @@
         "archive": "Archivieren",
         "delete": {
           "action": "Aufgabe löschen",
-          "description": "Wenn du diese Aufgabe löschst, werden diese und alle dazugehörigen Bilder unwiderruflich gelöscht.",
+          "description": "Die Aufgabe wird mit allen dazugehörigen Dateien unwiderruflich gelöscht.",
           "title": "Diese Aufgabe löschen?"
         },
         "info": "Info",
@@ -89,14 +89,13 @@
         "report": {
           "action": "Aufgabe melden",
           "illegal_label": "Was genau ist das Problem? (optional)",
-          "illegal_placeholder": "Beschreibung...",
+          "illegal_placeholder": "Beschreibung…",
           "name": "Melden",
           "title": "Diese Aufgabe melden?",
           "success": "Aufgabe gemeldet.",
-          "error": "Fehler beim Melden: {error}"
+          "error": "Aufgabe konnte nicht gemeldet werden: {error}"
         },
         "share": "Teilen",
-        "share_confirm": "Link in die Zwischenablage kopiert!",
         "unarchive": "Wiederherstellen",
         "unpin": "Lösen",
         "upload_images": "Bilder hochladen",
@@ -115,15 +114,15 @@
         "drop_files": "Loslassen, um Dateien anzuhängen"
       },
       "errors": {
-        "status_failed": "Fehler beim Setzen des Status."
+        "status_failed": "Status konnte nicht gespeichert werden."
       }
     },
     "notes": {
       "no_notes": "Keine Notiz vorhanden",
       "note": "Notiz",
-      "saved": "Anmerkung gespeichert.",
-      "save_failed": "Fehler beim Speichern der Anmerkung.",
-      "placeholder": "Anmerkung hinzufügen..."
+      "saved": "Notiz gespeichert.",
+      "save_failed": "Notiz konnte nicht gespeichert werden.",
+      "placeholder": "Notiz hinzufügen…"
     },
     "reset_filters": "Filter zurücksetzen",
     "tabs": {
@@ -141,17 +140,17 @@
     },
     "double_task_confirm": {
       "title": "Aufgabe bereits vorhanden?",
-      "message": "Am {date} gibt es bereits eine {type} für das Fach {subject}. Bist du sicher, dass es sich bei deiner Aufgabe nicht um dieselbe Aufgabe handelt?",
+      "message": "Für {subject} gibt es am {date} schon einen Eintrag vom Typ {type}. Ist das vielleicht dieselbe Aufgabe?",
       "create_anyway": "Trotzdem erstellen",
-      "view_existing": "Existierende anzeigen"
+      "view_existing": "Vorhandene anzeigen"
     }
   },
   "private_tasks": {
     "delete_confirm": "Möchtest du diese private Aufgabe wirklich löschen?",
     "task": "Private Aufgabe",
-    "task_delete_confirm": "Private Aufgabe erfolgreich gelöscht",
-    "error_duplicate": "Fehler beim duplizieren",
-    "error_load": "Fehler beim Laden der privaten Aufgaben",
+    "task_delete_confirm": "Private Aufgabe gelöscht",
+    "error_duplicate": "Aufgabe konnte nicht dupliziert werden",
+    "error_load": "Private Aufgaben konnten nicht geladen werden",
     "form_placeholders": [
       { "title": "Einkaufen gehen…", "description": "6 Eier, Milch, Brot…" },
       {
@@ -188,16 +187,16 @@
         },
         {
           "title": "Reihenfolge",
-          "text": "Sortiere deine Aufgaben der Wichtigkeit nach. Bewege sie durch <strong>gedrückt halten und ziehen</strong> oder über das <strong>Menü</strong> in der Liste nach oben oder nach unten. So siehst du deine Prioritäten auf den ersten Blick."
+          "text": "Sortiere deine Aufgaben nach Wichtigkeit. Bewege sie durch <strong>gedrückt halten und ziehen</strong> oder über das <strong>Menü</strong> in der Liste nach oben oder nach unten. So siehst du deine Prioritäten auf den ersten Blick."
         },
         {
           "title": "Sicherheit",
-          "text": "Deine privaten Aufgaben werden mit <strong>AES-256</strong> <strong>verschlüsselt gespeichert</strong> und sind damit besonders gut vor ungewollten Mitlesern geschützt."
+          "text": "Deine privaten Aufgaben werden mit <strong>AES-256</strong> <strong>verschlüsselt</strong> auf unserem Server gespeichert. Andere Nutzer können sie nicht sehen."
         }
       ],
       "tooltip": "Überblick und Funktionen zu privaten Aufgaben"
     },
-    "loading": "Lade private Aufgaben...",
+    "loading": "Lade private Aufgaben…",
     "menu": {
       "down": "Nach unten",
       "up": "Nach oben"
@@ -206,38 +205,33 @@
     "no_tasks_found": "Keine privaten Aufgaben gefunden.",
     "requires_account": "Du musst angemeldet sein, um private Aufgaben zu verwenden.",
     "success_create": "Private Aufgabe erstellt",
-    "success_delete": "Private Aufgabe erfolgreich gelöscht",
-    "success_duplicate": "Private Aufgabe erfolgreich dupliziert",
+    "success_delete": "Private Aufgabe gelöscht",
+    "success_duplicate": "Private Aufgabe dupliziert",
     "success_update": "Private Aufgabe aktualisiert",
     "title": "Private Aufgaben",
-    "todo_form": {
-      "description_placeholder": "6 Eier...",
-      "title": "Neue private Aufgabe",
-      "title_placeholder": "Einkaufen gehen..."
-    },
     "form": {
       "new_title": "Neue private Aufgabe",
       "edit_title": "Private Aufgabe bearbeiten",
       "errors": {
         "title_missing": "Ein Titel ist erforderlich.",
-        "title_long": "Titel ist zu lang (max. 100 Zeichen).",
-        "description_long": "Beschreibung ist zu lang (max. 2000 Zeichen).",
+        "title_long": "Der Titel ist zu lang (max. {max} Zeichen).",
+        "description_long": "Die Beschreibung ist zu lang (max. {max} Zeichen).",
         "unexpected": "Ein unerwarteter Fehler ist aufgetreten"
       }
     }
   },
   "report": {
-    "info_tooltip": "Melden Info",
+    "info_tooltip": "Infos zum Melden",
     "info_title": "Infos zum Melden von Aufgaben",
-    "info_text": "Aufgaben und hochgeladene Dateien, die gegen unsere Nutzungsbedingungen oder geltendes Recht verstoßen, werden nach unserer Prüfung entfernt. Falls genaueres Wissen über den Hintergrund einer Aussage/einer Datei nötig ist, beschreibe es bitte möglichst genau, sodass wir etwas unternehmen können. Wenn der Verstoß offensichtlich ist, kannst du uns trotzdem helfen, indem du beschreibst, was nicht stimmt, aber wir untersuchen immer den ganzen Artikel, auch wenn du keinen konkreten Grund nennst."
+    "info_text": "Wir prüfen jede Meldung und entfernen Inhalte, die gegen unsere Nutzungsbedingungen oder geltendes Recht verstoßen. Ein Grund ist optional – ist der Verstoß nicht offensichtlich, hilft uns eine kurze Erklärung."
   },
   "actions": {
     "delete_modal": {
       "title": "Diese Aufgabe löschen?",
-      "message": "Wenn du diese Aufgabe löschst, werden diese und alle dazugehörigen Bilder unwiderruflich gelöscht.",
+      "message": "Die Aufgabe wird mit allen dazugehörigen Dateien unwiderruflich gelöscht.",
       "submit": "Aufgabe löschen",
       "success": "Aufgabe gelöscht.",
-      "error": "Fehler beim Löschen."
+      "error": "Aufgabe konnte nicht gelöscht werden."
     }
   },
   "notes": {
@@ -246,7 +240,7 @@
       "message": "Bist du sicher, dass du diese Notiz unwiderruflich löschen möchtest?",
       "submit": "Notiz löschen",
       "success": "Notiz gelöscht.",
-      "error": "Fehler beim Löschen der Notiz."
+      "error": "Notiz konnte nicht gelöscht werden."
     }
   },
   "images": {
@@ -255,7 +249,7 @@
       "message": "Wenn du dieses Bild löschst, wird es unwiderruflich entfernt.",
       "submit": "Bild löschen",
       "success": "Bild gelöscht.",
-      "error": "Fehler beim Löschen des Bildes."
+      "error": "Bild konnte nicht gelöscht werden."
     },
     "upload": {
       "failed": "Bilder konnten nicht hochgeladen werden",
@@ -263,13 +257,13 @@
       "partial": "{uploaded} von {total} Bildern hochgeladen",
       "progress": "Bilder werden hochgeladen",
       "quota": {
-        "own_exceeded": "Du kannst maximal {max} Bilder zu dieser Aufgabe hochladen, also noch {remaining}. Es wurde nichts hochgeladen – bitte wähle weniger Dateien aus.",
+        "own_exceeded": "Du kannst noch {remaining} von maximal {max} Bildern zu dieser Aufgabe hochladen. Es wurde nichts hochgeladen – bitte wähle weniger Dateien aus.",
         "own_reached": "Du hast bereits die maximale Anzahl von {max} Bildern zu dieser Aufgabe hochgeladen.",
         "task_exceeded": "Eine Aufgabe kann maximal {max} Bilder enthalten, hier passen noch {remaining}. Es wurde nichts hochgeladen – bitte wähle weniger Dateien aus.",
         "task_reached": "Diese Aufgabe enthält bereits die maximale Anzahl von {max} Bildern.",
         "type_exceeded": "Für diesen Aufgabentyp sind maximal {max} Bilder erlaubt. Bitte entferne die überzähligen Bilder."
       },
-      "success": "Bilder erfolgreich hochgeladen"
+      "success": "Bilder hochgeladen"
     },
     "document": "Dokument"
   }
