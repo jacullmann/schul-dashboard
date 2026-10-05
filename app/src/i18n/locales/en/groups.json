@@ -199,56 +199,56 @@
       },
       "items": {
         "edit_group_general": {
-          "title": "Edit group picture and name",
+          "title": "Edit group profile",
           "description": "Edit group picture and name"
         },
         "invite_members": {
           "title": "Invite members",
-          "description": "Invite members"
+          "description": "Create new invite links"
         },
         "edit_subjects_courses": {
           "title": "Edit subject/course list",
-          "description": "Edit subject/course list"
+          "description": "Create new subjects or courses and edit or delete existing ones"
         },
         "edit_schedule": {
           "title": "Edit schedule",
-          "description": "Edit schedule"
+          "description": "Create, edit and delete lessons and breaks and change the configuration"
         },
         "create_items": {
-          "title": "Create new tasks",
+          "title": "Create tasks",
           "description": "Create new tasks"
         },
         "upload_images": {
           "title": "Upload images",
-          "description": "Upload images"
+          "description": "Upload and attach files to tasks"
         },
         "manage_notes": {
-          "title": "Add, edit, and delete notes",
-          "description": "Add, edit, and delete notes"
+          "title": "Notes",
+          "description": "Add, edit, and delete notes for all tasks"
         },
         "send_messages": {
           "title": "Send messages",
           "description": "Send messages"
         },
         "manage_schedule_changes": {
-          "title": "Add and delete schedule changes",
+          "title": "Schedule changes",
           "description": "Add and delete schedule changes"
         },
         "manage_announcements": {
-          "title": "Add and delete announcements",
+          "title": "Announcements",
           "description": "Add and delete announcements"
         },
         "moderate_members": {
-          "title": "Remove and ban/unban members, view and revoke invite links",
+          "title": "Manage members",
           "description": "Remove and ban/unban members, view and revoke invite links"
         },
         "edit_other_content": {
-          "title": "Edit tasks from users",
-          "description": "Edit tasks from users"
+          "title": "Edit content",
+          "description": "Edit tasks from members"
         },
         "delete_other_content": {
-          "title": "Delete tasks, images, and messages from users",
-          "description": "Delete tasks, images, and messages from users"
+          "title": "Delete content",
+          "description": "Delete tasks, and files from members"
         }
       },
       "options": {
