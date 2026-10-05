@@ -48,7 +48,7 @@ const isTruncated = computed(
     ref="pill"
     role="status"
     :data-truncated="isTruncated"
-    class="status-pill group sticky z-10 self-center max-w-full rounded-full border border-ghost-border bg-surface top-4 max-md:top-[calc(var(--simple-header-height)+--spacing(2))]"
+    class="status-pill group sticky z-10 self-center max-w-full rounded-full border border-ghost-border bg-surface top-4 max-md:top-(--simple-header-height)"
     :class="isSettled ? 'text-success' : 'text-on-ghost-muted'"
     :style="{ width: contentWidth ? `${contentWidth}px` : undefined }"
   >

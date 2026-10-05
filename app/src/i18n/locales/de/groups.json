@@ -366,7 +366,7 @@
         "elective": "Wahlfach",
         "mandatory": "Pflichtfach",
         "optional": "Wahlfach",
-        "zk": "Zusatzkurs (ZK)"
+        "zk": "Zusatzkurs"
       },
       "course_types": {
         "gk": "Grundkurs (GK)",

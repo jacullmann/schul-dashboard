@@ -365,7 +365,7 @@
         "elective": "Elective subject",
         "mandatory": "Core subject",
         "optional": "Elective subject",
-        "zk": "Additional subject (ZK)"
+        "zk": "Additional subject"
       },
       "course_types": {
         "gk": "Basic course (GK)",
