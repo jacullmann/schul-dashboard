@@ -31,23 +31,20 @@ const { t } = useI18n();
         role="presentation"
         class="task-separator border-b border-ghost-border ml-4"
       ></li>
-      <li class="flex gap-3 py-2">
-        <span
-          class="w-1 shrink-0 my-1 rounded-full"
-          :class="ann.important ? 'bg-danger' : 'bg-action'"
-        ></span>
-        <div class="flex flex-col flex-1 min-w-0 gap-1">
-          <div class="text-base text-on-ghost break-words">
-            {{ ann.content }}
+      <li class="flex flex-col gap-1 py-2">
+        <div class="text-base text-on-ghost break-words">
+          {{ ann.content }}
+        </div>
+        <div class="flex justify-between items-center gap-2">
+          <div class="flex min-w-0 items-center gap-2 text-sm">
+            <time :datetime="ann.publishedAt" class="text-on-ghost-muted">{{
+              formatDate(ann.publishedAt, t)
+            }}</time>
+            <span v-if="ann.important" class="font-bold text-danger">
+              {{ t('announcements.list.important') }}
+            </span>
           </div>
-          <div class="flex justify-between items-center gap-2">
-            <time
-              :datetime="ann.publishedAt"
-              class="text-sm text-on-ghost-muted"
-              >{{ formatDate(ann.publishedAt, t) }}</time
-            >
-            <slot name="actions" :announcement="ann"></slot>
-          </div>
+          <slot name="actions" :announcement="ann"></slot>
         </div>
       </li>
     </template>

@@ -100,15 +100,17 @@ onMounted(load);
           :key="a.id"
           class="flex items-center gap-3 py-3"
         >
-          <span
-            class="w-1 self-stretch shrink-0 rounded-full"
-            :class="a.important ? 'bg-danger' : 'bg-action'"
-          ></span>
           <div class="flex flex-col flex-1 min-w-0 gap-1">
             <div class="text-base text-on-ghost break-words">
               {{ a.content }}
             </div>
             <div class="flex flex-wrap gap-x-1 text-sm text-on-ghost-muted">
+              <template v-if="a.important">
+                <span class="font-bold text-danger">{{
+                  t('announcements.list.important')
+                }}</span>
+                <span aria-hidden="true">·</span>
+              </template>
               <template v-for="(detail, i) in detailsOf(a)" :key="i">
                 <span v-if="i > 0" aria-hidden="true">·</span>
                 <span class="min-w-0 break-words">{{ detail }}</span>
