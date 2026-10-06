@@ -44,14 +44,26 @@ describe('now marker', () => {
     expect(nowMarkerOf([], [], at('09:00'))).toBeNull();
   });
 
-  it('runs through a lesson in proportion to the time passed', () => {
+  it('waits at the first lesson without a label before it starts', () => {
+    expect(marker('07:58')).toEqual({
+      firstRow: 2,
+      lastRow: 2,
+      progress: 0,
+      labelRow: null,
+      minutesLeft: 2,
+    });
+  });
+
+  it('runs through a lesson, counting down on its label', () => {
     expect(marker('08:15')).toEqual({
       firstRow: 2,
       lastRow: 2,
       progress: 1 / 3,
-      labelRow: null,
-      breakMinutesLeft: null,
+      labelRow: 2,
+      minutesLeft: 30,
     });
+    expect(marker('08:44')).toMatchObject({ labelRow: 2, minutesLeft: 1 });
+    expect(marker('08:45')).toMatchObject({ labelRow: 3, minutesLeft: 45 });
   });
 
   it('runs through a cell spanning several rows as one', () => {
@@ -60,56 +72,43 @@ describe('now marker', () => {
       firstRow: 2,
       lastRow: 3,
       progress: 0.5,
+      labelRow: 3,
     });
   });
 
-  it('runs through a break a cell spans instead of holding on it', () => {
+  it('runs through a break a cell spans, counting down on its label', () => {
     const acrossBreak = [{ firstRow: 3, lastRow: 5 }];
-    expect(marker('09:40', acrossBreak)).toMatchObject({
+    expect(marker('09:40', acrossBreak)).toEqual({
       firstRow: 3,
       lastRow: 5,
       progress: 55 / 110,
-      breakMinutesLeft: null,
+      labelRow: 4,
+      minutesLeft: 10,
     });
   });
 
-  it('takes over a time label it comes close to', () => {
-    expect(marker('07:58')).toMatchObject({
-      firstRow: 2,
-      progress: 0,
-      labelRow: 2,
-    });
-    expect(marker('08:43')).toMatchObject({ firstRow: 2, labelRow: 3 });
-  });
-
-  it('holds on a break until it is over, counting down its minutes', () => {
+  it('holds on a break until it is over, counting down on its divider', () => {
     expect(marker('09:30')).toEqual({
       firstRow: 4,
       lastRow: 4,
       progress: 0.5,
-      labelRow: 4,
-      breakMinutesLeft: 20,
-    });
-    expect(marker('09:48')).toMatchObject({
-      labelRow: 4,
-      breakMinutesLeft: 2,
+      labelRow: null,
+      minutesLeft: 20,
     });
     expect(marker('09:50')).toMatchObject({
       firstRow: 5,
       progress: 0,
       labelRow: 5,
-      breakMinutesLeft: null,
     });
   });
 
   it('stays on the day’s end for the rest of the day', () => {
-    expect(marker('10:37')).toMatchObject({ firstRow: 6, labelRow: 6 });
     expect(marker('18:00')).toEqual({
       firstRow: 6,
       lastRow: 6,
       progress: 0.5,
       labelRow: null,
-      breakMinutesLeft: null,
+      minutesLeft: null,
     });
   });
 });

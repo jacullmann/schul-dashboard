@@ -5,7 +5,10 @@ import type {
   ScheduleLayout,
   ScheduleRow,
 } from '@/modules/schedule/types';
-import { lessonsSlotRange } from '@/modules/schedule/utils/lesson';
+import {
+  lessonsSlotRange,
+  type SlotRange,
+} from '@/modules/schedule/utils/lesson';
 import { slotRangeMinutes } from '@/modules/schedule/utils/slotTimes';
 import { formatTimeOfDay } from '@/utils/time';
 
@@ -43,6 +46,28 @@ export function slotsJoinedToNext(groups: readonly LessonGroup[]): Set<number> {
     for (let slot = firstSlot; slot < lastSlot; slot++) spanned.add(slot);
   }
   return spanned.difference(edges);
+}
+
+/** Runs of slots up to `lastSlot` that no cell fills, earliest first. */
+export function freeSlotRuns(
+  groups: readonly LessonGroup[],
+  lastSlot: number,
+): SlotRange[] {
+  const filled = new Set<number>();
+  for (const { lessons } of groups) {
+    const range = lessonsSlotRange(lessons);
+    for (let slot = range.firstSlot; slot <= range.lastSlot; slot++) {
+      filled.add(slot);
+    }
+  }
+  const runs: SlotRange[] = [];
+  for (let slot = 1; slot <= lastSlot; slot++) {
+    if (filled.has(slot)) continue;
+    const run = runs.at(-1);
+    if (run?.lastSlot === slot - 1) run.lastSlot = slot;
+    else runs.push({ firstSlot: slot, lastSlot: slot });
+  }
+  return runs;
 }
 
 /*

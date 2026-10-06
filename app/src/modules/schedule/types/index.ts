@@ -107,10 +107,10 @@ export interface ScheduleLayout {
   ) => Record<string, string>;
 }
 
-/** A time label showing the time it is instead, as now passes it. */
+/** A time label showing how long until the next time instead, as now passes it. */
 export interface ScheduleNowLabel {
   gridRow: number;
-  time: string;
+  text: string;
 }
 
 /** What a phone shows for one day, laid out on a grid of its own. */

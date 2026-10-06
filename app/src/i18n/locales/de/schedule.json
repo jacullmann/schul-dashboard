@@ -2,6 +2,7 @@
   "break": "{minutes} Min. Pause",
   "break_left": "Noch {minutes} Min. Pause",
   "cancelled": "Ausfall",
+  "free": "Frei",
   "infopop": {
     "description": "Die bessere digitale Version",
     "sections": [
@@ -17,6 +18,7 @@
     "tooltip": "Überblick und Funktionen zum Stundenplan"
   },
   "loading": "Lade Stundenplan…",
+  "minutes_short": "{minutes} Min",
   "period": "{slot}. Std.",
   "periods": "{first}.–{last}. Std.",
   "title": "Stundenplan",

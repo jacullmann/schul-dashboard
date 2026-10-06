@@ -50,7 +50,7 @@ withDefaults(
           : 'ring-transparent'
       "
     >
-      {{ row.gridRow === nowLabel?.gridRow ? nowLabel.time : row.startTime }}
+      {{ row.gridRow === nowLabel?.gridRow ? nowLabel.text : row.startTime }}
     </span>
   </div>
 </template>

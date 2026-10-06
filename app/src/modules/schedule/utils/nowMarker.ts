@@ -1,8 +1,8 @@
 import type { ScheduleRow } from '@/modules/schedule/types';
 import { minutesSinceMidnight } from '@/utils/time';
 
-/** How close now has to come to a row's time to take the place of its label. */
-export const MERGE_MINUTES = 3;
+/** How long before the day's first time the marker appears. */
+export const LEAD_MINUTES = 3;
 
 /** Rows one cell spans, which now passes as one. */
 export interface RowSpan {
@@ -13,10 +13,13 @@ export interface RowSpan {
 export interface NowMarker extends RowSpan {
   /** How far through its rows now is; a break or the day's end holds it halfway. */
   progress: number;
-  /** The row whose time label now has come close enough to take over. */
+  /**
+   * The time label now has passed last, which counts down to the next one
+   * instead; a divider holding now counts down on its own.
+   */
   labelRow: number | null;
-  /** The minutes left of the break now falls in. */
-  breakMinutesLeft: number | null;
+  /** Minutes until the next time comes up; none past the day's end. */
+  minutesLeft: number | null;
 }
 
 const clampProgress = (progress: number) => Math.min(Math.max(progress, 0), 1);
@@ -25,8 +28,8 @@ const clampProgress = (progress: number) => Math.min(Math.max(progress, 0), 1);
  * Where now falls along a day's rows, ordered by time. A lesson's row runs
  * from its start to whatever follows it, a cell spanning several rows from
  * its first row's start to whatever follows its last. A break outside any
- * cell holds now on its divider, and on its label, until the next lesson
- * starts; the day's end holds it until the day is over.
+ * cell holds now on its divider until the next lesson starts; the day's end
+ * holds it until the day is over.
  */
 export function nowMarkerOf(
   rows: readonly ScheduleRow[],
@@ -38,48 +41,33 @@ export function nowMarkerOf(
     minutes: minutesSinceMidnight(row.startTime),
   }));
   const first = timed[0];
-  if (!first || nowMinutes < first.minutes - MERGE_MINUTES) return null;
+  if (!first || nowMinutes < first.minutes - LEAD_MINUTES) return null;
 
-  const current =
-    timed.findLast(({ minutes }) => minutes <= nowMinutes) ?? first;
-  const { row } = current;
-
-  const nearest = timed.reduce((best, candidate) =>
-    Math.abs(candidate.minutes - nowMinutes) <
-    Math.abs(best.minutes - nowMinutes)
-      ? candidate
-      : best,
+  const currentIndex = timed.findLastIndex(
+    ({ minutes }) => minutes <= nowMinutes,
   );
-  const labelRow =
-    Math.abs(nearest.minutes - nowMinutes) <= MERGE_MINUTES
-      ? nearest.row.gridRow
-      : null;
+  const current = timed[currentIndex];
+  const next = timed[currentIndex + 1];
+  const { row } = current ?? first;
 
   const cell = cells.find(
     ({ firstRow, lastRow }) =>
       firstRow <= row.gridRow && row.gridRow <= lastRow,
   ) ?? { firstRow: row.gridRow, lastRow: row.gridRow };
+  const holdsOnDivider =
+    row.kind !== 'lesson' && cell.firstRow === cell.lastRow;
   const start =
     timed.find(({ row: { gridRow } }) => gridRow === cell.firstRow)?.minutes ??
-    current.minutes;
+    first.minutes;
   const end = timed.find(({ row: { gridRow } }) => gridRow > cell.lastRow);
-
-  if (row.kind === 'break' && cell.firstRow === cell.lastRow) {
-    return {
-      ...cell,
-      progress: 0.5,
-      labelRow: row.gridRow,
-      breakMinutesLeft: current.minutes + row.durationMins - nowMinutes,
-    };
-  }
 
   return {
     ...cell,
     progress:
-      row.kind === 'dayEnd' || !end
+      holdsOnDivider || !end
         ? 0.5
         : clampProgress((nowMinutes - start) / (end.minutes - start)),
-    labelRow,
-    breakMinutesLeft: null,
+    labelRow: current && !holdsOnDivider ? row.gridRow : null,
+    minutesLeft: next ? next.minutes - nowMinutes : null,
   };
 }

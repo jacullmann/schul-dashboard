@@ -12,6 +12,7 @@ import type {
   Lesson,
   LessonGroup,
   ScheduleLayout,
+  ScheduleNowLabel,
   ScheduleRow,
 } from '@/modules/schedule/types';
 import {
@@ -20,7 +21,7 @@ import {
   vEntranceStart,
 } from '@/common/composables/useSkeletonHandoff';
 import { entranceDelay } from '@/modules/schedule/utils/entrance';
-import { lessonRowsOf } from '@/modules/schedule/utils/layout';
+import { freeSlotRuns, lessonRowsOf } from '@/modules/schedule/utils/layout';
 import {
   lessonGroupsByDay,
   lessonsSlotRange,
@@ -28,8 +29,8 @@ import {
 import {
   nowMarkerOf,
   type NowMarker,
+  type RowSpan,
 } from '@/modules/schedule/utils/nowMarker';
-import { formatTimeOfDay } from '@/utils/time';
 import {
   isoDate,
   parseIsoDate,
@@ -44,6 +45,7 @@ import ScheduleLessonGroup from '../components/ScheduleLessonGroup.vue';
 import ScheduleCellSkeleton from '../components/ScheduleCellSkeleton.vue';
 import ScheduleChangeModal from '../components/ScheduleChangeModal.vue';
 import ScheduleNowMarker from '../components/ScheduleNowMarker.vue';
+import ScheduleFreeBlock from '../components/ScheduleFreeBlock.vue';
 import ScheduleWeekNav from '../components/ScheduleWeekNav.vue';
 
 // Pages run on past Friday into the following weeks, and back before Monday.
@@ -175,8 +177,15 @@ interface Divider {
   label: string;
 }
 
+/** Free slots next to each other, sharing one cell that shows only its label. */
+interface FreeBlock extends RowSpan {
+  key: string;
+  gridColumn: number;
+}
+
 interface DayRows {
   dividers: Divider[];
+  freeBlocks: FreeBlock[];
   /** The rows a phone labels, once the lessons are known. */
   labelledRows?: ReadonlySet<number>;
   /** The labelled rows up to the day's end, which now passes in order. */
@@ -188,6 +197,9 @@ interface DayRows {
  * closing divider takes the place of the row that follows it. A phone labels
  * only the rows its day fills: slots up to the last lesson shown and the rows
  * holding a divider.
+ *
+ * Filtered to the member's courses, the slots up to then without a lesson
+ * read as free time; a break between two of them belongs to it.
  */
 const rowsOfDay = (
   layout: ScheduleLayout,
@@ -205,14 +217,30 @@ const rowsOfDay = (
     (row): row is BreakRow => row.kind === 'break',
   );
   if (loadingLessons.value) {
-    return { dividers: breakRows.map(breakDivider), timeline: [] };
+    return {
+      dividers: breakRows.map(breakDivider),
+      freeBlocks: [],
+      timeline: [],
+    };
   }
 
   const { lastAttendedSlotByDay, lastShownSlotByDay } = scheduleOfWeek(week);
   const lastAttendedSlot = lastAttendedSlotByDay.get(day);
   const lastShownSlot = lastShownSlotByDay.get(day) ?? 0;
+  const freeRuns =
+    isPersonalized.value && lastAttendedSlot !== undefined
+      ? freeSlotRuns(lessonGroupsOfWeek(week).get(day) ?? [], lastAttendedSlot)
+      : [];
+  const isFreeTime = (row: BreakRow) =>
+    freeRuns.some(
+      ({ firstSlot, lastSlot }) =>
+        firstSlot <= row.afterSlot && row.afterSlot < lastSlot,
+    );
   const breaks = breakRows.filter(
-    (row) => lastAttendedSlot !== undefined && row.afterSlot < lastAttendedSlot,
+    (row) =>
+      lastAttendedSlot !== undefined &&
+      row.afterSlot < lastAttendedSlot &&
+      !isFreeTime(row),
   );
   const dayEndRow = layout.rows.find(
     (row) => row.kind !== 'lesson' && row.afterSlot === lastAttendedSlot,
@@ -243,7 +271,14 @@ const rowsOfDay = (
           (row) => row.gridRow <= dayEndRow && labelledRows.has(row.gridRow),
         );
 
-  return { dividers, labelledRows, timeline };
+  const freeBlocks = freeRuns.map(({ firstSlot, lastSlot }) => ({
+    key: `free-${column}-${firstSlot}`,
+    gridColumn: column,
+    firstRow: layout.gridRowOfSlot(firstSlot),
+    lastRow: layout.gridRowOfSlot(lastSlot),
+  }));
+
+  return { dividers, freeBlocks, labelledRows, timeline };
 };
 
 const shownWeekLayout = computed(
@@ -283,6 +318,9 @@ const lessonGroupsOfWeek = useWeekCache<ReadonlyMap<number, LessonGroup[]>>(
       : lessonGroupsByDay(scheduleOfWeek(week).groupedLessons),
 );
 
+const freeBlocksOf = (day: number, week: number) =>
+  (isPhone.value ? phoneRowsOf : weekRowsOf)(week).get(day)?.freeBlocks ?? [];
+
 const lessonGroupsOf = (day: number, week: number) =>
   lessonGroupsOfWeek(week).get(day) ?? [];
 
@@ -294,13 +332,16 @@ const todayMarker = computed(() => {
   const day = days[page - week * days.length];
   if (day === undefined) return null;
   const layout = dayLayoutOf(day, week);
-  const cells = lessonGroupsOf(day, week).map(({ lessons }) => {
-    const { firstSlot, lastSlot } = lessonsSlotRange(lessons);
-    return {
-      firstRow: layout.gridRowOfSlot(firstSlot),
-      lastRow: layout.gridRowOfSlot(lastSlot),
-    };
-  });
+  const cells: RowSpan[] = [
+    ...lessonGroupsOf(day, week).map(({ lessons }) => {
+      const { firstSlot, lastSlot } = lessonsSlotRange(lessons);
+      return {
+        firstRow: layout.gridRowOfSlot(firstSlot),
+        lastRow: layout.gridRowOfSlot(lastSlot),
+      };
+    }),
+    ...freeBlocksOf(day, week),
+  ];
   return nowMarkerOf(
     phoneRowsOf(week).get(day)?.timeline ?? [],
     cells,
@@ -313,30 +354,29 @@ const markerOf = (day: number, week: number) =>
     ? todayMarker.value
     : null;
 
-const nowLabelOf = (day: number, week: number) => {
-  const gridRow = markerOf(day, week)?.labelRow ?? null;
-  return gridRow === null
-    ? null
-    : { gridRow, time: formatTimeOfDay(minutesToday.value) };
+const nowLabelOf = (day: number, week: number): ScheduleNowLabel | null => {
+  const marker = markerOf(day, week);
+  if (!marker || marker.labelRow === null || marker.minutesLeft === null) {
+    return null;
+  }
+  return {
+    gridRow: marker.labelRow,
+    text: t('schedule.minutes_short', { minutes: marker.minutesLeft }),
+  };
 };
 
-/**
- * A divider now rests on, or whose time now comes close to, stands out; a
- * break's tells how long it has left.
- */
+/** A divider now rests on stands out; a break's tells how long it has left. */
 const shownDivider = (
   divider: Omit<Divider, 'key'>,
   marker: NowMarker | null,
 ) => {
-  const restsOn = (row: number) =>
-    marker?.firstRow === row && marker.lastRow === row;
   if (
-    !marker ||
-    (marker.labelRow !== divider.gridRow && !restsOn(divider.gridRow))
+    marker?.firstRow !== divider.gridRow ||
+    marker.lastRow !== divider.gridRow
   ) {
     return divider;
   }
-  const minutes = marker.breakMinutesLeft;
+  const minutes = marker.minutesLeft;
   return {
     ...divider,
     label:
@@ -463,6 +503,13 @@ watch(
           v-for="{ key, ...divider } in dividersOf(day, week)"
           :key="key"
           v-bind="shownDivider(divider, markerOf(day, week))"
+          :animated="animated"
+        />
+
+        <ScheduleFreeBlock
+          v-for="{ key, ...block } in freeBlocksOf(day, week)"
+          :key="key"
+          v-bind="block"
           :animated="animated"
         />
 

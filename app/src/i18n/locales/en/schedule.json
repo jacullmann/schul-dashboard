@@ -2,6 +2,7 @@
   "break": "{minutes} min break",
   "break_left": "{minutes} min break left",
   "cancelled": "Canceled",
+  "free": "Free",
   "infopop": {
     "description": "The digital version of the schedule.",
     "sections": [
@@ -17,6 +18,7 @@
     "tooltip": "Overview and features for the schedule"
   },
   "loading": "Loading schedule…",
+  "minutes_short": "{minutes} min",
   "period": "Period {slot}",
   "periods": "Periods {first}–{last}",
   "title": "Schedule",
