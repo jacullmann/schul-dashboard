@@ -32,6 +32,10 @@ import {
   type RowSpan,
 } from '@/modules/schedule/utils/nowMarker';
 import {
+  freeTimeMinutes,
+  type MinuteRange,
+} from '@/modules/schedule/utils/slotTimes';
+import {
   isoDate,
   parseIsoDate,
   SCHOOL_DAYS,
@@ -62,6 +66,7 @@ const {
   loadingSubs,
   loadingLessons,
   days,
+  scheduleConfig,
   scheduleOfWeek,
   minutesToday,
   todayWeek,
@@ -181,6 +186,9 @@ interface Divider {
 interface FreeBlock extends RowSpan {
   key: string;
   gridColumn: number;
+  /** From the lesson before to the lesson after, breaks around it included. */
+  time: MinuteRange;
+  includesBreaks: boolean;
 }
 
 interface DayRows {
@@ -271,12 +279,19 @@ const rowsOfDay = (
           (row) => row.gridRow <= dayEndRow && labelledRows.has(row.gridRow),
         );
 
-  const freeBlocks = freeRuns.map(({ firstSlot, lastSlot }) => ({
-    key: `free-${column}-${firstSlot}`,
-    gridColumn: column,
-    firstRow: layout.gridRowOfSlot(firstSlot),
-    lastRow: layout.gridRowOfSlot(lastSlot),
-  }));
+  const freeBlocks = freeRuns.map(({ firstSlot, lastSlot }): FreeBlock => {
+    const time = freeTimeMinutes(scheduleConfig.value, firstSlot, lastSlot);
+    const lessonsMinutes =
+      (lastSlot - firstSlot + 1) * scheduleConfig.value.lessonDurationMins;
+    return {
+      key: `free-${column}-${firstSlot}`,
+      gridColumn: column,
+      firstRow: layout.gridRowOfSlot(firstSlot),
+      lastRow: layout.gridRowOfSlot(lastSlot),
+      time,
+      includesBreaks: time.end - time.start > lessonsMinutes,
+    };
+  });
 
   return { dividers, freeBlocks, labelledRows, timeline };
 };
@@ -382,6 +397,31 @@ const shownDivider = (
     label:
       minutes === null ? divider.label : t('schedule.break_left', { minutes }),
     isNow: true,
+  };
+};
+
+/** Free time says how long it lasts, or once now is in it, how long it has left. */
+const shownFreeBlock = (
+  { time, includesBreaks, ...block }: Omit<FreeBlock, 'key'>,
+  marker: NowMarker | null,
+) => {
+  const isNow =
+    marker?.firstRow === block.firstRow && marker.lastRow === block.lastRow;
+  if (isNow) {
+    return {
+      ...block,
+      detail: t('schedule.free_left', {
+        minutes: time.end - minutesToday.value,
+      }),
+      isNow,
+    };
+  }
+  return {
+    ...block,
+    detail: t(
+      includesBreaks ? 'schedule.free_with_breaks' : 'schedule.free_minutes',
+      { minutes: time.end - time.start },
+    ),
   };
 };
 
@@ -509,7 +549,7 @@ watch(
         <ScheduleFreeBlock
           v-for="{ key, ...block } in freeBlocksOf(day, week)"
           :key="key"
-          v-bind="block"
+          v-bind="shownFreeBlock(block, markerOf(day, week))"
           :animated="animated"
         />
 

@@ -36,11 +36,10 @@ export interface ScheduleLayoutOptions {
 }
 
 /** Slots whose boundary to the next slot lies inside a cell and on no cell's edge. */
-export function slotsJoinedToNext(groups: readonly LessonGroup[]): Set<number> {
+export function slotsJoinedToNext(cells: readonly SlotRange[]): Set<number> {
   const spanned = new Set<number>();
   const edges = new Set<number>();
-  for (const { lessons } of groups) {
-    const { firstSlot, lastSlot } = lessonsSlotRange(lessons);
+  for (const { firstSlot, lastSlot } of cells) {
     edges.add(firstSlot - 1);
     edges.add(lastSlot);
     for (let slot = firstSlot; slot < lastSlot; slot++) spanned.add(slot);

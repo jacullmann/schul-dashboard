@@ -7,9 +7,13 @@ withDefaults(
     gridColumn: number;
     firstRow: number;
     lastRow: number;
+    detail: string;
+    /** Where now is, so it carries on from the now marker's label. */
+    isNow?: boolean;
     animated?: boolean;
   }>(),
   {
+    isNow: false,
     animated: true,
   },
 );
@@ -19,7 +23,7 @@ const { t } = useI18n();
 
 <template>
   <div
-    class="flex items-center justify-center text-sm font-bold text-on-ghost-muted"
+    class="flex flex-col items-center justify-center text-center text-on-ghost"
     :class="{ 'animate-enter': animated }"
     :style="{
       gridColumn,
@@ -27,6 +31,12 @@ const { t } = useI18n();
       '--enter-delay': entranceDelay(gridColumn, firstRow),
     }"
   >
-    {{ t('schedule.free') }}
+    <span class="text-base font-bold">{{ t('schedule.free') }}</span>
+    <span
+      class="text-xs tabular-nums transition-colors duration-300"
+      :class="isNow ? 'text-accent font-medium' : 'text-on-ghost-muted'"
+    >
+      {{ detail }}
+    </span>
   </div>
 </template>

@@ -56,6 +56,24 @@ export function slotRangeMinutes(
   };
 }
 
+/**
+ * The free time slots without a lesson leave, from the end of the slot
+ * before them, or their own start, to the start of the slot after them.
+ */
+export function freeTimeMinutes(
+  config: ScheduleConfig,
+  firstSlot: number,
+  lastSlot: number,
+): MinuteRange {
+  return {
+    start:
+      firstSlot > 1
+        ? slotRangeMinutes(config, firstSlot - 1).end
+        : slotStartMinutes(config, firstSlot),
+    end: slotStartMinutes(config, lastSlot + 1),
+  };
+}
+
 export function lessonMinutes(
   config: ScheduleConfig,
   lesson: Pick<Lesson, 'slot'> & { duration?: number | null },

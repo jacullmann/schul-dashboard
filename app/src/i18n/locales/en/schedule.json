@@ -3,6 +3,9 @@
   "break_left": "{minutes} min break left",
   "cancelled": "Canceled",
   "free": "Free",
+  "free_left": "{minutes} min until next lesson",
+  "free_minutes": "{minutes} min",
+  "free_with_breaks": "{minutes} min including breaks",
   "infopop": {
     "description": "The digital version of the schedule.",
     "sections": [

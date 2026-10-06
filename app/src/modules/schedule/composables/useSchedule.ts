@@ -33,6 +33,7 @@ import {
 } from '@/modules/schedule/utils/slotTimes';
 import {
   buildScheduleLayout,
+  freeSlotRuns,
   slotsJoinedToNext,
 } from '@/modules/schedule/utils/layout';
 import {
@@ -383,6 +384,18 @@ export function useSchedule(shownWeek?: Ref<number>) {
       ),
     );
 
+    /** The cells of a day: its lessons, and filtered, the free time between them. */
+    const cellsOfDay = (day: number) => {
+      const groups = groupedLessons.filter((group) => group.day === day);
+      const lessonCells = groups.map(({ lessons }) =>
+        lessonsSlotRange(lessons),
+      );
+      const lastAttendedSlot = lastAttendedSlotByDay.get(day);
+      return isPersonalized.value && lastAttendedSlot !== undefined
+        ? [...lessonCells, ...freeSlotRuns(groups, lastAttendedSlot)]
+        : lessonCells;
+    };
+
     /*
      * A day shows no breaks past the last lesson the member attends, so rows
      * no day of the layout shows a break in are left out instead of staying
@@ -403,9 +416,7 @@ export function useSchedule(shownWeek?: Ref<number>) {
             dayEndSlots: new Set(
               dayList.flatMap((day) => lastAttendedSlotByDay.get(day) ?? []),
             ),
-            joinedSlots: slotsJoinedToNext(
-              groupedLessons.filter((group) => dayList.includes(group.day)),
-            ),
+            joinedSlots: slotsJoinedToNext(dayList.flatMap(cellsOfDay)),
           });
 
     return {

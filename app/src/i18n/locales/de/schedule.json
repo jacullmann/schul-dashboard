@@ -3,6 +3,9 @@
   "break_left": "Noch {minutes} Min. Pause",
   "cancelled": "Ausfall",
   "free": "Frei",
+  "free_left": "Noch {minutes} Min. bis zur nächsten Stunde",
+  "free_minutes": "{minutes} Min.",
+  "free_with_breaks": "{minutes} Min. inkl. Pausen",
   "infopop": {
     "description": "Die bessere digitale Version",
     "sections": [
