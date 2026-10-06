@@ -84,11 +84,7 @@ export function useTaskActions(
 
     if (navigator.share) {
       try {
-        await navigator.share({
-          title: 'schul-dashboard',
-          text: task.title,
-          url: shareUrl,
-        });
+        await navigator.share({ url: shareUrl });
       } catch (err) {
         console.error('Teilen abgebrochen:', err);
       }
