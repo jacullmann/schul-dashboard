@@ -1,8 +1,6 @@
 <script setup lang="ts">
-import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
 import { Plus } from '@lucide/vue';
-import { useAnnouncementStore } from '@/stores/announcementStore';
 import {
   useAnnouncementFormModal,
   useAnnouncementsModal,
@@ -10,6 +8,7 @@ import {
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import type { MorphOrigin } from '@/utils/morph';
 import AnnouncementList from '@/modules/announcements/components/AnnouncementList.vue';
+import { useAnnouncementFeed } from '@/modules/announcements/composables/useAnnouncementFeed';
 
 defineProps<{
   open: boolean;
@@ -21,8 +20,8 @@ defineEmits<{
 }>();
 
 const { t } = useI18n();
-const { announcements } = storeToRefs(useAnnouncementStore());
-const { activeGroupId, checkPermission } = useAppAuth();
+const { systemAnnouncements, groupAnnouncements } = useAnnouncementFeed();
+const { activeGroupId, groupName, checkPermission } = useAppAuth();
 const announcementsModal = useAnnouncementsModal();
 const announcementForm = useAnnouncementFormModal();
 
@@ -51,7 +50,20 @@ function createAnnouncement() {
         {{ t('announcements.list.create_button') }}
       </BaseButton>
 
-      <AnnouncementList :announcements="announcements" />
+      <!-- Headings only tell the two sources apart, so a group without
+           platform announcements keeps its plain list. Without either, the
+           group list's empty state speaks for both. -->
+      <section v-if="systemAnnouncements.length" class="mb-4">
+        <h4 class="mb-1">{{ t('announcements.system.source') }}</h4>
+        <AnnouncementList :announcements="systemAnnouncements" />
+      </section>
+
+      <section v-if="activeGroupId || !systemAnnouncements.length">
+        <h4 v-if="systemAnnouncements.length" class="mb-1">
+          {{ groupName }}
+        </h4>
+        <AnnouncementList :announcements="groupAnnouncements" />
+      </section>
     </template>
   </BaseModal>
 </template>

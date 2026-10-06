@@ -142,12 +142,14 @@ mod tests {
                 tasks: vec![],
                 files: vec![],
                 announcements: vec![],
+                system_announcements: vec![],
                 messages: vec![],
                 private_todos: vec![],
             },
             interactions: InteractionsExport {
                 task_states: vec![],
                 read_announcements: vec![],
+                read_system_announcements: vec![],
             },
             reports: ReportsExport {
                 filed: vec![],

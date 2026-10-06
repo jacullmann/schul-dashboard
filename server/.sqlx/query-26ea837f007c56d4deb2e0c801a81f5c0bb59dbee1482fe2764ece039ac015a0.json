@@ -1,0 +1,18 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE system_announcements\n               SET content = $2, important = $3, starts_at = $4, ends_at = $5\n               WHERE id = $1 AND starts_at > now()",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Bool",
+        "Timestamptz",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "26ea837f007c56d4deb2e0c801a81f5c0bb59dbee1482fe2764ece039ac015a0"
+}

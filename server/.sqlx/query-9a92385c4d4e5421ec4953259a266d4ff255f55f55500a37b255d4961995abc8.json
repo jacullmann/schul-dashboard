@@ -1,0 +1,88 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, content, important, starts_at, ends_at, created_at\n               FROM system_announcements\n               WHERE created_by = $1\n               ORDER BY created_at",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "system_announcements",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "content",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "system_announcements",
+            "name": "content"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "important",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "system_announcements",
+            "name": "important"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "starts_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "system_announcements",
+            "name": "starts_at"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "ends_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "system_announcements",
+            "name": "ends_at"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "system_announcements",
+            "name": "created_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      false
+    ]
+  },
+  "hash": "9a92385c4d4e5421ec4953259a266d4ff255f55f55500a37b255d4961995abc8"
+}

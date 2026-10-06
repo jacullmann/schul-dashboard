@@ -21,7 +21,7 @@ import {
   useCreateGroupModal,
   useSearchModal,
 } from '@/stores/modalStore';
-import { useAnnouncementStore } from '@/stores/announcementStore';
+import { useAnnouncementFeed } from '@/modules/announcements/composables/useAnnouncementFeed';
 import Avatar from '@/modules/auth/components/Avatar.vue';
 import AccountMenu from '@/modules/auth/components/AccountMenu.vue';
 import { useLogout } from '@/core/composables/useLogout';
@@ -52,7 +52,11 @@ const router = useRouter();
 
 const createGroupModal = useCreateGroupModal();
 const announcementsModal = useAnnouncementsModal();
-const { announcements } = storeToRefs(useAnnouncementStore());
+const { systemAnnouncements, groupAnnouncements } = useAnnouncementFeed();
+const hasAnnouncements = computed(
+  () =>
+    systemAnnouncements.value.length > 0 || groupAnnouncements.value.length > 0,
+);
 
 // The search takes over the row on phones (HeaderSearchPalette): its bar
 // replaces the group and its cancel button the account button.
@@ -212,9 +216,7 @@ defineExpose({ groupButton: groupButtonRef });
           </BaseMenuButton>
 
           <BaseMenuButton
-            v-if="
-              announcements.length || checkPermission('manage_announcements')
-            "
+            v-if="hasAnnouncements || checkPermission('manage_announcements')"
             :icon="Megaphone"
             @click="openAnnouncements"
           >

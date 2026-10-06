@@ -135,6 +135,7 @@ pub struct ContentExport {
     pub tasks: Vec<Task>,
     pub files: Vec<UploadedFile>,
     pub announcements: Vec<Announcement>,
+    pub system_announcements: Vec<SystemAnnouncement>,
     pub messages: Vec<Message>,
     pub private_todos: Vec<Value>,
 }
@@ -181,6 +182,18 @@ pub struct Announcement {
     pub updated_at: DateTime<Utc>,
 }
 
+/// An announcement to every user, posted as a superadmin.
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SystemAnnouncement {
+    pub id: Uuid,
+    pub content: String,
+    pub important: bool,
+    pub starts_at: DateTime<Utc>,
+    pub ends_at: Option<DateTime<Utc>>,
+    pub created_at: DateTime<Utc>,
+}
+
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Message {
@@ -198,6 +211,7 @@ pub struct Message {
 pub struct InteractionsExport {
     pub task_states: Vec<TaskState>,
     pub read_announcements: Vec<AnnouncementRead>,
+    pub read_system_announcements: Vec<AnnouncementRead>,
 }
 
 /// A task the user checked off, pinned, archived or kept.

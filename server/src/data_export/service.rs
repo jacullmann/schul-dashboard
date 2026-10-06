@@ -210,6 +210,17 @@ impl DataExportService {
         .fetch_all(&mut *tx)
         .await?;
 
+        let system_announcements = sqlx::query_as!(
+            SystemAnnouncement,
+            r#"SELECT id, content, important, starts_at, ends_at, created_at
+               FROM system_announcements
+               WHERE created_by = $1
+               ORDER BY created_at"#,
+            user_id
+        )
+        .fetch_all(&mut *tx)
+        .await?;
+
         let messages = sqlx::query_as!(
             Message,
             r#"SELECT m.id, m.tenant_id AS group_id, g.name AS group_name,
@@ -246,6 +257,17 @@ impl DataExportService {
             AnnouncementRead,
             r#"SELECT announcement_id, read_at
                FROM user_announcement_read_status
+               WHERE user_id = $1
+               ORDER BY read_at"#,
+            user_id
+        )
+        .fetch_all(&mut *tx)
+        .await?;
+
+        let read_system_announcements = sqlx::query_as!(
+            AnnouncementRead,
+            r#"SELECT announcement_id, read_at
+               FROM system_announcement_reads
                WHERE user_id = $1
                ORDER BY read_at"#,
             user_id
@@ -382,12 +404,14 @@ impl DataExportService {
                 tasks,
                 files,
                 announcements,
+                system_announcements,
                 messages,
                 private_todos,
             },
             interactions: InteractionsExport {
                 task_states,
                 read_announcements,
+                read_system_announcements,
             },
             reports: ReportsExport {
                 filed: filed_reports,

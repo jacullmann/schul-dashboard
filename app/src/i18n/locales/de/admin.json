@@ -3,7 +3,8 @@
     "overview": "Übersicht",
     "users": "Benutzer",
     "reports": "Meldungen",
-    "groups": "Gruppen"
+    "groups": "Gruppen",
+    "announcements": "Ankündigungen"
   },
   "errors": {
     "action_failed": "Aktion fehlgeschlagen."
@@ -81,6 +82,10 @@
         "cleanup-old-items": {
           "label": "Aufgaben",
           "rule": "90 Tage nach Fälligkeit"
+        },
+        "cleanup-system-announcements": {
+          "label": "Plattform-Ankündigungen",
+          "rule": "Sobald sie abgelaufen sind"
         },
         "asset-sweep": {
           "label": "Dateien bei Cloudinary",
@@ -196,6 +201,55 @@
     "errors": {
       "load": "Gruppen konnten nicht geladen werden.",
       "delete": "Gruppe konnte nicht gelöscht werden."
+    }
+  },
+  "announcements": {
+    "title": "Ankündigungen",
+    "create_button": "Neue Ankündigung",
+    "empty": "Keine laufenden oder geplanten Ankündigungen.",
+    "sections": {
+      "active": "Aktiv",
+      "scheduled": "Geplant"
+    },
+    "timeframe": {
+      "active": "Seit {start}",
+      "active_until": "Seit {start} bis {end}",
+      "scheduled": "Ab {start}",
+      "scheduled_until": "Vom {start} bis {end}",
+      "no_end": "Ohne Ablaufdatum"
+    },
+    "read_count": "Von {count} Benutzer gelesen | Von {count} Benutzern gelesen",
+    "form": {
+      "title_create": "Neue Ankündigung",
+      "title_edit": "Ankündigung bearbeiten",
+      "audience_hint": "Erscheint bei allen Benutzern oben in der App, unabhängig von ihren Gruppen.",
+      "content_label": "Ankündigung",
+      "scheduled_label": "Später veröffentlichen",
+      "start_label": "Start",
+      "start_time_label": "Startzeit",
+      "expires_label": "Automatisch beenden",
+      "end_label": "Ende",
+      "end_time_label": "Endzeit",
+      "publish": "Veröffentlichen",
+      "schedule": "Planen",
+      "errors": {
+        "empty": "Eine Ankündigung darf nicht leer sein.",
+        "too_long": "Die Ankündigung ist zu lang (max. {max} Zeichen).",
+        "incomplete": "Bitte Datum und Uhrzeit angeben.",
+        "start_in_past": "Der Start muss in der Zukunft liegen.",
+        "end_before_start": "Das Ende muss nach dem Start liegen."
+      }
+    },
+    "delete_modal": {
+      "title": "Ankündigung löschen?",
+      "active": "Die Ankündigung verschwindet sofort bei allen Benutzern.",
+      "scheduled": "Die Ankündigung wird nicht veröffentlicht."
+    },
+    "save_success": "Ankündigung gespeichert.",
+    "delete_success": "Ankündigung gelöscht.",
+    "errors": {
+      "load": "Ankündigungen konnten nicht geladen werden.",
+      "delete": "Ankündigung konnte nicht gelöscht werden."
     }
   }
 }

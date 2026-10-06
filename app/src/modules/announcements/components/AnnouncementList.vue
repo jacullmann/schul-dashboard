@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 import { formatDate } from '@/utils/date-formatter';
-import type { Announcement } from '@/modules/announcements/types';
+import type { FeedAnnouncement } from '@/modules/announcements/types';
 
 defineProps<{
-  announcements: Announcement[];
+  announcements: FeedAnnouncement[];
 }>();
 
 defineSlots<{
-  actions?(props: { announcement: Announcement }): unknown;
+  actions?(props: { announcement: FeedAnnouncement }): unknown;
 }>();
 
 const { t } = useI18n();
@@ -22,7 +22,10 @@ const { t } = useI18n();
     {{ t('announcements.list.empty_state') }}
   </div>
   <ul v-else class="flex flex-col">
-    <template v-for="(ann, index) in announcements" :key="ann.id">
+    <template
+      v-for="(ann, index) in announcements"
+      :key="`${ann.scope}:${ann.id}`"
+    >
       <li
         v-if="index > 0"
         role="presentation"
@@ -39,9 +42,9 @@ const { t } = useI18n();
           </div>
           <div class="flex justify-between items-center gap-2">
             <time
-              :datetime="ann.createdAt"
+              :datetime="ann.publishedAt"
               class="text-sm text-on-ghost-muted"
-              >{{ formatDate(ann.createdAt, t) }}</time
+              >{{ formatDate(ann.publishedAt, t) }}</time
             >
             <slot name="actions" :announcement="ann"></slot>
           </div>

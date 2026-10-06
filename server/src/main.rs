@@ -15,6 +15,7 @@ mod schedule;
 mod state;
 mod super_admin;
 mod system;
+mod system_announcements;
 mod todos;
 mod user;
 
@@ -108,6 +109,7 @@ async fn main() -> anyhow::Result<()> {
     let api = Router::new()
         .nest("/groups/{group_id}", group_scoped)
         .merge(system::routes::router())
+        .merge(system_announcements::routes::router())
         .merge(assets::routes::router())
         .merge(auth::routes::router())
         .merge(user::routes::router())

@@ -26,17 +26,18 @@ therefore almost never fire. pg_cron runs in the DB container and is unaffected.
 
 ### Jobs
 
-| Job (`jobname`)            | Function                            | Deletes                                         |
-|----------------------------|-------------------------------------|-------------------------------------------------|
-| `cleanup-refresh-tokens`   | `cleanup_expired_refresh_tokens()`  | expired tokens, revoked ones after 7 days       |
-| `cleanup-mfa-pending`      | `cleanup_expired_mfa_pending()`     | expired 2FA setups                              |
-| `cleanup-group-messages`   | `cleanup_old_group_messages()`      | chat messages older than 7 days                 |
-| `cleanup-group-invites`    | `cleanup_expired_group_invites()`   | invites 30 days after expiry, use or revocation |
-| `cleanup-user-activity`    | `cleanup_old_user_activity()`       | activity log older than 30 days                 |
-| `cleanup-security-events`  | `cleanup_old_security_events()`     | security events older than 30 days              |
-| `cleanup-unverified-users` | `cleanup_unverified_users()`        | accounts unverified after 2 days                |
-| `cleanup-password-resets`  | `cleanup_expired_password_resets()` | password reset/setup codes after 24 hours       |
-| `cleanup-old-items`        | `cleanup_old_items()`               | tasks 90 days after their due date              |
+| Job (`jobname`)                | Function                                 | Deletes                                         |
+|--------------------------------|------------------------------------------|-------------------------------------------------|
+| `cleanup-refresh-tokens`       | `cleanup_expired_refresh_tokens()`       | expired tokens, revoked ones after 7 days       |
+| `cleanup-mfa-pending`          | `cleanup_expired_mfa_pending()`          | expired 2FA setups                              |
+| `cleanup-group-messages`       | `cleanup_old_group_messages()`           | chat messages older than 7 days                 |
+| `cleanup-group-invites`        | `cleanup_expired_group_invites()`        | invites 30 days after expiry, use or revocation |
+| `cleanup-user-activity`        | `cleanup_old_user_activity()`            | activity log older than 30 days                 |
+| `cleanup-security-events`      | `cleanup_old_security_events()`          | security events older than 30 days              |
+| `cleanup-unverified-users`     | `cleanup_unverified_users()`             | accounts unverified after 2 days                |
+| `cleanup-password-resets`      | `cleanup_expired_password_resets()`      | password reset/setup codes after 24 hours       |
+| `cleanup-old-items`            | `cleanup_old_items()`                    | tasks 90 days after their due date              |
+| `cleanup-system-announcements` | `cleanup_expired_system_announcements()` | platform announcements once they end            |
 
 Files in Cloudinary are outside the database's reach, so the server cleans
 them up itself. Uploads go through the server, which records every file in
@@ -52,7 +53,8 @@ means the job is not running.
 - The cleanup **functions** are created by the app migrations
   (`server/migrations/0006_consolidate_cleanup.sql`, `0012_…`,
   `0040_scheduled_retention.sql`, `0041_delete_items_after_due_date.sql` and
-  `0050_limit_email_codes_per_address.sql`), not here.
+  `0050_limit_email_codes_per_address.sql` and `0051_system_announcements.sql`),
+  not here.
 
 ---
 
@@ -130,10 +132,10 @@ after adding jobs you can simply run the whole file again.
 ## Verification
 
 ```sql
--- Scheduled jobs (expect nine cleanup-*, active = true)
+-- Scheduled jobs (expect ten cleanup-*, active = true)
 SELECT jobid, schedule, command, database, active, jobname FROM cron.job;
 
--- Functions present? (all nine cleanup_* must be listed)
+-- Functions present? (all ten cleanup_* must be listed)
 \df cleanup_*
 
 -- Run history (status should be 'succeeded', not 'failed')

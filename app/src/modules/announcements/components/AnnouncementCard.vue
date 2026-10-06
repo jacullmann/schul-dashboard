@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, useTemplateRef, watch } from 'vue';
-import { storeToRefs } from 'pinia';
+import { computed, nextTick, onMounted, useTemplateRef, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import {
   useElementSize,
@@ -10,10 +9,12 @@ import {
 import { Megaphone } from '@lucide/vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useAnnouncementStore } from '@/stores/announcementStore';
+import { useSystemAnnouncementStore } from '@/stores/systemAnnouncementStore';
 import { useAnnouncementsModal } from '@/stores/modalStore';
 import { morphOriginOf } from '@/utils/morph';
 import { SETTLE_EASING } from '@/utils/motion';
 import { useSwipeAway } from '@/modules/announcements/composables/useSwipeAway';
+import { useAnnouncementFeed } from '@/modules/announcements/composables/useAnnouncementFeed';
 
 const props = defineProps<{
   /** Where read announcements live from now on; the card shrinks into it. */
@@ -22,9 +23,10 @@ const props = defineProps<{
 
 const { t } = useI18n();
 const { activeGroupId } = useAppAuth();
-const store = useAnnouncementStore();
+const groupStore = useAnnouncementStore();
+const systemStore = useSystemAnnouncementStore();
 const announcementsModal = useAnnouncementsModal();
-const { unread } = storeToRefs(store);
+const { unread, acknowledge, acknowledgeAll } = useAnnouncementFeed();
 const reducedMotion = usePreferredReducedMotion();
 
 const current = computed(() => unread.value[0]);
@@ -54,21 +56,23 @@ const ackFitsBesideText = computed(() => {
 watch(
   activeGroupId,
   (groupId) => {
-    if (groupId) void store.load(groupId);
+    if (groupId) void groupStore.load(groupId);
   },
   { immediate: true },
 );
 
+onMounted(() => void systemStore.load());
+
 useEventListener(document, 'visibilitychange', () => {
-  if (document.visibilityState === 'visible' && activeGroupId.value) {
-    void store.load(activeGroupId.value);
-  }
+  if (document.visibilityState !== 'visible') return;
+  void systemStore.load();
+  if (activeGroupId.value) void groupStore.load(activeGroupId.value);
 });
 
 function openList() {
   if (!current.value) return;
   announcementsModal.show(morphOriginOf(card.value));
-  void store.acknowledge(current.value);
+  void acknowledge(current.value);
 }
 
 const { swipeStyle, isGone, reset } = useSwipeAway(card, {
@@ -77,7 +81,7 @@ const { swipeStyle, isGone, reset } = useSwipeAway(card, {
 
 async function acknowledgeSwipedAway() {
   if (!current.value) return;
-  void store.acknowledge(current.value);
+  void acknowledge(current.value);
   await nextTick();
   // The last one leaves for good; any other comes back in with the next one.
   if (!current.value) return;
@@ -162,7 +166,7 @@ function collapse(el: Element, done: () => void) {
           <!-- Stretched over the whole card, so all of it opens the list,
                while the buttons below sit above it. -->
           <button
-            :key="current.id"
+            :key="`${current.scope}:${current.id}`"
             type="button"
             aria-haspopup="dialog"
             class="flex min-w-0 grow cursor-pointer items-center gap-2 text-left after:absolute after:inset-0 after:rounded-3xl xs:basis-0"
@@ -187,6 +191,11 @@ function collapse(el: Element, done: () => void) {
               >
             </div>
             <span ref="text" class="min-w-0 text-sm text-on-ghost break-words">
+              <span
+                v-if="current.scope === 'system'"
+                class="block text-xs font-semibold text-on-ghost-muted"
+                >{{ t('announcements.system.source') }}</span
+              >
               {{ current.content }}
             </span>
           </button>
@@ -197,7 +206,7 @@ function collapse(el: Element, done: () => void) {
             v-if="hasMore"
             surface
             class="flex flex-1 min-w-fit"
-            @click="store.acknowledgeAll()"
+            @click="acknowledgeAll()"
           >
             {{ t('announcements.card.acknowledge_all') }}
           </BaseButton>
@@ -206,7 +215,7 @@ function collapse(el: Element, done: () => void) {
             ref="ackButton"
             variant="action"
             class="flex flex-1 min-w-fit"
-            @click="store.acknowledge(current)"
+            @click="acknowledge(current)"
           >
             {{ t('announcements.card.acknowledge') }}
           </BaseButton>

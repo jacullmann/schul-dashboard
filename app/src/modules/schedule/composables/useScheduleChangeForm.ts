@@ -9,7 +9,6 @@ import { useScheduleDisplay } from '@/modules/schedule/composables/useScheduleDi
 import type { Lesson, Substitution } from '@/modules/schedule/types';
 import { findLessonSubject } from '@/modules/schedule/utils/lesson';
 import { courseOptionLabel } from '@/utils/subject-formatter';
-import { haptic } from '@/utils/haptics';
 
 interface ScheduleChangePayload {
   lessonId: string;
@@ -167,11 +166,6 @@ export function useScheduleChangeForm(
       (changesLesson.value || !!existingChange.value),
   );
 
-  function toggleCancelled() {
-    form.value.cancelled = !form.value.cancelled;
-    haptic();
-  }
-
   /** What the folded-away fields hold stays out of a cancellation. */
   function changesPayload(): Omit<
     ScheduleChangePayload,
@@ -240,7 +234,6 @@ export function useScheduleChangeForm(
     dayOptions,
     day,
     canSave,
-    toggleCancelled,
     saveChange,
   };
 }

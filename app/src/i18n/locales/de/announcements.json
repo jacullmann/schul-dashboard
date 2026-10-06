@@ -22,5 +22,8 @@
   "card": {
     "acknowledge": "Verstanden",
     "acknowledge_all": "Alle ausblenden"
+  },
+  "system": {
+    "source": "Von schul-dashboard"
   }
 }

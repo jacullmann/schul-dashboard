@@ -29,25 +29,21 @@ export const useAnnouncementStore = defineStore('announcements', () => {
     }
   }
 
-  async function markRead(targets: Announcement[]) {
+  async function markRead(ids: string[]) {
     const target = groupId.value;
-    if (!target || targets.length === 0) return;
-    for (const announcement of targets) announcement.read = true;
+    if (!target || ids.length === 0) return;
+    for (const announcement of announcements.value) {
+      if (ids.includes(announcement.id)) announcement.read = true;
+    }
     try {
-      await api.post(groupPath(target, '/announcements/read'), {
-        ids: targets.map((a) => a.id),
-      });
+      await api.post(groupPath(target, '/announcements/read'), { ids });
     } catch {
       // Already marked locally; a failed sync shows them again on the next load.
     }
   }
 
-  function acknowledge(announcement: Announcement) {
-    return markRead([announcement]);
-  }
-
-  function acknowledgeAll() {
-    return markRead(unread.value);
+  function markAllRead() {
+    return markRead(unread.value.map((a) => a.id));
   }
 
   function remove(id: string) {
@@ -60,5 +56,5 @@ export const useAnnouncementStore = defineStore('announcements', () => {
     if (target && target === groupId.value) void load(target);
   });
 
-  return { announcements, unread, load, acknowledge, acknowledgeAll, remove };
+  return { announcements, unread, load, markRead, markAllRead, remove };
 });

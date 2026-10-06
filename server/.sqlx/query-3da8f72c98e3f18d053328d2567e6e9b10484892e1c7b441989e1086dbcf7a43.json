@@ -1,0 +1,40 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT announcement_id, read_at\n               FROM system_announcement_reads\n               WHERE user_id = $1\n               ORDER BY read_at",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "announcement_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "system_announcement_reads",
+            "name": "announcement_id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "read_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "system_announcement_reads",
+            "name": "read_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "3da8f72c98e3f18d053328d2567e6e9b10484892e1c7b441989e1086dbcf7a43"
+}

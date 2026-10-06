@@ -111,18 +111,10 @@ async function submit() {
           />
         </BaseFormGroup>
 
-        <button
-          type="button"
-          role="switch"
-          :aria-checked="annImportant"
-          class="relative group flex items-center justify-between w-full h-10 cursor-pointer touch-target after:min-h-12"
-          @click="annImportant = !annImportant"
-        >
-          <span class="text-base font-normal">{{
-            t('announcements.form.important_label')
-          }}</span>
-          <BaseToggle :model-value="annImportant" decorative />
-        </button>
+        <BaseSwitchRow
+          v-model="annImportant"
+          :label="t('announcements.form.important_label')"
+        />
       </BaseFormContent>
     </template>
 

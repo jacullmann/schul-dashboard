@@ -206,6 +206,12 @@ const routes: RouteRecordRaw[] = [
             component: () =>
               import('@/modules/admin/pages/SuperAdminGroups.vue'),
           },
+          {
+            path: 'announcements',
+            name: 'admin-announcements',
+            component: () =>
+              import('@/modules/admin/pages/SuperAdminAnnouncements.vue'),
+          },
         ],
       },
     ],

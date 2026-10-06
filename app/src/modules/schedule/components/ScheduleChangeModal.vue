@@ -31,7 +31,6 @@ const {
   dayOptions,
   day,
   canSave,
-  toggleCancelled,
   saveChange,
 } = useScheduleChangeForm(
   toRef(props, 'lesson'),
@@ -78,18 +77,10 @@ async function submit() {
         </template>
       </i18n-t>
 
-      <button
-        type="button"
-        role="switch"
-        :aria-checked="form.cancelled"
-        class="relative group flex items-center justify-between w-full h-10 cursor-pointer touch-target after:min-h-12"
-        @click="toggleCancelled"
-      >
-        <span class="text-base font-normal">{{
-          t('groups.settings.schedule.changes.cancelled_label')
-        }}</span>
-        <BaseToggle :model-value="form.cancelled" decorative />
-      </button>
+      <BaseSwitchRow
+        v-model="form.cancelled"
+        :label="t('groups.settings.schedule.changes.cancelled_label')"
+      />
 
       <BaseFormGroup v-if="courseOptions.length > 1" id="change-course">
         <BaseLabel for="change-course-select">{{

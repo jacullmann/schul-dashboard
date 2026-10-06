@@ -1,6 +1,7 @@
 import type { StoredFile } from '@/api/files';
 
-export type AdminTab = 'overview' | 'users' | 'reports' | 'groups';
+export type AdminTab =
+  'overview' | 'users' | 'reports' | 'groups' | 'announcements';
 
 export type SortOrder = 'asc' | 'desc';
 
@@ -118,6 +119,28 @@ export interface SuperAdminGroup {
   createdAt: string;
   memberCount: number;
   itemCount: number;
+}
+
+export type SystemAnnouncementStatus = 'active' | 'scheduled';
+
+/** A platform announcement that runs or is scheduled; ended ones are gone. */
+export interface AdminSystemAnnouncement {
+  id: string;
+  content: string;
+  important: boolean;
+  status: SystemAnnouncementStatus;
+  startsAt: string;
+  endsAt: string | null;
+  authorEmail: string | null;
+  readCount: number;
+}
+
+/** Omitting `startsAt` publishes right away; omitting `endsAt` never ends. */
+export interface SaveSystemAnnouncementRequest {
+  content: string;
+  important: boolean;
+  startsAt?: string;
+  endsAt?: string;
 }
 
 export interface SuperAdminNavItem {

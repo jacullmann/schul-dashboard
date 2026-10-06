@@ -27,7 +27,7 @@ const ACTIVITY_LOG_LIMIT: i64 = 200;
 
 /// Admin actions are recorded against the acting admin, so the entry survives
 /// the deletion of whatever it targets.
-async fn log_admin_action(
+pub async fn log_admin_action(
     conn: &mut PgConnection,
     admin_id: Uuid,
     action: &str,

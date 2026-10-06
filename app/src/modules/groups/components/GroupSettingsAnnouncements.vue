@@ -7,10 +7,14 @@ import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useGroupPageId } from '@/core/composables/useGroupPageId';
 import { useGroupAnnouncementsAdmin } from '@/modules/groups/composables/useGroupAnnouncementsAdmin';
 import AnnouncementList from '@/modules/announcements/components/AnnouncementList.vue';
+import { fromGroupAnnouncement } from '@/modules/announcements/composables/useAnnouncementFeed';
 
 const groupId = useGroupPageId();
 const { announcements, loadAnnouncements, deleteAnnouncement } =
   useGroupAnnouncementsAdmin();
+const listedAnnouncements = computed(() =>
+  announcements.value.map(fromGroupAnnouncement),
+);
 
 const { t } = useI18n();
 
@@ -45,7 +49,7 @@ announcementFormModal.onSuccess(() => void loadAnnouncements());
       </template>
     </PageHeader>
 
-    <AnnouncementList :announcements="announcements">
+    <AnnouncementList :announcements="listedAnnouncements">
       <template #actions="{ announcement }">
         <BaseTooltip
           v-if="canManageAnnouncements"

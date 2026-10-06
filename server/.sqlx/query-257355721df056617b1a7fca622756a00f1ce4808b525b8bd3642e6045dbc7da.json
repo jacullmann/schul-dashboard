@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO system_announcement_reads (user_id, announcement_id)\n               SELECT $1, a.id FROM system_announcements a\n               WHERE a.id = ANY($2)\n                 AND a.starts_at <= now() AND (a.ends_at IS NULL OR a.ends_at > now())\n               ON CONFLICT (user_id, announcement_id) DO NOTHING",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "UuidArray"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "257355721df056617b1a7fca622756a00f1ce4808b525b8bd3642e6045dbc7da"
+}

@@ -4,14 +4,12 @@ import AppHeader from '@/core/components/AppHeader.vue';
 import AppSidebar from '@/core/components/AppSidebar.vue';
 import AppTabBar from '@/core/components/AppTabBar.vue';
 import AnnouncementCard from '@/modules/announcements/components/AnnouncementCard.vue';
-import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useUserStore } from '@/stores/userStore';
 import { storeToRefs } from 'pinia';
 import { useIsSidebarViewport } from '@/common/composables/useViewport';
 import { useElementBounding } from '@vueuse/core';
 import { computed, useTemplateRef } from 'vue';
 
-const { activeGroupId } = useAppAuth();
 const userStore = useUserStore();
 const { user } = storeToRefs(userStore);
 const hasSidebar = useIsSidebarViewport();
@@ -46,7 +44,7 @@ const topBarStyle = computed(() => ({
       >
         <AppHeader ref="header" />
         <AnnouncementCard
-          v-if="activeGroupId"
+          v-if="user"
           :collapse-target="header?.groupButton ?? null"
         />
       </div>

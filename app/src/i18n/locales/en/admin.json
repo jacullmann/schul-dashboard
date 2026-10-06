@@ -3,7 +3,8 @@
     "overview": "Overview",
     "users": "Users",
     "reports": "Reports",
-    "groups": "Groups"
+    "groups": "Groups",
+    "announcements": "Announcements"
   },
   "errors": {
     "action_failed": "Action failed."
@@ -81,6 +82,10 @@
         "cleanup-old-items": {
           "label": "Tasks",
           "rule": "90 days after their due date"
+        },
+        "cleanup-system-announcements": {
+          "label": "Platform announcements",
+          "rule": "Once they have ended"
         },
         "asset-sweep": {
           "label": "Files on Cloudinary",
@@ -196,6 +201,55 @@
     "errors": {
       "load": "Failed to load groups.",
       "delete": "Failed to delete group."
+    }
+  },
+  "announcements": {
+    "title": "Announcements",
+    "create_button": "New announcement",
+    "empty": "No running or scheduled announcements.",
+    "sections": {
+      "active": "Active",
+      "scheduled": "Scheduled"
+    },
+    "timeframe": {
+      "active": "Since {start}",
+      "active_until": "Since {start}, until {end}",
+      "scheduled": "From {start}",
+      "scheduled_until": "From {start} to {end}",
+      "no_end": "No end date"
+    },
+    "read_count": "Read by {count} user | Read by {count} users",
+    "form": {
+      "title_create": "New announcement",
+      "title_edit": "Edit announcement",
+      "audience_hint": "Shown to every user at the top of the app, whatever their groups.",
+      "content_label": "Announcement",
+      "scheduled_label": "Publish later",
+      "start_label": "Start",
+      "start_time_label": "Start time",
+      "expires_label": "End automatically",
+      "end_label": "End",
+      "end_time_label": "End time",
+      "publish": "Publish",
+      "schedule": "Schedule",
+      "errors": {
+        "empty": "An announcement can't be empty.",
+        "too_long": "The announcement is too long (max. {max} characters).",
+        "incomplete": "Please enter a date and time.",
+        "start_in_past": "The start must be in the future.",
+        "end_before_start": "The end must be after the start."
+      }
+    },
+    "delete_modal": {
+      "title": "Delete announcement?",
+      "active": "The announcement disappears for every user right away.",
+      "scheduled": "The announcement will not be published."
+    },
+    "save_success": "Announcement saved.",
+    "delete_success": "Announcement deleted.",
+    "errors": {
+      "load": "Announcements couldn't be loaded.",
+      "delete": "The announcement couldn't be deleted."
     }
   }
 }

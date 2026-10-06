@@ -1,0 +1,100 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT a.id, a.content, a.important, a.starts_at, a.ends_at,\n                      u.email AS \"author_email?\",\n                      a.starts_at > now() AS \"scheduled!\",\n                      (SELECT COUNT(*) FROM system_announcement_reads r\n                       WHERE r.announcement_id = a.id) AS \"read_count!\"\n               FROM system_announcements a\n               LEFT JOIN users u ON u.id = a.created_by\n               WHERE a.ends_at IS NULL OR a.ends_at > now()\n               ORDER BY a.starts_at DESC, a.id",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "system_announcements",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "content",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "system_announcements",
+            "name": "content"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "important",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "system_announcements",
+            "name": "important"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "starts_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "system_announcements",
+            "name": "starts_at"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "ends_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "system_announcements",
+            "name": "ends_at"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "author_email?",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "users",
+            "name": "email"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "scheduled!",
+        "type_info": "Bool",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 7,
+        "name": "read_count!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      null,
+      null
+    ]
+  },
+  "hash": "1b3fa2efb7146e7f9703eebad42442efd046ea38e122925af2069cadfbbfd958"
+}

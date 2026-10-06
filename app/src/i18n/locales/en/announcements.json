@@ -22,5 +22,8 @@
   "card": {
     "acknowledge": "Got it",
     "acknowledge_all": "Dismiss all"
+  },
+  "system": {
+    "source": "From schul-dashboard"
   }
 }
