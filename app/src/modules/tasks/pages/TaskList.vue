@@ -387,31 +387,29 @@ onDeactivated(() => {
       </template>
 
       <template #content>
-        <div class="flex flex-col gap-2">
-          <div class="flex items-center justify-between h-12">
-            <span class="text-sm font-medium text-on-ghost">
+        <div class="flex flex-col -mx-4">
+          <BaseList
+            v-model="subjectFilter"
+            select
+            :options="subjectOptions"
+            :title="t('tasks.list.task_form.subject')"
+          >
+            <template #label>
               {{ t('tasks.list.task_form.subject') }}
-            </span>
-            <BaseSelect
-              v-model="subjectFilter"
-              :options="subjectOptions"
-              :form="false"
-            />
-          </div>
+            </template>
+          </BaseList>
 
-          <div class="flex items-center justify-between h-12">
-            <span class="text-sm font-medium text-on-ghost">
+          <BaseList v-model:checked="showOldEntries" toggle>
+            <template #label>
               {{ t('tasks.list.archive.archive') }}
-            </span>
-            <BaseToggle v-model="showOldEntries" />
-          </div>
+            </template>
+          </BaseList>
 
-          <div class="flex items-center justify-between h-12">
-            <span class="text-sm font-medium text-on-ghost">
+          <BaseList v-model:checked="hideChecked" toggle :separator="false">
+            <template #label>
               {{ t('tasks.list.hide_checked') }}
-            </span>
-            <BaseToggle v-model="hideChecked" />
-          </div>
+            </template>
+          </BaseList>
         </div>
       </template>
     </BaseModal>

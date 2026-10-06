@@ -8,11 +8,17 @@ const props = withDefaults(
     id?: string;
     label?: string;
     disabled?: boolean;
+    /**
+     * Visual only, for rows that are themselves the switch: buttons can't
+     * nest, and the row's `group` drives the hover and press states.
+     */
+    decorative?: boolean;
   }>(),
   {
     id: undefined,
     label: '',
     disabled: false,
+    decorative: false,
   },
 );
 
@@ -24,7 +30,8 @@ const toggle = () => {
 
 const buttonClasses = computed(() => {
   return [
-    'group relative inline-flex h-6 w-14 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-150 ease-in-out disabled:cursor-not-allowed disabled:opacity-50 touch-target after:min-h-12 after:min-w-12',
+    props.decorative ? '' : 'group',
+    'relative inline-flex h-6 w-14 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-150 ease-in-out disabled:cursor-not-allowed disabled:opacity-50 touch-target after:min-h-12 after:min-w-12',
     model.value ? 'bg-accent' : 'bg-ghost',
   ];
 });
@@ -47,7 +54,15 @@ const dotClasses = computed(() => {
 
 <template>
   <div class="inline-flex items-center gap-3">
+    <span v-if="decorative" aria-hidden="true" :class="buttonClasses">
+      <span :class="dotWrapperClasses">
+        <span :class="hoverClasses"></span>
+        <span :class="dotClasses"></span>
+      </span>
+    </span>
+
     <button
+      v-else
       :id="id"
       type="button"
       role="switch"
