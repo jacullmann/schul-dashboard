@@ -45,11 +45,7 @@ function useModalState<TPayload = void, TResult = void>() {
 }
 
 export type SearchMode =
-  | 'default'
-  | 'group'
-  | 'theme'
-  | 'language'
-  | 'personalization';
+  'default' | 'group' | 'theme' | 'language' | 'personalization';
 
 export const useSearchModal = defineStore('search-modal', () => {
   const isOpen = ref(false);
@@ -187,10 +183,6 @@ export const useInviteModal = defineStore('invite-modal', () =>
 );
 
 export const useCreateGroupModal = defineStore('create-group-modal', () =>
-  useModalState(),
-);
-
-export const useChangePasswordModal = defineStore('change-password-modal', () =>
   useModalState(),
 );
 

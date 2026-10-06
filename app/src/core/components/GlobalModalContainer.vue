@@ -7,7 +7,6 @@ import { storeToRefs } from 'pinia';
 import {
   useAnnouncementFormModal,
   useAnnouncementsModal,
-  useChangePasswordModal,
   useConfirmModal,
   useCreateGroupModal,
   useDeleteAccountModal,
@@ -41,12 +40,6 @@ const TaskForm = defineAsyncComponent(
 const PrivateTaskForm = defineAsyncComponent(
   () => import('@/modules/tasks/components/PrivateTaskForm.vue'),
 );
-const ChangePasswordModal = defineAsyncComponent(
-  () => import('@/modules/auth/components/ChangePasswordModal.vue'),
-);
-const SetPasswordModal = defineAsyncComponent(
-  () => import('@/modules/auth/components/SetPasswordModal.vue'),
-);
 const DeleteAccountModal = defineAsyncComponent(
   () => import('@/modules/auth/components/DeleteAccountModal.vue'),
 );
@@ -75,7 +68,7 @@ const router = useRouter();
 const toast = useToast();
 
 const userStore = useUserStore();
-const { user, hasPassword } = storeToRefs(userStore);
+const { user } = storeToRefs(userStore);
 const { checkAuthStatus, homeRoute } = useAppAuth();
 const performLogout = useLogout();
 const { showLinkModal, closeLinkModal, showSignUpModal, closeSignUpModal } =
@@ -96,7 +89,6 @@ const privateTaskForm = usePrivateTaskFormModal();
 const announcementForm = useAnnouncementFormModal();
 const announcements = useAnnouncementsModal();
 const imageViewer = useImageViewerModal();
-const changePassword = useChangePasswordModal();
 const deleteAccount = useDeleteAccountModal();
 const createGroup = useCreateGroupModal();
 const invite = useInviteModal();
@@ -118,16 +110,6 @@ function onPrivateTaskFormSuccess(task: PrivateTask) {
 function onAnnouncementFormSuccess() {
   toast.success(t('announcements.actions.publish_success_toast'));
   announcementForm.succeed();
-}
-
-function onPasswordChanged() {
-  toast.success(t('auth.change_password.success_toast'));
-  changePassword.close();
-}
-
-function onPasswordSet() {
-  toast.success(t('auth.set_password.success'));
-  changePassword.close();
 }
 
 async function logout() {
@@ -219,22 +201,6 @@ async function onAuthSuccess() {
     :origin="imageViewer.payload?.origin"
     :menu="imageViewer.payload?.menu"
     @cancel="imageViewer.close()"
-  />
-
-  <!-- Every "password" entry point opens this slot; an account without a
-       password can only set its first one. -->
-  <SetPasswordModal
-    v-if="user && !hasPassword"
-    :open="changePassword.isOpen"
-    :email="user.email"
-    @cancel="changePassword.close()"
-    @success="onPasswordSet"
-  />
-  <ChangePasswordModal
-    v-else
-    :open="changePassword.isOpen"
-    @cancel="changePassword.close()"
-    @success="onPasswordChanged"
   />
 
   <DeleteAccountModal

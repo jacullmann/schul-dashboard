@@ -18,11 +18,12 @@ import {
 } from '@lucide/vue';
 import AccountMenu from '@/modules/auth/components/AccountMenu.vue';
 import {
-  useAnnouncementFormModal,
+  useAnnouncementsModal,
   useCreateGroupModal,
   useSearchModal,
   useTaskFormModal,
 } from '@/stores/modalStore';
+import { useAnnouncementStore } from '@/stores/announcementStore';
 import { useSidebarStore } from '@/stores/sidebarStore';
 import { storeToRefs } from 'pinia';
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
@@ -41,7 +42,7 @@ const performLogout = useLogout();
 const userStore = useUserStore();
 const { user, isSuperadmin } = storeToRefs(userStore);
 
-const { activeGroupId, contextGroupId, userGroups, canInAnyGroup } =
+const { activeGroupId, contextGroupId, userGroups, checkPermission } =
   useAppAuth();
 const router = useRouter();
 
@@ -49,12 +50,16 @@ const sidebarStore = useSidebarStore();
 const { expanded: isExpanded } = storeToRefs(sidebarStore);
 const searchModal = useSearchModal();
 const taskFormModal = useTaskFormModal();
-const announcementFormModal = useAnnouncementFormModal();
+const announcementsModal = useAnnouncementsModal();
+const { announcements } = storeToRefs(useAnnouncementStore());
 const createGroupModal = useCreateGroupModal();
 const { withGroup } = useGroupAction();
 const { openGroup } = useOpenGroup();
 
-const canAnnounce = computed(() => canInAnyGroup('manage_announcements'));
+const showAnnouncements = computed(
+  () =>
+    announcements.value.length > 0 || checkPermission('manage_announcements'),
+);
 
 function toggleExpanded() {
   sidebarStore.toggle();
@@ -70,13 +75,6 @@ function handleNavigation(to: RouteLocationRaw) {
 
 function handleTask() {
   withGroup((groupId) => taskFormModal.openNew(groupId));
-}
-
-function handleAnnouncement() {
-  withGroup(
-    (groupId) => announcementFormModal.openFor(groupId),
-    'manage_announcements',
-  );
 }
 
 const sidebarScrollEl = ref<HTMLElement | null>(null);
@@ -217,13 +215,12 @@ onUnmounted(() => {
         />
 
         <SidebarButton
-          v-if="canAnnounce"
-          :label="t('common.sidebar.announcement')"
-          :shortcut="['alt', 'a']"
+          v-if="showAnnouncements"
+          :label="t('announcements.list.title')"
           :expanded="isExpanded"
           :icon="Megaphone"
           :page="false"
-          @click="handleAnnouncement"
+          @click="announcementsModal.show()"
         />
 
         <SidebarButton

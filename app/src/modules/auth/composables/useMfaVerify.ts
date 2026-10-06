@@ -37,11 +37,8 @@ export function useMfaVerify({ onVerified, onExpired }: MfaVerifyCallbacks) {
     }
   }
 
-  // Authenticator codes are typed or pasted in one go, so a complete code
-  // submits without an extra click.
-  function onCodeInput() {
+  function clearError() {
     error.value = '';
-    if (codeComplete.value) void submit();
   }
 
   return {
@@ -50,6 +47,6 @@ export function useMfaVerify({ onVerified, onExpired }: MfaVerifyCallbacks) {
     error,
     codeComplete,
     submit,
-    onCodeInput,
+    clearError,
   };
 }

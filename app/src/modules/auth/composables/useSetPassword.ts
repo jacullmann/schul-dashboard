@@ -27,19 +27,6 @@ export function useSetPassword(onSuccess: () => void) {
   const error = ref('');
   const errors = reactive<SetPasswordErrors>({});
 
-  function reset() {
-    step.value = 'request';
-    code.value = '';
-    newPassword.value = '';
-    newPassword2.value = '';
-    error.value = '';
-    Object.assign(errors, {
-      code: undefined,
-      new: undefined,
-      confirm: undefined,
-    });
-  }
-
   function clearFieldError(field: keyof SetPasswordErrors) {
     errors[field] = undefined;
     error.value = '';
@@ -124,6 +111,5 @@ export function useSetPassword(onSuccess: () => void) {
     errors,
     clearFieldError,
     submit,
-    reset,
   };
 }

@@ -2,8 +2,11 @@ import 'vue-router';
 
 declare module 'vue-router' {
   interface RouteMeta {
-    /** i18n key of the document title. */
-    title?: string;
+    /**
+     * i18n key of the document title, or a getter for pages whose title
+     * depends on the signed-in user.
+     */
+    title?: string | (() => string);
     /**
      * Routes are private by default, so a route that forgets this stays
      * behind the login. `public` is open to everyone, `guest` only to

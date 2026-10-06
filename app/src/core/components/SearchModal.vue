@@ -49,7 +49,6 @@ import {
 } from '@lucide/vue';
 import {
   useAnnouncementFormModal,
-  useChangePasswordModal,
   useCreateGroupModal,
   useDeleteAccountModal,
   useInviteModal,
@@ -88,7 +87,6 @@ const {
 const taskFormModal = useTaskFormModal();
 const privateTaskFormModal = usePrivateTaskFormModal();
 const announcementFormModal = useAnnouncementFormModal();
-const changePasswordModal = useChangePasswordModal();
 const deleteAccountModal = useDeleteAccountModal();
 const createGroupModal = useCreateGroupModal();
 const inviteModal = useInviteModal();
@@ -425,11 +423,15 @@ const defaultResults = computed<SearchResult[]>(() => [
   },
   {
     id: 'change-password',
-    label: t('auth.change_password.title'),
-    description: t('search.descriptions.change_password'),
+    label: userStore.hasPassword
+      ? t('auth.change_password.title')
+      : t('auth.set_password.title'),
+    description: userStore.hasPassword
+      ? t('search.descriptions.change_password')
+      : t('search.descriptions.set_password'),
     category: 'action',
     icon: LucideKeyRound,
-    action: () => runAndClose(changePasswordModal.open),
+    action: () => navigate({ name: 'account-password-edit' }),
   },
   {
     id: 'delete-account',

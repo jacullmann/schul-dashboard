@@ -14,7 +14,7 @@ const emit = defineEmits<{
 const { t } = useI18n();
 const { cancelMfaLogin } = useMfa();
 
-const { code, submitting, error, codeComplete, submit, onCodeInput } =
+const { code, submitting, error, codeComplete, submit, clearError } =
   useMfaVerify({
     onVerified: () => emit('verified'),
     onExpired: () => emit('expired'),
@@ -47,24 +47,17 @@ async function cancel() {
         <p class="m-0! mb-4!">
           {{ t('auth.mfa.verify.instruction') }}
         </p>
-        <BaseFormGroup id="mfa-code" class="items-center">
-          <input
-            id="mfa-code"
-            ref="codeInput"
-            v-model="code"
-            type="text"
-            inputmode="numeric"
-            pattern="[0-9]*"
-            maxlength="6"
-            placeholder="000000"
-            spellcheck="false"
-            autocomplete="one-time-code"
-            class="w-48 p-3 text-3xl font-mono tracking-wider text-center bg-surface border-2 border-ghost-border shadow-input rounded-xl text-on-ghost transition-focus focus:shadow-focus-ring focus:outline-none focus:border-on-ghost-muted"
-            :class="{ '!border-danger': error }"
-            required
-            @input="onCodeInput"
-          />
-        </BaseFormGroup>
+        <!-- Authenticator codes are typed or pasted in one go, so a complete
+             code submits without an extra click. -->
+        <BaseCodeInput
+          id="mfa-code"
+          ref="codeInput"
+          v-model="code"
+          :aria-label="t('auth.mfa.verify.code')"
+          :invalid="!!error"
+          @input="clearError"
+          @complete="submit"
+        />
         <p class="m-0! mt-4! text-sm! text-on-ghost-muted">
           {{ t('auth.mfa.verify.support.text') }}
           <a

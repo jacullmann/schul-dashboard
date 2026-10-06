@@ -2,13 +2,9 @@ import { ref, reactive } from 'vue';
 import { useI18n } from 'vue-i18n';
 import api from '@/api/api.ts';
 import type { ChangePasswordErrors } from '@/modules/auth/types';
-import { useToast } from '@/common/composables/useToast';
 import { apiErrorMessage } from '@/api/errors';
 
-export function useChangePassword(emit: {
-  (e: 'cancel'): void;
-  (e: 'success'): void;
-}) {
+export function useChangePassword(onSuccess: () => void) {
   const { t } = useI18n();
 
   const currentPassword = ref('');
@@ -16,8 +12,7 @@ export function useChangePassword(emit: {
   const newPassword2 = ref('');
 
   const submitting = ref(false);
-  const message = ref('');
-  const isError = ref(false);
+  const error = ref('');
 
   const errors = reactive<ChangePasswordErrors>({});
 
@@ -29,13 +24,7 @@ export function useChangePassword(emit: {
 
   function clearFieldError(field: 'current' | 'new' | 'confirm') {
     errors[field] = undefined;
-    message.value = '';
-    isError.value = false;
-  }
-
-  function setMessage(txt: string, error = false) {
-    message.value = txt;
-    isError.value = error;
+    error.value = '';
   }
 
   function validateBeforeSubmit(): boolean {
@@ -75,7 +64,7 @@ export function useChangePassword(emit: {
   }
 
   async function submit() {
-    setMessage('');
+    error.value = '';
     if (!validateBeforeSubmit()) {
       return;
     }
@@ -87,15 +76,13 @@ export function useChangePassword(emit: {
         newPassword: newPassword.value,
       });
 
-      useToast().success(t('auth.change_password.success'));
-      emit('success');
-      emit('cancel');
+      onSuccess();
     } catch (e: unknown) {
       const errorMsg = apiErrorMessage(
         e,
         t('auth.change_password.errors.failed'),
       );
-      setMessage(errorMsg, true);
+      error.value = errorMsg;
 
       if (errorMsg.includes('falsch')) {
         errors.current = t('auth.change_password.errors.current_wrong');
@@ -110,8 +97,7 @@ export function useChangePassword(emit: {
     newPassword,
     newPassword2,
     submitting,
-    message,
-    isError,
+    error,
     errors,
     clearFieldError,
     submit,
