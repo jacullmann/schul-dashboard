@@ -51,11 +51,6 @@
       "network": "Network",
       "received": "Received",
       "sent": "Sent",
-      "disk_bandwidth": "Disk throughput",
-      "disk_iops": "Disk operations",
-      "read": "Read",
-      "write": "Write",
-      "iops_value": "{value} IOPS",
       "errors": {
         "token_rejected": "Hetzner rejects the API token. Check HETZNER_API_TOKEN on the backend.",
         "server_not_found": "Hetzner knows no server with this ID. Check HETZNER_SERVER_ID on the backend.",

@@ -31,10 +31,6 @@ function onRangeChange(id: string) {
 }
 
 const formatRate = (value: number) => formatByteRate(value, locale.value);
-const formatIops = (value: number) =>
-  t(`${I18N_BASE}.iops_value`, {
-    value: value.toLocaleString(locale.value, { maximumFractionDigits: 1 }),
-  });
 
 const charts = computed<MetricChart[]>(() => {
   const m = metrics.value;
@@ -56,24 +52,6 @@ const charts = computed<MetricChart[]>(() => {
         { label: t(`${I18N_BASE}.sent`), points: m.networkOut },
       ],
       format: formatRate,
-    },
-    {
-      key: 'disk-bandwidth',
-      title: t(`${I18N_BASE}.disk_bandwidth`),
-      series: [
-        { label: t(`${I18N_BASE}.read`), points: m.diskReadBandwidth },
-        { label: t(`${I18N_BASE}.write`), points: m.diskWriteBandwidth },
-      ],
-      format: formatRate,
-    },
-    {
-      key: 'disk-iops',
-      title: t(`${I18N_BASE}.disk_iops`),
-      series: [
-        { label: t(`${I18N_BASE}.read`), points: m.diskReadIops },
-        { label: t(`${I18N_BASE}.write`), points: m.diskWriteIops },
-      ],
-      format: formatIops,
     },
   ];
 });

@@ -59,10 +59,6 @@ export interface ServerMetrics {
   cpu: MetricPoint[];
   networkIn: MetricPoint[];
   networkOut: MetricPoint[];
-  diskReadBandwidth: MetricPoint[];
-  diskWriteBandwidth: MetricPoint[];
-  diskReadIops: MetricPoint[];
-  diskWriteIops: MetricPoint[];
 }
 
 export type UserStatusFilter =

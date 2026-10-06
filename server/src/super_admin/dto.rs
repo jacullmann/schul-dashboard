@@ -272,10 +272,6 @@ pub struct ServerMetricsDto {
     pub cpu: Vec<MetricPoint>,
     pub network_in: Vec<MetricPoint>,
     pub network_out: Vec<MetricPoint>,
-    pub disk_read_bandwidth: Vec<MetricPoint>,
-    pub disk_write_bandwidth: Vec<MetricPoint>,
-    pub disk_read_iops: Vec<MetricPoint>,
-    pub disk_write_iops: Vec<MetricPoint>,
 }
 
 #[cfg(test)]

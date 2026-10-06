@@ -69,10 +69,6 @@ pub async fn read_server_metrics(
         cpu: metrics.cpu,
         network_in: metrics.network_in,
         network_out: metrics.network_out,
-        disk_read_bandwidth: metrics.disk_read_bandwidth,
-        disk_write_bandwidth: metrics.disk_write_bandwidth,
-        disk_read_iops: metrics.disk_read_iops,
-        disk_write_iops: metrics.disk_write_iops,
     })
 }
 

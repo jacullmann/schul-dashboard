@@ -17,16 +17,11 @@ const API_BASE: &str = "https://api.hetzner.cloud/v1";
 #[derive(Debug, Clone, Copy, PartialEq, Serialize)]
 pub struct MetricPoint(pub i64, pub Option<f64>);
 
-/// The server's CPU, disk and network series over one time window. CPU is in
-/// percent of one vCPU (so up to 100 per core), bandwidths in bytes per second
-/// and IOPS in operations per second.
-#[derive(Debug, Default, PartialEq)]
+/// The server's CPU and network series over one time window. CPU is in
+/// percent of one vCPU (so up to 100 per core), bandwidths in bytes per second.
+#[derive(Debug, PartialEq)]
 pub struct ServerMetrics {
     pub cpu: Vec<MetricPoint>,
-    pub disk_read_bandwidth: Vec<MetricPoint>,
-    pub disk_write_bandwidth: Vec<MetricPoint>,
-    pub disk_read_iops: Vec<MetricPoint>,
-    pub disk_write_iops: Vec<MetricPoint>,
     pub network_in: Vec<MetricPoint>,
     pub network_out: Vec<MetricPoint>,
 }
@@ -89,10 +84,6 @@ impl From<MetricsResponse> for ServerMetrics {
 
         Self {
             cpu: take("cpu"),
-            disk_read_bandwidth: take("disk.0.bandwidth.read"),
-            disk_write_bandwidth: take("disk.0.bandwidth.write"),
-            disk_read_iops: take("disk.0.iops.read"),
-            disk_write_iops: take("disk.0.iops.write"),
             network_in: take("network.0.bandwidth.in"),
             network_out: take("network.0.bandwidth.out"),
         }
@@ -142,7 +133,7 @@ impl HetznerCloud {
             .copied()
     }
 
-    /// CPU, disk and network metrics between `start` and `end`, one sample
+    /// CPU and network metrics between `start` and `end`, one sample
     /// every `step`.
     pub async fn server_metrics(
         &self,
@@ -158,7 +149,6 @@ impl HetznerCloud {
             .get(&format!("/servers/{}/metrics", self.0.server_id))
             .query(&[
                 ("type", "cpu"),
-                ("type", "disk"),
                 ("type", "network"),
                 ("start", start.as_str()),
                 ("end", end.as_str()),
@@ -200,7 +190,7 @@ mod tests {
                     "step": 30,
                     "time_series": {
                         "cpu": { "values": [[1791280800.0, "37.5"], [1791280830.0, "NaN"]] },
-                        "disk.0.iops.read": { "values": [[1791280800.0, "12"]] },
+                        "network.0.bandwidth.in": { "values": [[1791280800.0, "12"]] },
                         "network.0.bandwidth.out": { "values": [[1791280800.0, "2048.25"]] },
                         "network.0.pps.out": { "values": [[1791280800.0, "9"]] }
                     }
@@ -216,9 +206,8 @@ mod tests {
                     MetricPoint(1_791_280_800, Some(37.5)),
                     MetricPoint(1_791_280_830, None),
                 ],
-                disk_read_iops: vec![MetricPoint(1_791_280_800, Some(12.0))],
+                network_in: vec![MetricPoint(1_791_280_800, Some(12.0))],
                 network_out: vec![MetricPoint(1_791_280_800, Some(2048.25))],
-                ..ServerMetrics::default()
             }
         );
     }
