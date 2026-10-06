@@ -25,6 +25,24 @@ pub struct Config {
     pub resend_api_key: String,
     pub email_from: String,
     pub geoip_service_url: String,
+    /// `None` where the deployment does not run on Hetzner Cloud, e.g. in
+    /// development; the superadmin overview then leaves out server metrics.
+    pub hetzner: Option<HetznerConfig>,
+}
+
+#[derive(Clone)]
+pub struct HetznerConfig {
+    pub api_token: String,
+    pub server_id: u64,
+}
+
+impl std::fmt::Debug for HetznerConfig {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("HetznerConfig")
+            .field("api_token", &"[redacted]")
+            .field("server_id", &self.server_id)
+            .finish()
+    }
 }
 
 impl Config {
@@ -70,6 +88,7 @@ impl Config {
                 .unwrap_or_else(|_| "schul-dashboard <noreply@schul-dashboard.com>".into()),
             geoip_service_url: std::env::var("GEOIP_SERVICE_URL")
                 .unwrap_or_else(|_| "http://geoip-service:8080".into()),
+            hetzner: hetzner_from_env()?,
         })
     }
 
@@ -89,6 +108,26 @@ pub struct BaseCookieOptions {
 
 fn require(key: &str) -> Result<String> {
     std::env::var(key).with_context(|| format!("Missing required env var: {key}"))
+}
+
+/// Both variables or neither: one without the other is a misconfiguration
+/// that should stop the start rather than silently hide the metrics.
+fn hetzner_from_env() -> Result<Option<HetznerConfig>> {
+    let non_empty = |key| std::env::var(key).ok().filter(|v| !v.is_empty());
+
+    match (
+        non_empty("HETZNER_API_TOKEN"),
+        non_empty("HETZNER_SERVER_ID"),
+    ) {
+        (None, None) => Ok(None),
+        (Some(api_token), Some(server_id)) => Ok(Some(HetznerConfig {
+            api_token,
+            server_id: server_id
+                .parse()
+                .context("HETZNER_SERVER_ID must be the numeric ID of a Hetzner Cloud server")?,
+        })),
+        _ => anyhow::bail!("HETZNER_API_TOKEN and HETZNER_SERVER_ID must be set together"),
+    }
 }
 
 fn require_min(key: &str, min_len: usize) -> Result<String> {

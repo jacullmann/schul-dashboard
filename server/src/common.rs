@@ -4,6 +4,7 @@ pub mod email;
 pub mod encryption;
 pub mod extractors;
 pub mod group_type;
+pub mod hetzner;
 pub mod jwt;
 pub mod locale;
 pub mod name_generator;

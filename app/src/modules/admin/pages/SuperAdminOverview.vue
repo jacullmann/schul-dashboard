@@ -6,6 +6,7 @@ import DailyBarChart, {
   type DailySummary,
 } from '../components/DailyBarChart.vue';
 import CleanupJobsCard from '../components/CleanupJobsCard.vue';
+import ServerMetricsSection from '../components/ServerMetricsSection.vue';
 import { useSuperAdminStats } from '../composables/useSuperAdminStats';
 import type { DailyMetric } from '../types';
 
@@ -138,5 +139,7 @@ onMounted(loadDailyActivity);
         </template>
       </div>
     </section>
+
+    <ServerMetricsSection />
   </div>
 </template>

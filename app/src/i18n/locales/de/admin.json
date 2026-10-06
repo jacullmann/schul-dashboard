@@ -37,6 +37,28 @@
       "total": "Gesamt: {count}",
       "average": "Ø {value} pro Tag"
     },
+    "server": {
+      "title": "Serverauslastung",
+      "ranges": {
+        "1h": "1 Std.",
+        "24h": "24 Std.",
+        "7d": "7 Tage",
+        "30d": "30 Tage"
+      },
+      "average": "Durchschnitt",
+      "cpu": "CPU-Auslastung",
+      "usage": "Auslastung",
+      "network": "Netzwerk",
+      "received": "Empfangen",
+      "sent": "Gesendet",
+      "disk_bandwidth": "Datenträger-Durchsatz",
+      "disk_iops": "Datenträger-Zugriffe",
+      "read": "Lesen",
+      "write": "Schreiben",
+      "iops_value": "{value} IOPS",
+      "error": "Serverauslastung konnte nicht geladen werden.",
+      "retry": "Erneut versuchen"
+    },
     "cleanup_jobs": {
       "title": "Automatische Bereinigung",
       "description": "Die Datenbank löscht alte Daten alle 6 Stunden selbst. Überfällig sind Einträge, die schon seit mindestens zwei Durchläufen gelöscht sein müssten – ein Zeichen, dass der Job nicht läuft.",

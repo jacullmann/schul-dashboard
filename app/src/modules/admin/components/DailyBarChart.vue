@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import ChartCard from './ChartCard.vue';
 
 export interface DailyPoint {
   day: string;
@@ -56,16 +57,7 @@ const readout = computed(() => {
 </script>
 
 <template>
-  <figure
-    class="m-0 rounded-xl border border-ghost-border bg-surface shadow-input px-4 py-3"
-  >
-    <figcaption class="flex items-baseline justify-between gap-2 mb-3">
-      <span class="font-semibold">{{ title }}</span>
-      <span class="text-sm text-on-ghost-muted tabular-nums" aria-live="polite">
-        {{ readout }}
-      </span>
-    </figcaption>
-
+  <ChartCard :title="title" :readout="readout">
     <div
       class="flex items-end gap-0.5 h-24 border-b border-ghost-border"
       aria-hidden="true"
@@ -117,5 +109,5 @@ const readout = computed(() => {
         </tbody>
       </table>
     </div>
-  </figure>
+  </ChartCard>
 </template>

@@ -44,7 +44,7 @@ subtle = "2.6"
 rand = "0.10"
 totp-rs = { version = "5.7", features = ["otpauth"] }
 uuid = { version = "1.23", features = ["v4", "serde", "v7"] }
-reqwest = { version = "0.13", default-features = false, features = ["json", "rustls", "form", "multipart"] }
+reqwest = { version = "0.13", default-features = false, features = ["json", "rustls", "form", "multipart", "query"] }
 resend-rs = "0.25"
 chrono = { version = "0.4", default-features = false, features = ["clock", "serde"] }
 url = "2.5"

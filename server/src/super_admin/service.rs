@@ -6,6 +6,7 @@ use crate::{
     },
     common::{
         cloudinary::Cloudinary,
+        hetzner::HetznerCloud,
         name_generator::generate_user_name,
         pagination::{PAGE_SIZE, Page, contains_pattern, search_term},
         role::{MemberRole, Role},
@@ -17,6 +18,7 @@ use crate::{
     },
     state::AppState,
 };
+use chrono::Utc;
 use serde_json::{Value, json};
 use sqlx::{PgConnection, PgPool};
 use uuid::Uuid;
@@ -43,6 +45,35 @@ pub async fn log_admin_action(
     .await?;
 
     Ok(())
+}
+
+/// The server's load as Hetzner measures it, read live on every request: the
+/// overview is opened rarely enough to stay far below the API's rate limit.
+pub async fn read_server_metrics(
+    hetzner: &HetznerCloud,
+    range: MetricsRange,
+) -> AppResult<ServerMetricsDto> {
+    let end = Utc::now();
+    let start = end - range.span();
+
+    let (cpu_cores, metrics) = tokio::try_join!(
+        hetzner.server_cores(),
+        hetzner.server_metrics(start, end, range.step()),
+    )
+    .map_err(|e| AppError::internal(format!("Hetzner API request failed: {e}")))?;
+
+    Ok(ServerMetricsDto {
+        start: start.timestamp(),
+        end: end.timestamp(),
+        cpu_cores,
+        cpu: metrics.cpu,
+        network_in: metrics.network_in,
+        network_out: metrics.network_out,
+        disk_read_bandwidth: metrics.disk_read_bandwidth,
+        disk_write_bandwidth: metrics.disk_write_bandwidth,
+        disk_read_iops: metrics.disk_read_iops,
+        disk_write_iops: metrics.disk_write_iops,
+    })
 }
 
 /// Splits a search into the text pattern and, when it is one, the exact id.

@@ -1,8 +1,10 @@
 use chrono::{DateTime, NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
+use std::time::Duration;
 use uuid::Uuid;
 
 use crate::common::{
+    hetzner::MetricPoint,
     pagination::{PageNumber, SortOrder},
     role::MemberRole,
 };
@@ -218,4 +220,88 @@ pub struct UserMembershipDto {
 pub struct CleanupJobDto {
     pub job: String,
     pub overdue_count: i64,
+}
+
+/// The time windows, ending now, that the server metrics can be shown for. A fixed set keeps
+/// every request to the Hetzner API small and predictable.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+pub enum MetricsRange {
+    #[serde(rename = "1h")]
+    Hour,
+    #[serde(rename = "24h")]
+    Day,
+    #[serde(rename = "7d")]
+    Week,
+    #[serde(rename = "30d")]
+    Month,
+}
+
+impl MetricsRange {
+    /// Samples per series whatever the window, enough for a smooth line at
+    /// chart width without sending more points than there are pixels.
+    const SAMPLES: u32 = 240;
+
+    pub const fn span(self) -> Duration {
+        const HOUR: u64 = 60 * 60;
+        Duration::from_secs(match self {
+            Self::Hour => HOUR,
+            Self::Day => 24 * HOUR,
+            Self::Week => 7 * 24 * HOUR,
+            Self::Month => 30 * 24 * HOUR,
+        })
+    }
+
+    pub fn step(self) -> Duration {
+        self.span() / Self::SAMPLES
+    }
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ServerMetricsQuery {
+    pub range: MetricsRange,
+}
+
+/// The window is sent along so charts span all of it, even where the series
+/// start late or have gaps.
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ServerMetricsDto {
+    pub start: i64,
+    pub end: i64,
+    pub cpu_cores: u32,
+    pub cpu: Vec<MetricPoint>,
+    pub network_in: Vec<MetricPoint>,
+    pub network_out: Vec<MetricPoint>,
+    pub disk_read_bandwidth: Vec<MetricPoint>,
+    pub disk_write_bandwidth: Vec<MetricPoint>,
+    pub disk_read_iops: Vec<MetricPoint>,
+    pub disk_write_iops: Vec<MetricPoint>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn every_range_yields_the_same_number_of_whole_second_steps() {
+        for range in [
+            MetricsRange::Hour,
+            MetricsRange::Day,
+            MetricsRange::Week,
+            MetricsRange::Month,
+        ] {
+            let step = range.step();
+            assert_eq!(step.subsec_nanos(), 0, "{range:?}");
+            assert_eq!(range.span().as_secs() / step.as_secs(), 240, "{range:?}");
+        }
+    }
+
+    #[test]
+    fn parses_ranges_from_their_short_names() {
+        let parse = |raw: &str| serde_json::from_str::<MetricsRange>(&format!("\"{raw}\"")).ok();
+
+        assert_eq!(parse("1h"), Some(MetricsRange::Hour));
+        assert_eq!(parse("30d"), Some(MetricsRange::Month));
+        assert_eq!(parse("90d"), None);
+    }
 }

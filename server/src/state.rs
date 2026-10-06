@@ -1,6 +1,7 @@
 use crate::{
     common::{
-        cloudinary::Cloudinary, email::EmailService, encryption::EncryptionService, jwt::JwtService,
+        cloudinary::Cloudinary, email::EmailService, encryption::EncryptionService,
+        hetzner::HetznerCloud, jwt::JwtService,
     },
     config::Config,
     messages::gateway::MessageBus,
@@ -15,6 +16,7 @@ pub struct AppState {
     pub config: Arc<Config>,
     pub http: Client,
     pub cloudinary: Cloudinary,
+    pub hetzner: Option<HetznerCloud>,
     pub jwt: JwtService,
     pub email: EmailService,
     pub encryption: EncryptionService,
@@ -30,6 +32,10 @@ impl AppState {
             .expect("Failed to build HTTP client");
 
         let cloudinary = Cloudinary::new(http.clone(), &config);
+        let hetzner = config
+            .hetzner
+            .as_ref()
+            .map(|hetzner| HetznerCloud::new(http.clone(), hetzner));
         let jwt = JwtService::new(&config);
 
         let email = EmailService::new(
@@ -47,6 +53,7 @@ impl AppState {
             config: Arc::new(config),
             http,
             cloudinary,
+            hetzner,
             jwt,
             email,
             encryption,

@@ -45,12 +45,28 @@ export interface DailyActivity {
 
 export type DailyMetric = Exclude<keyof DailyActivity, 'day'>;
 
+export type MetricsRange = '1h' | '24h' | '7d' | '30d';
+
+/** A sample in Unix seconds; a `null` value is a gap in the measurement. */
+export type MetricPoint = [timestamp: number, value: number | null];
+
+/** The server's load as Hetzner measures it. CPU is in percent of one vCPU,
+ * so it reaches `cpuCores * 100`; bandwidths are in bytes per second. */
+export interface ServerMetrics {
+  start: number;
+  end: number;
+  cpuCores: number;
+  cpu: MetricPoint[];
+  networkIn: MetricPoint[];
+  networkOut: MetricPoint[];
+  diskReadBandwidth: MetricPoint[];
+  diskWriteBandwidth: MetricPoint[];
+  diskReadIops: MetricPoint[];
+  diskWriteIops: MetricPoint[];
+}
+
 export type UserStatusFilter =
-  | 'all'
-  | 'active'
-  | 'banned'
-  | 'unverified'
-  | 'superadmin';
+  'all' | 'active' | 'banned' | 'unverified' | 'superadmin';
 
 export type UserSort = 'createdAt' | 'lastLoginAt' | 'email';
 

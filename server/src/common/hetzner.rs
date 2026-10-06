@@ -1,0 +1,223 @@
+//! Client for the Hetzner Cloud API, limited to reading the server this
+//! deployment runs on. The API token never leaves the server: superadmins only
+//! receive the metrics read with it.
+
+use crate::config::HetznerConfig;
+use chrono::{DateTime, SecondsFormat, Utc};
+use reqwest::{Client, RequestBuilder};
+use serde::{Deserialize, Serialize};
+use std::{collections::HashMap, sync::Arc, time::Duration};
+use tokio::sync::OnceCell;
+
+const API_BASE: &str = "https://api.hetzner.cloud/v1";
+
+/// One sample of a time series: when it was taken, in Unix seconds, and its
+/// value. Serialized as a `[timestamp, value]` pair to keep long series small;
+/// the value is `null` where Hetzner has no number, which charts show as a gap.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize)]
+pub struct MetricPoint(pub i64, pub Option<f64>);
+
+/// The server's CPU, disk and network series over one time window. CPU is in
+/// percent of one vCPU (so up to 100 per core), bandwidths in bytes per second
+/// and IOPS in operations per second.
+#[derive(Debug, Default, PartialEq)]
+pub struct ServerMetrics {
+    pub cpu: Vec<MetricPoint>,
+    pub disk_read_bandwidth: Vec<MetricPoint>,
+    pub disk_write_bandwidth: Vec<MetricPoint>,
+    pub disk_read_iops: Vec<MetricPoint>,
+    pub disk_write_iops: Vec<MetricPoint>,
+    pub network_in: Vec<MetricPoint>,
+    pub network_out: Vec<MetricPoint>,
+}
+
+#[derive(Deserialize)]
+struct MetricsResponse {
+    metrics: MetricsBody,
+}
+
+#[derive(Deserialize)]
+struct MetricsBody {
+    time_series: HashMap<String, TimeSeries>,
+}
+
+/// Hetzner sends every sample as `[unix_timestamp, "value"]`, the value as a
+/// string so that it can also be `"NaN"`.
+#[derive(Deserialize)]
+struct TimeSeries {
+    values: Vec<(f64, String)>,
+}
+
+#[derive(Deserialize)]
+struct ServerResponse {
+    server: ServerBody,
+}
+
+#[derive(Deserialize)]
+struct ServerBody {
+    server_type: ServerTypeBody,
+}
+
+#[derive(Deserialize)]
+struct ServerTypeBody {
+    cores: u32,
+}
+
+impl From<MetricsResponse> for ServerMetrics {
+    fn from(response: MetricsResponse) -> Self {
+        let mut series = response.metrics.time_series;
+        // A series Hetzner leaves out, e.g. right after the server was
+        // created, is simply empty rather than an error.
+        let mut take = |name: &str| {
+            series
+                .remove(name)
+                .map(|s| s.values.into_iter().map(to_point).collect())
+                .unwrap_or_default()
+        };
+
+        Self {
+            cpu: take("cpu"),
+            disk_read_bandwidth: take("disk.0.bandwidth.read"),
+            disk_write_bandwidth: take("disk.0.bandwidth.write"),
+            disk_read_iops: take("disk.0.iops.read"),
+            disk_write_iops: take("disk.0.iops.write"),
+            network_in: take("network.0.bandwidth.in"),
+            network_out: take("network.0.bandwidth.out"),
+        }
+    }
+}
+
+fn to_point((timestamp, value): (f64, String)) -> MetricPoint {
+    MetricPoint(
+        timestamp as i64,
+        value.parse::<f64>().ok().filter(|v| v.is_finite()),
+    )
+}
+
+#[derive(Clone)]
+pub struct HetznerCloud(Arc<Inner>);
+
+struct Inner {
+    http: Client,
+    api_token: String,
+    server_id: u64,
+    cores: OnceCell<u32>,
+}
+
+impl HetznerCloud {
+    pub fn new(http: Client, config: &HetznerConfig) -> Self {
+        Self(Arc::new(Inner {
+            http,
+            api_token: config.api_token.clone(),
+            server_id: config.server_id,
+            cores: OnceCell::new(),
+        }))
+    }
+
+    /// The server's vCPU count. Looked up once per process: Hetzner only
+    /// rescales a server while it is powered off, which restarts this process
+    /// as well, so the count can never go stale.
+    pub async fn server_cores(&self) -> Result<u32, reqwest::Error> {
+        self.0
+            .cores
+            .get_or_try_init(|| async {
+                let response: ServerResponse = self
+                    .get(&format!("/servers/{}", self.0.server_id))
+                    .send()
+                    .await?
+                    .error_for_status()?
+                    .json()
+                    .await?;
+                Ok(response.server.server_type.cores)
+            })
+            .await
+            .copied()
+    }
+
+    /// CPU, disk and network metrics between `start` and `end`, one sample
+    /// every `step`.
+    pub async fn server_metrics(
+        &self,
+        start: DateTime<Utc>,
+        end: DateTime<Utc>,
+        step: Duration,
+    ) -> Result<ServerMetrics, reqwest::Error> {
+        let start = start.to_rfc3339_opts(SecondsFormat::Secs, true);
+        let end = end.to_rfc3339_opts(SecondsFormat::Secs, true);
+        let step = step.as_secs().max(1).to_string();
+
+        let response: MetricsResponse = self
+            .get(&format!("/servers/{}/metrics", self.0.server_id))
+            .query(&[
+                ("type", "cpu"),
+                ("type", "disk"),
+                ("type", "network"),
+                ("start", start.as_str()),
+                ("end", end.as_str()),
+                ("step", step.as_str()),
+            ])
+            .send()
+            .await?
+            .error_for_status()?
+            .json()
+            .await?;
+
+        Ok(response.into())
+    }
+
+    fn get(&self, path: &str) -> RequestBuilder {
+        self.0
+            .http
+            .get(format!("{API_BASE}{path}"))
+            .bearer_auth(&self.0.api_token)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn maps_hetzner_series_and_turns_non_numbers_into_gaps() {
+        let response: MetricsResponse = serde_json::from_str(
+            r#"{
+                "metrics": {
+                    "start": "2026-10-06T10:00:00Z",
+                    "end": "2026-10-06T10:01:00Z",
+                    "step": 30,
+                    "time_series": {
+                        "cpu": { "values": [[1791280800.0, "37.5"], [1791280830.0, "NaN"]] },
+                        "disk.0.iops.read": { "values": [[1791280800.0, "12"]] },
+                        "network.0.bandwidth.out": { "values": [[1791280800.0, "2048.25"]] },
+                        "network.0.pps.out": { "values": [[1791280800.0, "9"]] }
+                    }
+                }
+            }"#,
+        )
+        .unwrap();
+
+        assert_eq!(
+            ServerMetrics::from(response),
+            ServerMetrics {
+                cpu: vec![
+                    MetricPoint(1_791_280_800, Some(37.5)),
+                    MetricPoint(1_791_280_830, None),
+                ],
+                disk_read_iops: vec![MetricPoint(1_791_280_800, Some(12.0))],
+                network_out: vec![MetricPoint(1_791_280_800, Some(2048.25))],
+                ..ServerMetrics::default()
+            }
+        );
+    }
+
+    #[test]
+    fn serializes_points_as_pairs() {
+        let json = serde_json::to_string(&[
+            MetricPoint(1_791_280_800, Some(1.5)),
+            MetricPoint(1_791_280_830, None),
+        ])
+        .unwrap();
+
+        assert_eq!(json, "[[1791280800,1.5],[1791280830,null]]");
+    }
+}

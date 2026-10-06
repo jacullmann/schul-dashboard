@@ -1,6 +1,6 @@
 use super::{
     dto::*,
-    service::{SuperAdminService, superadmin_caller},
+    service::{SuperAdminService, read_server_metrics, superadmin_caller},
 };
 use crate::{
     common::{
@@ -8,7 +8,7 @@ use crate::{
         pagination::Page,
         role::{MemberRole, Role},
     },
-    error::AppResult,
+    error::{AppError, AppResult},
     group::admin::service::GroupAdminService,
     reports::service::ReportsService,
     state::AppState,
@@ -40,6 +40,19 @@ pub async fn get_daily_activity(
             .get_daily_activity()
             .await?,
     ))
+}
+
+pub async fn get_server_metrics(
+    State(s): State<AppState>,
+    _: SuperAdmin,
+    Query(q): Query<ServerMetricsQuery>,
+) -> AppResult<Json<ServerMetricsDto>> {
+    let hetzner = s
+        .hetzner
+        .as_ref()
+        .ok_or_else(|| AppError::not_found("Server metrics are not configured."))?;
+
+    Ok(Json(read_server_metrics(hetzner, q.range).await?))
 }
 
 pub async fn get_cleanup_jobs(

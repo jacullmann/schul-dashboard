@@ -37,6 +37,28 @@
       "total": "Total: {count}",
       "average": "Avg. {value} per day"
     },
+    "server": {
+      "title": "Server load",
+      "ranges": {
+        "1h": "1 hr",
+        "24h": "24 hrs",
+        "7d": "7 days",
+        "30d": "30 days"
+      },
+      "average": "Average",
+      "cpu": "CPU usage",
+      "usage": "Usage",
+      "network": "Network",
+      "received": "Received",
+      "sent": "Sent",
+      "disk_bandwidth": "Disk throughput",
+      "disk_iops": "Disk operations",
+      "read": "Read",
+      "write": "Write",
+      "iops_value": "{value} IOPS",
+      "error": "Could not load the server load.",
+      "retry": "Try again"
+    },
     "cleanup_jobs": {
       "title": "Automatic cleanup",
       "description": "The database deletes old data on its own every 6 hours. Overdue entries should have been deleted at least two runs ago – a sign that the job isn't running.",
