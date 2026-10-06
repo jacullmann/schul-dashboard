@@ -19,7 +19,11 @@ const { t } = useI18n();
 const { user } = storeToRefs(useUserStore());
 const deleteAccountModal = useDeleteAccountModal();
 const { homeRoute } = useAppAuth();
-const { leave: leaveSettings } = useReturnRoute(homeRoute);
+// Returning to a settings page would bounce between the two pages' back buttons.
+const { leave: leaveSettings } = useReturnRoute(homeRoute, [
+  'account-settings',
+  'group-admin',
+]);
 
 const navItems = computed<AdminNavItem[]>(() => [
   {
