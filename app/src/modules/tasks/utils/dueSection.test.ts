@@ -18,6 +18,18 @@ describe('dueSectionOf', () => {
     );
   });
 
+  it('names yesterday and the week covering the day before yesterday', () => {
+    expect(dueSectionOf(day(6), now, MONDAY).kind).toBe('yesterday');
+    // Wednesday: the day before yesterday, Monday, is still in this week.
+    expect(dueSectionOf(day(5), now, MONDAY).kind).toBe('last_week');
+    expect(dueSectionOf(day(4), now, MONDAY)).toMatchObject({ kind: 'month' });
+    // Monday: the day before yesterday, Saturday, is in the previous week.
+    const monday = new Date(2026, 9, 12, 9);
+    expect(dueSectionOf(day(10), monday, MONDAY).kind).toBe('last_week');
+    expect(dueSectionOf(day(5), monday, MONDAY).kind).toBe('last_week');
+    expect(dueSectionOf(day(4), monday, MONDAY).kind).toBe('month');
+  });
+
   it('splits the rest of this week from the next by the week start', () => {
     expect(dueSectionOf(day(11), now, MONDAY).kind).toBe('this_week');
     expect(dueSectionOf(day(12), now, MONDAY).kind).toBe('next_week');
@@ -37,7 +49,7 @@ describe('dueSectionOf', () => {
       year: 2026,
       month: 10,
     });
-    expect(dueSectionOf(day(6), now, MONDAY)).toEqual({
+    expect(dueSectionOf(day(3), now, MONDAY)).toEqual({
       kind: 'month',
       year: 2026,
       month: 9,

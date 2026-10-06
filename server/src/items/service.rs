@@ -176,35 +176,44 @@ impl ItemsService {
 
         // A task for a single course reaches that course's members; one for the
         // whole subject reaches everybody taking any of its courses.
+        // Past-due tasks drop into the archive once checked, or right away when
+        // they belong to a course the member does not take, since nobody
+        // expects them to tick those off.
         let mut rows = sqlx::query!(
             r#"SELECT i.id, i.type, i.title, i.subject_id, i.course_id,
                       COALESCE(s.name, i.custom_subject) as "subject_name!", c.name as "course_name?",
                       i.description, i.due_date,
                       i.created_by as "created_by?: Uuid", i.editor_note, i.created_at, i.updated_at,
                       u.email as "creator_email?: String",
+                      m.takes_course as "takes_course!",
                       (
-                          i.id IN (SELECT item_id FROM pinned_items WHERE user_id = $2)
-                          OR i.subject_id IS NULL
-                          OR s.category = 'core'
-                          OR NOT EXISTS (SELECT 1 FROM courses sc WHERE sc.subject_id = i.subject_id)
-                          OR EXISTS (
-                              SELECT 1 FROM user_courses uc
-                              WHERE uc.user_id = $2
-                                AND uc.subject_id = i.subject_id
-                                AND (i.course_id IS NULL OR uc.course_id = i.course_id)
-                          )
+                          m.takes_course
+                          OR i.id IN (SELECT item_id FROM pinned_items WHERE user_id = $2)
                       ) as "matches_courses!"
                FROM items i
                LEFT JOIN subjects s ON s.id = i.subject_id
                LEFT JOIN courses c ON c.id = i.course_id
                LEFT JOIN users u ON u.id = i.created_by
                LEFT JOIN user_item_visibility v ON v.item_id = i.id AND v.user_id = $2
+               CROSS JOIN LATERAL (
+                   SELECT (
+                       i.subject_id IS NULL
+                       OR s.category = 'core'
+                       OR NOT EXISTS (SELECT 1 FROM courses sc WHERE sc.subject_id = i.subject_id)
+                       OR EXISTS (
+                           SELECT 1 FROM user_courses uc
+                           WHERE uc.user_id = $2
+                             AND uc.subject_id = i.subject_id
+                             AND (i.course_id IS NULL OR uc.course_id = i.course_id)
+                       )
+                   ) AS takes_course
+               ) m
                WHERE i.tenant_id = $1
                  AND ($3::text IS NULL OR $3 = 'all' OR i.type = $3)
                  AND (
-                     ($4::boolean AND (v.status = 'archived' OR (i.due_date < now() AND i.id IN (SELECT item_id FROM keep_checked WHERE user_id = $2) AND i.id NOT IN (SELECT item_id FROM pinned_items WHERE user_id = $2))) AND v.status IS DISTINCT FROM 'kept')
+                     ($4::boolean AND (v.status = 'archived' OR (i.due_date < now() AND i.id NOT IN (SELECT item_id FROM pinned_items WHERE user_id = $2) AND (NOT m.takes_course OR i.id IN (SELECT item_id FROM keep_checked WHERE user_id = $2)))) AND v.status IS DISTINCT FROM 'kept')
                      OR
-                     (NOT $4::boolean AND (v.status = 'kept' OR ((i.due_date >= now() OR i.id NOT IN (SELECT item_id FROM keep_checked WHERE user_id = $2) OR i.id IN (SELECT item_id FROM pinned_items WHERE user_id = $2)) AND v.status IS DISTINCT FROM 'archived')))
+                     (NOT $4::boolean AND (v.status = 'kept' OR ((i.due_date >= now() OR i.id IN (SELECT item_id FROM pinned_items WHERE user_id = $2) OR (m.takes_course AND i.id NOT IN (SELECT item_id FROM keep_checked WHERE user_id = $2))) AND v.status IS DISTINCT FROM 'archived')))
                  )
                  AND (
                      $5::boolean IS FALSE
@@ -258,6 +267,7 @@ impl ItemsService {
                     "id": r.id, "type": r.r#type, "title": r.title,
                     "subjectId": r.subject_id, "courseId": r.course_id,
                     "subjectName": r.subject_name, "courseName": r.course_name,
+                    "takesCourse": r.takes_course,
                     "description": r.description,
                     "attachments": item_attachments, "dueDate": r.due_date,
                     "createdBy": r.created_by,
@@ -279,6 +289,7 @@ impl ItemsService {
     pub async fn get_item_by_id(
         &self,
         tenant_id: Uuid,
+        user_id: Uuid,
         id: Uuid,
         include_creator_email: bool,
     ) -> AppResult<Value> {
@@ -287,14 +298,26 @@ impl ItemsService {
                       COALESCE(s.name, i.custom_subject) as "subject_name!", c.name as "course_name?",
                       i.description, i.due_date as "due_date!",
                       i.created_by as "created_by?: Uuid", i.editor_note, i.created_at, i.updated_at,
-                      u.email as "creator_email?: String"
+                      u.email as "creator_email?: String",
+                      (
+                          i.subject_id IS NULL
+                          OR s.category = 'core'
+                          OR NOT EXISTS (SELECT 1 FROM courses sc WHERE sc.subject_id = i.subject_id)
+                          OR EXISTS (
+                              SELECT 1 FROM user_courses uc
+                              WHERE uc.user_id = $3
+                                AND uc.subject_id = i.subject_id
+                                AND (i.course_id IS NULL OR uc.course_id = i.course_id)
+                          )
+                      ) as "takes_course!"
                FROM items i
                LEFT JOIN subjects s ON s.id = i.subject_id
                LEFT JOIN courses c ON c.id = i.course_id
                LEFT JOIN users u ON u.id = i.created_by
                WHERE i.id = $1 AND i.tenant_id = $2"#,
             id,
-            tenant_id
+            tenant_id,
+            user_id
         )
             .fetch_optional(&self.db)
             .await?
@@ -315,6 +338,7 @@ impl ItemsService {
             "id": row.id, "type": row.r#type, "title": row.title,
             "subjectId": row.subject_id, "courseId": row.course_id,
             "subjectName": row.subject_name, "courseName": row.course_name,
+            "takesCourse": row.takes_course,
             "description": row.description,
             "attachments": item_attachments, "dueDate": row.due_date,
             "createdBy": row.created_by,

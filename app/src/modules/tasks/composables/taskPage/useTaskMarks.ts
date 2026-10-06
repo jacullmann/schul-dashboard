@@ -57,10 +57,15 @@ export function useTaskMarks(
     return isNaturallyOld(task);
   }
 
-  // Mirrors the server's list filter: only past-due tasks that are checked
-  // and not pinned drop into the archive without an explicit status.
+  // Mirrors the server's list filter: only past-due tasks that are not pinned
+  // drop into the archive without an explicit status, once checked or right
+  // away for courses the member does not take.
   function isNaturallyOld(task: Task) {
-    return isPastDue(task) && isChecked(task.id) && !isPinned(task.id);
+    return (
+      isPastDue(task) &&
+      !isPinned(task.id) &&
+      (isChecked(task.id) || task.takesCourse === false)
+    );
   }
 
   async function loadIds(

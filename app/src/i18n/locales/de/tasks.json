@@ -119,6 +119,8 @@
     "reset_filters": "Filter zurücksetzen",
     "sections": {
       "pinned": "Angeheftet",
+      "last_week": "Letzte Woche",
+      "yesterday": "Gestern",
       "today": "Heute",
       "tomorrow": "Morgen",
       "this_week": "Diese Woche",

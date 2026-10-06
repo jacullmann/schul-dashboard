@@ -58,7 +58,7 @@ pub async fn get_item_by_id(
 ) -> AppResult<Json<Value>> {
     Ok(Json(
         ItemsService::from_state(&s)
-            .get_item_by_id(tc.tenant_id, id, tc.is_superadmin)
+            .get_item_by_id(tc.tenant_id, tc.user.user_id, id, tc.is_superadmin)
             .await?,
     ))
 }

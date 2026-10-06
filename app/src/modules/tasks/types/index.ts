@@ -10,6 +10,8 @@ export interface Task {
   /** A `common.subjects.*` key or the name the group owner typed. */
   subjectName: string;
   courseName: string | null;
+  /** Absent on tasks returned from creating or editing them. */
+  takesCourse?: boolean;
   description: string;
   attachments: Attachment[];
   dueDate: string;

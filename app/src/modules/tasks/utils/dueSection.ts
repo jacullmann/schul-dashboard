@@ -1,10 +1,19 @@
 const MS_PER_DAY = 86_400_000;
 const DAYS_PER_WEEK = 7;
 const MONDAY = 1;
+const DAY_BEFORE_YESTERDAY_OFFSET = 2;
 
 /** The part of the list a task falls into by when it is due. */
 export type DueSection =
-  | { kind: 'today' | 'tomorrow' | 'this_week' | 'next_week' }
+  | {
+      kind:
+        | 'last_week'
+        | 'yesterday'
+        | 'today'
+        | 'tomorrow'
+        | 'this_week'
+        | 'next_week';
+    }
   | { kind: 'month'; year: number; month: number };
 
 type WeekInfo = { firstDay: number };
@@ -39,6 +48,21 @@ export function dueSectionOf(
   const daysAhead = calendarDaysBetween(now, dueDate);
   if (daysAhead === 0) return { kind: 'today' };
   if (daysAhead === 1) return { kind: 'tomorrow' };
+  if (daysAhead === -1) return { kind: 'yesterday' };
+
+  // Anchored on the day before yesterday, so on a Monday it is still last week.
+  const daysIntoAnchorWeek =
+    (now.getDay() -
+      DAY_BEFORE_YESTERDAY_OFFSET -
+      weekStart +
+      2 * DAYS_PER_WEEK) %
+    DAYS_PER_WEEK;
+  if (
+    daysAhead <= -DAY_BEFORE_YESTERDAY_OFFSET &&
+    daysAhead >= -DAY_BEFORE_YESTERDAY_OFFSET - daysIntoAnchorWeek
+  ) {
+    return { kind: 'last_week' };
+  }
 
   const daysIntoWeek =
     (now.getDay() - weekStart + DAYS_PER_WEEK) % DAYS_PER_WEEK;
