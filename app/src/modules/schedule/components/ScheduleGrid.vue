@@ -22,6 +22,10 @@ const props = withDefaults(
     /** A template for every week carries no date, so the short weekday by default. */
     tabLabel?: (day: number) => string;
     tabCaption?: (day: number) => string;
+    /** The heading above a phone's single day; the weekday by default. */
+    dayHeading?: (day: number) => string;
+    /** The heading above each day of the week side by side; the weekday by default. */
+    columnHeading?: (day: number) => readonly Intl.DateTimeFormatPart[];
     panelKey?: (dayIndex: number) => PropertyKey;
     currentDay?: number | null;
     clickableDays?: boolean;
@@ -33,6 +37,8 @@ const props = withDefaults(
     labelledRows: undefined,
     tabLabel: undefined,
     tabCaption: undefined,
+    dayHeading: undefined,
+    columnHeading: undefined,
     panelKey: undefined,
     currentDay: null,
     clickableDays: false,
@@ -86,6 +92,7 @@ function onDayClick(day: number, event: MouseEvent) {
     :tab-caption="tabCaption"
     :panel-of="phonePanelOf"
     :panel-key="panelKey"
+    :current-day="currentDay"
     :animated="animated"
     :bleed-class="bleedClass"
   >
@@ -100,7 +107,7 @@ function onDayClick(day: number, event: MouseEvent) {
         :key="day"
         :grid-column="2"
         standalone
-        :label="formatDayName(day)"
+        :label="dayHeading?.(day) ?? formatDayName(day)"
         :is-current="day === currentDay"
         :is-clickable="clickableDays"
         :animated="phoneAnimated"
@@ -126,7 +133,7 @@ function onDayClick(day: number, event: MouseEvent) {
       <template v-for="(day, dayIndex) in days" :key="day">
         <ScheduleDayHeader
           :grid-column="dayIndex + 2"
-          :label="formatDayName(day)"
+          :label="columnHeading?.(day) ?? formatDayName(day)"
           :is-current="day === currentDay"
           :is-clickable="clickableDays"
           :animated="animated"

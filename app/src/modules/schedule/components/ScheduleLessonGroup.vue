@@ -10,7 +10,6 @@ const props = withDefaults(
   defineProps<{
     group: Lesson[];
     isActive?: boolean;
-    isCurrentDay?: boolean;
     /** Every lesson of the cell, or only those the predicate accepts. */
     isClickable?: boolean | ((lesson: Lesson) => boolean);
     hasContextMenu?: boolean;
@@ -22,7 +21,6 @@ const props = withDefaults(
   }>(),
   {
     isActive: false,
-    isCurrentDay: false,
     isClickable: false,
     hasContextMenu: false,
     selectedLessonIds: undefined,
@@ -74,11 +72,7 @@ const periodLabel = (lesson: Lesson) => {
     class="group bg-surface rounded-md max-xs:rounded-lg border border-ghost-border flex flex-col overflow-hidden z-[2] shadow-input"
     :class="[
       animated ? 'animate-enter' : '',
-      isActive
-        ? 'highlight-active bg-action! border-action!'
-        : isCurrentDay
-          ? 'current-day xs:border-surface-hover-border xs:bg-linear-to-b xs:from-ghost-border xs:to-ghost-border'
-          : '',
+      isActive ? 'highlight-active bg-action! border-action!' : '',
     ]"
   >
     <ScheduleLessonItem

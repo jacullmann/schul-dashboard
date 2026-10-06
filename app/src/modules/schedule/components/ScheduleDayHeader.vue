@@ -1,10 +1,12 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { entranceDelay } from '@/modules/schedule/utils/entrance';
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     gridColumn: number;
-    label: string;
+    /** Date parts let the current day's date stand out from its weekday. */
+    label: string | readonly Intl.DateTimeFormatPart[];
     isCurrent?: boolean;
     isClickable?: boolean;
     animated?: boolean;
@@ -18,13 +20,18 @@ withDefaults(
     standalone: false,
   },
 );
+
+const labelParts = computed<readonly Intl.DateTimeFormatPart[]>(() =>
+  typeof props.label === 'string'
+    ? [{ type: 'literal', value: props.label }]
+    : props.label,
+);
 </script>
 
 <template>
   <div
-    class="px-2 text-center font-bold text-base [grid-row:1]"
+    class="px-2 py-1 text-center font-medium text-base text-on-ghost [grid-row:1]"
     :class="[
-      isCurrent || standalone ? 'text-on-ghost' : 'text-on-ghost-muted',
       {
         'animate-enter': animated,
         'cursor-pointer select-none transition-colors hover:text-on-ghost':
@@ -36,6 +43,13 @@ withDefaults(
       '--enter-delay': entranceDelay(gridColumn, 1),
     }"
   >
-    {{ label }}
+    <span
+      v-for="(part, index) in labelParts"
+      :key="index"
+      :class="{
+        'font-bold text-accent': isCurrent && part.type === 'day',
+      }"
+      >{{ part.value }}</span
+    >
   </div>
 </template>

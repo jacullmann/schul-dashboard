@@ -77,6 +77,33 @@ export function useSchedule() {
       : '';
   };
 
+  const formatDayHeading = (day: number): string => {
+    const date = weekDates.value[day];
+    return date
+      ? new Intl.DateTimeFormat(locale.value, {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long',
+        }).format(date)
+      : formatDayName(day);
+  };
+
+  // English CLDR orders a monthless date as "6 Tuesday", so the weekday is moved to the front.
+  const formatColumnHeading = (day: number): Intl.DateTimeFormatPart[] => {
+    const date = weekDates.value[day];
+    if (!date) return [{ type: 'weekday', value: formatDayName(day) }];
+    const parts = new Intl.DateTimeFormat(locale.value, {
+      weekday: 'long',
+      day: 'numeric',
+    }).formatToParts(date);
+    if (parts[0]?.type === 'weekday') return parts;
+    return [
+      ...parts.filter(({ type }) => type === 'weekday'),
+      { type: 'literal', value: ' ' },
+      ...parts.filter(({ type }) => type === 'day'),
+    ];
+  };
+
   // Locales abbreviate weekdays to different lengths, some with a dot; two letters keep tabs even.
   const formatDayInitials = (day: number): string =>
     formatDayName(day, 'short').slice(0, 2);
@@ -457,6 +484,8 @@ export function useSchedule() {
     getDisplayName,
     formatDayName,
     formatDayDate,
+    formatDayHeading,
+    formatColumnHeading,
     formatDayInitials,
     lessons,
     substitutions,

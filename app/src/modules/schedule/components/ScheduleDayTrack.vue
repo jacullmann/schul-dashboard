@@ -14,6 +14,7 @@ const props = withDefaults(
     panelOf: (day: number) => Panel;
     /** Lets a panel stay mounted while its day changes; each day gets its own by default. */
     panelKey?: (dayIndex: number) => PropertyKey;
+    currentDay?: number | null;
     animated?: boolean;
     /**
      * Pulls the track out through the padding around it, so days slide in
@@ -24,6 +25,7 @@ const props = withDefaults(
   {
     tabCaption: undefined,
     panelKey: undefined,
+    currentDay: null,
     animated: true,
     bleedClass: '-mx-4 px-4',
   },
@@ -50,6 +52,7 @@ const tabs = computed(() =>
     id: String(index),
     label: props.tabLabel(day),
     caption: props.tabCaption?.(day),
+    isToday: day === props.currentDay,
   })),
 );
 
@@ -71,20 +74,13 @@ const panels = computed(() => {
 </script>
 
 <template>
-  <div class="space-y-4">
+  <div class="flex flex-col gap-4">
     <ScheduleDayPicker
       :class="{ 'animate-enter': animated }"
       :style="{ '--enter-delay': entranceDelay(0, 1) }"
       :items="tabs"
       :active-id="String(selectedDayIndex)"
       @change="(id) => goToDay(Number(id))"
-    />
-
-    <div
-      class="h-px bg-ghost-border"
-      :class="{ 'animate-enter': animated }"
-      :style="{ '--enter-delay': entranceDelay(0, 1) }"
-      role="separator"
     />
 
     <div class="overflow-hidden" :class="bleedClass">

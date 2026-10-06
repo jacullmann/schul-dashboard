@@ -75,7 +75,7 @@ const showsRoom = computed(
     class="js-lesson-card flex-1 flex flex-col justify-start h-full max-xs:px-2.5 max-xs:py-1.5 px-2 py-1 select-none"
     :class="[
       hasBorder
-        ? 'border-b border-ghost-border xs:group-[.current-day]:border-surface-hover-border! group-[.highlight-active]:border-on-ghost-muted!'
+        ? 'border-b border-ghost-border group-[.highlight-active]:border-on-ghost-muted!'
         : '',
       isClickable
         ? 'cursor-pointer transition-colors duration-150 hover:bg-surface-hover'

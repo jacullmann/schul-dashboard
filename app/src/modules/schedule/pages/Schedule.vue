@@ -43,6 +43,8 @@ const {
   getDisplayName,
   defaultDayIndex,
   formatDayDate,
+  formatDayHeading,
+  formatColumnHeading,
   formatDayInitials,
 } = useSchedule();
 
@@ -216,7 +218,7 @@ watch(
 </script>
 
 <template>
-  <div class="p-4 space-y-4">
+  <div class="p-4">
     <ScheduleHeader
       class="animate-enter"
       :loading="loadingSubs || loadingLessons"
@@ -225,6 +227,7 @@ watch(
 
     <PersonalizedViewNotice
       :show="showPersonalizedNotice"
+      class="my-4"
       @dismiss="personalizedNotice.dismiss"
     />
 
@@ -235,6 +238,8 @@ watch(
       :labelled-rows="labelledRowsOf"
       :tab-label="formatDayDate"
       :tab-caption="formatDayInitials"
+      :day-heading="formatDayHeading"
+      :column-heading="formatColumnHeading"
       :panel-key="panelKey"
       :current-day="currentDay"
     >
@@ -268,7 +273,6 @@ watch(
           v-entrance-start="entranceStart"
           :group="lessons"
           :is-active="key === activeOrNextGroupKey"
-          :is-current-day="day === currentDay"
           :animated="animated"
           :get-display-name="getDisplayName"
           :style="[

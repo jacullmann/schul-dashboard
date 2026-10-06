@@ -45,7 +45,6 @@ const {
   scheduleConfig,
   groupedLessons,
   dayLayouts,
-  currentDay,
   activeOrNextGroupKey,
 } = useSchedule();
 
@@ -436,9 +435,6 @@ const {
                     :group="upcomingLessonPreview.group.lessons"
                     :is-active="
                       upcomingLessonPreview.group.key === activeOrNextGroupKey
-                    "
-                    :is-current-day="
-                      upcomingLessonPreview.group.day === currentDay
                     "
                     :animated="false"
                     :get-display-name="getDisplayName"
