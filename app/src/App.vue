@@ -67,7 +67,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="full">
+  <div class="flex flex-col min-h-dvh">
     <div
       v-if="loading"
       class="fixed top-0 left-0 right-0 h-[3px] w-full bg-transparent z-9999 pointer-events-none transition-all duration-200 ease-in-out"

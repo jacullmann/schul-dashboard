@@ -50,10 +50,12 @@ const topBarStyle = computed(() => ({
       </div>
       <div ref="topBarSlot" class="shrink-0 h-(--header-height)"></div>
 
-      <main class="full-c flex-1 overflow-x-clip pb-(--tab-bar-height)">
+      <main class="relative flex-1 overflow-x-clip pb-(--tab-bar-height)">
         <div
           key="content"
-          :class="{ container: !$route.meta.fullWidth }"
+          :class="{
+            'max-w-225 mx-auto p-0 bg-canvas': !$route.meta.fullWidth,
+          }"
           class="w-full"
         >
           <router-view v-slot="{ Component }">

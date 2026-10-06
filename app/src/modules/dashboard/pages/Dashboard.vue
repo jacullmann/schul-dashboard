@@ -208,7 +208,7 @@ const {
 </script>
 
 <template>
-  <div class="card">
+  <div class="p-4">
     <div class="relative mb-4 animate-enter">
       <Tagline />
     </div>

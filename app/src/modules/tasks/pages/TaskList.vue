@@ -184,7 +184,7 @@ onDeactivated(() => {
 </script>
 
 <template>
-  <div class="card">
+  <div class="p-4">
     <div :class="{ 'animate-enter': !hasEntered }">
       <PageHeader>
         {{ t('tasks.list.title') }}

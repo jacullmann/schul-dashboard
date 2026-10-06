@@ -18,7 +18,7 @@ const { user } = storeToRefs(userStore);
 </script>
 
 <template>
-  <div class="card">
+  <div class="p-4">
     <div class="animate-enter">
       <PageHeader>
         {{ t('tasks.private_tasks.title') }}
