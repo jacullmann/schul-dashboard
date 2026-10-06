@@ -1,6 +1,6 @@
 <template>
   <div
-    class="m-1 border-t border-ghost-border"
+    class="my-1 mx-4 md:mx-2.5 border-t border-ghost-border"
     role="separator"
     aria-orientation="horizontal"
   ></div>

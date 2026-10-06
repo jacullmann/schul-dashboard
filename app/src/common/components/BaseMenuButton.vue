@@ -50,8 +50,9 @@ defineExpose({
         ? 'text-danger hover:bg-danger-hover active:bg-danger-hover'
         : 'text-on-ghost hover:bg-ghost-hover active:bg-ghost-hover',
       isMobile ? (icon ? 'pl-4' : 'pl-4.5') : icon ? 'pl-2.5' : 'pl-3',
+      isMobile ? 'pr-4' : isSubmenu || isSelect ? 'pr-2.5' : 'pr-3',
       { 'font-semibold': active },
-      isMobile ? 'rounded-xl pr-4 min-h-12' : 'rounded-lg pr-3 min-h-9',
+      isMobile ? 'rounded-xl min-h-12' : 'rounded-lg min-h-9',
     ]"
     :style="
       forceHover

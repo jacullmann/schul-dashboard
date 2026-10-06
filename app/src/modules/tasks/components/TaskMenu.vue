@@ -9,6 +9,7 @@ import {
   Flag,
   Trash2,
   Pin,
+  PinOff,
   Archive,
   ArchiveRestore,
   Info,
@@ -105,11 +106,7 @@ function select(action: TaskMenuAction) {
 
       <BaseMenuDivider v-if="canUploadImages || canEdit || canAddNote" />
 
-      <BaseMenuButton
-        :icon="Pin"
-        :icon-classes="isPinned ? 'fill-current' : ''"
-        @click="select('pin')"
-      >
+      <BaseMenuButton :icon="isPinned ? PinOff : Pin" @click="select('pin')">
         {{
           isPinned
             ? t('tasks.list.tasks.menu.unpin')
