@@ -5,10 +5,13 @@ use crate::{
     },
     config::Config,
     messages::gateway::MessageBus,
+    passkeys::relying_party,
 };
+use anyhow::Context;
 use reqwest::Client;
 use sqlx::PgPool;
 use std::sync::Arc;
+use webauthn_rs::Webauthn;
 
 #[derive(Clone)]
 pub struct AppState {
@@ -21,10 +24,11 @@ pub struct AppState {
     pub email: EmailService,
     pub encryption: EncryptionService,
     pub message_bus: MessageBus,
+    pub webauthn: Arc<Webauthn>,
 }
 
 impl AppState {
-    pub fn new(db: PgPool, config: Config) -> Self {
+    pub fn new(db: PgPool, config: Config) -> anyhow::Result<Self> {
         let http = Client::builder()
             .timeout(std::time::Duration::from_secs(10))
             .user_agent("schul-dashboard-api/v2")
@@ -45,7 +49,9 @@ impl AppState {
             config.user_key_pepper.clone(),
         );
 
-        Self {
+        let webauthn = relying_party(&config.webauthn).context("Invalid WebAuthn configuration")?;
+
+        Ok(Self {
             db,
             config: Arc::new(config),
             http,
@@ -55,6 +61,7 @@ impl AppState {
             email,
             encryption,
             message_bus: MessageBus::default(),
-        }
+            webauthn: Arc::new(webauthn),
+        })
     }
 }

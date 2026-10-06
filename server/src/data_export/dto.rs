@@ -262,10 +262,21 @@ pub struct ReportAboutYou {
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SecurityExport {
+    pub passkeys: Vec<PasskeyRecord>,
     pub sessions: Vec<Session>,
     pub events: Vec<SecurityEvent>,
     pub password_resets: Vec<PasswordReset>,
     pub email_verifications: Vec<EmailVerification>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PasskeyRecord {
+    pub name: String,
+    /// Hex-encoded, the same identifier the authenticator holds.
+    pub credential_id: String,
+    pub created_at: DateTime<Utc>,
+    pub last_used_at: Option<DateTime<Utc>>,
 }
 
 /// One sign-in, summarised over all of its rotated refresh tokens.

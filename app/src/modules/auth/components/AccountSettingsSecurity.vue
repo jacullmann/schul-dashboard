@@ -2,11 +2,18 @@
 import { computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { KeyRound, Link2, MonitorSmartphone, ShieldCheck } from '@lucide/vue';
+import {
+  Fingerprint,
+  KeyRound,
+  Link2,
+  MonitorSmartphone,
+  ShieldCheck,
+} from '@lucide/vue';
 import MfaSettings from '@/modules/auth/components/MfaSettings.vue';
 import ConnectedAccounts from '@/modules/auth/components/ConnectedAccounts.vue';
 import ActiveSessions from '@/modules/auth/components/ActiveSessions.vue';
 import PasswordSettings from '@/modules/auth/components/PasswordSettings.vue';
+import PasskeySettings from '@/modules/auth/components/PasskeySettings.vue';
 import { useMfa } from '@/modules/auth/composables/useMfa';
 import { useUserStore } from '@/stores/userStore';
 
@@ -50,6 +57,15 @@ onMounted(async () => {
       </template>
     </BaseList>
 
+    <BaseList @click="openSubTab('passkeys')">
+      <template #icon>
+        <Fingerprint :size="20" :stroke-width="1.8" />
+      </template>
+      <template #label>
+        {{ t('auth.passkeys.title') }}
+      </template>
+    </BaseList>
+
     <BaseList @click="openSubTab('two-factor')">
       <template #icon>
         <ShieldCheck :size="20" :stroke-width="1.8" />
@@ -80,6 +96,10 @@ onMounted(async () => {
 
   <section v-else-if="subTab === 'password'" class="max-w-160">
     <PasswordSettings />
+  </section>
+
+  <section v-else-if="subTab === 'passkeys'" class="max-w-160">
+    <PasskeySettings />
   </section>
 
   <section v-else-if="subTab === 'two-factor'" class="max-w-160">

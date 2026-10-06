@@ -65,3 +65,5 @@ tower = "0.5.3"
 tower_governor = { version = "0.8", features = ["axum"]}
 governor = "0.10.4"
 zip = { version = "8.6", default-features = false, features = ["deflate-flate2-zlib-rs"] }
+webauthn-rs = { version = "0.5.5", features = ["danger-allow-state-serialisation", "conditional-ui"] }
+webauthn-rs-proto = "0.5.5"

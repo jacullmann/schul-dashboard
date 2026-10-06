@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
+import { AlertCircle, Fingerprint } from '@lucide/vue';
 import { useUserStore } from '@/stores/userStore';
 import GoogleIcon from '@/modules/auth/components/GoogleIcon.vue';
 import { useLogin } from '@/modules/auth/composables/useLogin';
 import { useOAuth } from '@/modules/auth/composables/useOAuth';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
+import { usePasskeySignIn } from '@/modules/auth/composables/usePasskeySignIn';
 import { useI18n } from 'vue-i18n';
 
 const router = useRouter();
@@ -12,6 +14,16 @@ const userStore = useUserStore();
 const { t } = useI18n();
 const { initiateGoogleLogin } = useOAuth();
 const { checkAuthStatus, homeRoute } = useAppAuth();
+
+async function enterApp() {
+  try {
+    await checkAuthStatus();
+    await userStore.fetchUser();
+  } catch {
+    // Login succeeded; navigate anyway and let the route guard re-sync.
+  }
+  await router.push(homeRoute.value);
+}
 
 const {
   email,
@@ -22,20 +34,16 @@ const {
   errors,
   clearFieldError,
   submit: submitLogin,
-} = useLogin(
-  async () => {
-    try {
-      await checkAuthStatus();
-      await userStore.fetchUser();
-    } catch {
-      // Login succeeded; navigate anyway and let the route guard re-sync.
-    }
-    await router.push(homeRoute.value);
-  },
-  async () => {
-    await router.push({ name: 'verify-mfa' });
-  },
-);
+} = useLogin(enterApp, async () => {
+  await router.push({ name: 'verify-mfa' });
+});
+
+const {
+  supported: passkeysSupported,
+  signingIn: passkeySigningIn,
+  error: passkeyError,
+  signInWithPasskey,
+} = usePasskeySignIn(enterApp);
 
 async function handleSubmit() {
   await submitLogin();
@@ -77,7 +85,7 @@ function navigateToRegister() {
               v-model="email"
               :placeholder="t('auth.login.email_placeholder')"
               type="email"
-              autocomplete="email"
+              autocomplete="email webauthn"
               required
               :aria-describedby="errors.email ? 'login-email-error' : undefined"
               @input="clearFieldError('email')"
@@ -131,6 +139,28 @@ function navigateToRegister() {
         <GoogleIcon :size="16" />
         <span>{{ t('auth.login.login_google') }}</span>
       </BaseButton>
+      <template v-if="passkeysSupported">
+        <BaseButton
+          type="button"
+          surface
+          variant="ghost"
+          class="w-full justify-center mt-2"
+          :icon="Fingerprint"
+          :loading="passkeySigningIn"
+          :disabled="passkeySigningIn"
+          @click="signInWithPasskey"
+        >
+          {{ t('auth.passkeys.sign_in') }}
+        </BaseButton>
+        <div
+          v-if="passkeyError"
+          role="alert"
+          class="flex items-center justify-center gap-1.5 mt-2 text-sm text-danger"
+        >
+          <AlertCircle :size="16" class="shrink-0" />
+          {{ passkeyError }}
+        </div>
+      </template>
       <div class="text-center mt-8">
         <p class="text-sm text-on-ghost-muted">
           {{

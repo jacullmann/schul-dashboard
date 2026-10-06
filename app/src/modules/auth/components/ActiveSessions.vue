@@ -13,6 +13,7 @@ import { useConfirmModal } from '@/stores/modalStore';
 import { useI18n } from 'vue-i18n';
 import { formatDate } from '@/utils/date-formatter';
 import { useToast } from '@/common/composables/useToast';
+import { parseUserAgent as parseDeviceUserAgent } from '@/modules/auth/utils/userAgent';
 
 interface SessionLocation {
   city: string | null;
@@ -122,56 +123,12 @@ function parseUserAgent(ua: string | null): {
   os: string;
   isMobile: boolean;
 } {
-  if (!ua) {
-    return {
-      browser: t('auth.sessions.browser.unknown'),
-      os: t('auth.sessions.os.unknown'),
-      isMobile: false,
-    };
-  }
-
-  const uaLower = ua.toLowerCase();
-  let browser = t('auth.sessions.browser.unknown');
-  let os = t('auth.sessions.os.unknown');
-  let isMobile = false;
-
-  if (/mobile|android|iphone|ipad|phone/i.test(uaLower)) {
-    isMobile = true;
-  }
-
-  if (uaLower.includes('windows')) {
-    os = 'Windows';
-  } else if (uaLower.includes('macintosh') || uaLower.includes('mac os x')) {
-    os = uaLower.includes('iphone')
-      ? 'iOS'
-      : uaLower.includes('ipad')
-        ? 'iPadOS'
-        : 'macOS';
-  } else if (uaLower.includes('android')) {
-    os = 'Android';
-  } else if (uaLower.includes('linux')) {
-    os = 'Linux';
-  } else if (uaLower.includes('iphone')) {
-    os = 'iOS';
-  } else if (uaLower.includes('ipad')) {
-    os = 'iPadOS';
-  } else if (uaLower.includes('cros')) {
-    os = 'ChromeOS';
-  }
-
-  if (uaLower.includes('edg/')) {
-    browser = 'Microsoft Edge';
-  } else if (uaLower.includes('opera') || uaLower.includes('opr/')) {
-    browser = 'Opera';
-  } else if (uaLower.includes('chrome') || uaLower.includes('crios')) {
-    browser = 'Google Chrome';
-  } else if (uaLower.includes('firefox') || uaLower.includes('fxios')) {
-    browser = 'Mozilla Firefox';
-  } else if (uaLower.includes('safari') && !uaLower.includes('chrome')) {
-    browser = 'Apple Safari';
-  }
-
-  return { browser, os, isMobile };
+  const parsed = parseDeviceUserAgent(ua);
+  return {
+    browser: parsed.browser ?? t('auth.sessions.browser.unknown'),
+    os: parsed.os ?? t('auth.sessions.os.unknown'),
+    isMobile: parsed.isMobile,
+  };
 }
 
 onMounted(() => {

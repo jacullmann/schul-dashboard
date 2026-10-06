@@ -89,4 +89,8 @@ impl EmailService {
     pub async fn send_security_email(&self, to: &str, locale: Locale) -> Result<(), AppError> {
         self.send(to, Message::password_reset_notice(locale)).await
     }
+
+    pub async fn send_passkey_added_email(&self, to: &str, locale: Locale) -> Result<(), AppError> {
+        self.send(to, Message::passkey_added_notice(locale)).await
+    }
 }

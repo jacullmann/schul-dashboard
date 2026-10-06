@@ -202,4 +202,35 @@ impl Message {
             },
         }
     }
+
+    pub fn passkey_added_notice(locale: Locale) -> Self {
+        match locale {
+            Locale::De => Self {
+                locale,
+                subject: "Neuer Passkey hinzugefügt",
+                preheader: "Deinem schul-dashboard-Konto wurde ein Passkey hinzugefügt.",
+                heading: "Wichtige Sicherheitsmeldung",
+                paragraphs: &[
+                    "Soeben wurde deinem Konto ein neuer Passkey hinzugefügt. Mit ihm kann man sich ohne Passwort anmelden.",
+                    "Falls du dies nicht warst, entferne den Passkey in den Kontoeinstellungen unter Sicherheit, melde alle Geräte ab und kontaktiere den Support.",
+                ],
+                action: None,
+                note: None,
+                disclaimer: None,
+            },
+            Locale::En => Self {
+                locale,
+                subject: "New passkey added",
+                preheader: "A passkey was added to your schul-dashboard account.",
+                heading: "Important security notice",
+                paragraphs: &[
+                    "A new passkey was just added to your account. It can be used to sign in without a password.",
+                    "If this wasn't you, remove the passkey under Security in your account settings, sign out all devices and contact support.",
+                ],
+                action: None,
+                note: None,
+                disclaimer: None,
+            },
+        }
+    }
 }

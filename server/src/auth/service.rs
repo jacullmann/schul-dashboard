@@ -625,6 +625,13 @@ impl AuthService {
 
         disable_mfa(&mut tx, user.id).await?;
 
+        // A reset only proves control of the mailbox, so it takes back every
+        // other way in, including a passkey someone added with a stolen session.
+        let passkeys_removed = sqlx::query!(r#"DELETE FROM passkeys WHERE user_id = $1"#, user.id)
+            .execute(&mut *tx)
+            .await?
+            .rows_affected();
+
         tx.commit().await?;
 
         self.tokens
@@ -637,7 +644,12 @@ impl AuthService {
             VALUES ($1, 'account:password_reset', $2)
             "#,
             user.id,
-            json!({ "by": "self", "mfaWasEnabled": user.mfa_enabled, "mfaDisabled": true })
+            json!({
+                "by": "self",
+                "mfaWasEnabled": user.mfa_enabled,
+                "mfaDisabled": true,
+                "passkeysRemoved": passkeys_removed,
+            })
         )
         .execute(&self.db)
         .await?;
@@ -647,7 +659,7 @@ impl AuthService {
 
         Ok(json!({
             "ok": true,
-            "message": "Password reset successfully. MFA has been disabled."
+            "message": "Password reset successfully. MFA and passkeys have been removed."
         }))
     }
 

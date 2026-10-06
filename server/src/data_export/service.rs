@@ -334,6 +334,17 @@ impl DataExportService {
         .fetch_all(&mut *tx)
         .await?;
 
+        let passkeys = sqlx::query_as!(
+            PasskeyRecord,
+            r#"SELECT name, encode(credential_id, 'hex') AS "credential_id!", created_at, last_used_at
+               FROM passkeys
+               WHERE user_id = $1
+               ORDER BY created_at"#,
+            user_id
+        )
+        .fetch_all(&mut *tx)
+        .await?;
+
         let security_events = sqlx::query_as!(
             SecurityEvent,
             r#"SELECT event_type, event_status, host(ip_address) AS "ip_address?",
@@ -418,6 +429,7 @@ impl DataExportService {
                 about_your_content: reports_about_you,
             },
             security: SecurityExport {
+                passkeys,
                 sessions,
                 events: security_events,
                 password_resets,

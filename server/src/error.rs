@@ -38,6 +38,9 @@ pub enum AppError {
     EmailCodeThrottled { retry_after: chrono::TimeDelta },
 
     #[error("{0}")]
+    Passkey(PasskeyFailure),
+
+    #[error("{0}")]
     Forbidden(String),
 
     #[error("{0}")]
@@ -124,6 +127,10 @@ impl IntoResponse for AppError {
             AppError::EmailCodeThrottled { retry_after } => {
                 return too_many_requests(&self, "EMAIL_CODE_THROTTLED", *retry_after);
             }
+            AppError::Passkey(failure) => (
+                failure.status(),
+                json!({ "error": self.to_string(), "code": failure.code() }),
+            ),
             AppError::Forbidden(msg) => (StatusCode::FORBIDDEN, json!({ "error": msg })),
             AppError::NotFound(msg) => (StatusCode::NOT_FOUND, json!({ "error": msg })),
             AppError::FileTooLarge { max_bytes } => (
@@ -177,6 +184,64 @@ fn too_many_requests(error: &AppError, code: &str, retry_after: chrono::TimeDelt
         Json(json!({ "error": error.to_string(), "code": code, "retryAfter": secs })),
     )
         .into_response()
+}
+
+/// Why a passkey registration or sign-in was refused. Each case has its own
+/// code, so the client can explain it in the user's language.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Error)]
+pub enum PasskeyFailure {
+    /// The ceremony is unknown, already answered or past its deadline; the
+    /// client has to start a new one.
+    #[error("The passkey request has expired. Please try again.")]
+    ChallengeExpired,
+
+    /// No account holds the credential, e.g. because its passkey was removed
+    /// from the account but not from the device.
+    #[error("This passkey is not registered.")]
+    UnknownCredential,
+
+    #[error("The passkey could not be verified.")]
+    SignInRejected,
+
+    #[error("The passkey could not be registered.")]
+    RegistrationRejected,
+
+    #[error("This passkey is already registered.")]
+    AlreadyRegistered,
+
+    #[error("You have reached the maximum number of passkeys.")]
+    LimitReached,
+}
+
+impl PasskeyFailure {
+    // Failed registrations come from a signed-in user, who must not be sent
+    // to refresh their session, so only sign-in failures are a 401.
+    fn status(self) -> StatusCode {
+        match self {
+            Self::UnknownCredential | Self::SignInRejected => StatusCode::UNAUTHORIZED,
+            Self::AlreadyRegistered => StatusCode::CONFLICT,
+            Self::ChallengeExpired | Self::RegistrationRejected | Self::LimitReached => {
+                StatusCode::BAD_REQUEST
+            }
+        }
+    }
+
+    fn code(self) -> &'static str {
+        match self {
+            Self::ChallengeExpired => "PASSKEY_CHALLENGE_EXPIRED",
+            Self::UnknownCredential => "PASSKEY_UNKNOWN",
+            Self::SignInRejected => "PASSKEY_REJECTED",
+            Self::RegistrationRejected => "PASSKEY_REGISTRATION_REJECTED",
+            Self::AlreadyRegistered => "PASSKEY_ALREADY_REGISTERED",
+            Self::LimitReached => "PASSKEY_LIMIT_REACHED",
+        }
+    }
+}
+
+impl From<PasskeyFailure> for AppError {
+    fn from(failure: PasskeyFailure) -> Self {
+        Self::Passkey(failure)
+    }
 }
 
 pub type AppResult<T> = Result<T, AppError>;

@@ -48,6 +48,7 @@ const activeTab = computed<string>({
 
 const securitySubTabLabels = computed<Record<string, string>>(() => ({
   password: t('auth.security.password'),
+  passkeys: t('auth.passkeys.title'),
   'two-factor': t('auth.security.2fa'),
   'connected-accounts': t('auth.account_settings.connected_accounts.title'),
   sessions: t('auth.sessions.title'),

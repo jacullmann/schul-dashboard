@@ -1,5 +1,6 @@
 use anyhow::{Context, Result};
 use std::time::Duration;
+use url::Url;
 
 #[derive(Debug, Clone)]
 pub struct Config {
@@ -26,6 +27,7 @@ pub struct Config {
     pub email_from: String,
     pub geoip_service_url: String,
     pub hetzner: HetznerConfig,
+    pub webauthn: WebauthnConfig,
 }
 
 #[derive(Clone)]
@@ -41,6 +43,16 @@ impl std::fmt::Debug for HetznerConfig {
             .field("server_id", &self.server_id)
             .finish()
     }
+}
+
+/// Who passkeys are bound to. The browser checks both against the page the
+/// ceremony runs on, so they describe the frontend, not this API.
+#[derive(Debug, Clone)]
+pub struct WebauthnConfig {
+    /// Every passkey is bound to this domain for good: changing it later
+    /// makes all registered passkeys unusable.
+    pub rp_id: String,
+    pub rp_origin: Url,
 }
 
 impl Config {
@@ -60,9 +72,12 @@ impl Config {
             .and_then(|v| v.parse::<bool>().ok())
             .unwrap_or(is_production);
 
+        let cors_origin = require("CORS_ORIGIN")?;
+        let webauthn = WebauthnConfig::from_env(&cors_origin)?;
+
         Ok(Self {
             port,
-            cors_origin: require("CORS_ORIGIN")?,
+            cors_origin,
             cookie_domain: require("COOKIE_DOMAIN")?,
             cookie_secure,
             client_verify_url: require("CLIENT_VERIFY_URL")?,
@@ -87,6 +102,7 @@ impl Config {
             geoip_service_url: std::env::var("GEOIP_SERVICE_URL")
                 .unwrap_or_else(|_| "http://geoip-service:8080".into()),
             hetzner: hetzner_from_env()?,
+            webauthn,
         })
     }
 
@@ -102,6 +118,32 @@ impl Config {
 pub struct BaseCookieOptions {
     pub domain: String,
     pub secure: bool,
+}
+
+impl WebauthnConfig {
+    /// Defaults to the frontend origin from `CORS_ORIGIN` and its host name.
+    fn from_env(cors_origin: &str) -> Result<Self> {
+        let raw_origin = optional("WEBAUTHN_RP_ORIGIN").unwrap_or_else(|| cors_origin.into());
+        let rp_origin = Url::parse(&raw_origin)
+            .with_context(|| format!("WEBAUTHN_RP_ORIGIN is not a valid URL: {raw_origin}"))?;
+
+        let rp_id = match optional("WEBAUTHN_RP_ID") {
+            Some(rp_id) => rp_id,
+            None => rp_origin
+                .domain()
+                .context("WEBAUTHN_RP_ID must be set when the origin has no domain")?
+                .to_owned(),
+        };
+
+        Ok(Self { rp_id, rp_origin })
+    }
+}
+
+/// A variable left blank, as in `.env.example`, counts as unset.
+fn optional(key: &str) -> Option<String> {
+    std::env::var(key)
+        .ok()
+        .filter(|value| !value.trim().is_empty())
 }
 
 fn require(key: &str) -> Result<String> {
@@ -137,6 +179,9 @@ pub const MFA_PENDING_TTL: Duration = Duration::from_secs(5 * 60);
 pub const PASSWORD_RESET_TTL: Duration = Duration::from_secs(15 * 60);
 pub const PASSWORD_RESET_CODE_TTL: Duration = Duration::from_secs(30 * 60);
 pub const EMAIL_VERIFY_TTL: Duration = Duration::from_secs(2 * 24 * 60 * 60);
+/// How long a passkey registration or sign-in may take, and the timeout the
+/// browser is given for it.
+pub const PASSKEY_CEREMONY_TTL: Duration = Duration::from_secs(5 * 60);
 
 /// `chrono` arithmetic counterpart of the TTL constants above. The values are
 /// small, fixed multiples of a second, so the conversion is always in range.

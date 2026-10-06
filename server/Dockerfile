@@ -21,6 +21,7 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         ca-certificates \
+        libssl3 \
     && rm -rf /var/lib/apt/lists/* \
     && groupadd --system --gid 1001 app \
     && useradd --system --uid 1001 --gid app --no-create-home app

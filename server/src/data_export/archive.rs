@@ -156,6 +156,7 @@ mod tests {
                 about_your_content: vec![],
             },
             security: SecurityExport {
+                passkeys: vec![],
                 sessions: vec![],
                 events: vec![],
                 password_resets: vec![],

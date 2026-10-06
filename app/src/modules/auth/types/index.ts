@@ -1,3 +1,8 @@
+import type {
+  PublicKeyCredentialCreationOptionsJSON,
+  PublicKeyCredentialRequestOptionsJSON,
+} from '@simplewebauthn/browser';
+
 export interface MfaSetupResponse {
   ok: boolean;
   qrCode: string;
@@ -48,4 +53,29 @@ export interface ForgotPasswordErrors {
   code?: string;
   password?: string;
   confirm?: string;
+}
+
+export interface Passkey {
+  id: string;
+  name: string;
+  createdAt: string;
+  lastUsedAt: string | null;
+  /** Base64url, as the browser reports it. */
+  credentialId: string;
+}
+
+export interface PasskeyListResponse {
+  passkeys: Passkey[];
+  rpId: string;
+  /** The user handle every passkey of the account carries, base64url. */
+  userHandle: string;
+}
+
+export interface PasskeyRegistrationResponse {
+  options: PublicKeyCredentialCreationOptionsJSON;
+}
+
+export interface PasskeyChallengeResponse {
+  challengeId: string;
+  options: PublicKeyCredentialRequestOptionsJSON;
 }

@@ -10,6 +10,7 @@ mod items;
 mod messages;
 mod mfa;
 mod oauth;
+mod passkeys;
 mod reports;
 mod schedule;
 mod state;
@@ -64,7 +65,7 @@ async fn main() -> anyhow::Result<()> {
 
     info!("Database connected and migrations applied.");
 
-    let state = AppState::new(db, config);
+    let state = AppState::new(db, config)?;
 
     assets::sweep::spawn(state.db.clone(), state.cloudinary.clone());
 
@@ -119,6 +120,7 @@ async fn main() -> anyhow::Result<()> {
         .merge(messages::routes::router())
         .merge(mfa::routes::router())
         .merge(oauth::routes::router())
+        .merge(passkeys::routes::router())
         .merge(super_admin::routes::router(state.clone()))
         .layer(common::rate_limit::global())
         .layer(middleware::from_fn_with_state(

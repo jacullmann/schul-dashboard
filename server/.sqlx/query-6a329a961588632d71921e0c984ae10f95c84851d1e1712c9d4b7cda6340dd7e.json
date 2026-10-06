@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO passkey_registrations (user_id, state, expires_at)\n               VALUES ($1, $2, $3)\n               ON CONFLICT (user_id) DO UPDATE SET state = $2, expires_at = $3",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Jsonb",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "6a329a961588632d71921e0c984ae10f95c84851d1e1712c9d4b7cda6340dd7e"
+}
