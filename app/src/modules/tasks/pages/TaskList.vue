@@ -19,6 +19,7 @@ import {
   vEntranceStart,
 } from '@/common/composables/useSkeletonHandoff';
 import { useCardEntrance } from '@/modules/tasks/composables/useCardEntrance';
+import { useDueSections } from '@/modules/tasks/composables/useDueSections';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 
 import InfoModal from '@/common/components/InfoModal.vue';
@@ -88,6 +89,8 @@ const {
 const visibleItems = computed(() =>
   limitedItems.value.filter((item) => !dismissedItems.has(item.id)),
 );
+
+const { sectionHeadingOf } = useDueSections(visibleItems, isPinned);
 
 const hasActiveFilters = computed(
   () => subjectFilter.value !== '' || showOldEntries.value || hideChecked.value,
@@ -312,11 +315,24 @@ onDeactivated(() => {
         class="flex flex-col relative max-md:-mx-4"
         @leave="collapseLeavingRow"
       >
-        <!-- The fragment key prefixes both children's keys, so a separator
-             folds away with the card below it and the next one takes over. -->
+        <!-- The fragment key prefixes its children's keys, so a separator or
+             heading folds away with the card below it and the next one takes
+             over. -->
         <template v-for="(item, index) in visibleItems" :key="item.id">
+          <h3
+            v-if="sectionHeadingOf(item.id)"
+            v-entrance-start="cardEntranceStartOf(item.id)"
+            class="px-4 md:px-3 pb-2"
+            :class="{
+              'pt-6': index > 0,
+              'animate-enter': isCardEntering(item.id),
+            }"
+            :style="cardEntranceStyle(item.id)"
+          >
+            {{ sectionHeadingOf(item.id) }}
+          </h3>
           <div
-            v-if="index > 0"
+            v-else-if="index > 0"
             v-entrance-start="cardEntranceStartOf(item.id)"
             class="separator ml-11.5 md:ml-10.5 mr-4"
             :class="{ 'animate-enter': isCardEntering(item.id) }"

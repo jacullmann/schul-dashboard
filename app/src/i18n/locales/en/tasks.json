@@ -117,6 +117,13 @@
       "placeholder": "Add a note…"
     },
     "reset_filters": "Reset filters",
+    "sections": {
+      "pinned": "Pinned",
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "this_week": "This Week",
+      "next_week": "Next Week"
+    },
     "tabs": {
       "all": "All",
       "dalton": "Dalton",

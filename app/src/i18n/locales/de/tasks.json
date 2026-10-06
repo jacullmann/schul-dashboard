@@ -117,6 +117,13 @@
       "placeholder": "Notiz hinzufügen…"
     },
     "reset_filters": "Filter zurücksetzen",
+    "sections": {
+      "pinned": "Angeheftet",
+      "today": "Heute",
+      "tomorrow": "Morgen",
+      "this_week": "Diese Woche",
+      "next_week": "Nächste Woche"
+    },
     "tabs": {
       "all": "Alle",
       "dalton": "Dalton",
