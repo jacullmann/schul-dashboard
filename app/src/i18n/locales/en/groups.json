@@ -87,7 +87,7 @@
       "dalton": {
         "title": "Dalton",
         "description": "Dalton adds independent study time to the schedule and its own task type.",
-        "toggle_title": "Enable Dalton",
+        "toggle_title": "Dalton",
         "toggle_description": "Dalton becomes a task type and can be scheduled like a subject. Subjects can be marked as Dalton subjects.",
         "modal": {
           "title": "Disable Dalton?",
@@ -197,19 +197,58 @@
         "moderation": "Moderation"
       },
       "items": {
-        "edit_group_general": "Edit group picture and name",
-        "invite_members": "Invite members",
-        "edit_subjects_courses": "Edit subject/course list",
-        "edit_schedule": "Edit schedule",
-        "create_items": "Create new tasks",
-        "upload_images": "Upload images",
-        "manage_notes": "Add, edit, and delete notes",
-        "send_messages": "Send messages",
-        "manage_schedule_changes": "Add and delete schedule changes",
-        "manage_announcements": "Add and delete announcements",
-        "moderate_members": "Remove and ban/unban members, view and revoke invite links",
-        "edit_other_content": "Edit tasks from users",
-        "delete_other_content": "Delete tasks, images, and messages from users"
+        "edit_group_general": {
+          "title": "Edit group picture and name",
+          "description": "Edit group picture and name"
+        },
+        "invite_members": {
+          "title": "Invite members",
+          "description": "Invite members"
+        },
+        "edit_subjects_courses": {
+          "title": "Edit subject/course list",
+          "description": "Edit subject/course list"
+        },
+        "edit_schedule": {
+          "title": "Edit schedule",
+          "description": "Edit schedule"
+        },
+        "create_items": {
+          "title": "Create new tasks",
+          "description": "Create new tasks"
+        },
+        "upload_images": {
+          "title": "Upload images",
+          "description": "Upload images"
+        },
+        "manage_notes": {
+          "title": "Add, edit, and delete notes",
+          "description": "Add, edit, and delete notes"
+        },
+        "send_messages": {
+          "title": "Send messages",
+          "description": "Send messages"
+        },
+        "manage_schedule_changes": {
+          "title": "Add and delete schedule changes",
+          "description": "Add and delete schedule changes"
+        },
+        "manage_announcements": {
+          "title": "Add and delete announcements",
+          "description": "Add and delete announcements"
+        },
+        "moderate_members": {
+          "title": "Remove and ban/unban members, view and revoke invite links",
+          "description": "Remove and ban/unban members, view and revoke invite links"
+        },
+        "edit_other_content": {
+          "title": "Edit tasks from users",
+          "description": "Edit tasks from users"
+        },
+        "delete_other_content": {
+          "title": "Delete tasks, images, and messages from users",
+          "description": "Delete tasks, images, and messages from users"
+        }
       },
       "options": {
         "all": "All",

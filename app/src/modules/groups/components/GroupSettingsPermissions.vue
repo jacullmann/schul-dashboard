@@ -13,7 +13,8 @@ import type {
   PermissionRole,
 } from '@/types/permissions';
 
-const { t } = useI18n();
+const i18n = useI18n();
+const { t } = i18n;
 
 const props = defineProps<{
   canManage: boolean;
@@ -21,6 +22,8 @@ const props = defineProps<{
 
 interface PermissionSection {
   category: 'general' | 'tasks' | 'chat' | 'info' | 'moderation';
+  /** Still enforced by the server, just not offered for editing. */
+  hidden?: boolean;
   /** Mirrors `Permission::lowest_role`, which the server enforces. */
   permissions: { key: PermissionKey; lowestRole: PermissionRole }[];
 }
@@ -45,6 +48,7 @@ const PERMISSION_SECTIONS: PermissionSection[] = [
   },
   {
     category: 'chat',
+    hidden: true,
     permissions: [{ key: 'send_messages', lowestRole: 'user' }],
   },
   {
@@ -63,6 +67,10 @@ const PERMISSION_SECTIONS: PermissionSection[] = [
     ],
   },
 ];
+
+const VISIBLE_PERMISSION_SECTIONS = PERMISSION_SECTIONS.filter(
+  ({ hidden }) => !hidden,
+);
 
 const ROLES: { role: PermissionRole; label: string }[] = [
   { role: 'user', label: 'all' },
@@ -172,33 +180,39 @@ onMounted(() => {
       </div>
 
       <section
-        v-for="section in PERMISSION_SECTIONS"
+        v-for="section in VISIBLE_PERMISSION_SECTIONS"
         :key="section.category"
-        class="flex flex-col gap-4"
+        class="flex flex-col gap-2"
       >
         <h3>
           {{ t(`groups.settings.permissions.categories.${section.category}`) }}
         </h3>
 
-        <BaseRow
-          v-for="{ key, lowestRole } in section.permissions"
-          :key="key"
-          justify="between"
-          class="flex-nowrap!"
-        >
-          <div class="text-base text-on-ghost">
-            {{ t(`groups.settings.permissions.items.${key}`) }}
-          </div>
-
-          <BaseSelect
-            :form="false"
+        <div class="flex flex-col max-md:-mx-6">
+          <BaseList
+            v-for="({ key, lowestRole }, index) in section.permissions"
+            :key="key"
+            select
+            :separator="index !== section.permissions.length - 1"
             :model-value="permissions[key]"
-            :disabled="!canManage || saving"
             :options="roleOptions(lowestRole)"
-            classes="w-38!"
+            :title="t(`groups.settings.permissions.items.${key}.title`)"
+            :disabled="!canManage || saving"
             @update:model-value="savePermission(key, $event as PermissionRole)"
-          />
-        </BaseRow>
+          >
+            <template #label>
+              {{ t(`groups.settings.permissions.items.${key}.title`) }}
+            </template>
+            <template
+              v-if="
+                i18n.te(`groups.settings.permissions.items.${key}.description`)
+              "
+              #desc
+            >
+              {{ t(`groups.settings.permissions.items.${key}.description`) }}
+            </template>
+          </BaseList>
+        </div>
       </section>
     </div>
   </div>

@@ -88,7 +88,7 @@
       "dalton": {
         "title": "Dalton",
         "description": "Dalton ergänzt den Stundenplan um freie Lernzeit und bringt einen eigenen Aufgabentyp mit.",
-        "toggle_title": "Dalton aktivieren",
+        "toggle_title": "Dalton",
         "toggle_description": "Dalton wird zum Aufgabentyp und kann wie ein Fach in den Stundenplan eingetragen werden. Fächer können als Daltonfächer markiert werden.",
         "modal": {
           "title": "Dalton deaktivieren?",
@@ -198,19 +198,58 @@
         "moderation": "Moderation"
       },
       "items": {
-        "edit_group_general": "Gruppenbild und -name bearbeiten",
-        "invite_members": "Mitglieder einladen",
-        "edit_subjects_courses": "Fächer/Kursliste bearbeiten",
-        "edit_schedule": "Stundenplan bearbeiten",
-        "create_items": "Neue Aufgaben erstellen",
-        "upload_images": "Bilder hochladen",
-        "manage_notes": "Notizen hinzufügen, bearbeiten und löschen",
-        "send_messages": "Nachrichten senden",
-        "manage_schedule_changes": "Stundenplanänderungen hinzufügen und löschen",
-        "manage_announcements": "Ankündigungen hinzufügen und löschen",
-        "moderate_members": "Mitglieder entfernen und bannen bzw. entbannen, Einladungslinks einsehen und widerrufen",
-        "edit_other_content": "Aufgaben von Nutzern bearbeiten",
-        "delete_other_content": "Aufgaben, Bilder und Nachrichten von Nutzern löschen"
+        "edit_group_general": {
+          "title": "Gruppenprofil bearbeiten",
+          "description": "Gruppenbild und -name bearbeiten"
+        },
+        "invite_members": {
+          "title": "Mitglieder einladen",
+          "description": "Neue Einladungslinks erstellen"
+        },
+        "edit_subjects_courses": {
+          "title": "Fächer/Kursliste bearbeiten",
+          "description": "Neue Fächer oder Kurse erstellen und bestehende bearbeiten und löschen"
+        },
+        "edit_schedule": {
+          "title": "Stundenplan bearbeiten",
+          "description": "Stunden und Pausen erstellen, bearbeiten und löschen und Konfiguration ändern"
+        },
+        "create_items": {
+          "title": "Aufgaben erstellen",
+          "description": "Neue Aufgaben erstellen"
+        },
+        "upload_images": {
+          "title": "Bilder hochladen",
+          "description": "Dateien hochladen und an Aufgaben anhängen"
+        },
+        "manage_notes": {
+          "title": "Notizen",
+          "description": "Bei allen Aufgaben Notizen hinzufügen, bearbeiten und löschen"
+        },
+        "send_messages": {
+          "title": "Nachrichten senden",
+          "description": "Nachrichten senden"
+        },
+        "manage_schedule_changes": {
+          "title": "Stundenplanänderungen",
+          "description": "Stundenplanänderungen hinzufügen und löschen"
+        },
+        "manage_announcements": {
+          "title": "Ankündigungen",
+          "description": "Ankündigungen hinzufügen und löschen"
+        },
+        "moderate_members": {
+          "title": "Mitglieder verwalten",
+          "description": "Mitglieder entfernen und bannen bzw. entbannen, Einladungslinks einsehen und widerrufen"
+        },
+        "edit_other_content": {
+          "title": "Inhalte bearbeiten",
+          "description": "Aufgaben von Mitgliedern bearbeiten"
+        },
+        "delete_other_content": {
+          "title": "Inhalte löschen",
+          "description": "Aufgaben und Dateien von Mitgliedern löschen"
+        }
       },
       "options": {
         "all": "Alle",

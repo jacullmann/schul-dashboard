@@ -9,7 +9,6 @@ import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { uploadGroupAvatar } from '@/api/files';
 import GroupAvatarCropper from './GroupAvatarCropper.vue';
 import GroupTypeRadioGroup from './GroupTypeRadioGroup.vue';
-import SettingToggleCard from './SettingToggleCard.vue';
 import DeleteGroupModal from './DeleteGroupModal.vue';
 import Avatar from '@/modules/auth/components/Avatar.vue';
 import { GROUP_NAME_MAX_LENGTH, type GroupType } from '@/types/groups';
@@ -543,12 +542,21 @@ async function confirmDeleteGroup() {
       </p>
 
       <BaseFormContent class="max-w-120">
-        <SettingToggleCard
-          v-model="daltonInput"
-          :title="t('groups.settings.general.dalton.toggle_title')"
-          :description="t('groups.settings.general.dalton.toggle_description')"
-          :disabled="!canEditGroupType || savingDaltonEnabled"
-        />
+        <div class="flex flex-col max-md:-mx-6">
+          <BaseList
+            v-model:checked="daltonInput"
+            toggle
+            :separator="false"
+            :disabled="!canEditGroupType || savingDaltonEnabled"
+          >
+            <template #label>
+              {{ t('groups.settings.general.dalton.toggle_title') }}
+            </template>
+            <template #desc>
+              {{ t('groups.settings.general.dalton.toggle_description') }}
+            </template>
+          </BaseList>
+        </div>
 
         <BaseRow
           v-if="canEditGroupType"

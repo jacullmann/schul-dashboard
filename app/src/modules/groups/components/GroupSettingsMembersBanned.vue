@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
+import Avatar from '@/modules/auth/components/Avatar.vue';
 
 defineProps<{
   bannedUsers: { userId: string; generatedName: string; bannedAt: string }[];
@@ -12,9 +13,16 @@ const emit = defineEmits<{
   (e: 'revert-ban', userId: string): void;
 }>();
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const { checkPermission } = useAppAuth();
 const canModerateMembers = computed(() => checkPermission('moderate_members'));
+
+function bannedOnLabel(bannedAt: string): string {
+  return (
+    t('groups.settings.members.ban_list.banned_on_prefix') +
+    new Date(bannedAt).toLocaleDateString(locale.value)
+  );
+}
 </script>
 
 <template>
@@ -23,10 +31,7 @@ const canModerateMembers = computed(() => checkPermission('moderate_members'));
       {{ t('groups.settings.members.ban_list.title') }}
     </PageHeader>
 
-    <div
-      v-if="loading && bannedUsers.length === 0"
-      class="flex justify-center p-8 bg-surface border border-ghost-border rounded-xl"
-    >
+    <div v-if="loading && bannedUsers.length === 0" class="flex justify-center p-8">
       <BaseSpinner />
     </div>
     <BaseEmptyState
@@ -41,32 +46,44 @@ const canModerateMembers = computed(() => checkPermission('moderate_members'));
         t('groups.settings.members.ban_list.empty_message')
       }}</template>
     </BaseEmptyState>
-    <div v-else class="flex flex-col gap-2">
-      <div
-        v-for="user in bannedUsers"
-        :key="user.userId"
-        class="flex items-center justify-between p-2 px-3 bg-surface border border-ghost-border shadow-input rounded-xl gap-3"
-      >
-        <div class="flex items-center gap-2.5 min-w-0">
-          <span
-            class="font-semibold text-base whitespace-nowrap overflow-hidden text-ellipsis"
-            >{{ user.generatedName }}</span
-          >
-          <span class="text-xs font-medium text-on-ghost-muted"
-            >{{ t('groups.settings.members.ban_list.banned_on_prefix')
-            }}{{ new Date(user.bannedAt).toLocaleDateString('de-DE') }}</span
-          >
+    <div v-else class="flex flex-col max-w-200 mx-auto">
+      <template v-for="(user, index) in bannedUsers" :key="user.userId">
+        <div
+          v-if="index > 0"
+          class="task-separator border-b border-ghost-border md:ml-14 md:mr-3"
+        ></div>
+        <div class="flex items-center justify-between py-3 gap-2">
+          <div class="flex items-center gap-4 min-w-0">
+            <Avatar
+              class="max-md:hidden"
+              :name="user.generatedName"
+              :size="10"
+            />
+            <div class="flex flex-col gap-1 min-w-0">
+              <span
+                class="font-semibold text-base/tight whitespace-nowrap overflow-hidden text-ellipsis"
+                >{{ user.generatedName }}</span
+              >
+              <span class="md:hidden text-on-ghost-muted text-sm/4">{{
+                bannedOnLabel(user.bannedAt)
+              }}</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-1 flex-shrink-0">
+            <span class="max-md:hidden text-on-ghost-muted text-sm">{{
+              bannedOnLabel(user.bannedAt)
+            }}</span>
+
+            <BaseButton
+              :disabled="!canModerateMembers"
+              variant="ghost"
+              @click="emit('revert-ban', user.userId)"
+            >
+              {{ t('groups.settings.members.ban_list.actions.unban') }}
+            </BaseButton>
+          </div>
         </div>
-        <div class="flex items-center gap-2 flex-shrink-0">
-          <BaseButton
-            :disabled="!canModerateMembers"
-            variant="ghost"
-            @click="emit('revert-ban', user.userId)"
-          >
-            {{ t('groups.settings.members.ban_list.actions.unban') }}
-          </BaseButton>
-        </div>
-      </div>
+      </template>
     </div>
   </div>
 </template>
