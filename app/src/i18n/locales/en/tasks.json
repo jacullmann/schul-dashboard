@@ -124,7 +124,8 @@
       "today": "Today",
       "tomorrow": "Tomorrow",
       "this_week": "This Week",
-      "next_week": "Next Week"
+      "next_week": "Next Week",
+      "later_this_month": "Later This Month"
     },
     "tabs": {
       "all": "All",

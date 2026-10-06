@@ -12,7 +12,8 @@ export type DueSection =
         | 'today'
         | 'tomorrow'
         | 'this_week'
-        | 'next_week';
+        | 'next_week'
+        | 'later_this_month';
     }
   | { kind: 'month'; year: number; month: number };
 
@@ -76,6 +77,13 @@ export function dueSectionOf(
   ) {
     return { kind: 'next_week' };
   }
+  // Past tasks earlier this month already take the month's name, and the list
+  // runs from them through the coming weeks, so the rest of the month needs a
+  // name of its own to not open a second section of the same name.
+  const isThisMonth =
+    dueDate.getFullYear() === now.getFullYear() &&
+    dueDate.getMonth() === now.getMonth();
+  if (daysAhead > 0 && isThisMonth) return { kind: 'later_this_month' };
   return {
     kind: 'month',
     year: dueDate.getFullYear(),

@@ -38,12 +38,12 @@ describe('dueSectionOf', () => {
     expect(dueSectionOf(day(17), now, SUNDAY).kind).toBe('next_week');
   });
 
+  it('names the rest of this month apart from its past days', () => {
+    expect(dueSectionOf(day(19), now, MONDAY).kind).toBe('later_this_month');
+    expect(dueSectionOf(day(31), now, MONDAY).kind).toBe('later_this_month');
+  });
+
   it('files later and past tasks under their month', () => {
-    expect(dueSectionOf(day(19), now, MONDAY)).toEqual({
-      kind: 'month',
-      year: 2026,
-      month: 9,
-    });
     expect(dueSectionOf(day(3, 10), now, MONDAY)).toEqual({
       kind: 'month',
       year: 2026,

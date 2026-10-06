@@ -16,8 +16,12 @@ export function useTaskItems(
   const hiddenByCourses = ref(0);
   const loading = ref(true);
   const initialLoad = ref(true);
+  let latestReload = 0;
 
+  // Reloads overlap as filters change in quick succession, and an earlier one
+  // answering last would show the list for filters no longer chosen.
   async function reloadList() {
+    const reload = ++latestReload;
     loading.value = true;
     const { tab, showOldEntries, subject, hideChecked } = filters.value;
     const params: Record<string, string | boolean> = { type: tab };
@@ -30,13 +34,16 @@ export function useTaskItems(
       const response = await api.get<Task[]>(groupPath(groupId, '/items'), {
         params,
       });
+      if (reload !== latestReload) return;
       items.value = response.data;
       hiddenByCourses.value = countHiddenByCourses(response);
     } catch (e) {
-      console.error('Failed to load items:', e);
+      if (reload === latestReload) console.error('Failed to load items:', e);
     } finally {
-      loading.value = false;
-      initialLoad.value = false;
+      if (reload === latestReload) {
+        loading.value = false;
+        initialLoad.value = false;
+      }
     }
   }
 

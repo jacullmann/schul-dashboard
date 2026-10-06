@@ -90,7 +90,7 @@ const visibleItems = computed(() =>
   limitedItems.value.filter((item) => !dismissedItems.has(item.id)),
 );
 
-const { sectionHeadingOf } = useDueSections(visibleItems, isPinned);
+const { rows } = useDueSections(visibleItems, isPinned);
 
 const hasActiveFilters = computed(
   () => subjectFilter.value !== '' || showOldEntries.value || hideChecked.value,
@@ -315,51 +315,53 @@ onDeactivated(() => {
         class="flex flex-col relative max-md:-mx-4"
         @leave="collapseLeavingRow"
       >
-        <!-- The fragment key prefixes its children's keys, so a separator or
-             heading folds away with the card below it and the next one takes
-             over. -->
-        <template v-for="(item, index) in visibleItems" :key="item.id">
+        <!-- A heading or separator is its own row with its own key, so it
+             folds away on its own when its task leaves or moves into another
+             section. One element per fragment: the fragment's key prefixes the
+             key Vue gives each branch, which stays unique that way. -->
+        <template v-for="row in rows" :key="row.key">
           <h3
-            v-if="sectionHeadingOf(item.id)"
-            v-entrance-start="cardEntranceStartOf(item.id)"
+            v-if="row.kind === 'heading'"
+            v-entrance-start="cardEntranceStartOf(row.taskId)"
             class="px-4 md:px-3 pb-2"
             :class="{
-              'pt-6': index > 0,
-              'animate-enter': isCardEntering(item.id),
+              'pt-6': !row.isFirst,
+              'animate-enter': isCardEntering(row.taskId),
             }"
-            :style="cardEntranceStyle(item.id)"
+            :style="cardEntranceStyle(row.taskId)"
           >
-            {{ sectionHeadingOf(item.id) }}
+            {{ row.label }}
           </h3>
           <div
-            v-else-if="index > 0"
-            v-entrance-start="cardEntranceStartOf(item.id)"
+            v-else-if="row.kind === 'separator'"
+            v-entrance-start="cardEntranceStartOf(row.taskId)"
             class="separator ml-11.5 md:ml-10.5 mr-4"
-            :class="{ 'animate-enter': isCardEntering(item.id) }"
-            :style="cardEntranceStyle(item.id)"
+            :class="{ 'animate-enter': isCardEntering(row.taskId) }"
+            :style="cardEntranceStyle(row.taskId)"
           ></div>
           <TaskCard
-            v-entrance-start="cardEntranceStartOf(item.id)"
-            :class="{ 'animate-enter': isCardEntering(item.id) }"
-            :style="cardEntranceStyle(item.id)"
-            :item="item"
+            v-else
+            v-entrance-start="cardEntranceStartOf(row.task.id)"
+            :class="{ 'animate-enter': isCardEntering(row.task.id) }"
+            :style="cardEntranceStyle(row.task.id)"
+            :item="row.task"
             :show-type="tab === 'all'"
             :is-archive-view="showOldEntries"
-            :is-checked="isChecked(item.id)"
-            :is-pinned="isPinned(item.id)"
-            :is-menu-open="openMenuId === item.id"
+            :is-checked="isChecked(row.task.id)"
+            :is-pinned="isPinned(row.task.id)"
+            :is-menu-open="openMenuId === row.task.id"
             :can-check="!!user"
             :can-upload-images="canUploadImages"
-            :can-edit="canEdit(item)"
-            :can-add-note="canManageNotes && !item.editorNote"
-            :can-delete="canDelete(item)"
-            @toggle-check="toggleCheck(item)"
-            @swipe="archiveItem(item)"
-            @menu-action="(action) => onMenuAction(action, item)"
-            @open-menu="openMenuId = item.id"
+            :can-edit="canEdit(row.task)"
+            :can-add-note="canManageNotes && !row.task.editorNote"
+            :can-delete="canDelete(row.task)"
+            @toggle-check="toggleCheck(row.task)"
+            @swipe="archiveItem(row.task)"
+            @menu-action="(action) => onMenuAction(action, row.task)"
+            @open-menu="openMenuId = row.task.id"
             @close-menu="openMenuId = null"
-            @image-drop="(files) => triggerImageDrop(item, files)"
-            @animationend="handleCardAnimationEnd($event, item.id)"
+            @image-drop="(files) => triggerImageDrop(row.task, files)"
+            @animationend="handleCardAnimationEnd($event, row.task.id)"
           />
         </template>
       </TransitionGroup>
