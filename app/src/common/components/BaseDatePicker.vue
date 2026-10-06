@@ -4,6 +4,7 @@ import { Calendar, ChevronLeft, ChevronRight } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/vue';
 import { useSwipePager } from '@/common/composables/useSwipePager';
+import { labelTextFor } from '@/utils/labelText';
 
 /** Value format matches `<input type="date">`: `YYYY-MM-DD`. */
 const model = defineModel<string | null>();
@@ -13,11 +14,13 @@ defineOptions({ inheritAttrs: false });
 const props = withDefaults(
   defineProps<{
     id: string;
+    /** Mobile sheet title; defaults to the text of the picker's label. */
+    title?: string;
     min?: string;
     max?: string;
     disabled?: boolean;
   }>(),
-  { min: undefined, max: undefined, disabled: false },
+  { title: undefined, min: undefined, max: undefined, disabled: false },
 );
 
 const { t, locale } = useI18n();
@@ -36,6 +39,7 @@ const isDisabled = (key: string) =>
   (!!props.min && key < props.min) || (!!props.max && key > props.max);
 
 const isOpen = ref(false);
+const sheetTitle = ref<string>();
 const cursor = ref(new Date()); // focused day, drives the visible month
 const triggerRef = ref<any>(null);
 const floatingRef = ref<any>(null);
@@ -160,6 +164,7 @@ const toggle = () => {
   if (props.disabled) return;
   isOpen.value = !isOpen.value;
   if (isOpen.value) {
+    sheetTitle.value = props.title ?? labelTextFor(props.id);
     cursor.value = model.value ? fromKey(model.value) : new Date();
     void focusCursor();
   }
@@ -239,6 +244,7 @@ const onGridKeydown = (e: KeyboardEvent) => {
       <BaseMenu
         ref="floatingRef"
         :open="isOpen"
+        :title="sheetTitle"
         :style="{
           ...floatingStyles,
           zIndex: 100002,

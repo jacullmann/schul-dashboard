@@ -318,6 +318,7 @@ async function confirmDeleteGroup() {
           <BaseMenu
             v-if="canEditSettings"
             :open="isMenuOpen"
+            :title="t('groups.settings.general.avatar.title')"
             class="left-0 mt-2 z-30 min-w-45"
             @close="isMenuOpen = false"
             @click.stop

@@ -4,6 +4,7 @@ import { onClickOutside, useElementBounding } from '@vueuse/core';
 import { ChevronDown } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/vue';
+import { labelTextFor } from '@/utils/labelText';
 
 const { t } = useI18n();
 
@@ -62,26 +63,12 @@ const selectStyles = computed(() => ({
 const attrs = useAttrs();
 const sheetTitle = ref<string>();
 
-// Text of the <label for="id"> pointing at this select, without decorations
-// like BaseLabel's aria-hidden required asterisk.
-function getLabelText(): string | undefined {
-  const id = attrs.id;
-  if (typeof id !== 'string') return undefined;
-
-  const label = document.querySelector(`label[for="${CSS.escape(id)}"]`);
-  if (!label) return undefined;
-
-  const clone = label.cloneNode(true) as HTMLElement;
-  clone.querySelectorAll('[aria-hidden="true"]').forEach((el) => el.remove());
-  return clone.textContent?.trim() || undefined;
-}
-
 const toggleMenu = async () => {
   if (!props.disabled) {
     isOpen.value = !isOpen.value;
 
     if (isOpen.value) {
-      sheetTitle.value = props.title ?? getLabelText();
+      sheetTitle.value = props.title ?? labelTextFor(attrs.id);
       await nextTick();
 
       if (floatingRef.value) {

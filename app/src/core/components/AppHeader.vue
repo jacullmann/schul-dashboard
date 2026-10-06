@@ -183,6 +183,7 @@ defineExpose({ groupButton: groupButtonRef });
 
         <BaseMenu
           :open="groupMenuOpen"
+          :title="groupName"
           class="top-full mt-1 left-0"
           @close="groupMenuOpen = false"
         >
