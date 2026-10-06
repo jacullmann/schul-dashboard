@@ -54,7 +54,7 @@ watch(
         width: 200,
         margin: 2,
         color: {
-          dark: '#000000',
+          dark: '#0F0F0F',
           light: '#FFFFFF',
         },
       });
@@ -113,67 +113,61 @@ async function regenerate() {
     <template #title>{{ t('auth.groups.invite.modal_title') }}</template>
 
     <template #content>
-      <p class="text-sm text-on-ghost-muted mb-4 leading-relaxed">
+      <p class="text-on-ghost-muted mb-4!">
         {{ t('auth.groups.invite.modal_desc') }}
       </p>
 
-      <div
-        v-if="qrCodeUrl"
-        class="flex justify-center p-2 rounded-xl mx-auto mb-4"
-      >
+      <div v-if="qrCodeUrl" class="flex justify-center mx-auto mt-8">
         <img
           :src="qrCodeUrl"
           :alt="t('auth.groups.invite.qr_alt')"
-          class="w-50 h-50"
+          class="w-50 h-50 rounded-md"
         />
       </div>
 
       <BaseFormGroup id="invite-url-group">
-        <div class="flex items-center gap-2 mt-1">
-          <div class="relative flex-1">
-            <BaseInput
-              id="invite-url-input"
-              type="text"
-              readonly
-              :model-value="inviteUrl"
-              class="w-full bg-ghost/30 pr-10 font-mono text-xs select-all border border-ghost-border focus:border-primary!"
-            />
-          </div>
+        <div class="flex items-center gap-2 mt-4">
+          <BaseInput
+            id="invite-url-input"
+            type="text"
+            readonly
+            :model-value="inviteUrl"
+            class="w-full text-xs select-all!"
+          />
           <BaseButton
             type="button"
             variant="ghost"
             :icon="copied ? Check : Copy"
             @click="copyLink"
-          >
-          </BaseButton>
+          />
         </div>
       </BaseFormGroup>
 
-      <div class="flex justify-end gap-2 mt-6">
+      <BaseRow
+        stack-on-mobile
+        justify="start"
+        class="md:flex-row-reverse! mt-8"
+      >
         <BaseButton
           type="button"
+          form
+          variant="action"
+          @click="$emit('cancel')"
+        >
+          {{ t('auth.groups.invite.done') }}
+        </BaseButton>
+        <BaseButton
+          type="button"
+          form
+          surface
           variant="ghost"
           :disabled="regenerating"
-          class="gap-2"
+          :icon="RefreshCw"
           @click="regenerate"
         >
-          <RefreshCw
-            :size="16"
-            :class="{ 'animate-spin': regenerating }"
-            class="text-on-ghost-muted"
-          />
-          <span>{{ t('auth.groups.invite.regenerate_button') }}</span>
+          {{ t('auth.groups.invite.regenerate_button') }}
         </BaseButton>
-        <BaseButton type="button" variant="action" @click="$emit('cancel')">
-          {{ t('auth.groups.invite.close') }}
-        </BaseButton>
-      </div>
+      </BaseRow>
     </template>
   </BaseModal>
 </template>
-
-<style scoped>
-#invite-url-input {
-  cursor: text;
-}
-</style>
