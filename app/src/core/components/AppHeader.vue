@@ -19,7 +19,10 @@ import { useModalStore } from '@/stores/modalStore';
 import Avatar from '@/modules/auth/components/Avatar.vue';
 import AccountMenu from '@/modules/auth/components/AccountMenu.vue';
 import { useLogout } from '@/core/composables/useLogout';
-import { useIsMobileViewport } from '@/common/composables/useViewport';
+import {
+  useIsMobileViewport,
+  useIsSidebarViewport,
+} from '@/common/composables/useViewport';
 import { useSearchModal } from '@/core/composables/useSearchModal';
 import { useGroupMenuActions } from '@/modules/groups/composables/useGroupMenuActions';
 
@@ -28,6 +31,7 @@ const { user } = storeToRefs(userStore);
 const { t } = useI18n();
 const performLogout = useLogout();
 const isMobile = useIsMobileViewport();
+const hasSidebar = useIsSidebarViewport();
 const { openSearch } = useSearchModal();
 const { y: scrollY } = useWindowScroll();
 const isScrolled = computed(() => scrollY.value > 0);
@@ -209,7 +213,7 @@ onMounted(() => {
       </div>
 
       <div
-        v-if="user && isMobile"
+        v-if="user && !hasSidebar"
         class="ml-auto flex items-center gap-2 shrink-0"
       >
         <!-- Hidden without a fade: the search bar carries its icon away from

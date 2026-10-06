@@ -7,14 +7,14 @@ import Announcements from '../modules/announcements/components/Announcements.vue
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useUserStore } from '@/stores/userStore';
 import { storeToRefs } from 'pinia';
-import { useIsMobileViewport } from '@/common/composables/useViewport';
+import { useIsSidebarViewport } from '@/common/composables/useViewport';
 import { useElementBounding } from '@vueuse/core';
 import { computed, useTemplateRef } from 'vue';
 
 const { activeGroupId } = useAppAuth();
 const userStore = useUserStore();
 const { user } = storeToRefs(userStore);
-const isMobile = useIsMobileViewport();
+const hasSidebar = useIsSidebarViewport();
 
 useAppShortcuts();
 
@@ -31,7 +31,7 @@ const topBarStyle = computed(() => ({
 
 <template>
   <div class="flex min-h-dvh w-full">
-    <AppSidebar v-if="user && !isMobile" />
+    <AppSidebar v-if="user && hasSidebar" />
 
     <div class="flex-1 min-w-0 flex flex-col bg-canvas">
       <!-- Fixed rather than sticky: while Safari rubber-bands past the end of

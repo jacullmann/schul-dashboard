@@ -19,12 +19,23 @@ const KEYBOARD_MIN_HEIGHT = 150;
 /** Beyond this the visual viewport is pinch-zoomed, and shrinks for that reason alone. */
 const ZOOMED_SCALE = 1.01;
 
+/**
+ * Matches the Tailwind `lg` breakpoint; from here on the sidebar replaces the
+ * tab bar and the header's search and account buttons.
+ */
+export const SIDEBAR_BREAKPOINT = 1024;
+
 /** Matches the Tailwind `xs` breakpoint; narrower screens are phones held upright. */
 export const PHONE_BREAKPOINT = 501;
 
 export function useIsMobileViewport(): ComputedRef<boolean> {
   const { width } = useWindowSize();
   return computed(() => width.value < MOBILE_BREAKPOINT);
+}
+
+/** Whether the screen is at least {@link SIDEBAR_BREAKPOINT} wide. */
+export function useIsSidebarViewport(): Readonly<Ref<boolean>> {
+  return useMediaQuery(`(width >= ${SIDEBAR_BREAKPOINT}px)`);
 }
 
 /** Whether the screen is narrower than {@link PHONE_BREAKPOINT}. */

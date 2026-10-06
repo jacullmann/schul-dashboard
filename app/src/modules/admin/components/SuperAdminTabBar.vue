@@ -33,7 +33,7 @@ useTabBarHeight(barEl);
       v-show="!isKeyboardOpen"
       ref="barEl"
       :aria-label="label"
-      class="pointer-events-none fixed inset-x-0 bottom-0 z-(--z-tab-bar) flex origin-bottom justify-center pt-2 pr-[max(var(--tab-bar-margin),env(safe-area-inset-right))] pb-[max(--spacing(2),min(var(--tab-bar-margin),env(safe-area-inset-bottom)))] pl-[max(var(--tab-bar-margin),env(safe-area-inset-left))] md:hidden print:hidden"
+      class="pointer-events-none fixed inset-x-0 bottom-0 z-(--z-tab-bar) flex origin-bottom justify-center pt-2 pr-[max(var(--tab-bar-margin),env(safe-area-inset-right))] pb-[max(--spacing(2),min(var(--tab-bar-margin),env(safe-area-inset-bottom)))] pl-[max(var(--tab-bar-margin),env(safe-area-inset-left))] lg:hidden print:hidden"
     >
       <BaseTabs
         class="pointer-events-auto max-w-md"

@@ -30,7 +30,7 @@ const activeTab = computed({
   <div class="adm-layout">
     <div class="adm-body">
       <aside
-        class="adm-sidebar p-3.5 w-60 shrink-0 bg-surface border-r border-ghost-border overflow-y-auto hidden md:flex flex-col gap-3.5 scrollbar-hide"
+        class="adm-sidebar p-3.5 w-60 shrink-0 bg-surface border-r border-ghost-border overflow-y-auto hidden lg:flex flex-col gap-3.5 scrollbar-hide"
       >
         <nav class="flex flex-col w-full">
           <SidebarButton
