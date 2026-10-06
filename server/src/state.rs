@@ -16,7 +16,7 @@ pub struct AppState {
     pub config: Arc<Config>,
     pub http: Client,
     pub cloudinary: Cloudinary,
-    pub hetzner: Option<HetznerCloud>,
+    pub hetzner: HetznerCloud,
     pub jwt: JwtService,
     pub email: EmailService,
     pub encryption: EncryptionService,
@@ -32,10 +32,7 @@ impl AppState {
             .expect("Failed to build HTTP client");
 
         let cloudinary = Cloudinary::new(http.clone(), &config);
-        let hetzner = config
-            .hetzner
-            .as_ref()
-            .map(|hetzner| HetznerCloud::new(http.clone(), hetzner));
+        let hetzner = HetznerCloud::new(http.clone(), &config.hetzner);
         let jwt = JwtService::new(&config);
 
         let email = EmailService::new(

@@ -4,6 +4,23 @@ import { useRoute, useRouter } from 'vue-router';
 import api from '@/api/api';
 import type { MetricsRange, ServerMetrics } from '../types';
 
+/** Why the metrics could not be loaded, told apart where an admin can act on it. */
+export type ServerMetricsFailure =
+  'token_rejected' | 'server_not_found' | 'unreachable' | 'unknown';
+
+const FAILURE_BY_CODE: Partial<Record<string, ServerMetricsFailure>> = {
+  HETZNER_TOKEN_REJECTED: 'token_rejected',
+  HETZNER_SERVER_NOT_FOUND: 'server_not_found',
+  HETZNER_UNREACHABLE: 'unreachable',
+};
+
+function failureOf(error: unknown): ServerMetricsFailure {
+  const code = axios.isAxiosError<{ code?: string }>(error)
+    ? error.response?.data?.code
+    : undefined;
+  return (code && FAILURE_BY_CODE[code]) || 'unknown';
+}
+
 export const METRICS_RANGES: readonly MetricsRange[] = [
   '1h',
   '24h',
@@ -18,8 +35,7 @@ export function isMetricsRange(value: unknown): value is MetricsRange {
 
 /**
  * The server's load as Hetzner measures it, over a window kept in the URL
- * query so a view survives reloads and can be linked. `unavailable` marks a
- * deployment without Hetzner credentials, where the metrics are left out.
+ * query so a view survives reloads and can be linked.
  */
 export function useServerMetrics() {
   const route = useRoute();
@@ -32,8 +48,7 @@ export function useServerMetrics() {
 
   const metrics = ref<ServerMetrics | null>(null);
   const loading = ref(false);
-  const failed = ref(false);
-  const unavailable = ref(false);
+  const failure = ref<ServerMetricsFailure | null>(null);
 
   function setRange(next: MetricsRange) {
     return router.replace({
@@ -52,7 +67,7 @@ export function useServerMetrics() {
     const current = new AbortController();
     controller = current;
     loading.value = true;
-    failed.value = false;
+    failure.value = null;
 
     try {
       const { data } = await api.get<ServerMetrics>('/admin/server-metrics', {
@@ -61,12 +76,7 @@ export function useServerMetrics() {
       });
       metrics.value = data;
     } catch (error) {
-      if (axios.isCancel(error)) return;
-      if (axios.isAxiosError(error) && error.response?.status === 404) {
-        unavailable.value = true;
-      } else {
-        failed.value = true;
-      }
+      if (!axios.isCancel(error)) failure.value = failureOf(error);
     } finally {
       if (controller === current) loading.value = false;
     }
@@ -83,5 +93,5 @@ export function useServerMetrics() {
 
   onScopeDispose(() => controller?.abort());
 
-  return { range, metrics, loading, failed, unavailable, setRange, load };
+  return { range, metrics, loading, failure, setRange, load };
 }

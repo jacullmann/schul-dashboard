@@ -25,9 +25,7 @@ pub struct Config {
     pub resend_api_key: String,
     pub email_from: String,
     pub geoip_service_url: String,
-    /// `None` where the deployment does not run on Hetzner Cloud, e.g. in
-    /// development; the superadmin overview then leaves out server metrics.
-    pub hetzner: Option<HetznerConfig>,
+    pub hetzner: HetznerConfig,
 }
 
 #[derive(Clone)]
@@ -110,24 +108,13 @@ fn require(key: &str) -> Result<String> {
     std::env::var(key).with_context(|| format!("Missing required env var: {key}"))
 }
 
-/// Both variables or neither: one without the other is a misconfiguration
-/// that should stop the start rather than silently hide the metrics.
-fn hetzner_from_env() -> Result<Option<HetznerConfig>> {
-    let non_empty = |key| std::env::var(key).ok().filter(|v| !v.is_empty());
-
-    match (
-        non_empty("HETZNER_API_TOKEN"),
-        non_empty("HETZNER_SERVER_ID"),
-    ) {
-        (None, None) => Ok(None),
-        (Some(api_token), Some(server_id)) => Ok(Some(HetznerConfig {
-            api_token,
-            server_id: server_id
-                .parse()
-                .context("HETZNER_SERVER_ID must be the numeric ID of a Hetzner Cloud server")?,
-        })),
-        _ => anyhow::bail!("HETZNER_API_TOKEN and HETZNER_SERVER_ID must be set together"),
-    }
+fn hetzner_from_env() -> Result<HetznerConfig> {
+    Ok(HetznerConfig {
+        api_token: require("HETZNER_API_TOKEN")?,
+        server_id: require("HETZNER_SERVER_ID")?
+            .parse()
+            .context("HETZNER_SERVER_ID must be the numeric ID of a Hetzner Cloud server")?,
+    })
 }
 
 fn require_min(key: &str, min_len: usize) -> Result<String> {

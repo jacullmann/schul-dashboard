@@ -55,6 +55,14 @@ pub enum AppError {
     #[error("{0}")]
     NameTaken(String),
 
+    /// A service this server relies on failed; `code` tells the client which
+    /// failure it was, so it can say what needs fixing.
+    #[error("{message}")]
+    Upstream {
+        code: &'static str,
+        message: &'static str,
+    },
+
     #[error("An unexpected error occurred.")]
     Internal(#[from] anyhow::Error),
 
@@ -133,6 +141,10 @@ impl IntoResponse for AppError {
             AppError::NameTaken(msg) => (
                 StatusCode::CONFLICT,
                 json!({ "error": msg, "code": "NAME_TAKEN" }),
+            ),
+            AppError::Upstream { code, message } => (
+                StatusCode::BAD_GATEWAY,
+                json!({ "error": message, "code": code }),
             ),
             AppError::Internal(e) => {
                 tracing::error!("Internal error: {e:#}");

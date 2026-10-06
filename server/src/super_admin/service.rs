@@ -6,7 +6,7 @@ use crate::{
     },
     common::{
         cloudinary::Cloudinary,
-        hetzner::HetznerCloud,
+        hetzner::{HetznerCloud, HetznerError},
         name_generator::generate_user_name,
         pagination::{PAGE_SIZE, Page, contains_pattern, search_term},
         role::{MemberRole, Role},
@@ -60,7 +60,7 @@ pub async fn read_server_metrics(
         hetzner.server_cores(),
         hetzner.server_metrics(start, end, range.step()),
     )
-    .map_err(|e| AppError::internal(format!("Hetzner API request failed: {e}")))?;
+    .map_err(hetzner_failure)?;
 
     Ok(ServerMetricsDto {
         start: start.timestamp(),
@@ -74,6 +74,27 @@ pub async fn read_server_metrics(
         disk_read_iops: metrics.disk_read_iops,
         disk_write_iops: metrics.disk_write_iops,
     })
+}
+
+fn hetzner_failure(error: HetznerError) -> AppError {
+    let (code, message) = match error {
+        HetznerError::TokenRejected => (
+            "HETZNER_TOKEN_REJECTED",
+            "Hetzner rejected HETZNER_API_TOKEN.",
+        ),
+        HetznerError::ServerNotFound => (
+            "HETZNER_SERVER_NOT_FOUND",
+            "Hetzner knows no server with HETZNER_SERVER_ID.",
+        ),
+        HetznerError::Http(e) => {
+            tracing::error!("Hetzner API request failed: {e}");
+            (
+                "HETZNER_UNREACHABLE",
+                "The Hetzner API could not be reached.",
+            )
+        }
+    };
+    AppError::Upstream { code, message }
 }
 
 /// Splits a search into the text pattern and, when it is one, the exact id.

@@ -8,7 +8,7 @@ use crate::{
         pagination::Page,
         role::{MemberRole, Role},
     },
-    error::{AppError, AppResult},
+    error::AppResult,
     group::admin::service::GroupAdminService,
     reports::service::ReportsService,
     state::AppState,
@@ -47,12 +47,7 @@ pub async fn get_server_metrics(
     _: SuperAdmin,
     Query(q): Query<ServerMetricsQuery>,
 ) -> AppResult<Json<ServerMetricsDto>> {
-    let hetzner = s
-        .hetzner
-        .as_ref()
-        .ok_or_else(|| AppError::not_found("Server metrics are not configured."))?;
-
-    Ok(Json(read_server_metrics(hetzner, q.range).await?))
+    Ok(Json(read_server_metrics(&s.hetzner, q.range).await?))
 }
 
 pub async fn get_cleanup_jobs(

@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useElementSize } from '@vueuse/core';
 import ChartCard from './ChartCard.vue';
 import { averageOf } from '../utils/metricFormat';
+import { timeTicks } from '../utils/timeTicks';
 import type { MetricPoint } from '../types';
 
 export interface ChartSeries {
@@ -33,9 +35,13 @@ const VIEW_HEIGHT = 100;
 const AUTO_SCALE_HEADROOM = 1.15;
 const HOUR_SECONDS = 60 * 60;
 const DAY_SECONDS = 24 * HOUR_SECONDS;
+const WEEK_SECONDS = 7 * DAY_SECONDS;
 const CLOCK_TIME = { hour: '2-digit', minute: '2-digit' } as const;
+/** The least room an axis label gets, in px; also kept clear at either end of the axis. */
+const MIN_TICK_SPACING = 80;
 
 const plotRef = ref<HTMLElement | null>(null);
+const { width: plotWidth } = useElementSize(plotRef);
 const hoveredIndex = ref<number | null>(null);
 
 const scaleMax = computed(() => {
@@ -142,35 +148,58 @@ const hoverLeft = computed(() =>
     : `${(toX(hoveredTimestamp.value) / VIEW_WIDTH) * 100}%`,
 );
 
-// Precise enough to tell the axis ends apart: a day's window starts and ends
-// at the same clock time, a longer one needs no clock time at all.
-const axisTime = computed(() => {
-  const span = props.end - props.start;
-  const options: Intl.DateTimeFormatOptions =
-    span <= HOUR_SECONDS
-      ? CLOCK_TIME
-      : span <= DAY_SECONDS
-        ? { weekday: 'short', ...CLOCK_TIME }
-        : { day: '2-digit', month: 'short' };
-  return new Intl.DateTimeFormat(locale.value, options);
-});
-const hoverTime = computed(() =>
-  props.end - props.start <= DAY_SECONDS
-    ? axisTime.value
-    : new Intl.DateTimeFormat(locale.value, {
-        weekday: 'short',
-        day: '2-digit',
-        month: 'short',
-        ...CLOCK_TIME,
-      }),
-);
-const formatTime = (format: Intl.DateTimeFormat, timestamp: number) =>
-  format.format(timestamp * 1000);
+const span = computed(() => props.end - props.start);
 
+// As many round times as the plot's width has room for, labelled no finer than
+// their spacing: clock times within a day, days beyond.
+const ticks = computed(() => {
+  const width = plotWidth.value;
+  const { unit, timestamps } = timeTicks(
+    props.start,
+    props.end,
+    Math.floor(width / MIN_TICK_SPACING),
+  );
+  const format = new Intl.DateTimeFormat(
+    locale.value,
+    unit !== 'day'
+      ? CLOCK_TIME
+      : span.value <= WEEK_SECONDS
+        ? { weekday: 'short', day: 'numeric' }
+        : { day: 'numeric', month: 'short' },
+  );
+  const edge = MIN_TICK_SPACING / 2;
+
+  return timestamps
+    .map((timestamp) => ({
+      timestamp,
+      fraction: toX(timestamp) / VIEW_WIDTH,
+    }))
+    .filter(({ fraction }) => {
+      const x = fraction * width;
+      return x >= edge && x <= width - edge;
+    })
+    .map(({ timestamp, fraction }) => ({
+      timestamp,
+      left: `${fraction * 100}%`,
+      label: format.format(timestamp * 1000),
+    }));
+});
+
+const hoverTime = computed(
+  () =>
+    new Intl.DateTimeFormat(
+      locale.value,
+      span.value <= HOUR_SECONDS
+        ? CLOCK_TIME
+        : span.value <= DAY_SECONDS
+          ? { weekday: 'short', ...CLOCK_TIME }
+          : { weekday: 'short', day: '2-digit', month: 'short', ...CLOCK_TIME },
+    ),
+);
 const readout = computed(() =>
   hoveredTimestamp.value === null
     ? t('admin.overview.server.average')
-    : formatTime(hoverTime.value, hoveredTimestamp.value),
+    : hoverTime.value.format(hoveredTimestamp.value * 1000),
 );
 
 const formatOrDash = (value: number | null) =>
@@ -203,6 +232,12 @@ const legend = computed(() =>
       @pointerdown="onPointerMove"
       @pointerleave="hoveredIndex = null"
     >
+      <div
+        v-for="tick in ticks"
+        :key="tick.timestamp"
+        class="absolute inset-y-0 w-px bg-ghost-border/60"
+        :style="{ left: tick.left }"
+      />
       <svg
         class="absolute inset-0 size-full overflow-visible"
         :viewBox="`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`"
@@ -245,9 +280,18 @@ const legend = computed(() =>
       </template>
     </div>
 
-    <div class="flex justify-between text-xs text-on-ghost-muted mt-1">
-      <span>{{ formatTime(axisTime, start) }}</span>
-      <span>{{ formatTime(axisTime, end) }}</span>
+    <div
+      class="relative h-4 mt-1 text-xs text-on-ghost-muted"
+      aria-hidden="true"
+    >
+      <span
+        v-for="tick in ticks"
+        :key="tick.timestamp"
+        class="absolute -translate-x-1/2 whitespace-nowrap"
+        :style="{ left: tick.left }"
+      >
+        {{ tick.label }}
+      </span>
     </div>
 
     <ul class="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-sm">

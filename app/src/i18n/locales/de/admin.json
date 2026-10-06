@@ -56,7 +56,12 @@
       "read": "Lesen",
       "write": "Schreiben",
       "iops_value": "{value} IOPS",
-      "error": "Serverauslastung konnte nicht geladen werden.",
+      "errors": {
+        "token_rejected": "Hetzner lehnt den API-Token ab. Prüfe HETZNER_API_TOKEN im Backend.",
+        "server_not_found": "Hetzner kennt keinen Server mit dieser ID. Prüfe HETZNER_SERVER_ID im Backend.",
+        "unreachable": "Die Hetzner-API ist gerade nicht erreichbar.",
+        "unknown": "Serverauslastung konnte nicht geladen werden."
+      },
       "retry": "Erneut versuchen"
     },
     "cleanup_jobs": {

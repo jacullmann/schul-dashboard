@@ -20,8 +20,7 @@ interface MetricChart {
 }
 
 const { t, locale } = useI18n();
-const { range, metrics, loading, failed, unavailable, setRange, load } =
-  useServerMetrics();
+const { range, metrics, loading, failure, setRange, load } = useServerMetrics();
 
 const rangeItems = computed(() =>
   METRICS_RANGES.map((id) => ({ id, label: t(`${I18N_BASE}.ranges.${id}`) })),
@@ -81,15 +80,16 @@ const charts = computed<MetricChart[]>(() => {
 </script>
 
 <template>
-  <section v-if="!unavailable" class="flex flex-col gap-3">
+  <section class="flex flex-col gap-3">
     <h3>{{ t(`${I18N_BASE}.title`) }}</h3>
     <BaseTabs :items="rangeItems" :active-id="range" @change="onRangeChange" />
 
     <div
-      v-if="failed"
-      class="flex flex-col items-center gap-2 rounded-xl border border-ghost-border bg-surface p-6 text-sm text-on-ghost-muted"
+      v-if="failure"
+      class="flex flex-col items-center gap-2 rounded-xl border border-ghost-border bg-surface p-6 text-center text-sm text-on-ghost-muted"
+      role="alert"
     >
-      {{ t(`${I18N_BASE}.error`) }}
+      {{ t(`${I18N_BASE}.errors.${failure}`) }}
       <BaseButton variant="ghost" @click="load">
         {{ t(`${I18N_BASE}.retry`) }}
       </BaseButton>
@@ -99,7 +99,7 @@ const charts = computed<MetricChart[]>(() => {
     </div>
     <div
       v-else
-      class="grid grid-cols-1 md:grid-cols-2 gap-3 transition-opacity"
+      class="flex flex-col gap-3 transition-opacity"
       :class="{ 'opacity-60': loading }"
       :aria-busy="loading"
     >

@@ -4,8 +4,8 @@
 
 use crate::config::HetznerConfig;
 use chrono::{DateTime, SecondsFormat, Utc};
-use reqwest::{Client, RequestBuilder};
-use serde::{Deserialize, Serialize};
+use reqwest::{Client, RequestBuilder, StatusCode};
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use std::{collections::HashMap, sync::Arc, time::Duration};
 use tokio::sync::OnceCell;
 
@@ -29,6 +29,18 @@ pub struct ServerMetrics {
     pub disk_write_iops: Vec<MetricPoint>,
     pub network_in: Vec<MetricPoint>,
     pub network_out: Vec<MetricPoint>,
+}
+
+/// The failures an admin can fix in the configuration are told apart from
+/// the ones that only say Hetzner could not be reached.
+#[derive(Debug, thiserror::Error)]
+pub enum HetznerError {
+    #[error("Hetzner rejected the API token")]
+    TokenRejected,
+    #[error("Hetzner knows no server with this ID")]
+    ServerNotFound,
+    #[error(transparent)]
+    Http(#[from] reqwest::Error),
 }
 
 #[derive(Deserialize)]
@@ -117,16 +129,12 @@ impl HetznerCloud {
     /// The server's vCPU count. Looked up once per process: Hetzner only
     /// rescales a server while it is powered off, which restarts this process
     /// as well, so the count can never go stale.
-    pub async fn server_cores(&self) -> Result<u32, reqwest::Error> {
+    pub async fn server_cores(&self) -> Result<u32, HetznerError> {
         self.0
             .cores
             .get_or_try_init(|| async {
                 let response: ServerResponse = self
-                    .get(&format!("/servers/{}", self.0.server_id))
-                    .send()
-                    .await?
-                    .error_for_status()?
-                    .json()
+                    .fetch(self.get(&format!("/servers/{}", self.0.server_id)))
                     .await?;
                 Ok(response.server.server_type.cores)
             })
@@ -141,12 +149,12 @@ impl HetznerCloud {
         start: DateTime<Utc>,
         end: DateTime<Utc>,
         step: Duration,
-    ) -> Result<ServerMetrics, reqwest::Error> {
+    ) -> Result<ServerMetrics, HetznerError> {
         let start = start.to_rfc3339_opts(SecondsFormat::Secs, true);
         let end = end.to_rfc3339_opts(SecondsFormat::Secs, true);
         let step = step.as_secs().max(1).to_string();
 
-        let response: MetricsResponse = self
+        let request = self
             .get(&format!("/servers/{}/metrics", self.0.server_id))
             .query(&[
                 ("type", "cpu"),
@@ -155,14 +163,19 @@ impl HetznerCloud {
                 ("start", start.as_str()),
                 ("end", end.as_str()),
                 ("step", step.as_str()),
-            ])
-            .send()
-            .await?
-            .error_for_status()?
-            .json()
-            .await?;
+            ]);
+        let response: MetricsResponse = self.fetch(request).await?;
 
         Ok(response.into())
+    }
+
+    async fn fetch<T: DeserializeOwned>(&self, request: RequestBuilder) -> Result<T, HetznerError> {
+        let response = request.send().await?;
+        match response.status() {
+            StatusCode::UNAUTHORIZED | StatusCode::FORBIDDEN => Err(HetznerError::TokenRejected),
+            StatusCode::NOT_FOUND => Err(HetznerError::ServerNotFound),
+            _ => Ok(response.error_for_status()?.json().await?),
+        }
     }
 
     fn get(&self, path: &str) -> RequestBuilder {
