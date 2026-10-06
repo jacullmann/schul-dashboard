@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import type { ScheduleLayout } from '@/modules/schedule/types';
+import type {
+  ScheduleLayout,
+  ScheduleNowLabel,
+} from '@/modules/schedule/types';
 import {
   useSchedulePager,
   type SchedulePager,
@@ -32,6 +35,8 @@ const props = withDefaults(
       day: number,
       week: number,
     ) => ReadonlySet<number> | undefined;
+    /** The time label a phone shows the time it is on instead, if any. */
+    nowLabel?: (day: number, week: number) => ScheduleNowLabel | null;
     /** A template for every week carries no date, so the short weekday by default. */
     tabLabel?: (day: number, week: number) => string;
     tabCaption?: (day: number, week: number) => string;
@@ -49,6 +54,7 @@ const props = withDefaults(
     dayLayout: undefined,
     weekLayout: undefined,
     labelledRows: undefined,
+    nowLabel: undefined,
     tabLabel: undefined,
     tabCaption: undefined,
     dayHeading: undefined,
@@ -167,6 +173,7 @@ function onDayClick(day: number, event: MouseEvent) {
       <ScheduleStartTimeColumn
         :rows="panel.layout.rows"
         :labelled-rows="labelledRows?.(day, week)"
+        :now-label="nowLabel?.(day, week)"
         :animated="pagedAnimated"
       />
 

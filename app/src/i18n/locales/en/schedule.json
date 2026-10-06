@@ -1,5 +1,6 @@
 {
   "break": "{minutes} min break",
+  "break_left": "{minutes} min break left",
   "cancelled": "Canceled",
   "infopop": {
     "description": "The digital version of the schedule.",

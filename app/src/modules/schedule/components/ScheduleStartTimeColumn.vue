@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ScheduleRow } from '@/modules/schedule/types';
+import type { ScheduleNowLabel, ScheduleRow } from '@/modules/schedule/types';
 import { entranceDelay } from '@/modules/schedule/utils/entrance';
 
 withDefaults(
@@ -7,9 +7,11 @@ withDefaults(
     rows: ScheduleRow[];
     /** Rows left out keep their space but show no label. */
     labelledRows?: ReadonlySet<number>;
+    nowLabel?: ScheduleNowLabel | null;
     animated?: boolean;
   }>(),
   {
+    nowLabel: null,
     animated: true,
   },
 );
@@ -39,6 +41,16 @@ withDefaults(
     <span v-if="row.kind === 'lesson'" class="font-bold text-lg text-on-ghost">
       {{ row.slot }}
     </span>
-    <span class="text-xs tabular-nums">{{ row.startTime }}</span>
+    <!-- The ring widens the pill without moving the label it takes over. -->
+    <span
+      class="rounded-full px-0.5 text-xs tabular-nums ring-2 transition-colors duration-300"
+      :class="
+        row.gridRow === nowLabel?.gridRow
+          ? 'bg-accent ring-accent text-on-accent font-semibold'
+          : 'ring-transparent'
+      "
+    >
+      {{ row.gridRow === nowLabel?.gridRow ? nowLabel.time : row.startTime }}
+    </span>
   </div>
 </template>

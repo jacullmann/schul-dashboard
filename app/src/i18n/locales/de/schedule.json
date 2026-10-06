@@ -1,5 +1,6 @@
 {
   "break": "{minutes} Min. Pause",
+  "break_left": "Noch {minutes} Min. Pause",
   "cancelled": "Ausfall",
   "infopop": {
     "description": "Die bessere digitale Version",

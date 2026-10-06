@@ -23,6 +23,11 @@ import { entranceDelay } from '@/modules/schedule/utils/entrance';
 import { lessonRowsOf } from '@/modules/schedule/utils/layout';
 import { lessonGroupsByDay } from '@/modules/schedule/utils/lesson';
 import {
+  nowMarkerOf,
+  type NowMarker,
+} from '@/modules/schedule/utils/nowMarker';
+import { formatTimeOfDay } from '@/utils/time';
+import {
   isoDate,
   parseIsoDate,
   SCHOOL_DAYS,
@@ -35,6 +40,7 @@ import ScheduleBreakDivider from '../components/ScheduleBreakDivider.vue';
 import ScheduleLessonGroup from '../components/ScheduleLessonGroup.vue';
 import ScheduleCellSkeleton from '../components/ScheduleCellSkeleton.vue';
 import ScheduleChangeModal from '../components/ScheduleChangeModal.vue';
+import ScheduleNowMarker from '../components/ScheduleNowMarker.vue';
 import ScheduleWeekNav from '../components/ScheduleWeekNav.vue';
 
 // Pages run on past Friday into the following weeks, and back before Monday.
@@ -52,6 +58,7 @@ const {
   loadingLessons,
   days,
   scheduleOfWeek,
+  minutesToday,
   todayWeek,
   todayPage,
   activeOrNextGroupKey,
@@ -169,6 +176,8 @@ interface DayRows {
   dividers: Divider[];
   /** The rows a phone labels, once the lessons are known. */
   labelledRows?: ReadonlySet<number>;
+  /** The labelled rows up to the day's end, which now passes in order. */
+  timeline: ScheduleRow[];
 }
 
 /*
@@ -192,7 +201,9 @@ const rowsOfDay = (
   const breakRows = layout.rows.filter(
     (row): row is BreakRow => row.kind === 'break',
   );
-  if (loadingLessons.value) return { dividers: breakRows.map(breakDivider) };
+  if (loadingLessons.value) {
+    return { dividers: breakRows.map(breakDivider), timeline: [] };
+  }
 
   const { lastAttendedSlotByDay, lastShownSlotByDay } = scheduleOfWeek(week);
   const lastAttendedSlot = lastAttendedSlotByDay.get(day);
@@ -222,7 +233,14 @@ const rowsOfDay = (
     });
   }
 
-  return { dividers, labelledRows };
+  const timeline =
+    dayEndRow === undefined
+      ? []
+      : layout.rows.filter(
+          (row) => row.gridRow <= dayEndRow && labelledRows.has(row.gridRow),
+        );
+
+  return { dividers, labelledRows, timeline };
 };
 
 const shownWeekLayout = computed(
@@ -254,6 +272,44 @@ const dividersOf = (day: number, week: number) =>
 
 const labelledRowsOf = (day: number, week: number) =>
   phoneRowsOf(week).get(day)?.labelledRows;
+
+/** Where now falls on today's page, which only a phone marks. */
+const todayMarker = computed(() => {
+  const page = todayPage.value;
+  if (!isPhone.value || page === null) return null;
+  const week = todayWeek.value;
+  const day = days[page - week * days.length];
+  const timeline =
+    day === undefined ? [] : phoneRowsOf(week).get(day)?.timeline;
+  return nowMarkerOf(timeline ?? [], minutesToday.value);
+});
+
+const markerOf = (day: number, week: number) =>
+  week * days.length + days.indexOf(day) === todayPage.value
+    ? todayMarker.value
+    : null;
+
+const nowLabelOf = (day: number, week: number) => {
+  const gridRow = markerOf(day, week)?.labelRow ?? null;
+  return gridRow === null
+    ? null
+    : { gridRow, time: formatTimeOfDay(minutesToday.value) };
+};
+
+/** A divider now has reached tells how long its break has left. */
+const shownDivider = (
+  divider: Omit<Divider, 'key'>,
+  marker: NowMarker | null,
+) => {
+  if (marker?.labelRow !== divider.gridRow) return divider;
+  const minutes = marker.breakMinutesLeft;
+  return {
+    ...divider,
+    label:
+      minutes === null ? divider.label : t('schedule.break_left', { minutes }),
+    isNow: true,
+  };
+};
 
 const lessonGroupsOfWeek = useWeekCache<ReadonlyMap<number, LessonGroup[]>>(
   (week) =>
@@ -370,6 +426,7 @@ watch(
       :week-layout="(week) => scheduleOfWeek(week).weekLayout"
       :day-layout="dayLayoutOf"
       :labelled-rows="labelledRowsOf"
+      :now-label="nowLabelOf"
       :tab-label="formatDayDate"
       :tab-caption="formatDayInitials"
       :day-heading="formatDayHeading"
@@ -381,9 +438,11 @@ watch(
         <ScheduleBreakDivider
           v-for="{ key, ...divider } in dividersOf(day, week)"
           :key="key"
-          v-bind="divider"
+          v-bind="shownDivider(divider, markerOf(day, week))"
           :animated="animated"
         />
+
+        <ScheduleNowMarker :marker="markerOf(day, week)" :animated="animated" />
 
         <!--
           Leaving skeletons fill their cell without sizing its row, so rows the

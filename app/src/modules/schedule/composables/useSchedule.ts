@@ -7,6 +7,7 @@ import {
   watch,
   type Ref,
 } from 'vue';
+import { useEventListener } from '@vueuse/core';
 import api from '@/api/api.ts';
 import { groupPath } from '@/api/groupPath';
 import { useGroupPageId } from '@/core/composables/useGroupPageId';
@@ -43,6 +44,8 @@ import {
 } from '@/modules/schedule/utils/weekday';
 import { useScheduleDisplay } from '@/modules/schedule/composables/useScheduleDisplay';
 import { useWeekCache } from '@/modules/schedule/composables/useWeekCache';
+
+const MS_PER_MINUTE = 60 * 1000;
 
 const isSet = <T>(value: T | null | undefined | ''): value is T =>
   value !== null && value !== undefined && value !== '';
@@ -100,6 +103,9 @@ export function useSchedule(shownWeek?: Ref<number>) {
   const lessonsHiddenByServer = ref(0);
 
   const now = ref(new Date());
+  const minutesToday = computed(
+    () => now.value.getHours() * 60 + now.value.getMinutes(),
+  );
 
   /*
    * Weeks are counted from the one the schedule was opened in, so a week keeps
@@ -414,14 +420,26 @@ export function useSchedule(shownWeek?: Ref<number>) {
     };
   });
 
-  const updateTime = () => {
+  // Ticks on the minute, so times shown from now turn over with the clock.
+  let timer: number | undefined;
+  const tick = () => {
     now.value = new Date();
+    timer = window.setTimeout(
+      tick,
+      MS_PER_MINUTE - (Date.now() % MS_PER_MINUTE),
+    );
   };
 
-  let timer: number | undefined;
   onMounted(() => {
-    timer = window.setInterval(updateTime, 1000 * 60);
+    tick();
     void loadSchedule();
+  });
+
+  // A phone suspends timers in the background, so it catches up on return.
+  useEventListener(document, 'visibilitychange', () => {
+    if (document.visibilityState !== 'visible') return;
+    clearTimeout(timer);
+    tick();
   });
 
   watch(savedCourseFilter, (filter) => {
@@ -429,7 +447,7 @@ export function useSchedule(shownWeek?: Ref<number>) {
   });
 
   onUnmounted(() => {
-    clearInterval(timer);
+    clearTimeout(timer);
   });
 
   /** Today's page, unless today is no school day. */
@@ -450,8 +468,7 @@ export function useSchedule(shownWeek?: Ref<number>) {
         (lesson) => lessonMinutes(scheduleConfig.value, lesson).end,
       ),
     );
-    const currentMinutes = now.value.getHours() * 60 + now.value.getMinutes();
-    return currentMinutes > maxEndMins + 10;
+    return minutesToday.value > maxEndMins + 10;
   });
 
   /** The next school day once today's lessons are over or the week is. */
@@ -489,8 +506,8 @@ export function useSchedule(shownWeek?: Ref<number>) {
 
   const activeOrNextGroupKey = computed<string | null>(() => {
     const currentDayIndex = daysSinceMonday(now.value);
-    const currentMinutes = now.value.getHours() * 60 + now.value.getMinutes();
-    const currentTotalWeekMinutes = currentDayIndex * 24 * 60 + currentMinutes;
+    const currentTotalWeekMinutes =
+      currentDayIndex * 24 * 60 + minutesToday.value;
 
     const timeBlocks = scheduleOfWeek(todayWeek.value)
       .groupedLessons.map(({ key, lessons: group }) => {
@@ -563,6 +580,7 @@ export function useSchedule(shownWeek?: Ref<number>) {
     effectiveLessons: computed(() => schoolWeekSchedule.value.effectiveLessons),
     groupedLessons: computed(() => schoolWeekSchedule.value.groupedLessons),
     dayLayouts: computed(() => schoolWeekSchedule.value.dayLayouts),
+    minutesToday,
     todayWeek,
     todayPage,
     activeOrNextGroupKey,

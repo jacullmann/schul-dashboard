@@ -107,6 +107,12 @@ export interface ScheduleLayout {
   ) => Record<string, string>;
 }
 
+/** A time label showing the time it is instead, as now passes it. */
+export interface ScheduleNowLabel {
+  gridRow: number;
+  time: string;
+}
+
 /** What a phone shows for one day, laid out on a grid of its own. */
 export interface ScheduleDayPanel {
   gridStyle?: StyleValue;

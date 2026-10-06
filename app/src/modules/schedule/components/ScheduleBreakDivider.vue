@@ -6,9 +6,12 @@ withDefaults(
     gridColumn: number;
     gridRow: number;
     label: string;
+    /** Where now is, so it carries on from the now marker's label. */
+    isNow?: boolean;
     animated?: boolean;
   }>(),
   {
+    isNow: false,
     animated: true,
   },
 );
@@ -16,16 +19,27 @@ withDefaults(
 
 <template>
   <div
-    class="flex items-center gap-2 text-xs text-on-ghost-muted whitespace-nowrap"
-    :class="{ 'animate-enter': animated }"
+    class="flex items-center gap-2 text-xs whitespace-nowrap tabular-nums transition-colors duration-300"
+    :class="[
+      isNow ? 'text-accent font-medium' : 'text-on-ghost-muted',
+      { 'animate-enter': animated },
+    ]"
     :style="{
       gridColumn,
       gridRow,
       '--enter-delay': entranceDelay(gridColumn, gridRow),
     }"
   >
-    <span class="h-px flex-1 bg-ghost-border" />
+    <span
+      class="h-px flex-1"
+      :class="isNow ? 'bg-accent' : 'bg-ghost-border'"
+    />
     {{ label }}
-    <span class="h-px flex-1 bg-ghost-border" />
+    <span
+      class="h-px flex-1"
+      :class="
+        isNow ? 'bg-linear-to-r from-accent to-transparent' : 'bg-ghost-border'
+      "
+    />
   </div>
 </template>
