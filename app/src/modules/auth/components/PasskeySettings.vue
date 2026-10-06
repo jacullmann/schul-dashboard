@@ -148,18 +148,17 @@ onMounted(() => {
       </BaseButton>
     </div>
 
-    <div v-else-if="loading" class="flex flex-col gap-3">
-      <div
-        v-for="i in 2"
-        :key="i"
-        class="p-3 bg-surface border border-ghost-border rounded-xl flex gap-3 items-center"
-      >
-        <BaseSkeleton width="10" height="10" class="shrink-0" />
-        <div class="flex flex-col gap-2 flex-1">
-          <BaseSkeleton height="4" class="max-w-32" />
-          <BaseSkeleton height="3" class="max-w-48" />
+    <div v-else-if="loading" class="flex flex-col">
+      <template v-for="i in 2" :key="i">
+        <div v-if="i > 1" class="border-b border-ghost-border ml-13"></div>
+        <div class="flex gap-3 items-center py-3">
+          <BaseSkeleton width="10" height="10" class="shrink-0" />
+          <div class="flex flex-col gap-2 flex-1">
+            <BaseSkeleton height="4" class="max-w-32" />
+            <BaseSkeleton height="3" class="max-w-48" />
+          </div>
         </div>
-      </div>
+      </template>
     </div>
 
     <template v-else>
@@ -170,95 +169,100 @@ onMounted(() => {
         {{ t('auth.passkeys.empty') }}
       </p>
 
-      <ul v-else class="flex flex-col gap-3 m-0 p-0 list-none">
-        <li
-          v-for="passkey in passkeys"
-          :key="passkey.id"
-          class="flex gap-3 items-center p-3.5 bg-surface border border-ghost-border shadow-input rounded-xl"
-        >
+      <div v-else class="flex flex-col">
+        <template v-for="(passkey, index) in passkeys" :key="passkey.id">
           <div
-            class="flex items-center justify-center size-10 text-on-ghost-muted shrink-0"
-            aria-hidden="true"
-          >
-            <component :is="passkeyIcon" :size="24" />
-          </div>
-
-          <form
-            v-if="editingId === passkey.id"
-            class="flex flex-1 min-w-0 items-center gap-2"
-            @submit.prevent="saveRename(passkey)"
-          >
-            <BaseInput
-              :id="`passkey-name-${passkey.id}`"
-              :ref="setRenameInput"
-              v-model="draftName"
-              :maxlength="NAME_MAX_LENGTH"
-              :aria-label="t('auth.passkeys.name_label')"
-              required
-              @keydown.esc.prevent="cancelRename"
-            />
-            <BaseTooltip :content="t('common.buttons.save')" placement="bottom">
-              <BaseButton
-                type="submit"
-                variant="ghost"
-                on="ghost"
-                :icon="Check"
-                :loading="saving"
-                :aria-label="t('common.buttons.save')"
-              />
-            </BaseTooltip>
-            <BaseTooltip
-              :content="t('common.buttons.cancel')"
-              placement="bottom"
+            v-if="index > 0"
+            class="border-b border-ghost-border ml-13"
+          ></div>
+          <div class="flex gap-3 items-center py-3">
+            <div
+              class="flex items-center justify-center size-10 text-on-ghost-muted shrink-0"
+              aria-hidden="true"
             >
-              <BaseButton
-                variant="ghost"
-                on="ghost"
-                :icon="X"
-                :aria-label="t('common.buttons.cancel')"
-                @click="cancelRename"
-              />
-            </BaseTooltip>
-          </form>
-
-          <template v-else>
-            <div class="flex flex-col flex-1 min-w-0">
-              <span class="text-base font-semibold text-on-ghost truncate">
-                {{ passkey.name }}
-              </span>
-              <span class="text-sm text-on-ghost-muted">
-                {{ usageLabel(passkey) }}
-              </span>
+              <component :is="passkeyIcon" :size="24" />
             </div>
 
-            <BaseTooltip
-              :content="t('auth.passkeys.rename')"
-              placement="bottom"
+            <form
+              v-if="editingId === passkey.id"
+              class="flex flex-1 min-w-0 items-center gap-2"
+              @submit.prevent="saveRename(passkey)"
             >
-              <BaseButton
-                variant="ghost"
-                on="ghost"
-                :icon="Pencil"
-                :aria-label="t('auth.passkeys.rename')"
-                @click="startRename(passkey)"
+              <BaseInput
+                :id="`passkey-name-${passkey.id}`"
+                :ref="setRenameInput"
+                v-model="draftName"
+                :maxlength="NAME_MAX_LENGTH"
+                :aria-label="t('auth.passkeys.name_label')"
+                required
+                @keydown.esc.prevent="cancelRename"
               />
-            </BaseTooltip>
-            <BaseTooltip
-              :content="t('auth.passkeys.remove')"
-              placement="bottom"
-            >
-              <BaseButton
-                variant="ghost"
-                on="ghost"
-                :icon="Trash2"
-                :loading="removingId === passkey.id"
-                :aria-label="t('auth.passkeys.remove')"
-                @click="handleRemove(passkey)"
-              />
-            </BaseTooltip>
-          </template>
-        </li>
-      </ul>
+              <BaseTooltip
+                :content="t('common.buttons.save')"
+                placement="bottom"
+              >
+                <BaseButton
+                  type="submit"
+                  variant="ghost"
+                  on="ghost"
+                  :icon="Check"
+                  :loading="saving"
+                  :aria-label="t('common.buttons.save')"
+                />
+              </BaseTooltip>
+              <BaseTooltip
+                :content="t('common.buttons.cancel')"
+                placement="bottom"
+              >
+                <BaseButton
+                  variant="ghost"
+                  on="ghost"
+                  :icon="X"
+                  :aria-label="t('common.buttons.cancel')"
+                  @click="cancelRename"
+                />
+              </BaseTooltip>
+            </form>
+
+            <template v-else>
+              <div class="flex flex-col flex-1 min-w-0">
+                <span class="text-base font-semibold text-on-ghost truncate">
+                  {{ passkey.name }}
+                </span>
+                <span class="text-sm text-on-ghost-muted">
+                  {{ usageLabel(passkey) }}
+                </span>
+              </div>
+
+              <BaseTooltip
+                :content="t('auth.passkeys.rename')"
+                placement="bottom"
+              >
+                <BaseButton
+                  variant="ghost"
+                  on="ghost"
+                  :icon="Pencil"
+                  :aria-label="t('auth.passkeys.rename')"
+                  @click="startRename(passkey)"
+                />
+              </BaseTooltip>
+              <BaseTooltip
+                :content="t('auth.passkeys.remove')"
+                placement="bottom"
+              >
+                <BaseButton
+                  variant="ghost"
+                  on="ghost"
+                  :icon="Trash2"
+                  :loading="removingId === passkey.id"
+                  :aria-label="t('auth.passkeys.remove')"
+                  @click="handleRemove(passkey)"
+                />
+              </BaseTooltip>
+            </template>
+          </div>
+        </template>
+      </div>
 
       <BaseButton
         v-if="supported"
