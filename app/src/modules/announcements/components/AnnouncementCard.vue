@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, useTemplateRef, watch } from 'vue';
+import { computed, nextTick, useTemplateRef, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
 import {
@@ -10,6 +10,10 @@ import {
 import { Megaphone } from '@lucide/vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useAnnouncementStore } from '@/stores/announcementStore';
+import { useAnnouncementsModal } from '@/stores/modalStore';
+import { morphOriginOf } from '@/utils/morph';
+import { SETTLE_EASING } from '@/utils/motion';
+import { useSwipeAway } from '@/modules/announcements/composables/useSwipeAway';
 
 const props = defineProps<{
   /** Where read announcements live from now on; the card shrinks into it. */
@@ -19,6 +23,7 @@ const props = defineProps<{
 const { t } = useI18n();
 const { activeGroupId } = useAppAuth();
 const store = useAnnouncementStore();
+const announcementsModal = useAnnouncementsModal();
 const { unread } = storeToRefs(store);
 const reducedMotion = usePreferredReducedMotion();
 
@@ -60,9 +65,49 @@ useEventListener(document, 'visibilitychange', () => {
   }
 });
 
+function openList() {
+  if (!current.value) return;
+  announcementsModal.show(morphOriginOf(card.value));
+  void store.acknowledge(current.value);
+}
+
+const { swipeStyle, isGone, reset } = useSwipeAway(card, {
+  onSwipedAway: acknowledgeSwipedAway,
+});
+
+async function acknowledgeSwipedAway() {
+  if (!current.value) return;
+  void store.acknowledge(current.value);
+  await nextTick();
+  // The last one leaves for good; any other comes back in with the next one.
+  if (!current.value) return;
+  reset();
+  card.value?.animate(
+    [
+      { opacity: 0, scale: 0.95 },
+      { opacity: 1, scale: 1 },
+    ],
+    {
+      duration: 300,
+      easing: SETTLE_EASING,
+    },
+  );
+}
+
 function collapse(el: Element, done: () => void) {
+  // Swiped off screen already.
+  if (isGone.value) {
+    done();
+    return;
+  }
+
   const target = props.collapseTarget;
-  if (!target || reducedMotion.value === 'reduce') {
+  // Read by opening the list, which grows out of the card in its place.
+  if (
+    !target ||
+    announcementsModal.isOpen ||
+    reducedMotion.value === 'reduce'
+  ) {
     el.animate([{ opacity: 1 }, { opacity: 0 }], 150).finished.then(done, done);
     return;
   }
@@ -100,19 +145,29 @@ function collapse(el: Element, done: () => void) {
       <section
         v-if="current"
         ref="card"
-        class="pointer-events-auto flex w-full max-w-xl flex-wrap items-center gap-4 rounded-3xl border border-ghost-border bg-surface/80 p-4 shadow-menu backdrop-blur-sm backdrop-saturate-150"
+        :style="swipeStyle"
+        class="pointer-events-auto relative flex touch-none w-full max-w-xl flex-wrap items-center gap-4 rounded-3xl border border-ghost-border bg-surface/80 p-4 shadow-menu backdrop-blur-sm backdrop-saturate-150"
       >
+        <!-- A card swiped away comes back with the next one already in it.
+             Not out-in then: Vue cannot re-render from a leave that ends
+             synchronously. -->
         <Transition
-          mode="out-in"
+          :css="!isGone"
+          :mode="isGone ? 'default' : 'out-in'"
           enter-active-class="transition-[opacity,translate] duration-200 ease-out"
           leave-active-class="transition-[opacity,translate] duration-150 ease-in"
           enter-from-class="opacity-0 translate-y-1"
           leave-to-class="opacity-0 -translate-y-1"
         >
-          <div
+          <!-- Stretched over the whole card, so all of it opens the list,
+               while the buttons below sit above it. -->
+          <button
             :key="current.id"
-            class="flex min-w-0 grow items-center gap-2 xs:basis-0"
+            type="button"
+            aria-haspopup="dialog"
+            class="flex min-w-0 grow cursor-pointer items-center gap-2 text-left after:absolute after:inset-0 after:rounded-3xl xs:basis-0"
             :class="{ 'basis-full': !ackFitsBesideText }"
+            @click="openList"
           >
             <div
               class="flex flex-col items-center justify-center min-h-10 mb-auto"
@@ -134,10 +189,10 @@ function collapse(el: Element, done: () => void) {
             <span ref="text" class="min-w-0 text-sm text-on-ghost break-words">
               {{ current.content }}
             </span>
-          </div>
+          </button>
         </Transition>
 
-        <BaseRow justify="end" class="w-full flex-wrap-reverse">
+        <BaseRow justify="end" class="relative w-full flex-wrap-reverse">
           <BaseButton
             v-if="hasMore"
             surface

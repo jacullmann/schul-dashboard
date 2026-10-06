@@ -10,10 +10,11 @@ import {
 } from '@/utils/gesture';
 import { SETTLE_EASING } from '@/utils/motion';
 import { haptic } from '@/utils/haptics';
+import { expandFrom, type MorphOrigin } from '@/utils/morph';
 
 defineOptions({ inheritAttrs: false });
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     open?: boolean;
     /**
@@ -23,10 +24,13 @@ withDefaults(
      * taps that dismiss it.
      */
     elevated?: boolean;
+    /** Grows the sheet out of this on open, instead of sliding it up. */
+    origin?: MorphOrigin | null;
   }>(),
   {
     open: true,
     elevated: false,
+    origin: null,
   },
 );
 
@@ -207,6 +211,10 @@ function onTouchEnd() {
   }
 }
 
+function onSheetEnter(el: Element) {
+  if (props.origin) expandFrom(el as HTMLElement, props.origin);
+}
+
 function onBackdropClick() {
   if (dragHandled) {
     dragHandled = false;
@@ -239,12 +247,15 @@ defineExpose({ sheetEl, scrollEl });
 
     <Transition
       appear
-      enter-active-class="animate-[sheet-up_400ms_cubic-bezier(0.22,1,0.36,1)]"
+      :enter-active-class="
+        origin ? '' : 'animate-[sheet-up_400ms_cubic-bezier(0.22,1,0.36,1)]'
+      "
       :leave-active-class="
         isDraggingDismiss
           ? ''
           : 'animate-[sheet-down_150ms_cubic-bezier(0.32,0,0.67,1)_forwards]'
       "
+      @enter="onSheetEnter"
       @after-leave="emit('after-leave')"
     >
       <!-- No overflow clipping here: Chromium drops the masks of backdrop

@@ -206,6 +206,7 @@ async function onAuthSuccess() {
 
   <AnnouncementsModal
     :open="announcements.isOpen"
+    :origin="announcements.payload?.origin ?? null"
     @cancel="announcements.close()"
   />
 

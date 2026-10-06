@@ -4,6 +4,7 @@ import { useIsMobileViewport } from '@/common/composables/useViewport';
 import { Check, X } from '@lucide/vue';
 import { computed, useId } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { expandFrom, type MorphOrigin } from '@/utils/morph';
 
 // Two roots (dialog and sheet), so attributes and listeners such as drag and
 // drop handlers are forwarded to whichever one is shown.
@@ -40,6 +41,8 @@ const props = withDefaults(
     headerActions?: boolean;
     /** See BaseModalCard's own `wide`; a sheet always spans the screen. */
     wide?: boolean;
+    /** Grows the modal, in both its shapes, out of this on open. */
+    origin?: MorphOrigin | null;
   }>(),
   {
     danger: false,
@@ -51,6 +54,7 @@ const props = withDefaults(
     closeButton: true,
     headerActions: false,
     wide: false,
+    origin: null,
   },
 );
 
@@ -81,6 +85,20 @@ const titleRowClasses = computed(() => {
   return 'items-start h-7.5 pr-12 mb-4';
 });
 
+// Fades in without fade-scale's scale and blur, which the dialog's own
+// growth replaces. It closes with fade-scale like any other.
+const dialogTransition = computed(() => ({
+  name: 'fade-scale',
+  ...(props.origin && {
+    enterFromClass: 'opacity-0',
+    enterActiveClass: 'transition-opacity duration-250 ease-out',
+    onEnter: (root: Element) => {
+      const dialog = root.querySelector<HTMLElement>('[role="dialog"]');
+      if (dialog && props.origin) expandFrom(dialog, props.origin);
+    },
+  }),
+}));
+
 useEventListener(window, 'keydown', (e: KeyboardEvent) => {
   if (e.key === 'Escape') handleCancel();
 });
@@ -88,7 +106,7 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
 
 <template>
   <Teleport to="body">
-    <Transition name="fade-scale" appear>
+    <Transition v-bind="dialogTransition" appear>
       <BaseModalCard
         v-if="open && (!isMobile || !sheet)"
         v-bind="$attrs"
@@ -181,6 +199,7 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
     v-bind="$attrs"
     :open="open"
     :elevated="elevated"
+    :origin="origin"
     @cancel="handleCancel"
   >
     <div class="px-4 pb-4">

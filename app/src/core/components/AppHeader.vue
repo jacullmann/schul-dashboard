@@ -114,7 +114,7 @@ function inviteToActiveGroup() {
 
 function openAnnouncements() {
   groupMenuOpen.value = false;
-  announcementsModal.open();
+  announcementsModal.show();
 }
 
 onMounted(() => {

@@ -8,10 +8,12 @@ import {
   useAnnouncementsModal,
 } from '@/stores/modalStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
+import type { MorphOrigin } from '@/utils/morph';
 import AnnouncementList from '@/modules/announcements/components/AnnouncementList.vue';
 
 defineProps<{
   open: boolean;
+  origin: MorphOrigin | null;
 }>();
 
 defineEmits<{
@@ -32,7 +34,7 @@ function createAnnouncement() {
 </script>
 
 <template>
-  <BaseModal :open="open" sheet @cancel="$emit('cancel')">
+  <BaseModal :open="open" :origin="origin" sheet @cancel="$emit('cancel')">
     <template #title>
       {{ t('announcements.list.title') }}
     </template>

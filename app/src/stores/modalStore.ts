@@ -3,6 +3,7 @@ import { getCurrentScope, onScopeDispose, ref, shallowRef } from 'vue';
 import i18n from '@/i18n';
 import type { Task, ItemType, PrivateTask } from '@/modules/tasks/types';
 import type { StoredFile } from '@/api/files';
+import type { MorphOrigin } from '@/utils/morph';
 
 type TaskType = Exclude<ItemType, 'all'>;
 
@@ -140,9 +141,15 @@ export const useAnnouncementFormModal = defineStore(
   },
 );
 
-export const useAnnouncementsModal = defineStore('announcements-modal', () =>
-  useModalState(),
-);
+export const useAnnouncementsModal = defineStore('announcements-modal', () => {
+  const modal = useModalState<{ origin: MorphOrigin | null }>();
+
+  function show(origin: MorphOrigin | null = null) {
+    modal.open({ origin });
+  }
+
+  return { ...modal, show };
+});
 
 interface ImageViewerPayload {
   images: StoredFile[];
