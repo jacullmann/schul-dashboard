@@ -1,91 +1,23 @@
 <template>
   <svg
     v-bind="$attrs"
-    version="1.1"
     viewBox="0 0 1024 1024"
     xmlns="http://www.w3.org/2000/svg"
-    xmlns:xlink="http://www.w3.org/1999/xlink"
     role="img"
     aria-label="schul-dashboard Logo"
   >
     <title>schul-dashboard Logo</title>
-    <defs>
-      <linearGradient id="linearGradientBismuthStops">
-        <stop style="stop-color: oklch(0.8003 0.1668 71.67)" offset="8.4%" />
-        <stop style="stop-color: oklch(0.6541 0.2345 17.07)" offset="38.4%" />
-        <stop
-          style="stop-color: oklch(0.5878 0.29968 308.4769)"
-          offset="69.1%"
-        />
-        <stop
-          style="stop-color: oklch(0.4898 0.295776 280.2478)"
-          offset="100%"
-        />
-      </linearGradient>
-      <linearGradient
-        id="linearGradientBismuth"
-        xlink:href="#linearGradientBismuthStops"
-        x1="58.46209"
-        y1="-160.82309"
-        x2="1114.1292"
-        y2="333.66876"
-        gradientUnits="userSpaceOnUse"
-      />
-    </defs>
-    <path
-      id="background"
-      style="
-        display: inline;
-        fill: var(--color-onyx);
-        fill-opacity: 1;
-        stroke-width: 0;
-        stroke-linecap: square;
-        paint-order: stroke markers fill;
-      "
-      d="M 0,160 1.3117412e-4,475.00447 1023.9999,472.56856 1024,159.87511 853.47687,44.06984 173.10682,43.669109 Z"
+    <rect class="fill-onyx" width="1024" height="1024" rx="232" />
+    <rect
+      class="fill-white"
+      x="224"
+      y="216"
+      width="256"
+      height="592"
+      rx="128"
     />
-    <path
-      id="bottom"
-      style="
-        display: inline;
-        fill: var(--color-white);
-        fill-opacity: 1;
-        stroke-width: 0;
-        stroke-linecap: square;
-        paint-order: stroke markers fill;
-      "
-      d="M -3.5732999e-7,352 V 896 A 128,128 0 0 0 128,1024 H 896 A 128,128 0 0 0 1024,896 V 352 a 32,32 0 0 0 -32,-32 h -64 a 32,32 0 0 0 -32,32 v 32 a 48,48 0 0 1 -48,48 48,48 0 0 1 -48,-48 V 352 A 32,32 0 0 0 768,320 H 256 a 32,32 0 0 0 -32,32 v 32 a 48,48 0 0 1 -48,48 48,48 0 0 1 -48,-48 V 352 A 32,32 0 0 0 96,320 H 32 A 32,32 0 0 0 -3.5732999e-7,352 Z"
-    />
-    <path
-      id="top"
-      style="
-        display: inline;
-        fill: url(#linearGradientBismuth);
-        fill-opacity: 1;
-        stroke-width: 0;
-        stroke-linecap: square;
-        paint-order: stroke markers fill;
-      "
-      d="m -3.5732999e-7,128 v 64 A 32,32 0 0 0 32,224 h 64 a 32,32 0 0 0 32,-32 v -32 a 48,48 0 0 1 48,-48 48,48 0 0 1 48,48 v 32 a 32,32 0 0 0 32,32 h 512 a 32,32 0 0 0 32,-32 v -32 a 48,48 0 0 1 48,-48 48,48 0 0 1 48,48 v 32 a 32,32 0 0 0 32,32 h 64 a 32,32 0 0 0 32,-32 V 128 A 128,128 0 0 0 896,-3.5732999e-7 H 128 A 128,128 0 0 0 -3.5732999e-7,128 Z"
-    />
-    <text
-      id="date"
-      style="
-        font-weight: 900;
-        font-size: 560px;
-        line-height: 1.1;
-        font-family: Inter, sans-serif;
-        letter-spacing: 0;
-        fill: var(--color-onyx);
-        fill-opacity: 1;
-        stroke-width: 0;
-        stroke-linecap: square;
-        text-anchor: middle;
-        paint-order: stroke markers fill;
-      "
-    >
-      <tspan x="512" y="880" text-anchor="middle">30</tspan>
-    </text>
+    <circle class="fill-vermilion" cx="672" cy="352" r="136" />
+    <rect class="fill-white" x="544" y="544" width="256" height="256" rx="56" />
   </svg>
 </template>
 
