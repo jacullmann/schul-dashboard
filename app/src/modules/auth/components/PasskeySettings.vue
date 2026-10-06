@@ -1,15 +1,8 @@
 <script setup lang="ts">
 import { nextTick, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import {
-  AlertCircle,
-  Check,
-  Fingerprint,
-  Pencil,
-  Plus,
-  Trash2,
-  X,
-} from '@lucide/vue';
+import { AlertCircle, Check, Pencil, Plus, Trash2, X } from '@lucide/vue';
+import { passkeyIcon } from '@/modules/auth/utils/passkeyIcon';
 import { usePasskeys } from '@/modules/auth/composables/usePasskeys';
 import type { Passkey } from '@/modules/auth/types';
 import { useConfirmModal } from '@/stores/modalStore';
@@ -187,7 +180,7 @@ onMounted(() => {
             class="flex items-center justify-center size-10 text-on-ghost-muted shrink-0"
             aria-hidden="true"
           >
-            <Fingerprint :size="24" />
+            <component :is="passkeyIcon" :size="24" />
           </div>
 
           <form

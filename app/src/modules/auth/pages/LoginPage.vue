@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
-import { AlertCircle, Fingerprint } from '@lucide/vue';
+import { AlertCircle } from '@lucide/vue';
 import { useUserStore } from '@/stores/userStore';
 import GoogleIcon from '@/modules/auth/components/GoogleIcon.vue';
 import { useLogin } from '@/modules/auth/composables/useLogin';
 import { useOAuth } from '@/modules/auth/composables/useOAuth';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { usePasskeySignIn } from '@/modules/auth/composables/usePasskeySignIn';
+import { passkeyIcon } from '@/modules/auth/utils/passkeyIcon';
 import { useI18n } from 'vue-i18n';
 
 const router = useRouter();
@@ -145,7 +146,7 @@ function navigateToRegister() {
           surface
           variant="ghost"
           class="w-full justify-center mt-2"
-          :icon="Fingerprint"
+          :icon="passkeyIcon"
           :loading="passkeySigningIn"
           :disabled="passkeySigningIn"
           @click="signInWithPasskey"

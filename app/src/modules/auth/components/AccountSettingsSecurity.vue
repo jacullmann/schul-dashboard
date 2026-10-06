@@ -2,18 +2,13 @@
 import { computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import {
-  Fingerprint,
-  KeyRound,
-  Link2,
-  MonitorSmartphone,
-  ShieldCheck,
-} from '@lucide/vue';
+import { KeyRound, Link2, MonitorSmartphone, ShieldCheck } from '@lucide/vue';
 import MfaSettings from '@/modules/auth/components/MfaSettings.vue';
 import ConnectedAccounts from '@/modules/auth/components/ConnectedAccounts.vue';
 import ActiveSessions from '@/modules/auth/components/ActiveSessions.vue';
 import PasswordSettings from '@/modules/auth/components/PasswordSettings.vue';
 import PasskeySettings from '@/modules/auth/components/PasskeySettings.vue';
+import { passkeyIcon } from '@/modules/auth/utils/passkeyIcon';
 import { useMfa } from '@/modules/auth/composables/useMfa';
 import { useUserStore } from '@/stores/userStore';
 
@@ -59,7 +54,7 @@ onMounted(async () => {
 
     <BaseList @click="openSubTab('passkeys')">
       <template #icon>
-        <Fingerprint :size="20" :stroke-width="1.8" />
+        <component :is="passkeyIcon" :size="20" :stroke-width="1.8" />
       </template>
       <template #label>
         {{ t('auth.passkeys.title') }}
