@@ -210,23 +210,30 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
         leave-to-class="opacity-0"
         @before-leave="holdPendingEntrances"
       >
-        <div v-if="showSkeleton" class="flex flex-col gap-8 pt-4">
+        <!-- Mirrors PrivateTaskCard's border and padding, so each line sits
+             where its content will. -->
+        <div
+          v-if="showSkeleton"
+          class="flex flex-col gap-3 pt-4 max-w-192 mx-auto"
+        >
           <div
             v-for="n in SKELETON_COUNT"
             :key="n"
             v-entrance-start="cardEntranceStart"
-            class="animate-enter"
+            class="animate-enter border border-transparent p-1"
             :style="{
               '--enter-delay': entranceDelay(LIST_ENTRANCE_ORDER + n - 1),
             }"
           >
-            <BaseSkeleton width="60" height="20px" class="mb-3" />
-            <BaseSkeleton width="full" height="16px" class="mb-2" />
-            <BaseSkeleton
-              width="[70%]"
-              height="16px"
-              class="hidden md:flex mb-2"
-            />
+            <BaseSkeleton width="60" height="20px" class="mt-2 mx-2 mb-2" />
+            <div class="mx-2 mb-1">
+              <BaseSkeleton width="full" height="16px" class="mb-2" />
+              <BaseSkeleton
+                width="[70%]"
+                height="16px"
+                class="hidden md:flex"
+              />
+            </div>
           </div>
         </div>
       </Transition>
