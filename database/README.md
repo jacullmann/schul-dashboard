@@ -35,7 +35,7 @@ therefore almost never fire. pg_cron runs in the DB container and is unaffected.
 | `cleanup-user-activity`    | `cleanup_old_user_activity()`       | activity log older than 30 days                 |
 | `cleanup-security-events`  | `cleanup_old_security_events()`     | security events older than 30 days              |
 | `cleanup-unverified-users` | `cleanup_unverified_users()`        | accounts unverified after 2 days                |
-| `cleanup-password-resets`  | `cleanup_expired_password_resets()` | expired password reset/setup codes              |
+| `cleanup-password-resets`  | `cleanup_expired_password_resets()` | password reset/setup codes after 24 hours       |
 | `cleanup-old-items`        | `cleanup_old_items()`               | tasks 90 days after their due date              |
 
 Files in Cloudinary are outside the database's reach, so the server cleans
@@ -51,8 +51,8 @@ means the job is not running.
 - `pg_cron_setup.sql` — one-time scheduling (`CREATE EXTENSION` + `cron.schedule`).
 - The cleanup **functions** are created by the app migrations
   (`server/migrations/0006_consolidate_cleanup.sql`, `0012_…`,
-  `0040_scheduled_retention.sql` and `0041_delete_items_after_due_date.sql`),
-  not here.
+  `0040_scheduled_retention.sql`, `0041_delete_items_after_due_date.sql` and
+  `0050_limit_email_codes_per_address.sql`), not here.
 
 ---
 

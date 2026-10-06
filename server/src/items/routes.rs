@@ -11,7 +11,7 @@ use std::time::Duration;
 pub fn group_router() -> Router<AppState> {
     // 50 tasks per minute per IP: a whole class behind one school NAT never
     // gets near it, while a spam script is throttled to under one per second.
-    let create_item = create_item.layer(rate_limit::per_ip(50, Duration::from_millis(1200)));
+    let create_item = create_item.layer(rate_limit::per_client(50, Duration::from_millis(1200)));
 
     Router::new()
         .route("/items", get(get_items).post(create_item))

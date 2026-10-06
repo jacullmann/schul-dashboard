@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            UPDATE password_resets SET attempts = attempts + 1\n            WHERE id = (\n                SELECT id FROM password_resets\n                WHERE email = $1 AND used = false\n                ORDER BY created_at DESC LIMIT 1\n            )\n            RETURNING id, code, expires_at, attempts\n            ",
+  "query": "\n        UPDATE password_resets SET attempts = attempts + 1\n        WHERE id = (\n            SELECT id FROM password_resets\n            WHERE email = $1 AND used = false\n            ORDER BY created_at DESC LIMIT 1\n        )\n        RETURNING id, code, expires_at, attempts\n        ",
   "describe": {
     "columns": [
       {
@@ -60,5 +60,5 @@
       false
     ]
   },
-  "hash": "2527e567948ec4b8e8ca8f51330454c205fae117690835a4cd0279ee4223e608"
+  "hash": "dda1334e3172bce985bf1c39d80591174c58682dcb774a797dbe96f4496bd704"
 }

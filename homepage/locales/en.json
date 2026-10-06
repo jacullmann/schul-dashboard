@@ -380,7 +380,7 @@
           "title": "Visiting the website and app",
           "paragraphs": [
             "When you open the website or the app, our server processes your IP address, the date and time, the requested address and your browser identifier (user agent). Without this data we cannot deliver the pages or fend off attacks.",
-            "To protect passwords and two-factor codes from guessing, we limit the number of sign-in attempts per IP address. The counters for this are kept in memory only and expire after a short time.",
+            "So that nobody can guess passwords and two-factor codes or use us to send mass emails, we limit the number of requests per IP address, and per network (/64 prefix) for IPv6. The counters for this are kept in memory only and expire after a short time.",
             "Our servers and database are operated for us by Hetzner Online GmbH, Industriestr. 25, 91710 Gunzenhausen, Germany, in data centres in Germany. Hetzner processes the data on our behalf.",
             "The legal basis is our legitimate interest in a secure and working service (Art. 6(1)(f) GDPR)."
           ]
@@ -490,7 +490,7 @@
           "items": [
             "We keep account data until you delete your account.",
             "We delete unconfirmed accounts once their confirmation link has expired after 2 days.",
-            "Codes to reset or set your password are valid for 30 minutes and are deleted afterwards.",
+            "Codes to reset or set your password are valid for 30 minutes. We delete them after 24 hours; until then, we use them to limit how many codes an email address receives.",
             "We delete session data with IP address and browser identifier about 7 days after it was last used.",
             "We delete the activity log and security events after 30 days.",
             "We delete chat messages automatically after 7 days.",

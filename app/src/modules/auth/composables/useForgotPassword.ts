@@ -2,7 +2,7 @@ import { computed, reactive, ref } from 'vue';
 import { useNow } from '@vueuse/core';
 import { useI18n } from 'vue-i18n';
 import api from '@/api/api';
-import { apiErrorMessage } from '@/api/errors';
+import { apiErrorMessage, isRateLimited } from '@/api/errors';
 import type { ForgotPasswordErrors } from '@/modules/auth/types';
 
 const CODE_LENGTH = 6;
@@ -89,10 +89,9 @@ export function useForgotPassword(
       code.value = '';
       step.value = 'code';
     } catch (e: unknown) {
-      error.value = apiErrorMessage(
-        e,
-        t('auth.login.reset.errors.request_failed'),
-      );
+      error.value = isRateLimited(e)
+        ? t('common.errors.rate_limited')
+        : apiErrorMessage(e, t('auth.login.reset.errors.request_failed'));
     }
   }
 

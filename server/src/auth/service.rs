@@ -2,6 +2,7 @@ use crate::{
     auth::{
         cookies::*,
         dto::*,
+        email_code::{self, Issuance},
         session_context::is_superadmin,
         token::{TokenService, *},
     },
@@ -13,10 +14,7 @@ use crate::{
         password::{hash_password, validate_password_strength, verify_password},
         role::Role,
     },
-    config::{
-        Config, EMAIL_VERIFY_TTL, MFA_PENDING_TTL, PASSWORD_RESET_CODE_TTL, PASSWORD_RESET_TTL,
-        chrono_ttl,
-    },
+    config::{Config, EMAIL_VERIFY_TTL, MFA_PENDING_TTL, PASSWORD_RESET_TTL, chrono_ttl},
     error::{AppError, AppResult},
     mfa::{
         second_factor::{self, CodeCheck},
@@ -29,11 +27,6 @@ use chrono::Utc;
 use serde_json::json;
 use sqlx::PgPool;
 use uuid::Uuid;
-
-fn constant_time_str_eq(a: &str, b: &str) -> bool {
-    use sha2::{Digest, Sha256};
-    Sha256::digest(a.as_bytes()) == Sha256::digest(b.as_bytes())
-}
 
 const DUMMY_PASSWORD_HASH: &str = "$argon2id$v=19$m=19456,t=2,p=1$ptEx1UyXW3Vbni4hpQoKFA$CEEsGfXo9ruOgOAeAN4ZGpLiQK8gS+st5w9rVUimJlA";
 
@@ -467,20 +460,17 @@ impl AuthService {
         .fetch_optional(&self.db)
         .await?;
 
-        let Some(user) = user else {
-            return Ok(json!({
-                "ok": true,
-                "message": "If the email exists, a recovery email has been sent."
-            }));
-        };
-
-        let code = self.issue_email_code(&email).await?;
-
-        let locale = Locale::from_stored(user.language.as_deref());
-        let _ = self
-            .email
-            .send_password_reset_email(&email, locale, &code)
-            .await;
+        // A throttled address gets the same answer as any other: a different
+        // one would reveal that it has an account.
+        if let Some(user) = user
+            && let Issuance::Issued(code) = email_code::issue(&self.db, &email).await?
+        {
+            let locale = Locale::from_stored(user.language.as_deref());
+            let _ = self
+                .email
+                .send_password_reset_email(&email, locale, &code)
+                .await;
+        }
 
         Ok(json!({
             "ok": true,
@@ -495,7 +485,7 @@ impl AuthService {
     ) -> AppResult<serde_json::Value> {
         let email = email.to_lowercase();
 
-        self.consume_email_code(&email, code).await?;
+        email_code::redeem(&self.db, &email, code).await?;
 
         let reset_token = self
             .jwt
@@ -505,95 +495,15 @@ impl AuthService {
         Ok(json!({ "ok": true, "resetToken": reset_token }))
     }
 
-    /// Codes proving control of the account email. Password reset and the
-    /// first password of a Google-only account share them: both grant the
-    /// same thing, a password for that email.
-    async fn issue_email_code(&self, email: &str) -> AppResult<String> {
-        let code = hex::encode_upper(rand::random::<[u8; 3]>());
-
-        let expires_at = Utc::now() + chrono_ttl(PASSWORD_RESET_CODE_TTL);
-
-        sqlx::query!(
-            r#"UPDATE password_resets SET used = true WHERE email = $1 AND used = false"#,
-            email
-        )
-        .execute(&self.db)
-        .await?;
-
-        sqlx::query!(
-            r#"INSERT INTO password_resets (email, code, expires_at) VALUES ($1, $2, $3)"#,
-            email,
-            code,
-            expires_at
-        )
-        .execute(&self.db)
-        .await?;
-
-        Ok(code)
-    }
-
-    async fn consume_email_code(&self, email: &str, code: &str) -> AppResult<()> {
-        const MAX_RESET_CODE_ATTEMPTS: i32 = 5;
-
-        let code = code.trim();
-
-        let mut tx = self.db.begin().await?;
-
-        let pr = sqlx::query!(
-            r#"
-            UPDATE password_resets SET attempts = attempts + 1
-            WHERE id = (
-                SELECT id FROM password_resets
-                WHERE email = $1 AND used = false
-                ORDER BY created_at DESC LIMIT 1
-            )
-            RETURNING id, code, expires_at, attempts
-            "#,
-            email
-        )
-        .fetch_optional(&mut *tx)
-        .await?
-        .ok_or_else(|| AppError::BadRequest("Invalid code.".into()))?;
-
-        if pr.attempts > MAX_RESET_CODE_ATTEMPTS {
-            sqlx::query!(
-                r#"UPDATE password_resets SET used = true WHERE id = $1"#,
-                pr.id
-            )
-            .execute(&mut *tx)
-            .await?;
-            tx.commit().await?;
-            return Err(AppError::BadRequest(
-                "Too many attempts. Please request a new code.".into(),
-            ));
-        }
-
-        if pr.expires_at < Utc::now() {
-            tx.commit().await?;
-            return Err(AppError::BadRequest("Code has expired.".into()));
-        }
-
-        if !constant_time_str_eq(code, &pr.code) {
-            tx.commit().await?;
-            return Err(AppError::BadRequest("Invalid code.".into()));
-        }
-
-        sqlx::query!(
-            r#"UPDATE password_resets SET used = true WHERE id = $1"#,
-            pr.id
-        )
-        .execute(&mut *tx)
-        .await?;
-
-        tx.commit().await?;
-
-        Ok(())
-    }
-
     pub async fn request_password_setup_code(&self, user_id: Uuid) -> AppResult<serde_json::Value> {
         let account = self.passwordless_account(user_id).await?;
 
-        let code = self.issue_email_code(&account.email).await?;
+        let code = match email_code::issue(&self.db, &account.email).await? {
+            Issuance::Issued(code) => code,
+            Issuance::Throttled { retry_after } => {
+                return Err(AppError::EmailCodeThrottled { retry_after });
+            }
+        };
 
         self.email
             .send_password_setup_email(&account.email, account.locale, &code)
@@ -617,7 +527,7 @@ impl AuthService {
 
         let email = self.passwordless_account(user_id).await?.email;
 
-        self.consume_email_code(&email, code).await?;
+        email_code::redeem(&self.db, &email, code).await?;
 
         let hash = hash_password(new_password).await?;
 

@@ -15,6 +15,13 @@ export function apiErrorStatus(err: unknown): number | undefined {
   return isAxiosError(err) ? err.response?.status : undefined;
 }
 
+const TOO_MANY_REQUESTS = 429;
+
+/** Whether the API refused the request for being one too many. */
+export function isRateLimited(err: unknown): boolean {
+  return apiErrorStatus(err) === TOO_MANY_REQUESTS;
+}
+
 export function apiErrorMessage(err: unknown, fallback: string): string {
   if (isAxiosError<{ error?: unknown }>(err)) {
     const message = err.response?.data?.error;

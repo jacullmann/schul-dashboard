@@ -7,7 +7,7 @@ import type {
   MfaSetupResponse,
   MfaStatusResponse,
 } from '@/modules/auth/types';
-import { apiErrorCode, apiErrorMessage, apiErrorStatus } from '@/api/errors';
+import { apiErrorCode, apiErrorMessage, isRateLimited } from '@/api/errors';
 
 interface MfaResult {
   ok: boolean;
@@ -46,7 +46,7 @@ function mfaErrorMessage(err: unknown): string {
       return t('auth.mfa.verify.errors.locked', lockedMinutes(err));
   }
   // The rate limiter answers in plain text, so it carries no `error` field.
-  if (apiErrorStatus(err) === 429) {
+  if (isRateLimited(err)) {
     return t('auth.mfa.verify.errors.rate_limited');
   }
   return apiErrorMessage(err, t('auth.mfa.verify.errors.failed'));

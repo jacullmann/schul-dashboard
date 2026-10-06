@@ -11,17 +11,23 @@ pub fn router() -> Router<AppState> {
     // eat into the login budget of everyone sharing an IP (e.g. a school NAT).
     let mfa = Router::new()
         .route("/auth/mfa/verify", post(verify_mfa))
-        .layer(rate_limit::per_ip(20, Duration::from_secs(1)));
+        .layer(rate_limit::per_client(20, Duration::from_secs(1)));
+
+    // Kept apart from the password routes, so mistyped codes and passwords do
+    // not use up a client's email budget, and the stricter email budget does
+    // not hold up sign-ins.
+    let outgoing_mail = Router::new()
+        .route("/auth/register", post(register))
+        .route("/auth/forgot", post(forgot_password))
+        .layer(rate_limit::outgoing_mail());
 
     let sensitive = Router::new()
         .route("/auth/login", post(login))
-        .route("/auth/register", post(register))
-        .route("/auth/forgot", post(forgot_password))
         .route("/auth/reset/verify", post(verify_reset_token))
         .route("/auth/reset", post(reset_password))
         .route("/auth/set-password/code", post(request_password_setup_code))
         .route("/auth/set-password", post(set_password))
-        .layer(rate_limit::per_ip(30, Duration::from_secs(1)));
+        .layer(rate_limit::per_client(30, Duration::from_secs(1)));
 
     let normal = Router::new()
         .route("/auth/mfa/challenge", get(get_mfa_challenge))
@@ -37,5 +43,9 @@ pub fn router() -> Router<AppState> {
         .route("/auth/sessions", get(list_sessions))
         .route("/auth/sessions/{family_id}", delete(revoke_session));
 
-    Router::new().merge(mfa).merge(sensitive).merge(normal)
+    Router::new()
+        .merge(mfa)
+        .merge(outgoing_mail)
+        .merge(sensitive)
+        .merge(normal)
 }

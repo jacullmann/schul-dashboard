@@ -1,11 +1,10 @@
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import api from '@/api/api';
-import { apiErrorStatus } from '@/api/errors';
+import { isRateLimited } from '@/api/errors';
 import { useToast } from '@/common/composables/useToast';
 
 const DATA_EXPORT_URL = '/user/data-export';
-const TOO_MANY_REQUESTS = 429;
 
 // Mirrors the server's name; Content-Disposition is not exposed cross-origin.
 function exportFileName(): string {
@@ -40,7 +39,7 @@ export function useDataExport() {
       toast.success(t('auth.account_settings.data_export.success'));
     } catch (e: unknown) {
       toast.error(
-        apiErrorStatus(e) === TOO_MANY_REQUESTS
+        isRateLimited(e)
           ? t('auth.account_settings.data_export.rate_limited')
           : t('auth.account_settings.data_export.error'),
       );

@@ -8,5 +8,5 @@ pub fn router() -> Router<AppState> {
     // repeated clicks from turning that into load.
     Router::new()
         .route("/user/data-export", get(export_data))
-        .layer(rate_limit::per_ip(10, Duration::from_secs(30)))
+        .layer(rate_limit::per_client(10, Duration::from_secs(30)))
 }

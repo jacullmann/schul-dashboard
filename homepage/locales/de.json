@@ -380,7 +380,7 @@
           "title": "Aufruf von Website und App",
           "paragraphs": [
             "Wenn du die Website oder die App aufrufst, verarbeitet unser Server deine IP-Adresse, Datum und Uhrzeit, die aufgerufene Adresse und die Kennung deines Browsers (User-Agent). Ohne diese Daten können wir die Seiten nicht ausliefern und Angriffe nicht abwehren.",
-            "Um Passwörter und Zwei-Faktor-Codes vor dem Durchprobieren zu schützen, begrenzen wir die Zahl der Anmeldeversuche pro IP-Adresse. Die Zähler dafür liegen nur im Arbeitsspeicher und verfallen nach kurzer Zeit.",
+            "Damit niemand Passwörter und Zwei-Faktor-Codes durchprobieren oder über uns massenhaft E-Mails verschicken kann, begrenzen wir die Zahl der Anfragen pro IP-Adresse, bei IPv6 pro Netz (/64-Präfix). Die Zähler dafür liegen nur im Arbeitsspeicher und verfallen nach kurzer Zeit.",
             "Server und Datenbank betreibt für uns die Hetzner Online GmbH, Industriestr. 25, 91710 Gunzenhausen, in Rechenzentren in Deutschland. Hetzner verarbeitet die Daten in unserem Auftrag.",
             "Rechtsgrundlage ist unser berechtigtes Interesse an einem sicheren und funktionierenden Angebot (Art. 6 Abs. 1 lit. f DSGVO)."
           ]
@@ -490,7 +490,7 @@
           "items": [
             "Kontodaten speichern wir, bis du dein Konto löschst.",
             "Unbestätigte Konten löschen wir, nachdem der Bestätigungslink nach 2 Tagen abgelaufen ist.",
-            "Codes zum Zurücksetzen oder Festlegen des Passworts sind 30 Minuten gültig und werden danach gelöscht.",
+            "Codes zum Zurücksetzen oder Festlegen des Passworts sind 30 Minuten gültig. Wir löschen sie nach 24 Stunden; bis dahin begrenzen wir mit ihnen, wie viele Codes eine E-Mail-Adresse erhält.",
             "Sitzungsdaten mit IP-Adresse und Browserkennung löschen wir etwa 7 Tage nach ihrer letzten Nutzung.",
             "Aktivitätsprotokoll und Sicherheitsereignisse löschen wir nach 30 Tagen.",
             "Chatnachrichten löschen wir nach 7 Tagen automatisch.",

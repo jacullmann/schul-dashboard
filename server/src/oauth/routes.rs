@@ -14,7 +14,7 @@ pub fn router() -> Router<AppState> {
         .route("/auth/google/callback", get(handle_google_callback))
         .route("/auth/google/link", post(link_google_account))
         .route("/auth/google/link/start", post(start_google_link))
-        .layer(rate_limit::per_ip(60, Duration::from_millis(500)));
+        .layer(rate_limit::per_client(60, Duration::from_millis(500)));
 
     let normal = Router::new()
         .route("/auth/google/unlink", delete(unlink_google_account))

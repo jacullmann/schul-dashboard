@@ -3,10 +3,11 @@ import { useI18n } from 'vue-i18n';
 import api from '@/api/api.ts';
 import type { SetPasswordErrors } from '@/modules/auth/types';
 import { useUserStore } from '@/stores/userStore';
-import { apiErrorMessage } from '@/api/errors';
+import { apiErrorCode, apiErrorMessage, isRateLimited } from '@/api/errors';
 
 const CODE_LENGTH = 6;
 const MIN_PASSWORD_LENGTH = 8;
+const EMAIL_CODE_THROTTLED = 'EMAIL_CODE_THROTTLED';
 
 type SetPasswordStep = 'request' | 'confirm';
 
@@ -69,15 +70,21 @@ export function useSetPassword(onSuccess: () => void) {
     return !errors.code && !errors.new && !errors.confirm;
   }
 
+  // The address's own code budget and the per-network limit both answer 429.
+  function requestCodeError(e: unknown): string {
+    if (apiErrorCode(e) === EMAIL_CODE_THROTTLED) {
+      return t('auth.set_password.errors.throttled');
+    }
+    if (isRateLimited(e)) return t('common.errors.rate_limited');
+    return apiErrorMessage(e, t('auth.set_password.errors.request_failed'));
+  }
+
   async function requestCode() {
     try {
       await api.post('/auth/set-password/code');
       step.value = 'confirm';
     } catch (e: unknown) {
-      error.value = apiErrorMessage(
-        e,
-        t('auth.set_password.errors.request_failed'),
-      );
+      error.value = requestCodeError(e);
     }
   }
 

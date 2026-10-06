@@ -33,6 +33,10 @@ pub enum AppError {
     #[error("Too many incorrect codes. Please try again later.")]
     MfaLocked { retry_after: chrono::TimeDelta },
 
+    /// The address received as many emailed codes as it may for now.
+    #[error("Too many codes requested. Please try again later.")]
+    EmailCodeThrottled { retry_after: chrono::TimeDelta },
+
     #[error("{0}")]
     Forbidden(String),
 
@@ -107,15 +111,10 @@ impl IntoResponse for AppError {
                 json!({ "error": self.to_string(), "code": "MFA_CHALLENGE_EXPIRED" }),
             ),
             AppError::MfaLocked { retry_after } => {
-                // Whole seconds, rounded up, so a client that waits exactly
-                // this long is never still locked out.
-                let secs = (retry_after.num_milliseconds().max(0) + 999) / 1000;
-                return (
-                    StatusCode::TOO_MANY_REQUESTS,
-                    [(header::RETRY_AFTER, secs.to_string())],
-                    Json(json!({ "error": self.to_string(), "code": "MFA_LOCKED", "retryAfter": secs })),
-                )
-                    .into_response();
+                return too_many_requests(&self, "MFA_LOCKED", *retry_after);
+            }
+            AppError::EmailCodeThrottled { retry_after } => {
+                return too_many_requests(&self, "EMAIL_CODE_THROTTLED", *retry_after);
             }
             AppError::Forbidden(msg) => (StatusCode::FORBIDDEN, json!({ "error": msg })),
             AppError::NotFound(msg) => (StatusCode::NOT_FOUND, json!({ "error": msg })),
@@ -153,6 +152,19 @@ impl IntoResponse for AppError {
 
         (status, Json(body)).into_response()
     }
+}
+
+/// A 429 that tells the client when to try again, in whole seconds rounded up
+/// so a client that waits exactly this long is never refused again.
+fn too_many_requests(error: &AppError, code: &str, retry_after: chrono::TimeDelta) -> Response {
+    let secs = (retry_after.num_milliseconds().max(0) + 999) / 1000;
+
+    (
+        StatusCode::TOO_MANY_REQUESTS,
+        [(header::RETRY_AFTER, secs.to_string())],
+        Json(json!({ "error": error.to_string(), "code": code, "retryAfter": secs })),
+    )
+        .into_response()
 }
 
 pub type AppResult<T> = Result<T, AppError>;

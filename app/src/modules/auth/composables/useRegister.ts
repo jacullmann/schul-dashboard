@@ -2,7 +2,7 @@ import { ref, reactive, onMounted, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 import api from '@/api/api.ts';
 import { usePreferences } from '@/common/composables/usePreferences';
-import { apiErrorMessage } from '@/api/errors';
+import { apiErrorMessage, isRateLimited } from '@/api/errors';
 
 /** Subset of `BaseInput`'s exposed API that these forms rely on. */
 interface FocusableInput {
@@ -117,7 +117,9 @@ export function useRegister() {
       password.value = '';
       passwordConfirm.value = '';
     } catch (e: unknown) {
-      formError.value = apiErrorMessage(e, t('common.errors.unknown'));
+      formError.value = isRateLimited(e)
+        ? t('common.errors.rate_limited')
+        : apiErrorMessage(e, t('common.errors.unknown'));
     } finally {
       submitting.value = false;
     }

@@ -19,16 +19,12 @@ mod todos;
 mod user;
 
 use anyhow::Context;
-use axum::{Router, body::Body, http::Response, middleware};
+use axum::{Router, middleware};
 use common::{csrf::csrf_middleware, extractors::resolve_tenant};
 use config::Config;
 use sqlx::postgres::PgPoolOptions;
 use state::AppState;
-use std::{sync::Arc, time::Duration};
-use tower_governor::{
-    GovernorLayer, errors::GovernorError, governor::GovernorConfigBuilder,
-    key_extractor::SmartIpKeyExtractor,
-};
+use std::time::Duration;
 use tower_http::{
     compression::CompressionLayer,
     cors::{AllowHeaders, AllowMethods, CorsLayer},
@@ -93,27 +89,6 @@ async fn main() -> anyhow::Result<()> {
         ]))
         .expose_headers([common::personalization::HIDDEN_BY_COURSES]);
 
-    let global_governor = Arc::new(
-        GovernorConfigBuilder::default()
-            // governor takes the replenish interval per token, not a rate: this is 400 req/s.
-            .period(Duration::from_secs(1) / 400)
-            .burst_size(600)
-            .key_extractor(SmartIpKeyExtractor)
-            .finish()
-            .context("Failed to build global rate limit config")?,
-    );
-
-    let global_limiter = global_governor.limiter().clone();
-
-    tokio::spawn(async move {
-        let mut interval = tokio::time::interval(Duration::from_secs(60));
-        loop {
-            interval.tick().await;
-            tracing::debug!("rate limit storage size: {}", global_limiter.len());
-            global_limiter.retain_recent();
-        }
-    });
-
     // Every group-bound endpoint names its group in the path. The layer checks
     // membership once per request, so no handler below can be reached for a
     // group the caller does not belong to.
@@ -143,10 +118,7 @@ async fn main() -> anyhow::Result<()> {
         .merge(mfa::routes::router())
         .merge(oauth::routes::router())
         .merge(super_admin::routes::router(state.clone()))
-        .layer(
-            GovernorLayer::new(global_governor)
-                .error_handler(|e: GovernorError| -> Response<Body> { Response::from(e) }),
-        )
+        .layer(common::rate_limit::global())
         .layer(middleware::from_fn_with_state(
             state.clone(),
             csrf_middleware,
