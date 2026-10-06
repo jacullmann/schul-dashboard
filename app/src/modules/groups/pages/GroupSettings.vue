@@ -182,7 +182,7 @@ function goBack() {
           </div>
         </header>
 
-        <div class="flex-1 overflow-y-auto overscroll-contain p-0 md:p-4">
+        <div class="flex-1 overflow-y-auto overscroll-contain py-4 md:p-4">
           <div class="flex flex-col max-w-200 mx-auto">
             <BaseList
               v-for="(item, index) in navItems"
