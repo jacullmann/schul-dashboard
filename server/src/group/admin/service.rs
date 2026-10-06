@@ -8,7 +8,7 @@ use crate::{
     },
     error::{AppError, AppResult},
     group::{
-        dto::{ScheduleSubDto, ReplaceScheduleDto, ScheduleLessonDto},
+        dto::{ReplaceScheduleDto, ScheduleConfigDto, ScheduleLessonDto, ScheduleSubDto},
         member_policy::{self, Actor, Caller, Target},
         service::{avatar_in_use_on_conflict, lock_group_owner, role_from_db},
     },
@@ -145,6 +145,29 @@ fn validate_schedule_sub(dto: ScheduleSubDto) -> AppResult<ScheduleSubDto> {
     }
 
     Ok(dto)
+}
+
+/// Every break, on every day, follows one of the configured slots and lasts
+/// between 1 and 180 minutes; only school days can have breaks of their own.
+fn validate_breaks(config: &ScheduleConfigDto) -> AppResult<()> {
+    let invalid = |breaks: &BTreeMap<i32, i32>| {
+        breaks.iter().any(|(slot, duration)| {
+            !(1..=config.total_slots).contains(slot) || !(1..=180).contains(duration)
+        })
+    };
+
+    if invalid(&config.breaks)
+        || config
+            .day_breaks
+            .iter()
+            .any(|(day, breaks)| !(1..=5).contains(day) || invalid(breaks))
+    {
+        return Err(AppError::bad_request(
+            "Breaks must belong to a valid slot and last between 1 and 180 minutes.",
+        ));
+    }
+
+    Ok(())
 }
 
 /// Dalton stands in for a subject in the schedule, so a Dalton lesson cannot
@@ -900,13 +923,7 @@ impl GroupAdminService {
             ));
         }
 
-        if dto.schedule_config.breaks.iter().any(|(slot, duration)| {
-            !(1..=dto.schedule_config.total_slots).contains(slot) || !(1..=180).contains(duration)
-        }) {
-            return Err(AppError::bad_request(
-                "Breaks must belong to a valid slot and last between 1 and 180 minutes.",
-            ));
-        }
+        validate_breaks(&dto.schedule_config)?;
 
         if dto.lessons.len() > 250 {
             return Err(AppError::bad_request(
@@ -1424,6 +1441,36 @@ mod tests {
             room: room.map(str::to_owned),
             cancelled: None,
         }
+    }
+
+    fn config(breaks: &[(i32, i32)], day_breaks: &[(i32, &[(i32, i32)])]) -> ScheduleConfigDto {
+        ScheduleConfigDto {
+            start_time: "08:00".to_owned(),
+            total_slots: 6,
+            lesson_duration_mins: 45,
+            breaks: breaks.iter().copied().collect(),
+            day_breaks: day_breaks
+                .iter()
+                .map(|(day, breaks)| (*day, breaks.iter().copied().collect()))
+                .collect(),
+        }
+    }
+
+    #[test]
+    fn breaks_follow_a_slot_and_last_a_bounded_time() {
+        assert!(validate_breaks(&config(&[(2, 20), (4, 10)], &[])).is_ok());
+        assert!(validate_breaks(&config(&[(0, 20)], &[])).is_err());
+        assert!(validate_breaks(&config(&[(7, 20)], &[])).is_err());
+        assert!(validate_breaks(&config(&[(2, 0)], &[])).is_err());
+        assert!(validate_breaks(&config(&[(2, 181)], &[])).is_err());
+    }
+
+    #[test]
+    fn only_school_days_have_breaks_of_their_own() {
+        assert!(validate_breaks(&config(&[(2, 20)], &[(3, &[(1, 20)]), (5, &[])])).is_ok());
+        assert!(validate_breaks(&config(&[], &[(6, &[(2, 20)])])).is_err());
+        assert!(validate_breaks(&config(&[], &[(0, &[(2, 20)])])).is_err());
+        assert!(validate_breaks(&config(&[], &[(3, &[(7, 20)])])).is_err());
     }
 
     #[test]

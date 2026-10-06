@@ -136,8 +136,12 @@ pub struct ScheduleConfigDto {
     pub start_time: String,
     pub total_slots: i32,
     pub lesson_duration_mins: i32,
+    /// Minutes of break after a slot, on every day without breaks of its own.
     #[serde(default)]
     pub breaks: BTreeMap<i32, i32>,
+    /// The days whose breaks differ, each with all of its breaks.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub day_breaks: BTreeMap<i32, BTreeMap<i32, i32>>,
 }
 
 /// The one change a lesson carries in one week, replacing whatever change it

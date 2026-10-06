@@ -1,8 +1,9 @@
 import type {
   Lesson,
+  ScheduleBreaks,
   ScheduleConfig,
-  TimeSlot,
 } from '@/modules/schedule/types';
+import { breaksOn } from '@/modules/schedule/utils/breaks';
 import { lessonSpan } from '@/modules/schedule/utils/lesson';
 import {
   DEFAULT_START_TIME,
@@ -16,6 +17,7 @@ export const DEFAULT_SCHEDULE_CONFIG: Readonly<ScheduleConfig> = {
   totalSlots: 8,
   lessonDurationMins: 45,
   breaks: {},
+  dayBreaks: {},
 };
 
 export function scheduleConfigOrDefault(
@@ -27,16 +29,31 @@ export function scheduleConfigOrDefault(
     lessonDurationMins:
       config?.lessonDurationMins ?? DEFAULT_SCHEDULE_CONFIG.lessonDurationMins,
     breaks: config?.breaks ?? DEFAULT_SCHEDULE_CONFIG.breaks,
+    dayBreaks: config?.dayBreaks ?? DEFAULT_SCHEDULE_CONFIG.dayBreaks,
   };
 }
 
+export type DayTimes = Pick<ScheduleConfig, 'startTime' | 'lessonDurationMins'>;
+
 /** When a slot starts, in minutes since midnight, after every lesson and break before it. */
-export function slotStartMinutes(config: ScheduleConfig, slot: number): number {
-  let minutes = minutesSinceMidnight(config.startTime);
+export function slotStartMinutesWith(
+  times: DayTimes,
+  breaks: ScheduleBreaks,
+  slot: number,
+): number {
+  let minutes = minutesSinceMidnight(times.startTime);
   for (let earlierSlot = 1; earlierSlot < slot; earlierSlot++) {
-    minutes += config.lessonDurationMins + (config.breaks[earlierSlot] || 0);
+    minutes += times.lessonDurationMins + (breaks[earlierSlot] || 0);
   }
   return minutes;
+}
+
+export function slotStartMinutes(
+  config: ScheduleConfig,
+  day: number,
+  slot: number,
+): number {
+  return slotStartMinutesWith(config, breaksOn(config, day), slot);
 }
 
 export interface MinuteRange {
@@ -47,12 +64,13 @@ export interface MinuteRange {
 /** From the start of the first slot to the end of the last, breaks between them included. */
 export function slotRangeMinutes(
   config: ScheduleConfig,
+  day: number,
   firstSlot: number,
   lastSlot = firstSlot,
 ): MinuteRange {
   return {
-    start: slotStartMinutes(config, firstSlot),
-    end: slotStartMinutes(config, lastSlot) + config.lessonDurationMins,
+    start: slotStartMinutes(config, day, firstSlot),
+    end: slotStartMinutes(config, day, lastSlot) + config.lessonDurationMins,
   };
 }
 
@@ -62,24 +80,26 @@ export function slotRangeMinutes(
  */
 export function freeTimeMinutes(
   config: ScheduleConfig,
+  day: number,
   firstSlot: number,
   lastSlot: number,
 ): MinuteRange {
   return {
     start:
       firstSlot > 1
-        ? slotRangeMinutes(config, firstSlot - 1).end
-        : slotStartMinutes(config, firstSlot),
-    end: slotStartMinutes(config, lastSlot + 1),
+        ? slotRangeMinutes(config, day, firstSlot - 1).end
+        : slotStartMinutes(config, day, firstSlot),
+    end: slotStartMinutes(config, day, lastSlot + 1),
   };
 }
 
 export function lessonMinutes(
   config: ScheduleConfig,
-  lesson: Pick<Lesson, 'slot'> & { duration?: number | null },
+  lesson: Pick<Lesson, 'day' | 'slot'> & { duration?: number | null },
 ): MinuteRange {
   return slotRangeMinutes(
     config,
+    lesson.day,
     lesson.slot,
     lesson.slot + lessonSpan(lesson) - 1,
   );
@@ -87,14 +107,4 @@ export function lessonMinutes(
 
 export function formatMinuteRange({ start, end }: MinuteRange): string {
   return `${formatTimeOfDay(start)} - ${formatTimeOfDay(end)}`;
-}
-
-export function timeSlotsOf(config: ScheduleConfig): TimeSlot[] {
-  return Array.from({ length: config.totalSlots }, (_, index) => {
-    const slot = index + 1;
-    return {
-      slot,
-      startTime: formatTimeOfDay(slotStartMinutes(config, slot)),
-    };
-  });
 }

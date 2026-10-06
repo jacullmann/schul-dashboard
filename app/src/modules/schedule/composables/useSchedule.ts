@@ -384,17 +384,37 @@ export function useSchedule(shownWeek?: Ref<number>) {
       ),
     );
 
-    /** The cells of a day: its lessons, and filtered, the free time between them. */
-    const cellsOfDay = (day: number) => {
-      const groups = groupedLessons.filter((group) => group.day === day);
-      const lessonCells = groups.map(({ lessons }) =>
-        lessonsSlotRange(lessons),
-      );
+    const freeRunsOfDay = (day: number) => {
       const lastAttendedSlot = lastAttendedSlotByDay.get(day);
       return isPersonalized.value && lastAttendedSlot !== undefined
-        ? [...lessonCells, ...freeSlotRuns(groups, lastAttendedSlot)]
-        : lessonCells;
+        ? freeSlotRuns(
+            groupedLessons.filter((group) => group.day === day),
+            lastAttendedSlot,
+          )
+        : [];
     };
+
+    /** The cells of a day: its lessons, and filtered, the free time between them. */
+    const cellsOfDay = (day: number) => [
+      ...groupedLessons
+        .filter((group) => group.day === day)
+        .map(({ lessons }) => lessonsSlotRange(lessons)),
+      ...freeRunsOfDay(day),
+    ];
+
+    const breaksInFreeTimeByDay = new Map(
+      days.map((day) => [
+        day,
+        new Set(
+          freeRunsOfDay(day).flatMap(({ firstSlot, lastSlot }) =>
+            Array.from(
+              { length: lastSlot - firstSlot },
+              (_, index) => firstSlot + index,
+            ),
+          ),
+        ),
+      ]),
+    );
 
     /*
      * A day shows no breaks past the last lesson the member attends, so rows
@@ -403,16 +423,15 @@ export function useSchedule(shownWeek?: Ref<number>) {
      */
     const buildLayout = (dayList: readonly number[]) =>
       loadingLessons.value
-        ? buildScheduleLayout(scheduleConfig.value, {
-            breaksBeforeSlot: Infinity,
+        ? buildScheduleLayout(scheduleConfig.value, dayList, {
+            breaksBeforeSlot: () => Infinity,
             dayEndSlots: new Set(),
             joinedSlots: new Set(),
           })
-        : buildScheduleLayout(scheduleConfig.value, {
-            breaksBeforeSlot: Math.max(
-              0,
-              ...dayList.map((day) => lastAttendedSlotByDay.get(day) ?? 0),
-            ),
+        : buildScheduleLayout(scheduleConfig.value, dayList, {
+            breaksBeforeSlot: (day) => lastAttendedSlotByDay.get(day) ?? 0,
+            breaksInFreeTime: (day) =>
+              breaksInFreeTimeByDay.get(day) ?? new Set(),
             dayEndSlots: new Set(
               dayList.flatMap((day) => lastAttendedSlotByDay.get(day) ?? []),
             ),
@@ -530,6 +549,7 @@ export function useSchedule(shownWeek?: Ref<number>) {
         const { firstSlot, lastSlot } = lessonsSlotRange(group);
         const { start, end } = slotRangeMinutes(
           scheduleConfig.value,
+          first.day,
           firstSlot,
           lastSlot,
         );

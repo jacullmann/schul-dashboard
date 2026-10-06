@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { Plus } from '@lucide/vue';
+import { Clock, Plus } from '@lucide/vue';
 import ScheduleLessonItem from './ScheduleLessonItem.vue';
 import type { Lesson } from '@/modules/schedule/types';
 import { lessonsSlotRange } from '@/modules/schedule/utils/lesson';
@@ -17,9 +17,12 @@ const props = withDefaults(
     selectedLessonIds?: ReadonlySet<string>;
     animated?: boolean;
     canAddLesson?: boolean;
+    /** When the cell takes place, for a day whose times differ from the rows'. */
+    time?: string | null;
     getDisplayName: (lesson: Lesson) => string;
   }>(),
   {
+    time: null,
     isActive: false,
     isClickable: false,
     hasContextMenu: false,
@@ -75,6 +78,14 @@ const periodLabel = (lesson: Lesson) => {
       isActive ? 'highlight-active bg-action! border-action!' : '',
     ]"
   >
+    <span
+      v-if="time"
+      class="flex items-center gap-1 px-2 max-xs:px-2.5 pt-1 text-xs font-medium tabular-nums text-on-ghost-muted group-[.highlight-active]:text-on-action-muted!"
+    >
+      <Clock :size="12" aria-hidden="true" />
+      {{ time }}
+    </span>
+
     <ScheduleLessonItem
       v-for="(lesson, index) in group"
       :key="index"

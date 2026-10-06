@@ -32,7 +32,14 @@ const SETTLED: ReadonlySet<CourseState> = new Set([
 
 const { days, getDisplayName } = useScheduleDisplay();
 
-const layout = computed(() => buildScheduleLayout(props.config));
+const layout = computed(() => buildScheduleLayout(props.config, days));
+
+const dayLayouts = computed(
+  () =>
+    new Map(days.map((day) => [day, buildScheduleLayout(props.config, [day])])),
+);
+
+const dayLayoutOf = (day: number) => dayLayouts.value.get(day) ?? layout.value;
 
 // Parallel courses of one slot share a cell, the way the schedule shows them.
 const lessonGroupsOfDay = computed(() =>
@@ -63,7 +70,12 @@ const dayPager = useSchedulePager(days.length);
 </script>
 
 <template>
-  <ScheduleGrid :pager="dayPager" :layout="layout" :animated="false">
+  <ScheduleGrid
+    :pager="dayPager"
+    :layout="layout"
+    :day-layout="dayLayoutOf"
+    :animated="false"
+  >
     <template #default="{ day, column, layout: dayLayout, animated }">
       <ScheduleLessonGroup
         v-for="{ key, lessons: group } in lessonGroupsOf(day)"
@@ -72,6 +84,7 @@ const dayPager = useSchedulePager(days.length);
         :is-clickable="isToggleable"
         :selected-lesson-ids="settledLessonIds"
         :animated="animated"
+        :time="dayLayout.differingTimeOf(group)"
         :get-display-name="getDisplayName"
         :style="dayLayout.groupStyle(group, column)"
         @select-lesson="toggle"

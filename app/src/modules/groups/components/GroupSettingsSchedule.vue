@@ -328,7 +328,7 @@ const selectedSlotSummary = computed(() => {
       ? t('schedule.period', { slot })
       : t('schedule.periods', { first: slot, last: lastSlot });
   const time = formatMinuteRange(
-    slotRangeMinutes(scheduleConfig.value, slot, lastSlot),
+    slotRangeMinutes(scheduleConfig.value, day, slot, lastSlot),
   );
   return `${formatDayName(day)}, ${periods} (${time})`;
 });

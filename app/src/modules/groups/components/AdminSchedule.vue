@@ -56,9 +56,18 @@ const emit = defineEmits<{
   (e: 'contextmenu-lesson', lesson: Lesson, event: UIEvent): void;
 }>();
 
-const layout = computed(() =>
-  buildScheduleLayout(props.config ?? scheduleConfig.value),
+const shownConfig = computed(() => props.config ?? scheduleConfig.value);
+
+const layout = computed(() => buildScheduleLayout(shownConfig.value, days));
+
+const dayLayouts = computed(
+  () =>
+    new Map(
+      days.map((day) => [day, buildScheduleLayout(shownConfig.value, [day])]),
+    ),
 );
+
+const dayLayoutOf = (day: number) => dayLayouts.value.get(day) ?? layout.value;
 
 const displayLessons = computed(() => {
   if (!props.lessons || props.lessons.length === 0) return [];
@@ -162,6 +171,7 @@ const entranceStyle = (
   <ScheduleGrid
     :pager="dayPager"
     :layout="layout"
+    :day-layout="dayLayoutOf"
     :clickable-days="isEditable"
     :animated="animated"
     bleed-class="-mx-6 px-6"
@@ -179,6 +189,7 @@ const entranceStyle = (
         :selected-lesson-ids="selectedLessonIds"
         :animated="cellsAnimated"
         :can-add-lesson="isEditable && individualCourses"
+        :time="dayLayout.differingTimeOf(group)"
         :get-display-name="getDisplayName"
         :style="[
           dayLayout.groupStyle(group, column),

@@ -49,11 +49,17 @@ export interface ScheduleSubject {
   courses?: ScheduleCourse[] | null;
 }
 
+/** Minutes of break after a slot, by that slot. */
+export type ScheduleBreaks = Record<number, number>;
+
 export interface ScheduleConfig {
   startTime: string;
   totalSlots: number;
   lessonDurationMins: number;
-  breaks: Record<number, number>;
+  /** Every day's breaks, except on the days that have their own. */
+  breaks: ScheduleBreaks;
+  /** The days whose breaks differ, each with all of its breaks. */
+  dayBreaks: Partial<Record<number, ScheduleBreaks>>;
 }
 
 export interface Substitution {
@@ -72,11 +78,6 @@ export interface Substitution {
   createdAt?: string;
 }
 
-export interface TimeSlot {
-  slot: number;
-  startTime: string;
-}
-
 export type ScheduleRow =
   | {
       kind: 'lesson';
@@ -91,7 +92,8 @@ export type ScheduleRow =
       gridRow: number;
       afterSlot: number;
       startTime: string;
-      durationMins: number;
+      /** How long the break lasts on each day that shows it here. */
+      durationMinsByDay: ReadonlyMap<number, number>;
     }
   | { kind: 'dayEnd'; gridRow: number; afterSlot: number; startTime: string };
 
@@ -105,6 +107,8 @@ export interface ScheduleLayout {
     group: readonly Lesson[],
     gridColumn: number,
   ) => Record<string, string>;
+  /** When a cell takes place, if its day's times differ from those its rows show. */
+  differingTimeOf: (group: readonly Lesson[]) => string | null;
 }
 
 /** A time label showing how long until the next time instead, as now passes it. */

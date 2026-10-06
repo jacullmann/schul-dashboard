@@ -207,7 +207,8 @@ interface DayRows {
  * holding a divider.
  *
  * Filtered to the member's courses, the slots up to then without a lesson
- * read as free time; a break between two of them belongs to it.
+ * read as free time; a break between two of them belongs to it and gets no
+ * row on its day.
  */
 const rowsOfDay = (
   layout: ScheduleLayout,
@@ -219,10 +220,13 @@ const rowsOfDay = (
     key: `break-${column}-${row.gridRow}`,
     gridColumn: column,
     gridRow: row.gridRow,
-    label: t('schedule.break', { minutes: row.durationMins }),
+    label: t('schedule.break', {
+      minutes: row.durationMinsByDay.get(day),
+    }),
   });
   const breakRows = layout.rows.filter(
-    (row): row is BreakRow => row.kind === 'break',
+    (row): row is BreakRow =>
+      row.kind === 'break' && row.durationMinsByDay.has(day),
   );
   if (loadingLessons.value) {
     return {
@@ -239,16 +243,8 @@ const rowsOfDay = (
     isPersonalized.value && lastAttendedSlot !== undefined
       ? freeSlotRuns(lessonGroupsOfWeek(week).get(day) ?? [], lastAttendedSlot)
       : [];
-  const isFreeTime = (row: BreakRow) =>
-    freeRuns.some(
-      ({ firstSlot, lastSlot }) =>
-        firstSlot <= row.afterSlot && row.afterSlot < lastSlot,
-    );
   const breaks = breakRows.filter(
-    (row) =>
-      lastAttendedSlot !== undefined &&
-      row.afterSlot < lastAttendedSlot &&
-      !isFreeTime(row),
+    (row) => lastAttendedSlot !== undefined && row.afterSlot < lastAttendedSlot,
   );
   const dayEndRow = layout.rows.find(
     (row) => row.kind !== 'lesson' && row.afterSlot === lastAttendedSlot,
@@ -280,7 +276,12 @@ const rowsOfDay = (
         );
 
   const freeBlocks = freeRuns.map(({ firstSlot, lastSlot }): FreeBlock => {
-    const time = freeTimeMinutes(scheduleConfig.value, firstSlot, lastSlot);
+    const time = freeTimeMinutes(
+      scheduleConfig.value,
+      day,
+      firstSlot,
+      lastSlot,
+    );
     const lessonsMinutes =
       (lastSlot - firstSlot + 1) * scheduleConfig.value.lessonDurationMins;
     return {
@@ -584,6 +585,7 @@ watch(
           :animated="animated"
           :get-display-name="getDisplayName"
           :is-clickable="canChangeLessonsIn(week)"
+          :time="layout.differingTimeOf(lessons)"
           :style="[
             layout.groupStyle(lessons, column),
             lessonEntranceStyle(lessons, column, layout),

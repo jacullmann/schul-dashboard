@@ -8,6 +8,7 @@ const config: ScheduleConfig = {
   totalSlots: 8,
   lessonDurationMins: 45,
   breaks: {},
+  dayBreaks: {},
 };
 
 function lesson(

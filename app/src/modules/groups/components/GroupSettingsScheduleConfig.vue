@@ -1,10 +1,16 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { computed, h, ref, type FunctionalComponent } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { Pencil, Plus, Trash2 } from '@lucide/vue';
+import { Pencil, RotateCcw } from '@lucide/vue';
+import type { NavItem } from '@/common/components/BaseTabs.vue';
 import type { ScheduleConfig } from '@/modules/schedule/types';
 import { useScheduleDisplay } from '@/modules/schedule/composables/useScheduleDisplay';
-import { DEFAULT_SCHEDULE_CONFIG } from '@/modules/schedule/utils/slotTimes';
+import { breaksOn } from '@/modules/schedule/utils/breaks';
+import {
+  MAX_SLOTS,
+  useScheduleConfigForm,
+} from '@/modules/groups/composables/useScheduleConfigForm';
+import ScheduleDayPlan from '@/modules/groups/components/ScheduleDayPlan.vue';
 
 const props = defineProps<{
   canEdit: boolean;
@@ -14,51 +20,100 @@ const props = defineProps<{
 
 const isEditing = defineModel<boolean>('editing', { default: false });
 
-const { t } = useI18n();
-const { scheduleConfig } = useScheduleDisplay();
+const { t, locale } = useI18n();
+const { days, scheduleConfig, formatDayName } = useScheduleDisplay();
 
-let breakSequence = 0;
+const {
+  form,
+  shownDay,
+  draftConfig,
+  daysWithOwnBreaks,
+  shownBreaks,
+  reset,
+  addBreak,
+  setBreakMinutes,
+  removeBreak,
+  moveBreak,
+  resetBreaksOn,
+} = useScheduleConfigForm(scheduleConfig);
 
-const configFormOf = (config: ScheduleConfig) => ({
-  startTime: config.startTime,
-  totalSlots: config.totalSlots,
-  lessonDurationMins: config.lessonDurationMins,
-  breaks: Object.entries(config.breaks).map(([slot, duration]) => ({
-    id: ++breakSequence,
-    slot: Number(slot),
-    duration: Number(duration),
+const EVERYONE_TAB = 'everyone';
+
+/** Marks a day with breaks of its own in the day tabs. */
+const OwnBreaksDot: FunctionalComponent = () =>
+  h('span', { class: 'size-1.5 mr-1.5 rounded-full bg-current' });
+
+const dayTabsOf = (
+  shownDays: readonly number[],
+  ownDays: readonly number[],
+  weekday: 'long' | 'short',
+): NavItem[] => [
+  {
+    id: EVERYONE_TAB,
+    label: t('groups.settings.schedule.config.everyone_tab'),
+  },
+  ...shownDays.map((day) => ({
+    id: String(day),
+    label: formatDayName(day, weekday),
+    icon: ownDays.includes(day) ? OwnBreaksDot : undefined,
   })),
-});
+];
 
-const form = ref(configFormOf(scheduleConfig.value));
+const tabIdOf = (day: number | null) =>
+  day === null ? EVERYONE_TAB : String(day);
+const dayOfTab = (id: string) => (id === EVERYONE_TAB ? null : Number(id));
 
-/** The form as the server stores it, with a blank duration read as the default. */
-const draftConfig = computed<ScheduleConfig>(() => ({
-  startTime: form.value.startTime,
-  totalSlots: form.value.totalSlots,
-  lessonDurationMins:
-    Number(form.value.lessonDurationMins) ||
-    DEFAULT_SCHEDULE_CONFIG.lessonDurationMins,
-  breaks: Object.fromEntries(
-    form.value.breaks
-      .filter((brk) => brk.slot)
-      .map((brk) => [brk.slot, Number(brk.duration || 0)]),
-  ),
-}));
-
-const savedBreaks = computed(() =>
-  Object.entries(scheduleConfig.value.breaks)
-    .map(([slot, minutes]) => ({ slot: Number(slot), minutes }))
-    .sort((a, b) => a.slot - b.slot),
+const listFormat = computed(
+  () => new Intl.ListFormat(locale.value, { type: 'conjunction' }),
 );
 
-const sortedFormBreaks = computed(() =>
-  [...form.value.breaks].sort((a, b) => a.slot - b.slot),
+/** Which days the breaks on show apply to. */
+function breaksHint(config: ScheduleConfig, day: number | null) {
+  const key = 'groups.settings.schedule.config';
+  if (day !== null) {
+    return config.dayBreaks[day]
+      ? t(`${key}.day_has_own_breaks`, { day: formatDayName(day) })
+      : t(`${key}.day_follows_everyone`, { day: formatDayName(day) });
+  }
+  const everyonesDays = days.filter((ownDay) => !config.dayBreaks[ownDay]);
+  if (everyonesDays.length === days.length) return t(`${key}.every_day`);
+  if (everyonesDays.length === 0) return t(`${key}.no_day`);
+  return t(`${key}.only_days`, {
+    days: listFormat.value.format(
+      everyonesDays.map((everyonesDay) => formatDayName(everyonesDay)),
+    ),
+  });
+}
+
+const editTabs = computed(() =>
+  dayTabsOf(days, daysWithOwnBreaks.value, 'short'),
+);
+const editHint = computed(() => breaksHint(draftConfig.value, shownDay.value));
+
+const savedDaysWithOwnBreaks = computed(() =>
+  days.filter((day) => scheduleConfig.value.dayBreaks[day]),
+);
+const savedShownDayChoice = ref<number | null>(null);
+/** The day picked to look at, unless its own breaks have since gone. */
+const savedShownDay = computed(() =>
+  savedShownDayChoice.value !== null &&
+  savedDaysWithOwnBreaks.value.includes(savedShownDayChoice.value)
+    ? savedShownDayChoice.value
+    : null,
+);
+const savedTabs = computed(() =>
+  dayTabsOf(savedDaysWithOwnBreaks.value, [], 'long'),
+);
+const savedBreaks = computed(() =>
+  savedShownDay.value === null
+    ? scheduleConfig.value.breaks
+    : breaksOn(scheduleConfig.value, savedShownDay.value),
 );
 
 function startEditing() {
   if (!props.canEdit) return;
-  form.value = configFormOf(scheduleConfig.value);
+  reset();
+  shownDay.value = savedShownDay.value;
   isEditing.value = true;
 }
 
@@ -68,20 +123,6 @@ function stopEditing() {
 
 async function submit() {
   if (await props.save(draftConfig.value)) stopEditing();
-}
-
-function addBreak() {
-  const takenSlots = new Set(form.value.breaks.map((brk) => brk.slot));
-  for (let slot = 1; slot <= form.value.totalSlots; slot++) {
-    if (!takenSlots.has(slot)) {
-      form.value.breaks.push({ id: ++breakSequence, slot, duration: 10 });
-      return;
-    }
-  }
-}
-
-function removeBreak(id: number) {
-  form.value.breaks = form.value.breaks.filter((brk) => brk.id !== id);
 }
 </script>
 
@@ -121,7 +162,7 @@ function removeBreak(id: number) {
           v-model.number="form.totalSlots"
           type="number"
           min="1"
-          max="15"
+          :max="MAX_SLOTS"
         />
       </BaseFormGroup>
       <BaseFormGroup id="config-duration">
@@ -137,61 +178,45 @@ function removeBreak(id: number) {
         />
       </BaseFormGroup>
 
-      <div class="pt-4 border-t border-ghost-border">
-        <div class="flex items-center justify-between mb-3">
-          <span class="text-sm font-medium text-on-ghost">{{
-            t('groups.settings.schedule.config.breaks_title')
-          }}</span>
-          <BaseButton variant="ghost" :icon="Plus" @click="addBreak">
-            {{ t('groups.settings.schedule.config.add_break_button') }}
+      <section
+        class="flex flex-col gap-3 pt-4 border-t border-ghost-border"
+        :aria-label="t('groups.settings.schedule.config.breaks_title')"
+      >
+        <span class="text-sm font-medium text-on-ghost">
+          {{ t('groups.settings.schedule.config.breaks_title') }}
+        </span>
+
+        <BaseTabs
+          :items="editTabs"
+          :active-id="tabIdOf(shownDay)"
+          @change="(id) => (shownDay = dayOfTab(id))"
+        />
+
+        <div class="flex flex-wrap items-center gap-x-3 gap-y-1 min-h-8">
+          <p class="m-0 flex-1 min-w-48 text-sm text-on-ghost-muted">
+            {{ editHint }}
+          </p>
+          <BaseButton
+            v-if="shownDay !== null && draftConfig.dayBreaks[shownDay]"
+            size="sm"
+            :icon="RotateCcw"
+            @click="resetBreaksOn(shownDay)"
+          >
+            {{ t('groups.settings.schedule.config.use_everyones_breaks') }}
           </BaseButton>
         </div>
 
-        <div
-          v-if="form.breaks.length === 0"
-          class="text-center py-2 text-on-ghost-muted text-xs italic"
-        >
-          {{ t('groups.settings.schedule.config.no_breaks') }}
-        </div>
-
-        <div class="flex flex-col gap-2">
-          <div
-            v-for="brk in sortedFormBreaks"
-            :key="brk.id"
-            class="flex gap-2 items-end"
-          >
-            <div class="form-field flex-1 m-0">
-              <BaseLabel :for="`break-slot-${brk.id}`" class="text-xs">{{
-                t('groups.settings.schedule.config.after_lesson_label')
-              }}</BaseLabel>
-              <BaseInput
-                :id="`break-slot-${brk.id}`"
-                v-model.number="brk.slot"
-                type="number"
-                min="1"
-                :max="form.totalSlots"
-              />
-            </div>
-            <div class="form-field flex-1 m-0">
-              <BaseLabel :for="`break-dur-${brk.id}`" class="text-xs">{{
-                t('groups.settings.schedule.config.break_duration_label')
-              }}</BaseLabel>
-              <BaseInput
-                :id="`break-dur-${brk.id}`"
-                v-model.number="brk.duration"
-                type="number"
-                min="1"
-              />
-            </div>
-            <BaseButton
-              variant="ghost"
-              class="text-danger mb-1"
-              :icon="Trash2"
-              @click="removeBreak(brk.id)"
-            />
-          </div>
-        </div>
-      </div>
+        <ScheduleDayPlan
+          editable
+          :times="draftConfig"
+          :total-slots="draftConfig.totalSlots"
+          :breaks="shownBreaks"
+          @add="addBreak"
+          @set-minutes="setBreakMinutes"
+          @remove="removeBreak"
+          @move="moveBreak"
+        />
+      </section>
 
       <BaseRow stack-on-mobile justify="end" class="w-full mt-2 gap-2">
         <BaseButton form variant="ghost" @click="stopEditing">
@@ -203,40 +228,60 @@ function removeBreak(id: number) {
       </BaseRow>
     </BaseFormContent>
 
-    <dl
-      v-else
-      class="grid grid-cols-[auto_1fr] gap-x-6 gap-y-3 m-0 text-base max-w-120"
-    >
-      <dt class="text-on-ghost-muted">
-        {{ t('groups.settings.schedule.config.start_time_label') }}
-      </dt>
-      <dd class="m-0 text-on-ghost">{{ scheduleConfig.startTime }}</dd>
+    <div v-else class="flex flex-col max-w-120">
+      <dl class="flex max-[400px]:flex-col gap-4 mt-4 mb-8">
+        <div
+          v-for="{ label, value } in [
+            {
+              label: t('groups.settings.schedule.config.start_time_label'),
+              value: scheduleConfig.startTime,
+            },
+            {
+              label: t('groups.settings.schedule.config.slots_per_day_label'),
+              value: scheduleConfig.totalSlots,
+            },
+            {
+              label: t('groups.settings.schedule.config.lesson_length_label'),
+              value: t('groups.settings.schedule.config.minutes', {
+                minutes: scheduleConfig.lessonDurationMins,
+              }),
+            },
+          ]"
+          :key="label"
+          class="flex flex-col flex-1 min-w-0"
+        >
+          <dt class="text-sm text-on-ghost-muted">{{ label }}</dt>
+          <dd class="m-0 text-lg font-semibold tabular-nums text-on-ghost">
+            {{ value }}
+          </dd>
+        </div>
+      </dl>
 
-      <dt class="text-on-ghost-muted">
-        {{ t('groups.settings.schedule.config.slots_per_day_label') }}
-      </dt>
-      <dd class="m-0 text-on-ghost">{{ scheduleConfig.totalSlots }}</dd>
-
-      <dt class="text-on-ghost-muted">
-        {{ t('groups.settings.schedule.config.lesson_duration_label') }}
-      </dt>
-      <dd class="m-0 text-on-ghost">
-        {{ scheduleConfig.lessonDurationMins }}
-      </dd>
-
-      <dt class="text-on-ghost-muted">
-        {{ t('groups.settings.schedule.config.breaks_title') }}
-      </dt>
-      <dd class="m-0 text-on-ghost">
-        <ul v-if="savedBreaks.length" class="m-0 p-0 list-none">
-          <li v-for="brk in savedBreaks" :key="brk.slot">
-            {{ t('groups.settings.schedule.config.break_summary', brk) }}
-          </li>
-        </ul>
-        <span v-else class="text-on-ghost-muted">
-          {{ t('groups.settings.schedule.config.no_breaks') }}
+      <section
+        class="flex flex-col gap-3"
+        :aria-label="t('groups.settings.schedule.config.day_plan_title')"
+      >
+        <span class="text-sm font-medium text-on-ghost">
+          {{ t('groups.settings.schedule.config.day_plan_title') }}
         </span>
-      </dd>
-    </dl>
+
+        <template v-if="savedDaysWithOwnBreaks.length">
+          <BaseTabs
+            :items="savedTabs"
+            :active-id="tabIdOf(savedShownDay)"
+            @change="(id) => (savedShownDayChoice = dayOfTab(id))"
+          />
+          <p class="m-0 text-sm text-on-ghost-muted">
+            {{ breaksHint(scheduleConfig, savedShownDay) }}
+          </p>
+        </template>
+
+        <ScheduleDayPlan
+          :times="scheduleConfig"
+          :total-slots="scheduleConfig.totalSlots"
+          :breaks="savedBreaks"
+        />
+      </section>
+    </div>
   </div>
 </template>

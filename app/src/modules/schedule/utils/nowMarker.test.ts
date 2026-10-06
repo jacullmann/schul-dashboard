@@ -23,7 +23,7 @@ const day: ScheduleRow[] = [
     gridRow: 4,
     afterSlot: 2,
     startTime: '09:30',
-    durationMins: 20,
+    durationMinsByDay: new Map([[1, 20]]),
   },
   lesson(5, '09:50'),
   { kind: 'dayEnd', gridRow: 6, afterSlot: 3, startTime: '10:35' },

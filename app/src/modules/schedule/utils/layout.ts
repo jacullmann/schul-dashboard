@@ -9,7 +9,11 @@ import {
   lessonsSlotRange,
   type SlotRange,
 } from '@/modules/schedule/utils/lesson';
-import { slotRangeMinutes } from '@/modules/schedule/utils/slotTimes';
+import { breaksOn } from '@/modules/schedule/utils/breaks';
+import {
+  formatMinuteRange,
+  slotRangeMinutes,
+} from '@/modules/schedule/utils/slotTimes';
 import { formatTimeOfDay } from '@/utils/time';
 
 /** The day headers take the first row. */
@@ -25,10 +29,12 @@ export const lessonRowsOf = (layout: Pick<ScheduleLayout, 'rows'>) =>
 
 export interface ScheduleLayoutOptions {
   /**
-   * Gives each break before this slot a row of its own; later breaks, and all
-   * breaks by default, let lessons follow each other directly.
+   * Gives each break of a day before this slot a row of its own; later
+   * breaks, and all breaks by default, let lessons follow each other directly.
    */
-  breaksBeforeSlot?: number;
+  breaksBeforeSlot?: (day: number) => number;
+  /** Slots of a day whose break lies inside free time, which takes it in instead. */
+  breaksInFreeTime?: (day: number) => ReadonlySet<number>;
   /** Slots a day ends after, each followed by a row that shows when it ends. */
   dayEndSlots?: ReadonlySet<number>;
   /** Slots that run into the next one without a gap, as a cell spanning both does. */
@@ -69,25 +75,46 @@ export function freeSlotRuns(
   return runs;
 }
 
+/** The value most of `values` share; of equally common ones, the first. */
+function mostCommon(values: readonly number[]): number {
+  const counts = new Map<number, number>();
+  for (const value of values) counts.set(value, (counts.get(value) ?? 0) + 1);
+  let best = values[0] ?? 0;
+  for (const [value, count] of counts) {
+    if (count > (counts.get(best) ?? 0)) best = value;
+  }
+  return best;
+}
+
 /*
- * Lesson rows, interleaved with breaks where shown. A day that ends where no
- * break follows gets a row of its own, so its end shows a time like a break
- * does. Start times count every break, shown or not.
+ * Lesson rows, interleaved with breaks where shown. Days side by side share
+ * their rows, so a break any of them shows gets a row, which the others leave
+ * empty. A row names the time most of its days share. A day that ends where
+ * no break follows gets a row of its own, so its end shows a time like a
+ * break does. Start times count every break, shown or not.
  */
 export function buildScheduleLayout(
   config: ScheduleConfig,
+  days: readonly number[],
   {
-    breaksBeforeSlot = 0,
+    breaksBeforeSlot = () => 0,
+    breaksInFreeTime = () => new Set(),
     dayEndSlots = new Set(),
     joinedSlots = new Set(),
   }: ScheduleLayoutOptions = {},
 ): ScheduleLayout {
   const rows: ScheduleRow[] = [];
   const lessonGridRows = new Map<number, number>();
+  /** The time most days start each slot at, which its row names. */
+  const sharedStarts = new Map<number, number>();
   let gridRow = FIRST_SLOT_ROW;
   for (let slot = 1; slot <= config.totalSlots; slot++) {
-    const { start, end } = slotRangeMinutes(config, slot);
-    const endTime = formatTimeOfDay(end);
+    const ranges = days.map((day) => ({
+      day,
+      ...slotRangeMinutes(config, day, slot),
+    }));
+    const start = mostCommon(ranges.map((range) => range.start));
+    sharedStarts.set(slot, start);
     lessonGridRows.set(slot, gridRow);
     rows.push({
       kind: 'lesson',
@@ -98,24 +125,33 @@ export function buildScheduleLayout(
         joinedSlots.has(slot - 1) && rows.at(-1)?.kind === 'lesson',
     });
 
-    const durationMins = config.breaks[slot] ?? 0;
-    if (
-      durationMins > 0 &&
-      slot < Math.min(breaksBeforeSlot, config.totalSlots)
-    ) {
+    const durationMinsByDay = new Map(
+      days.flatMap((day) => {
+        const durationMins = breaksOn(config, day)[slot] ?? 0;
+        const shown =
+          durationMins > 0 &&
+          slot < Math.min(breaksBeforeSlot(day), config.totalSlots) &&
+          !breaksInFreeTime(day).has(slot);
+        return shown ? [[day, durationMins] as const] : [];
+      }),
+    );
+    if (durationMinsByDay.size > 0) {
+      const breakStarts = ranges
+        .filter(({ day }) => durationMinsByDay.has(day))
+        .map(({ end }) => end);
       rows.push({
         kind: 'break',
         gridRow: gridRow++,
         afterSlot: slot,
-        startTime: endTime,
-        durationMins,
+        startTime: formatTimeOfDay(mostCommon(breakStarts)),
+        durationMinsByDay,
       });
     } else if (dayEndSlots.has(slot)) {
       rows.push({
         kind: 'dayEnd',
         gridRow: gridRow++,
         afterSlot: slot,
-        startTime: endTime,
+        startTime: formatTimeOfDay(mostCommon(ranges.map(({ end }) => end))),
       });
     }
   }
@@ -153,5 +189,17 @@ export function buildScheduleLayout(
     };
   };
 
-  return { rows, gridRowOfSlot, gridStyle, groupStyle };
+  const differingTimeOf = (group: readonly Lesson[]) => {
+    const day = group[0]?.day;
+    if (day === undefined) return null;
+    const { firstSlot, lastSlot } = lessonsSlotRange(group);
+    const time = slotRangeMinutes(config, day, firstSlot, lastSlot);
+    const sharedEnd =
+      (sharedStarts.get(lastSlot) ?? 0) + config.lessonDurationMins;
+    return time.start === sharedStarts.get(firstSlot) && time.end === sharedEnd
+      ? null
+      : formatMinuteRange(time);
+  };
+
+  return { rows, gridRowOfSlot, gridStyle, groupStyle, differingTimeOf };
 }
