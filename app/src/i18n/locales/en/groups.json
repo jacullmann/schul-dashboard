@@ -174,13 +174,6 @@
         "submit": "Lower role"
       }
     },
-    "overview": {
-      "stats": {
-        "active_tasks": "Active Tasks",
-        "members": "Members",
-        "schedule_changes": "Schedule Changes"
-      }
-    },
     "permissions": {
       "errors": {
         "load_failed": "Failed to load permissions",
@@ -400,7 +393,6 @@
     },
     "title": "Group Management",
     "messages": {
-      "load_stats_failed": "Failed to load statistics",
       "load_members_failed": "Failed to load members",
       "role_updated": "Role updated",
       "role_update_failed": "Failed to change role",

@@ -21,7 +21,6 @@ pub fn group_router() -> Router<AppState> {
         .route("/leave", delete(leave_group))
         .route("/members", get(get_members))
         .route("/invites", post(create_invite))
-        .route("/admin/stats", get(get_stats))
         .route("/admin/banned-users", get(get_banned_users))
         .route("/admin/banned-users/{user_id}", delete(revert_ban))
         .route("/admin/invites", get(get_invites))

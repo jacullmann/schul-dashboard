@@ -136,16 +136,6 @@ pub async fn leave_group(State(s): State<AppState>, tc: TenantContext) -> AppRes
     Ok(Json(json!({ "ok": true })))
 }
 
-pub async fn get_stats(State(s): State<AppState>, tc: TenantContext) -> AppResult<Json<Value>> {
-    crate::require_permission!(tc, crate::common::permission::Permission::EditGroupGeneral);
-
-    Ok(Json(
-        GroupAdminService::from_state(&s)
-            .get_stats(tc.tenant_id)
-            .await?,
-    ))
-}
-
 /// Every member may see who else is in the group; only the pseudonyms are
 /// exposed, never emails.
 pub async fn get_members(

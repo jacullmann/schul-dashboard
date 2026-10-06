@@ -175,13 +175,6 @@
         "submit": "Herabsetzen"
       }
     },
-    "overview": {
-      "stats": {
-        "active_tasks": "Aktive Aufgaben",
-        "members": "Mitglieder",
-        "schedule_changes": "Stundenplanänderungen"
-      }
-    },
     "permissions": {
       "errors": {
         "load_failed": "Fehler beim Laden der Berechtigungen",

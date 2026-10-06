@@ -1,18 +1,5 @@
 import type { CourseType } from '@/types/subjects';
 
-export type GroupAdminTab =
-  | 'overview'
-  | 'members'
-  | 'schedule'
-  | 'announcements'
-  | 'subjects';
-
-export interface GroupStats {
-  itemCount: number;
-  subsCount: number;
-  memberCount: number;
-}
-
 export type MemberRole = 'owner' | 'admin' | 'moderator' | 'user';
 
 /** The roles that can be assigned directly; ownership is only transferred. */

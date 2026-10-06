@@ -3,7 +3,6 @@ import { markRaw, computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import {
-  // LayoutDashboard,
   CalendarDays,
   Megaphone,
   UsersRound,
@@ -19,7 +18,6 @@ import { useGroupSettingsAccess } from '@/modules/groups/composables/useGroupSet
 import { useReturnRoute } from '@/common/composables/useReturnRoute';
 import { type AdminNavItem } from '@/layouts/AdminLayout.vue';
 
-import GroupSettingsOverview from '@/modules/groups/components/GroupSettingsOverview.vue';
 import GroupSettingsMembers from '@/modules/groups/components/GroupSettingsMembers.vue';
 import GroupSettingsMembersBanned from '@/modules/groups/components/GroupSettingsMembersBanned.vue';
 import GroupSettingsMembersInvites from '@/modules/groups/components/GroupSettingsMembersInvites.vue';
@@ -37,7 +35,6 @@ const { t } = useI18n();
 const {
   groupId,
   groupName,
-  stats,
   members,
   loadingMembers,
   loadMembers,
@@ -105,11 +102,6 @@ const { hasOwnerRights } = useGroupSettingsAccess();
 watch(activeGroupDaltonEnabled, () => void loadSchedule());
 
 const navItems = computed<AdminNavItem[]>(() => [
-  /* {
-    id: 'overview',
-    label: 'Overview',
-    icon: markRaw(LayoutDashboard),
-  }, */
   {
     id: 'courses',
     label: t('groups.settings.nav.courses.label'),
@@ -280,11 +272,6 @@ function goBack() {
         >
           <div class="w-full max-w-250 mx-auto">
             <GroupSettingsMyCourses v-if="activeTab === 'courses'" />
-
-            <GroupSettingsOverview
-              v-if="activeTab === 'overview'"
-              :stats="stats"
-            />
 
             <GroupSettingsMembers
               v-if="activeTab === 'members' && !route.params.subTab"

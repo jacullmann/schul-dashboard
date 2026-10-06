@@ -7,7 +7,6 @@ import { groupPath } from '@/api/groupPath';
 import type {
   AssignableMemberRole,
   GroupMember,
-  GroupStats,
   ScheduleSubstitution,
   GroupInviteLog,
 } from '@/modules/groups/types';
@@ -40,11 +39,6 @@ export function useGroupAdmin() {
   const groupName = computed(
     () => authGroupName.value || t('groups.settings.group_fallback'),
   );
-
-  const activeTab = ref('overview');
-
-  const stats = ref<GroupStats | null>(null);
-  const loadingStats = ref(false);
 
   const members = ref<GroupMember[]>([]);
   const loadingMembers = ref(false);
@@ -88,19 +82,6 @@ export function useGroupAdmin() {
       hour: '2-digit',
       minute: '2-digit',
     });
-  }
-
-  async function loadStats() {
-    if (!checkPermission('edit_group_general')) return;
-    loadingStats.value = true;
-    try {
-      const { data } = await hw.get(groupPath(groupId.value, '/admin/stats'));
-      stats.value = data;
-    } catch {
-      showMessage(t('groups.settings.messages.load_stats_failed'), true);
-    } finally {
-      loadingStats.value = false;
-    }
   }
 
   async function loadMembers() {
@@ -165,7 +146,6 @@ export function useGroupAdmin() {
           ? t('groups.settings.messages.member_removed_banned')
           : t('groups.settings.messages.member_removed'),
       );
-      await loadStats();
       if (ban) await loadBannedUsers();
     } catch (e: unknown) {
       showMessage(
@@ -554,7 +534,6 @@ export function useGroupAdmin() {
   }
 
   onMounted(() => {
-    void loadStats();
     void loadMembers();
     void loadBannedUsers();
     void loadSubs();
@@ -566,11 +545,6 @@ export function useGroupAdmin() {
   return {
     groupId,
     groupName,
-    activeTab,
-
-    stats,
-    loadingStats,
-    loadStats,
 
     members,
     loadingMembers,

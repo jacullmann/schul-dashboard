@@ -244,36 +244,6 @@ impl GroupAdminService {
         Ok(())
     }
 
-    pub async fn get_stats(&self, tenant_id: Uuid) -> AppResult<Value> {
-        let item_count = sqlx::query_scalar!(
-            r#"SELECT COUNT(*) FROM items WHERE tenant_id = $1"#,
-            tenant_id
-        )
-        .fetch_one(&self.db)
-        .await?
-        .unwrap_or(0);
-
-        let member_count = sqlx::query_scalar!(
-            r#"SELECT COUNT(*) FROM user_roles WHERE tenant_id = $1"#,
-            tenant_id
-        )
-        .fetch_one(&self.db)
-        .await?
-        .unwrap_or(0);
-
-        let subs = sqlx::query_scalar!(
-            r#"SELECT COUNT(*) FROM schedule_subs WHERE tenant_id = $1"#,
-            tenant_id
-        )
-        .fetch_one(&self.db)
-        .await?
-        .unwrap_or(0);
-
-        Ok(json!({
-            "itemCount": item_count, "subsCount": subs, "memberCount": member_count,
-        }))
-    }
-
     pub async fn get_banned_users(&self, tenant_id: Uuid) -> AppResult<Value> {
         let rows = sqlx::query!(
             r#"SELECT user_id, banned_at FROM group_bans WHERE tenant_id = $1"#,
