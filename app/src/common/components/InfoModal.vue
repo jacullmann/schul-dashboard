@@ -33,7 +33,7 @@ const closeModal = () => (isModalOpen.value = false);
         <template v-if="props.title">{{ props.title }}</template>
       </template>
       <template #content>
-        <div class="leading-[1.6]">
+        <div class="leading-[1.6] [&_b]:text-inherit! [&_strong]:text-inherit!">
           <slot></slot>
         </div>
       </template>

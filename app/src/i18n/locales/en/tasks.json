@@ -15,11 +15,11 @@
       "sections": [
         {
           "title": "Tasks",
-          "text": "Every member of your group can add tasks, unless your group's permissions say otherwise. Whether it's a <strong>homework assignment</strong>, <strong>Dalton task</strong> or <strong>exam</strong> – anything you need to keep track of for school can be added. All tasks are visible to the members of your group, so you can keep track of everything together. Open a task to see its description, files and notes."
+          "text": "Every member of your group can add tasks, unless your group's permissions say otherwise. Whether it's <strong>homework</strong>, a <strong>Dalton assignment</strong> or <strong>exam</strong> – anything you need to keep track of for school can be added. All tasks are visible to the members of your group, so you can keep track of everything together. Open a task to see its description, files and notes."
         },
         {
           "title": "Adding tasks",
-          "text": "To add a task, click the <strong>+</strong> and choose the matching <strong>type</strong> (homework, Dalton or exam). Enter a short <strong>title</strong> describing the task and select the <strong>subject</strong> and <strong>due date</strong>. Optionally, you can add more details in the <strong>description</strong> or – unless your group's permissions say otherwise – upload related <strong>media</strong> such as board photos, model solutions, notes or study sheets. Images, PDFs and Office files are supported."
+          "text": "To add a task, click the <strong>+</strong> and choose the matching <strong>type</strong> (homework, Dalton or exam). Enter a <strong>title</strong> briefly describing the task and select the <strong>subject</strong> and <strong>due date</strong>. Optionally, you can add more details in the <strong>description</strong> or – unless your group's permissions say otherwise – upload related <strong>media</strong> such as board photos, model solutions, notes or study sheets. Images, PDFs and Office files are supported."
         },
         {
           "title": "Uploading files",
