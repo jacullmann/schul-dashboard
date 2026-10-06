@@ -26,11 +26,7 @@ const { t } = useI18n();
       v-for="(ann, index) in announcements"
       :key="`${ann.scope}:${ann.id}`"
     >
-      <li
-        v-if="index > 0"
-        role="presentation"
-        class="task-separator border-b border-ghost-border ml-4"
-      ></li>
+      <li v-if="index > 0" role="presentation" class="separator"></li>
       <li class="flex flex-col gap-1 py-2">
         <div class="text-base text-on-ghost break-words">
           {{ ann.content }}

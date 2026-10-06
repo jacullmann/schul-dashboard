@@ -153,7 +153,7 @@ function selectOption(value: string) {
   <div
     v-if="separator"
     v-bind="$attrs"
-    class="border-b border-ghost-border mr-6"
+    class="separator mr-6"
     :class="
       $slots.icon
         ? $slots.desc

@@ -276,10 +276,7 @@ function confirmRemove() {
       </BaseEmptyState>
 
       <template v-for="(member, index) in filteredMembers" :key="member.userId">
-        <div
-          v-if="index > 0"
-          class="task-separator border-b border-ghost-border md:ml-14 md:mr-3"
-        ></div>
+        <div v-if="index > 0" class="separator md:ml-14 md:mr-3"></div>
         <div class="flex items-center justify-between py-3 gap-2">
           <div class="flex items-center gap-4 min-w-0">
             <Avatar

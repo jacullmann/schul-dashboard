@@ -150,7 +150,7 @@ onMounted(() => {
 
     <div v-else-if="loading" class="flex flex-col">
       <template v-for="i in 2" :key="i">
-        <div v-if="i > 1" class="border-b border-ghost-border ml-13"></div>
+        <div v-if="i > 1" class="separator ml-13"></div>
         <div class="flex gap-3 items-center py-3">
           <BaseSkeleton width="10" height="10" class="shrink-0" />
           <div class="flex flex-col gap-2 flex-1">
@@ -171,10 +171,7 @@ onMounted(() => {
 
       <div v-else class="flex flex-col">
         <template v-for="(passkey, index) in passkeys" :key="passkey.id">
-          <div
-            v-if="index > 0"
-            class="border-b border-ghost-border ml-13"
-          ></div>
+          <div v-if="index > 0" class="separator ml-13"></div>
           <div class="flex gap-3 items-center py-3">
             <div
               class="flex items-center justify-center size-10 text-on-ghost-muted shrink-0"

@@ -654,10 +654,7 @@ onMounted(() => {
         </div>
         <div v-else class="flex flex-col max-w-200 mx-auto">
           <template v-for="(course, index) in subject.courses" :key="course.id">
-            <div
-              v-if="index > 0"
-              class="task-separator border-b border-ghost-border"
-            ></div>
+            <div v-if="index > 0" class="separator"></div>
             <div class="flex items-center justify-between py-3 gap-2">
               <span class="font-medium text-base text-on-ghost truncate">
                 {{ courseLabel(course.name, t, i18n.te) }}
