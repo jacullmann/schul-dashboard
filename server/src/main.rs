@@ -148,7 +148,42 @@ async fn main() -> anyhow::Result<()> {
 
     info!("Server listening on {addr}");
 
-    axum::serve(listener, app).await.context("Server error")?;
+    axum::serve(listener, app)
+        .with_graceful_shutdown(shutdown_signal())
+        .await
+        .context("Server error")?;
 
     Ok(())
+}
+
+/// Every deploy replaces the container with SIGTERM. Requests in flight must
+/// still finish: a refresh cut off after its rotation commits leaves the
+/// browser holding a spent token, and replaying that later revokes the whole
+/// session as theft.
+async fn shutdown_signal() {
+    let ctrl_c = async {
+        if tokio::signal::ctrl_c().await.is_err() {
+            std::future::pending::<()>().await;
+        }
+    };
+
+    #[cfg(unix)]
+    let terminate = async {
+        match tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate()) {
+            Ok(mut sigterm) => {
+                sigterm.recv().await;
+            }
+            Err(_) => std::future::pending::<()>().await,
+        }
+    };
+
+    #[cfg(not(unix))]
+    let terminate = std::future::pending::<()>();
+
+    tokio::select! {
+        () = ctrl_c => {},
+        () = terminate => {},
+    }
+
+    info!("Shutting down after in-flight requests finish");
 }

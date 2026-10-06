@@ -3,6 +3,7 @@ import axios, {
   type AxiosRequestConfig,
   type InternalAxiosRequestConfig,
 } from 'axios';
+import { isSessionRejected } from './errors';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '',
@@ -118,8 +119,12 @@ api.interceptors.response.use(
 
     try {
       await performRefresh();
-    } catch {
-      window.dispatchEvent(new CustomEvent('auth-expired'));
+    } catch (refreshError) {
+      // An unreachable or failing API (e.g. restarting during a deploy) leaves
+      // the refresh cookie valid, so only a rejected refresh ends the session.
+      if (isSessionRejected(refreshError)) {
+        window.dispatchEvent(new CustomEvent('auth-expired'));
+      }
       return Promise.reject(error);
     }
 

@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue';
 import type { RouteLocationNamedRaw } from 'vue-router';
 import api, { ensureCsrf, refreshSession } from '@/api/api.ts';
+import { isSessionRejected, isTransientFailure } from '@/api/errors';
 import { groupPath } from '@/api/groupPath';
 import i18n from '@/i18n';
 import type { ScheduleConfig } from '@/modules/schedule/types';
@@ -13,6 +14,9 @@ import {
 import type { PermissionKey, PermissionMatrix } from '@/types/permissions.ts';
 
 const STATUS_ENDPOINT = '/groups/status';
+// Session resolution retries until the API answers, backing off up to this.
+const INIT_RETRY_FIRST_DELAY_MS = 500;
+const INIT_RETRY_MAX_DELAY_MS = 8_000;
 
 export type UserGroup = {
   id: string;
@@ -192,10 +196,34 @@ async function fetchStatus(): Promise<boolean> {
 async function restoreSession(): Promise<void> {
   try {
     await refreshSession({ silent: true });
-  } catch {
-    return;
+  } catch (error) {
+    if (isSessionRejected(error)) return;
+    throw error;
   }
   await fetchStatus();
+}
+
+async function resolveSession(): Promise<void> {
+  await ensureCsrf();
+  if (!(await fetchStatus())) await restoreSession();
+}
+
+// An unreachable API (offline, or restarting during a deploy) says nothing
+// about the session, so it is asked again instead of showing a signed-in user
+// the login page.
+async function resolveSessionWhenReachable(): Promise<void> {
+  for (
+    let delay = INIT_RETRY_FIRST_DELAY_MS;
+    ;
+    delay = Math.min(delay * 2, INIT_RETRY_MAX_DELAY_MS)
+  ) {
+    try {
+      return await resolveSession();
+    } catch (error) {
+      if (!isTransientFailure(error)) throw error;
+    }
+    await new Promise((resolve) => setTimeout(resolve, delay));
+  }
 }
 
 // The app must not render until the session is resolved: an expired access
@@ -203,8 +231,7 @@ async function restoreSession(): Promise<void> {
 // mounted in between would act on a false "logged out" state.
 async function doInitAuth(): Promise<void> {
   try {
-    await ensureCsrf();
-    if (!(await fetchStatus())) await restoreSession();
+    await resolveSessionWhenReachable();
   } catch {
     clearAuthState();
   } finally {
@@ -230,8 +257,8 @@ export function useAppAuth() {
       try {
         return await fetchStatus();
       } catch {
-        clearAuthState();
-        return false;
+        // The status never rejects a session, so a failed check changes nothing.
+        return isLoggedIn.value;
       } finally {
         statusPromise = null;
       }
