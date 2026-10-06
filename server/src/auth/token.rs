@@ -18,7 +18,7 @@ pub const ADMIN_REVOKE: RevokeReason = "admin_revoke";
 pub const ACCOUNT_DELETED: RevokeReason = "account_deleted";
 pub const MFA_CHANGE: RevokeReason = "mfa_change";
 const SESSION_LIMIT: RevokeReason = "session_limit";
-const MAX_SESSIONS_PER_USER: i32 = 10;
+const MAX_SESSIONS_PER_USER: i64 = 10;
 
 #[derive(Debug)]
 pub struct IssuedTokens {
@@ -83,30 +83,7 @@ impl TokenService {
 
     pub async fn issue_pair(&self, p: IssueTokenParams<'_>) -> Result<IssuedTokens, AppError> {
         if p.parent.is_none() {
-            sqlx::query!(
-                r#"UPDATE refresh_tokens
-               SET revoked_at = now(), revoked_reason = $1
-               WHERE id IN (
-                   SELECT id FROM refresh_tokens
-                   WHERE user_id = $2
-                     AND revoked_at IS NULL
-                     AND used_at IS NULL
-                     AND expires_at > now()
-                   ORDER BY last_used_at ASC
-                   LIMIT GREATEST(0, (
-                       SELECT COUNT(*) FROM refresh_tokens
-                       WHERE user_id = $2
-                         AND revoked_at IS NULL
-                         AND used_at IS NULL
-                         AND expires_at > now()
-                   ) - ($3 - 1))
-               )"#,
-                SESSION_LIMIT,
-                p.user_id,
-                MAX_SESSIONS_PER_USER,
-            )
-            .execute(&self.db)
-            .await?;
+            self.make_room_for_new_session(p.user_id).await?;
         }
 
         let refresh_token = generate_opaque_token();
@@ -158,6 +135,36 @@ impl TokenService {
             access_token,
             refresh_token,
         })
+    }
+
+    /// A session is a token family, not a row: parallel refreshes leave unused
+    /// sibling tokens behind, and counting those would evict real sessions.
+    /// Families are ranked by their newest token, which every refresh renews,
+    /// so the least recently used sessions go first.
+    async fn make_room_for_new_session(&self, user_id: Uuid) -> Result<(), AppError> {
+        sqlx::query!(
+            r#"UPDATE refresh_tokens
+               SET revoked_at = now(), revoked_reason = $1
+               WHERE user_id = $2
+                 AND revoked_at IS NULL
+                 AND family_id IN (
+                     SELECT family_id FROM refresh_tokens
+                     WHERE user_id = $2
+                       AND revoked_at IS NULL
+                       AND used_at IS NULL
+                       AND expires_at > now()
+                     GROUP BY family_id
+                     ORDER BY max(last_used_at) DESC
+                     OFFSET $3
+                 )"#,
+            SESSION_LIMIT,
+            user_id,
+            MAX_SESSIONS_PER_USER - 1,
+        )
+        .execute(&self.db)
+        .await?;
+
+        Ok(())
     }
 
     pub async fn rotate(
