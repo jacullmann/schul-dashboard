@@ -6,7 +6,7 @@ import {
   useEventListener,
   usePreferredReducedMotion,
 } from '@vueuse/core';
-import { Megaphone } from '@lucide/vue';
+import { Info, Megaphone } from '@lucide/vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useAnnouncementStore } from '@/stores/announcementStore';
 import { useSystemAnnouncementStore } from '@/stores/systemAnnouncementStore';
@@ -199,7 +199,8 @@ function collapse(el: Element, done: () => void) {
                   current.important ? 'text-danger' : 'text-on-ghost-muted'
                 "
               >
-                <Megaphone :size="20" />
+                <Info v-if="current.scope === 'system'" :size="20" />
+                <Megaphone v-else :size="20" />
               </span>
               <span
                 v-if="hasMore"

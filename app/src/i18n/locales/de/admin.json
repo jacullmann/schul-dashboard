@@ -4,7 +4,7 @@
     "users": "Benutzer",
     "reports": "Meldungen",
     "groups": "Gruppen",
-    "announcements": "Ankündigungen"
+    "announcements": "Infos"
   },
   "errors": {
     "action_failed": "Aktion fehlgeschlagen."
@@ -84,7 +84,7 @@
           "rule": "90 Tage nach Fälligkeit"
         },
         "cleanup-system-announcements": {
-          "label": "Plattform-Ankündigungen",
+          "label": "Infos",
           "rule": "Sobald sie abgelaufen sind"
         },
         "asset-sweep": {
@@ -204,9 +204,9 @@
     }
   },
   "announcements": {
-    "title": "Ankündigungen",
-    "create_button": "Neue Ankündigung",
-    "empty": "Keine laufenden oder geplanten Ankündigungen.",
+    "title": "Infos",
+    "create_button": "Neue Info",
+    "empty": "Keine laufenden oder geplanten Infos.",
     "sections": {
       "active": "Aktiv",
       "scheduled": "Geplant"
@@ -220,10 +220,10 @@
     },
     "read_count": "Von {count} Benutzer gelesen | Von {count} Benutzern gelesen",
     "form": {
-      "title_create": "Neue Ankündigung",
-      "title_edit": "Ankündigung bearbeiten",
+      "title_create": "Neue Info",
+      "title_edit": "Info bearbeiten",
       "audience_hint": "Erscheint bei allen Benutzern oben in der App, unabhängig von ihren Gruppen.",
-      "content_label": "Ankündigung",
+      "content_label": "Info",
       "scheduled_label": "Später veröffentlichen",
       "start_label": "Start",
       "start_time_label": "Startzeit",
@@ -233,23 +233,23 @@
       "publish": "Veröffentlichen",
       "schedule": "Planen",
       "errors": {
-        "empty": "Eine Ankündigung darf nicht leer sein.",
-        "too_long": "Die Ankündigung ist zu lang (max. {max} Zeichen).",
+        "empty": "Eine Info darf nicht leer sein.",
+        "too_long": "Die Info ist zu lang (max. {max} Zeichen).",
         "incomplete": "Bitte Datum und Uhrzeit angeben.",
         "start_in_past": "Der Start muss in der Zukunft liegen.",
         "end_before_start": "Das Ende muss nach dem Start liegen."
       }
     },
     "delete_modal": {
-      "title": "Ankündigung löschen?",
-      "active": "Die Ankündigung verschwindet sofort bei allen Benutzern.",
-      "scheduled": "Die Ankündigung wird nicht veröffentlicht."
+      "title": "Info löschen?",
+      "active": "Die Info verschwindet sofort bei allen Benutzern.",
+      "scheduled": "Die Info wird nicht veröffentlicht."
     },
-    "save_success": "Ankündigung gespeichert.",
-    "delete_success": "Ankündigung gelöscht.",
+    "save_success": "Info gespeichert.",
+    "delete_success": "Info gelöscht.",
     "errors": {
-      "load": "Ankündigungen konnten nicht geladen werden.",
-      "delete": "Ankündigung konnte nicht gelöscht werden."
+      "load": "Infos konnten nicht geladen werden.",
+      "delete": "Info konnte nicht gelöscht werden."
     }
   }
 }

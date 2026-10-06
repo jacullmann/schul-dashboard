@@ -4,7 +4,7 @@
     "users": "Users",
     "reports": "Reports",
     "groups": "Groups",
-    "announcements": "Announcements"
+    "announcements": "Info"
   },
   "errors": {
     "action_failed": "Action failed."
@@ -84,7 +84,7 @@
           "rule": "90 days after their due date"
         },
         "cleanup-system-announcements": {
-          "label": "Platform announcements",
+          "label": "Info",
           "rule": "Once they have ended"
         },
         "asset-sweep": {
@@ -204,9 +204,9 @@
     }
   },
   "announcements": {
-    "title": "Announcements",
-    "create_button": "New announcement",
-    "empty": "No running or scheduled announcements.",
+    "title": "Info",
+    "create_button": "New info",
+    "empty": "No running or scheduled info.",
     "sections": {
       "active": "Active",
       "scheduled": "Scheduled"
@@ -220,10 +220,10 @@
     },
     "read_count": "Read by {count} user | Read by {count} users",
     "form": {
-      "title_create": "New announcement",
-      "title_edit": "Edit announcement",
+      "title_create": "New info",
+      "title_edit": "Edit info",
       "audience_hint": "Shown to every user at the top of the app, whatever their groups.",
-      "content_label": "Announcement",
+      "content_label": "Info",
       "scheduled_label": "Publish later",
       "start_label": "Start",
       "start_time_label": "Start time",
@@ -233,23 +233,23 @@
       "publish": "Publish",
       "schedule": "Schedule",
       "errors": {
-        "empty": "An announcement can't be empty.",
-        "too_long": "The announcement is too long (max. {max} characters).",
+        "empty": "Info can't be empty.",
+        "too_long": "The info is too long (max. {max} characters).",
         "incomplete": "Please enter a date and time.",
         "start_in_past": "The start must be in the future.",
         "end_before_start": "The end must be after the start."
       }
     },
     "delete_modal": {
-      "title": "Delete announcement?",
-      "active": "The announcement disappears for every user right away.",
-      "scheduled": "The announcement will not be published."
+      "title": "Delete info?",
+      "active": "The info disappears for every user right away.",
+      "scheduled": "The info will not be published."
     },
-    "save_success": "Announcement saved.",
-    "delete_success": "Announcement deleted.",
+    "save_success": "Info saved.",
+    "delete_success": "Info deleted.",
     "errors": {
-      "load": "Announcements couldn't be loaded.",
-      "delete": "The announcement couldn't be deleted."
+      "load": "Info couldn't be loaded.",
+      "delete": "The info couldn't be deleted."
     }
   }
 }

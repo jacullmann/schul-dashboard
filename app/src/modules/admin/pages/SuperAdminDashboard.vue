@@ -2,7 +2,7 @@
 import { computed, onMounted, markRaw, ref, type Component } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { Home, UsersRound, Flag, Layers, Megaphone } from '@lucide/vue';
+import { Home, UsersRound, Flag, Layers, Info } from '@lucide/vue';
 import SuperAdminLayout from '@/layouts/AdminLayout.vue';
 import SuperAdminTabBar from '../components/SuperAdminTabBar.vue';
 import { useSuperAdminStats } from '../composables/useSuperAdminStats';
@@ -39,7 +39,7 @@ const navItems = computed<(SuperAdminNavItem & { icon: Component })[]>(() => [
     id: 'announcements',
     name: 'admin-announcements',
     label: t('admin.nav.announcements'),
-    icon: markRaw(Megaphone),
+    icon: markRaw(Info),
     count: 0,
   },
   {
