@@ -16,7 +16,7 @@ const props = withDefaults(
 
 const root = useTemplateRef<HTMLElement>('root');
 
-/** The marker's row in the day's grid as last measured, and how far through it. */
+/** The marker's rows in the day's grid as last measured, and how far through them. */
 const placement = ref<{ top: number; height: number; progress: number } | null>(
   null,
 );
@@ -35,11 +35,13 @@ function place() {
   const { gridTemplateRows, rowGap } = getComputedStyle(grid);
   const heights = gridTemplateRows.split(' ').map(parseFloat);
   const gap = parseFloat(rowGap) || 0;
+  const extentOf = (from: number, to: number) =>
+    heights
+      .slice(from - 1, to - 1)
+      .reduce((sum, height) => sum + height + gap, 0);
   placement.value = {
-    top: heights
-      .slice(0, marker.gridRow - 1)
-      .reduce((sum, height) => sum + height + gap, 0),
-    height: heights[marker.gridRow - 1] ?? 0,
+    top: extentOf(1, marker.firstRow),
+    height: extentOf(marker.firstRow, marker.lastRow + 1) - gap,
     progress: marker.progress,
   };
 }
@@ -80,7 +82,7 @@ const transform = computed(() => {
     ref="root"
     class="col-start-2 row-span-full pointer-events-none z-[3]"
     :class="{ 'animate-enter': animated }"
-    :style="{ '--enter-delay': entranceDelay(2, marker.gridRow) }"
+    :style="{ '--enter-delay': entranceDelay(2, marker.firstRow) }"
     aria-hidden="true"
   >
     <div

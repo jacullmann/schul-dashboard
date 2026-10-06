@@ -21,7 +21,10 @@ import {
 } from '@/common/composables/useSkeletonHandoff';
 import { entranceDelay } from '@/modules/schedule/utils/entrance';
 import { lessonRowsOf } from '@/modules/schedule/utils/layout';
-import { lessonGroupsByDay } from '@/modules/schedule/utils/lesson';
+import {
+  lessonGroupsByDay,
+  lessonsSlotRange,
+} from '@/modules/schedule/utils/lesson';
 import {
   nowMarkerOf,
   type NowMarker,
@@ -273,15 +276,36 @@ const dividersOf = (day: number, week: number) =>
 const labelledRowsOf = (day: number, week: number) =>
   phoneRowsOf(week).get(day)?.labelledRows;
 
+const lessonGroupsOfWeek = useWeekCache<ReadonlyMap<number, LessonGroup[]>>(
+  (week) =>
+    loadingLessons.value
+      ? new Map()
+      : lessonGroupsByDay(scheduleOfWeek(week).groupedLessons),
+);
+
+const lessonGroupsOf = (day: number, week: number) =>
+  lessonGroupsOfWeek(week).get(day) ?? [];
+
 /** Where now falls on today's page, which only a phone marks. */
 const todayMarker = computed(() => {
   const page = todayPage.value;
   if (!isPhone.value || page === null) return null;
   const week = todayWeek.value;
   const day = days[page - week * days.length];
-  const timeline =
-    day === undefined ? [] : phoneRowsOf(week).get(day)?.timeline;
-  return nowMarkerOf(timeline ?? [], minutesToday.value);
+  if (day === undefined) return null;
+  const layout = dayLayoutOf(day, week);
+  const cells = lessonGroupsOf(day, week).map(({ lessons }) => {
+    const { firstSlot, lastSlot } = lessonsSlotRange(lessons);
+    return {
+      firstRow: layout.gridRowOfSlot(firstSlot),
+      lastRow: layout.gridRowOfSlot(lastSlot),
+    };
+  });
+  return nowMarkerOf(
+    phoneRowsOf(week).get(day)?.timeline ?? [],
+    cells,
+    minutesToday.value,
+  );
 });
 
 const markerOf = (day: number, week: number) =>
@@ -296,12 +320,22 @@ const nowLabelOf = (day: number, week: number) => {
     : { gridRow, time: formatTimeOfDay(minutesToday.value) };
 };
 
-/** A divider now has reached tells how long its break has left. */
+/**
+ * A divider now rests on, or whose time now comes close to, stands out; a
+ * break's tells how long it has left.
+ */
 const shownDivider = (
   divider: Omit<Divider, 'key'>,
   marker: NowMarker | null,
 ) => {
-  if (marker?.labelRow !== divider.gridRow) return divider;
+  const restsOn = (row: number) =>
+    marker?.firstRow === row && marker.lastRow === row;
+  if (
+    !marker ||
+    (marker.labelRow !== divider.gridRow && !restsOn(divider.gridRow))
+  ) {
+    return divider;
+  }
   const minutes = marker.breakMinutesLeft;
   return {
     ...divider,
@@ -310,16 +344,6 @@ const shownDivider = (
     isNow: true,
   };
 };
-
-const lessonGroupsOfWeek = useWeekCache<ReadonlyMap<number, LessonGroup[]>>(
-  (week) =>
-    loadingLessons.value
-      ? new Map()
-      : lessonGroupsByDay(scheduleOfWeek(week).groupedLessons),
-);
-
-const lessonGroupsOf = (day: number, week: number) =>
-  lessonGroupsOfWeek(week).get(day) ?? [];
 
 const isActiveGroup = (key: string, week: number) =>
   week === todayWeek.value && key === activeOrNextGroupKey.value;
