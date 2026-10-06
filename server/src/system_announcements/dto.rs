@@ -8,7 +8,7 @@ use crate::{
     error::{AppError, AppResult},
 };
 
-/// A running announcement as one user sees it.
+/// A running announcement a user has yet to read.
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SystemAnnouncementDto {
@@ -16,7 +16,6 @@ pub struct SystemAnnouncementDto {
     pub content: String,
     pub important: bool,
     pub published_at: DateTime<Utc>,
-    pub read: bool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]

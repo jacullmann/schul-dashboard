@@ -1,15 +1,13 @@
 import { defineStore } from 'pinia';
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
 import api from '@/api/api.ts';
 import type { SystemAnnouncement } from '@/modules/announcements/types';
 
-/** The platform's running announcements to every user, newest first. */
+/** The platform's running announcements the user has yet to read, newest first. */
 export const useSystemAnnouncementStore = defineStore(
   'system-announcements',
   () => {
     const announcements = ref<SystemAnnouncement[]>([]);
-
-    const unread = computed(() => announcements.value.filter((a) => !a.read));
 
     async function load() {
       try {
@@ -24,20 +22,20 @@ export const useSystemAnnouncementStore = defineStore(
 
     async function markRead(ids: string[]) {
       if (ids.length === 0) return;
-      for (const announcement of announcements.value) {
-        if (ids.includes(announcement.id)) announcement.read = true;
-      }
+      announcements.value = announcements.value.filter(
+        (a) => !ids.includes(a.id),
+      );
       try {
         await api.post('/system-announcements/read', { ids });
       } catch {
-        // Already marked locally; a failed sync shows them again on the next load.
+        // Already gone locally; a failed sync shows them again on the next load.
       }
     }
 
     function markAllRead() {
-      return markRead(unread.value.map((a) => a.id));
+      return markRead(announcements.value.map((a) => a.id));
     }
 
-    return { announcements, unread, load, markRead, markAllRead };
+    return { announcements, load, markRead, markAllRead };
   },
 );

@@ -20,21 +20,20 @@ impl SystemAnnouncementService {
         Self { db: s.db.clone() }
     }
 
-    /// The running announcements, newest first. The author's own count as
-    /// read, as they do in groups.
-    pub async fn list_running(&self, user_id: Uuid) -> AppResult<Vec<SystemAnnouncementDto>> {
+    /// The running announcements the user has yet to read, newest first.
+    /// Once read, an announcement is gone for them: it is listed nowhere. The
+    /// author's own count as read, as they do in groups.
+    pub async fn list_unread(&self, user_id: Uuid) -> AppResult<Vec<SystemAnnouncementDto>> {
         let announcements = sqlx::query_as!(
             SystemAnnouncementDto,
-            r#"SELECT a.id, a.content, a.important, a.starts_at AS published_at,
-                      (
-                          a.created_by IS NOT DISTINCT FROM $1
-                          OR EXISTS (
-                              SELECT 1 FROM system_announcement_reads r
-                              WHERE r.announcement_id = a.id AND r.user_id = $1
-                          )
-                      ) AS "read!"
+            r#"SELECT a.id, a.content, a.important, a.starts_at AS published_at
                FROM system_announcements a
                WHERE a.starts_at <= now() AND (a.ends_at IS NULL OR a.ends_at > now())
+                 AND a.created_by IS DISTINCT FROM $1
+                 AND NOT EXISTS (
+                     SELECT 1 FROM system_announcement_reads r
+                     WHERE r.announcement_id = a.id AND r.user_id = $1
+                 )
                ORDER BY a.starts_at DESC, a.id"#,
             user_id
         )

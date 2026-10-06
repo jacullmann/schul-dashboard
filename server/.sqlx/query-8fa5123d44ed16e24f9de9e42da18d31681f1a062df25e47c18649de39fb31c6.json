@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT a.id, a.content, a.important, a.starts_at AS published_at,\n                      (\n                          a.created_by IS NOT DISTINCT FROM $1\n                          OR EXISTS (\n                              SELECT 1 FROM system_announcement_reads r\n                              WHERE r.announcement_id = a.id AND r.user_id = $1\n                          )\n                      ) AS \"read!\"\n               FROM system_announcements a\n               WHERE a.starts_at <= now() AND (a.ends_at IS NULL OR a.ends_at > now())\n               ORDER BY a.starts_at DESC, a.id",
+  "query": "SELECT a.id, a.content, a.important, a.starts_at AS published_at\n               FROM system_announcements a\n               WHERE a.starts_at <= now() AND (a.ends_at IS NULL OR a.ends_at > now())\n                 AND a.created_by IS DISTINCT FROM $1\n                 AND NOT EXISTS (\n                     SELECT 1 FROM system_announcement_reads r\n                     WHERE r.announcement_id = a.id AND r.user_id = $1\n                 )\n               ORDER BY a.starts_at DESC, a.id",
   "describe": {
     "columns": [
       {
@@ -46,12 +46,6 @@
             "name": "starts_at"
           }
         }
-      },
-      {
-        "ordinal": 4,
-        "name": "read!",
-        "type_info": "Bool",
-        "origin": "Expression"
       }
     ],
     "parameters": {
@@ -63,9 +57,8 @@
       false,
       false,
       false,
-      false,
-      null
+      false
     ]
   },
-  "hash": "479d8bfee4449524908a6d7156b350b00b819ac470b77e024bc62c2da195def6"
+  "hash": "8fa5123d44ed16e24f9de9e42da18d31681f1a062df25e47c18649de39fb31c6"
 }

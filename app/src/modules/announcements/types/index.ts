@@ -8,13 +8,15 @@ export interface Announcement {
   read: boolean;
 }
 
-/** An announcement from the platform to every user, while it runs. */
+/**
+ * An announcement from the platform to every user. The server only sends
+ * those the user has yet to read: once read, it is shown nowhere.
+ */
 export interface SystemAnnouncement {
   id: string;
   content: string;
   important: boolean;
   publishedAt: string;
-  read: boolean;
 }
 
 /** Who an announcement was posted to: one group, or every user. */

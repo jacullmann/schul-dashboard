@@ -52,11 +52,7 @@ const router = useRouter();
 
 const createGroupModal = useCreateGroupModal();
 const announcementsModal = useAnnouncementsModal();
-const { systemAnnouncements, groupAnnouncements } = useAnnouncementFeed();
-const hasAnnouncements = computed(
-  () =>
-    systemAnnouncements.value.length > 0 || groupAnnouncements.value.length > 0,
-);
+const { groupAnnouncements } = useAnnouncementFeed();
 
 // The search takes over the row on phones (HeaderSearchPalette): its bar
 // replaces the group and its cancel button the account button.
@@ -216,7 +212,10 @@ defineExpose({ groupButton: groupButtonRef });
           </BaseMenuButton>
 
           <BaseMenuButton
-            v-if="hasAnnouncements || checkPermission('manage_announcements')"
+            v-if="
+              groupAnnouncements.length ||
+              checkPermission('manage_announcements')
+            "
             :icon="Megaphone"
             @click="openAnnouncements"
           >

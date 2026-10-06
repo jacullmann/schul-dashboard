@@ -26,14 +26,15 @@ function fromSystemAnnouncement(a: SystemAnnouncement): FeedAnnouncement {
     content: a.content,
     important: a.important,
     publishedAt: a.publishedAt,
-    read: a.read,
+    read: false,
   };
 }
 
 /**
- * The announcements a user sees: the platform's, on every page, followed by
- * those of the group on screen. The platform's come first because they concern
- * everyone, whichever group is open.
+ * The announcements a user sees. Unread ones show in the card: the
+ * platform's, on every page, ahead of those of the group on screen, as they
+ * concern everyone, whichever group is open. Only the group's stay listed
+ * once read.
  */
 export function useAnnouncementFeed() {
   const { activeGroupId } = useAppAuth();
@@ -52,11 +53,10 @@ export function useAnnouncementFeed() {
       : [],
   );
 
-  const unread = computed(() =>
-    [...systemAnnouncements.value, ...groupAnnouncements.value].filter(
-      (a) => !a.read,
-    ),
-  );
+  const unread = computed(() => [
+    ...systemAnnouncements.value,
+    ...groupAnnouncements.value.filter((a) => !a.read),
+  ]);
 
   function acknowledge(announcement: FeedAnnouncement) {
     const store = announcement.scope === 'system' ? systemStore : groupStore;
@@ -70,7 +70,6 @@ export function useAnnouncementFeed() {
   }
 
   return {
-    systemAnnouncements,
     groupAnnouncements,
     unread,
     acknowledge,

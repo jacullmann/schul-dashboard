@@ -20,8 +20,8 @@ defineEmits<{
 }>();
 
 const { t } = useI18n();
-const { systemAnnouncements, groupAnnouncements } = useAnnouncementFeed();
-const { activeGroupId, groupName, checkPermission } = useAppAuth();
+const { groupAnnouncements } = useAnnouncementFeed();
+const { activeGroupId, checkPermission } = useAppAuth();
 const announcementsModal = useAnnouncementsModal();
 const announcementForm = useAnnouncementFormModal();
 
@@ -50,20 +50,7 @@ function createAnnouncement() {
         {{ t('announcements.list.create_button') }}
       </BaseButton>
 
-      <!-- Headings only tell the two sources apart, so a group without
-           platform announcements keeps its plain list. Without either, the
-           group list's empty state speaks for both. -->
-      <section v-if="systemAnnouncements.length" class="mb-4">
-        <h4 class="mb-1">{{ t('announcements.system.source') }}</h4>
-        <AnnouncementList :announcements="systemAnnouncements" />
-      </section>
-
-      <section v-if="activeGroupId || !systemAnnouncements.length">
-        <h4 v-if="systemAnnouncements.length" class="mb-1">
-          {{ groupName }}
-        </h4>
-        <AnnouncementList :announcements="groupAnnouncements" />
-      </section>
+      <AnnouncementList :announcements="groupAnnouncements" />
     </template>
   </BaseModal>
 </template>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, useTemplateRef, watch } from 'vue';
+import { computed, nextTick, onMounted, ref, useTemplateRef, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import {
   useElementSize,
@@ -15,6 +15,7 @@ import { morphOriginOf } from '@/utils/morph';
 import { SETTLE_EASING } from '@/utils/motion';
 import { useSwipeAway } from '@/modules/announcements/composables/useSwipeAway';
 import { useAnnouncementFeed } from '@/modules/announcements/composables/useAnnouncementFeed';
+import type { AnnouncementScope } from '@/modules/announcements/types';
 
 const props = defineProps<{
   /** Where read announcements live from now on; the card shrinks into it. */
@@ -31,6 +32,17 @@ const reducedMotion = usePreferredReducedMotion();
 
 const current = computed(() => unread.value[0]);
 const hasMore = computed(() => unread.value.length > 1);
+
+// Only the group's announcements stay listed once read; the platform's are
+// gone, so there is no list for them to open or to shrink into.
+const opensList = computed(() => current.value?.scope === 'group');
+const LIST_TRIGGER_ATTRS = { type: 'button', 'aria-haspopup': 'dialog' };
+
+/** Outlives the card's last announcement, which the leave animation needs. */
+const shownScope = ref<AnnouncementScope>('group');
+watch(current, (announcement) => {
+  if (announcement) shownScope.value = announcement.scope;
+});
 
 // Phones keep the button beside the text only while the text fits there on
 // one line; it would otherwise wrap into a narrow column. Plain flex wrapping
@@ -70,7 +82,7 @@ useEventListener(document, 'visibilitychange', () => {
 });
 
 function openList() {
-  if (!current.value) return;
+  if (!current.value || !opensList.value) return;
   announcementsModal.show(morphOriginOf(card.value));
   void acknowledge(current.value);
 }
@@ -109,6 +121,7 @@ function collapse(el: Element, done: () => void) {
   // Read by opening the list, which grows out of the card in its place.
   if (
     !target ||
+    shownScope.value === 'system' ||
     announcementsModal.isOpen ||
     reducedMotion.value === 'reduce'
   ) {
@@ -163,14 +176,18 @@ function collapse(el: Element, done: () => void) {
           enter-from-class="opacity-0 translate-y-1"
           leave-to-class="opacity-0 -translate-y-1"
         >
-          <!-- Stretched over the whole card, so all of it opens the list,
-               while the buttons below sit above it. -->
-          <button
+          <!-- Stretched over the whole card when it opens the list, so all
+               of it does, while the buttons below sit above it. -->
+          <component
+            :is="opensList ? 'button' : 'div'"
             :key="`${current.scope}:${current.id}`"
-            type="button"
-            aria-haspopup="dialog"
-            class="flex min-w-0 grow cursor-pointer items-center gap-2 text-left after:absolute after:inset-0 after:rounded-3xl xs:basis-0"
-            :class="{ 'basis-full': !ackFitsBesideText }"
+            v-bind="opensList ? LIST_TRIGGER_ATTRS : {}"
+            class="flex min-w-0 grow items-center gap-2 text-left xs:basis-0"
+            :class="{
+              'basis-full': !ackFitsBesideText,
+              'cursor-pointer after:absolute after:inset-0 after:rounded-3xl':
+                opensList,
+            }"
             @click="openList"
           >
             <div
@@ -198,7 +215,7 @@ function collapse(el: Element, done: () => void) {
               >
               {{ current.content }}
             </span>
-          </button>
+          </component>
         </Transition>
 
         <BaseRow justify="end" class="relative w-full flex-wrap-reverse">

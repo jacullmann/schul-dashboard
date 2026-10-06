@@ -23,7 +23,7 @@ pub async fn list_announcements(
 ) -> AppResult<Json<Vec<SystemAnnouncementDto>>> {
     Ok(Json(
         SystemAnnouncementService::from_state(&s)
-            .list_running(user.user_id)
+            .list_unread(user.user_id)
             .await?,
     ))
 }
