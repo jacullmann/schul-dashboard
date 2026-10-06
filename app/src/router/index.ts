@@ -244,6 +244,24 @@ const routes: RouteRecordRaw[] = [
   },
 
   {
+    path: '/account/security/password/edit',
+    component: () => import('@/layouts/SimpleLayout.vue'),
+    children: [
+      {
+        path: '',
+        name: 'account-password-edit',
+        component: () => import('@/modules/auth/pages/PasswordPage.vue'),
+        meta: {
+          title: () =>
+            useUserStore().hasPassword
+              ? 'auth.change_password.title'
+              : 'auth.set_password.title',
+        },
+      },
+    ],
+  },
+
+  {
     // Kept out of the group's own layout until the member is done with it.
     path: '/groups/:groupId/setup',
     component: () => import('@/layouts/SimpleLayout.vue'),
@@ -319,10 +337,6 @@ router.beforeEach(async (to, from) => {
     return { ...homeRoute.value, replace: true };
   }
 
-  document.title = to.meta.title
-    ? `${i18n.global.t(to.meta.title)} | Dashboard`
-    : 'Dashboard';
-
   const userStore = useUserStore();
   if (isLoggedIn.value && !to.meta.access && !userStore.initialized) {
     try {
@@ -331,6 +345,13 @@ router.beforeEach(async (to, from) => {
       // Navigation must not be blocked by a failed profile fetch.
     }
   }
+
+  // After the profile fetch, so a title that depends on the user sees it.
+  const titleKey =
+    typeof to.meta.title === 'function' ? to.meta.title() : to.meta.title;
+  document.title = titleKey
+    ? `${i18n.global.t(titleKey)} | Dashboard`
+    : 'Dashboard';
 
   if (to.meta.requiresSuperAdmin) {
     if (!userStore.initialized) await userStore.fetchUser();

@@ -23,6 +23,7 @@
     "private": "Manage your private tasks",
     "schedule": "View class schedule",
     "security": "Password, two-factor authentication and devices",
+    "set_password": "Set a password for your account",
     "superadmin": "Manage the whole platform",
     "switch_group": "Switch between your groups",
     "tasks": "Tasks, homework & exams",

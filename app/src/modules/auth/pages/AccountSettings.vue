@@ -5,10 +5,7 @@ import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import { ArrowLeft, Shield, UserRound } from '@lucide/vue';
 import { useUserStore } from '@/stores/userStore';
-import {
-  useChangePasswordModal,
-  useDeleteAccountModal,
-} from '@/stores/modalStore';
+import { useDeleteAccountModal } from '@/stores/modalStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useReturnRoute } from '@/common/composables/useReturnRoute';
 import { type AdminNavItem } from '@/layouts/AdminLayout.vue';
@@ -20,7 +17,6 @@ const route = useRoute();
 const router = useRouter();
 const { t } = useI18n();
 const { user } = storeToRefs(useUserStore());
-const changePasswordModal = useChangePasswordModal();
 const deleteAccountModal = useDeleteAccountModal();
 const { homeRoute } = useAppAuth();
 const { leave: leaveSettings } = useReturnRoute(homeRoute);
@@ -51,6 +47,7 @@ const activeTab = computed<string>({
 });
 
 const securitySubTabLabels = computed<Record<string, string>>(() => ({
+  password: t('auth.security.password'),
   'two-factor': t('auth.security.2fa'),
   'connected-accounts': t('auth.account_settings.connected_accounts.title'),
   sessions: t('auth.sessions.title'),
@@ -180,10 +177,7 @@ function goBack() {
           class="flex-1 overflow-y-auto overscroll-contain p-6 pt-4 md:py-8 bg-canvas"
         >
           <div class="w-full max-w-250 mx-auto">
-            <AccountSettingsSecurity
-              v-if="activeTab === 'security'"
-              @change-password="changePasswordModal.open()"
-            />
+            <AccountSettingsSecurity v-if="activeTab === 'security'" />
 
             <AccountSettingsAccount
               v-else-if="activeTab === 'account'"

@@ -130,18 +130,13 @@ async function onPasswordReset(resetEmail: string) {
             {{ t('auth.login.reset.step2.description') }}
           </p>
           <BaseFormGroup id="reset-code" :error="errors.code">
-            <BaseLabel for="reset-code">
-              {{ t('auth.login.reset.placeholders.code') }}
-            </BaseLabel>
-            <BaseInput
+            <BaseCodeInput
               id="reset-code"
               ref="stepInput"
               v-model="code"
-              :placeholder="t('auth.login.reset.placeholders.code')"
-              autocomplete="one-time-code"
-              autocapitalize="characters"
-              spellcheck="false"
-              maxlength="6"
+              charset="alphanumeric"
+              :aria-label="t('auth.login.reset.placeholders.code')"
+              :invalid="!!errors.code"
               required
               :aria-describedby="errors.code ? 'reset-code-error' : undefined"
               @input="clearFieldError('code')"

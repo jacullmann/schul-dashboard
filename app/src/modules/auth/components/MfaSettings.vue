@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, nextTick, onUnmounted } from 'vue';
+import { ref, computed, nextTick, onUnmounted, useTemplateRef } from 'vue';
 import {
   ShieldCheck,
   ShieldOff,
@@ -42,8 +42,10 @@ const deactivateMode = ref(false);
 const deactivateCode = ref('');
 const deactivateError = ref<string | null>(null);
 
-const codeInput = ref<HTMLInputElement | null>(null);
-const deactivateCodeInput = ref<HTMLInputElement | null>(null);
+const codeInput = useTemplateRef<{ focus: () => void }>('codeInput');
+const deactivateCodeInput = useTemplateRef<{ focus: () => void }>(
+  'deactivateCodeInput',
+);
 
 let timerInterval: ReturnType<typeof setInterval> | null = null;
 const remainingTime = ref('');
@@ -130,20 +132,6 @@ async function copySecret() {
       copied.value = false;
     }, 2000);
   }
-}
-
-function handleCodeInput(event: Event) {
-  const input = event.target as HTMLInputElement;
-  input.value = input.value.replace(/\D/g, '').slice(0, 6);
-  verifyCode.value = input.value;
-  verifyError.value = null;
-}
-
-function handleDeactivateCodeInput(event: Event) {
-  const input = event.target as HTMLInputElement;
-  input.value = input.value.replace(/\D/g, '').slice(0, 6);
-  deactivateCode.value = input.value;
-  deactivateError.value = null;
 }
 
 async function activateMfa() {
@@ -359,21 +347,15 @@ onUnmounted(() => {
           {{ t('auth.mfa.setup.complete_instruction') }}
         </p>
 
-        <div class="flex justify-center">
-          <input
-            ref="codeInput"
-            v-model="verifyCode"
-            type="text"
-            inputmode="numeric"
-            pattern="[0-9]*"
-            maxlength="6"
-            placeholder="000000"
-            class="w-48 p-3 text-3xl font-mono tracking-wider text-center bg-surface border-2 border-ghost-border shadow-input rounded-xl text-on-ghost transition-colors focus:outline-none focus:border-on-ghost-muted"
-            :class="{ '!border-danger': verifyError }"
-            @input="handleCodeInput"
-            @keyup.enter="activateMfa"
-          />
-        </div>
+        <BaseCodeInput
+          id="mfa-setup-code"
+          ref="codeInput"
+          v-model="verifyCode"
+          :aria-label="t('auth.mfa.verify.code')"
+          :invalid="!!verifyError"
+          @input="verifyError = null"
+          @keyup.enter="activateMfa"
+        />
 
         <div
           v-if="verifyError"
@@ -418,21 +400,15 @@ onUnmounted(() => {
         </p>
       </div>
 
-      <div class="flex justify-center">
-        <input
-          ref="deactivateCodeInput"
-          v-model="deactivateCode"
-          type="text"
-          inputmode="numeric"
-          pattern="[0-9]*"
-          maxlength="6"
-          placeholder="000000"
-          class="w-48 p-3 text-3xl font-mono tracking-wider text-center bg-surface border-2 border-ghost-border shadow-input rounded-xl text-on-ghost transition-colors focus:outline-none focus:border-on-ghost"
-          :class="{ '!border-danger': deactivateError }"
-          @input="handleDeactivateCodeInput"
-          @keyup.enter="confirmDeactivate"
-        />
-      </div>
+      <BaseCodeInput
+        id="mfa-deactivate-code"
+        ref="deactivateCodeInput"
+        v-model="deactivateCode"
+        :aria-label="t('auth.mfa.verify.code')"
+        :invalid="!!deactivateError"
+        @input="deactivateError = null"
+        @keyup.enter="confirmDeactivate"
+      />
 
       <div
         v-if="deactivateError"
