@@ -40,7 +40,7 @@
   --color-ghost-border: var(--color-smoke);
   --color-ghost-hover: var(--color-vapor);
   --color-on-ghost: var(--color-black);
-  --color-on-ghost-muted: var(--color-graphite);
+  --color-on-ghost-muted: var(--color-steel);
   --color-on-ghost-subtle: var(--color-ghost);
 
   --color-action: var(--color-black);
@@ -51,6 +51,7 @@
   --color-on-action-disabled: var(--color-graphite);
 
   --color-accent: var(--color-blue-600);
+  --color-on-accent: var(--color-white);
 
   --color-danger: var(--color-cinnabar);
   --color-on-danger: var(--color-white);
@@ -252,6 +253,7 @@
     --color-on-action-disabled: var(--color-graphite);
 
     --color-accent: var(--color-blue-500);
+    --color-on-accent: var(--color-white);
 
     --color-danger: var(--color-coral);
     --color-on-danger: var(--color-white);

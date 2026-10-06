@@ -330,7 +330,7 @@ const onGridKeydown = (e: KeyboardEvent) => {
                             ? [
                                 'font-semibold',
                                 d.key === todayKey
-                                  ? 'bg-accent text-on-ghost'
+                                  ? 'bg-accent text-on-accent'
                                   : 'bg-action text-on-action',
                               ]
                             : [
