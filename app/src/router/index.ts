@@ -298,6 +298,7 @@ const { start, finish } = useLoadingBar();
 const {
   isLoggedIn,
   isAuthReady,
+  isApiUnreachable,
   initAuth,
   homeRoute,
   canShowGroup,
@@ -316,6 +317,13 @@ router.beforeEach(async (to, from) => {
   if (to.path !== from.path) start();
 
   if (!isAuthReady.value) await initAuth();
+
+  // The app shows the unreachable notice instead of any page; redirecting to
+  // the login page would tell a signed-in user they had been signed out.
+  if (isApiUnreachable.value) {
+    finish();
+    return true;
+  }
 
   if (!to.meta.access && !isLoggedIn.value) {
     finish();

@@ -254,7 +254,12 @@
   "more": "More",
   "connection": {
     "offline": "No internet connection",
-    "restored": "Back online"
+    "restored": "Back online",
+    "unreachable": {
+      "title": "Server unreachable",
+      "message": "The dashboard is not responding right now, it may be updating. You stay signed in.",
+      "retry": "Try again"
+    }
   },
   "search_results": {
     "empty_title": "No results for “{query}”",

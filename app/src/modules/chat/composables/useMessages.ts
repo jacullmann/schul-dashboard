@@ -8,7 +8,7 @@ import {
   useIsMobileViewport,
   useVisualViewportHeight,
 } from '@/common/composables/useViewport';
-import api, { refreshSession } from '../../../api/api';
+import api, { refreshSessionOrSignOut } from '../../../api/api';
 import { groupPath } from '@/api/groupPath';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useToast } from '@/common/composables/useToast';
@@ -278,7 +278,7 @@ export function useMessages() {
       if (event.code === WS_CLOSE_ACCESS_REVOKED) return;
       if (event.code === WS_CLOSE_TOKEN_EXPIRED) {
         // A failed refresh ends the session through the global auth handler.
-        refreshSession().then(initSocket, () => {});
+        refreshSessionOrSignOut().then(initSocket, () => {});
         return;
       }
       if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {

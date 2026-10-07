@@ -254,7 +254,12 @@
   "more": "Mehr",
   "connection": {
     "offline": "Keine Internetverbindung",
-    "restored": "Wieder online"
+    "restored": "Wieder online",
+    "unreachable": {
+      "title": "Server nicht erreichbar",
+      "message": "Das Dashboard antwortet gerade nicht, vielleicht wird es aktualisiert. Deine Anmeldung bleibt erhalten.",
+      "retry": "Erneut versuchen"
+    }
   },
   "search_results": {
     "empty_title": "Keine Ergebnisse für „{query}“",

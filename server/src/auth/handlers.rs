@@ -217,16 +217,28 @@ pub async fn refresh(
 
     let presented = jar
         .get(REFRESH_COOKIE)
-        .map(|c| c.value().to_string())
-        .filter(|s| !s.is_empty())
-        .ok_or_else(|| AppError::Unauthorized("No refresh token.".into()))?;
+        .map(|c| c.value())
+        .filter(|token| !token.is_empty());
 
-    let svc = TokenService::from_state(&state);
+    let rotated = match presented {
+        Some(token) => {
+            TokenService::from_state(&state)
+                .rotate(token, ua.as_deref(), ip.as_deref())
+                .await?
+        }
+        None => Err(RefreshRejection::Missing),
+    };
 
-    let issued = svc
-        .rotate(&presented, ua.as_deref(), ip.as_deref())
-        .await?
-        .ok_or_else(|| AppError::Unauthorized("Refresh token invalid.".into()))?;
+    let issued = rotated.map_err(|rejection| {
+        // Every visitor without a session asks once at startup; only the end
+        // of an existing session is worth reading in the logs.
+        if rejection == RefreshRejection::Missing {
+            tracing::debug!("Refresh without a session cookie");
+        } else {
+            tracing::info!(?rejection, "Refresh rejected, the client is signed out");
+        }
+        AppError::Unauthorized("Refresh token invalid.".into())
+    })?;
 
     let opts = state.config.base_cookie_options();
 
@@ -337,7 +349,7 @@ pub async fn revoke_session(
     let sessions = svc.list_active_sessions(user.user_id).await?;
 
     if !sessions.iter().any(|s| s.family_id == family_id) {
-        return Err(AppError::Unauthorized("Session not found.".into()));
+        return Err(AppError::not_found("Session not found."));
     }
 
     svc.revoke_family(family_id, ADMIN_REVOKE).await?;

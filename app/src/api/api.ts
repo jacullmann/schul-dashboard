@@ -1,9 +1,5 @@
-import axios, {
-  AxiosError,
-  type AxiosRequestConfig,
-  type InternalAxiosRequestConfig,
-} from 'axios';
-import { isSessionRejected } from './errors';
+import axios, { AxiosError } from 'axios';
+import { isAccessTokenRejected, isSessionRejected } from './errors';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '',
@@ -21,20 +17,14 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-type RetryConfig = InternalAxiosRequestConfig & {
-  _retried?: boolean;
-  _skipAuthRetry?: boolean;
-  _silent?: boolean;
-};
-
-let refreshInFlight: Promise<void> | null = null;
-let refreshFailedListeners: Array<() => void> = [];
-
 const REFRESH_URL = '/auth/refresh';
 const REFRESH_LOCK = 'auth-refresh';
 const LAST_REFRESH_KEY = 'auth:last-refresh';
 // Bounds how long other tabs can be stuck waiting on the refresh lock.
 const REFRESH_TIMEOUT_MS = 15_000;
+
+let refreshInFlight: Promise<void> | null = null;
+let refreshOrSignOutInFlight: Promise<void> | null = null;
 
 const readLastRefresh = (): number => {
   try {
@@ -52,79 +42,91 @@ const recordRefresh = (): void => {
   }
 };
 
-const postRefresh = async (silent: boolean): Promise<void> => {
-  await api.post(REFRESH_URL, null, {
-    _skipAuthRetry: true,
-    _silent: silent,
-    timeout: REFRESH_TIMEOUT_MS,
-  } as AxiosRequestConfig);
+// A record from the future only exists if the clock was set back since; it
+// must not stand in for a refresh that never happened.
+const refreshedSince = (time: number): boolean => {
+  const lastRefresh = readLastRefresh();
+  return lastRefresh >= time && lastRefresh <= Date.now();
+};
+
+const postRefresh = async (): Promise<void> => {
+  await api.post(REFRESH_URL, null, { timeout: REFRESH_TIMEOUT_MS });
   recordRefresh();
 };
 
 // Refresh tokens rotate on every use and share one cookie across tabs, so
 // refreshes are serialized browser-wide. A tab that waited on another tab's
 // refresh reuses the cookies it set instead of rotating them again.
-async function refreshAcrossTabs(silent: boolean): Promise<void> {
-  if (!navigator.locks) return postRefresh(silent);
+async function refreshAcrossTabs(): Promise<void> {
+  if (!navigator.locks) return postRefresh();
 
   const requestedAt = Date.now();
   await navigator.locks.request(REFRESH_LOCK, async () => {
-    if (readLastRefresh() >= requestedAt) return;
-    await postRefresh(silent);
+    if (refreshedSince(requestedAt)) return;
+    await postRefresh();
   });
 }
 
-function performRefresh(opts: { silent?: boolean } = {}): Promise<void> {
-  if (refreshInFlight) return refreshInFlight;
-
-  refreshInFlight = refreshAcrossTabs(opts.silent === true).finally(() => {
+function performRefresh(): Promise<void> {
+  refreshInFlight ??= refreshAcrossTabs().finally(() => {
     refreshInFlight = null;
   });
   return refreshInFlight;
 }
 
-function isRefreshCall(config?: AxiosRequestConfig): boolean {
-  return !!config?.url && config.url.endsWith(REFRESH_URL);
+function notifySessionEnded(): void {
+  window.dispatchEvent(new CustomEvent('auth-expired'));
+}
+
+/**
+ * Rotates the session's tokens. A failure has no side effects, so callers
+ * that resolve the session themselves (e.g. at startup) decide what it means.
+ */
+export const refreshSession = (): Promise<void> => performRefresh();
+
+/**
+ * Rotates the session's tokens and signs the user out app-wide when the
+ * server refuses. Callers awaiting the same refresh share one sign-out. Any
+ * other failure (offline, a deploy restarting the API) leaves the refresh
+ * cookie valid, so it only fails the call.
+ */
+export function refreshSessionOrSignOut(): Promise<void> {
+  refreshOrSignOutInFlight ??= performRefresh()
+    .catch((error: unknown) => {
+      if (isSessionRejected(error)) notifySessionEnded();
+      throw error;
+    })
+    .finally(() => {
+      refreshOrSignOutInFlight = null;
+    });
+  return refreshOrSignOutInFlight;
 }
 
 api.interceptors.response.use(
-  (r) => r,
+  (response) => response,
   async (error: AxiosError) => {
-    const original = error.config as RetryConfig | undefined;
-    const status = error.response?.status;
+    const original = error.config;
 
-    if (!original || status !== 401) {
-      return Promise.reject(error);
-    }
-
-    if (isRefreshCall(original) || original._skipAuthRetry) {
-      if (!original._silent) {
-        window.dispatchEvent(new CustomEvent('auth-expired'));
-        refreshFailedListeners.forEach((fn) => {
-          try {
-            fn();
-          } catch {
-            // A listener must not stop the others from being notified.
-          }
-        });
-      }
+    // Only an expired or missing access token is fixed by a refresh. The
+    // refresh is excluded explicitly: waiting on itself would never settle.
+    if (
+      !original ||
+      original.url === REFRESH_URL ||
+      !isAccessTokenRejected(error)
+    ) {
       return Promise.reject(error);
     }
 
     if (original._retried) {
-      window.dispatchEvent(new CustomEvent('auth-expired'));
+      // The access token from a successful refresh was refused as well.
+      notifySessionEnded();
       return Promise.reject(error);
     }
     original._retried = true;
 
     try {
-      await performRefresh();
-    } catch (refreshError) {
-      // An unreachable or failing API (e.g. restarting during a deploy) leaves
-      // the refresh cookie valid, so only a rejected refresh ends the session.
-      if (isSessionRejected(refreshError)) {
-        window.dispatchEvent(new CustomEvent('auth-expired'));
-      }
+      await refreshSessionOrSignOut();
+    } catch {
       return Promise.reject(error);
     }
 
@@ -138,27 +140,10 @@ export const ensureCsrf = async (): Promise<void> => {
   }
 };
 
-export const refreshSession = (
-  opts: { silent?: boolean } = {},
-): Promise<void> => performRefresh(opts);
-
-export const onRefreshFailed = (fn: () => void): (() => void) => {
-  refreshFailedListeners.push(fn);
-  return () => {
-    refreshFailedListeners = refreshFailedListeners.filter((f) => f !== fn);
-  };
-};
-
 export default api;
 
 declare module 'axios' {
-  export interface AxiosRequestConfig {
-    _skipAuthRetry?: boolean;
-    _silent?: boolean;
-  }
   export interface InternalAxiosRequestConfig {
-    _skipAuthRetry?: boolean;
     _retried?: boolean;
-    _silent?: boolean;
   }
 }

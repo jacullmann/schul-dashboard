@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { watch, onMounted } from 'vue';
 import { useEventListener } from '@vueuse/core';
+import { CloudOff } from '@lucide/vue';
 import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useOAuth } from '@/modules/auth/composables/useOAuth';
@@ -13,13 +15,18 @@ import ConnectionStatus from '@/core/components/ConnectionStatus.vue';
 import api from './api/api';
 
 const router = useRouter();
+const { t } = useI18n();
 const userStore = useUserStore();
 const { user } = storeToRefs(userStore);
-const { isAuthReady, checkAuthStatus } = useAppAuth();
+const { isAuthReady, isApiUnreachable, checkAuthStatus } = useAppAuth();
 const { handleOAuthReturn } = useOAuth();
 const { loading, progress, opacity } = useLoadingBar();
 
 let pageloadLogged = false;
+
+function reloadApp() {
+  window.location.reload();
+}
 
 function logPageload() {
   if (pageloadLogged || !user.value) return;
@@ -87,6 +94,23 @@ onMounted(() => {
         <BaseSpinner on="ghost" size="40px" />
       </div>
     </template>
+
+    <main
+      v-else-if="isApiUnreachable"
+      class="flex flex-1 items-center justify-center px-4"
+    >
+      <BaseEmptyState :icon="CloudOff" full-page :primary-action="reloadApp">
+        <template #title>{{
+          t('common.connection.unreachable.title')
+        }}</template>
+        <template #message>{{
+          t('common.connection.unreachable.message')
+        }}</template>
+        <template #primary-action-label>{{
+          t('common.connection.unreachable.retry')
+        }}</template>
+      </BaseEmptyState>
+    </main>
 
     <template v-else>
       <router-view v-slot="{ Component }">

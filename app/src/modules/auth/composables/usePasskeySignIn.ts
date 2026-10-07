@@ -7,7 +7,7 @@ import {
   startAuthentication,
   type AuthenticationResponseJSON,
 } from '@simplewebauthn/browser';
-import { isAxiosError, type AxiosRequestConfig } from 'axios';
+import { isAxiosError } from 'axios';
 import api from '@/api/api.ts';
 import { apiErrorCode } from '@/api/errors';
 import type { PasskeyChallengeResponse } from '@/modules/auth/types';
@@ -16,13 +16,6 @@ import {
   isPasskeyDismissed,
   passkeyErrorMessage,
 } from '@/modules/auth/utils/passkeyErrors';
-
-// Nobody is signed in yet, so a 401 here must not trigger a session refresh
-// or the global logout handling.
-const signInRequestConfig: AxiosRequestConfig = {
-  _skipAuthRetry: true,
-  _silent: true,
-};
 
 /** Replaces the autofill challenge this long before the server lets it expire. */
 const AUTOFILL_RENEW_MARGIN_MS = 30_000;
@@ -50,8 +43,6 @@ export function usePasskeySignIn(onSignedIn: () => void | Promise<void>) {
   async function requestChallenge(): Promise<PasskeyChallengeResponse> {
     const { data } = await api.post<PasskeyChallengeResponse>(
       '/auth/passkey/challenge',
-      undefined,
-      signInRequestConfig,
     );
     return data;
   }
@@ -63,11 +54,10 @@ export function usePasskeySignIn(onSignedIn: () => void | Promise<void>) {
     signingIn.value = true;
     error.value = '';
     try {
-      await api.post(
-        '/auth/passkey/verify',
-        { challengeId: challenge.challengeId, credential },
-        signInRequestConfig,
-      );
+      await api.post('/auth/passkey/verify', {
+        challengeId: challenge.challengeId,
+        credential,
+      });
     } catch (err: unknown) {
       if (
         apiErrorCode(err) === PasskeyErrorCode.Unknown &&

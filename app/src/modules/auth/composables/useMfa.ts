@@ -1,7 +1,7 @@
 import { ref, computed } from 'vue';
 import api from '@/api/api.ts';
 import i18n from '@/i18n';
-import { isAxiosError, type AxiosRequestConfig } from 'axios';
+import { isAxiosError } from 'axios';
 import type {
   MfaChallengeResponse,
   MfaSetupResponse,
@@ -18,13 +18,6 @@ interface MfaResult {
 const MFA_CHALLENGE_EXPIRED = 'MFA_CHALLENGE_EXPIRED';
 const MFA_LOCKED = 'MFA_LOCKED';
 const SECONDS_PER_MINUTE = 60;
-
-// The sign-in challenge is carried by its own cookie, not by a session, so a
-// 401 there must not trigger a session refresh or the global logout handling.
-const challengeRequestConfig: AxiosRequestConfig = {
-  _skipAuthRetry: true,
-  _silent: true,
-};
 
 /** Whole minutes until a locked second factor accepts codes again. */
 function lockedMinutes(err: unknown): number {
@@ -98,16 +91,13 @@ export function useMfa() {
   async function submitMfaCode(
     url: string,
     code: string,
-    {
-      onSuccess,
-      config,
-    }: { onSuccess?: () => void; config?: AxiosRequestConfig } = {},
+    onSuccess?: () => void,
   ): Promise<MfaResult> {
     mfaLoading.value = true;
     mfaError.value = null;
 
     try {
-      await api.post(url, { code }, config);
+      await api.post(url, { code });
       onSuccess?.();
       return { ok: true };
     } catch (err: unknown) {
@@ -121,30 +111,23 @@ export function useMfa() {
   }
 
   const activateMfa = (code: string): Promise<MfaResult> =>
-    submitMfaCode('/mfa/activate', code, {
-      onSuccess: () => {
-        mfaEnabled.value = true;
-      },
+    submitMfaCode('/mfa/activate', code, () => {
+      mfaEnabled.value = true;
     });
 
   const deactivateMfa = (code: string): Promise<MfaResult> =>
-    submitMfaCode('/mfa/deactivate', code, {
-      onSuccess: () => {
-        mfaEnabled.value = false;
-      },
+    submitMfaCode('/mfa/deactivate', code, () => {
+      mfaEnabled.value = false;
     });
 
   const verifyMfaLogin = (code: string): Promise<MfaResult> =>
-    submitMfaCode('/auth/mfa/verify', code, {
-      config: challengeRequestConfig,
-    });
+    submitMfaCode('/auth/mfa/verify', code);
 
   /** Seconds left on the pending sign-in challenge, or `null` if there is none. */
   async function fetchMfaChallengeExpiresIn(): Promise<number | null> {
     try {
       const { data } = await api.get<MfaChallengeResponse>(
         '/auth/mfa/challenge',
-        challengeRequestConfig,
       );
       return data.expiresIn;
     } catch (err: unknown) {

@@ -1,9 +1,5 @@
 import { isAxiosError, isCancel } from 'axios';
 
-/**
- * Reads the `{ error }` message the API returns on failure, falling back when
- * the request failed before reaching the server or carried no message.
- */
 /** The machine-readable `code` some API errors carry next to their message. */
 export function apiErrorCode(err: unknown): string | undefined {
   if (!isAxiosError<{ code?: unknown }>(err)) return undefined;
@@ -24,7 +20,20 @@ export function isRateLimited(err: unknown): boolean {
   return apiErrorStatus(err) === TOO_MANY_REQUESTS;
 }
 
-/** Whether the API rejected the session itself, the only failure that means signed out. */
+/**
+ * Whether the API turned a request away for lacking a valid access token,
+ * which a refresh can fix. Other 401s, such as a wrong password, carry no
+ * `requiresAuth` and say nothing about the session.
+ */
+export function isAccessTokenRejected(err: unknown): boolean {
+  return (
+    isAxiosError<{ requiresAuth?: unknown }>(err) &&
+    err.response?.status === UNAUTHORIZED &&
+    err.response.data?.requiresAuth === true
+  );
+}
+
+/** Whether the API refused a refresh, the only failure that means signed out. */
 export function isSessionRejected(err: unknown): boolean {
   return apiErrorStatus(err) === UNAUTHORIZED;
 }
@@ -44,6 +53,10 @@ export function isTransientFailure(err: unknown): boolean {
   );
 }
 
+/**
+ * Reads the `{ error }` message the API returns on failure, falling back when
+ * the request failed before reaching the server or carried no message.
+ */
 export function apiErrorMessage(err: unknown, fallback: string): string {
   if (isAxiosError<{ error?: unknown }>(err)) {
     const message = err.response?.data?.error;

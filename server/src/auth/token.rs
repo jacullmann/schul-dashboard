@@ -20,6 +20,22 @@ pub const MFA_CHANGE: RevokeReason = "mfa_change";
 const SESSION_LIMIT: RevokeReason = "session_limit";
 const MAX_SESSIONS_PER_USER: i64 = 10;
 
+/// Why a refresh bought no new session. Each one signs the client out, so the
+/// reason is logged for whoever has to explain an unexpected sign-out.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RefreshRejection {
+    /// The request carried no refresh cookie.
+    Missing,
+    /// No such token was issued, or it was cleaned up long ago.
+    Unknown,
+    Expired,
+    /// The session was ended (logout, password change, session limit, ...).
+    Revoked,
+    /// Replayed after rotation outside the grace window, so treated as theft.
+    Reused,
+    AccountInactive,
+}
+
 #[derive(Debug)]
 pub struct IssuedTokens {
     pub access_token: String,
@@ -47,6 +63,17 @@ impl RefreshTokenRow {
     fn used_within_reuse_grace(&self) -> bool {
         self.used_at
             .is_some_and(|used_at| Utc::now() - used_at <= chrono_ttl(REFRESH_REUSE_GRACE))
+    }
+
+    /// Why presenting this token again ends its session, if it does.
+    fn replay_rejection(&self) -> Option<RefreshRejection> {
+        if self.revoked_at.is_some() {
+            Some(RefreshRejection::Revoked)
+        } else if self.used_within_reuse_grace() {
+            None
+        } else {
+            Some(RefreshRejection::Reused)
+        }
     }
 }
 
@@ -172,15 +199,15 @@ impl TokenService {
         presented_token: &str,
         user_agent: Option<&str>,
         ip_address: Option<&str>,
-    ) -> Result<Option<IssuedTokens>, AppError> {
+    ) -> Result<Result<IssuedTokens, RefreshRejection>, AppError> {
         let hash = hash_token(presented_token);
 
         let Some(row) = self.find_refresh_token(&hash).await? else {
-            return Ok(None);
+            return Ok(Err(RefreshRejection::Unknown));
         };
 
         if row.expires_at < Utc::now() {
-            return Ok(None);
+            return Ok(Err(RefreshRejection::Expired));
         }
 
         let consumed = sqlx::query!(
@@ -196,30 +223,32 @@ impl TokenService {
         if !consumed {
             // Re-read so a concurrent consume or revoke is judged on current state.
             let Some(current) = self.find_refresh_token(&hash).await? else {
-                return Ok(None);
+                return Ok(Err(RefreshRejection::Unknown));
             };
 
             // Parallel refreshes (several tabs, a reload racing an in-flight
             // refresh) legitimately present the same token moments apart and get
             // a sibling pair in the same family. Only a replay outside the grace
             // window, or of a revoked token, is treated as theft.
-            if current.revoked_at.is_some() || !current.used_within_reuse_grace() {
-                tracing::warn!(
-                    "Refresh token reuse detected for user {}, family {}",
-                    current.user_id,
-                    current.family_id
-                );
+            if let Some(rejection) = current.replay_rejection() {
+                if rejection == RefreshRejection::Reused {
+                    tracing::warn!(
+                        "Refresh token reuse detected for user {}, family {}",
+                        current.user_id,
+                        current.family_id
+                    );
+                }
 
                 self.revoke_family(current.family_id, REUSE_DETECTED)
                     .await?;
 
-                return Ok(None);
+                return Ok(Err(rejection));
             }
         }
 
         let Some(user) = self.load_active_user(row.user_id).await? else {
             self.revoke_family(row.family_id, ADMIN_REVOKE).await?;
-            return Ok(None);
+            return Ok(Err(RefreshRejection::AccountInactive));
         };
 
         let issued = self
@@ -232,7 +261,7 @@ impl TokenService {
             })
             .await?;
 
-        Ok(Some(issued))
+        Ok(Ok(issued))
     }
 
     async fn find_refresh_token(&self, hash: &str) -> Result<Option<RefreshTokenRow>, AppError> {
@@ -441,4 +470,40 @@ pub struct IpLocation {
     pub city: Option<String>,
     pub country: Option<String>,
     pub country_code: Option<String>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn consumed_token(used_ago: chrono::TimeDelta, revoked: bool) -> RefreshTokenRow {
+        let now = Utc::now();
+        RefreshTokenRow {
+            id: Uuid::new_v4(),
+            user_id: Uuid::new_v4(),
+            family_id: Uuid::new_v4(),
+            used_at: Some(now - used_ago),
+            revoked_at: revoked.then_some(now),
+            expires_at: now + chrono_ttl(REFRESH_TOKEN_TTL),
+        }
+    }
+
+    #[test]
+    fn a_parallel_refresh_within_the_grace_window_is_no_replay() {
+        let token = consumed_token(chrono::TimeDelta::seconds(1), false);
+        assert_eq!(token.replay_rejection(), None);
+    }
+
+    #[test]
+    fn a_replay_after_the_grace_window_counts_as_reuse() {
+        let late = chrono_ttl(REFRESH_REUSE_GRACE) + chrono::TimeDelta::seconds(1);
+        let token = consumed_token(late, false);
+        assert_eq!(token.replay_rejection(), Some(RefreshRejection::Reused));
+    }
+
+    #[test]
+    fn a_revoked_token_is_refused_even_within_the_grace_window() {
+        let token = consumed_token(chrono::TimeDelta::seconds(1), true);
+        assert_eq!(token.replay_rejection(), Some(RefreshRejection::Revoked));
+    }
 }

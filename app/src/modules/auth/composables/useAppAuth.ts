@@ -14,9 +14,11 @@ import {
 import type { PermissionKey, PermissionMatrix } from '@/types/permissions.ts';
 
 const STATUS_ENDPOINT = '/groups/status';
-// Session resolution retries until the API answers, backing off up to this.
+// Startup retries an unreachable API with backoff for about as long as a
+// deploy restarts it, then reports it unreachable instead of waiting forever.
 const INIT_RETRY_FIRST_DELAY_MS = 500;
 const INIT_RETRY_MAX_DELAY_MS = 8_000;
+const INIT_RETRY_DEADLINE_MS = 30_000;
 
 export type UserGroup = {
   id: string;
@@ -50,6 +52,8 @@ type StatusResponse = {
 const isAuthenticated = ref(false);
 const isLoggedIn = ref(false);
 const isAuthReady = ref(false);
+/** Startup gave up on an API that never answered; the session is unknown. */
+const isApiUnreachable = ref(false);
 
 const userGroups = ref<UserGroup[]>([]);
 const landingGroupId = ref<string | null>(null);
@@ -187,31 +191,46 @@ function installAuthExpiredHandlerOnce(): void {
   });
 }
 
-async function fetchStatus(): Promise<boolean> {
+async function fetchStatus(): Promise<StatusResponse> {
   const { data } = await api.get<StatusResponse>(STATUS_ENDPOINT);
-  applyStatusData(data);
-  return data.authenticated === true;
+  return data;
 }
 
-async function restoreSession(): Promise<void> {
+/** Whether the refresh cookie still holds a session the server renewed. */
+async function renewSession(): Promise<boolean> {
   try {
-    await refreshSession({ silent: true });
+    await refreshSession();
+    return true;
   } catch (error) {
-    if (isSessionRejected(error)) return;
+    if (isSessionRejected(error)) return false;
     throw error;
   }
-  await fetchStatus();
+}
+
+/**
+ * The status only sees the access token, which lapses long before the
+ * session does: "not authenticated" is final only once a refresh failed too,
+ * so it is not applied before then.
+ */
+async function loadSession(): Promise<boolean> {
+  let status = await fetchStatus();
+  if (!status.authenticated && (await renewSession())) {
+    status = await fetchStatus();
+  }
+  applyStatusData(status);
+  return status.authenticated;
 }
 
 async function resolveSession(): Promise<void> {
   await ensureCsrf();
-  if (!(await fetchStatus())) await restoreSession();
+  await loadSession();
 }
 
 // An unreachable API (offline, or restarting during a deploy) says nothing
 // about the session, so it is asked again instead of showing a signed-in user
 // the login page.
 async function resolveSessionWhenReachable(): Promise<void> {
+  const deadline = Date.now() + INIT_RETRY_DEADLINE_MS;
   for (
     let delay = INIT_RETRY_FIRST_DELAY_MS;
     ;
@@ -220,7 +239,9 @@ async function resolveSessionWhenReachable(): Promise<void> {
     try {
       return await resolveSession();
     } catch (error) {
-      if (!isTransientFailure(error)) throw error;
+      if (!isTransientFailure(error) || Date.now() + delay > deadline) {
+        throw error;
+      }
     }
     await new Promise((resolve) => setTimeout(resolve, delay));
   }
@@ -232,8 +253,9 @@ async function resolveSessionWhenReachable(): Promise<void> {
 async function doInitAuth(): Promise<void> {
   try {
     await resolveSessionWhenReachable();
-  } catch {
+  } catch (error) {
     clearAuthState();
+    isApiUnreachable.value = isTransientFailure(error);
   } finally {
     isAuthReady.value = true;
     initPromise = null;
@@ -255,7 +277,7 @@ export function useAppAuth() {
 
     statusPromise = (async () => {
       try {
-        return await fetchStatus();
+        return await loadSession();
       } catch {
         // The status never rejects a session, so a failed check changes nothing.
         return isLoggedIn.value;
@@ -432,6 +454,7 @@ export function useAppAuth() {
     isAuthenticated,
     isLoggedIn,
     isAuthReady,
+    isApiUnreachable,
     groupName,
     activeGroupId,
     contextGroupId,
