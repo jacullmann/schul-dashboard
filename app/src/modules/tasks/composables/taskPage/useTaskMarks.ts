@@ -3,7 +3,7 @@ import { createEventHook, useEventListener } from '@vueuse/core';
 import api from '@/api/api';
 import { groupPath } from '@/api/groupPath';
 import type { Task } from '@/modules/tasks/types';
-import { isPastDue } from '@/modules/tasks/utils/dueDate';
+import { isDueByEndOfToday, isPastDue } from '@/modules/tasks/utils/dueDate';
 
 // The UI updates instantly; the API call is debounced per task so rapid
 // check/uncheck toggles collapse into at most one request, and requests
@@ -57,15 +57,14 @@ export function useTaskMarks(
     return isNaturallyOld(task);
   }
 
-  // Mirrors the server's list filter: only past-due tasks that are not pinned
-  // drop into the archive without an explicit status, once checked or right
-  // away for courses the member does not take.
+  // Mirrors the server's list filter: unpinned tasks drop into the archive
+  // without an explicit status once checked on or after their due day, or once
+  // past due for courses the member does not take.
   function isNaturallyOld(task: Task) {
-    return (
-      isPastDue(task) &&
-      !isPinned(task.id) &&
-      (isChecked(task.id) || task.takesCourse === false)
-    );
+    if (isPinned(task.id)) return false;
+    return task.takesCourse === false
+      ? isPastDue(task)
+      : isChecked(task.id) && isDueByEndOfToday(task);
   }
 
   async function loadIds(

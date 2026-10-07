@@ -63,3 +63,16 @@ export function isPastDue(
 ): boolean {
   return new Date(task.dueDate) < now;
 }
+
+/** Due today or earlier, by the calendar day rather than the due time. */
+export function isDueByEndOfToday(
+  task: { dueDate: string },
+  now: Date = new Date(),
+): boolean {
+  const startOfTomorrow = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate() + 1,
+  );
+  return new Date(task.dueDate) < startOfTomorrow;
+}

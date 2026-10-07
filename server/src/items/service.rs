@@ -176,9 +176,9 @@ impl ItemsService {
 
         // A task for a single course reaches that course's members; one for the
         // whole subject reaches everybody taking any of its courses.
-        // Past-due tasks drop into the archive once checked, or right away when
-        // they belong to a course the member does not take, since nobody
-        // expects them to tick those off.
+        // Unpinned tasks drop into the archive once checked on or after their
+        // due day, or once past due when they belong to a course the member
+        // does not take, since nobody expects them to tick those off.
         let mut rows = sqlx::query!(
             r#"SELECT i.id, i.type, i.title, i.subject_id, i.course_id,
                       COALESCE(s.name, i.custom_subject) as "subject_name!", c.name as "course_name?",
@@ -208,12 +208,25 @@ impl ItemsService {
                        )
                    ) AS takes_course
                ) m
+               CROSS JOIN LATERAL (
+                   SELECT (
+                       i.id NOT IN (SELECT item_id FROM pinned_items WHERE user_id = $2)
+                       AND (
+                           (NOT m.takes_course AND i.due_date < now())
+                           OR (
+                               m.takes_course
+                               AND i.id IN (SELECT item_id FROM keep_checked WHERE user_id = $2)
+                               AND (i.due_date AT TIME ZONE 'Europe/Berlin')::date <= (now() AT TIME ZONE 'Europe/Berlin')::date
+                           )
+                       )
+                   ) AS naturally_old
+               ) o
                WHERE i.tenant_id = $1
                  AND ($3::text IS NULL OR $3 = 'all' OR i.type = $3)
                  AND (
-                     ($4::boolean AND (v.status = 'archived' OR (i.due_date < now() AND i.id NOT IN (SELECT item_id FROM pinned_items WHERE user_id = $2) AND (NOT m.takes_course OR i.id IN (SELECT item_id FROM keep_checked WHERE user_id = $2)))) AND v.status IS DISTINCT FROM 'kept')
+                     ($4::boolean AND (v.status = 'archived' OR o.naturally_old) AND v.status IS DISTINCT FROM 'kept')
                      OR
-                     (NOT $4::boolean AND (v.status = 'kept' OR ((i.due_date >= now() OR i.id IN (SELECT item_id FROM pinned_items WHERE user_id = $2) OR (m.takes_course AND i.id NOT IN (SELECT item_id FROM keep_checked WHERE user_id = $2))) AND v.status IS DISTINCT FROM 'archived')))
+                     (NOT $4::boolean AND (v.status = 'kept' OR NOT o.naturally_old) AND v.status IS DISTINCT FROM 'archived')
                  )
                  AND (
                      $5::boolean IS FALSE

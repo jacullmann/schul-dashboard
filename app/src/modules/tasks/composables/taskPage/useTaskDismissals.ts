@@ -2,7 +2,7 @@ import { reactive, ref, type Ref } from 'vue';
 import { tryOnScopeDispose, useTimeoutFn } from '@vueuse/core';
 import type { Task } from '@/modules/tasks/types';
 import { COLLAPSE_MS } from '@/modules/tasks/utils/collapse';
-import { isPastDue } from '@/modules/tasks/utils/dueDate';
+import { isDueByEndOfToday, isPastDue } from '@/modules/tasks/utils/dueDate';
 
 /** A checked task stays in place this long, so its tick registers before it leaves. */
 const CHECK_DISMISS_DELAY_MS = 400;
@@ -48,7 +48,10 @@ export function useTaskDismissals({
   }
 
   function leavesOldView(task: Task) {
-    return !showOldEntries.value && isPastDue(task) && !isPinned(task.id);
+    if (showOldEntries.value || isPinned(task.id)) return false;
+    return task.takesCourse === false
+      ? isPastDue(task)
+      : isDueByEndOfToday(task);
   }
 
   function cancelDismissTimer(id: string) {
