@@ -215,7 +215,8 @@ interface DayRows {
  *
  * Filtered to the member's courses, the slots up to then without a lesson
  * read as free time; a break between two of them belongs to it and gets no
- * row on its day.
+ * row on its day. Counting its breaks, free time also takes in those right
+ * before and after it.
  */
 const rowsOfDay = (
   layout: ScheduleLayout,
@@ -279,9 +280,15 @@ const rowsOfDay = (
           (row) => row.gridRow <= dayEndRow && labelledRows.has(row.gridRow),
         );
 
-  const freeTimeRange = settings.value.includeBreaksInFreeTime
-    ? freeTimeMinutes
-    : slotRangeMinutes;
+  const countsBreaks = settings.value.includeBreaksInFreeTime;
+  const freeTimeRange = countsBreaks ? freeTimeMinutes : slotRangeMinutes;
+  /** The row of a break free time takes in, which it then reaches over. */
+  const swallowedBreakRow = (afterSlot: number) =>
+    countsBreaks
+      ? layout.rows.find(
+          (row) => row.kind === 'break' && row.afterSlot === afterSlot,
+        )?.gridRow
+      : undefined;
   const freeBlocks = freeRunsOfDay(day).map(
     ({ firstSlot, lastSlot }): FreeBlock => {
       const time = freeTimeRange(
@@ -295,8 +302,9 @@ const rowsOfDay = (
       return {
         key: `free-${column}-${firstSlot}`,
         gridColumn: column,
-        firstRow: layout.gridRowOfSlot(firstSlot),
-        lastRow: layout.gridRowOfSlot(lastSlot),
+        firstRow:
+          swallowedBreakRow(firstSlot - 1) ?? layout.gridRowOfSlot(firstSlot),
+        lastRow: swallowedBreakRow(lastSlot) ?? layout.gridRowOfSlot(lastSlot),
         time,
         includesBreaks: time.end - time.start > lessonsMinutes,
       };

@@ -413,16 +413,28 @@ export function useSchedule(shownWeek?: Ref<number>) {
       ...freeRunsOfDay(day),
     ];
 
+    /*
+     * Free time that counts its breaks also takes in those right before and
+     * after it, since its time already runs from lesson to lesson.
+     */
+    const adjacentBreaksInFreeTime =
+      scheduleSettings.value.includeBreaksInFreeTime;
     const breaksInFreeTimeByDay = new Map(
       days.map((day) => [
         day,
         new Set(
-          freeRunsOfDay(day).flatMap(({ firstSlot, lastSlot }) =>
-            Array.from(
-              { length: lastSlot - firstSlot },
-              (_, index) => firstSlot + index,
-            ),
-          ),
+          freeRunsOfDay(day).flatMap(({ firstSlot, lastSlot }) => {
+            const afterFirst = adjacentBreaksInFreeTime
+              ? firstSlot - 1
+              : firstSlot;
+            const afterLast = adjacentBreaksInFreeTime
+              ? lastSlot
+              : lastSlot - 1;
+            return Array.from(
+              { length: afterLast - afterFirst + 1 },
+              (_, index) => afterFirst + index,
+            );
+          }),
         ),
       ]),
     );
