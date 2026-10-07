@@ -79,7 +79,7 @@ const showCornerCloseButton = computed(
 );
 
 const titleRowClasses = computed(() => {
-  if (showHeaderActions.value) return 'flex-nowrap! h-10 mb-4';
+  if (showHeaderActions.value) return 'flex-nowrap! h-7.5 mb-4';
   if (!props.closeButton) return 'items-start h-7.5 mx-4 mb-2 mt-1';
   // pr-12 reserves the corner close button's width plus gap
   return 'items-start h-7.5 pr-12 mb-4';
@@ -133,16 +133,16 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
             "
           />
 
-          <BaseButton
+          <!--BaseButton
             v-if="showHeaderActions"
             type="button"
             variant="ghost"
             :icon="X"
             :aria-label="t('common.buttons.cancel')"
             @click="handleCancel"
-          />
+          /-->
 
-          <BaseRow class="min-w-0">
+          <BaseRow class="min-w-0" :class="{ 'mx-auto': headerActions }">
             <h3 :id="titleId">
               <slot name="title"></slot>
             </h3>
@@ -152,7 +152,7 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
 
           <!-- Submits through the form, so validation and the submit
                handler run exactly as for the button below it. -->
-          <BaseButton
+          <!--BaseButton
             v-if="showHeaderActions"
             type="submit"
             :form-id="formId"
@@ -161,7 +161,7 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
             :loading="loading"
             :disabled="loading || !requirement"
             :aria-label="t('common.buttons.confirm')"
-          />
+          /-->
         </BaseRow>
 
         <template v-if="showCornerCloseButton" #corner>

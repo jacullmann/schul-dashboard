@@ -29,8 +29,6 @@ const emit = defineEmits<{ (e: 'cancel'): void; (e: 'success'): void }>();
 const {
   groupId,
   canChooseGroup,
-  groupIsFixed,
-  targetGroup,
   typeTabItems,
   activeType,
   imgImages,
@@ -97,15 +95,11 @@ const imageEntrance = useAddedEntrance(
               : t('tasks.list.task_form.new_task')
           }}
         </span>
-        <template v-if="canChooseGroup && !local">
-          <span
-            v-if="groupIsFixed"
-            class="max-md:hidden! text-on-ghost-muted font-medium truncate"
-          >
-            {{ targetGroup?.name }}
-          </span>
-          <GroupSelect v-else v-model="groupId" permission="create_items" />
-        </template>
+        <GroupSelect
+          v-if="canChooseGroup && !local && !initial"
+          v-model="groupId"
+          permission="create_items"
+        />
       </span>
     </template>
 

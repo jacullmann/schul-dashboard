@@ -60,8 +60,6 @@ export function useTaskFormLogic(
   );
   /** Only worth showing when the user could mean more than one group. */
   const canChooseGroup = computed(() => userGroups.value.length > 1);
-  /** An existing item stays in its group. */
-  const groupIsFixed = !!initial;
 
   const typeTabItems = computed(() => [
     { id: 'homework', label: t('tasks.list.types.homework') },
@@ -480,7 +478,6 @@ export function useTaskFormLogic(
     t,
     groupId,
     canChooseGroup,
-    groupIsFixed,
     targetGroup,
     typeTabItems,
     activeType,
