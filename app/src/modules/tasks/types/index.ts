@@ -26,7 +26,8 @@ export interface Task {
 
 /** How a task names its subject when it is created or edited. */
 export type ItemSubjectPayload =
-  { subjectId: string; courseId: string | null } | { customName: string };
+  | { subjectId: string; courseId: string | null }
+  | { customName: string };
 
 export type ItemType = 'homework' | 'dalton' | 'exam' | 'all';
 

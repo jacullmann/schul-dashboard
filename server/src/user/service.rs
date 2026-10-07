@@ -55,18 +55,18 @@ impl UserService {
         let allowed = ["theme", "language", "personalized", "tasks", "schedule"];
 
         if let Some(obj) = prefs.as_object() {
-            for (k, v) in obj {
-                if !allowed.contains(&k.as_str()) || v.is_null() {
+            for (key, value) in obj {
+                if !allowed.contains(&key.as_str()) || value.is_null() {
                     continue;
                 }
                 // A page's settings arrive one at a time, so they extend the
                 // stored ones instead of replacing them.
-                match (current.get_mut(k), v) {
+                match (current.get_mut(key), value) {
                     (Some(Value::Object(stored)), Value::Object(changed)) => {
-                        stored.extend(changed.iter().map(|(k, v)| (k.clone(), v.clone())));
+                        stored.extend(changed.clone());
                     }
                     _ => {
-                        current.insert(k.clone(), v.clone());
+                        current.insert(key.clone(), value.clone());
                     }
                 }
             }

@@ -7,12 +7,23 @@ import type { SchedulePreferences } from '@/modules/schedule/types';
 
 export type DismissibleNotice = 'personalizedTasks' | 'personalizedSchedule';
 
-export interface UserPreferences {
+/** The settings each page has, every one of them set. */
+export interface PageSettings {
+  tasks: TaskPreferences;
+  schedule: SchedulePreferences;
+}
+
+export type SettingsPage = keyof PageSettings;
+
+/** Only what the member changed is stored; the defaults fill in the rest. */
+type StoredPageSettings = {
+  [P in SettingsPage]?: Partial<PageSettings[P]>;
+};
+
+export interface UserPreferences extends StoredPageSettings {
   theme?: string;
   language?: string;
   dismissedNotices?: DismissibleNotice[];
-  tasks?: Partial<TaskPreferences>;
-  schedule?: Partial<SchedulePreferences>;
 }
 
 export interface UserData {
@@ -117,6 +128,27 @@ export const useUserStore = defineStore('user', () => {
     };
   }
 
+  function storedPageSettings<P extends SettingsPage>(
+    page: P,
+  ): Partial<PageSettings[P]> {
+    return user.value?.preferences?.[page] ?? {};
+  }
+
+  /** `undefined` drops the setting, so the page falls back to its default. */
+  function setPageSetting<
+    P extends SettingsPage,
+    K extends keyof PageSettings[P],
+  >(page: P, key: K, value: PageSettings[P][K] | undefined): void {
+    if (!user.value) return;
+    const preferences = user.value.preferences ?? {};
+    // Removed rather than set to `undefined`, which would spread over the default.
+    const { [key]: _replaced, ...others } = preferences[page] ?? {};
+    user.value.preferences = {
+      ...preferences,
+      [page]: value === undefined ? others : { ...others, [key]: value },
+    };
+  }
+
   return {
     user,
     loading,
@@ -133,5 +165,7 @@ export const useUserStore = defineStore('user', () => {
     setMfaEnabled,
     isNoticeDismissed,
     markNoticeDismissed,
+    storedPageSettings,
+    setPageSetting,
   };
 });
