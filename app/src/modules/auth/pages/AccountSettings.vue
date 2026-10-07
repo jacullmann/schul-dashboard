@@ -40,11 +40,6 @@ const navItems = computed<AdminNavItem[]>(() => [
     icon: markRaw(Shield),
   },
   {
-    id: 'account',
-    label: t('auth.account_settings.account.title'),
-    icon: markRaw(UserRound),
-  },
-  {
     id: 'tasks',
     label: t('auth.account_settings.tasks.title'),
     icon: markRaw(ListTodo),
@@ -53,6 +48,11 @@ const navItems = computed<AdminNavItem[]>(() => [
     id: 'schedule',
     label: t('auth.account_settings.schedule.title'),
     icon: markRaw(CalendarDays),
+  },
+  {
+    id: 'account',
+    label: t('auth.account_settings.account.title'),
+    icon: markRaw(UserRound),
   },
 ]);
 
