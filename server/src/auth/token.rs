@@ -17,6 +17,8 @@ pub const PASSWORD_CHANGE: RevokeReason = "password_change";
 pub const ADMIN_REVOKE: RevokeReason = "admin_revoke";
 pub const ACCOUNT_DELETED: RevokeReason = "account_deleted";
 pub const MFA_CHANGE: RevokeReason = "mfa_change";
+/// The user ended one of their sessions from the session list.
+pub const SESSION_REVOKED: RevokeReason = "session_revoked";
 const SESSION_LIMIT: RevokeReason = "session_limit";
 const MAX_SESSIONS_PER_USER: i64 = 10;
 

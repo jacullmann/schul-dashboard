@@ -352,7 +352,7 @@ pub async fn revoke_session(
         return Err(AppError::not_found("Session not found."));
     }
 
-    svc.revoke_family(family_id, ADMIN_REVOKE).await?;
+    svc.revoke_family(family_id, SESSION_REVOKED).await?;
 
     Ok(Json(json!({ "ok": true })))
 }
