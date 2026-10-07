@@ -19,7 +19,6 @@ const emit = defineEmits<{
   /** The swipe already asked, so the task goes without another question. */
   (e: 'delete'): void;
   (e: 'edit'): void;
-  (e: 'duplicate'): void;
   (e: 'menu-click', event: MouseEvent): void;
 }>();
 
@@ -63,9 +62,9 @@ function runSwipeAction() {
   emit('edit');
 }
 
-function duplicateFromSwipe() {
+function openMenuFromSwipe(event: MouseEvent) {
   closeSwipe();
-  emit('duplicate');
+  emit('menu-click', event);
 }
 
 const COLLAPSE_DURATION = '350ms';
@@ -119,19 +118,19 @@ function onLeave(el: Element) {
       :key="activeSide"
       :side="activeSide"
       :action="activeSide === 'left' ? 'edit' : 'delete'"
-      :secondary-action="activeSide === 'right' ? 'duplicate' : undefined"
+      :secondary-action="activeSide === 'right' ? 'menu' : undefined"
       :offset="revealedOffset"
       :is-taking-over="isTakingOver"
       @action="runSwipeAction"
-      @secondary-action="duplicateFromSwipe"
+      @secondary-action="openMenuFromSwipe"
     />
 
     <div
       ref="card"
-      class="item-card relative bg-surface border border-ghost-border rounded-xl p-1 shadow-input cursor-default touch-pan-y"
+      class="item-card relative bg-surface border border-ghost-border rounded-xl p-1 shadow-input cursor-default touch-pan-y select-none"
       :style="cardStyle"
     >
-      <div class="relative flex justify-between items-start gap-2 select-none">
+      <div class="relative flex justify-between items-start gap-2">
         <div
           class="flex-1 min-w-0 mt-2 ml-2"
           :class="task.description ? 'mb-2' : 'mb-1'"
@@ -171,7 +170,7 @@ function onLeave(el: Element) {
           class="overflow-hidden"
         >
           <!-- prettier-ignore -->
-          <div class="mx-2 mb-1 text-on-ghost break-words [overflow-wrap:anywhere] hyphens-auto whitespace-pre-wrap select-text cursor-text">{{ task.description }}</div>
+          <div class="mx-2 mb-1 text-on-ghost break-words [overflow-wrap:anywhere] hyphens-auto whitespace-pre-wrap">{{ task.description }}</div>
         </div>
       </Transition>
     </div>

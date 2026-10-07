@@ -261,7 +261,6 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
                 @toggle-completion="togglePrivateTaskCompletion(privateTask)"
                 @delete="deletePrivateTask(privateTask.id, { confirm: false })"
                 @edit="privateTaskFormModal.openEdit(privateTask)"
-                @duplicate="duplicatePrivateTask(privateTask)"
                 @dblclick="handleItemDoubleClick(privateTask, $event)"
                 @contextmenu.prevent.stop="
                   handleCardContextMenu(privateTask, $event)
