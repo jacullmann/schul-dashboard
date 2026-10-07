@@ -121,7 +121,7 @@
       },
       "invite_links": {
         "title": "Einladungslinks",
-        "empty": "Keine Einladungslinks vorhanden.",
+        "empty": "Keine Einladungslinks",
         "generate_button": "Link generieren",
         "status": {
           "used": "Verwendet",
@@ -291,7 +291,7 @@
         "new_day_label": "Neuer Tag",
         "no_change": "Keine Änderung",
         "cancelled_label": "Ausfall",
-        "no_changes": "Keine Planänderungen vorhanden.",
+        "no_changes": "Keine Planänderungen",
         "affected_course_label": "Betroffener Kurs",
         "all_subject_courses": "Alle Kurse des Fachs",
         "all_courses": "Alle Kurse",
@@ -328,7 +328,9 @@
         "save_service_unavailable": "Der Stundenplan kann gerade nicht gespeichert werden. Es wurden keine Änderungen übernommen. Bitte versuche es später erneut.",
         "add_lesson_slot": "Stunde hinzufügen",
         "course_hint": "Ohne Kurs gilt die Stunde für die ganze Gruppe.",
-        "no_subjects": "Es sind noch keine Fächer in dieser Gruppe vorhanden. Bitte erstelle zuerst Fächer unter „Fächer“ in den Gruppeneinstellungen.",
+        "no_subjects": "Diese Gruppe hat keine Fächer. Richte sie in den Einstellungen ein, um Stunden hinzuzufügen.",
+        "no_subjects_title": "Noch keine Fächer",
+        "set_up_subjects_button": "Fächer einrichten",
         "undo": "Rückgängig (Strg+Z)",
         "redo": "Wiederholen (Strg+Y)"
       }
@@ -388,8 +390,9 @@
       },
       "title": "Fächer",
       "list": {
-        "empty": "Keine Fächer vorhanden."
+        "empty": "Keine Fächer"
       },
+      "courses_empty": "Keine Kurse",
       "courses_title": "Kurse",
       "course_name_label": "Kursname",
       "course_add_title": "Kurs hinzufügen",

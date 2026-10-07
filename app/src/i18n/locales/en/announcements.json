@@ -7,7 +7,7 @@
   "list": {
     "title": "Announcements",
     "create_button": "New announcement",
-    "empty_state": "No announcements yet.",
+    "empty_state": "No announcements",
     "important": "Important"
   },
   "form": {

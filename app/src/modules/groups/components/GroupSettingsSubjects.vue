@@ -571,10 +571,7 @@ onMounted(() => {
                 (value) => (subjectCategoryInput = toCategory(value))
               "
             />
-            <span
-              v-if="categoryNeedsMigration"
-              class="text-xs text-warning mt-1"
-            >
+            <span v-if="categoryNeedsMigration" class="text-xs text-warn mt-1">
               {{
                 t('groups.settings.subjects.category_mismatch', {
                   category: categoryLabel(storedCategory),
@@ -648,9 +645,9 @@ onMounted(() => {
 
         <div
           v-if="!subject.courses || subject.courses.length === 0"
-          class="text-center p-6 bg-surface border border-ghost-border rounded-xl text-on-ghost-muted text-base"
+          class="text-center p-8 text-on-ghost-muted text-base"
         >
-          {{ t('groups.settings.subjects.list.empty') }}
+          {{ t('groups.settings.subjects.courses_empty') }}
         </div>
         <div v-else class="flex flex-col max-w-200 mx-auto">
           <template v-for="(course, index) in subject.courses" :key="course.id">

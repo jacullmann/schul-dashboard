@@ -22,6 +22,8 @@ import { useGroupScheduleAdmin } from '@/modules/groups/composables/useGroupSche
 import { useLessonSelection } from '@/modules/groups/composables/useLessonSelection';
 import { useScheduleDisplay } from '@/modules/schedule/composables/useScheduleDisplay';
 import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
+import { useGroupPageId } from '@/core/composables/useGroupPageId';
 import {
   cloneFnJSON,
   useEventListener,
@@ -45,6 +47,8 @@ const { t, locale } = i18n;
 const te = i18n.te.bind(i18n);
 const { width: windowWidth } = useWindowSize();
 const isMobile = useIsMobileViewport();
+const router = useRouter();
+const groupId = useGroupPageId();
 
 const { lessons, loadingLessons, savingScheduleConfig, saveScheduleBatch } =
   useGroupScheduleAdmin();
@@ -394,6 +398,13 @@ function openEditLessonModal(lesson: Lesson) {
   isLessonModalOpen.value = true;
 }
 
+function goToSubjectSettings() {
+  void router.push({
+    name: 'group-admin',
+    params: { groupId, tab: 'subjects' },
+  });
+}
+
 function closeLessonModal() {
   isLessonModalOpen.value = false;
   editingLessonRef.value = null;
@@ -707,9 +718,12 @@ onMounted(() => {
 
     <BaseModal
       :open="isLessonModalOpen"
-      :submit="submitLessonForm"
-      :requirement="!!lessonForm.subjectId"
+      :submit="
+        subjectOptions.length > 0 ? submitLessonForm : goToSubjectSettings
+      "
+      :requirement="subjectOptions.length === 0 || !!lessonForm.subjectId"
       header-actions
+      :close-button="subjectOptions.length !== 0"
       @cancel="closeLessonModal"
     >
       <template #title>
@@ -725,15 +739,14 @@ onMounted(() => {
           {{ selectedSlotSummary }}
         </div>
 
-        <div
-          v-if="subjectOptions.length === 0"
-          class="text-xs text-warning bg-warning/10 border border-warning/20 p-3 rounded-lg flex items-center gap-2"
-        >
-          <BookOpen class="size-4 shrink-0" />
-          <span>
-            {{ t('groups.settings.schedule.editor.no_subjects') }}
-          </span>
-        </div>
+        <BaseEmptyState v-if="subjectOptions.length === 0" :icon="BookOpen">
+          <template #title>{{
+            t('groups.settings.schedule.editor.no_subjects_title')
+          }}</template>
+          <template #message>{{
+            t('groups.settings.schedule.editor.no_subjects')
+          }}</template>
+        </BaseEmptyState>
 
         <template v-else>
           <BaseFormGroup id="lesson-subject">
@@ -792,7 +805,11 @@ onMounted(() => {
       </template>
 
       <template #action-text>
-        {{ t('groups.settings.schedule.editor.save_lesson_button') }}
+        {{
+          subjectOptions.length > 0
+            ? t('groups.settings.schedule.editor.save_lesson_button')
+            : t('groups.settings.schedule.editor.set_up_subjects_button')
+        }}
       </template>
     </BaseModal>
 

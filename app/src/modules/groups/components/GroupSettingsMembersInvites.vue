@@ -127,7 +127,7 @@ function getInviteUrl(token: string): string {
     </div>
     <div
       v-else-if="invites.length === 0"
-      class="text-center p-8 text-on-ghost-muted text-base bg-surface border border-ghost-border rounded-xl"
+      class="text-center p-8 text-on-ghost-muted text-base"
     >
       {{ t('groups.settings.members.invite_links.empty') }}
     </div>

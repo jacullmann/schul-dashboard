@@ -121,7 +121,7 @@
       },
       "invite_links": {
         "title": "Invite Links",
-        "empty": "No invite links available.",
+        "empty": "No invite links",
         "generate_button": "Generate link",
         "status": {
           "used": "Used",
@@ -291,7 +291,7 @@
         "new_day_label": "New Day",
         "no_change": "No change",
         "cancelled_label": "Canceled",
-        "no_changes": "No schedule changes.",
+        "no_changes": "No schedule changes",
         "affected_course_label": "Affected course",
         "all_subject_courses": "All courses of the subject",
         "all_courses": "All courses",
@@ -330,7 +330,9 @@
         "course_hint": "Without a course the lesson applies to the whole group.",
         "undo": "Undo (Ctrl+Z)",
         "redo": "Redo (Ctrl+Y)",
-        "no_subjects": "This group has no subjects yet. Create them under \"Subjects\" in the group settings first."
+        "no_subjects": "This group has no subjects. Set them up in the settings to add lessons.",
+        "no_subjects_title": "No subjects yet",
+        "set_up_subjects_button": "Set up subjects"
       }
     },
     "subjects": {
@@ -388,8 +390,9 @@
       },
       "title": "Subjects",
       "list": {
-        "empty": "No subjects available."
+        "empty": "No subjects"
       },
+      "courses_empty": "No courses",
       "courses_title": "Courses",
       "course_name_label": "Course Name",
       "course_add_title": "Add Course",
