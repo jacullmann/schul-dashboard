@@ -16,7 +16,7 @@ const appearance = computed(() =>
         icon: WifiOff,
         label: t('common.connection.offline'),
         colors:
-          'bg-surface/80 backdrop-blur-[2px] border-ghost-border text-on-ghost',
+          'bg-surface/80 backdrop-blur-[2px] backdrop-saturate-150 border-ghost-border text-on-ghost',
       }
     : {
         icon: Wifi,
@@ -63,7 +63,7 @@ const pillWidth = computed(() =>
           <!-- Pill: springs to the target width (overshooting) and keeps the
                content centered, so overshoot space splits across both sides. -->
           <div
-            class="box-content flex justify-center overflow-hidden rounded-full border shadow-menu transition-[width,color,background-color,border-color] duration-[500ms,250ms,250ms,250ms] ease-[cubic-bezier(0.34,1.56,0.64,1),linear,linear,linear]"
+            class="box-content flex justify-center overflow-hidden rounded-full border shadow-menu transition-[width,color,background-color,border-color,backdrop-filter] duration-[500ms,250ms,250ms,250ms,250ms] ease-[cubic-bezier(0.34,1.56,0.64,1),linear,linear,linear,ease-in]"
             :class="appearance.colors"
             :style="pillWidth ? { width: pillWidth } : undefined"
           >
