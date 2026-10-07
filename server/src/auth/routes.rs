@@ -27,7 +27,7 @@ pub fn router() -> Router<AppState> {
         .route("/auth/reset", post(reset_password))
         .route("/auth/set-password/code", post(request_password_setup_code))
         .route("/auth/set-password", post(set_password))
-        .layer(rate_limit::per_client(30, Duration::from_secs(1)));
+        .layer(rate_limit::per_client(30, Duration::from_secs(3)));
 
     let normal = Router::new()
         .route("/auth/mfa/challenge", get(get_mfa_challenge))

@@ -54,25 +54,21 @@ async function submit() {
     :loading="submitting"
     :error="errorMsg"
     :requirement="acceptedTerms"
+    :close-button="false"
     @cancel="emit('cancel')"
   >
     <template #title>{{ t('auth.google_signup.title') }}</template>
 
     <template #content>
-      <div class="flex flex-col items-center gap-3 mb-4">
-        <div
-          class="w-12 h-12 rounded-xl bg-surface border border-ghost-border flex items-center justify-center"
-          aria-hidden="true"
-        >
-          <GoogleIcon :size="24" />
-        </div>
+      <div class="flex flex-col items-center my-4">
+        <GoogleIcon :size="40" />
       </div>
 
-      <div class="mb-4 text-sm/relaxed text-on-ghost-muted text-center">
+      <div class="text-sm text-on-ghost-muted">
         {{ t('auth.google_signup.description') }}
       </div>
 
-      <TermsConsentCheckbox v-model="acceptedTerms" />
+      <TermsConsentCheckbox v-model="acceptedTerms" class="mb-4" />
     </template>
 
     <template #action-text>
