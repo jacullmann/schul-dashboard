@@ -215,8 +215,9 @@ interface DayRows {
  *
  * Filtered to the member's courses, the slots up to then without a lesson
  * read as free time; a break between two of them belongs to it and gets no
- * row on its day. Counting its breaks, free time also takes in those right
- * before and after it.
+ * row on its day. Counting its breaks, free time also takes in the ones
+ * right before and after it: the one before keeps its row, whose time is
+ * where the free time starts, but no divider.
  */
 const rowsOfDay = (
   layout: ScheduleLayout,
@@ -262,7 +263,14 @@ const rowsOfDay = (
     }
   });
 
-  const dividers = breaks.map(breakDivider);
+  const countsBreaks = settings.value.includeBreaksInFreeTime;
+  const freeRuns = freeRunsOfDay(day);
+  const breaksStartingFreeTime = new Set(
+    countsBreaks ? freeRuns.map(({ firstSlot }) => firstSlot - 1) : [],
+  );
+  const dividers = breaks
+    .filter((row) => !breaksStartingFreeTime.has(row.afterSlot))
+    .map(breakDivider);
   if (dayEndRow !== undefined) {
     labelledRows.add(dayEndRow);
     dividers.push({
@@ -280,7 +288,6 @@ const rowsOfDay = (
           (row) => row.gridRow <= dayEndRow && labelledRows.has(row.gridRow),
         );
 
-  const countsBreaks = settings.value.includeBreaksInFreeTime;
   const freeTimeRange = countsBreaks ? freeTimeMinutes : slotRangeMinutes;
   /** The row of a break free time takes in, which it then reaches over. */
   const swallowedBreakRow = (afterSlot: number) =>
@@ -289,27 +296,20 @@ const rowsOfDay = (
           (row) => row.kind === 'break' && row.afterSlot === afterSlot,
         )?.gridRow
       : undefined;
-  const freeBlocks = freeRunsOfDay(day).map(
-    ({ firstSlot, lastSlot }): FreeBlock => {
-      const time = freeTimeRange(
-        scheduleConfig.value,
-        day,
-        firstSlot,
-        lastSlot,
-      );
-      const lessonsMinutes =
-        (lastSlot - firstSlot + 1) * scheduleConfig.value.lessonDurationMins;
-      return {
-        key: `free-${column}-${firstSlot}`,
-        gridColumn: column,
-        firstRow:
-          swallowedBreakRow(firstSlot - 1) ?? layout.gridRowOfSlot(firstSlot),
-        lastRow: swallowedBreakRow(lastSlot) ?? layout.gridRowOfSlot(lastSlot),
-        time,
-        includesBreaks: time.end - time.start > lessonsMinutes,
-      };
-    },
-  );
+  const freeBlocks = freeRuns.map(({ firstSlot, lastSlot }): FreeBlock => {
+    const time = freeTimeRange(scheduleConfig.value, day, firstSlot, lastSlot);
+    const lessonsMinutes =
+      (lastSlot - firstSlot + 1) * scheduleConfig.value.lessonDurationMins;
+    return {
+      key: `free-${column}-${firstSlot}`,
+      gridColumn: column,
+      firstRow:
+        swallowedBreakRow(firstSlot - 1) ?? layout.gridRowOfSlot(firstSlot),
+      lastRow: swallowedBreakRow(lastSlot) ?? layout.gridRowOfSlot(lastSlot),
+      time,
+      includesBreaks: time.end - time.start > lessonsMinutes,
+    };
+  });
 
   return { dividers, freeBlocks, labelledRows, timeline };
 };
