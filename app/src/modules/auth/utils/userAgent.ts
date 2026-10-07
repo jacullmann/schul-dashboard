@@ -32,8 +32,11 @@ function osName(ua: string): string | null {
   return null;
 }
 
+// Edge's product token differs per platform: Edg/ on desktop, EdgA/ on Android, EdgiOS/ on iOS.
+const EDGE_TOKENS = ['edg/', 'edga/', 'edgios/'] as const;
+
 function browserName(ua: string): string | null {
-  if (ua.includes('edg/')) return 'Microsoft Edge';
+  if (EDGE_TOKENS.some((token) => ua.includes(token))) return 'Microsoft Edge';
   if (ua.includes('opera') || ua.includes('opr/')) return 'Opera';
   if (ua.includes('chrome') || ua.includes('crios')) return 'Google Chrome';
   if (ua.includes('firefox') || ua.includes('fxios')) return 'Mozilla Firefox';

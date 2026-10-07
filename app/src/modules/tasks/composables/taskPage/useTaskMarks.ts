@@ -77,12 +77,14 @@ export function useTaskMarks(
       const { data } = await api.get<{ itemIds?: string[] }>(path);
       replaceIds(set, data.itemIds);
     } catch {
-      set.clear();
+      // Keeps the marks already shown, see loadVisibility.
     } finally {
       loading.value = false;
     }
   }
 
+  // A failed read keeps the last known marks: clearing them would show the
+  // member's pins and checks as gone for a request that merely dropped.
   async function loadVisibility() {
     try {
       const { data } = await api.get<{ archived?: string[]; kept?: string[] }>(
@@ -91,8 +93,7 @@ export function useTaskMarks(
       replaceIds(archived, data.archived);
       replaceIds(kept, data.kept);
     } catch {
-      archived.clear();
-      kept.clear();
+      // Keep the marks already shown; a reload retries the read.
     }
   }
 
@@ -101,6 +102,7 @@ export function useTaskMarks(
     pinned.clear();
     archived.clear();
     kept.clear();
+    pinConfirmed.clear();
     checksLoading.value = false;
     pinsLoading.value = false;
   }
@@ -115,6 +117,9 @@ export function useTaskMarks(
   }
 
   const checkSync = new Map<string, CheckSyncEntry>();
+  /** The pin state the server last confirmed, kept while a change is still syncing. */
+  const pinConfirmed = new Map<string, boolean>();
+  const pinQueue = new Map<string, Promise<void>>();
 
   function setChecked(task: Task, isNowChecked: boolean) {
     if (!isLoggedIn.value) return;
@@ -207,19 +212,43 @@ export function useTaskMarks(
     }
   });
 
+  function setPinned(id: string, value: boolean) {
+    if (value) pinned.add(id);
+    else pinned.delete(id);
+  }
+
+  // Pin requests for one task run one after another, each sending the state
+  // the member ended on, so the server cannot end on an earlier click.
+  async function syncPin(id: string) {
+    const confirmed = pinConfirmed.get(id);
+    const desired = isPinned(id);
+    if (confirmed === undefined || confirmed === desired) {
+      pinConfirmed.delete(id);
+      return;
+    }
+
+    try {
+      if (desired) await api.post(taskPath(id, '/pin'));
+      else await api.delete(taskPath(id, '/pin'));
+      pinConfirmed.set(id, desired);
+    } catch {
+      setPinned(id, confirmed);
+      pinConfirmed.delete(id);
+    }
+  }
+
   async function togglePin(task: Task) {
     if (!isLoggedIn.value) return;
-    const wasPinned = isPinned(task.id);
-    const setPinned = (value: boolean) =>
-      value ? pinned.add(task.id) : pinned.delete(task.id);
+    const id = task.id;
+    if (!pinConfirmed.has(id)) pinConfirmed.set(id, isPinned(id));
+    setPinned(id, !isPinned(id));
 
-    setPinned(!wasPinned);
-    try {
-      if (wasPinned) await api.delete(taskPath(task.id, '/pin'));
-      else await api.post(taskPath(task.id, '/pin'));
-    } catch {
-      setPinned(wasPinned);
-    }
+    const queued = (pinQueue.get(id) ?? Promise.resolve()).then(() =>
+      syncPin(id),
+    );
+    pinQueue.set(id, queued);
+    await queued;
+    if (pinQueue.get(id) === queued) pinQueue.delete(id);
   }
 
   function setVisibilityStatus(id: string, status: VisibilityStatus | null) {

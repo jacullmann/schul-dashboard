@@ -19,6 +19,11 @@ describe('formatByteRate', () => {
     expect(formatByteRate(23_400_000, 'en')).toBe('23 MB/s');
   });
 
+  it('moves up a unit when rounding would otherwise show 1,000 of the smaller one', () => {
+    expect(formatByteRate(999_700, 'en')).toBe('1 MB/s');
+    expect(formatByteRate(999.7, 'en')).toBe('1 kB/s');
+  });
+
   it('stops at gigabytes however large the rate', () => {
     expect(formatByteRate(4_000_000_000_000, 'en')).toBe('4,000 GB/s');
   });

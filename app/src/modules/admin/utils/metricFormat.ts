@@ -6,19 +6,31 @@ const BYTE_UNITS = [
 ] as const;
 const BYTES_PER_UNIT_STEP = 1000;
 
-/** A transfer rate in the largest decimal unit that keeps the number at or above one. */
+const fractionDigitsOf = (value: number) => (value < 10 ? 1 : 0);
+
+/** The value as it will be shown, so a unit is chosen by what the reader sees. */
+const shownValue = (value: number) => {
+  const scale = 10 ** fractionDigitsOf(value);
+  return Math.round(value * scale) / scale;
+};
+
+/** A transfer rate in the largest decimal unit that keeps the shown number below 1000. */
 export function formatByteRate(bytesPerSecond: number, locale: string) {
-  let value = bytesPerSecond;
+  const lastUnit = BYTE_UNITS.length - 1;
   let unitIndex = 0;
-  while (value >= BYTES_PER_UNIT_STEP && unitIndex < BYTE_UNITS.length - 1) {
-    value /= BYTES_PER_UNIT_STEP;
+  while (
+    unitIndex < lastUnit &&
+    shownValue(bytesPerSecond / BYTES_PER_UNIT_STEP ** unitIndex) >=
+      BYTES_PER_UNIT_STEP
+  ) {
     unitIndex++;
   }
 
+  const value = bytesPerSecond / BYTES_PER_UNIT_STEP ** unitIndex;
   return value.toLocaleString(locale, {
     style: 'unit',
     unit: BYTE_UNITS[unitIndex],
-    maximumFractionDigits: value < 10 ? 1 : 0,
+    maximumFractionDigits: fractionDigitsOf(value),
   });
 }
 

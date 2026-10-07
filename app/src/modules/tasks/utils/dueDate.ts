@@ -64,15 +64,23 @@ export function isPastDue(
   return new Date(task.dueDate) < now;
 }
 
-/** Due today or earlier, by the calendar day rather than the due time. */
+// The server's school calendar is Berlin's, whatever zone the member's device is set to.
+const SCHOOL_TIME_ZONE = 'Europe/Berlin';
+
+const schoolDayFormat = new Intl.DateTimeFormat('en-CA', {
+  timeZone: SCHOOL_TIME_ZONE,
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
+
+/** The school calendar day of an instant as YYYY-MM-DD, which sorts like the date it names. */
+const schoolDayOf = (date: Date) => schoolDayFormat.format(date);
+
+/** Due today or earlier, by the school calendar day rather than the due time. */
 export function isDueByEndOfToday(
   task: { dueDate: string },
   now: Date = new Date(),
 ): boolean {
-  const startOfTomorrow = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate() + 1,
-  );
-  return new Date(task.dueDate) < startOfTomorrow;
+  return schoolDayOf(new Date(task.dueDate)) <= schoolDayOf(now);
 }
