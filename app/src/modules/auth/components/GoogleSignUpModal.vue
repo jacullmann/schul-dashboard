@@ -49,7 +49,7 @@ async function submit() {
 
 <template>
   <BaseModal
-    :open="!open"
+    :open="open"
     :submit="submit"
     :loading="submitting"
     :error="errorMsg"
