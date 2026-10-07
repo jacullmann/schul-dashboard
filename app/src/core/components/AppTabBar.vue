@@ -76,6 +76,8 @@ useTabBarHeight(barEl);
        itself takes pointer events, so the margin around it stays tappable.
        Like a native tab bar, it reaches into the bottom safe area: that space
        only keeps the home indicator clear, which the margin already does.
+       Too narrow for its tabs' full padding, the bar reaches into the side
+       margins instead, overflowing the nav evenly, before it crams them.
        It slides off the bottom edge the same way. Only transforms move:
        opacity or a filter here would make the nav a backdrop root, and the
        glass would lose the page behind it until the transition ended. -->
@@ -90,10 +92,10 @@ useTabBarHeight(barEl);
       v-show="!isKeyboardOpen"
       ref="barEl"
       :aria-label="t('common.tab_bar.label')"
-      class="pointer-events-none fixed inset-x-0 bottom-0 z-(--z-tab-bar) flex origin-bottom justify-center pt-2 pr-[max(var(--tab-bar-margin),env(safe-area-inset-right))] pb-[max(--spacing(2),min(var(--tab-bar-margin),env(safe-area-inset-bottom)))] pl-[max(var(--tab-bar-margin),env(safe-area-inset-left))] lg:hidden print:hidden"
+      class="pointer-events-none fixed inset-x-0 bottom-0 z-(--z-tab-bar) flex origin-bottom justify-center pt-2 pr-(--tab-bar-inset-right) pb-[max(--spacing(2),min(var(--tab-bar-margin),env(safe-area-inset-bottom)))] pl-(--tab-bar-inset-left) lg:hidden print:hidden"
     >
       <BaseTabs
-        class="pointer-events-auto max-w-md"
+        class="pointer-events-auto max-w-md min-w-[min(var(--tabs-natural-width,0px),100%+2*var(--tab-bar-reach))]"
         variant="tab-bar"
         :items="tabs"
         :active-id="activeTab ?? ''"

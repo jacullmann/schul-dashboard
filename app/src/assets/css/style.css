@@ -173,6 +173,19 @@
    * ~31px radius.
    */
   --tab-bar-margin: calc(var(--spacing) * 6);
+  --tab-bar-inset-left: max(var(--tab-bar-margin), env(safe-area-inset-left));
+  --tab-bar-inset-right: max(var(--tab-bar-margin), env(safe-area-inset-right));
+  /*
+   * How far the bar may reach past its side insets, evenly on both sides,
+   * before its tabs give up padding: as far as a small gap to the screen edge,
+   * or to the safe area.
+   */
+  --tab-bar-reach: min(
+    var(--tab-bar-inset-left) -
+      max(calc(var(--spacing) * 2), env(safe-area-inset-left)),
+    var(--tab-bar-inset-right) -
+      max(calc(var(--spacing) * 2), env(safe-area-inset-right))
+  );
 
   --ease-settle: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-spring: var(--ease-settle);

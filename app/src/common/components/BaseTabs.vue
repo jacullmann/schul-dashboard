@@ -292,7 +292,7 @@ const structure = computed(() => props.items.map((item) => item.id).join('\n'));
 /** Shared by the tabs and their copies inside the pill, which must lay out identically. */
 const tabClass = computed(() =>
   isTabBar.value
-    ? 'flex grow basis-0 items-center justify-center whitespace-nowrap px-[min(--spacing(2),var(--tab-slack,--spacing(2)))] py-1.5 text-2xs font-medium'
+    ? 'flex grow basis-0 items-center justify-center whitespace-nowrap px-[min(var(--tab-padding),var(--tab-slack,var(--tab-padding)))] py-1.5 text-2xs font-medium'
     : [
         'flex min-h-9 min-w-9 shrink-0 items-center whitespace-nowrap px-3.5 py-2 text-sm/4 font-medium first:pl-5 last:pr-5',
         isStretched.value && 'grow justify-center',
@@ -304,6 +304,20 @@ const contentClass = computed(() =>
 const contentShifts = ref<number[]>([]);
 /** Each tab bar tab's share of the row left over beside the contents, halved for either side. */
 const tabSlack = ref<number | null>(null);
+/** A tab bar's width with every tab keeping its full padding, less that padding, in px. */
+const naturalWidth = ref<number | null>(null);
+
+/**
+ * Published as `--tabs-natural-width` for the placement around a tab bar,
+ * which may make more room for it before its tabs start giving up padding.
+ */
+const containerStyle = computed(() =>
+  naturalWidth.value === null
+    ? undefined
+    : {
+        '--tabs-natural-width': `calc(${px(naturalWidth.value)} + ${2 * props.items.length} * var(--tab-padding))`,
+      },
+);
 
 function contentStyle(index: number) {
   return { translate: px(contentShifts.value[index] ?? 0) };
@@ -472,16 +486,22 @@ function updateStretch() {
  * for all of it, rather than one tab's label ending up hard against the next.
  */
 function updateSlack() {
+  const bar = barRef.value;
   const row = rowRef.value;
   const tabs = tabElements();
-  if (!isTabBar.value || !row || tabs.length === 0) return false;
+  if (!isTabBar.value || !bar || !row || tabs.length === 0) return false;
 
+  const scale = drawnScale(row);
   let contents = 0;
   for (const tab of tabs) {
-    contents += (tab.lastElementChild as HTMLElement | null)?.offsetWidth ?? 0;
+    const width = tab.lastElementChild?.getBoundingClientRect().width ?? 0;
+    contents += width / scale;
   }
-
   // Whole pixels, so rounding never leaves the row a hair too narrow for them.
+  contents = Math.ceil(contents);
+
+  naturalWidth.value = contents + bar.offsetWidth - row.clientWidth;
+
   const slack = Math.max(
     Math.floor((row.clientWidth - contents) / (2 * tabs.length)),
     0,
@@ -1014,7 +1034,8 @@ onBeforeUnmount(() => {
   <div
     ref="containerRef"
     class="flex w-full items-center justify-start"
-    :class="isTabBar && 'relative'"
+    :class="isTabBar && 'relative [--tab-padding:--spacing(2)]'"
+    :style="containerStyle"
   >
     <BaseGlassRefraction v-if="isTabBar" />
     <div
