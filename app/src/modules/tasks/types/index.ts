@@ -26,10 +26,17 @@ export interface Task {
 
 /** How a task names its subject when it is created or edited. */
 export type ItemSubjectPayload =
-  | { subjectId: string; courseId: string | null }
-  | { customName: string };
+  { subjectId: string; courseId: string | null } | { customName: string };
 
 export type ItemType = 'homework' | 'dalton' | 'exam' | 'all';
+
+export type ArchiveCheckedTasks = 'always' | 'afterDueDate' | 'never';
+
+export interface TaskPreferences {
+  archiveChecked: ArchiveCheckedTasks;
+  groupByDueDate: boolean;
+  archiveOtherCoursesPastDue: boolean;
+}
 
 export function isValidType(t: unknown): t is ItemType {
   return t === 'homework' || t === 'dalton' || t === 'exam' || t === 'all';

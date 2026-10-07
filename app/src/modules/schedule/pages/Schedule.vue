@@ -6,6 +6,7 @@ import { useIsPhoneViewport } from '@/common/composables/useViewport';
 import { useDismissibleNotice } from '@/common/composables/useDismissibleNotice';
 import { useSchedule } from '@/modules/schedule/composables/useSchedule';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
+import { usePageSettings } from '@/common/composables/usePageSettings';
 import { useSchedulePager } from '@/modules/schedule/composables/useSchedulePager';
 import { useWeekCache } from '@/modules/schedule/composables/useWeekCache';
 import type {
@@ -21,7 +22,7 @@ import {
   vEntranceStart,
 } from '@/common/composables/useSkeletonHandoff';
 import { entranceDelay } from '@/modules/schedule/utils/entrance';
-import { freeSlotRuns, lessonRowsOf } from '@/modules/schedule/utils/layout';
+import { lessonRowsOf } from '@/modules/schedule/utils/layout';
 import {
   lessonGroupsByDay,
   lessonsSlotRange,
@@ -33,6 +34,7 @@ import {
 } from '@/modules/schedule/utils/nowMarker';
 import {
   freeTimeMinutes,
+  slotRangeMinutes,
   type MinuteRange,
 } from '@/modules/schedule/utils/slotTimes';
 import {
@@ -88,6 +90,8 @@ const {
 } = useSchedule(shownWeek);
 
 const { t } = useI18n();
+
+const { settings } = usePageSettings('schedule');
 
 const isPhone = useIsPhoneViewport();
 
@@ -186,7 +190,10 @@ interface Divider {
 interface FreeBlock extends RowSpan {
   key: string;
   gridColumn: number;
-  /** From the lesson before to the lesson after, breaks around it included. */
+  /**
+   * By default from the lesson before to the lesson after, breaks around it
+   * included; otherwise its slots alone.
+   */
   time: MinuteRange;
   includesBreaks: boolean;
 }
@@ -236,13 +243,10 @@ const rowsOfDay = (
     };
   }
 
-  const { lastAttendedSlotByDay, lastShownSlotByDay } = scheduleOfWeek(week);
+  const { lastAttendedSlotByDay, lastShownSlotByDay, freeRunsOfDay } =
+    scheduleOfWeek(week);
   const lastAttendedSlot = lastAttendedSlotByDay.get(day);
   const lastShownSlot = lastShownSlotByDay.get(day) ?? 0;
-  const freeRuns =
-    isPersonalized.value && lastAttendedSlot !== undefined
-      ? freeSlotRuns(lessonGroupsOfWeek(week).get(day) ?? [], lastAttendedSlot)
-      : [];
   const breaks = breakRows.filter(
     (row) => lastAttendedSlot !== undefined && row.afterSlot < lastAttendedSlot,
   );
@@ -275,24 +279,29 @@ const rowsOfDay = (
           (row) => row.gridRow <= dayEndRow && labelledRows.has(row.gridRow),
         );
 
-  const freeBlocks = freeRuns.map(({ firstSlot, lastSlot }): FreeBlock => {
-    const time = freeTimeMinutes(
-      scheduleConfig.value,
-      day,
-      firstSlot,
-      lastSlot,
-    );
-    const lessonsMinutes =
-      (lastSlot - firstSlot + 1) * scheduleConfig.value.lessonDurationMins;
-    return {
-      key: `free-${column}-${firstSlot}`,
-      gridColumn: column,
-      firstRow: layout.gridRowOfSlot(firstSlot),
-      lastRow: layout.gridRowOfSlot(lastSlot),
-      time,
-      includesBreaks: time.end - time.start > lessonsMinutes,
-    };
-  });
+  const freeTimeRange = settings.value.includeBreaksInFreeTime
+    ? freeTimeMinutes
+    : slotRangeMinutes;
+  const freeBlocks = freeRunsOfDay(day).map(
+    ({ firstSlot, lastSlot }): FreeBlock => {
+      const time = freeTimeRange(
+        scheduleConfig.value,
+        day,
+        firstSlot,
+        lastSlot,
+      );
+      const lessonsMinutes =
+        (lastSlot - firstSlot + 1) * scheduleConfig.value.lessonDurationMins;
+      return {
+        key: `free-${column}-${firstSlot}`,
+        gridColumn: column,
+        firstRow: layout.gridRowOfSlot(firstSlot),
+        lastRow: layout.gridRowOfSlot(lastSlot),
+        time,
+        includesBreaks: time.end - time.start > lessonsMinutes,
+      };
+    },
+  );
 
   return { dividers, freeBlocks, labelledRows, timeline };
 };
@@ -343,7 +352,9 @@ const lessonGroupsOf = (day: number, week: number) =>
 /** Where now falls on today's page, which only a phone marks. */
 const todayMarker = computed(() => {
   const page = todayPage.value;
-  if (!isPhone.value || page === null) return null;
+  if (!settings.value.nowMarker || !isPhone.value || page === null) {
+    return null;
+  }
   const week = todayWeek.value;
   const day = days[page - week * days.length];
   if (day === undefined) return null;
@@ -372,7 +383,12 @@ const markerOf = (day: number, week: number) =>
 
 const nowLabelOf = (day: number, week: number): ScheduleNowLabel | null => {
   const marker = markerOf(day, week);
-  if (!marker || marker.labelRow === null || marker.minutesLeft === null) {
+  if (
+    settings.value.nowMarkerTime === 'duration' ||
+    !marker ||
+    marker.labelRow === null ||
+    marker.minutesLeft === null
+  ) {
     return null;
   }
   return {
@@ -381,7 +397,10 @@ const nowLabelOf = (day: number, week: number): ScheduleNowLabel | null => {
   };
 };
 
-/** A divider now rests on stands out; a break's tells how long it has left. */
+/**
+ * A divider now rests on stands out; a break's tells how long it has left,
+ * unless set to keep its duration.
+ */
 const shownDivider = (
   divider: Omit<Divider, 'key'>,
   marker: NowMarker | null,
@@ -393,27 +412,37 @@ const shownDivider = (
     return divider;
   }
   const minutes = marker.minutesLeft;
+  const showsDuration =
+    minutes === null || settings.value.nowMarkerTime === 'duration';
   return {
     ...divider,
-    label:
-      minutes === null ? divider.label : t('schedule.break_left', { minutes }),
+    label: showsDuration
+      ? divider.label
+      : t('schedule.break_left', { minutes }),
     isNow: true,
   };
 };
 
-/** Free time says how long it lasts, or once now is in it, how long it has left. */
+/**
+ * Free time says how long it lasts, or once now is in it, how long it has
+ * left, unless set to keep its duration.
+ */
 const shownFreeBlock = (
   { time, includesBreaks, ...block }: Omit<FreeBlock, 'key'>,
   marker: NowMarker | null,
 ) => {
   const isNow =
     marker?.firstRow === block.firstRow && marker.lastRow === block.lastRow;
-  if (isNow) {
+  if (isNow && settings.value.nowMarkerTime === 'remaining') {
     return {
       ...block,
-      detail: t('schedule.free_left', {
-        minutes: time.end - minutesToday.value,
-      }),
+      // Without its breaks, free time ends before the next lesson starts.
+      detail: t(
+        settings.value.includeBreaksInFreeTime
+          ? 'schedule.free_left'
+          : 'schedule.free_time_left',
+        { minutes: time.end - minutesToday.value },
+      ),
       isNow,
     };
   }
@@ -423,11 +452,14 @@ const shownFreeBlock = (
       includesBreaks ? 'schedule.free_with_breaks' : 'schedule.free_minutes',
       { minutes: time.end - time.start },
     ),
+    isNow,
   };
 };
 
 const isActiveGroup = (key: string, week: number) =>
-  week === todayWeek.value && key === activeOrNextGroupKey.value;
+  settings.value.highlightNextLesson &&
+  week === todayWeek.value &&
+  key === activeOrNextGroupKey.value;
 
 const { checkPermission } = useAppAuth();
 const canManageScheduleChanges = computed(() =>

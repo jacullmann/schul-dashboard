@@ -4,6 +4,7 @@
   "cancelled": "Canceled",
   "free": "Free",
   "free_left": "{minutes} min until next lesson",
+  "free_time_left": "{minutes} min free left",
   "free_minutes": "{minutes} min",
   "free_with_breaks": "{minutes} min including breaks",
   "infopop": {

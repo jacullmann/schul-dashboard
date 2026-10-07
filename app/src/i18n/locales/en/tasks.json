@@ -119,6 +119,7 @@
     "reset_filters": "Reset filters",
     "sections": {
       "pinned": "Pinned",
+      "unpinned": "Other Tasks",
       "last_week": "Last Week",
       "yesterday": "Yesterday",
       "today": "Today",

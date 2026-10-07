@@ -22,6 +22,13 @@ describe('free slot runs', () => {
     ]);
   });
 
+  it('ends a run at a break it is split at', () => {
+    expect(freeSlotRuns([group(1), group(6)], 6, { 2: 0, 3: 15 })).toEqual([
+      { firstSlot: 2, lastSlot: 3 },
+      { firstSlot: 4, lastSlot: 5 },
+    ]);
+  });
+
   it('counts every slot a lesson spans as filled, and none past the last', () => {
     expect(freeSlotRuns([group(2, 2), group(6)], 6)).toEqual([
       { firstSlot: 1, lastSlot: 1 },

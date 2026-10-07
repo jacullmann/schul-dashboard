@@ -176,9 +176,10 @@ impl ItemsService {
 
         // A task for a single course reaches that course's members; one for the
         // whole subject reaches everybody taking any of its courses.
-        // Unpinned tasks drop into the archive once checked on or after their
-        // due day, or once past due when they belong to a course the member
-        // does not take, since nobody expects them to tick those off.
+        // Unpinned tasks drop into the archive once checked, by default on or
+        // after their due day, and by default once past due when they belong
+        // to a course the member does not take, since nobody expects them to
+        // tick those off. The member's task settings can change both.
         let mut rows = sqlx::query!(
             r#"SELECT i.id, i.type, i.title, i.subject_id, i.course_id,
                       COALESCE(s.name, i.custom_subject) as "subject_name!", c.name as "course_name?",
@@ -195,6 +196,7 @@ impl ItemsService {
                LEFT JOIN courses c ON c.id = i.course_id
                LEFT JOIN users u ON u.id = i.created_by
                LEFT JOIN user_item_visibility v ON v.item_id = i.id AND v.user_id = $2
+               LEFT JOIN users me ON me.id = $2
                CROSS JOIN LATERAL (
                    SELECT (
                        i.subject_id IS NULL
@@ -212,11 +214,18 @@ impl ItemsService {
                    SELECT (
                        i.id NOT IN (SELECT item_id FROM pinned_items WHERE user_id = $2)
                        AND (
-                           (NOT m.takes_course AND i.due_date < now())
+                           (
+                               NOT m.takes_course
+                               AND COALESCE((me.preferences->'tasks'->>'archiveOtherCoursesPastDue')::boolean, true)
+                               AND i.due_date < now()
+                           )
                            OR (
-                               m.takes_course
-                               AND i.id IN (SELECT item_id FROM keep_checked WHERE user_id = $2)
-                               AND (i.due_date AT TIME ZONE 'Europe/Berlin')::date <= (now() AT TIME ZONE 'Europe/Berlin')::date
+                               i.id IN (SELECT item_id FROM keep_checked WHERE user_id = $2)
+                               AND CASE COALESCE(me.preferences->'tasks'->>'archiveChecked', 'afterDueDate')
+                                   WHEN 'always' THEN true
+                                   WHEN 'never' THEN false
+                                   ELSE (i.due_date AT TIME ZONE 'Europe/Berlin')::date <= (now() AT TIME ZONE 'Europe/Berlin')::date
+                               END
                            )
                        )
                    ) AS naturally_old

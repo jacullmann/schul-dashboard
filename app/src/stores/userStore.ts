@@ -2,6 +2,8 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import api from '@/api/api.ts';
 import { usePreferences } from '@/common/composables/usePreferences';
+import type { TaskPreferences } from '@/modules/tasks/types';
+import type { SchedulePreferences } from '@/modules/schedule/types';
 
 export type DismissibleNotice = 'personalizedTasks' | 'personalizedSchedule';
 
@@ -9,6 +11,8 @@ export interface UserPreferences {
   theme?: string;
   language?: string;
   dismissedNotices?: DismissibleNotice[];
+  tasks?: Partial<TaskPreferences>;
+  schedule?: Partial<SchedulePreferences>;
 }
 
 export interface UserData {

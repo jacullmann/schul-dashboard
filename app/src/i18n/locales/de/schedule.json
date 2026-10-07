@@ -4,6 +4,7 @@
   "cancelled": "Ausfall",
   "free": "Frei",
   "free_left": "Noch {minutes} Min. bis zur nächsten Stunde",
+  "free_time_left": "Noch {minutes} Min. frei",
   "free_minutes": "{minutes} Min.",
   "free_with_breaks": "{minutes} Min. inkl. Pausen",
   "infopop": {

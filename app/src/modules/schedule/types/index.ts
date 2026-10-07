@@ -49,6 +49,16 @@ export interface ScheduleSubject {
   courses?: ScheduleCourse[] | null;
 }
 
+/** What the time labels count while now is in a lesson, break or free time. */
+export type NowMarkerTime = 'remaining' | 'duration';
+
+export interface SchedulePreferences {
+  highlightNextLesson: boolean;
+  nowMarker: boolean;
+  nowMarkerTime: NowMarkerTime;
+  includeBreaksInFreeTime: boolean;
+}
+
 /** Minutes of break after a slot, by that slot. */
 export type ScheduleBreaks = Record<number, number>;
 

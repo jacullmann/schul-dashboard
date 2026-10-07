@@ -119,6 +119,7 @@
     "reset_filters": "Filter zurücksetzen",
     "sections": {
       "pinned": "Angeheftet",
+      "unpinned": "Weitere Aufgaben",
       "last_week": "Letzte Woche",
       "yesterday": "Gestern",
       "today": "Heute",

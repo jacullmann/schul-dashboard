@@ -14,6 +14,7 @@ import { useGroupPageId } from '@/core/composables/useGroupPageId';
 import { hiddenByCourses } from '@/api/personalization';
 import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
+import { usePageSettings } from '@/common/composables/usePageSettings';
 import type {
   Lesson,
   ScheduleSubject,
@@ -36,6 +37,7 @@ import {
   freeSlotRuns,
   slotsJoinedToNext,
 } from '@/modules/schedule/utils/layout';
+import { breaksOn } from '@/modules/schedule/utils/breaks';
 import {
   addDays,
   daysSinceMonday,
@@ -75,6 +77,7 @@ function applySubstitution(original: Lesson, sub: Substitution): Lesson {
 export function useSchedule(shownWeek?: Ref<number>) {
   const { locale } = useI18n();
   const userStore = useUserStore();
+  const { settings: scheduleSettings } = usePageSettings('schedule');
   const {
     days,
     scheduleConfig,
@@ -384,15 +387,23 @@ export function useSchedule(shownWeek?: Ref<number>) {
       ),
     );
 
-    const freeRunsOfDay = (day: number) => {
-      const lastAttendedSlot = lastAttendedSlotByDay.get(day);
-      return isPersonalized.value && lastAttendedSlot !== undefined
-        ? freeSlotRuns(
-            groupedLessons.filter((group) => group.day === day),
-            lastAttendedSlot,
-          )
-        : [];
-    };
+    const freeRunsByDay = new Map(
+      days.map((day) => {
+        const lastAttendedSlot = lastAttendedSlotByDay.get(day);
+        const runs =
+          isPersonalized.value && lastAttendedSlot !== undefined
+            ? freeSlotRuns(
+                groupedLessons.filter((group) => group.day === day),
+                lastAttendedSlot,
+                scheduleSettings.value.includeBreaksInFreeTime
+                  ? {}
+                  : breaksOn(scheduleConfig.value, day),
+              )
+            : [];
+        return [day, runs];
+      }),
+    );
+    const freeRunsOfDay = (day: number) => freeRunsByDay.get(day) ?? [];
 
     /** The cells of a day: its lessons, and filtered, the free time between them. */
     const cellsOfDay = (day: number) => [
@@ -443,6 +454,8 @@ export function useSchedule(shownWeek?: Ref<number>) {
       groupedLessons,
       lastShownSlotByDay,
       lastAttendedSlotByDay,
+      /** Filtered, the slots without a lesson before the day's last one. */
+      freeRunsOfDay,
       /** The whole week side by side, sharing its rows. */
       weekLayout: buildLayout(days),
       /** Each day on its own, as a phone shows it. */

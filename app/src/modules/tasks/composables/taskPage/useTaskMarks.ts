@@ -2,8 +2,9 @@ import { reactive, ref, type Ref } from 'vue';
 import { createEventHook, useEventListener } from '@vueuse/core';
 import api from '@/api/api';
 import { groupPath } from '@/api/groupPath';
+import { usePageSettings } from '@/common/composables/usePageSettings';
 import type { Task } from '@/modules/tasks/types';
-import { isDueByEndOfToday, isPastDue } from '@/modules/tasks/utils/dueDate';
+import { archivesOnItsOwn } from '@/modules/tasks/utils/archive';
 
 // The UI updates instantly; the API call is debounced per task so rapid
 // check/uncheck toggles collapse into at most one request, and requests
@@ -43,6 +44,7 @@ export function useTaskMarks(
   const checksLoading = ref(true);
   const pinsLoading = ref(true);
   const checkReverted = createEventHook<CheckReverted>();
+  const { settings } = usePageSettings('tasks');
 
   const taskPath = (id: string, path: string) =>
     groupPath(groupId, `/items/${id}${path}`);
@@ -57,14 +59,12 @@ export function useTaskMarks(
     return isNaturallyOld(task);
   }
 
-  // Mirrors the server's list filter: unpinned tasks drop into the archive
-  // without an explicit status once checked on or after their due day, or once
-  // past due for courses the member does not take.
   function isNaturallyOld(task: Task) {
-    if (isPinned(task.id)) return false;
-    return task.takesCourse === false
-      ? isPastDue(task)
-      : isChecked(task.id) && isDueByEndOfToday(task);
+    return archivesOnItsOwn(
+      task,
+      { checked: isChecked(task.id), pinned: isPinned(task.id) },
+      settings.value,
+    );
   }
 
   async function loadIds(
@@ -271,6 +271,7 @@ export function useTaskMarks(
     isChecked,
     isPinned,
     isInArchive,
+    isNaturallyOld,
     load,
     clear,
     setChecked,

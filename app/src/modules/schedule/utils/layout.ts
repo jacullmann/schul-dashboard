@@ -1,6 +1,7 @@
 import type {
   Lesson,
   LessonGroup,
+  ScheduleBreaks,
   ScheduleConfig,
   ScheduleLayout,
   ScheduleRow,
@@ -53,10 +54,14 @@ export function slotsJoinedToNext(cells: readonly SlotRange[]): Set<number> {
   return spanned.difference(edges);
 }
 
-/** Runs of slots up to `lastSlot` that no cell fills, earliest first. */
+/**
+ * Runs of slots up to `lastSlot` that no cell fills, earliest first. A break
+ * in `splitAtBreaks` ends a run at the slot it follows.
+ */
 export function freeSlotRuns(
   groups: readonly LessonGroup[],
   lastSlot: number,
+  splitAtBreaks: ScheduleBreaks = {},
 ): SlotRange[] {
   const filled = new Set<number>();
   for (const { lessons } of groups) {
@@ -69,7 +74,8 @@ export function freeSlotRuns(
   for (let slot = 1; slot <= lastSlot; slot++) {
     if (filled.has(slot)) continue;
     const run = runs.at(-1);
-    if (run?.lastSlot === slot - 1) run.lastSlot = slot;
+    const breakBefore = (splitAtBreaks[slot - 1] ?? 0) > 0;
+    if (run?.lastSlot === slot - 1 && !breakBefore) run.lastSlot = slot;
     else runs.push({ firstSlot: slot, lastSlot: slot });
   }
   return runs;

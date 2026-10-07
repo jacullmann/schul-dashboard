@@ -64,7 +64,7 @@ function createTasks(fixedFilters: Partial<TaskFilters>) {
   const dismissals = useTaskDismissals({
     showOldEntries,
     hideChecked,
-    isPinned: marks.isPinned,
+    isNaturallyOld: marks.isNaturallyOld,
   });
   const taskItems = useTaskItems(groupId, filters.filters, showPersonalized);
   const listView = useTaskListView({

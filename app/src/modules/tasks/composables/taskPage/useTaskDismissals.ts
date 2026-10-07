@@ -2,7 +2,6 @@ import { reactive, ref, type Ref } from 'vue';
 import { tryOnScopeDispose, useTimeoutFn } from '@vueuse/core';
 import type { Task } from '@/modules/tasks/types';
 import { COLLAPSE_MS } from '@/modules/tasks/utils/collapse';
-import { isDueByEndOfToday, isPastDue } from '@/modules/tasks/utils/dueDate';
 
 /** A checked task stays in place this long, so its tick registers before it leaves. */
 const CHECK_DISMISS_DELAY_MS = 400;
@@ -15,7 +14,7 @@ const LIST_TRANSITION_WINDOW_MS =
 interface DismissalOptions {
   showOldEntries: Readonly<Ref<boolean>>;
   hideChecked: Readonly<Ref<boolean>>;
-  isPinned: (id: string) => boolean;
+  isNaturallyOld: (task: Task) => boolean;
 }
 
 /**
@@ -26,7 +25,7 @@ interface DismissalOptions {
 export function useTaskDismissals({
   showOldEntries,
   hideChecked,
-  isPinned,
+  isNaturallyOld,
 }: DismissalOptions) {
   const dismissedItems = reactive(new Set<string>());
   /** Checked while checked tasks are hidden, but not yet gone from the list. */
@@ -47,11 +46,9 @@ export function useTaskDismissals({
     endListTransitionsLater();
   }
 
+  /** Asked once the task is checked, as the check decides where it goes. */
   function leavesOldView(task: Task) {
-    if (showOldEntries.value || isPinned(task.id)) return false;
-    return task.takesCourse === false
-      ? isPastDue(task)
-      : isDueByEndOfToday(task);
+    return !showOldEntries.value && isNaturallyOld(task);
   }
 
   function cancelDismissTimer(id: string) {

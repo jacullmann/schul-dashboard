@@ -3,7 +3,13 @@ import { markRaw, computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
-import { ArrowLeft, Shield, UserRound } from '@lucide/vue';
+import {
+  ArrowLeft,
+  CalendarDays,
+  ListTodo,
+  Shield,
+  UserRound,
+} from '@lucide/vue';
 import { useUserStore } from '@/stores/userStore';
 import { useDeleteAccountModal } from '@/stores/modalStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
@@ -11,6 +17,8 @@ import { useReturnRoute } from '@/common/composables/useReturnRoute';
 import { type AdminNavItem } from '@/layouts/AdminLayout.vue';
 import AccountSettingsSecurity from '@/modules/auth/components/AccountSettingsSecurity.vue';
 import AccountSettingsAccount from '@/modules/auth/components/AccountSettingsAccount.vue';
+import AccountSettingsTasks from '@/modules/auth/components/AccountSettingsTasks.vue';
+import AccountSettingsSchedule from '@/modules/auth/components/AccountSettingsSchedule.vue';
 import LegalLinks from '@/modules/auth/components/LegalLinks.vue';
 
 const route = useRoute();
@@ -35,6 +43,16 @@ const navItems = computed<AdminNavItem[]>(() => [
     id: 'account',
     label: t('auth.account_settings.account.title'),
     icon: markRaw(UserRound),
+  },
+  {
+    id: 'tasks',
+    label: t('auth.account_settings.tasks.title'),
+    icon: markRaw(ListTodo),
+  },
+  {
+    id: 'schedule',
+    label: t('auth.account_settings.schedule.title'),
+    icon: markRaw(CalendarDays),
   },
 ]);
 
@@ -189,6 +207,10 @@ function goBack() {
               :email="user?.email ?? ''"
               @delete-account="deleteAccountModal.open()"
             />
+
+            <AccountSettingsTasks v-else-if="activeTab === 'tasks'" />
+
+            <AccountSettingsSchedule v-else-if="activeTab === 'schedule'" />
           </div>
         </div>
       </div>

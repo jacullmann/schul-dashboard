@@ -2,7 +2,8 @@ import type { Task } from '@/modules/tasks/types';
 
 export interface TaskSection {
   key: string;
-  label: string;
+  /** A section without one runs on from the rows above it, without a heading. */
+  label: string | null;
 }
 
 /**
@@ -42,7 +43,7 @@ export function taskListRows(
     if (shownTaskIds.has(task.id)) continue;
     shownTaskIds.add(task.id);
     const section = sectionOf(task);
-    if (section.key !== previousSectionKey) {
+    if (section.key !== previousSectionKey && section.label !== null) {
       const run = runsBySectionKey.get(section.key) ?? 0;
       runsBySectionKey.set(section.key, run + 1);
       rows.push({
@@ -52,7 +53,7 @@ export function taskListRows(
         taskId: task.id,
         isFirst: rows.length === 0,
       });
-    } else {
+    } else if (rows.length > 0) {
       rows.push({
         kind: 'separator',
         key: `separator:${task.id}`,

@@ -25,6 +25,29 @@ describe('taskListRows', () => {
     ]);
   });
 
+  it('leaves a section without a label unheaded', () => {
+    const unlabelled = (item: Task): TaskSection => ({
+      key: item.dueDate,
+      label: item.dueDate === 'pinned' ? 'PINNED' : null,
+    });
+    expect(
+      taskListRows(
+        [task('a', 'pinned'), task('b', 'all'), task('c', 'all')],
+        unlabelled,
+      ).map((row) => row.key),
+    ).toEqual([
+      'heading:pinned:0',
+      'task:a',
+      'separator:b',
+      'task:b',
+      'separator:c',
+      'task:c',
+    ]);
+    expect(
+      taskListRows([task('b', 'all')], unlabelled).map((row) => row.key),
+    ).toEqual(['task:b']);
+  });
+
   it('keeps the heading key when the first task of a section leaves', () => {
     const before = keysOf([task('a', 'today'), task('b', 'today')]);
     const after = keysOf([task('b', 'today')]);
