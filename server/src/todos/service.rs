@@ -193,8 +193,10 @@ impl TodoService {
     }
 
     pub async fn toggle_todo(&self, user_id: Uuid, id: Uuid) -> AppResult<Value> {
-        let todo = sqlx::query!(
-            r#"SELECT id, completed FROM encrypted_todos WHERE id = $1 AND user_id = $2"#,
+        let updated = sqlx::query!(
+            r#"UPDATE encrypted_todos SET completed = NOT completed
+               WHERE id = $1 AND user_id = $2
+               RETURNING id, completed, position, updated_at"#,
             id,
             user_id
         )
@@ -202,16 +204,7 @@ impl TodoService {
         .await?
         .ok_or_else(|| AppError::not_found("Private entry not found"))?;
 
-        let new_completed = !todo.completed;
-
-        let updated = sqlx::query!(
-            r#"UPDATE encrypted_todos SET completed = $1 WHERE id = $2
-               RETURNING id, position, updated_at"#,
-            new_completed,
-            id
-        )
-        .fetch_one(&self.db)
-        .await?;
+        let new_completed = updated.completed;
 
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'todo:toggle', $2)"#,

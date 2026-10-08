@@ -1,4 +1,4 @@
-import { ref, watch, onMounted } from 'vue';
+import { ref, watch } from 'vue';
 import { useEventListener } from '@vueuse/core';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
@@ -354,12 +354,6 @@ export function usePrivateTasks() {
     reorderConfirmed.clear();
     syncState();
   };
-
-  onMounted(() => {
-    if (user.value) {
-      void loadPrivateTasks();
-    }
-  });
 
   watch(
     () => user.value?.id,

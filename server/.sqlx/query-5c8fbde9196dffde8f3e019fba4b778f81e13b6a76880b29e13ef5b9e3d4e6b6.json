@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "UPDATE encrypted_todos SET completed = $1 WHERE id = $2\n               RETURNING id, position, updated_at",
+  "query": "UPDATE encrypted_todos SET completed = NOT completed\n               WHERE id = $1 AND user_id = $2\n               RETURNING id, completed, position, updated_at",
   "describe": {
     "columns": [
       {
@@ -16,6 +16,17 @@
       },
       {
         "ordinal": 1,
+        "name": "completed",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "encrypted_todos",
+            "name": "completed"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
         "name": "position",
         "type_info": "Text",
         "origin": {
@@ -26,7 +37,7 @@
         }
       },
       {
-        "ordinal": 2,
+        "ordinal": 3,
         "name": "updated_at",
         "type_info": "Timestamptz",
         "origin": {
@@ -39,15 +50,16 @@
     ],
     "parameters": {
       "Left": [
-        "Bool",
+        "Uuid",
         "Uuid"
       ]
     },
     "nullable": [
       false,
+      false,
       true,
       false
     ]
   },
-  "hash": "c3a39f45a69daad1d27706c9fe5db108d71663811394bca5fe9e84800f99da16"
+  "hash": "5c8fbde9196dffde8f3e019fba4b778f81e13b6a76880b29e13ef5b9e3d4e6b6"
 }

@@ -12,6 +12,8 @@ import api from '@/api/api.ts';
 import { groupPath } from '@/api/groupPath';
 import { useGroupPageId } from '@/core/composables/useGroupPageId';
 import { hiddenByCourses } from '@/api/personalization';
+import { apiErrorMessage } from '@/api/errors';
+import { useToast } from '@/common/composables/useToast';
 import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { usePageSettings } from '@/common/composables/usePageSettings';
@@ -75,7 +77,7 @@ function applySubstitution(original: Lesson, sub: Substitution): Lesson {
  * on screen and its neighbours, so a swipe finds them ready.
  */
 export function useSchedule(shownWeek?: Ref<number>) {
-  const { locale } = useI18n();
+  const { locale, t } = useI18n();
   const userStore = useUserStore();
   const { settings: scheduleSettings } = usePageSettings('schedule');
   const {
@@ -243,9 +245,7 @@ export function useSchedule(shownWeek?: Ref<number>) {
     } catch (error) {
       if (request !== latestScheduleRequest) return;
       console.error('Error loading schedule:', error);
-      lessons.value = [];
-      lessonsHiddenByServer.value = 0;
-      subjects.value = [];
+      useToast().error(apiErrorMessage(error, t('common.errors.load')));
     } finally {
       if (request === latestScheduleRequest) loadingLessons.value = false;
     }

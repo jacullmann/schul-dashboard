@@ -216,8 +216,7 @@ export function useImageUpload(groupId: MaybeRefOrGetter<string>) {
           ),
         );
         images.value = images.value.filter((i) => i.id !== file.id);
-        uploadError.value = t('tasks.images.delete_modal.success');
-        setTimeout(() => (uploadError.value = ''), 3000);
+        toast.success(t('tasks.images.delete_modal.success'));
       } catch {
         uploadError.value = t('tasks.images.delete_modal.error');
       }

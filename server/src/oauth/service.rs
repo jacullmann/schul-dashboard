@@ -623,6 +623,12 @@ impl OAuthService {
 
         let email = claims["email"].as_str().unwrap_or("").to_string();
 
+        if sub.is_empty() || email.is_empty() {
+            return Err(AppError::Unauthorized(
+                "ID token missing subject or email.".into(),
+            ));
+        }
+
         let nonce = claims["nonce"].as_str().unwrap_or("");
 
         let email_verified = claims["email_verified"].as_bool().unwrap_or(false);

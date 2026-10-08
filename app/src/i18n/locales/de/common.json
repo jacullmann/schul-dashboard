@@ -20,6 +20,7 @@
   },
   "errors": {
     "delete": "Löschen fehlgeschlagen",
+    "load": "Laden fehlgeschlagen",
     "rate_limited": "Zu viele Anfragen. Bitte warte kurz und versuche es dann erneut.",
     "unknown": "Unbekannter Fehler",
     "update": "Aktualisieren fehlgeschlagen"

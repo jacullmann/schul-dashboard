@@ -20,6 +20,7 @@
   },
   "errors": {
     "delete": "Failed to delete",
+    "load": "Failed to load",
     "rate_limited": "Too many requests. Please wait a moment and try again.",
     "unknown": "Unknown error",
     "update": "Failed to update"
