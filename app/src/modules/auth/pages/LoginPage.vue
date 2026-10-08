@@ -158,18 +158,18 @@ function navigateToRegister() {
         type="button"
         surface
         variant="ghost"
-        class="w-full justify-center"
+        class="w-full justify-center pl-5"
+        :icon="GoogleIcon"
         @click="initiateGoogleLogin"
       >
-        <GoogleIcon :size="16" />
-        <span>{{ t('auth.login.login_google') }}</span>
+        {{ t('auth.login.login_google') }}
       </BaseButton>
       <template v-if="passkeysSupported">
         <BaseButton
           type="button"
           surface
           variant="ghost"
-          class="w-full justify-center mt-2"
+          class="w-full justify-center pl-5 mt-2"
           :icon="passkeyIcon"
           :loading="passkeySigningIn"
           :disabled="passkeySigningIn"

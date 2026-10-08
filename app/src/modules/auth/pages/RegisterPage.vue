@@ -171,11 +171,11 @@ function navigateToLogin() {
         type="button"
         surface
         variant="ghost"
-        class="w-full justify-center"
+        class="w-full justify-center pl-5"
+        :icon="GoogleIcon"
         @click="initiateGoogleLogin"
       >
-        <GoogleIcon :size="16" />
-        <span>{{ t('auth.login.register_google') }}</span>
+        {{ t('auth.login.register_google') }}
       </BaseButton>
 
       <!-- Switch to Login -->
