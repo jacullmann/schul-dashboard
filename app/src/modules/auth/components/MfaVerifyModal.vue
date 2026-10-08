@@ -99,27 +99,6 @@ async function cancel() {
           @input="clearErrors"
           @complete="submitCode"
         />
-        <template v-if="offersPasskey">
-          <div class="flex items-center gap-3 my-4">
-            <div class="flex-1 h-px bg-ghost-border" />
-            <span class="text-xs text-on-ghost-muted">
-              {{ t('auth.login.or_continue_with') }}
-            </span>
-            <div class="flex-1 h-px bg-ghost-border" />
-          </div>
-          <BaseButton
-            type="button"
-            surface
-            variant="ghost"
-            class="w-full justify-center"
-            :icon="passkeyIcon"
-            :loading="passkeyVerifying"
-            :disabled="busy"
-            @click="confirmWithPasskey"
-          >
-            {{ t('auth.mfa.verify.with_passkey') }}
-          </BaseButton>
-        </template>
         <p class="m-0! mt-4! text-sm! text-on-ghost-muted">
           {{ t('auth.mfa.verify.support.text') }}
           <a
@@ -131,5 +110,26 @@ async function cancel() {
         </p>
       </template>
     </BaseForm>
+    <template v-if="offersPasskey">
+      <div class="flex items-center gap-3 my-4">
+        <div class="flex-1 h-px bg-ghost-border" />
+        <span class="text-xs text-on-ghost-muted">
+          {{ t('auth.login.or_continue_with') }}
+        </span>
+        <div class="flex-1 h-px bg-ghost-border" />
+      </div>
+      <BaseButton
+        type="button"
+        surface
+        variant="ghost"
+        class="w-full justify-center"
+        :icon="passkeyIcon"
+        :loading="passkeyVerifying"
+        :disabled="busy"
+        @click="confirmWithPasskey"
+      >
+        {{ t('auth.mfa.verify.with_passkey') }}
+      </BaseButton>
+    </template>
   </CenteredAuthModal>
 </template>
