@@ -345,6 +345,17 @@ impl DataExportService {
         .fetch_all(&mut *tx)
         .await?;
 
+        let recovery_codes = sqlx::query_as!(
+            RecoveryCodeRecord,
+            r#"SELECT created_at, used_at
+               FROM mfa_recovery_codes
+               WHERE user_id = $1
+               ORDER BY created_at, used_at NULLS LAST"#,
+            user_id
+        )
+        .fetch_all(&mut *tx)
+        .await?;
+
         let security_events = sqlx::query_as!(
             SecurityEvent,
             r#"SELECT event_type, event_status, host(ip_address) AS "ip_address?",
@@ -430,6 +441,7 @@ impl DataExportService {
             },
             security: SecurityExport {
                 passkeys,
+                recovery_codes,
                 sessions,
                 events: security_events,
                 password_resets,

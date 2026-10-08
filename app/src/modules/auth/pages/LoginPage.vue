@@ -33,8 +33,10 @@ const {
   formError,
   emailInputRef,
   errors,
+  verificationResend,
   clearFieldError,
   submit: submitLogin,
+  resendVerification,
 } = useLogin(enterApp, async () => {
   await router.push({ name: 'verify-mfa' });
 });
@@ -116,6 +118,28 @@ function navigateToRegister() {
               {{ t('auth.login.forgot') }}
             </BaseLink>
           </div>
+
+          <!-- A confirmation link can land in spam or expire unused; without
+               a new one, the account could not be used at all. -->
+          <BaseButton
+            v-if="
+              verificationResend === 'available' ||
+              verificationResend === 'sending'
+            "
+            type="button"
+            full
+            :loading="verificationResend === 'sending'"
+            @click="resendVerification"
+          >
+            {{ t('auth.login.verify_email.resend') }}
+          </BaseButton>
+          <p
+            v-else-if="verificationResend === 'sent'"
+            class="m-0! text-sm/relaxed text-on-ghost-muted"
+            role="status"
+          >
+            {{ t('auth.login.verify_email.resent') }}
+          </p>
         </template>
 
         <template #action-text>

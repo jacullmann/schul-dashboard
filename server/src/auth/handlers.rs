@@ -3,10 +3,14 @@ use crate::{
         cookies::*,
         dto::*,
         service::{AuthService, LoginResult},
+        sign_in_methods::SignInMethods,
         token::{TokenService, *},
     },
-    common::extractors::{AuthUser, ClientIp, MfaPending, OptionalAuth, UserAgent, ValidatedJson},
+    common::extractors::{
+        AuthUser, ClientIp, MfaPending, OptionalAuth, RecentAuth, UserAgent, ValidatedJson,
+    },
     error::{AppError, AppResult},
+    mfa::second_factor::SecondFactorProof,
     state::AppState,
 };
 use axum::{
@@ -46,13 +50,13 @@ pub async fn verify_mfa(
     pending: MfaPending,
     ClientIp(ip): ClientIp,
     UserAgent(ua): UserAgent,
-    ValidatedJson(dto): ValidatedJson<VerifyMfaDto>,
+    ValidatedJson(proof): ValidatedJson<SecondFactorProof>,
 ) -> AppResult<(CookieJar, Json<Value>)> {
     let svc = AuthService::from_state(&state);
 
-    let jar = svc
+    let (jar, recovery_codes_left) = svc
         .verify_mfa(
-            &dto.code,
+            &proof,
             pending.user_id,
             &pending.email,
             ua.as_deref(),
@@ -60,7 +64,10 @@ pub async fn verify_mfa(
         )
         .await?;
 
-    Ok((jar, Json(json!({ "ok": true }))))
+    Ok((
+        jar,
+        Json(json!({ "ok": true, "recoveryCodesLeft": recovery_codes_left })),
+    ))
 }
 
 pub async fn cancel_mfa(
@@ -95,7 +102,7 @@ pub async fn get_me(State(state): State<AppState>, opt: OptionalAuth) -> AppResu
 
 pub async fn delete_me(
     State(state): State<AppState>,
-    user: AuthUser,
+    RecentAuth(user): RecentAuth,
 ) -> AppResult<(CookieJar, Json<Value>)> {
     let svc = AuthService::from_state(&state);
 
@@ -119,6 +126,15 @@ pub async fn verify_email(
     Ok(Json(svc.verify_email(&q.token).await?))
 }
 
+pub async fn resend_verification(
+    State(state): State<AppState>,
+    ValidatedJson(dto): ValidatedJson<ResendVerificationDto>,
+) -> AppResult<Json<Value>> {
+    let svc = AuthService::from_state(&state);
+
+    Ok(Json(svc.resend_verification(&dto.email).await?))
+}
+
 pub async fn forgot_password(
     State(state): State<AppState>,
     ValidatedJson(dto): ValidatedJson<ForgotPasswordDto>,
@@ -139,7 +155,7 @@ pub async fn verify_reset_token(
 
 pub async fn reset_password(
     State(state): State<AppState>,
-    Json(dto): Json<ResetPasswordDto>,
+    ValidatedJson(dto): ValidatedJson<ResetPasswordDto>,
 ) -> AppResult<Json<Value>> {
     let svc = AuthService::from_state(&state);
 
@@ -199,6 +215,24 @@ pub async fn set_password(
         .await?;
 
     Ok((jar, Json(body)))
+}
+
+pub async fn get_sign_in_methods(
+    State(state): State<AppState>,
+    user: AuthUser,
+) -> AppResult<Json<SignInMethods>> {
+    Ok(Json(SignInMethods::load(&state.db, user.user_id).await?))
+}
+
+pub async fn remove_password(
+    State(state): State<AppState>,
+    RecentAuth(user): RecentAuth,
+) -> AppResult<Json<Value>> {
+    let svc = AuthService::from_state(&state);
+
+    Ok(Json(
+        svc.remove_password(user.user_id, user.session_id).await?,
+    ))
 }
 
 pub async fn get_groups(State(state): State<AppState>, user: AuthUser) -> AppResult<Json<Value>> {
@@ -293,25 +327,10 @@ pub async fn logout_all(
 
 pub async fn logout_all_others(
     State(state): State<AppState>,
-    jar: CookieJar,
     user: AuthUser,
 ) -> AppResult<Json<Value>> {
-    use crate::config::REFRESH_COOKIE;
-    let svc = TokenService::from_state(&state);
-
-    let current_family_id = if let Some(cookie) = jar.get(REFRESH_COOKIE) {
-        let token = cookie.value();
-
-        if !token.is_empty() {
-            svc.get_current_family_id(token).await?
-        } else {
-            None
-        }
-    } else {
-        None
-    };
-
-    svc.revoke_all_for_user(user.user_id, LOGOUT_ALL, current_family_id)
+    TokenService::from_state(&state)
+        .revoke_all_for_user(user.user_id, LOGOUT_ALL, Some(user.session_id))
         .await?;
 
     Ok(Json(json!({ "ok": true })))
@@ -319,23 +338,15 @@ pub async fn logout_all_others(
 
 pub async fn list_sessions(
     State(state): State<AppState>,
-    jar: CookieJar,
     user: AuthUser,
 ) -> AppResult<Json<Value>> {
-    use crate::config::REFRESH_COOKIE;
-
-    let svc = TokenService::from_state(&state);
-
-    let sessions = svc.list_active_sessions(user.user_id).await?;
-
-    let current_family_id = match jar.get(REFRESH_COOKIE).map(|c| c.value().to_owned()) {
-        Some(token) if !token.is_empty() => svc.get_current_family_id(&token).await?,
-        _ => None,
-    };
+    let sessions = TokenService::from_state(&state)
+        .list_active_sessions(user.user_id)
+        .await?;
 
     Ok(Json(json!({
         "sessions": sessions,
-        "currentFamilyId": current_family_id,
+        "currentFamilyId": user.session_id,
     })))
 }
 
@@ -344,15 +355,13 @@ pub async fn revoke_session(
     user: AuthUser,
     axum::extract::Path(family_id): axum::extract::Path<uuid::Uuid>,
 ) -> AppResult<Json<Value>> {
-    let svc = TokenService::from_state(&state);
+    let revoked = TokenService::from_state(&state)
+        .revoke_own_session(user.user_id, family_id, SESSION_REVOKED)
+        .await?;
 
-    let sessions = svc.list_active_sessions(user.user_id).await?;
-
-    if !sessions.iter().any(|s| s.family_id == family_id) {
+    if !revoked {
         return Err(AppError::not_found("Session not found."));
     }
-
-    svc.revoke_family(family_id, SESSION_REVOKED).await?;
 
     Ok(Json(json!({ "ok": true })))
 }

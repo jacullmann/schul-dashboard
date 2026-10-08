@@ -2,6 +2,7 @@
 import { useTemplateRef, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import CenteredAuthModal from '@/common/components/CenteredAuthModal.vue';
+import SecondFactorInput from '@/modules/auth/components/SecondFactorInput.vue';
 import { useMfa } from '@/modules/auth/composables/useMfa';
 import { useMfaVerify } from '@/modules/auth/composables/useMfaVerify';
 
@@ -14,7 +15,7 @@ const emit = defineEmits<{
 const { t } = useI18n();
 const { cancelMfaLogin } = useMfa();
 
-const { code, submitting, error, codeComplete, submit, clearError } =
+const { secondFactor, submitting, error, complete, submit, clearError } =
   useMfaVerify({
     onVerified: () => emit('verified'),
     onExpired: () => emit('expired'),
@@ -41,19 +42,22 @@ async function cancel() {
       :cancel="cancel"
       :error="error"
       :loading="submitting"
-      :requirement="codeComplete"
+      :requirement="complete"
     >
       <template #content>
         <p class="m-0! mb-4!">
-          {{ t('auth.mfa.verify.instruction') }}
+          {{
+            secondFactor.mode === 'code'
+              ? t('auth.mfa.verify.instruction')
+              : t('auth.mfa.verify.recovery_instruction')
+          }}
         </p>
         <!-- Authenticator codes are typed or pasted in one go, so a complete
              code submits without an extra click. -->
-        <BaseCodeInput
+        <SecondFactorInput
           id="mfa-code"
           ref="codeInput"
-          v-model="code"
-          :aria-label="t('auth.mfa.verify.code')"
+          v-model="secondFactor"
           :invalid="!!error"
           @input="clearError"
           @complete="submit"

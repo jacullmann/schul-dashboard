@@ -1,16 +1,40 @@
 <script setup lang="ts">
+import { onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { KeyRound } from '@lucide/vue';
+import { useToast } from '@/common/composables/useToast';
+import { useSignInMethods } from '@/modules/auth/composables/useSignInMethods';
+import { useConfirmModal } from '@/stores/modalStore';
 import { useUserStore } from '@/stores/userStore';
 
 const { t } = useI18n();
 const router = useRouter();
+const toast = useToast();
+const confirmModal = useConfirmModal();
 const { hasPassword } = storeToRefs(useUserStore());
+const { removing, canRemovePassword, fetchMethods, removePassword } =
+  useSignInMethods();
+
+onMounted(() => void fetchMethods());
 
 function openPasswordForm() {
   void router.push({ name: 'account-password-edit' });
+}
+
+async function confirmRemovePassword() {
+  const confirmed = await confirmModal.ask({
+    title: t('auth.remove_password.title'),
+    content: t('auth.remove_password.warning'),
+    submitText: t('auth.remove_password.submit'),
+    danger: true,
+  });
+  if (!confirmed) return;
+
+  const result = await removePassword();
+  if (result.ok) toast.success(t('auth.remove_password.success'));
+  else if (result.error) toast.error(result.error);
 }
 </script>
 
@@ -54,5 +78,19 @@ function openPasswordForm() {
           : t('auth.set_password.title')
       }}
     </BaseButton>
+
+    <template v-if="hasPassword && canRemovePassword">
+      <p class="text-sm/relaxed text-on-ghost-muted m-0! font-sans">
+        {{ t('auth.remove_password.description') }}
+      </p>
+      <BaseButton
+        variant="danger"
+        full
+        :disabled="removing"
+        @click="confirmRemovePassword"
+      >
+        {{ t('auth.remove_password.submit') }}
+      </BaseButton>
+    </template>
   </BaseFormContent>
 </template>

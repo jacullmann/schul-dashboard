@@ -1,14 +1,18 @@
 use crate::{
     auth::{
+        security_notice,
         service::{AuthService, ClientInfo, LoginResult},
         session_context::account_is_active,
+        sign_in_methods::{SignInMethod, SignInMethods},
     },
     common::{
+        email::SecurityEvent,
         jwt::{hs256_validation, now_secs},
         password::verify_password,
     },
     config::Config,
-    error::{AppError, AppResult},
+    error::{AppError, AppResult, AuthFailure},
+    reauth::service::{GoogleReauth, ReauthService},
     state::AppState,
 };
 use axum_extra::extract::{CookieJar, cookie::Cookie, cookie::SameSite};
@@ -32,6 +36,9 @@ const LOGIN_RESULT_PARAM: &str = "auth";
 /// Query parameter under which the frontend reads the result of a link from
 /// the account settings.
 const LINK_RESULT_PARAM: &str = "link";
+/// Query parameter under which the frontend reads the result of confirming a
+/// sensitive action with Google.
+const REAUTH_RESULT_PARAM: &str = "reauth";
 
 const GOOGLE_ACCOUNT_TAKEN_CONSTRAINT: &str = "oauth_accounts_provider_provider_user_id_key";
 const PROVIDER_ALREADY_LINKED_CONSTRAINT: &str = "oauth_accounts_user_id_provider_key";
@@ -47,6 +54,10 @@ pub enum OAuthIntent {
     Link {
         user_id: Uuid,
     },
+    /// Confirms a sensitive action with the Google account linked to the user.
+    Reauth {
+        user_id: Uuid,
+    },
 }
 
 impl OAuthIntent {
@@ -54,6 +65,7 @@ impl OAuthIntent {
         match self {
             Self::Login => LOGIN_RESULT_PARAM,
             Self::Link { .. } => LINK_RESULT_PARAM,
+            Self::Reauth { .. } => REAUTH_RESULT_PARAM,
         }
     }
 }
@@ -198,12 +210,14 @@ impl OAuthService {
         Ok((url, CookieJar::new().add(c)))
     }
 
+    /// `refresh_token` names the session a confirmation with Google is for.
     pub async fn handle_callback(
         &self,
         code: Option<&str>,
         state_param: Option<&str>,
         error_param: Option<&str>,
         state_cookie: Option<&str>,
+        refresh_token: Option<&str>,
         client: ClientInfo<'_>,
     ) -> (CookieJar, String) {
         let empty_jar = CookieJar::new();
@@ -256,6 +270,43 @@ impl OAuthService {
             OAuthIntent::Login => self.complete_login(&profile, client).await,
             OAuthIntent::Link { user_id } => {
                 (empty_jar, self.complete_link(user_id, &profile).await)
+            }
+            OAuthIntent::Reauth { user_id } => {
+                self.complete_reauth(user_id, &profile, refresh_token).await
+            }
+        }
+    }
+
+    async fn complete_reauth(
+        &self,
+        user_id: Uuid,
+        profile: &GoogleProfile,
+        refresh_token: Option<&str>,
+    ) -> (CookieJar, String) {
+        let outcome = ReauthService::from_state(&self.state)
+            .after_google(user_id, &profile.subject, refresh_token)
+            .await;
+
+        match outcome {
+            Ok(GoogleReauth::Confirmed(jar)) => {
+                (jar, self.result_url(REAUTH_RESULT_PARAM, "success"))
+            }
+            Ok(GoogleReauth::SecondFactorPending(jar)) => {
+                (jar, self.result_url(REAUTH_RESULT_PARAM, "second-factor"))
+            }
+            Err(e) => {
+                let reason = match e {
+                    AppError::TokenExpired => "session_expired",
+                    AppError::Auth(_) => "google_account_mismatch",
+                    _ => {
+                        tracing::error!(error = ?e, "Google confirmation failed");
+                        "server_error"
+                    }
+                };
+                (
+                    CookieJar::new(),
+                    self.error_url(REAUTH_RESULT_PARAM, reason),
+                )
             }
         }
     }
@@ -370,7 +421,15 @@ impl OAuthService {
             .insert_google_link(user_id, &profile.subject, &profile.email)
             .await
         {
-            Ok(()) => self.result_url(LINK_RESULT_PARAM, "success"),
+            Ok(()) => {
+                security_notice::notify(
+                    &self.db,
+                    &self.state.email,
+                    user_id,
+                    SecurityEvent::GoogleLinked,
+                );
+                self.result_url(LINK_RESULT_PARAM, "success")
+            }
             Err(e) => {
                 if let LinkError::Database(db_err) = &e {
                     tracing::error!(error = %db_err, "failed to link google account");
@@ -459,22 +518,30 @@ impl OAuthService {
         )
         .fetch_optional(&self.db)
         .await?
-        .ok_or_else(|| AppError::Unauthorized("Invalid credentials.".into()))?;
+        .ok_or(AuthFailure::InvalidCredentials)?;
 
-        let hash = user.password_hash.as_deref().unwrap_or("");
-
-        if !verify_password(password.to_string(), hash.to_string()).await? {
-            return Err(AppError::Unauthorized("Invalid credentials.".into()));
+        // An account without a password cannot be linked this way; its owner
+        // signs in with a passkey and links Google from the settings.
+        let password_matches = match user.password_hash {
+            Some(hash) => verify_password(password.to_owned(), hash).await?,
+            None => false,
+        };
+        if !password_matches {
+            return Err(AuthFailure::InvalidCredentials.into());
         }
 
         if !user.email_verified {
-            return Err(AppError::Unauthorized(
-                "Please verify your email address first.".into(),
-            ));
+            return Err(AuthFailure::EmailNotVerified.into());
         }
 
         self.insert_google_link(user.id, google_id, google_email)
             .await?;
+        security_notice::notify(
+            &self.db,
+            &self.state.email,
+            user.id,
+            SecurityEvent::GoogleLinked,
+        );
 
         // The password is only the first factor: linking is safe on it alone,
         // since signing in with Google still demands the second one.
@@ -484,23 +551,30 @@ impl OAuthService {
     }
 
     pub async fn unlink_google_account(&self, user_id: Uuid) -> AppResult<Value> {
-        let user = sqlx::query!(r#"SELECT password_hash FROM users WHERE id = $1"#, user_id)
-            .fetch_optional(&self.db)
+        let mut tx = self.db.begin().await?;
+
+        SignInMethods::lock(&mut tx, user_id)
             .await?
-            .ok_or_else(|| AppError::bad_request("User not found."))?;
+            .ensure_one_left_without(SignInMethod::Google)?;
 
-        if user.password_hash.is_none() {
-            return Err(AppError::bad_request(
-                "Please set a password before unlinking your Google account.",
-            ));
-        }
-
-        sqlx::query!(
+        let unlinked = sqlx::query!(
             r#"DELETE FROM oauth_accounts WHERE user_id = $1 AND provider = 'google'"#,
             user_id
         )
-        .execute(&self.db)
-        .await?;
+        .execute(&mut *tx)
+        .await?
+        .rows_affected();
+
+        tx.commit().await?;
+
+        if unlinked > 0 {
+            security_notice::notify(
+                &self.db,
+                &self.state.email,
+                user_id,
+                SecurityEvent::GoogleUnlinked,
+            );
+        }
 
         Ok(json!({ "ok": true }))
     }

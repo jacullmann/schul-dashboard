@@ -36,10 +36,11 @@ content            What you created yourself: tasks and exams, uploaded files
 interactions       Tasks you checked off, pinned, archived or kept, and
                    announcements you have read.
 reports            Reports you filed and reports about content you created.
-security           Your sessions (signed-in devices) with IP addresses and
-                   browser identifiers, security events (e.g. creating a group,
-                   accepting an invite), requested password reset codes and
-                   confirmation links.
+security           Your passkeys, when your recovery codes were created and
+                   used, your sessions (signed-in devices) with IP addresses
+                   and browser identifiers, security events (e.g. creating a
+                   group, accepting an invite), requested password reset codes
+                   and confirmation links.
 activityLog        Your account's activity log, including failed sign-in
                    attempts with their IP address.
 
@@ -126,8 +127,8 @@ place.
 8. What this export deliberately leaves out
 -------------------------------------------
 
-- Access secrets: your password hash, your two-factor secret, session tokens,
-  invite tokens and password reset codes. They would put your account at risk
+- Access secrets: your password hash, your two-factor secret, your recovery
+  codes, session tokens, invite tokens and password reset codes. They would put your account at risk
   if the file fell into the wrong hands. Whether they exist is stated in
   data.json (e.g. hasPassword, mfaEnabled).
 - Information about other people: who reported your content and why, who used

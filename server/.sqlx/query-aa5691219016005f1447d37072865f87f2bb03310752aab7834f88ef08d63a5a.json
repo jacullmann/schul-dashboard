@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT (SELECT count(*) FROM passkeys p WHERE p.user_id = u.id) AS \"passkey_count!\"\n               FROM users u\n               WHERE u.id = $1\n               FOR UPDATE",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "passkey_count!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "aa5691219016005f1447d37072865f87f2bb03310752aab7834f88ef08d63a5a"
+}

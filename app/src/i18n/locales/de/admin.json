@@ -147,7 +147,8 @@
     "actions": {
       "details": "Details & Protokoll",
       "ban": "Bannen",
-      "unban": "Entbannen"
+      "unban": "Entbannen",
+      "reset_mfa": "Zwei-Faktor-Authentifizierung zurücksetzen"
     },
     "details": {
       "title": "Benutzerdetails",
@@ -177,7 +178,12 @@
       "load": "Benutzer konnten nicht geladen werden.",
       "load_details": "Benutzerdetails konnten nicht geladen werden.",
       "delete": "Benutzer konnte nicht gelöscht werden."
-    }
+    },
+    "reset_mfa_modal": {
+      "title": "Zwei-Faktor-Authentifizierung zurücksetzen?",
+      "content": "Die Zwei-Faktor-Authentifizierung und die Wiederherstellungscodes von {email} werden entfernt. Tu das nur, wenn du sichergestellt hast, dass die Anfrage wirklich von dieser Person stammt. Sie wird per E-Mail benachrichtigt."
+    },
+    "reset_mfa_success": "Zwei-Faktor-Authentifizierung zurückgesetzt."
   },
   "reports": {
     "title": "Gemeldete Inhalte",

@@ -1,11 +1,13 @@
 use super::dto::*;
 use crate::{
     auth::{
+        security_notice,
         session_context::is_superadmin,
         token::{ADMIN_REVOKE, TokenService},
     },
     common::{
         cloudinary::Cloudinary,
+        email::{EmailService, SecurityEvent},
         hetzner::{HetznerCloud, HetznerError},
         name_generator::generate_user_name,
         pagination::{PAGE_SIZE, Page, contains_pattern, search_term},
@@ -16,6 +18,7 @@ use crate::{
         member_policy::{self, Caller, Target},
         service::role_from_db,
     },
+    mfa::service::disable_mfa,
     state::AppState,
 };
 use chrono::Utc;
@@ -106,6 +109,7 @@ pub struct SuperAdminService {
     db: PgPool,
     tokens: TokenService,
     cloudinary: Cloudinary,
+    email: EmailService,
 }
 
 impl SuperAdminService {
@@ -114,6 +118,7 @@ impl SuperAdminService {
             db: s.db.clone(),
             tokens: TokenService::from_state(s),
             cloudinary: s.cloudinary.clone(),
+            email: s.email.clone(),
         }
     }
 
@@ -323,6 +328,7 @@ impl SuperAdminService {
 
         let rows_query = sqlx::query!(
             r#"SELECT u.id, u.email, u.email_verified, u.created_at, u.last_login_at,
+                      u.mfa_enabled AND u.mfa_secret IS NOT NULL AS "mfa_enabled!",
                       EXISTS (SELECT 1 FROM user_roles ur
                               WHERE ur.user_id = u.id AND ur.tenant_id IS NULL
                                 AND ur.role_id = $4) AS "is_superadmin!",
@@ -387,6 +393,7 @@ impl SuperAdminService {
                 id: u.id,
                 email: u.email,
                 email_verified: u.email_verified,
+                mfa_enabled: u.mfa_enabled,
                 is_superadmin: u.is_superadmin,
                 is_banned: u.is_banned,
                 created_at: u.created_at,
@@ -503,6 +510,38 @@ impl SuperAdminService {
         tx.commit().await?;
 
         Ok(json!({ "ok": true, "isBanned": false }))
+    }
+
+    /// Support for a user who lost both their authenticator and their
+    /// recovery codes. The user is told by email, so a reset they did not ask
+    /// for cannot go unnoticed.
+    pub async fn reset_user_mfa(&self, target_id: Uuid, admin_id: Uuid) -> AppResult<Value> {
+        let mut tx = self.db.begin().await?;
+
+        if !disable_mfa(&mut tx, target_id).await? {
+            return Err(AppError::bad_request(
+                "Two-factor authentication is not enabled for this user.",
+            ));
+        }
+
+        log_admin_action(
+            &mut tx,
+            admin_id,
+            "admin:reset:mfa",
+            json!({ "targetUserId": target_id }),
+        )
+        .await?;
+
+        tx.commit().await?;
+
+        security_notice::notify(
+            &self.db,
+            &self.email,
+            target_id,
+            SecurityEvent::TwoFactorResetBySupport,
+        );
+
+        Ok(json!({ "ok": true, "mfaEnabled": false }))
     }
 
     pub async fn delete_user(&self, target_id: Uuid, admin_id: Uuid) -> AppResult<Value> {

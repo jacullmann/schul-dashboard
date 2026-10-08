@@ -2,7 +2,14 @@ import { ref, reactive, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import api from '@/api/api.ts';
 import { useMfa } from '@/modules/auth/composables/useMfa';
-import { apiErrorMessage } from '@/api/errors';
+import { apiErrorCode, isRateLimited } from '@/api/errors';
+import {
+  AuthErrorCode,
+  authErrorMessage,
+} from '@/modules/auth/utils/authErrors';
+
+/** Where resending the confirmation email of an unconfirmed account stands. */
+export type VerificationResend = 'unneeded' | 'available' | 'sending' | 'sent';
 
 /** Subset of `BaseInput`'s exposed API that these forms rely on. */
 interface FocusableInput {
@@ -20,6 +27,7 @@ export function useLogin(
   const password = ref('');
   const submitting = ref(false);
   const formError = ref('');
+  const verificationResend = ref<VerificationResend>('unneeded');
 
   const emailInputRef = ref<FocusableInput | null>(null);
 
@@ -67,6 +75,7 @@ export function useLogin(
 
   async function submit() {
     formError.value = '';
+    verificationResend.value = 'unneeded';
 
     if (!validateBeforeSubmit()) {
       return;
@@ -88,9 +97,28 @@ export function useLogin(
         }
       }
     } catch (e: unknown) {
-      formError.value = apiErrorMessage(e, t('common.errors.unknown'));
+      formError.value = authErrorMessage(e, t('common.errors.unknown'));
+      if (apiErrorCode(e) === AuthErrorCode.EmailNotVerified) {
+        verificationResend.value = 'available';
+      }
     } finally {
       submitting.value = false;
+    }
+  }
+
+  /** The answer is the same whether or not a mail went out. */
+  async function resendVerification() {
+    if (verificationResend.value !== 'available') return;
+    verificationResend.value = 'sending';
+    try {
+      await api.post('/auth/verify/resend', { email: email.value.trim() });
+      verificationResend.value = 'sent';
+      formError.value = '';
+    } catch (e: unknown) {
+      verificationResend.value = 'available';
+      formError.value = isRateLimited(e)
+        ? t('common.errors.rate_limited')
+        : t('common.errors.unknown');
     }
   }
 
@@ -101,8 +129,10 @@ export function useLogin(
     formError,
     emailInputRef,
     errors,
+    verificationResend,
 
     clearFieldError,
     submit,
+    resendVerification,
   };
 }

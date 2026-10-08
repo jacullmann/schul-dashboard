@@ -1,5 +1,5 @@
 use crate::{
-    auth::session_context::account_is_active,
+    auth::session_context::session_is_active,
     common::{
         extractors::{AuthUser, TenantContext},
         jwt::now_secs,
@@ -27,8 +27,9 @@ const CLOSE_TOKEN_EXPIRED: u16 = 4001;
 /// The caller lost access to the group the socket is subscribed to.
 const CLOSE_ACCESS_REVOKED: u16 = 4003;
 /// Membership changes announce themselves on the bus, so this only bounds
-/// revocations that do not (e.g. a withdrawn superadmin role). Checking on
-/// every broadcast instead would cost a query per recipient per message.
+/// revocations that do not (e.g. a withdrawn superadmin role or a session ended
+/// from another device). Checking on every broadcast instead would cost a query
+/// per recipient per message.
 const ACCESS_RECHECK_INTERVAL: Duration = Duration::from_secs(30);
 /// Closing with the token-expired code makes the client refresh, which the
 /// revoked session fails, so it signs out instead of reconnecting.
@@ -138,23 +139,22 @@ pub async fn ws_handler(
     else {
         return StatusCode::UNAUTHORIZED.into_response();
     };
-    let Ok(user_id) = claims.sub.parse::<Uuid>() else {
-        return StatusCode::UNAUTHORIZED.into_response();
-    };
 
     // Subscribing before the check leaves no gap in which a ban is missed.
     let ended_sessions = state.message_bus.ended_sessions.subscribe();
-    match account_is_active(&state.db, user_id).await {
+    match session_is_active(&state.db, claims.sub, claims.sid).await {
         Ok(true) => {}
         Ok(false) => return StatusCode::UNAUTHORIZED.into_response(),
         Err(e) => return e.into_response(),
     }
 
-    let user = AuthUser {
-        user_id,
-        email: claims.email,
-    };
     let token_ttl = Duration::from_secs(claims.exp.saturating_sub(now_secs()));
+    let user = AuthUser {
+        user_id: claims.sub,
+        authenticated_at: claims.authenticated_at(),
+        email: claims.email,
+        session_id: claims.sid,
+    };
 
     ws.on_upgrade(move |socket| handle_socket(socket, state, user, token_ttl, ended_sessions))
 }
@@ -186,6 +186,15 @@ async fn lost_group_access(
     }
 }
 
+/// Whether the socket's session definitely ended. Like a lost group, a failing
+/// database keeps the socket open.
+async fn session_ended(state: &AppState, user: &AuthUser) -> bool {
+    matches!(
+        session_is_active(&state.db, user.user_id, user.session_id).await,
+        Ok(false)
+    )
+}
+
 async fn handle_socket(
     mut socket: WebSocket,
     state: AppState,
@@ -213,7 +222,7 @@ async fn handle_socket(
                 let session_ended = match ended {
                     Ok(ended_user_id) => ended_user_id == user_id,
                     Err(broadcast::error::RecvError::Lagged(_)) => {
-                        matches!(account_is_active(&state.db, user_id).await, Ok(false))
+                        session_ended(&state, &user).await
                     }
                     Err(broadcast::error::RecvError::Closed) => break,
                 };
@@ -223,10 +232,12 @@ async fn handle_socket(
                     break;
                 }
             }
-            _ = access_recheck.tick(), if joined_group.is_some() => {
-                if let Some(group_id) = joined_group
-                    && let Some((code, reason)) = lost_group_access(&state, &user, group_id).await
-                {
+            _ = access_recheck.tick() => {
+                let lost = match joined_group {
+                    Some(group_id) => lost_group_access(&state, &user, group_id).await,
+                    None => session_ended(&state, &user).await.then_some(SESSION_ENDED),
+                };
+                if let Some((code, reason)) = lost {
                     close(&mut socket, code, reason).await;
                     break;
                 }

@@ -79,6 +79,25 @@ export function useSuperAdminUsers() {
     }
   }
 
+  /** Support for a user who lost their authenticator and recovery codes. */
+  async function resetMfa(user: SuperAdminUser) {
+    const confirmed = await confirmModal.ask({
+      title: t('admin.users.reset_mfa_modal.title'),
+      content: t('admin.users.reset_mfa_modal.content', { email: user.email }),
+      submitText: t('admin.users.actions.reset_mfa'),
+      danger: true,
+    });
+    if (!confirmed) return;
+
+    try {
+      await api.delete(`/admin/users/${user.id}/mfa`);
+      user.mfaEnabled = false;
+      toast.success(t('admin.users.reset_mfa_success'));
+    } catch {
+      toast.error(t('admin.errors.action_failed'));
+    }
+  }
+
   async function deleteUser(user: SuperAdminUser) {
     const confirmed = await confirmModal.ask({
       title: t('admin.users.delete_modal.title'),
@@ -97,5 +116,5 @@ export function useSuperAdminUsers() {
     }
   }
 
-  return { ...list, toggleBan, deleteUser };
+  return { ...list, toggleBan, resetMfa, deleteUser };
 }

@@ -121,6 +121,7 @@ export function usePasskeys() {
       signalAcceptedPasskeys();
       return { ok: true };
     } catch (err: unknown) {
+      if (isPasskeyDismissed(err)) return { ok: false, dismissed: true };
       return {
         ok: false,
         dismissed: false,

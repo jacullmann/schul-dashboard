@@ -1,7 +1,14 @@
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useMfa } from '@/modules/auth/composables/useMfa';
+import { useToast } from '@/common/composables/useToast';
+import {
+  emptySecondFactor,
+  secondFactorProof,
+} from '@/modules/auth/utils/secondFactor';
 
-const CODE_PATTERN = /^\d{6}$/;
+/** From here on, a sign-in with a recovery code warns that few are left. */
+const LOW_RECOVERY_CODES = 3;
 
 interface MfaVerifyCallbacks {
   onVerified: () => void;
@@ -9,28 +16,37 @@ interface MfaVerifyCallbacks {
 }
 
 export function useMfaVerify({ onVerified, onExpired }: MfaVerifyCallbacks) {
+  const { t } = useI18n();
+  const toast = useToast();
   const { verifyMfaLogin } = useMfa();
 
-  const code = ref('');
+  const secondFactor = ref(emptySecondFactor());
   const submitting = ref(false);
   const error = ref('');
 
-  const trimmedCode = computed(() => code.value.trim());
-  const codeComplete = computed(() => CODE_PATTERN.test(trimmedCode.value));
+  const proof = computed(() => secondFactorProof(secondFactor.value));
+
+  function warnIfFewCodesLeft(left: number | null) {
+    if (left === null) return;
+    const message = t('auth.recovery_codes.used', { count: left }, left);
+    if (left <= LOW_RECOVERY_CODES) toast.warning(message);
+    else toast.info(message);
+  }
 
   async function submit() {
-    if (!codeComplete.value || submitting.value) return;
+    if (!proof.value || submitting.value) return;
     submitting.value = true;
     error.value = '';
     try {
-      const result = await verifyMfaLogin(trimmedCode.value);
+      const result = await verifyMfaLogin(proof.value);
       if (result.ok) {
+        warnIfFewCodesLeft(result.data);
         onVerified();
       } else if (result.challengeExpired) {
         onExpired();
       } else {
         error.value = result.error ?? '';
-        code.value = '';
+        secondFactor.value = emptySecondFactor(secondFactor.value.mode);
       }
     } finally {
       submitting.value = false;
@@ -42,10 +58,10 @@ export function useMfaVerify({ onVerified, onExpired }: MfaVerifyCallbacks) {
   }
 
   return {
-    code,
+    secondFactor,
     submitting,
     error,
-    codeComplete,
+    complete: computed(() => !!proof.value),
     submit,
     clearError,
   };

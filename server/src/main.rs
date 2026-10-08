@@ -11,6 +11,7 @@ mod messages;
 mod mfa;
 mod oauth;
 mod passkeys;
+mod reauth;
 mod reports;
 mod schedule;
 mod state;
@@ -121,6 +122,7 @@ async fn main() -> anyhow::Result<()> {
         .merge(mfa::routes::router())
         .merge(oauth::routes::router())
         .merge(passkeys::routes::router())
+        .merge(reauth::routes::router())
         .merge(super_admin::routes::router(state.clone()))
         .layer(common::rate_limit::global())
         .layer(middleware::from_fn_with_state(

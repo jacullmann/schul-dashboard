@@ -1,14 +1,16 @@
 use super::{archive, service::DataExportService};
-use crate::{common::extractors::AuthUser, error::AppResult, state::AppState};
+use crate::{common::extractors::RecentAuth, error::AppResult, state::AppState};
 use axum::{
     extract::State,
     http::header::{CACHE_CONTROL, CONTENT_DISPOSITION, CONTENT_TYPE},
     response::IntoResponse,
 };
 
+/// The archive holds everything about the account, so it needs a recent
+/// sign-in, as a stolen session must not be enough to take it.
 pub async fn export_data(
     State(s): State<AppState>,
-    user: AuthUser,
+    RecentAuth(user): RecentAuth,
 ) -> AppResult<impl IntoResponse> {
     let svc = DataExportService::from_state(&s);
 

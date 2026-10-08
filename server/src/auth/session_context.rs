@@ -37,6 +37,30 @@ pub async fn account_is_active(db: &PgPool, user_id: Uuid) -> AppResult<bool> {
     Ok(is_active)
 }
 
+/// Whether the account is in good standing and the session an access token
+/// was issued for has not ended. Checking the session makes signing out,
+/// ending a session or changing the password take effect on the very next
+/// request instead of when the short-lived access token expires.
+pub async fn session_is_active(db: &PgPool, user_id: Uuid, session_id: Uuid) -> AppResult<bool> {
+    let is_active = sqlx::query_scalar!(
+        r#"SELECT EXISTS (
+               SELECT 1 FROM users u
+               WHERE u.id = $1
+                 AND NOT EXISTS (SELECT 1 FROM banned_users b WHERE b.user_id = u.id)
+                 AND EXISTS (
+                     SELECT 1 FROM refresh_tokens t
+                     WHERE t.family_id = $2 AND t.user_id = u.id AND t.revoked_at IS NULL
+                 )
+           ) AS "is_active!""#,
+        user_id,
+        session_id
+    )
+    .fetch_one(db)
+    .await?;
+
+    Ok(is_active)
+}
+
 /// Where the app opens after sign-in. The last visited group only wins while
 /// the user is still a member of it, so a group they left or only visited as
 /// superadmin falls back to their newest one.

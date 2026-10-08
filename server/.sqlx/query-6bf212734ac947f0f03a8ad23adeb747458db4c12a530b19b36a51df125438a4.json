@@ -1,0 +1,30 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT (SELECT count(*) FROM passkeys WHERE user_id = $1) AS \"passkeys!\",\n                      EXISTS (\n                          SELECT 1 FROM oauth_accounts\n                          WHERE user_id = $1 AND provider = 'google'\n                      ) AS \"google!\"",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "passkeys!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 1,
+        "name": "google!",
+        "type_info": "Bool",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      null,
+      null
+    ]
+  },
+  "hash": "6bf212734ac947f0f03a8ad23adeb747458db4c12a530b19b36a51df125438a4"
+}

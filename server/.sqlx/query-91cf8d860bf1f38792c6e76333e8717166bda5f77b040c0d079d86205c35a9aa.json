@@ -1,0 +1,36 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT u.email, u.mfa_enabled AND u.mfa_secret IS NOT NULL AS \"two_factor!\"\n               FROM users u\n               JOIN oauth_accounts o ON o.user_id = u.id\n               WHERE u.id = $1 AND o.provider = 'google' AND o.provider_user_id = $2",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "email",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "users",
+            "name": "email"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "two_factor!",
+        "type_info": "Bool",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      null
+    ]
+  },
+  "hash": "91cf8d860bf1f38792c6e76333e8717166bda5f77b040c0d079d86205c35a9aa"
+}

@@ -173,6 +173,18 @@ pub async fn unban_user(
     ))
 }
 
+pub async fn reset_user_mfa(
+    State(s): State<AppState>,
+    SuperAdmin(admin): SuperAdmin,
+    Path(target): Path<Uuid>,
+) -> AppResult<Json<Value>> {
+    Ok(Json(
+        SuperAdminService::from_state(&s)
+            .reset_user_mfa(target, admin.user_id)
+            .await?,
+    ))
+}
+
 pub async fn delete_user(
     State(s): State<AppState>,
     SuperAdmin(admin): SuperAdmin,

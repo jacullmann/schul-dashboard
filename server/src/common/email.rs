@@ -1,6 +1,8 @@
 mod messages;
 mod render;
 
+pub use messages::SecurityEvent;
+
 use crate::{
     common::locale::Locale,
     config::{EMAIL_VERIFY_TTL, PASSWORD_RESET_CODE_TTL},
@@ -86,11 +88,12 @@ impl EmailService {
             .await
     }
 
-    pub async fn send_security_email(&self, to: &str, locale: Locale) -> Result<(), AppError> {
-        self.send(to, Message::password_reset_notice(locale)).await
-    }
-
-    pub async fn send_passkey_added_email(&self, to: &str, locale: Locale) -> Result<(), AppError> {
-        self.send(to, Message::passkey_added_notice(locale)).await
+    pub async fn send_security_notice(
+        &self,
+        to: &str,
+        locale: Locale,
+        event: SecurityEvent,
+    ) -> Result<(), AppError> {
+        self.send(to, Message::security_notice(locale, event)).await
     }
 }

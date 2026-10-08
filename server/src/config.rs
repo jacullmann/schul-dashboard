@@ -182,6 +182,11 @@ pub const EMAIL_VERIFY_TTL: Duration = Duration::from_secs(2 * 24 * 60 * 60);
 /// How long a passkey registration or sign-in may take, and the timeout the
 /// browser is given for it.
 pub const PASSKEY_CEREMONY_TTL: Duration = Duration::from_secs(5 * 60);
+/// How recently the user must have proven who they are to perform a sensitive
+/// action, such as adding a passkey or turning off two-factor authentication.
+pub const REAUTH_WINDOW: Duration = Duration::from_secs(10 * 60);
+/// How long the second factor may take after a Google confirmation.
+pub const REAUTH_PENDING_TTL: Duration = Duration::from_secs(5 * 60);
 
 /// `chrono` arithmetic counterpart of the TTL constants above. The values are
 /// small, fixed multiples of a second, so the conversion is always in range.
@@ -192,5 +197,6 @@ pub fn chrono_ttl(ttl: Duration) -> chrono::TimeDelta {
 pub const ACCESS_COOKIE: &str = "access_token";
 pub const REFRESH_COOKIE: &str = "refresh_token";
 pub const MFA_PENDING_COOKIE: &str = "mfa_pending_token";
+pub const REAUTH_PENDING_COOKIE: &str = "reauth_pending_token";
 pub const CSRF_COOKIE: &str = "csrf_token";
 pub const CSRF_HEADER: &str = "x-csrf-token";

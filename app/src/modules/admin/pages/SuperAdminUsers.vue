@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { Ban, Unlock, Trash2, FileText } from '@lucide/vue';
+import { Ban, Unlock, Trash2, FileText, ShieldOff } from '@lucide/vue';
 import {
   useSuperAdminUsers,
   USER_STATUS_FILTERS,
@@ -26,6 +26,7 @@ const {
   toggleSort,
   reload,
   toggleBan,
+  resetMfa,
   deleteUser,
 } = useSuperAdminUsers();
 const { fmtDate } = useSuperAdminFormat();
@@ -144,6 +145,17 @@ const selectedUser = ref<SuperAdminUser | null>(null);
                     size="sm"
                     :icon="FileText"
                     @click="selectedUser = u"
+                  />
+                </BaseTooltip>
+                <BaseTooltip
+                  v-if="u.mfaEnabled"
+                  :content="t('admin.users.actions.reset_mfa')"
+                  placement="bottom"
+                >
+                  <BaseButton
+                    size="sm"
+                    :icon="ShieldOff"
+                    @click="resetMfa(u)"
                   />
                 </BaseTooltip>
                 <template v-if="!u.isSuperadmin">

@@ -1,6 +1,6 @@
 use crate::config::{
     ACCESS_COOKIE, ACCESS_TOKEN_TTL, BaseCookieOptions, MFA_PENDING_COOKIE, MFA_PENDING_TTL,
-    REFRESH_COOKIE, REFRESH_TOKEN_TTL,
+    REAUTH_PENDING_COOKIE, REAUTH_PENDING_TTL, REFRESH_COOKIE, REFRESH_TOKEN_TTL,
 };
 use cookie::time::Duration;
 use cookie::{Cookie, SameSite};
@@ -74,6 +74,26 @@ pub fn mfa_pending_cookie(token: String, opts: &BaseCookieOptions) -> Cookie<'st
 
 pub fn clear_mfa_pending_cookie(opts: &BaseCookieOptions) -> Cookie<'static> {
     let c = base_cookie(MFA_PENDING_COOKIE, String::new(), opts);
+
+    let mut c = with_ttl(c, 0);
+
+    c.set_path("/");
+
+    c
+}
+
+pub fn reauth_pending_cookie(token: String, opts: &BaseCookieOptions) -> Cookie<'static> {
+    let c = base_cookie(REAUTH_PENDING_COOKIE, token, opts);
+
+    let mut c = with_ttl(c, REAUTH_PENDING_TTL.as_secs());
+
+    c.set_path("/");
+
+    c
+}
+
+pub fn clear_reauth_pending_cookie(opts: &BaseCookieOptions) -> Cookie<'static> {
+    let c = base_cookie(REAUTH_PENDING_COOKIE, String::new(), opts);
 
     let mut c = with_ttl(c, 0);
 
