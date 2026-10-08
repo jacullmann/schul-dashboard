@@ -7,6 +7,8 @@ import {
   ArrowLeft,
   CalendarDays,
   LayoutDashboard,
+  Palette,
+  Settings,
   ListTodo,
   Shield,
   UserRound,
@@ -19,6 +21,8 @@ import { type AdminNavItem } from '@/layouts/AdminLayout.vue';
 import AccountSettingsSecurity from '@/modules/auth/components/AccountSettingsSecurity.vue';
 import AccountSettingsAccount from '@/modules/auth/components/AccountSettingsAccount.vue';
 import AccountSettingsDashboard from '@/modules/auth/components/AccountSettingsDashboard.vue';
+import AccountSettingsGeneral from '@/modules/auth/components/AccountSettingsGeneral.vue';
+import AccountSettingsAppearance from '@/modules/auth/components/AccountSettingsAppearance.vue';
 import AccountSettingsTasks from '@/modules/auth/components/AccountSettingsTasks.vue';
 import AccountSettingsSchedule from '@/modules/auth/components/AccountSettingsSchedule.vue';
 import LegalLinks from '@/modules/auth/components/LegalLinks.vue';
@@ -36,6 +40,16 @@ const { leave: leaveSettings } = useReturnRoute(homeRoute, [
 ]);
 
 const navItems = computed<AdminNavItem[]>(() => [
+  {
+    id: 'general',
+    label: t('auth.account_settings.general.title'),
+    icon: markRaw(Settings),
+  },
+  {
+    id: 'appearance',
+    label: t('auth.account_settings.appearance.title'),
+    icon: markRaw(Palette),
+  },
   {
     id: 'security',
     label: t('auth.account_settings.security.title'),
@@ -214,6 +228,10 @@ function goBack() {
               :email="user?.email ?? ''"
               @delete-account="deleteAccountModal.open()"
             />
+
+            <AccountSettingsGeneral v-else-if="activeTab === 'general'" />
+
+            <AccountSettingsAppearance v-else-if="activeTab === 'appearance'" />
 
             <AccountSettingsDashboard v-else-if="activeTab === 'dashboard'" />
 
