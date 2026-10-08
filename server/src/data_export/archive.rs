@@ -157,6 +157,7 @@ mod tests {
             },
             security: SecurityExport {
                 passkeys: vec![],
+                recovery_codes: vec![],
                 sessions: vec![],
                 events: vec![],
                 password_resets: vec![],

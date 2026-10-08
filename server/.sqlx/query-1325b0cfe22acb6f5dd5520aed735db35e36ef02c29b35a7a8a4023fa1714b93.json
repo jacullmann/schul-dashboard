@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'auth:reauth:locked', $2)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Jsonb"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "1325b0cfe22acb6f5dd5520aed735db35e36ef02c29b35a7a8a4023fa1714b93"
+}

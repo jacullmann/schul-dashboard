@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "DELETE FROM passkey_challenges WHERE id = $1 RETURNING state, expires_at",
+  "query": "DELETE FROM passkey_challenges WHERE id = $1 AND user_id IS NULL\n               RETURNING state, expires_at",
   "describe": {
     "columns": [
       {
@@ -36,5 +36,5 @@
       false
     ]
   },
-  "hash": "431ec9a293eebb8b34a68b169426e69bac2614c91cf8d2f47fc68c6332b1c7b6"
+  "hash": "f11c2b959d3ab5134017af0aebe95862f420b4716f466bb5dd5797aef99a32f6"
 }

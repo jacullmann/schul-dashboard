@@ -52,14 +52,14 @@ pub(crate) fn must_be_accepted(accepted: &bool) -> Result<(), validator::Validat
 
 #[derive(Debug, Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
-pub struct VerifyMfaDto {
-    #[validate(length(equal = 6, message = "MFA Code must be exactly 6 digits."))]
-    pub code: String,
+pub struct ForgotPasswordDto {
+    #[validate(email)]
+    pub email: String,
 }
 
 #[derive(Debug, Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
-pub struct ForgotPasswordDto {
+pub struct ResendVerificationDto {
     #[validate(email)]
     pub email: String,
 }
@@ -74,10 +74,17 @@ pub struct ResetPasswordVerifyDto {
     pub code: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct ResetPasswordDto {
+    #[validate(length(max = 2048))]
     pub reset_token: String,
+
+    #[validate(length(
+        min = 8,
+        max = 255,
+        message = "Password must be at least 8 characters long and contain letters and numbers."
+    ))]
     pub password: String,
 }
 

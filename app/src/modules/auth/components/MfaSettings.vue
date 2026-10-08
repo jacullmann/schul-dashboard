@@ -1,5 +1,12 @@
 <script setup lang="ts">
-import { ref, computed, nextTick, onUnmounted, useTemplateRef } from 'vue';
+import {
+  ref,
+  computed,
+  nextTick,
+  onMounted,
+  onUnmounted,
+  useTemplateRef,
+} from 'vue';
 import {
   ShieldCheck,
   ShieldOff,
@@ -8,11 +15,20 @@ import {
   Clock,
   AlertCircle,
   AlertTriangle,
+  LifeBuoy,
 } from '@lucide/vue';
 import { useMfa } from '@/modules/auth/composables/useMfa';
 import { useI18n } from 'vue-i18n';
+import RecoveryCodes from '@/modules/auth/components/RecoveryCodes.vue';
+import { useToast } from '@/common/composables/useToast';
+import { useConfirmModal } from '@/stores/modalStore';
+
+/** Below this many unused codes, the user is nudged to create new ones. */
+const LOW_RECOVERY_CODES = 3;
 
 const { t } = useI18n();
+const toast = useToast();
+const confirmModal = useConfirmModal();
 
 defineProps<{
   mfaEnabled: boolean;
@@ -23,9 +39,13 @@ const emit = defineEmits<{
 }>();
 
 const {
+  recoveryCodesLeft,
+  mfaError,
+  fetchMfaStatus,
   startMfaSetup,
   activateMfa: doActivateMfa,
   deactivateMfa: doDeactivateMfa,
+  regenerateRecoveryCodes: doRegenerateRecoveryCodes,
 } = useMfa();
 
 const setupMode = ref(false);
@@ -38,14 +58,18 @@ const verifyError = ref<string | null>(null);
 const loading = ref(false);
 const copied = ref(false);
 
-const deactivateMode = ref(false);
-const deactivateCode = ref('');
-const deactivateError = ref<string | null>(null);
+/** Shown once after they are created; only their hashes are stored. */
+const newRecoveryCodes = ref<string[] | null>(null);
 
 const codeInput = useTemplateRef<{ focus: () => void }>('codeInput');
-const deactivateCodeInput = useTemplateRef<{ focus: () => void }>(
-  'deactivateCodeInput',
+
+const recoveryCodesLow = computed(
+  () =>
+    recoveryCodesLeft.value !== null &&
+    recoveryCodesLeft.value <= LOW_RECOVERY_CODES,
 );
+
+onMounted(() => void fetchMfaStatus());
 
 let timerInterval: ReturnType<typeof setInterval> | null = null;
 const remainingTime = ref('');
@@ -81,6 +105,8 @@ async function startSetup() {
   verifyError.value = null;
 
   const result = await startMfaSetup();
+
+  if (!result && mfaError.value) toast.error(mfaError.value);
 
   if (result) {
     qrCodeUrl.value = result.qrCode;
@@ -144,6 +170,7 @@ async function activateMfa() {
 
   if (result.ok) {
     cancelSetup();
+    newRecoveryCodes.value = result.data;
     emit('mfaChanged', true);
   } else {
     verifyError.value = result.error || t('auth.mfa.verify.errors.failed');
@@ -155,41 +182,43 @@ async function activateMfa() {
   loading.value = false;
 }
 
-function startDeactivate() {
-  deactivateMode.value = true;
-  deactivateCode.value = '';
-  deactivateError.value = null;
-
-  void nextTick(() => {
-    deactivateCodeInput.value?.focus();
+async function deactivate() {
+  const confirmed = await confirmModal.ask({
+    title: t('auth.mfa.deactivate.title'),
+    content: t('auth.mfa.deactivate.warning'),
+    submitText: t('auth.mfa.actions.deactivate'),
+    danger: true,
   });
-}
-
-function cancelDeactivate() {
-  deactivateMode.value = false;
-  deactivateCode.value = '';
-  deactivateError.value = null;
-}
-
-async function confirmDeactivate() {
-  if (deactivateCode.value.length !== 6) return;
+  if (!confirmed) return;
 
   loading.value = true;
-  deactivateError.value = null;
-
-  const result = await doDeactivateMfa(deactivateCode.value);
+  const result = await doDeactivateMfa();
+  loading.value = false;
 
   if (result.ok) {
-    cancelDeactivate();
     emit('mfaChanged', false);
-  } else {
-    deactivateError.value = result.error || t('auth.mfa.verify.errors.failed');
-    deactivateCode.value = '';
-    await nextTick();
-    deactivateCodeInput.value?.focus();
+  } else if (result.error) {
+    toast.error(result.error);
   }
+}
 
+async function regenerateRecoveryCodes() {
+  const confirmed = await confirmModal.ask({
+    title: t('auth.recovery_codes.regenerate_title'),
+    content: t('auth.recovery_codes.regenerate_warning'),
+    submitText: t('auth.recovery_codes.regenerate'),
+  });
+  if (!confirmed) return;
+
+  loading.value = true;
+  const result = await doRegenerateRecoveryCodes();
   loading.value = false;
+
+  if (result.ok) {
+    newRecoveryCodes.value = result.data;
+  } else if (result.error) {
+    toast.error(result.error);
+  }
 }
 
 onUnmounted(() => {
@@ -201,7 +230,13 @@ onUnmounted(() => {
 
 <template>
   <BaseFormContent>
-    <template v-if="!setupMode">
+    <RecoveryCodes
+      v-if="newRecoveryCodes"
+      :codes="newRecoveryCodes"
+      @done="newRecoveryCodes = null"
+    />
+
+    <template v-else-if="!setupMode">
       <div class="flex items-center gap-2 p-3 mx-auto">
         <div
           class="flex items-center justify-center size-11 text-on-ghost-muted"
@@ -231,7 +266,7 @@ onUnmounted(() => {
     </template>
 
     <BaseButton
-      v-if="!mfaEnabled && !setupMode"
+      v-if="!mfaEnabled && !setupMode && !newRecoveryCodes"
       :disabled="loading"
       variant="action"
       full
@@ -381,56 +416,38 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <BaseButton
-      v-if="mfaEnabled && !deactivateMode"
-      variant="danger"
-      full
-      @click="startDeactivate"
-    >
-      {{ t('auth.mfa.actions.deactivate') }}
-    </BaseButton>
-
-    <div v-if="deactivateMode" class="flex flex-col gap-4">
+    <template v-if="mfaEnabled && !setupMode && !newRecoveryCodes">
       <div
-        class="flex gap-3 p-3 px-4 bg-danger-hover border border-danger rounded-lg text-danger"
+        class="flex gap-3 p-3 px-4 rounded-lg border"
+        :class="
+          recoveryCodesLow
+            ? 'bg-danger-hover border-danger text-danger'
+            : 'bg-surface border-ghost-border text-on-ghost-muted'
+        "
       >
-        <AlertTriangle :size="24" class="flex-shrink-0 my-auto" />
-        <p class="m-0! text-on-danger! text-sm/[1.4]">
-          {{ t('auth.mfa.deactivate.warning') }}
+        <component
+          :is="recoveryCodesLow ? AlertTriangle : LifeBuoy"
+          :size="20"
+          class="flex-shrink-0 my-auto"
+        />
+        <p class="m-0! text-sm/[1.4] text-on-ghost">
+          {{
+            t(
+              'auth.recovery_codes.remaining',
+              { count: recoveryCodesLeft ?? 0 },
+              recoveryCodesLeft ?? 0,
+            )
+          }}
         </p>
       </div>
 
-      <BaseCodeInput
-        id="mfa-deactivate-code"
-        ref="deactivateCodeInput"
-        v-model="deactivateCode"
-        :aria-label="t('auth.mfa.verify.code')"
-        :invalid="!!deactivateError"
-        @input="deactivateError = null"
-        @keyup.enter="confirmDeactivate"
-      />
+      <BaseButton :disabled="loading" full @click="regenerateRecoveryCodes">
+        {{ t('auth.recovery_codes.regenerate') }}
+      </BaseButton>
 
-      <div
-        v-if="deactivateError"
-        class="flex items-center justify-center gap-1.5 text-sm text-danger"
-      >
-        <AlertCircle :size="20" />
-        {{ deactivateError }}
-      </div>
-
-      <BaseRow justify="end">
-        <BaseButton variant="ghost" @click="cancelDeactivate">{{
-          t('common.buttons.cancel')
-        }}</BaseButton>
-        <BaseButton
-          :disabled="deactivateCode.length !== 6 || loading"
-          variant="danger"
-          :loading="loading"
-          @click="confirmDeactivate"
-        >
-          {{ t('auth.mfa.actions.deactivate') }}
-        </BaseButton>
-      </BaseRow>
-    </div>
+      <BaseButton :disabled="loading" variant="danger" full @click="deactivate">
+        {{ t('auth.mfa.actions.deactivate') }}
+      </BaseButton>
+    </template>
   </BaseFormContent>
 </template>

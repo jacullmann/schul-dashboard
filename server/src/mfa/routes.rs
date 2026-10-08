@@ -10,6 +10,7 @@ pub fn router() -> Router<AppState> {
     let sensitive = Router::new()
         .route("/mfa/activate", post(activate))
         .route("/mfa/deactivate", post(deactivate))
+        .route("/mfa/recovery-codes", post(regenerate_recovery_codes))
         .layer(rate_limit::per_client(10, Duration::from_secs(2)));
 
     let normal = Router::new()

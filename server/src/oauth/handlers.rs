@@ -4,7 +4,8 @@ use super::{
 };
 use crate::{
     auth::service::{ClientInfo, LoginResult},
-    common::extractors::{AuthUser, ClientIp, UserAgent, ValidatedJson},
+    common::extractors::{AuthUser, ClientIp, RecentAuth, UserAgent, ValidatedJson},
+    config::REFRESH_COOKIE,
     error::AppResult,
     state::AppState,
 };
@@ -34,10 +35,11 @@ fn redirect_to_google(s: &AppState, intent: OAuthIntent) -> AppResult<(CookieJar
 }
 
 /// A POST rather than a navigation: it needs the CSRF check and lets the
-/// client refresh an expired access token before the flow starts.
+/// client refresh an expired access token before the flow starts. A linked
+/// Google account is a lasting way in, so it needs a recent sign-in.
 pub async fn start_google_link(
     State(s): State<AppState>,
-    user: AuthUser,
+    RecentAuth(user): RecentAuth,
 ) -> AppResult<(CookieJar, Json<GoogleAuthUrlResponse>)> {
     let (url, jar) = OAuthService::from_state(&s).build_google_auth_url(OAuthIntent::Link {
         user_id: user.user_id,
@@ -52,14 +54,16 @@ pub async fn handle_google_callback(
     jar: CookieJar,
     Query(q): Query<OAuthCallbackQuery>,
 ) -> (CookieJar, Redirect) {
-    let state_cookie = jar.get("oauth_state_token").map(|c| c.value().to_string());
+    let state_cookie = jar.get("oauth_state_token").map(|c| c.value());
+    let refresh_token = jar.get(REFRESH_COOKIE).map(|c| c.value());
 
     let (new_jar, url) = OAuthService::from_state(&s)
         .handle_callback(
             q.code.as_deref(),
             q.state.as_deref(),
             q.error.as_deref(),
-            state_cookie.as_deref(),
+            state_cookie,
+            refresh_token,
             ClientInfo {
                 user_agent: ua.as_deref(),
                 ip: ip.as_deref(),
@@ -139,7 +143,7 @@ fn sign_in_response(
 
 pub async fn unlink_google_account(
     State(s): State<AppState>,
-    user: AuthUser,
+    RecentAuth(user): RecentAuth,
 ) -> AppResult<Json<Value>> {
     Ok(Json(
         OAuthService::from_state(&s)

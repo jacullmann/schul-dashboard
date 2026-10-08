@@ -26,6 +26,7 @@ pub fn router(state: AppState) -> Router<AppState> {
             patch(change_membership_role),
         )
         .route("/admin/users/{id}/ban", post(ban_user).delete(unban_user))
+        .route("/admin/users/{id}/mfa", delete(reset_user_mfa))
         .route("/admin/reports", get(get_reports))
         .route("/admin/reports/{id}", delete(delete_report))
         .merge(system_announcements::routes::admin_router())

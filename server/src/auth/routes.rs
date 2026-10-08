@@ -18,6 +18,7 @@ pub fn router() -> Router<AppState> {
     // not hold up sign-ins.
     let outgoing_mail = Router::new()
         .route("/auth/register", post(register))
+        .route("/auth/verify/resend", post(resend_verification))
         .route("/auth/forgot", post(forgot_password))
         .layer(rate_limit::outgoing_mail());
 
@@ -35,6 +36,8 @@ pub fn router() -> Router<AppState> {
         .route("/auth/me", get(get_me).delete(delete_me))
         .route("/auth/verify", get(verify_email))
         .route("/auth/change-password", post(change_password))
+        .route("/auth/password", delete(remove_password))
+        .route("/auth/sign-in-methods", get(get_sign_in_methods))
         .route("/auth/groups", get(get_groups))
         .route("/auth/refresh", post(refresh))
         .route("/auth/logout", post(logout))

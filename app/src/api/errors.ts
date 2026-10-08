@@ -7,11 +7,48 @@ export function apiErrorCode(err: unknown): string | undefined {
   return typeof code === 'string' ? code : undefined;
 }
 
+/**
+ * Like `apiErrorCode`, but also for requests made with `responseType: 'blob'`,
+ * whose error body arrives as a Blob instead of parsed JSON.
+ */
+export async function readApiErrorCode(
+  err: unknown,
+): Promise<string | undefined> {
+  if (!isAxiosError(err)) return undefined;
+  const data: unknown = err.response?.data;
+  if (!(data instanceof Blob)) return apiErrorCode(err);
+
+  try {
+    const body: unknown = JSON.parse(await data.text());
+    const code =
+      typeof body === 'object' && body !== null && 'code' in body
+        ? body.code
+        : undefined;
+    return typeof code === 'string' ? code : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+const SECONDS_PER_MINUTE = 60;
+
+/** Whole minutes until a locked action may be tried again, at least one. */
+export function retryAfterMinutes(err: unknown): number {
+  const seconds = isAxiosError<{ retryAfter?: unknown }>(err)
+    ? err.response?.data?.retryAfter
+    : undefined;
+  return typeof seconds === 'number'
+    ? Math.max(1, Math.ceil(seconds / SECONDS_PER_MINUTE))
+    : 1;
+}
+
 export function apiErrorStatus(err: unknown): number | undefined {
   return isAxiosError(err) ? err.response?.status : undefined;
 }
 
 const UNAUTHORIZED = 401;
+const FORBIDDEN = 403;
+export const REAUTH_REQUIRED = 'REAUTH_REQUIRED';
 const TOO_MANY_REQUESTS = 429;
 const FIRST_SERVER_ERROR = 500;
 
@@ -30,6 +67,29 @@ export function isAccessTokenRejected(err: unknown): boolean {
     isAxiosError<{ requiresAuth?: unknown }>(err) &&
     err.response?.status === UNAUTHORIZED &&
     err.response.data?.requiresAuth === true
+  );
+}
+
+/**
+ * Whether the API asks the user to confirm who they are before a sensitive
+ * action. The session itself is fine, which is why this is a 403.
+ */
+export async function isReauthRequired(err: unknown): Promise<boolean> {
+  return (
+    apiErrorStatus(err) === FORBIDDEN &&
+    (await readApiErrorCode(err)) === REAUTH_REQUIRED
+  );
+}
+
+/**
+ * Whether a request failed only because the user cancelled confirming who
+ * they are. That was their choice, so it is no error worth showing. A blob
+ * response has no readable body here, but its only 403 is this one.
+ */
+export function isReauthDeclined(err: unknown): boolean {
+  if (apiErrorStatus(err) !== FORBIDDEN || !isAxiosError(err)) return false;
+  return (
+    err.response?.data instanceof Blob || apiErrorCode(err) === REAUTH_REQUIRED
   );
 }
 

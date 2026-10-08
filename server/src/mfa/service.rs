@@ -1,11 +1,18 @@
 use super::{
-    second_factor::{self, CodeCheck},
+    recovery_codes::{self, RecoveryCodeHasher},
     totp::Totp,
 };
 use crate::{
-    auth::token::{MFA_CHANGE, TokenService},
-    common::{encryption::EncryptionService, jwt::now_secs},
-    error::{AppError, AppResult},
+    auth::{
+        security_notice,
+        token::{MFA_CHANGE, TokenService},
+    },
+    common::{
+        email::{EmailService, SecurityEvent},
+        encryption::EncryptionService,
+        jwt::now_secs,
+    },
+    error::{AppError, AppResult, AuthFailure},
     state::AppState,
 };
 use serde_json::{Value, json};
@@ -15,7 +22,9 @@ use uuid::Uuid;
 pub struct MfaService {
     db: PgPool,
     enc: EncryptionService,
-    state: AppState,
+    recovery_codes: RecoveryCodeHasher,
+    email: EmailService,
+    tokens: TokenService,
 }
 
 impl MfaService {
@@ -23,7 +32,9 @@ impl MfaService {
         Self {
             db: state.db.clone(),
             enc: state.encryption.clone(),
-            state: state.clone(),
+            recovery_codes: state.recovery_codes.clone(),
+            email: state.email.clone(),
+            tokens: TokenService::from_state(state),
         }
     }
 
@@ -33,7 +44,17 @@ impl MfaService {
             .await?
             .ok_or_else(|| AppError::not_found("User not found."))?;
 
-        Ok(json!({ "ok": true, "mfaEnabled": user.mfa_enabled }))
+        let recovery_codes_left = if user.mfa_enabled {
+            Some(recovery_codes::remaining(&self.db, user_id).await?)
+        } else {
+            None
+        };
+
+        Ok(json!({
+            "ok": true,
+            "mfaEnabled": user.mfa_enabled,
+            "recoveryCodesLeft": recovery_codes_left,
+        }))
     }
 
     pub async fn setup(&self, user_id: Uuid) -> AppResult<Value> {
@@ -98,7 +119,10 @@ impl MfaService {
         Ok(json!({ "ok": true, "qrCode": qr_b64, "secret": secret_b32, "expiresAt": expires_at }))
     }
 
-    pub async fn activate(&self, user_id: Uuid, code: &str) -> AppResult<Value> {
+    /// Turns the factor on and hands out the recovery codes, which are shown
+    /// this once. Every other session is signed out; the one that turned the
+    /// factor on stays.
+    pub async fn activate(&self, user_id: Uuid, session_id: Uuid, code: &str) -> AppResult<Value> {
         let pending = sqlx::query!(
             r#"SELECT p.encrypted_secret, u.email
                FROM mfa_pending_secrets p
@@ -145,6 +169,8 @@ impl MfaService {
         .execute(&mut *tx)
         .await?;
 
+        let codes = recovery_codes::replace(&mut tx, &self.recovery_codes, user_id).await?;
+
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'mfa:activated', '{}'::jsonb)"#,
             user_id
@@ -154,28 +180,71 @@ impl MfaService {
 
         tx.commit().await?;
 
-        TokenService::from_state(&self.state)
-            .revoke_all_for_user(user_id, MFA_CHANGE, None)
+        self.tokens
+            .revoke_all_for_user(user_id, MFA_CHANGE, Some(session_id))
             .await?;
+        security_notice::notify(
+            &self.db,
+            &self.email,
+            user_id,
+            SecurityEvent::TwoFactorEnabled,
+        );
 
-        Ok(json!({ "ok": true, "message": "MFA activated successfully." }))
+        Ok(json!({ "ok": true, "recoveryCodes": codes }))
     }
 
+    /// Replaces the recovery codes, e.g. once most are used up or the old ones
+    /// may have been seen by someone else.
+    pub async fn regenerate_recovery_codes(&self, user_id: Uuid) -> AppResult<Value> {
+        let mut tx = self.db.begin().await?;
+
+        let enabled = sqlx::query_scalar!(
+            r#"SELECT mfa_enabled AND mfa_secret IS NOT NULL AS "enabled!"
+               FROM users WHERE id = $1 FOR UPDATE"#,
+            user_id
+        )
+        .fetch_optional(&mut *tx)
+        .await?
+        .ok_or_else(|| AppError::not_found("User not found."))?;
+
+        if !enabled {
+            return Err(AppError::bad_request("MFA is not enabled."));
+        }
+
+        let codes = recovery_codes::replace(&mut tx, &self.recovery_codes, user_id).await?;
+
+        sqlx::query!(
+            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'mfa:recovery_codes:regenerated', '{}'::jsonb)"#,
+            user_id
+        )
+        .execute(&mut *tx)
+        .await?;
+
+        tx.commit().await?;
+
+        security_notice::notify(
+            &self.db,
+            &self.email,
+            user_id,
+            SecurityEvent::RecoveryCodesRegenerated,
+        );
+
+        Ok(json!({ "ok": true, "recoveryCodes": codes }))
+    }
+
+    /// The caller has just confirmed who they are, which with the factor on
+    /// already took the factor, so no further code is asked for.
     pub async fn deactivate(
         &self,
         user_id: Uuid,
-        code: &str,
+        session_id: Uuid,
         ip: Option<&str>,
     ) -> AppResult<Value> {
-        if second_factor::check_code(&self.db, &self.enc, user_id, code).await?
-            == CodeCheck::Rejected
-        {
-            return Err(invalid_code());
-        }
-
         let mut tx = self.db.begin().await?;
 
-        disable_mfa(&mut tx, user_id).await?;
+        if !disable_mfa(&mut tx, user_id).await? {
+            return Err(AppError::bad_request("MFA is not enabled."));
+        }
 
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'mfa:deactivated', $2)"#,
@@ -187,32 +256,43 @@ impl MfaService {
 
         tx.commit().await?;
 
-        TokenService::from_state(&self.state)
-            .revoke_all_for_user(user_id, MFA_CHANGE, None)
+        self.tokens
+            .revoke_all_for_user(user_id, MFA_CHANGE, Some(session_id))
             .await?;
+        security_notice::notify(
+            &self.db,
+            &self.email,
+            user_id,
+            SecurityEvent::TwoFactorDisabled,
+        );
 
         Ok(json!({ "ok": true, "message": "MFA deactivated successfully." }))
     }
 }
 
-/// Removes the second factor together with its attempt state, so a factor set
-/// up later starts without inherited misses or a stale last-used step.
-pub async fn disable_mfa(conn: &mut PgConnection, user_id: Uuid) -> AppResult<()> {
-    sqlx::query!(
+/// Removes the second factor together with its recovery codes and attempt
+/// state, so a factor set up later starts without inherited misses or a stale
+/// last-used step. Returns whether the factor was on.
+pub async fn disable_mfa(conn: &mut PgConnection, user_id: Uuid) -> AppResult<bool> {
+    recovery_codes::delete_all(&mut *conn, user_id).await?;
+
+    let was_enabled = sqlx::query!(
         r#"UPDATE users
            SET mfa_enabled = false, mfa_secret = NULL, mfa_failed_attempts = 0,
                mfa_locked_until = NULL, mfa_last_used_step = NULL
-           WHERE id = $1"#,
+           WHERE id = $1 AND mfa_enabled
+           RETURNING id"#,
         user_id
     )
-    .execute(conn)
-    .await?;
+    .fetch_optional(conn)
+    .await?
+    .is_some();
 
-    Ok(())
+    Ok(was_enabled)
 }
 
-/// Codes for setting up or removing the factor come from a signed-in user, who
-/// must not be sent to refresh their session, so this is no 401.
+/// The code that confirms a new factor comes from a signed-in user, who must
+/// not be sent to refresh their session, so this is no 401.
 fn invalid_code() -> AppError {
-    AppError::bad_request("Authentication failed.")
+    AuthFailure::InvalidSecondFactor.into()
 }

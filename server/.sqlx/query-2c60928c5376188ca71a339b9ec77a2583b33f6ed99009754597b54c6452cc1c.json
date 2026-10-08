@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE users\n               SET password_hash = NULL, reauth_failed_attempts = 0, reauth_locked_until = NULL\n               WHERE id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "2c60928c5376188ca71a339b9ec77a2583b33f6ed99009754597b54c6452cc1c"
+}

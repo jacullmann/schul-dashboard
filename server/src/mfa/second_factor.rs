@@ -1,63 +1,107 @@
-//! Checks a code against an account's active second factor.
+//! Checks a proof of the second factor: a code from the authenticator app, or
+//! one of the recovery codes that stand in for it.
 //!
-//! A six-digit code is guessable, so wrong codes are counted per account
-//! rather than per IP address: an attacker who knows the password could
-//! otherwise spread guesses over as many addresses as they control. Every run
-//! of consecutive misses locks the factor for twice as long as the previous
-//! one, which keeps the expected number of guesses negligible while a user who
-//! mistypes a few times is barely slowed down.
+//! Both are guessable in principle, so wrong ones are counted per account
+//! rather than per IP address (see [`lockout`]); an attacker who knows the
+//! password could otherwise spread guesses over as many addresses as they
+//! control.
 
-use super::totp::{TimeStep, Totp};
+use super::{
+    recovery_codes::{self, RecoveryCodeHasher},
+    totp::{TimeStep, Totp},
+};
 use crate::{
-    common::{encryption::EncryptionService, jwt::now_secs},
+    common::{email::SecurityEvent, encryption::EncryptionService, jwt::now_secs, lockout},
     error::{AppError, AppResult},
 };
-use chrono::{TimeDelta, Utc};
+use chrono::Utc;
+use serde::Deserialize;
 use serde_json::json;
 use sqlx::PgPool;
 use uuid::Uuid;
+use validator::{Validate, ValidationError, ValidationErrors};
 
-const MISSES_PER_LOCK: i32 = 5;
-const FIRST_LOCK: TimeDelta = TimeDelta::minutes(5);
-const LONGEST_LOCK: TimeDelta = TimeDelta::hours(24);
+const TOTP_DIGITS: usize = 6;
+/// Generous for a ten-symbol code typed with spaces or dashes.
+const RECOVERY_CODE_MAX_CHARS: usize = 32;
+
+/// What the user offers as their second factor, sent as `{ "code": "…" }` or
+/// `{ "recoveryCode": "…" }`.
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum SecondFactorProof {
+    Code(String),
+    RecoveryCode(String),
+}
+
+impl Validate for SecondFactorProof {
+    fn validate(&self) -> Result<(), ValidationErrors> {
+        let (field, valid) = match self {
+            Self::Code(code) => ("code", code.chars().count() == TOTP_DIGITS),
+            Self::RecoveryCode(code) => (
+                "recoveryCode",
+                code.chars().count() <= RECOVERY_CODE_MAX_CHARS,
+            ),
+        };
+
+        if valid {
+            return Ok(());
+        }
+
+        let mut errors = ValidationErrors::new();
+        errors.add(field, ValidationError::new("length"));
+        Err(errors)
+    }
+}
+
+/// The keys a second-factor check needs: the one TOTP secrets are encrypted
+/// with and the one recovery codes are hashed with.
+#[derive(Clone, Copy)]
+pub struct SecondFactorKeys<'a> {
+    pub encryption: &'a EncryptionService,
+    pub recovery_codes: &'a RecoveryCodeHasher,
+}
 
 #[must_use]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CodeCheck {
-    Accepted,
+    Accepted(Verified),
     Rejected,
 }
 
-/// How long the factor locks after `consecutive_misses`, if this miss
-/// completes a run.
-fn lock_after(consecutive_misses: i32) -> Option<TimeDelta> {
-    if consecutive_misses <= 0 || consecutive_misses % MISSES_PER_LOCK != 0 {
-        return None;
-    }
-
-    let doublings = u32::try_from(consecutive_misses / MISSES_PER_LOCK - 1).ok()?;
-    let lock = 2_i32
-        .checked_pow(doublings)
-        .and_then(|factor| FIRST_LOCK.checked_mul(factor))
-        .unwrap_or(LONGEST_LOCK);
-
-    Some(lock.min(LONGEST_LOCK))
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Verified {
+    AuthenticatorApp,
+    /// A recovery code was used up; the owner is told, with the count left.
+    RecoveryCode {
+        remaining: usize,
+    },
 }
 
-/// Verifies `code` for the user's enabled second factor and records the
-/// outcome. A locked factor fails with [`AppError::MfaLocked`] without the code
-/// being looked at, as does the miss that starts a lock; an account without an
-/// enabled factor is `Rejected`.
-pub async fn check_code(
+impl Verified {
+    /// What the account owner is told about this proof, if anything.
+    pub fn security_event(self) -> Option<SecurityEvent> {
+        match self {
+            Self::AuthenticatorApp => None,
+            Self::RecoveryCode { remaining } => Some(SecurityEvent::RecoveryCodeUsed { remaining }),
+        }
+    }
+}
+
+/// Verifies `proof` for the user's enabled second factor and records the
+/// outcome. A locked factor fails with [`AppError::MfaLocked`] without the
+/// proof being looked at, as does the miss that starts a lock; an account
+/// without an enabled factor is `Rejected`.
+pub async fn check(
     db: &PgPool,
-    enc: &EncryptionService,
+    keys: SecondFactorKeys<'_>,
     user_id: Uuid,
-    code: &str,
+    proof: &SecondFactorProof,
 ) -> AppResult<CodeCheck> {
     let mut tx = db.begin().await?;
 
     // The row lock serialises concurrent attempts, so parallel requests cannot
-    // each see a counter below the limit.
+    // each see a counter below the limit, nor redeem one recovery code twice.
     let Some(user) = sqlx::query!(
         r#"SELECT email, mfa_secret AS "mfa_secret!", mfa_failed_attempts,
                   mfa_locked_until, mfa_last_used_step
@@ -81,15 +125,25 @@ pub async fn check_code(
         });
     }
 
-    let totp = Totp::from_stored(enc, user.mfa_secret, user_id, &user.email).await?;
-    let last_used = user.mfa_last_used_step.map(TimeStep::from_db);
-    let fresh_step = totp
-        .matching_step(code, now_secs())
-        .filter(|&step| last_used.is_none_or(|last| step > last));
+    let verified = match proof {
+        SecondFactorProof::Code(code) => {
+            let totp =
+                Totp::from_stored(keys.encryption, user.mfa_secret, user_id, &user.email).await?;
+            let last_used = user.mfa_last_used_step.map(TimeStep::from_db);
+            totp.matching_step(code, now_secs())
+                .filter(|&step| last_used.is_none_or(|last| step > last))
+                .map(|step| (Verified::AuthenticatorApp, Some(step)))
+        }
+        SecondFactorProof::RecoveryCode(code) => {
+            recovery_codes::redeem(&mut tx, keys.recovery_codes, user_id, code)
+                .await?
+                .map(|remaining| (Verified::RecoveryCode { remaining }, None))
+        }
+    };
 
-    let Some(step) = fresh_step else {
+    let Some((verified, step)) = verified else {
         let misses = user.mfa_failed_attempts.saturating_add(1);
-        let lock = lock_after(misses);
+        let lock = lockout::lock_after(misses);
 
         sqlx::query!(
             r#"UPDATE users SET mfa_failed_attempts = $2, mfa_locked_until = $3 WHERE id = $1"#,
@@ -120,43 +174,59 @@ pub async fn check_code(
         };
     };
 
+    // A recovery code leaves the last used step alone: the authenticator's
+    // codes stay single-use either way.
     sqlx::query!(
         r#"UPDATE users
-           SET mfa_failed_attempts = 0, mfa_locked_until = NULL, mfa_last_used_step = $2
+           SET mfa_failed_attempts = 0, mfa_locked_until = NULL,
+               mfa_last_used_step = COALESCE($2, mfa_last_used_step)
            WHERE id = $1"#,
         user_id,
-        step.as_db()
+        step.map(TimeStep::as_db)
     )
     .execute(&mut *tx)
     .await?;
 
     tx.commit().await?;
-    Ok(CodeCheck::Accepted)
+    Ok(CodeCheck::Accepted(verified))
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    #[test]
-    fn misses_within_a_run_do_not_lock() {
-        for misses in [0, 1, 2, 3, 4, 6, 9, 11] {
-            assert_eq!(lock_after(misses), None, "locked after {misses}");
-        }
+    fn parse(json: &str) -> SecondFactorProof {
+        serde_json::from_str(json).unwrap()
     }
 
     #[test]
-    fn each_completed_run_doubles_the_lock() {
-        assert_eq!(lock_after(5), Some(TimeDelta::minutes(5)));
-        assert_eq!(lock_after(10), Some(TimeDelta::minutes(10)));
-        assert_eq!(lock_after(15), Some(TimeDelta::minutes(20)));
-        assert_eq!(lock_after(20), Some(TimeDelta::minutes(40)));
+    fn proofs_are_told_apart_by_their_key() {
+        assert!(matches!(
+            parse(r#"{"code":"123456"}"#),
+            SecondFactorProof::Code(_)
+        ));
+        assert!(matches!(
+            parse(r#"{"recoveryCode":"ABCDE-FGHJK"}"#),
+            SecondFactorProof::RecoveryCode(_)
+        ));
+        assert!(serde_json::from_str::<SecondFactorProof>(r#"{"other":"x"}"#).is_err());
     }
 
     #[test]
-    fn locks_never_exceed_a_day() {
-        assert_eq!(lock_after(50), Some(LONGEST_LOCK));
-        assert_eq!(lock_after(5 * 40), Some(LONGEST_LOCK));
-        assert_eq!(lock_after(i32::MAX - i32::MAX % 5), Some(LONGEST_LOCK));
+    fn authenticator_codes_must_have_six_symbols() {
+        assert!(parse(r#"{"code":"123456"}"#).validate().is_ok());
+        assert!(parse(r#"{"code":"12345"}"#).validate().is_err());
+        assert!(parse(r#"{"code":"1234567"}"#).validate().is_err());
+    }
+
+    #[test]
+    fn recovery_codes_are_bounded_in_length() {
+        assert!(
+            parse(r#"{"recoveryCode":"ABCDE-FGHJK"}"#)
+                .validate()
+                .is_ok()
+        );
+        let long = format!(r#"{{"recoveryCode":"{}"}}"#, "A".repeat(33));
+        assert!(parse(&long).validate().is_err());
     }
 }

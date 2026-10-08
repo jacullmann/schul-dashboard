@@ -5,7 +5,7 @@ use super::{
 use crate::{
     auth::service::ClientInfo,
     common::{
-        extractors::{AuthUser, ClientIp, UserAgent, ValidatedJson},
+        extractors::{AuthUser, ClientIp, RecentAuth, UserAgent, ValidatedJson},
         path_params::IdPath,
     },
     error::AppResult,
@@ -29,9 +29,12 @@ pub async fn list_passkeys(
     ))
 }
 
+/// A new passkey is a lasting way in, so adding one needs a recent sign-in:
+/// otherwise a stolen session could outlive its own revocation. Finishing only
+/// redeems the registration started here.
 pub async fn start_registration(
     State(state): State<AppState>,
-    user: AuthUser,
+    RecentAuth(user): RecentAuth,
 ) -> AppResult<Json<Value>> {
     let options = PasskeyService::from_state(&state)
         .start_registration(user.user_id)
@@ -71,7 +74,7 @@ pub async fn rename_passkey(
 
 pub async fn remove_passkey(
     State(state): State<AppState>,
-    user: AuthUser,
+    RecentAuth(user): RecentAuth,
     ClientIp(ip): ClientIp,
     Path(path): Path<IdPath>,
 ) -> AppResult<Json<Value>> {

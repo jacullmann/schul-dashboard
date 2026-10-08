@@ -146,17 +146,40 @@ fn escape_html(value: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::common::locale::Locale;
+    use crate::common::{email::SecurityEvent, locale::Locale};
+
+    const SECURITY_EVENTS: [SecurityEvent; 13] = [
+        SecurityEvent::PasswordChanged,
+        SecurityEvent::PasswordSet,
+        SecurityEvent::PasswordRemoved,
+        SecurityEvent::PasswordReset,
+        SecurityEvent::TwoFactorEnabled,
+        SecurityEvent::TwoFactorDisabled,
+        SecurityEvent::TwoFactorResetBySupport,
+        SecurityEvent::RecoveryCodesRegenerated,
+        SecurityEvent::RecoveryCodeUsed { remaining: 7 },
+        SecurityEvent::PasskeyAdded,
+        SecurityEvent::PasskeyRemoved,
+        SecurityEvent::GoogleLinked,
+        SecurityEvent::GoogleUnlinked,
+    ];
 
     #[test]
     fn html_fills_every_placeholder() {
         for locale in [Locale::De, Locale::En] {
-            for message in [
+            let messages = [
                 Message::verification(locale, "https://example.test/verify?token=abc", 48),
                 Message::password_reset(locale, "A1B2C3", 30),
                 Message::password_setup(locale, "A1B2C3", 30),
-                Message::password_reset_notice(locale),
-            ] {
+            ]
+            .into_iter()
+            .chain(
+                SECURITY_EVENTS
+                    .into_iter()
+                    .map(|event| Message::security_notice(locale, event)),
+            );
+
+            for message in messages {
                 let html = message.to_html();
                 assert!(
                     !html.contains("{{"),
@@ -169,6 +192,16 @@ mod tests {
                 assert!(html.contains(legal.privacy_url));
                 assert!(message.to_text().contains(legal.privacy_url));
             }
+        }
+    }
+
+    #[test]
+    fn a_used_recovery_code_reports_how_many_are_left() {
+        let event = SecurityEvent::RecoveryCodeUsed { remaining: 7 };
+        for locale in [Locale::De, Locale::En] {
+            let message = Message::security_notice(locale, event);
+            assert!(message.to_html().contains('7'));
+            assert!(message.to_text().contains('7'));
         }
     }
 

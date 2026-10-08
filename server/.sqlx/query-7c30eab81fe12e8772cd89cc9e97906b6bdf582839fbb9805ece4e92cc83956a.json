@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE users SET reauth_failed_attempts = $2, reauth_locked_until = $3 WHERE id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Int4",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "7c30eab81fe12e8772cd89cc9e97906b6bdf582839fbb9805ece4e92cc83956a"
+}

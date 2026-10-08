@@ -1,5 +1,10 @@
 import axios, { AxiosError } from 'axios';
-import { isAccessTokenRejected, isSessionRejected } from './errors';
+import {
+  isAccessTokenRejected,
+  isReauthRequired,
+  isSessionRejected,
+} from './errors';
+import { requestReauth } from './reauth';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '',
@@ -18,6 +23,9 @@ api.interceptors.request.use((config) => {
 });
 
 const REFRESH_URL = '/auth/refresh';
+// The confirmation dialog's own requests: waiting on a confirmation from
+// inside it would never settle.
+const REAUTH_URL_PREFIX = '/auth/reauth';
 const REFRESH_LOCK = 'auth-refresh';
 const LAST_REFRESH_KEY = 'auth:last-refresh';
 // Bounds how long other tabs can be stuck waiting on the refresh lock.
@@ -107,6 +115,20 @@ api.interceptors.response.use(
   async (error: AxiosError) => {
     const original = error.config;
 
+    // A sensitive action needs a recent sign-in: once the user confirmed who
+    // they are, the request is repeated as if nothing happened. Only once, so
+    // a confirmation that does not take cannot loop.
+    if (
+      original &&
+      !original._reauthed &&
+      !original.url?.startsWith(REAUTH_URL_PREFIX) &&
+      (await isReauthRequired(error))
+    ) {
+      original._reauthed = true;
+      if (await requestReauth()) return api(original);
+      return Promise.reject(error);
+    }
+
     // Only an expired or missing access token is fixed by a refresh. The
     // refresh is excluded explicitly: waiting on itself would never settle.
     if (
@@ -145,5 +167,6 @@ export default api;
 declare module 'axios' {
   export interface InternalAxiosRequestConfig {
     _retried?: boolean;
+    _reauthed?: boolean;
   }
 }

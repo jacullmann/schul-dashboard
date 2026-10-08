@@ -1,7 +1,7 @@
 import { ref } from 'vue';
 import api from '@/api/api.ts';
 import { useI18n } from 'vue-i18n';
-import { apiErrorMessage } from '@/api/errors';
+import { authErrorMessage } from '@/modules/auth/utils/authErrors';
 
 export function useDeleteAccount(emit: {
   (e: 'cancel'): void;
@@ -29,9 +29,9 @@ export function useDeleteAccount(emit: {
         emit('error', err);
       }
     } catch (e: unknown) {
-      const msg = apiErrorMessage(e, t('common.errors.delete'));
+      const msg = authErrorMessage(e, t('common.errors.delete'));
       errorMsg.value = msg;
-      emit('error', msg);
+      if (msg) emit('error', msg);
     } finally {
       submitting.value = false;
     }

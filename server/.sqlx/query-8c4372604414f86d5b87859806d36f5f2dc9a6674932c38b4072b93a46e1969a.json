@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT u.email, u.preferences->>'language' AS language,\n                      (SELECT count(*) FROM passkeys p WHERE p.user_id = u.id) AS \"passkey_count!\"\n               FROM users u\n               WHERE u.id = $1\n               FOR UPDATE",
+  "query": "SELECT email, preferences->>'language' AS language FROM users WHERE id = $1",
   "describe": {
     "columns": [
       {
@@ -19,12 +19,6 @@
         "name": "language",
         "type_info": "Text",
         "origin": "Expression"
-      },
-      {
-        "ordinal": 2,
-        "name": "passkey_count!",
-        "type_info": "Int8",
-        "origin": "Expression"
       }
     ],
     "parameters": {
@@ -34,9 +28,8 @@
     },
     "nullable": [
       false,
-      null,
       null
     ]
   },
-  "hash": "dfb0267714c92d87f7a0713137a5d3b7f24f32794bf98c0f80942add72fde51d"
+  "hash": "8c4372604414f86d5b87859806d36f5f2dc9a6674932c38b4072b93a46e1969a"
 }

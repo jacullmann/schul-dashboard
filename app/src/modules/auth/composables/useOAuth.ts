@@ -2,8 +2,10 @@ import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import api from '@/api/api.ts';
-import { apiErrorMessage } from '@/api/errors';
 import { useToast } from '@/common/composables/useToast';
+import { authErrorMessage } from '@/modules/auth/utils/authErrors';
+import { consumeReauthReturn } from '@/modules/auth/utils/reauthReturn';
+import { useReauthModal } from '@/stores/modalStore';
 
 const showLinkModal = ref(false);
 const showSignUpModal = ref(false);
@@ -15,8 +17,7 @@ interface LinkedProvider {
 
 type ActionResult = { ok: true } | { ok: false; error: string };
 type LinkResult =
-  | { ok: true; requiresMfa: boolean }
-  | { ok: false; error: string };
+  { ok: true; requiresMfa: boolean } | { ok: false; error: string };
 
 export function useOAuth() {
   const { t } = useI18n();
@@ -67,7 +68,7 @@ export function useOAuth() {
     } catch (err: unknown) {
       return {
         ok: false,
-        error: apiErrorMessage(
+        error: authErrorMessage(
           err,
           t('auth.connected_accounts.errors.link_failed'),
         ),
@@ -109,10 +110,45 @@ export function useOAuth() {
     });
   }
 
+  /**
+   * Back from confirming an action with Google: on the page the user left,
+   * where they repeat the action, after entering their second factor if the
+   * account has one.
+   */
+  async function returnFromReauth(
+    result: string,
+    reason: string | null,
+  ): Promise<void> {
+    await router.isReady();
+    await router.replace(consumeReauthReturn() ?? '/');
+
+    const toast = useToast();
+    if (result === 'error') {
+      toast.error(
+        reason === 'google_account_mismatch'
+          ? t('auth.reauth.errors.google_account_mismatch')
+          : errorMessage(reason),
+      );
+      return;
+    }
+
+    const confirmed =
+      result === 'success' ||
+      (result === 'second-factor' &&
+        (await useReauthModal().request('google-second-factor')));
+    if (confirmed) toast.success(t('auth.reauth.confirmed'));
+  }
+
   // The backend redirect is a full page load, so App calls this exactly once
   // with the landing URL, before the router has resolved or redirected it.
   function handleOAuthReturn(onSuccess: () => void | Promise<void>): void {
     const params = new URLSearchParams(window.location.search);
+
+    const reauth = params.get('reauth');
+    if (reauth) {
+      void returnFromReauth(reauth, params.get('reason'));
+      return;
+    }
 
     const link = params.get('link');
     if (link) {
@@ -167,7 +203,7 @@ export function useOAuth() {
     } catch (err: unknown) {
       return {
         ok: false,
-        error: apiErrorMessage(err, t('auth.google_link.errors.failed')),
+        error: authErrorMessage(err, t('auth.google_link.errors.failed')),
       };
     }
   }
@@ -182,7 +218,7 @@ export function useOAuth() {
     } catch (err: unknown) {
       return {
         ok: false,
-        error: apiErrorMessage(err, t('auth.google_signup.failed')),
+        error: authErrorMessage(err, t('auth.google_signup.failed')),
       };
     }
   }
@@ -194,7 +230,7 @@ export function useOAuth() {
     } catch (err: unknown) {
       return {
         ok: false,
-        error: apiErrorMessage(
+        error: authErrorMessage(
           err,
           t('auth.connected_accounts.errors.unlink_failed'),
         ),

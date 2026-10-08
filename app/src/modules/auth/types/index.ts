@@ -13,6 +13,37 @@ export interface MfaSetupResponse {
 export interface MfaStatusResponse {
   ok: boolean;
   mfaEnabled: boolean;
+  /** Unused recovery codes; `null` while two-factor authentication is off. */
+  recoveryCodesLeft: number | null;
+}
+
+/** Recovery codes in display form, returned once when they are created. */
+export interface RecoveryCodesResponse {
+  ok: boolean;
+  recoveryCodes: string[];
+}
+
+/** What a user offers as their second factor. */
+export type SecondFactorProof = { code: string } | { recoveryCode: string };
+
+export interface MfaLoginResponse {
+  ok: boolean;
+  /** Set when a recovery code was used: how many are left. */
+  recoveryCodesLeft: number | null;
+}
+
+/** The ways an account can sign in, and so confirm a sensitive action. */
+export interface SignInMethods {
+  password: boolean;
+  passkeys: number;
+  google: boolean;
+  twoFactor: boolean;
+}
+
+export interface ReauthStatus {
+  methods: SignInMethods;
+  /** Until when the last confirmation counts; `null` once it lapsed. */
+  recentUntil: string | null;
 }
 
 export interface MfaChallengeResponse {

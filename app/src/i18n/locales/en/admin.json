@@ -150,7 +150,8 @@
     "actions": {
       "details": "Details & log",
       "ban": "Ban",
-      "unban": "Unban"
+      "unban": "Unban",
+      "reset_mfa": "Reset two-factor authentication"
     },
     "details": {
       "title": "User details",
@@ -180,7 +181,12 @@
       "load": "Failed to load users.",
       "load_details": "Failed to load user details.",
       "delete": "Failed to delete user."
-    }
+    },
+    "reset_mfa_modal": {
+      "title": "Reset two-factor authentication?",
+      "content": "Two-factor authentication and the recovery codes of {email} will be removed. Only do this once you've made sure the request really comes from this person. They will be notified by email."
+    },
+    "reset_mfa_success": "Two-factor authentication reset."
   },
   "reports": {
     "title": "Reported Content",

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, defineAsyncComponent, onMounted } from 'vue';
+import { computed, defineAsyncComponent, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useToast } from '@/common/composables/useToast';
@@ -13,9 +13,11 @@ import {
   useImageViewerModal,
   useInviteModal,
   usePrivateTaskFormModal,
+  useReauthModal,
   useSearchModal,
   useTaskFormModal,
 } from '@/stores/modalStore';
+import { setReauthHandler } from '@/api/reauth';
 import type { PrivateTask } from '@/modules/tasks/types';
 import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
@@ -58,6 +60,9 @@ const AnnouncementsModal = defineAsyncComponent(
 const ImageViewer = defineAsyncComponent(
   () => import('@/modules/tasks/components/ImageViewer.vue'),
 );
+const ReauthModal = defineAsyncComponent(
+  () => import('@/modules/auth/components/ReauthModal.vue'),
+);
 
 onMounted(() => {
   void loadSearchModal().catch(() => {});
@@ -93,6 +98,12 @@ const deleteAccount = useDeleteAccountModal();
 const createGroup = useCreateGroupModal();
 const invite = useInviteModal();
 const confirmModal = useConfirmModal();
+const reauthModal = useReauthModal();
+
+// Requests that need a recent sign-in ask the user here and are repeated
+// once they confirmed.
+setReauthHandler(() => reauthModal.request());
+onUnmounted(() => setReauthHandler(null));
 
 function onTaskFormSuccess() {
   toast.success(t('tasks.list.task_form.success_edit'));
@@ -220,6 +231,10 @@ async function onAuthSuccess() {
     :group-id="invite.payload.groupId"
     @cancel="invite.close()"
   />
+
+  <!-- Rendered after every other dialog, so it opens above the one whose
+       action asked for it. -->
+  <ReauthModal />
 
   <!-- The confirm is the only dialog the image viewer can raise while it is
        up, so it has to be lifted over the viewer's own layer. -->
