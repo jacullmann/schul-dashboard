@@ -71,7 +71,7 @@ onMounted(loadJobs);
           <li
             v-for="row in rows"
             :key="row.job"
-            class="flex items-baseline justify-between gap-3 py-1.5 text-sm border-b border-ghost-border"
+            class="flex items-baseline justify-between gap-3 py-1.5 text-sm border-b border-ghost-border last:border-b-0 md:[&:nth-last-child(-n+2)]:border-b-0"
           >
             <span class="min-w-0">
               <span class="font-semibold">{{ row.label }}</span>
