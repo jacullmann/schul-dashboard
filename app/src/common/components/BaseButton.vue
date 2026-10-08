@@ -53,9 +53,9 @@ const classes = computed(() => {
       ? 'bg-ghost-hover hover-overlay text-on-ghost'
       : 'bg-transparent text-on-ghost hover:bg-ghost-hover active:bg-ghost-hover',
     action:
-      'bg-transparent text-on-action-muted hover:bg-action-hover hover:text-on-action active:bg-action-hover active:text-on-action',
+      'bg-transparent text-on-action hover:bg-action-hover active:bg-action-hover',
     danger:
-      'bg-transparent text-on-danger-muted hover:bg-danger-highlight hover:text-on-danger active:bg-danger-highlight active:text-on-danger',
+      'bg-transparent text-on-danger hover:bg-danger-highlight active:bg-danger-highlight',
   };
 
   const variantClasses: Record<NonNullable<Props['variant']>, string> = {
