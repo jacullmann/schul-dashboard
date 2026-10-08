@@ -105,6 +105,10 @@
           "label": "Tasks",
           "rule": "90 days after their due date"
         },
+        "cleanup-old-schedule-subs": {
+          "label": "Schedule changes",
+          "rule": "90 days after the day they apply to"
+        },
         "cleanup-system-announcements": {
           "label": "Info",
           "rule": "Once they have ended"

@@ -5,7 +5,7 @@ import { ArrowUp } from '@lucide/vue';
 import DailyBarChart, {
   type DailySummary,
 } from '../components/DailyBarChart.vue';
-import CleanupJobsCard from '../components/CleanupJobsCard.vue';
+import CleanupJobsSection from '../components/CleanupJobsSection.vue';
 import ServerMetricsSection from '../components/ServerMetricsSection.vue';
 import { useSuperAdminStats } from '../composables/useSuperAdminStats';
 import type { DailyMetric } from '../types';
@@ -46,9 +46,6 @@ const dailyCharts: readonly DailyChart[] = [
   { metric: 'newItems', i18nKey: 'new_tasks' },
   { metric: 'failedLogins', i18nKey: 'failed_logins' },
 ];
-
-// The cleanup card spans two grid rows, so the last two charts stack beside it.
-const CLEANUP_CARD_SLOT = dailyCharts.length - 2;
 
 const charts = computed(() =>
   dailyCharts.map((chart) => ({
@@ -125,20 +122,17 @@ onMounted(loadDailyActivity);
     <section class="flex flex-col gap-3">
       <h3>{{ t('admin.overview.chart.title') }}</h3>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <template v-for="(chart, i) in charts" :key="chart.metric">
-          <!-- Out of flow on wide screens so the job list scrolls within
-               the two chart rows instead of stretching them. -->
-          <div v-if="i === CLEANUP_CARD_SLOT" class="md:relative md:row-span-2">
-            <CleanupJobsCard class="md:absolute md:inset-0" />
-          </div>
-          <DailyBarChart
-            :title="t(`admin.overview.chart.${chart.i18nKey}`)"
-            :points="chart.points"
-            :summary="chart.summary"
-          />
-        </template>
+        <DailyBarChart
+          v-for="chart in charts"
+          :key="chart.metric"
+          :title="t(`admin.overview.chart.${chart.i18nKey}`)"
+          :points="chart.points"
+          :summary="chart.summary"
+        />
       </div>
     </section>
+
+    <CleanupJobsSection />
 
     <ServerMetricsSection />
   </div>

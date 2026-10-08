@@ -55,6 +55,12 @@ SELECT cron.schedule(
        );
 
 SELECT cron.schedule(
+               'cleanup-old-schedule-subs',
+               '40 */6 * * *',
+               $$SELECT public.cleanup_old_schedule_subs()$$
+       );
+
+SELECT cron.schedule(
                'cleanup-system-announcements',
                '25 */6 * * *',
                $$SELECT public.cleanup_expired_system_announcements()$$

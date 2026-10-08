@@ -366,7 +366,7 @@
           "title": "Überblick",
           "paragraphs": [
             "Diese Datenschutzerklärung gilt für die Website schul-dashboard.com und die App unter app.schul-dashboard.com. Sie erklärt, welche personenbezogenen Daten wir verarbeiten, wofür wir sie brauchen, wie lange wir sie speichern und welche Rechte du hast.",
-            "Stand: 6. Oktober 2026"
+            "Stand: 8. Oktober 2026"
           ]
         },
         {
@@ -495,6 +495,7 @@
             "Aktivitätsprotokoll und Sicherheitsereignisse löschen wir nach 30 Tagen.",
             "Chatnachrichten löschen wir nach 7 Tagen automatisch.",
             "Aufgaben und Klausuren in Gruppen löschen wir automatisch 90 Tage nach ihrem Fälligkeitsdatum.",
+            "Stundenplanänderungen wie Vertretungen und Ausfälle löschen wir automatisch 90 Tage nach dem Tag, für den sie gelten.",
             "Meldungen speichern wir, bis wir sie bearbeitet haben.",
             "Alle anderen Inhalte in Gruppen bleiben gespeichert, bis du, die Gruppenadmins oder wir sie löschen oder die Gruppe gelöscht wird."
           ]

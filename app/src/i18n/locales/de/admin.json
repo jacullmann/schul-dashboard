@@ -105,6 +105,10 @@
           "label": "Aufgaben",
           "rule": "90 Tage nach Fälligkeit"
         },
+        "cleanup-old-schedule-subs": {
+          "label": "Stundenplanänderungen",
+          "rule": "90 Tage nach dem betroffenen Tag"
+        },
         "cleanup-system-announcements": {
           "label": "Infos",
           "rule": "Sobald sie abgelaufen sind"
