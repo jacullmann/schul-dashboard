@@ -181,28 +181,16 @@ onUnmounted(() => {
     :data-expanded="isExpanded || undefined"
   >
     <div class="flex flex-col gap-4 w-full flex-1 min-h-0">
-      <div class="flex items-center gap-2">
-        <SidebarButton
-          :label="
-            isExpanded
-              ? t('common.sidebar.collapse')
-              : t('common.sidebar.expand')
-          "
-          :shortcut="['ctrl', 'shift', 'd']"
-          icon-only
-          :icon="PanelLeft"
-          :page="false"
-          @click="toggleExpanded"
-        />
-
-        <div
-          class="sidebar-fade text-xl font-bold whitespace-nowrap mb-1"
-          :class="isExpanded ? 'opacity-100' : 'opacity-0'"
-          :aria-hidden="!isExpanded"
-        >
-          schul-dashboard
-        </div>
-      </div>
+      <SidebarButton
+        :label="
+          isExpanded ? t('common.sidebar.collapse') : t('common.sidebar.expand')
+        "
+        :shortcut="['ctrl', 'shift', 'd']"
+        :expanded="isExpanded"
+        :icon="PanelLeft"
+        :page="false"
+        @click="toggleExpanded"
+      />
 
       <div class="flex flex-col gap-0 w-full">
         <SidebarButton

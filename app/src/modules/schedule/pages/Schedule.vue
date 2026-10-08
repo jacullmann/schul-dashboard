@@ -389,13 +389,18 @@ const markerOf = (day: number, week: number) =>
     ? todayMarker.value
     : null;
 
+const isNowIn = (span: RowSpan, marker: NowMarker | null) =>
+  marker?.firstRow === span.firstRow && marker.lastRow === span.lastRow;
+
+/** Like a break's divider, free time holding now counts down on its own. */
 const nowLabelOf = (day: number, week: number): ScheduleNowLabel | null => {
   const marker = markerOf(day, week);
   if (
     settings.value.nowMarkerTime === 'duration' ||
     !marker ||
     marker.labelRow === null ||
-    marker.minutesLeft === null
+    marker.minutesLeft === null ||
+    freeBlocksOf(day, week).some((block) => isNowIn(block, marker))
   ) {
     return null;
   }
@@ -439,8 +444,7 @@ const shownFreeBlock = (
   { time, includesBreaks, ...block }: Omit<FreeBlock, 'key'>,
   marker: NowMarker | null,
 ) => {
-  const isNow =
-    marker?.firstRow === block.firstRow && marker.lastRow === block.lastRow;
+  const isNow = isNowIn(block, marker);
   if (isNow && settings.value.nowMarkerTime === 'remaining') {
     return {
       ...block,

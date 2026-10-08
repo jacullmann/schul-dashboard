@@ -101,7 +101,7 @@ impl DataExportService {
         let visits = sqlx::query_as!(
             GroupVisit,
             r#"SELECT s.tenant_id AS group_id, g.name AS group_name,
-                      s.last_group_visit_at, s.last_schedule_visit_at, s.last_messages_visit_at
+                      s.last_messages_visit_at
                FROM user_tenant_state s
                JOIN groups g ON g.id = s.tenant_id
                WHERE s.user_id = $1

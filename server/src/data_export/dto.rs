@@ -90,8 +90,6 @@ pub struct Membership {
 pub struct GroupVisit {
     pub group_id: Uuid,
     pub group_name: String,
-    pub last_group_visit_at: Option<DateTime<Utc>>,
-    pub last_schedule_visit_at: Option<DateTime<Utc>>,
     pub last_messages_visit_at: Option<DateTime<Utc>>,
 }
 

@@ -12,15 +12,11 @@ withDefaults(
     shortcut?: string[];
     page?: boolean;
     expanded?: boolean;
-    iconOnly?: boolean;
     active?: boolean;
-    unread?: boolean;
   }>(),
   {
     expanded: true,
-    iconOnly: false,
     active: false,
-    unread: false,
     page: true,
   },
 );
@@ -50,18 +46,12 @@ withDefaults(
       </span>
 
       <span
-        v-if="label && !iconOnly"
+        v-if="label"
         class="sidebar-fade text-sm/5 font-medium whitespace-nowrap ml-3"
         :class="[expanded ? 'opacity-100' : 'opacity-0', !icon ? 'ml-1!' : '']"
       >
         {{ label }}
       </span>
-
-      <NotificationDot
-        v-if="unread && !iconOnly"
-        class="sidebar-fade ml-2"
-        :class="expanded ? 'opacity-100' : 'opacity-0'"
-      />
     </button>
   </BaseTooltip>
 </template>

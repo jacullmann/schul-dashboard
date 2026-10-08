@@ -64,16 +64,6 @@ WHERE s.tenant_id = $1"#,
 
                 enrolled_course_ids = Some(rows.into_iter().collect());
             }
-
-            let db2 = self.db.clone();
-            tokio::spawn(async move {
-                let _ = sqlx::query!(
-                    r#"INSERT INTO user_tenant_state (user_id, tenant_id, last_schedule_visit_at)
-                      VALUES ($1, $2, now())
-                      ON CONFLICT (user_id, tenant_id) DO UPDATE SET last_schedule_visit_at = now()"#,
-                    uid, tenant_id
-                ).execute(&db2).await;
-            });
         }
 
         let lesson_count = lessons.len();

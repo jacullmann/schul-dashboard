@@ -10,11 +10,9 @@ const props = withDefaults(
     name?: string;
     picture?: string | null;
     size?: number;
-    unread?: boolean;
   }>(),
   {
     size: 8,
-    unread: false,
   },
 );
 
@@ -29,7 +27,7 @@ const avatarStyle = computed(() => {
 
 <template>
   <div
-    class="flex relative items-center justify-center overflow-hidden shrink-0"
+    class="flex items-center justify-center overflow-hidden shrink-0"
     :style="avatarStyle"
   >
     <img
@@ -40,11 +38,5 @@ const avatarStyle = computed(() => {
     />
 
     <GeneratedAvatar v-else :name="name" :size="size" />
-
-    <NotificationDot
-      v-if="unread"
-      class="absolute top-0 right-0"
-      :size="size / 4"
-    />
   </div>
 </template>

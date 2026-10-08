@@ -43,7 +43,7 @@ withDefaults(
     </span>
     <!-- The ring widens the pill without moving the label it takes over. -->
     <span
-      class="rounded-full px-0.5 text-xs tabular-nums ring-2 transition-colors duration-300"
+      class="rounded-full px-0.5 min-w-11 text-center text-xs tabular-nums ring-2 transition-colors duration-300"
       :class="
         row.gridRow === nowLabel?.gridRow
           ? 'bg-accent ring-accent text-on-accent font-semibold'

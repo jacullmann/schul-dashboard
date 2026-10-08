@@ -15,7 +15,6 @@ const props = withDefaults(
     chevron?: boolean;
     select?: boolean;
     toggle?: boolean;
-    unread?: boolean;
     /** Only used with `select`. */
     options?: UnitOption[];
     modelValue?: string | null;
@@ -30,7 +29,6 @@ const props = withDefaults(
     chevron: true,
     select: false,
     toggle: false,
-    unread: false,
     options: () => [],
     modelValue: null,
     checked: false,
@@ -146,8 +144,6 @@ function selectOption(value: string) {
     <BaseToggle v-else-if="toggle" :model-value="checked" decorative />
 
     <ChevronRight v-else-if="chevron" :size="20" class="text-on-ghost-muted" />
-
-    <NotificationDot v-if="unread" class="md:hidden" :size="3" />
   </button>
 
   <div

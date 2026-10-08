@@ -96,9 +96,11 @@ async function submit() {
 
       <!-- A cancelled lesson shows nothing else, so its other changes fold
            away; they keep what was typed in case it is turned off again.
-           The negative margin takes back the form's gap while collapsed. -->
+           The negative margin takes back the form's gap while collapsed.
+           The clip is padded out and pulled back by the same amount so the
+           inputs' focus ring is not cut off. -->
       <div
-        class="grid -mt-4 transition-[grid-template-rows,opacity] duration-300 ease-out"
+        class="grid -mt-4 -mb-1 transition-[grid-template-rows,opacity] duration-300 ease-out"
         :class="
           form.cancelled
             ? 'grid-rows-[0fr] opacity-0'
@@ -106,8 +108,8 @@ async function submit() {
         "
         :inert="form.cancelled"
       >
-        <div class="overflow-hidden min-h-0">
-          <div class="flex flex-col gap-4 pt-4">
+        <div class="overflow-hidden min-h-0 -mx-1">
+          <div class="flex flex-col gap-4 px-1 pt-4 pb-1">
             <BaseFormGroup v-if="canRescheduleLessons" id="change-subject">
               <BaseLabel for="change-subject-input">{{
                 t('groups.settings.schedule.changes.new_subject_label')

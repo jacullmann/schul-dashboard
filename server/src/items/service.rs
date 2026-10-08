@@ -156,22 +156,6 @@ impl ItemsService {
         f: GetItemsFilter<'_>,
         include_creator_email: bool,
     ) -> AppResult<ItemList> {
-        if f.item_type.is_none() || f.item_type == Some("all") {
-            let db2 = self.db.clone();
-
-            tokio::spawn(async move {
-                let _ = sqlx::query!(
-                    r#"INSERT INTO user_tenant_state (user_id, tenant_id, last_group_visit_at)
-                       VALUES ($1, $2, now()) ON CONFLICT (user_id, tenant_id)
-                       DO UPDATE SET last_group_visit_at = now()"#,
-                    user_id,
-                    tenant_id
-                )
-                .execute(&db2)
-                .await;
-            });
-        }
-
         let old_filter = f.filter == Some("old");
 
         // A task for a single course reaches that course's members; one for the
