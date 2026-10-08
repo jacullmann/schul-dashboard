@@ -166,7 +166,7 @@ const GROUPS_LIST_ENTRANCE_ORDER = 2;
 
     <section
       v-if="!isSuperadmin && userGroups.length === 0 && !loading"
-      class="max-md:pt-4 animate-enter"
+      class="max-md:p-4 animate-enter"
       :style="{ '--enter-delay': entranceDelay(GROUPS_HEADER_ENTRANCE_ORDER) }"
     >
       <BaseEmptyState
