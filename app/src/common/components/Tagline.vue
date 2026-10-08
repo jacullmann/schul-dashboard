@@ -2,6 +2,8 @@
 import { ref, onMounted, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
+const props = defineProps<{ showQuote: boolean }>();
+
 const i18n = useI18n();
 const locale = i18n.locale;
 
@@ -31,7 +33,7 @@ const getDaysToBerlinBreak = (): number | null => {
 };
 
 const displayQuote = computed(() => {
-  if (randomIndex.value === null) return '';
+  if (!props.showQuote || randomIndex.value === null) return '';
   return i18n.t(`common.footer.quotes.${randomIndex.value}`, {
     daysToHoliday: getDaysToBerlinBreak() ?? '?',
   });

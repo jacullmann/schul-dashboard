@@ -15,6 +15,7 @@ import type { Lesson } from '@/modules/schedule/types';
 import ScheduleStartTimeColumn from '@/modules/schedule/components/ScheduleStartTimeColumn.vue';
 import ScheduleLessonGroup from '@/modules/schedule/components/ScheduleLessonGroup.vue';
 import { useGroupPageId } from '@/core/composables/useGroupPageId';
+import { usePageSettings } from '@/common/composables/usePageSettings';
 import { provideTasks } from '@/modules/tasks/composables/useTasks';
 import TaskCard from '@/modules/tasks/components/TaskCard.vue';
 import TaskDialogs from '@/modules/tasks/components/TaskDialogs.vue';
@@ -36,6 +37,7 @@ const userStore = useUserStore();
 const { user } = storeToRefs(userStore);
 const { checkPermission } = useAppAuth();
 const groupId = useGroupPageId();
+const { settings: dashboardSettings } = usePageSettings('dashboard');
 
 const {
   lessons,
@@ -210,7 +212,7 @@ const {
 <template>
   <div class="p-4">
     <div class="relative mb-4 animate-enter">
-      <Tagline />
+      <Tagline :show-quote="dashboardSettings.tagline" />
     </div>
 
     <div class="flex flex-col gap-8">

@@ -4,11 +4,13 @@ import api from '@/api/api.ts';
 import { usePreferences } from '@/common/composables/usePreferences';
 import type { TaskPreferences } from '@/modules/tasks/types';
 import type { SchedulePreferences } from '@/modules/schedule/types';
+import type { DashboardPreferences } from '@/modules/dashboard/types';
 
 export type DismissibleNotice = 'personalizedTasks' | 'personalizedSchedule';
 
 /** The settings each page has, every one of them set. */
 export interface PageSettings {
+  dashboard: DashboardPreferences;
   tasks: TaskPreferences;
   schedule: SchedulePreferences;
 }

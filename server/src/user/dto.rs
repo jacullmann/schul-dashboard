@@ -68,6 +68,7 @@ pub struct UpdatePreferencesDto {
     pub personalized: Option<serde_json::Value>,
     pub tasks: Option<TaskPreferencesDto>,
     pub schedule: Option<SchedulePreferencesDto>,
+    pub dashboard: Option<DashboardPreferencesDto>,
 }
 
 /// When checked tasks leave the list for the archive. The task list query
@@ -111,6 +112,13 @@ pub struct SchedulePreferencesDto {
     pub include_breaks_in_free_time: Option<bool>,
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DashboardPreferencesDto {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tagline: Option<bool>,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -136,6 +144,14 @@ mod tests {
         ] {
             assert_eq!(serde_json::to_value(setting).unwrap(), stored);
         }
+    }
+
+    #[test]
+    fn dashboard_setting_is_kept_for_storage() {
+        let changed = serde_json::json!({ "dashboard": { "tagline": false } });
+        let dto: UpdatePreferencesDto = serde_json::from_value(changed).unwrap();
+        let stored = serde_json::to_value(dto).unwrap();
+        assert_eq!(stored["dashboard"], serde_json::json!({ "tagline": false }));
     }
 
     #[test]

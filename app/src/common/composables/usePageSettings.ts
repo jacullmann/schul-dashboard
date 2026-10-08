@@ -12,6 +12,9 @@ import {
 // How the pages behaved before they had settings, so members who never change
 // them see no difference.
 const DEFAULT_PAGE_SETTINGS: PageSettings = {
+  dashboard: {
+    tagline: true,
+  },
   tasks: {
     archiveChecked: 'afterDueDate',
     groupByDueDate: true,

@@ -52,7 +52,14 @@ impl UserService {
 
         let mut current = user.preferences.as_object().cloned().unwrap_or_default();
 
-        let allowed = ["theme", "language", "personalized", "tasks", "schedule"];
+        let allowed = [
+            "theme",
+            "language",
+            "personalized",
+            "tasks",
+            "schedule",
+            "dashboard",
+        ];
 
         if let Some(obj) = prefs.as_object() {
             for (key, value) in obj {

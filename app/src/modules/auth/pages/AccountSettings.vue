@@ -6,6 +6,7 @@ import { storeToRefs } from 'pinia';
 import {
   ArrowLeft,
   CalendarDays,
+  LayoutDashboard,
   ListTodo,
   Shield,
   UserRound,
@@ -17,6 +18,7 @@ import { useReturnRoute } from '@/common/composables/useReturnRoute';
 import { type AdminNavItem } from '@/layouts/AdminLayout.vue';
 import AccountSettingsSecurity from '@/modules/auth/components/AccountSettingsSecurity.vue';
 import AccountSettingsAccount from '@/modules/auth/components/AccountSettingsAccount.vue';
+import AccountSettingsDashboard from '@/modules/auth/components/AccountSettingsDashboard.vue';
 import AccountSettingsTasks from '@/modules/auth/components/AccountSettingsTasks.vue';
 import AccountSettingsSchedule from '@/modules/auth/components/AccountSettingsSchedule.vue';
 import LegalLinks from '@/modules/auth/components/LegalLinks.vue';
@@ -38,6 +40,11 @@ const navItems = computed<AdminNavItem[]>(() => [
     id: 'security',
     label: t('auth.account_settings.security.title'),
     icon: markRaw(Shield),
+  },
+  {
+    id: 'dashboard',
+    label: t('auth.account_settings.dashboard.title'),
+    icon: markRaw(LayoutDashboard),
   },
   {
     id: 'tasks',
@@ -207,6 +214,8 @@ function goBack() {
               :email="user?.email ?? ''"
               @delete-account="deleteAccountModal.open()"
             />
+
+            <AccountSettingsDashboard v-else-if="activeTab === 'dashboard'" />
 
             <AccountSettingsTasks v-else-if="activeTab === 'tasks'" />
 
