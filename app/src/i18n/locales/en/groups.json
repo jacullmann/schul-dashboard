@@ -36,7 +36,7 @@
         "cropper": {
           "title": "Adjust image",
           "hint": "Drag the image to position it. Use the mouse wheel or the slider to zoom.",
-          "image_alt": "Crop source"
+          "image_alt": "Image to crop"
         }
       },
       "delete_group": {
@@ -438,34 +438,13 @@
       }
     },
     "nav": {
-      "courses": {
-        "label": "My courses",
-        "description": "Your courses in this group"
-      },
-      "general": {
-        "label": "General",
-        "description": "Appearance • Password • Deletion"
-      },
-      "members": {
-        "label": "Members",
-        "description": "Roles • Bans • Ownership"
-      },
-      "permissions": {
-        "label": "Permissions",
-        "description": "Permissions • Roles • Security"
-      },
-      "schedule": {
-        "label": "Schedule",
-        "description": "Lessons • Schedule changes"
-      },
-      "subjects": {
-        "label": "Subjects",
-        "description": "Subjects • Courses"
-      },
-      "announcements": {
-        "label": "Announcements",
-        "description": "Manage Announcements"
-      },
+      "courses": "My courses",
+      "general": "General",
+      "members": "Members",
+      "permissions": "Permissions",
+      "schedule": "Schedule",
+      "subjects": "Subjects",
+      "announcements": "Announcements",
       "subject_info": "Subject info"
     },
     "go_back": "Go Back"

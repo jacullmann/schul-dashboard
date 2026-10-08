@@ -57,7 +57,6 @@
       "100% Tierleidfrei",
       "Diese Website enthält kein echtes Tierfleisch.",
       "Fettarm und lang haltbar!",
-      "Zertifiziert freiwillige Kinderarbeit – schul-dashboard",
       "100 Tage Geld-zurück-Garantie!",
       "Wenn das Leben dir Zitronen gibt, spritz den Saft in die Augen deiner Gegner.",
       "100% Fairtrade Codezeilen aus zertifiziertem Anbau",
@@ -226,7 +225,7 @@
     "links": {
       "dashboard": "Übersicht der Gruppe",
       "tasks": "Hausaufgaben, Aufträge und Prüfungen",
-      "schedule": "All deine Unterrichtsstunden",
+      "schedule": "Alle deine Unterrichtsstunden",
       "private": "Deine private Liste von Aufgaben"
     },
     "go_back": "Zurück"

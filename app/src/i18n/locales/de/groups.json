@@ -438,34 +438,13 @@
       }
     },
     "nav": {
-      "courses": {
-        "label": "Meine Kurse",
-        "description": "Deine Kurse in dieser Gruppe"
-      },
-      "general": {
-        "label": "Allgemein",
-        "description": "Aussehen • Einstellungen • Löschen"
-      },
-      "members": {
-        "label": "Mitglieder",
-        "description": "Rollen • Sperren • Besitz"
-      },
-      "permissions": {
-        "label": "Berechtigungen",
-        "description": "Berechtigungen • Rollen • Sicherheit"
-      },
-      "schedule": {
-        "label": "Stundenplan",
-        "description": "Änderungen • Editor"
-      },
-      "subjects": {
-        "label": "Fächer",
-        "description": "Fächer • Kurse"
-      },
-      "announcements": {
-        "label": "Ankündigungen",
-        "description": "Ankündigungen verwalten"
-      },
+      "courses": "Meine Kurse",
+      "general": "Allgemein",
+      "members": "Mitglieder",
+      "permissions": "Berechtigungen",
+      "schedule": "Stundenplan",
+      "subjects": "Fächer",
+      "announcements": "Ankündigungen",
       "subject_info": "Fachinfo"
     },
     "go_back": "Zurück"

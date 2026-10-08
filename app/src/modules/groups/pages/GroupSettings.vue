@@ -66,37 +66,37 @@ const { hasOwnerRights } = useGroupSettingsAccess();
 const navItems = computed<AdminNavItem[]>(() => [
   {
     id: 'courses',
-    label: t('groups.settings.nav.courses.label'),
+    label: t('groups.settings.nav.courses'),
     icon: markRaw(GraduationCap),
   },
   {
     id: 'general',
-    label: t('groups.settings.nav.general.label'),
+    label: t('groups.settings.nav.general'),
     icon: markRaw(SlidersHorizontal),
   },
   {
     id: 'members',
-    label: t('groups.settings.nav.members.label'),
+    label: t('groups.settings.nav.members'),
     icon: markRaw(UsersRound),
   },
   {
     id: 'permissions',
-    label: t('groups.settings.nav.permissions.label'),
+    label: t('groups.settings.nav.permissions'),
     icon: markRaw(Key),
   },
   {
     id: 'schedule',
-    label: t('groups.settings.nav.schedule.label'),
+    label: t('groups.settings.nav.schedule'),
     icon: markRaw(CalendarDays),
   },
   {
     id: 'subjects',
-    label: t('groups.settings.nav.subjects.label'),
+    label: t('groups.settings.nav.subjects'),
     icon: markRaw(BookOpen),
   },
   {
     id: 'announcements',
-    label: t('groups.settings.nav.announcements.label'),
+    label: t('groups.settings.nav.announcements'),
     icon: markRaw(Megaphone),
   },
 ]);

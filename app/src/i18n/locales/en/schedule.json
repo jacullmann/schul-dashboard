@@ -8,7 +8,7 @@
   "free_minutes": "{minutes} min",
   "free_with_breaks": "{minutes} min including breaks",
   "infopop": {
-    "description": "The digital version of the schedule.",
+    "description": "The digital version",
     "sections": [
       {
         "title": "Personalized courses",
