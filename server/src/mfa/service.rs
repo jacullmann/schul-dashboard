@@ -95,19 +95,7 @@ impl MfaService {
             .execute(&self.db)
             .await?;
 
-        let otpauth = Totp::from_base32(&secret_b32, &user.email)?.otpauth_url();
-
-        let qr = qrcode_generator::to_png_to_vec(
-            otpauth.as_bytes(),
-            qrcode_generator::QrCodeEcc::Low,
-            200,
-        )
-        .map_err(|e| AppError::internal(format!("QR generation failed: {e}")))?;
-
-        let qr_b64 = format!(
-            "data:image/png;base64,{}",
-            base64::Engine::encode(&base64::engine::general_purpose::STANDARD, &qr)
-        );
+        let otpauth_url = Totp::from_base32(&secret_b32, &user.email)?.otpauth_url();
 
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'mfa:setup:started', '{}'::jsonb)"#,
@@ -116,7 +104,7 @@ impl MfaService {
             .execute(&self.db)
             .await?;
 
-        Ok(json!({ "ok": true, "qrCode": qr_b64, "secret": secret_b32, "expiresAt": expires_at }))
+        Ok(json!({ "ok": true, "otpauthUrl": otpauth_url, "secret": secret_b32, "expiresAt": expires_at }))
     }
 
     /// Turns the factor on and hands out the recovery codes, which are shown

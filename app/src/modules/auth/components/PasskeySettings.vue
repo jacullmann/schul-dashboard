@@ -20,7 +20,7 @@ const {
   supported,
   passkeys,
   loading,
-  loadError,
+  loadFailed,
   fetchPasskeys,
   addPasskey,
   renamePasskey,
@@ -133,17 +133,8 @@ onMounted(() => {
       {{ t('auth.passkeys.unsupported') }}
     </div>
 
-    <div
-      v-if="loadError"
-      class="flex flex-col gap-3 p-4 bg-danger-hover border border-danger rounded-xl items-center text-center"
-    >
-      <AlertCircle class="text-danger" :size="32" />
-      <span class="text-sm font-medium text-danger">{{ loadError }}</span>
-      <BaseButton
-        variant="ghost"
-        class="!border-danger/30 hover:!bg-danger/10"
-        @click="fetchPasskeys"
-      >
+    <div v-if="loadFailed" class="flex justify-center">
+      <BaseButton variant="ghost" @click="fetchPasskeys">
         {{ t('auth.sessions.actions.retry') }}
       </BaseButton>
     </div>

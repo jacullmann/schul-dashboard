@@ -31,7 +31,6 @@ const toast = useToast();
 
 const loading = ref(true);
 const ok = ref(false);
-const errorMsg = ref('');
 
 const groupName = ref('');
 const avatarUrl = ref<string | null>(null);
@@ -41,7 +40,6 @@ const joining = ref(false);
 async function loadInvite(token: string) {
   loading.value = true;
   ok.value = false;
-  errorMsg.value = '';
 
   const res = await auth.getInvite(token);
   if (token !== props.token) return;
@@ -58,7 +56,7 @@ async function loadInvite(token: string) {
     memberCount.value = res.memberCount || 0;
     ok.value = true;
   } else {
-    errorMsg.value = res.error || t('auth.groups.invite.invalid_desc');
+    if (res.error) toast.error(res.error);
     clearPendingInvite();
   }
   loading.value = false;
@@ -216,7 +214,7 @@ function handleLater() {
             '--enter-delay': entranceDelay(DETAIL_SUBTITLE_ENTRANCE_ORDER),
           }"
         >
-          {{ errorMsg }}
+          {{ t('auth.groups.invite.invalid_desc') }}
         </p>
       </div>
     </div>

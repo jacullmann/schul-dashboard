@@ -10,6 +10,7 @@ import {
   frameState,
   openKeyframes,
   thumbCloseKeyframes,
+  tileShape,
 } from '@/modules/tasks/utils/imageViewerMotion';
 import type { ViewerControls } from './useViewerControls';
 
@@ -184,7 +185,7 @@ export function useViewerTransition(options: ViewerTransitionOptions) {
       easing: GLIDE_EASING,
     };
     const keyframes = openKeyframes(
-      tile.getBoundingClientRect(),
+      tileShape(tile),
       parts.frame.getBoundingClientRect(),
     );
     openDimAnimation = backdrop.animate(dimKeyframes(), timing);
@@ -326,7 +327,7 @@ export function useViewerTransition(options: ViewerTransitionOptions) {
     // Measured with the open taken off, so this is the frame's resting rect
     // under whatever the swipe left on the stage.
     const keyframes = closeKeyframes(
-      tile.getBoundingClientRect(),
+      tileShape(tile),
       parts.frame.getBoundingClientRect(),
       from,
       ancestorScale,

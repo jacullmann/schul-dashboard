@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
-import { AlertCircle } from '@lucide/vue';
 import { useUserStore } from '@/stores/userStore';
 import GoogleIcon from '@/modules/auth/components/GoogleIcon.vue';
 import { useLogin } from '@/modules/auth/composables/useLogin';
@@ -44,7 +43,6 @@ const {
 const {
   supported: passkeysSupported,
   signingIn: passkeySigningIn,
-  error: passkeyError,
   signInWithPasskey,
 } = usePasskeySignIn(enterApp);
 
@@ -133,13 +131,6 @@ function navigateToRegister() {
           >
             {{ t('auth.login.verify_email.resend') }}
           </BaseButton>
-          <p
-            v-else-if="verificationResend === 'sent'"
-            class="m-0! text-sm/relaxed text-on-ghost-muted"
-            role="status"
-          >
-            {{ t('auth.login.verify_email.resent') }}
-          </p>
         </template>
 
         <template #action-text>
@@ -177,14 +168,6 @@ function navigateToRegister() {
         >
           {{ t('auth.passkeys.sign_in') }}
         </BaseButton>
-        <div
-          v-if="passkeyError"
-          role="alert"
-          class="flex items-center justify-center gap-1.5 mt-2 text-sm text-danger"
-        >
-          <AlertCircle :size="16" class="shrink-0" />
-          {{ passkeyError }}
-        </div>
       </template>
       <div class="text-center mt-8">
         <p class="text-sm text-on-ghost-muted">

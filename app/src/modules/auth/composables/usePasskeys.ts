@@ -16,6 +16,7 @@ import {
   passkeyErrorMessage,
 } from '@/modules/auth/utils/passkeyErrors';
 import { parseUserAgent } from '@/modules/auth/utils/userAgent';
+import { useToast } from '@/common/composables/useToast';
 
 export type PasskeyActionResult =
   | { ok: true }
@@ -25,11 +26,12 @@ export type PasskeyActionResult =
 /** Manages the signed-in user's passkeys in the account settings. */
 export function usePasskeys() {
   const { t } = useI18n();
+  const toast = useToast();
 
   const supported = browserSupportsWebAuthn();
   const passkeys = ref<Passkey[]>([]);
   const loading = ref(false);
-  const loadError = ref<string | null>(null);
+  const loadFailed = ref(false);
 
   let account: Pick<PasskeyListResponse, 'rpId' | 'userHandle'> | null = null;
 
@@ -51,17 +53,15 @@ export function usePasskeys() {
 
   async function fetchPasskeys(): Promise<void> {
     loading.value = true;
-    loadError.value = null;
+    loadFailed.value = false;
     try {
       const { data } = await api.get<PasskeyListResponse>('/passkeys');
       passkeys.value = data.passkeys;
       account = { rpId: data.rpId, userHandle: data.userHandle };
       signalAcceptedPasskeys();
     } catch (err: unknown) {
-      loadError.value = passkeyErrorMessage(
-        err,
-        'auth.passkeys.errors.load_failed',
-      );
+      loadFailed.value = true;
+      toast.error(passkeyErrorMessage(err, 'auth.passkeys.errors.load_failed'));
     } finally {
       loading.value = false;
     }
@@ -134,7 +134,7 @@ export function usePasskeys() {
     supported,
     passkeys,
     loading,
-    loadError,
+    loadFailed,
     fetchPasskeys,
     addPasskey,
     renamePasskey,

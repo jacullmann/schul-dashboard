@@ -20,7 +20,7 @@ interface MetricChart {
 }
 
 const { t, locale } = useI18n();
-const { range, metrics, loading, failure, setRange, load } = useServerMetrics();
+const { range, metrics, loading, failed, setRange, load } = useServerMetrics();
 
 const rangeItems = computed(() =>
   METRICS_RANGES.map((id) => ({ id, label: t(`${I18N_BASE}.ranges.${id}`) })),
@@ -63,11 +63,9 @@ const charts = computed<MetricChart[]>(() => {
     <BaseTabs :items="rangeItems" :active-id="range" @change="onRangeChange" />
 
     <div
-      v-if="failure"
-      class="flex flex-col items-center gap-2 rounded-xl border border-ghost-border bg-surface p-6 text-center text-sm text-on-ghost-muted"
-      role="alert"
+      v-if="failed"
+      class="flex justify-center rounded-xl border border-ghost-border bg-surface p-6"
     >
-      {{ t(`${I18N_BASE}.errors.${failure}`) }}
       <BaseButton variant="ghost" @click="load">
         {{ t(`${I18N_BASE}.retry`) }}
       </BaseButton>

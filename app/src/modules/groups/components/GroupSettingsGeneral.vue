@@ -6,6 +6,7 @@ import { useGroupGeneralSettings } from '@/modules/groups/composables/useGroupGe
 import { useGroupSettingsAccess } from '@/modules/groups/composables/useGroupSettingsAccess';
 import { Pencil, Camera, Trash2, Upload } from '@lucide/vue';
 import { useConfirmModal } from '@/stores/modalStore';
+import { useToast } from '@/common/composables/useToast';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { uploadGroupAvatar } from '@/api/files';
 import GroupAvatarCropper from './GroupAvatarCropper.vue';
@@ -15,6 +16,7 @@ import Avatar from '@/modules/auth/components/Avatar.vue';
 import { GROUP_NAME_MAX_LENGTH, type GroupType } from '@/types/groups';
 
 const confirmModal = useConfirmModal();
+const toast = useToast();
 const { t } = useI18n();
 const {
   activeGroupAvatarUrl,
@@ -156,7 +158,6 @@ const cameraInputRef = ref<HTMLInputElement | null>(null);
 const cropperOpen = ref(false);
 const selectedImageSrc = ref('');
 const savingAvatar = ref(false);
-const avatarError = ref('');
 const isMenuOpen = ref(false);
 
 function toggleMenu() {
@@ -188,7 +189,7 @@ function onFileSelected(e: Event) {
   if (!file) return;
 
   if (!file.type.startsWith('image/')) {
-    avatarError.value = t('groups.settings.general.avatar.errors.invalid_file');
+    toast.error(t('groups.settings.general.avatar.errors.invalid_file'));
     return;
   }
 
@@ -197,10 +198,9 @@ function onFileSelected(e: Event) {
     selectedImageSrc.value = event.target?.result as string;
     cropperOpen.value = true;
     input.value = '';
-    avatarError.value = '';
   };
   reader.onerror = () => {
-    avatarError.value = t('groups.settings.general.avatar.errors.read_failed');
+    toast.error(t('groups.settings.general.avatar.errors.read_failed'));
   };
   reader.readAsDataURL(file);
 }
@@ -208,7 +208,6 @@ function onFileSelected(e: Event) {
 async function onCropConfirmed(blob: Blob) {
   cropperOpen.value = false;
   savingAvatar.value = true;
-  avatarError.value = '';
 
   try {
     const upload = await uploadGroupAvatar(blob).catch(() => {
@@ -216,9 +215,12 @@ async function onCropConfirmed(blob: Blob) {
     });
 
     await saveGroupAvatar(upload.id);
-  } catch (err: any) {
-    avatarError.value =
-      err.message || t('groups.settings.general.avatar.errors.save_failed');
+  } catch (err) {
+    toast.error(
+      err instanceof Error && err.message
+        ? err.message
+        : t('groups.settings.general.avatar.errors.save_failed'),
+    );
   } finally {
     savingAvatar.value = false;
   }
@@ -235,12 +237,14 @@ async function deleteAvatar() {
   if (!isConfirmed) return;
 
   savingAvatar.value = true;
-  avatarError.value = '';
   try {
     await saveGroupAvatar(null);
-  } catch (err: any) {
-    avatarError.value =
-      err.message || t('groups.settings.general.avatar.errors.delete_failed');
+  } catch (err) {
+    toast.error(
+      err instanceof Error && err.message
+        ? err.message
+        : t('groups.settings.general.avatar.errors.delete_failed'),
+    );
   } finally {
     savingAvatar.value = false;
   }
@@ -444,12 +448,6 @@ async function confirmDeleteGroup() {
               </BaseRow>
             </Transition>
           </div>
-
-          <span
-            v-if="avatarError"
-            class="text-xs text-danger font-medium mt-1"
-            >{{ avatarError }}</span
-          >
         </div>
       </div>
 

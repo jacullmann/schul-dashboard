@@ -2,6 +2,7 @@ import { ref, reactive, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import api from '@/api/api.ts';
 import { useMfa } from '@/modules/auth/composables/useMfa';
+import { useToast } from '@/common/composables/useToast';
 import { apiErrorCode, isRateLimited } from '@/api/errors';
 import {
   AuthErrorCode,
@@ -22,6 +23,7 @@ export function useLogin(
 ) {
   const { t } = useI18n();
   const { resetMfaState } = useMfa();
+  const toast = useToast();
 
   const email = ref('');
   const password = ref('');
@@ -114,6 +116,7 @@ export function useLogin(
       await api.post('/auth/verify/resend', { email: email.value.trim() });
       verificationResend.value = 'sent';
       formError.value = '';
+      toast.success(t('auth.login.verify_email.resent'));
     } catch (e: unknown) {
       verificationResend.value = 'available';
       formError.value = isRateLimited(e)

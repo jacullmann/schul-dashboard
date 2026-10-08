@@ -3,8 +3,10 @@ import { ref, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useOAuth } from '@/modules/auth/composables/useOAuth';
 import GoogleIcon from '@/modules/auth/components/GoogleIcon.vue';
+import { useToast } from '@/common/composables/useToast';
 
 const { t } = useI18n();
+const toast = useToast();
 
 const { fetchLinkedProviders, unlinkGoogleAccount, initiateGoogleLink } =
   useOAuth();
@@ -17,8 +19,6 @@ interface Provider {
 const providers = ref<Provider[]>([]);
 const loading = ref(true);
 const actionLoading = ref(false);
-const errorMsg = ref('');
-const successMsg = ref('');
 
 const googleLinked = () => providers.value.some((p) => p.provider === 'google');
 const googleProvider = () =>
@@ -30,8 +30,6 @@ onMounted(async () => {
 });
 
 async function handleUnlink() {
-  errorMsg.value = '';
-  successMsg.value = '';
   actionLoading.value = true;
 
   const result = await unlinkGoogleAccount();
@@ -39,15 +37,13 @@ async function handleUnlink() {
 
   if (result.ok) {
     providers.value = providers.value.filter((p) => p.provider !== 'google');
-    successMsg.value = t('auth.connected_accounts.unlinked');
+    toast.success(t('auth.connected_accounts.unlinked'));
   } else {
-    errorMsg.value = result.error;
+    toast.error(result.error);
   }
 }
 
 async function handleLink() {
-  errorMsg.value = '';
-  successMsg.value = '';
   actionLoading.value = true;
 
   const result = await initiateGoogleLink();
@@ -55,7 +51,7 @@ async function handleLink() {
   // On success the page is already navigating to Google.
   if (!result.ok) {
     actionLoading.value = false;
-    errorMsg.value = result.error;
+    toast.error(result.error);
   }
 }
 </script>
@@ -67,22 +63,18 @@ async function handleLink() {
     </div>
 
     <template v-else>
-      <div
-        class="flex max-sm:flex-col items-center justify-between gap-3 p-3 bg-surface border border-ghost-border rounded-xl"
-      >
-        <div class="flex items-center max-sm:w-full gap-3">
+      <div class="flex max-sm:flex-col items-center justify-between gap-4 py-3">
+        <div class="flex items-center max-sm:w-full gap-2">
           <div
             class="size-10 flex items-center justify-center flex-shrink-0"
             aria-hidden="true"
           >
             <GoogleIcon :size="24" />
           </div>
-          <div class="flex flex-col">
-            <span class="text-base font-semibold text-on-ghost">Google</span>
-            <span class="text-sm text-on-ghost-muted">{{
-              googleLinked()
-                ? googleProvider()?.email
-                : t('auth.connected_accounts.not_linked')
+          <div class="flex flex-col gap-1">
+            <span class="text-base/5 font-semibold text-on-ghost">Google</span>
+            <span v-if="googleLinked()" class="text-sm/4 text-on-ghost-muted">{{
+              googleProvider()?.email
             }}</span>
           </div>
         </div>
@@ -106,19 +98,6 @@ async function handleLink() {
         >
           {{ t('auth.connected_accounts.actions.link') }}
         </BaseButton>
-      </div>
-
-      <div
-        v-if="errorMsg"
-        class="text-sm p-2 px-3 rounded-lg text-danger bg-danger-hover"
-      >
-        {{ errorMsg }}
-      </div>
-      <div
-        v-if="successMsg"
-        class="text-sm p-2 px-3 rounded-lg text-success bg-success-hover"
-      >
-        {{ successMsg }}
       </div>
     </template>
   </div>

@@ -10,6 +10,7 @@ import {
 import { isAxiosError } from 'axios';
 import api from '@/api/api.ts';
 import { apiErrorCode } from '@/api/errors';
+import { useToast } from '@/common/composables/useToast';
 import type { PasskeyChallengeResponse } from '@/modules/auth/types';
 import {
   PasskeyErrorCode,
@@ -28,7 +29,7 @@ const FALLBACK_CHALLENGE_TIMEOUT_MS = 300_000;
 export function usePasskeySignIn(onSignedIn: () => void | Promise<void>) {
   const supported = browserSupportsWebAuthn();
   const signingIn = ref(false);
-  const error = ref('');
+  const toast = useToast();
 
   let active = true;
   let renewTimer: ReturnType<typeof setTimeout> | null = null;
@@ -52,7 +53,6 @@ export function usePasskeySignIn(onSignedIn: () => void | Promise<void>) {
     credential: AuthenticationResponseJSON,
   ): Promise<void> {
     signingIn.value = true;
-    error.value = '';
     try {
       await api.post('/auth/passkey/verify', {
         challengeId: challenge.challengeId,
@@ -82,9 +82,8 @@ export function usePasskeySignIn(onSignedIn: () => void | Promise<void>) {
 
   function reportFailure(err: unknown): void {
     if (!active || isPasskeyDismissed(err)) return;
-    error.value = passkeyErrorMessage(
-      err,
-      'auth.passkeys.errors.sign_in_failed',
+    toast.error(
+      passkeyErrorMessage(err, 'auth.passkeys.errors.sign_in_failed'),
     );
   }
 
@@ -132,7 +131,6 @@ export function usePasskeySignIn(onSignedIn: () => void | Promise<void>) {
   async function signInWithPasskey(): Promise<void> {
     if (signingIn.value) return;
     clearRenewTimer();
-    error.value = '';
     signingIn.value = true;
 
     try {
@@ -160,5 +158,5 @@ export function usePasskeySignIn(onSignedIn: () => void | Promise<void>) {
     WebAuthnAbortService.cancelCeremony();
   });
 
-  return { supported, signingIn, error, signInWithPasskey };
+  return { supported, signingIn, signInWithPasskey };
 }

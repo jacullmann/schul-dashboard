@@ -1,11 +1,13 @@
 import axios from 'axios';
 import { computed, onScopeDispose, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 import api from '@/api/api';
+import { useToast } from '@/common/composables/useToast';
 import type { MetricsRange, ServerMetrics } from '../types';
 
 /** Why the metrics could not be loaded, told apart where an admin can act on it. */
-export type ServerMetricsFailure =
+type ServerMetricsFailure =
   'token_rejected' | 'server_not_found' | 'unreachable' | 'unknown';
 
 const FAILURE_BY_CODE: Partial<Record<string, ServerMetricsFailure>> = {
@@ -38,6 +40,8 @@ export function isMetricsRange(value: unknown): value is MetricsRange {
  * query so a view survives reloads and can be linked.
  */
 export function useServerMetrics() {
+  const { t } = useI18n();
+  const toast = useToast();
   const route = useRoute();
   const router = useRouter();
   const routeName = route.name;
@@ -48,7 +52,7 @@ export function useServerMetrics() {
 
   const metrics = ref<ServerMetrics | null>(null);
   const loading = ref(false);
-  const failure = ref<ServerMetricsFailure | null>(null);
+  const failed = ref(false);
 
   function setRange(next: MetricsRange) {
     return router.replace({
@@ -67,7 +71,7 @@ export function useServerMetrics() {
     const current = new AbortController();
     controller = current;
     loading.value = true;
-    failure.value = null;
+    failed.value = false;
 
     try {
       const { data } = await api.get<ServerMetrics>('/admin/server-metrics', {
@@ -76,7 +80,10 @@ export function useServerMetrics() {
       });
       metrics.value = data;
     } catch (error) {
-      if (!axios.isCancel(error)) failure.value = failureOf(error);
+      if (!axios.isCancel(error)) {
+        failed.value = true;
+        toast.error(t(`admin.overview.server.errors.${failureOf(error)}`));
+      }
     } finally {
       if (controller === current) loading.value = false;
     }
@@ -93,5 +100,5 @@ export function useServerMetrics() {
 
   onScopeDispose(() => controller?.abort());
 
-  return { range, metrics, loading, failure, setRange, load };
+  return { range, metrics, loading, failed, setRange, load };
 }

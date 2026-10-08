@@ -10,9 +10,11 @@ import GroupTypeRadioGroup from '@/modules/groups/components/GroupTypeRadioGroup
 import { uploadGroupAvatar, type GroupAvatarUpload } from '@/api/files';
 import Avatar from '@/modules/auth/components/Avatar.vue';
 import { apiErrorMessage } from '@/api/errors';
+import { useToast } from '@/common/composables/useToast';
 import { GROUP_NAME_MAX_LENGTH, type GroupType } from '@/types/groups';
 
 const { t } = useI18n();
+const toast = useToast();
 
 defineProps<{
   open: boolean;
@@ -40,7 +42,6 @@ const cameraInputRef = ref<HTMLInputElement | null>(null);
 const cropperOpen = ref(false);
 const selectedImageSrc = ref('');
 const savingAvatar = ref(false);
-const avatarError = ref('');
 const isMenuOpen = ref(false);
 const avatar = ref<GroupAvatarUpload | null>(null);
 const avatarUrl = computed(() => avatar.value?.url ?? null);
@@ -70,9 +71,7 @@ function onFileSelected(e: Event) {
   if (!file) return;
 
   if (!file.type.startsWith('image/')) {
-    avatarError.value =
-      t('groups.settings.general.avatar.errors.invalid_file') ||
-      'Ungültiges Dateiformat';
+    toast.error(t('groups.settings.general.avatar.errors.invalid_file'));
     return;
   }
 
@@ -81,12 +80,9 @@ function onFileSelected(e: Event) {
     selectedImageSrc.value = event.target?.result as string;
     cropperOpen.value = true;
     input.value = '';
-    avatarError.value = '';
   };
   reader.onerror = () => {
-    avatarError.value =
-      t('groups.settings.general.avatar.errors.read_failed') ||
-      'Fehler beim Lesen der Datei';
+    toast.error(t('groups.settings.general.avatar.errors.read_failed'));
   };
   reader.readAsDataURL(file);
 }
@@ -94,17 +90,17 @@ function onFileSelected(e: Event) {
 async function onCropConfirmed(blob: Blob) {
   cropperOpen.value = false;
   savingAvatar.value = true;
-  avatarError.value = '';
 
   try {
     avatar.value = await uploadGroupAvatar(blob).catch(() => {
       throw new Error(t('groups.settings.general.avatar.errors.upload_failed'));
     });
-  } catch (err: any) {
-    avatarError.value =
-      err.message ||
-      t('groups.settings.general.avatar.errors.save_failed') ||
-      'Fehler beim Speichern';
+  } catch (err) {
+    toast.error(
+      err instanceof Error && err.message
+        ? err.message
+        : t('groups.settings.general.avatar.errors.save_failed'),
+    );
   } finally {
     savingAvatar.value = false;
   }
@@ -240,9 +236,6 @@ async function submit() {
         <span class="text-xs text-on-ghost-muted">{{
           t('groups.settings.general.avatar.description') ||
           'Optionally choose a group picture'
-        }}</span>
-        <span v-if="avatarError" class="text-xs text-danger font-medium">{{
-          avatarError
         }}</span>
       </div>
 

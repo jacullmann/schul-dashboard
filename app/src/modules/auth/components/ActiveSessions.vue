@@ -1,13 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import {
-  Laptop,
-  Smartphone,
-  Monitor,
-  Trash2,
-  LogOut,
-  AlertCircle,
-} from '@lucide/vue';
+import { Laptop, Smartphone, Monitor, Trash2, LogOut } from '@lucide/vue';
 import api from '../../../api/api';
 import { useConfirmModal } from '@/stores/modalStore';
 import { useI18n } from 'vue-i18n';
@@ -40,7 +33,7 @@ const currentFamilyId = ref<string | null>(null);
 const loading = ref(true);
 const revokingId = ref<string | null>(null);
 const revokingAll = ref(false);
-const error = ref<string | null>(null);
+const loadFailed = ref(false);
 
 const { t } = useI18n();
 const confirmModal = useConfirmModal();
@@ -48,14 +41,15 @@ const toast = useToast();
 
 async function fetchSessions() {
   loading.value = true;
-  error.value = null;
+  loadFailed.value = false;
   try {
     const res = await api.get<SessionsResponse>('/auth/sessions');
     sessions.value = res.data.sessions || [];
     currentFamilyId.value = res.data.currentFamilyId ?? null;
   } catch (err) {
     console.error('Failed to fetch active sessions:', err);
-    error.value = t('auth.sessions.errors.load_failed');
+    loadFailed.value = true;
+    toast.error(t('auth.sessions.errors.load_failed'));
   } finally {
     loading.value = false;
   }
@@ -142,35 +136,26 @@ onMounted(() => {
       {{ t('auth.sessions.description') }}
     </p>
 
-    <div
-      v-if="error"
-      class="flex flex-col gap-3 p-4 bg-danger-hover border border-danger rounded-xl items-center text-center"
-    >
-      <AlertCircle class="text-danger" :size="32" />
-      <span class="text-sm font-medium text-danger">{{ error }}</span>
-      <BaseButton
-        variant="ghost"
-        class="!border-danger/30 hover:!bg-danger/10"
-        @click="fetchSessions"
-        >{{ t('auth.sessions.actions.retry') }}</BaseButton
-      >
+    <div v-if="loadFailed" class="flex justify-center">
+      <BaseButton variant="ghost" @click="fetchSessions">{{
+        t('auth.sessions.actions.retry')
+      }}</BaseButton>
     </div>
 
-    <div v-else-if="loading" class="flex flex-col gap-3">
-      <div
-        v-for="i in 3"
-        :key="i"
-        class="p-3 bg-surface border border-ghost-border rounded-xl flex gap-3 items-center"
-      >
-        <BaseSkeleton width="10" height="10" class="shrink-0" />
-        <div class="flex flex-col gap-2 flex-1">
-          <BaseSkeleton height="4" class="max-w-32" />
-          <BaseSkeleton height="3" class="max-w-48" />
+    <div v-else-if="loading" class="flex flex-col">
+      <template v-for="i in 3" :key="i">
+        <div v-if="i > 1" class="separator ml-13"></div>
+        <div class="flex gap-3 items-center py-3">
+          <BaseSkeleton width="10" height="10" class="shrink-0" />
+          <div class="flex flex-col gap-2 flex-1">
+            <BaseSkeleton height="4" class="max-w-32" />
+            <BaseSkeleton height="3" class="max-w-48" />
+          </div>
         </div>
-      </div>
+      </template>
     </div>
 
-    <div v-else class="flex flex-col gap-3">
+    <template v-else>
       <div v-if="sessions.length > 1" class="flex justify-end">
         <BaseButton
           :disabled="revokingAll"
@@ -184,72 +169,68 @@ onMounted(() => {
         </BaseButton>
       </div>
 
-      <div class="flex flex-col gap-3 overflow-y-auto pr-1">
-        <div
-          v-for="session in sessions"
-          :key="session.familyId"
-          class="group relative flex gap-3 items-center p-3.5 bg-surface border border-ghost-border shadow-input rounded-xl transition-all duration-200"
-          :class="{
-            'border-[var(--special--green)]/40 bg-success-surface/10':
-              isCurrentSession(session),
-          }"
-        >
-          <div
-            class="flex items-center justify-center w-10 h-10 text-on-ghost-muted shrink-0 transition-colors"
-          >
-            <component
-              :is="
-                parseUserAgent(session.userAgent).isMobile
-                  ? Smartphone
-                  : parseUserAgent(session.userAgent).os !==
-                      t('auth.sessions.os.unknown')
-                    ? Laptop
-                    : Monitor
-              "
-              :size="24"
-            />
-          </div>
-
-          <div class="flex flex-col flex-1 min-w-0">
-            <div class="text-base font-semibold text-on-ghost truncate">
-              {{
-                t(
-                  'auth.sessions.device_label',
-                  parseUserAgent(session.userAgent),
-                )
-              }}
+      <div class="flex flex-col">
+        <template v-for="(session, index) in sessions" :key="session.familyId">
+          <div v-if="index > 0" class="separator ml-13"></div>
+          <div class="flex gap-3 items-center py-3">
+            <div
+              class="flex items-center justify-center size-10 text-on-ghost-muted shrink-0"
+              aria-hidden="true"
+            >
+              <component
+                :is="
+                  parseUserAgent(session.userAgent).isMobile
+                    ? Smartphone
+                    : parseUserAgent(session.userAgent).os !==
+                        t('auth.sessions.os.unknown')
+                      ? Laptop
+                      : Monitor
+                "
+                :size="24"
+              />
             </div>
 
-            <div class="flex items-center gap-1 text-sm text-on-ghost-muted">
-              {{ session.location?.city ? `${session.location.city}, ` : '' }}
-              {{
-                session.location?.country || t('auth.sessions.location.unknown')
-              }}
-              •
-              {{
-                isCurrentSession(session)
-                  ? t('auth.sessions.this_device')
-                  : formatDate(session.issuedAt, t)
-              }}
+            <div class="flex flex-col flex-1 min-w-0">
+              <span class="text-base font-semibold text-on-ghost truncate">
+                {{
+                  t(
+                    'auth.sessions.device_label',
+                    parseUserAgent(session.userAgent),
+                  )
+                }}
+              </span>
+              <span class="text-sm text-on-ghost-muted">
+                {{ session.location?.city ? `${session.location.city}, ` : ''
+                }}{{
+                  session.location?.country ||
+                  t('auth.sessions.location.unknown')
+                }}
+                •
+                {{
+                  isCurrentSession(session)
+                    ? t('auth.sessions.this_device')
+                    : formatDate(session.issuedAt, t)
+                }}
+              </span>
             </div>
-          </div>
 
-          <template v-if="!isCurrentSession(session)">
             <BaseTooltip
+              v-if="!isCurrentSession(session)"
               :content="t('auth.sessions.actions.delete')"
               placement="bottom"
             >
               <BaseButton
-                :loading="revokingId === session.familyId"
                 variant="ghost"
                 on="ghost"
                 :icon="Trash2"
+                :loading="revokingId === session.familyId"
+                :aria-label="t('auth.sessions.actions.delete')"
                 @click="revokeSession(session)"
               />
             </BaseTooltip>
-          </template>
-        </div>
+          </div>
+        </template>
       </div>
-    </div>
+    </template>
   </div>
 </template>

@@ -15,7 +15,7 @@ const emit = defineEmits<{
   (e: 'error', msg: string): void;
 }>();
 
-const { understoodChecked, submitting, errorMsg, successMsg, confirmDelete } =
+const { understoodChecked, submitting, errorMsg, confirmDelete } =
   useDeleteAccount(emit);
 </script>
 
@@ -53,13 +53,6 @@ const { understoodChecked, submitting, errorMsg, successMsg, confirmDelete } =
       <BaseCheckbox v-model="understoodChecked">
         {{ t('auth.delete_account.confirm') }}
       </BaseCheckbox>
-
-      <div
-        v-if="successMsg"
-        class="text-sm p-2 px-3 rounded-md text-center mt-4 text-[var(--special--green)] bg-success-surface"
-      >
-        {{ successMsg }}
-      </div>
     </template>
 
     <template #action-text>

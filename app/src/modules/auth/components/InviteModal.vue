@@ -5,6 +5,7 @@ import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { Copy, Check, RefreshCw } from '@lucide/vue';
 import { useToast } from '@/common/composables/useToast';
 import { useAbsoluteUrl } from '@/common/composables/useAbsoluteUrl';
+import { useQrCode } from '@/common/composables/useQrCode';
 import { inviteRoute } from '@/modules/auth/utils/routes';
 
 const { t } = useI18n();
@@ -39,32 +40,7 @@ const inviteUrl = computed(() =>
   currentToken.value ? absoluteUrl(inviteRoute(currentToken.value)) : '',
 );
 
-const qrCodeUrl = ref<string | null>(null);
-
-watch(
-  inviteUrl,
-  async (newUrl) => {
-    if (!newUrl) {
-      qrCodeUrl.value = null;
-      return;
-    }
-    try {
-      const { default: QRCode } = await import('qrcode');
-      qrCodeUrl.value = await QRCode.toDataURL(newUrl, {
-        width: 200,
-        margin: 2,
-        color: {
-          dark: '#0F0F0F',
-          light: '#FFFFFF',
-        },
-      });
-    } catch (err) {
-      console.error('Failed to generate QR code', err);
-      qrCodeUrl.value = null;
-    }
-  },
-  { immediate: true },
-);
+const { qrCodeUrl } = useQrCode(inviteUrl);
 
 async function copyLink() {
   if (!inviteUrl.value) return;

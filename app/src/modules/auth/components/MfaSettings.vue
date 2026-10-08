@@ -22,6 +22,7 @@ import { useI18n } from 'vue-i18n';
 import RecoveryCodes from '@/modules/auth/components/RecoveryCodes.vue';
 import { useToast } from '@/common/composables/useToast';
 import { useConfirmModal } from '@/stores/modalStore';
+import { useQrCode } from '@/common/composables/useQrCode';
 
 /** Below this many unused codes, the user is nudged to create new ones. */
 const LOW_RECOVERY_CODES = 3;
@@ -50,7 +51,8 @@ const {
 
 const setupMode = ref(false);
 const setupStep = ref(1);
-const qrCodeUrl = ref<string | null>(null);
+const otpauthUrl = ref<string | null>(null);
+const { qrCodeUrl } = useQrCode(otpauthUrl);
 const manualSecret = ref<string | null>(null);
 const expiresAt = ref<Date | null>(null);
 const verifyCode = ref('');
@@ -109,7 +111,7 @@ async function startSetup() {
   if (!result && mfaError.value) toast.error(mfaError.value);
 
   if (result) {
-    qrCodeUrl.value = result.qrCode;
+    otpauthUrl.value = result.otpauthUrl;
     manualSecret.value = result.secret;
     expiresAt.value = new Date(result.expiresAt);
     setupMode.value = true;
@@ -125,7 +127,7 @@ async function startSetup() {
 function cancelSetup() {
   setupMode.value = false;
   setupStep.value = 1;
-  qrCodeUrl.value = null;
+  otpauthUrl.value = null;
   manualSecret.value = null;
   expiresAt.value = null;
   verifyCode.value = '';
@@ -160,8 +162,14 @@ async function copySecret() {
   }
 }
 
+async function goToVerifyStep() {
+  setupStep.value = 2;
+  await nextTick();
+  codeInput.value?.focus();
+}
+
 async function activateMfa() {
-  if (verifyCode.value.length !== 6) return;
+  if (verifyCode.value.length !== 6 || loading.value) return;
 
   loading.value = true;
   verifyError.value = null;
@@ -320,14 +328,11 @@ onUnmounted(() => {
           {{ t('auth.mfa.setup.scan_instruction') }}
         </p>
 
-        <div
-          v-if="qrCodeUrl"
-          class="flex justify-center p-2 bg-white rounded-xl mx-auto"
-        >
+        <div v-if="qrCodeUrl" class="flex justify-center mx-auto">
           <img
             :src="qrCodeUrl"
             :alt="t('auth.mfa.setup.qr_alt')"
-            class="w-50 h-50"
+            class="w-50 h-50 rounded-md"
           />
         </div>
 
@@ -369,7 +374,7 @@ onUnmounted(() => {
           <BaseButton variant="ghost" @click="cancelSetup">{{
             t('common.buttons.cancel')
           }}</BaseButton>
-          <BaseButton variant="action" @click="setupStep = 2">{{
+          <BaseButton variant="action" @click="goToVerifyStep">{{
             t('auth.mfa.actions.next')
           }}</BaseButton>
         </BaseRow>
@@ -390,6 +395,7 @@ onUnmounted(() => {
           :invalid="!!verifyError"
           @input="verifyError = null"
           @keyup.enter="activateMfa"
+          @complete="activateMfa"
         />
 
         <div

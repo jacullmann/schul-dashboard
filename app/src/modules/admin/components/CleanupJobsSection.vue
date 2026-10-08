@@ -54,12 +54,7 @@ onMounted(loadJobs);
       <div v-if="loading" class="flex justify-center p-4">
         <BaseSpinner on="ghost" size="20px" />
       </div>
-      <div
-        v-else-if="failed"
-        class="flex flex-col items-center gap-2 p-4"
-        role="alert"
-      >
-        <span class="text-sm text-danger">{{ t(`${I18N_BASE}.error`) }}</span>
+      <div v-else-if="failed" class="flex justify-center p-4">
         <BaseButton variant="ghost" @click="loadJobs">
           {{ t(`${I18N_BASE}.retry`) }}
         </BaseButton>

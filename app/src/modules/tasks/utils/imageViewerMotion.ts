@@ -11,7 +11,8 @@ export const SNAP_DURATION = 300;
 // never cuts the last frame short.
 export const TRANSITION_SLACK_MS = 40;
 
-// The grid tiles are rounded-sm, the viewer frame is rounded-xl.
+// The task grid's rounded-sm, for a tile whose corners cannot be read. The
+// viewer frame is rounded-xl.
 export const THUMB_RADIUS = 4;
 export const FRAME_RADIUS = 16;
 // BaseBackdrop defaults: bg-black/40 with backdrop-blur-md.
@@ -66,10 +67,29 @@ function counterScaleKeyframes(
   });
 }
 
+// Where the frame lands: the tile's rect and corners. Tiles are rounded
+// differently depending on the grid they sit in, so the corners are read off
+// the tile rather than assumed.
+export interface TileShape {
+  rect: DOMRect;
+  radius: number;
+}
+
+export function tileShape(tile: HTMLElement): TileShape {
+  const radius = parseFloat(getComputedStyle(tile).borderTopLeftRadius);
+  return {
+    rect: tile.getBoundingClientRect(),
+    radius: Number.isFinite(radius) ? radius : THUMB_RADIUS,
+  };
+}
+
 // The frame is squashed onto the tile, so the image inside it is counter
 // scaled back to a uniform ratio. That keeps the picture undistorted while the
 // frame crops it exactly like the tile does.
-export function openKeyframes(tile: DOMRect, frame: DOMRect) {
+export function openKeyframes(
+  { rect: tile, radius }: TileShape,
+  frame: DOMRect,
+) {
   const sx = tile.width / frame.width;
   const sy = tile.height / frame.height;
   const dx = tile.left + tile.width / 2 - (frame.left + frame.width / 2);
@@ -79,7 +99,7 @@ export function openKeyframes(tile: DOMRect, frame: DOMRect) {
     frame: [
       {
         transform: `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`,
-        borderRadius: `${THUMB_RADIUS / sx}px / ${THUMB_RADIUS / sy}px`,
+        borderRadius: `${radius / sx}px / ${radius / sy}px`,
       },
       {
         transform: 'translate(0px, 0px) scale(1, 1)',
@@ -107,7 +127,7 @@ export function openKeyframes(tile: DOMRect, frame: DOMRect) {
 // translation and corners are measured on screen but applied underneath that
 // scale, so it has to be divided back out or the frame lands off its tile.
 export function closeKeyframes(
-  tile: DOMRect,
+  { rect: tile, radius }: TileShape,
   frame: DOMRect,
   from: FrameState,
   ancestorScale = 1,
@@ -129,7 +149,7 @@ export function closeKeyframes(
       },
       {
         transform: `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`,
-        borderRadius: `${THUMB_RADIUS / (sx * ancestorScale)}px / ${THUMB_RADIUS / (sy * ancestorScale)}px`,
+        borderRadius: `${radius / (sx * ancestorScale)}px / ${radius / (sy * ancestorScale)}px`,
       },
     ],
     inner: counterScaleKeyframes(from, { sx, sy, uniform: Math.max(sx, sy) }),

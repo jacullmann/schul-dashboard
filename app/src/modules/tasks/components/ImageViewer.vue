@@ -192,7 +192,12 @@ function openMenu(event: MouseEvent) {
 }
 
 function handleKeydown(e: KeyboardEvent) {
-  if (e.key === 'Escape') cancel();
+  if (e.key === 'Escape') {
+    // A modal the viewer was opened from closes on any Escape that reaches the
+    // window, and this one is only meant for the viewer.
+    e.stopPropagation();
+    cancel();
+  }
   if (e.key === 'ArrowRight') track.next();
   if (e.key === 'ArrowLeft') track.prev();
 }

@@ -2,6 +2,7 @@ import { ref } from 'vue';
 import api from '@/api/api.ts';
 import { useI18n } from 'vue-i18n';
 import { authErrorMessage } from '@/modules/auth/utils/authErrors';
+import { useToast } from '@/common/composables/useToast';
 
 export function useDeleteAccount(emit: {
   (e: 'cancel'): void;
@@ -9,10 +10,10 @@ export function useDeleteAccount(emit: {
   (e: 'error', msg: string): void;
 }) {
   const { t } = useI18n();
+  const toast = useToast();
   const understoodChecked = ref(false);
   const submitting = ref(false);
   const errorMsg = ref('');
-  const successMsg = ref('');
 
   async function confirmDelete() {
     submitting.value = true;
@@ -20,9 +21,8 @@ export function useDeleteAccount(emit: {
     try {
       const res = await api.delete('/auth/me');
       if (res?.data?.ok) {
-        successMsg.value = t('auth.delete_account.success');
+        toast.success(t('auth.delete_account.success'));
         emit('deleted');
-        setTimeout(() => emit('cancel'), 600);
       } else {
         const err = res?.data?.error || t('common.errors.unknown');
         errorMsg.value = err;
@@ -41,7 +41,6 @@ export function useDeleteAccount(emit: {
     understoodChecked,
     submitting,
     errorMsg,
-    successMsg,
     confirmDelete,
   };
 }

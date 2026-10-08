@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { fileUrl, isPdf, previewUrl } from '@/api/files';
+import { isPdf, previewUrl } from '@/api/files';
+import { useImageViewerModal } from '@/stores/modalStore';
 import type { Task } from '@/modules/tasks/types';
 import type { ItemType } from '@/modules/tasks/types';
 import { X, Upload, FileText } from '@lucide/vue';
@@ -72,6 +73,20 @@ const {
 const imageEntrance = useAddedEntrance(
   computed(() => imgImages.value.map((img) => img.publicId)),
 );
+
+const imageViewerModal = useImageViewerModal();
+
+// The viewer grows out of the tile it was opened from and shrinks back into
+// it, so it has to find that tile again, also after paging to another image.
+function imageTile(index: number) {
+  return document.querySelector<HTMLElement>(
+    `[data-task-form-images] [data-image-index="${index}"]`,
+  );
+}
+
+function openImage(index: number) {
+  imageViewerModal.show(imgImages.value, index, imageTile);
+}
 </script>
 
 <template>
@@ -212,16 +227,21 @@ const imageEntrance = useAddedEntrance(
         <BaseLabel for="images">{{
           t('tasks.list.task_form.images')
         }}</BaseLabel>
-        <BaseRow id="images">
+        <BaseRow id="images" data-task-form-images>
           <div
-            v-for="img in imgImages"
+            v-for="(img, idx) in imgImages"
             :key="img.id"
+            :data-image-index="idx"
             class="relative w-32 h-32 rounded-xl overflow-hidden bg-[rgba(26, 26, 26, 0.5)] backdrop-blur-sm"
             :class="{ 'animate-enter': imageEntrance.isEntering(img.id) }"
             :style="imageEntrance.entranceStyle(img.id)"
             @animationend="imageEntrance.handleEntranceEnd($event, img.id)"
           >
-            <BaseLink :to="fileUrl(img)">
+            <button
+              type="button"
+              class="block w-full h-full cursor-pointer bg-transparent"
+              @click="openImage(idx)"
+            >
               <img
                 v-if="previewUrl(img)"
                 :src="previewUrl(img) ?? undefined"
@@ -239,7 +259,7 @@ const imageEntrance = useAddedEntrance(
                   img.format
                 }}</span>
               </span>
-            </BaseLink>
+            </button>
 
             <div
               v-if="isPdf(img)"

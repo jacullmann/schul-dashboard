@@ -1,5 +1,7 @@
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import api from '@/api/api';
+import { useToast } from '@/common/composables/useToast';
 import type { CleanupJob } from '../types';
 
 /**
@@ -7,6 +9,8 @@ import type { CleanupJob } from '../types';
  * opens, since a stalled job is exactly what an admin looks there to spot.
  */
 export function useCleanupJobs() {
+  const { t } = useI18n();
+  const toast = useToast();
   const jobs = ref<CleanupJob[]>([]);
   const loading = ref(false);
   const failed = ref(false);
@@ -19,6 +23,7 @@ export function useCleanupJobs() {
       jobs.value = data;
     } catch {
       failed.value = true;
+      toast.error(t('admin.overview.cleanup_jobs.error'));
     } finally {
       loading.value = false;
     }

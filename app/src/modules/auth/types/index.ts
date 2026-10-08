@@ -5,7 +5,7 @@ import type {
 
 export interface MfaSetupResponse {
   ok: boolean;
-  qrCode: string;
+  otpauthUrl: string;
   secret: string;
   expiresAt: string;
 }
