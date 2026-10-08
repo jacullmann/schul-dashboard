@@ -2,7 +2,7 @@ use crate::{
     auth::{
         cookies::*,
         dto::*,
-        service::{AuthService, LoginResult},
+        service::{AuthService, ClientInfo, LoginResult},
         sign_in_methods::SignInMethods,
         token::{TokenService, *},
     },
@@ -11,6 +11,7 @@ use crate::{
     },
     error::{AppError, AppResult},
     mfa::second_factor::SecondFactorProof,
+    passkeys::{dto::SignInDto as PasskeySignInDto, service::PasskeyService},
     state::AppState,
 };
 use axum::{
@@ -39,10 +40,19 @@ pub async fn login(
     }
 }
 
-pub async fn get_mfa_challenge(pending: MfaPending) -> Json<Value> {
+/// Tells the sign-in page whether to offer a passkey besides the code. Only
+/// whoever already passed the first factor can ask.
+pub async fn get_mfa_challenge(
+    State(state): State<AppState>,
+    pending: MfaPending,
+) -> AppResult<Json<Value>> {
     let expires_in = (pending.expires_at - Utc::now()).num_seconds().max(0);
+    let methods = SignInMethods::load(&state.db, pending.user_id).await?;
 
-    Json(json!({ "expiresIn": expires_in }))
+    Ok(Json(json!({
+        "expiresIn": expires_in,
+        "passkeyAvailable": methods.passkeys > 0,
+    })))
 }
 
 pub async fn verify_mfa(
@@ -68,6 +78,44 @@ pub async fn verify_mfa(
         jar,
         Json(json!({ "ok": true, "recoveryCodesLeft": recovery_codes_left })),
     ))
+}
+
+pub async fn start_mfa_passkey(
+    State(state): State<AppState>,
+    pending: MfaPending,
+) -> AppResult<Json<Value>> {
+    let (challenge_id, options) = PasskeyService::from_state(&state)
+        .start_bound_authentication(pending.user_id)
+        .await?;
+
+    Ok(Json(
+        json!({ "challengeId": challenge_id, "options": options }),
+    ))
+}
+
+pub async fn verify_mfa_passkey(
+    State(state): State<AppState>,
+    pending: MfaPending,
+    ClientIp(ip): ClientIp,
+    UserAgent(ua): UserAgent,
+    ValidatedJson(dto): ValidatedJson<PasskeySignInDto>,
+) -> AppResult<(CookieJar, Json<Value>)> {
+    let client = ClientInfo {
+        user_agent: ua.as_deref(),
+        ip: ip.as_deref(),
+    };
+
+    let jar = PasskeyService::from_state(&state)
+        .finish_second_factor(
+            pending.user_id,
+            &pending.email,
+            dto.challenge_id,
+            &dto.credential,
+            client,
+        )
+        .await?;
+
+    Ok((jar, Json(json!({ "ok": true }))))
 }
 
 pub async fn cancel_mfa(

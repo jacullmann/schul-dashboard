@@ -1,6 +1,7 @@
 import { readonly, ref } from 'vue';
 import { useEventListener, useTimeoutFn } from '@vueuse/core';
 import { useMfa } from '@/modules/auth/composables/useMfa';
+import type { MfaChallengeResponse } from '@/modules/auth/types';
 
 const MS_PER_SECOND = 1000;
 
@@ -11,9 +12,10 @@ const MS_PER_SECOND = 1000;
  * deadline only spares the user that dead end.
  */
 export function useMfaChallenge(onExpired: () => void) {
-  const { fetchMfaChallengeExpiresIn } = useMfa();
+  const { fetchMfaChallenge } = useMfa();
 
   const ready = ref(false);
+  const passkeyAvailable = ref(false);
   let expiresAt = Number.POSITIVE_INFINITY;
   let settled = false;
 
@@ -44,9 +46,9 @@ export function useMfaChallenge(onExpired: () => void) {
   });
 
   async function track(): Promise<void> {
-    let expiresIn: number | null;
+    let challenge: MfaChallengeResponse | null;
     try {
-      expiresIn = await fetchMfaChallengeExpiresIn();
+      challenge = await fetchMfaChallenge();
     } catch {
       // Without a deadline the form still works; submitting an expired
       // challenge is caught by the server.
@@ -54,12 +56,13 @@ export function useMfaChallenge(onExpired: () => void) {
       return;
     }
 
-    if (expiresIn === null) {
+    if (challenge === null) {
       expire();
       return;
     }
 
-    expiresAt = Date.now() + expiresIn * MS_PER_SECOND;
+    expiresAt = Date.now() + challenge.expiresIn * MS_PER_SECOND;
+    passkeyAvailable.value = challenge.passkeyAvailable;
     ready.value = true;
     startExpiryTimer();
   }
@@ -68,6 +71,7 @@ export function useMfaChallenge(onExpired: () => void) {
 
   return {
     ready: readonly(ready),
+    passkeyAvailable: readonly(passkeyAvailable),
     expire,
     settle,
   };

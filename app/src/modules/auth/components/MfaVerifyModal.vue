@@ -1,10 +1,16 @@
 <script setup lang="ts">
-import { useTemplateRef, onMounted } from 'vue';
+import { computed, useTemplateRef, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import CenteredAuthModal from '@/common/components/CenteredAuthModal.vue';
 import SecondFactorInput from '@/modules/auth/components/SecondFactorInput.vue';
 import { useMfa } from '@/modules/auth/composables/useMfa';
 import { useMfaVerify } from '@/modules/auth/composables/useMfaVerify';
+import { useMfaPasskey } from '@/modules/auth/composables/useMfaPasskey';
+import { passkeyIcon } from '@/modules/auth/utils/passkeyIcon';
+
+const props = defineProps<{
+  passkeyAvailable: boolean;
+}>();
 
 const emit = defineEmits<{
   verified: [];
@@ -21,11 +27,42 @@ const { secondFactor, submitting, error, complete, submit, clearError } =
     onExpired: () => emit('expired'),
   });
 
+const {
+  supported: passkeysSupported,
+  verifying: passkeyVerifying,
+  error: passkeyError,
+  verifyWithPasskey,
+  clearError: clearPasskeyError,
+} = useMfaPasskey({
+  onVerified: () => emit('verified'),
+  onExpired: () => emit('expired'),
+});
+
+const offersPasskey = computed(
+  () => props.passkeyAvailable && passkeysSupported,
+);
+const busy = computed(() => submitting.value || passkeyVerifying.value);
+
+function clearErrors() {
+  clearError();
+  clearPasskeyError();
+}
+
+async function submitCode() {
+  clearPasskeyError();
+  await submit();
+}
+
+async function confirmWithPasskey() {
+  clearError();
+  await verifyWithPasskey();
+}
+
 const codeInput = useTemplateRef<{ focus: () => void }>('codeInput');
 onMounted(() => codeInput.value?.focus());
 
 async function cancel() {
-  if (submitting.value) return;
+  if (busy.value) return;
   await cancelMfaLogin();
   emit('cancelled');
 }
@@ -38,10 +75,10 @@ async function cancel() {
     @close="cancel"
   >
     <BaseForm
-      :submit="submit"
+      :submit="submitCode"
       :cancel="cancel"
-      :error="error"
-      :loading="submitting"
+      :error="error || passkeyError"
+      :loading="busy"
       :requirement="complete"
     >
       <template #content>
@@ -59,9 +96,30 @@ async function cancel() {
           ref="codeInput"
           v-model="secondFactor"
           :invalid="!!error"
-          @input="clearError"
-          @complete="submit"
+          @input="clearErrors"
+          @complete="submitCode"
         />
+        <template v-if="offersPasskey">
+          <div class="flex items-center gap-3 my-4">
+            <div class="flex-1 h-px bg-ghost-border" />
+            <span class="text-xs text-on-ghost-muted">
+              {{ t('auth.login.or_continue_with') }}
+            </span>
+            <div class="flex-1 h-px bg-ghost-border" />
+          </div>
+          <BaseButton
+            type="button"
+            surface
+            variant="ghost"
+            class="w-full justify-center"
+            :icon="passkeyIcon"
+            :loading="passkeyVerifying"
+            :disabled="busy"
+            @click="confirmWithPasskey"
+          >
+            {{ t('auth.mfa.verify.with_passkey') }}
+          </BaseButton>
+        </template>
         <p class="m-0! mt-4! text-sm! text-on-ghost-muted">
           {{ t('auth.mfa.verify.support.text') }}
           <a

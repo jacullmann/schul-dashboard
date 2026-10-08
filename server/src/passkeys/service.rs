@@ -2,7 +2,7 @@ use super::dto::{PasskeyList, PasskeySummary};
 use crate::{
     auth::{
         security_notice,
-        service::{AuthService, ClientInfo, LoginResult},
+        service::{AuthService, ClientInfo, LoginResult, SecondFactorKind},
         sign_in_methods::{SignInMethod, SignInMethods},
     },
     common::{
@@ -288,10 +288,10 @@ impl PasskeyService {
         Ok(())
     }
 
-    /// Starts confirming a sensitive action with one of the user's own
-    /// passkeys. The challenge is bound to the user, so only their session can
-    /// answer it, and it can never be used to sign in.
-    pub async fn start_reauth(
+    /// Starts a check with one of the user's own passkeys, for confirming a
+    /// sensitive action or as the second step of a sign-in. The challenge is
+    /// bound to the user, so it can never serve a usernameless sign-in.
+    pub async fn start_bound_authentication(
         &self,
         user_id: Uuid,
     ) -> AppResult<(Uuid, PublicKeyCredentialRequestOptions)> {
@@ -310,12 +310,12 @@ impl PasskeyService {
         }
 
         // Passkey authentication always requires user verification, so the
-        // confirmation proves possession and the device's PIN or biometrics.
+        // check proves possession and the device's PIN or biometrics.
         let (challenge, authentication) = self
             .webauthn
             .start_passkey_authentication(&passkeys)
             .map_err(|e| {
-                AppError::internal(format!("Passkey confirmation failed to start: {e}"))
+                AppError::internal(format!("Passkey authentication failed to start: {e}"))
             })?;
 
         let challenge_id = sqlx::query_scalar!(
@@ -333,9 +333,9 @@ impl PasskeyService {
         Ok((challenge_id, challenge.public_key))
     }
 
-    /// Verifies the answer to [`Self::start_reauth`] and stores the passkey's
-    /// new signature counter.
-    pub async fn finish_reauth(
+    /// Verifies the answer to [`Self::start_bound_authentication`] and stores
+    /// the passkey's new signature counter.
+    pub async fn finish_bound_authentication(
         &self,
         user_id: Uuid,
         challenge_id: Uuid,
@@ -357,7 +357,7 @@ impl PasskeyService {
             .webauthn
             .finish_passkey_authentication(credential, &authentication)
             .map_err(|e| {
-                tracing::warn!(%user_id, "Passkey confirmation rejected: {e}");
+                tracing::warn!(%user_id, "Bound passkey authentication rejected: {e}");
                 PasskeyFailure::SignInRejected
             })?;
 
@@ -394,6 +394,26 @@ impl PasskeyService {
         tx.commit().await?;
 
         Ok(())
+    }
+
+    /// Answers a sign-in held for its second factor with one of the user's
+    /// passkeys. The password already named the account, so the passkey only
+    /// has to prove it is the owner's, which it does more strongly than a
+    /// code: it cannot be phished and verifies the user on the device.
+    pub async fn finish_second_factor(
+        &self,
+        user_id: Uuid,
+        email: &str,
+        challenge_id: Uuid,
+        credential: &PublicKeyCredential,
+        client: ClientInfo<'_>,
+    ) -> AppResult<CookieJar> {
+        self.finish_bound_authentication(user_id, challenge_id, credential)
+            .await?;
+
+        self.auth
+            .finish_two_factor_sign_in(user_id, email, SecondFactorKind::Passkey, client)
+            .await
     }
 
     /// Starts a usernameless sign-in: the browser offers every passkey it

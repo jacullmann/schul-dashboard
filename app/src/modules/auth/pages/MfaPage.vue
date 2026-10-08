@@ -11,7 +11,7 @@ const router = useRouter();
 const { t } = useI18n();
 const userStore = useUserStore();
 const { checkAuthStatus, homeRoute } = useAppAuth();
-const { ready, expire, settle } = useMfaChallenge(
+const { ready, passkeyAvailable, expire, settle } = useMfaChallenge(
   () => void handleMfaExpired(),
 );
 
@@ -43,6 +43,7 @@ async function handleMfaExpired() {
 <template>
   <MfaVerifyModal
     v-if="ready"
+    :passkey-available="passkeyAvailable"
     @verified="handleMfaVerified"
     @cancelled="handleMfaCancelled"
     @expired="expire"

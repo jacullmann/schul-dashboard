@@ -38,6 +38,24 @@ struct PasswordlessAccount {
     locale: Locale,
 }
 
+/// Which second factor completed a sign-in, as the activity log records it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SecondFactorKind {
+    AuthenticatorApp,
+    RecoveryCode,
+    Passkey,
+}
+
+impl SecondFactorKind {
+    const fn as_str(self) -> &'static str {
+        match self {
+            Self::AuthenticatorApp => "authenticator_app",
+            Self::RecoveryCode => "recovery_code",
+            Self::Passkey => "passkey",
+        }
+    }
+}
+
 pub struct AuthService {
     db: PgPool,
     tokens: TokenService,
@@ -220,12 +238,42 @@ impl AuthService {
             return Err(AuthFailure::InvalidSecondFactor.into());
         };
 
-        sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'auth:mfa_login', '{}')"#,
-            user_id
-        )
-            .execute(&self.db)
+        let kind = match verified {
+            Verified::AuthenticatorApp => SecondFactorKind::AuthenticatorApp,
+            Verified::RecoveryCode { .. } => SecondFactorKind::RecoveryCode,
+        };
+        let client = ClientInfo { user_agent, ip };
+        let jar = self
+            .finish_two_factor_sign_in(user_id, email, kind, client)
             .await?;
+
+        let recovery_codes_left = match verified {
+            Verified::AuthenticatorApp => None,
+            Verified::RecoveryCode { remaining } => Some(remaining),
+        };
+        if let Some(event) = verified.security_event() {
+            security_notice::notify(&self.db, &self.email, user_id, event);
+        }
+
+        Ok((jar, recovery_codes_left))
+    }
+
+    /// Issues the session for a sign-in whose second factor, of any kind, has
+    /// just been verified, and drops the pending challenge.
+    pub async fn finish_two_factor_sign_in(
+        &self,
+        user_id: Uuid,
+        email: &str,
+        kind: SecondFactorKind,
+        client: ClientInfo<'_>,
+    ) -> AppResult<CookieJar> {
+        sqlx::query!(
+            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'auth:mfa_login', $2)"#,
+            user_id,
+            json!({ "factor": kind.as_str(), "ip": client.ip })
+        )
+        .execute(&self.db)
+        .await?;
 
         sqlx::query!(
             r#"UPDATE users SET last_login_at = now() WHERE id = $1"#,
@@ -242,20 +290,11 @@ impl AuthService {
         .await?;
 
         let opts = self.config.base_cookie_options();
+        let (jar, _csrf) = self
+            .issue_session(user_id, email, client.user_agent, client.ip)
+            .await?;
 
-        let (mut jar, _) = self.issue_session(user_id, email, user_agent, ip).await?;
-
-        jar = jar.add(clear_mfa_pending_cookie(&opts));
-
-        let recovery_codes_left = match verified {
-            Verified::AuthenticatorApp => None,
-            Verified::RecoveryCode { remaining } => Some(remaining),
-        };
-        if let Some(event) = verified.security_event() {
-            security_notice::notify(&self.db, &self.email, user_id, event);
-        }
-
-        Ok((jar, recovery_codes_left))
+        Ok(jar.add(clear_mfa_pending_cookie(&opts)))
     }
 
     fn second_factor_keys(&self) -> SecondFactorKeys<'_> {

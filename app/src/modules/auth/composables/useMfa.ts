@@ -25,6 +25,10 @@ const MFA_CHALLENGE_EXPIRED = 'MFA_CHALLENGE_EXPIRED';
 const MFA_LOCKED = 'MFA_LOCKED';
 const INVALID_SECOND_FACTOR = 'INVALID_SECOND_FACTOR';
 
+export function isMfaChallengeExpired(err: unknown): boolean {
+  return apiErrorCode(err) === MFA_CHALLENGE_EXPIRED;
+}
+
 export function mfaErrorMessage(err: unknown): string {
   const { t } = i18n.global;
 
@@ -49,7 +53,7 @@ function failure(err: unknown): MfaResult<never> {
   return {
     ok: false,
     error: mfaErrorMessage(err),
-    challengeExpired: apiErrorCode(err) === MFA_CHALLENGE_EXPIRED,
+    challengeExpired: isMfaChallengeExpired(err),
   };
 }
 
@@ -159,15 +163,15 @@ export function useMfa() {
       () => {},
     );
 
-  /** Seconds left on the pending sign-in challenge, or `null` if there is none. */
-  async function fetchMfaChallengeExpiresIn(): Promise<number | null> {
+  /** The pending sign-in challenge, or `null` if there is none. */
+  async function fetchMfaChallenge(): Promise<MfaChallengeResponse | null> {
     try {
       const { data } = await api.get<MfaChallengeResponse>(
         '/auth/mfa/challenge',
       );
-      return data.expiresIn;
+      return data;
     } catch (err: unknown) {
-      if (apiErrorCode(err) === MFA_CHALLENGE_EXPIRED) return null;
+      if (isMfaChallengeExpired(err)) return null;
       throw err;
     }
   }
@@ -197,7 +201,7 @@ export function useMfa() {
     deactivateMfa,
     regenerateRecoveryCodes,
     verifyMfaLogin,
-    fetchMfaChallengeExpiresIn,
+    fetchMfaChallenge,
     cancelMfaLogin,
     resetMfaState,
     setMfaEnabled: (value: boolean) => {

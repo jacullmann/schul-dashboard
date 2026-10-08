@@ -101,7 +101,7 @@ impl ReauthService {
         user: &AuthUser,
     ) -> AppResult<(Uuid, PublicKeyCredentialRequestOptions)> {
         PasskeyService::from_state(&self.state)
-            .start_reauth(user.user_id)
+            .start_bound_authentication(user.user_id)
             .await
     }
 
@@ -112,7 +112,7 @@ impl ReauthService {
         credential: &PublicKeyCredential,
     ) -> AppResult<CookieJar> {
         PasskeyService::from_state(&self.state)
-            .finish_reauth(user.user_id, challenge_id, credential)
+            .finish_bound_authentication(user.user_id, challenge_id, credential)
             .await?;
 
         self.confirm(user.user_id, &user.email, user.session_id, Method::Passkey)

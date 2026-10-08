@@ -48,6 +48,8 @@ export interface ReauthStatus {
 
 export interface MfaChallengeResponse {
   expiresIn: number;
+  /** Whether the account has a passkey to answer with instead of a code. */
+  passkeyAvailable: boolean;
 }
 
 export interface MfaVerifyResult {

@@ -11,6 +11,8 @@ pub fn router() -> Router<AppState> {
     // eat into the login budget of everyone sharing an IP (e.g. a school NAT).
     let mfa = Router::new()
         .route("/auth/mfa/verify", post(verify_mfa))
+        .route("/auth/mfa/passkey/challenge", post(start_mfa_passkey))
+        .route("/auth/mfa/passkey/verify", post(verify_mfa_passkey))
         .layer(rate_limit::per_client(20, Duration::from_secs(1)));
 
     // Kept apart from the password routes, so mistyped codes and passwords do
