@@ -61,7 +61,6 @@
     },
     "cleanup_jobs": {
       "title": "Automatic cleanup",
-      "description": "The database deletes old data on its own every 6 hours. Overdue entries should have been deleted at least two runs ago – a sign that the job isn't running.",
       "ok": "OK",
       "all_ok": "All OK",
       "jobs_overdue": "Overdue jobs: {count}",

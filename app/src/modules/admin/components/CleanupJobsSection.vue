@@ -91,9 +91,6 @@ onMounted(loadJobs);
             </span>
           </li>
         </ul>
-        <p class="text-xs text-on-ghost-muted mt-2">
-          {{ t(`${I18N_BASE}.description`) }}
-        </p>
       </template>
     </div>
   </section>

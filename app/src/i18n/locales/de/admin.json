@@ -61,7 +61,6 @@
     },
     "cleanup_jobs": {
       "title": "Automatische Bereinigung",
-      "description": "Die Datenbank löscht alte Daten alle 6 Stunden selbst. Überfällig sind Einträge, die schon seit mindestens zwei Durchläufen gelöscht sein müssten – ein Zeichen, dass der Job nicht läuft.",
       "ok": "In Ordnung",
       "all_ok": "Alles in Ordnung",
       "jobs_overdue": "Überfällige Jobs: {count}",
