@@ -18,7 +18,7 @@ const href = computed(() => {
 
 // Links inside wrapped text skip the enlarged target so it can't overlap neighbouring lines and links.
 const classes = computed(() => [
-  'relative underline underline-offset-2 decoration-1.5 decoration-skip-ink font-medium text-on-ghost-muted hover:text-on-ghost transition-hover cursor-pointer',
+  'relative hover:underline active:underline underline-offset-[0.125em] decoration-skip-ink text-accent transition-hover cursor-pointer',
   { 'touch-target after:min-w-12 after:min-h-12': !props.inline },
 ]);
 </script>

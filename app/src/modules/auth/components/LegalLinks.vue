@@ -16,9 +16,14 @@ const links = computed(() => [
 <template>
   <nav
     :aria-label="t('legal.title')"
-    class="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm"
+    class="flex flex-wrap justify-center gap-x-6 gap-y-2"
   >
-    <BaseLink v-for="link in links" :key="link.key" :to="link.url">
+    <BaseLink
+      v-for="link in links"
+      :key="link.key"
+      :to="link.url"
+      class="text-sm text-on-ghost-muted"
+    >
       {{ t(`legal.${link.key}.title`) }}
     </BaseLink>
   </nav>
