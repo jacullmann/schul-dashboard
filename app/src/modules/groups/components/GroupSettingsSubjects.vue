@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, watch, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
-import { Plus, Pencil, Trash2, Search } from '@lucide/vue';
+import { BookOpen, Plus, Pencil, Trash2, Search } from '@lucide/vue';
 import { useSubjectAdmin } from '@/modules/groups/composables/useSubjectAdmin';
 import {
   CUSTOM_SUBJECT_OPTION,
@@ -381,12 +381,9 @@ onMounted(() => {
       >
         <BaseSpinner />
       </div>
-      <div
-        v-else-if="subjects.length === 0"
-        class="text-center p-8 text-on-ghost-muted text-base"
-      >
-        {{ t('groups.settings.subjects.list.empty') }}
-      </div>
+      <BaseEmptyState v-else-if="subjects.length === 0" :icon="BookOpen">{{
+        t('groups.settings.subjects.list.empty')
+      }}</BaseEmptyState>
 
       <template v-else>
         <div class="max-w-200 mx-auto mb-4">
@@ -398,7 +395,7 @@ onMounted(() => {
         </div>
 
         <BaseEmptyState v-if="filteredSubjects.length === 0" :icon="Search">
-          <template #title>{{
+          <template #default>{{
             t('common.search_results.empty_title', {
               query: searchQuery.trim(),
             })

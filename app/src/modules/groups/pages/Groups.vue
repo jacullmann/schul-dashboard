@@ -173,7 +173,7 @@ const GROUPS_LIST_ENTRANCE_ORDER = 2;
         :icon="UsersRound"
         :primary-action="() => createGroupModal.open()"
       >
-        <template #title>{{ t('groups.list.no_groups') }}</template>
+        {{ t('groups.list.no_groups') }}
         <template #message>{{ t('groups.list.join_group_text') }}</template>
         <template #primary-action-label>{{
           t('groups.list.create_group')

@@ -116,8 +116,7 @@
         "banned_on": "Gesperrt am {date}",
         "actions": {
           "unban": "Entsperren"
-        },
-        "empty_message": "Gebannte Benutzer werden hier erscheinen"
+        }
       },
       "invite_links": {
         "title": "Einladungslinks",

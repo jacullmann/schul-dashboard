@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
-import { RotateCcw } from '@lucide/vue';
+import { GraduationCap, RotateCcw } from '@lucide/vue';
 import { useSubjectStore } from '@/stores/subjectStore';
 import { useUserStore } from '@/stores/userStore';
 import { useConfirmModal } from '@/stores/modalStore';
@@ -123,12 +123,12 @@ async function redoSetup() {
       <BaseSpinner />
     </div>
 
-    <p
+    <BaseEmptyState
       v-else-if="courseSubjects.length === 0"
-      class="text-base text-on-ghost-muted m-0"
+      :icon="GraduationCap"
     >
       {{ t('auth.courses.none_offered') }}
-    </p>
+    </BaseEmptyState>
 
     <div v-else class="flex flex-col max-w-150 mx-auto max-md:-mx-6">
       <BaseList

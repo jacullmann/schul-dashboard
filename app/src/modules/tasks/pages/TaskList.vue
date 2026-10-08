@@ -373,7 +373,7 @@ onDeactivated(() => {
         :secondary-action="resetFilters"
         @animationend="handleEmptyStateAnimationEnd"
       >
-        <template #title>{{ t('tasks.list.tasks.view.no_tasks') }}</template>
+        {{ t('tasks.list.tasks.view.no_tasks') }}
         <template #message>{{
           filteredItems.length
             ? t('tasks.list.tasks.view.no_tasks_in_view_message')

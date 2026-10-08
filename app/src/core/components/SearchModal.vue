@@ -733,9 +733,7 @@ function handleSelect(index: number) {
         :icon="Search"
         class="px-4"
       >
-        <template #title>{{
-          t('common.search_results.empty_title', { query: query.trim() })
-        }}</template>
+        {{ t('common.search_results.empty_title', { query: query.trim() }) }}
         <template #message>{{
           t('common.search_results.empty_message')
         }}</template>

@@ -740,9 +740,7 @@ onMounted(() => {
         </div>
 
         <BaseEmptyState v-if="subjectOptions.length === 0" :icon="BookOpen">
-          <template #title>{{
-            t('groups.settings.schedule.editor.no_subjects_title')
-          }}</template>
+          {{ t('groups.settings.schedule.editor.no_subjects_title') }}
           <template #message>{{
             t('groups.settings.schedule.editor.no_subjects')
           }}</template>

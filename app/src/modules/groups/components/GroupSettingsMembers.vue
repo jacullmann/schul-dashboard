@@ -5,6 +5,7 @@ import {
   UserRoundPlus,
   Ban,
   Search,
+  UsersRound,
 } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import { computed, ref } from 'vue';
@@ -246,12 +247,9 @@ function confirmRemove() {
     <div v-if="loading && members.length === 0" class="flex justify-center p-8">
       <BaseSpinner />
     </div>
-    <div
-      v-else-if="members.length === 0"
-      class="text-center p-8 text-on-ghost-muted text-base"
-    >
+    <BaseEmptyState v-else-if="members.length === 0" :icon="UsersRound">
       {{ t('groups.settings.members.list.empty') }}
-    </div>
+    </BaseEmptyState>
 
     <div v-else class="flex flex-col max-w-200 mx-auto">
       <div class="mb-4">
@@ -267,9 +265,9 @@ function confirmRemove() {
       </p>
 
       <BaseEmptyState v-if="filteredMembers.length === 0" :icon="Search">
-        <template #title>{{
+        {{
           t('common.search_results.empty_title', { query: searchQuery.trim() })
-        }}</template>
+        }}
         <template #message>{{
           t('common.search_results.empty_message')
         }}</template>

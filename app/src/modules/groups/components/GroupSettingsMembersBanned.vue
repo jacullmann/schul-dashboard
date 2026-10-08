@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import Avatar from '@/modules/auth/components/Avatar.vue';
 import { useGroupBans } from '@/modules/groups/composables/useGroupBans';
+import { Ban } from '@lucide/vue';
 
 const { bannedUsers, loadingBannedUsers: loading, revertBan } = useGroupBans();
 
@@ -30,17 +31,8 @@ function bannedOnLabel(bannedAt: string): string {
     >
       <BaseSpinner />
     </div>
-    <BaseEmptyState
-      v-else-if="bannedUsers.length === 0"
-      class="text-center p-8 text-on-ghost-muted text-base"
-    >
-      <template #title>
-        {{ t('groups.settings.members.ban_list.empty') }}
-      </template>
-
-      <template #message>{{
-        t('groups.settings.members.ban_list.empty_message')
-      }}</template>
+    <BaseEmptyState v-else-if="bannedUsers.length === 0" :icon="Ban">
+      {{ t('groups.settings.members.ban_list.empty') }}
     </BaseEmptyState>
     <div v-else class="flex flex-col max-w-200 mx-auto">
       <template v-for="(user, index) in bannedUsers" :key="user.userId">

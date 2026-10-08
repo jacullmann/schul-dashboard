@@ -243,12 +243,9 @@ function goBack() {
           :options="levelOptions"
         />
 
-        <p
-          v-else-if="!hasCourseSubjects"
-          class="text-base text-center text-on-ghost-muted m-0!"
-        >
+        <BaseEmptyState v-else-if="!hasCourseSubjects">
           {{ t('auth.courses.none_offered') }}
-        </p>
+        </BaseEmptyState>
 
         <div v-else class="flex flex-col gap-5">
           <BaseFormGroup

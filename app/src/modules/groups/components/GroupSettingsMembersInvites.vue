@@ -125,12 +125,9 @@ function getInviteUrl(token: string): string {
     >
       <BaseSpinner />
     </div>
-    <div
-      v-else-if="invites.length === 0"
-      class="text-center p-8 text-on-ghost-muted text-base"
-    >
+    <BaseEmptyState v-else-if="invites.length === 0" :icon="UserRoundPlus">
       {{ t('groups.settings.members.invite_links.empty') }}
-    </div>
+    </BaseEmptyState>
     <BaseTableWrapper v-else>
       <table>
         <thead>

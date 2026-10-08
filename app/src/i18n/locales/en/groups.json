@@ -116,8 +116,7 @@
         "banned_on": "Banned on {date}",
         "actions": {
           "unban": "Unban"
-        },
-        "empty_message": "Banned users will appear here"
+        }
       },
       "invite_links": {
         "title": "Invite Links",

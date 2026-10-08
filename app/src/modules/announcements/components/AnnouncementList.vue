@@ -2,6 +2,7 @@
 import { useI18n } from 'vue-i18n';
 import { formatDate } from '@/utils/date-formatter';
 import type { FeedAnnouncement } from '@/modules/announcements/types';
+import { Megaphone } from '@lucide/vue';
 
 defineProps<{
   announcements: FeedAnnouncement[];
@@ -15,12 +16,9 @@ const { t } = useI18n();
 </script>
 
 <template>
-  <div
-    v-if="announcements.length === 0"
-    class="text-center p-8 text-on-ghost-muted text-base"
-  >
+  <BaseEmptyState v-if="announcements.length === 0" :icon="Megaphone">
     {{ t('announcements.list.empty_state') }}
-  </div>
+  </BaseEmptyState>
   <ul v-else class="flex flex-col">
     <template
       v-for="(ann, index) in announcements"

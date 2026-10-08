@@ -49,9 +49,7 @@ function navigateToLogin() {
         :primary-action="navigateToLogin"
         :secondary-action="restartRegistration"
       >
-        <template #title>
-          {{ t('auth.login.verify_email.title') }}
-        </template>
+        {{ t('auth.login.verify_email.title') }}
         <template #message>
           <i18n-t keypath="auth.login.verify_email.message" tag="span">
             <template #email>

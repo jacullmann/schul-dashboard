@@ -100,9 +100,7 @@ onMounted(() => {
       class="flex flex-1 items-center justify-center px-4"
     >
       <BaseEmptyState :icon="CloudOff" full-page :primary-action="reloadApp">
-        <template #title>{{
-          t('common.connection.unreachable.title')
-        }}</template>
+        {{ t('common.connection.unreachable.title') }}
         <template #message>{{
           t('common.connection.unreachable.message')
         }}</template>

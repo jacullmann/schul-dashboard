@@ -311,11 +311,11 @@ onMounted(() => {
           openedItemError === 'failed' ? retryOpenedItem : undefined
         "
       >
-        <template #title>{{
+        {{
           openedItemError === 'not-found'
             ? t('tasks.list.tasks.view.not_found')
             : t('tasks.list.tasks.view.load_failed')
-        }}</template>
+        }}
         <template #message>{{
           openedItemError === 'not-found'
             ? t('tasks.list.tasks.view.not_found_message')
