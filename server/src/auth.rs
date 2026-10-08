@@ -1,8 +1,11 @@
 pub mod cookies;
 pub mod dto;
 pub mod email_code;
+pub mod email_verification;
 pub mod handlers;
 pub mod routes;
+pub mod security_notice;
 pub mod service;
 pub mod session_context;
+pub mod sign_in_methods;
 pub mod token;

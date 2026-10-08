@@ -5,6 +5,7 @@ use crate::{
     },
     config::Config,
     messages::gateway::MessageBus,
+    mfa::{recovery_codes::RecoveryCodeHasher, second_factor::SecondFactorKeys},
     passkeys::relying_party,
 };
 use anyhow::Context;
@@ -23,6 +24,7 @@ pub struct AppState {
     pub jwt: JwtService,
     pub email: EmailService,
     pub encryption: EncryptionService,
+    pub recovery_codes: RecoveryCodeHasher,
     pub message_bus: MessageBus,
     pub webauthn: Arc<Webauthn>,
 }
@@ -49,6 +51,8 @@ impl AppState {
             config.user_key_pepper.clone(),
         );
 
+        let recovery_codes = RecoveryCodeHasher::new(&config.user_key_pepper);
+
         let webauthn = relying_party(&config.webauthn).context("Invalid WebAuthn configuration")?;
 
         Ok(Self {
@@ -60,8 +64,16 @@ impl AppState {
             jwt,
             email,
             encryption,
+            recovery_codes,
             message_bus: MessageBus::default(),
             webauthn: Arc::new(webauthn),
         })
+    }
+
+    pub fn second_factor_keys(&self) -> SecondFactorKeys<'_> {
+        SecondFactorKeys {
+            encryption: &self.encryption,
+            recovery_codes: &self.recovery_codes,
+        }
     }
 }

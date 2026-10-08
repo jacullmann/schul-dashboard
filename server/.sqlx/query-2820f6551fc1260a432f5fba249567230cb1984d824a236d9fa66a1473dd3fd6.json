@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE users\n           SET mfa_enabled = false, mfa_secret = NULL, mfa_failed_attempts = 0,\n               mfa_locked_until = NULL, mfa_last_used_step = NULL\n           WHERE id = $1 AND mfa_enabled\n           RETURNING id",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "users",
+            "name": "id"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "2820f6551fc1260a432f5fba249567230cb1984d824a236d9fa66a1473dd3fd6"
+}

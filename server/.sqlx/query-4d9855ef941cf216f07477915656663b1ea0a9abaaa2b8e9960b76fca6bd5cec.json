@@ -1,0 +1,30 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT password_hash IS NOT NULL AS \"password!\",\n                      mfa_enabled AND mfa_secret IS NOT NULL AS \"two_factor!\"\n               FROM users\n               WHERE id = $1\n               FOR UPDATE",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "password!",
+        "type_info": "Bool",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 1,
+        "name": "two_factor!",
+        "type_info": "Bool",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      null,
+      null
+    ]
+  },
+  "hash": "4d9855ef941cf216f07477915656663b1ea0a9abaaa2b8e9960b76fca6bd5cec"
+}

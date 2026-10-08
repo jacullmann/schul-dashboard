@@ -1,42 +1,40 @@
 import { ref, computed } from 'vue';
 import api from '@/api/api.ts';
 import i18n from '@/i18n';
-import { isAxiosError } from 'axios';
 import type {
   MfaChallengeResponse,
+  MfaLoginResponse,
   MfaSetupResponse,
   MfaStatusResponse,
+  RecoveryCodesResponse,
+  SecondFactorProof,
 } from '@/modules/auth/types';
-import { apiErrorCode, apiErrorMessage, isRateLimited } from '@/api/errors';
+import {
+  apiErrorCode,
+  apiErrorMessage,
+  isRateLimited,
+  isReauthDeclined,
+  retryAfterMinutes,
+} from '@/api/errors';
 
-interface MfaResult {
-  ok: boolean;
-  error?: string;
-  challengeExpired?: boolean;
-}
+type MfaResult<T = object> =
+  | ({ ok: true } & T)
+  | { ok: false; error?: string; challengeExpired?: boolean };
 
 const MFA_CHALLENGE_EXPIRED = 'MFA_CHALLENGE_EXPIRED';
 const MFA_LOCKED = 'MFA_LOCKED';
-const SECONDS_PER_MINUTE = 60;
+const INVALID_SECOND_FACTOR = 'INVALID_SECOND_FACTOR';
 
-/** Whole minutes until a locked second factor accepts codes again. */
-function lockedMinutes(err: unknown): number {
-  const seconds = isAxiosError<{ retryAfter?: unknown }>(err)
-    ? err.response?.data?.retryAfter
-    : undefined;
-  return typeof seconds === 'number'
-    ? Math.max(1, Math.ceil(seconds / SECONDS_PER_MINUTE))
-    : 1;
-}
-
-function mfaErrorMessage(err: unknown): string {
+export function mfaErrorMessage(err: unknown): string {
   const { t } = i18n.global;
 
   switch (apiErrorCode(err)) {
     case MFA_CHALLENGE_EXPIRED:
       return t('auth.mfa.verify.errors.challenge_expired');
     case MFA_LOCKED:
-      return t('auth.mfa.verify.errors.locked', lockedMinutes(err));
+      return t('auth.mfa.verify.errors.locked', retryAfterMinutes(err));
+    case INVALID_SECOND_FACTOR:
+      return t('auth.mfa.verify.errors.invalid_code');
   }
   // The rate limiter answers in plain text, so it carries no `error` field.
   if (isRateLimited(err)) {
@@ -45,7 +43,18 @@ function mfaErrorMessage(err: unknown): string {
   return apiErrorMessage(err, t('auth.mfa.verify.errors.failed'));
 }
 
+/** A declined confirmation is the user's choice and shows no error. */
+function failure(err: unknown): MfaResult<never> {
+  if (isReauthDeclined(err)) return { ok: false };
+  return {
+    ok: false,
+    error: mfaErrorMessage(err),
+    challengeExpired: apiErrorCode(err) === MFA_CHALLENGE_EXPIRED,
+  };
+}
+
 const mfaEnabled = ref(false);
+const recoveryCodesLeft = ref<number | null>(null);
 const mfaLoading = ref(false);
 const mfaError = ref<string | null>(null);
 
@@ -57,6 +66,7 @@ export function useMfa() {
     try {
       const { data } = await api.get<MfaStatusResponse>('/mfa/status');
       mfaEnabled.value = data.mfaEnabled;
+      recoveryCodesLeft.value = data.recoveryCodesLeft;
       return data.mfaEnabled;
     } catch (err: unknown) {
       mfaError.value = apiErrorMessage(
@@ -69,6 +79,7 @@ export function useMfa() {
     }
   }
 
+  /** `null` when it failed or the user declined to confirm who they are. */
   async function startMfaSetup(): Promise<MfaSetupResponse | null> {
     mfaLoading.value = true;
     mfaError.value = null;
@@ -77,51 +88,76 @@ export function useMfa() {
       const { data } = await api.post<MfaSetupResponse>('/mfa/setup');
       return data;
     } catch (err: unknown) {
-      mfaError.value = apiErrorMessage(
-        err,
-        i18n.global.t('auth.mfa.errors.setup_failed'),
-      );
+      if (!isReauthDeclined(err)) {
+        mfaError.value = apiErrorMessage(
+          err,
+          i18n.global.t('auth.mfa.errors.setup_failed'),
+        );
+      }
       return null;
     } finally {
       mfaLoading.value = false;
     }
   }
 
-  /// The three code-submitting endpoints differ only in URL and side effect.
-  async function submitMfaCode(
-    url: string,
-    code: string,
-    onSuccess?: () => void,
-  ): Promise<MfaResult> {
+  async function run<T>(
+    request: () => Promise<T>,
+    onSuccess: (data: T) => void,
+  ): Promise<MfaResult<{ data: T }>> {
     mfaLoading.value = true;
     mfaError.value = null;
 
     try {
-      await api.post(url, { code });
-      onSuccess?.();
-      return { ok: true };
+      const data = await request();
+      onSuccess(data);
+      return { ok: true, data };
     } catch (err: unknown) {
-      const challengeExpired = apiErrorCode(err) === MFA_CHALLENGE_EXPIRED;
-      const errorMsg = mfaErrorMessage(err);
-      mfaError.value = errorMsg;
-      return { ok: false, error: errorMsg, challengeExpired };
+      const result = failure(err);
+      if (!result.ok && result.error) mfaError.value = result.error;
+      return result;
     } finally {
       mfaLoading.value = false;
     }
   }
 
-  const activateMfa = (code: string): Promise<MfaResult> =>
-    submitMfaCode('/mfa/activate', code, () => {
-      mfaEnabled.value = true;
-    });
+  /** Resolves with the recovery codes, which are shown only this once. */
+  const activateMfa = (code: string) =>
+    run(
+      async () =>
+        (await api.post<RecoveryCodesResponse>('/mfa/activate', { code })).data
+          .recoveryCodes,
+      (codes) => {
+        mfaEnabled.value = true;
+        recoveryCodesLeft.value = codes.length;
+      },
+    );
 
-  const deactivateMfa = (code: string): Promise<MfaResult> =>
-    submitMfaCode('/mfa/deactivate', code, () => {
-      mfaEnabled.value = false;
-    });
+  const deactivateMfa = () =>
+    run(
+      () => api.post('/mfa/deactivate'),
+      () => {
+        mfaEnabled.value = false;
+        recoveryCodesLeft.value = null;
+      },
+    );
 
-  const verifyMfaLogin = (code: string): Promise<MfaResult> =>
-    submitMfaCode('/auth/mfa/verify', code);
+  const regenerateRecoveryCodes = () =>
+    run(
+      async () =>
+        (await api.post<RecoveryCodesResponse>('/mfa/recovery-codes')).data
+          .recoveryCodes,
+      (codes) => {
+        recoveryCodesLeft.value = codes.length;
+      },
+    );
+
+  const verifyMfaLogin = (proof: SecondFactorProof) =>
+    run(
+      async () =>
+        (await api.post<MfaLoginResponse>('/auth/mfa/verify', proof)).data
+          .recoveryCodesLeft,
+      () => {},
+    );
 
   /** Seconds left on the pending sign-in challenge, or `null` if there is none. */
   async function fetchMfaChallengeExpiresIn(): Promise<number | null> {
@@ -146,17 +182,20 @@ export function useMfa() {
 
   function resetMfaState(): void {
     mfaEnabled.value = false;
+    recoveryCodesLeft.value = null;
     mfaError.value = null;
   }
 
   return {
     mfaEnabled: computed(() => mfaEnabled.value),
+    recoveryCodesLeft: computed(() => recoveryCodesLeft.value),
     mfaLoading: computed(() => mfaLoading.value),
     mfaError: computed(() => mfaError.value),
     fetchMfaStatus,
     startMfaSetup,
     activateMfa,
     deactivateMfa,
+    regenerateRecoveryCodes,
     verifyMfaLogin,
     fetchMfaChallengeExpiresIn,
     cancelMfaLogin,

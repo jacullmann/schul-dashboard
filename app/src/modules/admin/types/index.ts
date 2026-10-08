@@ -71,6 +71,7 @@ export interface SuperAdminUser {
   email: string;
   username: string;
   emailVerified: boolean;
+  mfaEnabled: boolean;
   isSuperadmin: boolean;
   isBanned: boolean;
   createdAt: string;

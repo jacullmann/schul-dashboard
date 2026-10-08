@@ -393,11 +393,12 @@
           "items": [
             "your settings (language, colour scheme, personalisation) and your course selection,",
             "when you registered and when you last signed in,",
-            "whether two-factor authentication is enabled, and the secret it needs (encrypted),",
+            "whether two-factor authentication is enabled, the secret it needs (encrypted) and your recovery codes (as a hash only), each with when they were created and used,",
+            "your passkeys: their public key, identifier and name, and when they were added and last used. The private key never leaves your device,",
             "if you sign in with Google, your Google account ID and that Google account's email address."
           ],
           "outro": [
-            "We only send you emails your account needs: the confirmation link after registration, codes to reset or set your password, and a security notice when your password was reset. We do not send newsletters or ads.",
+            "We only send you emails your account needs: the confirmation link after registration, codes to reset or set your password, and security notices whenever the protection of your account changes, for example when your password is changed, two-factor authentication is turned on or off, or a passkey or Google account is added or removed. We do not send newsletters or ads.",
             "We cannot create an account without an email address. The legal basis is the performance of our terms of use (Art. 6(1)(b) GDPR)."
           ]
         },

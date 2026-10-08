@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE users SET password_hash = $1, email_verified = true\n               WHERE id = $2 AND password_hash IS NOT DISTINCT FROM $3",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Uuid",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "0fbfe74086937f2f708c0c792d8f5ab1daaba8d6a739f38285aa7a32f03f1d56"
+}

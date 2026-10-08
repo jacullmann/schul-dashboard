@@ -1,7 +1,14 @@
 use super::dto::{PasskeyList, PasskeySummary};
 use crate::{
-    auth::service::{AuthService, ClientInfo, LoginResult},
-    common::{email::EmailService, locale::Locale, names::DisplayName},
+    auth::{
+        security_notice,
+        service::{AuthService, ClientInfo, LoginResult},
+        sign_in_methods::{SignInMethod, SignInMethods},
+    },
+    common::{
+        email::{EmailService, SecurityEvent},
+        names::DisplayName,
+    },
     config::{PASSKEY_CEREMONY_TTL, chrono_ttl},
     error::{AppError, AppResult, PasskeyFailure},
     state::AppState,
@@ -18,7 +25,8 @@ use webauthn_rs::{
     Webauthn,
     prelude::{
         CreationChallengeResponse, CredentialID, DiscoverableAuthentication, DiscoverableKey,
-        Passkey, PasskeyRegistration, PublicKeyCredential, RegisterPublicKeyCredential,
+        Passkey, PasskeyAuthentication, PasskeyRegistration, PublicKeyCredential,
+        RegisterPublicKeyCredential,
     },
 };
 use webauthn_rs_proto::{
@@ -175,8 +183,7 @@ impl PasskeyService {
         // Locking the user serialises concurrent registrations, so none of
         // them can slip past the limit.
         let user = sqlx::query!(
-            r#"SELECT u.email, u.preferences->>'language' AS language,
-                      (SELECT count(*) FROM passkeys p WHERE p.user_id = u.id) AS "passkey_count!"
+            r#"SELECT (SELECT count(*) FROM passkeys p WHERE p.user_id = u.id) AS "passkey_count!"
                FROM users u
                WHERE u.id = $1
                FOR UPDATE"#,
@@ -215,16 +222,7 @@ impl PasskeyService {
 
         tx.commit().await?;
 
-        // Someone holding a stolen session could add a passkey to keep access
-        // after the session is revoked; the email lets the owner notice.
-        let locale = Locale::from_stored(user.language.as_deref());
-        if let Err(e) = self
-            .email
-            .send_passkey_added_email(&user.email, locale)
-            .await
-        {
-            tracing::warn!(%user_id, "Passkey notice not sent: {e}");
-        }
+        security_notice::notify(&self.db, &self.email, user_id, SecurityEvent::PasskeyAdded);
 
         Ok(PasskeySummary {
             id: created.id,
@@ -257,6 +255,10 @@ impl PasskeyService {
     pub async fn remove(&self, user_id: Uuid, passkey_id: Uuid, ip: Option<&str>) -> AppResult<()> {
         let mut tx = self.db.begin().await?;
 
+        SignInMethods::lock(&mut tx, user_id)
+            .await?
+            .ensure_one_left_without(SignInMethod::Passkey)?;
+
         let removed = sqlx::query!(
             r#"DELETE FROM passkeys WHERE id = $1 AND user_id = $2 RETURNING name"#,
             passkey_id,
@@ -270,6 +272,121 @@ impl PasskeyService {
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'passkey:removed', $2)"#,
             user_id,
             json!({ "passkeyId": passkey_id, "name": removed.name, "ip": ip })
+        )
+        .execute(&mut *tx)
+        .await?;
+
+        tx.commit().await?;
+
+        security_notice::notify(
+            &self.db,
+            &self.email,
+            user_id,
+            SecurityEvent::PasskeyRemoved,
+        );
+
+        Ok(())
+    }
+
+    /// Starts confirming a sensitive action with one of the user's own
+    /// passkeys. The challenge is bound to the user, so only their session can
+    /// answer it, and it can never be used to sign in.
+    pub async fn start_reauth(
+        &self,
+        user_id: Uuid,
+    ) -> AppResult<(Uuid, PublicKeyCredentialRequestOptions)> {
+        let passkeys = sqlx::query_scalar!(
+            r#"SELECT credential FROM passkeys WHERE user_id = $1"#,
+            user_id
+        )
+        .fetch_all(&self.db)
+        .await?
+        .into_iter()
+        .map(from_state::<Passkey>)
+        .collect::<AppResult<Vec<_>>>()?;
+
+        if passkeys.is_empty() {
+            return Err(PasskeyFailure::UnknownCredential.into());
+        }
+
+        // Passkey authentication always requires user verification, so the
+        // confirmation proves possession and the device's PIN or biometrics.
+        let (challenge, authentication) = self
+            .webauthn
+            .start_passkey_authentication(&passkeys)
+            .map_err(|e| {
+                AppError::internal(format!("Passkey confirmation failed to start: {e}"))
+            })?;
+
+        let challenge_id = sqlx::query_scalar!(
+            r#"WITH purged AS (DELETE FROM passkey_challenges WHERE expires_at < now())
+               INSERT INTO passkey_challenges (state, expires_at, user_id)
+               VALUES ($1, $2, $3)
+               RETURNING id"#,
+            to_state(&authentication)?,
+            ceremony_deadline(),
+            user_id,
+        )
+        .fetch_one(&self.db)
+        .await?;
+
+        Ok((challenge_id, challenge.public_key))
+    }
+
+    /// Verifies the answer to [`Self::start_reauth`] and stores the passkey's
+    /// new signature counter.
+    pub async fn finish_reauth(
+        &self,
+        user_id: Uuid,
+        challenge_id: Uuid,
+        credential: &PublicKeyCredential,
+    ) -> AppResult<()> {
+        let pending = sqlx::query!(
+            r#"DELETE FROM passkey_challenges WHERE id = $1 AND user_id = $2
+               RETURNING state, expires_at"#,
+            challenge_id,
+            user_id
+        )
+        .fetch_optional(&self.db)
+        .await?;
+
+        let authentication: PasskeyAuthentication =
+            unexpired_state(pending.map(|p| (p.state, p.expires_at)))?;
+
+        let result = self
+            .webauthn
+            .finish_passkey_authentication(credential, &authentication)
+            .map_err(|e| {
+                tracing::warn!(%user_id, "Passkey confirmation rejected: {e}");
+                PasskeyFailure::SignInRejected
+            })?;
+
+        let mut tx = self.db.begin().await?;
+
+        let credential_id: &[u8] = result.cred_id().as_ref();
+        let stored = sqlx::query!(
+            r#"SELECT id, credential FROM passkeys
+               WHERE user_id = $1 AND credential_id = $2
+               FOR UPDATE"#,
+            user_id,
+            credential_id
+        )
+        .fetch_optional(&mut *tx)
+        .await?
+        .ok_or(PasskeyFailure::UnknownCredential)?;
+
+        let mut passkey: Passkey = from_state(stored.credential)?;
+        let updated_credential = match passkey.update_credential(&result) {
+            Some(true) => Some(to_state(&passkey)?),
+            _ => None,
+        };
+
+        sqlx::query!(
+            r#"UPDATE passkeys
+               SET credential = COALESCE($2, credential), last_used_at = now()
+               WHERE id = $1"#,
+            stored.id,
+            updated_credential
         )
         .execute(&mut *tx)
         .await?;
@@ -312,7 +429,8 @@ impl PasskeyService {
         client: ClientInfo<'_>,
     ) -> AppResult<CookieJar> {
         let pending = sqlx::query!(
-            r#"DELETE FROM passkey_challenges WHERE id = $1 RETURNING state, expires_at"#,
+            r#"DELETE FROM passkey_challenges WHERE id = $1 AND user_id IS NULL
+               RETURNING state, expires_at"#,
             challenge_id
         )
         .fetch_optional(&self.db)

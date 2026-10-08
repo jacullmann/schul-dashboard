@@ -1,7 +1,7 @@
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import api from '@/api/api';
-import { isRateLimited } from '@/api/errors';
+import { isRateLimited, isReauthDeclined } from '@/api/errors';
 import { useToast } from '@/common/composables/useToast';
 
 const DATA_EXPORT_URL = '/user/data-export';
@@ -38,6 +38,7 @@ export function useDataExport() {
       saveFile(data, exportFileName());
       toast.success(t('auth.account_settings.data_export.success'));
     } catch (e: unknown) {
+      if (isReauthDeclined(e)) return;
       toast.error(
         isRateLimited(e)
           ? t('auth.account_settings.data_export.rate_limited')

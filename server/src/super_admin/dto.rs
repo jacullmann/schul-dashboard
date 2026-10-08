@@ -182,6 +182,7 @@ pub struct AdminUserDto {
     pub email: String,
     pub username: String,
     pub email_verified: bool,
+    pub mfa_enabled: bool,
     pub is_superadmin: bool,
     pub is_banned: bool,
     pub created_at: DateTime<Utc>,

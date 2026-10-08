@@ -41,6 +41,18 @@ pub enum AppError {
     Passkey(PasskeyFailure),
 
     #[error("{0}")]
+    Auth(AuthFailure),
+
+    /// The action needs a recent sign-in; the client confirms who the user is
+    /// and repeats the request.
+    #[error("Please confirm it's you to continue.")]
+    ReauthRequired,
+
+    /// Too many wrong passwords while confirming an action.
+    #[error("Too many incorrect attempts. Please try again later.")]
+    ReauthLocked { retry_after: chrono::TimeDelta },
+
+    #[error("{0}")]
     Forbidden(String),
 
     #[error("{0}")]
@@ -131,6 +143,19 @@ impl IntoResponse for AppError {
                 failure.status(),
                 json!({ "error": self.to_string(), "code": failure.code() }),
             ),
+            AppError::Auth(failure) => (
+                failure.status(),
+                json!({ "error": self.to_string(), "code": failure.code() }),
+            ),
+            // A 403, not a 401: the session is valid, and a 401 would send the
+            // client to refresh it instead of asking the user to confirm.
+            AppError::ReauthRequired => (
+                StatusCode::FORBIDDEN,
+                json!({ "error": self.to_string(), "code": "REAUTH_REQUIRED" }),
+            ),
+            AppError::ReauthLocked { retry_after } => {
+                return too_many_requests(&self, "REAUTH_LOCKED", *retry_after);
+            }
             AppError::Forbidden(msg) => (StatusCode::FORBIDDEN, json!({ "error": msg })),
             AppError::NotFound(msg) => (StatusCode::NOT_FOUND, json!({ "error": msg })),
             AppError::FileTooLarge { max_bytes } => (
@@ -241,6 +266,69 @@ impl PasskeyFailure {
 impl From<PasskeyFailure> for AppError {
     fn from(failure: PasskeyFailure) -> Self {
         Self::Passkey(failure)
+    }
+}
+
+/// Why signing in, or confirming an action, was refused. Each case has its own
+/// code, so the client can explain it in the user's language.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Error)]
+pub enum AuthFailure {
+    #[error("Invalid credentials.")]
+    InvalidCredentials,
+
+    /// A signed-in user confirming an action entered the wrong password.
+    #[error("The password is incorrect.")]
+    IncorrectPassword,
+
+    /// A confirmed account already uses the address.
+    #[error("Email address is already registered.")]
+    EmailAlreadyRegistered,
+
+    /// The account exists but its email address was never confirmed.
+    #[error("Please verify your email address first.")]
+    EmailNotVerified,
+
+    /// The account has two-factor authentication on, and no code was sent.
+    #[error("A two-factor code is required.")]
+    SecondFactorRequired,
+
+    #[error("The code is incorrect.")]
+    InvalidSecondFactor,
+
+    /// The change would leave the account without any way to sign in.
+    #[error("Your account needs at least one other way to sign in.")]
+    LastSignInMethod,
+}
+
+impl AuthFailure {
+    // Failures while confirming an action come from a signed-in user, who must
+    // not be sent to refresh their session, so only sign-in failures are a 401.
+    fn status(self) -> StatusCode {
+        match self {
+            Self::InvalidCredentials | Self::EmailNotVerified => StatusCode::UNAUTHORIZED,
+            Self::IncorrectPassword | Self::SecondFactorRequired | Self::InvalidSecondFactor => {
+                StatusCode::BAD_REQUEST
+            }
+            Self::EmailAlreadyRegistered | Self::LastSignInMethod => StatusCode::CONFLICT,
+        }
+    }
+
+    fn code(self) -> &'static str {
+        match self {
+            Self::InvalidCredentials => "INVALID_CREDENTIALS",
+            Self::IncorrectPassword => "INCORRECT_PASSWORD",
+            Self::EmailAlreadyRegistered => "EMAIL_ALREADY_REGISTERED",
+            Self::EmailNotVerified => "EMAIL_NOT_VERIFIED",
+            Self::SecondFactorRequired => "SECOND_FACTOR_REQUIRED",
+            Self::InvalidSecondFactor => "INVALID_SECOND_FACTOR",
+            Self::LastSignInMethod => "LAST_SIGN_IN_METHOD",
+        }
+    }
+}
+
+impl From<AuthFailure> for AppError {
+    fn from(failure: AuthFailure) -> Self {
+        Self::Auth(failure)
     }
 }
 

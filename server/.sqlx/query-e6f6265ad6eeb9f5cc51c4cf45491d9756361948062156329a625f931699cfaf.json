@@ -1,0 +1,30 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "WITH purged AS (DELETE FROM passkey_challenges WHERE expires_at < now())\n               INSERT INTO passkey_challenges (state, expires_at, user_id)\n               VALUES ($1, $2, $3)\n               RETURNING id",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "passkey_challenges",
+            "name": "id"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Jsonb",
+        "Timestamptz",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "e6f6265ad6eeb9f5cc51c4cf45491d9756361948062156329a625f931699cfaf"
+}

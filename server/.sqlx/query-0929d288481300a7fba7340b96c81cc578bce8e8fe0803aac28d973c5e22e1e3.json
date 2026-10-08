@@ -1,0 +1,29 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE refresh_tokens SET authenticated_at = now()\n               WHERE family_id = $1 AND user_id = $2 AND revoked_at IS NULL\n               RETURNING authenticated_at",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "authenticated_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "refresh_tokens",
+            "name": "authenticated_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "0929d288481300a7fba7340b96c81cc578bce8e8fe0803aac28d973c5e22e1e3"
+}

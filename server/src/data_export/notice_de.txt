@@ -39,10 +39,12 @@ interactions       Aufgaben, die du abgehakt, angeheftet, archiviert oder
                    behalten hast, und gelesene Ankündigungen.
 reports            Meldungen, die du abgegeben hast, und Meldungen zu Inhalten,
                    die du erstellt hast.
-security           Deine Sitzungen (angemeldete Geräte) mit IP-Adressen und
-                   Browserkennung, Sicherheitsereignisse (z. B. Erstellen einer
-                   Gruppe, Annehmen einer Einladung), angeforderte Codes zum
-                   Zurücksetzen des Passworts und Bestätigungslinks.
+security           Deine Passkeys, wann deine Wiederherstellungscodes erstellt
+                   und benutzt wurden, deine Sitzungen (angemeldete Geräte) mit
+                   IP-Adressen und Browserkennung, Sicherheitsereignisse (z. B.
+                   Erstellen einer Gruppe, Annehmen einer Einladung),
+                   angeforderte Codes zum Zurücksetzen des Passworts und
+                   Bestätigungslinks.
 activityLog        Das Aktivitätsprotokoll deines Kontos, einschließlich
                    fehlgeschlagener Anmeldeversuche mit IP-Adresse.
 
@@ -133,8 +135,8 @@ Eine automatisierte Entscheidungsfindung einschließlich Profiling
 ------------------------------------------
 
 - Zugangsgeheimnisse: den Hash deines Passworts, das Geheimnis der
-  Zwei-Faktor-Authentifizierung, Sitzungs-Token, Einladungs-Token sowie Codes
-  zum Zurücksetzen des Passworts. Sie würden die Sicherheit deines Kontos
+  Zwei-Faktor-Authentifizierung, deine Wiederherstellungscodes, Sitzungs-Token,
+  Einladungs-Token sowie Codes zum Zurücksetzen des Passworts. Sie würden die Sicherheit deines Kontos
   gefährden, wenn die Datei in falsche Hände gerät. Ob sie vorhanden sind,
   steht in data.json (z. B. hasPassword, mfaEnabled).
 - Angaben über andere Personen: wer einen Inhalt von dir gemeldet hat und mit

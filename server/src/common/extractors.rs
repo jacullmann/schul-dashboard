@@ -1,12 +1,12 @@
 use crate::{
-    auth::session_context::{account_is_active, is_superadmin},
+    auth::session_context::{is_superadmin, session_is_active},
     common::{
         jwt::JwtService,
         path_params::GroupPath,
         permission::{GroupPermissions, Permission},
         role::Role,
     },
-    config::ACCESS_COOKIE,
+    config::{ACCESS_COOKIE, REAUTH_WINDOW, chrono_ttl},
     error::{AppError, AppResult},
     state::AppState,
 };
@@ -35,22 +35,24 @@ use validator::Validate;
 pub struct AuthUser {
     pub user_id: Uuid,
     pub email: String,
+    /// The session (refresh token family) the request was made in.
+    pub session_id: Uuid,
+    /// When the user last proved who they are in this session.
+    pub authenticated_at: DateTime<Utc>,
 }
 
 impl AuthUser {
-    /// The identity the access token vouches for, before the account behind
-    /// it is confirmed active.
-    fn from_access_token(jar: &CookieJar, jwt: &JwtService) -> AppResult<Self> {
+    /// The identity the access token vouches for, before the account and
+    /// session behind it are confirmed active.
+    pub fn from_access_token(jar: &CookieJar, jwt: &JwtService) -> AppResult<Self> {
         let token = jar.get(ACCESS_COOKIE).ok_or(AppError::AuthRequired)?;
         let claims = jwt.verify_access(token.value())?;
-        let user_id = claims
-            .sub
-            .parse::<Uuid>()
-            .map_err(|_| AppError::TokenExpired)?;
 
         Ok(AuthUser {
-            user_id,
+            user_id: claims.sub,
+            authenticated_at: claims.authenticated_at(),
             email: claims.email,
+            session_id: claims.sid,
         })
     }
 }
@@ -71,13 +73,38 @@ where
 
         let user = Self::from_access_token(&jar, &app_state.jwt)?;
 
-        // A 401 sends the client to refresh, which the revoked session fails,
-        // so a banned or deleted user is signed out on their next request.
-        if !account_is_active(&app_state.db, user.user_id).await? {
+        // A 401 sends the client to refresh, which the ended session fails, so
+        // a banned or deleted user, or one whose session ended, is signed out
+        // on their next request.
+        if !session_is_active(&app_state.db, user.user_id, user.session_id).await? {
             return Err(AppError::TokenExpired);
         }
 
         Ok(user)
+    }
+}
+
+/// A caller who proved who they are within the last [`REAUTH_WINDOW`], as a
+/// sensitive action requires. Signing in counts, so an action taken right
+/// after signing in needs no extra step.
+#[derive(Debug, Clone)]
+pub struct RecentAuth(pub AuthUser);
+
+impl<S> FromRequestParts<S> for RecentAuth
+where
+    AppState: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = AppError;
+
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+        let user = AuthUser::from_request_parts(parts, state).await?;
+
+        if Utc::now() - user.authenticated_at > chrono_ttl(REAUTH_WINDOW) {
+            return Err(AppError::ReauthRequired);
+        }
+
+        Ok(Self(user))
     }
 }
 
@@ -186,20 +213,25 @@ impl TenantContext {
                        SELECT 1 FROM users u
                        WHERE u.id = $1
                          AND NOT EXISTS (SELECT 1 FROM banned_users b WHERE b.user_id = u.id)
-                   ) AS "account_active!"
+                         AND EXISTS (
+                             SELECT 1 FROM refresh_tokens t
+                             WHERE t.family_id = $4 AND t.user_id = u.id AND t.revoked_at IS NULL
+                         )
+                   ) AS "session_active!"
             FROM groups g
             WHERE g.id = $2
             "#,
             user.user_id,
             tenant_id,
-            Role::Superadmin.db_id_i32()
+            Role::Superadmin.db_id_i32(),
+            user.session_id
         )
         .fetch_optional(db)
         .await?;
 
         let row = row.ok_or_else(group_not_found)?;
 
-        if !row.account_active {
+        if !row.session_active {
             return Err(AppError::TokenExpired);
         }
 
@@ -251,7 +283,8 @@ fn group_not_found() -> AppError {
 
 /// Route layer for everything nested under `/groups/{group_id}`. It reads
 /// the token without the [`AuthUser`] extractor because the tenant query
-/// already confirms the account is active, saving a round trip per request.
+/// already confirms the account and session are active, saving a round trip
+/// per request.
 pub async fn resolve_tenant(
     State(state): State<AppState>,
     jar: CookieJar,

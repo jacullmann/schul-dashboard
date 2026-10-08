@@ -1,0 +1,40 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT created_at, used_at\n               FROM mfa_recovery_codes\n               WHERE user_id = $1\n               ORDER BY created_at, used_at NULLS LAST",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "mfa_recovery_codes",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "used_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "mfa_recovery_codes",
+            "name": "used_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      true
+    ]
+  },
+  "hash": "31331f564f2cd63fc11fbee096f76a6ee139509b71013643931a6d008248f6b9"
+}

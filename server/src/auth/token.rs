@@ -49,7 +49,21 @@ pub struct IssueTokenParams<'a> {
     pub email: &'a str,
     pub user_agent: Option<&'a str>,
     pub ip_address: Option<&'a str>,
-    pub parent: Option<(Uuid, Uuid)>,
+    pub origin: SessionOrigin,
+}
+
+/// Whether a token pair starts a session or continues one.
+pub enum SessionOrigin {
+    /// The user just signed in.
+    SignIn,
+    /// A refresh: the pair joins its parent's family and keeps the time the
+    /// user last authenticated, so staying signed in never counts as signing
+    /// in again.
+    Rotation {
+        parent_id: Uuid,
+        family_id: Uuid,
+        authenticated_at: DateTime<Utc>,
+    },
 }
 
 struct RefreshTokenRow {
@@ -59,6 +73,7 @@ struct RefreshTokenRow {
     used_at: Option<DateTime<Utc>>,
     revoked_at: Option<DateTime<Utc>>,
     expires_at: DateTime<Utc>,
+    authenticated_at: DateTime<Utc>,
 }
 
 impl RefreshTokenRow {
@@ -111,17 +126,21 @@ impl TokenService {
     }
 
     pub async fn issue_pair(&self, p: IssueTokenParams<'_>) -> Result<IssuedTokens, AppError> {
-        if p.parent.is_none() {
-            self.make_room_for_new_session(p.user_id).await?;
-        }
+        let (family_id, parent_id, authenticated_at) = match p.origin {
+            SessionOrigin::SignIn => {
+                self.make_room_for_new_session(p.user_id).await?;
+                (Uuid::new_v4(), None, Utc::now())
+            }
+            SessionOrigin::Rotation {
+                parent_id,
+                family_id,
+                authenticated_at,
+            } => (family_id, Some(parent_id), authenticated_at),
+        };
 
         let refresh_token = generate_opaque_token();
 
         let token_hash = hash_token(&refresh_token);
-
-        let family_id = p.parent.map_or_else(Uuid::new_v4, |(_, fid)| fid);
-
-        let parent_id = p.parent.map(|(pid, _)| pid);
 
         let expires_at = Utc::now() + chrono_ttl(REFRESH_TOKEN_TTL);
 
@@ -141,8 +160,8 @@ impl TokenService {
         sqlx::query!(
             r#"INSERT INTO refresh_tokens
                 (user_id, token_hash, family_id, parent_id, expires_at,
-                 user_agent, ip_address)
-               VALUES ($1, $2, $3, $4, $5, $6, $7::inet)"#,
+                 user_agent, ip_address, authenticated_at)
+               VALUES ($1, $2, $3, $4, $5, $6, $7::inet, $8)"#,
             p.user_id,
             token_hash,
             family_id,
@@ -150,20 +169,62 @@ impl TokenService {
             expires_at,
             ua,
             ip_parsed,
+            authenticated_at,
         )
         .execute(&self.db)
         .await?;
 
-        let claims = AccessClaims::new(p.user_id, p.email.to_string(), ACCESS_TOKEN_TTL);
-        let access_token = self
-            .jwt
-            .sign_access(&claims)
-            .map_err(|e| AppError::internal(format!("Failed to sign access token: {e}")))?;
+        let access_token = self.sign_access(p.user_id, p.email, family_id, authenticated_at)?;
 
         Ok(IssuedTokens {
             access_token,
             refresh_token,
         })
+    }
+
+    fn sign_access(
+        &self,
+        user_id: Uuid,
+        email: &str,
+        session_id: Uuid,
+        authenticated_at: DateTime<Utc>,
+    ) -> Result<String, AppError> {
+        let claims = AccessClaims::new(
+            user_id,
+            email.to_owned(),
+            session_id,
+            authenticated_at,
+            ACCESS_TOKEN_TTL,
+        );
+
+        self.jwt
+            .sign_access(&claims)
+            .map_err(|e| AppError::internal(format!("Failed to sign access token: {e}")))
+    }
+
+    /// Records that the user just proved who they are in this session and
+    /// returns an access token that says so. Refreshes carry the time over, so
+    /// every tab of the session counts as confirmed.
+    pub async fn confirm_identity(
+        &self,
+        user_id: Uuid,
+        email: &str,
+        session_id: Uuid,
+    ) -> Result<String, AppError> {
+        let authenticated_at = sqlx::query_scalar!(
+            r#"UPDATE refresh_tokens SET authenticated_at = now()
+               WHERE family_id = $1 AND user_id = $2 AND revoked_at IS NULL
+               RETURNING authenticated_at"#,
+            session_id,
+            user_id
+        )
+        .fetch_all(&self.db)
+        .await?
+        .into_iter()
+        .max()
+        .ok_or(AppError::TokenExpired)?;
+
+        self.sign_access(user_id, email, session_id, authenticated_at)
     }
 
     /// A session is a token family, not a row: parallel refreshes leave unused
@@ -259,7 +320,11 @@ impl TokenService {
                 email: &user.email,
                 user_agent,
                 ip_address,
-                parent: Some((row.id, row.family_id)),
+                origin: SessionOrigin::Rotation {
+                    parent_id: row.id,
+                    family_id: row.family_id,
+                    authenticated_at: row.authenticated_at,
+                },
             })
             .await?;
 
@@ -269,7 +334,7 @@ impl TokenService {
     async fn find_refresh_token(&self, hash: &str) -> Result<Option<RefreshTokenRow>, AppError> {
         Ok(sqlx::query_as!(
             RefreshTokenRow,
-            r#"SELECT id, user_id, family_id, used_at, revoked_at, expires_at
+            r#"SELECT id, user_id, family_id, used_at, revoked_at, expires_at, authenticated_at
                FROM refresh_tokens WHERE token_hash = $1"#,
             hash
         )
@@ -291,6 +356,28 @@ impl TokenService {
         .execute(&self.db)
         .await?;
         Ok(())
+    }
+
+    /// Ends one of the user's own sessions. `false` when no live session of
+    /// theirs has that id.
+    pub async fn revoke_own_session(
+        &self,
+        user_id: Uuid,
+        family_id: Uuid,
+        reason: RevokeReason,
+    ) -> Result<bool, AppError> {
+        let revoked = sqlx::query!(
+            r#"UPDATE refresh_tokens SET revoked_at = now(), revoked_reason = $1
+               WHERE family_id = $2 AND user_id = $3 AND revoked_at IS NULL"#,
+            reason,
+            family_id,
+            user_id,
+        )
+        .execute(&self.db)
+        .await?
+        .rows_affected();
+
+        Ok(revoked > 0)
     }
 
     pub async fn revoke_current_family(
@@ -487,6 +574,7 @@ mod tests {
             used_at: Some(now - used_ago),
             revoked_at: revoked.then_some(now),
             expires_at: now + chrono_ttl(REFRESH_TOKEN_TTL),
+            authenticated_at: now - chrono::TimeDelta::days(1),
         }
     }
 
