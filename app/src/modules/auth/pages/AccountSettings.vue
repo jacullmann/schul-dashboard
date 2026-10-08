@@ -6,9 +6,9 @@ import { storeToRefs } from 'pinia';
 import {
   ArrowLeft,
   CalendarDays,
-  LayoutDashboard,
-  Palette,
-  Settings,
+  Home,
+  Contrast,
+  Cog,
   ListTodo,
   Shield,
   UserRound,
@@ -43,22 +43,17 @@ const navItems = computed<AdminNavItem[]>(() => [
   {
     id: 'general',
     label: t('auth.account_settings.general.title'),
-    icon: markRaw(Settings),
+    icon: markRaw(Cog),
   },
   {
     id: 'appearance',
     label: t('auth.account_settings.appearance.title'),
-    icon: markRaw(Palette),
-  },
-  {
-    id: 'security',
-    label: t('auth.account_settings.security.title'),
-    icon: markRaw(Shield),
+    icon: markRaw(Contrast),
   },
   {
     id: 'dashboard',
     label: t('auth.account_settings.dashboard.title'),
-    icon: markRaw(LayoutDashboard),
+    icon: markRaw(Home),
   },
   {
     id: 'tasks',
@@ -69,6 +64,11 @@ const navItems = computed<AdminNavItem[]>(() => [
     id: 'schedule',
     label: t('auth.account_settings.schedule.title'),
     icon: markRaw(CalendarDays),
+  },
+  {
+    id: 'security',
+    label: t('auth.account_settings.security.title'),
+    icon: markRaw(Shield),
   },
   {
     id: 'account',
