@@ -104,7 +104,9 @@ impl MfaService {
             .execute(&self.db)
             .await?;
 
-        Ok(json!({ "ok": true, "otpauthUrl": otpauth_url, "secret": secret_b32, "expiresAt": expires_at }))
+        Ok(
+            json!({ "ok": true, "otpauthUrl": otpauth_url, "secret": secret_b32, "expiresAt": expires_at }),
+        )
     }
 
     /// Turns the factor on and hands out the recovery codes, which are shown
