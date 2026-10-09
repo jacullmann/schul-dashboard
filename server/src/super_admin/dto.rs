@@ -9,29 +9,6 @@ use crate::common::{
     role::MemberRole,
 };
 
-/// The only roles that exist outside of a group.
-#[derive(Debug, Clone, Copy, Deserialize)]
-#[serde(rename_all = "lowercase")]
-pub enum GlobalRole {
-    Superadmin,
-    User,
-}
-
-impl GlobalRole {
-    pub const fn as_str(self) -> &'static str {
-        match self {
-            Self::Superadmin => "superadmin",
-            Self::User => "user",
-        }
-    }
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct UpdateUserRoleDto {
-    pub role: GlobalRole,
-}
-
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ChangeMembershipRoleDto {

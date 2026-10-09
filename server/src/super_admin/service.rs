@@ -584,57 +584,6 @@ impl SuperAdminService {
 
         Ok(json!({ "ok": true }))
     }
-
-    pub async fn update_user_role(
-        &self,
-        target_id: Uuid,
-        role: GlobalRole,
-        admin_id: Uuid,
-    ) -> AppResult<Value> {
-        if target_id == admin_id {
-            return Err(AppError::bad_request(
-                "You cannot modify your own global role.",
-            ));
-        }
-
-        let mut tx = self.db.begin().await?;
-
-        match role {
-            GlobalRole::Superadmin => {
-                sqlx::query!(
-                    r#"INSERT INTO user_roles (user_id, role_id, tenant_id)
-                       VALUES ($1, $2, NULL)
-                       ON CONFLICT (user_id, role_id) WHERE tenant_id IS NULL DO NOTHING"#,
-                    target_id,
-                    Role::Superadmin.db_id_i32(),
-                )
-                .execute(&mut *tx)
-                .await?;
-            }
-            GlobalRole::User => {
-                sqlx::query!(
-                    r#"DELETE FROM user_roles
-                       WHERE user_id = $1 AND role_id = $2 AND tenant_id IS NULL"#,
-                    target_id,
-                    Role::Superadmin.db_id_i32(),
-                )
-                .execute(&mut *tx)
-                .await?;
-            }
-        }
-
-        log_admin_action(
-            &mut tx,
-            admin_id,
-            "admin:role_change",
-            json!({ "targetUserId": target_id, "newRole": role.as_str() }),
-        )
-        .await?;
-
-        tx.commit().await?;
-
-        Ok(json!({ "ok": true }))
-    }
 }
 
 /// Superadmins act with owner rights in every group, whether or not they are

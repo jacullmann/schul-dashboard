@@ -15,10 +15,7 @@ pub fn router(state: AppState) -> Router<AppState> {
         .route("/admin/groups", get(list_groups))
         .route("/admin/groups/{id}", delete(delete_group))
         .route("/admin/users", get(list_users))
-        .route(
-            "/admin/users/{id}",
-            delete(delete_user).patch(update_user_role),
-        )
+        .route("/admin/users/{id}", delete(delete_user))
         .route("/admin/users/{id}/activity", get(get_user_activity))
         .route("/admin/users/{id}/groups", get(get_user_memberships))
         .route(
