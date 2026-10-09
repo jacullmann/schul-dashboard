@@ -2,6 +2,7 @@ import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useMfa } from '@/modules/auth/composables/useMfa';
+import { clearLoginReturn } from '@/modules/auth/utils/loginReturn';
 
 /**
  * Ends the session and shows the login page. `useAppAuth().logout()` is what
@@ -19,6 +20,7 @@ export function useLogout(): () => Promise<void> {
   return async () => {
     userStore.clearUser();
     resetMfaState();
+    clearLoginReturn();
     await appAuthLogout();
     await router.push({ name: 'login' });
   };

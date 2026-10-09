@@ -5,6 +5,10 @@ import { useLoadingBar } from '@/common/composables/loadingState';
 import { useUserStore } from '@/stores/userStore';
 import i18n from '@/i18n';
 import { consumePendingInviteRoute } from '@/modules/auth/utils/pendingInvite';
+import {
+  consumeLoginReturn,
+  saveLoginReturn,
+} from '@/modules/auth/utils/loginReturn';
 import { useAccessStatusStore } from '@/stores/accessStatusStore';
 
 const routes: RouteRecordRaw[] = [
@@ -334,6 +338,8 @@ router.beforeEach(async (to, from) => {
 
   if (!to.meta.access && !isLoggedIn.value) {
     finish();
+    // The start page is home, which after sign-in is the user's own group.
+    if (to.name !== 'groups') saveLoginReturn(to.fullPath);
     return { name: 'login', replace: true };
   }
 
@@ -349,7 +355,9 @@ router.beforeEach(async (to, from) => {
 
   if (to.meta.access === 'guest' && isLoggedIn.value) {
     finish();
-    return { ...homeRoute.value, replace: true };
+    const returnPath = consumeLoginReturn();
+    const target = returnPath ? router.resolve(returnPath) : homeRoute.value;
+    return { ...target, replace: true };
   }
 
   const userStore = useUserStore();

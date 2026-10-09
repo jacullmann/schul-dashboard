@@ -5,6 +5,7 @@ import { useUserStore } from '@/stores/userStore';
 import { useToast } from '@/common/composables/useToast';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useMfaChallenge } from '@/modules/auth/composables/useMfaChallenge';
+import { consumeLoginReturn } from '@/modules/auth/utils/loginReturn';
 import MfaVerifyModal from '@/modules/auth/components/MfaVerifyModal.vue';
 
 const router = useRouter();
@@ -26,7 +27,7 @@ async function handleMfaVerified() {
     console.error('Fehler beim Laden des Users nach MFA:', error);
   }
 
-  await router.push(homeRoute.value);
+  await router.push(consumeLoginReturn() ?? homeRoute.value);
 }
 
 async function handleMfaCancelled() {

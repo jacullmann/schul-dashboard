@@ -22,6 +22,7 @@ import type { PrivateTask } from '@/modules/tasks/types';
 import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useLogout } from '@/core/composables/useLogout';
+import { consumeLoginReturn } from '@/modules/auth/utils/loginReturn';
 import { useOAuth } from '@/modules/auth/composables/useOAuth';
 import { useIsMobileViewport } from '@/common/composables/useViewport';
 
@@ -137,7 +138,7 @@ function onAccountDeleteError(msg: string) {
 async function onAuthSuccess() {
   await checkAuthStatus();
   await userStore.fetchUser();
-  await router.replace(homeRoute.value);
+  await router.replace(consumeLoginReturn() ?? homeRoute.value);
 }
 </script>
 

@@ -10,6 +10,10 @@ import { useAccessStatusStore } from '@/stores/accessStatusStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useOAuth } from '@/modules/auth/composables/useOAuth';
 import { useLoadingBar } from '@/common/composables/loadingState';
+import {
+  consumeLoginReturn,
+  saveLoginReturn,
+} from '@/modules/auth/utils/loginReturn';
 import GlobalModalContainer from '@/core/components/GlobalModalContainer.vue';
 import BaseToast from '@/common/components/BaseToast.vue';
 import ConnectionStatus from '@/core/components/ConnectionStatus.vue';
@@ -40,7 +44,9 @@ function logPageload() {
 
 async function returnToLogin() {
   userStore.clearUser();
-  if (!router.currentRoute.value.meta.access) {
+  const route = router.currentRoute.value;
+  if (!route.meta.access) {
+    saveLoginReturn(route.fullPath);
     await router.push({ name: 'login' });
   }
 }
@@ -88,6 +94,8 @@ onMounted(() => {
   handleOAuthReturn(async () => {
     await checkAuthStatus();
     await userStore.fetchUser();
+    const returnPath = consumeLoginReturn();
+    if (returnPath) await router.replace(returnPath);
   });
 
   useEventListener(window, 'auth-expired', () => void returnToLogin());
