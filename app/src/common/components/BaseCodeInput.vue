@@ -5,12 +5,10 @@ const props = withDefaults(
   defineProps<{
     id: string;
     length?: number;
-    charset?: 'numeric' | 'alphanumeric';
     invalid?: boolean;
   }>(),
   {
     length: 6,
-    charset: 'numeric',
     invalid: false,
   },
 );
@@ -27,10 +25,6 @@ const model = defineModel<string>({ default: '' });
 const inputRef = ref<HTMLInputElement | null>(null);
 const focused = ref(false);
 
-const disallowedCharacters = computed(() =>
-  props.charset === 'numeric' ? /\D/g : /[^A-Z0-9]/g,
-);
-
 const slots = computed(() =>
   Array.from({ length: props.length }, (_, index) => model.value[index] ?? ''),
 );
@@ -40,10 +34,7 @@ const activeIndex = computed(() =>
 );
 
 function sanitize(raw: string) {
-  return raw
-    .toUpperCase()
-    .replace(disallowedCharacters.value, '')
-    .slice(0, props.length);
+  return raw.replace(/\D/g, '').slice(0, props.length);
 }
 
 function onInput(event: Event) {
@@ -110,11 +101,11 @@ defineExpose({
       ref="inputRef"
       :value="model"
       type="text"
-      :inputmode="props.charset === 'numeric' ? 'numeric' : 'text'"
-      :pattern="props.charset === 'numeric' ? '[0-9]*' : undefined"
+      inputmode="numeric"
+      pattern="[0-9]*"
       :maxlength="props.length"
       autocomplete="one-time-code"
-      :autocapitalize="props.charset === 'numeric' ? 'off' : 'characters'"
+      autocapitalize="off"
       autocorrect="off"
       spellcheck="false"
       :aria-invalid="props.invalid || undefined"

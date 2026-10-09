@@ -1,4 +1,7 @@
-use crate::common::{locale::Locale, theme::Theme};
+use crate::{
+    auth::email_code::EmailCode,
+    common::{locale::Locale, theme::Theme},
+};
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
@@ -72,8 +75,10 @@ pub struct ResendVerificationDto {
 #[derive(Debug, Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct ConfirmSignUpDto {
-    #[validate(length(equal = 64))]
-    pub token: String,
+    #[validate(email)]
+    pub email: String,
+
+    pub code: EmailCode,
 
     #[validate(length(min = 1, max = 255))]
     pub password: String,
@@ -85,8 +90,7 @@ pub struct ResetPasswordVerifyDto {
     #[validate(email)]
     pub email: String,
 
-    #[validate(length(equal = 6))]
-    pub code: String,
+    pub code: EmailCode,
 }
 
 #[derive(Debug, Deserialize, Validate)]
@@ -120,8 +124,7 @@ pub struct ChangePasswordDto {
 #[derive(Debug, Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct SetPasswordDto {
-    #[validate(length(equal = 6, message = "Invalid code."))]
-    pub code: String,
+    pub code: EmailCode,
 
     #[validate(length(
         min = 8,

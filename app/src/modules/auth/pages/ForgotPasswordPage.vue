@@ -134,7 +134,6 @@ async function onPasswordReset(resetEmail: string) {
               id="reset-code"
               ref="stepInput"
               v-model="code"
-              charset="alphanumeric"
               :aria-label="t('auth.login.reset.placeholders.code')"
               :invalid="!!errors.code"
               required

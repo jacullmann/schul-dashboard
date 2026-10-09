@@ -1,0 +1,25 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO verifications\n               (email, code, password_hash, preferences, birth_year, guardian_consent_at, expires_at, created_at)\n           SELECT email, $2, password_hash, preferences, birth_year, guardian_consent_at, expires_at, $3\n           FROM verifications\n           WHERE email = $1 AND expires_at > $3\n           ORDER BY created_at DESC\n           LIMIT 1\n           RETURNING preferences->>'language' AS language",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "language",
+        "type_info": "Text",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Timestamptz"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "1804311a3f4a76f02c0ef5bd876c0542c8dd82dd099a3542eb5109c9914c5655"
+}

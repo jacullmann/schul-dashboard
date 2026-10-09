@@ -2,18 +2,21 @@
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
-import { Construction, MailCheck } from '@lucide/vue';
+import { Construction } from '@lucide/vue';
 import GoogleIcon from '@/modules/auth/components/GoogleIcon.vue';
 import AgeConsentFields from '@/modules/auth/components/AgeConsentFields.vue';
+import ConfirmSignUpForm from '@/modules/auth/components/ConfirmSignUpForm.vue';
 import TermsConsentCheckbox from '@/modules/auth/components/TermsConsentCheckbox.vue';
 import { useRegister } from '@/modules/auth/composables/useRegister';
 import { useOAuth } from '@/modules/auth/composables/useOAuth';
+import { useEnterApp } from '@/modules/auth/composables/useEnterApp';
 import { useAccessStatusStore } from '@/stores/accessStatusStore';
 import { useI18n } from 'vue-i18n';
 
 const router = useRouter();
 const { t } = useI18n();
 const { initiateGoogleLogin } = useOAuth();
+const enterApp = useEnterApp();
 const accessStatus = useAccessStatusStore();
 const { registrationOpen } = storeToRefs(accessStatus);
 
@@ -24,7 +27,7 @@ const {
   acceptedTerms,
   submitting,
   formError,
-  registeredEmail,
+  signUp,
   emailInputRef,
   errors,
   birthYearInput,
@@ -49,36 +52,13 @@ onMounted(accessStatus.load);
 
 <template>
   <div class="flex w-full items-center justify-center">
-    <div
-      v-if="registeredEmail"
-      class="w-full max-w-105"
-      role="status"
-      aria-live="polite"
-    >
-      <BaseEmptyState
-        :icon="MailCheck"
-        full-page
-        :primary-action="navigateToLogin"
-        :secondary-action="restartRegistration"
-      >
-        {{ t('auth.login.verify_email.title') }}
-        <template #message>
-          <i18n-t keypath="auth.login.verify_email.message" tag="span">
-            <template #email>
-              <span class="font-medium text-on-ghost wrap-anywhere">
-                {{ registeredEmail }}
-              </span>
-            </template>
-          </i18n-t>
-        </template>
-        <template #primary-action-label>
-          {{ t('auth.login.verify_email.to_login') }}
-        </template>
-        <template #secondary-action-label>
-          {{ t('auth.login.verify_email.different_email') }}
-        </template>
-      </BaseEmptyState>
-    </div>
+    <ConfirmSignUpForm
+      v-if="signUp"
+      :credentials="signUp"
+      code-just-sent
+      @confirmed="enterApp"
+      @back="restartRegistration"
+    />
 
     <div
       v-else-if="!registrationOpen"

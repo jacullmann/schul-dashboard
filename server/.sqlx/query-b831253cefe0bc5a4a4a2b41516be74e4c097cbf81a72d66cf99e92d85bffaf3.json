@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH settled AS (DELETE FROM verifications WHERE email = $1 RETURNING token)\n           SELECT EXISTS (SELECT 1 FROM settled WHERE token = $2) AS \"used!\"",
+  "query": "WITH settled AS (DELETE FROM verifications WHERE email = $1 RETURNING id)\n           SELECT EXISTS (SELECT 1 FROM settled WHERE id = $2) AS \"used!\"",
   "describe": {
     "columns": [
       {
@@ -13,12 +13,12 @@
     "parameters": {
       "Left": [
         "Text",
-        "Text"
+        "Uuid"
       ]
     },
     "nullable": [
       null
     ]
   },
-  "hash": "bd692a23d10b05abaf8cb9af3dfea7665a919c2ccf445a9e2c084f90da1ca5fc"
+  "hash": "b831253cefe0bc5a4a4a2b41516be74e4c097cbf81a72d66cf99e92d85bffaf3"
 }

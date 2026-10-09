@@ -237,18 +237,6 @@ const routes: RouteRecordRaw[] = [
   },
 
   {
-    path: '/verify',
-    component: () => import('@/layouts/SimpleLayout.vue'),
-    children: [
-      {
-        path: '',
-        name: 'verify-email',
-        component: () => import('@/core/pages/VerifyEmail.vue'),
-        meta: { title: 'navigation.verify_email', access: 'public' },
-      },
-    ],
-  },
-  {
     path: '/invite/:token',
     component: () => import('@/layouts/SimpleLayout.vue'),
     children: [

@@ -46,7 +46,7 @@ security           Deine Passkeys, wann deine Wiederherstellungscodes erstellt
                    IP-Adressen und Browserkennung, Sicherheitsereignisse (z. B.
                    Erstellen einer Gruppe, Annehmen einer Einladung),
                    angeforderte Codes zum Zurücksetzen des Passworts und
-                   Bestätigungslinks.
+                   Bestätigungscodes.
 activityLog        Das Aktivitätsprotokoll deines Kontos, einschließlich
                    fehlgeschlagener Anmeldeversuche mit IP-Adresse.
 
@@ -61,9 +61,9 @@ automatisch gelöscht, sobald die Aufgabe gelöscht wird, an der sie hängen.
 - Konto, Einstellungen, verknüpfte Anmeldedienste, Gruppen, Kurswahl und alle
   Inhalte: Bereitstellung des Dienstes nach dem Nutzungsvertrag
   (Art. 6 Abs. 1 lit. b DSGVO).
-- Sitzungen, Sicherheitsereignisse, fehlgeschlagene Anmeldeversuche, Codes
-  und Bestätigungslinks: Schutz deines Kontos und des Dienstes vor Missbrauch
-  und unbefugtem Zugriff (Art. 6 Abs. 1 lit. b und f DSGVO).
+- Sitzungen, Sicherheitsereignisse, fehlgeschlagene Anmeldeversuche und
+  per E-Mail versandte Codes: Schutz deines Kontos und des Dienstes vor
+  Missbrauch und unbefugtem Zugriff (Art. 6 Abs. 1 lit. b und f DSGVO).
 - Aktivitätsprotokoll: Aufklärung von Fehlern und Missbrauch und Ermittlung,
   wie viele Personen den Dienst nutzen (Art. 6 Abs. 1 lit. f DSGVO).
 - Meldungen: Prüfung gemeldeter Inhalte (Art. 6 Abs. 1 lit. f DSGVO).
@@ -107,7 +107,7 @@ für Google und Microsoft, soweit sie Daten in die USA übermitteln.
 - Chatnachrichten: 7 Tage.
 - Aufgaben und Klausuren in Gruppen: 90 Tage nach dem Fälligkeitsdatum.
 - Codes zum Zurücksetzen des Passworts: 30 Minuten; unbestätigte
-  Registrierungen mit ihren Bestätigungslinks: 2 Tage.
+  Registrierungen mit ihren Bestätigungscodes: 2 Tage.
 - Meldungen: bis wir sie bearbeitet haben.
 - Alle anderen Inhalte in Gruppen: bis du, die Gruppenadmins oder wir sie
   löschen oder die Gruppe gelöscht wird.

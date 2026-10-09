@@ -156,7 +156,7 @@ pub async fn delete_me(
     Ok((jar, Json(json!({ "ok": true }))))
 }
 
-/// Opening the emailed link with the password chosen at sign-up creates the
+/// Entering the emailed code with the password chosen at sign-up creates the
 /// account and signs it in.
 pub async fn confirm_sign_up(
     State(state): State<AppState>,
@@ -170,7 +170,7 @@ pub async fn confirm_sign_up(
     };
 
     let jar = AuthService::from_state(&state)
-        .confirm_sign_up(&dto.token, dto.password, client)
+        .confirm_sign_up(&dto.email, &dto.code, dto.password, client)
         .await?;
 
     Ok((jar, Json(json!({ "ok": true }))))

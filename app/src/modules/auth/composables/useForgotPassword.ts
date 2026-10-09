@@ -1,16 +1,16 @@
 import { computed, reactive, ref } from 'vue';
-import { useNow } from '@vueuse/core';
 import { useI18n } from 'vue-i18n';
 import api from '@/api/api';
 import { apiErrorMessage, isRateLimited } from '@/api/errors';
+import { useCooldown } from '@/common/composables/useCooldown';
 import type { ForgotPasswordErrors } from '@/modules/auth/types';
+import {
+  EMAIL_CODE_LENGTH,
+  RESEND_COOLDOWN_MS,
+} from '@/modules/auth/utils/emailCode';
 
-const CODE_LENGTH = 6;
 const MIN_PASSWORD_LENGTH = 8;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-// Every request replaces the previous code and sends another email, so a
-// client-side pause keeps impatient users from invalidating codes in flight.
-const RESEND_COOLDOWN_MS = 60_000;
 
 export type ForgotPasswordStep = 'email' | 'code' | 'password';
 
@@ -23,7 +23,9 @@ export function useForgotPassword(
   onReset: (email: string) => Promise<void>,
 ) {
   const { t } = useI18n();
-  const now = useNow({ interval: 1000 });
+  // Every request replaces the previous code and sends another email, so a
+  // client-side pause keeps impatient users from invalidating codes in flight.
+  const cooldown = useCooldown(RESEND_COOLDOWN_MS);
 
   const step = ref<ForgotPasswordStep>('email');
   const email = ref(initialEmail);
@@ -33,20 +35,16 @@ export function useForgotPassword(
   const submitting = ref(false);
   const error = ref('');
   const errors = reactive<ForgotPasswordErrors>({});
-  const cooldown = ref<{ email: string; until: number } | null>(null);
+  const cooldownEmail = ref('');
   let resetToken = '';
 
   const normalizedEmail = computed(() => email.value.trim().toLowerCase());
 
-  const cooldownSeconds = computed(() => {
-    if (cooldown.value?.email !== normalizedEmail.value) return 0;
-    // `now` ticks once per second, so it can trail the request by up to a tick.
-    const remainingMs = Math.min(
-      RESEND_COOLDOWN_MS,
-      cooldown.value.until - now.value.getTime(),
-    );
-    return Math.max(0, Math.ceil(remainingMs / 1000));
-  });
+  const cooldownSeconds = computed(() =>
+    cooldownEmail.value === normalizedEmail.value
+      ? cooldown.secondsLeft.value
+      : 0,
+  );
 
   function clearErrors() {
     error.value = '';
@@ -82,10 +80,8 @@ export function useForgotPassword(
     if (cooldownSeconds.value > 0) return;
     try {
       await api.post('/auth/forgot', { email: normalizedEmail.value });
-      cooldown.value = {
-        email: normalizedEmail.value,
-        until: Date.now() + RESEND_COOLDOWN_MS,
-      };
+      cooldownEmail.value = normalizedEmail.value;
+      cooldown.start();
       code.value = '';
       step.value = 'code';
     } catch (e: unknown) {
@@ -96,15 +92,14 @@ export function useForgotPassword(
   }
 
   async function verifyCode() {
-    const trimmedCode = code.value.trim();
-    if (trimmedCode.length !== CODE_LENGTH) {
+    if (code.value.length !== EMAIL_CODE_LENGTH) {
       errors.code = t('auth.login.reset.errors.invalid_code');
       return;
     }
     try {
       const { data } = await api.post<VerifyResetCodeResponse>(
         '/auth/reset/verify',
-        { email: normalizedEmail.value, code: trimmedCode },
+        { email: normalizedEmail.value, code: code.value },
       );
       resetToken = data.resetToken;
       step.value = 'password';

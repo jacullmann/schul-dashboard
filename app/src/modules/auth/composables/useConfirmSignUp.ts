@@ -2,70 +2,109 @@ import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import api from '@/api/api.ts';
 import { apiErrorCode, apiErrorStatus, isRateLimited } from '@/api/errors';
+import { useCooldown } from '@/common/composables/useCooldown';
+import { useToast } from '@/common/composables/useToast';
 import {
   AuthErrorCode,
   authErrorMessage,
 } from '@/modules/auth/utils/authErrors';
+import {
+  EMAIL_CODE_LENGTH,
+  RESEND_COOLDOWN_MS,
+} from '@/modules/auth/utils/emailCode';
 
 const BAD_REQUEST = 400;
 
+/** What was entered when signing up, which confirming it repeats. */
+export interface SignUpCredentials {
+  email: string;
+  password: string;
+}
+
 /**
- * Confirms a sign-up from its emailed link. The account only comes into
- * being once the password chosen at sign-up is entered as well, so a link
- * alone, or a password alone, cannot claim it.
+ * Confirms a sign-up with the code mailed to its address. The account only
+ * comes into being once the password chosen at sign-up comes along, so the
+ * code alone, or the password alone, cannot claim it.
  */
 export function useConfirmSignUp(
-  token: string,
+  credentials: SignUpCredentials,
+  { codeJustSent }: { codeJustSent: boolean },
   onSignedIn: () => void | Promise<void>,
 ) {
   const { t } = useI18n();
+  const toast = useToast();
+  const cooldown = useCooldown(RESEND_COOLDOWN_MS);
 
-  const password = ref('');
-  const passwordError = ref('');
-  const formError = ref('');
+  const code = ref('');
+  const error = ref('');
   const submitting = ref(false);
-  /** The link cannot confirm anything: used up, expired or cut short. */
-  const linkInvalid = ref(token === '');
+  const resending = ref(false);
 
-  function clearErrors() {
-    passwordError.value = '';
-    formError.value = '';
+  if (codeJustSent) cooldown.start();
+
+  function clearError() {
+    error.value = '';
+  }
+
+  function confirmError(e: unknown): string {
+    const errorCode = apiErrorCode(e);
+    if (errorCode === AuthErrorCode.IncorrectPassword) {
+      return t('auth.verify_email.errors.incorrect_password');
+    }
+    if (isRateLimited(e)) return t('common.errors.rate_limited');
+    if (!errorCode && apiErrorStatus(e) === BAD_REQUEST) {
+      return t('auth.verify_email.errors.invalid_code');
+    }
+    return authErrorMessage(e, t('common.errors.unknown'));
   }
 
   async function submit() {
-    clearErrors();
-    if (!password.value) {
-      passwordError.value = t('auth.login.errors.password_missing');
+    if (submitting.value) return;
+    clearError();
+    if (code.value.length !== EMAIL_CODE_LENGTH) {
+      error.value = t('auth.verify_email.errors.code_missing');
       return;
     }
 
     submitting.value = true;
     try {
-      await api.post('/auth/verify', { token, password: password.value });
+      await api.post('/auth/verify', { ...credentials, code: code.value });
       await onSignedIn();
     } catch (e: unknown) {
-      const code = apiErrorCode(e);
-      if (code === AuthErrorCode.IncorrectPassword) {
-        passwordError.value = t('auth.verify_email.errors.incorrect_password');
-      } else if (isRateLimited(e)) {
-        formError.value = t('common.errors.rate_limited');
-      } else if (!code && apiErrorStatus(e) === BAD_REQUEST) {
-        linkInvalid.value = true;
-      } else {
-        formError.value = authErrorMessage(e, t('common.errors.unknown'));
-      }
+      error.value = confirmError(e);
     } finally {
       submitting.value = false;
     }
   }
 
+  /** The answer is the same whether or not a mail went out. */
+  async function resend() {
+    if (resending.value || cooldown.secondsLeft.value > 0) return;
+    clearError();
+
+    resending.value = true;
+    try {
+      await api.post('/auth/verify/resend', { email: credentials.email });
+      cooldown.start();
+      code.value = '';
+      toast.success(t('auth.verify_email.resent'));
+    } catch (e: unknown) {
+      error.value = isRateLimited(e)
+        ? t('common.errors.rate_limited')
+        : t('common.errors.unknown');
+    } finally {
+      resending.value = false;
+    }
+  }
+
   return {
-    password,
-    passwordError,
-    formError,
+    code,
+    error,
     submitting,
-    linkInvalid,
-    clearErrors,
+    resending,
+    cooldownSeconds: cooldown.secondsLeft,
+    clearError,
     submit,
+    resend,
   };
 }

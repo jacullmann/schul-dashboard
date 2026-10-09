@@ -4,8 +4,8 @@ import api from '@/api/api.ts';
 import type { SetPasswordErrors } from '@/modules/auth/types';
 import { useUserStore } from '@/stores/userStore';
 import { apiErrorCode, apiErrorMessage, isRateLimited } from '@/api/errors';
+import { EMAIL_CODE_LENGTH } from '@/modules/auth/utils/emailCode';
 
-const CODE_LENGTH = 6;
 const MIN_PASSWORD_LENGTH = 8;
 const EMAIL_CODE_THROTTLED = 'EMAIL_CODE_THROTTLED';
 
@@ -34,7 +34,7 @@ export function useSetPassword(onSuccess: () => void) {
 
   function validate(): boolean {
     errors.code =
-      code.value.trim().length === CODE_LENGTH
+      code.value.length === EMAIL_CODE_LENGTH
         ? undefined
         : t('auth.login.reset.errors.invalid_code');
 
@@ -80,7 +80,7 @@ export function useSetPassword(onSuccess: () => void) {
 
     try {
       await api.post('/auth/set-password', {
-        code: code.value.trim(),
+        code: code.value,
         newPassword: newPassword.value,
       });
       userStore.updateUser({ hasPassword: true });

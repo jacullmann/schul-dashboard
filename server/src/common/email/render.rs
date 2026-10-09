@@ -1,4 +1,4 @@
-use super::messages::{Action, CONTACT_EMAIL, LegalFooter, Message};
+use super::messages::{CONTACT_EMAIL, LegalFooter, Message};
 
 const LAYOUT: &str = include_str!("layout.html");
 
@@ -24,12 +24,7 @@ impl Message {
         let mut blocks = vec![self.heading.to_owned()];
         blocks.extend(self.paragraphs.iter().map(|p| (*p).to_owned()));
 
-        match &self.action {
-            Some(Action::Button { url, .. }) => blocks.push(url.clone()),
-            Some(Action::Code(code)) => blocks.push(code.clone()),
-            None => {}
-        }
-
+        blocks.extend(self.code.clone());
         blocks.extend(self.note.clone());
         blocks.extend(self.disclaimer.map(str::to_owned));
         blocks.push(self.legal_footer().to_text());
@@ -49,10 +44,8 @@ impl Message {
             ));
         }
 
-        match &self.action {
-            Some(Action::Button { label, url, .. }) => html.push_str(&button_html(label, url)),
-            Some(Action::Code(code)) => html.push_str(&code_html(code)),
-            None => {}
+        if let Some(code) = &self.code {
+            html.push_str(&code_html(code));
         }
 
         if let Some(note) = &self.note {
@@ -61,35 +54,14 @@ impl Message {
             ));
         }
 
-        if let Some(Action::Button {
-            url, fallback_hint, ..
-        }) = &self.action
-        {
-            html.push_str(&fallback_link_html(fallback_hint, url));
-        }
-
         html
     }
-}
-
-fn button_html(label: &str, url: &str) -> String {
-    let url = escape_html(url);
-    format!(
-        r##"<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-top: 32px;"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td class="button-cell" align="center" bgcolor="#000000" style="border-radius: 9999px; background-color: #000000; mso-padding-alt: 12px 28px;"><a class="button-link" href="{url}" target="_blank" rel="noopener" style="display: inline-block; padding: 12px 28px; font-size: 15px; line-height: 20px; font-weight: 600; color: #ffffff; text-decoration: none; border-radius: 9999px; mso-padding-alt: 0;">{label}</a></td></tr></table></td></tr></table>"##
-    )
 }
 
 fn code_html(code: &str) -> String {
     let code = escape_html(code);
     format!(
         r#"<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-top: 24px;"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td class="code-box text-strong" style="padding: 16px 18px 16px 24px; background-color: #f5f5f5; border: 1px solid #e6e6e6; border-radius: 12px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace; font-size: 28px; line-height: 36px; font-weight: 700; letter-spacing: 0.2em; color: #0f0f0f;">{code}</td></tr></table></td></tr></table>"#
-    )
-}
-
-fn fallback_link_html(hint: &str, url: &str) -> String {
-    let url = escape_html(url);
-    format!(
-        r#"<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td class="divider" style="padding-top: 32px; border-bottom: 1px solid #e6e6e6; font-size: 0; line-height: 0;">&nbsp;</td></tr></table><p class="text-muted" style="margin: 24px 0 8px; font-size: 13px; line-height: 20px; color: #666666;">{hint}</p><p style="margin: 0; font-size: 13px; line-height: 20px; word-break: break-all;"><a class="fallback-link" href="{url}" target="_blank" rel="noopener" style="color: #414141; text-decoration: underline;">{url}</a></p>"#
     )
 }
 
@@ -168,9 +140,9 @@ mod tests {
     fn html_fills_every_placeholder() {
         for locale in [Locale::De, Locale::En] {
             let messages = [
-                Message::verification(locale, "https://example.test/verify?token=abc", 48),
-                Message::password_reset(locale, "A1B2C3", 30),
-                Message::password_setup(locale, "A1B2C3", 30),
+                Message::verification(locale, "123456", 48),
+                Message::password_reset(locale, "123456", 30),
+                Message::password_setup(locale, "123456", 30),
             ]
             .into_iter()
             .chain(
@@ -206,21 +178,14 @@ mod tests {
     }
 
     #[test]
-    fn dynamic_values_reach_both_bodies() {
-        let message = Message::verification(Locale::En, "https://example.test/verify?a=1&b=2", 48);
-        assert!(
-            message
-                .to_html()
-                .contains("https://example.test/verify?a=1&amp;b=2")
-        );
-        assert!(
-            message
-                .to_text()
-                .contains("https://example.test/verify?a=1&b=2")
-        );
-
-        let message = Message::password_reset(Locale::De, "A1B2C3", 30);
-        assert!(message.to_html().contains("A1B2C3"));
-        assert!(message.to_text().contains("A1B2C3"));
+    fn codes_reach_both_bodies() {
+        for message in [
+            Message::verification(Locale::En, "042817", 48),
+            Message::password_reset(Locale::De, "042817", 30),
+            Message::password_setup(Locale::De, "042817", 30),
+        ] {
+            assert!(message.to_html().contains("042817"));
+            assert!(message.to_text().contains("042817"));
+        }
     }
 }

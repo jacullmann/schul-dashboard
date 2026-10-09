@@ -4,6 +4,7 @@ mod render;
 pub use messages::SecurityEvent;
 
 use crate::{
+    auth::email_code::EmailCode,
     common::locale::Locale,
     config::{EMAIL_VERIFY_TTL, PASSWORD_RESET_CODE_TTL},
     error::AppError,
@@ -59,33 +60,42 @@ impl EmailService {
         &self,
         to: &str,
         locale: Locale,
-        verify_url: &str,
+        code: &EmailCode,
     ) -> Result<(), AppError> {
         let valid_hours = EMAIL_VERIFY_TTL.as_secs() / 3600;
-        self.send(to, Message::verification(locale, verify_url, valid_hours))
-            .await
+        self.send(
+            to,
+            Message::verification(locale, code.as_str(), valid_hours),
+        )
+        .await
     }
 
     pub async fn send_password_reset_email(
         &self,
         to: &str,
         locale: Locale,
-        code: &str,
+        code: &EmailCode,
     ) -> Result<(), AppError> {
         let valid_minutes = PASSWORD_RESET_CODE_TTL.as_secs() / 60;
-        self.send(to, Message::password_reset(locale, code, valid_minutes))
-            .await
+        self.send(
+            to,
+            Message::password_reset(locale, code.as_str(), valid_minutes),
+        )
+        .await
     }
 
     pub async fn send_password_setup_email(
         &self,
         to: &str,
         locale: Locale,
-        code: &str,
+        code: &EmailCode,
     ) -> Result<(), AppError> {
         let valid_minutes = PASSWORD_RESET_CODE_TTL.as_secs() / 60;
-        self.send(to, Message::password_setup(locale, code, valid_minutes))
-            .await
+        self.send(
+            to,
+            Message::password_setup(locale, code.as_str(), valid_minutes),
+        )
+        .await
     }
 
     pub async fn send_security_notice(

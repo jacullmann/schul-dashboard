@@ -128,7 +128,6 @@ watchPostEffect(() => firstInput.value?.focus());
           id="setPasswordCode"
           ref="firstInput"
           v-model="setForm.code"
-          charset="alphanumeric"
           :aria-label="t('auth.set_password.code_label')"
           :invalid="!!setForm.errors.code"
           :aria-describedby="

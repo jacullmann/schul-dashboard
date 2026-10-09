@@ -2,15 +2,12 @@ import { ref, reactive, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import api from '@/api/api.ts';
 import { useMfa } from '@/modules/auth/composables/useMfa';
-import { useToast } from '@/common/composables/useToast';
-import { apiErrorCode, isRateLimited } from '@/api/errors';
+import type { SignUpCredentials } from '@/modules/auth/composables/useConfirmSignUp';
+import { apiErrorCode } from '@/api/errors';
 import {
   AuthErrorCode,
   authErrorMessage,
 } from '@/modules/auth/utils/authErrors';
-
-/** Where resending the confirmation email of an unconfirmed account stands. */
-export type VerificationResend = 'unneeded' | 'available' | 'sending' | 'sent';
 
 /** Subset of `BaseInput`'s exposed API that these forms rely on. */
 interface FocusableInput {
@@ -23,13 +20,13 @@ export function useLogin(
 ) {
   const { t } = useI18n();
   const { resetMfaState } = useMfa();
-  const toast = useToast();
 
   const email = ref('');
   const password = ref('');
   const submitting = ref(false);
   const formError = ref('');
-  const verificationResend = ref<VerificationResend>('unneeded');
+  /** A sign-up with these credentials still waits for its emailed code. */
+  const unconfirmedSignUp = ref<SignUpCredentials | null>(null);
 
   const emailInputRef = ref<FocusableInput | null>(null);
 
@@ -77,7 +74,6 @@ export function useLogin(
 
   async function submit() {
     formError.value = '';
-    verificationResend.value = 'unneeded';
 
     if (!validateBeforeSubmit()) {
       return;
@@ -99,29 +95,16 @@ export function useLogin(
         }
       }
     } catch (e: unknown) {
-      formError.value = authErrorMessage(e, t('common.errors.unknown'));
       if (apiErrorCode(e) === AuthErrorCode.EmailNotVerified) {
-        verificationResend.value = 'available';
+        unconfirmedSignUp.value = {
+          email: email.value.trim(),
+          password: password.value,
+        };
+      } else {
+        formError.value = authErrorMessage(e, t('common.errors.unknown'));
       }
     } finally {
       submitting.value = false;
-    }
-  }
-
-  /** The answer is the same whether or not a mail went out. */
-  async function resendVerification() {
-    if (verificationResend.value !== 'available') return;
-    verificationResend.value = 'sending';
-    try {
-      await api.post('/auth/verify/resend', { email: email.value.trim() });
-      verificationResend.value = 'sent';
-      formError.value = '';
-      toast.success(t('auth.login.verify_email.resent'));
-    } catch (e: unknown) {
-      verificationResend.value = 'available';
-      formError.value = isRateLimited(e)
-        ? t('common.errors.rate_limited')
-        : t('common.errors.unknown');
     }
   }
 
@@ -132,10 +115,9 @@ export function useLogin(
     formError,
     emailInputRef,
     errors,
-    verificationResend,
+    unconfirmedSignUp,
 
     clearFieldError,
     submit,
-    resendVerification,
   };
 }

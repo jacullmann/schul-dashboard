@@ -3,7 +3,7 @@ use crate::{
     auth::{
         cookies::*,
         dto::*,
-        email_code::{self, Issuance},
+        email_code::{self, EmailCode, Issuance},
         email_verification::{self, SignUp},
         password_attempts, security_notice,
         session_context::is_superadmin,
@@ -337,8 +337,8 @@ impl AuthService {
         }
     }
 
-    /// Stores the sign-up and mails its confirmation link. The account is
-    /// only created once the link is opened with this password (see
+    /// Stores the sign-up and mails its confirmation code. The account is
+    /// only created once the code is entered with this password (see
     /// [`email_verification`]), so signing up again, by anyone, leaves every
     /// earlier sign-up for the address as it was.
     pub async fn register(&self, dto: RegisterDto) -> AppResult<serde_json::Value> {
@@ -368,8 +368,8 @@ impl AuthService {
             return Err(AuthFailure::EmailAlreadyRegistered.into());
         }
 
-        let token = match email_verification::issue(&mut tx, &email, &sign_up).await? {
-            Issuance::Issued(token) => token,
+        let code = match email_verification::issue(&mut tx, &email, &sign_up).await? {
+            Issuance::Issued(code) => code,
             Issuance::Throttled { retry_after } => {
                 return Err(AppError::EmailCodeThrottled { retry_after });
             }
@@ -377,7 +377,11 @@ impl AuthService {
 
         tx.commit().await?;
 
-        let message = match self.send_verification(&email, locale, &token).await {
+        let message = match self
+            .email
+            .send_verification_email(&email, locale, &code)
+            .await
+        {
             Ok(()) => "Registration successful. Please check your inbox and spam folder.",
             Err(_) => "Registration successful but the confirmation email could not be sent.",
         };
@@ -385,7 +389,7 @@ impl AuthService {
         Ok(json!({ "ok": true, "message": message }))
     }
 
-    /// Mails a new link for the latest sign-up of the address. The answer is
+    /// Mails a new code for the latest sign-up of the address. The answer is
     /// the same whether or not one was sent, so it reveals nothing about it.
     pub async fn resend_verification(&self, email: &str) -> AppResult<serde_json::Value> {
         access_control::ensure_registration_open(&self.db).await?;
@@ -394,25 +398,22 @@ impl AuthService {
         let mut tx = self.db.begin().await?;
         email_code::lock_address(&mut tx, &email).await?;
 
-        if let Some(link) = email_verification::reissue_latest(&mut tx, &email).await? {
+        if let Some(resent) = email_verification::reissue_latest(&mut tx, &email).await? {
             tx.commit().await?;
-            let locale = Locale::from_stored(link.language.as_deref());
-            if let Err(e) = self.send_verification(&email, locale, &link.token).await {
+            let locale = Locale::from_stored(resent.language.as_deref());
+            if let Err(e) = self
+                .email
+                .send_verification_email(&email, locale, &resent.code)
+                .await
+            {
                 tracing::warn!("Confirmation email not resent: {e}");
             }
         }
 
         Ok(json!({
             "ok": true,
-            "message": "If the account is waiting for confirmation, a new link has been sent."
+            "message": "If the account is waiting for confirmation, a new code has been sent."
         }))
-    }
-
-    async fn send_verification(&self, email: &str, locale: Locale, token: &str) -> AppResult<()> {
-        let verify_url = format!("{}?token={}", self.config.client_verify_url, token);
-        self.email
-            .send_verification_email(email, locale, &verify_url)
-            .await
     }
 
     pub async fn get_me(&self, user_id: Uuid) -> AppResult<serde_json::Value> {
@@ -513,36 +514,34 @@ impl AuthService {
         Ok(jar)
     }
 
-    /// Creates the account of a sign-up from its link and the password it
-    /// chose, and signs the new account in. Paused sign-ups hold back links
+    /// Creates the account of a sign-up from its code and the password it
+    /// chose, and signs the new account in. Paused sign-ups hold back codes
     /// mailed before the pause as well; those still unexpired work once it
     /// ends.
     pub async fn confirm_sign_up(
         &self,
-        token: &str,
+        email: &str,
+        code: &EmailCode,
         password: String,
         client: ClientInfo<'_>,
     ) -> AppResult<CookieJar> {
         access_control::ensure_registration_open(&self.db).await?;
-        let invalid_link = || AppError::bad_request("Invalid verification token.");
+        let email = email.to_lowercase();
+        let invalid_code = || AppError::bad_request("Invalid or expired code.");
 
-        let pending = email_verification::find(&self.db, token)
+        let pending = email_verification::redeem(&self.db, &email, code)
             .await?
-            .ok_or_else(invalid_link)?;
-
-        if pending.expires_at < Utc::now() {
-            return Err(AppError::bad_request("Verification token has expired."));
-        }
+            .ok_or_else(invalid_code)?;
 
         if !verify_password(password, pending.sign_up.password_hash.clone()).await? {
             return Err(AuthFailure::IncorrectPassword.into());
         }
 
         let mut tx = self.db.begin().await?;
-        email_code::lock_address(&mut tx, &pending.email).await?;
+        email_code::lock_address(&mut tx, &email).await?;
 
-        if !email_verification::settle(&mut tx, &pending.email, token).await? {
-            return Err(invalid_link());
+        if !email_verification::settle(&mut tx, &email, pending.id).await? {
+            return Err(invalid_code());
         }
 
         let age = pending.sign_up.age;
@@ -550,7 +549,7 @@ impl AuthService {
             r#"INSERT INTO users (email, password_hash, preferences, birth_year, guardian_consent_at)
                VALUES ($1, $2, $3, $4, $5)
                RETURNING id"#,
-            pending.email,
+            email,
             pending.sign_up.password_hash,
             pending.sign_up.preferences,
             age.birth_year,
@@ -569,7 +568,7 @@ impl AuthService {
         tx.commit().await?;
 
         // A new account has no second factor and cannot have been banned yet.
-        self.start_session(user_id, &pending.email, client).await
+        self.start_session(user_id, &email, client).await
     }
 
     pub async fn forgot_password(&self, email: &str) -> AppResult<serde_json::Value> {
@@ -603,7 +602,7 @@ impl AuthService {
     pub async fn verify_reset_token(
         &self,
         email: &str,
-        code: &str,
+        code: &EmailCode,
     ) -> AppResult<serde_json::Value> {
         let email = email.to_lowercase();
 
@@ -650,7 +649,7 @@ impl AuthService {
     pub async fn set_initial_password(
         &self,
         user_id: Uuid,
-        code: &str,
+        code: &EmailCode,
         new_password: String,
         user_agent: Option<&str>,
         ip: Option<&str>,

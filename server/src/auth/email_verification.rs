@@ -2,13 +2,17 @@
 //!
 //! A sign-up creates no account. It is stored here with the password it chose
 //! and lives for [`EMAIL_VERIFY_TTL`] (`cleanup_unverified_users()`, migration
-//! 0063). The account only comes into being when the emailed link is opened
-//! and that same password is entered: the link proves the mailbox, the
+//! 0063). The account only comes into being when the emailed code is entered
+//! together with that same password: the code proves the mailbox, the
 //! password proves who signed up. Several sign-ups for one address therefore
 //! never interfere, and someone who signs up with another person's address
 //! cannot hold or take over the account they would get.
+//!
+//! Every code allows [`MAX_ATTEMPTS_PER_CODE`] guesses, and an address
+//! receives only as many codes as [`MAIL_LIMITS`] allow, so a code can be
+//! short without being guessable.
 
-use super::email_code::Issuance;
+use super::email_code::{EmailCode, Issuance, MAX_ATTEMPTS_PER_CODE};
 use crate::{
     common::{
         age::AgeDeclaration,
@@ -19,6 +23,7 @@ use crate::{
 };
 use chrono::{DateTime, Utc};
 use sqlx::{PgConnection, PgExecutor};
+use uuid::Uuid;
 
 /// What a confirmed sign-up turns into.
 pub struct SignUp {
@@ -27,19 +32,19 @@ pub struct SignUp {
     pub age: AgeDeclaration,
 }
 
+/// A sign-up whose code was entered, before its password was checked.
 pub struct PendingSignUp {
-    pub email: String,
-    pub expires_at: DateTime<Utc>,
+    pub id: Uuid,
     pub sign_up: SignUp,
 }
 
-/// A link mailed again for the latest sign-up of an address.
-pub struct ResentLink {
-    pub token: String,
+/// A code mailed again for the latest sign-up of an address.
+pub struct ResentCode {
+    pub code: EmailCode,
     pub language: Option<String>,
 }
 
-/// Stores a sign-up for `email` with a new link, unless the address received
+/// Stores a sign-up for `email` with a new code, unless the address received
 /// as many mails as it may for now. The caller holds
 /// [`lock_address`](super::email_code::lock_address) for `email`.
 pub async fn issue(conn: &mut PgConnection, email: &str, sign_up: &SignUp) -> AppResult<Issuance> {
@@ -48,13 +53,13 @@ pub async fn issue(conn: &mut PgConnection, email: &str, sign_up: &SignUp) -> Ap
         return Ok(Issuance::Throttled { retry_after });
     }
 
-    let token = new_token();
+    let code = EmailCode::generate();
     sqlx::query!(
         r#"INSERT INTO verifications
-               (email, token, password_hash, preferences, birth_year, guardian_consent_at, expires_at, created_at)
+               (email, code, password_hash, preferences, birth_year, guardian_consent_at, expires_at, created_at)
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)"#,
         email,
-        token,
+        code.as_str(),
         sign_up.password_hash,
         sign_up.preferences,
         sign_up.age.birth_year,
@@ -65,52 +70,60 @@ pub async fn issue(conn: &mut PgConnection, email: &str, sign_up: &SignUp) -> Ap
     .execute(&mut *conn)
     .await?;
 
-    Ok(Issuance::Issued(token))
+    Ok(Issuance::Issued(code))
 }
 
-/// Mails a new link for the latest sign-up of `email` that has not expired.
-/// The link expires with its sign-up, however late it is sent. The caller
+/// Mails a new code for the latest sign-up of `email` that has not expired.
+/// The code expires with its sign-up, however late it is sent. The caller
 /// holds [`lock_address`](super::email_code::lock_address) for `email`.
-pub async fn reissue_latest(conn: &mut PgConnection, email: &str) -> AppResult<Option<ResentLink>> {
+pub async fn reissue_latest(conn: &mut PgConnection, email: &str) -> AppResult<Option<ResentCode>> {
     let now = Utc::now();
     if throttled(conn, email, now).await?.is_some() {
         return Ok(None);
     }
 
-    let resent = sqlx::query!(
+    let code = EmailCode::generate();
+    let language = sqlx::query_scalar!(
         r#"INSERT INTO verifications
-               (email, token, password_hash, preferences, birth_year, guardian_consent_at, expires_at, created_at)
+               (email, code, password_hash, preferences, birth_year, guardian_consent_at, expires_at, created_at)
            SELECT email, $2, password_hash, preferences, birth_year, guardian_consent_at, expires_at, $3
            FROM verifications
            WHERE email = $1 AND expires_at > $3
            ORDER BY created_at DESC
            LIMIT 1
-           RETURNING token, preferences->>'language' AS language"#,
+           RETURNING preferences->>'language' AS language"#,
         email,
-        new_token(),
+        code.as_str(),
         now
     )
     .fetch_optional(&mut *conn)
     .await?;
 
-    Ok(resent.map(|row| ResentLink {
-        token: row.token,
-        language: row.language,
-    }))
+    Ok(language.map(|language| ResentCode { code, language }))
 }
 
-pub async fn find<'e>(db: impl PgExecutor<'e>, token: &str) -> AppResult<Option<PendingSignUp>> {
-    let row = sqlx::query!(
-        r#"SELECT email, password_hash, preferences, birth_year, guardian_consent_at, expires_at
-           FROM verifications WHERE token = $1"#,
-        token
+/// Uses up a guess of every sign-up of `email` that is still waiting and
+/// returns the one `code` was mailed for, if any. The guess counts even when
+/// the request fails afterwards.
+pub async fn redeem<'e>(
+    db: impl PgExecutor<'e>,
+    email: &str,
+    code: &EmailCode,
+) -> AppResult<Option<PendingSignUp>> {
+    let waiting = sqlx::query!(
+        r#"UPDATE verifications SET attempts = attempts + 1
+           WHERE email = $1 AND expires_at > now() AND attempts < $2
+           RETURNING id, code, password_hash, preferences, birth_year, guardian_consent_at"#,
+        email,
+        MAX_ATTEMPTS_PER_CODE
     )
-    .fetch_optional(db)
+    .fetch_all(db)
     .await?;
 
-    Ok(row.map(|row| PendingSignUp {
-        email: row.email,
-        expires_at: row.expires_at,
+    let matched = waiting.into_iter().find(|row| code.matches(&row.code));
+
+    Ok(matched.map(|row| PendingSignUp {
+        id: row.id,
         sign_up: SignUp {
             password_hash: row.password_hash,
             preferences: row.preferences,
@@ -122,14 +135,14 @@ pub async fn find<'e>(db: impl PgExecutor<'e>, token: &str) -> AppResult<Option<
     }))
 }
 
-/// Removes every sign-up of `email` once one of them became the account.
-/// `false` when the link of `token` was used up in the meantime.
-pub async fn settle(conn: &mut PgConnection, email: &str, token: &str) -> AppResult<bool> {
+/// Removes every sign-up of `email` once the one of `id` became the account.
+/// `false` when that sign-up was settled in the meantime.
+pub async fn settle(conn: &mut PgConnection, email: &str, id: Uuid) -> AppResult<bool> {
     let used = sqlx::query_scalar!(
-        r#"WITH settled AS (DELETE FROM verifications WHERE email = $1 RETURNING token)
-           SELECT EXISTS (SELECT 1 FROM settled WHERE token = $2) AS "used!""#,
+        r#"WITH settled AS (DELETE FROM verifications WHERE email = $1 RETURNING id)
+           SELECT EXISTS (SELECT 1 FROM settled WHERE id = $2) AS "used!""#,
         email,
-        token
+        id
     )
     .fetch_one(conn)
     .await?;
@@ -170,8 +183,4 @@ async fn throttled(
     .await?;
 
     Ok(retry_after(&MAIL_LIMITS, &sent_newest_first, now))
-}
-
-fn new_token() -> String {
-    hex::encode(rand::random::<[u8; 32]>())
 }

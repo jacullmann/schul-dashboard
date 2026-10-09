@@ -5,6 +5,7 @@ import { usePreferences } from '@/common/composables/usePreferences';
 import { isRateLimited } from '@/api/errors';
 import { authErrorMessage } from '@/modules/auth/utils/authErrors';
 import { useAgeConsent } from '@/modules/auth/composables/useAgeConsent';
+import type { SignUpCredentials } from '@/modules/auth/composables/useConfirmSignUp';
 
 /** Subset of `BaseInput`'s exposed API that these forms rely on. */
 interface FocusableInput {
@@ -22,7 +23,8 @@ export function useRegister() {
   const acceptedTerms = ref(false);
   const submitting = ref(false);
   const formError = ref('');
-  const registeredEmail = ref<string | null>(null);
+  /** Kept until the sign-up is confirmed, which repeats them with the code. */
+  const signUp = ref<SignUpCredentials | null>(null);
 
   const emailInputRef = ref<FocusableInput | null>(null);
 
@@ -88,7 +90,7 @@ export function useRegister() {
   }
 
   async function restartRegistration() {
-    registeredEmail.value = null;
+    signUp.value = null;
     acceptedTerms.value = false;
     age.resetAge();
     await nextTick();
@@ -119,7 +121,7 @@ export function useRegister() {
         preferences,
       });
 
-      registeredEmail.value = email.value.trim();
+      signUp.value = { email: email.value.trim(), password: password.value };
       password.value = '';
       passwordConfirm.value = '';
     } catch (e: unknown) {
@@ -141,7 +143,7 @@ export function useRegister() {
     acceptedTerms,
     submitting,
     formError,
-    registeredEmail,
+    signUp,
     emailInputRef,
     errors,
     birthYearInput: age.birthYearInput,

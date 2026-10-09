@@ -400,7 +400,7 @@
             "if you are under 16, the time when your parents or guardians consented to your use of the service."
           ],
           "outro": [
-            "We only send you emails your account needs: the confirmation link after registration, codes to reset or set your password, and security notices whenever the protection of your account changes, for example when your password is changed, two-factor authentication is turned on or off, or a passkey or Google account is added or removed. We do not send newsletters or ads.",
+            "We only send you emails your account needs: the confirmation code after registration, codes to reset or set your password, and security notices whenever the protection of your account changes, for example when your password is changed, two-factor authentication is turned on or off, or a passkey or Google account is added or removed. We do not send newsletters or ads.",
             "We cannot create an account without an email address. The legal basis is the performance of our terms of use (Art. 6(1)(b) GDPR).",
             "We need your year of birth for the age check, on the same legal basis. If you are under 16, your account rests on your parents' or guardians' consent (Art. 6(1)(a) and Art. 8 GDPR). They can withdraw that consent at any time by writing to us at contact{'@'}schul-dashboard.com, and we will then delete the account."
           ]
@@ -493,7 +493,7 @@
           "title": "Retention",
           "items": [
             "We keep account data until you delete your account.",
-            "We delete unconfirmed sign-ups once their confirmation link has expired after 2 days.",
+            "We delete unconfirmed sign-ups once their confirmation code has expired after 2 days.",
             "Codes to reset or set your password are valid for 30 minutes. We delete them after 24 hours; until then, we use them to limit how many codes an email address receives.",
             "We delete session data with IP address and browser identifier about 7 days after it was last used.",
             "We delete the activity log and security events after 30 days.",

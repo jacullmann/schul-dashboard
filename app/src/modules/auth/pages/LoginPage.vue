@@ -1,29 +1,18 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
-import { useUserStore } from '@/stores/userStore';
 import GoogleIcon from '@/modules/auth/components/GoogleIcon.vue';
+import ConfirmSignUpForm from '@/modules/auth/components/ConfirmSignUpForm.vue';
 import { useLogin } from '@/modules/auth/composables/useLogin';
 import { useOAuth } from '@/modules/auth/composables/useOAuth';
-import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
+import { useEnterApp } from '@/modules/auth/composables/useEnterApp';
 import { usePasskeySignIn } from '@/modules/auth/composables/usePasskeySignIn';
 import { passkeyIcon } from '@/modules/auth/utils/passkeyIcon';
 import { useI18n } from 'vue-i18n';
 
 const router = useRouter();
-const userStore = useUserStore();
 const { t } = useI18n();
 const { initiateGoogleLogin } = useOAuth();
-const { checkAuthStatus, homeRoute } = useAppAuth();
-
-async function enterApp() {
-  try {
-    await checkAuthStatus();
-    await userStore.fetchUser();
-  } catch {
-    // Login succeeded; navigate anyway and let the route guard re-sync.
-  }
-  await router.push(homeRoute.value);
-}
+const enterApp = useEnterApp();
 
 const {
   email,
@@ -32,10 +21,9 @@ const {
   formError,
   emailInputRef,
   errors,
-  verificationResend,
+  unconfirmedSignUp,
   clearFieldError,
   submit: submitLogin,
-  resendVerification,
 } = useLogin(enterApp, async () => {
   await router.push({ name: 'verify-mfa' });
 });
@@ -57,7 +45,17 @@ function navigateToRegister() {
 
 <template>
   <div class="flex w-full items-center justify-center">
-    <div class="w-full max-w-105">
+    <!-- Whoever signed up but never confirmed the address can do so here
+         with the password they just entered, even when the first code
+         went astray. -->
+    <ConfirmSignUpForm
+      v-if="unconfirmedSignUp"
+      :credentials="unconfirmedSignUp"
+      @confirmed="enterApp"
+      @back="unconfirmedSignUp = null"
+    />
+
+    <div v-else class="w-full max-w-105">
       <div class="text-center mb-8">
         <h1 class="text-center!">
           {{ t('auth.login.login') }}
@@ -116,21 +114,6 @@ function navigateToRegister() {
               {{ t('auth.login.forgot') }}
             </BaseLink>
           </div>
-
-          <!-- A confirmation link can land in spam or expire unused; without
-               a new one, the account could not be used at all. -->
-          <BaseButton
-            v-if="
-              verificationResend === 'available' ||
-              verificationResend === 'sending'
-            "
-            type="button"
-            full
-            :loading="verificationResend === 'sending'"
-            @click="resendVerification"
-          >
-            {{ t('auth.login.verify_email.resend') }}
-          </BaseButton>
         </template>
 
         <template #action-text>

@@ -27,7 +27,6 @@ const MESSAGE_KEYS: Record<string, string> = {
   [AuthErrorCode.InvalidCredentials]: 'auth.errors.invalid_credentials',
   [AuthErrorCode.EmailAlreadyRegistered]:
     'auth.errors.email_already_registered',
-  [AuthErrorCode.EmailNotVerified]: 'auth.errors.email_not_verified',
   [AuthErrorCode.EmailThrottled]: 'auth.errors.email_throttled',
   [AuthErrorCode.LastSignInMethod]: 'auth.errors.last_sign_in_method',
   [AuthErrorCode.InvalidBirthYear]: 'auth.age.errors.birth_year_invalid',

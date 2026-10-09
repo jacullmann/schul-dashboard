@@ -40,45 +40,32 @@ impl LegalFooter {
     }
 }
 
-pub(super) enum Action {
-    Button {
-        label: &'static str,
-        url: String,
-        fallback_hint: &'static str,
-    },
-    Code(String),
-}
-
 pub(super) struct Message {
     pub locale: Locale,
     pub subject: &'static str,
     pub preheader: &'static str,
     pub heading: &'static str,
     pub paragraphs: &'static [&'static str],
-    pub action: Option<Action>,
+    pub code: Option<String>,
     pub note: Option<String>,
     pub disclaimer: Option<&'static str>,
 }
 
 impl Message {
-    pub fn verification(locale: Locale, verify_url: &str, valid_hours: u64) -> Self {
-        let url = verify_url.to_owned();
+    pub fn verification(locale: Locale, code: &str, valid_hours: u64) -> Self {
+        let code = Some(code.to_owned());
 
         match locale {
             Locale::De => Self {
                 locale,
                 subject: "Bitte bestätige deine E-Mail-Adresse",
-                preheader: "Bestätige deine E-Mail-Adresse, um dein schul-dashboard-Konto zu aktivieren.",
+                preheader: "Dein Code, um dein schul-dashboard-Konto zu aktivieren.",
                 heading: "Nur noch ein letzter Schritt",
                 paragraphs: &[
-                    "Willkommen beim schul-dashboard. Bevor es losgehen kann, bestätige bitte deine E-Mail-Adresse.",
+                    "Willkommen beim schul-dashboard. Gib diesen Code auf der schul-dashboard-Seite ein, um deine E-Mail-Adresse zu bestätigen:",
                 ],
-                action: Some(Action::Button {
-                    label: "E-Mail bestätigen",
-                    url,
-                    fallback_hint: "Funktioniert der Button nicht? Kopiere diesen Link in deinen Browser:",
-                }),
-                note: Some(format!("Der Link ist {valid_hours} Stunden gültig.")),
+                code,
+                note: Some(format!("Der Code ist {valid_hours} Stunden gültig.")),
                 disclaimer: Some(
                     "Du hast dich nicht beim schul-dashboard registriert? Dann kannst du diese E-Mail einfach ignorieren.",
                 ),
@@ -86,17 +73,13 @@ impl Message {
             Locale::En => Self {
                 locale,
                 subject: "Please confirm your email address",
-                preheader: "Confirm your email address to activate your schul-dashboard account.",
+                preheader: "Your code to activate your schul-dashboard account.",
                 heading: "Just one last step",
                 paragraphs: &[
-                    "Welcome to schul-dashboard. Before you get started, please confirm your email address.",
+                    "Welcome to schul-dashboard. Enter this code on the schul-dashboard page to confirm your email address:",
                 ],
-                action: Some(Action::Button {
-                    label: "Confirm email",
-                    url,
-                    fallback_hint: "Button not working? Copy this link into your browser:",
-                }),
-                note: Some(format!("The link is valid for {valid_hours} hours.")),
+                code,
+                note: Some(format!("The code is valid for {valid_hours} hours.")),
                 disclaimer: Some(
                     "Didn't sign up for schul-dashboard? You can safely ignore this email.",
                 ),
@@ -105,7 +88,7 @@ impl Message {
     }
 
     pub fn password_reset(locale: Locale, code: &str, valid_minutes: u64) -> Self {
-        let action = Some(Action::Code(code.to_owned()));
+        let code = Some(code.to_owned());
 
         match locale {
             Locale::De => Self {
@@ -116,7 +99,7 @@ impl Message {
                 paragraphs: &[
                     "Gib diesen Code auf der schul-dashboard-Seite ein, um ein neues Passwort festzulegen:",
                 ],
-                action,
+                code,
                 note: Some(format!("Der Code ist {valid_minutes} Minuten gültig.")),
                 disclaimer: Some(
                     "Du hast kein neues Passwort angefordert? Dann kannst du diese E-Mail ignorieren, dein Passwort bleibt unverändert.",
@@ -130,7 +113,7 @@ impl Message {
                 paragraphs: &[
                     "Enter this code on the schul-dashboard page to choose a new password:",
                 ],
-                action,
+                code,
                 note: Some(format!("The code is valid for {valid_minutes} minutes.")),
                 disclaimer: Some(
                     "Didn't request a new password? You can ignore this email, your password stays unchanged.",
@@ -140,7 +123,7 @@ impl Message {
     }
 
     pub fn password_setup(locale: Locale, code: &str, valid_minutes: u64) -> Self {
-        let action = Some(Action::Code(code.to_owned()));
+        let code = Some(code.to_owned());
 
         match locale {
             Locale::De => Self {
@@ -151,7 +134,7 @@ impl Message {
                 paragraphs: &[
                     "Gib diesen Code auf der schul-dashboard-Seite ein, um ein Passwort für dein Konto festzulegen:",
                 ],
-                action,
+                code,
                 note: Some(format!("Der Code ist {valid_minutes} Minuten gültig.")),
                 disclaimer: Some(
                     "Du hast das nicht angefordert? Dann kannst du diese E-Mail einfach ignorieren.",
@@ -165,7 +148,7 @@ impl Message {
                 paragraphs: &[
                     "Enter this code on the schul-dashboard page to set a password for your account:",
                 ],
-                action,
+                code,
                 note: Some(format!("The code is valid for {valid_minutes} minutes.")),
                 disclaimer: Some("Didn't request this? You can safely ignore this email."),
             },
@@ -184,7 +167,7 @@ impl Message {
                 Locale::En => "Important security notice",
             },
             paragraphs: notice.paragraphs,
-            action: None,
+            code: None,
             note: event.note(locale),
             disclaimer: None,
         }

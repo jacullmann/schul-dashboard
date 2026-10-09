@@ -41,7 +41,7 @@ security           Your passkeys, when your recovery codes were created and
                    used, your sessions (signed-in devices) with IP addresses
                    and browser identifiers, security events (e.g. creating a
                    group, accepting an invite), requested password reset codes
-                   and confirmation links.
+                   and confirmation codes.
 activityLog        Your account's activity log, including failed sign-in
                    attempts with their IP address.
 
@@ -56,9 +56,9 @@ once the task they are attached to is deleted.
 - Account, settings, linked sign-in services, groups, course selection and all
   content: providing the service under our terms of use
   (Art. 6(1)(b) GDPR).
-- Sessions, security events, failed sign-in attempts, codes and confirmation
-  links: protecting your account and the service against abuse and
-  unauthorized access (Art. 6(1)(b) and (f) GDPR).
+- Sessions, security events, failed sign-in attempts and emailed codes:
+  protecting your account and the service against abuse and unauthorized
+  access (Art. 6(1)(b) and (f) GDPR).
 - Activity log: investigating errors and abuse and measuring how many people
   use the service (Art. 6(1)(f) GDPR).
 - Reports: reviewing reported content (Art. 6(1)(f) GDPR).
@@ -100,7 +100,7 @@ and Microsoft where they transfer data to the USA.
 - Chat messages: 7 days.
 - Tasks and exams in groups: 90 days after their due date.
 - Password reset codes: 30 minutes; unconfirmed sign-ups with their
-  confirmation links: 2 days.
+  confirmation codes: 2 days.
 - Reports: until we have reviewed them.
 - All other group content: until you, the group admins or we delete it, or the
   group is deleted.
