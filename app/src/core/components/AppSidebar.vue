@@ -9,12 +9,12 @@ import {
   ListTodo,
   CalendarDays,
   Settings,
-  Crown,
   Lock as LockIcon,
   Search,
   // TODO(chat): disabled until chat is ready.
   // MessageCircle,
   Plus,
+  Star,
 } from '@lucide/vue';
 import AccountMenu from '@/modules/auth/components/AccountMenu.vue';
 import {
@@ -264,15 +264,6 @@ onUnmounted(() => {
           :icon="Settings"
           @click="openGroupPage('group-admin')"
         />
-
-        <SidebarButton
-          v-if="isSuperadmin"
-          :label="t('common.roles.superadmin')"
-          :expanded="isExpanded"
-          :active="$route.meta.navItem === 'super-admin'"
-          :icon="Crown"
-          @click="handleNavigation({ name: 'super-admin' })"
-        />
       </div>
 
       <div class="flex flex-col gap-0 w-full">
@@ -290,6 +281,15 @@ onUnmounted(() => {
           :active="$route.name === 'private-todos'"
           :icon="LockIcon"
           @click="handleNavigation({ name: 'private-todos' })"
+        />
+
+        <SidebarButton
+          v-if="isSuperadmin"
+          :label="t('common.roles.superadmin')"
+          :expanded="isExpanded"
+          :active="$route.meta.navItem === 'super-admin'"
+          :icon="Star"
+          @click="handleNavigation({ name: 'super-admin' })"
         />
       </div>
 
