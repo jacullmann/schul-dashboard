@@ -31,6 +31,8 @@ import {
   useWindowSize,
 } from '@vueuse/core';
 import { useIsMobileViewport } from '@/common/composables/useViewport';
+import { useLeaveGuard } from '@/common/composables/useLeaveGuard';
+import { useConfirmModal } from '@/stores/modalStore';
 import {
   findLessonSubject,
   lessonLastSlot,
@@ -121,12 +123,32 @@ function enterEditMode() {
 
 /** Lets the toolbar fold away before the editor gives way to the substitutions. */
 function leaveEditMode() {
+  draftHistory.clear();
   showToolbar.value = false;
   setTimeout(() => {
     isEditMode.value = false;
     draftLessons.value = [];
     clearSelection();
   }, TOOLBAR_TRANSITION_MS);
+}
+
+/** Every change to the draft is a step in its history, and undone ones are no loss. */
+const hasUnsavedDraft = computed(() => isEditMode.value && canUndo.value);
+
+const confirmModal = useConfirmModal();
+const confirmDiscardDraft = () =>
+  confirmModal.ask({
+    title: t('common.discard_changes.title'),
+    content: t('common.discard_changes.content'),
+    submitText: t('common.discard_changes.confirm'),
+    danger: true,
+  });
+
+useLeaveGuard(hasUnsavedDraft, confirmDiscardDraft);
+
+async function cancelEditMode() {
+  if (hasUnsavedDraft.value && !(await confirmDiscardDraft())) return;
+  leaveEditMode();
 }
 
 async function handleSaveAll() {
@@ -527,13 +549,13 @@ onMounted(() => {
                   v-if="windowWidth <= 768"
                   variant="ghost"
                   :icon="X"
-                  @click="leaveEditMode"
+                  @click="cancelEditMode"
                 />
                 <BaseButton
                   v-else
                   variant="ghost"
                   :icon="X"
-                  @click="leaveEditMode"
+                  @click="cancelEditMode"
                 >
                   {{ t('groups.settings.schedule.editor.cancel_button') }}
                 </BaseButton>
@@ -671,7 +693,7 @@ onMounted(() => {
         </div>
 
         <BaseRow stack-on-mobile justify="end">
-          <BaseButton form variant="ghost" @click="leaveEditMode">
+          <BaseButton form variant="ghost" @click="cancelEditMode">
             {{ t('groups.settings.schedule.editor.cancel_button') }}
           </BaseButton>
           <BaseButton

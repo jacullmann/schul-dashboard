@@ -30,6 +30,7 @@ import {
 } from '@/utils/subject-formatter';
 import { apiErrorMessage } from '@/api/errors';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
+import { useConfirmModal } from '@/stores/modalStore';
 
 export const OTHER_SUBJECT = '__OTHER__';
 const TITLE_MAX_LENGTH = 60;
@@ -119,9 +120,9 @@ export function useTaskFormLogic(
   const title = ref(initial?.title || '');
   /** A subject id, or {@link OTHER_SUBJECT} for a name typed in by hand. */
   const subjectSel = ref(initial ? (initial.subjectId ?? OTHER_SUBJECT) : '');
-  const subjectOther = ref(
-    initial && !initial.subjectId ? initial.subjectName : '',
-  );
+  const initialSubjectOther =
+    initial && !initial.subjectId ? initial.subjectName : '';
+  const subjectOther = ref(initialSubjectOther);
   const description = ref(initial?.description || '');
   const courseSel = ref(initial?.courseId ?? '');
 
@@ -440,12 +441,42 @@ export function useTaskFormLogic(
     void router.push(taskRoute(groupId.value, doubleTaskOriginalItem.value.id));
   }
 
+  /** What would be lost on closing: typed text, and a new task's images. */
+  const hasUnsavedInput = computed(
+    () =>
+      title.value !== (initial?.title || '') ||
+      description.value !== (initial?.description || '') ||
+      subjectOther.value !== initialSubjectOther ||
+      (!initial && imgImages.value.length > 0),
+  );
+
+  const confirmModal = useConfirmModal();
+  // Escape reaches the form and its dialog alike, and the dialog answering it
+  // must not have the form ask again right away.
+  let askingToDiscard = false;
+
+  async function requestCancel() {
+    if (askingToDiscard) return;
+    if (hasUnsavedInput.value) {
+      askingToDiscard = true;
+      const discard = await confirmModal.ask({
+        title: t('common.discard_changes.title'),
+        content: t('common.discard_changes.content'),
+        submitText: t('common.discard_changes.confirm'),
+        danger: true,
+      });
+      askingToDiscard = false;
+      if (!discard) return;
+    }
+    emit('cancel');
+  }
+
   function onKeyDown(e: KeyboardEvent) {
     if (e.key === 'Escape') {
       if (showDoubleTaskConfirm.value) {
         showDoubleTaskConfirm.value = false;
       } else {
-        emit('cancel');
+        void requestCancel();
       }
     }
   }
@@ -475,6 +506,7 @@ export function useTaskFormLogic(
   });
 
   return {
+    requestCancel,
     t,
     groupId,
     canChooseGroup,

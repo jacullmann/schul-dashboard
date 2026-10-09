@@ -23,6 +23,7 @@ import RecoveryCodes from '@/modules/auth/components/RecoveryCodes.vue';
 import { useToast } from '@/common/composables/useToast';
 import { useConfirmModal } from '@/stores/modalStore';
 import { useQrCode } from '@/common/composables/useQrCode';
+import { useLeaveGuard } from '@/common/composables/useLeaveGuard';
 
 /** Below this many unused codes, the user is nudged to create new ones. */
 const LOW_RECOVERY_CODES = 3;
@@ -62,6 +63,17 @@ const copied = ref(false);
 
 /** Shown once after they are created; only their hashes are stored. */
 const newRecoveryCodes = ref<string[] | null>(null);
+
+useLeaveGuard(
+  () => newRecoveryCodes.value !== null,
+  () =>
+    confirmModal.ask({
+      title: t('auth.recovery_codes.leave_title'),
+      content: t('auth.recovery_codes.leave_warning'),
+      submitText: t('auth.recovery_codes.leave_confirm'),
+      danger: true,
+    }),
+);
 
 const codeInput = useTemplateRef<{ focus: () => void }>('codeInput');
 

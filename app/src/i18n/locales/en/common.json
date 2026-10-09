@@ -19,6 +19,11 @@
     "retry": "Try again",
     "logout": "Sign out"
   },
+  "discard_changes": {
+    "title": "Discard changes?",
+    "content": "What you entered will be lost.",
+    "confirm": "Discard"
+  },
   "errors": {
     "delete": "Failed to delete",
     "load": "Failed to load",

@@ -19,6 +19,11 @@
     "retry": "Erneut versuchen",
     "logout": "Abmelden"
   },
+  "discard_changes": {
+    "title": "Änderungen verwerfen?",
+    "content": "Deine Eingaben gehen verloren.",
+    "confirm": "Verwerfen"
+  },
   "errors": {
     "delete": "Löschen fehlgeschlagen",
     "load": "Laden fehlgeschlagen",

@@ -68,6 +68,7 @@ const {
   confirmDoubleTaskSubmit,
   viewExisting,
   doubleTaskConfirmMessage,
+  requestCancel,
 } = useTaskFormLogic(props.groupId, props.initial, props.initialType, emit);
 
 const imageEntrance = useAddedEntrance(
@@ -99,7 +100,7 @@ function openImage(index: number) {
     class="outline-2 transition-[outline-color] duration-(--duration-focus) ease-(--ease-focus)"
     :class="isDragging ? 'outline-accent' : 'outline-transparent'"
     v-on="dropHandlers"
-    @cancel="emit('cancel')"
+    @cancel="requestCancel"
   >
     <template #title>
       <span class="flex items-center gap-2 min-w-0">
