@@ -8,6 +8,9 @@ export const AuthErrorCode = {
   EmailNotVerified: 'EMAIL_NOT_VERIFIED',
   EmailThrottled: 'EMAIL_CODE_THROTTLED',
   LastSignInMethod: 'LAST_SIGN_IN_METHOD',
+  InvalidBirthYear: 'INVALID_BIRTH_YEAR',
+  TooYoung: 'TOO_YOUNG',
+  GuardianConsentRequired: 'GUARDIAN_CONSENT_REQUIRED',
 } as const;
 
 const MESSAGE_KEYS: Record<string, string> = {
@@ -17,6 +20,10 @@ const MESSAGE_KEYS: Record<string, string> = {
   [AuthErrorCode.EmailNotVerified]: 'auth.errors.email_not_verified',
   [AuthErrorCode.EmailThrottled]: 'auth.errors.email_throttled',
   [AuthErrorCode.LastSignInMethod]: 'auth.errors.last_sign_in_method',
+  [AuthErrorCode.InvalidBirthYear]: 'auth.age.errors.birth_year_invalid',
+  [AuthErrorCode.TooYoung]: 'auth.age.errors.too_young',
+  [AuthErrorCode.GuardianConsentRequired]:
+    'auth.age.errors.guardian_consent_missing',
 };
 
 /**

@@ -366,7 +366,7 @@
           "title": "Überblick",
           "paragraphs": [
             "Diese Datenschutzerklärung gilt für die Website schul-dashboard.com und die App unter app.schul-dashboard.com. Sie erklärt, welche personenbezogenen Daten wir verarbeiten, wofür wir sie brauchen, wie lange wir sie speichern und welche Rechte du hast.",
-            "Stand: 8. Oktober 2026"
+            "Stand: 9. Oktober 2026"
           ]
         },
         {
@@ -395,11 +395,14 @@
             "den Zeitpunkt der Registrierung und der letzten Anmeldung,",
             "ob die Zwei-Faktor-Authentifizierung aktiv ist, das dafür nötige Geheimnis (verschlüsselt) und deine Wiederherstellungscodes (nur als Hash), jeweils mit dem Zeitpunkt, zu dem sie erstellt und verwendet wurden,",
             "deine Passkeys: ihren öffentlichen Schlüssel, ihre Kennung und ihren Namen sowie wann sie hinzugefügt und zuletzt verwendet wurden. Der private Schlüssel verlässt dein Gerät nie,",
-            "bei Anmeldung mit Google deine Google-Konto-ID und die E-Mail-Adresse dieses Google-Kontos."
+            "bei Anmeldung mit Google deine Google-Konto-ID und die E-Mail-Adresse dieses Google-Kontos,",
+            "dein Geburtsjahr, mit dem wir das Mindestalter prüfen,",
+            "wenn du jünger als 16 Jahre bist, den Zeitpunkt, zu dem deine Erziehungsberechtigten der Nutzung zugestimmt haben."
           ],
           "outro": [
             "Wir schicken dir nur E-Mails, die für dein Konto nötig sind: den Bestätigungslink nach der Registrierung, Codes zum Zurücksetzen oder Festlegen deines Passworts und Sicherheitshinweise, sobald sich etwas am Schutz deines Kontos ändert, zum Beispiel wenn dein Passwort geändert wird, die Zwei-Faktor-Authentifizierung ein- oder ausgeschaltet wird oder ein Passkey oder ein Google-Konto hinzukommt oder entfernt wird. Newsletter oder Werbung verschicken wir nicht.",
-            "Ohne E-Mail-Adresse können wir kein Konto anlegen. Rechtsgrundlage ist die Erfüllung des Nutzungsvertrags (Art. 6 Abs. 1 lit. b DSGVO)."
+            "Ohne E-Mail-Adresse können wir kein Konto anlegen. Rechtsgrundlage ist die Erfüllung des Nutzungsvertrags (Art. 6 Abs. 1 lit. b DSGVO).",
+            "Das Geburtsjahr brauchen wir für die Altersprüfung, ebenfalls auf Grundlage des Nutzungsvertrags. Bist du jünger als 16 Jahre, stützt sich dein Konto auf die Zustimmung deiner Erziehungsberechtigten (Art. 6 Abs. 1 lit. a und Art. 8 DSGVO). Diese Zustimmung können deine Erziehungsberechtigten jederzeit widerrufen, indem sie uns unter kontakt{'@'}schul-dashboard.com schreiben. Dann löschen wir das Konto."
           ]
         },
         {
@@ -550,7 +553,7 @@
         "title": "Dein Konto",
         "item0": "Du musst eine gültige E-Mail-Adresse angeben, um ein Konto zu erstellen.",
         "item1": "Du bist dafür verantwortlich, deine Zugangsdaten sicher zu verwahren.",
-        "item2": "Du musst mindestens 16 Jahre alt sein, um diesen Dienst zu nutzen.",
+        "item2": "Du musst mindestens 13 Jahre alt sein, um diesen Dienst zu nutzen. Bist du jünger als 16, braucht es die Zustimmung deiner Erziehungsberechtigten.",
         "item3": "Ein Konto pro Person. Teile dein Konto nicht mit anderen."
       },
       "conduct": {

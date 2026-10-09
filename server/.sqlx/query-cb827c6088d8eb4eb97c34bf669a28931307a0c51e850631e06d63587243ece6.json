@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT u.id, u.email, u.email_verified,\n                      u.password_hash IS NOT NULL AS \"has_password!\",\n                      u.mfa_enabled, u.mfa_failed_attempts, u.mfa_locked_until,\n                      u.personalized, u.preferences,\n                      (SELECT r.name FROM user_roles ur\n                       JOIN roles r ON r.id = ur.role_id\n                       WHERE ur.user_id = u.id AND ur.tenant_id IS NULL\n                       ORDER BY r.id LIMIT 1) AS \"platform_role?\",\n                      u.last_active_group_id, u.last_login_at,\n                      (SELECT b.banned_at FROM banned_users b WHERE b.user_id = u.id) AS \"banned_at?\",\n                      u.created_at, u.updated_at\n               FROM users u\n               WHERE u.id = $1",
+  "query": "SELECT u.id, u.email, u.email_verified,\n                      u.password_hash IS NOT NULL AS \"has_password!\",\n                      u.mfa_enabled, u.mfa_failed_attempts, u.mfa_locked_until,\n                      u.personalized, u.birth_year, u.guardian_consent_at, u.preferences,\n                      (SELECT r.name FROM user_roles ur\n                       JOIN roles r ON r.id = ur.role_id\n                       WHERE ur.user_id = u.id AND ur.tenant_id IS NULL\n                       ORDER BY r.id LIMIT 1) AS \"platform_role?\",\n                      u.last_active_group_id, u.last_login_at,\n                      (SELECT b.banned_at FROM banned_users b WHERE b.user_id = u.id) AS \"banned_at?\",\n                      u.created_at, u.updated_at\n               FROM users u\n               WHERE u.id = $1",
   "describe": {
     "columns": [
       {
@@ -88,6 +88,28 @@
       },
       {
         "ordinal": 8,
+        "name": "birth_year",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "users",
+            "name": "birth_year"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "guardian_consent_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "users",
+            "name": "guardian_consent_at"
+          }
+        }
+      },
+      {
+        "ordinal": 10,
         "name": "preferences",
         "type_info": "Jsonb",
         "origin": {
@@ -98,13 +120,13 @@
         }
       },
       {
-        "ordinal": 9,
+        "ordinal": 11,
         "name": "platform_role?",
         "type_info": "Text",
         "origin": "Expression"
       },
       {
-        "ordinal": 10,
+        "ordinal": 12,
         "name": "last_active_group_id",
         "type_info": "Uuid",
         "origin": {
@@ -115,7 +137,7 @@
         }
       },
       {
-        "ordinal": 11,
+        "ordinal": 13,
         "name": "last_login_at",
         "type_info": "Timestamptz",
         "origin": {
@@ -126,13 +148,13 @@
         }
       },
       {
-        "ordinal": 12,
+        "ordinal": 14,
         "name": "banned_at?",
         "type_info": "Timestamptz",
         "origin": "Expression"
       },
       {
-        "ordinal": 13,
+        "ordinal": 15,
         "name": "created_at",
         "type_info": "Timestamptz",
         "origin": {
@@ -143,7 +165,7 @@
         }
       },
       {
-        "ordinal": 14,
+        "ordinal": 16,
         "name": "updated_at",
         "type_info": "Timestamptz",
         "origin": {
@@ -168,6 +190,8 @@
       false,
       true,
       false,
+      true,
+      true,
       false,
       null,
       true,
@@ -177,5 +201,5 @@
       false
     ]
   },
-  "hash": "78d7a0e5a6376ab1ecafb5188efc50cc4f6c4cc858bcae40e11342a3277c928d"
+  "hash": "cb827c6088d8eb4eb97c34bf669a28931307a0c51e850631e06d63587243ece6"
 }

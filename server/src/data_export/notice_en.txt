@@ -23,8 +23,10 @@ time in your account settings.
 account            Your account: email address, whether it is verified,
                    whether a password and two-factor authentication are set
                    up, settings (language, theme, personalization), sign-up
-                   and last sign-in, and the randomly generated name other
-                   members see you as.
+                   and last sign-in, your year of birth (for the age check),
+                   for users under 16 the time their parents or guardians
+                   consented, and the randomly generated name other members
+                   see you as.
 linkedAccounts     Sign-in services linked to your account (e.g. Google) with
                    your account ID and email address at that service.
 groups             Your group memberships and roles, when you last opened each

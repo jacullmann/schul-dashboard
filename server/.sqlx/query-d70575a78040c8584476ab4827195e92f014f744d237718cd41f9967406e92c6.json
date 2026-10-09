@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "UPDATE users SET password_hash = $2, preferences = $3, created_at = now()\n                       WHERE email = $1\n                       RETURNING created_at",
+  "query": "INSERT INTO users\n                       (email, password_hash, email_verified, preferences, birth_year, guardian_consent_at)\n                   VALUES ($1, $2, false, $3, $4, $5)\n                   RETURNING created_at",
   "describe": {
     "columns": [
       {
@@ -19,12 +19,14 @@
       "Left": [
         "Text",
         "Text",
-        "Jsonb"
+        "Jsonb",
+        "Int4",
+        "Timestamptz"
       ]
     },
     "nullable": [
       false
     ]
   },
-  "hash": "edf1e95ee8635a01269cc08f04494735940dcd6d97d457919b304ca22545a518"
+  "hash": "d70575a78040c8584476ab4827195e92f014f744d237718cd41f9967406e92c6"
 }

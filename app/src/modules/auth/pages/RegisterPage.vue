@@ -2,6 +2,7 @@
 import { useRouter } from 'vue-router';
 import { MailCheck } from '@lucide/vue';
 import GoogleIcon from '@/modules/auth/components/GoogleIcon.vue';
+import AgeConsentFields from '@/modules/auth/components/AgeConsentFields.vue';
 import TermsConsentCheckbox from '@/modules/auth/components/TermsConsentCheckbox.vue';
 import { useRegister } from '@/modules/auth/composables/useRegister';
 import { useOAuth } from '@/modules/auth/composables/useOAuth';
@@ -21,6 +22,10 @@ const {
   registeredEmail,
   emailInputRef,
   errors,
+  birthYearInput,
+  guardianConsent,
+  requiresGuardianConsent,
+  ageErrors,
   clearFieldError,
   restartRegistration,
   submit: submitRegister,
@@ -143,6 +148,15 @@ function navigateToLogin() {
               @input="clearFieldError('passwordConfirm')"
             />
           </BaseFormGroup>
+
+          <AgeConsentFields
+            v-model:birth-year="birthYearInput"
+            v-model:guardian-consent="guardianConsent"
+            id-prefix="register"
+            :needs-guardian-consent="requiresGuardianConsent"
+            :birth-year-error="ageErrors.birthYear"
+            :guardian-consent-error="ageErrors.guardianConsent"
+          />
 
           <BaseFormGroup id="register-terms" :error="errors.terms">
             <TermsConsentCheckbox

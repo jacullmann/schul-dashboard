@@ -2,7 +2,9 @@
 import { ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import GoogleIcon from '@/modules/auth/components/GoogleIcon.vue';
+import AgeConsentFields from '@/modules/auth/components/AgeConsentFields.vue';
 import TermsConsentCheckbox from '@/modules/auth/components/TermsConsentCheckbox.vue';
+import { useAgeConsent } from '@/modules/auth/composables/useAgeConsent';
 import { useOAuth } from '@/modules/auth/composables/useOAuth';
 
 const props = defineProps<{
@@ -17,6 +19,15 @@ const emit = defineEmits<{
 const { t } = useI18n();
 const { signUpWithGoogle } = useOAuth();
 
+const {
+  birthYearInput,
+  guardianConsent,
+  requiresGuardianConsent,
+  ageErrors,
+  declareAge,
+  resetAge,
+} = useAgeConsent();
+
 const acceptedTerms = ref(false);
 const submitting = ref(false);
 const errorMsg = ref('');
@@ -27,15 +38,20 @@ watch(
     if (!open) return;
     acceptedTerms.value = false;
     errorMsg.value = '';
+    resetAge();
   },
 );
 
 async function submit() {
   if (!acceptedTerms.value || submitting.value) return;
+
+  const declaration = declareAge();
+  if (declaration === null) return;
+
   submitting.value = true;
   errorMsg.value = '';
 
-  const result = await signUpWithGoogle();
+  const result = await signUpWithGoogle(declaration);
 
   submitting.value = false;
 
@@ -68,7 +84,16 @@ async function submit() {
         {{ t('auth.google_signup.description') }}
       </div>
 
-      <TermsConsentCheckbox v-model="acceptedTerms" class="mb-4" />
+      <AgeConsentFields
+        v-model:birth-year="birthYearInput"
+        v-model:guardian-consent="guardianConsent"
+        id-prefix="google-signup"
+        :needs-guardian-consent="requiresGuardianConsent"
+        :birth-year-error="ageErrors.birthYear"
+        :guardian-consent-error="ageErrors.guardianConsent"
+      />
+
+      <TermsConsentCheckbox v-model="acceptedTerms" class="mt-4 mb-4" />
     </template>
 
     <template #action-text>

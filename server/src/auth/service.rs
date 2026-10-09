@@ -9,6 +9,7 @@ use crate::{
         token::{IssueTokenParams, SessionOrigin, TokenService, *},
     },
     common::{
+        age,
         csrf::generate_csrf_token,
         email::{EmailService, SecurityEvent},
         jwt::JwtService,
@@ -310,6 +311,7 @@ impl AuthService {
     /// The window to confirm starts over with the new sign-up.
     pub async fn register(&self, dto: RegisterDto) -> AppResult<serde_json::Value> {
         validate_password_strength(&dto.password).map_err(|e| AppError::BadRequest(e.into()))?;
+        let age = age::declare(dto.birth_year, dto.guardian_consent, Utc::now())?;
 
         let email = dto.email.to_lowercase();
         let password_hash = hash_password(dto.password).await?;
@@ -334,23 +336,30 @@ impl AuthService {
             Some(true) => return Err(AuthFailure::EmailAlreadyRegistered.into()),
             Some(false) => {
                 sqlx::query_scalar!(
-                    r#"UPDATE users SET password_hash = $2, preferences = $3, created_at = now()
+                    r#"UPDATE users
+                       SET password_hash = $2, preferences = $3, created_at = now(),
+                           birth_year = $4, guardian_consent_at = $5
                        WHERE email = $1
                        RETURNING created_at"#,
                     email,
                     password_hash,
                     prefs,
+                    age.birth_year,
+                    age.guardian_consent_at,
                 )
                 .fetch_one(&mut *tx)
                 .await?
             }
             None => sqlx::query_scalar!(
-                r#"INSERT INTO users (email, password_hash, email_verified, preferences)
-                   VALUES ($1, $2, false, $3)
+                r#"INSERT INTO users
+                       (email, password_hash, email_verified, preferences, birth_year, guardian_consent_at)
+                   VALUES ($1, $2, false, $3, $4, $5)
                    RETURNING created_at"#,
                 email,
                 password_hash,
                 prefs,
+                age.birth_year,
+                age.guardian_consent_at,
             )
             .fetch_one(&mut *tx)
             .await
