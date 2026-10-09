@@ -1,4 +1,4 @@
-use crate::error::AppError;
+use crate::{common::memory_hard, error::AppError};
 use aes_gcm::{
     Aes256Gcm, Key, Nonce,
     aead::{Aead, KeyInit, OsRng, rand_core::RngCore},
@@ -69,7 +69,7 @@ impl EncryptionService {
 
         let salt = salt.to_vec();
 
-        let derived = tokio::task::spawn_blocking(move || {
+        let derived = memory_hard::run(move || {
             let params = scrypt::Params::new(14, 8, 1).expect("valid scrypt params");
 
             let mut key = [0u8; 32];
@@ -78,8 +78,7 @@ impl EncryptionService {
                 .expect("scrypt failed");
             key
         })
-        .await
-        .map_err(|e| AppError::internal(format!("Key derivation spawn failed: {e}")))?;
+        .await?;
 
         let mut cache = self.cache.lock().unwrap_or_else(PoisonError::into_inner);
 
