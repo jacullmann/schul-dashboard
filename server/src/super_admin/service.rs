@@ -6,8 +6,9 @@ use crate::{
         token::{ADMIN_REVOKE, TokenService},
     },
     common::{
+        client::ClientInfo,
         cloudinary::Cloudinary,
-        email::{EmailService, SecurityEvent},
+        email::{EmailService, SecurityNotice},
         hetzner::{HetznerCloud, HetznerError},
         name_generator::generate_user_name,
         pagination::{PAGE_SIZE, Page, contains_pattern, search_term},
@@ -19,11 +20,12 @@ use crate::{
         service::role_from_db,
     },
     mfa::service::disable_mfa,
+    security_log::{SecurityEvent, SecurityEventKind},
     state::AppState,
 };
 use chrono::Utc;
 use serde_json::{Value, json};
-use sqlx::{PgConnection, PgPool};
+use sqlx::PgPool;
 use uuid::Uuid;
 
 const STATS_WINDOW_DAYS: i32 = 7;
@@ -31,26 +33,7 @@ const DAILY_ACTIVITY_DAYS: i32 = 30;
 /// The longest whole number of weeks inside the 30 days of activity that are kept.
 const WEEKLY_RHYTHM_WEEKS: i32 = 4;
 const ACTIVITY_LOG_LIMIT: i64 = 200;
-
-/// Admin actions are recorded against the acting admin, so the entry survives
-/// the deletion of whatever it targets.
-pub async fn log_admin_action(
-    conn: &mut PgConnection,
-    admin_id: Uuid,
-    action: &str,
-    meta: Value,
-) -> AppResult<()> {
-    sqlx::query!(
-        r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, $2, $3)"#,
-        admin_id,
-        action,
-        meta
-    )
-    .execute(conn)
-    .await?;
-
-    Ok(())
-}
+const SECURITY_LOG_LIMIT: i64 = 200;
 
 /// The server's load as Hetzner measures it, read live on every request: the
 /// overview is opened rarely enough to stay far below the API's rate limit.
@@ -162,8 +145,7 @@ impl SuperAdminService {
         })
     }
 
-    /// Growth, usage and failed logins per day, oldest first, with empty days included.
-    /// A failed login is an attempt against an account, not activity of its owner.
+    /// Growth, usage and failed sign-ins per day, oldest first, with empty days included.
     pub async fn get_daily_activity(&self) -> AppResult<Vec<DailyActivityDto>> {
         let rows = sqlx::query!(
             r#"SELECT d.day AS "day!",
@@ -172,7 +154,7 @@ impl SuperAdminService {
                       COALESCE(i.n, 0) AS "new_items!",
                       COALESCE(a.app_opens, 0) AS "app_opens!",
                       COALESCE(a.active_users, 0) AS "active_users!",
-                      COALESCE(a.failed_logins, 0) AS "failed_logins!"
+                      COALESCE(f.n, 0) AS "failed_logins!"
                FROM (SELECT current_date - offset_days AS day
                      FROM generate_series($1 - 1, 0, -1) AS offset_days) d
                LEFT JOIN (SELECT created_at::date AS day, COUNT(*) AS n FROM users
@@ -186,13 +168,18 @@ impl SuperAdminService {
                           GROUP BY 1) i USING (day)
                LEFT JOIN (SELECT created_at::date AS day,
                                  COUNT(*) FILTER (WHERE type = 'page:load') AS app_opens,
-                                 COUNT(DISTINCT user_id) FILTER (WHERE type <> 'auth:login_failed') AS active_users,
-                                 COUNT(*) FILTER (WHERE type = 'auth:login_failed') AS failed_logins
+                                 COUNT(DISTINCT user_id) AS active_users
                           FROM user_activity
                           WHERE created_at >= current_date - ($1 - 1)
                           GROUP BY 1) a USING (day)
+               LEFT JOIN (SELECT created_at::date AS day, COUNT(*) AS n FROM security_events
+                          WHERE event_type = $2 AND outcome = $3
+                            AND created_at >= current_date - ($1 - 1)
+                          GROUP BY 1) f USING (day)
                ORDER BY d.day"#,
             DAILY_ACTIVITY_DAYS,
+            SecurityEventKind::SignInFailed.event_type(),
+            SecurityEventKind::SignInFailed.outcome().as_str(),
         )
         .fetch_all(&self.db)
         .await?;
@@ -330,7 +317,12 @@ impl SuperAdminService {
         Ok(Page::new(groups, total, query.page))
     }
 
-    pub async fn delete_group(&self, group_id: Uuid, admin_id: Uuid) -> AppResult<Value> {
+    pub async fn delete_group(
+        &self,
+        group_id: Uuid,
+        admin_id: Uuid,
+        client: &ClientInfo,
+    ) -> AppResult<Value> {
         let mut tx = self.db.begin().await?;
 
         // Everything in the group cascades with it; the asset sweep deletes
@@ -343,13 +335,13 @@ impl SuperAdminService {
         .await?
         .ok_or_else(|| AppError::not_found("Group not found."))?;
 
-        log_admin_action(
-            &mut tx,
-            admin_id,
-            "admin:delete:group",
-            json!({ "groupId": group_id, "groupName": name }),
-        )
-        .await?;
+        SecurityEvent::new(SecurityEventKind::AdminGroupDeleted)
+            .actor(admin_id)
+            .tenant(group_id)
+            .client(client)
+            .metadata(json!({ "groupName": name }))
+            .record(&mut *tx)
+            .await?;
 
         tx.commit().await?;
 
@@ -452,6 +444,29 @@ impl SuperAdminService {
         ))
     }
 
+    /// The newest entries of the security log across all accounts.
+    pub async fn get_security_events(&self) -> AppResult<Vec<SecurityEventDto>> {
+        let events = sqlx::query_as!(
+            SecurityEventDto,
+            r#"SELECT e.id, e.event_type, e.outcome,
+                      e.user_id, u.email AS "user_email?",
+                      e.actor_id, a.email AS "actor_email?",
+                      e.tenant_id AS group_id, g.name AS "group_name?",
+                      host(e.ip_address) AS ip_address, e.user_agent, e.metadata, e.created_at
+               FROM security_events e
+               LEFT JOIN users u ON u.id = e.user_id
+               LEFT JOIN users a ON a.id = e.actor_id
+               LEFT JOIN groups g ON g.id = e.tenant_id
+               ORDER BY e.created_at DESC
+               LIMIT $1"#,
+            SECURITY_LOG_LIMIT
+        )
+        .fetch_all(&self.db)
+        .await?;
+
+        Ok(events)
+    }
+
     /// The roles offered per group come from the same policy the group admin
     /// UI uses, evaluated with the owner rights every superadmin holds.
     pub async fn get_user_memberships(
@@ -492,7 +507,12 @@ impl SuperAdminService {
             .collect()
     }
 
-    pub async fn ban_user(&self, target_id: Uuid, admin_id: Uuid) -> AppResult<Value> {
+    pub async fn ban_user(
+        &self,
+        target_id: Uuid,
+        admin_id: Uuid,
+        client: &ClientInfo,
+    ) -> AppResult<Value> {
         if is_superadmin(&self.db, target_id).await? {
             return Err(AppError::bad_request("Admins cannot be banned."));
         }
@@ -506,13 +526,12 @@ impl SuperAdminService {
         .execute(&mut *tx)
         .await?;
 
-        log_admin_action(
-            &mut tx,
-            admin_id,
-            "admin:ban:user",
-            json!({ "targetUserId": target_id }),
-        )
-        .await?;
+        SecurityEvent::new(SecurityEventKind::AdminUserBanned)
+            .user(target_id)
+            .actor(admin_id)
+            .client(client)
+            .record(&mut *tx)
+            .await?;
 
         tx.commit().await?;
 
@@ -523,20 +542,24 @@ impl SuperAdminService {
         Ok(json!({ "ok": true, "isBanned": true }))
     }
 
-    pub async fn unban_user(&self, target_id: Uuid, admin_id: Uuid) -> AppResult<Value> {
+    pub async fn unban_user(
+        &self,
+        target_id: Uuid,
+        admin_id: Uuid,
+        client: &ClientInfo,
+    ) -> AppResult<Value> {
         let mut tx = self.db.begin().await?;
 
         sqlx::query!(r#"DELETE FROM banned_users WHERE user_id = $1"#, target_id)
             .execute(&mut *tx)
             .await?;
 
-        log_admin_action(
-            &mut tx,
-            admin_id,
-            "admin:unban:user",
-            json!({ "targetUserId": target_id }),
-        )
-        .await?;
+        SecurityEvent::new(SecurityEventKind::AdminUserUnbanned)
+            .user(target_id)
+            .actor(admin_id)
+            .client(client)
+            .record(&mut *tx)
+            .await?;
 
         tx.commit().await?;
 
@@ -546,7 +569,12 @@ impl SuperAdminService {
     /// Support for a user who lost both their authenticator and their
     /// recovery codes. The user is told by email, so a reset they did not ask
     /// for cannot go unnoticed.
-    pub async fn reset_user_mfa(&self, target_id: Uuid, admin_id: Uuid) -> AppResult<Value> {
+    pub async fn reset_user_mfa(
+        &self,
+        target_id: Uuid,
+        admin_id: Uuid,
+        client: &ClientInfo,
+    ) -> AppResult<Value> {
         let mut tx = self.db.begin().await?;
 
         if !disable_mfa(&mut tx, target_id).await? {
@@ -555,13 +583,12 @@ impl SuperAdminService {
             ));
         }
 
-        log_admin_action(
-            &mut tx,
-            admin_id,
-            "admin:reset:mfa",
-            json!({ "targetUserId": target_id }),
-        )
-        .await?;
+        SecurityEvent::new(SecurityEventKind::AdminTwoFactorReset)
+            .user(target_id)
+            .actor(admin_id)
+            .client(client)
+            .record(&mut *tx)
+            .await?;
 
         tx.commit().await?;
 
@@ -569,13 +596,18 @@ impl SuperAdminService {
             &self.db,
             &self.email,
             target_id,
-            SecurityEvent::TwoFactorResetBySupport,
+            SecurityNotice::TwoFactorResetBySupport,
         );
 
         Ok(json!({ "ok": true, "mfaEnabled": false }))
     }
 
-    pub async fn delete_user(&self, target_id: Uuid, admin_id: Uuid) -> AppResult<Value> {
+    pub async fn delete_user(
+        &self,
+        target_id: Uuid,
+        admin_id: Uuid,
+        client: &ClientInfo,
+    ) -> AppResult<Value> {
         if is_superadmin(&self.db, target_id).await? {
             return Err(AppError::forbidden("Admins cannot be deleted."));
         }
@@ -603,13 +635,14 @@ impl SuperAdminService {
         .await?
         .ok_or_else(|| AppError::not_found("User not found."))?;
 
-        log_admin_action(
-            &mut tx,
-            admin_id,
-            "admin:delete:user",
-            json!({ "targetUserId": target_id, "email": email }),
-        )
-        .await?;
+        // The address is all that still says whose account it was.
+        SecurityEvent::new(SecurityEventKind::AdminUserDeleted)
+            .user(target_id)
+            .actor(admin_id)
+            .client(client)
+            .metadata(json!({ "email": email }))
+            .record(&mut *tx)
+            .await?;
 
         tx.commit().await?;
 

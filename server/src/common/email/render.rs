@@ -118,22 +118,22 @@ fn escape_html(value: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::common::{email::SecurityEvent, locale::Locale};
+    use crate::common::{email::SecurityNotice, locale::Locale};
 
-    const SECURITY_EVENTS: [SecurityEvent; 13] = [
-        SecurityEvent::PasswordChanged,
-        SecurityEvent::PasswordSet,
-        SecurityEvent::PasswordRemoved,
-        SecurityEvent::PasswordReset,
-        SecurityEvent::TwoFactorEnabled,
-        SecurityEvent::TwoFactorDisabled,
-        SecurityEvent::TwoFactorResetBySupport,
-        SecurityEvent::RecoveryCodesRegenerated,
-        SecurityEvent::RecoveryCodeUsed { remaining: 7 },
-        SecurityEvent::PasskeyAdded,
-        SecurityEvent::PasskeyRemoved,
-        SecurityEvent::GoogleLinked,
-        SecurityEvent::GoogleUnlinked,
+    const SECURITY_NOTICES: [SecurityNotice; 13] = [
+        SecurityNotice::PasswordChanged,
+        SecurityNotice::PasswordSet,
+        SecurityNotice::PasswordRemoved,
+        SecurityNotice::PasswordReset,
+        SecurityNotice::TwoFactorEnabled,
+        SecurityNotice::TwoFactorDisabled,
+        SecurityNotice::TwoFactorResetBySupport,
+        SecurityNotice::RecoveryCodesRegenerated,
+        SecurityNotice::RecoveryCodeUsed { remaining: 7 },
+        SecurityNotice::PasskeyAdded,
+        SecurityNotice::PasskeyRemoved,
+        SecurityNotice::GoogleLinked,
+        SecurityNotice::GoogleUnlinked,
     ];
 
     #[test]
@@ -146,7 +146,7 @@ mod tests {
             ]
             .into_iter()
             .chain(
-                SECURITY_EVENTS
+                SECURITY_NOTICES
                     .into_iter()
                     .map(|event| Message::security_notice(locale, event)),
             );
@@ -169,7 +169,7 @@ mod tests {
 
     #[test]
     fn a_used_recovery_code_reports_how_many_are_left() {
-        let event = SecurityEvent::RecoveryCodeUsed { remaining: 7 };
+        let event = SecurityNotice::RecoveryCodeUsed { remaining: 7 };
         for locale in [Locale::De, Locale::En] {
             let message = Message::security_notice(locale, event);
             assert!(message.to_html().contains('7'));

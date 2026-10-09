@@ -1,0 +1,21 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO security_events\n                (event_type, outcome, user_id, actor_id, tenant_id, ip_address, user_agent, metadata)\n               VALUES ($1, $2, $3, $4, $5, $6, $7, COALESCE($8, '{}'::jsonb))",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Varchar",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Inet",
+        "Text",
+        "Jsonb"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "8030df93c59fc55c66d548f50a8104acb39067d715448f9ad64a6b1125efe2a1"
+}

@@ -99,7 +99,7 @@
         },
         "cleanup-security-events": {
           "label": "Security events",
-          "rule": "Older than 30 days"
+          "rule": "Older than 90 days"
         },
         "cleanup-unverified-users": {
           "label": "Unconfirmed sign-ups",
@@ -126,6 +126,22 @@
           "rule": "Unused files after 24 hours, deleted by the server every 5 minutes"
         }
       }
+    },
+    "security_events": {
+      "title": "Security events",
+      "hint": "The latest 200 entries across all accounts. They are kept for 90 days.",
+      "empty": "No security events yet.",
+      "error": "Security events could not be loaded.",
+      "retry": "Try again",
+      "outcome": {
+        "success": "Success",
+        "failure": "Failure"
+      },
+      "user": "Account",
+      "actor": "Performed by",
+      "group": "Group",
+      "ip": "IP address",
+      "user_agent": "Browser"
     },
     "errors": {
       "load": "Failed to load statistics."

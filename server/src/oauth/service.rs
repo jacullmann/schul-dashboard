@@ -2,17 +2,19 @@ use crate::{
     access_control,
     auth::{
         security_notice,
-        service::{AuthService, ClientInfo, LoginResult},
+        service::{AuthService, LoginResult},
         session_context::account_is_active,
         sign_in_methods::{SignInMethod, SignInMethods},
     },
     common::{
-        email::SecurityEvent,
+        client::ClientInfo,
+        email::SecurityNotice,
         jwt::{hs256_validation, now_secs},
     },
     config::Config,
     error::{AppError, AppResult},
     reauth::service::{GoogleReauth, ReauthService},
+    security_log::{SecurityEvent, SecurityEventKind},
     state::AppState,
 };
 use axum_extra::extract::{CookieJar, cookie::Cookie, cookie::SameSite};
@@ -85,6 +87,24 @@ struct OAuthStateClaims {
 struct GoogleProfile {
     subject: String,
     email: String,
+}
+
+/// How a Google identity came to be linked, as the security log records it.
+#[derive(Debug, Clone, Copy)]
+enum GoogleLinkVia {
+    /// The user linked it in their account settings.
+    Settings,
+    /// A Google sign-in matched the account's email and linked it.
+    SignIn,
+}
+
+impl GoogleLinkVia {
+    const fn as_str(self) -> &'static str {
+        match self {
+            Self::Settings => "settings",
+            Self::SignIn => "sign_in",
+        }
+    }
 }
 
 enum LinkError {
@@ -206,7 +226,7 @@ impl OAuthService {
         error_param: Option<&str>,
         state_cookie: Option<&str>,
         refresh_token: Option<&str>,
-        client: ClientInfo<'_>,
+        client: &ClientInfo,
     ) -> (CookieJar, String) {
         let empty_jar = CookieJar::new();
 
@@ -256,11 +276,13 @@ impl OAuthService {
 
         match state.intent {
             OAuthIntent::Login => self.complete_login(&profile, client).await,
-            OAuthIntent::Link { user_id } => {
-                (empty_jar, self.complete_link(user_id, &profile).await)
-            }
+            OAuthIntent::Link { user_id } => (
+                empty_jar,
+                self.complete_link(user_id, &profile, client).await,
+            ),
             OAuthIntent::Reauth { user_id } => {
-                self.complete_reauth(user_id, &profile, refresh_token).await
+                self.complete_reauth(user_id, &profile, refresh_token, client)
+                    .await
             }
         }
     }
@@ -270,9 +292,10 @@ impl OAuthService {
         user_id: Uuid,
         profile: &GoogleProfile,
         refresh_token: Option<&str>,
+        client: &ClientInfo,
     ) -> (CookieJar, String) {
         let outcome = ReauthService::from_state(&self.state)
-            .after_google(user_id, &profile.subject, refresh_token)
+            .after_google(user_id, &profile.subject, refresh_token, client)
             .await;
 
         match outcome {
@@ -302,7 +325,7 @@ impl OAuthService {
     async fn complete_login(
         &self,
         profile: &GoogleProfile,
-        client: ClientInfo<'_>,
+        client: &ClientInfo,
     ) -> (CookieJar, String) {
         let server_error = || {
             (
@@ -311,7 +334,7 @@ impl OAuthService {
             )
         };
 
-        let account = match self.resolve_account(profile).await {
+        let account = match self.resolve_account(profile, client).await {
             Ok(Some(account)) => account,
             Ok(None) => {
                 // Told now rather than after the sign-up form was filled in.
@@ -340,6 +363,7 @@ impl OAuthService {
                 account.user_id,
                 &account.email,
                 account.mfa_required,
+                SignInMethod::Google,
                 client,
             )
             .await;
@@ -404,23 +428,29 @@ impl OAuthService {
 
     /// Links by Google subject, so the Google email may differ from the
     /// account email: the signed-in session already proves who the user is.
-    async fn complete_link(&self, user_id: Uuid, profile: &GoogleProfile) -> String {
+    async fn complete_link(
+        &self,
+        user_id: Uuid,
+        profile: &GoogleProfile,
+        client: &ClientInfo,
+    ) -> String {
         match account_is_active(&self.db, user_id).await {
             Ok(true) => {}
             Ok(false) => return self.error_url(LINK_RESULT_PARAM, "session_expired"),
             Err(_) => return self.error_url(LINK_RESULT_PARAM, "server_error"),
         }
 
-        match self
-            .insert_google_link(user_id, &profile.subject, &profile.email)
-            .await
-        {
+        let linked = self
+            .link_google(user_id, profile, GoogleLinkVia::Settings, client)
+            .await;
+
+        match linked {
             Ok(()) => {
                 security_notice::notify(
                     &self.db,
                     &self.state.email,
                     user_id,
-                    SecurityEvent::GoogleLinked,
+                    SecurityNotice::GoogleLinked,
                 );
                 self.result_url(LINK_RESULT_PARAM, "success")
             }
@@ -433,22 +463,34 @@ impl OAuthService {
         }
     }
 
-    async fn insert_google_link(
+    async fn link_google(
         &self,
         user_id: Uuid,
-        google_id: &str,
-        google_email: &str,
+        profile: &GoogleProfile,
+        via: GoogleLinkVia,
+        client: &ClientInfo,
     ) -> Result<(), LinkError> {
+        let mut tx = self.db.begin().await?;
+
         sqlx::query!(
             r#"INSERT INTO oauth_accounts (user_id, provider, provider_user_id, provider_email)
                VALUES ($1, 'google', $2, $3)"#,
             user_id,
-            google_id,
-            google_email
+            profile.subject,
+            profile.email
         )
-        .execute(&self.db)
+        .execute(&mut *tx)
         .await?;
 
+        SecurityEvent::new(SecurityEventKind::GoogleLinked)
+            .user(user_id)
+            .actor(user_id)
+            .client(client)
+            .metadata(json!({ "via": via.as_str(), "googleEmail": profile.email }))
+            .record(&mut *tx)
+            .await?;
+
+        tx.commit().await?;
         Ok(())
     }
 
@@ -465,7 +507,7 @@ impl OAuthService {
     pub async fn sign_up_with_google(
         &self,
         pending: &OAuthPendingClaims,
-        client: ClientInfo<'_>,
+        client: &ClientInfo,
     ) -> AppResult<LoginResult> {
         access_control::ensure_registration_open(&self.db).await?;
 
@@ -492,14 +534,26 @@ impl OAuthService {
         .await
         .map_err(account_exists_on_conflict)?;
 
+        SecurityEvent::new(SecurityEventKind::AccountCreated)
+            .user(user_id)
+            .actor(user_id)
+            .client(client)
+            .metadata(json!({ "method": SignInMethod::Google.as_str() }))
+            .record(&mut *tx)
+            .await?;
+
         tx.commit().await?;
 
         self.auth()
-            .complete_sign_in(user_id, email, false, client)
+            .complete_sign_in(user_id, email, false, SignInMethod::Google, client)
             .await
     }
 
-    pub async fn unlink_google_account(&self, user_id: Uuid) -> AppResult<Value> {
+    pub async fn unlink_google_account(
+        &self,
+        user_id: Uuid,
+        client: &ClientInfo,
+    ) -> AppResult<Value> {
         let mut tx = self.db.begin().await?;
 
         SignInMethods::lock(&mut tx, user_id)
@@ -514,6 +568,15 @@ impl OAuthService {
         .await?
         .rows_affected();
 
+        if unlinked > 0 {
+            SecurityEvent::new(SecurityEventKind::GoogleUnlinked)
+                .user(user_id)
+                .actor(user_id)
+                .client(client)
+                .record(&mut *tx)
+                .await?;
+        }
+
         tx.commit().await?;
 
         if unlinked > 0 {
@@ -521,7 +584,7 @@ impl OAuthService {
                 &self.db,
                 &self.state.email,
                 user_id,
-                SecurityEvent::GoogleUnlinked,
+                SecurityNotice::GoogleUnlinked,
             );
         }
 
@@ -552,6 +615,7 @@ impl OAuthService {
     async fn resolve_account(
         &self,
         profile: &GoogleProfile,
+        client: &ClientInfo,
     ) -> Result<Option<SignInAccount>, LinkError> {
         let linked = sqlx::query!(
             r#"SELECT user_id FROM oauth_accounts WHERE provider = 'google' AND provider_user_id = $1"#,
@@ -587,13 +651,13 @@ impl OAuthService {
             return Ok(None);
         };
 
-        self.insert_google_link(user.id, &profile.subject, &profile.email)
+        self.link_google(user.id, profile, GoogleLinkVia::SignIn, client)
             .await?;
         security_notice::notify(
             &self.db,
             &self.state.email,
             user.id,
-            SecurityEvent::GoogleLinked,
+            SecurityNotice::GoogleLinked,
         );
 
         // Linking opens no way around the second factor: signing in with

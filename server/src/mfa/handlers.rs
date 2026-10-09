@@ -1,6 +1,9 @@
 use super::{dto::*, service::MfaService};
 use crate::{
-    common::extractors::{AuthUser, ClientIp, RecentAuth, ValidatedJson},
+    common::{
+        client::ClientInfo,
+        extractors::{AuthUser, RecentAuth, ValidatedJson},
+    },
     error::AppResult,
     state::AppState,
 };
@@ -27,11 +30,12 @@ pub async fn setup(
 pub async fn activate(
     State(s): State<AppState>,
     user: AuthUser,
+    client: ClientInfo,
     ValidatedJson(dto): ValidatedJson<MfaCodeDto>,
 ) -> AppResult<Json<Value>> {
     Ok(Json(
         MfaService::from_state(&s)
-            .activate(user.user_id, user.session_id, &dto.code)
+            .activate(user.user_id, user.session_id, &dto.code, &client)
             .await?,
     ))
 }
@@ -39,11 +43,11 @@ pub async fn activate(
 pub async fn deactivate(
     State(s): State<AppState>,
     RecentAuth(user): RecentAuth,
-    ClientIp(ip): ClientIp,
+    client: ClientInfo,
 ) -> AppResult<Json<Value>> {
     Ok(Json(
         MfaService::from_state(&s)
-            .deactivate(user.user_id, user.session_id, ip.as_deref())
+            .deactivate(user.user_id, user.session_id, &client)
             .await?,
     ))
 }
@@ -51,10 +55,11 @@ pub async fn deactivate(
 pub async fn regenerate_recovery_codes(
     State(s): State<AppState>,
     RecentAuth(user): RecentAuth,
+    client: ClientInfo,
 ) -> AppResult<Json<Value>> {
     Ok(Json(
         MfaService::from_state(&s)
-            .regenerate_recovery_codes(user.user_id)
+            .regenerate_recovery_codes(user.user_id, &client)
             .await?,
     ))
 }

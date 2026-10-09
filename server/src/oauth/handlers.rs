@@ -3,8 +3,11 @@ use super::{
     service::{OAUTH_PENDING_COOKIE, OAuthIntent, OAuthService},
 };
 use crate::{
-    auth::service::{ClientInfo, LoginResult},
-    common::extractors::{AuthUser, ClientIp, RecentAuth, UserAgent, ValidatedJson},
+    auth::service::LoginResult,
+    common::{
+        client::ClientInfo,
+        extractors::{AuthUser, RecentAuth, ValidatedJson},
+    },
     config::REFRESH_COOKIE,
     error::AppResult,
     state::AppState,
@@ -49,8 +52,7 @@ pub async fn start_google_link(
 
 pub async fn handle_google_callback(
     State(s): State<AppState>,
-    ClientIp(ip): ClientIp,
-    UserAgent(ua): UserAgent,
+    client: ClientInfo,
     jar: CookieJar,
     Query(q): Query<OAuthCallbackQuery>,
 ) -> (CookieJar, Redirect) {
@@ -64,10 +66,7 @@ pub async fn handle_google_callback(
             q.error.as_deref(),
             state_cookie,
             refresh_token,
-            ClientInfo {
-                user_agent: ua.as_deref(),
-                ip: ip.as_deref(),
-            },
+            &client,
         )
         .await;
 
@@ -78,23 +77,14 @@ pub async fn handle_google_callback(
 /// user has to accept the terms before an account is created.
 pub async fn sign_up_with_google(
     State(s): State<AppState>,
-    ClientIp(ip): ClientIp,
-    UserAgent(ua): UserAgent,
+    client: ClientInfo,
     jar: CookieJar,
     ValidatedJson(_accepted): ValidatedJson<GoogleSignUpDto>,
 ) -> AppResult<(CookieJar, Json<Value>)> {
     let svc = OAuthService::from_state(&s);
     let pending = svc.verify_pending_cookie(pending_cookie(&jar))?;
 
-    let result = svc
-        .sign_up_with_google(
-            &pending,
-            ClientInfo {
-                user_agent: ua.as_deref(),
-                ip: ip.as_deref(),
-            },
-        )
-        .await?;
+    let result = svc.sign_up_with_google(&pending, &client).await?;
 
     Ok(sign_in_response(result, svc.clear_pending_cookie()))
 }
@@ -119,10 +109,11 @@ fn sign_in_response(
 pub async fn unlink_google_account(
     State(s): State<AppState>,
     RecentAuth(user): RecentAuth,
+    client: ClientInfo,
 ) -> AppResult<Json<Value>> {
     Ok(Json(
         OAuthService::from_state(&s)
-            .unlink_google_account(user.user_id)
+            .unlink_google_account(user.user_id, &client)
             .await?,
     ))
 }

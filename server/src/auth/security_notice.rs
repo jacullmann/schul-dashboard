@@ -3,7 +3,7 @@
 
 use crate::{
     common::{
-        email::{EmailService, SecurityEvent},
+        email::{EmailService, SecurityNotice},
         locale::Locale,
     },
     error::{AppError, AppResult},
@@ -14,7 +14,7 @@ use uuid::Uuid;
 /// Sends the notice in the background once the change is committed: a slow or
 /// failing mail provider must neither delay nor undo a change that already
 /// took effect, so a failure is only logged.
-pub fn notify(db: &PgPool, email: &EmailService, user_id: Uuid, event: SecurityEvent) {
+pub fn notify(db: &PgPool, email: &EmailService, user_id: Uuid, event: SecurityNotice) {
     let (db, email) = (db.clone(), email.clone());
 
     tokio::spawn(async move {
@@ -28,7 +28,7 @@ async fn send(
     db: &PgPool,
     email: &EmailService,
     user_id: Uuid,
-    event: SecurityEvent,
+    event: SecurityNotice,
 ) -> AppResult<()> {
     let recipient = sqlx::query!(
         r#"SELECT email, preferences->>'language' AS language FROM users WHERE id = $1"#,

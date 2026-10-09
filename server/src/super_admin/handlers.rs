@@ -4,6 +4,7 @@ use super::{
 };
 use crate::{
     common::{
+        client::ClientInfo,
         extractors::SuperAdmin,
         pagination::Page,
         role::{MemberRole, Role},
@@ -83,10 +84,11 @@ pub async fn list_groups(
 pub async fn delete_group(
     State(s): State<AppState>,
     SuperAdmin(admin): SuperAdmin,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<Value>> {
     let body = SuperAdminService::from_state(&s)
-        .delete_group(id, admin.user_id)
+        .delete_group(id, admin.user_id, &client)
         .await?;
     s.message_bus.membership_changed(id).await;
 
@@ -115,6 +117,17 @@ pub async fn get_user_activity(
     ))
 }
 
+pub async fn get_security_events(
+    State(s): State<AppState>,
+    _: SuperAdmin,
+) -> AppResult<Json<Vec<SecurityEventDto>>> {
+    Ok(Json(
+        SuperAdminService::from_state(&s)
+            .get_security_events()
+            .await?,
+    ))
+}
+
 pub async fn get_user_memberships(
     State(s): State<AppState>,
     SuperAdmin(admin): SuperAdmin,
@@ -131,30 +144,28 @@ pub async fn get_user_memberships(
 pub async fn change_membership_role(
     State(s): State<AppState>,
     SuperAdmin(admin): SuperAdmin,
+    client: ClientInfo,
     Path(MembershipPath { id, group_id }): Path<MembershipPath>,
     Json(dto): Json<ChangeMembershipRoleDto>,
 ) -> AppResult<Json<Value>> {
     let groups = GroupAdminService::from_state(&s);
     let caller = superadmin_caller(admin.user_id);
 
-    let body = match dto.role {
-        MemberRole::Owner => groups.transfer_ownership(group_id, caller, id).await?,
-        MemberRole::Admin => {
-            groups
-                .change_member_role(group_id, caller, id, Role::Admin)
-                .await?
+    let role = match dto.role {
+        MemberRole::Owner => {
+            return Ok(Json(
+                groups
+                    .transfer_ownership(group_id, caller, id, &client)
+                    .await?,
+            ));
         }
-        MemberRole::Moderator => {
-            groups
-                .change_member_role(group_id, caller, id, Role::Moderator)
-                .await?
-        }
-        MemberRole::User => {
-            groups
-                .change_member_role(group_id, caller, id, Role::User)
-                .await?
-        }
+        MemberRole::Admin => Role::Admin,
+        MemberRole::Moderator => Role::Moderator,
+        MemberRole::User => Role::User,
     };
+    let body = groups
+        .change_member_role(group_id, caller, id, role, &client)
+        .await?;
 
     Ok(Json(body))
 }
@@ -162,10 +173,11 @@ pub async fn change_membership_role(
 pub async fn ban_user(
     State(s): State<AppState>,
     SuperAdmin(admin): SuperAdmin,
+    client: ClientInfo,
     Path(target): Path<Uuid>,
 ) -> AppResult<Json<Value>> {
     let body = SuperAdminService::from_state(&s)
-        .ban_user(target, admin.user_id)
+        .ban_user(target, admin.user_id, &client)
         .await?;
     s.message_bus.end_sessions(target);
 
@@ -175,11 +187,12 @@ pub async fn ban_user(
 pub async fn unban_user(
     State(s): State<AppState>,
     SuperAdmin(admin): SuperAdmin,
+    client: ClientInfo,
     Path(target): Path<Uuid>,
 ) -> AppResult<Json<Value>> {
     Ok(Json(
         SuperAdminService::from_state(&s)
-            .unban_user(target, admin.user_id)
+            .unban_user(target, admin.user_id, &client)
             .await?,
     ))
 }
@@ -187,11 +200,12 @@ pub async fn unban_user(
 pub async fn reset_user_mfa(
     State(s): State<AppState>,
     SuperAdmin(admin): SuperAdmin,
+    client: ClientInfo,
     Path(target): Path<Uuid>,
 ) -> AppResult<Json<Value>> {
     Ok(Json(
         SuperAdminService::from_state(&s)
-            .reset_user_mfa(target, admin.user_id)
+            .reset_user_mfa(target, admin.user_id, &client)
             .await?,
     ))
 }
@@ -199,10 +213,11 @@ pub async fn reset_user_mfa(
 pub async fn delete_user(
     State(s): State<AppState>,
     SuperAdmin(admin): SuperAdmin,
+    client: ClientInfo,
     Path(target): Path<Uuid>,
 ) -> AppResult<Json<Value>> {
     let body = SuperAdminService::from_state(&s)
-        .delete_user(target, admin.user_id)
+        .delete_user(target, admin.user_id, &client)
         .await?;
     s.message_bus.end_sessions(target);
 
@@ -216,11 +231,12 @@ pub async fn get_reports(State(s): State<AppState>, _: SuperAdmin) -> AppResult<
 pub async fn delete_report(
     State(s): State<AppState>,
     SuperAdmin(admin): SuperAdmin,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<Value>> {
     Ok(Json(
         ReportsService::from_state(&s)
-            .delete(id, admin.user_id)
+            .delete(id, admin.user_id, &client)
             .await?,
     ))
 }

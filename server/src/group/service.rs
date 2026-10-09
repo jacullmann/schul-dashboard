@@ -2,6 +2,7 @@ use crate::{
     assets::service::{AssetPurpose, ensure_claimable},
     auth::session_context::{is_superadmin, remember_visited_group, resolve_landing_group},
     common::{
+        client::ClientInfo,
         cloudinary::Cloudinary,
         extractors::TenantContext,
         group_type::GroupType,
@@ -16,6 +17,7 @@ use crate::{
         invite_token::{InviteToken, invalid_invite},
         member_policy::{self, Caller, Target},
     },
+    security_log::{SecurityEvent, SecurityEventKind},
     state::AppState,
 };
 use serde_json::{Value, json};
@@ -50,8 +52,7 @@ pub struct CreateGroupParams<'a> {
     pub avatar_id: Option<Uuid>,
     pub group_type: GroupType,
     pub dalton_enabled: bool,
-    pub ip: Option<&'a str>,
-    pub ua: Option<&'a str>,
+    pub client: &'a ClientInfo,
 }
 
 struct Membership {
@@ -71,8 +72,7 @@ struct Membership {
 pub struct AcceptInviteParams<'a> {
     pub user_id: Uuid,
     pub token: &'a InviteToken,
-    pub ip: Option<&'a str>,
-    pub ua: Option<&'a str>,
+    pub client: &'a ClientInfo,
 }
 
 pub struct GroupService {
@@ -94,9 +94,6 @@ impl GroupService {
         let avatar_id = params.avatar_id;
         let group_type = params.group_type;
         let dalton_enabled = params.dalton_enabled;
-        let ip = params.ip;
-        let ua = params.ua;
-        let ip_parsed: Option<ipnetwork::IpNetwork> = ip.and_then(|s| s.parse().ok());
 
         let mut tx = self.db.begin().await?;
 
@@ -129,11 +126,17 @@ impl GroupService {
         .execute(&mut *tx)
         .await?;
 
-        sqlx::query!(
-            r#"INSERT INTO security_events (event_type, event_status, ip_address, user_agent, metadata)
-             VALUES ('group_create', 'success', $1::inet, $2, $3)"#,
-            ip_parsed, ua, json!({ "groupName": group_name_str, "groupId": group_id, "createdBy": user_id, "groupType": group_type.as_str(), "daltonEnabled": dalton_enabled })
-        ).execute(&mut *tx).await?;
+        SecurityEvent::new(SecurityEventKind::GroupCreated)
+            .actor(user_id)
+            .tenant(group_id)
+            .client(params.client)
+            .metadata(json!({
+                "groupName": group_name_str,
+                "groupType": group_type.as_str(),
+                "daltonEnabled": dalton_enabled,
+            }))
+            .record(&mut *tx)
+            .await?;
 
         tx.commit().await?;
 
@@ -297,19 +300,38 @@ impl GroupService {
         Ok(())
     }
 
-    pub async fn create_invite(&self, tenant_id: Uuid, user_id: Uuid) -> AppResult<Value> {
+    pub async fn create_invite(
+        &self,
+        tenant_id: Uuid,
+        user_id: Uuid,
+        client: &ClientInfo,
+    ) -> AppResult<Value> {
         let token = InviteToken::generate();
         let expires_at = chrono::Utc::now() + INVITE_TTL;
 
-        sqlx::query!(
-            "INSERT INTO group_invites (token, tenant_id, created_by, expires_at) VALUES ($1, $2, $3, $4)",
+        let mut tx = self.db.begin().await?;
+
+        let invite_id = sqlx::query_scalar!(
+            r#"INSERT INTO group_invites (token, tenant_id, created_by, expires_at)
+               VALUES ($1, $2, $3, $4)
+               RETURNING id"#,
             token.as_str(),
             tenant_id,
             user_id,
             expires_at
         )
-        .execute(&self.db)
+        .fetch_one(&mut *tx)
         .await?;
+
+        SecurityEvent::new(SecurityEventKind::InviteCreated)
+            .actor(user_id)
+            .tenant(tenant_id)
+            .client(client)
+            .metadata(json!({ "inviteId": invite_id, "expiresAt": expires_at }))
+            .record(&mut *tx)
+            .await?;
+
+        tx.commit().await?;
 
         Ok(json!({ "token": token.as_str() }))
     }
@@ -412,8 +434,6 @@ impl GroupService {
     pub async fn accept_invite(&self, params: AcceptInviteParams<'_>) -> AppResult<Value> {
         let user_id = params.user_id;
         let token = params.token;
-        let ip = params.ip;
-        let ua = params.ua;
 
         let mut tx = self.db.begin().await?;
 
@@ -462,25 +482,15 @@ impl GroupService {
         .execute(&mut *tx)
         .await?;
 
-        let ip_parsed: Option<ipnetwork::IpNetwork> = ip.and_then(|s| s.parse().ok());
-
-        sqlx::query!(
-            "INSERT INTO security_events (event_type, event_status, ip_address, user_agent, metadata) VALUES ('group_invite_accept', 'success', $1::inet, $2, $3)",
-            ip_parsed,
-            ua,
-            // The token is a bearer credential and stays out of the audit log.
-            json!({ "groupId": group_id, "userId": user_id, "inviteId": invite_id })
-        )
-            .execute(&mut *tx)
+        // The token is a bearer credential and stays out of the log.
+        SecurityEvent::new(SecurityEventKind::InviteAccepted)
+            .user(user_id)
+            .actor(user_id)
+            .tenant(group_id)
+            .client(params.client)
+            .metadata(json!({ "inviteId": invite_id }))
+            .record(&mut *tx)
             .await?;
-
-        sqlx::query!(
-            "INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'group:join', $2)",
-            user_id,
-            json!({ "groupId": group_id, "by": "invite" })
-        )
-        .execute(&mut *tx)
-        .await?;
 
         tx.commit().await?;
 

@@ -1,0 +1,21 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO refresh_tokens\n                (user_id, token_hash, family_id, parent_id, expires_at,\n                 user_agent, ip_address, authenticated_at)\n               VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Uuid",
+        "Uuid",
+        "Timestamptz",
+        "Text",
+        "Inet",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "ebf9a2ac37b62034d440d8bff9e76fada3209daa2078eee7a57965b8b17c8625"
+}

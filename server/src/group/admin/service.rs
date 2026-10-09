@@ -1,6 +1,7 @@
 use crate::{
     assets::service::{AssetPurpose, ensure_claimable},
     common::{
+        client::ClientInfo,
         group_type::{DEFAULT_COURSE_TYPE, GroupType, ZUSATZKURS_CATEGORY, resolve_course_type},
         names::DisplayName,
         permission::{GroupPermissions, Permission},
@@ -12,6 +13,7 @@ use crate::{
         member_policy::{self, Actor, Caller, Target},
         service::{avatar_in_use_on_conflict, lock_group_owner, role_from_db},
     },
+    security_log::{SecurityEvent, SecurityEventKind},
     state::AppState,
 };
 use chrono::NaiveTime;
@@ -318,23 +320,30 @@ impl GroupAdminService {
         tenant_id: Uuid,
         current_user_id: Uuid,
         target: Uuid,
+        client: &ClientInfo,
     ) -> AppResult<Value> {
-        sqlx::query!(
+        let mut tx = self.db.begin().await?;
+
+        let unbanned = sqlx::query!(
             r#"DELETE FROM group_bans WHERE user_id = $1 AND tenant_id = $2"#,
             target,
             tenant_id
         )
-        .execute(&self.db)
-        .await?;
+        .execute(&mut *tx)
+        .await?
+        .rows_affected();
 
-        sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta)
-               VALUES ($1, 'group-admin:revert-ban', $2)"#,
-            current_user_id,
-            json!({ "targetUserId": target, "tenantId": tenant_id })
-        )
-        .execute(&self.db)
-        .await?;
+        if unbanned > 0 {
+            SecurityEvent::new(SecurityEventKind::MemberUnbanned)
+                .user(target)
+                .actor(current_user_id)
+                .tenant(tenant_id)
+                .client(client)
+                .record(&mut *tx)
+                .await?;
+        }
+
+        tx.commit().await?;
 
         Ok(json!({ "ok": true }))
     }
@@ -384,6 +393,7 @@ impl GroupAdminService {
         caller: Caller,
         target: Uuid,
         new_role: Role,
+        client: &ClientInfo,
     ) -> AppResult<Value> {
         let mut tx = self.db.begin().await?;
         let locked = Self::lock_membership(&mut tx, tenant_id, caller, target).await?;
@@ -398,14 +408,14 @@ impl GroupAdminService {
         .execute(&mut *tx)
         .await?;
 
-        sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta)
-               VALUES ($1, 'group-admin:change-role', $2)"#,
-            caller.user_id,
-            json!({ "tenantId": tenant_id, "targetUserId": target, "newRole": new_role })
-        )
-        .execute(&mut *tx)
-        .await?;
+        SecurityEvent::new(SecurityEventKind::MemberRoleChanged)
+            .user(target)
+            .actor(caller.user_id)
+            .tenant(tenant_id)
+            .client(client)
+            .metadata(json!({ "previousRole": locked.target.role, "newRole": new_role }))
+            .record(&mut *tx)
+            .await?;
 
         tx.commit().await?;
 
@@ -418,6 +428,7 @@ impl GroupAdminService {
         caller: Caller,
         target: Uuid,
         ban: bool,
+        client: &ClientInfo,
     ) -> AppResult<Value> {
         let mut tx = self.db.begin().await?;
         let locked = Self::lock_membership(&mut tx, tenant_id, caller, target).await?;
@@ -443,14 +454,14 @@ impl GroupAdminService {
             .await?;
         }
 
-        sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta)
-               VALUES ($1, 'group-admin:remove-member', $2)"#,
-            caller.user_id,
-            json!({ "targetUserId": target })
-        )
-        .execute(&mut *tx)
-        .await?;
+        SecurityEvent::new(SecurityEventKind::MemberRemoved)
+            .user(target)
+            .actor(caller.user_id)
+            .tenant(tenant_id)
+            .client(client)
+            .metadata(json!({ "banned": ban }))
+            .record(&mut *tx)
+            .await?;
 
         tx.commit().await?;
 
@@ -463,6 +474,7 @@ impl GroupAdminService {
         tenant_id: Uuid,
         caller: Caller,
         target: Uuid,
+        client: &ClientInfo,
     ) -> AppResult<Value> {
         let mut tx = self.db.begin().await?;
         let locked = Self::lock_membership(&mut tx, tenant_id, caller, target).await?;
@@ -489,14 +501,14 @@ impl GroupAdminService {
         .execute(&mut *tx)
         .await?;
 
-        sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta)
-               VALUES ($1, 'group-admin:transfer-ownership', $2)"#,
-            caller.user_id,
-            json!({ "previousOwnerId": previous_owner, "newOwnerId": target })
-        )
-        .execute(&mut *tx)
-        .await?;
+        SecurityEvent::new(SecurityEventKind::OwnershipTransferred)
+            .user(target)
+            .actor(caller.user_id)
+            .tenant(tenant_id)
+            .client(client)
+            .metadata(json!({ "previousOwnerId": previous_owner }))
+            .record(&mut *tx)
+            .await?;
 
         tx.commit().await?;
 
@@ -608,11 +620,19 @@ impl GroupAdminService {
         tenant_id: Uuid,
         user_id: Uuid,
         changes: &BTreeMap<Permission, Role>,
+        client: &ClientInfo,
     ) -> AppResult<Value> {
-        let group = sqlx::query!(r#"SELECT permissions FROM groups WHERE id = $1"#, tenant_id)
-            .fetch_optional(&self.db)
-            .await?
-            .ok_or_else(|| AppError::not_found("Group not found"))?;
+        let mut tx = self.db.begin().await?;
+
+        // Locked, so two concurrent changes cannot each merge into the same
+        // stale permissions and drop the other's.
+        let group = sqlx::query!(
+            r#"SELECT permissions FROM groups WHERE id = $1 FOR UPDATE"#,
+            tenant_id
+        )
+        .fetch_optional(&mut *tx)
+        .await?
+        .ok_or_else(|| AppError::not_found("Group not found"))?;
 
         let mut merged = GroupPermissions::from_json_with_defaults(&group.permissions);
         for (&permission, &role) in changes {
@@ -625,36 +645,49 @@ impl GroupAdminService {
             merged_json,
             tenant_id
         )
-        .execute(&self.db)
+        .execute(&mut *tx)
         .await?;
 
-        sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta)
-               VALUES ($1, 'group-admin:update-permissions', $2)"#,
-            user_id,
-            json!({ "permissions": merged_json })
-        )
-        .execute(&self.db)
-        .await?;
+        SecurityEvent::new(SecurityEventKind::PermissionsChanged)
+            .actor(user_id)
+            .tenant(tenant_id)
+            .client(client)
+            .metadata(json!({ "changes": changes, "permissions": merged_json }))
+            .record(&mut *tx)
+            .await?;
+
+        tx.commit().await?;
 
         Ok(json!({ "ok": true, "permissions": merged_json }))
     }
 
-    pub async fn delete_group(&self, tenant_id: Uuid, user_id: Uuid) -> AppResult<Value> {
+    pub async fn delete_group(
+        &self,
+        tenant_id: Uuid,
+        user_id: Uuid,
+        client: &ClientInfo,
+    ) -> AppResult<Value> {
+        let mut tx = self.db.begin().await?;
+
         // Everything in the group cascades with it; the asset sweep deletes
         // the files its items and avatar leave behind.
-        sqlx::query!(r#"DELETE FROM groups WHERE id = $1"#, tenant_id)
-            .execute(&self.db)
+        let name = sqlx::query_scalar!(
+            r#"DELETE FROM groups WHERE id = $1 RETURNING name"#,
+            tenant_id
+        )
+        .fetch_optional(&mut *tx)
+        .await?
+        .ok_or_else(|| AppError::not_found("Group not found"))?;
+
+        SecurityEvent::new(SecurityEventKind::GroupDeleted)
+            .actor(user_id)
+            .tenant(tenant_id)
+            .client(client)
+            .metadata(json!({ "groupName": name }))
+            .record(&mut *tx)
             .await?;
 
-        sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta)
-               VALUES ($1, 'group-admin:delete-group', $2)"#,
-            user_id,
-            json!({ "tenantId": tenant_id })
-        )
-        .execute(&self.db)
-        .await?;
+        tx.commit().await?;
 
         Ok(json!({ "ok": true }))
     }
@@ -1389,7 +1422,10 @@ impl GroupAdminService {
         tenant_id: Uuid,
         user_id: Uuid,
         invite_id: Uuid,
+        client: &ClientInfo,
     ) -> AppResult<Value> {
+        let mut tx = self.db.begin().await?;
+
         let rows_affected = sqlx::query!(
             r#"UPDATE group_invites
                SET revoked_at = now(), revoked_by = $1
@@ -1398,7 +1434,7 @@ impl GroupAdminService {
             invite_id,
             tenant_id
         )
-        .execute(&self.db)
+        .execute(&mut *tx)
         .await?
         .rows_affected();
 
@@ -1407,6 +1443,16 @@ impl GroupAdminService {
                 "Invite not found or already used/revoked.",
             ));
         }
+
+        SecurityEvent::new(SecurityEventKind::InviteRevoked)
+            .actor(user_id)
+            .tenant(tenant_id)
+            .client(client)
+            .metadata(json!({ "inviteId": invite_id }))
+            .record(&mut *tx)
+            .await?;
+
+        tx.commit().await?;
 
         Ok(json!({ "ok": true }))
     }

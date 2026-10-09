@@ -41,12 +41,13 @@ reports            Meldungen, die du abgegeben hast, und Meldungen zu Inhalten,
                    die du erstellt hast.
 security           Deine Passkeys, wann deine Wiederherstellungscodes erstellt
                    und benutzt wurden, deine Sitzungen (angemeldete Geräte) mit
-                   IP-Adressen und Browserkennung, Sicherheitsereignisse (z. B.
-                   Erstellen einer Gruppe, Annehmen einer Einladung),
-                   angeforderte Codes zum Zurücksetzen des Passworts und
-                   Bestätigungscodes.
-activityLog        Das Aktivitätsprotokoll deines Kontos, einschließlich
-                   fehlgeschlagener Anmeldeversuche mit IP-Adresse.
+                   IP-Adressen und Browserkennung, Sicherheitsereignisse mit
+                   IP-Adresse und Browserkennung (z. B. Anmeldungen und
+                   fehlgeschlagene Anmeldeversuche, Änderungen an Passwort,
+                   Passkeys und Zwei-Faktor-Authentifizierung, Erstellen einer
+                   Gruppe, Annehmen einer Einladung), angeforderte Codes zum
+                   Zurücksetzen des Passworts und Bestätigungscodes.
+activityLog        Das Aktivitätsprotokoll deines Kontos.
 
 Hochgeladene Dateien sind unter content.files mit einem Link zur Original-
 datei aufgeführt. Lade sie bei Bedarf bald herunter: Dateien werden
@@ -101,7 +102,8 @@ für Google und Microsoft, soweit sie Daten in die USA übermitteln.
 - Kontodaten, Gruppenmitgliedschaften, Kurswahl und private Aufgaben: bis du
   dein Konto löschst.
 - Sitzungen: etwa 7 Tage nach ihrer letzten Nutzung.
-- Aktivitätsprotokoll und Sicherheitsereignisse: 30 Tage.
+- Aktivitätsprotokoll: 30 Tage.
+- Sicherheitsereignisse: 90 Tage, auch wenn du dein Konto vorher löschst.
 - Chatnachrichten: 7 Tage.
 - Aufgaben und Klausuren in Gruppen: 90 Tage nach dem Fälligkeitsdatum.
 - Codes zum Zurücksetzen des Passworts: 30 Minuten; unbestätigte
@@ -140,8 +142,9 @@ Eine automatisierte Entscheidungsfindung einschließlich Profiling
   gefährden, wenn die Datei in falsche Hände gerät. Ob sie vorhanden sind,
   steht in data.json (z. B. hasPassword, mfaEnabled).
 - Angaben über andere Personen: wer einen Inhalt von dir gemeldet hat und mit
-  welcher Begründung, wer deine Einladungen genutzt oder dich gesperrt hat
-  und wer andere Inhalte erstellt hat. Das schützt die Rechte dieser Personen
+  welcher Begründung, wer deine Einladungen genutzt, dich gesperrt oder deine
+  Rolle geändert hat, samt IP-Adresse und Browserkennung dieser Person, und
+  wer andere Inhalte erstellt hat. Das schützt die Rechte dieser Personen
   (Art. 15 Abs. 4 DSGVO, § 29 Abs. 1 Satz 2 BDSG).
 - Daten, die nicht deinem Konto zugeordnet sind: technische Zugriffsdaten
   beim Aufruf von Website und App sowie die zusammengefassten Statistiken

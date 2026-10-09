@@ -15,6 +15,7 @@ mod passkeys;
 mod reauth;
 mod reports;
 mod schedule;
+mod security_log;
 mod state;
 mod super_admin;
 mod system;

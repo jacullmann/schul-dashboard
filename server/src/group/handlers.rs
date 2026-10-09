@@ -1,8 +1,7 @@
 use super::{dto::*, invite_token::InviteToken, service::GroupService};
 use crate::{
-    common::extractors::{
-        AuthUser, ClientIp, OptionalAuth, TenantContext, UserAgent, ValidatedJson,
-    },
+    common::client::ClientInfo,
+    common::extractors::{AuthUser, OptionalAuth, TenantContext, ValidatedJson},
     common::group_type::GroupType,
     common::names::{
         COURSE_NAME_MAX_CHARS, DisplayName, GROUP_NAME_MAX_CHARS, SUBJECT_NAME_MAX_CHARS,
@@ -24,11 +23,15 @@ use serde_json::{Value, json};
 use super::{admin::service::GroupAdminService, member_policy::Caller};
 use crate::group::dto::ScheduleSubDto;
 
-pub async fn create_invite(State(s): State<AppState>, tc: TenantContext) -> AppResult<Json<Value>> {
+pub async fn create_invite(
+    State(s): State<AppState>,
+    tc: TenantContext,
+    client: ClientInfo,
+) -> AppResult<Json<Value>> {
     crate::require_permission!(tc, crate::common::permission::Permission::InviteMembers);
 
     let body = GroupService::from_state(&s)
-        .create_invite(tc.tenant_id, tc.user.user_id)
+        .create_invite(tc.tenant_id, tc.user.user_id, &client)
         .await?;
 
     Ok(Json(body))
@@ -50,8 +53,7 @@ pub async fn get_invite(
 pub async fn accept_invite(
     State(s): State<AppState>,
     user: AuthUser,
-    ClientIp(ip): ClientIp,
-    UserAgent(ua): UserAgent,
+    client: ClientInfo,
     Path(token): Path<String>,
 ) -> AppResult<Json<Value>> {
     let token: InviteToken = token.parse()?;
@@ -59,8 +61,7 @@ pub async fn accept_invite(
         .accept_invite(crate::group::service::AcceptInviteParams {
             user_id: user.user_id,
             token: &token,
-            ip: ip.as_deref(),
-            ua: ua.as_deref(),
+            client: &client,
         })
         .await?;
 
@@ -79,8 +80,7 @@ fn parse_group_type(raw: Option<&str>) -> AppResult<Option<GroupType>> {
 pub async fn create_group(
     State(s): State<AppState>,
     user: AuthUser,
-    ClientIp(ip): ClientIp,
-    UserAgent(ua): UserAgent,
+    client: ClientInfo,
     Json(dto): Json<CreateGroupDto>,
 ) -> AppResult<Json<Value>> {
     let group_name = DisplayName::parse(&dto.group_name, GROUP_NAME_MAX_CHARS, "groupName")?;
@@ -93,8 +93,7 @@ pub async fn create_group(
             avatar_id: dto.avatar_id,
             group_type,
             dalton_enabled: dto.dalton_enabled,
-            ip: ip.as_deref(),
-            ua: ua.as_deref(),
+            client: &client,
         })
         .await?;
 
@@ -165,13 +164,14 @@ pub async fn get_banned_users(
 pub async fn revert_ban(
     State(s): State<AppState>,
     tc: TenantContext,
+    client: ClientInfo,
     Path(MemberPath { user_id: target }): Path<MemberPath>,
 ) -> AppResult<Json<Value>> {
     crate::require_permission!(tc, crate::common::permission::Permission::ModerateMembers);
 
     Ok(Json(
         GroupAdminService::from_state(&s)
-            .revert_ban(tc.tenant_id, tc.user.user_id, target)
+            .revert_ban(tc.tenant_id, tc.user.user_id, target, &client)
             .await?,
     ))
 }
@@ -179,6 +179,7 @@ pub async fn revert_ban(
 pub async fn change_member_role(
     State(s): State<AppState>,
     tc: TenantContext,
+    client: ClientInfo,
     Path(MemberPath { user_id: target }): Path<MemberPath>,
     Json(dto): Json<ChangeMemberRoleDto>,
 ) -> AppResult<Json<Value>> {
@@ -186,7 +187,13 @@ pub async fn change_member_role(
 
     Ok(Json(
         GroupAdminService::from_state(&s)
-            .change_member_role(tc.tenant_id, Caller::from_tenant(&tc), target, role)
+            .change_member_role(
+                tc.tenant_id,
+                Caller::from_tenant(&tc),
+                target,
+                role,
+                &client,
+            )
             .await?,
     ))
 }
@@ -194,11 +201,17 @@ pub async fn change_member_role(
 pub async fn transfer_ownership(
     State(s): State<AppState>,
     tc: TenantContext,
+    client: ClientInfo,
     Json(dto): Json<TransferOwnershipDto>,
 ) -> AppResult<Json<Value>> {
     Ok(Json(
         GroupAdminService::from_state(&s)
-            .transfer_ownership(tc.tenant_id, Caller::from_tenant(&tc), dto.target_user_id)
+            .transfer_ownership(
+                tc.tenant_id,
+                Caller::from_tenant(&tc),
+                dto.target_user_id,
+                &client,
+            )
             .await?,
     ))
 }
@@ -211,6 +224,7 @@ pub struct BanQuery {
 pub async fn remove_member(
     State(s): State<AppState>,
     tc: TenantContext,
+    client: ClientInfo,
     Path(MemberPath { user_id: target }): Path<MemberPath>,
     Query(q): Query<BanQuery>,
 ) -> AppResult<Json<Value>> {
@@ -220,6 +234,7 @@ pub async fn remove_member(
             Caller::from_tenant(&tc),
             target,
             q.ban.as_deref() == Some("true"),
+            &client,
         )
         .await?;
     s.message_bus.membership_changed(tc.tenant_id).await;
@@ -285,6 +300,7 @@ pub async fn get_permissions(
 pub async fn update_permissions(
     State(s): State<AppState>,
     tc: TenantContext,
+    client: ClientInfo,
     ValidatedJson(dto): ValidatedJson<UpdateGroupPermissionsDto>,
 ) -> AppResult<Json<Value>> {
     if !tc.has_owner_rights() {
@@ -294,12 +310,16 @@ pub async fn update_permissions(
     }
     Ok(Json(
         GroupAdminService::from_state(&s)
-            .update_permissions(tc.tenant_id, tc.user.user_id, &dto.permissions)
+            .update_permissions(tc.tenant_id, tc.user.user_id, &dto.permissions, &client)
             .await?,
     ))
 }
 
-pub async fn delete_group(State(s): State<AppState>, tc: TenantContext) -> AppResult<Json<Value>> {
+pub async fn delete_group(
+    State(s): State<AppState>,
+    tc: TenantContext,
+    client: ClientInfo,
+) -> AppResult<Json<Value>> {
     if !tc.has_owner_rights() {
         return Err(AppError::forbidden(
             "Only the group owner or superadmin can delete this group.",
@@ -307,7 +327,7 @@ pub async fn delete_group(State(s): State<AppState>, tc: TenantContext) -> AppRe
     }
 
     let body = GroupAdminService::from_state(&s)
-        .delete_group(tc.tenant_id, tc.user.user_id)
+        .delete_group(tc.tenant_id, tc.user.user_id, &client)
         .await?;
     s.message_bus.membership_changed(tc.tenant_id).await;
 
@@ -549,12 +569,13 @@ pub async fn get_invites(State(s): State<AppState>, tc: TenantContext) -> AppRes
 pub async fn revoke_invite(
     State(s): State<AppState>,
     tc: TenantContext,
+    client: ClientInfo,
     Path(IdPath { id: invite_id }): Path<IdPath>,
 ) -> AppResult<Json<Value>> {
     crate::require_permission!(tc, crate::common::permission::Permission::ModerateMembers);
     Ok(Json(
         GroupAdminService::from_state(&s)
-            .revoke_invite(tc.tenant_id, tc.user.user_id, invite_id)
+            .revoke_invite(tc.tenant_id, tc.user.user_id, invite_id, &client)
             .await?,
     ))
 }

@@ -3,9 +3,10 @@ use super::dto::{
     SystemAnnouncementStatus,
 };
 use crate::{
+    common::client::ClientInfo,
     error::{AppError, AppResult},
+    security_log::{SecurityEvent, SecurityEventKind},
     state::AppState,
-    super_admin::service::log_admin_action,
 };
 use serde_json::json;
 use sqlx::PgPool;
@@ -92,7 +93,12 @@ impl SystemAnnouncementService {
             .collect())
     }
 
-    pub async fn create(&self, input: &SystemAnnouncementInput, admin_id: Uuid) -> AppResult<Uuid> {
+    pub async fn create(
+        &self,
+        input: &SystemAnnouncementInput,
+        admin_id: Uuid,
+        client: &ClientInfo,
+    ) -> AppResult<Uuid> {
         let mut tx = self.db.begin().await?;
 
         let id = sqlx::query_scalar!(
@@ -108,13 +114,12 @@ impl SystemAnnouncementService {
         .fetch_one(&mut *tx)
         .await?;
 
-        log_admin_action(
-            &mut tx,
-            admin_id,
-            "admin:announcement:create",
-            json!({ "announcementId": id }),
-        )
-        .await?;
+        SecurityEvent::new(SecurityEventKind::AdminAnnouncementCreated)
+            .actor(admin_id)
+            .client(client)
+            .metadata(json!({ "announcementId": id }))
+            .record(&mut *tx)
+            .await?;
 
         tx.commit().await?;
 
@@ -128,6 +133,7 @@ impl SystemAnnouncementService {
         id: Uuid,
         input: &SystemAnnouncementInput,
         admin_id: Uuid,
+        client: &ClientInfo,
     ) -> AppResult<()> {
         let mut tx = self.db.begin().await?;
 
@@ -160,20 +166,19 @@ impl SystemAnnouncementService {
             });
         }
 
-        log_admin_action(
-            &mut tx,
-            admin_id,
-            "admin:announcement:update",
-            json!({ "announcementId": id }),
-        )
-        .await?;
+        SecurityEvent::new(SecurityEventKind::AdminAnnouncementUpdated)
+            .actor(admin_id)
+            .client(client)
+            .metadata(json!({ "announcementId": id }))
+            .record(&mut *tx)
+            .await?;
 
         tx.commit().await?;
 
         Ok(())
     }
 
-    pub async fn delete(&self, id: Uuid, admin_id: Uuid) -> AppResult<()> {
+    pub async fn delete(&self, id: Uuid, admin_id: Uuid, client: &ClientInfo) -> AppResult<()> {
         let mut tx = self.db.begin().await?;
 
         let content = sqlx::query_scalar!(
@@ -184,13 +189,12 @@ impl SystemAnnouncementService {
         .await?
         .ok_or_else(|| AppError::not_found("Announcement not found."))?;
 
-        log_admin_action(
-            &mut tx,
-            admin_id,
-            "admin:announcement:delete",
-            json!({ "announcementId": id, "content": content }),
-        )
-        .await?;
+        SecurityEvent::new(SecurityEventKind::AdminAnnouncementDeleted)
+            .actor(admin_id)
+            .client(client)
+            .metadata(json!({ "announcementId": id, "content": content }))
+            .record(&mut *tx)
+            .await?;
 
         tx.commit().await?;
 

@@ -1,9 +1,9 @@
 use super::dto::{AccessStatusDto, UpdateAccessControlsDto};
 use crate::{
-    common::role::Role,
+    common::{client::ClientInfo, role::Role},
     error::{AppError, AppResult},
+    security_log::{SecurityEvent, SecurityEventKind},
     state::AppState,
-    super_admin::service::log_admin_action,
 };
 use serde::Serialize;
 use serde_json::json;
@@ -113,6 +113,7 @@ impl AccessControlService {
         &self,
         changes: &UpdateAccessControlsDto,
         admin_id: Uuid,
+        client: &ClientInfo,
     ) -> AppResult<AccessControls> {
         if changes.is_empty() {
             return Err(AppError::bad_request("No switch to change."));
@@ -132,13 +133,12 @@ impl AccessControlService {
         .fetch_one(&mut *tx)
         .await?;
 
-        log_admin_action(
-            &mut tx,
-            admin_id,
-            "admin:access_controls:update",
-            json!(changes),
-        )
-        .await?;
+        SecurityEvent::new(SecurityEventKind::AdminAccessControlsChanged)
+            .actor(admin_id)
+            .client(client)
+            .metadata(json!(changes))
+            .record(&mut *tx)
+            .await?;
 
         tx.commit().await?;
 

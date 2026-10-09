@@ -15,6 +15,7 @@ pub fn router(state: AppState) -> Router<AppState> {
         .route("/admin/stats/weekly-rhythm", get(get_weekly_rhythm))
         .route("/admin/server-metrics", get(get_server_metrics))
         .route("/admin/cleanup-jobs", get(get_cleanup_jobs))
+        .route("/admin/security-events", get(get_security_events))
         .route("/admin/groups", get(list_groups))
         .route("/admin/groups/{id}", delete(delete_group))
         .route("/admin/users", get(list_users))

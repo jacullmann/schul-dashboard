@@ -1,5 +1,6 @@
 use chrono::{DateTime, NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use std::time::Duration;
 use uuid::Uuid;
 
@@ -210,6 +211,26 @@ pub struct UserMembershipDto {
 pub struct CleanupJobDto {
     pub job: String,
     pub overdue_count: i64,
+}
+
+/// A security log entry with the names of the accounts and group it refers
+/// to, as far as they still exist.
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SecurityEventDto {
+    pub id: Uuid,
+    pub event_type: String,
+    pub outcome: String,
+    pub user_id: Option<Uuid>,
+    pub user_email: Option<String>,
+    pub actor_id: Option<Uuid>,
+    pub actor_email: Option<String>,
+    pub group_id: Option<Uuid>,
+    pub group_name: Option<String>,
+    pub ip_address: Option<String>,
+    pub user_agent: Option<String>,
+    pub metadata: Value,
+    pub created_at: DateTime<Utc>,
 }
 
 /// The time windows, ending now, that the server metrics can be shown for. A fixed set keeps

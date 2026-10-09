@@ -8,11 +8,13 @@ use crate::{
         token::{MFA_CHANGE, TokenService},
     },
     common::{
-        email::{EmailService, SecurityEvent},
+        client::ClientInfo,
+        email::{EmailService, SecurityNotice},
         encryption::EncryptionService,
         jwt::now_secs,
     },
     error::{AppError, AppResult, AuthFailure},
+    security_log::{SecurityEvent, SecurityEventKind},
     state::AppState,
 };
 use serde_json::{Value, json};
@@ -112,7 +114,13 @@ impl MfaService {
     /// Turns the factor on and hands out the recovery codes, which are shown
     /// this once. Every other session is signed out; the one that turned the
     /// factor on stays.
-    pub async fn activate(&self, user_id: Uuid, session_id: Uuid, code: &str) -> AppResult<Value> {
+    pub async fn activate(
+        &self,
+        user_id: Uuid,
+        session_id: Uuid,
+        code: &str,
+        client: &ClientInfo,
+    ) -> AppResult<Value> {
         let pending = sqlx::query!(
             r#"SELECT p.encrypted_secret, u.email
                FROM mfa_pending_secrets p
@@ -161,12 +169,12 @@ impl MfaService {
 
         let codes = recovery_codes::replace(&mut tx, &self.recovery_codes, user_id).await?;
 
-        sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'mfa:activated', '{}'::jsonb)"#,
-            user_id
-        )
-        .execute(&mut *tx)
-        .await?;
+        SecurityEvent::new(SecurityEventKind::TwoFactorEnabled)
+            .user(user_id)
+            .actor(user_id)
+            .client(client)
+            .record(&mut *tx)
+            .await?;
 
         tx.commit().await?;
 
@@ -177,7 +185,7 @@ impl MfaService {
             &self.db,
             &self.email,
             user_id,
-            SecurityEvent::TwoFactorEnabled,
+            SecurityNotice::TwoFactorEnabled,
         );
 
         Ok(json!({ "ok": true, "recoveryCodes": codes }))
@@ -185,7 +193,11 @@ impl MfaService {
 
     /// Replaces the recovery codes, e.g. once most are used up or the old ones
     /// may have been seen by someone else.
-    pub async fn regenerate_recovery_codes(&self, user_id: Uuid) -> AppResult<Value> {
+    pub async fn regenerate_recovery_codes(
+        &self,
+        user_id: Uuid,
+        client: &ClientInfo,
+    ) -> AppResult<Value> {
         let mut tx = self.db.begin().await?;
 
         let enabled = sqlx::query_scalar!(
@@ -203,12 +215,12 @@ impl MfaService {
 
         let codes = recovery_codes::replace(&mut tx, &self.recovery_codes, user_id).await?;
 
-        sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'mfa:recovery_codes:regenerated', '{}'::jsonb)"#,
-            user_id
-        )
-        .execute(&mut *tx)
-        .await?;
+        SecurityEvent::new(SecurityEventKind::RecoveryCodesRegenerated)
+            .user(user_id)
+            .actor(user_id)
+            .client(client)
+            .record(&mut *tx)
+            .await?;
 
         tx.commit().await?;
 
@@ -216,7 +228,7 @@ impl MfaService {
             &self.db,
             &self.email,
             user_id,
-            SecurityEvent::RecoveryCodesRegenerated,
+            SecurityNotice::RecoveryCodesRegenerated,
         );
 
         Ok(json!({ "ok": true, "recoveryCodes": codes }))
@@ -228,7 +240,7 @@ impl MfaService {
         &self,
         user_id: Uuid,
         session_id: Uuid,
-        ip: Option<&str>,
+        client: &ClientInfo,
     ) -> AppResult<Value> {
         let mut tx = self.db.begin().await?;
 
@@ -236,13 +248,12 @@ impl MfaService {
             return Err(AppError::bad_request("MFA is not enabled."));
         }
 
-        sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'mfa:deactivated', $2)"#,
-            user_id,
-            json!({ "ip": ip })
-        )
-        .execute(&mut *tx)
-        .await?;
+        SecurityEvent::new(SecurityEventKind::TwoFactorDisabled)
+            .user(user_id)
+            .actor(user_id)
+            .client(client)
+            .record(&mut *tx)
+            .await?;
 
         tx.commit().await?;
 
@@ -253,7 +264,7 @@ impl MfaService {
             &self.db,
             &self.email,
             user_id,
-            SecurityEvent::TwoFactorDisabled,
+            SecurityNotice::TwoFactorDisabled,
         );
 
         Ok(json!({ "ok": true, "message": "MFA deactivated successfully." }))

@@ -14,6 +14,16 @@ pub enum SignInMethod {
     Google,
 }
 
+impl SignInMethod {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Password => "password",
+            Self::Passkey => "passkey",
+            Self::Google => "google",
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SignInMethods {

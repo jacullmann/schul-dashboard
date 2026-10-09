@@ -11,15 +11,16 @@ use crate::{
     auth::{
         cookies::{access_cookie, clear_reauth_pending_cookie, reauth_pending_cookie},
         security_notice,
-        sign_in_methods::SignInMethods,
+        sign_in_methods::{SignInMethod, SignInMethods},
         token::TokenService,
     },
-    common::{extractors::AuthUser, lockout, password::verify_password},
+    common::{client::ClientInfo, extractors::AuthUser, lockout, password::verify_password},
     config::{REAUTH_PENDING_TTL, REAUTH_WINDOW, chrono_ttl},
     error::{AppError, AppResult, AuthFailure},
     mfa::second_factor::{self, CodeCheck, SecondFactorProof},
     oauth::service::{OAuthIntent, OAuthService},
     passkeys::service::PasskeyService,
+    security_log::{SecurityEvent, SecurityEventKind},
     state::AppState,
 };
 use axum_extra::extract::CookieJar;
@@ -29,23 +30,6 @@ use sqlx::PgPool;
 use uuid::Uuid;
 use webauthn_rs::prelude::PublicKeyCredential;
 use webauthn_rs_proto::PublicKeyCredentialRequestOptions;
-
-#[derive(Debug, Clone, Copy)]
-enum Method {
-    Password,
-    Passkey,
-    Google,
-}
-
-impl Method {
-    const fn as_str(self) -> &'static str {
-        match self {
-            Self::Password => "password",
-            Self::Passkey => "passkey",
-            Self::Google => "google",
-        }
-    }
-}
 
 /// Where a confirmation with Google stands once Google has answered.
 pub enum GoogleReauth {
@@ -84,17 +68,25 @@ impl ReauthService {
         user: &AuthUser,
         password: String,
         second_factor: Option<&SecondFactorProof>,
+        client: &ClientInfo,
     ) -> AppResult<CookieJar> {
-        confirm_password(&self.state.db, user.user_id, password).await?;
+        confirm_password(&self.state.db, user.user_id, password, client).await?;
 
         let methods = SignInMethods::load(&self.state.db, user.user_id).await?;
         if methods.two_factor {
             let proof = second_factor.ok_or(AuthFailure::SecondFactorRequired)?;
-            self.check_second_factor(user.user_id, proof).await?;
+            self.check_second_factor(user.user_id, proof, client)
+                .await?;
         }
 
-        self.confirm(user.user_id, &user.email, user.session_id, Method::Password)
-            .await
+        self.confirm(
+            user.user_id,
+            &user.email,
+            user.session_id,
+            SignInMethod::Password,
+            client,
+        )
+        .await
     }
 
     pub async fn start_passkey(
@@ -111,13 +103,20 @@ impl ReauthService {
         user: &AuthUser,
         challenge_id: Uuid,
         credential: &PublicKeyCredential,
+        client: &ClientInfo,
     ) -> AppResult<CookieJar> {
         PasskeyService::from_state(&self.state)
             .finish_bound_authentication(user.user_id, challenge_id, credential)
             .await?;
 
-        self.confirm(user.user_id, &user.email, user.session_id, Method::Passkey)
-            .await
+        self.confirm(
+            user.user_id,
+            &user.email,
+            user.session_id,
+            SignInMethod::Passkey,
+            client,
+        )
+        .await
     }
 
     /// The Google round trip remembers the user in its signed state, so only
@@ -141,6 +140,7 @@ impl ReauthService {
         user_id: Uuid,
         google_subject: &str,
         refresh_token: Option<&str>,
+        client: &ClientInfo,
     ) -> AppResult<GoogleReauth> {
         let session_id = match refresh_token {
             Some(token) => self.tokens.get_current_family_id(token).await?,
@@ -148,7 +148,7 @@ impl ReauthService {
         }
         .ok_or(AppError::TokenExpired)?;
 
-        let account = sqlx::query!(
+        let Some(account) = sqlx::query!(
             r#"SELECT u.email, u.mfa_enabled AND u.mfa_secret IS NOT NULL AS "two_factor!"
                FROM users u
                JOIN oauth_accounts o ON o.user_id = u.id
@@ -158,11 +158,28 @@ impl ReauthService {
         )
         .fetch_optional(&self.state.db)
         .await?
-        .ok_or(AuthFailure::InvalidCredentials)?;
+        else {
+            SecurityEvent::new(SecurityEventKind::ReauthFailed)
+                .user(user_id)
+                .client(client)
+                .metadata(json!({
+                    "method": SignInMethod::Google.as_str(),
+                    "reason": "google_account_mismatch",
+                }))
+                .record(&self.state.db)
+                .await?;
+            return Err(AuthFailure::InvalidCredentials.into());
+        };
 
         if !account.two_factor {
             let jar = self
-                .confirm(user_id, &account.email, session_id, Method::Google)
+                .confirm(
+                    user_id,
+                    &account.email,
+                    session_id,
+                    SignInMethod::Google,
+                    client,
+                )
                 .await?;
             return Ok(GoogleReauth::Confirmed(jar));
         }
@@ -185,6 +202,7 @@ impl ReauthService {
         user: &AuthUser,
         pending_token: Option<&str>,
         proof: &SecondFactorProof,
+        client: &ClientInfo,
     ) -> AppResult<CookieJar> {
         pending_token
             .and_then(|token| {
@@ -194,22 +212,35 @@ impl ReauthService {
             })
             .ok_or(AppError::ReauthRequired)?;
 
-        self.check_second_factor(user.user_id, proof).await?;
+        self.check_second_factor(user.user_id, proof, client)
+            .await?;
 
         let opts = self.state.config.base_cookie_options();
         let jar = self
-            .confirm(user.user_id, &user.email, user.session_id, Method::Google)
+            .confirm(
+                user.user_id,
+                &user.email,
+                user.session_id,
+                SignInMethod::Google,
+                client,
+            )
             .await?;
 
         Ok(jar.add(clear_reauth_pending_cookie(&opts)))
     }
 
-    async fn check_second_factor(&self, user_id: Uuid, proof: &SecondFactorProof) -> AppResult<()> {
+    async fn check_second_factor(
+        &self,
+        user_id: Uuid,
+        proof: &SecondFactorProof,
+        client: &ClientInfo,
+    ) -> AppResult<()> {
         let check = second_factor::check(
             &self.state.db,
             self.state.second_factor_keys(),
             user_id,
             proof,
+            client,
         )
         .await?;
 
@@ -217,7 +248,7 @@ impl ReauthService {
             return Err(AuthFailure::InvalidSecondFactor.into());
         };
 
-        if let Some(event) = verified.security_event() {
+        if let Some(event) = verified.security_notice() {
             security_notice::notify(&self.state.db, &self.state.email, user_id, event);
         }
 
@@ -231,20 +262,21 @@ impl ReauthService {
         user_id: Uuid,
         email: &str,
         session_id: Uuid,
-        method: Method,
+        method: SignInMethod,
+        client: &ClientInfo,
     ) -> AppResult<CookieJar> {
         let access_token = self
             .tokens
             .confirm_identity(user_id, email, session_id)
             .await?;
 
-        sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'auth:reauth', $2)"#,
-            user_id,
-            json!({ "method": method.as_str() })
-        )
-        .execute(&self.state.db)
-        .await?;
+        SecurityEvent::new(SecurityEventKind::Reauth)
+            .user(user_id)
+            .actor(user_id)
+            .client(client)
+            .metadata(json!({ "method": method.as_str(), "sessionId": session_id }))
+            .record(&self.state.db)
+            .await?;
 
         let opts = self.state.config.base_cookie_options();
         Ok(CookieJar::new().add(access_cookie(access_token, &opts)))
@@ -257,7 +289,12 @@ impl ReauthService {
 /// The row lock keeps parallel guesses from all slipping in before the counter
 /// rises; holding it while hashing is fine here, as only a session can get
 /// this far.
-pub async fn confirm_password(db: &PgPool, user_id: Uuid, password: String) -> AppResult<()> {
+pub async fn confirm_password(
+    db: &PgPool,
+    user_id: Uuid,
+    password: String,
+    client: &ClientInfo,
+) -> AppResult<()> {
     let mut tx = db.begin().await?;
 
     let user = sqlx::query!(
@@ -306,14 +343,20 @@ pub async fn confirm_password(db: &PgPool, user_id: Uuid, password: String) -> A
     .execute(&mut *tx)
     .await?;
 
-    if let Some(lock) = lock {
-        sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'auth:reauth:locked', $2)"#,
-            user_id,
-            json!({ "consecutiveMisses": counter.misses, "lockedForSecs": lock.num_seconds() })
-        )
-        .execute(&mut *tx)
+    SecurityEvent::new(SecurityEventKind::ReauthFailed)
+        .user(user_id)
+        .client(client)
+        .metadata(json!({ "method": SignInMethod::Password.as_str(), "reason": "wrong_password" }))
+        .record(&mut *tx)
         .await?;
+
+    if let Some(lock) = lock {
+        SecurityEvent::new(SecurityEventKind::ReauthLocked)
+            .user(user_id)
+            .client(client)
+            .metadata(lockout::describe(counter.misses, lock))
+            .record(&mut *tx)
+            .await?;
     }
 
     tx.commit().await?;
