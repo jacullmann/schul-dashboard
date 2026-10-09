@@ -51,6 +51,8 @@ const FORBIDDEN = 403;
 export const REAUTH_REQUIRED = 'REAUTH_REQUIRED';
 const TOO_MANY_REQUESTS = 429;
 const FIRST_SERVER_ERROR = 500;
+const SERVICE_UNAVAILABLE = 503;
+const MAINTENANCE = 'MAINTENANCE';
 
 /** Whether the API refused the request for being one too many. */
 export function isRateLimited(err: unknown): boolean {
@@ -99,12 +101,24 @@ export function isSessionRejected(err: unknown): boolean {
 }
 
 /**
+ * Whether a superadmin put the platform into maintenance. The session is
+ * kept, so the user is back in once it ends.
+ */
+export function isMaintenance(err: unknown): boolean {
+  return (
+    apiErrorStatus(err) === SERVICE_UNAVAILABLE &&
+    apiErrorCode(err) === MAINTENANCE
+  );
+}
+
+/**
  * Whether the request failed for a reason that passes on its own: no answer at
  * all (offline, or the API restarting during a deploy), a server error or a
- * rate limit. Such a failure says nothing about the session.
+ * rate limit. Such a failure says nothing about the session. Maintenance is
+ * none of these: it lasts until a superadmin ends it, so retrying is futile.
  */
 export function isTransientFailure(err: unknown): boolean {
-  if (!isAxiosError(err) || isCancel(err)) return false;
+  if (!isAxiosError(err) || isCancel(err) || isMaintenance(err)) return false;
   const status = err.response?.status;
   return (
     status === undefined ||

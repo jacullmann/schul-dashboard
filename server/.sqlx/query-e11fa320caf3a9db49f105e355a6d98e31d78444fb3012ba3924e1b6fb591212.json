@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE access_controls\n               SET registration_paused = COALESCE($1, registration_paused),\n                   maintenance = COALESCE($2, maintenance),\n                   updated_by = $3,\n                   updated_at = now()",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Bool",
+        "Bool",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "e11fa320caf3a9db49f105e355a6d98e31d78444fb3012ba3924e1b6fb591212"
+}

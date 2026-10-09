@@ -1,5 +1,5 @@
 use crate::{
-    auth::session_context::session_is_active,
+    auth::session_context::{SessionStatus, session_status},
     common::{
         extractors::{AuthUser, TenantContext},
         jwt::now_secs,
@@ -27,12 +27,13 @@ const CLOSE_TOKEN_EXPIRED: u16 = 4001;
 /// The caller lost access to the group the socket is subscribed to.
 const CLOSE_ACCESS_REVOKED: u16 = 4003;
 /// Membership changes announce themselves on the bus, so this only bounds
-/// revocations that do not (e.g. a withdrawn superadmin role or a session ended
-/// from another device). Checking on every broadcast instead would cost a query
-/// per recipient per message.
+/// revocations that do not (e.g. a withdrawn superadmin role, a session ended
+/// from another device, or the start of maintenance). Checking on every
+/// broadcast instead would cost a query per recipient per message.
 const ACCESS_RECHECK_INTERVAL: Duration = Duration::from_secs(30);
 /// Closing with the token-expired code makes the client refresh, which the
-/// revoked session fails, so it signs out instead of reconnecting.
+/// revoked session fails, so it signs out instead of reconnecting. During
+/// maintenance the refresh is turned away the same way, without signing out.
 const SESSION_ENDED: (u16, &str) = (CLOSE_TOKEN_EXPIRED, "Session ended");
 /// Ended sessions are rare; a socket that still lags behind asks the database.
 const ENDED_SESSIONS_CAPACITY: usize = 64;
@@ -142,9 +143,10 @@ pub async fn ws_handler(
 
     // Subscribing before the check leaves no gap in which a ban is missed.
     let ended_sessions = state.message_bus.ended_sessions.subscribe();
-    match session_is_active(&state.db, claims.sub, claims.sid).await {
-        Ok(true) => {}
-        Ok(false) => return StatusCode::UNAUTHORIZED.into_response(),
+    match session_status(&state.db, claims.sub, claims.sid).await {
+        Ok(SessionStatus::Active) => {}
+        Ok(SessionStatus::Ended) => return StatusCode::UNAUTHORIZED.into_response(),
+        Ok(SessionStatus::Maintenance) => return AppError::Maintenance.into_response(),
         Err(e) => return e.into_response(),
     }
 
@@ -178,7 +180,7 @@ async fn lost_group_access(
     match TenantContext::resolve(&state.db, user.clone(), group_id).await {
         Ok(_) => None,
         Err(AppError::NotFound(_)) => Some((CLOSE_ACCESS_REVOKED, "Group access revoked")),
-        Err(AppError::TokenExpired) => Some(SESSION_ENDED),
+        Err(AppError::TokenExpired | AppError::Maintenance) => Some(SESSION_ENDED),
         Err(e) => {
             tracing::warn!("WebSocket access recheck failed: {e:?}");
             None
@@ -186,12 +188,12 @@ async fn lost_group_access(
     }
 }
 
-/// Whether the socket's session definitely ended. Like a lost group, a failing
-/// database keeps the socket open.
+/// Whether the socket's session definitely ended or maintenance began. Like a
+/// lost group, a failing database keeps the socket open.
 async fn session_ended(state: &AppState, user: &AuthUser) -> bool {
     matches!(
-        session_is_active(&state.db, user.user_id, user.session_id).await,
-        Ok(false)
+        session_status(&state.db, user.user_id, user.session_id).await,
+        Ok(SessionStatus::Ended | SessionStatus::Maintenance)
     )
 }
 

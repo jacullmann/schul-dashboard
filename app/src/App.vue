@@ -3,9 +3,10 @@ import { watch, onMounted } from 'vue';
 import { useEventListener } from '@vueuse/core';
 import { CloudOff } from '@lucide/vue';
 import { storeToRefs } from 'pinia';
-import { useRouter } from 'vue-router';
+import { START_LOCATION, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useUserStore } from '@/stores/userStore';
+import { useAccessStatusStore } from '@/stores/accessStatusStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useOAuth } from '@/modules/auth/composables/useOAuth';
 import { useLoadingBar } from '@/common/composables/loadingState';
@@ -17,6 +18,7 @@ import api from './api/api';
 const router = useRouter();
 const { t } = useI18n();
 const userStore = useUserStore();
+const accessStatus = useAccessStatusStore();
 const { user } = storeToRefs(userStore);
 const { isAuthReady, isApiUnreachable, checkAuthStatus } = useAppAuth();
 const { handleOAuthReturn } = useOAuth();
@@ -36,11 +38,22 @@ function logPageload() {
   });
 }
 
-async function handleAuthExpired() {
+async function returnToLogin() {
   userStore.clearUser();
   if (!router.currentRoute.value.meta.access) {
     await router.push({ name: 'login' });
   }
+}
+
+function handleMaintenance() {
+  accessStatus.enterMaintenance();
+  // On startup the route guard sends private pages to the login already, and
+  // public ones, such as sign-up, must stay reachable.
+  if (router.currentRoute.value === START_LOCATION) {
+    userStore.clearUser();
+    return;
+  }
+  void returnToLogin();
 }
 
 watch(user, (newUser, oldUser) => {
@@ -69,7 +82,8 @@ onMounted(() => {
     await userStore.fetchUser();
   });
 
-  useEventListener(window, 'auth-expired', () => void handleAuthExpired());
+  useEventListener(window, 'auth-expired', () => void returnToLogin());
+  useEventListener(window, 'maintenance', handleMaintenance);
 });
 </script>
 

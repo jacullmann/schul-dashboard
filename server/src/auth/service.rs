@@ -1,4 +1,5 @@
 use crate::{
+    access_control,
     auth::{
         cookies::*,
         dto::*,
@@ -202,6 +203,10 @@ impl AuthService {
             ));
         }
 
+        // Starting a session refuses it as well; checking here spares the
+        // user a second factor that could not get them in.
+        access_control::ensure_admitted(&self.db, user_id).await?;
+
         if mfa_required {
             let mfa_token = self
                 .jwt
@@ -335,6 +340,7 @@ impl AuthService {
     /// [`email_verification`]), so signing up again, by anyone, leaves every
     /// earlier sign-up for the address as it was.
     pub async fn register(&self, dto: RegisterDto) -> AppResult<serde_json::Value> {
+        access_control::ensure_registration_open(&self.db).await?;
         validate_password_strength(&dto.password).map_err(|e| AppError::BadRequest(e.into()))?;
         let age = age::declare(dto.birth_year, dto.guardian_consent, Utc::now())?;
 
@@ -380,6 +386,7 @@ impl AuthService {
     /// Mails a new link for the latest sign-up of the address. The answer is
     /// the same whether or not one was sent, so it reveals nothing about it.
     pub async fn resend_verification(&self, email: &str) -> AppResult<serde_json::Value> {
+        access_control::ensure_registration_open(&self.db).await?;
         let email = email.to_lowercase();
 
         let mut tx = self.db.begin().await?;
@@ -505,13 +512,16 @@ impl AuthService {
     }
 
     /// Creates the account of a sign-up from its link and the password it
-    /// chose, and signs the new account in.
+    /// chose, and signs the new account in. Paused sign-ups hold back links
+    /// mailed before the pause as well; those still unexpired work once it
+    /// ends.
     pub async fn confirm_sign_up(
         &self,
         token: &str,
         password: String,
         client: ClientInfo<'_>,
     ) -> AppResult<CookieJar> {
+        access_control::ensure_registration_open(&self.db).await?;
         let invalid_link = || AppError::bad_request("Invalid verification token.");
 
         let pending = email_verification::find(&self.db, token)

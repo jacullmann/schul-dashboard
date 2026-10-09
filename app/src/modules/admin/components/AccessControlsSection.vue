@@ -1,0 +1,107 @@
+<script setup lang="ts">
+import { computed, onMounted, useId } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useAccessControls } from '../composables/useAccessControls';
+import { useSuperAdminFormat } from '../composables/useSuperAdminFormat';
+import type { AccessControlSwitch } from '../types';
+
+interface SwitchRow {
+  name: AccessControlSwitch;
+  id: string;
+  on: boolean;
+  label: string;
+  hint: string;
+  note?: string;
+}
+
+const I18N_BASE = 'admin.overview.access_controls';
+
+const { t } = useI18n();
+const { fmtDateTime } = useSuperAdminFormat();
+const { controls, loading, saving, load, setSwitch } = useAccessControls();
+const titleId = useId();
+const registrationId = useId();
+const maintenanceId = useId();
+
+const rows = computed<SwitchRow[]>(() => {
+  const current = controls.value;
+  if (!current) return [];
+  return [
+    {
+      name: 'registrationPaused',
+      id: registrationId,
+      on: current.registrationPaused,
+      label: t(`${I18N_BASE}.registration.label`),
+      hint: t(`${I18N_BASE}.registration.hint`),
+      // Maintenance closes sign-ups without flipping this switch.
+      note:
+        current.maintenance && !current.registrationPaused
+          ? t(`${I18N_BASE}.registration_held`)
+          : undefined,
+    },
+    {
+      name: 'maintenance',
+      id: maintenanceId,
+      on: current.maintenance,
+      label: t(`${I18N_BASE}.maintenance.label`),
+      hint: t(`${I18N_BASE}.maintenance.hint`),
+    },
+  ];
+});
+
+const lastChanged = computed(() => {
+  const current = controls.value;
+  if (!current) return '';
+  const time = fmtDateTime(current.updatedAt);
+  return current.updatedByEmail
+    ? t(`${I18N_BASE}.last_changed`, { time, email: current.updatedByEmail })
+    : t(`${I18N_BASE}.last_changed_unknown`, { time });
+});
+
+onMounted(load);
+</script>
+
+<template>
+  <section class="flex flex-col gap-3" :aria-labelledby="titleId">
+    <h3 :id="titleId">{{ t(`${I18N_BASE}.title`) }}</h3>
+
+    <div
+      class="rounded-xl border border-ghost-border bg-surface shadow-input p-4"
+    >
+      <div v-if="loading && !controls" class="flex justify-center p-4">
+        <BaseSpinner on="ghost" size="20px" />
+      </div>
+      <div v-else-if="!controls" class="flex justify-center p-4">
+        <BaseButton variant="ghost" @click="load">
+          {{ t(`${I18N_BASE}.retry`) }}
+        </BaseButton>
+      </div>
+      <template v-else>
+        <ul>
+          <li
+            v-for="row in rows"
+            :key="row.name"
+            class="flex items-start justify-between gap-4 py-3 first:pt-0 border-b border-ghost-border"
+          >
+            <div class="min-w-0">
+              <label :for="row.id" class="font-semibold cursor-pointer">
+                {{ row.label }}
+              </label>
+              <p class="m-0! text-sm">{{ row.hint }}</p>
+              <p v-if="row.note" class="mt-1! mb-0! text-sm font-semibold">
+                {{ row.note }}
+              </p>
+            </div>
+            <BaseToggle
+              :id="row.id"
+              :model-value="row.on"
+              :disabled="saving !== null"
+              @update:model-value="(on: boolean) => setSwitch(row.name, on)"
+            />
+          </li>
+        </ul>
+        <p class="m-0! pt-3 text-xs">{{ lastChanged }}</p>
+      </template>
+    </div>
+  </section>
+</template>

@@ -1,5 +1,5 @@
 use crate::{
-    auth::session_context::{is_superadmin, session_is_active},
+    auth::session_context::{SessionStatus, is_superadmin, session_status},
     common::{
         jwt::JwtService,
         path_params::GroupPath,
@@ -76,9 +76,9 @@ where
         // A 401 sends the client to refresh, which the ended session fails, so
         // a banned or deleted user, or one whose session ended, is signed out
         // on their next request.
-        if !session_is_active(&app_state.db, user.user_id, user.session_id).await? {
-            return Err(AppError::TokenExpired);
-        }
+        session_status(&app_state.db, user.user_id, user.session_id)
+            .await?
+            .ensure_active()?;
 
         Ok(user)
     }
@@ -217,7 +217,8 @@ impl TenantContext {
                              SELECT 1 FROM refresh_tokens t
                              WHERE t.family_id = $4 AND t.user_id = u.id AND t.revoked_at IS NULL
                          )
-                   ) AS "session_active!"
+                   ) AS "session_active!",
+                   (SELECT maintenance FROM access_controls) AS "maintenance!"
             FROM groups g
             WHERE g.id = $2
             "#,
@@ -231,9 +232,8 @@ impl TenantContext {
 
         let row = row.ok_or_else(group_not_found)?;
 
-        if !row.session_active {
-            return Err(AppError::TokenExpired);
-        }
+        SessionStatus::of(row.session_active, row.maintenance && !row.is_superadmin)
+            .ensure_active()?;
 
         let tenant_role = match (row.is_superadmin, row.tenant_role.as_deref()) {
             (true, _) => Role::Superadmin,
@@ -283,8 +283,8 @@ fn group_not_found() -> AppError {
 
 /// Route layer for everything nested under `/groups/{group_id}`. It reads
 /// the token without the [`AuthUser`] extractor because the tenant query
-/// already confirms the account and session are active, saving a round trip
-/// per request.
+/// already confirms the account and session are active and that maintenance
+/// admits the caller, saving a round trip per request.
 pub async fn resolve_tenant(
     State(state): State<AppState>,
     jar: CookieJar,

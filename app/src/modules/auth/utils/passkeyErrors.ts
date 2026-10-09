@@ -22,6 +22,7 @@ const MESSAGE_KEYS: Record<string, string> = {
     'auth.passkeys.errors.already_registered',
   [PasskeyErrorCode.LimitReached]: 'auth.passkeys.errors.limit_reached',
   [AuthErrorCode.LastSignInMethod]: 'auth.errors.last_sign_in_method',
+  [AuthErrorCode.Maintenance]: 'auth.errors.maintenance',
 };
 
 /**

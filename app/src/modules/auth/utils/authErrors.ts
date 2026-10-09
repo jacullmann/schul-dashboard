@@ -19,6 +19,8 @@ export const AuthErrorCode = {
   InvalidBirthYear: 'INVALID_BIRTH_YEAR',
   TooYoung: 'TOO_YOUNG',
   GuardianConsentRequired: 'GUARDIAN_CONSENT_REQUIRED',
+  RegistrationPaused: 'REGISTRATION_PAUSED',
+  Maintenance: 'MAINTENANCE',
 } as const;
 
 const MESSAGE_KEYS: Record<string, string> = {
@@ -32,6 +34,8 @@ const MESSAGE_KEYS: Record<string, string> = {
   [AuthErrorCode.TooYoung]: 'auth.age.errors.too_young',
   [AuthErrorCode.GuardianConsentRequired]:
     'auth.age.errors.guardian_consent_missing',
+  [AuthErrorCode.RegistrationPaused]: 'auth.errors.registration_paused',
+  [AuthErrorCode.Maintenance]: 'auth.errors.maintenance',
 };
 
 /**

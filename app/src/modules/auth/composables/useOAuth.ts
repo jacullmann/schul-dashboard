@@ -36,6 +36,8 @@ export function useOAuth() {
       'auth.google_link.errors.provider_already_linked',
     ),
     session_expired: t('auth.google_link.errors.session_expired'),
+    registration_paused: t('auth.errors.registration_paused'),
+    maintenance: t('auth.errors.maintenance'),
   };
 
   function errorMessage(reason: string | null): string {

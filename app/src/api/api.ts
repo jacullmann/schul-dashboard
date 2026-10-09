@@ -1,6 +1,7 @@
 import axios, { AxiosError } from 'axios';
 import {
   isAccessTokenRejected,
+  isMaintenance,
   isReauthRequired,
   isSessionRejected,
 } from './errors';
@@ -86,6 +87,10 @@ function notifySessionEnded(): void {
   window.dispatchEvent(new CustomEvent('auth-expired'));
 }
 
+function notifyMaintenance(): void {
+  window.dispatchEvent(new CustomEvent('maintenance'));
+}
+
 /**
  * Rotates the session's tokens. A failure has no side effects, so callers
  * that resolve the session themselves (e.g. at startup) decide what it means.
@@ -114,6 +119,13 @@ api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     const original = error.config;
+
+    // Any request, the refresh included, can be the first to meet maintenance.
+    // Nothing is retried: it lasts until a superadmin ends it.
+    if (isMaintenance(error)) {
+      notifyMaintenance();
+      return Promise.reject(error);
+    }
 
     // A sensitive action needs a recent sign-in: once the user confirmed who
     // they are, the request is repeated as if nothing happened. Only once, so

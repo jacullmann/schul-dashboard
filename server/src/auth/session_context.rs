@@ -1,4 +1,7 @@
-use crate::{common::role::Role, error::AppResult};
+use crate::{
+    common::role::Role,
+    error::{AppError, AppResult},
+};
 use sqlx::PgPool;
 use uuid::Uuid;
 
@@ -37,28 +40,74 @@ pub async fn account_is_active(db: &PgPool, user_id: Uuid) -> AppResult<bool> {
     Ok(is_active)
 }
 
-/// Whether the account is in good standing and the session an access token
-/// was issued for has not ended. Checking the session makes signing out,
-/// ending a session or changing the password take effect on the very next
-/// request instead of when the short-lived access token expires.
-pub async fn session_is_active(db: &PgPool, user_id: Uuid, session_id: Uuid) -> AppResult<bool> {
-    let is_active = sqlx::query_scalar!(
+/// Where the session an access token was issued for stands.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SessionStatus {
+    Active,
+    /// Signed out, revoked, or the account was banned or deleted.
+    Ended,
+    /// The session is fine but maintenance turns everyone except superadmins
+    /// away. It is kept, so it resumes once maintenance ends.
+    Maintenance,
+}
+
+impl SessionStatus {
+    /// An ended session wins over maintenance: a banned user is signed out
+    /// rather than told to come back later.
+    pub const fn of(session_active: bool, maintenance_applies: bool) -> Self {
+        match (session_active, maintenance_applies) {
+            (false, _) => Self::Ended,
+            (true, true) => Self::Maintenance,
+            (true, false) => Self::Active,
+        }
+    }
+
+    pub const fn ensure_active(self) -> AppResult<()> {
+        match self {
+            Self::Active => Ok(()),
+            Self::Ended => Err(AppError::TokenExpired),
+            Self::Maintenance => Err(AppError::Maintenance),
+        }
+    }
+}
+
+/// Whether the account is in good standing, the session an access token was
+/// issued for has not ended, and maintenance admits the user. Checking the
+/// session makes signing out, ending a session or changing the password take
+/// effect on the very next request instead of when the short-lived access
+/// token expires. Maintenance is read in the same round trip, so it costs
+/// every request nothing but a primary key lookup.
+pub async fn session_status(
+    db: &PgPool,
+    user_id: Uuid,
+    session_id: Uuid,
+) -> AppResult<SessionStatus> {
+    let row = sqlx::query!(
         r#"SELECT EXISTS (
-               SELECT 1 FROM users u
-               WHERE u.id = $1
-                 AND NOT EXISTS (SELECT 1 FROM banned_users b WHERE b.user_id = u.id)
-                 AND EXISTS (
-                     SELECT 1 FROM refresh_tokens t
-                     WHERE t.family_id = $2 AND t.user_id = u.id AND t.revoked_at IS NULL
-                 )
-           ) AS "is_active!""#,
+                      SELECT 1 FROM users u
+                      WHERE u.id = $1
+                        AND NOT EXISTS (SELECT 1 FROM banned_users b WHERE b.user_id = u.id)
+                        AND EXISTS (
+                            SELECT 1 FROM refresh_tokens t
+                            WHERE t.family_id = $2 AND t.user_id = u.id AND t.revoked_at IS NULL
+                        )
+                  ) AS "session_active!",
+                  ac.maintenance AND NOT EXISTS (
+                      SELECT 1 FROM user_roles
+                      WHERE user_id = $1 AND tenant_id IS NULL AND role_id = $3
+                  ) AS "maintenance_applies!"
+           FROM access_controls ac"#,
         user_id,
-        session_id
+        session_id,
+        Role::Superadmin.db_id_i32()
     )
     .fetch_one(db)
     .await?;
 
-    Ok(is_active)
+    Ok(SessionStatus::of(
+        row.session_active,
+        row.maintenance_applies,
+    ))
 }
 
 /// Where the app opens after sign-in. The last visited group only wins while
@@ -93,4 +142,34 @@ pub async fn remember_visited_group(db: &PgPool, user_id: Uuid, group_id: Uuid) 
     .await?;
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn ended_session_wins_over_maintenance() {
+        assert_eq!(SessionStatus::of(false, true), SessionStatus::Ended);
+        assert_eq!(SessionStatus::of(false, false), SessionStatus::Ended);
+    }
+
+    #[test]
+    fn maintenance_turns_away_an_active_session() {
+        assert_eq!(SessionStatus::of(true, true), SessionStatus::Maintenance);
+        assert_eq!(SessionStatus::of(true, false), SessionStatus::Active);
+    }
+
+    #[test]
+    fn statuses_map_to_their_errors() {
+        assert!(SessionStatus::Active.ensure_active().is_ok());
+        assert!(matches!(
+            SessionStatus::Ended.ensure_active(),
+            Err(AppError::TokenExpired)
+        ));
+        assert!(matches!(
+            SessionStatus::Maintenance.ensure_active(),
+            Err(AppError::Maintenance)
+        ));
+    }
 }

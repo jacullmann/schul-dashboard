@@ -1,5 +1,7 @@
 use super::handlers::*;
-use crate::{common::extractors::require_superadmin, state::AppState, system_announcements};
+use crate::{
+    access_control, common::extractors::require_superadmin, state::AppState, system_announcements,
+};
 use axum::{
     Router, middleware,
     routing::{delete, get, patch, post},
@@ -28,5 +30,6 @@ pub fn router(state: AppState) -> Router<AppState> {
         .route("/admin/reports", get(get_reports))
         .route("/admin/reports/{id}", delete(delete_report))
         .merge(system_announcements::routes::admin_router())
+        .merge(access_control::routes::admin_router())
         .route_layer(middleware::from_fn_with_state(state, require_superadmin))
 }

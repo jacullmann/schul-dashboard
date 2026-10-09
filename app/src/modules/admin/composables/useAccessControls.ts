@@ -1,0 +1,64 @@
+import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+import api from '@/api/api';
+import { useToast } from '@/common/composables/useToast';
+import { useConfirmModal } from '@/stores/modalStore';
+import type { AccessControls, AccessControlSwitch } from '../types';
+
+const ENDPOINT = '/admin/access-controls';
+const I18N_BASE = 'admin.overview.access_controls';
+
+/**
+ * The switches that pause sign-ups or put the platform into maintenance. A
+ * switch only moves once the server saved it, so the overview never shows a
+ * state that is not in effect.
+ */
+export function useAccessControls() {
+  const { t } = useI18n();
+  const toast = useToast();
+  const confirmModal = useConfirmModal();
+  const controls = ref<AccessControls | null>(null);
+  const loading = ref(false);
+  const saving = ref<AccessControlSwitch | null>(null);
+
+  async function load() {
+    loading.value = true;
+    try {
+      const { data } = await api.get<AccessControls>(ENDPOINT);
+      controls.value = data;
+    } catch {
+      toast.error(t(`${I18N_BASE}.error`));
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  /** Maintenance locks everyone else out at once, so turning it on asks first. */
+  async function setSwitch(name: AccessControlSwitch, on: boolean) {
+    if (saving.value) return;
+
+    if (name === 'maintenance' && on) {
+      const confirmed = await confirmModal.ask({
+        title: t(`${I18N_BASE}.maintenance_modal.title`),
+        content: t(`${I18N_BASE}.maintenance_modal.content`),
+        submitText: t(`${I18N_BASE}.maintenance_modal.submit`),
+        danger: true,
+      });
+      if (!confirmed) return;
+    }
+
+    saving.value = name;
+    try {
+      const { data } = await api.patch<AccessControls>(ENDPOINT, {
+        [name]: on,
+      });
+      controls.value = data;
+    } catch {
+      toast.error(t(`${I18N_BASE}.save_error`));
+    } finally {
+      saving.value = null;
+    }
+  }
+
+  return { controls, loading, saving, load, setSwitch };
+}

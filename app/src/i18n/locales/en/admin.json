@@ -129,6 +129,28 @@
     },
     "errors": {
       "load": "Failed to load statistics."
+    },
+    "access_controls": {
+      "title": "Platform access",
+      "registration": {
+        "label": "Pause sign-ups",
+        "hint": "Nobody can create a new account, including with Google. Confirmation links already sent only work again once the pause ends."
+      },
+      "maintenance": {
+        "label": "Maintenance mode",
+        "hint": "Only superadmins can use the dashboard. Everyone else is sent to the sign-in page but stays signed in and can carry on right after."
+      },
+      "registration_held": "Closed by maintenance mode as well.",
+      "last_changed": "Last changed on {time} by {email}",
+      "last_changed_unknown": "Last changed on {time}",
+      "maintenance_modal": {
+        "title": "Turn on maintenance mode?",
+        "content": "Everyone except superadmins immediately loses access to the dashboard and can neither sign in nor sign up.",
+        "submit": "Turn on"
+      },
+      "error": "Could not load the access settings.",
+      "save_error": "Could not save the change.",
+      "retry": "Try again"
     }
   },
   "users": {

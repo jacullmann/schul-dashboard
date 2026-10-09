@@ -16,6 +16,13 @@ const ACCESS_TOKEN_EXPIRED: Reply = {
   },
 };
 const OK: Reply = { status: 200, data: { ok: true } };
+const MAINTENANCE: Reply = {
+  status: 503,
+  data: {
+    error: 'The platform is down for maintenance.',
+    code: 'MAINTENANCE',
+  },
+};
 
 /** Answers every request with `reply`, and records which URLs were called. */
 function serve(reply: (url: string, call: number) => Reply): string[] {
@@ -50,11 +57,13 @@ function serve(reply: (url: string, call: number) => Reply): string[] {
   return calls;
 }
 
-function countSignOuts(): () => number {
-  let signOuts = 0;
-  window.addEventListener('auth-expired', () => signOuts++);
-  return () => signOuts;
+function countEvents(type: string): () => number {
+  let count = 0;
+  window.addEventListener(type, () => count++);
+  return () => count;
 }
+
+const countSignOuts = (): (() => number) => countEvents('auth-expired');
 
 beforeEach(() => {
   vi.stubGlobal('window', new EventTarget());
@@ -115,6 +124,31 @@ describe('api', () => {
 
     await expect(api.get('/data')).rejects.toBeInstanceOf(AxiosError);
 
+    expect(signOuts()).toBe(0);
+  });
+
+  it('reports maintenance without refreshing or retrying', async () => {
+    const calls = serve(() => MAINTENANCE);
+    const signOuts = countSignOuts();
+    const maintenance = countEvents('maintenance');
+
+    await expect(api.get('/data')).rejects.toBeInstanceOf(AxiosError);
+
+    expect(calls).toEqual(['/data']);
+    expect(maintenance()).toBe(1);
+    expect(signOuts()).toBe(0);
+  });
+
+  it('keeps the session when maintenance turns the refresh away', async () => {
+    serve((url) =>
+      url === '/auth/refresh' ? MAINTENANCE : ACCESS_TOKEN_EXPIRED,
+    );
+    const signOuts = countSignOuts();
+    const maintenance = countEvents('maintenance');
+
+    await expect(api.get('/data')).rejects.toBeInstanceOf(AxiosError);
+
+    expect(maintenance()).toBe(1);
     expect(signOuts()).toBe(0);
   });
 

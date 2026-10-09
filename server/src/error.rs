@@ -57,6 +57,15 @@ pub enum AppError {
     #[error("Too many incorrect attempts. Please try again later.")]
     ReauthLocked { retry_after: chrono::TimeDelta },
 
+    /// A superadmin paused sign-ups.
+    #[error("Sign-ups are paused.")]
+    RegistrationPaused,
+
+    /// A superadmin put the platform into maintenance, which admits nobody
+    /// but superadmins.
+    #[error("The platform is down for maintenance.")]
+    Maintenance,
+
     #[error("{0}")]
     Forbidden(String),
 
@@ -164,6 +173,16 @@ impl IntoResponse for AppError {
             AppError::ReauthLocked { retry_after } => {
                 return too_many_requests(&self, "REAUTH_LOCKED", *retry_after);
             }
+            AppError::RegistrationPaused => (
+                StatusCode::FORBIDDEN,
+                json!({ "error": self.to_string(), "code": "REGISTRATION_PAUSED" }),
+            ),
+            // A 503, not a 401: the session stays valid through maintenance,
+            // and a 401 would send the client to refresh it and then sign out.
+            AppError::Maintenance => (
+                StatusCode::SERVICE_UNAVAILABLE,
+                json!({ "error": self.to_string(), "code": "MAINTENANCE" }),
+            ),
             AppError::Forbidden(msg) => (StatusCode::FORBIDDEN, json!({ "error": msg })),
             AppError::NotFound(msg) => (StatusCode::NOT_FOUND, json!({ "error": msg })),
             AppError::FileTooLarge { max_bytes } => (

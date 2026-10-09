@@ -1,4 +1,5 @@
 use crate::{
+    access_control,
     common::jwt::{AccessClaims, JwtService},
     config::{ACCESS_TOKEN_TTL, REFRESH_REUSE_GRACE, REFRESH_TOKEN_TTL, chrono_ttl},
     error::AppError,
@@ -128,6 +129,9 @@ impl TokenService {
     pub async fn issue_pair(&self, p: IssueTokenParams<'_>) -> Result<IssuedTokens, AppError> {
         let (family_id, parent_id, authenticated_at) = match p.origin {
             SessionOrigin::SignIn => {
+                // Every sign-in, whatever its method, ends here, so no new
+                // session can start during maintenance.
+                access_control::ensure_admitted(&self.db, p.user_id).await?;
                 self.make_room_for_new_session(p.user_id).await?;
                 (Uuid::new_v4(), None, Utc::now())
             }
@@ -272,6 +276,10 @@ impl TokenService {
         if row.expires_at < Utc::now() {
             return Ok(Err(RefreshRejection::Expired));
         }
+
+        // Refused before the token is consumed, so the session is still there
+        // once maintenance ends.
+        access_control::ensure_admitted(&self.db, row.user_id).await?;
 
         let consumed = sqlx::query!(
             r#"UPDATE refresh_tokens SET used_at = now()

@@ -1,3 +1,4 @@
+mod access_control;
 mod announcements;
 mod assets;
 mod auth;
@@ -116,6 +117,7 @@ async fn main() -> anyhow::Result<()> {
     let api = Router::new()
         .nest("/groups/{group_id}", group_scoped)
         .merge(system::routes::router())
+        .merge(access_control::routes::router())
         .merge(system_announcements::routes::router())
         .merge(assets::routes::router())
         .merge(auth::routes::router())

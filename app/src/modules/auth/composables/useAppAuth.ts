@@ -72,7 +72,7 @@ const foreignGroup = ref<UserGroup | null>(null);
 
 let initPromise: Promise<void> | null = null;
 let statusPromise: Promise<boolean> | null = null;
-let authExpiredHandlerInstalled = false;
+let signedOutHandlersInstalled = false;
 
 type ErrResult = { ok: false; error: string };
 
@@ -181,14 +181,19 @@ function applyStatusData(data: StatusResponse): void {
   landingGroupId.value = data.landingGroupId ?? null;
 }
 
-function installAuthExpiredHandlerOnce(): void {
-  if (authExpiredHandlerInstalled) return;
-  authExpiredHandlerInstalled = true;
-  window.addEventListener('auth-expired', () => {
-    clearAuthState();
-    isAuthReady.value = true;
-    initPromise = null;
-  });
+function showSignedOut(): void {
+  clearAuthState();
+  isAuthReady.value = true;
+  initPromise = null;
+}
+
+// Maintenance keeps the session on the server, but nothing in the app can be
+// used until it ends, so the app shows the signed-out state meanwhile.
+function installSignedOutHandlersOnce(): void {
+  if (signedOutHandlersInstalled) return;
+  signedOutHandlersInstalled = true;
+  window.addEventListener('auth-expired', showSignedOut);
+  window.addEventListener('maintenance', showSignedOut);
 }
 
 async function fetchStatus(): Promise<StatusResponse> {
@@ -270,7 +275,7 @@ function errorMessage(error: unknown, fallback: string): string {
 }
 
 export function useAppAuth() {
-  installAuthExpiredHandlerOnce();
+  installSignedOutHandlersOnce();
 
   async function checkAuthStatus(): Promise<boolean> {
     if (statusPromise) return statusPromise;

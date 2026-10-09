@@ -1,4 +1,5 @@
 use crate::{
+    access_control,
     auth::{
         password_attempts, security_notice,
         service::{AuthService, ClientInfo, LoginResult},
@@ -341,7 +342,13 @@ impl OAuthService {
             OAuthResolution::Pending(purpose) => {
                 let result = match purpose {
                     PendingPurpose::Link => "link-required",
-                    PendingPurpose::SignUp => "signup-required",
+                    // Told now rather than after the sign-up form was filled in.
+                    PendingPurpose::SignUp => {
+                        match access_control::ensure_registration_open(&self.db).await {
+                            Ok(()) => "signup-required",
+                            Err(e) => return self.login_failure(&e),
+                        }
+                    }
                 };
                 return match self.pending_jar(profile, purpose) {
                     Ok(jar) => (jar, self.result_url(LOGIN_RESULT_PARAM, result)),
@@ -355,8 +362,19 @@ impl OAuthService {
             Ok(LoginResult::MfaRequired(jar)) => {
                 (jar, self.result_url(LOGIN_RESULT_PARAM, "mfa-pending"))
             }
-            Err(_) => server_error(),
+            Err(e) => self.login_failure(&e),
         }
+    }
+
+    /// Paused sign-ups and maintenance get their own reason, so the login page
+    /// can say why instead of reporting a failure.
+    fn login_failure(&self, error: &AppError) -> (CookieJar, String) {
+        let reason = match error {
+            AppError::RegistrationPaused => "registration_paused",
+            AppError::Maintenance => "maintenance",
+            _ => "server_error",
+        };
+        (CookieJar::new(), self.error_url(LOGIN_RESULT_PARAM, reason))
     }
 
     fn pending_jar(
@@ -476,6 +494,8 @@ impl OAuthService {
         guardian_consent: bool,
         client: ClientInfo<'_>,
     ) -> AppResult<LoginResult> {
+        access_control::ensure_registration_open(&self.db).await?;
+
         let email = &pending.google_email;
         let age = age::declare(birth_year, guardian_consent, chrono::Utc::now())?;
 

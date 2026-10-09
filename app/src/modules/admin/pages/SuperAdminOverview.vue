@@ -5,6 +5,7 @@ import { ArrowUp } from '@lucide/vue';
 import DailyBarChart, {
   type DailySummary,
 } from '../components/DailyBarChart.vue';
+import AccessControlsSection from '../components/AccessControlsSection.vue';
 import CleanupJobsSection from '../components/CleanupJobsSection.vue';
 import ServerMetricsSection from '../components/ServerMetricsSection.vue';
 import WeeklyRhythmHeatmap from '../components/WeeklyRhythmHeatmap.vue';
@@ -160,4 +161,7 @@ onMounted(() => Promise.all([loadDailyActivity(), loadWeeklyRhythm()]));
 
     <ServerMetricsSection />
   </div>
+
+  <!-- Outside the stats: the switches must work even when they fail to load. -->
+  <AccessControlsSection class="mt-7" />
 </template>

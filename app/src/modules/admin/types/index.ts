@@ -168,3 +168,14 @@ export interface SuperAdminNavItem {
   count: number;
   danger?: boolean;
 }
+
+/** The platform-wide switches, as superadmins manage them. */
+export interface AccessControls {
+  registrationPaused: boolean;
+  maintenance: boolean;
+  updatedAt: string;
+  /** `null` before any admin flipped a switch, or once that admin was deleted. */
+  updatedByEmail: string | null;
+}
+
+export type AccessControlSwitch = 'registrationPaused' | 'maintenance';

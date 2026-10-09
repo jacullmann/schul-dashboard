@@ -1,16 +1,21 @@
 <script setup lang="ts">
+import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { MailCheck } from '@lucide/vue';
+import { storeToRefs } from 'pinia';
+import { CirclePause, Construction, MailCheck } from '@lucide/vue';
 import GoogleIcon from '@/modules/auth/components/GoogleIcon.vue';
 import AgeConsentFields from '@/modules/auth/components/AgeConsentFields.vue';
 import TermsConsentCheckbox from '@/modules/auth/components/TermsConsentCheckbox.vue';
 import { useRegister } from '@/modules/auth/composables/useRegister';
 import { useOAuth } from '@/modules/auth/composables/useOAuth';
+import { useAccessStatusStore } from '@/stores/accessStatusStore';
 import { useI18n } from 'vue-i18n';
 
 const router = useRouter();
 const { t } = useI18n();
 const { initiateGoogleLogin } = useOAuth();
+const accessStatus = useAccessStatusStore();
+const { registrationOpen, maintenance } = storeToRefs(accessStatus);
 
 const {
   email,
@@ -38,6 +43,8 @@ async function handleSubmit() {
 function navigateToLogin() {
   void router.push({ name: 'login' });
 }
+
+onMounted(accessStatus.load);
 </script>
 
 <template>
@@ -69,6 +76,35 @@ function navigateToLogin() {
         </template>
         <template #secondary-action-label>
           {{ t('auth.login.verify_email.different_email') }}
+        </template>
+      </BaseEmptyState>
+    </div>
+
+    <div
+      v-else-if="!registrationOpen"
+      class="w-full max-w-105"
+      role="status"
+      aria-live="polite"
+    >
+      <BaseEmptyState
+        :icon="maintenance ? Construction : CirclePause"
+        full-page
+        :primary-action="navigateToLogin"
+      >
+        {{
+          maintenance
+            ? t('auth.access.maintenance.title')
+            : t('auth.access.registration_paused.title')
+        }}
+        <template #message>
+          {{
+            maintenance
+              ? t('auth.access.maintenance.message')
+              : t('auth.access.registration_paused.message')
+          }}
+        </template>
+        <template #primary-action-label>
+          {{ t('auth.login.verify_email.to_login') }}
         </template>
       </BaseEmptyState>
     </div>
