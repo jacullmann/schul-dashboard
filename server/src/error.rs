@@ -28,6 +28,11 @@ pub enum AppError {
     #[error("Two-factor sign-in has expired. Please sign in again.")]
     MfaChallengeExpired,
 
+    /// Too many wrong passwords at sign-in in a row; the password accepts none
+    /// until the lock ends, while passkeys, Google and a reset still work.
+    #[error("Too many incorrect passwords. Please try again later.")]
+    LoginLocked { retry_after: chrono::TimeDelta },
+
     /// Too many wrong second-factor codes in a row; the factor accepts none
     /// until the lock ends.
     #[error("Too many incorrect codes. Please try again later.")]
@@ -133,6 +138,9 @@ impl IntoResponse for AppError {
                 StatusCode::UNAUTHORIZED,
                 json!({ "error": self.to_string(), "code": "MFA_CHALLENGE_EXPIRED" }),
             ),
+            AppError::LoginLocked { retry_after } => {
+                return too_many_requests(&self, "LOGIN_LOCKED", *retry_after);
+            }
             AppError::MfaLocked { retry_after } => {
                 return too_many_requests(&self, "MFA_LOCKED", *retry_after);
             }

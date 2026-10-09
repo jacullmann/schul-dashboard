@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT password_hash, reauth_failed_attempts, reauth_locked_until\n               FROM users WHERE id = $1 FOR UPDATE",
+  "query": "SELECT password_hash, reauth_failed_attempts, reauth_locked_until\n           FROM users WHERE id = $1 FOR UPDATE",
   "describe": {
     "columns": [
       {
@@ -48,5 +48,5 @@
       true
     ]
   },
-  "hash": "70ef8ce6fc3fb7fe772f7a2495a21f64c0e4b198887011032ff77e4d4903129e"
+  "hash": "f3aae8ca27a74b431782dd806956f5d9b2a5c0c66f8653b155cd197eb5b150c5"
 }

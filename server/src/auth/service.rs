@@ -4,7 +4,7 @@ use crate::{
         dto::*,
         email_code::{self, Issuance},
         email_verification::{self, SignUp},
-        security_notice,
+        password_attempts, security_notice,
         session_context::is_superadmin,
         sign_in_methods::{SignInMethod, SignInMethods},
         token::{IssueTokenParams, SessionOrigin, TokenService, *},
@@ -24,6 +24,7 @@ use crate::{
         recovery_codes::RecoveryCodeHasher,
         second_factor::{self, CodeCheck, SecondFactorKeys, SecondFactorProof, Verified},
     },
+    reauth::service::confirm_password,
     state::AppState,
 };
 use axum_extra::extract::cookie::CookieJar;
@@ -165,18 +166,12 @@ impl AuthService {
             return Err(AuthFailure::InvalidCredentials.into());
         };
 
-        let ok = verify_password(dto.password, hash).await?;
+        let attempt = password_attempts::reserve(&self.db, user.id).await?;
 
-        if !ok {
-            sqlx::query!(
-                r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'auth:login_failed', $2)"#,
-                user.id,
-                json!({ "ip": ip, "reason": "bad_password" })
-            )
-                .execute(&self.db)
-                .await?;
-            return Err(AuthFailure::InvalidCredentials.into());
+        if !verify_password(dto.password, hash).await? {
+            return Err(attempt.reject(&self.db, ip).await);
         }
+        attempt.accept(&self.db).await?;
 
         let client = ClientInfo { user_agent, ip };
 
@@ -659,7 +654,9 @@ impl AuthService {
         // The IS NULL guard keeps a concurrent request from overwriting a
         // password that was set in the meantime.
         let updated = sqlx::query!(
-            r#"UPDATE users SET password_hash = $1 WHERE id = $2 AND password_hash IS NULL"#,
+            r#"UPDATE users
+               SET password_hash = $1, password_failed_attempts = 0, password_locked_until = NULL
+               WHERE id = $2 AND password_hash IS NULL"#,
             hash,
             user_id
         )
@@ -752,9 +749,12 @@ impl AuthService {
         let hash = hash_password(password.to_string()).await?;
 
         // Compared with the password the token was issued for, so of two
-        // concurrent resets with one token only the first succeeds.
+        // concurrent resets with one token only the first succeeds. A reset
+        // proves the mailbox, so it also lifts a lock that guesses at the old
+        // password started.
         let updated = sqlx::query!(
-            r#"UPDATE users SET password_hash = $1
+            r#"UPDATE users
+               SET password_hash = $1, password_failed_attempts = 0, password_locked_until = NULL
                WHERE id = $2 AND password_hash IS NOT DISTINCT FROM $3"#,
             hash,
             user.id,
@@ -805,7 +805,8 @@ impl AuthService {
 
         sqlx::query!(
             r#"UPDATE users
-               SET password_hash = NULL, reauth_failed_attempts = 0, reauth_locked_until = NULL
+               SET password_hash = NULL, reauth_failed_attempts = 0, reauth_locked_until = NULL,
+                   password_failed_attempts = 0, password_locked_until = NULL
                WHERE id = $1"#,
             user_id
         )
@@ -835,6 +836,9 @@ impl AuthService {
         Ok(json!({ "ok": true }))
     }
 
+    /// The current password is checked like a confirmation of the signed-in
+    /// user, under its per-account limit: the session alone must not allow
+    /// guessing it.
     pub async fn change_password(
         &self,
         user_id: Uuid,
@@ -846,29 +850,27 @@ impl AuthService {
         validate_password_strength(&new_password).map_err(|e| AppError::BadRequest(e.into()))?;
 
         let user = sqlx::query!(
-            r#"SELECT id, email, password_hash FROM users WHERE id = $1"#,
+            r#"SELECT email, password_hash IS NOT NULL AS "has_password!" FROM users WHERE id = $1"#,
             user_id
         )
         .fetch_optional(&self.db)
         .await?
-        .ok_or_else(|| AppError::BadRequest("User not found.".into()))?;
+        .ok_or(AppError::TokenExpired)?;
 
-        let Some(current_hash) = user.password_hash else {
+        if !user.has_password {
             return Err(AppError::bad_request("Your account has no password yet."));
-        };
-
-        let ok = verify_password(current_password, current_hash).await?;
-
-        if !ok {
-            return Err(AppError::Forbidden("Current password is incorrect.".into()));
         }
+
+        confirm_password(&self.db, user_id, current_password).await?;
 
         let hash = hash_password(new_password).await?;
 
         sqlx::query!(
-            r#"UPDATE users SET password_hash = $1 WHERE id = $2"#,
+            r#"UPDATE users
+               SET password_hash = $1, password_failed_attempts = 0, password_locked_until = NULL
+               WHERE id = $2"#,
             hash,
-            user.id
+            user_id
         )
         .execute(&self.db)
         .await?;

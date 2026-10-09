@@ -25,6 +25,7 @@ use crate::{
 use axum_extra::extract::CookieJar;
 use chrono::Utc;
 use serde_json::json;
+use sqlx::PgPool;
 use uuid::Uuid;
 use webauthn_rs::prelude::PublicKeyCredential;
 use webauthn_rs_proto::PublicKeyCredentialRequestOptions;
@@ -84,7 +85,7 @@ impl ReauthService {
         password: String,
         second_factor: Option<&SecondFactorProof>,
     ) -> AppResult<CookieJar> {
-        self.check_password(user.user_id, password).await?;
+        confirm_password(&self.state.db, user.user_id, password).await?;
 
         let methods = SignInMethods::load(&self.state.db, user.user_id).await?;
         if methods.two_factor {
@@ -203,76 +204,6 @@ impl ReauthService {
         Ok(jar.add(clear_reauth_pending_cookie(&opts)))
     }
 
-    /// Wrong passwords count per account under the same growing lock as
-    /// second-factor codes. The row lock keeps parallel guesses from all
-    /// slipping in before the counter rises.
-    async fn check_password(&self, user_id: Uuid, password: String) -> AppResult<()> {
-        let mut tx = self.state.db.begin().await?;
-
-        let user = sqlx::query!(
-            r#"SELECT password_hash, reauth_failed_attempts, reauth_locked_until
-               FROM users WHERE id = $1 FOR UPDATE"#,
-            user_id
-        )
-        .fetch_optional(&mut *tx)
-        .await?
-        .ok_or(AppError::TokenExpired)?;
-
-        let now = Utc::now();
-        if let Some(locked_until) = user.reauth_locked_until
-            && locked_until > now
-        {
-            return Err(AppError::ReauthLocked {
-                retry_after: locked_until - now,
-            });
-        }
-
-        let Some(hash) = user.password_hash else {
-            return Err(AuthFailure::IncorrectPassword.into());
-        };
-
-        if verify_password(password, hash).await? {
-            sqlx::query!(
-                r#"UPDATE users SET reauth_failed_attempts = 0, reauth_locked_until = NULL
-                   WHERE id = $1"#,
-                user_id
-            )
-            .execute(&mut *tx)
-            .await?;
-            tx.commit().await?;
-            return Ok(());
-        }
-
-        let misses = user.reauth_failed_attempts.saturating_add(1);
-        let lock = lockout::lock_after(misses);
-
-        sqlx::query!(
-            r#"UPDATE users SET reauth_failed_attempts = $2, reauth_locked_until = $3 WHERE id = $1"#,
-            user_id,
-            misses,
-            lock.map(|lock| now + lock)
-        )
-        .execute(&mut *tx)
-        .await?;
-
-        if let Some(lock) = lock {
-            sqlx::query!(
-                r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'auth:reauth:locked', $2)"#,
-                user_id,
-                json!({ "consecutiveMisses": misses, "lockedForSecs": lock.num_seconds() })
-            )
-            .execute(&mut *tx)
-            .await?;
-        }
-
-        tx.commit().await?;
-
-        Err(match lock {
-            Some(retry_after) => AppError::ReauthLocked { retry_after },
-            None => AuthFailure::IncorrectPassword.into(),
-        })
-    }
-
     async fn check_second_factor(&self, user_id: Uuid, proof: &SecondFactorProof) -> AppResult<()> {
         let check = second_factor::check(
             &self.state.db,
@@ -318,4 +249,77 @@ impl ReauthService {
         let opts = self.state.config.base_cookie_options();
         Ok(CookieJar::new().add(access_cookie(access_token, &opts)))
     }
+}
+
+/// Checks the password of a signed-in user who confirms who they are. Wrong
+/// passwords count per account under the same growing lock as second-factor
+/// codes, so a stolen session cannot guess the password at the per-IP rate.
+/// The row lock keeps parallel guesses from all slipping in before the counter
+/// rises; holding it while hashing is fine here, as only a session can get
+/// this far.
+pub async fn confirm_password(db: &PgPool, user_id: Uuid, password: String) -> AppResult<()> {
+    let mut tx = db.begin().await?;
+
+    let user = sqlx::query!(
+        r#"SELECT password_hash, reauth_failed_attempts, reauth_locked_until
+           FROM users WHERE id = $1 FOR UPDATE"#,
+        user_id
+    )
+    .fetch_optional(&mut *tx)
+    .await?
+    .ok_or(AppError::TokenExpired)?;
+
+    let now = Utc::now();
+    let counter = lockout::Counter {
+        misses: user.reauth_failed_attempts,
+        locked_until: user.reauth_locked_until,
+    };
+    if let Some(retry_after) = counter.locked_for(now) {
+        return Err(AppError::ReauthLocked { retry_after });
+    }
+
+    let Some(hash) = user.password_hash else {
+        return Err(AuthFailure::IncorrectPassword.into());
+    };
+
+    if verify_password(password, hash).await? {
+        sqlx::query!(
+            r#"UPDATE users SET reauth_failed_attempts = 0, reauth_locked_until = NULL
+               WHERE id = $1"#,
+            user_id
+        )
+        .execute(&mut *tx)
+        .await?;
+        tx.commit().await?;
+        return Ok(());
+    }
+
+    let counter = counter.after_miss(now);
+    let lock = counter.locked_for(now);
+
+    sqlx::query!(
+        r#"UPDATE users SET reauth_failed_attempts = $2, reauth_locked_until = $3 WHERE id = $1"#,
+        user_id,
+        counter.misses,
+        counter.locked_until
+    )
+    .execute(&mut *tx)
+    .await?;
+
+    if let Some(lock) = lock {
+        sqlx::query!(
+            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'auth:reauth:locked', $2)"#,
+            user_id,
+            json!({ "consecutiveMisses": counter.misses, "lockedForSecs": lock.num_seconds() })
+        )
+        .execute(&mut *tx)
+        .await?;
+    }
+
+    tx.commit().await?;
+
+    Err(match lock {
+        Some(retry_after) => AppError::ReauthLocked { retry_after },
+        None => AuthFailure::IncorrectPassword.into(),
+    })
 }

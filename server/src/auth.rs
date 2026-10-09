@@ -3,6 +3,7 @@ pub mod dto;
 pub mod email_code;
 pub mod email_verification;
 pub mod handlers;
+pub mod password_attempts;
 pub mod routes;
 pub mod security_notice;
 pub mod service;

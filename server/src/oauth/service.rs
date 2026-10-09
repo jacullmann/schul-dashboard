@@ -1,6 +1,6 @@
 use crate::{
     auth::{
-        security_notice,
+        password_attempts, security_notice,
         service::{AuthService, ClientInfo, LoginResult},
         session_context::account_is_active,
         sign_in_methods::{SignInMethod, SignInMethods},
@@ -529,13 +529,14 @@ impl OAuthService {
 
         // An account without a password cannot be linked this way; its owner
         // signs in with a passkey and links Google from the settings.
-        let password_matches = match user.password_hash {
-            Some(hash) => verify_password(password.to_owned(), hash).await?,
-            None => false,
-        };
-        if !password_matches {
-            return Err(AuthFailure::InvalidCredentials.into());
+        let hash = user.password_hash.ok_or(AuthFailure::InvalidCredentials)?;
+
+        // Linking signs in with the password, so it counts like any sign-in.
+        let attempt = password_attempts::reserve(&self.db, user.id).await?;
+        if !verify_password(password.to_owned(), hash).await? {
+            return Err(attempt.reject(&self.db, client.ip).await);
         }
+        attempt.accept(&self.db).await?;
 
         self.insert_google_link(user.id, google_id, google_email)
             .await?;

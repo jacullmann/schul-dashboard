@@ -12,6 +12,7 @@ import type {
   PasskeyChallengeResponse,
   ReauthStatus,
 } from '@/modules/auth/types';
+import { AuthErrorCode } from '@/modules/auth/utils/authErrors';
 import {
   isPasskeyDismissed,
   passkeyErrorMessage,
@@ -58,7 +59,7 @@ export function useReauth(step: Ref<ReauthStep>, onConfirmed: () => void) {
 
   function errorMessage(err: unknown): string {
     const code = apiErrorCode(err);
-    if (code === 'REAUTH_LOCKED') {
+    if (code === AuthErrorCode.ReauthLocked) {
       return t('auth.reauth.errors.locked', retryAfterMinutes(err));
     }
     const key = code ? ERROR_KEYS[code] : undefined;

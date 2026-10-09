@@ -117,12 +117,12 @@ pub async fn check(
     };
 
     let now = Utc::now();
-    if let Some(locked_until) = user.mfa_locked_until
-        && locked_until > now
-    {
-        return Err(AppError::MfaLocked {
-            retry_after: locked_until - now,
-        });
+    let counter = lockout::Counter {
+        misses: user.mfa_failed_attempts,
+        locked_until: user.mfa_locked_until,
+    };
+    if let Some(retry_after) = counter.locked_for(now) {
+        return Err(AppError::MfaLocked { retry_after });
     }
 
     let verified = match proof {
@@ -142,14 +142,14 @@ pub async fn check(
     };
 
     let Some((verified, step)) = verified else {
-        let misses = user.mfa_failed_attempts.saturating_add(1);
-        let lock = lockout::lock_after(misses);
+        let counter = counter.after_miss(now);
+        let lock = counter.locked_for(now);
 
         sqlx::query!(
             r#"UPDATE users SET mfa_failed_attempts = $2, mfa_locked_until = $3 WHERE id = $1"#,
             user_id,
-            misses,
-            lock.map(|lock| now + lock)
+            counter.misses,
+            counter.locked_until
         )
         .execute(&mut *tx)
         .await?;
@@ -158,7 +158,7 @@ pub async fn check(
             sqlx::query!(
                 r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'mfa:locked', $2)"#,
                 user_id,
-                json!({ "consecutiveMisses": misses, "lockedForSecs": lock.num_seconds() })
+                json!({ "consecutiveMisses": counter.misses, "lockedForSecs": lock.num_seconds() })
             )
             .execute(&mut *tx)
             .await?;

@@ -2,7 +2,8 @@ import { ref, reactive } from 'vue';
 import { useI18n } from 'vue-i18n';
 import api from '@/api/api.ts';
 import type { ChangePasswordErrors } from '@/modules/auth/types';
-import { apiErrorMessage } from '@/api/errors';
+import { apiErrorCode, apiErrorMessage, retryAfterMinutes } from '@/api/errors';
+import { AuthErrorCode } from '@/modules/auth/utils/authErrors';
 
 export function useChangePassword(onSuccess: () => void) {
   const { t } = useI18n();
@@ -78,14 +79,18 @@ export function useChangePassword(onSuccess: () => void) {
 
       onSuccess();
     } catch (e: unknown) {
-      const errorMsg = apiErrorMessage(
-        e,
-        t('auth.change_password.errors.failed'),
-      );
-      error.value = errorMsg;
-
-      if (errorMsg.includes('falsch')) {
-        errors.current = t('auth.change_password.errors.current_wrong');
+      switch (apiErrorCode(e)) {
+        case AuthErrorCode.IncorrectPassword:
+          errors.current = t('auth.change_password.errors.current_wrong');
+          break;
+        case AuthErrorCode.ReauthLocked:
+          error.value = t('auth.reauth.errors.locked', retryAfterMinutes(e));
+          break;
+        default:
+          error.value = apiErrorMessage(
+            e,
+            t('auth.change_password.errors.failed'),
+          );
       }
     } finally {
       submitting.value = false;

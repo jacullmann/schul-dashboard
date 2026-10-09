@@ -1,12 +1,19 @@
 import i18n from '@/i18n';
-import { apiErrorCode, apiErrorMessage, isReauthDeclined } from '@/api/errors';
+import {
+  apiErrorCode,
+  apiErrorMessage,
+  isReauthDeclined,
+  retryAfterMinutes,
+} from '@/api/errors';
 
 /** Codes the API sends when signing in or changing sign-in methods fails. */
 export const AuthErrorCode = {
   InvalidCredentials: 'INVALID_CREDENTIALS',
+  LoginLocked: 'LOGIN_LOCKED',
   EmailAlreadyRegistered: 'EMAIL_ALREADY_REGISTERED',
   EmailNotVerified: 'EMAIL_NOT_VERIFIED',
   IncorrectPassword: 'INCORRECT_PASSWORD',
+  ReauthLocked: 'REAUTH_LOCKED',
   EmailThrottled: 'EMAIL_CODE_THROTTLED',
   LastSignInMethod: 'LAST_SIGN_IN_METHOD',
   InvalidBirthYear: 'INVALID_BIRTH_YEAR',
@@ -33,6 +40,10 @@ const MESSAGE_KEYS: Record<string, string> = {
  */
 export function authErrorMessage(err: unknown, fallback: string): string {
   if (isReauthDeclined(err)) return '';
-  const key = MESSAGE_KEYS[apiErrorCode(err) ?? ''];
+  const code = apiErrorCode(err);
+  if (code === AuthErrorCode.LoginLocked) {
+    return i18n.global.t('auth.errors.login_locked', retryAfterMinutes(err));
+  }
+  const key = MESSAGE_KEYS[code ?? ''];
   return key ? i18n.global.t(key) : apiErrorMessage(err, fallback);
 }
