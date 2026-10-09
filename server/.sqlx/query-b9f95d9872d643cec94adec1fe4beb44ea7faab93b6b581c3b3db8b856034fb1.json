@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO user_item_visibility (item_id, user_id, status) VALUES ($1, $2, $3)\n               ON CONFLICT (item_id, user_id)\n               DO UPDATE SET status = EXCLUDED.status, archived_at = now()",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "b9f95d9872d643cec94adec1fe4beb44ea7faab93b6b581c3b3db8b856034fb1"
+}

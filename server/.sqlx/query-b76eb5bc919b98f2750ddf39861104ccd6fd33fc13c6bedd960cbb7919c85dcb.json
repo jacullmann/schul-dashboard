@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO keep_checked (item_id, user_id, checked_at) VALUES ($1, $2, now())\n               ON CONFLICT (item_id, user_id) DO UPDATE SET checked_at = now()",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "b76eb5bc919b98f2750ddf39861104ccd6fd33fc13c6bedd960cbb7919c85dcb"
+}

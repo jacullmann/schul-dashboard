@@ -285,16 +285,11 @@ impl UserService {
 
         let mut tx = self.db.begin().await?;
 
+        // An upsert, so two tabs archiving at once still leave a single row.
         sqlx::query!(
-            r#"DELETE FROM user_item_visibility WHERE item_id = $1 AND user_id = $2"#,
-            item_id,
-            user_id
-        )
-        .execute(&mut *tx)
-        .await?;
-
-        sqlx::query!(
-            r#"INSERT INTO user_item_visibility (item_id, user_id, status) VALUES ($1, $2, $3)"#,
+            r#"INSERT INTO user_item_visibility (item_id, user_id, status) VALUES ($1, $2, $3)
+               ON CONFLICT (item_id, user_id)
+               DO UPDATE SET status = EXCLUDED.status, archived_at = now()"#,
             item_id,
             user_id,
             status
@@ -358,20 +353,16 @@ impl UserService {
         .await?
         .ok_or_else(|| AppError::not_found("Not found."))?;
 
-        sqlx::query!(
-            r#"DELETE FROM keep_checked WHERE item_id = $1 AND user_id = $2"#,
-            item_id,
-            user_id
-        )
-        .execute(&self.db)
-        .await?;
+        let mut tx = self.db.begin().await?;
 
+        // An upsert, so checking from two tabs at once is not a conflict.
         sqlx::query!(
-            r#"INSERT INTO keep_checked (item_id, user_id, checked_at) VALUES ($1, $2, now())"#,
+            r#"INSERT INTO keep_checked (item_id, user_id, checked_at) VALUES ($1, $2, now())
+               ON CONFLICT (item_id, user_id) DO UPDATE SET checked_at = now()"#,
             item_id,
             user_id
         )
-        .execute(&self.db)
+        .execute(&mut *tx)
         .await?;
 
         sqlx::query!(
@@ -379,7 +370,7 @@ impl UserService {
             item_id,
             user_id
         )
-        .execute(&self.db)
+        .execute(&mut *tx)
         .await?;
 
         sqlx::query!(
@@ -387,8 +378,10 @@ impl UserService {
             user_id,
             json!({ "itemId": item_id })
         )
-        .execute(&self.db)
+        .execute(&mut *tx)
         .await?;
+
+        tx.commit().await?;
 
         Ok(json!({ "ok": true }))
     }
@@ -429,15 +422,8 @@ impl UserService {
         .ok_or_else(|| AppError::not_found("Not found."))?;
 
         sqlx::query!(
-            r#"DELETE FROM pinned_items WHERE item_id = $1 AND user_id = $2"#,
-            item_id,
-            user_id
-        )
-        .execute(&self.db)
-        .await?;
-
-        sqlx::query!(
-            r#"INSERT INTO pinned_items (item_id, user_id, pinned_at) VALUES ($1, $2, now())"#,
+            r#"INSERT INTO pinned_items (item_id, user_id, pinned_at) VALUES ($1, $2, now())
+               ON CONFLICT (item_id, user_id) DO UPDATE SET pinned_at = now()"#,
             item_id,
             user_id
         )
