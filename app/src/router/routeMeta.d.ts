@@ -17,5 +17,7 @@ declare module 'vue-router' {
     fullWidth?: boolean;
     /** The navigation entry shown as active, when not the route's own. */
     navItem?: string;
+    /** The page puts the window where it belongs itself on every entry. */
+    restoresScroll?: boolean;
   }
 }

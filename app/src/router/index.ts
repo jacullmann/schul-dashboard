@@ -121,6 +121,8 @@ const routes: RouteRecordRaw[] = [
                 path: '',
                 name: 'group-tasks',
                 component: () => import('@/modules/tasks/pages/TaskList.vue'),
+                // Kept alive behind an opened task, it returns to where it was.
+                meta: { restoresScroll: true },
                 // Links shared before tasks had a page of their own pointed
                 // into the list.
                 beforeEnter: (to) =>
@@ -303,6 +305,14 @@ const routes: RouteRecordRaw[] = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
+  scrollBehavior(to, from, savedPosition) {
+    if (to.meta.restoresScroll) return false;
+    if (savedPosition) return savedPosition;
+    // Switching tabs within a page keeps the tabs where they are on screen.
+    const samePage =
+      to.name === from.name && to.params.groupId === from.params.groupId;
+    return samePage ? false : { top: 0 };
+  },
 });
 
 const { start, finish } = useLoadingBar();
