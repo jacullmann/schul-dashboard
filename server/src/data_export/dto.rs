@@ -49,8 +49,6 @@ pub struct Account {
     pub reauth_failed_attempts: i32,
     pub reauth_locked_until: Option<DateTime<Utc>>,
     pub personalized: bool,
-    pub birth_year: Option<i32>,
-    pub guardian_consent_at: Option<DateTime<Utc>>,
     pub preferences: Value,
     pub platform_role: Option<String>,
     pub last_active_group_id: Option<Uuid>,

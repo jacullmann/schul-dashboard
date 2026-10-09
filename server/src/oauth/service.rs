@@ -7,7 +7,6 @@ use crate::{
         sign_in_methods::{SignInMethod, SignInMethods},
     },
     common::{
-        age,
         email::SecurityEvent,
         jwt::{hs256_validation, now_secs},
     },
@@ -466,23 +465,17 @@ impl OAuthService {
     pub async fn sign_up_with_google(
         &self,
         pending: &OAuthPendingClaims,
-        birth_year: i32,
-        guardian_consent: bool,
         client: ClientInfo<'_>,
     ) -> AppResult<LoginResult> {
         access_control::ensure_registration_open(&self.db).await?;
 
         let email = &pending.google_email;
-        let age = age::declare(birth_year, guardian_consent, chrono::Utc::now())?;
-
         let mut tx = self.db.begin().await?;
 
         let user_id = sqlx::query_scalar!(
-            r#"INSERT INTO users (email, password_hash, birth_year, guardian_consent_at)
-               VALUES ($1, NULL, $2, $3) RETURNING id"#,
+            r#"INSERT INTO users (email, password_hash)
+               VALUES ($1, NULL) RETURNING id"#,
             email,
-            age.birth_year,
-            age.guardian_consent_at,
         )
         .fetch_one(&mut *tx)
         .await

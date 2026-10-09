@@ -11,7 +11,6 @@ use crate::{
         token::{IssueTokenParams, SessionOrigin, TokenService, *},
     },
     common::{
-        age,
         csrf::generate_csrf_token,
         email::{EmailService, SecurityEvent},
         jwt::JwtService,
@@ -344,12 +343,10 @@ impl AuthService {
     pub async fn register(&self, dto: RegisterDto) -> AppResult<serde_json::Value> {
         access_control::ensure_registration_open(&self.db).await?;
         validate_password_strength(&dto.password).map_err(|e| AppError::BadRequest(e.into()))?;
-        let age = age::declare(dto.birth_year, dto.guardian_consent, Utc::now())?;
 
         let email = dto.email.to_lowercase();
         let locale = dto.preferences.language;
         let sign_up = SignUp {
-            age,
             password_hash: hash_password(dto.password).await?,
             preferences: json!(dto.preferences),
         };
@@ -545,16 +542,13 @@ impl AuthService {
             return Err(invalid_link());
         }
 
-        let age = pending.sign_up.age;
         let user_id = sqlx::query_scalar!(
-            r#"INSERT INTO users (email, password_hash, preferences, birth_year, guardian_consent_at)
-               VALUES ($1, $2, $3, $4, $5)
+            r#"INSERT INTO users (email, password_hash, preferences)
+               VALUES ($1, $2, $3)
                RETURNING id"#,
             pending.email,
             pending.sign_up.password_hash,
             pending.sign_up.preferences,
-            age.birth_year,
-            age.guardian_consent_at,
         )
         .fetch_one(&mut *tx)
         .await

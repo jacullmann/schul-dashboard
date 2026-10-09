@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO verifications\n               (email, token, password_hash, preferences, birth_year, guardian_consent_at, expires_at, created_at)\n           SELECT email, $2, password_hash, preferences, birth_year, guardian_consent_at, expires_at, $3\n           FROM verifications\n           WHERE email = $1 AND expires_at > $3\n           ORDER BY created_at DESC\n           LIMIT 1\n           RETURNING token, preferences->>'language' AS language",
+  "query": "INSERT INTO verifications\n               (email, token, password_hash, preferences, expires_at, created_at)\n           SELECT email, $2, password_hash, preferences, expires_at, $3\n           FROM verifications\n           WHERE email = $1 AND expires_at > $3\n           ORDER BY created_at DESC\n           LIMIT 1\n           RETURNING token, preferences->>'language' AS language",
   "describe": {
     "columns": [
       {
@@ -33,5 +33,5 @@
       null
     ]
   },
-  "hash": "47d63832b01757fb78d2654791ebb5b0aa06ba0d9c6e28e2fd59eaf360a8bfef"
+  "hash": "24c14379334e933d32d57d68e56c6697b88319b1f7aaac7246e8da3e47a36b6f"
 }

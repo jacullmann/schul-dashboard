@@ -75,14 +75,13 @@ pub async fn handle_google_callback(
 }
 
 /// Finishes a Google sign-up the callback could not complete on its own: the
-/// user has to accept the terms and declare their age before an account is
-/// created.
+/// user has to accept the terms before an account is created.
 pub async fn sign_up_with_google(
     State(s): State<AppState>,
     ClientIp(ip): ClientIp,
     UserAgent(ua): UserAgent,
     jar: CookieJar,
-    ValidatedJson(dto): ValidatedJson<GoogleSignUpDto>,
+    ValidatedJson(_accepted): ValidatedJson<GoogleSignUpDto>,
 ) -> AppResult<(CookieJar, Json<Value>)> {
     let svc = OAuthService::from_state(&s);
     let pending = svc.verify_pending_cookie(pending_cookie(&jar))?;
@@ -90,8 +89,6 @@ pub async fn sign_up_with_google(
     let result = svc
         .sign_up_with_google(
             &pending,
-            dto.birth_year,
-            dto.guardian_consent,
             ClientInfo {
                 user_agent: ua.as_deref(),
                 ip: ip.as_deref(),

@@ -4,7 +4,6 @@ import api from '@/api/api.ts';
 import { usePreferences } from '@/common/composables/usePreferences';
 import { isRateLimited } from '@/api/errors';
 import { authErrorMessage } from '@/modules/auth/utils/authErrors';
-import { useAgeConsent } from '@/modules/auth/composables/useAgeConsent';
 
 /** Subset of `BaseInput`'s exposed API that these forms rely on. */
 interface FocusableInput {
@@ -14,7 +13,6 @@ interface FocusableInput {
 export function useRegister() {
   const { t } = useI18n();
   const { currentTheme, currentLanguage } = usePreferences();
-  const age = useAgeConsent();
 
   const email = ref('');
   const password = ref('');
@@ -90,7 +88,6 @@ export function useRegister() {
   async function restartRegistration() {
     registeredEmail.value = null;
     acceptedTerms.value = false;
-    age.resetAge();
     await nextTick();
     emailInputRef.value?.focus();
   }
@@ -98,8 +95,7 @@ export function useRegister() {
   async function submit() {
     formError.value = '';
 
-    const declaration = age.declareAge();
-    if (!validateBeforeSubmit() || declaration === null) {
+    if (!validateBeforeSubmit()) {
       return;
     }
 
@@ -114,8 +110,6 @@ export function useRegister() {
         email: email.value,
         password: password.value,
         acceptedTerms: acceptedTerms.value,
-        birthYear: declaration.birthYear,
-        guardianConsent: declaration.guardianConsent,
         preferences,
       });
 
@@ -144,10 +138,6 @@ export function useRegister() {
     registeredEmail,
     emailInputRef,
     errors,
-    birthYearInput: age.birthYearInput,
-    guardianConsent: age.guardianConsent,
-    requiresGuardianConsent: age.requiresGuardianConsent,
-    ageErrors: age.ageErrors,
 
     clearFieldError,
     restartRegistration,

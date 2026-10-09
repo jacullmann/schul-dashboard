@@ -10,10 +10,7 @@
 
 use super::email_code::Issuance;
 use crate::{
-    common::{
-        age::AgeDeclaration,
-        send_limit::{MAIL_LIMITS, longest_window, retry_after},
-    },
+    common::send_limit::{MAIL_LIMITS, longest_window, retry_after},
     config::{EMAIL_VERIFY_TTL, chrono_ttl},
     error::AppResult,
 };
@@ -24,7 +21,6 @@ use sqlx::{PgConnection, PgExecutor};
 pub struct SignUp {
     pub password_hash: String,
     pub preferences: serde_json::Value,
-    pub age: AgeDeclaration,
 }
 
 pub struct PendingSignUp {
@@ -51,14 +47,12 @@ pub async fn issue(conn: &mut PgConnection, email: &str, sign_up: &SignUp) -> Ap
     let token = new_token();
     sqlx::query!(
         r#"INSERT INTO verifications
-               (email, token, password_hash, preferences, birth_year, guardian_consent_at, expires_at, created_at)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)"#,
+               (email, token, password_hash, preferences, expires_at, created_at)
+           VALUES ($1, $2, $3, $4, $5, $6)"#,
         email,
         token,
         sign_up.password_hash,
         sign_up.preferences,
-        sign_up.age.birth_year,
-        sign_up.age.guardian_consent_at,
         now + chrono_ttl(EMAIL_VERIFY_TTL),
         now
     )
@@ -79,8 +73,8 @@ pub async fn reissue_latest(conn: &mut PgConnection, email: &str) -> AppResult<O
 
     let resent = sqlx::query!(
         r#"INSERT INTO verifications
-               (email, token, password_hash, preferences, birth_year, guardian_consent_at, expires_at, created_at)
-           SELECT email, $2, password_hash, preferences, birth_year, guardian_consent_at, expires_at, $3
+               (email, token, password_hash, preferences, expires_at, created_at)
+           SELECT email, $2, password_hash, preferences, expires_at, $3
            FROM verifications
            WHERE email = $1 AND expires_at > $3
            ORDER BY created_at DESC
@@ -101,7 +95,7 @@ pub async fn reissue_latest(conn: &mut PgConnection, email: &str) -> AppResult<O
 
 pub async fn find<'e>(db: impl PgExecutor<'e>, token: &str) -> AppResult<Option<PendingSignUp>> {
     let row = sqlx::query!(
-        r#"SELECT email, password_hash, preferences, birth_year, guardian_consent_at, expires_at
+        r#"SELECT email, password_hash, preferences, expires_at
            FROM verifications WHERE token = $1"#,
         token
     )
@@ -114,10 +108,6 @@ pub async fn find<'e>(db: impl PgExecutor<'e>, token: &str) -> AppResult<Option<
         sign_up: SignUp {
             password_hash: row.password_hash,
             preferences: row.preferences,
-            age: AgeDeclaration {
-                birth_year: row.birth_year,
-                guardian_consent_at: row.guardian_consent_at,
-            },
         },
     }))
 }

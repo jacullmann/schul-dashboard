@@ -28,11 +28,6 @@ pub struct RegisterDto {
     #[validate(custom(function = "must_be_accepted"))]
     pub accepted_terms: bool,
 
-    pub birth_year: i32,
-
-    #[serde(default)]
-    pub guardian_consent: bool,
-
     #[serde(default)]
     pub preferences: RegisterPreferencesDto,
 }

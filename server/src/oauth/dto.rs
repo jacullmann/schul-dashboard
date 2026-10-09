@@ -7,11 +7,6 @@ use validator::Validate;
 pub struct GoogleSignUpDto {
     #[validate(custom(function = "must_be_accepted"))]
     pub accepted_terms: bool,
-
-    pub birth_year: i32,
-
-    #[serde(default)]
-    pub guardian_consent: bool,
 }
 
 #[derive(Debug, Serialize)]
