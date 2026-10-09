@@ -3,9 +3,9 @@ use super::{
     service::{PasskeyName, PasskeyService},
 };
 use crate::{
-    auth::service::ClientInfo,
     common::{
-        extractors::{AuthUser, ClientIp, RecentAuth, UserAgent, ValidatedJson},
+        client::ClientInfo,
+        extractors::{AuthUser, RecentAuth, ValidatedJson},
         path_params::IdPath,
     },
     error::AppResult,
@@ -46,13 +46,14 @@ pub async fn start_registration(
 pub async fn finish_registration(
     State(state): State<AppState>,
     user: AuthUser,
+    client: ClientInfo,
     ValidatedJson(dto): ValidatedJson<FinishRegistrationDto>,
 ) -> AppResult<Json<PasskeySummary>> {
     let name = PasskeyName::parse(&dto.name)?;
 
     Ok(Json(
         PasskeyService::from_state(&state)
-            .finish_registration(user.user_id, name, &dto.credential)
+            .finish_registration(user.user_id, name, &dto.credential, &client)
             .await?,
     ))
 }
@@ -75,11 +76,11 @@ pub async fn rename_passkey(
 pub async fn remove_passkey(
     State(state): State<AppState>,
     RecentAuth(user): RecentAuth,
-    ClientIp(ip): ClientIp,
+    client: ClientInfo,
     Path(path): Path<IdPath>,
 ) -> AppResult<Json<Value>> {
     PasskeyService::from_state(&state)
-        .remove(user.user_id, path.id, ip.as_deref())
+        .remove(user.user_id, path.id, &client)
         .await?;
 
     Ok(Json(json!({ "ok": true })))
@@ -95,17 +96,11 @@ pub async fn start_sign_in(State(state): State<AppState>) -> AppResult<Json<Valu
 
 pub async fn finish_sign_in(
     State(state): State<AppState>,
-    ClientIp(ip): ClientIp,
-    UserAgent(ua): UserAgent,
+    client: ClientInfo,
     ValidatedJson(dto): ValidatedJson<SignInDto>,
 ) -> AppResult<(CookieJar, Json<Value>)> {
-    let client = ClientInfo {
-        user_agent: ua.as_deref(),
-        ip: ip.as_deref(),
-    };
-
     let jar = PasskeyService::from_state(&state)
-        .finish_sign_in(dto.challenge_id, &dto.credential, client)
+        .finish_sign_in(dto.challenge_id, &dto.credential, &client)
         .await?;
 
     Ok((jar, Json(json!({ "ok": true }))))

@@ -1,11 +1,17 @@
 use crate::{
     access_control,
-    common::jwt::{AccessClaims, JwtService},
+    common::{
+        client::ClientInfo,
+        jwt::{AccessClaims, JwtService},
+    },
     config::{ACCESS_TOKEN_TTL, REFRESH_REUSE_GRACE, REFRESH_TOKEN_TTL, chrono_ttl},
     error::AppError,
+    security_log::{SecurityEvent, SecurityEventKind},
     state::AppState,
 };
 use chrono::{DateTime, Utc};
+use ipnetwork::IpNetwork;
+use serde_json::json;
 use sha2::{Digest, Sha256};
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -48,8 +54,7 @@ pub struct IssuedTokens {
 pub struct IssueTokenParams<'a> {
     pub user_id: Uuid,
     pub email: &'a str,
-    pub user_agent: Option<&'a str>,
-    pub ip_address: Option<&'a str>,
+    pub client: &'a ClientInfo,
     pub origin: SessionOrigin,
 }
 
@@ -148,31 +153,18 @@ impl TokenService {
 
         let expires_at = Utc::now() + chrono_ttl(REFRESH_TOKEN_TTL);
 
-        let ua: Option<String> = p.user_agent.map(|s| {
-            if s.len() > 512 {
-                let mut end = 512;
-                while !s.is_char_boundary(end) {
-                    end -= 1;
-                }
-                s[..end].to_string()
-            } else {
-                s.to_string()
-            }
-        });
-        let ip_parsed: Option<ipnetwork::IpNetwork> = p.ip_address.and_then(|s| s.parse().ok());
-
         sqlx::query!(
             r#"INSERT INTO refresh_tokens
                 (user_id, token_hash, family_id, parent_id, expires_at,
                  user_agent, ip_address, authenticated_at)
-               VALUES ($1, $2, $3, $4, $5, $6, $7::inet, $8)"#,
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8)"#,
             p.user_id,
             token_hash,
             family_id,
             parent_id,
             expires_at,
-            ua,
-            ip_parsed,
+            p.client.user_agent.as_deref(),
+            p.client.ip.map(IpNetwork::from),
             authenticated_at,
         )
         .execute(&self.db)
@@ -264,8 +256,7 @@ impl TokenService {
     pub async fn rotate(
         &self,
         presented_token: &str,
-        user_agent: Option<&str>,
-        ip_address: Option<&str>,
+        client: &ClientInfo,
     ) -> Result<Result<IssuedTokens, RefreshRejection>, AppError> {
         let hash = hash_token(presented_token);
 
@@ -308,6 +299,12 @@ impl TokenService {
                         current.user_id,
                         current.family_id
                     );
+                    SecurityEvent::new(SecurityEventKind::RefreshTokenReused)
+                        .user(current.user_id)
+                        .client(client)
+                        .metadata(json!({ "sessionId": current.family_id }))
+                        .record(&self.db)
+                        .await?;
                 }
 
                 self.revoke_family(current.family_id, REUSE_DETECTED)
@@ -326,8 +323,7 @@ impl TokenService {
             .issue_pair(IssueTokenParams {
                 user_id: user.user_id,
                 email: &user.email,
-                user_agent,
-                ip_address,
+                client,
                 origin: SessionOrigin::Rotation {
                     parent_id: row.id,
                     family_id: row.family_id,
@@ -388,25 +384,29 @@ impl TokenService {
         Ok(revoked > 0)
     }
 
+    /// Ends the session the token belongs to and returns whose it was, or
+    /// `None` when it had already ended.
     pub async fn revoke_current_family(
         &self,
         token: &str,
         reason: RevokeReason,
-    ) -> Result<(), AppError> {
+    ) -> Result<Option<Uuid>, AppError> {
         let hash = hash_token(token);
 
-        let row = sqlx::query!(
-            r#"SELECT family_id FROM refresh_tokens WHERE token_hash = $1"#,
+        let Some(row) = sqlx::query!(
+            r#"SELECT user_id, family_id FROM refresh_tokens
+               WHERE token_hash = $1 AND revoked_at IS NULL"#,
             hash
         )
         .fetch_optional(&self.db)
-        .await?;
+        .await?
+        else {
+            return Ok(None);
+        };
 
-        if let Some(r) = row {
-            self.revoke_family(r.family_id, reason).await?;
-        }
+        self.revoke_family(row.family_id, reason).await?;
 
-        Ok(())
+        Ok(Some(row.user_id))
     }
 
     pub async fn revoke_all_for_user(

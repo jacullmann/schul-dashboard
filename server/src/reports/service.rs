@@ -1,7 +1,8 @@
 use crate::{
-    common::text::DisplayText,
+    common::{client::ClientInfo, text::DisplayText},
     error::{AppError, AppResult},
     items::attachments,
+    security_log::{SecurityEvent, SecurityEventKind},
     state::AppState,
 };
 use serde_json::{Value, json};
@@ -209,23 +210,30 @@ impl ReportsService {
         Ok(json!(reports))
     }
 
-    pub async fn delete(&self, report_id: Uuid, admin_id: Uuid) -> AppResult<Value> {
+    pub async fn delete(
+        &self,
+        report_id: Uuid,
+        admin_id: Uuid,
+        client: &ClientInfo,
+    ) -> AppResult<Value> {
+        let mut tx = self.db.begin().await?;
+
         let res = sqlx::query!(r#"DELETE FROM reports WHERE id = $1"#, report_id)
-            .execute(&self.db)
+            .execute(&mut *tx)
             .await?;
 
         if res.rows_affected() == 0 {
             return Err(AppError::not_found("Report not found."));
         }
 
-        sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta)
-               VALUES ($1, 'admin:report:delete', $2)"#,
-            admin_id,
-            json!({ "reportId": report_id })
-        )
-        .execute(&self.db)
-        .await?;
+        SecurityEvent::new(SecurityEventKind::AdminReportDeleted)
+            .actor(admin_id)
+            .client(client)
+            .metadata(json!({ "reportId": report_id }))
+            .record(&mut *tx)
+            .await?;
+
+        tx.commit().await?;
 
         Ok(json!({ "ok": true }))
     }

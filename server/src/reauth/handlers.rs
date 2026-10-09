@@ -3,7 +3,10 @@ use super::{
     service::ReauthService,
 };
 use crate::{
-    common::extractors::{AuthUser, ValidatedJson},
+    common::{
+        client::ClientInfo,
+        extractors::{AuthUser, ValidatedJson},
+    },
     config::REAUTH_PENDING_COOKIE,
     error::AppResult,
     mfa::second_factor::SecondFactorProof,
@@ -23,10 +26,11 @@ pub async fn status(
 pub async fn confirm_with_password(
     State(state): State<AppState>,
     user: AuthUser,
+    client: ClientInfo,
     ValidatedJson(dto): ValidatedJson<PasswordReauthDto>,
 ) -> AppResult<(CookieJar, Json<Value>)> {
     let jar = ReauthService::from_state(&state)
-        .with_password(&user, dto.password, dto.second_factor.as_ref())
+        .with_password(&user, dto.password, dto.second_factor.as_ref(), &client)
         .await?;
 
     Ok((jar, Json(json!({ "ok": true }))))
@@ -48,10 +52,11 @@ pub async fn start_passkey(
 pub async fn confirm_with_passkey(
     State(state): State<AppState>,
     user: AuthUser,
+    client: ClientInfo,
     Json(dto): Json<PasskeyReauthDto>,
 ) -> AppResult<(CookieJar, Json<Value>)> {
     let jar = ReauthService::from_state(&state)
-        .finish_passkey(&user, dto.challenge_id, &dto.credential)
+        .finish_passkey(&user, dto.challenge_id, &dto.credential, &client)
         .await?;
 
     Ok((jar, Json(json!({ "ok": true }))))
@@ -73,12 +78,13 @@ pub async fn start_google(
 pub async fn confirm_google_second_factor(
     State(state): State<AppState>,
     user: AuthUser,
+    client: ClientInfo,
     jar: CookieJar,
     ValidatedJson(proof): ValidatedJson<SecondFactorProof>,
 ) -> AppResult<(CookieJar, Json<Value>)> {
     let pending = jar.get(REAUTH_PENDING_COOKIE).map(|c| c.value());
     let jar = ReauthService::from_state(&state)
-        .finish_google(&user, pending, &proof)
+        .finish_google(&user, pending, &proof, &client)
         .await?;
 
     Ok((jar, Json(json!({ "ok": true }))))

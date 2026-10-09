@@ -2,12 +2,13 @@ use crate::{
     auth::{
         cookies::*,
         dto::*,
-        service::{AuthService, ClientInfo, LoginResult},
+        service::{AuthService, LoginResult},
         sign_in_methods::SignInMethods,
         token::{TokenService, *},
     },
-    common::extractors::{
-        AuthUser, ClientIp, MfaPending, OptionalAuth, RecentAuth, UserAgent, ValidatedJson,
+    common::{
+        client::ClientInfo,
+        extractors::{AuthUser, MfaPending, OptionalAuth, RecentAuth, ValidatedJson},
     },
     error::{AppError, AppResult},
     mfa::second_factor::SecondFactorProof,
@@ -21,13 +22,12 @@ use serde_json::{Value, json};
 
 pub async fn login(
     State(state): State<AppState>,
-    ClientIp(ip): ClientIp,
-    UserAgent(ua): UserAgent,
+    client: ClientInfo,
     ValidatedJson(dto): ValidatedJson<LoginDto>,
 ) -> AppResult<(CookieJar, Json<Value>)> {
     let svc = AuthService::from_state(&state);
 
-    match svc.login(dto, ua.as_deref(), ip.as_deref()).await? {
+    match svc.login(dto, &client).await? {
         LoginResult::Success(jar) => Ok((jar, Json(json!({ "ok": true })))),
 
         LoginResult::MfaRequired(jar) => {
@@ -54,20 +54,13 @@ pub async fn get_mfa_challenge(
 pub async fn verify_mfa(
     State(state): State<AppState>,
     pending: MfaPending,
-    ClientIp(ip): ClientIp,
-    UserAgent(ua): UserAgent,
+    client: ClientInfo,
     ValidatedJson(proof): ValidatedJson<SecondFactorProof>,
 ) -> AppResult<(CookieJar, Json<Value>)> {
     let svc = AuthService::from_state(&state);
 
     let (jar, recovery_codes_left) = svc
-        .verify_mfa(
-            &proof,
-            pending.user_id,
-            &pending.email,
-            ua.as_deref(),
-            ip.as_deref(),
-        )
+        .verify_mfa(&proof, pending.user_id, &pending.email, &client)
         .await?;
 
     Ok((
@@ -92,22 +85,16 @@ pub async fn start_mfa_passkey(
 pub async fn verify_mfa_passkey(
     State(state): State<AppState>,
     pending: MfaPending,
-    ClientIp(ip): ClientIp,
-    UserAgent(ua): UserAgent,
+    client: ClientInfo,
     ValidatedJson(dto): ValidatedJson<PasskeySignInDto>,
 ) -> AppResult<(CookieJar, Json<Value>)> {
-    let client = ClientInfo {
-        user_agent: ua.as_deref(),
-        ip: ip.as_deref(),
-    };
-
     let jar = PasskeyService::from_state(&state)
         .finish_second_factor(
             pending.user_id,
             &pending.email,
             dto.challenge_id,
             &dto.credential,
-            client,
+            &client,
         )
         .await?;
 
@@ -147,10 +134,11 @@ pub async fn get_me(State(state): State<AppState>, opt: OptionalAuth) -> AppResu
 pub async fn delete_me(
     State(state): State<AppState>,
     RecentAuth(user): RecentAuth,
+    client: ClientInfo,
 ) -> AppResult<(CookieJar, Json<Value>)> {
     let svc = AuthService::from_state(&state);
 
-    let jar = svc.delete_me(user.user_id).await?;
+    let jar = svc.delete_me(user.user_id, &client).await?;
     state.message_bus.end_sessions(user.user_id);
 
     Ok((jar, Json(json!({ "ok": true }))))
@@ -160,17 +148,11 @@ pub async fn delete_me(
 /// account and signs it in.
 pub async fn confirm_sign_up(
     State(state): State<AppState>,
-    ClientIp(ip): ClientIp,
-    UserAgent(ua): UserAgent,
+    client: ClientInfo,
     ValidatedJson(dto): ValidatedJson<ConfirmSignUpDto>,
 ) -> AppResult<(CookieJar, Json<Value>)> {
-    let client = ClientInfo {
-        user_agent: ua.as_deref(),
-        ip: ip.as_deref(),
-    };
-
     let jar = AuthService::from_state(&state)
-        .confirm_sign_up(&dto.email, &dto.code, dto.password, client)
+        .confirm_sign_up(&dto.email, &dto.code, dto.password, &client)
         .await?;
 
     Ok((jar, Json(json!({ "ok": true }))))
@@ -187,11 +169,12 @@ pub async fn resend_verification(
 
 pub async fn forgot_password(
     State(state): State<AppState>,
+    client: ClientInfo,
     ValidatedJson(dto): ValidatedJson<ForgotPasswordDto>,
 ) -> AppResult<Json<Value>> {
     let svc = AuthService::from_state(&state);
 
-    Ok(Json(svc.forgot_password(&dto.email).await?))
+    Ok(Json(svc.forgot_password(&dto.email, &client).await?))
 }
 
 pub async fn verify_reset_token(
@@ -205,20 +188,21 @@ pub async fn verify_reset_token(
 
 pub async fn reset_password(
     State(state): State<AppState>,
+    client: ClientInfo,
     ValidatedJson(dto): ValidatedJson<ResetPasswordDto>,
 ) -> AppResult<Json<Value>> {
     let svc = AuthService::from_state(&state);
 
     Ok(Json(
-        svc.reset_password(&dto.reset_token, &dto.password).await?,
+        svc.reset_password(&dto.reset_token, &dto.password, &client)
+            .await?,
     ))
 }
 
 pub async fn change_password(
     State(state): State<AppState>,
     user: AuthUser,
-    ClientIp(ip): ClientIp,
-    UserAgent(ua): UserAgent,
+    client: ClientInfo,
     ValidatedJson(dto): ValidatedJson<ChangePasswordDto>,
 ) -> AppResult<(CookieJar, Json<Value>)> {
     let svc = AuthService::from_state(&state);
@@ -228,8 +212,7 @@ pub async fn change_password(
             user.user_id,
             dto.current_password,
             dto.new_password,
-            ua.as_deref(),
-            ip.as_deref(),
+            &client,
         )
         .await?;
 
@@ -248,20 +231,13 @@ pub async fn request_password_setup_code(
 pub async fn set_password(
     State(state): State<AppState>,
     user: AuthUser,
-    ClientIp(ip): ClientIp,
-    UserAgent(ua): UserAgent,
+    client: ClientInfo,
     ValidatedJson(dto): ValidatedJson<SetPasswordDto>,
 ) -> AppResult<(CookieJar, Json<Value>)> {
     let svc = AuthService::from_state(&state);
 
     let (jar, body) = svc
-        .set_initial_password(
-            user.user_id,
-            &dto.code,
-            dto.new_password,
-            ua.as_deref(),
-            ip.as_deref(),
-        )
+        .set_initial_password(user.user_id, &dto.code, dto.new_password, &client)
         .await?;
 
     Ok((jar, Json(body)))
@@ -277,11 +253,13 @@ pub async fn get_sign_in_methods(
 pub async fn remove_password(
     State(state): State<AppState>,
     RecentAuth(user): RecentAuth,
+    client: ClientInfo,
 ) -> AppResult<Json<Value>> {
     let svc = AuthService::from_state(&state);
 
     Ok(Json(
-        svc.remove_password(user.user_id, user.session_id).await?,
+        svc.remove_password(user.user_id, user.session_id, &client)
+            .await?,
     ))
 }
 
@@ -294,8 +272,7 @@ pub async fn get_groups(State(state): State<AppState>, user: AuthUser) -> AppRes
 pub async fn refresh(
     State(state): State<AppState>,
     jar: CookieJar,
-    ClientIp(ip): ClientIp,
-    UserAgent(ua): UserAgent,
+    client: ClientInfo,
 ) -> AppResult<(CookieJar, Json<Value>)> {
     use crate::config::REFRESH_COOKIE;
 
@@ -307,7 +284,7 @@ pub async fn refresh(
     let rotated = match presented {
         Some(token) => {
             TokenService::from_state(&state)
-                .rotate(token, ua.as_deref(), ip.as_deref())
+                .rotate(token, &client)
                 .await?
         }
         None => Err(RefreshRejection::Missing),
@@ -336,15 +313,19 @@ pub async fn refresh(
 pub async fn logout(
     State(state): State<AppState>,
     jar: CookieJar,
+    client: ClientInfo,
 ) -> AppResult<(CookieJar, Json<Value>)> {
     use crate::config::REFRESH_COOKIE;
 
-    if let Some(token) = jar.get(REFRESH_COOKIE).map(|c| c.value().to_string())
+    // Signing out always clears the cookies, even if ending the session
+    // on the server failed.
+    if let Some(token) = jar.get(REFRESH_COOKIE).map(|c| c.value())
         && !token.is_empty()
+        && let Err(e) = AuthService::from_state(&state)
+            .sign_out(token, &client)
+            .await
     {
-        let svc = TokenService::from_state(&state);
-
-        let _ = svc.revoke_current_family(&token, LOGOUT).await;
+        tracing::warn!("Session not ended on sign-out: {e}");
     }
 
     let opts = state.config.base_cookie_options();
@@ -360,10 +341,10 @@ pub async fn logout_all(
     State(state): State<AppState>,
     user: AuthUser,
     jar: CookieJar,
+    client: ClientInfo,
 ) -> AppResult<(CookieJar, Json<Value>)> {
-    let svc = TokenService::from_state(&state);
-
-    svc.revoke_all_for_user(user.user_id, LOGOUT_ALL, None)
+    AuthService::from_state(&state)
+        .sign_out_everywhere(user.user_id, None, &client)
         .await?;
 
     let opts = state.config.base_cookie_options();
@@ -378,9 +359,10 @@ pub async fn logout_all(
 pub async fn logout_all_others(
     State(state): State<AppState>,
     user: AuthUser,
+    client: ClientInfo,
 ) -> AppResult<Json<Value>> {
-    TokenService::from_state(&state)
-        .revoke_all_for_user(user.user_id, LOGOUT_ALL, Some(user.session_id))
+    AuthService::from_state(&state)
+        .sign_out_everywhere(user.user_id, Some(user.session_id), &client)
         .await?;
 
     Ok(Json(json!({ "ok": true })))
@@ -403,13 +385,14 @@ pub async fn list_sessions(
 pub async fn revoke_session(
     State(state): State<AppState>,
     user: AuthUser,
+    client: ClientInfo,
     axum::extract::Path(family_id): axum::extract::Path<uuid::Uuid>,
 ) -> AppResult<Json<Value>> {
-    let revoked = TokenService::from_state(&state)
-        .revoke_own_session(user.user_id, family_id, SESSION_REVOKED)
+    let ended = AuthService::from_state(&state)
+        .end_session(user.user_id, family_id, &client)
         .await?;
 
-    if !revoked {
+    if !ended {
         return Err(AppError::not_found("Session not found."));
     }
 

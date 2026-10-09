@@ -1,5 +1,9 @@
 use super::{archive, service::DataExportService};
-use crate::{common::extractors::RecentAuth, error::AppResult, state::AppState};
+use crate::{
+    common::{client::ClientInfo, extractors::RecentAuth},
+    error::AppResult,
+    state::AppState,
+};
 use axum::{
     extract::State,
     http::header::{CACHE_CONTROL, CONTENT_DISPOSITION, CONTENT_TYPE},
@@ -11,6 +15,7 @@ use axum::{
 pub async fn export_data(
     State(s): State<AppState>,
     RecentAuth(user): RecentAuth,
+    client: ClientInfo,
 ) -> AppResult<impl IntoResponse> {
     let svc = DataExportService::from_state(&s);
 
@@ -18,7 +23,7 @@ pub async fn export_data(
     let file_name = archive::file_name(export.exported_at);
     let bytes = archive::build(export).await?;
 
-    svc.log_export(user.user_id).await?;
+    svc.log_export(user.user_id, &client).await?;
 
     Ok((
         [

@@ -8,7 +8,7 @@ use serde_json::Value;
 use uuid::Uuid;
 
 pub const FORMAT: &str = "schul-dashboard/data-export";
-pub const FORMAT_VERSION: u32 = 1;
+pub const FORMAT_VERSION: u32 = 2;
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -266,7 +266,7 @@ pub struct SecurityExport {
     pub passkeys: Vec<PasskeyRecord>,
     pub recovery_codes: Vec<RecoveryCodeRecord>,
     pub sessions: Vec<Session>,
-    pub events: Vec<SecurityEvent>,
+    pub events: Vec<SecurityEventEntry>,
     pub password_resets: Vec<PasswordReset>,
     pub email_verifications: Vec<EmailVerification>,
 }
@@ -306,13 +306,14 @@ pub struct Session {
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct SecurityEvent {
+pub struct SecurityEventEntry {
     pub event_type: String,
-    pub event_status: String,
+    pub outcome: String,
     pub ip_address: Option<String>,
     pub user_agent: Option<String>,
-    pub metadata: Option<Value>,
-    pub created_at: Option<DateTime<Utc>>,
+    pub group_id: Option<Uuid>,
+    pub metadata: Value,
+    pub created_at: DateTime<Utc>,
 }
 
 #[derive(Debug, Serialize)]

@@ -11,6 +11,7 @@
 //! the password cannot block the second factor or a signed-in confirmation.
 
 use chrono::{DateTime, TimeDelta, Utc};
+use serde_json::{Value, json};
 
 const MISSES_PER_LOCK: i32 = 5;
 const FIRST_LOCK: TimeDelta = TimeDelta::minutes(5);
@@ -43,6 +44,11 @@ impl Counter {
             locked_until: lock_after(misses).map(|lock| now + lock),
         }
     }
+}
+
+/// A lock as the security log records it.
+pub fn describe(consecutive_misses: i32, lock: TimeDelta) -> Value {
+    json!({ "consecutiveMisses": consecutive_misses, "lockedForSecs": lock.num_seconds() })
 }
 
 /// How long the account locks after `consecutive_misses`, if this miss

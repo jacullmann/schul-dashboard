@@ -99,7 +99,7 @@
         },
         "cleanup-security-events": {
           "label": "Sicherheitsereignisse",
-          "rule": "Älter als 30 Tage"
+          "rule": "Älter als 90 Tage"
         },
         "cleanup-unverified-users": {
           "label": "Unbestätigte Registrierungen",
@@ -126,6 +126,22 @@
           "rule": "Ungenutzte Dateien nach 24 Stunden, alle 5 Minuten vom Server gelöscht"
         }
       }
+    },
+    "security_events": {
+      "title": "Sicherheitsereignisse",
+      "hint": "Die neuesten 200 Einträge über alle Konten. Sie werden 90 Tage aufbewahrt.",
+      "empty": "Noch keine Sicherheitsereignisse.",
+      "error": "Sicherheitsereignisse konnten nicht geladen werden.",
+      "retry": "Erneut versuchen",
+      "outcome": {
+        "success": "Erfolg",
+        "failure": "Fehlschlag"
+      },
+      "user": "Konto",
+      "actor": "Ausgeführt von",
+      "group": "Gruppe",
+      "ip": "IP-Adresse",
+      "user_agent": "Browser"
     },
     "errors": {
       "load": "Statistiken konnten nicht geladen werden."

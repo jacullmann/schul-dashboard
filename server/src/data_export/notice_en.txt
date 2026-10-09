@@ -37,11 +37,12 @@ interactions       Tasks you checked off, pinned, archived or kept, and
 reports            Reports you filed and reports about content you created.
 security           Your passkeys, when your recovery codes were created and
                    used, your sessions (signed-in devices) with IP addresses
-                   and browser identifiers, security events (e.g. creating a
-                   group, accepting an invite), requested password reset codes
-                   and confirmation codes.
-activityLog        Your account's activity log, including failed sign-in
-                   attempts with their IP address.
+                   and browser identifiers, security events with IP address
+                   and browser identifier (e.g. sign-ins and failed sign-in
+                   attempts, changes to your password, passkeys and two-factor
+                   authentication, creating a group, accepting an invite),
+                   requested password reset codes and confirmation codes.
+activityLog        Your account's activity log.
 
 Uploaded files are listed under content.files with a link to the original
 file. Download them soon if you need them: files are deleted automatically
@@ -94,7 +95,8 @@ and Microsoft where they transfer data to the USA.
 - Account data, group memberships, course selection and private tasks: until
   you delete your account.
 - Sessions: about 7 days after they were last used.
-- Activity log and security events: 30 days.
+- Activity log: 30 days.
+- Security events: 90 days, even if you delete your account before then.
 - Chat messages: 7 days.
 - Tasks and exams in groups: 90 days after their due date.
 - Password reset codes: 30 minutes; unconfirmed sign-ups with their
@@ -131,7 +133,8 @@ place.
   if the file fell into the wrong hands. Whether they exist is stated in
   data.json (e.g. hasPassword, mfaEnabled).
 - Information about other people: who reported your content and why, who used
-  your invites or banned you, and who created other content. This protects
+  your invites, banned you or changed your role, including that person's IP
+  address and browser identifier, and who created other content. This protects
   their rights (Art. 15(4) GDPR, Section 29(1) sentence 2 BDSG).
 - Data not linked to your account: technical access data recorded when the
   website and app are loaded, and the aggregated analytics statistics (Umami).

@@ -10,8 +10,9 @@
 //! past it either: a run allows exactly as many guesses as the policy says.
 
 use crate::{
-    common::lockout,
+    common::{client::ClientInfo, lockout},
     error::{AppError, AppResult, AuthFailure},
+    security_log::{SecurityEvent, SecurityEventKind},
 };
 use chrono::{TimeDelta, Utc};
 use serde_json::json;
@@ -87,8 +88,8 @@ impl Attempt {
 
     /// The password was wrong. The miss is already counted; this records why
     /// and returns the answer the client gets.
-    pub async fn reject(self, db: &PgPool, ip: Option<&str>) -> AppError {
-        match self.record_miss(db, ip).await {
+    pub async fn reject(self, db: &PgPool, client: &ClientInfo) -> AppError {
+        match self.record_miss(db, client).await {
             Ok(()) => match self.starts_lock {
                 Some(retry_after) => AppError::LoginLocked { retry_after },
                 None => AuthFailure::InvalidCredentials.into(),
@@ -97,23 +98,21 @@ impl Attempt {
         }
     }
 
-    async fn record_miss(&self, db: &PgPool, ip: Option<&str>) -> AppResult<()> {
-        sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'auth:login_failed', $2)"#,
-            self.user_id,
-            json!({ "ip": ip, "reason": "bad_password" })
-        )
-        .execute(db)
-        .await?;
+    async fn record_miss(&self, db: &PgPool, client: &ClientInfo) -> AppResult<()> {
+        SecurityEvent::new(SecurityEventKind::SignInFailed)
+            .user(self.user_id)
+            .client(client)
+            .metadata(json!({ "reason": "wrong_password" }))
+            .record(db)
+            .await?;
 
         if let Some(lock) = self.starts_lock {
-            sqlx::query!(
-                r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'auth:login:locked', $2)"#,
-                self.user_id,
-                json!({ "consecutiveMisses": self.misses, "lockedForSecs": lock.num_seconds() })
-            )
-            .execute(db)
-            .await?;
+            SecurityEvent::new(SecurityEventKind::SignInLocked)
+                .user(self.user_id)
+                .client(client)
+                .metadata(lockout::describe(self.misses, lock))
+                .record(db)
+                .await?;
         }
 
         Ok(())

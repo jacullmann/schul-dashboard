@@ -33,6 +33,24 @@ export interface CleanupJob {
   overdueCount: number;
 }
 
+/** An entry of the security log. The ids outlive the accounts and groups
+ * they name; the email or group name is there only while those exist. */
+export interface SecurityEvent {
+  id: string;
+  eventType: string;
+  outcome: 'success' | 'failure';
+  userId: string | null;
+  userEmail: string | null;
+  actorId: string | null;
+  actorEmail: string | null;
+  groupId: string | null;
+  groupName: string | null;
+  ipAddress: string | null;
+  userAgent: string | null;
+  metadata: Record<string, unknown>;
+  createdAt: string;
+}
+
 export interface DailyActivity {
   day: string;
   newUsers: number;

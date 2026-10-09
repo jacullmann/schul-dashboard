@@ -1,15 +1,17 @@
 use super::dto::*;
 use crate::{
     common::{
+        client::ClientInfo,
         cloudinary::{Cloudinary, ResourceType},
         name_generator::generate_user_name,
     },
     error::{AppError, AppResult},
+    security_log::{SecurityEvent, SecurityEventKind},
     state::AppState,
     todos::service::TodoService,
 };
 use chrono::Utc;
-use serde_json::{Map, Value, json};
+use serde_json::{Map, Value};
 use sqlx::PgPool;
 use uuid::Uuid;
 
@@ -358,14 +360,20 @@ impl DataExportService {
         .fetch_all(&mut *tx)
         .await?;
 
+        // Where someone else acted on the account, such as an admin, the
+        // address and browser are theirs and stay out.
         let security_events = sqlx::query_as!(
-            SecurityEvent,
-            r#"SELECT event_type, event_status, host(ip_address) AS "ip_address?",
-                      user_agent, metadata, created_at
+            SecurityEventEntry,
+            r#"SELECT event_type, outcome,
+                      CASE WHEN actor_id IS NULL OR actor_id = $1
+                           THEN host(ip_address) END AS "ip_address?",
+                      CASE WHEN actor_id IS NULL OR actor_id = $1
+                           THEN user_agent END AS "user_agent?",
+                      tenant_id AS group_id, metadata, created_at
                FROM security_events
-               WHERE metadata->>'userId' = $1 OR metadata->>'createdBy' = $1
+               WHERE user_id = $1 OR actor_id = $1
                ORDER BY created_at"#,
-            user_id.to_string()
+            user_id
         )
         .fetch_all(&mut *tx)
         .await?;
@@ -453,15 +461,16 @@ impl DataExportService {
         })
     }
 
-    /// Recorded so the operator can show when access was granted (Art. 5(2) GDPR).
-    pub async fn log_export(&self, user_id: Uuid) -> AppResult<()> {
-        sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'account:data_export', $2)"#,
-            user_id,
-            json!({})
-        )
-        .execute(&self.db)
-        .await?;
+    /// Recorded so the operator can show when access was granted (Art. 5(2)
+    /// GDPR), and because a copy of everything is what a stolen account is
+    /// most worth.
+    pub async fn log_export(&self, user_id: Uuid, client: &ClientInfo) -> AppResult<()> {
+        SecurityEvent::new(SecurityEventKind::DataExported)
+            .user(user_id)
+            .actor(user_id)
+            .client(client)
+            .record(&self.db)
+            .await?;
 
         Ok(())
     }
@@ -485,6 +494,7 @@ fn reported_content(report_type: &str, details: Value) -> Value {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serde_json::json;
 
     #[test]
     fn task_snapshots_drop_the_author_and_attachments() {

@@ -1,3 +1,4 @@
+pub mod client;
 pub mod cloudinary;
 pub mod csrf;
 pub mod email;

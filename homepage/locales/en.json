@@ -445,8 +445,7 @@
           "paragraphs": ["To protect your account and the service, we store:"],
           "items": [
             "for each sign-in (session) the IP address, browser identifier and timestamps. In your account settings we use this to show your signed-in devices with an approximate location. We determine the location with a database on our own server and do not pass your IP address on for this;",
-            "failed sign-in attempts with the IP address;",
-            "the creation of groups and the acceptance of invites with IP address and browser identifier."
+            "a security log with IP address and browser identifier: sign-ins, failed sign-in attempts and sign-outs, changes to your password, passkeys, two-factor authentication and Google link, the export and deletion of your account, the creation and deletion of groups, invites, changes to memberships, roles and group permissions, and every action by admins."
           ],
           "outro": [
             "This lets us detect and prevent abuse and unauthorised access. The legal basis is our legitimate interest in the security of the service (Art. 6(1)(f) GDPR).",
@@ -456,7 +455,7 @@
         {
           "title": "Activity log",
           "paragraphs": [
-            "We log which actions happen in your account, for example opening the app (with browser identifier), creating, editing or checking off tasks, and changes to settings or two-factor authentication. We only store the type, time and IDs of the affected entries, not their content.",
+            "We log which actions happen in your account, for example opening the app (with browser identifier), creating, editing or checking off tasks, and changes to settings. We only store the type, time and IDs of the affected entries, not their content.",
             "We use the log to investigate errors and abuse and to see how many people use the service. Only we as operators can view it. The legal basis is our legitimate interest (Art. 6(1)(f) GDPR)."
           ]
         },
@@ -493,7 +492,7 @@
             "We delete unconfirmed sign-ups once their confirmation code has expired after 2 days.",
             "Codes to reset or set your password are valid for 30 minutes. We delete them after 24 hours; until then, we use them to limit how many codes an email address receives.",
             "We delete session data with IP address and browser identifier about 7 days after it was last used.",
-            "We delete the activity log and security events after 30 days.",
+            "We delete the activity log after 30 days and the security log after 90 days. Attacks on an account are often noticed only weeks later, so we keep it longer.",
             "We delete chat messages automatically after 7 days.",
             "We delete tasks and exams in groups automatically 90 days after their due date.",
             "We delete schedule changes such as substitutions and cancellations automatically 90 days after the day they apply to.",
@@ -506,7 +505,7 @@
           "paragraphs": [
             "You can delete your account at any time in your account settings. If you own a group, you need to transfer or delete it first.",
             "On deletion we immediately remove your account data, sessions, group memberships, chat messages, private tasks, your Google link and your activity log.",
-            "Tasks and announcements you created in groups remain available to the group but are no longer linked to your account. Security events are deleted once their 30-day period ends, reports once they have been handled."
+            "Tasks and announcements you created in groups remain available to the group but are no longer linked to your account. Security log entries are deleted once their 90-day period ends, reports once they have been handled."
           ]
         },
         {

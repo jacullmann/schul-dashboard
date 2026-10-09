@@ -155,7 +155,7 @@ impl Message {
         }
     }
 
-    pub fn security_notice(locale: Locale, event: SecurityEvent) -> Self {
+    pub fn security_notice(locale: Locale, event: SecurityNotice) -> Self {
         let notice = event.notice(locale);
 
         Self {
@@ -177,7 +177,7 @@ impl Message {
 /// A change to how an account is secured. The owner is told about every one,
 /// so a change they did not make cannot go unnoticed.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum SecurityEvent {
+pub enum SecurityNotice {
     PasswordChanged,
     PasswordSet,
     PasswordRemoved,
@@ -193,7 +193,7 @@ pub enum SecurityEvent {
     GoogleUnlinked,
 }
 
-struct SecurityNotice {
+struct NoticeText {
     subject: &'static str,
     preheader: &'static str,
     paragraphs: &'static [&'static str],
@@ -205,8 +205,8 @@ const SUPPORT_ADVICE_DE: &str = "Hast du das nicht bei uns angefragt? Dann schre
 const SUPPORT_ADVICE_EN: &str =
     "Didn't ask us for this? Please write to us at kontakt@schul-dashboard.com right away.";
 
-impl SecurityEvent {
-    fn notice(self, locale: Locale) -> SecurityNotice {
+impl SecurityNotice {
+    fn notice(self, locale: Locale) -> NoticeText {
         let (subject, preheader, paragraphs): (_, _, &'static [&'static str]) = match (self, locale)
         {
             (Self::PasswordChanged, Locale::De) => (
@@ -419,7 +419,7 @@ impl SecurityEvent {
             ),
         };
 
-        SecurityNotice {
+        NoticeText {
             subject,
             preheader,
             paragraphs,

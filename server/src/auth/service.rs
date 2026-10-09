@@ -11,8 +11,9 @@ use crate::{
         token::{IssueTokenParams, SessionOrigin, TokenService, *},
     },
     common::{
+        client::ClientInfo,
         csrf::generate_csrf_token,
-        email::{EmailService, SecurityEvent},
+        email::{EmailService, SecurityNotice},
         jwt::JwtService,
         locale::Locale,
         password::{hash_password, validate_password_strength, verify_password},
@@ -25,6 +26,7 @@ use crate::{
         second_factor::{self, CodeCheck, SecondFactorKeys, SecondFactorProof, Verified},
     },
     reauth::service::confirm_password,
+    security_log::{SecurityEvent, SecurityEventKind},
     state::AppState,
 };
 use axum_extra::extract::cookie::CookieJar;
@@ -40,7 +42,7 @@ struct PasswordlessAccount {
     locale: Locale,
 }
 
-/// Which second factor completed a sign-in, as the activity log records it.
+/// Which second factor completed a sign-in, as the security log records it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SecondFactorKind {
     AuthenticatorApp,
@@ -85,8 +87,7 @@ impl AuthService {
         &self,
         user_id: Uuid,
         email: &str,
-        user_agent: Option<&str>,
-        ip: Option<&str>,
+        client: &ClientInfo,
     ) -> AppResult<(CookieJar, String)> {
         let opts = self.config.base_cookie_options();
 
@@ -95,8 +96,7 @@ impl AuthService {
             .issue_pair(IssueTokenParams {
                 user_id,
                 email,
-                user_agent,
-                ip_address: ip,
+                client,
                 origin: SessionOrigin::SignIn,
             })
             .await?;
@@ -137,12 +137,7 @@ impl AuthService {
         }
     }
 
-    pub async fn login(
-        &self,
-        dto: LoginDto,
-        user_agent: Option<&str>,
-        ip: Option<&str>,
-    ) -> AppResult<LoginResult> {
+    pub async fn login(&self, dto: LoginDto, client: &ClientInfo) -> AppResult<LoginResult> {
         let email = dto.email.to_lowercase();
 
         access_control::ensure_email_admitted(&self.db, &email).await?;
@@ -159,25 +154,44 @@ impl AuthService {
         .await?;
 
         let Some(user) = user else {
-            return Err(self.reject_unknown_sign_in(&email, dto.password).await);
+            let rejection = self.reject_unknown_sign_in(&email, dto.password).await;
+            // The attempted address is left out: it is often a mistyped one
+            // of someone else, and the address the attempts come from is what
+            // reveals credential stuffing.
+            SecurityEvent::new(SecurityEventKind::SignInFailed)
+                .client(client)
+                .metadata(json!({ "reason": "unknown_account" }))
+                .record(&self.db)
+                .await?;
+            return Err(rejection);
         };
 
         let Some(hash) = user.password_hash else {
             self.equalize_login_timing(dto.password).await;
+            SecurityEvent::new(SecurityEventKind::SignInFailed)
+                .user(user.id)
+                .client(client)
+                .metadata(json!({ "reason": "no_password" }))
+                .record(&self.db)
+                .await?;
             return Err(AuthFailure::InvalidCredentials.into());
         };
 
         let attempt = password_attempts::reserve(&self.db, user.id).await?;
 
         if !verify_password(dto.password, hash).await? {
-            return Err(attempt.reject(&self.db, ip).await);
+            return Err(attempt.reject(&self.db, client).await);
         }
         attempt.accept(&self.db).await?;
 
-        let client = ClientInfo { user_agent, ip };
-
-        self.complete_sign_in(user.id, &user.email, user.mfa_required, client)
-            .await
+        self.complete_sign_in(
+            user.id,
+            &user.email,
+            user.mfa_required,
+            SignInMethod::Password,
+            client,
+        )
+        .await
     }
 
     /// The one gate every sign-in passes once its first factor (password or
@@ -188,7 +202,8 @@ impl AuthService {
         user_id: Uuid,
         email: &str,
         mfa_required: bool,
-        client: ClientInfo<'_>,
+        method: SignInMethod,
+        client: &ClientInfo,
     ) -> AppResult<LoginResult> {
         let banned = sqlx::query_scalar!(
             r#"SELECT EXISTS (SELECT 1 FROM banned_users WHERE user_id = $1) AS "banned!""#,
@@ -198,6 +213,12 @@ impl AuthService {
         .await?;
 
         if banned {
+            SecurityEvent::new(SecurityEventKind::SignInFailed)
+                .user(user_id)
+                .client(client)
+                .metadata(json!({ "reason": "banned", "method": method.as_str() }))
+                .record(&self.db)
+                .await?;
             return Err(AppError::Forbidden(
                 "Your account has been suspended.".into(),
             ));
@@ -220,7 +241,7 @@ impl AuthService {
             ));
         }
 
-        self.start_session(user_id, email, client)
+        self.start_session(user_id, email, method, client)
             .await
             .map(LoginResult::Success)
     }
@@ -230,7 +251,8 @@ impl AuthService {
         &self,
         user_id: Uuid,
         email: &str,
-        client: ClientInfo<'_>,
+        method: SignInMethod,
+        client: &ClientInfo,
     ) -> AppResult<CookieJar> {
         sqlx::query!(
             r#"UPDATE users SET last_login_at = now() WHERE id = $1"#,
@@ -246,8 +268,14 @@ impl AuthService {
         .execute(&self.db)
         .await?;
 
-        let (jar, _csrf) = self
-            .issue_session(user_id, email, client.user_agent, client.ip)
+        let (jar, _csrf) = self.issue_session(user_id, email, client).await?;
+
+        SecurityEvent::new(SecurityEventKind::SignIn)
+            .user(user_id)
+            .actor(user_id)
+            .client(client)
+            .metadata(json!({ "method": method.as_str() }))
+            .record(&self.db)
             .await?;
 
         Ok(jar)
@@ -260,11 +288,11 @@ impl AuthService {
         proof: &SecondFactorProof,
         user_id: Uuid,
         email: &str,
-        user_agent: Option<&str>,
-        ip: Option<&str>,
+        client: &ClientInfo,
     ) -> AppResult<(CookieJar, Option<usize>)> {
         let check =
-            second_factor::check(&self.db, self.second_factor_keys(), user_id, proof).await?;
+            second_factor::check(&self.db, self.second_factor_keys(), user_id, proof, client)
+                .await?;
         let CodeCheck::Accepted(verified) = check else {
             return Err(AuthFailure::InvalidSecondFactor.into());
         };
@@ -273,7 +301,6 @@ impl AuthService {
             Verified::AuthenticatorApp => SecondFactorKind::AuthenticatorApp,
             Verified::RecoveryCode { .. } => SecondFactorKind::RecoveryCode,
         };
-        let client = ClientInfo { user_agent, ip };
         let jar = self
             .finish_two_factor_sign_in(user_id, email, kind, client)
             .await?;
@@ -282,7 +309,7 @@ impl AuthService {
             Verified::AuthenticatorApp => None,
             Verified::RecoveryCode { remaining } => Some(remaining),
         };
-        if let Some(event) = verified.security_event() {
+        if let Some(event) = verified.security_notice() {
             security_notice::notify(&self.db, &self.email, user_id, event);
         }
 
@@ -296,16 +323,8 @@ impl AuthService {
         user_id: Uuid,
         email: &str,
         kind: SecondFactorKind,
-        client: ClientInfo<'_>,
+        client: &ClientInfo,
     ) -> AppResult<CookieJar> {
-        sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'auth:mfa_login', $2)"#,
-            user_id,
-            json!({ "factor": kind.as_str(), "ip": client.ip })
-        )
-        .execute(&self.db)
-        .await?;
-
         sqlx::query!(
             r#"UPDATE users SET last_login_at = now() WHERE id = $1"#,
             user_id
@@ -321,8 +340,14 @@ impl AuthService {
         .await?;
 
         let opts = self.config.base_cookie_options();
-        let (jar, _csrf) = self
-            .issue_session(user_id, email, client.user_agent, client.ip)
+        let (jar, _csrf) = self.issue_session(user_id, email, client).await?;
+
+        SecurityEvent::new(SecurityEventKind::SignIn)
+            .user(user_id)
+            .actor(user_id)
+            .client(client)
+            .metadata(json!({ "secondFactor": kind.as_str() }))
+            .record(&self.db)
             .await?;
 
         Ok(jar.add(clear_mfa_pending_cookie(&opts)))
@@ -461,7 +486,7 @@ impl AuthService {
         }))
     }
 
-    pub async fn delete_me(&self, user_id: Uuid) -> AppResult<CookieJar> {
+    pub async fn delete_me(&self, user_id: Uuid, client: &ClientInfo) -> AppResult<CookieJar> {
         let roles = sqlx::query!(
             r#"
             SELECT r.name FROM user_roles ur
@@ -496,9 +521,20 @@ impl AuthService {
             .revoke_all_for_user(user_id, ACCOUNT_DELETED, None)
             .await?;
 
+        let mut tx = self.db.begin().await?;
+
         sqlx::query!(r#"DELETE FROM users WHERE id = $1"#, user_id)
-            .execute(&self.db)
+            .execute(&mut *tx)
             .await?;
+
+        SecurityEvent::new(SecurityEventKind::AccountDeleted)
+            .user(user_id)
+            .actor(user_id)
+            .client(client)
+            .record(&mut *tx)
+            .await?;
+
+        tx.commit().await?;
 
         let opts = self.config.base_cookie_options();
 
@@ -519,7 +555,7 @@ impl AuthService {
         email: &str,
         code: &EmailCode,
         password: String,
-        client: ClientInfo<'_>,
+        client: &ClientInfo,
     ) -> AppResult<CookieJar> {
         access_control::ensure_registration_open(&self.db).await?;
         let email = email.to_lowercase();
@@ -558,17 +594,30 @@ impl AuthService {
             _ => AppError::Database(e),
         })?;
 
+        SecurityEvent::new(SecurityEventKind::AccountCreated)
+            .user(user_id)
+            .actor(user_id)
+            .client(client)
+            .metadata(json!({ "method": SignInMethod::Password.as_str() }))
+            .record(&mut *tx)
+            .await?;
+
         tx.commit().await?;
 
         // A new account has no second factor and cannot have been banned yet.
-        self.start_session(user_id, &email, client).await
+        self.start_session(user_id, &email, SignInMethod::Password, client)
+            .await
     }
 
-    pub async fn forgot_password(&self, email: &str) -> AppResult<serde_json::Value> {
+    pub async fn forgot_password(
+        &self,
+        email: &str,
+        client: &ClientInfo,
+    ) -> AppResult<serde_json::Value> {
         let email = email.to_lowercase();
 
         let user = sqlx::query!(
-            r#"SELECT preferences->>'language' AS language FROM users WHERE email = $1"#,
+            r#"SELECT id, preferences->>'language' AS language FROM users WHERE email = $1"#,
             email
         )
         .fetch_optional(&self.db)
@@ -576,14 +625,23 @@ impl AuthService {
 
         // A throttled address gets the same answer as any other: a different
         // one would reveal that it has an account.
-        if let Some(user) = user
-            && let Issuance::Issued(code) = email_code::issue(&self.db, &email).await?
-        {
-            let locale = Locale::from_stored(user.language.as_deref());
-            let _ = self
-                .email
-                .send_password_reset_email(&email, locale, &code)
-                .await;
+        if let Some(user) = user {
+            let issuance = email_code::issue(&self.db, &email).await?;
+
+            SecurityEvent::new(SecurityEventKind::PasswordResetRequested)
+                .user(user.id)
+                .client(client)
+                .metadata(json!({ "codeSent": matches!(issuance, Issuance::Issued(_)) }))
+                .record(&self.db)
+                .await?;
+
+            if let Issuance::Issued(code) = issuance {
+                let locale = Locale::from_stored(user.language.as_deref());
+                let _ = self
+                    .email
+                    .send_password_reset_email(&email, locale, &code)
+                    .await;
+            }
         }
 
         Ok(json!({
@@ -644,8 +702,7 @@ impl AuthService {
         user_id: Uuid,
         code: &EmailCode,
         new_password: String,
-        user_agent: Option<&str>,
-        ip: Option<&str>,
+        client: &ClientInfo,
     ) -> AppResult<(CookieJar, serde_json::Value)> {
         validate_password_strength(&new_password).map_err(|e| AppError::BadRequest(e.into()))?;
 
@@ -678,17 +735,16 @@ impl AuthService {
             .revoke_all_for_user(user_id, PASSWORD_CHANGE, None)
             .await?;
 
-        let (jar, _) = self.issue_session(user_id, &email, user_agent, ip).await?;
+        let (jar, _) = self.issue_session(user_id, &email, client).await?;
 
-        sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'account:password_set', $2)"#,
-            user_id,
-            json!({ "by": "self" })
-        )
-        .execute(&self.db)
-        .await?;
+        SecurityEvent::new(SecurityEventKind::PasswordSet)
+            .user(user_id)
+            .actor(user_id)
+            .client(client)
+            .record(&self.db)
+            .await?;
 
-        security_notice::notify(&self.db, &self.email, user_id, SecurityEvent::PasswordSet);
+        security_notice::notify(&self.db, &self.email, user_id, SecurityNotice::PasswordSet);
 
         Ok((jar, json!({ "ok": true })))
     }
@@ -726,6 +782,7 @@ impl AuthService {
         &self,
         reset_token: &str,
         password: &str,
+        client: &ClientInfo,
     ) -> AppResult<serde_json::Value> {
         validate_password_strength(password).map_err(|e| AppError::BadRequest(e.into()))?;
 
@@ -776,18 +833,21 @@ impl AuthService {
             .revoke_all_for_user(user.id, PASSWORD_CHANGE, None)
             .await?;
 
-        sqlx::query!(
-            r#"
-            INSERT INTO user_activity (user_id, type, meta)
-            VALUES ($1, 'account:password_reset', $2)
-            "#,
-            user.id,
-            json!({ "by": "self" })
-        )
-        .execute(&self.db)
-        .await?;
+        // The emailed code proved control of the mailbox, which is as much
+        // as a reset ever proves about who acted.
+        SecurityEvent::new(SecurityEventKind::PasswordReset)
+            .user(user.id)
+            .actor(user.id)
+            .client(client)
+            .record(&self.db)
+            .await?;
 
-        security_notice::notify(&self.db, &self.email, user.id, SecurityEvent::PasswordReset);
+        security_notice::notify(
+            &self.db,
+            &self.email,
+            user.id,
+            SecurityNotice::PasswordReset,
+        );
 
         Ok(json!({ "ok": true, "message": "Password reset successfully." }))
     }
@@ -798,6 +858,7 @@ impl AuthService {
         &self,
         user_id: Uuid,
         session_id: Uuid,
+        client: &ClientInfo,
     ) -> AppResult<serde_json::Value> {
         let mut tx = self.db.begin().await?;
 
@@ -817,13 +878,12 @@ impl AuthService {
         .execute(&mut *tx)
         .await?;
 
-        sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'account:password_removed', $2)"#,
-            user_id,
-            json!({ "by": "self" })
-        )
-        .execute(&mut *tx)
-        .await?;
+        SecurityEvent::new(SecurityEventKind::PasswordRemoved)
+            .user(user_id)
+            .actor(user_id)
+            .client(client)
+            .record(&mut *tx)
+            .await?;
 
         tx.commit().await?;
 
@@ -834,7 +894,7 @@ impl AuthService {
             &self.db,
             &self.email,
             user_id,
-            SecurityEvent::PasswordRemoved,
+            SecurityNotice::PasswordRemoved,
         );
 
         Ok(json!({ "ok": true }))
@@ -848,8 +908,7 @@ impl AuthService {
         user_id: Uuid,
         current_password: String,
         new_password: String,
-        user_agent: Option<&str>,
-        ip: Option<&str>,
+        client: &ClientInfo,
     ) -> AppResult<(CookieJar, serde_json::Value)> {
         validate_password_strength(&new_password).map_err(|e| AppError::BadRequest(e.into()))?;
 
@@ -865,7 +924,7 @@ impl AuthService {
             return Err(AppError::bad_request("Your account has no password yet."));
         }
 
-        confirm_password(&self.db, user_id, current_password).await?;
+        confirm_password(&self.db, user_id, current_password, client).await?;
 
         let hash = hash_password(new_password).await?;
 
@@ -883,29 +942,98 @@ impl AuthService {
             .revoke_all_for_user(user_id, PASSWORD_CHANGE, None)
             .await?;
 
-        let (jar, _) = self
-            .issue_session(user_id, &user.email, user_agent, ip)
-            .await?;
+        let (jar, _) = self.issue_session(user_id, &user.email, client).await?;
 
-        sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'account:password_change', $2)"#,
-            user_id,
-            json!({ "by": "self" })
-        )
-            .execute(&self.db)
+        SecurityEvent::new(SecurityEventKind::PasswordChanged)
+            .user(user_id)
+            .actor(user_id)
+            .client(client)
+            .record(&self.db)
             .await?;
 
         security_notice::notify(
             &self.db,
             &self.email,
             user_id,
-            SecurityEvent::PasswordChanged,
+            SecurityNotice::PasswordChanged,
         );
 
         Ok((
             jar,
             json!({ "ok": true, "message": "Password changed successfully." }),
         ))
+    }
+
+    /// Ends the session the refresh token belongs to, if it is still live.
+    pub async fn sign_out(&self, refresh_token: &str, client: &ClientInfo) -> AppResult<()> {
+        if let Some(user_id) = self
+            .tokens
+            .revoke_current_family(refresh_token, LOGOUT)
+            .await?
+        {
+            self.record_sign_out(user_id, json!({ "scope": "current" }), client)
+                .await?;
+        }
+
+        Ok(())
+    }
+
+    /// Ends every session of the user, or every one but `keep`.
+    pub async fn sign_out_everywhere(
+        &self,
+        user_id: Uuid,
+        keep: Option<Uuid>,
+        client: &ClientInfo,
+    ) -> AppResult<()> {
+        self.tokens
+            .revoke_all_for_user(user_id, LOGOUT_ALL, keep)
+            .await?;
+
+        let scope = if keep.is_some() { "others" } else { "all" };
+        self.record_sign_out(user_id, json!({ "scope": scope }), client)
+            .await
+    }
+
+    /// Ends one session from the user's session list. `false` when no live
+    /// session of theirs has that id.
+    pub async fn end_session(
+        &self,
+        user_id: Uuid,
+        session_id: Uuid,
+        client: &ClientInfo,
+    ) -> AppResult<bool> {
+        let ended = self
+            .tokens
+            .revoke_own_session(user_id, session_id, SESSION_REVOKED)
+            .await?;
+
+        if ended {
+            self.record_sign_out(
+                user_id,
+                json!({ "scope": "one", "sessionId": session_id }),
+                client,
+            )
+            .await?;
+        }
+
+        Ok(ended)
+    }
+
+    async fn record_sign_out(
+        &self,
+        user_id: Uuid,
+        metadata: serde_json::Value,
+        client: &ClientInfo,
+    ) -> AppResult<()> {
+        SecurityEvent::new(SecurityEventKind::SignOut)
+            .user(user_id)
+            .actor(user_id)
+            .client(client)
+            .metadata(metadata)
+            .record(&self.db)
+            .await?;
+
+        Ok(())
     }
 
     pub async fn get_groups(&self, user_id: Uuid) -> AppResult<serde_json::Value> {
@@ -939,13 +1067,6 @@ impl AuthService {
 
         Ok(json!({ "groups": groups }))
     }
-}
-
-/// Recorded with the session, so the session list can name the device.
-#[derive(Clone, Copy)]
-pub struct ClientInfo<'a> {
-    pub user_agent: Option<&'a str>,
-    pub ip: Option<&'a str>,
 }
 
 pub enum LoginResult {

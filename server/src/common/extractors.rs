@@ -24,7 +24,6 @@ use axum_extra::extract::CookieJar;
 use chrono::{DateTime, Utc};
 use serde::de::DeserializeOwned;
 use sqlx::PgPool;
-use std::convert::Infallible;
 use uuid::Uuid;
 use validator::Validate;
 
@@ -352,44 +351,6 @@ fn from_route_layer<T: Clone + Send + Sync + 'static>(
             std::any::type_name::<T>()
         ))
     })
-}
-
-pub struct ClientIp(pub Option<String>);
-pub struct UserAgent(pub Option<String>);
-
-impl<S> FromRequestParts<S> for ClientIp
-where
-    S: Send + Sync,
-{
-    type Rejection = Infallible;
-
-    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
-        let ip = parts
-            .headers
-            .get("x-forwarded-for")
-            .and_then(|v| v.to_str().ok())
-            .and_then(|s| s.split(',').next())
-            .map(|s| s.trim().to_string());
-
-        Ok(ClientIp(ip))
-    }
-}
-
-impl<S> FromRequestParts<S> for UserAgent
-where
-    S: Send + Sync,
-{
-    type Rejection = Infallible;
-
-    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
-        let ua = parts
-            .headers
-            .get("user-agent")
-            .and_then(|v| v.to_str().ok())
-            .map(String::from);
-
-        Ok(UserAgent(ua))
-    }
 }
 
 /// `Json<T>` that runs the DTO's `validate()` before the handler sees it, so

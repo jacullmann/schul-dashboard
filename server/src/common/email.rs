@@ -1,7 +1,7 @@
 mod messages;
 mod render;
 
-pub use messages::SecurityEvent;
+pub use messages::SecurityNotice;
 
 use crate::{
     auth::email_code::EmailCode,
@@ -102,7 +102,7 @@ impl EmailService {
         &self,
         to: &str,
         locale: Locale,
-        event: SecurityEvent,
+        event: SecurityNotice,
     ) -> Result<(), AppError> {
         self.send(to, Message::security_notice(locale, event)).await
     }

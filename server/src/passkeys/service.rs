@@ -2,15 +2,17 @@ use super::dto::{PasskeyList, PasskeySummary};
 use crate::{
     auth::{
         security_notice,
-        service::{AuthService, ClientInfo, LoginResult, SecondFactorKind},
+        service::{AuthService, LoginResult, SecondFactorKind},
         sign_in_methods::{SignInMethod, SignInMethods},
     },
     common::{
-        email::{EmailService, SecurityEvent},
+        client::ClientInfo,
+        email::{EmailService, SecurityNotice},
         names::DisplayName,
     },
     config::{PASSKEY_CEREMONY_TTL, chrono_ttl},
     error::{AppError, AppResult, PasskeyFailure},
+    security_log::{SecurityEvent, SecurityEventKind},
     state::AppState,
 };
 use axum_extra::extract::CookieJar;
@@ -157,6 +159,7 @@ impl PasskeyService {
         user_id: Uuid,
         name: PasskeyName,
         credential: &RegisterPublicKeyCredential,
+        client: &ClientInfo,
     ) -> AppResult<PasskeySummary> {
         // Deleted before it is checked, so every registration is answered at
         // most once, whether or not the answer holds up.
@@ -212,17 +215,17 @@ impl PasskeyService {
         .await
         .map_err(already_registered_on_conflict)?;
 
-        sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'passkey:registered', $2)"#,
-            user_id,
-            json!({ "passkeyId": created.id, "name": name.as_str() })
-        )
-        .execute(&mut *tx)
-        .await?;
+        SecurityEvent::new(SecurityEventKind::PasskeyAdded)
+            .user(user_id)
+            .actor(user_id)
+            .client(client)
+            .metadata(json!({ "passkeyId": created.id, "name": name.as_str() }))
+            .record(&mut *tx)
+            .await?;
 
         tx.commit().await?;
 
-        security_notice::notify(&self.db, &self.email, user_id, SecurityEvent::PasskeyAdded);
+        security_notice::notify(&self.db, &self.email, user_id, SecurityNotice::PasskeyAdded);
 
         Ok(PasskeySummary {
             id: created.id,
@@ -252,7 +255,12 @@ impl PasskeyService {
         Ok(())
     }
 
-    pub async fn remove(&self, user_id: Uuid, passkey_id: Uuid, ip: Option<&str>) -> AppResult<()> {
+    pub async fn remove(
+        &self,
+        user_id: Uuid,
+        passkey_id: Uuid,
+        client: &ClientInfo,
+    ) -> AppResult<()> {
         let mut tx = self.db.begin().await?;
 
         SignInMethods::lock(&mut tx, user_id)
@@ -268,13 +276,13 @@ impl PasskeyService {
         .await?
         .ok_or_else(passkey_not_found)?;
 
-        sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'passkey:removed', $2)"#,
-            user_id,
-            json!({ "passkeyId": passkey_id, "name": removed.name, "ip": ip })
-        )
-        .execute(&mut *tx)
-        .await?;
+        SecurityEvent::new(SecurityEventKind::PasskeyRemoved)
+            .user(user_id)
+            .actor(user_id)
+            .client(client)
+            .metadata(json!({ "passkeyId": passkey_id, "name": removed.name }))
+            .record(&mut *tx)
+            .await?;
 
         tx.commit().await?;
 
@@ -282,7 +290,7 @@ impl PasskeyService {
             &self.db,
             &self.email,
             user_id,
-            SecurityEvent::PasskeyRemoved,
+            SecurityNotice::PasskeyRemoved,
         );
 
         Ok(())
@@ -406,7 +414,7 @@ impl PasskeyService {
         email: &str,
         challenge_id: Uuid,
         credential: &PublicKeyCredential,
-        client: ClientInfo<'_>,
+        client: &ClientInfo,
     ) -> AppResult<CookieJar> {
         self.finish_bound_authentication(user_id, challenge_id, credential)
             .await?;
@@ -446,7 +454,7 @@ impl PasskeyService {
         &self,
         challenge_id: Uuid,
         credential: &PublicKeyCredential,
-        client: ClientInfo<'_>,
+        client: &ClientInfo,
     ) -> AppResult<CookieJar> {
         let pending = sqlx::query!(
             r#"DELETE FROM passkey_challenges WHERE id = $1 AND user_id IS NULL
@@ -483,17 +491,30 @@ impl PasskeyService {
 
         let mut passkey: Passkey = from_state(stored.credential)?;
 
-        let result = self
-            .webauthn
-            .finish_discoverable_authentication(
-                credential,
-                authentication,
-                &[DiscoverableKey::from(&passkey)],
-            )
-            .map_err(|e| {
+        let result = match self.webauthn.finish_discoverable_authentication(
+            credential,
+            authentication,
+            &[DiscoverableKey::from(&passkey)],
+        ) {
+            Ok(result) => result,
+            Err(e) => {
                 tracing::warn!(%user_id, passkey_id = %stored.id, "Passkey sign-in rejected: {e}");
-                PasskeyFailure::SignInRejected
-            })?;
+                // A known passkey whose signature does not hold up may be a
+                // cloned authenticator.
+                SecurityEvent::new(SecurityEventKind::SignInFailed)
+                    .user(user_id)
+                    .client(client)
+                    .metadata(json!({
+                        "method": SignInMethod::Passkey.as_str(),
+                        "reason": "passkey_rejected",
+                        "passkeyId": stored.id,
+                    }))
+                    .record(&mut *tx)
+                    .await?;
+                tx.commit().await?;
+                return Err(PasskeyFailure::SignInRejected.into());
+            }
+        };
 
         let updated_credential = match passkey.update_credential(&result) {
             Some(true) => Some(to_state(&passkey)?),
@@ -510,19 +531,11 @@ impl PasskeyService {
         .execute(&mut *tx)
         .await?;
 
-        sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'auth:passkey_login', $2)"#,
-            user_id,
-            json!({ "passkeyId": stored.id, "ip": client.ip })
-        )
-        .execute(&mut *tx)
-        .await?;
-
         tx.commit().await?;
 
         match self
             .auth
-            .complete_sign_in(user_id, &stored.email, false, client)
+            .complete_sign_in(user_id, &stored.email, false, SignInMethod::Passkey, client)
             .await?
         {
             LoginResult::Success(jar) => Ok(jar),

@@ -11,8 +11,12 @@ use super::{
     totp::{TimeStep, Totp},
 };
 use crate::{
-    common::{email::SecurityEvent, encryption::EncryptionService, jwt::now_secs, lockout},
+    common::{
+        client::ClientInfo, email::SecurityNotice, encryption::EncryptionService, jwt::now_secs,
+        lockout,
+    },
     error::{AppError, AppResult},
+    security_log::{SecurityEvent, SecurityEventKind},
 };
 use chrono::Utc;
 use serde::Deserialize;
@@ -32,6 +36,16 @@ const RECOVERY_CODE_MAX_CHARS: usize = 32;
 pub enum SecondFactorProof {
     Code(String),
     RecoveryCode(String),
+}
+
+impl SecondFactorProof {
+    /// The factor as the security log names it.
+    const fn factor(&self) -> &'static str {
+        match self {
+            Self::Code(_) => "authenticator_app",
+            Self::RecoveryCode(_) => "recovery_code",
+        }
+    }
 }
 
 impl Validate for SecondFactorProof {
@@ -80,10 +94,12 @@ pub enum Verified {
 
 impl Verified {
     /// What the account owner is told about this proof, if anything.
-    pub fn security_event(self) -> Option<SecurityEvent> {
+    pub fn security_notice(self) -> Option<SecurityNotice> {
         match self {
             Self::AuthenticatorApp => None,
-            Self::RecoveryCode { remaining } => Some(SecurityEvent::RecoveryCodeUsed { remaining }),
+            Self::RecoveryCode { remaining } => {
+                Some(SecurityNotice::RecoveryCodeUsed { remaining })
+            }
         }
     }
 }
@@ -97,6 +113,7 @@ pub async fn check(
     keys: SecondFactorKeys<'_>,
     user_id: Uuid,
     proof: &SecondFactorProof,
+    client: &ClientInfo,
 ) -> AppResult<CodeCheck> {
     let mut tx = db.begin().await?;
 
@@ -154,14 +171,20 @@ pub async fn check(
         .execute(&mut *tx)
         .await?;
 
-        if let Some(lock) = lock {
-            sqlx::query!(
-                r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'mfa:locked', $2)"#,
-                user_id,
-                json!({ "consecutiveMisses": counter.misses, "lockedForSecs": lock.num_seconds() })
-            )
-            .execute(&mut *tx)
+        SecurityEvent::new(SecurityEventKind::SecondFactorFailed)
+            .user(user_id)
+            .client(client)
+            .metadata(json!({ "factor": proof.factor() }))
+            .record(&mut *tx)
             .await?;
+
+        if let Some(lock) = lock {
+            SecurityEvent::new(SecurityEventKind::SecondFactorLocked)
+                .user(user_id)
+                .client(client)
+                .metadata(lockout::describe(counter.misses, lock))
+                .record(&mut *tx)
+                .await?;
         }
 
         tx.commit().await?;

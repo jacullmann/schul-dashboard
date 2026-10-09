@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT event_type, event_status, host(ip_address) AS \"ip_address?\",\n                      user_agent, metadata, created_at\n               FROM security_events\n               WHERE metadata->>'userId' = $1 OR metadata->>'createdBy' = $1\n               ORDER BY created_at",
+  "query": "SELECT event_type, outcome,\n                      CASE WHEN actor_id IS NULL OR actor_id = $1\n                           THEN host(ip_address) END AS \"ip_address?\",\n                      CASE WHEN actor_id IS NULL OR actor_id = $1\n                           THEN user_agent END AS \"user_agent?\",\n                      tenant_id AS group_id, metadata, created_at\n               FROM security_events\n               WHERE user_id = $1 OR actor_id = $1\n               ORDER BY created_at",
   "describe": {
     "columns": [
       {
@@ -16,12 +16,12 @@
       },
       {
         "ordinal": 1,
-        "name": "event_status",
+        "name": "outcome",
         "type_info": "Varchar",
         "origin": {
           "Table": {
             "table": "security_events",
-            "name": "event_status"
+            "name": "outcome"
           }
         }
       },
@@ -33,17 +33,23 @@
       },
       {
         "ordinal": 3,
-        "name": "user_agent",
+        "name": "user_agent?",
         "type_info": "Text",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 4,
+        "name": "group_id",
+        "type_info": "Uuid",
         "origin": {
           "Table": {
             "table": "security_events",
-            "name": "user_agent"
+            "name": "tenant_id"
           }
         }
       },
       {
-        "ordinal": 4,
+        "ordinal": 5,
         "name": "metadata",
         "type_info": "Jsonb",
         "origin": {
@@ -54,7 +60,7 @@
         }
       },
       {
-        "ordinal": 5,
+        "ordinal": 6,
         "name": "created_at",
         "type_info": "Timestamptz",
         "origin": {
@@ -67,17 +73,18 @@
     ],
     "parameters": {
       "Left": [
-        "Text"
+        "Uuid"
       ]
     },
     "nullable": [
       false,
       false,
       null,
+      null,
       true,
-      true,
-      true
+      false,
+      false
     ]
   },
-  "hash": "0ff8f9c561f73b24db85a5126e2c24c4e30c220563ea26c2a6fac99bf8633c1d"
+  "hash": "7d1012f7ffd67aa16d46a1dd9451ad21cf17db0dbe72fe13279c223535cfc15e"
 }

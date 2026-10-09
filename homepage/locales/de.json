@@ -445,8 +445,7 @@
           "paragraphs": ["Zum Schutz deines Kontos und des Dienstes speichern wir:"],
           "items": [
             "für jede Anmeldung (Sitzung) IP-Adresse, Browserkennung und Zeitpunkte. In den Kontoeinstellungen zeigen wir dir daraus deine angemeldeten Geräte mit ungefährem Ort. Den Ort ermitteln wir mit einer Datenbank auf unserem eigenen Server, die IP-Adresse geben wir dafür nicht weiter;",
-            "fehlgeschlagene Anmeldeversuche mit IP-Adresse;",
-            "das Erstellen von Gruppen und das Annehmen von Einladungen mit IP-Adresse und Browserkennung."
+            "ein Sicherheitsprotokoll mit IP-Adresse und Browserkennung: Anmeldungen, fehlgeschlagene Anmeldeversuche und Abmeldungen, Änderungen an Passwort, Passkeys, Zwei-Faktor-Authentifizierung und der Verknüpfung mit Google, den Export und die Löschung deines Kontos, das Erstellen und Löschen von Gruppen, Einladungen, Änderungen an Mitgliedschaften, Rollen und Gruppenrechten sowie alle Aktionen von Admins."
           ],
           "outro": [
             "So erkennen und verhindern wir Missbrauch und unbefugte Zugriffe. Rechtsgrundlage ist unser berechtigtes Interesse an der Sicherheit des Dienstes (Art. 6 Abs. 1 lit. f DSGVO).",
@@ -456,7 +455,7 @@
         {
           "title": "Aktivitätsprotokoll",
           "paragraphs": [
-            "Wir protokollieren, welche Aktionen in deinem Konto stattfinden, zum Beispiel das Öffnen der App (mit Browserkennung), das Anlegen, Bearbeiten oder Abhaken von Aufgaben und Änderungen an Einstellungen oder an der Zwei-Faktor-Authentifizierung. Gespeichert werden dabei nur Art, Zeitpunkt und Kennungen der betroffenen Einträge, keine Inhalte.",
+            "Wir protokollieren, welche Aktionen in deinem Konto stattfinden, zum Beispiel das Öffnen der App (mit Browserkennung), das Anlegen, Bearbeiten oder Abhaken von Aufgaben und Änderungen an Einstellungen. Gespeichert werden dabei nur Art, Zeitpunkt und Kennungen der betroffenen Einträge, keine Inhalte.",
             "Wir nutzen das Protokoll, um Fehler und Missbrauch aufzuklären und um zu sehen, wie viele Personen den Dienst nutzen. Einsehen können es nur wir als Betreiber. Rechtsgrundlage ist unser berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO)."
           ]
         },
@@ -493,7 +492,7 @@
             "Unbestätigte Registrierungen löschen wir, sobald ihr Bestätigungscode nach 2 Tagen abgelaufen ist.",
             "Codes zum Zurücksetzen oder Festlegen des Passworts sind 30 Minuten gültig. Wir löschen sie nach 24 Stunden; bis dahin begrenzen wir mit ihnen, wie viele Codes eine E-Mail-Adresse erhält.",
             "Sitzungsdaten mit IP-Adresse und Browserkennung löschen wir etwa 7 Tage nach ihrer letzten Nutzung.",
-            "Aktivitätsprotokoll und Sicherheitsereignisse löschen wir nach 30 Tagen.",
+            "Das Aktivitätsprotokoll löschen wir nach 30 Tagen, das Sicherheitsprotokoll nach 90 Tagen. Angriffe auf ein Konto fallen oft erst Wochen später auf, deshalb bewahren wir es länger auf.",
             "Chatnachrichten löschen wir nach 7 Tagen automatisch.",
             "Aufgaben und Klausuren in Gruppen löschen wir automatisch 90 Tage nach ihrem Fälligkeitsdatum.",
             "Stundenplanänderungen wie Vertretungen und Ausfälle löschen wir automatisch 90 Tage nach dem Tag, für den sie gelten.",
@@ -506,7 +505,7 @@
           "paragraphs": [
             "Du kannst dein Konto jederzeit in den Kontoeinstellungen löschen. Wenn du Eigentümer einer Gruppe bist, musst du sie vorher übertragen oder löschen.",
             "Beim Löschen entfernen wir sofort deine Kontodaten, Sitzungen, Gruppenmitgliedschaften, Chatnachrichten, privaten Aufgaben, die Verknüpfung mit Google und dein Aktivitätsprotokoll.",
-            "Aufgaben und Ankündigungen, die du in Gruppen erstellt hast, bleiben für die Gruppe erhalten, sind aber nicht mehr deinem Konto zugeordnet. Sicherheitsereignisse löschen wir nach Ablauf ihrer Frist von 30 Tagen, Meldungen nach ihrer Bearbeitung."
+            "Aufgaben und Ankündigungen, die du in Gruppen erstellt hast, bleiben für die Gruppe erhalten, sind aber nicht mehr deinem Konto zugeordnet. Einträge im Sicherheitsprotokoll löschen wir nach Ablauf ihrer Frist von 90 Tagen, Meldungen nach ihrer Bearbeitung."
           ]
         },
         {

@@ -4,7 +4,10 @@ use super::{
 };
 use crate::{
     announcements::dto::MarkAnnouncementsReadDto,
-    common::extractors::{AuthUser, SuperAdmin, ValidatedJson},
+    common::{
+        client::ClientInfo,
+        extractors::{AuthUser, SuperAdmin, ValidatedJson},
+    },
     error::AppResult,
     state::AppState,
 };
@@ -54,12 +57,13 @@ pub async fn list_admin_announcements(
 pub async fn create_announcement(
     State(s): State<AppState>,
     SuperAdmin(admin): SuperAdmin,
+    client: ClientInfo,
     Json(dto): Json<SaveSystemAnnouncementDto>,
 ) -> AppResult<(StatusCode, Json<Value>)> {
     let input = dto.parse(Utc::now())?;
 
     let id = SystemAnnouncementService::from_state(&s)
-        .create(&input, admin.user_id)
+        .create(&input, admin.user_id, &client)
         .await?;
 
     Ok((StatusCode::CREATED, Json(json!({ "id": id }))))
@@ -68,13 +72,14 @@ pub async fn create_announcement(
 pub async fn update_announcement(
     State(s): State<AppState>,
     SuperAdmin(admin): SuperAdmin,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
     Json(dto): Json<SaveSystemAnnouncementDto>,
 ) -> AppResult<StatusCode> {
     let input = dto.parse(Utc::now())?;
 
     SystemAnnouncementService::from_state(&s)
-        .update(id, &input, admin.user_id)
+        .update(id, &input, admin.user_id, &client)
         .await?;
 
     Ok(StatusCode::NO_CONTENT)
@@ -83,10 +88,11 @@ pub async fn update_announcement(
 pub async fn delete_announcement(
     State(s): State<AppState>,
     SuperAdmin(admin): SuperAdmin,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
 ) -> AppResult<StatusCode> {
     SystemAnnouncementService::from_state(&s)
-        .delete(id, admin.user_id)
+        .delete(id, admin.user_id, &client)
         .await?;
 
     Ok(StatusCode::NO_CONTENT)
