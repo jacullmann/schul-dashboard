@@ -107,9 +107,25 @@ function continueWithAuth() {
   void router.push({ name: 'login' });
 }
 
+const isInvalid = computed(() => !loading.value && !ok.value);
+
+function goHome() {
+  void router.push(auth.homeRoute.value);
+}
+
 const submitAction = computed(() => {
+  if (isInvalid.value) return goHome;
   if (!ok.value) return undefined;
   return auth.isLoggedIn.value ? handleJoin : continueWithAuth;
+});
+
+const submitLabel = computed(() => {
+  if (isInvalid.value) return t('auth.groups.invite.btn_home');
+  return t(
+    auth.isLoggedIn.value
+      ? 'auth.groups.invite.btn_join'
+      : 'auth.groups.invite.btn_auth',
+  );
 });
 
 function handleLater() {
@@ -228,16 +244,10 @@ function handleLater() {
         variant="action"
         :loading="joining"
         class="w-full"
-        >{{
-          t(
-            auth.isLoggedIn.value
-              ? 'auth.groups.invite.btn_join'
-              : 'auth.groups.invite.btn_auth',
-          )
-        }}
+        >{{ submitLabel }}
       </BaseButton>
 
-      <template #secondary>
+      <template v-if="!isInvalid" #secondary>
         <BaseButton
           type="button"
           surface
