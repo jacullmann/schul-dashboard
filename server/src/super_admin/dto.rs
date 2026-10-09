@@ -22,7 +22,6 @@ pub enum UserStatusFilter {
     All,
     Active,
     Banned,
-    Unverified,
     Superadmin,
 }
 
@@ -32,7 +31,6 @@ impl UserStatusFilter {
             Self::All => "all",
             Self::Active => "active",
             Self::Banned => "banned",
-            Self::Unverified => "unverified",
             Self::Superadmin => "superadmin",
         }
     }
@@ -129,8 +127,8 @@ pub struct GroupsQuery {
 #[serde(rename_all = "camelCase")]
 pub struct StatsDto {
     pub user_count: i64,
-    pub verified_users: i64,
-    pub unverified_users: i64,
+    /// Sign-ups whose link has not been opened yet; they are no accounts.
+    pub pending_sign_ups: i64,
     pub admin_count: i64,
     pub banned_count: i64,
     pub new_users_this_week: i64,
@@ -158,7 +156,6 @@ pub struct AdminUserDto {
     pub id: Uuid,
     pub email: String,
     pub username: String,
-    pub email_verified: bool,
     pub mfa_enabled: bool,
     pub is_superadmin: bool,
     pub is_banned: bool,

@@ -21,9 +21,9 @@ Kontoeinstellungen erneut herunterladen.
 1. Inhalt von data.json
 -----------------------
 
-account            Dein Konto: E-Mail-Adresse, ob sie bestätigt ist, ob ein
-                   Passwort und die Zwei-Faktor-Authentifizierung eingerichtet
-                   sind, Einstellungen (Sprache, Farbschema, Personalisierung),
+account            Dein Konto: E-Mail-Adresse, ob ein Passwort und die
+                   Zwei-Faktor-Authentifizierung eingerichtet sind,
+                   Einstellungen (Sprache, Farbschema, Personalisierung),
                    Registrierung, letzte Anmeldung und der zufällig erzeugte
                    Name, unter dem dich andere Mitglieder sehen.
 linkedAccounts     Mit deinem Konto verknüpfte Anmeldedienste (z. B. Google)
@@ -104,8 +104,8 @@ für Google und Microsoft, soweit sie Daten in die USA übermitteln.
 - Aktivitätsprotokoll und Sicherheitsereignisse: 30 Tage.
 - Chatnachrichten: 7 Tage.
 - Aufgaben und Klausuren in Gruppen: 90 Tage nach dem Fälligkeitsdatum.
-- Codes zum Zurücksetzen des Passworts: 30 Minuten; Bestätigungslinks für
-  unbestätigte Konten: 2 Tage.
+- Codes zum Zurücksetzen des Passworts: 30 Minuten; unbestätigte
+  Registrierungen mit ihren Bestätigungslinks: 2 Tage.
 - Meldungen: bis wir sie bearbeitet haben.
 - Alle anderen Inhalte in Gruppen: bis du, die Gruppenadmins oder wir sie
   löschen oder die Gruppe gelöscht wird.

@@ -15,8 +15,8 @@ export interface Page<T> {
 
 export interface SuperAdminStats {
   userCount: number;
-  verifiedUsers: number;
-  unverifiedUsers: number;
+  /** Sign-ups whose confirmation link has not been opened yet. */
+  pendingSignUps: number;
   adminCount: number;
   bannedCount: number;
   newUsersThisWeek: number;
@@ -61,8 +61,7 @@ export interface ServerMetrics {
   networkOut: MetricPoint[];
 }
 
-export type UserStatusFilter =
-  'all' | 'active' | 'banned' | 'unverified' | 'superadmin';
+export type UserStatusFilter = 'all' | 'active' | 'banned' | 'superadmin';
 
 export type UserSort = 'createdAt' | 'lastLoginAt' | 'email';
 
@@ -70,7 +69,6 @@ export interface SuperAdminUser {
   id: string;
   email: string;
   username: string;
-  emailVerified: boolean;
   mfaEnabled: boolean;
   isSuperadmin: boolean;
   isBanned: boolean;

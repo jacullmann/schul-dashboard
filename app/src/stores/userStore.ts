@@ -32,7 +32,6 @@ export interface UserData {
   id: string;
   email: string;
   role: string;
-  emailVerified: boolean;
   courses: { subjectId: string; courseId: string }[];
   personalized: boolean;
   mfaEnabled: boolean;
@@ -68,7 +67,6 @@ export const useUserStore = defineStore('user', () => {
             id: data.id,
             email: data.email,
             role: data.role || 'user',
-            emailVerified: data.emailVerified,
             courses: data.courses || [],
             personalized: data.personalized,
             mfaEnabled: data.mfaEnabled ?? false,

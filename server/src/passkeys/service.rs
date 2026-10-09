@@ -469,7 +469,7 @@ impl PasskeyService {
         // The row lock makes concurrent sign-ins with one passkey take turns,
         // so each one checks the signature counter the previous one stored.
         let stored = sqlx::query!(
-            r#"SELECT p.id, p.credential, u.email, u.email_verified
+            r#"SELECT p.id, p.credential, u.email
                FROM passkeys p
                JOIN users u ON u.id = p.user_id
                WHERE p.user_id = $1 AND p.credential_id = $2
@@ -509,15 +509,6 @@ impl PasskeyService {
         )
         .execute(&mut *tx)
         .await?;
-
-        // The new counter is kept even when the account may not sign in, so
-        // a cloned authenticator still shows up on its next use.
-        if !stored.email_verified {
-            tx.commit().await?;
-            return Err(AppError::Unauthorized(
-                "Please verify your email address first.".into(),
-            ));
-        }
 
         sqlx::query!(
             r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'auth:passkey_login', $2)"#,

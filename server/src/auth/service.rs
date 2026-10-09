@@ -415,7 +415,7 @@ impl AuthService {
     pub async fn get_me(&self, user_id: Uuid) -> AppResult<serde_json::Value> {
         let user = sqlx::query!(
             r#"
-            SELECT id, email, email_verified, mfa_enabled, personalized, preferences,
+            SELECT id, email, mfa_enabled, personalized, preferences,
                    password_hash IS NOT NULL AS "has_password!"
             FROM users WHERE id = $1
             "#,
@@ -452,7 +452,6 @@ impl AuthService {
             "id": user.id,
             "email": user.email,
             "role": global_role.as_str(),
-            "emailVerified": user.email_verified,
             "courses": courses,
             "personalized": user.personalized,
             "mfaEnabled": user.mfa_enabled,
@@ -541,8 +540,8 @@ impl AuthService {
         }
 
         let user_id = sqlx::query_scalar!(
-            r#"INSERT INTO users (email, password_hash, email_verified, preferences)
-               VALUES ($1, $2, true, $3)
+            r#"INSERT INTO users (email, password_hash, preferences)
+               VALUES ($1, $2, $3)
                RETURNING id"#,
             pending.email,
             pending.sign_up.password_hash,
@@ -719,7 +718,7 @@ impl AuthService {
     /// A reset proves control of the mailbox and nothing more, so it replaces
     /// only the password: two-factor authentication and passkeys stay, and an
     /// account with a second factor still needs it to sign in afterwards.
-    /// Every session ends, and the address counts as confirmed.
+    /// Every session ends.
     pub async fn reset_password(
         &self,
         reset_token: &str,
@@ -753,7 +752,7 @@ impl AuthService {
         // Compared with the password the token was issued for, so of two
         // concurrent resets with one token only the first succeeds.
         let updated = sqlx::query!(
-            r#"UPDATE users SET password_hash = $1, email_verified = true
+            r#"UPDATE users SET password_hash = $1
                WHERE id = $2 AND password_hash IS NOT DISTINCT FROM $3"#,
             hash,
             user.id,

@@ -127,9 +127,6 @@ const selectedUser = ref<SuperAdminUser | null>(null);
               <span v-else class="badge text-success">{{
                 t('admin.users.status.active')
               }}</span>
-              <span v-if="!u.emailVerified" class="badge text-warn">{{
-                t('admin.users.status.unverified')
-              }}</span>
             </td>
             <td class="cell-date">{{ fmtDate(u.createdAt) }}</td>
             <td class="cell-date">

@@ -22,8 +22,7 @@
       "active_week": "Aktiv",
       "tasks": "Aufgaben",
       "banned": "Gebannt",
-      "verified": "Verifiziert",
-      "unverified": "Nicht verifiziert",
+      "pending_sign_ups": "Unbestätigt",
       "last_week": "letzte 7 Tage"
     },
     "chart": {
@@ -93,7 +92,7 @@
           "rule": "Älter als 30 Tage"
         },
         "cleanup-unverified-users": {
-          "label": "Unbestätigte Konten",
+          "label": "Unbestätigte Registrierungen",
           "rule": "Nicht innerhalb von 2 Tagen bestätigt"
         },
         "cleanup-password-resets": {
@@ -130,7 +129,6 @@
       "all": "Alle Benutzer",
       "active": "Aktiv",
       "banned": "Gebannt",
-      "unverified": "Nicht verifiziert",
       "superadmin": "Superadmins"
     },
     "table": {
@@ -144,8 +142,7 @@
     "status": {
       "admin": "Admin",
       "banned": "Gebannt",
-      "active": "Aktiv",
-      "unverified": "Nicht verifiziert"
+      "active": "Aktiv"
     },
     "actions": {
       "details": "Details & Protokoll",

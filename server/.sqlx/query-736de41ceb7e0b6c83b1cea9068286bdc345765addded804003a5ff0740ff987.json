@@ -1,0 +1,80 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT u.total AS \"user_count!\",\n                      u.new_recently AS \"new_users!\", u.active_recently AS \"active_users!\",\n                      i.total AS \"item_count!\", i.new_recently AS \"new_items!\",\n                      (SELECT COUNT(*) FROM user_roles\n                       WHERE tenant_id IS NULL AND role_id = $1) AS \"admin_count!\",\n                      (SELECT COUNT(*) FROM banned_users) AS \"banned_count!\",\n                      (SELECT COUNT(*) FROM reports) AS \"report_count!\",\n                      (SELECT COUNT(DISTINCT email) FROM verifications\n                       WHERE expires_at > now()) AS \"pending_sign_ups!\"\n               FROM (SELECT COUNT(*) AS total,\n                            COUNT(*) FILTER (WHERE created_at >= now() - make_interval(days => $2)) AS new_recently,\n                            COUNT(*) FILTER (WHERE last_login_at >= now() - make_interval(days => $2)) AS active_recently\n                     FROM users) u,\n                    (SELECT COUNT(*) AS total,\n                            COUNT(*) FILTER (WHERE created_at >= now() - make_interval(days => $2)) AS new_recently\n                     FROM items) i",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "user_count!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 1,
+        "name": "new_users!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 2,
+        "name": "active_users!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 3,
+        "name": "item_count!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 4,
+        "name": "new_items!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 5,
+        "name": "admin_count!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 6,
+        "name": "banned_count!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 7,
+        "name": "report_count!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 8,
+        "name": "pending_sign_ups!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Int4"
+      ]
+    },
+    "nullable": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  "hash": "736de41ceb7e0b6c83b1cea9068286bdc345765addded804003a5ff0740ff987"
+}

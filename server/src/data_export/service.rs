@@ -53,7 +53,7 @@ impl DataExportService {
 
         let account = sqlx::query_as!(
             Account,
-            r#"SELECT u.id, u.email, u.email_verified,
+            r#"SELECT u.id, u.email,
                       u.password_hash IS NOT NULL AS "has_password!",
                       u.mfa_enabled, u.mfa_failed_attempts, u.mfa_locked_until,
                       u.personalized, u.preferences,

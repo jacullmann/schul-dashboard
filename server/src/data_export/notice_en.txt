@@ -20,11 +20,10 @@ time in your account settings.
 1. What data.json contains
 --------------------------
 
-account            Your account: email address, whether it is verified,
-                   whether a password and two-factor authentication are set
-                   up, settings (language, theme, personalization), sign-up
-                   and last sign-in, and the randomly generated name other
-                   members see you as.
+account            Your account: email address, whether a password and
+                   two-factor authentication are set up, settings (language,
+                   theme, personalization), sign-up and last sign-in, and the
+                   randomly generated name other members see you as.
 linkedAccounts     Sign-in services linked to your account (e.g. Google) with
                    your account ID and email address at that service.
 groups             Your group memberships and roles, when you last opened each
@@ -98,8 +97,8 @@ and Microsoft where they transfer data to the USA.
 - Activity log and security events: 30 days.
 - Chat messages: 7 days.
 - Tasks and exams in groups: 90 days after their due date.
-- Password reset codes: 30 minutes; confirmation links for unverified
-  accounts: 2 days.
+- Password reset codes: 30 minutes; unconfirmed sign-ups with their
+  confirmation links: 2 days.
 - Reports: until we have reviewed them.
 - All other group content: until you, the group admins or we delete it, or the
   group is deleted.

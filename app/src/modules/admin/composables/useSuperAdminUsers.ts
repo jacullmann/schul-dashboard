@@ -15,7 +15,6 @@ export const USER_STATUS_FILTERS = [
   'all',
   'active',
   'banned',
-  'unverified',
   'superadmin',
 ] as const satisfies readonly UserStatusFilter[];
 
