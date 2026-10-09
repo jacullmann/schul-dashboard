@@ -63,7 +63,7 @@ const handleInput = (e: Event) => {
               </span>
             </div>
             <BaseButton
-              class="p-1.5 hover:text-on-ghost hover:bg-surface-hover/80 rounded-full transition-all duration-150 shrink-0"
+              class="p-1.5 hover:text-on-ghost hover:bg-ghost-hover/80 rounded-full transition-all duration-150 shrink-0"
               :title="t('chat.cancel_reply')"
               variant="ghost"
               on="ghost"

@@ -87,7 +87,7 @@ const activeTab = computed({
   font-weight: 600;
   padding: 1px 7px;
   border-radius: 8px;
-  background: var(--color-surface-hover);
+  background: var(--color-ghost-hover);
   color: var(--color-on-ghost-muted);
 }
 

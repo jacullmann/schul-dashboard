@@ -75,7 +75,7 @@ function isInviteActive(
 
 function getBadgeClass(invite: GroupInviteLog): string {
   if (invite.usedAt !== null) {
-    return 'text-blue-500';
+    return 'text-accent';
   }
   if (invite.revokedAt !== null) {
     return 'text-danger';

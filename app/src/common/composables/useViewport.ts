@@ -26,7 +26,7 @@ const ZOOMED_SCALE = 1.01;
 export const SIDEBAR_BREAKPOINT = 1024;
 
 /** Matches the Tailwind `xs` breakpoint; narrower screens are phones held upright. */
-export const PHONE_BREAKPOINT = 501;
+export const PHONE_BREAKPOINT = 512;
 
 export function useIsMobileViewport(): ComputedRef<boolean> {
   const { width } = useWindowSize();

@@ -69,7 +69,7 @@ function handleLabelClick(event: MouseEvent) {
       aria-hidden="true"
     >
       <span
-        class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-transparent scale-50 group-hover:bg-surface-hover group-hover:scale-100 transition duration-150 ease-in-out z-[-1]"
+        class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-transparent scale-50 group-hover:bg-ghost-hover group-hover:scale-100 transition duration-150 ease-in-out z-[-1]"
         :class="sizeClasses[size].hover"
       ></span>
       <span

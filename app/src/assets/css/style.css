@@ -19,12 +19,12 @@
   --color-white-highlight: oklch(0.9491 0 0);
   --color-mist: oklch(1 0 0 / 11%);
   --color-white: oklch(1 0 0);
-  --color-cobalt: oklch(0.5223 0.2209 260.65);
-  --color-cornflower: oklch(0.736 0.122 259.695);
+  --color-cobalt: oklch(0.57 0.235 262.881);
+  --color-sapphire: oklch(0.623 0.214 259.815);
   --color-cinnabar: oklch(0.64 0.23 25.33);
+  --color-cinnabar-highlight: oklch(0.675 0.21 25.33);
   --color-coral: oklch(0.65 0.22 24.41);
-  --color-coral-highlight: oklch(0.69 0.2072 23.19);
-  --color-burgundy: oklch(0.3312 0.037 19.22);
+  --color-coral-highlight: oklch(0.685 0.2 24.41);
   --color-yellow: oklch(0.7952 0.1617 86.05);
   --color-basil: oklch(0.755 0.225 145);
   --color-pistachio: oklch(0.82 0.22 145);
@@ -32,9 +32,7 @@
   --color-canvas: var(--color-white);
 
   --color-surface: var(--color-white);
-  --color-surface-hover: var(--color-vapor);
   --color-surface-highlight: oklch(0.9702 0 0);
-  --color-surface-hover-border: oklch(0.7921 0 0);
 
   --color-ghost-border: var(--color-smoke);
   --color-ghost-hover: var(--color-vapor);
@@ -46,15 +44,13 @@
   --color-action-hover: var(--color-charcoal);
   --color-on-action: var(--color-white);
   --color-on-action-muted: var(--color-ash);
-  --color-action-disabled: var(--color-ash);
-  --color-on-action-disabled: var(--color-graphite);
 
-  --color-accent: var(--color-blue-600);
+  --color-accent: var(--color-cobalt);
   --color-on-accent: var(--color-white);
 
   --color-danger: var(--color-cinnabar);
   --color-on-danger: var(--color-white);
-  --color-danger-highlight: var(--color-coral-highlight);
+  --color-danger-highlight: var(--color-cinnabar-highlight);
   --color-danger-hover: color-mix(
     in oklab,
     var(--color-danger) 12%,
@@ -72,8 +68,8 @@
   --color-warn: var(--color-yellow);
   --color-on-warn: var(--color-onyx);
 
-  --color-primary: var(--color-black);
   --color-focus: var(--color-ghost);
+  --color-depth: oklch(0 0 0 / 25%);
 
   --font-sans: 'Inter', sans-serif;
   --font-display: 'Satoshi', sans-serif;
@@ -111,7 +107,7 @@
 
   --duration-page-push: 400ms;
 
-  --header-height: 49px;
+  --header-height: calc(var(--spacing) * 12);
 
   --z-below: -10;
   --z-hide: -1;
@@ -132,14 +128,16 @@
 
   --animate-pulse: pulse 2s cubic-bezier(0.22, 1, 0.36, 1) infinite;
 
-  --color-kbd-bg: oklch(0.9731 0 0);
-  --color-kbd-text: oklch(0.2768 0 0);
-  --color-kbd-border: oklch(0.873 0 0);
-  --color-kbd-border-bottom: oklch(0.6698 0 0);
-  --color-kbd-shadow: oklch(0 0 0 / 20%);
+  /* 512px, kept in step with PHONE_BREAKPOINT in useViewport.ts. */
+  --breakpoint-xs: 32rem;
+}
 
-  /* 501px, kept in step with PHONE_BREAKPOINT in useViewport.ts. */
-  --breakpoint-xs: 31.3125rem;
+/* Registered so its computed value resolves to px: useSchedulePager reads it
+   with getComputedStyle, which would otherwise return the unresolved calc(). */
+@property --header-height {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 0px;
 }
 
 @font-face {
@@ -161,7 +159,6 @@
 :root {
   --animate-pulse: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 
-  --header-height: 49px;
   /* Space the fixed mobile tab bar covers at the bottom; AppTabBar measures it. */
   --tab-bar-height: 0px;
   /*
@@ -228,9 +225,7 @@
     --color-canvas: var(--color-onyx);
 
     --color-surface: var(--color-charcoal);
-    --color-surface-hover: var(--color-mist);
     --color-surface-highlight: var(--color-charcoal-highlight);
-    --color-surface-hover-border: var(--color-steel);
 
     --color-ghost-border: var(--color-mist);
     --color-ghost-hover: var(--color-mist);
@@ -242,10 +237,8 @@
     --color-action-hover: var(--color-white-highlight);
     --color-on-action: var(--color-onyx);
     --color-on-action-muted: var(--color-graphite);
-    --color-action-disabled: var(--color-ash);
-    --color-on-action-disabled: var(--color-graphite);
 
-    --color-accent: var(--color-blue-500);
+    --color-accent: var(--color-sapphire);
     --color-on-accent: var(--color-white);
 
     --color-danger: var(--color-coral);
@@ -268,19 +261,13 @@
     --color-warn: var(--color-yellow);
     --color-on-warn: var(--color-onyx);
 
-    --color-primary: var(--color-white);
     --color-focus: var(--color-ash);
+    --color-depth: oklch(0 0 0 / 70%);
 
     --color-shadow-light: oklch(0 0 0 / 5%);
     --color-shadow-heavy: oklch(0 0 0 / 40%);
     --shadow-focus-ring: 0 0 0 3px var(--color-graphite);
     --focus-ring-color: var(--color-graphite);
-
-    --color-kbd-bg: oklch(0.329 0 0);
-    --color-kbd-text: oklch(0.8452 0 0);
-    --color-kbd-border: oklch(0.4091 0 0);
-    --color-kbd-border-bottom: oklch(0.2603 0 0);
-    --color-kbd-shadow: oklch(0 0 0 / 40%);
   }
 
   ::-webkit-scrollbar {
@@ -351,19 +338,13 @@
   }
 }
 /* Reordering private tasks. The held card rises off the page: a tight contact
-   shadow under a wide soft one, and an edge that firms up so it reads against
-   the list in both themes. The rest of the list steps back and quiets down, so
-   the difference is depth, not decoration. --lift and --recede run 0 to 1 and
-   are driven by the springs in useDragReorder. */
+   shadow under a wide soft one. The rest of the list steps back and quiets
+   down, so the difference is depth, not decoration. --lift and --recede run 0
+   to 1 and are driven by the springs in useDragReorder. */
 .reorder-item {
   --reorder-shadow: oklch(0 0 0);
-  --reorder-edge: var(--color-surface-hover-border);
 
   opacity: calc(1 - var(--recede, 0) * 0.38);
-}
-
-html.dark .reorder-item {
-  --reorder-edge: var(--color-graphite);
 }
 
 .reorder-item.is-lifted {
@@ -402,14 +383,6 @@ html.dark .reorder-item.is-lifted {
         var(--reorder-shadow) calc(var(--lift, 0) * 60%),
         transparent
       );
-}
-
-.reorder-item.is-lifted .item-card {
-  border-color: color-mix(
-    in oklab,
-    var(--reorder-edge) calc(var(--lift, 0) * 100%),
-    var(--color-ghost-border)
-  );
 }
 
 html.is-reordering {

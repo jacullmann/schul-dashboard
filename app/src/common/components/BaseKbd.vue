@@ -19,14 +19,20 @@ withDefaults(
 
 <style scoped>
 kbd.default {
+  --kbd-bg: oklch(0.9731 0 0);
+  --kbd-text: oklch(0.2768 0 0);
+  --kbd-border: oklch(0.873 0 0);
+  --kbd-border-bottom: oklch(0.6698 0 0);
+  --kbd-shadow: oklch(0 0 0 / 20%);
+
   display: inline-flex;
   align-items: center;
-  background-color: var(--color-kbd-bg);
-  color: var(--color-kbd-text);
-  border: 1px solid var(--color-kbd-border);
+  background-color: var(--kbd-bg);
+  color: var(--kbd-text);
+  border: 1px solid var(--kbd-border);
   box-shadow:
-    0 2px 0 var(--color-kbd-border-bottom),
-    0 3px 2px var(--color-kbd-shadow);
+    0 2px 0 var(--kbd-border-bottom),
+    0 3px 2px var(--kbd-shadow);
   border-radius: 6px;
   font-family: monospace;
   font-size: 0.75rem;
@@ -40,11 +46,19 @@ kbd.default {
     box-shadow 0.1s ease;
 }
 
+html.dark kbd.default {
+  --kbd-bg: oklch(0.329 0 0);
+  --kbd-text: oklch(0.8452 0 0);
+  --kbd-border: oklch(0.4091 0 0);
+  --kbd-border-bottom: oklch(0.2603 0 0);
+  --kbd-shadow: oklch(0 0 0 / 40%);
+}
+
 kbd.default:active {
   transform: translateY(2px);
   box-shadow:
-    0 0 0 var(--color-kbd-border-bottom),
-    0 1px 2px var(--color-kbd-shadow);
+    0 0 0 var(--kbd-border-bottom),
+    0 1px 2px var(--kbd-shadow);
 }
 
 kbd.flat {

@@ -39,9 +39,9 @@ const goBack = () => {
 
 <template>
   <div class="p-4 max-w-200 my-0 mx-0 md:my-10 md:mx-auto">
-    <div class="flex flex-col items-center text-center py-5 max-[500px]:py-2.5">
+    <div class="flex flex-col items-center text-center py-5 max-xs:py-2.5">
       <div
-        class="font-display text-[96px] font-bold text-on-ghost leading-none mb-4 tracking-[-0.02em] max-md:text-[72px] max-[500px]:text-[64px]"
+        class="font-display text-[96px] font-bold text-on-ghost leading-none mb-4 tracking-[-0.02em] max-md:text-[72px] max-xs:text-[64px]"
       >
         404
       </div>

@@ -202,7 +202,7 @@ const formatTime = (timestamp: string) => {
             isBgTransparent
               ? 'bg-transparent text-on-ghost'
               : msg.userId === currentUserId
-                ? 'bg-action text-on-action'
+                ? 'bg-accent text-on-accent'
                 : 'bg-ghost-hover text-on-ghost',
             bubbleBorderClasses,
           ]"
@@ -273,7 +273,7 @@ const formatTime = (timestamp: string) => {
               :class="[
                 'text-xs select-none font-normal tracking-tight whitespace-nowrap ml-auto self-end',
                 msg.userId === currentUserId && !isBgTransparent
-                  ? 'text-on-action-muted/70'
+                  ? 'text-on-accent/60'
                   : 'text-on-ghost-subtle',
               ]"
             >

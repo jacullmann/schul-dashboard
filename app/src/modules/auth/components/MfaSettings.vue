@@ -302,7 +302,7 @@ onUnmounted(() => {
           :class="{ '!opacity-100': setupStep === 1 || setupStep > 1 }"
         >
           <span
-            class="flex items-center justify-center w-6 h-6 rounded-full bg-surface-hover text-sm font-semibold text-on-ghost-muted"
+            class="flex items-center justify-center w-6 h-6 rounded-full bg-ghost-hover text-sm font-semibold text-on-ghost-muted"
             :class="{
               '!bg-action !text-on-action': setupStep === 1,
               '!bg-[var(--special--green)] !text-white': setupStep > 1,
@@ -321,7 +321,7 @@ onUnmounted(() => {
           :class="{ '!opacity-100': setupStep === 2 }"
         >
           <span
-            class="flex items-center justify-center w-6 h-6 rounded-full bg-surface-hover text-sm font-semibold text-on-ghost-muted"
+            class="flex items-center justify-center w-6 h-6 rounded-full bg-ghost-hover text-sm font-semibold text-on-ghost-muted"
             :class="{ '!bg-action !text-on-action': setupStep === 2 }"
             >2</span
           >
@@ -361,7 +361,7 @@ onUnmounted(() => {
             >
             <button
               type="button"
-              class="flex items-center justify-center p-2 bg-none border-none text-on-ghost-muted cursor-pointer rounded-lg transition-all hover:bg-surface-hover hover:text-on-ghost"
+              class="flex items-center justify-center p-2 bg-none border-none text-on-ghost-muted cursor-pointer rounded-lg transition-all hover:bg-ghost-hover hover:text-on-ghost"
               :title="
                 copied ? t('auth.mfa.setup.copied') : t('common.buttons.copy')
               "

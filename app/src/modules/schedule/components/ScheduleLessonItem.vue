@@ -88,7 +88,7 @@ const showsRoom = computed(
         ? 'border-b border-ghost-border group-[.highlight-active]:border-on-ghost-muted!'
         : '',
       isClickable
-        ? 'cursor-pointer transition-colors duration-150 hover:bg-surface-hover'
+        ? 'cursor-pointer transition-colors duration-150 hover:bg-ghost-hover'
         : '',
       isSelected ? 'bg-action! text-on-action!' : '',
       hasContextMenu ? 'long-press-target' : '',

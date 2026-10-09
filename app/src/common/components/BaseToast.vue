@@ -48,7 +48,7 @@ function onMouseLeave() {
 }
 
 const VISIBLE_COUNT = 3;
-const GAP = 12;
+const GAP = 10;
 
 function getToastStyle(index: number) {
   const reversedIndex = toasts.length - 1 - index;
@@ -202,7 +202,7 @@ const hitBoxHeight = computed(() => {
               @click="dismiss(toast.id)"
             />
             <div
-              class="absolute inset-0 pointer-events-none transition-opacity duration-400 ease-out-expo bg-steel"
+              class="absolute inset-0 pointer-events-none transition-opacity duration-400 ease-out-expo bg-depth"
               :style="{
                 opacity: isHovered
                   ? 0

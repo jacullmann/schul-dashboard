@@ -118,7 +118,6 @@ watch(
           variant="ghost"
           :icon="Trash2"
           size="sm"
-          class="text-danger hover:text-danger-hover"
           @click.stop="$emit('delete')"
         />
       </BaseTooltip>
