@@ -14,10 +14,7 @@
 
 use super::email_code::{EmailCode, Issuance, MAX_ATTEMPTS_PER_CODE};
 use crate::{
-    common::{
-        age::AgeDeclaration,
-        send_limit::{MAIL_LIMITS, longest_window, retry_after},
-    },
+    common::send_limit::{MAIL_LIMITS, longest_window, retry_after},
     config::{EMAIL_VERIFY_TTL, chrono_ttl},
     error::AppResult,
 };
@@ -29,7 +26,6 @@ use uuid::Uuid;
 pub struct SignUp {
     pub password_hash: String,
     pub preferences: serde_json::Value,
-    pub age: AgeDeclaration,
 }
 
 /// A sign-up whose code was entered, before its password was checked.
@@ -56,14 +52,12 @@ pub async fn issue(conn: &mut PgConnection, email: &str, sign_up: &SignUp) -> Ap
     let code = EmailCode::generate();
     sqlx::query!(
         r#"INSERT INTO verifications
-               (email, code, password_hash, preferences, birth_year, guardian_consent_at, expires_at, created_at)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)"#,
+               (email, code, password_hash, preferences, expires_at, created_at)
+           VALUES ($1, $2, $3, $4, $5, $6)"#,
         email,
         code.as_str(),
         sign_up.password_hash,
         sign_up.preferences,
-        sign_up.age.birth_year,
-        sign_up.age.guardian_consent_at,
         now + chrono_ttl(EMAIL_VERIFY_TTL),
         now
     )
@@ -85,8 +79,8 @@ pub async fn reissue_latest(conn: &mut PgConnection, email: &str) -> AppResult<O
     let code = EmailCode::generate();
     let language = sqlx::query_scalar!(
         r#"INSERT INTO verifications
-               (email, code, password_hash, preferences, birth_year, guardian_consent_at, expires_at, created_at)
-           SELECT email, $2, password_hash, preferences, birth_year, guardian_consent_at, expires_at, $3
+               (email, code, password_hash, preferences, expires_at, created_at)
+           SELECT email, $2, password_hash, preferences, expires_at, $3
            FROM verifications
            WHERE email = $1 AND expires_at > $3
            ORDER BY created_at DESC
@@ -113,7 +107,7 @@ pub async fn redeem<'e>(
     let waiting = sqlx::query!(
         r#"UPDATE verifications SET attempts = attempts + 1
            WHERE email = $1 AND expires_at > now() AND attempts < $2
-           RETURNING id, code, password_hash, preferences, birth_year, guardian_consent_at"#,
+           RETURNING id, code, password_hash, preferences"#,
         email,
         MAX_ATTEMPTS_PER_CODE
     )
@@ -127,10 +121,6 @@ pub async fn redeem<'e>(
         sign_up: SignUp {
             password_hash: row.password_hash,
             preferences: row.preferences,
-            age: AgeDeclaration {
-                birth_year: row.birth_year,
-                guardian_consent_at: row.guardian_consent_at,
-            },
         },
     }))
 }

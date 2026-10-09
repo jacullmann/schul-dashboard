@@ -123,8 +123,6 @@ mod tests {
                     reauth_failed_attempts: 0,
                     reauth_locked_until: None,
                     personalized: true,
-                    birth_year: Some(2010),
-                    guardian_consent_at: None,
                     preferences: serde_json::json!({ "language": language }),
                     platform_role: None,
                     last_active_group_id: None,

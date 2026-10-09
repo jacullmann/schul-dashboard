@@ -58,7 +58,7 @@ impl DataExportService {
                       u.mfa_enabled, u.mfa_failed_attempts, u.mfa_locked_until,
                       u.password_failed_attempts, u.password_locked_until,
                       u.reauth_failed_attempts, u.reauth_locked_until,
-                      u.personalized, u.birth_year, u.guardian_consent_at, u.preferences,
+                      u.personalized, u.preferences,
                       (SELECT r.name FROM user_roles ur
                        JOIN roles r ON r.id = ur.role_id
                        WHERE ur.user_id = u.id AND ur.tenant_id IS NULL

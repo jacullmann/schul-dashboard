@@ -24,10 +24,8 @@ Kontoeinstellungen erneut herunterladen.
 account            Dein Konto: E-Mail-Adresse, ob ein Passwort und die
                    Zwei-Faktor-Authentifizierung eingerichtet sind,
                    Einstellungen (Sprache, Farbschema, Personalisierung),
-                   Registrierung, letzte Anmeldung, dein Geburtsjahr (für die
-                   Altersprüfung) und, bei Nutzern unter 16 Jahren, der Zeitpunkt
-                   der Zustimmung deiner Erziehungsberechtigten sowie der
-                   zufällig erzeugte Name, unter dem dich andere Mitglieder sehen.
+                   Registrierung, letzte Anmeldung sowie der zufällig erzeugte
+                   Name, unter dem dich andere Mitglieder sehen.
 linkedAccounts     Mit deinem Konto verknüpfte Anmeldedienste (z. B. Google)
                    mit der Konto-ID und E-Mail-Adresse bei diesem Dienst.
 groups             Deine Gruppenmitgliedschaften und Rollen, wann du welche

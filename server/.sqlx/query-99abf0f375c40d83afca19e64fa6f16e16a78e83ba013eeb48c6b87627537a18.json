@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "UPDATE verifications SET attempts = attempts + 1\n           WHERE email = $1 AND expires_at > now() AND attempts < $2\n           RETURNING id, code, password_hash, preferences, birth_year, guardian_consent_at",
+  "query": "UPDATE verifications SET attempts = attempts + 1\n           WHERE email = $1 AND expires_at > now() AND attempts < $2\n           RETURNING id, code, password_hash, preferences",
   "describe": {
     "columns": [
       {
@@ -46,28 +46,6 @@
             "name": "preferences"
           }
         }
-      },
-      {
-        "ordinal": 4,
-        "name": "birth_year",
-        "type_info": "Int4",
-        "origin": {
-          "Table": {
-            "table": "verifications",
-            "name": "birth_year"
-          }
-        }
-      },
-      {
-        "ordinal": 5,
-        "name": "guardian_consent_at",
-        "type_info": "Timestamptz",
-        "origin": {
-          "Table": {
-            "table": "verifications",
-            "name": "guardian_consent_at"
-          }
-        }
       }
     ],
     "parameters": {
@@ -80,10 +58,8 @@
       false,
       false,
       false,
-      false,
-      false,
-      true
+      false
     ]
   },
-  "hash": "c11c5ca001949db219c9378b2efcfb920849dbaff04627f10ee63e1a38342c7a"
+  "hash": "99abf0f375c40d83afca19e64fa6f16e16a78e83ba013eeb48c6b87627537a18"
 }

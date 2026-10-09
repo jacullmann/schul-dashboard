@@ -325,18 +325,6 @@ pub enum AuthFailure {
     /// The change would leave the account without any way to sign in.
     #[error("Your account needs at least one other way to sign in.")]
     LastSignInMethod,
-
-    /// The birth year is in the future or further back than any real age.
-    #[error("The birth year is not valid.")]
-    InvalidBirthYear,
-
-    /// The applicant is below the minimum age for an account.
-    #[error("You are too young to create an account.")]
-    TooYoung,
-
-    /// Applicants below the consent age need a guardian's consent.
-    #[error("A guardian's consent is required.")]
-    GuardianConsentRequired,
 }
 
 impl AuthFailure {
@@ -345,12 +333,9 @@ impl AuthFailure {
     fn status(self) -> StatusCode {
         match self {
             Self::InvalidCredentials | Self::EmailNotVerified => StatusCode::UNAUTHORIZED,
-            Self::IncorrectPassword
-            | Self::SecondFactorRequired
-            | Self::InvalidSecondFactor
-            | Self::InvalidBirthYear
-            | Self::TooYoung
-            | Self::GuardianConsentRequired => StatusCode::BAD_REQUEST,
+            Self::IncorrectPassword | Self::SecondFactorRequired | Self::InvalidSecondFactor => {
+                StatusCode::BAD_REQUEST
+            }
             Self::EmailAlreadyRegistered | Self::LastSignInMethod => StatusCode::CONFLICT,
         }
     }
@@ -364,9 +349,6 @@ impl AuthFailure {
             Self::SecondFactorRequired => "SECOND_FACTOR_REQUIRED",
             Self::InvalidSecondFactor => "INVALID_SECOND_FACTOR",
             Self::LastSignInMethod => "LAST_SIGN_IN_METHOD",
-            Self::InvalidBirthYear => "INVALID_BIRTH_YEAR",
-            Self::TooYoung => "TOO_YOUNG",
-            Self::GuardianConsentRequired => "GUARDIAN_CONSENT_REQUIRED",
         }
     }
 }

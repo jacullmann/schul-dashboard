@@ -395,14 +395,11 @@
             "when you registered and when you last signed in,",
             "whether two-factor authentication is enabled, the secret it needs (encrypted) and your recovery codes (as a hash only), each with when they were created and used,",
             "your passkeys: their public key, identifier and name, and when they were added and last used. The private key never leaves your device,",
-            "if you sign in with Google, your Google account ID and that Google account's email address,",
-            "your year of birth, which we use to check the minimum age,",
-            "if you are under 16, the time when your parents or guardians consented to your use of the service."
+            "if you sign in with Google, your Google account ID and that Google account's email address."
           ],
           "outro": [
             "We only send you emails your account needs: the confirmation code after registration, codes to reset or set your password, and security notices whenever the protection of your account changes, for example when your password is changed, two-factor authentication is turned on or off, or a passkey or Google account is added or removed. We do not send newsletters or ads.",
-            "We cannot create an account without an email address. The legal basis is the performance of our terms of use (Art. 6(1)(b) GDPR).",
-            "We need your year of birth for the age check, on the same legal basis. If you are under 16, your account rests on your parents' or guardians' consent (Art. 6(1)(a) and Art. 8 GDPR). They can withdraw that consent at any time by writing to us at contact{'@'}schul-dashboard.com, and we will then delete the account."
+            "We cannot create an account without an email address. The legal basis is the performance of our terms of use (Art. 6(1)(b) GDPR)."
           ]
         },
         {
@@ -553,7 +550,7 @@
         "title": "Your Account",
         "item0": "You must provide a valid email address to create an account.",
         "item1": "You are responsible for keeping your login credentials secure.",
-        "item2": "You must be at least 13 years old to use this service. If you are under 16, you need the consent of your parents or guardians.",
+        "item2": "You must be at least 18 years old or have the consent of your legal guardians to use this service.",
         "item3": "One account per person. Do not share accounts."
       },
       "conduct": {

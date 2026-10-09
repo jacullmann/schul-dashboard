@@ -4,7 +4,6 @@ import { useRouter } from 'vue-router';
 import api from '@/api/api.ts';
 import { useToast } from '@/common/composables/useToast';
 import { authErrorMessage } from '@/modules/auth/utils/authErrors';
-import type { AgeDeclaration } from '@/modules/auth/utils/age';
 import { consumeReauthReturn } from '@/modules/auth/utils/reauthReturn';
 import { useReauthModal } from '@/stores/modalStore';
 
@@ -187,13 +186,9 @@ export function useOAuth() {
 
   // The account is created only here, after the user accepted the terms for
   // the Google identity the callback verified.
-  async function signUpWithGoogle(age: AgeDeclaration): Promise<ActionResult> {
+  async function signUpWithGoogle(): Promise<ActionResult> {
     try {
-      await api.post('/auth/google/signup', {
-        acceptedTerms: true,
-        birthYear: age.birthYear,
-        guardianConsent: age.guardianConsent,
-      });
+      await api.post('/auth/google/signup', { acceptedTerms: true });
       showSignUpModal.value = false;
       return { ok: true };
     } catch (err: unknown) {
