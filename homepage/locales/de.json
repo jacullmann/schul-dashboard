@@ -493,7 +493,7 @@
           "title": "Speicherdauer",
           "items": [
             "Kontodaten speichern wir, bis du dein Konto löschst.",
-            "Unbestätigte Konten löschen wir, nachdem der Bestätigungslink nach 2 Tagen abgelaufen ist.",
+            "Unbestätigte Registrierungen löschen wir, sobald ihr Bestätigungslink nach 2 Tagen abgelaufen ist.",
             "Codes zum Zurücksetzen oder Festlegen des Passworts sind 30 Minuten gültig. Wir löschen sie nach 24 Stunden; bis dahin begrenzen wir mit ihnen, wie viele Codes eine E-Mail-Adresse erhält.",
             "Sitzungsdaten mit IP-Adresse und Browserkennung löschen wir etwa 7 Tage nach ihrer letzten Nutzung.",
             "Aktivitätsprotokoll und Sicherheitsereignisse löschen wir nach 30 Tagen.",

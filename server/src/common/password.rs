@@ -1,11 +1,11 @@
-use crate::error::AppError;
+use crate::{common::memory_hard, error::AppError};
 use argon2::{
     Argon2,
     password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString, rand_core::OsRng},
 };
 
 pub async fn hash_password(password: String) -> Result<String, AppError> {
-    tokio::task::spawn_blocking(move || {
+    memory_hard::run(move || {
         let salt = SaltString::generate(&mut OsRng);
 
         let argon2 = Argon2::default();
@@ -15,12 +15,11 @@ pub async fn hash_password(password: String) -> Result<String, AppError> {
             .map(|h| h.to_string())
             .map_err(|e| AppError::internal(format!("Password hashing failed: {e}")))
     })
-    .await
-    .map_err(|e| AppError::internal(format!("Spawn blocking failed: {e}")))?
+    .await?
 }
 
 pub async fn verify_password(password: String, hash: String) -> Result<bool, AppError> {
-    tokio::task::spawn_blocking(move || {
+    memory_hard::run(move || {
         let parsed = PasswordHash::new(&hash)
             .map_err(|e| AppError::internal(format!("Invalid password hash: {e}")))?;
 
@@ -28,8 +27,7 @@ pub async fn verify_password(password: String, hash: String) -> Result<bool, App
             .verify_password(password.as_bytes(), &parsed)
             .is_ok())
     })
-    .await
-    .map_err(|e| AppError::internal(format!("Spawn blocking failed: {e}")))?
+    .await?
 }
 
 pub fn validate_password_strength(password: &str) -> Result<(), &'static str> {

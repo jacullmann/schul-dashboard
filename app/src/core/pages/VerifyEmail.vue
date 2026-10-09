@@ -1,103 +1,116 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
-import api from '../../api/api';
-import {
-  CheckCircle2,
-  XCircle,
-  Info,
-  AlertTriangle,
-  ArrowLeft,
-} from '@lucide/vue';
+import { useRoute, useRouter } from 'vue-router';
+import { XCircle, AlertTriangle, ArrowLeft } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
+import { useUserStore } from '@/stores/userStore';
+import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
+import { useConfirmSignUp } from '@/modules/auth/composables/useConfirmSignUp';
 
 const { t } = useI18n();
+const route = useRoute();
+const router = useRouter();
+const userStore = useUserStore();
+const { checkAuthStatus, homeRoute } = useAppAuth();
 
-const loading = ref(true);
-const ok = ref(false);
+const token = typeof route.query.token === 'string' ? route.query.token : '';
 
-const heading = computed(() => {
-  if (loading.value)
-    return {
-      title: t('auth.verify_email.verifying'),
-      description: t('auth.verify_email.wait'),
-    };
-  return ok.value
-    ? {
-        title: t('auth.verify_email.success'),
-        description: t('auth.verify_email.success_description'),
-      }
-    : {
-        title: t('auth.verify_email.error'),
-        description: t('auth.verify_email.error_description'),
-      };
-});
-
-onMounted(async () => {
-  const params = new URLSearchParams(location.search);
-  const token = params.get('token') || '';
+async function enterApp() {
   try {
-    const { data } = await api.get('/auth/verify', { params: { token } });
-    ok.value = data.ok;
+    await checkAuthStatus();
+    await userStore.fetchUser();
   } catch {
-    ok.value = false;
-  } finally {
-    loading.value = false;
+    // Signed in; navigate anyway and let the route guard re-sync.
   }
-});
+  await router.push(homeRoute.value);
+}
+
+const {
+  password,
+  passwordError,
+  formError,
+  submitting,
+  linkInvalid,
+  clearErrors,
+  submit,
+} = useConfirmSignUp(token, enterApp);
 </script>
 
 <template>
-  <div class="w-full max-w-120">
-    <div class="flex flex-col items-center text-center">
-      <BaseSpinner v-if="loading" size="64px" border-thickness="6px" />
-      <CheckCircle2 v-else-if="ok" class="size-16 text-success" />
-      <XCircle v-else class="size-16 text-danger" />
+  <div class="w-full max-w-105">
+    <template v-if="!linkInvalid">
+      <div class="text-center mb-8">
+        <h1 class="text-center!">
+          {{ t('auth.verify_email.title') }}
+        </h1>
+        <p class="text-sm text-on-ghost-muted mt-1!">
+          {{ t('auth.verify_email.description') }}
+        </p>
+      </div>
+
+      <BaseForm :submit="submit" :loading="submitting" :error="formError">
+        <template #content>
+          <BaseFormGroup id="verify-password" :error="passwordError">
+            <BaseLabel for="verify-password">
+              {{ t('auth.login.password') }}
+            </BaseLabel>
+            <BaseInput
+              id="verify-password"
+              v-model="password"
+              :placeholder="t('auth.login.password_placeholder')"
+              type="password"
+              autocomplete="current-password"
+              autofocus
+              required
+              :aria-describedby="
+                passwordError ? 'verify-password-error' : undefined
+              "
+              @input="clearErrors"
+            />
+          </BaseFormGroup>
+        </template>
+
+        <template #action-text>
+          {{ t('auth.verify_email.submit') }}
+        </template>
+      </BaseForm>
+    </template>
+
+    <div v-else class="flex flex-col items-center text-center">
+      <XCircle class="size-16 text-danger" />
 
       <h1 class="text-center! leading-[1.2] mt-6! mb-2!">
-        {{ heading.title }}
+        {{ t('auth.verify_email.error') }}
       </h1>
       <div class="text-base leading-normal text-on-ghost-muted mb-8">
-        {{ heading.description }}
+        {{ t('auth.verify_email.error_description') }}
       </div>
 
       <div
-        v-if="!loading && ok"
-        class="flex items-start gap-2 w-full p-3 text-left bg-success-hover border border-success rounded-xl"
+        class="w-full p-3 text-left bg-danger-hover border border-danger rounded-xl"
       >
-        <Info :size="20" class="shrink-0 text-success" />
-        <div class="text-sm leading-normal text-on-ghost">
-          {{ t('auth.verify_email.close_tab') }}
+        <div class="flex gap-2 mb-2 text-danger">
+          <AlertTriangle :size="20" />
+          <span class="text-base/5 font-semibold">{{
+            t('auth.verify_email.possible_causes')
+          }}</span>
         </div>
+        <ul
+          class="flex flex-col gap-2 pl-5 list-disc text-sm text-on-ghost marker:text-danger"
+        >
+          <li>{{ t('auth.verify_email.causes.used_link') }}</li>
+          <li>{{ t('auth.verify_email.causes.expired_link') }}</li>
+          <li>{{ t('auth.verify_email.causes.copied_link') }}</li>
+        </ul>
       </div>
 
-      <template v-else-if="!loading">
-        <div
-          class="w-full p-3 text-left bg-danger-hover border border-danger rounded-xl"
-        >
-          <div class="flex gap-2 mb-2 text-danger">
-            <AlertTriangle :size="20" />
-            <span class="text-base/5 font-semibold">{{
-              t('auth.verify_email.possible_causes')
-            }}</span>
-          </div>
-          <ul
-            class="flex flex-col gap-2 pl-5 list-disc text-sm text-on-ghost marker:text-danger"
-          >
-            <li>{{ t('auth.verify_email.causes.used_link') }}</li>
-            <li>{{ t('auth.verify_email.causes.expired_link') }}</li>
-            <li>{{ t('auth.verify_email.causes.copied_link') }}</li>
-          </ul>
-        </div>
-
-        <BaseButton
-          class="mt-4"
-          variant="ghost"
-          :icon="ArrowLeft"
-          @click="$router.push({ name: 'groups' })"
-        >
-          {{ t('common.buttons.back') }}
-        </BaseButton>
-      </template>
+      <BaseButton
+        class="mt-4"
+        variant="ghost"
+        :icon="ArrowLeft"
+        @click="router.push({ name: 'groups' })"
+      >
+        {{ t('common.buttons.back') }}
+      </BaseButton>
     </div>
   </div>
 </template>

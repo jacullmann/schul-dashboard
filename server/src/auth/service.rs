@@ -3,7 +3,8 @@ use crate::{
         cookies::*,
         dto::*,
         email_code::{self, Issuance},
-        email_verification, security_notice,
+        email_verification::{self, SignUp},
+        security_notice,
         session_context::is_superadmin,
         sign_in_methods::{SignInMethod, SignInMethods},
         token::{IssueTokenParams, SessionOrigin, TokenService, *},
@@ -114,6 +115,28 @@ impl AuthService {
         let _ = verify_password(password, DUMMY_PASSWORD_HASH.to_string()).await;
     }
 
+    /// No account has the address. Whoever signed up with it and entered the
+    /// same password is told to confirm it first; anyone else learns nothing.
+    /// Only the latest sign-up is checked, so this costs one hash like any
+    /// other failed sign-in.
+    async fn reject_unknown_sign_in(&self, email: &str, password: String) -> AppError {
+        let pending = match email_verification::latest_password_hash(&self.db, email).await {
+            Ok(pending) => pending,
+            Err(e) => return e,
+        };
+
+        let Some(hash) = pending else {
+            self.equalize_login_timing(password).await;
+            return AuthFailure::InvalidCredentials.into();
+        };
+
+        match verify_password(password, hash).await {
+            Ok(true) => AuthFailure::EmailNotVerified.into(),
+            Ok(false) => AuthFailure::InvalidCredentials.into(),
+            Err(e) => e,
+        }
+    }
+
     pub async fn login(
         &self,
         dto: LoginDto,
@@ -124,7 +147,7 @@ impl AuthService {
 
         let user = sqlx::query!(
             r#"
-            SELECT id, email, password_hash, email_verified,
+            SELECT id, email, password_hash,
                    mfa_enabled AND mfa_secret IS NOT NULL AS "mfa_required!"
             FROM users WHERE email = $1
             "#,
@@ -134,8 +157,7 @@ impl AuthService {
         .await?;
 
         let Some(user) = user else {
-            self.equalize_login_timing(dto.password).await;
-            return Err(AuthFailure::InvalidCredentials.into());
+            return Err(self.reject_unknown_sign_in(&email, dto.password).await);
         };
 
         let Some(hash) = user.password_hash else {
@@ -154,10 +176,6 @@ impl AuthService {
                 .execute(&self.db)
                 .await?;
             return Err(AuthFailure::InvalidCredentials.into());
-        }
-
-        if !user.email_verified {
-            return Err(AuthFailure::EmailNotVerified.into());
         }
 
         let client = ClientInfo { user_agent, ip };
@@ -202,6 +220,18 @@ impl AuthService {
             ));
         }
 
+        self.start_session(user_id, email, client)
+            .await
+            .map(LoginResult::Success)
+    }
+
+    /// Signs in an account that owes no second factor.
+    async fn start_session(
+        &self,
+        user_id: Uuid,
+        email: &str,
+        client: ClientInfo<'_>,
+    ) -> AppResult<CookieJar> {
         sqlx::query!(
             r#"UPDATE users SET last_login_at = now() WHERE id = $1"#,
             user_id
@@ -220,7 +250,7 @@ impl AuthService {
             .issue_session(user_id, email, client.user_agent, client.ip)
             .await?;
 
-        Ok(LoginResult::Success(jar))
+        Ok(jar)
     }
 
     /// Finishes a sign-in with the second factor. Returns how many recovery
@@ -305,74 +335,41 @@ impl AuthService {
         }
     }
 
-    /// Creates the account, or replaces an unconfirmed one for the same
-    /// address: a sign-up that was never confirmed got nowhere, and letting it
-    /// block the address would let anyone hold someone else's email hostage.
-    /// The window to confirm starts over with the new sign-up.
+    /// Stores the sign-up and mails its confirmation link. The account is
+    /// only created once the link is opened with this password (see
+    /// [`email_verification`]), so signing up again, by anyone, leaves every
+    /// earlier sign-up for the address as it was.
     pub async fn register(&self, dto: RegisterDto) -> AppResult<serde_json::Value> {
         validate_password_strength(&dto.password).map_err(|e| AppError::BadRequest(e.into()))?;
         let age = age::declare(dto.birth_year, dto.guardian_consent, Utc::now())?;
 
         let email = dto.email.to_lowercase();
-        let password_hash = hash_password(dto.password).await?;
         let locale = dto.preferences.language;
-        let prefs = json!({
-            "theme": dto.preferences.theme.unwrap_or_else(|| "system".into()),
-            "language": locale,
-            "personalized": dto.preferences.personalized.unwrap_or_else(|| json!("true")),
-        });
+        let sign_up = SignUp {
+            age,
+            password_hash: hash_password(dto.password).await?,
+            preferences: json!({
+                "theme": dto.preferences.theme.unwrap_or_else(|| "system".into()),
+                "language": locale,
+                "personalized": dto.preferences.personalized.unwrap_or_else(|| json!("true")),
+            }),
+        };
 
         let mut tx = self.db.begin().await?;
         email_code::lock_address(&mut tx, &email).await?;
 
-        let existing = sqlx::query_scalar!(
-            r#"SELECT email_verified FROM users WHERE email = $1 FOR UPDATE"#,
+        let registered = sqlx::query_scalar!(
+            r#"SELECT EXISTS (SELECT 1 FROM users WHERE email = $1) AS "registered!""#,
             email
         )
-        .fetch_optional(&mut *tx)
+        .fetch_one(&mut *tx)
         .await?;
 
-        let signed_up_at = match existing {
-            Some(true) => return Err(AuthFailure::EmailAlreadyRegistered.into()),
-            Some(false) => {
-                sqlx::query_scalar!(
-                    r#"UPDATE users
-                       SET password_hash = $2, preferences = $3, created_at = now(),
-                           birth_year = $4, guardian_consent_at = $5
-                       WHERE email = $1
-                       RETURNING created_at"#,
-                    email,
-                    password_hash,
-                    prefs,
-                    age.birth_year,
-                    age.guardian_consent_at,
-                )
-                .fetch_one(&mut *tx)
-                .await?
-            }
-            None => sqlx::query_scalar!(
-                r#"INSERT INTO users
-                       (email, password_hash, email_verified, preferences, birth_year, guardian_consent_at)
-                   VALUES ($1, $2, false, $3, $4, $5)
-                   RETURNING created_at"#,
-                email,
-                password_hash,
-                prefs,
-                age.birth_year,
-                age.guardian_consent_at,
-            )
-            .fetch_one(&mut *tx)
-            .await
-            // A Google sign-up for the address can still win the race.
-            .map_err(|e| match e.as_database_error() {
-                Some(db) if db.is_unique_violation() => {
-                    AppError::from(AuthFailure::EmailAlreadyRegistered)
-                }
-                _ => AppError::Database(e),
-            })?,
-        };
+        if registered {
+            return Err(AuthFailure::EmailAlreadyRegistered.into());
+        }
 
-        let token = match email_verification::issue(&mut tx, &email, signed_up_at).await? {
+        let token = match email_verification::issue(&mut tx, &email, &sign_up).await? {
             Issuance::Issued(token) => token,
             Issuance::Throttled { retry_after } => {
                 return Err(AppError::EmailCodeThrottled { retry_after });
@@ -389,33 +386,18 @@ impl AuthService {
         Ok(json!({ "ok": true, "message": message }))
     }
 
-    /// Sends a new confirmation link to an unconfirmed account. The answer is
-    /// the same whether or not one was sent, so it reveals nothing about the
-    /// address.
+    /// Mails a new link for the latest sign-up of the address. The answer is
+    /// the same whether or not one was sent, so it reveals nothing about it.
     pub async fn resend_verification(&self, email: &str) -> AppResult<serde_json::Value> {
         let email = email.to_lowercase();
 
         let mut tx = self.db.begin().await?;
         email_code::lock_address(&mut tx, &email).await?;
 
-        let account = sqlx::query!(
-            r#"SELECT created_at, preferences->>'language' AS language
-               FROM users WHERE email = $1 AND NOT email_verified"#,
-            email
-        )
-        .fetch_optional(&mut *tx)
-        .await?
-        // A link past the account's deadline would never work; signing up
-        // again starts a new window.
-        .filter(|account| email_verification::link_expiry(account.created_at) > Utc::now());
-
-        if let Some(account) = account
-            && let Issuance::Issued(token) =
-                email_verification::issue(&mut tx, &email, account.created_at).await?
-        {
+        if let Some(link) = email_verification::reissue_latest(&mut tx, &email).await? {
             tx.commit().await?;
-            let locale = Locale::from_stored(account.language.as_deref());
-            if let Err(e) = self.send_verification(&email, locale, &token).await {
+            let locale = Locale::from_stored(link.language.as_deref());
+            if let Err(e) = self.send_verification(&email, locale, &link.token).await {
                 tracing::warn!("Confirmation email not resent: {e}");
             }
         }
@@ -436,7 +418,7 @@ impl AuthService {
     pub async fn get_me(&self, user_id: Uuid) -> AppResult<serde_json::Value> {
         let user = sqlx::query!(
             r#"
-            SELECT id, email, email_verified, mfa_enabled, personalized, preferences,
+            SELECT id, email, mfa_enabled, personalized, preferences,
                    password_hash IS NOT NULL AS "has_password!"
             FROM users WHERE id = $1
             "#,
@@ -473,7 +455,6 @@ impl AuthService {
             "id": user.id,
             "email": user.email,
             "role": global_role.as_str(),
-            "emailVerified": user.email_verified,
             "courses": courses,
             "personalized": user.personalized,
             "mfaEnabled": user.mfa_enabled,
@@ -532,38 +513,60 @@ impl AuthService {
         Ok(jar)
     }
 
-    pub async fn verify_email(&self, token: &str) -> AppResult<serde_json::Value> {
-        let ver = sqlx::query!(
-            r#"SELECT email, expires_at FROM verifications WHERE token = $1"#,
-            token
-        )
-        .fetch_optional(&self.db)
-        .await?
-        .ok_or_else(|| AppError::BadRequest("Invalid verification token.".into()))?;
+    /// Creates the account of a sign-up from its link and the password it
+    /// chose, and signs the new account in.
+    pub async fn confirm_sign_up(
+        &self,
+        token: &str,
+        password: String,
+        client: ClientInfo<'_>,
+    ) -> AppResult<CookieJar> {
+        let invalid_link = || AppError::bad_request("Invalid verification token.");
 
-        if ver.expires_at < Utc::now() {
-            return Err(AppError::BadRequest(
-                "Verification token has expired.".into(),
-            ));
+        let pending = email_verification::find(&self.db, token)
+            .await?
+            .ok_or_else(invalid_link)?;
+
+        if pending.expires_at < Utc::now() {
+            return Err(AppError::bad_request("Verification token has expired."));
         }
 
-        let user = sqlx::query!(r#"SELECT id FROM users WHERE email = $1"#, ver.email)
-            .fetch_optional(&self.db)
-            .await?
-            .ok_or_else(|| AppError::BadRequest("User not found.".into()))?;
+        if !verify_password(password, pending.sign_up.password_hash.clone()).await? {
+            return Err(AuthFailure::IncorrectPassword.into());
+        }
 
-        sqlx::query!(
-            r#"UPDATE users SET email_verified = true WHERE id = $1"#,
-            user.id
+        let mut tx = self.db.begin().await?;
+        email_code::lock_address(&mut tx, &pending.email).await?;
+
+        if !email_verification::settle(&mut tx, &pending.email, token).await? {
+            return Err(invalid_link());
+        }
+
+        let age = pending.sign_up.age;
+        let user_id = sqlx::query_scalar!(
+            r#"INSERT INTO users (email, password_hash, preferences, birth_year, guardian_consent_at)
+               VALUES ($1, $2, $3, $4, $5)
+               RETURNING id"#,
+            pending.email,
+            pending.sign_up.password_hash,
+            pending.sign_up.preferences,
+            age.birth_year,
+            age.guardian_consent_at,
         )
-        .execute(&self.db)
-        .await?;
+        .fetch_one(&mut *tx)
+        .await
+        // A Google sign-up for the address may have come first.
+        .map_err(|e| match e.as_database_error() {
+            Some(db) if db.is_unique_violation() => {
+                AppError::from(AuthFailure::EmailAlreadyRegistered)
+            }
+            _ => AppError::Database(e),
+        })?;
 
-        sqlx::query!(r#"DELETE FROM verifications WHERE email = $1"#, ver.email)
-            .execute(&self.db)
-            .await?;
+        tx.commit().await?;
 
-        Ok(json!({ "ok": true }))
+        // A new account has no second factor and cannot have been banned yet.
+        self.start_session(user_id, &pending.email, client).await
     }
 
     pub async fn forgot_password(&self, email: &str) -> AppResult<serde_json::Value> {
@@ -721,7 +724,7 @@ impl AuthService {
     /// A reset proves control of the mailbox and nothing more, so it replaces
     /// only the password: two-factor authentication and passkeys stay, and an
     /// account with a second factor still needs it to sign in afterwards.
-    /// Every session ends, and the address counts as confirmed.
+    /// Every session ends.
     pub async fn reset_password(
         &self,
         reset_token: &str,
@@ -755,7 +758,7 @@ impl AuthService {
         // Compared with the password the token was issued for, so of two
         // concurrent resets with one token only the first succeeds.
         let updated = sqlx::query!(
-            r#"UPDATE users SET password_hash = $1, email_verified = true
+            r#"UPDATE users SET password_hash = $1
                WHERE id = $2 AND password_hash IS NOT DISTINCT FROM $3"#,
             hash,
             user.id,

@@ -114,7 +114,6 @@ mod tests {
                 account: Account {
                     id: uuid::Uuid::nil(),
                     email: "student@example.com".into(),
-                    email_verified: true,
                     has_password: true,
                     mfa_enabled: false,
                     mfa_failed_attempts: 0,

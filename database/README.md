@@ -34,7 +34,7 @@ therefore almost never fire. pg_cron runs in the DB container and is unaffected.
 | `cleanup-group-invites`        | `cleanup_expired_group_invites()`        | invites 30 days after expiry, use or revocation |
 | `cleanup-user-activity`        | `cleanup_old_user_activity()`            | activity log older than 30 days                 |
 | `cleanup-security-events`      | `cleanup_old_security_events()`          | security events older than 30 days              |
-| `cleanup-unverified-users`     | `cleanup_unverified_users()`             | accounts unverified after 2 days                |
+| `cleanup-unverified-users`     | `cleanup_unverified_users()`             | sign-ups unconfirmed after 2 days               |
 | `cleanup-password-resets`      | `cleanup_expired_password_resets()`      | password reset/setup codes after 24 hours       |
 | `cleanup-old-items`            | `cleanup_old_items()`                    | tasks 90 days after their due date              |
 | `cleanup-system-announcements` | `cleanup_expired_system_announcements()` | platform announcements once they end            |
@@ -53,7 +53,8 @@ means the job is not running.
 - The cleanup **functions** are created by the app migrations
   (`server/migrations/0006_consolidate_cleanup.sql`, `0012_…`,
   `0040_scheduled_retention.sql`, `0041_delete_items_after_due_date.sql` and
-  `0050_limit_email_codes_per_address.sql` and `0051_system_announcements.sql`),
+  `0050_limit_email_codes_per_address.sql`, `0051_system_announcements.sql` and
+  `0063_pending_sign_ups.sql`),
   not here.
 
 ---

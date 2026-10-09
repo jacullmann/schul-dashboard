@@ -26,6 +26,7 @@ pub fn router() -> Router<AppState> {
 
     let sensitive = Router::new()
         .route("/auth/login", post(login))
+        .route("/auth/verify", post(confirm_sign_up))
         .route("/auth/reset/verify", post(verify_reset_token))
         .route("/auth/reset", post(reset_password))
         .route("/auth/set-password/code", post(request_password_setup_code))
@@ -36,7 +37,6 @@ pub fn router() -> Router<AppState> {
         .route("/auth/mfa/challenge", get(get_mfa_challenge))
         .route("/auth/mfa/cancel", post(cancel_mfa))
         .route("/auth/me", get(get_me).delete(delete_me))
-        .route("/auth/verify", get(verify_email))
         .route("/auth/change-password", post(change_password))
         .route("/auth/password", delete(remove_password))
         .route("/auth/sign-in-methods", get(get_sign_in_methods))

@@ -198,19 +198,6 @@ pub async fn delete_user(
     Ok(Json(body))
 }
 
-pub async fn update_user_role(
-    State(s): State<AppState>,
-    SuperAdmin(admin): SuperAdmin,
-    Path(target): Path<Uuid>,
-    Json(dto): Json<UpdateUserRoleDto>,
-) -> AppResult<Json<Value>> {
-    Ok(Json(
-        SuperAdminService::from_state(&s)
-            .update_user_role(target, dto.role, admin.user_id)
-            .await?,
-    ))
-}
-
 pub async fn get_reports(State(s): State<AppState>, _: SuperAdmin) -> AppResult<Json<Value>> {
     Ok(Json(ReportsService::from_state(&s).list().await?))
 }

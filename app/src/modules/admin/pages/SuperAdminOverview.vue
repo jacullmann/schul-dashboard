@@ -92,11 +92,11 @@ onMounted(loadDailyActivity);
         <div v-if="s.key === 'users'" class="flex mt-4">
           <div class="flex flex-1 flex-col">
             <span class="text-on-ghost-muted text-sm leading-none">{{
-              t('admin.overview.stats.verified')
+              t('admin.overview.stats.pending_sign_ups')
             }}</span>
 
             <span class="font-bold tabular-nums">{{
-              stats.verifiedUsers
+              stats.pendingSignUps
             }}</span>
           </div>
           <div class="border-r border-ghost-border mx-4"></div>

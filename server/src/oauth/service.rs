@@ -482,8 +482,8 @@ impl OAuthService {
         let mut tx = self.db.begin().await?;
 
         let user_id = sqlx::query_scalar!(
-            r#"INSERT INTO users (email, password_hash, email_verified, birth_year, guardian_consent_at)
-               VALUES ($1, NULL, true, $2, $3) RETURNING id"#,
+            r#"INSERT INTO users (email, password_hash, birth_year, guardian_consent_at)
+               VALUES ($1, NULL, $2, $3) RETURNING id"#,
             email,
             age.birth_year,
             age.guardian_consent_at,
@@ -518,7 +518,7 @@ impl OAuthService {
         client: ClientInfo<'_>,
     ) -> AppResult<LoginResult> {
         let user = sqlx::query!(
-            r#"SELECT id, email, password_hash, email_verified,
+            r#"SELECT id, email, password_hash,
                       mfa_enabled AND mfa_secret IS NOT NULL AS "mfa_required!"
                FROM users WHERE email = $1"#,
             google_email.to_lowercase()
@@ -535,10 +535,6 @@ impl OAuthService {
         };
         if !password_matches {
             return Err(AuthFailure::InvalidCredentials.into());
-        }
-
-        if !user.email_verified {
-            return Err(AuthFailure::EmailNotVerified.into());
         }
 
         self.insert_google_link(user.id, google_id, google_email)

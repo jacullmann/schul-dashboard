@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT p.id, p.credential, u.email, u.email_verified\n               FROM passkeys p\n               JOIN users u ON u.id = p.user_id\n               WHERE p.user_id = $1 AND p.credential_id = $2\n               FOR UPDATE OF p",
+  "query": "SELECT p.id, p.credential, u.email\n               FROM passkeys p\n               JOIN users u ON u.id = p.user_id\n               WHERE p.user_id = $1 AND p.credential_id = $2\n               FOR UPDATE OF p",
   "describe": {
     "columns": [
       {
@@ -35,17 +35,6 @@
             "name": "email"
           }
         }
-      },
-      {
-        "ordinal": 3,
-        "name": "email_verified",
-        "type_info": "Bool",
-        "origin": {
-          "Table": {
-            "table": "users",
-            "name": "email_verified"
-          }
-        }
       }
     ],
     "parameters": {
@@ -57,9 +46,8 @@
     "nullable": [
       false,
       false,
-      false,
       false
     ]
   },
-  "hash": "3dd1a56e6fc4726b5fd6fb7ffc76c17f05540a29c4caec2c7642997c49055ad0"
+  "hash": "1d979052901147da892b656d93282e46863af5f85ebc988d144b1b1dae516161"
 }

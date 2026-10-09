@@ -125,15 +125,16 @@ impl SuperAdminService {
     /// One round trip that scans each large table once.
     pub async fn get_stats(&self) -> AppResult<StatsDto> {
         let row = sqlx::query!(
-            r#"SELECT u.total AS "user_count!", u.verified AS "verified_users!",
+            r#"SELECT u.total AS "user_count!",
                       u.new_recently AS "new_users!", u.active_recently AS "active_users!",
                       i.total AS "item_count!", i.new_recently AS "new_items!",
                       (SELECT COUNT(*) FROM user_roles
                        WHERE tenant_id IS NULL AND role_id = $1) AS "admin_count!",
                       (SELECT COUNT(*) FROM banned_users) AS "banned_count!",
-                      (SELECT COUNT(*) FROM reports) AS "report_count!"
+                      (SELECT COUNT(*) FROM reports) AS "report_count!",
+                      (SELECT COUNT(DISTINCT email) FROM verifications
+                       WHERE expires_at > now()) AS "pending_sign_ups!"
                FROM (SELECT COUNT(*) AS total,
-                            COUNT(*) FILTER (WHERE email_verified) AS verified,
                             COUNT(*) FILTER (WHERE created_at >= now() - make_interval(days => $2)) AS new_recently,
                             COUNT(*) FILTER (WHERE last_login_at >= now() - make_interval(days => $2)) AS active_recently
                      FROM users) u,
@@ -148,8 +149,7 @@ impl SuperAdminService {
 
         Ok(StatsDto {
             user_count: row.user_count,
-            verified_users: row.verified_users,
-            unverified_users: row.user_count - row.verified_users,
+            pending_sign_ups: row.pending_sign_ups,
             admin_count: row.admin_count,
             banned_count: row.banned_count,
             new_users_this_week: row.new_users,
@@ -327,7 +327,7 @@ impl SuperAdminService {
         let superadmin_role = Role::Superadmin.db_id_i32();
 
         let rows_query = sqlx::query!(
-            r#"SELECT u.id, u.email, u.email_verified, u.created_at, u.last_login_at,
+            r#"SELECT u.id, u.email, u.created_at, u.last_login_at,
                       u.mfa_enabled AND u.mfa_secret IS NOT NULL AS "mfa_enabled!",
                       EXISTS (SELECT 1 FROM user_roles ur
                               WHERE ur.user_id = u.id AND ur.tenant_id IS NULL
@@ -338,7 +338,6 @@ impl SuperAdminService {
                  AND CASE $3
                        WHEN 'active' THEN NOT EXISTS (SELECT 1 FROM banned_users b WHERE b.user_id = u.id)
                        WHEN 'banned' THEN EXISTS (SELECT 1 FROM banned_users b WHERE b.user_id = u.id)
-                       WHEN 'unverified' THEN NOT u.email_verified
                        WHEN 'superadmin' THEN EXISTS (SELECT 1 FROM user_roles ur
                                                       WHERE ur.user_id = u.id AND ur.tenant_id IS NULL
                                                         AND ur.role_id = $4)
@@ -371,7 +370,6 @@ impl SuperAdminService {
                  AND CASE $3
                        WHEN 'active' THEN NOT EXISTS (SELECT 1 FROM banned_users b WHERE b.user_id = u.id)
                        WHEN 'banned' THEN EXISTS (SELECT 1 FROM banned_users b WHERE b.user_id = u.id)
-                       WHEN 'unverified' THEN NOT u.email_verified
                        WHEN 'superadmin' THEN EXISTS (SELECT 1 FROM user_roles ur
                                                       WHERE ur.user_id = u.id AND ur.tenant_id IS NULL
                                                         AND ur.role_id = $4)
@@ -392,7 +390,6 @@ impl SuperAdminService {
                 username: generate_user_name(&u.id.to_string()),
                 id: u.id,
                 email: u.email,
-                email_verified: u.email_verified,
                 mfa_enabled: u.mfa_enabled,
                 is_superadmin: u.is_superadmin,
                 is_banned: u.is_banned,
@@ -577,57 +574,6 @@ impl SuperAdminService {
             admin_id,
             "admin:delete:user",
             json!({ "targetUserId": target_id, "email": email }),
-        )
-        .await?;
-
-        tx.commit().await?;
-
-        Ok(json!({ "ok": true }))
-    }
-
-    pub async fn update_user_role(
-        &self,
-        target_id: Uuid,
-        role: GlobalRole,
-        admin_id: Uuid,
-    ) -> AppResult<Value> {
-        if target_id == admin_id {
-            return Err(AppError::bad_request(
-                "You cannot modify your own global role.",
-            ));
-        }
-
-        let mut tx = self.db.begin().await?;
-
-        match role {
-            GlobalRole::Superadmin => {
-                sqlx::query!(
-                    r#"INSERT INTO user_roles (user_id, role_id, tenant_id)
-                       VALUES ($1, $2, NULL)
-                       ON CONFLICT (user_id, role_id) WHERE tenant_id IS NULL DO NOTHING"#,
-                    target_id,
-                    Role::Superadmin.db_id_i32(),
-                )
-                .execute(&mut *tx)
-                .await?;
-            }
-            GlobalRole::User => {
-                sqlx::query!(
-                    r#"DELETE FROM user_roles
-                       WHERE user_id = $1 AND role_id = $2 AND tenant_id IS NULL"#,
-                    target_id,
-                    Role::Superadmin.db_id_i32(),
-                )
-                .execute(&mut *tx)
-                .await?;
-            }
-        }
-
-        log_admin_action(
-            &mut tx,
-            admin_id,
-            "admin:role_change",
-            json!({ "targetUserId": target_id, "newRole": role.as_str() }),
         )
         .await?;
 

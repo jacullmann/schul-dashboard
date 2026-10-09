@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, email, password_hash, email_verified,\n                      mfa_enabled AND mfa_secret IS NOT NULL AS \"mfa_required!\"\n               FROM users WHERE email = $1",
+  "query": "\n            SELECT id, email, password_hash,\n                   mfa_enabled AND mfa_secret IS NOT NULL AS \"mfa_required!\"\n            FROM users WHERE email = $1\n            ",
   "describe": {
     "columns": [
       {
@@ -38,17 +38,6 @@
       },
       {
         "ordinal": 3,
-        "name": "email_verified",
-        "type_info": "Bool",
-        "origin": {
-          "Table": {
-            "table": "users",
-            "name": "email_verified"
-          }
-        }
-      },
-      {
-        "ordinal": 4,
         "name": "mfa_required!",
         "type_info": "Bool",
         "origin": "Expression"
@@ -63,9 +52,8 @@
       false,
       false,
       true,
-      false,
       null
     ]
   },
-  "hash": "a4bda8b0fd17df2aec116cee862bf9b92330d85394b5d26e0053731302c98cfb"
+  "hash": "2dd96b9011392f6b68475343b64121dd29beac04862817dec5538bc69c4a9fe1"
 }

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT id, email, email_verified, mfa_enabled, personalized, preferences,\n                   password_hash IS NOT NULL AS \"has_password!\"\n            FROM users WHERE id = $1\n            ",
+  "query": "\n            SELECT id, email, mfa_enabled, personalized, preferences,\n                   password_hash IS NOT NULL AS \"has_password!\"\n            FROM users WHERE id = $1\n            ",
   "describe": {
     "columns": [
       {
@@ -27,17 +27,6 @@
       },
       {
         "ordinal": 2,
-        "name": "email_verified",
-        "type_info": "Bool",
-        "origin": {
-          "Table": {
-            "table": "users",
-            "name": "email_verified"
-          }
-        }
-      },
-      {
-        "ordinal": 3,
         "name": "mfa_enabled",
         "type_info": "Bool",
         "origin": {
@@ -48,7 +37,7 @@
         }
       },
       {
-        "ordinal": 4,
+        "ordinal": 3,
         "name": "personalized",
         "type_info": "Bool",
         "origin": {
@@ -59,7 +48,7 @@
         }
       },
       {
-        "ordinal": 5,
+        "ordinal": 4,
         "name": "preferences",
         "type_info": "Jsonb",
         "origin": {
@@ -70,7 +59,7 @@
         }
       },
       {
-        "ordinal": 6,
+        "ordinal": 5,
         "name": "has_password!",
         "type_info": "Bool",
         "origin": "Expression"
@@ -87,9 +76,8 @@
       false,
       false,
       false,
-      false,
       null
     ]
   },
-  "hash": "999d5ebc07cd20d8504112fd93f0fd479b146da2b7250ecf7bc36a01844e2355"
+  "hash": "ed50943b3c15ac745cfd3dba5d5e3198fcf07585c54a98c59b4bc5b2ccebf8d6"
 }

@@ -40,7 +40,6 @@ pub struct AccountExport {
 pub struct Account {
     pub id: Uuid,
     pub email: String,
-    pub email_verified: bool,
     pub has_password: bool,
     pub mfa_enabled: bool,
     pub mfa_failed_attempts: i32,

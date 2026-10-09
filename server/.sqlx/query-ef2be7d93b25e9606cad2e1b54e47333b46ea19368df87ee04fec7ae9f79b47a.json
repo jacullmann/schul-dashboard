@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT u.id, u.email, u.email_verified,\n                      u.password_hash IS NOT NULL AS \"has_password!\",\n                      u.mfa_enabled, u.mfa_failed_attempts, u.mfa_locked_until,\n                      u.personalized, u.birth_year, u.guardian_consent_at, u.preferences,\n                      (SELECT r.name FROM user_roles ur\n                       JOIN roles r ON r.id = ur.role_id\n                       WHERE ur.user_id = u.id AND ur.tenant_id IS NULL\n                       ORDER BY r.id LIMIT 1) AS \"platform_role?\",\n                      u.last_active_group_id, u.last_login_at,\n                      (SELECT b.banned_at FROM banned_users b WHERE b.user_id = u.id) AS \"banned_at?\",\n                      u.created_at, u.updated_at\n               FROM users u\n               WHERE u.id = $1",
+  "query": "SELECT u.id, u.email,\n                      u.password_hash IS NOT NULL AS \"has_password!\",\n                      u.mfa_enabled, u.mfa_failed_attempts, u.mfa_locked_until,\n                      u.personalized, u.birth_year, u.guardian_consent_at, u.preferences,\n                      (SELECT r.name FROM user_roles ur\n                       JOIN roles r ON r.id = ur.role_id\n                       WHERE ur.user_id = u.id AND ur.tenant_id IS NULL\n                       ORDER BY r.id LIMIT 1) AS \"platform_role?\",\n                      u.last_active_group_id, u.last_login_at,\n                      (SELECT b.banned_at FROM banned_users b WHERE b.user_id = u.id) AS \"banned_at?\",\n                      u.created_at, u.updated_at\n               FROM users u\n               WHERE u.id = $1",
   "describe": {
     "columns": [
       {
@@ -27,23 +27,12 @@
       },
       {
         "ordinal": 2,
-        "name": "email_verified",
-        "type_info": "Bool",
-        "origin": {
-          "Table": {
-            "table": "users",
-            "name": "email_verified"
-          }
-        }
-      },
-      {
-        "ordinal": 3,
         "name": "has_password!",
         "type_info": "Bool",
         "origin": "Expression"
       },
       {
-        "ordinal": 4,
+        "ordinal": 3,
         "name": "mfa_enabled",
         "type_info": "Bool",
         "origin": {
@@ -54,7 +43,7 @@
         }
       },
       {
-        "ordinal": 5,
+        "ordinal": 4,
         "name": "mfa_failed_attempts",
         "type_info": "Int4",
         "origin": {
@@ -65,7 +54,7 @@
         }
       },
       {
-        "ordinal": 6,
+        "ordinal": 5,
         "name": "mfa_locked_until",
         "type_info": "Timestamptz",
         "origin": {
@@ -76,7 +65,7 @@
         }
       },
       {
-        "ordinal": 7,
+        "ordinal": 6,
         "name": "personalized",
         "type_info": "Bool",
         "origin": {
@@ -87,7 +76,7 @@
         }
       },
       {
-        "ordinal": 8,
+        "ordinal": 7,
         "name": "birth_year",
         "type_info": "Int4",
         "origin": {
@@ -98,7 +87,7 @@
         }
       },
       {
-        "ordinal": 9,
+        "ordinal": 8,
         "name": "guardian_consent_at",
         "type_info": "Timestamptz",
         "origin": {
@@ -109,7 +98,7 @@
         }
       },
       {
-        "ordinal": 10,
+        "ordinal": 9,
         "name": "preferences",
         "type_info": "Jsonb",
         "origin": {
@@ -120,13 +109,13 @@
         }
       },
       {
-        "ordinal": 11,
+        "ordinal": 10,
         "name": "platform_role?",
         "type_info": "Text",
         "origin": "Expression"
       },
       {
-        "ordinal": 12,
+        "ordinal": 11,
         "name": "last_active_group_id",
         "type_info": "Uuid",
         "origin": {
@@ -137,7 +126,7 @@
         }
       },
       {
-        "ordinal": 13,
+        "ordinal": 12,
         "name": "last_login_at",
         "type_info": "Timestamptz",
         "origin": {
@@ -148,13 +137,13 @@
         }
       },
       {
-        "ordinal": 14,
+        "ordinal": 13,
         "name": "banned_at?",
         "type_info": "Timestamptz",
         "origin": "Expression"
       },
       {
-        "ordinal": 15,
+        "ordinal": 14,
         "name": "created_at",
         "type_info": "Timestamptz",
         "origin": {
@@ -165,7 +154,7 @@
         }
       },
       {
-        "ordinal": 16,
+        "ordinal": 15,
         "name": "updated_at",
         "type_info": "Timestamptz",
         "origin": {
@@ -184,7 +173,6 @@
     "nullable": [
       false,
       false,
-      false,
       null,
       false,
       false,
@@ -201,5 +189,5 @@
       false
     ]
   },
-  "hash": "cb827c6088d8eb4eb97c34bf669a28931307a0c51e850631e06d63587243ece6"
+  "hash": "ef2be7d93b25e9606cad2e1b54e47333b46ea19368df87ee04fec7ae9f79b47a"
 }

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO users (email, password_hash, email_verified, birth_year, guardian_consent_at)\n               VALUES ($1, NULL, true, $2, $3) RETURNING id",
+  "query": "INSERT INTO users (email, password_hash, preferences, birth_year, guardian_consent_at)\n               VALUES ($1, $2, $3, $4, $5)\n               RETURNING id",
   "describe": {
     "columns": [
       {
@@ -18,6 +18,8 @@
     "parameters": {
       "Left": [
         "Text",
+        "Text",
+        "Jsonb",
         "Int4",
         "Timestamptz"
       ]
@@ -26,5 +28,5 @@
       false
     ]
   },
-  "hash": "269d9c564b17ba61584ace2505eab67475995025c9fbf09be06a1028a1d0fead"
+  "hash": "30695facdec79e14665f2c2cb5934ca58f935b57c894c679900cf8139299a49e"
 }

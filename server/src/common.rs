@@ -9,6 +9,7 @@ pub mod hetzner;
 pub mod jwt;
 pub mod locale;
 pub mod lockout;
+pub mod memory_hard;
 pub mod name_generator;
 pub mod names;
 pub mod pagination;

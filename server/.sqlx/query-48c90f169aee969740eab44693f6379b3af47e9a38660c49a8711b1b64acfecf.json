@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT EXISTS (SELECT 1 FROM users WHERE email = $1) AS \"registered!\"",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "registered!",
+        "type_info": "Bool",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "48c90f169aee969740eab44693f6379b3af47e9a38660c49a8711b1b64acfecf"
+}

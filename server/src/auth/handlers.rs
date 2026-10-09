@@ -14,13 +14,9 @@ use crate::{
     passkeys::{dto::SignInDto as PasskeySignInDto, service::PasskeyService},
     state::AppState,
 };
-use axum::{
-    Json,
-    extract::{Query, State},
-};
+use axum::{Json, extract::State};
 use axum_extra::extract::CookieJar;
 use chrono::Utc;
-use serde::Deserialize;
 use serde_json::{Value, json};
 
 pub async fn login(
@@ -160,18 +156,24 @@ pub async fn delete_me(
     Ok((jar, Json(json!({ "ok": true }))))
 }
 
-#[derive(Deserialize)]
-pub struct VerifyQuery {
-    pub token: String,
-}
-
-pub async fn verify_email(
+/// Opening the emailed link with the password chosen at sign-up creates the
+/// account and signs it in.
+pub async fn confirm_sign_up(
     State(state): State<AppState>,
-    Query(q): Query<VerifyQuery>,
-) -> AppResult<Json<Value>> {
-    let svc = AuthService::from_state(&state);
+    ClientIp(ip): ClientIp,
+    UserAgent(ua): UserAgent,
+    ValidatedJson(dto): ValidatedJson<ConfirmSignUpDto>,
+) -> AppResult<(CookieJar, Json<Value>)> {
+    let client = ClientInfo {
+        user_agent: ua.as_deref(),
+        ip: ip.as_deref(),
+    };
 
-    Ok(Json(svc.verify_email(&q.token).await?))
+    let jar = AuthService::from_state(&state)
+        .confirm_sign_up(&dto.token, dto.password, client)
+        .await?;
+
+    Ok((jar, Json(json!({ "ok": true }))))
 }
 
 pub async fn resend_verification(
