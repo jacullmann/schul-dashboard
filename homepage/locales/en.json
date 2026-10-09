@@ -490,7 +490,7 @@
           "title": "Retention",
           "items": [
             "We keep account data until you delete your account.",
-            "We delete unconfirmed accounts once their confirmation link has expired after 2 days.",
+            "We delete unconfirmed sign-ups once their confirmation link has expired after 2 days.",
             "Codes to reset or set your password are valid for 30 minutes. We delete them after 24 hours; until then, we use them to limit how many codes an email address receives.",
             "We delete session data with IP address and browser identifier about 7 days after it was last used.",
             "We delete the activity log and security events after 30 days.",

@@ -66,6 +66,16 @@ pub struct ResendVerificationDto {
 
 #[derive(Debug, Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
+pub struct ConfirmSignUpDto {
+    #[validate(length(equal = 64))]
+    pub token: String,
+
+    #[validate(length(min = 1, max = 255))]
+    pub password: String,
+}
+
+#[derive(Debug, Deserialize, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct ResetPasswordVerifyDto {
     #[validate(email)]
     pub email: String,

@@ -6,6 +6,7 @@ export const AuthErrorCode = {
   InvalidCredentials: 'INVALID_CREDENTIALS',
   EmailAlreadyRegistered: 'EMAIL_ALREADY_REGISTERED',
   EmailNotVerified: 'EMAIL_NOT_VERIFIED',
+  IncorrectPassword: 'INCORRECT_PASSWORD',
   EmailThrottled: 'EMAIL_CODE_THROTTLED',
   LastSignInMethod: 'LAST_SIGN_IN_METHOD',
 } as const;
