@@ -12,7 +12,6 @@ pub fn router() -> Router<AppState> {
         .route("/auth/google", get(initiate_google_oauth))
         .route("/auth/google/signup", post(sign_up_with_google))
         .route("/auth/google/callback", get(handle_google_callback))
-        .route("/auth/google/link", post(link_google_account))
         .route("/auth/google/link/start", post(start_google_link))
         .layer(rate_limit::per_client(60, Duration::from_millis(500)));
 

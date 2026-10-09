@@ -1,6 +1,6 @@
 use super::{
     dto::*,
-    service::{OAUTH_PENDING_COOKIE, OAuthIntent, OAuthService, PendingPurpose},
+    service::{OAUTH_PENDING_COOKIE, OAuthIntent, OAuthService},
 };
 use crate::{
     auth::service::{ClientInfo, LoginResult},
@@ -74,31 +74,6 @@ pub async fn handle_google_callback(
     (new_jar, Redirect::temporary(&url))
 }
 
-pub async fn link_google_account(
-    State(s): State<AppState>,
-    ClientIp(ip): ClientIp,
-    UserAgent(ua): UserAgent,
-    jar: CookieJar,
-    ValidatedJson(dto): ValidatedJson<LinkGoogleAccountDto>,
-) -> AppResult<(CookieJar, Json<Value>)> {
-    let svc = OAuthService::from_state(&s);
-    let pending = svc.verify_pending_cookie(pending_cookie(&jar), PendingPurpose::Link)?;
-
-    let result = svc
-        .link_google_account(
-            &pending.google_id,
-            &pending.google_email,
-            &dto.password,
-            ClientInfo {
-                user_agent: ua.as_deref(),
-                ip: ip.as_deref(),
-            },
-        )
-        .await?;
-
-    Ok(sign_in_response(result, svc.clear_pending_cookie()))
-}
-
 /// Finishes a Google sign-up the callback could not complete on its own: the
 /// user has to accept the terms and declare their age before an account is
 /// created.
@@ -110,7 +85,7 @@ pub async fn sign_up_with_google(
     ValidatedJson(dto): ValidatedJson<GoogleSignUpDto>,
 ) -> AppResult<(CookieJar, Json<Value>)> {
     let svc = OAuthService::from_state(&s);
-    let pending = svc.verify_pending_cookie(pending_cookie(&jar), PendingPurpose::SignUp)?;
+    let pending = svc.verify_pending_cookie(pending_cookie(&jar))?;
 
     let result = svc
         .sign_up_with_google(

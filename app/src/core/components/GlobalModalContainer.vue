@@ -30,9 +30,6 @@ import { useIsMobileViewport } from '@/common/composables/useViewport';
 const loadSearchModal = () => import('@/core/components/SearchModal.vue');
 
 const SearchModal = defineAsyncComponent(loadSearchModal);
-const GoogleLinkModal = defineAsyncComponent(
-  () => import('@/modules/auth/components/GoogleLinkModal.vue'),
-);
 const GoogleSignUpModal = defineAsyncComponent(
   () => import('@/modules/auth/components/GoogleSignUpModal.vue'),
 );
@@ -76,8 +73,7 @@ const userStore = useUserStore();
 const { user } = storeToRefs(userStore);
 const { checkAuthStatus, homeRoute } = useAppAuth();
 const performLogout = useLogout();
-const { showLinkModal, closeLinkModal, showSignUpModal, closeSignUpModal } =
-  useOAuth();
+const { showSignUpModal, closeSignUpModal } = useOAuth();
 const isMobile = useIsMobileViewport();
 
 // On phones the search grows out of the header (HeaderSearchPalette). Its
@@ -146,11 +142,6 @@ async function onAuthSuccess() {
 </script>
 
 <template>
-  <GoogleLinkModal
-    :open="showLinkModal"
-    @linked="onAuthSuccess"
-    @cancel="closeLinkModal"
-  />
   <GoogleSignUpModal
     :open="showSignUpModal"
     @signed-up="onAuthSuccess"
