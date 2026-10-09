@@ -253,6 +253,8 @@ function createTasks(fixedFilters: Partial<TaskFilters>) {
     hideChecked,
     showPersonalized,
     hiddenByCourses: taskItems.hiddenByCourses,
+    listLoadError: taskItems.loadError,
+    reloadList: taskItems.reloadList,
     subjectOptions,
     goTab: filters.goTab,
     resetFilters: filters.resetFilters,

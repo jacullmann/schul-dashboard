@@ -16,6 +16,7 @@
     "skip": "Skip",
     "saving": "Saving…",
     "refresh": "Refresh",
+    "retry": "Try again",
     "logout": "Sign out"
   },
   "errors": {

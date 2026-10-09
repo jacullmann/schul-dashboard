@@ -16,6 +16,8 @@ export function useTaskItems(
   const hiddenByCourses = ref(0);
   const loading = ref(true);
   const initialLoad = ref(true);
+  /** The last load failed, so the list shown is not the one for the filters. */
+  const loadError = ref(false);
   let latestReload = 0;
 
   // Reloads overlap as filters change in quick succession, and an earlier one
@@ -37,8 +39,11 @@ export function useTaskItems(
       if (reload !== latestReload) return;
       items.value = response.data;
       hiddenByCourses.value = countHiddenByCourses(response);
+      loadError.value = false;
     } catch (e) {
-      if (reload === latestReload) console.error('Failed to load items:', e);
+      if (reload !== latestReload) return;
+      console.error('Failed to load items:', e);
+      loadError.value = true;
     } finally {
       if (reload === latestReload) {
         loading.value = false;
@@ -73,6 +78,7 @@ export function useTaskItems(
     hiddenByCourses,
     loading,
     initialLoad,
+    loadError,
     reloadList,
     fetchTask,
     findInList,

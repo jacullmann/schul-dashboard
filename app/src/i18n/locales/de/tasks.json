@@ -102,6 +102,7 @@
         "not_found_message": "Diese Aufgabe wurde gelöscht oder ist nicht mehr verfügbar.",
         "load_failed": "Aufgabe konnte nicht geladen werden",
         "load_failed_message": "Prüfe deine Verbindung und versuche es noch einmal.",
+        "list_load_failed": "Aufgaben konnten nicht geladen werden",
         "all_tasks": "Alle Aufgaben",
         "drop_files": "Loslassen, um Dateien anzuhängen"
       },

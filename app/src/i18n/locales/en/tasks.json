@@ -102,6 +102,7 @@
         "not_found_message": "This task was deleted or is no longer available.",
         "load_failed": "Task could not be loaded",
         "load_failed_message": "Check your connection and try again.",
+        "list_load_failed": "Tasks couldn't be loaded",
         "all_tasks": "All tasks",
         "drop_files": "Drop to attach files"
       },

@@ -51,6 +51,8 @@ import { useScheduleDisplay } from '@/modules/schedule/composables/useScheduleDi
 import { useWeekCache } from '@/modules/schedule/composables/useWeekCache';
 
 const MS_PER_MINUTE = 60 * 1000;
+/** Back after this long, the schedule may have changed meanwhile. */
+const STALE_AFTER_MS = MS_PER_MINUTE;
 
 const isSet = <T>(value: T | null | undefined | ''): value is T =>
   value !== null && value !== undefined && value !== '';
@@ -103,9 +105,12 @@ export function useSchedule(shownWeek?: Ref<number>) {
   const substitutionsByWeek = shallowReactive(
     new Map<string, Substitution[]>(),
   );
+  /** Weeks whose changes failed to load and are not known from before. */
+  const failedSubstitutionWeeks = shallowReactive(new Set<string>());
   const pendingSubstitutionLoads = ref(0);
   const loadingSubs = computed(() => pendingSubstitutionLoads.value > 0);
   const loadingLessons = ref(true);
+  const lessonsLoadError = ref(false);
   const lessonsHiddenByServer = ref(0);
 
   const now = ref(new Date());
@@ -175,7 +180,12 @@ export function useSchedule(shownWeek?: Ref<number>) {
   const requestOfWeek = new Map<string, number>();
   let latestSubstitutionRequest = 0;
 
-  async function loadSubstitutions(fromWeek: number, toWeek = fromWeek) {
+  /** `refresh` keeps the changes on screen instead of showing them as loading. */
+  async function loadSubstitutions(
+    fromWeek: number,
+    toWeek = fromWeek,
+    { refresh = false } = {},
+  ) {
     const request = ++latestSubstitutionRequest;
     const weekKeys: string[] = [];
     for (let week = fromWeek; week <= toWeek; week++) {
@@ -185,7 +195,7 @@ export function useSchedule(shownWeek?: Ref<number>) {
       requestOfWeek.get(weekKey) === request;
     weekKeys.forEach((weekKey) => requestOfWeek.set(weekKey, request));
 
-    pendingSubstitutionLoads.value++;
+    if (!refresh) pendingSubstitutionLoads.value++;
     try {
       const { data } = await api.get<Substitution[]>(
         groupPath(groupId, '/schedule/subs'),
@@ -196,15 +206,26 @@ export function useSchedule(shownWeek?: Ref<number>) {
           weekKey,
           data.filter((sub) => sub.weekStart === weekKey),
         );
+        failedSubstitutionWeeks.delete(weekKey);
       });
     } catch (error) {
       console.error('Error loading substitutions:', error);
       // Left unrequested, the weeks are asked for again once they are needed.
-      weekKeys.filter(isLatest).forEach((weekKey) => {
-        requestOfWeek.delete(weekKey);
-      });
+      const failedWeeks = weekKeys.filter(isLatest);
+      failedWeeks.forEach((weekKey) => requestOfWeek.delete(weekKey));
+      // A week known from before keeps showing what it had.
+      const newlyFailed = failedWeeks.filter(
+        (weekKey) => !substitutionsByWeek.has(weekKey),
+      );
+      // One toast per outage, not one per week swiped to while it lasts.
+      if (newlyFailed.length > 0 && failedSubstitutionWeeks.size === 0) {
+        useToast().error(
+          apiErrorMessage(error, t('schedule.substitutions_load_failed')),
+        );
+      }
+      newlyFailed.forEach((weekKey) => failedSubstitutionWeeks.add(weekKey));
     } finally {
-      pendingSubstitutionLoads.value--;
+      if (!refresh) pendingSubstitutionLoads.value--;
     }
   }
 
@@ -214,6 +235,10 @@ export function useSchedule(shownWeek?: Ref<number>) {
   /** Whether the week's changes loaded, so an empty list really means none. */
   const substitutionsLoadedFor = (week: number) =>
     substitutionsByWeek.has(weekKeyOf(week));
+
+  /** Whether the week's changes are unknown because loading them failed. */
+  const substitutionsFailedFor = (week: number) =>
+    failedSubstitutionWeeks.has(weekKeyOf(week));
 
   /*
    * The server filters lessons by the member's saved course setting, so a
@@ -227,10 +252,11 @@ export function useSchedule(shownWeek?: Ref<number>) {
   let loadedCourseFilter: string | null = null;
   let latestScheduleRequest = 0;
 
-  async function loadSchedule() {
+  /** `refresh` keeps the schedule on screen instead of its skeleton. */
+  async function loadSchedule({ refresh = false } = {}) {
     const request = ++latestScheduleRequest;
     loadedCourseFilter = savedCourseFilter.value;
-    loadingLessons.value = true;
+    if (!refresh) loadingLessons.value = true;
     try {
       const [lessonRes, subjectRes] = await Promise.all([
         api.get(groupPath(groupId, '/schedule')),
@@ -242,9 +268,13 @@ export function useSchedule(shownWeek?: Ref<number>) {
       lessons.value = lessonRes.data;
       lessonsHiddenByServer.value = hiddenByCourses(lessonRes);
       subjects.value = subjectRes.data || [];
+      lessonsLoadError.value = false;
     } catch (error) {
       if (request !== latestScheduleRequest) return;
       console.error('Error loading schedule:', error);
+      // A refresh that fails leaves the schedule that is already shown.
+      if (refresh) return;
+      lessonsLoadError.value = true;
       useToast().error(apiErrorMessage(error, t('common.errors.load')));
     } finally {
       if (request === latestScheduleRequest) loadingLessons.value = false;
@@ -486,10 +516,19 @@ export function useSchedule(shownWeek?: Ref<number>) {
   });
 
   // A phone suspends timers in the background, so it catches up on return.
+  // Changes made meanwhile, such as a cancelled lesson, are fetched as well.
+  let hiddenSince: number | null = null;
   useEventListener(document, 'visibilitychange', () => {
-    if (document.visibilityState !== 'visible') return;
+    if (document.visibilityState !== 'visible') {
+      hiddenSince = Date.now();
+      return;
+    }
     clearTimeout(timer);
     tick();
+    if (hiddenSince !== null && Date.now() - hiddenSince > STALE_AFTER_MS) {
+      void refresh();
+    }
+    hiddenSince = null;
   });
 
   watch(savedCourseFilter, (filter) => {
@@ -542,17 +581,32 @@ export function useSchedule(shownWeek?: Ref<number>) {
     return weeks;
   });
 
-  watch(
-    neededWeeks,
-    (weeks) => {
-      const missing = weeks.filter(
-        (week) => !requestOfWeek.has(weekKeyOf(week)),
-      );
-      if (missing.length === 0) return;
-      void loadSubstitutions(Math.min(...missing), Math.max(...missing));
-    },
-    { immediate: true },
-  );
+  function loadMissingSubstitutions(weeks: number[]) {
+    const missing = weeks.filter((week) => !requestOfWeek.has(weekKeyOf(week)));
+    if (missing.length === 0) return;
+    void loadSubstitutions(Math.min(...missing), Math.max(...missing));
+  }
+
+  watch(neededWeeks, loadMissingSubstitutions, { immediate: true });
+
+  /** Asks again for the weeks on screen whose changes failed to load. */
+  function retrySubstitutions() {
+    loadMissingSubstitutions(neededWeeks.value);
+  }
+
+  /** Reloads what is shown without hiding it behind skeletons meanwhile. */
+  async function refresh() {
+    const weekRanges: [number, number][] = [
+      [todayWeek.value, todayWeek.value + 1],
+    ];
+    if (shownWeek) weekRanges.push([shownWeek.value - 1, shownWeek.value + 1]);
+    await Promise.all([
+      loadSchedule({ refresh: !lessonsLoadError.value }),
+      ...weekRanges.map(([from, to]) =>
+        loadSubstitutions(from, to, { refresh: true }),
+      ),
+    ]);
+  }
 
   const activeOrNextGroupKey = computed<string | null>(() => {
     const currentDayIndex = daysSinceMonday(now.value);
@@ -625,12 +679,17 @@ export function useSchedule(shownWeek?: Ref<number>) {
     hiddenLessonCount,
     loadingSubs,
     loadingLessons,
+    lessonsLoadError,
+    loadSchedule,
     days,
     scheduleConfig,
     scheduleOfWeek,
     effectiveLessons: computed(() => schoolWeekSchedule.value.effectiveLessons),
     groupedLessons: computed(() => schoolWeekSchedule.value.groupedLessons),
     dayLayouts: computed(() => schoolWeekSchedule.value.dayLayouts),
+    schoolWeekSubstitutionsFailed: computed(() =>
+      substitutionsFailedFor(schoolWeek.value),
+    ),
     minutesToday,
     todayWeek,
     todayPage,
@@ -648,6 +707,8 @@ export function useSchedule(shownWeek?: Ref<number>) {
     lessons,
     substitutionsOf,
     substitutionsLoadedFor,
+    substitutionsFailedFor,
+    retrySubstitutions,
     loadSubstitutions,
   };
 }

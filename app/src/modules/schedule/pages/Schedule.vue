@@ -86,6 +86,8 @@ const {
   lessons: scheduledLessons,
   substitutionsOf,
   substitutionsLoadedFor,
+  substitutionsFailedFor,
+  retrySubstitutions,
   loadSubstitutions,
 } = useSchedule(shownWeek);
 
@@ -568,6 +570,14 @@ watch(
       @shift="shiftWeek"
       @today="skipToPage(defaultPage)"
     />
+
+    <BaseLoadError
+      v-if="substitutionsFailedFor(shownWeek)"
+      class="mb-2"
+      @retry="retrySubstitutions"
+    >
+      {{ t('schedule.substitutions_load_failed') }}
+    </BaseLoadError>
 
     <ScheduleGrid
       :pager="dayPager"

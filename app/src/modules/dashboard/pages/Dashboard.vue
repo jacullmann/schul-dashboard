@@ -44,6 +44,10 @@ const {
   effectiveLessons,
   loadingLessons,
   loadingSubs,
+  lessonsLoadError,
+  loadSchedule,
+  schoolWeekSubstitutionsFailed,
+  retrySubstitutions,
   scheduleConfig,
   groupedLessons,
   dayLayouts,
@@ -53,6 +57,8 @@ const {
 const {
   loading: loadingTasks,
   initialLoad,
+  listLoadError,
+  reloadList,
   showOldEntries,
   filteredItems,
   openMenuId,
@@ -184,7 +190,7 @@ const loadingSchedule = computed(
 );
 
 const isScheduleVisible = computed(() => {
-  if (loadingLessons.value) return true;
+  if (loadingLessons.value || lessonsLoadError.value) return true;
   return hasLessons.value || canEditScheduleConfig.value;
 });
 
@@ -298,8 +304,16 @@ const {
               </template>
             </TransitionGroup>
 
+            <BaseLoadError
+              v-if="!loadingTasks && listLoadError && visibleTasks.length === 0"
+              class="animate-enter"
+              @retry="reloadList"
+            >
+              {{ t('dashboard.tasks_overview.load_failed') }}
+            </BaseLoadError>
+
             <div
-              v-if="!loadingTasks && visibleTasks.length === 0"
+              v-else-if="!loadingTasks && visibleTasks.length === 0"
               class="text-center py-8 space-y-3 animate-enter"
             >
               <div
@@ -476,6 +490,17 @@ const {
                   </div>
                 </div>
 
+                <BaseLoadError
+                  v-else-if="schoolWeekSubstitutionsFailed"
+                  class="w-full max-w-192 mx-auto animate-enter"
+                  :style="{
+                    '--enter-delay': entranceDelay(SUBSTITUTIONS_REVEAL_ORDER),
+                  }"
+                  @retry="retrySubstitutions"
+                >
+                  {{ t('schedule.substitutions_load_failed') }}
+                </BaseLoadError>
+
                 <div
                   v-else
                   class="flex-1 flex items-center justify-center p-4 text-center text-xs text-on-ghost-muted animate-enter"
@@ -489,6 +514,14 @@ const {
             </div>
           </div>
         </div>
+
+        <BaseLoadError
+          v-else-if="lessonsLoadError"
+          class="w-full max-w-192 mx-auto animate-enter"
+          @retry="loadSchedule()"
+        >
+          {{ t('dashboard.schedule_overview.load_failed') }}
+        </BaseLoadError>
 
         <div
           v-else-if="canEditScheduleConfig"

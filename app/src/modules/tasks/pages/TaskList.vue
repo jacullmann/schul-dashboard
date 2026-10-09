@@ -87,6 +87,8 @@ const {
   subjectOptions,
   resetFilters,
   openCreateForm,
+  listLoadError,
+  reloadList,
 } = useTasks();
 
 const visibleItems = computed(() =>
@@ -320,7 +322,7 @@ onDeactivated(() => {
       </Transition>
 
       <TransitionGroup
-        v-if="!showSkeleton"
+        v-if="!showSkeleton && !listLoadError"
         :css="useListTransitions"
         name="task-list"
         tag="div"
@@ -379,7 +381,21 @@ onDeactivated(() => {
       </TransitionGroup>
 
       <BaseEmptyState
-        v-if="!loading && !limitedItems.length"
+        v-if="!loading && listLoadError"
+        class="animate-enter"
+        :primary-action="() => void reloadList()"
+      >
+        {{ t('tasks.list.tasks.view.list_load_failed') }}
+        <template #message>{{
+          t('tasks.list.tasks.view.load_failed_message')
+        }}</template>
+        <template #primary-action-label>{{
+          t('common.buttons.retry')
+        }}</template>
+      </BaseEmptyState>
+
+      <BaseEmptyState
+        v-else-if="!loading && !limitedItems.length"
         :class="{ 'animate-enter': !emptyStateEntered }"
         :primary-action="openCreateForm"
         :secondary-action="resetFilters"
