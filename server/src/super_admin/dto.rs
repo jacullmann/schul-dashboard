@@ -150,6 +150,21 @@ pub struct DailyActivityDto {
     pub failed_logins: i64,
 }
 
+pub const HOURS_PER_DAY: usize = 24;
+pub const DAYS_PER_WEEK: usize = 7;
+
+/// When in the week the app is used, in German local time. Each cell counts a
+/// user at most once per day, so one person reloading the app all evening
+/// does not outweigh a class opening it once.
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WeeklyRhythmDto {
+    /// Whole weeks the counts span, so every hour of the week is sampled equally often.
+    pub weeks: i32,
+    /// Rows run Monday to Sunday, columns from 0:00 to 23:00.
+    pub active_users: [[i64; HOURS_PER_DAY]; DAYS_PER_WEEK],
+}
+
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AdminUserDto {

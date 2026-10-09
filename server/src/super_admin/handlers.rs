@@ -42,6 +42,17 @@ pub async fn get_daily_activity(
     ))
 }
 
+pub async fn get_weekly_rhythm(
+    State(s): State<AppState>,
+    _: SuperAdmin,
+) -> AppResult<Json<WeeklyRhythmDto>> {
+    Ok(Json(
+        SuperAdminService::from_state(&s)
+            .get_weekly_rhythm()
+            .await?,
+    ))
+}
+
 pub async fn get_server_metrics(
     State(s): State<AppState>,
     _: SuperAdmin,

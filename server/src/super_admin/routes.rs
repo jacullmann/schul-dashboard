@@ -10,6 +10,7 @@ pub fn router(state: AppState) -> Router<AppState> {
     Router::new()
         .route("/admin/stats", get(get_stats))
         .route("/admin/stats/daily", get(get_daily_activity))
+        .route("/admin/stats/weekly-rhythm", get(get_weekly_rhythm))
         .route("/admin/server-metrics", get(get_server_metrics))
         .route("/admin/cleanup-jobs", get(get_cleanup_jobs))
         .route("/admin/groups", get(list_groups))

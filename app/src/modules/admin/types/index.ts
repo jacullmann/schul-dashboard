@@ -43,6 +43,13 @@ export interface DailyActivity {
   failedLogins: number;
 }
 
+/** Users per hour of the week, in German local time, summed over `weeks`.
+ * Rows run Monday to Sunday, columns from 0:00 to 23:00. */
+export interface WeeklyRhythm {
+  weeks: number;
+  activeUsers: number[][];
+}
+
 export type DailyMetric = Exclude<keyof DailyActivity, 'day'>;
 
 export type MetricsRange = '1h' | '24h' | '7d' | '30d';

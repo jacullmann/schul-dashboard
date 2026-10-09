@@ -7,6 +7,7 @@ import DailyBarChart, {
 } from '../components/DailyBarChart.vue';
 import CleanupJobsSection from '../components/CleanupJobsSection.vue';
 import ServerMetricsSection from '../components/ServerMetricsSection.vue';
+import WeeklyRhythmHeatmap from '../components/WeeklyRhythmHeatmap.vue';
 import { useSuperAdminStats } from '../composables/useSuperAdminStats';
 import type { DailyMetric } from '../types';
 
@@ -16,8 +17,14 @@ interface DailyChart {
   summary?: DailySummary;
 }
 
-const { stats, dailyActivity, loadingStats, loadDailyActivity } =
-  useSuperAdminStats();
+const {
+  stats,
+  dailyActivity,
+  weeklyRhythm,
+  loadingStats,
+  loadDailyActivity,
+  loadWeeklyRhythm,
+} = useSuperAdminStats();
 const { t } = useI18n();
 
 const headlineStats = computed(() =>
@@ -58,7 +65,7 @@ const charts = computed(() =>
 );
 
 // The stats themselves are loaded once by the dashboard shell.
-onMounted(loadDailyActivity);
+onMounted(() => Promise.all([loadDailyActivity(), loadWeeklyRhythm()]));
 </script>
 
 <template>
@@ -130,6 +137,23 @@ onMounted(loadDailyActivity);
           :summary="chart.summary"
         />
       </div>
+    </section>
+
+    <section v-if="weeklyRhythm" class="flex flex-col gap-3">
+      <div>
+        <h3>{{ t('admin.overview.weekly_rhythm.title') }}</h3>
+        <p class="text-sm text-on-ghost-muted">
+          {{
+            t('admin.overview.weekly_rhythm.hint', {
+              weeks: weeklyRhythm.weeks,
+            })
+          }}
+        </p>
+      </div>
+      <WeeklyRhythmHeatmap
+        :title="t('admin.overview.weekly_rhythm.chart')"
+        :rhythm="weeklyRhythm"
+      />
     </section>
 
     <CleanupJobsSection />

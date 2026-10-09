@@ -36,6 +36,16 @@
       "total": "Gesamt: {count}",
       "average": "Ø {value} pro Tag"
     },
+    "weekly_rhythm": {
+      "title": "Wochenrhythmus",
+      "chart": "Aktive Benutzer pro Stunde",
+      "slot": "{day}, {hours}: Ø {value}",
+      "busiest": "Am meisten los: {day}, {hours}",
+      "empty": "Noch keine Aufrufe",
+      "less": "Weniger",
+      "more": "Mehr",
+      "hint": "Durchschnitt der letzten {weeks} Wochen, deutsche Zeit"
+    },
     "server": {
       "title": "Serverauslastung",
       "ranges": {

@@ -36,6 +36,16 @@
       "total": "Total: {count}",
       "average": "Avg. {value} per day"
     },
+    "weekly_rhythm": {
+      "title": "Weekly rhythm",
+      "chart": "Active users per hour",
+      "slot": "{day}, {hours}: avg. {value}",
+      "busiest": "Busiest: {day}, {hours}",
+      "empty": "No app opens yet",
+      "less": "Less",
+      "more": "More",
+      "hint": "Average of the last {weeks} weeks, German time"
+    },
     "server": {
       "title": "Server load",
       "ranges": {

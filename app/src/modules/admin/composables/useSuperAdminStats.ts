@@ -2,12 +2,13 @@ import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import api from '@/api/api';
 import { useToast } from '@/common/composables/useToast';
-import type { DailyActivity, SuperAdminStats } from '../types';
+import type { DailyActivity, SuperAdminStats, WeeklyRhythm } from '../types';
 
 // Shared across the dashboard shell (nav badge) and the overview page, so
 // the stats are fetched once per visit and refreshed only after changes.
 const stats = ref<SuperAdminStats | null>(null);
 const dailyActivity = ref<DailyActivity[]>([]);
+const weeklyRhythm = ref<WeeklyRhythm | null>(null);
 const loadingStats = ref(false);
 
 export function useSuperAdminStats() {
@@ -35,11 +36,24 @@ export function useSuperAdminStats() {
     }
   }
 
+  async function loadWeeklyRhythm() {
+    try {
+      const { data } = await api.get<WeeklyRhythm>(
+        '/admin/stats/weekly-rhythm',
+      );
+      weeklyRhythm.value = data;
+    } catch {
+      toast.error(t('admin.overview.errors.load'));
+    }
+  }
+
   return {
     stats,
     dailyActivity,
+    weeklyRhythm,
     loadingStats,
     loadStats,
     loadDailyActivity,
+    loadWeeklyRhythm,
   };
 }

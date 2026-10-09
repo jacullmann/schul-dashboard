@@ -28,6 +28,8 @@ use uuid::Uuid;
 
 const STATS_WINDOW_DAYS: i32 = 7;
 const DAILY_ACTIVITY_DAYS: i32 = 30;
+/// The longest whole number of weeks inside the 30 days of activity that are kept.
+const WEEKLY_RHYTHM_WEEKS: i32 = 4;
 const ACTIVITY_LOG_LIMIT: i64 = 200;
 
 /// Admin actions are recorded against the acting admin, so the entry survives
@@ -207,6 +209,38 @@ impl SuperAdminService {
                 failed_logins: r.failed_logins,
             })
             .collect())
+    }
+
+    pub async fn get_weekly_rhythm(&self) -> AppResult<WeeklyRhythmDto> {
+        let rows = sqlx::query!(
+            r#"SELECT EXTRACT(ISODOW FROM local_time)::int AS "weekday!",
+                      EXTRACT(HOUR FROM local_time)::int AS "hour!",
+                      COUNT(DISTINCT (user_id, local_time::date)) AS "active_users!"
+               FROM (SELECT user_id, created_at AT TIME ZONE 'Europe/Berlin' AS local_time
+                     FROM user_activity
+                     WHERE type = 'page:load'
+                       AND created_at >= now() - make_interval(weeks => $1)) opens
+               GROUP BY 1, 2"#,
+            WEEKLY_RHYTHM_WEEKS,
+        )
+        .fetch_all(&self.db)
+        .await?;
+
+        let mut active_users = [[0; HOURS_PER_DAY]; DAYS_PER_WEEK];
+        for row in rows {
+            let cell = usize::try_from(row.weekday - 1)
+                .ok()
+                .zip(usize::try_from(row.hour).ok())
+                .and_then(|(day, hour)| active_users.get_mut(day)?.get_mut(hour));
+            if let Some(cell) = cell {
+                *cell = row.active_users;
+            }
+        }
+
+        Ok(WeeklyRhythmDto {
+            weeks: WEEKLY_RHYTHM_WEEKS,
+            active_users,
+        })
     }
 
     /// Whether each scheduled cleanup keeps up, judged by the rows it should
