@@ -18,9 +18,9 @@ const getDaysToBerlinBreak = (): number | null => {
     new Date('2026-07-09'), // Sommerferien
     new Date('2026-10-17'), // Herbstferien
     new Date('2026-12-23'), // Weihnachtsferien
-    new Date('2026-01-29'), // Winterferien 2027
-    new Date('2026-03-20'), // Osterferien
-    new Date('2026-07-01'), // Sommerferien
+    new Date('2027-01-29'), // Winterferien 2027
+    new Date('2027-03-20'), // Osterferien
+    new Date('2027-07-01'), // Sommerferien
   ];
 
   const nextHoliday = holidays.find((h) => h.getTime() > now.getTime());
