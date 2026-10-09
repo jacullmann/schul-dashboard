@@ -127,14 +127,11 @@ function onLeave(el: Element) {
 
     <div
       ref="card"
-      class="item-card relative bg-surface border border-ghost-border rounded-xl p-1 shadow-input cursor-default touch-pan-y select-none"
+      class="item-card relative bg-surface border border-ghost-border rounded-xl px-0.75 py-1 shadow-input cursor-default touch-pan-y select-none"
       :style="cardStyle"
     >
-      <div class="relative flex justify-between items-start gap-2">
-        <div
-          class="flex-1 min-w-0 mt-2 ml-2"
-          :class="task.description ? 'mb-2' : 'mb-1'"
-        >
+      <div class="relative flex justify-between items-center gap-2">
+        <div class="flex-1 min-w-0 my-1 ml-2">
           <div class="flex items-center gap-2">
             <BaseCheckbox
               class="checkbox"
@@ -142,7 +139,7 @@ function onLeave(el: Element) {
               @change="$emit('toggle-completion')"
             />
             <h3
-              class="text-lg/6! overflow-hidden text-ellipsis whitespace-nowrap -my-[3px]!"
+              class="text-lg/6! overflow-hidden text-ellipsis whitespace-nowrap"
               :title="task.title"
             >
               {{ task.title }}
@@ -170,7 +167,7 @@ function onLeave(el: Element) {
           class="overflow-hidden"
         >
           <!-- prettier-ignore -->
-          <div class="mx-2 mb-1 text-on-ghost break-words [overflow-wrap:anywhere] hyphens-auto whitespace-pre-wrap">{{ task.description }}</div>
+          <div class="mx-2 mb-0.5 text-on-ghost break-words [overflow-wrap:anywhere] hyphens-auto whitespace-pre-wrap">{{ task.description }}</div>
         </div>
       </Transition>
     </div>

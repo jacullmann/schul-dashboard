@@ -111,7 +111,7 @@ async function cancel() {
       </template>
     </BaseForm>
     <template v-if="offersPasskey">
-      <div class="flex items-center gap-3 my-4">
+      <div class="flex items-center gap-2 my-4">
         <div class="flex-1 h-px bg-ghost-border" />
         <span class="text-xs text-on-ghost-muted">
           {{ t('auth.login.or_continue_with') }}

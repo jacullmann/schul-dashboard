@@ -198,7 +198,6 @@ async function submit() {
           </p>
           <BaseButton
             v-if="shownDay !== null && draftConfig.dayBreaks[shownDay]"
-            size="sm"
             :icon="RotateCcw"
             @click="resetBreaksOn(shownDay)"
           >

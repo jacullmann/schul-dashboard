@@ -57,7 +57,7 @@ function getToastStyle(index: number) {
   if (isHovered.value) {
     for (let i = toasts.length - 1; i > index; i--) {
       const toast = toasts[i];
-      if (toast) expandedOffset += (heights.value.get(toast.id) || 48) + GAP;
+      if (toast) expandedOffset += (heights.value.get(toast.id) || 40) + GAP;
     }
   }
 
@@ -98,7 +98,7 @@ const totalHeight = computed(() => {
   if (toasts.length === 0) return 0;
   let height = 0;
   for (const toast of toasts) {
-    height += (heights.value.get(toast.id) || 48) + GAP;
+    height += (heights.value.get(toast.id) || 40) + GAP;
   }
   return height - GAP;
 });
@@ -107,7 +107,7 @@ const hitBoxHeight = computed(() => {
   if (toasts.length === 0) return 0;
   if (isHovered.value) return totalHeight.value;
   const front = toasts.at(-1);
-  const frontHeight = (front && heights.value.get(front.id)) || 48;
+  const frontHeight = (front && heights.value.get(front.id)) || 40;
   const visibleStacks = Math.min(toasts.length - 1, VISIBLE_COUNT - 1);
   return frontHeight + visibleStacks * GAP;
 });
@@ -116,7 +116,7 @@ const hitBoxHeight = computed(() => {
 <template>
   <Teleport to="body">
     <div
-      class="fixed top-6 right-6 z-(--z-toast) max-w-[min(400px,calc(100vw-48px))] w-full max-sm:top-4 max-sm:right-0 max-sm:left-0 max-sm:max-w-[calc(100vw-32px)] max-sm:mx-auto"
+      class="fixed top-6 right-6 z-(--z-toast) max-w-[min(400px,calc(100vw-40px))] w-full max-sm:top-4 max-sm:right-0 max-sm:left-0 max-sm:max-w-[calc(100vw-32px)] max-sm:mx-auto"
       role="region"
       :aria-label="t('common.notifications')"
       aria-live="polite"
@@ -140,14 +140,14 @@ const hitBoxHeight = computed(() => {
             v-for="(toast, index) in toasts"
             :key="toast.id"
             :ref="(el) => updateHeight(toast.id, el)"
-            class="toast-card w-full flex items-start gap-2 p-1 rounded-full text-base/none overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.12)] origin-top"
+            class="w-full flex items-center gap-2 p-1 rounded-full text-base/none overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.12)] origin-top"
             :class="ICON_COLORS[toast.type]"
             :style="getToastStyle(index)"
             :role="toast.progress ? 'status' : 'alert'"
             :aria-atomic="true"
           >
             <span
-              class="ml-2.5 my-2.5 shrink-0 flex items-center justify-center size-5"
+              class="ml-1.5 my-1.5 shrink-0 flex items-center justify-center size-5"
             >
               <BaseSpinner
                 v-if="toast.progress"
@@ -159,7 +159,7 @@ const hitBoxHeight = computed(() => {
 
             <div
               v-if="toast.progress"
-              class="my-2.5 flex-1 min-w-0 flex items-center gap-2.5"
+              class="my-1.5 flex-1 min-w-0 flex items-center gap-2.5"
               role="progressbar"
               :aria-label="toast.message"
               :aria-valuemin="0"
@@ -181,7 +181,7 @@ const hitBoxHeight = computed(() => {
 
             <span
               v-else
-              class="my-2.5 flex-1 min-w-0 break-words text-base leading-5 truncate"
+              class="flex-1 min-w-0 break-words text-base leading-5 truncate"
             >
               {{ toast.message }}
             </span>
@@ -189,6 +189,7 @@ const hitBoxHeight = computed(() => {
             <span v-if="!toast.dismissible" class="w-2.5 shrink-0"></span>
             <BaseButton
               v-else
+              size="sm"
               :icon="X"
               :on="
                 toast.type === 'success'
