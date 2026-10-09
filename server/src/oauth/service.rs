@@ -1,7 +1,7 @@
 use crate::{
     access_control,
     auth::{
-        password_attempts, security_notice,
+        security_notice,
         service::{AuthService, ClientInfo, LoginResult},
         session_context::account_is_active,
         sign_in_methods::{SignInMethod, SignInMethods},
@@ -10,10 +10,9 @@ use crate::{
         age,
         email::SecurityEvent,
         jwt::{hs256_validation, now_secs},
-        password::verify_password,
     },
     config::Config,
-    error::{AppError, AppResult, AuthFailure},
+    error::{AppError, AppResult},
     reauth::service::{GoogleReauth, ReauthService},
     state::AppState,
 };
@@ -51,7 +50,8 @@ const PROVIDER_ALREADY_LINKED_CONSTRAINT: &str = "oauth_accounts_user_id_provide
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 #[serde(tag = "intent", rename_all = "snake_case")]
 pub enum OAuthIntent {
-    /// Signs in, or starts a sign-up when the Google account is unknown.
+    /// Signs in, or starts a sign-up when neither the Google account nor its
+    /// email is known.
     Login,
     Link {
         user_id: Uuid,
@@ -70,18 +70,6 @@ impl OAuthIntent {
             Self::Reauth { .. } => REAUTH_RESULT_PARAM,
         }
     }
-}
-
-/// What a verified Google identity still waits for after the callback. Each
-/// purpose is redeemed by its own endpoint only, so a token issued to link an
-/// existing account can never create a new one, and vice versa.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum PendingPurpose {
-    /// An account with the Google email exists; its password links the two.
-    Link,
-    /// No account exists; accepting the terms creates one.
-    SignUp,
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
@@ -144,7 +132,6 @@ impl From<LinkError> for AppError {
 pub struct OAuthPendingClaims {
     pub google_id: String,
     pub google_email: String,
-    pub purpose: PendingPurpose,
     pub iat: u64,
     pub exp: u64,
 }
@@ -325,37 +312,38 @@ impl OAuthService {
             )
         };
 
-        let Ok(resolution) = self.resolve_account(&profile.subject, &profile.email).await else {
-            return server_error();
-        };
-
-        let sign_in = match resolution {
-            OAuthResolution::SignIn {
-                user_id,
-                email,
-                mfa_required,
-            } => {
-                self.auth()
-                    .complete_sign_in(user_id, &email, mfa_required, client)
-                    .await
-            }
-            OAuthResolution::Pending(purpose) => {
-                let result = match purpose {
-                    PendingPurpose::Link => "link-required",
-                    // Told now rather than after the sign-up form was filled in.
-                    PendingPurpose::SignUp => {
-                        match access_control::ensure_registration_open(&self.db).await {
-                            Ok(()) => "signup-required",
-                            Err(e) => return self.login_failure(&e),
-                        }
-                    }
-                };
-                return match self.pending_jar(profile, purpose) {
-                    Ok(jar) => (jar, self.result_url(LOGIN_RESULT_PARAM, result)),
+        let account = match self.resolve_account(profile).await {
+            Ok(Some(account)) => account,
+            Ok(None) => {
+                // Told now rather than after the sign-up form was filled in.
+                if let Err(e) = access_control::ensure_registration_open(&self.db).await {
+                    return self.login_failure(&e);
+                }
+                return match self.sign_up_jar(profile) {
+                    Ok(jar) => (jar, self.result_url(LOGIN_RESULT_PARAM, "signup-required")),
                     Err(_) => server_error(),
                 };
             }
+            Err(e) => {
+                if let LinkError::Database(db_err) = &e {
+                    tracing::error!(error = %db_err, "failed to resolve google account");
+                }
+                return (
+                    CookieJar::new(),
+                    self.error_url(LOGIN_RESULT_PARAM, e.reason()),
+                );
+            }
         };
+
+        let sign_in = self
+            .auth()
+            .complete_sign_in(
+                account.user_id,
+                &account.email,
+                account.mfa_required,
+                client,
+            )
+            .await;
 
         match sign_in {
             Ok(LoginResult::Success(jar)) => (jar, self.result_url(LOGIN_RESULT_PARAM, "success")),
@@ -377,18 +365,14 @@ impl OAuthService {
         (CookieJar::new(), self.error_url(LOGIN_RESULT_PARAM, reason))
     }
 
-    fn pending_jar(
-        &self,
-        profile: &GoogleProfile,
-        purpose: PendingPurpose,
-    ) -> AppResult<CookieJar> {
-        let pending_token = self.sign_pending_cookie(profile, purpose)?;
+    fn sign_up_jar(&self, profile: &GoogleProfile) -> AppResult<CookieJar> {
+        let pending_token = self.sign_pending_cookie(profile)?;
         Ok(CookieJar::new()
             .add(self.pending_cookie(pending_token, Duration::minutes(PENDING_COOKIE_TTL_MINS))))
     }
 
-    /// Sent with a successful sign-up or link, so a finished flow cannot be
-    /// repeated from the same browser.
+    /// Sent with a successful sign-up, so a finished flow cannot be repeated
+    /// from the same browser.
     pub fn clear_pending_cookie(&self) -> Cookie<'static> {
         self.pending_cookie(String::new(), Duration::ZERO)
     }
@@ -405,20 +389,12 @@ impl OAuthService {
         c
     }
 
-    /// The Google identity the callback verified, if the pending cookie was
-    /// issued for `purpose` and has not expired.
-    pub fn verify_pending_cookie(
-        &self,
-        token: Option<&str>,
-        purpose: PendingPurpose,
-    ) -> AppResult<OAuthPendingClaims> {
+    /// The Google identity the callback verified for a sign-up, if the
+    /// pending cookie has not expired.
+    pub fn verify_pending_cookie(&self, token: Option<&str>) -> AppResult<OAuthPendingClaims> {
         token
             .and_then(|token| {
-                decode_pending_claims(
-                    token,
-                    self.config.oauth_pending_jwt_secret.as_bytes(),
-                    purpose,
-                )
+                decode_pending_claims(token, self.config.oauth_pending_jwt_secret.as_bytes())
             })
             .ok_or_else(|| AppError::Unauthorized("Authentication failed.".into()))
     }
@@ -530,50 +506,6 @@ impl OAuthService {
             .await
     }
 
-    pub async fn link_google_account(
-        &self,
-        google_id: &str,
-        google_email: &str,
-        password: &str,
-        client: ClientInfo<'_>,
-    ) -> AppResult<LoginResult> {
-        let user = sqlx::query!(
-            r#"SELECT id, email, password_hash,
-                      mfa_enabled AND mfa_secret IS NOT NULL AS "mfa_required!"
-               FROM users WHERE email = $1"#,
-            google_email.to_lowercase()
-        )
-        .fetch_optional(&self.db)
-        .await?
-        .ok_or(AuthFailure::InvalidCredentials)?;
-
-        // An account without a password cannot be linked this way; its owner
-        // signs in with a passkey and links Google from the settings.
-        let hash = user.password_hash.ok_or(AuthFailure::InvalidCredentials)?;
-
-        // Linking signs in with the password, so it counts like any sign-in.
-        let attempt = password_attempts::reserve(&self.db, user.id).await?;
-        if !verify_password(password.to_owned(), hash).await? {
-            return Err(attempt.reject(&self.db, client.ip).await);
-        }
-        attempt.accept(&self.db).await?;
-
-        self.insert_google_link(user.id, google_id, google_email)
-            .await?;
-        security_notice::notify(
-            &self.db,
-            &self.state.email,
-            user.id,
-            SecurityEvent::GoogleLinked,
-        );
-
-        // The password is only the first factor: linking is safe on it alone,
-        // since signing in with Google still demands the second one.
-        self.auth()
-            .complete_sign_in(user.id, &user.email, user.mfa_required, client)
-            .await
-    }
-
     pub async fn unlink_google_account(&self, user_id: Uuid) -> AppResult<Value> {
         let mut tx = self.db.begin().await?;
 
@@ -619,16 +551,18 @@ impl OAuthService {
         }))
     }
 
+    /// The account the Google identity signs in to, or `None` when no account
+    /// has it or its email yet. An account that only shares the email gets the
+    /// Google identity linked right away: Google verified the address, and
+    /// every account here proved it at sign-up and cannot change it, so both
+    /// belong to the same person.
     async fn resolve_account(
         &self,
-        google_id: &str,
-        google_email: &str,
-    ) -> AppResult<OAuthResolution> {
-        let email = google_email.to_lowercase();
-
+        profile: &GoogleProfile,
+    ) -> Result<Option<SignInAccount>, LinkError> {
         let linked = sqlx::query!(
             r#"SELECT user_id FROM oauth_accounts WHERE provider = 'google' AND provider_user_id = $1"#,
-            google_id
+            profile.subject
         )
             .fetch_optional(&self.db)
             .await?;
@@ -639,25 +573,42 @@ impl OAuthService {
                    FROM users WHERE id = $1"#,
                 row.user_id
             )
-            .fetch_optional(&self.db)
-            .await?
-            .ok_or_else(|| AppError::internal("Linked user not found"))?;
+            .fetch_one(&self.db)
+            .await?;
 
-            return Ok(OAuthResolution::SignIn {
+            return Ok(Some(SignInAccount {
                 user_id: user.id,
                 email: user.email,
                 mfa_required: user.mfa_required,
-            });
+            }));
         }
 
-        let existing = sqlx::query!(r#"SELECT id FROM users WHERE email = $1"#, email)
-            .fetch_optional(&self.db)
-            .await?;
+        let Some(user) = sqlx::query!(
+            r#"SELECT id, email, mfa_enabled AND mfa_secret IS NOT NULL AS "mfa_required!"
+               FROM users WHERE email = $1"#,
+            profile.email.to_lowercase()
+        )
+        .fetch_optional(&self.db)
+        .await?
+        else {
+            return Ok(None);
+        };
 
-        Ok(OAuthResolution::Pending(if existing.is_some() {
-            PendingPurpose::Link
-        } else {
-            PendingPurpose::SignUp
+        self.insert_google_link(user.id, &profile.subject, &profile.email)
+            .await?;
+        security_notice::notify(
+            &self.db,
+            &self.state.email,
+            user.id,
+            SecurityEvent::GoogleLinked,
+        );
+
+        // Linking opens no way around the second factor: signing in with
+        // Google still demands it.
+        Ok(Some(SignInAccount {
+            user_id: user.id,
+            email: user.email,
+            mfa_required: user.mfa_required,
         }))
     }
 
@@ -790,17 +741,12 @@ impl OAuthService {
         })
     }
 
-    fn sign_pending_cookie(
-        &self,
-        profile: &GoogleProfile,
-        purpose: PendingPurpose,
-    ) -> AppResult<String> {
+    fn sign_pending_cookie(&self, profile: &GoogleProfile) -> AppResult<String> {
         let now = now_secs();
 
         self.sign_oauth_cookie(&OAuthPendingClaims {
             google_id: profile.subject.clone(),
             google_email: profile.email.to_lowercase(),
-            purpose,
             iat: now,
             exp: now + PENDING_COOKIE_TTL_SECS,
         })
@@ -831,22 +777,13 @@ impl OAuthService {
     }
 }
 
-enum OAuthResolution {
-    SignIn {
-        user_id: Uuid,
-        email: String,
-        mfa_required: bool,
-    },
-    /// The Google identity is verified, but the user has to confirm what
-    /// happens with it next.
-    Pending(PendingPurpose),
+struct SignInAccount {
+    user_id: Uuid,
+    email: String,
+    mfa_required: bool,
 }
 
-fn decode_pending_claims(
-    token: &str,
-    secret: &[u8],
-    purpose: PendingPurpose,
-) -> Option<OAuthPendingClaims> {
+fn decode_pending_claims(token: &str, secret: &[u8]) -> Option<OAuthPendingClaims> {
     jsonwebtoken::decode::<OAuthPendingClaims>(
         token,
         &jsonwebtoken::DecodingKey::from_secret(secret),
@@ -854,7 +791,6 @@ fn decode_pending_claims(
     )
     .ok()
     .map(|data| data.claims)
-    .filter(|claims| claims.purpose == purpose)
 }
 
 /// An account for the email or the Google identity appeared after the
@@ -907,12 +843,11 @@ mod tests {
         assert!(serde_json::from_str::<OAuthStateClaims>(json).is_err());
     }
 
-    fn pending_token(purpose: PendingPurpose, secret: &[u8]) -> String {
+    fn pending_token(secret: &[u8]) -> String {
         let now = now_secs();
         let claims = OAuthPendingClaims {
             google_id: "google-subject".into(),
             google_email: "user@example.com".into(),
-            purpose,
             iat: now,
             exp: now + PENDING_COOKIE_TTL_SECS,
         };
@@ -925,18 +860,12 @@ mod tests {
     }
 
     #[test]
-    fn pending_tokens_are_redeemed_for_their_own_purpose_only() {
+    fn pending_tokens_need_the_server_secret() {
         let secret = b"0123456789abcdef0123456789abcdef";
-        let sign_up = pending_token(PendingPurpose::SignUp, secret);
-        let link = pending_token(PendingPurpose::Link, secret);
+        let sign_up = pending_token(secret);
 
-        assert!(decode_pending_claims(&sign_up, secret, PendingPurpose::SignUp).is_some());
-        assert!(decode_pending_claims(&link, secret, PendingPurpose::Link).is_some());
-        assert!(decode_pending_claims(&link, secret, PendingPurpose::SignUp).is_none());
-        assert!(decode_pending_claims(&sign_up, secret, PendingPurpose::Link).is_none());
-        assert!(
-            decode_pending_claims(&sign_up, b"another-secret", PendingPurpose::SignUp).is_none()
-        );
+        assert!(decode_pending_claims(&sign_up, secret).is_some());
+        assert!(decode_pending_claims(&sign_up, b"another-secret").is_none());
     }
 
     #[test]

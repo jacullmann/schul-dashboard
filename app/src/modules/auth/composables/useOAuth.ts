@@ -8,7 +8,6 @@ import type { AgeDeclaration } from '@/modules/auth/utils/age';
 import { consumeReauthReturn } from '@/modules/auth/utils/reauthReturn';
 import { useReauthModal } from '@/stores/modalStore';
 
-const showLinkModal = ref(false);
 const showSignUpModal = ref(false);
 
 interface LinkedProvider {
@@ -17,8 +16,6 @@ interface LinkedProvider {
 }
 
 type ActionResult = { ok: true } | { ok: false; error: string };
-type LinkResult =
-  { ok: true; requiresMfa: boolean } | { ok: false; error: string };
 
 export function useOAuth() {
   const { t } = useI18n();
@@ -53,7 +50,8 @@ export function useOAuth() {
     window.location.href = `${base}${path}`;
   }
 
-  // Signs in and signs up alike: an unknown Google account comes back as
+  // Signs in and signs up alike: an account with the Google email is linked
+  // on the spot, and an unknown Google account comes back as
   // `signup-required` and is only created once the terms are accepted.
   function initiateGoogleLogin(): void {
     navigateToApi('/auth/google');
@@ -174,10 +172,6 @@ export function useOAuth() {
         void onSuccess();
         break;
 
-      case 'link-required':
-        showLinkModal.value = true;
-        break;
-
       case 'signup-required':
         showSignUpModal.value = true;
         break;
@@ -185,29 +179,6 @@ export function useOAuth() {
       case 'error':
         useToast().error(errorMessage(params.get('reason')));
         break;
-    }
-  }
-
-  // The password only links the account: an account with 2FA still has to
-  // pass its second factor before a session is issued.
-  async function linkGoogleAccount(password: string): Promise<LinkResult> {
-    try {
-      const { data } = await api.post<{ ok: boolean; requiresMfa?: boolean }>(
-        '/auth/google/link',
-        { password },
-      );
-      if (data.ok) {
-        const requiresMfa = data.requiresMfa === true;
-        showLinkModal.value = false;
-        if (requiresMfa) await openMfaChallenge();
-        return { ok: true, requiresMfa };
-      }
-      return { ok: false, error: t('auth.google_link.errors.failed') };
-    } catch (err: unknown) {
-      return {
-        ok: false,
-        error: authErrorMessage(err, t('auth.google_link.errors.failed')),
-      };
     }
   }
 
@@ -256,25 +227,18 @@ export function useOAuth() {
     }
   }
 
-  function closeLinkModal(): void {
-    showLinkModal.value = false;
-  }
-
   function closeSignUpModal(): void {
     showSignUpModal.value = false;
   }
 
   return {
-    showLinkModal,
     showSignUpModal,
     initiateGoogleLogin,
     initiateGoogleLink,
     handleOAuthReturn,
-    linkGoogleAccount,
     signUpWithGoogle,
     unlinkGoogleAccount,
     fetchLinkedProviders,
-    closeLinkModal,
     closeSignUpModal,
   };
 }
