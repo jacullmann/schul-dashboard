@@ -1,0 +1,24 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT NOT ac.shutdown OR EXISTS (\n                      SELECT 1 FROM users u\n                      JOIN user_roles r ON r.user_id = u.id\n                      WHERE u.email = $1 AND r.tenant_id IS NULL AND r.role_id = $2\n                  ) AS \"admitted!\"\n           FROM access_controls ac",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "admitted!",
+        "type_info": "Bool",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Int4"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "8723f629cdc2c5f98b2c28a751280b8cdbb8450460cf98c6c4dd90d94b4b05fa"
+}

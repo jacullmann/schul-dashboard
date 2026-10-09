@@ -147,6 +147,8 @@ impl AuthService {
     ) -> AppResult<LoginResult> {
         let email = dto.email.to_lowercase();
 
+        access_control::ensure_email_admitted(&self.db, &email).await?;
+
         let user = sqlx::query!(
             r#"
             SELECT id, email, password_hash,

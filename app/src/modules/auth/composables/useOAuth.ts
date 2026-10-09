@@ -34,7 +34,6 @@ export function useOAuth() {
     ),
     session_expired: t('auth.google_link.errors.session_expired'),
     registration_paused: t('auth.errors.registration_paused'),
-    shutdown: t('auth.errors.shutdown'),
   };
 
   function errorMessage(reason: string | null): string {
@@ -177,7 +176,11 @@ export function useOAuth() {
         break;
 
       case 'error':
-        useToast().error(errorMessage(params.get('reason')));
+        if (params.get('reason') === 'shutdown') {
+          void router.replace({ name: 'maintenance' });
+        } else {
+          useToast().error(errorMessage(params.get('reason')));
+        }
         break;
     }
   }

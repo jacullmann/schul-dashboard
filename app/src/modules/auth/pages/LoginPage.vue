@@ -1,10 +1,6 @@
 <script setup lang="ts">
-import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { storeToRefs } from 'pinia';
-import { Construction } from '@lucide/vue';
 import { useUserStore } from '@/stores/userStore';
-import { useAccessStatusStore } from '@/stores/accessStatusStore';
 import GoogleIcon from '@/modules/auth/components/GoogleIcon.vue';
 import { useLogin } from '@/modules/auth/composables/useLogin';
 import { useOAuth } from '@/modules/auth/composables/useOAuth';
@@ -15,8 +11,6 @@ import { useI18n } from 'vue-i18n';
 
 const router = useRouter();
 const userStore = useUserStore();
-const accessStatus = useAccessStatusStore();
-const { shutdown } = storeToRefs(accessStatus);
 const { t } = useI18n();
 const { initiateGoogleLogin } = useOAuth();
 const { checkAuthStatus, homeRoute } = useAppAuth();
@@ -59,8 +53,6 @@ async function handleSubmit() {
 function navigateToRegister() {
   void router.push({ name: 'register' });
 }
-
-onMounted(accessStatus.load);
 </script>
 
 <template>
@@ -75,27 +67,6 @@ onMounted(accessStatus.load);
             t('auth.login.login_description', { defaultValue: 'Welcome back' })
           }}
         </p>
-      </div>
-
-      <!-- The form stays: superadmins sign in during shutdown to end it. -->
-      <div
-        v-if="shutdown"
-        role="status"
-        class="flex gap-3 mb-6 rounded-xl border border-ghost-border bg-surface shadow-input px-4 py-3"
-      >
-        <Construction
-          :size="20"
-          class="shrink-0 text-on-ghost-muted"
-          aria-hidden="true"
-        />
-        <div>
-          <strong class="block text-sm">
-            {{ t('auth.access.shutdown.title') }}
-          </strong>
-          <p class="m-0! text-sm">
-            {{ t('auth.access.shutdown.message') }}
-          </p>
-        </div>
       </div>
 
       <BaseForm

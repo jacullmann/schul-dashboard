@@ -5,6 +5,7 @@ import { useLoadingBar } from '@/common/composables/loadingState';
 import { useUserStore } from '@/stores/userStore';
 import i18n from '@/i18n';
 import { consumePendingInviteRoute } from '@/modules/auth/utils/pendingInvite';
+import { useAccessStatusStore } from '@/stores/accessStatusStore';
 
 const routes: RouteRecordRaw[] = [
   {
@@ -56,6 +57,24 @@ const routes: RouteRecordRaw[] = [
         name: 'forgot-password',
         component: () => import('@/modules/auth/pages/ForgotPasswordPage.vue'),
         meta: { title: 'auth.login.reset.title', access: 'public' },
+      },
+    ],
+  },
+  {
+    path: '/maintenance',
+    component: () => import('@/layouts/LoginLayout.vue'),
+    children: [
+      {
+        path: '',
+        name: 'maintenance',
+        component: () => import('@/modules/auth/pages/MaintenancePage.vue'),
+        meta: { title: 'auth.access.shutdown.title', access: 'public' },
+        // Only reachable while the platform is shut down.
+        beforeEnter: async () => {
+          const accessStatus = useAccessStatusStore();
+          await accessStatus.load();
+          return accessStatus.shutdown || { name: 'login', replace: true };
+        },
       },
     ],
   },

@@ -76,6 +76,30 @@ pub async fn ensure_admitted(db: &PgPool, user_id: Uuid) -> AppResult<()> {
     }
 }
 
+/// [`ensure_admitted`] for a password sign-in, before the password is
+/// checked: during shutdown everyone but a superadmin gets the same answer
+/// whether the password is right, wrong, or the account does not exist.
+pub async fn ensure_email_admitted(db: &PgPool, email: &str) -> AppResult<()> {
+    let admitted = sqlx::query_scalar!(
+        r#"SELECT NOT ac.shutdown OR EXISTS (
+                      SELECT 1 FROM users u
+                      JOIN user_roles r ON r.user_id = u.id
+                      WHERE u.email = $1 AND r.tenant_id IS NULL AND r.role_id = $2
+                  ) AS "admitted!"
+           FROM access_controls ac"#,
+        email,
+        Role::Superadmin.db_id_i32()
+    )
+    .fetch_one(db)
+    .await?;
+
+    if admitted {
+        Ok(())
+    } else {
+        Err(AppError::Shutdown)
+    }
+}
+
 pub struct AccessControlService {
     db: PgPool,
 }

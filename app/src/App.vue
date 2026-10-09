@@ -47,10 +47,18 @@ async function returnToLogin() {
 
 function handleShutdown() {
   accessStatus.enterShutdown();
+  const route = router.currentRoute.value;
   // On startup the route guard sends private pages to the login already, and
   // public ones, such as sign-up, must stay reachable.
-  if (router.currentRoute.value === START_LOCATION) {
+  if (route === START_LOCATION) {
     userStore.clearUser();
+    return;
+  }
+  // Only signed-out visitors are on guest pages, so this was a sign-in that
+  // shutdown turned away. Signed-in users go back to the login instead, where
+  // superadmins can still sign in.
+  if (route.meta.access === 'guest') {
+    void router.replace({ name: 'maintenance' });
     return;
   }
   void returnToLogin();

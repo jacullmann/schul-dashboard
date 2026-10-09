@@ -2,7 +2,7 @@
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
-import { CirclePause, Construction, MailCheck } from '@lucide/vue';
+import { Construction, MailCheck } from '@lucide/vue';
 import GoogleIcon from '@/modules/auth/components/GoogleIcon.vue';
 import AgeConsentFields from '@/modules/auth/components/AgeConsentFields.vue';
 import TermsConsentCheckbox from '@/modules/auth/components/TermsConsentCheckbox.vue';
@@ -15,7 +15,7 @@ const router = useRouter();
 const { t } = useI18n();
 const { initiateGoogleLogin } = useOAuth();
 const accessStatus = useAccessStatusStore();
-const { registrationOpen, shutdown } = storeToRefs(accessStatus);
+const { registrationOpen } = storeToRefs(accessStatus);
 
 const {
   email,
@@ -87,24 +87,16 @@ onMounted(accessStatus.load);
       aria-live="polite"
     >
       <BaseEmptyState
-        :icon="shutdown ? Construction : CirclePause"
+        :icon="Construction"
         full-page
         :primary-action="navigateToLogin"
       >
-        {{
-          shutdown
-            ? t('auth.access.shutdown.title')
-            : t('auth.access.registration_paused.title')
-        }}
+        {{ t('auth.access.registration_closed.title') }}
         <template #message>
-          {{
-            shutdown
-              ? t('auth.access.shutdown.message')
-              : t('auth.access.registration_paused.message')
-          }}
+          {{ t('auth.access.registration_closed.message') }}
         </template>
         <template #primary-action-label>
-          {{ t('auth.login.verify_email.to_login') }}
+          {{ t('auth.access.to_login') }}
         </template>
       </BaseEmptyState>
     </div>
