@@ -6,7 +6,7 @@ impl Message {
     pub fn to_html(&self) -> String {
         LAYOUT
             .replace("{{lang}}", self.locale.as_str())
-            .replace("{{title}}", self.subject)
+            .replace("{{title}}", &self.subject)
             .replace("{{preheader}}", self.preheader)
             .replace("{{content}}", &self.content_html())
             .replace(

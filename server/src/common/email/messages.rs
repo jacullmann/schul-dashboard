@@ -42,7 +42,7 @@ impl LegalFooter {
 
 pub(super) struct Message {
     pub locale: Locale,
-    pub subject: &'static str,
+    pub subject: String,
     pub preheader: &'static str,
     pub heading: &'static str,
     pub paragraphs: &'static [&'static str],
@@ -53,18 +53,16 @@ pub(super) struct Message {
 
 impl Message {
     pub fn verification(locale: Locale, code: &str, valid_hours: u64) -> Self {
-        let code = Some(code.to_owned());
-
         match locale {
             Locale::De => Self {
                 locale,
-                subject: "Bitte bestätige deine E-Mail-Adresse",
+                subject: format!("{code} ist dein schul-dashboard-Bestätigungscode"),
                 preheader: "Dein Code, um dein schul-dashboard-Konto zu aktivieren.",
                 heading: "Nur noch ein letzter Schritt",
                 paragraphs: &[
                     "Willkommen beim schul-dashboard. Gib diesen Code auf der schul-dashboard-Seite ein, um deine E-Mail-Adresse zu bestätigen:",
                 ],
-                code,
+                code: Some(code.to_owned()),
                 note: Some(format!("Der Code ist {valid_hours} Stunden gültig.")),
                 disclaimer: Some(
                     "Du hast dich nicht beim schul-dashboard registriert? Dann kannst du diese E-Mail einfach ignorieren.",
@@ -72,13 +70,13 @@ impl Message {
             },
             Locale::En => Self {
                 locale,
-                subject: "Please confirm your email address",
+                subject: format!("{code} is your schul-dashboard verification code"),
                 preheader: "Your code to activate your schul-dashboard account.",
                 heading: "Just one last step",
                 paragraphs: &[
                     "Welcome to schul-dashboard. Enter this code on the schul-dashboard page to confirm your email address:",
                 ],
-                code,
+                code: Some(code.to_owned()),
                 note: Some(format!("The code is valid for {valid_hours} hours.")),
                 disclaimer: Some(
                     "Didn't sign up for schul-dashboard? You can safely ignore this email.",
@@ -88,18 +86,16 @@ impl Message {
     }
 
     pub fn password_reset(locale: Locale, code: &str, valid_minutes: u64) -> Self {
-        let code = Some(code.to_owned());
-
         match locale {
             Locale::De => Self {
                 locale,
-                subject: "Passwort zurücksetzen",
+                subject: format!("{code} ist dein Code zum Zurücksetzen deines Passworts"),
                 preheader: "Dein Code zum Zurücksetzen deines Passworts.",
                 heading: "Passwort zurücksetzen",
                 paragraphs: &[
                     "Gib diesen Code auf der schul-dashboard-Seite ein, um ein neues Passwort festzulegen:",
                 ],
-                code,
+                code: Some(code.to_owned()),
                 note: Some(format!("Der Code ist {valid_minutes} Minuten gültig.")),
                 disclaimer: Some(
                     "Du hast kein neues Passwort angefordert? Dann kannst du diese E-Mail ignorieren, dein Passwort bleibt unverändert.",
@@ -107,13 +103,13 @@ impl Message {
             },
             Locale::En => Self {
                 locale,
-                subject: "Reset your password",
+                subject: format!("{code} is your password reset code"),
                 preheader: "Your code to reset your password.",
                 heading: "Reset your password",
                 paragraphs: &[
                     "Enter this code on the schul-dashboard page to choose a new password:",
                 ],
-                code,
+                code: Some(code.to_owned()),
                 note: Some(format!("The code is valid for {valid_minutes} minutes.")),
                 disclaimer: Some(
                     "Didn't request a new password? You can ignore this email, your password stays unchanged.",
@@ -123,18 +119,16 @@ impl Message {
     }
 
     pub fn password_setup(locale: Locale, code: &str, valid_minutes: u64) -> Self {
-        let code = Some(code.to_owned());
-
         match locale {
             Locale::De => Self {
                 locale,
-                subject: "Passwort festlegen",
+                subject: format!("{code} ist dein Code zum Festlegen deines Passworts"),
                 preheader: "Dein Code, um ein Passwort für dein Konto festzulegen.",
                 heading: "Passwort festlegen",
                 paragraphs: &[
                     "Gib diesen Code auf der schul-dashboard-Seite ein, um ein Passwort für dein Konto festzulegen:",
                 ],
-                code,
+                code: Some(code.to_owned()),
                 note: Some(format!("Der Code ist {valid_minutes} Minuten gültig.")),
                 disclaimer: Some(
                     "Du hast das nicht angefordert? Dann kannst du diese E-Mail einfach ignorieren.",
@@ -142,13 +136,13 @@ impl Message {
             },
             Locale::En => Self {
                 locale,
-                subject: "Set your password",
+                subject: format!("{code} is your code to set a password"),
                 preheader: "Your code to set a password for your account.",
                 heading: "Set your password",
                 paragraphs: &[
                     "Enter this code on the schul-dashboard page to set a password for your account:",
                 ],
-                code,
+                code: Some(code.to_owned()),
                 note: Some(format!("The code is valid for {valid_minutes} minutes.")),
                 disclaimer: Some("Didn't request this? You can safely ignore this email."),
             },
@@ -160,7 +154,7 @@ impl Message {
 
         Self {
             locale,
-            subject: notice.subject,
+            subject: notice.subject.to_owned(),
             preheader: notice.preheader,
             heading: match locale {
                 Locale::De => "Wichtige Sicherheitsmeldung",

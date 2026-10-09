@@ -43,7 +43,7 @@ impl EmailService {
             .as_ref()
             .ok_or_else(|| AppError::internal("Email service not configured."))?;
 
-        let email = CreateEmailBaseOptions::new(&self.from, [to], message.subject)
+        let email = CreateEmailBaseOptions::new(&self.from, [to], &message.subject)
             .with_html(&message.to_html())
             .with_text(&message.to_text());
 
