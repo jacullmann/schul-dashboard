@@ -20,7 +20,7 @@ export const AuthErrorCode = {
   TooYoung: 'TOO_YOUNG',
   GuardianConsentRequired: 'GUARDIAN_CONSENT_REQUIRED',
   RegistrationPaused: 'REGISTRATION_PAUSED',
-  Maintenance: 'MAINTENANCE',
+  Shutdown: 'SHUTDOWN',
 } as const;
 
 const MESSAGE_KEYS: Record<string, string> = {
@@ -35,7 +35,7 @@ const MESSAGE_KEYS: Record<string, string> = {
   [AuthErrorCode.GuardianConsentRequired]:
     'auth.age.errors.guardian_consent_missing',
   [AuthErrorCode.RegistrationPaused]: 'auth.errors.registration_paused',
-  [AuthErrorCode.Maintenance]: 'auth.errors.maintenance',
+  [AuthErrorCode.Shutdown]: 'auth.errors.shutdown',
 };
 
 /**

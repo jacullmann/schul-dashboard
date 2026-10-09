@@ -1,7 +1,7 @@
 import axios, { AxiosError } from 'axios';
 import {
   isAccessTokenRejected,
-  isMaintenance,
+  isShutdown,
   isReauthRequired,
   isSessionRejected,
 } from './errors';
@@ -87,8 +87,8 @@ function notifySessionEnded(): void {
   window.dispatchEvent(new CustomEvent('auth-expired'));
 }
 
-function notifyMaintenance(): void {
-  window.dispatchEvent(new CustomEvent('maintenance'));
+function notifyShutdown(): void {
+  window.dispatchEvent(new CustomEvent('shutdown'));
 }
 
 /**
@@ -120,10 +120,10 @@ api.interceptors.response.use(
   async (error: AxiosError) => {
     const original = error.config;
 
-    // Any request, the refresh included, can be the first to meet maintenance.
+    // Any request, the refresh included, can be the first to meet shutdown.
     // Nothing is retried: it lasts until a superadmin ends it.
-    if (isMaintenance(error)) {
-      notifyMaintenance();
+    if (isShutdown(error)) {
+      notifyShutdown();
       return Promise.reject(error);
     }
 

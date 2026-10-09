@@ -1,0 +1,32 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT EXISTS (\n                      SELECT 1 FROM users u\n                      WHERE u.id = $1\n                        AND NOT EXISTS (SELECT 1 FROM banned_users b WHERE b.user_id = u.id)\n                        AND EXISTS (\n                            SELECT 1 FROM refresh_tokens t\n                            WHERE t.family_id = $2 AND t.user_id = u.id AND t.revoked_at IS NULL\n                        )\n                  ) AS \"session_active!\",\n                  ac.shutdown AND NOT EXISTS (\n                      SELECT 1 FROM user_roles\n                      WHERE user_id = $1 AND tenant_id IS NULL AND role_id = $3\n                  ) AS \"shutdown_applies!\"\n           FROM access_controls ac",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "session_active!",
+        "type_info": "Bool",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 1,
+        "name": "shutdown_applies!",
+        "type_info": "Bool",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Int4"
+      ]
+    },
+    "nullable": [
+      null,
+      null
+    ]
+  },
+  "hash": "be4670ae7338f1852812f6075a973250f36841154c5a18a7fb93c08823cf7869"
+}

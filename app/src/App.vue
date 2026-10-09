@@ -45,8 +45,8 @@ async function returnToLogin() {
   }
 }
 
-function handleMaintenance() {
-  accessStatus.enterMaintenance();
+function handleShutdown() {
+  accessStatus.enterShutdown();
   // On startup the route guard sends private pages to the login already, and
   // public ones, such as sign-up, must stay reachable.
   if (router.currentRoute.value === START_LOCATION) {
@@ -83,7 +83,7 @@ onMounted(() => {
   });
 
   useEventListener(window, 'auth-expired', () => void returnToLogin());
-  useEventListener(window, 'maintenance', handleMaintenance);
+  useEventListener(window, 'shutdown', handleShutdown);
 });
 </script>
 

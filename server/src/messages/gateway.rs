@@ -28,12 +28,12 @@ const CLOSE_TOKEN_EXPIRED: u16 = 4001;
 const CLOSE_ACCESS_REVOKED: u16 = 4003;
 /// Membership changes announce themselves on the bus, so this only bounds
 /// revocations that do not (e.g. a withdrawn superadmin role, a session ended
-/// from another device, or the start of maintenance). Checking on every
+/// from another device, or the platform shutting down). Checking on every
 /// broadcast instead would cost a query per recipient per message.
 const ACCESS_RECHECK_INTERVAL: Duration = Duration::from_secs(30);
 /// Closing with the token-expired code makes the client refresh, which the
 /// revoked session fails, so it signs out instead of reconnecting. During
-/// maintenance the refresh is turned away the same way, without signing out.
+/// shutdown the refresh is turned away the same way, without signing out.
 const SESSION_ENDED: (u16, &str) = (CLOSE_TOKEN_EXPIRED, "Session ended");
 /// Ended sessions are rare; a socket that still lags behind asks the database.
 const ENDED_SESSIONS_CAPACITY: usize = 64;
@@ -146,7 +146,7 @@ pub async fn ws_handler(
     match session_status(&state.db, claims.sub, claims.sid).await {
         Ok(SessionStatus::Active) => {}
         Ok(SessionStatus::Ended) => return StatusCode::UNAUTHORIZED.into_response(),
-        Ok(SessionStatus::Maintenance) => return AppError::Maintenance.into_response(),
+        Ok(SessionStatus::Shutdown) => return AppError::Shutdown.into_response(),
         Err(e) => return e.into_response(),
     }
 
@@ -180,7 +180,7 @@ async fn lost_group_access(
     match TenantContext::resolve(&state.db, user.clone(), group_id).await {
         Ok(_) => None,
         Err(AppError::NotFound(_)) => Some((CLOSE_ACCESS_REVOKED, "Group access revoked")),
-        Err(AppError::TokenExpired | AppError::Maintenance) => Some(SESSION_ENDED),
+        Err(AppError::TokenExpired | AppError::Shutdown) => Some(SESSION_ENDED),
         Err(e) => {
             tracing::warn!("WebSocket access recheck failed: {e:?}");
             None
@@ -188,12 +188,12 @@ async fn lost_group_access(
     }
 }
 
-/// Whether the socket's session definitely ended or maintenance began. Like a
+/// Whether the socket's session definitely ended or shutdown began. Like a
 /// lost group, a failing database keeps the socket open.
 async fn session_ended(state: &AppState, user: &AuthUser) -> bool {
     matches!(
         session_status(&state.db, user.user_id, user.session_id).await,
-        Ok(SessionStatus::Ended | SessionStatus::Maintenance)
+        Ok(SessionStatus::Ended | SessionStatus::Shutdown)
     )
 }
 

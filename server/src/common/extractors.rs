@@ -218,7 +218,7 @@ impl TenantContext {
                              WHERE t.family_id = $4 AND t.user_id = u.id AND t.revoked_at IS NULL
                          )
                    ) AS "session_active!",
-                   (SELECT maintenance FROM access_controls) AS "maintenance!"
+                   (SELECT shutdown FROM access_controls) AS "shutdown!"
             FROM groups g
             WHERE g.id = $2
             "#,
@@ -232,7 +232,7 @@ impl TenantContext {
 
         let row = row.ok_or_else(group_not_found)?;
 
-        SessionStatus::of(row.session_active, row.maintenance && !row.is_superadmin)
+        SessionStatus::of(row.session_active, row.shutdown && !row.is_superadmin)
             .ensure_active()?;
 
         let tenant_role = match (row.is_superadmin, row.tenant_role.as_deref()) {
@@ -283,7 +283,7 @@ fn group_not_found() -> AppError {
 
 /// Route layer for everything nested under `/groups/{group_id}`. It reads
 /// the token without the [`AuthUser`] extractor because the tenant query
-/// already confirms the account and session are active and that maintenance
+/// already confirms the account and session are active and that shutdown
 /// admits the caller, saving a round trip per request.
 pub async fn resolve_tenant(
     State(state): State<AppState>,

@@ -187,13 +187,13 @@ function showSignedOut(): void {
   initPromise = null;
 }
 
-// Maintenance keeps the session on the server, but nothing in the app can be
+// Shutdown keeps the session on the server, but nothing in the app can be
 // used until it ends, so the app shows the signed-out state meanwhile.
 function installSignedOutHandlersOnce(): void {
   if (signedOutHandlersInstalled) return;
   signedOutHandlersInstalled = true;
   window.addEventListener('auth-expired', showSignedOut);
-  window.addEventListener('maintenance', showSignedOut);
+  window.addEventListener('shutdown', showSignedOut);
 }
 
 async function fetchStatus(): Promise<StatusResponse> {

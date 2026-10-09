@@ -4,32 +4,32 @@ import api from '@/api/api';
 
 interface AccessStatus {
   registrationOpen: boolean;
-  maintenance: boolean;
+  shutdown: boolean;
 }
 
 /**
- * Whether superadmins paused sign-ups or put the platform into maintenance,
+ * Whether superadmins paused sign-ups or shut the platform down,
  * for the pages to say so upfront. The server enforces both regardless.
  */
 export const useAccessStatusStore = defineStore('access-status', () => {
   const registrationOpen = ref(true);
-  const maintenance = ref(false);
+  const shutdown = ref(false);
 
   async function load(): Promise<void> {
     try {
       const { data } = await api.get<AccessStatus>('/system/access');
       registrationOpen.value = data.registrationOpen;
-      maintenance.value = data.maintenance;
+      shutdown.value = data.shutdown;
     } catch {
       // The forms stay usable; a refused request explains itself.
     }
   }
 
-  /** A request just met maintenance, which closes sign-ups as well. */
-  function enterMaintenance(): void {
-    maintenance.value = true;
+  /** A request just met shutdown, which closes sign-ups as well. */
+  function enterShutdown(): void {
+    shutdown.value = true;
     registrationOpen.value = false;
   }
 
-  return { registrationOpen, maintenance, load, enterMaintenance };
+  return { registrationOpen, shutdown, load, enterShutdown };
 });

@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "camelCase")]
 pub struct AccessStatusDto {
     pub registration_open: bool,
-    pub maintenance: bool,
+    pub shutdown: bool,
 }
 
 /// Each switch is changed only when sent, so two admins flipping different
@@ -16,12 +16,12 @@ pub struct UpdateAccessControlsDto {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub registration_paused: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub maintenance: Option<bool>,
+    pub shutdown: Option<bool>,
 }
 
 impl UpdateAccessControlsDto {
     pub const fn is_empty(&self) -> bool {
-        self.registration_paused.is_none() && self.maintenance.is_none()
+        self.registration_paused.is_none() && self.shutdown.is_none()
     }
 }
 
@@ -36,9 +36,9 @@ mod tests {
 
     #[test]
     fn only_sent_switches_are_changed_and_logged() {
-        let changes = parse(json!({ "maintenance": true }));
+        let changes = parse(json!({ "shutdown": true }));
         assert_eq!(changes.registration_paused, None);
-        assert_eq!(json!(changes), json!({ "maintenance": true }));
+        assert_eq!(json!(changes), json!({ "shutdown": true }));
     }
 
     #[test]

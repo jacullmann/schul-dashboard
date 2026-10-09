@@ -16,7 +16,7 @@ import { useI18n } from 'vue-i18n';
 const router = useRouter();
 const userStore = useUserStore();
 const accessStatus = useAccessStatusStore();
-const { maintenance } = storeToRefs(accessStatus);
+const { shutdown } = storeToRefs(accessStatus);
 const { t } = useI18n();
 const { initiateGoogleLogin } = useOAuth();
 const { checkAuthStatus, homeRoute } = useAppAuth();
@@ -77,9 +77,9 @@ onMounted(accessStatus.load);
         </p>
       </div>
 
-      <!-- The form stays: superadmins sign in during maintenance to end it. -->
+      <!-- The form stays: superadmins sign in during shutdown to end it. -->
       <div
-        v-if="maintenance"
+        v-if="shutdown"
         role="status"
         class="flex gap-3 mb-6 rounded-xl border border-ghost-border bg-surface shadow-input px-4 py-3"
       >
@@ -90,10 +90,10 @@ onMounted(accessStatus.load);
         />
         <div>
           <strong class="block text-sm">
-            {{ t('auth.access.maintenance.title') }}
+            {{ t('auth.access.shutdown.title') }}
           </strong>
           <p class="m-0! text-sm">
-            {{ t('auth.access.maintenance.message') }}
+            {{ t('auth.access.shutdown.message') }}
           </p>
         </div>
       </div>

@@ -136,12 +136,12 @@
         "label": "Registrierungen pausieren",
         "hint": "Niemand kann ein neues Konto erstellen, auch nicht mit Google. Bereits verschickte Bestätigungslinks funktionieren erst wieder, wenn die Pause endet."
       },
-      "maintenance": {
+      "shutdown": {
         "label": "Shutdown-Modus",
         "hint": "Nur Superadmins können das Dashboard nutzen. Alle anderen werden zur Anmeldung geschickt, bleiben aber angemeldet und können danach direkt weitermachen."
       },
-      "registration_held": "Durch den Shutdown-Modus ebenfalls geschlossen.",
-      "maintenance_modal": {
+      "registration_held": "Im Shutdown-Modus immer geschlossen.",
+      "shutdown_modal": {
         "title": "Shutdown-Modus aktivieren?",
         "content": "Alle außer Superadmins verlieren sofort den Zugriff auf das Dashboard und können sich weder anmelden noch registrieren.",
         "submit": "Aktivieren"

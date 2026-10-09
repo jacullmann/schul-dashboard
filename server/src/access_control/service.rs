@@ -10,19 +10,19 @@ use serde_json::json;
 use sqlx::PgPool;
 use uuid::Uuid;
 
-/// The switches as stored and as superadmins manage them. Maintenance closes
+/// The switches as stored and as superadmins manage them. Shutdown closes
 /// sign-ups without touching `registration_paused`, so ending it restores
 /// what sign-ups were set to.
 #[derive(Debug, Clone, Copy, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AccessControls {
     pub registration_paused: bool,
-    pub maintenance: bool,
+    pub shutdown: bool,
 }
 
 impl AccessControls {
     pub const fn registration_open(self) -> bool {
-        !self.registration_paused && !self.maintenance
+        !self.registration_paused && !self.shutdown
     }
 }
 
@@ -30,7 +30,7 @@ impl From<AccessControls> for AccessStatusDto {
     fn from(controls: AccessControls) -> Self {
         Self {
             registration_open: controls.registration_open(),
-            maintenance: controls.maintenance,
+            shutdown: controls.shutdown,
         }
     }
 }
@@ -38,7 +38,7 @@ impl From<AccessControls> for AccessStatusDto {
 pub async fn load(db: &PgPool) -> AppResult<AccessControls> {
     let controls = sqlx::query_as!(
         AccessControls,
-        r#"SELECT registration_paused, maintenance FROM access_controls"#
+        r#"SELECT registration_paused, shutdown FROM access_controls"#
     )
     .fetch_one(db)
     .await?;
@@ -55,10 +55,10 @@ pub async fn ensure_registration_open(db: &PgPool) -> AppResult<()> {
 }
 
 /// Whether the user may get a session. Superadmins are exempt from
-/// maintenance, so they can still look into whatever it is for and end it.
+/// shutdown, so they can still look into whatever it is for and end it.
 pub async fn ensure_admitted(db: &PgPool, user_id: Uuid) -> AppResult<()> {
     let admitted = sqlx::query_scalar!(
-        r#"SELECT NOT ac.maintenance OR EXISTS (
+        r#"SELECT NOT ac.shutdown OR EXISTS (
                       SELECT 1 FROM user_roles
                       WHERE user_id = $1 AND tenant_id IS NULL AND role_id = $2
                   ) AS "admitted!"
@@ -72,7 +72,7 @@ pub async fn ensure_admitted(db: &PgPool, user_id: Uuid) -> AppResult<()> {
     if admitted {
         Ok(())
     } else {
-        Err(AppError::Maintenance)
+        Err(AppError::Shutdown)
     }
 }
 
@@ -100,10 +100,10 @@ impl AccessControlService {
             AccessControls,
             r#"UPDATE access_controls
                SET registration_paused = COALESCE($1, registration_paused),
-                   maintenance = COALESCE($2, maintenance)
-               RETURNING registration_paused, maintenance"#,
+                   shutdown = COALESCE($2, shutdown)
+               RETURNING registration_paused, shutdown"#,
             changes.registration_paused,
-            changes.maintenance
+            changes.shutdown
         )
         .fetch_one(&mut *tx)
         .await?;
@@ -126,10 +126,10 @@ impl AccessControlService {
 mod tests {
     use super::*;
 
-    const fn controls(registration_paused: bool, maintenance: bool) -> AccessControls {
+    const fn controls(registration_paused: bool, shutdown: bool) -> AccessControls {
         AccessControls {
             registration_paused,
-            maintenance,
+            shutdown,
         }
     }
 

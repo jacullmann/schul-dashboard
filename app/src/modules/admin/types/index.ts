@@ -172,7 +172,7 @@ export interface SuperAdminNavItem {
 /** The platform-wide switches, as superadmins manage them. */
 export interface AccessControls {
   registrationPaused: boolean;
-  maintenance: boolean;
+  shutdown: boolean;
 }
 
-export type AccessControlSwitch = 'registrationPaused' | 'maintenance';
+export type AccessControlSwitch = 'registrationPaused' | 'shutdown';

@@ -9,7 +9,7 @@ const ENDPOINT = '/admin/access-controls';
 const I18N_BASE = 'admin.overview.access_controls';
 
 /**
- * The switches that pause sign-ups or put the platform into maintenance. A
+ * The switches that pause sign-ups or shut the platform down. A
  * switch only moves once the server saved it, so the overview never shows a
  * state that is not in effect.
  */
@@ -33,15 +33,15 @@ export function useAccessControls() {
     }
   }
 
-  /** Maintenance locks everyone else out at once, so turning it on asks first. */
+  /** Shutdown locks everyone else out at once, so turning it on asks first. */
   async function setSwitch(name: AccessControlSwitch, on: boolean) {
     if (saving.value) return;
 
-    if (name === 'maintenance' && on) {
+    if (name === 'shutdown' && on) {
       const confirmed = await confirmModal.ask({
-        title: t(`${I18N_BASE}.maintenance_modal.title`),
-        content: t(`${I18N_BASE}.maintenance_modal.content`),
-        submitText: t(`${I18N_BASE}.maintenance_modal.submit`),
+        title: t(`${I18N_BASE}.shutdown_modal.title`),
+        content: t(`${I18N_BASE}.shutdown_modal.content`),
+        submitText: t(`${I18N_BASE}.shutdown_modal.submit`),
         danger: true,
       });
       if (!confirmed) return;

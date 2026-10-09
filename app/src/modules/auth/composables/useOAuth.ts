@@ -34,7 +34,7 @@ export function useOAuth() {
     ),
     session_expired: t('auth.google_link.errors.session_expired'),
     registration_paused: t('auth.errors.registration_paused'),
-    maintenance: t('auth.errors.maintenance'),
+    shutdown: t('auth.errors.shutdown'),
   };
 
   function errorMessage(reason: string | null): string {

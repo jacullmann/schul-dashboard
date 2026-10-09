@@ -130,7 +130,7 @@ impl TokenService {
         let (family_id, parent_id, authenticated_at) = match p.origin {
             SessionOrigin::SignIn => {
                 // Every sign-in, whatever its method, ends here, so no new
-                // session can start during maintenance.
+                // session can start during shutdown.
                 access_control::ensure_admitted(&self.db, p.user_id).await?;
                 self.make_room_for_new_session(p.user_id).await?;
                 (Uuid::new_v4(), None, Utc::now())
@@ -278,7 +278,7 @@ impl TokenService {
         }
 
         // Refused before the token is consumed, so the session is still there
-        // once maintenance ends.
+        // once shutdown ends.
         access_control::ensure_admitted(&self.db, row.user_id).await?;
 
         let consumed = sqlx::query!(

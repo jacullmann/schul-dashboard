@@ -16,11 +16,11 @@ const ACCESS_TOKEN_EXPIRED: Reply = {
   },
 };
 const OK: Reply = { status: 200, data: { ok: true } };
-const MAINTENANCE: Reply = {
+const SHUTDOWN: Reply = {
   status: 503,
   data: {
-    error: 'The platform is down for maintenance.',
-    code: 'MAINTENANCE',
+    error: 'The platform is shut down.',
+    code: 'SHUTDOWN',
   },
 };
 
@@ -127,28 +127,26 @@ describe('api', () => {
     expect(signOuts()).toBe(0);
   });
 
-  it('reports maintenance without refreshing or retrying', async () => {
-    const calls = serve(() => MAINTENANCE);
+  it('reports shutdown without refreshing or retrying', async () => {
+    const calls = serve(() => SHUTDOWN);
     const signOuts = countSignOuts();
-    const maintenance = countEvents('maintenance');
+    const shutdown = countEvents('shutdown');
 
     await expect(api.get('/data')).rejects.toBeInstanceOf(AxiosError);
 
     expect(calls).toEqual(['/data']);
-    expect(maintenance()).toBe(1);
+    expect(shutdown()).toBe(1);
     expect(signOuts()).toBe(0);
   });
 
-  it('keeps the session when maintenance turns the refresh away', async () => {
-    serve((url) =>
-      url === '/auth/refresh' ? MAINTENANCE : ACCESS_TOKEN_EXPIRED,
-    );
+  it('keeps the session when shutdown turns the refresh away', async () => {
+    serve((url) => (url === '/auth/refresh' ? SHUTDOWN : ACCESS_TOKEN_EXPIRED));
     const signOuts = countSignOuts();
-    const maintenance = countEvents('maintenance');
+    const shutdown = countEvents('shutdown');
 
     await expect(api.get('/data')).rejects.toBeInstanceOf(AxiosError);
 
-    expect(maintenance()).toBe(1);
+    expect(shutdown()).toBe(1);
     expect(signOuts()).toBe(0);
   });
 

@@ -15,7 +15,7 @@ const router = useRouter();
 const { t } = useI18n();
 const { initiateGoogleLogin } = useOAuth();
 const accessStatus = useAccessStatusStore();
-const { registrationOpen, maintenance } = storeToRefs(accessStatus);
+const { registrationOpen, shutdown } = storeToRefs(accessStatus);
 
 const {
   email,
@@ -87,19 +87,19 @@ onMounted(accessStatus.load);
       aria-live="polite"
     >
       <BaseEmptyState
-        :icon="maintenance ? Construction : CirclePause"
+        :icon="shutdown ? Construction : CirclePause"
         full-page
         :primary-action="navigateToLogin"
       >
         {{
-          maintenance
-            ? t('auth.access.maintenance.title')
+          shutdown
+            ? t('auth.access.shutdown.title')
             : t('auth.access.registration_paused.title')
         }}
         <template #message>
           {{
-            maintenance
-              ? t('auth.access.maintenance.message')
+            shutdown
+              ? t('auth.access.shutdown.message')
               : t('auth.access.registration_paused.message')
           }}
         </template>

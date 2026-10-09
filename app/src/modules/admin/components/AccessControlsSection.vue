@@ -8,6 +8,8 @@ interface SwitchRow {
   name: AccessControlSwitch;
   id: string;
   on: boolean;
+  /** Fixed by another switch rather than editable on its own. */
+  locked: boolean;
   label: string;
   hint: string;
   note?: string;
@@ -19,7 +21,7 @@ const { t } = useI18n();
 const { controls, loading, saving, load, setSwitch } = useAccessControls();
 const titleId = useId();
 const registrationId = useId();
-const maintenanceId = useId();
+const shutdownId = useId();
 
 const rows = computed<SwitchRow[]>(() => {
   const current = controls.value;
@@ -28,21 +30,21 @@ const rows = computed<SwitchRow[]>(() => {
     {
       name: 'registrationPaused',
       id: registrationId,
-      on: current.registrationPaused,
+      // Shutdown closes sign-ups without flipping the stored switch, so it
+      // shows as on and locked while the stored setting waits for its end.
+      on: current.registrationPaused || current.shutdown,
+      locked: current.shutdown,
       label: t(`${I18N_BASE}.registration.label`),
       hint: t(`${I18N_BASE}.registration.hint`),
-      // Maintenance closes sign-ups without flipping this switch.
-      note:
-        current.maintenance && !current.registrationPaused
-          ? t(`${I18N_BASE}.registration_held`)
-          : undefined,
+      note: current.shutdown ? t(`${I18N_BASE}.registration_held`) : undefined,
     },
     {
-      name: 'maintenance',
-      id: maintenanceId,
-      on: current.maintenance,
-      label: t(`${I18N_BASE}.maintenance.label`),
-      hint: t(`${I18N_BASE}.maintenance.hint`),
+      name: 'shutdown',
+      id: shutdownId,
+      on: current.shutdown,
+      locked: false,
+      label: t(`${I18N_BASE}.shutdown.label`),
+      hint: t(`${I18N_BASE}.shutdown.hint`),
     },
   ];
 });
@@ -73,7 +75,11 @@ onMounted(load);
             class="flex items-start justify-between gap-4 py-3 first:pt-0 last:pb-0 border-b border-ghost-border last:border-b-0"
           >
             <div class="min-w-0">
-              <label :for="row.id" class="font-semibold cursor-pointer">
+              <label
+                :for="row.id"
+                class="font-semibold"
+                :class="row.locked ? 'cursor-not-allowed' : 'cursor-pointer'"
+              >
                 {{ row.label }}
               </label>
               <p class="m-0! text-sm">{{ row.hint }}</p>
@@ -84,7 +90,7 @@ onMounted(load);
             <BaseToggle
               :id="row.id"
               :model-value="row.on"
-              :disabled="saving !== null"
+              :disabled="row.locked || saving !== null"
               @update:model-value="(on: boolean) => setSwitch(row.name, on)"
             />
           </li>

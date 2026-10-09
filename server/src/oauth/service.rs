@@ -354,12 +354,12 @@ impl OAuthService {
         }
     }
 
-    /// Paused sign-ups and maintenance get their own reason, so the login page
+    /// Paused sign-ups and shutdown get their own reason, so the login page
     /// can say why instead of reporting a failure.
     fn login_failure(&self, error: &AppError) -> (CookieJar, String) {
         let reason = match error {
             AppError::RegistrationPaused => "registration_paused",
-            AppError::Maintenance => "maintenance",
+            AppError::Shutdown => "shutdown",
             _ => "server_error",
         };
         (CookieJar::new(), self.error_url(LOGIN_RESULT_PARAM, reason))
