@@ -164,15 +164,15 @@ const panels = computed(() => {
     </div>
 
     <div class="overflow-hidden" :class="bleedClass">
-      <div ref="trackRef" class="relative touch-pan-y">
+      <!-- Both days share one cell, so the track holds the taller of them
+           while they slide instead of cutting the incoming day off. -->
+      <div ref="trackRef" class="grid touch-pan-y">
         <div
           v-for="{ page, day, week, key, panel } in panels"
           :key="key"
-          class="grid grid-cols-[2.5rem_1fr] gap-2 w-full"
-          :class="[
-            page === activePage ? 'relative' : 'absolute inset-x-0 top-0',
-            { 'transition-transform duration-300 ease-out': settling },
-          ]"
+          :data-page="page"
+          class="grid grid-cols-[2.5rem_1fr] gap-2 w-full col-start-1 row-start-1 self-start"
+          :class="{ 'transition-transform duration-300 ease-out': settling }"
           :style="[panelStyle(page), panel.gridStyle]"
           @transitionend="onPanelTransitionEnd"
         >

@@ -39,6 +39,47 @@ export function useSchedulePager(pageCount?: number) {
     if (page !== null) hasPaged.value = true;
   });
 
+  /** How far the incoming page sits below the top of the track, in px. */
+  const incomingDrop = ref(0);
+
+  const panelOf = (page: number) =>
+    trackRef.value?.querySelector<HTMLElement>(
+      `:scope > [data-page="${page}"]`,
+    );
+
+  /*
+   * A shorter page swiped in from far down a longer one would start at the
+   * top of the track, out of view, and leave the window scrolled past its end
+   * once it settles. It drops instead to the top of the view, kept within the
+   * track, and at least as far as the window could no longer stay scrolled;
+   * the window scrolls back by as much as it turns, so the page stays put.
+   */
+  const dropIntoView = (page: number) => {
+    const track = trackRef.value;
+    const active = panelOf(activePage.value);
+    const incoming = panelOf(page);
+    if (!track || !active || !incoming) return 0;
+    const viewTop =
+      parseFloat(getComputedStyle(track).getPropertyValue('--header-height')) ||
+      0;
+    const scrolledPast = viewTop - track.getBoundingClientRect().top;
+    const scrollLeft =
+      document.documentElement.scrollHeight -
+      window.innerHeight -
+      window.scrollY;
+    const room = active.offsetHeight - incoming.offsetHeight;
+    if (room <= 0) return 0;
+    return Math.min(room, Math.max(0, scrolledPast, room - scrollLeft));
+  };
+
+  watch(
+    incomingPage,
+    (page) => {
+      incomingDrop.value = page === null ? 0 : dropIntoView(page);
+    },
+    { flush: 'post' },
+  );
+
   let onSettled: (() => void) | null = null;
 
   const direction = computed<Direction>(() =>
@@ -73,6 +114,9 @@ export function useSchedulePager(pageCount?: number) {
   const commitIncoming = () => {
     if (incomingPage.value !== null) {
       activePage.value = incomingPage.value;
+    }
+    if (incomingDrop.value > 0) {
+      window.scrollBy({ top: -incomingDrop.value, behavior: 'instant' });
     }
     incomingPage.value = null;
     offset.value = 0;
@@ -198,11 +242,11 @@ export function useSchedulePager(pageCount?: number) {
   });
 
   const panelStyle = (page: number) => {
-    const shift =
-      page === activePage.value
-        ? `${offset.value}px`
-        : `calc(${offset.value}px + ${direction.value * 100}% + ${direction.value * PAGE_GAP}px)`;
-    return { transform: `translateX(${shift})` };
+    if (page === activePage.value) {
+      return { transform: `translateX(${offset.value}px)` };
+    }
+    const shift = `calc(${offset.value}px + ${direction.value * 100}% + ${direction.value * PAGE_GAP}px)`;
+    return { transform: `translate(${shift}, ${incomingDrop.value}px)` };
   };
 
   return {
