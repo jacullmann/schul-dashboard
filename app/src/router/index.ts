@@ -334,6 +334,34 @@ const {
  */
 const OPEN_DURING_COURSE_SETUP = new Set(['group-course-setup', 'group-admin']);
 
+const CHUNK_RELOAD_KEY = 'schul-dashboard:chunk-reload';
+const CHUNK_RELOAD_COOLDOWN_MS = 10_000;
+
+function isChunkLoadError(error: unknown): boolean {
+  return (
+    error instanceof Error &&
+    /dynamically imported module|Importing a module script failed|Unable to preload CSS/i.test(
+      error.message,
+    )
+  );
+}
+
+/**
+ * A deploy replaced the chunks this tab still references, so the page is
+ * reloaded on the new build. Only once within the cooldown: a deploy that is
+ * itself broken must not reload the tab forever.
+ */
+function reloadOnNewBuild(path: string): void {
+  try {
+    const lastReload = Number(sessionStorage.getItem(CHUNK_RELOAD_KEY));
+    if (Date.now() - lastReload < CHUNK_RELOAD_COOLDOWN_MS) return;
+    sessionStorage.setItem(CHUNK_RELOAD_KEY, String(Date.now()));
+  } catch {
+    return;
+  }
+  window.location.assign(path);
+}
+
 router.beforeEach(async (to, from) => {
   if (to.path !== from.path) start();
 
@@ -413,6 +441,12 @@ router.beforeEach(async (to, from) => {
       };
     }
   }
+});
+
+// A navigation that throws never reaches afterEach.
+router.onError((error, to) => {
+  finish();
+  if (isChunkLoadError(error)) reloadOnNewBuild(to.fullPath);
 });
 
 router.afterEach((to, _from, failure) => {

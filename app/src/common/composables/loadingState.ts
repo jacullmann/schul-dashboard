@@ -5,12 +5,26 @@ const isLoading = ref(false);
 const opacity = ref(1);
 
 let timer: ReturnType<typeof setInterval> | null = null;
+let fadeTimer: ReturnType<typeof setTimeout> | null = null;
+let hideTimer: ReturnType<typeof setTimeout> | null = null;
 
 const STEP_INTERVAL = 200;
+const FADE_DELAY = 300;
+const HIDE_DELAY = 400;
+
+// A navigation that starts while the last one fades out must not be hidden
+// by that fade.
+function clearFinishTimers() {
+  if (fadeTimer) clearTimeout(fadeTimer);
+  if (hideTimer) clearTimeout(hideTimer);
+  fadeTimer = null;
+  hideTimer = null;
+}
 
 export function useLoadingBar() {
   const start = () => {
     if (timer) clearInterval(timer);
+    clearFinishTimers();
 
     progress.value = 0;
     opacity.value = 1;
@@ -41,17 +55,18 @@ export function useLoadingBar() {
   const finish = () => {
     if (timer) clearInterval(timer);
     timer = null;
+    clearFinishTimers();
 
     progress.value = 100;
 
-    setTimeout(() => {
+    fadeTimer = setTimeout(() => {
       opacity.value = 0;
-      setTimeout(() => {
+      hideTimer = setTimeout(() => {
         isLoading.value = false;
         progress.value = 0;
         opacity.value = 1;
-      }, 400);
-    }, 300);
+      }, HIDE_DELAY);
+    }, FADE_DELAY);
   };
 
   return {
