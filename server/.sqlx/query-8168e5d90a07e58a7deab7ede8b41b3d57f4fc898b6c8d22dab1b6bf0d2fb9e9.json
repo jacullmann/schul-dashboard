@@ -1,0 +1,29 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "WITH updated AS (\n                   UPDATE users u\n                   SET preferences = u.preferences || COALESCE((\n                       SELECT jsonb_object_agg(\n                           change.key,\n                           CASE WHEN jsonb_typeof(change.value) = 'object'\n                                 AND jsonb_typeof(u.preferences -> change.key) = 'object'\n                                THEN (u.preferences -> change.key) || change.value\n                                ELSE change.value\n                           END)\n                       FROM jsonb_each($2::jsonb) AS change\n                   ), '{}'::jsonb)\n                   WHERE u.id = $1\n                   RETURNING u.preferences\n               ),\n               logged AS (\n                   INSERT INTO user_activity (user_id, type, meta)\n                   SELECT $1, 'profile:preferences:update', $2 FROM updated\n               )\n               SELECT preferences AS \"preferences!\" FROM updated",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "preferences!",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "users",
+            "name": "preferences"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Jsonb"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "8168e5d90a07e58a7deab7ede8b41b3d57f4fc898b6c8d22dab1b6bf0d2fb9e9"
+}

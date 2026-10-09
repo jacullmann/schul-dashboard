@@ -1,5 +1,5 @@
-use crate::common::locale::Locale;
-use serde::Deserialize;
+use crate::common::{locale::Locale, theme::Theme};
+use serde::{Deserialize, Serialize};
 use validator::Validate;
 
 #[derive(Debug, Deserialize, Validate)]
@@ -37,12 +37,12 @@ pub struct RegisterDto {
     pub preferences: RegisterPreferencesDto,
 }
 
-#[derive(Debug, Default, Deserialize)]
+#[derive(Debug, Default, Deserialize, Serialize)]
 pub struct RegisterPreferencesDto {
-    pub theme: Option<String>,
+    #[serde(default)]
+    pub theme: Theme,
     #[serde(default)]
     pub language: Locale,
-    pub personalized: Option<serde_json::Value>,
 }
 
 /// Every sign-up path has to send the acceptance of the terms explicitly, so

@@ -22,7 +22,7 @@ mod todos;
 mod user;
 
 use anyhow::Context;
-use axum::{Router, middleware};
+use axum::{Router, extract::DefaultBodyLimit, middleware};
 use common::{csrf::csrf_middleware, extractors::resolve_tenant};
 use config::Config;
 use sqlx::postgres::PgPoolOptions;
@@ -36,6 +36,11 @@ use tower_http::{
 };
 use tracing::info;
 use tracing_subscriber::{EnvFilter, layer::SubscriberExt, util::SubscriberInitExt};
+
+/// Every JSON request fits easily; the few routes that take more (uploads, the
+/// timetable) raise the limit for themselves. Axum's own default of 2 MB would
+/// let any request carry far more than the server ever needs to read.
+const DEFAULT_BODY_LIMIT_BYTES: usize = 64 * 1024;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -124,6 +129,7 @@ async fn main() -> anyhow::Result<()> {
         .merge(passkeys::routes::router())
         .merge(reauth::routes::router())
         .merge(super_admin::routes::router(state.clone()))
+        .layer(DefaultBodyLimit::max(DEFAULT_BODY_LIMIT_BYTES))
         .layer(common::rate_limit::global())
         .layer(middleware::from_fn_with_state(
             state.clone(),

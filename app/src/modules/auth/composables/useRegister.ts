@@ -108,7 +108,6 @@ export function useRegister() {
       const preferences = {
         theme: currentTheme.value,
         language: currentLanguage.value,
-        personalized: true,
       };
 
       await api.post('/auth/register', {

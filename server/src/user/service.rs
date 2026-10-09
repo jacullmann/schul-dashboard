@@ -1,4 +1,4 @@
-use super::dto::DismissibleNotice;
+use super::dto::{DismissibleNotice, UpdatePreferencesDto};
 use crate::{
     error::{AppError, AppResult},
     state::AppState,
@@ -40,60 +40,44 @@ impl UserService {
         Ok(json!({ "ok": true, "personalized": row.personalized }))
     }
 
+    /// Saves the settings named in `changes` and keeps every other one. A page's
+    /// settings (`tasks`, `schedule`, ...) arrive one at a time, so they extend
+    /// the stored ones instead of replacing them. Merging inside a single
+    /// statement keeps two settings saved at once from overwriting each other.
     pub async fn update_preferences(
         &self,
         user_id: Uuid,
-        prefs: serde_json::Value,
+        changes: &UpdatePreferencesDto,
     ) -> AppResult<Value> {
-        let user = sqlx::query!(r#"SELECT preferences FROM users WHERE id = $1"#, user_id)
-            .fetch_optional(&self.db)
-            .await?
-            .ok_or_else(|| AppError::not_found("User not found"))?;
-
-        let mut current = user.preferences.as_object().cloned().unwrap_or_default();
-
-        let allowed = [
-            "theme",
-            "language",
-            "personalized",
-            "tasks",
-            "schedule",
-            "dashboard",
-        ];
-
-        if let Some(obj) = prefs.as_object() {
-            for (key, value) in obj {
-                if !allowed.contains(&key.as_str()) || value.is_null() {
-                    continue;
-                }
-                // A page's settings arrive one at a time, so they extend the
-                // stored ones instead of replacing them.
-                match (current.get_mut(key), value) {
-                    (Some(Value::Object(stored)), Value::Object(changed)) => {
-                        stored.extend(changed.clone());
-                    }
-                    _ => {
-                        current.insert(key.clone(), value.clone());
-                    }
-                }
-            }
-        }
-
-        let merged = Value::Object(current);
-        sqlx::query!(
-            r#"UPDATE users SET preferences = $1 WHERE id = $2"#,
-            merged,
-            user_id
+        let preferences = sqlx::query_scalar!(
+            r#"WITH updated AS (
+                   UPDATE users u
+                   SET preferences = u.preferences || COALESCE((
+                       SELECT jsonb_object_agg(
+                           change.key,
+                           CASE WHEN jsonb_typeof(change.value) = 'object'
+                                 AND jsonb_typeof(u.preferences -> change.key) = 'object'
+                                THEN (u.preferences -> change.key) || change.value
+                                ELSE change.value
+                           END)
+                       FROM jsonb_each($2::jsonb) AS change
+                   ), '{}'::jsonb)
+                   WHERE u.id = $1
+                   RETURNING u.preferences
+               ),
+               logged AS (
+                   INSERT INTO user_activity (user_id, type, meta)
+                   SELECT $1, 'profile:preferences:update', $2 FROM updated
+               )
+               SELECT preferences AS "preferences!" FROM updated"#,
+            user_id,
+            json!(changes)
         )
-        .execute(&self.db)
-        .await?;
+        .fetch_optional(&self.db)
+        .await?
+        .ok_or_else(|| AppError::not_found("User not found"))?;
 
-        sqlx::query!(
-            r#"INSERT INTO user_activity (user_id, type, meta) VALUES ($1, 'profile:preferences:update', $2)"#,
-            user_id, prefs
-        ).execute(&self.db).await?;
-
-        Ok(json!({ "ok": true, "preferences": merged }))
+        Ok(json!({ "ok": true, "preferences": preferences }))
     }
 
     pub async fn dismiss_notice(

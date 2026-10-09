@@ -29,13 +29,11 @@ pub async fn update_personalization(
 pub async fn update_preferences(
     State(s): State<AppState>,
     user: AuthUser,
-    Json(dto): Json<UpdatePreferencesDto>,
+    Json(changes): Json<UpdatePreferencesDto>,
 ) -> AppResult<Json<Value>> {
-    let prefs = serde_json::to_value(dto).unwrap_or_default();
-
     Ok(Json(
         UserService::from_state(&s)
-            .update_preferences(user.user_id, prefs)
+            .update_preferences(user.user_id, &changes)
             .await?,
     ))
 }

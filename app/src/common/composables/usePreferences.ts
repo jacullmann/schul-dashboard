@@ -40,7 +40,7 @@ export function usePreferences() {
     let hasChanges = false;
 
     if (preferences.theme && preferences.theme !== currentTheme.value) {
-      applyTheme(preferences.theme as ThemeMode);
+      applyTheme(preferences.theme);
       hasChanges = true;
     }
 

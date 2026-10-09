@@ -348,11 +348,7 @@ impl AuthService {
         let sign_up = SignUp {
             age,
             password_hash: hash_password(dto.password).await?,
-            preferences: json!({
-                "theme": dto.preferences.theme.unwrap_or_else(|| "system".into()),
-                "language": locale,
-                "personalized": dto.preferences.personalized.unwrap_or_else(|| json!("true")),
-            }),
+            preferences: json!(dto.preferences),
         };
 
         let mut tx = self.db.begin().await?;

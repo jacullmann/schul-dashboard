@@ -2,6 +2,8 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import api from '@/api/api.ts';
 import { usePreferences } from '@/common/composables/usePreferences';
+import type { ThemeMode } from '@/common/composables/useTheme';
+import type { SupportedLocale } from '@/i18n';
 import type { TaskPreferences } from '@/modules/tasks/types';
 import type { SchedulePreferences } from '@/modules/schedule/types';
 import type { DashboardPreferences } from '@/modules/dashboard/types';
@@ -23,8 +25,8 @@ type StoredPageSettings = {
 };
 
 export interface UserPreferences extends StoredPageSettings {
-  theme?: string;
-  language?: string;
+  theme?: ThemeMode;
+  language?: SupportedLocale;
   dismissedNotices?: DismissibleNotice[];
 }
 

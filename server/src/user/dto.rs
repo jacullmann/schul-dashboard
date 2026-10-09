@@ -1,4 +1,4 @@
-use crate::common::locale::Locale;
+use crate::common::{locale::Locale, theme::Theme};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use validator::Validate;
@@ -60,14 +60,21 @@ pub struct NoticePath {
     pub notice: DismissibleNotice,
 }
 
+/// The settings a request changes; omitted ones keep their stored value. Every
+/// field has a closed type, so the stored preferences stay small and readable
+/// by whatever reads them.
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdatePreferencesDto {
-    pub theme: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub theme: Option<Theme>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub language: Option<Locale>,
-    pub personalized: Option<serde_json::Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub tasks: Option<TaskPreferencesDto>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub schedule: Option<SchedulePreferencesDto>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub dashboard: Option<DashboardPreferencesDto>,
 }
 

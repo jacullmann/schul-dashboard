@@ -2,8 +2,14 @@ use super::handlers::*;
 use crate::state::AppState;
 use axum::{
     Router,
+    extract::DefaultBodyLimit,
+    handler::Handler,
     routing::{delete, get, patch, post},
 };
+
+/// A whole timetable is replaced at once. Its 250 lessons at most, each with
+/// three ids and a room name of up to 100 bytes, stay well below this.
+const SCHEDULE_BODY_LIMIT_BYTES: usize = 256 * 1024;
 
 pub fn router() -> Router<AppState> {
     Router::new()
@@ -48,7 +54,9 @@ pub fn group_router() -> Router<AppState> {
         )
         .route(
             "/admin/schedule",
-            get(get_schedule_admin).put(replace_schedule_admin),
+            get(get_schedule_admin).put(
+                replace_schedule_admin.layer(DefaultBodyLimit::max(SCHEDULE_BODY_LIMIT_BYTES)),
+            ),
         )
         .route(
             "/admin/schedule/subs",

@@ -23,3 +23,4 @@ pub mod role;
 pub mod school_week;
 pub mod send_limit;
 pub mod text;
+pub mod theme;
