@@ -173,9 +173,6 @@ export interface SuperAdminNavItem {
 export interface AccessControls {
   registrationPaused: boolean;
   maintenance: boolean;
-  updatedAt: string;
-  /** `null` before any admin flipped a switch, or once that admin was deleted. */
-  updatedByEmail: string | null;
 }
 
 export type AccessControlSwitch = 'registrationPaused' | 'maintenance';

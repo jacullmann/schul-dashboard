@@ -1,17 +1,20 @@
-use super::dto::{AccessStatusDto, AdminAccessControlsDto, UpdateAccessControlsDto};
+use super::dto::{AccessStatusDto, UpdateAccessControlsDto};
 use crate::{
     common::role::Role,
     error::{AppError, AppResult},
     state::AppState,
     super_admin::service::log_admin_action,
 };
+use serde::Serialize;
 use serde_json::json;
 use sqlx::PgPool;
 use uuid::Uuid;
 
-/// The switches as stored. Maintenance closes sign-ups without touching
-/// `registration_paused`, so ending it restores what sign-ups were set to.
-#[derive(Debug, Clone, Copy)]
+/// The switches as stored and as superadmins manage them. Maintenance closes
+/// sign-ups without touching `registration_paused`, so ending it restores
+/// what sign-ups were set to.
+#[derive(Debug, Clone, Copy, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct AccessControls {
     pub registration_paused: bool,
     pub maintenance: bool,
@@ -82,42 +85,27 @@ impl AccessControlService {
         Self { db: s.db.clone() }
     }
 
-    pub async fn get_for_admin(&self) -> AppResult<AdminAccessControlsDto> {
-        let controls = sqlx::query_as!(
-            AdminAccessControlsDto,
-            r#"SELECT ac.registration_paused, ac.maintenance, ac.updated_at,
-                      u.email AS "updated_by_email?"
-               FROM access_controls ac
-               LEFT JOIN users u ON u.id = ac.updated_by"#
-        )
-        .fetch_one(&self.db)
-        .await?;
-
-        Ok(controls)
-    }
-
     pub async fn update(
         &self,
         changes: &UpdateAccessControlsDto,
         admin_id: Uuid,
-    ) -> AppResult<AdminAccessControlsDto> {
+    ) -> AppResult<AccessControls> {
         if changes.is_empty() {
             return Err(AppError::bad_request("No switch to change."));
         }
 
         let mut tx = self.db.begin().await?;
 
-        sqlx::query!(
+        let controls = sqlx::query_as!(
+            AccessControls,
             r#"UPDATE access_controls
                SET registration_paused = COALESCE($1, registration_paused),
-                   maintenance = COALESCE($2, maintenance),
-                   updated_by = $3,
-                   updated_at = now()"#,
+                   maintenance = COALESCE($2, maintenance)
+               RETURNING registration_paused, maintenance"#,
             changes.registration_paused,
-            changes.maintenance,
-            admin_id
+            changes.maintenance
         )
-        .execute(&mut *tx)
+        .fetch_one(&mut *tx)
         .await?;
 
         log_admin_action(
@@ -130,7 +118,7 @@ impl AccessControlService {
 
         tx.commit().await?;
 
-        self.get_for_admin().await
+        Ok(controls)
     }
 }
 

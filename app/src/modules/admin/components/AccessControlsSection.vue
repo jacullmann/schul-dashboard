@@ -2,7 +2,6 @@
 import { computed, onMounted, useId } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useAccessControls } from '../composables/useAccessControls';
-import { useSuperAdminFormat } from '../composables/useSuperAdminFormat';
 import type { AccessControlSwitch } from '../types';
 
 interface SwitchRow {
@@ -17,7 +16,6 @@ interface SwitchRow {
 const I18N_BASE = 'admin.overview.access_controls';
 
 const { t } = useI18n();
-const { fmtDateTime } = useSuperAdminFormat();
 const { controls, loading, saving, load, setSwitch } = useAccessControls();
 const titleId = useId();
 const registrationId = useId();
@@ -49,15 +47,6 @@ const rows = computed<SwitchRow[]>(() => {
   ];
 });
 
-const lastChanged = computed(() => {
-  const current = controls.value;
-  if (!current) return '';
-  const time = fmtDateTime(current.updatedAt);
-  return current.updatedByEmail
-    ? t(`${I18N_BASE}.last_changed`, { time, email: current.updatedByEmail })
-    : t(`${I18N_BASE}.last_changed_unknown`, { time });
-});
-
 onMounted(load);
 </script>
 
@@ -81,7 +70,7 @@ onMounted(load);
           <li
             v-for="row in rows"
             :key="row.name"
-            class="flex items-start justify-between gap-4 py-3 first:pt-0 border-b border-ghost-border"
+            class="flex items-start justify-between gap-4 py-3 first:pt-0 last:pb-0 border-b border-ghost-border last:border-b-0"
           >
             <div class="min-w-0">
               <label :for="row.id" class="font-semibold cursor-pointer">
@@ -100,7 +89,6 @@ onMounted(load);
             />
           </li>
         </ul>
-        <p class="m-0! pt-3 text-xs">{{ lastChanged }}</p>
       </template>
     </div>
   </section>

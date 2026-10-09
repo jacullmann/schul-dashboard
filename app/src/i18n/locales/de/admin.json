@@ -137,14 +137,12 @@
         "hint": "Niemand kann ein neues Konto erstellen, auch nicht mit Google. Bereits verschickte Bestätigungslinks funktionieren erst wieder, wenn die Pause endet."
       },
       "maintenance": {
-        "label": "Wartungsmodus",
+        "label": "Shutdown-Modus",
         "hint": "Nur Superadmins können das Dashboard nutzen. Alle anderen werden zur Anmeldung geschickt, bleiben aber angemeldet und können danach direkt weitermachen."
       },
-      "registration_held": "Durch den Wartungsmodus ebenfalls geschlossen.",
-      "last_changed": "Zuletzt geändert am {time} von {email}",
-      "last_changed_unknown": "Zuletzt geändert am {time}",
+      "registration_held": "Durch den Shutdown-Modus ebenfalls geschlossen.",
       "maintenance_modal": {
-        "title": "Wartungsmodus aktivieren?",
+        "title": "Shutdown-Modus aktivieren?",
         "content": "Alle außer Superadmins verlieren sofort den Zugriff auf das Dashboard und können sich weder anmelden noch registrieren.",
         "submit": "Aktivieren"
       },

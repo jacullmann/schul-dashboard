@@ -1,4 +1,3 @@
-use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 /// What the sign-in and sign-up pages need to know before anyone signs in.
@@ -7,16 +6,6 @@ use serde::{Deserialize, Serialize};
 pub struct AccessStatusDto {
     pub registration_open: bool,
     pub maintenance: bool,
-}
-
-/// The switches as superadmins manage them, with who flipped one last.
-#[derive(Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct AdminAccessControlsDto {
-    pub registration_paused: bool,
-    pub maintenance: bool,
-    pub updated_at: DateTime<Utc>,
-    pub updated_by_email: Option<String>,
 }
 
 /// Each switch is changed only when sent, so two admins flipping different

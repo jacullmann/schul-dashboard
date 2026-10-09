@@ -1,6 +1,6 @@
 use super::{
-    dto::{AccessStatusDto, AdminAccessControlsDto, UpdateAccessControlsDto},
-    service::{self, AccessControlService},
+    dto::{AccessStatusDto, UpdateAccessControlsDto},
+    service::{self, AccessControlService, AccessControls},
 };
 use crate::{common::extractors::SuperAdmin, error::AppResult, state::AppState};
 use axum::{Json, extract::State};
@@ -12,17 +12,15 @@ pub async fn get_access_status(State(s): State<AppState>) -> AppResult<Json<Acce
 pub async fn get_access_controls(
     State(s): State<AppState>,
     _: SuperAdmin,
-) -> AppResult<Json<AdminAccessControlsDto>> {
-    Ok(Json(
-        AccessControlService::from_state(&s).get_for_admin().await?,
-    ))
+) -> AppResult<Json<AccessControls>> {
+    Ok(Json(service::load(&s.db).await?))
 }
 
 pub async fn update_access_controls(
     State(s): State<AppState>,
     SuperAdmin(admin): SuperAdmin,
     Json(changes): Json<UpdateAccessControlsDto>,
-) -> AppResult<Json<AdminAccessControlsDto>> {
+) -> AppResult<Json<AccessControls>> {
     Ok(Json(
         AccessControlService::from_state(&s)
             .update(&changes, admin.user_id)
