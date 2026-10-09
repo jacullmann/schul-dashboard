@@ -18,6 +18,7 @@ export const AuthErrorCode = {
   LastSignInMethod: 'LAST_SIGN_IN_METHOD',
   RegistrationPaused: 'REGISTRATION_PAUSED',
   Shutdown: 'SHUTDOWN',
+  RateLimited: 'RATE_LIMITED',
 } as const;
 
 const MESSAGE_KEYS: Record<string, string> = {
@@ -28,6 +29,7 @@ const MESSAGE_KEYS: Record<string, string> = {
   [AuthErrorCode.LastSignInMethod]: 'auth.errors.last_sign_in_method',
   [AuthErrorCode.RegistrationPaused]: 'auth.errors.registration_paused',
   [AuthErrorCode.Shutdown]: 'auth.errors.shutdown',
+  [AuthErrorCode.RateLimited]: 'common.errors.rate_limited',
 };
 
 /**

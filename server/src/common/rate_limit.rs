@@ -5,8 +5,14 @@
 //! signing in at the start of a lesson looks like a single client. The burst
 //! therefore covers a class, while the refill still caps sustained guessing.
 
-use axum::{body::Body, http::Request};
+use axum::{
+    Json,
+    body::Body,
+    http::{Request, StatusCode, header},
+    response::{IntoResponse, Response},
+};
 use governor::{clock::QuantaInstant, middleware::NoOpMiddleware};
+use serde_json::json;
 use std::{
     net::{IpAddr, Ipv6Addr},
     sync::Arc,
@@ -70,7 +76,25 @@ pub fn per_client(burst: u32, replenish_every: Duration) -> ClientRateLimit {
 
     prune_idle_clients(config.limiter());
 
-    GovernorLayer::new(config)
+    GovernorLayer::new(config).error_handler(json_error)
+}
+
+/// Answers like every other API error, as JSON with a code, so the client can
+/// tell the user in their language to wait instead of showing a raw string.
+fn json_error(error: GovernorError) -> Response {
+    match error {
+        GovernorError::TooManyRequests { wait_time, .. } => (
+            StatusCode::TOO_MANY_REQUESTS,
+            [(header::RETRY_AFTER, wait_time.to_string())],
+            Json(json!({
+                "error": "Too many requests. Please try again later.",
+                "code": "RATE_LIMITED",
+                "retryAfter": wait_time,
+            })),
+        )
+            .into_response(),
+        other => other.into(),
+    }
 }
 
 /// Caps the whole API per client at 400 requests per second (governor takes
