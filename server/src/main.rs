@@ -43,6 +43,12 @@ use tracing_subscriber::{EnvFilter, layer::SubscriberExt, util::SubscriberInitEx
 /// let any request carry far more than the server ever needs to read.
 const DEFAULT_BODY_LIMIT_BYTES: usize = 64 * 1024;
 
+const REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
+
+/// The timeout covers reading the request body, and a file at the upload
+/// limit takes minutes over a weak school or mobile connection.
+const UPLOAD_TIMEOUT: Duration = Duration::from_secs(5 * 60);
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     tracing_subscriber::registry()
@@ -103,7 +109,6 @@ async fn main() -> anyhow::Result<()> {
     // group the caller does not belong to.
     let group_scoped = Router::new()
         .merge(announcements::routes::group_router())
-        .merge(assets::routes::group_router())
         .merge(group::routes::group_router())
         .merge(items::routes::group_router())
         .merge(messages::routes::group_router())
@@ -114,12 +119,23 @@ async fn main() -> anyhow::Result<()> {
             resolve_tenant,
         ));
 
+    let group_uploads = assets::routes::group_router().route_layer(middleware::from_fn_with_state(
+        state.clone(),
+        resolve_tenant,
+    ));
+
+    #[allow(deprecated)]
+    let uploads = Router::new()
+        .nest("/groups/{group_id}", group_uploads)
+        .merge(assets::routes::router())
+        .route_layer(tower_http::timeout::TimeoutLayer::new(UPLOAD_TIMEOUT));
+
+    #[allow(deprecated)]
     let api = Router::new()
         .nest("/groups/{group_id}", group_scoped)
         .merge(system::routes::router())
         .merge(access_control::routes::router())
         .merge(system_announcements::routes::router())
-        .merge(assets::routes::router())
         .merge(auth::routes::router())
         .merge(user::routes::router())
         .merge(data_export::routes::router())
@@ -131,6 +147,8 @@ async fn main() -> anyhow::Result<()> {
         .merge(passkeys::routes::router())
         .merge(reauth::routes::router())
         .merge(super_admin::routes::router(state.clone()))
+        .route_layer(tower_http::timeout::TimeoutLayer::new(REQUEST_TIMEOUT))
+        .merge(uploads)
         .layer(DefaultBodyLimit::max(DEFAULT_BODY_LIMIT_BYTES))
         .layer(common::rate_limit::global())
         .layer(middleware::from_fn_with_state(
@@ -139,14 +157,10 @@ async fn main() -> anyhow::Result<()> {
         ))
         .with_state(state);
 
-    #[allow(deprecated)]
     let app = Router::new()
         .merge(api)
         .layer(cors)
         .layer(CompressionLayer::new())
-        .layer(tower_http::timeout::TimeoutLayer::new(Duration::from_secs(
-            30,
-        )))
         .layer(TraceLayer::new_for_http())
         .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid));
 
