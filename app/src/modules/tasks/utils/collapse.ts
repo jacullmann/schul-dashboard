@@ -9,6 +9,14 @@ const FADE_EASING = 'ease-out';
 const FALLBACK_SLACK_MS = 50;
 
 /**
+ * A transition on `property` that runs in step with a collapse, for spacing
+ * that changes because of it, so the rows below follow a single curve.
+ */
+export function collapseTransition(property: string) {
+  return `${property} ${COLLAPSE_MS}ms ${COLLAPSE_EASING}`;
+}
+
+/**
  * Folds an element away to nothing, so what follows it in the list moves up
  * with it instead of jumping once it is gone.
  */
@@ -22,10 +30,15 @@ export function collapseHeight(el: HTMLElement, onCollapsed: () => void) {
   el.style.overflow = 'hidden';
   void el.offsetHeight;
 
-  const fold = `${COLLAPSE_MS}ms ${COLLAPSE_EASING}`;
-  el.style.transition = `height ${fold}, margin ${fold}, border-width ${fold}, opacity ${FADE_MS}ms ${FADE_EASING}`;
+  el.style.transition = [
+    ...['height', 'margin', 'padding', 'border-width'].map(collapseTransition),
+    `opacity ${FADE_MS}ms ${FADE_EASING}`,
+  ].join(', ');
   el.style.height = '0';
   el.style.marginBlock = '0';
+  // With border-box sizing the height cannot shrink below the padding, so a
+  // padded element like a heading would stall there and then snap away.
+  el.style.paddingBlock = '0';
   // A separator is nothing but its border, which a height of 0 leaves standing.
   el.style.borderBlockWidth = '0';
   el.style.opacity = '0';

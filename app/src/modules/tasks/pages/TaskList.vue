@@ -33,7 +33,10 @@ import {
   entranceDelay,
   hasSettledEntrance,
 } from '@/modules/tasks/utils/entrance';
-import { collapseHeight } from '@/modules/tasks/utils/collapse';
+import {
+  collapseHeight,
+  collapseTransition,
+} from '@/modules/tasks/utils/collapse';
 
 const showFilterModal = ref(false);
 
@@ -138,6 +141,15 @@ function collapseLeavingRow(el: Element, done: () => void) {
   if (!useListTransitions.value) done();
   else collapseHeight(el as HTMLElement, done);
 }
+
+// A heading that becomes the first sheds its spacing in step with the section
+// collapsing above it, so the rows below move up along one curve. Off while
+// the list swaps wholesale, as between tabs, where nothing collapses.
+const headingSpacingStyle = computed(() =>
+  useListTransitions.value
+    ? { transition: collapseTransition('padding-top') }
+    : undefined,
+);
 
 // Behind the skeleton the list still sorts itself as checks and pins load.
 const {
@@ -328,7 +340,7 @@ onDeactivated(() => {
               'pt-6': !row.isFirst,
               'animate-enter': isCardEntering(row.taskId),
             }"
-            :style="cardEntranceStyle(row.taskId)"
+            :style="[cardEntranceStyle(row.taskId), headingSpacingStyle]"
           >
             {{ row.label }}
           </h3>
