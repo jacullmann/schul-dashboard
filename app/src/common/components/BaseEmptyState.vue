@@ -22,7 +22,7 @@ const actionButtonClass = computed(() =>
 </script>
 
 <template>
-  <div class="py-12 text-center flex flex-col items-center">
+  <div class="pt-8 pb-16 text-center flex flex-col items-center justify-center">
     <component
       :is="icon"
       v-if="icon"
@@ -32,7 +32,7 @@ const actionButtonClass = computed(() =>
     <h3>
       <slot></slot>
     </h3>
-    <p class="mt-1! mb-6! max-w-96">
+    <p class="mt-1! mb-0! max-w-96">
       <slot name="message"></slot>
     </p>
     <!-- flex-1 buttons share a line until their labels no longer fit; wrap-reverse
@@ -41,7 +41,7 @@ const actionButtonClass = computed(() =>
       v-if="primaryAction || secondaryAction"
       :stack-on-mobile="fullPage"
       justify="center"
-      class="w-full"
+      class="w-full mt-6"
       :class="
         fullPage ? 'md:flex-row-reverse' : 'flex-row-reverse flex-wrap-reverse!'
       "

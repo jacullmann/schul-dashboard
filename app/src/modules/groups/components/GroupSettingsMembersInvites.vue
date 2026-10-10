@@ -102,7 +102,7 @@ function getInviteUrl(token: string): string {
 </script>
 
 <template>
-  <div>
+  <div class="flex flex-1 flex-col">
     <div class="flex items-center justify-between gap-4 mb-4">
       <PageHeader class="m-0!">
         {{ t('groups.settings.members.invite_links.title') }}
@@ -125,7 +125,11 @@ function getInviteUrl(token: string): string {
     >
       <BaseSpinner />
     </div>
-    <BaseEmptyState v-else-if="invites.length === 0" :icon="UserRoundPlus">
+    <BaseEmptyState
+      v-else-if="invites.length === 0"
+      class="flex-1"
+      :icon="UserRoundPlus"
+    >
       {{ t('groups.settings.members.invite_links.empty') }}
     </BaseEmptyState>
     <BaseTableWrapper v-else>

@@ -99,7 +99,7 @@ const GROUPS_LIST_ENTRANCE_ORDER = 2;
 </script>
 
 <template>
-  <div class="md:p-4">
+  <div class="flex flex-1 flex-col md:p-4">
     <section v-if="userGroups.length > 0" class="max-md:pt-4 mb-9">
       <div
         class="animate-enter"
@@ -166,10 +166,11 @@ const GROUPS_LIST_ENTRANCE_ORDER = 2;
 
     <section
       v-if="!isSuperadmin && userGroups.length === 0 && !loading"
-      class="max-md:p-4 animate-enter"
+      class="flex flex-1 flex-col max-md:p-4 animate-enter"
       :style="{ '--enter-delay': entranceDelay(GROUPS_HEADER_ENTRANCE_ORDER) }"
     >
       <BaseEmptyState
+        class="flex-1"
         :icon="UsersRound"
         :primary-action="() => createGroupModal.open()"
       >

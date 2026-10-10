@@ -84,8 +84,12 @@ const {
         </BaseButton>
       </div>
 
-      <div v-else ref="messageContent">
-        <BaseEmptyState v-if="messages.length === 0" :icon="MessageCircle">
+      <div v-else ref="messageContent" class="flex min-h-full flex-col">
+        <BaseEmptyState
+          v-if="messages.length === 0"
+          class="flex-1"
+          :icon="MessageCircle"
+        >
           {{ t('chat.no_messages') }}
         </BaseEmptyState>
 

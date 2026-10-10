@@ -81,15 +81,15 @@ watchEffect(() => {
 </script>
 
 <template>
-  <div class="max-w-3xl">
-    <AdminBackButton @click="leave">
+  <div class="flex min-h-full max-w-3xl flex-col">
+    <AdminBackButton class="self-start" @click="leave">
       {{ t(`${I18N_BASE}.back`) }}
     </AdminBackButton>
 
     <div v-if="state === 'loading' && !user" class="flex justify-center p-10">
       <BaseSpinner on="ghost" size="24px" />
     </div>
-    <BaseEmptyState v-else-if="state === 'not-found'">
+    <BaseEmptyState v-else-if="state === 'not-found'" class="flex-1">
       {{ t(`${I18N_BASE}.not_found`) }}
     </BaseEmptyState>
     <BaseLoadError v-else-if="state === 'failed'" @retry="reload">

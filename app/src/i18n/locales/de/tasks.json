@@ -95,7 +95,7 @@
         "share_failed": "Teilen fehlgeschlagen."
       },
       "view": {
-        "no_tasks": "Keine Aufgaben gefunden",
+        "no_tasks": "Keine Aufgaben",
         "no_tasks_in_view_message": "Keine Aufgaben in der aktuellen Ansicht. Ändere deine Filter oder füge eine neue Aufgabe hinzu",
         "no_tasks_message": "Füge eine neue Aufgabe hinzu oder ",
         "not_found": "Aufgabe nicht gefunden",
@@ -202,7 +202,7 @@
       "up": "Nach oben"
     },
     "new_task": "Neue Aufgabe",
-    "no_tasks_found": "Keine privaten Aufgaben gefunden.",
+    "no_tasks": "Keine privaten Aufgaben",
     "requires_account": "Du musst angemeldet sein, um private Aufgaben zu verwenden.",
     "success_create": "Private Aufgabe erstellt",
     "success_delete": "Private Aufgabe gelöscht",

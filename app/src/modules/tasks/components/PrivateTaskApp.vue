@@ -185,7 +185,7 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
 </script>
 
 <template>
-  <div class="private-task-app-integrated">
+  <div class="private-task-app-integrated flex flex-col">
     <div
       v-if="!user"
       class="private-task-header animate-enter p-8 text-center"
@@ -194,7 +194,7 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
       <p>{{ t('tasks.private_tasks.requires_account') }}</p>
     </div>
 
-    <div v-if="user" class="private-task-list relative">
+    <div v-if="user" class="private-task-list relative flex flex-1 flex-col">
       <!-- Taken out of the flow while it fades, so the cards arriving in its
            place overlap it instead of waiting below it. -->
       <Transition
@@ -206,7 +206,7 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
              where its content will. -->
         <div
           v-if="showSkeleton"
-          class="flex flex-col gap-3 pt-4 max-w-192 mx-auto"
+          class="flex flex-col gap-3 pt-4 w-full max-w-192 mx-auto"
         >
           <div
             v-for="n in SKELETON_COUNT"
@@ -231,15 +231,15 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
       </Transition>
 
       <template v-if="!showSkeleton">
-        <div
+        <BaseEmptyState
           v-if="privateTasks.length === 0"
-          class="p-12 text-center text-on-ghost-muted"
+          class="flex-1 p-12 text-center text-on-ghost-muted"
           :class="{ 'animate-enter': !emptyStateEntered }"
           :style="{ '--enter-delay': entranceDelay(LIST_ENTRANCE_ORDER) }"
           @animationend="handleEmptyStateAnimationEnd"
         >
-          <p>{{ t('tasks.private_tasks.no_tasks_found') }}</p>
-        </div>
+          {{ t('tasks.private_tasks.no_tasks') }}
+        </BaseEmptyState>
 
         <div v-else class="private-tasks-container">
           <div ref="listRef" class="flex flex-col gap-3 pt-4 max-w-192 mx-auto">

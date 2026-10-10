@@ -226,9 +226,9 @@ function goBack() {
         </header>
 
         <div
-          class="flex-1 overflow-y-auto overscroll-contain p-6 pt-4 md:py-8 bg-canvas"
+          class="flex flex-1 flex-col overflow-y-auto overscroll-contain p-6 pt-4 md:py-8 bg-canvas"
         >
-          <div class="w-full max-w-250 mx-auto">
+          <div class="flex w-full max-w-250 flex-1 flex-col mx-auto">
             <GroupSettingsMyCourses v-if="activeTab === 'courses'" />
 
             <GroupSettingsMembers

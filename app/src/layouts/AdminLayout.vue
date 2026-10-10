@@ -62,8 +62,8 @@ const activeTab = computed({
 <style scoped>
 .adm-layout {
   display: flex;
+  flex: 1;
   flex-direction: column;
-  min-height: calc(100dvh - var(--header-height));
   background: var(--color-canvas);
   color: var(--color-on-ghost);
 }
@@ -96,6 +96,7 @@ const activeTab = computed({
   color: var(--color-danger);
 }
 
+/* Stretched to the body's height, so a page can fill it with min-h-full. */
 .adm-main {
   flex: 1;
   padding: 28px 32px 64px;

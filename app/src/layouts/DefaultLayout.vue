@@ -50,13 +50,17 @@ const topBarStyle = computed(() => ({
       </div>
       <div ref="topBarSlot" class="shrink-0 h-(--header-height)"></div>
 
-      <main class="relative flex-1 overflow-x-clip pb-(--tab-bar-height)">
+      <!-- A flex column all the way down, so a page can grow to fill the
+           viewport below the header without ever adding scroll. -->
+      <main
+        class="relative flex flex-1 flex-col overflow-x-clip pb-(--tab-bar-height)"
+      >
         <div
           key="content"
           :class="{
             'max-w-225 mx-auto p-0 bg-canvas': !$route.meta.fullWidth,
           }"
-          class="w-full"
+          class="flex w-full flex-1 flex-col"
         >
           <router-view v-slot="{ Component }">
             <!-- One page instance per group: group pages read their id once. -->

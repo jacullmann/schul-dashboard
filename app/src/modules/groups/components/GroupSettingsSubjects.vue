@@ -353,9 +353,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
+  <div class="flex flex-1 flex-col">
     <!-- List View -->
-    <div v-if="!subTabId">
+    <div v-if="!subTabId" class="flex flex-1 flex-col">
       <PageHeader>
         {{ t('groups.settings.subjects.title') }}
 
@@ -381,12 +381,16 @@ onMounted(() => {
       >
         <BaseSpinner />
       </div>
-      <BaseEmptyState v-else-if="subjects.length === 0" :icon="BookOpen">{{
-        t('groups.settings.subjects.list.empty')
-      }}</BaseEmptyState>
+      <BaseEmptyState
+        v-else-if="subjects.length === 0"
+        class="flex-1"
+        :icon="BookOpen"
+      >
+        {{ t('groups.settings.subjects.list.empty') }}
+      </BaseEmptyState>
 
       <template v-else>
-        <div class="max-w-200 mx-auto mb-4">
+        <div class="w-full max-w-200 mx-auto mb-4">
           <BaseSearchInput
             id="group-subject-search"
             v-model="searchQuery"
@@ -394,7 +398,11 @@ onMounted(() => {
           />
         </div>
 
-        <BaseEmptyState v-if="filteredSubjects.length === 0" :icon="Search">
+        <BaseEmptyState
+          v-if="filteredSubjects.length === 0"
+          class="flex-1"
+          :icon="Search"
+        >
           <template #default>{{
             t('common.search_results.empty_title', {
               query: searchQuery.trim(),
@@ -405,7 +413,10 @@ onMounted(() => {
           }}</template>
         </BaseEmptyState>
 
-        <div v-else class="flex flex-col max-w-200 mx-auto max-md:-mx-6">
+        <div
+          v-else
+          class="flex max-w-200 flex-col mx-auto max-md:-mx-6 md:w-full"
+        >
           <BaseList
             v-for="(sub, index) in filteredSubjects"
             :key="sub.id"

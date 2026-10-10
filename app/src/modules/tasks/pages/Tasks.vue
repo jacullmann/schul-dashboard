@@ -38,7 +38,10 @@ function unpinList(el: Element) {
 <template>
   <!-- Clipped while the task slides in, so it does not widen the page from
        beyond its edge. -->
-  <div class="relative" :class="{ 'overflow-clip': isSliding }">
+  <div
+    class="relative flex flex-1 flex-col"
+    :class="{ 'overflow-clip': isSliding }"
+  >
     <RouterView v-slot="{ Component }">
       <!-- The list stays alive behind an opened task, so closing the task
            returns to it as it was left instead of loading it again. -->

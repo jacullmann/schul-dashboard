@@ -186,11 +186,11 @@ function confirmRemove() {
 </script>
 
 <template>
-  <div>
+  <div class="flex flex-1 flex-col">
     <!-- Subpages navigation list above the members list -->
     <div
       v-if="canModerateMembers"
-      class="flex flex-col max-w-200 mx-auto mb-6 max-md:-mx-6"
+      class="flex max-w-200 flex-col mx-auto mb-6 max-md:-mx-6 md:w-full"
     >
       <BaseList @click="goToInvites">
         <template #icon>
@@ -247,11 +247,15 @@ function confirmRemove() {
     <div v-if="loading && members.length === 0" class="flex justify-center p-8">
       <BaseSpinner />
     </div>
-    <BaseEmptyState v-else-if="members.length === 0" :icon="UsersRound">
+    <BaseEmptyState
+      v-else-if="members.length === 0"
+      class="flex-1"
+      :icon="UsersRound"
+    >
       {{ t('groups.settings.members.list.empty') }}
     </BaseEmptyState>
 
-    <div v-else class="flex flex-col max-w-200 mx-auto">
+    <div v-else class="flex w-full max-w-200 flex-1 flex-col mx-auto">
       <div class="mb-4">
         <BaseSearchInput
           id="group-member-search"
@@ -264,7 +268,11 @@ function confirmRemove() {
         {{ memberCountLabel }}
       </p>
 
-      <BaseEmptyState v-if="filteredMembers.length === 0" :icon="Search">
+      <BaseEmptyState
+        v-if="filteredMembers.length === 0"
+        class="flex-1"
+        :icon="Search"
+      >
         {{
           t('common.search_results.empty_title', { query: searchQuery.trim() })
         }}

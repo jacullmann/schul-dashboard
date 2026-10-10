@@ -214,7 +214,7 @@ function goBack() {
       </p>
     </div>
 
-    <BaseFormContent class="flex-1" :error="error">
+    <BaseFormContent class="flex-1" fill :error="error">
       <div v-if="loading" class="flex justify-center">
         <BaseSpinner />
       </div>
@@ -222,7 +222,7 @@ function goBack() {
       <div
         v-else
         :key="step"
-        class="animate-enter"
+        class="flex flex-1 flex-col animate-enter"
         :style="{ '--enter-delay': entranceDelay(CONTENT_ENTRANCE_ORDER) }"
       >
         <div v-if="isLessonStep" class="flex flex-col gap-4">
@@ -243,7 +243,7 @@ function goBack() {
           :options="levelOptions"
         />
 
-        <BaseEmptyState v-else-if="!hasCourseSubjects">
+        <BaseEmptyState v-else-if="!hasCourseSubjects" class="flex-1">
           {{ t('auth.courses.none_offered') }}
         </BaseEmptyState>
 

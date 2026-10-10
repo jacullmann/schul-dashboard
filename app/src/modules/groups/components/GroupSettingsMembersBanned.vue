@@ -20,7 +20,7 @@ function bannedOnLabel(bannedAt: string): string {
 </script>
 
 <template>
-  <div>
+  <div class="flex flex-1 flex-col">
     <PageHeader>
       {{ t('groups.settings.members.ban_list.title') }}
     </PageHeader>
@@ -31,10 +31,14 @@ function bannedOnLabel(bannedAt: string): string {
     >
       <BaseSpinner />
     </div>
-    <BaseEmptyState v-else-if="bannedUsers.length === 0" :icon="Ban">
+    <BaseEmptyState
+      v-else-if="bannedUsers.length === 0"
+      class="flex-1"
+      :icon="Ban"
+    >
       {{ t('groups.settings.members.ban_list.empty') }}
     </BaseEmptyState>
-    <div v-else class="flex flex-col max-w-200 mx-auto">
+    <div v-else class="flex w-full max-w-200 flex-col mx-auto">
       <template v-for="(user, index) in bannedUsers" :key="user.userId">
         <div v-if="index > 0" class="separator md:ml-14 md:mr-3"></div>
         <div class="flex items-center justify-between py-3 gap-2">

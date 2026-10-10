@@ -99,9 +99,9 @@ async function redoSetup() {
 </script>
 
 <template>
-  <div>
+  <div class="flex flex-1 flex-col">
     <div
-      class="flex flex-col items-start gap-3 mb-4 md:flex-row md:items-center md:justify-between max-w-160 mx-auto"
+      class="flex w-full max-w-160 flex-col items-start gap-3 mb-4 md:flex-row md:items-center md:justify-between mx-auto"
     >
       <p class="text-base/relaxed text-on-ghost-muted m-0!">
         {{ t('auth.courses.description') }}
@@ -125,12 +125,13 @@ async function redoSetup() {
 
     <BaseEmptyState
       v-else-if="courseSubjects.length === 0"
+      class="flex-1"
       :icon="GraduationCap"
     >
       {{ t('auth.courses.none_offered') }}
     </BaseEmptyState>
 
-    <div v-else class="flex flex-col max-w-150 mx-auto max-md:-mx-6">
+    <div v-else class="flex max-w-150 flex-col mx-auto max-md:-mx-6 md:w-full">
       <BaseList
         v-for="({ subject, optional }, index) in courseSubjects"
         :key="subject.id"

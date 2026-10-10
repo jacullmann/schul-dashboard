@@ -164,15 +164,12 @@ onMounted(() => {
 </script>
 
 <template>
-  <div
-    ref="view"
-    class="p-4 relative min-h-[calc(100dvh-var(--header-height)-var(--tab-bar-height))]"
-  >
+  <div ref="view" class="relative flex flex-1 flex-col p-4">
     <!-- The view fills the visible height below the header, so a short task
          still gives files the whole view to land on. It is the only root
          node, not even a comment beside it, so the page transition can swap
          its hooks when it leaves. -->
-    <div class="max-w-192 mx-auto">
+    <div class="flex w-full max-w-192 flex-1 flex-col mx-auto">
       <div class="animate-enter flex items-center justify-between gap-2 mb-6">
         <BaseTooltip :content="t('common.buttons.back')" placement="bottom">
           <BaseButton
@@ -305,7 +302,7 @@ onMounted(() => {
 
       <BaseEmptyState
         v-else-if="openedItemError"
-        class="animate-enter"
+        class="flex-1 animate-enter"
         :primary-action="goToList"
         :secondary-action="
           openedItemError === 'failed' ? retryOpenedItem : undefined

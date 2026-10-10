@@ -29,7 +29,7 @@ announcementFormModal.onSuccess(() => void loadAnnouncements());
 </script>
 
 <template>
-  <div>
+  <div class="flex flex-1 flex-col">
     <PageHeader>
       {{ t('announcements.list.title') }}
 
@@ -49,7 +49,7 @@ announcementFormModal.onSuccess(() => void loadAnnouncements());
       </template>
     </PageHeader>
 
-    <AnnouncementList :announcements="listedAnnouncements">
+    <AnnouncementList class="flex-1" :announcements="listedAnnouncements">
       <template #actions="{ announcement }">
         <BaseTooltip
           v-if="canManageAnnouncements"

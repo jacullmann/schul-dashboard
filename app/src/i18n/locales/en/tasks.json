@@ -95,7 +95,7 @@
         "share_failed": "Sharing failed."
       },
       "view": {
-        "no_tasks": "No tasks found",
+        "no_tasks": "No tasks",
         "no_tasks_in_view_message": "No tasks in the current view. Change your filters or add a new task",
         "no_tasks_message": "Add a new task or",
         "not_found": "Task not found",
@@ -196,7 +196,7 @@
       "up": "Move up"
     },
     "new_task": "New Task",
-    "no_tasks_found": "No private tasks found.",
+    "no_tasks": "No private tasks",
     "requires_account": "You must be logged in to use private tasks.",
     "success_create": "Private task created",
     "success_delete": "Private task deleted",

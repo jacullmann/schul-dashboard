@@ -2,9 +2,12 @@
 withDefaults(
   defineProps<{
     error?: string;
+    /** Grow the fields into spare height, pushing the error to the bottom. */
+    fill?: boolean;
   }>(),
   {
     error: '',
+    fill: false,
   },
 );
 
@@ -15,7 +18,7 @@ defineSlots<{
 
 <template>
   <div class="flex flex-col">
-    <div class="flex flex-col gap-4">
+    <div class="flex flex-col gap-4" :class="{ 'flex-1': fill }">
       <slot></slot>
     </div>
 

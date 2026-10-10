@@ -18,7 +18,7 @@ const { user } = storeToRefs(userStore);
 </script>
 
 <template>
-  <div class="p-4">
+  <div class="flex flex-1 flex-col p-4">
     <div class="animate-enter">
       <PageHeader>
         {{ t('tasks.private_tasks.title') }}
@@ -59,8 +59,6 @@ const { user } = storeToRefs(userStore);
       </PageHeader>
     </div>
 
-    <div class="private-entries-container">
-      <PrivateTaskApp />
-    </div>
+    <PrivateTaskApp class="flex-1" />
   </div>
 </template>

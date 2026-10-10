@@ -201,7 +201,7 @@ onDeactivated(() => {
 </script>
 
 <template>
-  <div class="p-4">
+  <div class="flex flex-1 flex-col p-4">
     <div :class="{ 'animate-enter': !hasEntered }">
       <PageHeader>
         {{ t('tasks.list.title') }}
@@ -298,13 +298,13 @@ onDeactivated(() => {
     <PersonalizedViewNotice
       :show="showPersonalizedNotice"
       :entrance="!hasEntered"
-      class="mt-4 max-w-192 mx-auto"
+      class="mt-4 w-full max-w-192 mx-auto"
       @dismiss="personalizedNotice.dismiss"
     />
 
     <!-- Tightens in step with the notice opening above it. -->
     <div
-      class="relative flex flex-col gap-3 max-w-192 mx-auto transition-[margin-top] duration-500 ease-(--ease-settle)"
+      class="relative flex w-full max-w-192 flex-1 flex-col gap-3 mx-auto transition-[margin-top] duration-500 ease-(--ease-settle)"
       :class="showPersonalizedNotice ? 'mt-3' : 'mt-8'"
     >
       <!-- Taken out of the flow while it fades, so the cards arriving in its
@@ -382,7 +382,7 @@ onDeactivated(() => {
 
       <BaseEmptyState
         v-if="!loading && listLoadError"
-        class="animate-enter"
+        class="flex-1 animate-enter"
         :primary-action="() => void reloadList()"
       >
         {{ t('tasks.list.tasks.view.list_load_failed') }}
@@ -396,6 +396,7 @@ onDeactivated(() => {
 
       <BaseEmptyState
         v-else-if="!loading && !limitedItems.length"
+        class="flex-1"
         :class="{ 'animate-enter': !emptyStateEntered }"
         :primary-action="openCreateForm"
         :secondary-action="resetFilters"
