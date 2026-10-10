@@ -477,23 +477,35 @@ h6 {
 
 h1 {
   font-size: 2rem;
-  letter-spacing: -0.03em;
 }
 h2 {
   font-size: 1.5rem;
-  letter-spacing: -0.02em;
 }
 h3 {
   font-size: 1.25rem;
-  letter-spacing: -0.01em;
 }
 h4 {
   font-size: 1.125rem;
-  letter-spacing: normal;
 }
 h5 {
   font-size: 1rem;
-  letter-spacing: 0.02em;
+}
+
+/* SF Pro tracks itself per optical size, so manual tracking is only for
+   Satoshi. Mirrors the -apple-system font swap above. */
+@supports not (font: -apple-system-body) {
+  h1 {
+    letter-spacing: -0.03em;
+  }
+  h2 {
+    letter-spacing: -0.02em;
+  }
+  h3 {
+    letter-spacing: -0.01em;
+  }
+  h5 {
+    letter-spacing: 0.02em;
+  }
 }
 
 strong,
