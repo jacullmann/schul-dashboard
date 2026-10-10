@@ -48,8 +48,6 @@
         "unauthorized": "You do not have permission to change the settings."
       },
       "appearance": {
-        "title": "Appearance",
-        "name_label": "Name",
         "name_placeholder": "New group name"
       },
       "group_type": {
@@ -75,8 +73,6 @@
         "failed": "Failed to update the group type"
       },
       "dalton": {
-        "title": "Dalton",
-        "description": "Dalton adds independent study time to the schedule and its own task type.",
         "toggle_title": "Dalton",
         "toggle_description": "Dalton becomes a task type and can be scheduled like a subject. Subjects can be marked as Dalton subjects.",
         "modal": {
@@ -183,7 +179,7 @@
         "moderation": "Moderation"
       },
       "items": {
-        "edit_group_general": {
+        "edit_group_profile": {
           "title": "Edit group profile",
           "description": "Edit group picture and name"
         },

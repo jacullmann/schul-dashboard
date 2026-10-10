@@ -77,7 +77,8 @@ let signedOutHandlersInstalled = false;
 type ErrResult = { ok: false; error: string };
 
 const PERMISSION_KEYS: readonly string[] = [
-  'edit_group_general',
+  'edit_group_profile',
+  'edit_group_configuration',
   'edit_subjects_courses',
   'edit_schedule',
   'create_items',

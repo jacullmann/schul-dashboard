@@ -7,8 +7,8 @@ import {
   Megaphone,
   UsersRound,
   Key,
-  BookOpen,
-  SlidersHorizontal,
+  Library,
+  Cog,
   ArrowLeft,
   GraduationCap,
 } from '@lucide/vue';
@@ -25,6 +25,7 @@ import GroupSettingsSchedule from '@/modules/groups/components/GroupSettingsSche
 import GroupSettingsAnnouncements from '@/modules/groups/components/GroupSettingsAnnouncements.vue';
 import GroupSettingsSubjects from '@/modules/groups/components/GroupSettingsSubjects.vue';
 import GroupSettingsGeneral from '@/modules/groups/components/GroupSettingsGeneral.vue';
+import GroupSettingsAppearance from '@/modules/groups/components/GroupSettingsAppearance.vue';
 import GroupSettingsMyCourses from '@/modules/groups/components/GroupSettingsMyCourses.vue';
 
 const route = useRoute();
@@ -72,7 +73,7 @@ const navItems = computed<AdminNavItem[]>(() => [
   {
     id: 'general',
     label: t('groups.settings.nav.general'),
-    icon: markRaw(SlidersHorizontal),
+    icon: markRaw(Cog),
   },
   {
     id: 'members',
@@ -92,7 +93,7 @@ const navItems = computed<AdminNavItem[]>(() => [
   {
     id: 'subjects',
     label: t('groups.settings.nav.subjects'),
-    icon: markRaw(BookOpen),
+    icon: markRaw(Library),
   },
   {
     id: 'announcements',
@@ -184,6 +185,8 @@ function goBack() {
 
         <div class="flex-1 overflow-y-auto overscroll-contain py-4 md:p-4">
           <div class="flex flex-col max-w-200 mx-auto">
+            <GroupSettingsAppearance class="px-6 md:px-3.5 pb-6" />
+
             <BaseList
               v-for="(item, index) in navItems"
               :key="item.id"

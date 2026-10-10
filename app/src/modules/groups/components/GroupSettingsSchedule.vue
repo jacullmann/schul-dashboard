@@ -6,7 +6,7 @@ import {
   Pencil,
   Check,
   X,
-  BookOpen,
+  Library,
   Undo2,
   Redo2,
 } from '@lucide/vue';
@@ -761,7 +761,7 @@ onMounted(() => {
           {{ selectedSlotSummary }}
         </div>
 
-        <BaseEmptyState v-if="subjectOptions.length === 0" :icon="BookOpen">
+        <BaseEmptyState v-if="subjectOptions.length === 0" :icon="Library">
           {{ t('groups.settings.schedule.editor.no_subjects_title') }}
           <template #message>{{
             t('groups.settings.schedule.editor.no_subjects')

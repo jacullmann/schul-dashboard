@@ -2,8 +2,10 @@
 import { ref, onMounted, computed, watch, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
-import { BookOpen, Plus, Pencil, Trash2, Search } from '@lucide/vue';
+import { Library, Plus, Pencil, Trash2, Search } from '@lucide/vue';
 import { useSubjectAdmin } from '@/modules/groups/composables/useSubjectAdmin';
+import { useGroupGeneralSettings } from '@/modules/groups/composables/useGroupGeneralSettings';
+import { useConfirmModal } from '@/stores/modalStore';
 import {
   CUSTOM_SUBJECT_OPTION,
   useSubjectNamePicker,
@@ -53,6 +55,39 @@ const { checkPermission, activeGroupType, activeGroupDaltonEnabled } =
 const canEditSubjects = computed(() =>
   checkPermission('edit_subjects_courses'),
 );
+const canEditDalton = computed(() =>
+  checkPermission('edit_group_configuration'),
+);
+
+const confirmModal = useConfirmModal();
+const { savingDaltonEnabled, saveDaltonEnabled } = useGroupGeneralSettings();
+const daltonInput = ref(activeGroupDaltonEnabled.value);
+
+watch(activeGroupDaltonEnabled, (enabled) => {
+  daltonInput.value = enabled;
+});
+
+async function changeDaltonEnabled(enabled: boolean) {
+  daltonInput.value = enabled;
+
+  // Disabling removes every Dalton lesson from the schedule.
+  if (!enabled) {
+    const isConfirmed = await confirmModal.ask({
+      title: t('groups.settings.general.dalton.modal.title'),
+      content: t('groups.settings.general.dalton.modal.message'),
+      submitText: t('common.buttons.save'),
+      danger: true,
+    });
+
+    if (!isConfirmed) {
+      daltonInput.value = activeGroupDaltonEnabled.value;
+      return;
+    }
+  }
+
+  const ok = await saveDaltonEnabled(enabled);
+  if (!ok) daltonInput.value = activeGroupDaltonEnabled.value;
+}
 
 const newSubjectNamePicker = useSubjectNamePicker();
 const newSubjectCategory = ref(defaultSubjectCategory(activeGroupType.value));
@@ -375,6 +410,23 @@ onMounted(() => {
         </template>
       </PageHeader>
 
+      <div class="flex max-w-200 flex-col mx-auto mb-4 max-md:-mx-6 md:w-full">
+        <BaseList
+          :checked="daltonInput"
+          toggle
+          :separator="false"
+          :disabled="!canEditDalton || savingDaltonEnabled"
+          @update:checked="changeDaltonEnabled"
+        >
+          <template #label>
+            {{ t('groups.settings.general.dalton.toggle_title') }}
+          </template>
+          <template #desc>
+            {{ t('groups.settings.general.dalton.toggle_description') }}
+          </template>
+        </BaseList>
+      </div>
+
       <div
         v-if="loading && subjects.length === 0"
         class="flex justify-center p-8"
@@ -384,7 +436,7 @@ onMounted(() => {
       <BaseEmptyState
         v-else-if="subjects.length === 0"
         class="flex-1"
-        :icon="BookOpen"
+        :icon="Library"
       >
         {{ t('groups.settings.subjects.list.empty') }}
       </BaseEmptyState>

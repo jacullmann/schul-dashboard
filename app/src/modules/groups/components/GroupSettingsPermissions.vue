@@ -8,7 +8,7 @@ import { useGroupPageId } from '@/core/composables/useGroupPageId';
 import { useToast } from '@/common/composables/useToast';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import type {
-  PermissionKey,
+  ConfigurablePermissionKey,
   PermissionMatrix,
   PermissionRole,
 } from '@/types/permissions';
@@ -25,14 +25,14 @@ interface PermissionSection {
   /** Still enforced by the server, just not offered for editing. */
   hidden?: boolean;
   /** Mirrors `Permission::lowest_role`, which the server enforces. */
-  permissions: { key: PermissionKey; lowestRole: PermissionRole }[];
+  permissions: { key: ConfigurablePermissionKey; lowestRole: PermissionRole }[];
 }
 
 const PERMISSION_SECTIONS: PermissionSection[] = [
   {
     category: 'general',
     permissions: [
-      { key: 'edit_group_general', lowestRole: 'user' },
+      { key: 'edit_group_profile', lowestRole: 'user' },
       { key: 'invite_members', lowestRole: 'user' },
       { key: 'edit_subjects_courses', lowestRole: 'moderator' },
       { key: 'edit_schedule', lowestRole: 'moderator' },
@@ -116,7 +116,10 @@ async function fetchPermissions() {
   }
 }
 
-async function savePermission(key: PermissionKey, role: PermissionRole) {
+async function savePermission(
+  key: ConfigurablePermissionKey,
+  role: PermissionRole,
+) {
   if (!props.canManage || !permissions.value) return;
 
   saving.value = true;

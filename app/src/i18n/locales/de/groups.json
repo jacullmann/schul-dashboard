@@ -48,8 +48,6 @@
         "unauthorized": "Du hast keine Berechtigung, die Einstellungen zu ändern."
       },
       "appearance": {
-        "title": "Erscheinungsbild",
-        "name_label": "Name",
         "name_placeholder": "Neuer Gruppenname"
       },
       "group_type": {
@@ -75,8 +73,6 @@
         "failed": "Gruppentyp konnte nicht geändert werden"
       },
       "dalton": {
-        "title": "Dalton",
-        "description": "Dalton ergänzt den Stundenplan um freie Lernzeit und bringt einen eigenen Aufgabentyp mit.",
         "toggle_title": "Dalton",
         "toggle_description": "Dalton wird zum Aufgabentyp und kann wie ein Fach in den Stundenplan eingetragen werden. Fächer können als Daltonfächer markiert werden.",
         "modal": {
@@ -183,7 +179,7 @@
         "moderation": "Moderation"
       },
       "items": {
-        "edit_group_general": {
+        "edit_group_profile": {
           "title": "Gruppenprofil bearbeiten",
           "description": "Gruppenbild und -name bearbeiten"
         },

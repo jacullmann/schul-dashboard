@@ -18,9 +18,9 @@ import {
   Megaphone,
   UsersRound,
   Settings,
-  SlidersHorizontal,
+  Cog,
   Key,
-  BookOpen,
+  Library,
   Star,
   Flag,
   Building2,
@@ -156,11 +156,11 @@ function runAndClose(action: () => void) {
 const groupSettingsTabs = computed<SearchResult[]>(() =>
   (
     [
-      { tab: 'general', icon: SlidersHorizontal },
+      { tab: 'general', icon: Cog },
       { tab: 'members', icon: UsersRound },
       { tab: 'permissions', icon: Key },
       { tab: 'schedule', icon: CalendarDays },
-      { tab: 'subjects', icon: BookOpen },
+      { tab: 'subjects', icon: Library },
       { tab: 'announcements', icon: Megaphone },
     ] as const
   ).map(({ tab, icon }) => ({
