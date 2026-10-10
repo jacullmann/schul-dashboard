@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 import { useLongPress } from '@/common/composables/useLongPress';
 import { useImpliedCourse } from '@/common/composables/useImpliedCourse';
 import type { Lesson } from '@/modules/schedule/types';
+import { Check } from '@lucide/vue';
 
 const emit = defineEmits<{
   (e: 'select', lesson: Lesson, event?: MouseEvent): void;
@@ -16,6 +17,7 @@ const props = withDefaults(
     hasBorder: boolean;
     isClickable?: boolean;
     isSelected?: boolean;
+    singleSelect?: boolean;
     hasContextMenu?: boolean;
     periodLabel?: string;
     getDisplayName: (lesson: Lesson) => string;
@@ -23,6 +25,7 @@ const props = withDefaults(
   {
     isClickable: false,
     isSelected: false,
+    singleSelect: false,
     hasContextMenu: false,
     periodLabel: undefined,
   },
@@ -42,12 +45,14 @@ function onClick(event?: MouseEvent) {
 }
 
 const strongText = computed(() => [
-  props.isSelected ? 'text-on-action' : 'text-on-ghost',
+  props.isSelected && !props.singleSelect ? 'text-on-action' : 'text-on-ghost',
   'group-[.highlight-active]:text-on-action!',
 ]);
 
 const mutedText = computed(() => [
-  props.isSelected ? 'text-on-action-muted' : 'text-on-ghost-muted',
+  props.isSelected && !props.singleSelect
+    ? 'text-on-action-muted'
+    : 'text-on-ghost-muted',
   'group-[.highlight-active]:text-on-action-muted!',
 ]);
 
@@ -90,7 +95,9 @@ const showsRoom = computed(
       isClickable
         ? 'cursor-pointer transition-colors duration-150 hover:bg-ghost-hover'
         : '',
-      isSelected ? 'bg-action! text-on-action!' : '',
+      props.isSelected
+        ? props.singleSelect ? 'bg-surface-highlight' : 'bg-action! text-on-action!'
+        : '',
       hasContextMenu ? 'long-press-target' : '',
     ]"
     :role="isClickable ? 'button' : undefined"
@@ -123,7 +130,7 @@ const showsRoom = computed(
           v-if="lesson.courseCount && lesson.courseCount > 1"
           class="text-sm shrink-0 inline-block px-2.5 py-0.5 ml-2 rounded-full font-semibold max-w-full group-[.highlight-active]:bg-on-action/15! group-[.highlight-active]:text-on-action-muted!"
           :class="
-            isSelected
+            isSelected && !singleSelect
               ? 'text-on-action-muted bg-on-action/15'
               : 'bg-ghost-hover text-on-ghost-muted'
           "
@@ -167,6 +174,12 @@ const showsRoom = computed(
         <span v-if="periodLabel" class="shrink-0 ml-auto pl-2">
           {{ periodLabel }}
         </span>
+        <Check
+          v-if="isSelected && singleSelect"
+          :size="20"
+          :stroke-width="3"
+          class="text-accent"
+        />
       </div>
     </div>
   </div>

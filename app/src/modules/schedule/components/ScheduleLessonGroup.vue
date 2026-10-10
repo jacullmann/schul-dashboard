@@ -15,6 +15,7 @@ const props = withDefaults(
     hasContextMenu?: boolean;
     /** Matches a lesson by its own id or the id it was expanded from. */
     selectedLessonIds?: ReadonlySet<string>;
+    singleSelect?: boolean;
     animated?: boolean;
     canAddLesson?: boolean;
     /** When the cell takes place, for a day whose times differ from the rows'. */
@@ -27,6 +28,7 @@ const props = withDefaults(
     isClickable: false,
     hasContextMenu: false,
     selectedLessonIds: undefined,
+    singleSelect: false,
     animated: true,
     canAddLesson: false,
   },
@@ -95,6 +97,7 @@ const periodLabel = (lesson: Lesson) => {
       :is-clickable="isLessonClickable(lesson)"
       :has-context-menu="hasContextMenu"
       :is-selected="isLessonSelected(lesson)"
+      :single-select="singleSelect"
       :get-display-name="getDisplayName"
       @select="(l, ev) => emit('select-lesson', l, ev)"
       @contextmenu="(l, ev) => emit('contextmenu-lesson', l, ev)"

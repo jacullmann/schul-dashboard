@@ -7,7 +7,8 @@ const props = defineProps<{
   openSubjectNames: string[];
 }>();
 
-const ROW_CLASSES = 'flex items-center gap-2 px-4 py-2 text-sm font-medium';
+const ROW_CLASSES =
+  'flex items-center gap-2 pl-2.5 pr-3 py-2 text-sm/4.5 font-medium';
 
 const { t, locale } = useI18n();
 
@@ -48,8 +49,10 @@ const isTruncated = computed(
     ref="pill"
     role="status"
     :data-truncated="isTruncated"
-    class="status-pill group sticky z-10 self-center max-w-full rounded-full border border-ghost-border bg-surface top-4 max-md:top-(--simple-header-height)"
-    :class="isSettled ? 'text-success' : 'text-on-ghost-muted'"
+    class="status-pill group sticky z-10 self-center max-w-full rounded-full top-4 max-md:top-(--simple-header-height)"
+    :class="
+      isSettled ? 'bg-success text-on-success' : 'bg-action text-on-action'
+    "
     :style="{ width: contentWidth ? `${contentWidth}px` : undefined }"
   >
     <div :class="[ROW_CLASSES, 'overflow-clip rounded-full']">
@@ -111,7 +114,7 @@ const isTruncated = computed(
       aria-hidden="true"
       :class="[
         ROW_CLASSES,
-        'invisible fixed top-0 left-0 w-max border border-transparent whitespace-nowrap pointer-events-none',
+        'invisible fixed top-0 left-0 w-max whitespace-nowrap pointer-events-none',
       ]"
     >
       <span class="size-4.5 shrink-0"></span>
@@ -130,7 +133,7 @@ const isTruncated = computed(
 /* The dashes of the open ring grow until their gaps close, then the check is
    drawn into it. Ring and check are 100 and 1 long, set by their pathLength. */
 .status-icon__ring {
-  stroke-dasharray: 6 6.5;
+  stroke-dasharray: 6 8;
   transition: stroke-dasharray 500ms var(--ease-settle);
 }
 

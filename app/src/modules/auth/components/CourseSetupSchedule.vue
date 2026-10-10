@@ -83,6 +83,7 @@ const dayPager = useSchedulePager(days.length);
         :group="group"
         :is-clickable="isToggleable"
         :selected-lesson-ids="settledLessonIds"
+        single-select
         :animated="animated"
         :time="dayLayout.differingTimeOf(group)"
         :get-display-name="getDisplayName"
