@@ -45,7 +45,7 @@ import {
   Moon,
   Sun,
   Check,
-  ArrowLeft,
+  ChevronLeft,
 } from '@lucide/vue';
 import {
   useAnnouncementFormModal,
@@ -636,7 +636,7 @@ function handleSelect(index: number) {
     <template #default="{ selectedIndex, setSelectedIndex }">
       <template v-if="mode === 'group'">
         <BaseRow class="m-2">
-          <BaseButton :icon="ArrowLeft" size="sm" @click="setMode('default')" />
+          <BaseButton :icon="ChevronLeft" size="sm" @click="setMode('default')" />
           <span class="text-sm text-on-ghost-muted font-medium">{{
             t('search.items.switch_group')
           }}</span>
@@ -667,7 +667,7 @@ function handleSelect(index: number) {
 
       <template v-else-if="activeChoiceMode">
         <BaseRow class="m-2">
-          <BaseButton :icon="ArrowLeft" size="sm" @click="setMode('default')" />
+          <BaseButton :icon="ChevronLeft" size="sm" @click="setMode('default')" />
           <span class="text-sm text-on-ghost-muted font-medium">{{
             activeChoiceMode.title
           }}</span>

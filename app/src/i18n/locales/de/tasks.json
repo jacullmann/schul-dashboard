@@ -21,7 +21,7 @@
         },
         {
           "title": "Medien hochladen",
-          "text": "Du kannst auch bei Aufgaben, die von anderen erstellt wurden, Dateien hochladen, selbst wenn du sie nicht bearbeiten darfst. Öffne dafür die Aufgabe, klicke auf das <strong>3-Punkte-Menü</strong>, wähle <strong>Bilder hochladen</strong> und dann die gewünschten Dateien aus. Um deine hochgeladenen Dateien zu entfernen, klicke mit der <strong>rechten Maustaste</strong> darauf oder <strong>halte</strong> sie <strong>gedrückt</strong> und wähle im Menü <strong>Löschen</strong> aus."
+          "text": "Du kannst auch bei Aufgaben, die von anderen erstellt wurden, Dateien hochladen, selbst wenn du sie nicht bearbeiten darfst. Öffne dafür die Aufgabe, klicke auf das <strong>3-Punkte-Menü</strong>, wähle <strong>Bilder hinzufügen</strong> und dann die gewünschten Dateien aus. Um deine hochgeladenen Dateien zu entfernen, klicke mit der <strong>rechten Maustaste</strong> darauf oder <strong>halte</strong> sie <strong>gedrückt</strong> und wähle im Menü <strong>Löschen</strong> aus."
         },
         {
           "title": "Abgeschlossene Aufgaben tracken",
@@ -90,7 +90,7 @@
         "share": "Teilen",
         "unarchive": "Wiederherstellen",
         "unpin": "Lösen",
-        "upload_images": "Bilder hochladen",
+        "upload_images": "Bilder hinzufügen",
         "share_copied": "Link in die Zwischenablage kopiert",
         "share_failed": "Teilen fehlgeschlagen."
       },

@@ -200,7 +200,7 @@
           "description": "Neue Aufgaben erstellen"
         },
         "upload_images": {
-          "title": "Bilder hochladen",
+          "title": "Bilder hinzufügen",
           "description": "Dateien hochladen und an Aufgaben anhängen"
         },
         "manage_notes": {
@@ -335,6 +335,7 @@
       "search_placeholder": "Fächer suchen",
       "create_title": "Neues Fach erstellen",
       "name_label": "Name",
+      "appearance_title": "Darstellung",
       "custom_label": "Eigener Name",
       "category_label": "Kategorie",
       "categories": {

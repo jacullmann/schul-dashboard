@@ -5,7 +5,7 @@ import { isPdf, previewUrl } from '@/api/files';
 import { useImageViewerModal } from '@/stores/modalStore';
 import type { Task } from '@/modules/tasks/types';
 import type { ItemType } from '@/modules/tasks/types';
-import { X, Upload, FileText } from '@lucide/vue';
+import { X, Plus, Paperclip, FileText } from '@lucide/vue';
 import {
   OTHER_SUBJECT,
   useTaskFormLogic,
@@ -225,7 +225,7 @@ function openImage(index: number) {
         id="images"
         :error="imageQuotaError || imgUploadError"
       >
-        <BaseLabel for="images">{{
+        <BaseLabel v-if="imgImages.length" for="images">{{
           t('tasks.list.task_form.images')
         }}</BaseLabel>
         <BaseRow id="images" data-task-form-images>
@@ -233,7 +233,7 @@ function openImage(index: number) {
             v-for="(img, idx) in imgImages"
             :key="img.id"
             :data-image-index="idx"
-            class="relative w-32 h-32 rounded-xl overflow-hidden bg-[rgba(26, 26, 26, 0.5)] backdrop-blur-sm"
+            class="relative size-32 rounded-xl overflow-hidden bg-ghost-hover"
             :class="{ 'animate-enter': imageEntrance.isEntering(img.id) }"
             :style="imageEntrance.entranceStyle(img.id)"
             @animationend="imageEntrance.handleEntranceEnd($event, img.id)"
@@ -285,12 +285,23 @@ function openImage(index: number) {
             :content="t('tasks.list.tasks.menu.upload_images')"
             placement="right"
           >
+            <button
+              v-if="imgImages.length"
+              type="button"
+              :disabled="imgUploading"
+              class="relative flex justify-center items-center size-32 rounded-xl cursor-pointer hover:bg-ghost-hover active:bg-ghost-hover touch-target"
+              @click="pickImages"
+            >
+              <BaseSpinner v-if="imgUploading" size="32" />
+              <Plus v-else :size="32" />
+            </button>
             <BaseButton
+              v-else
               type="button"
               :disabled="imgUploading"
               variant="ghost"
               :loading="imgUploading"
-              :icon="Upload"
+              :icon="Paperclip"
               @click="pickImages"
             />
           </BaseTooltip>

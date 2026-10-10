@@ -583,12 +583,12 @@ onMounted(() => {
     <div v-else class="flex flex-col gap-8">
       <div>
         <PageHeader>{{
-          t('groups.settings.general.appearance.title')
+          t('groups.settings.subjects.appearance_title')
         }}</PageHeader>
         <BaseFormContent class="max-w-120">
           <BaseFormGroup id="subject-name">
             <BaseLabel for="subject-name">{{
-              t('groups.settings.general.appearance.name_label')
+              t('groups.settings.subjects.name_label')
             }}</BaseLabel>
             <BaseSelect
               id="subject-name"

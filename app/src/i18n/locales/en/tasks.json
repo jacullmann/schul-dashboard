@@ -21,7 +21,7 @@
         },
         {
           "title": "Uploading files",
-          "text": "You can also upload files to tasks created by others, even if you can't edit them. Open the task, click the <strong>3-dot menu</strong>, select <strong>Upload Images</strong> and choose the files. To remove files you uploaded, <strong>right-click</strong> or <strong>press and hold</strong> them and select <strong>Delete</strong> from the menu."
+          "text": "You can also upload files to tasks created by others, even if you can't edit them. Open the task, click the <strong>3-dot menu</strong>, select <strong>Add Images</strong> and choose the files. To remove files you uploaded, <strong>right-click</strong> or <strong>press and hold</strong> them and select <strong>Delete</strong> from the menu."
         },
         {
           "title": "Tracking completed tasks",
@@ -90,7 +90,7 @@
         "share": "Share",
         "unarchive": "Unarchive",
         "unpin": "Unpin",
-        "upload_images": "Upload Images",
+        "upload_images": "Add Images",
         "share_copied": "Copied link to clipboard",
         "share_failed": "Sharing failed."
       },

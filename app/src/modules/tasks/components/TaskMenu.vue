@@ -3,9 +3,9 @@ import { computed, useTemplateRef } from 'vue';
 import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/vue';
 import { useI18n } from 'vue-i18n';
 import {
-  Upload,
+  Paperclip,
   Pencil,
-  Send,
+  Share,
   Flag,
   Trash2,
   Pin,
@@ -86,7 +86,7 @@ function select(action: TaskMenuAction) {
     >
       <BaseMenuButton
         v-if="canUploadImages"
-        :icon="Upload"
+        :icon="Paperclip"
         @click="select('images')"
       >
         {{ t('tasks.list.tasks.menu.upload_images') }}
@@ -127,7 +127,7 @@ function select(action: TaskMenuAction) {
 
       <BaseMenuDivider />
 
-      <BaseMenuButton :icon="Send" @click="select('share')">
+      <BaseMenuButton :icon="Share" @click="select('share')">
         {{ t('tasks.list.tasks.menu.share') }}
       </BaseMenuButton>
 

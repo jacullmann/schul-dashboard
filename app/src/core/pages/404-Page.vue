@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { House, ListTodo, CalendarDays, Lock, ArrowLeft } from '@lucide/vue';
+import { House, ListTodo, CalendarDays, Lock, ChevronLeft } from '@lucide/vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 
 const router = useRouter();
@@ -84,7 +84,7 @@ const goBack = () => {
       </div>
 
       <div class="mt-4">
-        <BaseButton variant="ghost" :icon="ArrowLeft" @click="goBack">
+        <BaseButton variant="ghost" :icon="ChevronLeft" @click="goBack">
           {{ t('common.not_found.go_back') }}
         </BaseButton>
       </div>

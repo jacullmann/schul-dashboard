@@ -2,7 +2,14 @@
 import { computed, onMounted, ref, useTemplateRef, watchEffect } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { ArrowLeft, Ellipsis, Pencil, Send, Upload } from '@lucide/vue';
+import {
+  ChevronLeft,
+  Ellipsis,
+  Paperclip,
+  Pencil,
+  Share,
+  Upload,
+} from '@lucide/vue';
 
 import { useTasks } from '@/modules/tasks/composables/useTasks';
 import { useImageViewerModal } from '@/stores/modalStore';
@@ -175,7 +182,7 @@ onMounted(() => {
           <BaseButton
             variant="ghost"
             :aria-label="t('common.buttons.back')"
-            :icon="ArrowLeft"
+            :icon="ChevronLeft"
             @click="leave"
           />
         </BaseTooltip>
@@ -202,7 +209,7 @@ onMounted(() => {
             <BaseButton
               variant="ghost"
               :aria-label="t('tasks.list.tasks.menu.upload_images')"
-              :icon="Upload"
+              :icon="Paperclip"
               @click="onDetailMenuAction('images')"
             />
           </BaseTooltip>
@@ -214,7 +221,7 @@ onMounted(() => {
             <BaseButton
               variant="ghost"
               :aria-label="t('tasks.list.tasks.menu.share')"
-              :icon="Send"
+              :icon="Share"
               @click="shareItem(item)"
             />
           </BaseTooltip>

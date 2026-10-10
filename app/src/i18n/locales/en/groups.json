@@ -200,7 +200,7 @@
           "description": "Create new tasks"
         },
         "upload_images": {
-          "title": "Upload images",
+          "title": "Add images",
           "description": "Upload and attach files to tasks"
         },
         "manage_notes": {
@@ -335,6 +335,7 @@
       "search_placeholder": "Search subjects",
       "create_title": "Create new subject",
       "name_label": "Name",
+      "appearance_title": "Appearance",
       "custom_label": "Custom name",
       "category_label": "Category",
       "categories": {

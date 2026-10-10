@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowLeft } from '@lucide/vue';
+import { ChevronLeft } from '@lucide/vue';
 
 defineEmits<{
   click: [];
@@ -9,7 +9,7 @@ defineEmits<{
 <template>
   <BaseButton
     variant="ghost"
-    :icon="ArrowLeft"
+    :icon="ChevronLeft"
     class="-ml-3 mb-2"
     @click="$emit('click')"
   >
