@@ -142,12 +142,18 @@ defineExpose({ groupButton: groupButtonRef });
 <template>
   <header
     class="relative flex w-full justify-center items-center overflow-x-clip text-on-ghost font-display p-0 h-(--header-height) z-(--z-header)"
+    :class="{ 'bg-canvas': !isScrolled }"
   >
     <!-- Stays within the header, so it never covers the announcement bar
          docked below. The x-clip trims the fade's sideways bleed, which would
          otherwise paint over the sidebar's border and widen the page. Only
          shown once scrolled, sparing the backdrop filters when there is
-         nothing underneath. -->
+         nothing underneath.
+         Until then the header is opaque instead: Safari 26 colors the status
+         bar from what a fixed header paints along its top edge, and where it
+         finds nothing it lays its own blurred scroll edge effect over the
+         header. It also stops sampling once the user interacts, so a
+         transparent header at load could keep that blur. -->
     <BaseScrollFade v-show="isScrolled" class="inset-0 -bottom-4" />
 
     <div class="relative h-full w-full flex items-center gap-2 px-4 max-w-325">

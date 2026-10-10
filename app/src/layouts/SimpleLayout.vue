@@ -37,8 +37,10 @@ provide(SCROLL_LAYOUT_TO_TOP, () => {
     >
       <header
         class="relative z-10 h-(--simple-header-height) w-full px-6 py-2 max-md:sticky max-md:top-0"
+        :class="{ 'bg-canvas': !isScrolled }"
       >
-        <!-- Only shown once scrolled, like AppHeader's. -->
+        <!-- Only shown once scrolled, with the header opaque until then, like
+             AppHeader's. -->
         <BaseScrollFade v-show="isScrolled" class="inset-0 -bottom-4" />
         <div class="flex items-center justify-center gap-3 text-2xl font-bold">
           <AppLogo class="shrink-0" aria-hidden="true" />
