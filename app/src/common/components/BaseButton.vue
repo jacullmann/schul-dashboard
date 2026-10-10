@@ -13,13 +13,10 @@ export interface Props {
   icon?: Component;
   iconPlacement?: 'leading' | 'trailing';
   iconClasses?: string;
-  fill?: boolean;
   size?: 'xs' | 'sm' | 'md';
   chip?: boolean;
   loading?: boolean;
   disabled?: boolean;
-  touch?: boolean;
-  ripple?: boolean;
   surface?: boolean;
 }
 
@@ -33,13 +30,10 @@ const props = withDefaults(defineProps<Props>(), {
   icon: undefined,
   iconPlacement: 'leading',
   iconClasses: '',
-  fill: false,
   size: 'md',
   chip: false,
   loading: false,
   disabled: false,
-  touch: true,
-  ripple: true,
   surface: false,
 });
 
@@ -91,7 +85,7 @@ defineExpose({
 <template>
   <button
     ref="buttonEl"
-    v-wave="ripple && !(disabled || loading)"
+    v-wave="!(disabled || loading)"
     :type="type"
     :form="formId"
     :disabled="disabled || loading"
@@ -103,7 +97,7 @@ defineExpose({
             variant === 'input' ? 'font-normal' : 'font-medium',
             form ? 'max-md:w-full max-md:justify-center md:w-fit' : 'w-fit',
           ],
-      touch ? 'touch-target after:min-w-12 after:min-h-12' : '',
+      'touch-target after:min-w-12 after:min-h-12',
       size === 'xs'
         ? 'min-h-6 min-w-6 p-1'
         : size === 'sm'
@@ -131,7 +125,6 @@ defineExpose({
         :is="icon"
         v-if="icon && iconPlacement === 'leading'"
         :size="iconSize"
-        :fill="fill ? 'currentColor' : 'none'"
         :class="iconClasses"
       />
       <slot></slot>
@@ -139,7 +132,6 @@ defineExpose({
         :is="icon"
         v-if="icon && iconPlacement === 'trailing'"
         :size="iconSize"
-        :fill="fill ? 'currentColor' : 'none'"
         :class="iconClasses"
       />
     </template>

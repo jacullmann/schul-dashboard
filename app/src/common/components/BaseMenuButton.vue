@@ -13,19 +13,16 @@ withDefaults(
   defineProps<{
     active?: boolean;
     isSelect?: boolean;
-    isToggle?: boolean;
     isSubmenu?: boolean;
     forceHover?: boolean;
     variant?: 'default' | 'danger';
     icon?: Component;
-    iconClasses?: string;
     disabled?: boolean;
   }>(),
   {
     variant: 'default',
     disabled: false,
     isSelect: false,
-    isToggle: false,
     isSubmenu: false,
     forceHover: false,
   },
@@ -77,7 +74,6 @@ defineExpose({
           v-if="icon"
           :size="isMobile || $slots.description ? 20 : 18"
           class="shrink-0"
-          :class="iconClasses"
         />
       </slot>
       <span class="flex flex-col">
@@ -121,10 +117,6 @@ defineExpose({
     <span v-if="isSelect" aria-hidden="true">
       <Check v-if="active" :size="18" class="text-on-ghost shrink-0" />
       <span v-else class="w-4 shrink-0 h-4"></span>
-    </span>
-
-    <span v-if="isToggle">
-      <BaseToggle :model-value="active" />
     </span>
   </button>
 </template>

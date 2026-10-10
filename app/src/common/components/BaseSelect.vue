@@ -21,7 +21,6 @@ const props = withDefaults(
     options: UnitOption[];
     disabled?: boolean;
     form?: boolean;
-    on?: 'ghost' | 'action';
     classes?: string;
     /** Mobile sheet title; defaults to the text of the select's label. */
     title?: string;
@@ -29,7 +28,6 @@ const props = withDefaults(
   {
     disabled: false,
     form: true,
-    on: 'ghost',
   },
 );
 
@@ -120,16 +118,13 @@ onClickOutside(
           ? 'transition-focus ' +
             (isOpen ? 'border-focus! shadow-focus-ring!' : '')
           : isOpen
-            ? props.on === 'ghost'
-              ? 'bg-ghost-hover! text-on-ghost!'
-              : 'bg-action-hover! text-on-action!'
+            ? 'bg-ghost-hover! text-on-ghost!'
             : '',
         classes,
       ]"
       aria-haspopup="true"
       :aria-expanded="isOpen"
       :variant="form ? 'input' : 'ghost'"
-      :on="props.on"
       :icon="ChevronDown"
       icon-placement="trailing"
       :icon-classes="
