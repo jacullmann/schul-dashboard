@@ -62,11 +62,16 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 5173,
-    hmr: { host: 'localhost' },
+    // With VITE_API_URL=/api the browser only talks to this origin, so the app
+    // also works from other devices on the network. The server rate-limits by
+    // X-Forwarded-For, which nginx sets in production and xfwd sets here.
     proxy: {
       '/api': {
         target: process.env.API_PROXY_TARGET ?? 'http://localhost:3000',
         changeOrigin: true,
+        ws: true,
+        xfwd: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
       },
     },
   },
