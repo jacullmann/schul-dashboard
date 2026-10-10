@@ -4,7 +4,8 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Permission {
-    EditGroupGeneral,
+    EditGroupProfile,
+    EditGroupConfiguration,
     EditSubjectsCourses,
     EditSchedule,
     CreateItems,
@@ -22,7 +23,8 @@ pub enum Permission {
 impl Permission {
     pub const fn as_str(&self) -> &'static str {
         match self {
-            Self::EditGroupGeneral => "edit_group_general",
+            Self::EditGroupProfile => "edit_group_profile",
+            Self::EditGroupConfiguration => "edit_group_configuration",
             Self::EditSubjectsCourses => "edit_subjects_courses",
             Self::EditSchedule => "edit_schedule",
             Self::CreateItems => "create_items",
@@ -38,8 +40,9 @@ impl Permission {
         }
     }
 
-    pub const ALL: [Permission; 13] = [
-        Self::EditGroupGeneral,
+    pub const ALL: [Permission; 14] = [
+        Self::EditGroupProfile,
+        Self::EditGroupConfiguration,
         Self::EditSubjectsCourses,
         Self::EditSchedule,
         Self::CreateItems,
@@ -58,34 +61,39 @@ impl Permission {
         Self::ALL.into_iter().find(|p| p.as_str() == s)
     }
 
-    /// Moderation-grade permissions are never granted to every member.
-    pub const fn lowest_role(self) -> Role {
+    /// Moderation-grade permissions are never granted to every member. `None`
+    /// marks a permission the group cannot reassign at all.
+    pub const fn lowest_role(self) -> Option<Role> {
         match self {
+            Self::EditGroupConfiguration => None,
             Self::EditSubjectsCourses
             | Self::EditSchedule
             | Self::ManageAnnouncements
             | Self::ModerateMembers
             | Self::EditOtherContent
-            | Self::DeleteOtherContent => Role::Moderator,
-            Self::EditGroupGeneral
+            | Self::DeleteOtherContent => Some(Role::Moderator),
+            Self::EditGroupProfile
             | Self::CreateItems
             | Self::UploadImages
             | Self::ManageNotes
             | Self::SendMessages
             | Self::ManageScheduleChanges
-            | Self::InviteMembers => Role::User,
+            | Self::InviteMembers => Some(Role::User),
         }
     }
 
     /// Superadmin is never a requirement: it would lock the group's own owner out.
     pub fn accepts(self, required: Role) -> bool {
-        required != Role::Superadmin && required.dominates(self.lowest_role())
+        required != Role::Superadmin
+            && self
+                .lowest_role()
+                .is_some_and(|lowest| required.dominates(lowest))
     }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct GroupPermissions {
-    pub edit_group_general: Role,
+    pub edit_group_profile: Role,
     pub edit_subjects_courses: Role,
     pub edit_schedule: Role,
     pub create_items: Role,
@@ -103,7 +111,7 @@ pub struct GroupPermissions {
 impl Default for GroupPermissions {
     fn default() -> Self {
         Self {
-            edit_group_general: Role::Moderator,
+            edit_group_profile: Role::Moderator,
             edit_subjects_courses: Role::Admin,
             edit_schedule: Role::Admin,
             create_items: Role::User,
@@ -123,7 +131,10 @@ impl Default for GroupPermissions {
 impl GroupPermissions {
     pub fn required_role(&self, permission: Permission) -> Role {
         match permission {
-            Permission::EditGroupGeneral => self.edit_group_general,
+            Permission::EditGroupProfile => self.edit_group_profile,
+            // Switching the group type or Dalton rewires subjects, courses and
+            // the schedule at once, so it stays with admins in every group.
+            Permission::EditGroupConfiguration => Role::Admin,
             Permission::EditSubjectsCourses => self.edit_subjects_courses,
             Permission::EditSchedule => self.edit_schedule,
             Permission::CreateItems => self.create_items,
@@ -139,9 +150,10 @@ impl GroupPermissions {
         }
     }
 
-    fn required_role_mut(&mut self, permission: Permission) -> &mut Role {
-        match permission {
-            Permission::EditGroupGeneral => &mut self.edit_group_general,
+    fn required_role_mut(&mut self, permission: Permission) -> Option<&mut Role> {
+        let role = match permission {
+            Permission::EditGroupProfile => &mut self.edit_group_profile,
+            Permission::EditGroupConfiguration => return None,
             Permission::EditSubjectsCourses => &mut self.edit_subjects_courses,
             Permission::EditSchedule => &mut self.edit_schedule,
             Permission::CreateItems => &mut self.create_items,
@@ -154,7 +166,8 @@ impl GroupPermissions {
             Permission::EditOtherContent => &mut self.edit_other_content,
             Permission::DeleteOtherContent => &mut self.delete_other_content,
             Permission::InviteMembers => &mut self.invite_members,
-        }
+        };
+        Some(role)
     }
 
     /// Groups store only what they changed, so every permission missing from
@@ -177,14 +190,16 @@ impl GroupPermissions {
         });
         for (permission, role) in overrides {
             if permission.accepts(role) {
-                *self.required_role_mut(permission) = role;
+                self.set_required_role(permission, role);
             }
         }
     }
 
     /// Callers validate the roles first (see [`Permission::accepts`]).
     pub fn set_required_role(&mut self, permission: Permission, role: Role) {
-        *self.required_role_mut(permission) = role;
+        if let Some(required) = self.required_role_mut(permission) {
+            *required = role;
+        }
     }
 
     pub fn allowed_keys_for_role(&self, role: Role) -> Vec<&'static str> {
@@ -225,7 +240,7 @@ mod tests {
         assert_eq!(p.send_messages, Role::User);
         assert_eq!(p.create_items, Role::User);
         assert_eq!(p.upload_images, Role::User);
-        assert_eq!(p.edit_group_general, Role::Moderator);
+        assert_eq!(p.edit_group_profile, Role::Moderator);
         assert_eq!(p.manage_notes, Role::Moderator);
         assert_eq!(p.manage_schedule_changes, Role::Moderator);
         assert_eq!(p.manage_announcements, Role::Moderator);
@@ -271,12 +286,47 @@ mod tests {
     #[test]
     fn defaults_are_accepted_by_their_permissions() {
         let p = GroupPermissions::default();
-        for permission in Permission::ALL {
+        for permission in Permission::ALL
+            .into_iter()
+            .filter(|p| p.lowest_role().is_some())
+        {
             assert!(
                 permission.accepts(p.required_role(permission)),
                 "{permission:?}"
             );
         }
+    }
+
+    #[test]
+    fn group_configuration_stays_admin_only() {
+        let mut p = GroupPermissions::from_json_with_defaults(&serde_json::json!({
+            "edit_group_configuration": "user",
+        }));
+        assert_eq!(
+            p.required_role(Permission::EditGroupConfiguration),
+            Role::Admin
+        );
+
+        p.set_required_role(Permission::EditGroupConfiguration, Role::User);
+        assert_eq!(
+            p.required_role(Permission::EditGroupConfiguration),
+            Role::Admin
+        );
+
+        assert!(!Permission::EditGroupConfiguration.accepts(Role::Admin));
+        assert!(
+            !serde_json::json!(p)
+                .as_object()
+                .is_some_and(|matrix| matrix.contains_key("edit_group_configuration"))
+        );
+        assert!(
+            !p.allowed_keys_for_role(Role::Moderator)
+                .contains(&"edit_group_configuration")
+        );
+        assert!(
+            p.allowed_keys_for_role(Role::Admin)
+                .contains(&"edit_group_configuration")
+        );
     }
 
     #[test]

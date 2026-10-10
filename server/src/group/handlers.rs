@@ -247,8 +247,6 @@ pub async fn rename_group(
     tc: TenantContext,
     Json(dto): Json<RenameGroupDto>,
 ) -> AppResult<Json<Value>> {
-    crate::require_permission!(tc, crate::common::permission::Permission::EditGroupGeneral);
-
     let name = dto
         .name
         .as_deref()
@@ -256,15 +254,20 @@ pub async fn rename_group(
         .transpose()?;
     let group_type = parse_group_type(dto.group_type.as_deref())?;
 
-    // The group type decides which subject categories exist and whether the
-    // schedule is kept per course, and Dalton adds a pseudo-subject to both, so
-    // changing either needs both of those rights.
-    if group_type.is_some() || dto.dalton_enabled.is_some() {
+    let edits_profile = name.is_some() || dto.avatar_id.is_some();
+    let edits_configuration = group_type.is_some() || dto.dalton_enabled.is_some();
+    if !edits_profile && !edits_configuration {
+        return Err(AppError::bad_request("Nothing to change."));
+    }
+
+    if edits_profile {
+        crate::require_permission!(tc, crate::common::permission::Permission::EditGroupProfile);
+    }
+    if edits_configuration {
         crate::require_permission!(
             tc,
-            crate::common::permission::Permission::EditSubjectsCourses
+            crate::common::permission::Permission::EditGroupConfiguration
         );
-        crate::require_permission!(tc, crate::common::permission::Permission::EditSchedule);
     }
 
     Ok(Json(
