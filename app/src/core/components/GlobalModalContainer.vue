@@ -228,11 +228,12 @@ async function onAuthSuccess() {
        action asked for it. -->
   <ReauthModal />
 
-  <!-- The confirm is the only dialog the image viewer can raise while it is
-       up, so it has to be lifted over the viewer's own layer. -->
+  <!-- Always lifted: the forms above mount only when opened, so they teleport
+       after this dialog and would cover it at the same layer. Lifting it also
+       keeps it above the image viewer, the one overlay that raises it. -->
   <BaseDialog
     :open="confirmModal.isOpen"
-    :elevated="imageViewer.isOpen"
+    elevated
     :title="confirmModal.options.title"
     :submit-text="confirmModal.options.submitText"
     :danger="confirmModal.options.danger"
