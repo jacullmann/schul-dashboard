@@ -10,11 +10,13 @@
 
 use crate::common::client::ClientInfo;
 use ipnetwork::IpNetwork;
+use serde::Deserialize;
 use serde_json::Value;
 use sqlx::PgExecutor;
 use uuid::Uuid;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum Outcome {
     Success,
     Failure,

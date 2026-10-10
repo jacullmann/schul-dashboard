@@ -1,7 +1,5 @@
 import { useI18n } from 'vue-i18n';
-import api from '@/api/api';
 import { useToast } from '@/common/composables/useToast';
-import { useConfirmModal } from '@/stores/modalStore';
 import type {
   SortOrder,
   SuperAdminUser,
@@ -9,7 +7,6 @@ import type {
   UserStatusFilter,
 } from '../types';
 import { usePaginatedList } from './usePaginatedList';
-import { useSuperAdminStats } from './useSuperAdminStats';
 
 export const USER_STATUS_FILTERS = [
   'all',
@@ -28,11 +25,9 @@ const SORT_ORDERS = ['asc', 'desc'] as const satisfies readonly SortOrder[];
 
 export function useSuperAdminUsers() {
   const toast = useToast();
-  const confirmModal = useConfirmModal();
   const { t } = useI18n();
-  const { loadStats } = useSuperAdminStats();
 
-  const list = usePaginatedList<
+  return usePaginatedList<
     SuperAdminUser,
     {
       search: string;
@@ -51,69 +46,4 @@ export function useSuperAdminUsers() {
     ascendingSorts: ['email'],
     onError: () => toast.error(t('admin.users.errors.load')),
   });
-
-  async function toggleBan(user: SuperAdminUser) {
-    if (user.isSuperadmin) return;
-
-    const action = user.isBanned ? 'unban' : 'ban';
-    const confirmed = await confirmModal.ask({
-      title: t(`admin.users.${action}_modal.title`),
-      content: t(`admin.users.${action}_modal.content`, { email: user.email }),
-      submitText: t(`admin.users.actions.${action}`),
-      danger: !user.isBanned,
-    });
-    if (!confirmed) return;
-
-    try {
-      if (user.isBanned) {
-        await api.delete(`/admin/users/${user.id}/ban`);
-      } else {
-        await api.post(`/admin/users/${user.id}/ban`);
-      }
-      user.isBanned = !user.isBanned;
-      toast.success(t(`admin.users.${action}_success`));
-      await loadStats();
-    } catch {
-      toast.error(t('admin.errors.action_failed'));
-    }
-  }
-
-  /** Support for a user who lost their authenticator and recovery codes. */
-  async function resetMfa(user: SuperAdminUser) {
-    const confirmed = await confirmModal.ask({
-      title: t('admin.users.reset_mfa_modal.title'),
-      content: t('admin.users.reset_mfa_modal.content', { email: user.email }),
-      submitText: t('admin.users.actions.reset_mfa'),
-      danger: true,
-    });
-    if (!confirmed) return;
-
-    try {
-      await api.delete(`/admin/users/${user.id}/mfa`);
-      user.mfaEnabled = false;
-      toast.success(t('admin.users.reset_mfa_success'));
-    } catch {
-      toast.error(t('admin.errors.action_failed'));
-    }
-  }
-
-  async function deleteUser(user: SuperAdminUser) {
-    const confirmed = await confirmModal.ask({
-      title: t('admin.users.delete_modal.title'),
-      content: t('admin.users.delete_modal.content', { email: user.email }),
-      submitText: t('common.buttons.delete'),
-      danger: true,
-    });
-    if (!confirmed) return;
-
-    try {
-      await api.delete(`/admin/users/${user.id}`);
-      toast.success(t('admin.users.delete_success'));
-      await Promise.all([list.reload(), loadStats()]);
-    } catch {
-      toast.error(t('admin.users.errors.delete'));
-    }
-  }
-
-  return { ...list, toggleBan, resetMfa, deleteUser };
 }

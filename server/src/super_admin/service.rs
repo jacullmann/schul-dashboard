@@ -20,10 +20,11 @@ use crate::{
         service::role_from_db,
     },
     mfa::service::disable_mfa,
-    security_log::{SecurityEvent, SecurityEventKind},
+    security_log::{Outcome, SecurityEvent, SecurityEventKind},
     state::AppState,
 };
 use chrono::Utc;
+use ipnetwork::IpNetwork;
 use serde_json::{Value, json};
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -34,6 +35,7 @@ const DAILY_ACTIVITY_DAYS: i32 = 30;
 const WEEKLY_RHYTHM_WEEKS: i32 = 4;
 const ACTIVITY_LOG_LIMIT: i64 = 200;
 const SECURITY_LOG_LIMIT: i64 = 200;
+const FAILURE_SOURCE_LIMIT: i64 = 5;
 
 /// The server's load as Hetzner measures it, read live on every request: the
 /// overview is opened rarely enough to stay far below the API's rate limit.
@@ -352,7 +354,8 @@ impl SuperAdminService {
         let (pattern, search_id) = search_params(query.search.as_deref());
         let superadmin_role = Role::Superadmin.db_id_i32();
 
-        let rows_query = sqlx::query!(
+        let rows_query = sqlx::query_as!(
+            AdminUserRow,
             r#"SELECT u.id, u.email, u.created_at, u.last_login_at,
                       u.mfa_enabled AND u.mfa_secret IS NOT NULL AS "mfa_enabled!",
                       EXISTS (SELECT 1 FROM user_roles ur
@@ -410,21 +413,30 @@ impl SuperAdminService {
 
         let (rows, total) = tokio::try_join!(rows_query, count_query)?;
 
-        let users = rows
-            .into_iter()
-            .map(|u| AdminUserDto {
-                username: generate_user_name(&u.id.to_string()),
-                id: u.id,
-                email: u.email,
-                mfa_enabled: u.mfa_enabled,
-                is_superadmin: u.is_superadmin,
-                is_banned: u.is_banned,
-                created_at: u.created_at,
-                last_login_at: u.last_login_at,
-            })
-            .collect();
+        let users = rows.into_iter().map(AdminUserDto::from).collect();
 
         Ok(Page::new(users, total, query.page))
+    }
+
+    pub async fn get_user(&self, user_id: Uuid) -> AppResult<AdminUserDto> {
+        let row = sqlx::query_as!(
+            AdminUserRow,
+            r#"SELECT u.id, u.email, u.created_at, u.last_login_at,
+                      u.mfa_enabled AND u.mfa_secret IS NOT NULL AS "mfa_enabled!",
+                      EXISTS (SELECT 1 FROM user_roles ur
+                              WHERE ur.user_id = u.id AND ur.tenant_id IS NULL
+                                AND ur.role_id = $2) AS "is_superadmin!",
+                      EXISTS (SELECT 1 FROM banned_users b WHERE b.user_id = u.id) AS "is_banned!"
+               FROM users u
+               WHERE u.id = $1"#,
+            user_id,
+            Role::Superadmin.db_id_i32(),
+        )
+        .fetch_optional(&self.db)
+        .await?
+        .ok_or_else(|| AppError::not_found("User not found."))?;
+
+        Ok(row.into())
     }
 
     pub async fn get_user_activity(&self, user_id: Uuid) -> AppResult<Value> {
@@ -444,8 +456,11 @@ impl SuperAdminService {
         ))
     }
 
-    /// The newest entries of the security log across all accounts.
-    pub async fn get_security_events(&self) -> AppResult<Vec<SecurityEventDto>> {
+    /// The newest entries of the security log that match the filters.
+    pub async fn get_security_events(
+        &self,
+        query: &SecurityEventsQuery,
+    ) -> AppResult<Vec<SecurityEventDto>> {
         let events = sqlx::query_as!(
             SecurityEventDto,
             r#"SELECT e.id, e.event_type, e.outcome,
@@ -457,14 +472,63 @@ impl SuperAdminService {
                LEFT JOIN users u ON u.id = e.user_id
                LEFT JOIN users a ON a.id = e.actor_id
                LEFT JOIN groups g ON g.id = e.tenant_id
+               WHERE ($2::text IS NULL OR e.event_type = $2)
+                 AND ($3::text IS NULL OR e.outcome = $3)
+                 AND ($4::inet IS NULL OR e.ip_address = $4)
+                 AND ($5::uuid IS NULL OR e.user_id = $5 OR e.actor_id = $5)
                ORDER BY e.created_at DESC
                LIMIT $1"#,
-            SECURITY_LOG_LIMIT
+            SECURITY_LOG_LIMIT,
+            query.event_type(),
+            query.outcome.map(Outcome::as_str),
+            query.ip.map(IpNetwork::from),
+            query.user_id,
         )
         .fetch_all(&self.db)
         .await?;
 
         Ok(events)
+    }
+
+    /// The security log of the past week at a glance: how often each kind of
+    /// event happened, and the addresses most failures came from.
+    pub async fn get_security_event_summary(&self) -> AppResult<SecurityEventSummaryDto> {
+        let counts_query = sqlx::query_as!(
+            SecurityEventCountDto,
+            r#"SELECT event_type, outcome, COUNT(*) AS "count!"
+               FROM security_events
+               WHERE created_at >= now() - make_interval(days => $1)
+               GROUP BY event_type, outcome
+               ORDER BY COUNT(*) DESC, event_type, outcome"#,
+            STATS_WINDOW_DAYS,
+        )
+        .fetch_all(&self.db);
+
+        let sources_query = sqlx::query_as!(
+            FailureSourceDto,
+            r#"SELECT host(ip_address) AS "ip_address!",
+                      COUNT(*) AS "count!",
+                      COUNT(DISTINCT user_id) AS "account_count!",
+                      MAX(created_at) AS "last_seen_at!"
+               FROM security_events
+               WHERE outcome = $2 AND ip_address IS NOT NULL
+                 AND created_at >= now() - make_interval(days => $1)
+               GROUP BY ip_address
+               ORDER BY COUNT(*) DESC, MAX(created_at) DESC
+               LIMIT $3"#,
+            STATS_WINDOW_DAYS,
+            Outcome::Failure.as_str(),
+            FAILURE_SOURCE_LIMIT,
+        )
+        .fetch_all(&self.db);
+
+        let (event_counts, failure_sources) = tokio::try_join!(counts_query, sources_query)?;
+
+        Ok(SecurityEventSummaryDto {
+            days: STATS_WINDOW_DAYS,
+            event_counts,
+            failure_sources,
+        })
     }
 
     /// The roles offered per group come from the same policy the group admin

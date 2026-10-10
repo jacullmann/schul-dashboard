@@ -135,7 +135,7 @@ const typeOptions = computed(() =>
             </td>
             <td>
               <RouterLink
-                :to="{ name: 'admin-users', query: { search: g.ownerEmail } }"
+                :to="{ name: 'admin-user', params: { userId: g.ownerId } }"
                 class="hover:underline"
                 >{{ g.ownerEmail }}</RouterLink
               >

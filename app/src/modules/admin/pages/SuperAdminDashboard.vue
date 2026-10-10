@@ -55,9 +55,7 @@ const navItems = computed<(SuperAdminNavItem & { icon: Component })[]>(() => [
 /** The tab being navigated to, shown as selected until the navigation settles. */
 const pendingTab = ref<string | null>(null);
 
-const routeTab = computed(
-  () => navItems.value.find((i) => i.name === route.name)?.id ?? 'overview',
-);
+const routeTab = computed(() => route.meta.adminTab ?? 'overview');
 const activeTab = computed(() => pendingTab.value ?? routeTab.value);
 
 async function onTabChange(id: string) {
