@@ -25,7 +25,6 @@ import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import InfoModal from '@/common/components/InfoModal.vue';
 import TaskSkeleton from '@/modules/tasks/components/TaskSkeleton.vue';
 import TaskCard from '@/modules/tasks/components/TaskCard.vue';
-import NotificationDot from '@/common/components/NotificationDot.vue';
 import PersonalizedViewNotice from '@/common/components/PersonalizedViewNotice.vue';
 
 import type { ItemType } from '@/modules/tasks/types';
@@ -236,9 +235,7 @@ onDeactivated(() => {
             >
               <BaseButton
                 variant="ghost"
-                :class="
-                  hasActiveFilters ? 'bg-ghost-hover! text-on-ghost!' : ''
-                "
+                :surface="hasActiveFilters"
                 :aria-label="
                   hasActiveFilters
                     ? t('tasks.list.filter_active')
@@ -285,10 +282,10 @@ onDeactivated(() => {
           <BaseButton
             variant="ghost"
             :icon="ListFilter"
+            :surface="hasActiveFilters"
             @click="showFilterModal = true"
           >
             {{ t('tasks.list.filter') }}
-            <NotificationDot v-if="hasActiveFilters" :size="1.5" class="ml-1" />
           </BaseButton>
         </BaseRow>
       </div>
