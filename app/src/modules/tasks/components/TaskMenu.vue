@@ -4,7 +4,6 @@ import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/vue';
 import { useI18n } from 'vue-i18n';
 import {
   Paperclip,
-  Pencil,
   Share,
   Flag,
   Trash2,
@@ -25,7 +24,6 @@ const props = defineProps<{
   isPinned: boolean;
   isInArchive: boolean;
   canUploadImages: boolean;
-  canEdit: boolean;
   canAddNote: boolean;
   canDelete: boolean;
 }>();
@@ -92,10 +90,6 @@ function select(action: TaskMenuAction) {
         {{ t('tasks.list.tasks.menu.upload_images') }}
       </BaseMenuButton>
 
-      <BaseMenuButton v-if="canEdit" :icon="Pencil" @click="select('edit')">
-        {{ t('common.buttons.edit') }}
-      </BaseMenuButton>
-
       <BaseMenuButton
         v-if="canAddNote"
         :icon="MessageSquarePlus"
@@ -104,7 +98,7 @@ function select(action: TaskMenuAction) {
         {{ t('tasks.list.tasks.menu.add_note') }}
       </BaseMenuButton>
 
-      <BaseMenuDivider v-if="canUploadImages || canEdit || canAddNote" />
+      <BaseMenuDivider v-if="canUploadImages || canAddNote" />
 
       <BaseMenuButton :icon="isPinned ? PinOff : Pin" @click="select('pin')">
         {{

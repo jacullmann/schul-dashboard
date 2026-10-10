@@ -2,14 +2,7 @@
 import { computed, onMounted, ref, useTemplateRef, watchEffect } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import {
-  ChevronLeft,
-  Ellipsis,
-  Paperclip,
-  Pencil,
-  Share,
-  Upload,
-} from '@lucide/vue';
+import { ChevronLeft, Ellipsis, Paperclip, Share, Upload } from '@lucide/vue';
 
 import { useTasks } from '@/modules/tasks/composables/useTasks';
 import { useImageViewerModal } from '@/stores/modalStore';
@@ -188,18 +181,14 @@ onMounted(() => {
         </BaseTooltip>
 
         <BaseRow v-if="isReady && item" class="flex-nowrap!">
-          <BaseTooltip
+          <BaseButton
             v-if="canEdit(item)"
-            :content="t('common.buttons.edit')"
-            placement="bottom"
+            variant="ghost"
+            :aria-label="t('common.buttons.edit')"
+            @click="onDetailMenuAction('edit')"
           >
-            <BaseButton
-              variant="ghost"
-              :aria-label="t('common.buttons.edit')"
-              :icon="Pencil"
-              @click="onDetailMenuAction('edit')"
-            />
-          </BaseTooltip>
+            {{ t('common.buttons.edit') }}
+          </BaseButton>
 
           <BaseTooltip
             v-else-if="canUploadImages"
@@ -241,7 +230,6 @@ onMounted(() => {
             :is-pinned="isPinned(item.id)"
             :is-in-archive="isInArchive(item)"
             :can-upload-images="canUploadImages"
-            :can-edit="canEdit(item)"
             :can-add-note="canManageNotes && !item.editorNote"
             :can-delete="canDelete(item)"
             @action="onDetailMenuAction"
@@ -250,12 +238,12 @@ onMounted(() => {
         </BaseRow>
       </div>
 
-      <article v-if="isReady && item" class="flex flex-col gap-4">
+      <article v-if="isReady && item" class="flex flex-col gap-6">
         <header
           class="animate-enter"
           :style="{ '--enter-delay': entranceDelay(TITLE_ENTRANCE_ORDER) }"
         >
-          <div class="flex items-start gap-3">
+          <div class="flex items-start gap-3 mb-1">
             <BaseCheckbox
               v-if="user"
               class="mt-1.5"

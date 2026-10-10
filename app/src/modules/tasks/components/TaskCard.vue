@@ -32,7 +32,6 @@ const props = defineProps<{
   isMenuOpen: boolean;
   canCheck: boolean;
   canUploadImages: boolean;
-  canEdit: boolean;
   canAddNote: boolean;
   canDelete: boolean;
 }>();
@@ -88,8 +87,6 @@ const { isDragOver, handlers: dropHandlers } = useFileDrop(
   { enabled: () => props.canUploadImages },
 );
 
-const secondarySwipeAction = computed(() => (props.canEdit ? 'edit' : 'menu'));
-
 const startSwipeAction = computed(() => {
   if (!props.canCheck) return undefined;
   return props.isPinned ? 'unpin' : 'pin';
@@ -137,8 +134,7 @@ function runSwipeAction() {
 
 function runSecondarySwipeAction(event: MouseEvent) {
   closeSwipe();
-  if (secondarySwipeAction.value === 'edit') emit('menu-action', 'edit');
-  else openMenuAt(event);
+  openMenuAt(event);
 }
 </script>
 
@@ -154,9 +150,7 @@ function runSecondarySwipeAction(event: MouseEvent) {
       :key="activeSide"
       :side="activeSide"
       :action="trayAction"
-      :secondary-action="
-        activeSide === 'right' ? secondarySwipeAction : undefined
-      "
+      :secondary-action="activeSide === 'right' ? 'menu' : undefined"
       :offset="revealedOffset"
       :is-taking-over="isTakingOver"
       @action="runSwipeAction"
@@ -238,7 +232,6 @@ function runSecondarySwipeAction(event: MouseEvent) {
           :is-pinned="isPinned"
           :is-in-archive="isArchiveView"
           :can-upload-images="canUploadImages"
-          :can-edit="canEdit"
           :can-add-note="canAddNote"
           :can-delete="canDelete"
           @action="(action) => $emit('menu-action', action)"

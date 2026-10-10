@@ -74,7 +74,6 @@ const {
   archiveItem,
   dismissedItems,
   useListTransitions,
-  canEdit,
   canDelete,
   canManageNotes,
   canUploadImages,
@@ -362,7 +361,6 @@ onDeactivated(() => {
             :is-menu-open="openMenuId === row.task.id"
             :can-check="!!user"
             :can-upload-images="canUploadImages"
-            :can-edit="canEdit(row.task)"
             :can-add-note="canManageNotes && !row.task.editorNote"
             :can-delete="canDelete(row.task)"
             @toggle-check="toggleCheck(row.task)"
