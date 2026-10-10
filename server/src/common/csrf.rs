@@ -18,7 +18,9 @@ pub fn csrf_cookie(token: &str, opts: &BaseCookieOptions) -> Cookie<'static> {
     let mut c = Cookie::new(CSRF_COOKIE, token.to_owned());
 
     c.set_path("/");
-    c.set_domain(opts.domain.clone());
+    if let Some(domain) = &opts.domain {
+        c.set_domain(domain.clone());
+    }
     c.set_secure(opts.secure);
     c.set_http_only(false);
     c.set_same_site(cookie::SameSite::Lax);

@@ -11,7 +11,9 @@ fn base_cookie(name: &'static str, value: String, opts: &BaseCookieOptions) -> C
     c.set_http_only(true);
     c.set_secure(opts.secure);
     c.set_same_site(SameSite::Lax);
-    c.set_domain(opts.domain.clone());
+    if let Some(domain) = &opts.domain {
+        c.set_domain(domain.clone());
+    }
 
     c
 }

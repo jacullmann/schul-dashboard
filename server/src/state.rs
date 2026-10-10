@@ -44,6 +44,7 @@ impl AppState {
         let email = EmailService::new(
             Some(config.resend_api_key.clone()),
             config.email_from.clone(),
+            config.log_unsent_emails,
         );
 
         let encryption = EncryptionService::new(

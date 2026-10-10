@@ -11,16 +11,17 @@ use crate::{
 };
 use messages::Message;
 use resend_rs::{Resend, types::CreateEmailBaseOptions};
-use tracing::warn;
+use tracing::{info, warn};
 
 #[derive(Clone)]
 pub struct EmailService {
     resend: Option<Resend>,
     from: String,
+    log_unsent: bool,
 }
 
 impl EmailService {
-    pub fn new(api_key: Option<String>, from: String) -> Self {
+    pub fn new(api_key: Option<String>, from: String, log_unsent: bool) -> Self {
         let resend = api_key.and_then(|k| {
             if k.is_empty() {
                 warn!("RESEND_API_KEY is empty — emails will not be sent.");
@@ -34,14 +35,22 @@ impl EmailService {
             warn!("Email service not configured — emails will not be sent.");
         }
 
-        Self { resend, from }
+        Self {
+            resend,
+            from,
+            log_unsent,
+        }
     }
 
     async fn send(&self, to: &str, message: Message) -> Result<(), AppError> {
-        let resend = self
-            .resend
-            .as_ref()
-            .ok_or_else(|| AppError::internal("Email service not configured."))?;
+        let Some(resend) = self.resend.as_ref() else {
+            // Emails carry sign-in codes, so only development may log them.
+            if self.log_unsent {
+                info!(to, subject = %message.subject, body = %message.to_text(), "Email not sent");
+                return Ok(());
+            }
+            return Err(AppError::internal("Email service not configured."));
+        };
 
         let email = CreateEmailBaseOptions::new(&self.from, [to], &message.subject)
             .with_html(&message.to_html())

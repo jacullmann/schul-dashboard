@@ -6,8 +6,12 @@ use url::Url;
 pub struct Config {
     pub port: u16,
     pub cors_origin: String,
-    pub cookie_domain: String,
+    /// `None` issues host-only cookies, so a dev server works under any host
+    /// name, such as a LAN IP for testing on a phone.
+    pub cookie_domain: Option<String>,
     pub cookie_secure: bool,
+    /// Without an email provider, development logs emails instead of failing.
+    pub log_unsent_emails: bool,
     pub database_url: String,
     pub user_jwt_secret: String,
     pub password_reset_jwt_secret: String,
@@ -56,7 +60,13 @@ pub struct WebauthnConfig {
 
 impl Config {
     pub fn from_env() -> Result<Self> {
-        let _ = dotenvy::dotenv();
+        // Production passes real env vars and has no .env file. A malformed one
+        // must not be skipped silently, which would drop every variable in it.
+        if let Err(err) = dotenvy::dotenv()
+            && !err.not_found()
+        {
+            return Err(err).context("Failed to parse .env");
+        }
 
         let node_env = std::env::var("NODE_ENV").unwrap_or_else(|_| "development".into());
         let is_production = node_env == "production";
@@ -77,8 +87,9 @@ impl Config {
         Ok(Self {
             port,
             cors_origin,
-            cookie_domain: require("COOKIE_DOMAIN")?,
+            cookie_domain: optional("COOKIE_DOMAIN"),
             cookie_secure,
+            log_unsent_emails: !is_production,
             database_url: require("DATABASE_URL")?,
             user_jwt_secret: require_min("USER_JWT_SECRET", 32)?,
             password_reset_jwt_secret: require_min("PASSWORD_RESET_JWT_SECRET", 32)?,
@@ -114,7 +125,7 @@ impl Config {
 
 #[derive(Debug, Clone)]
 pub struct BaseCookieOptions {
-    pub domain: String,
+    pub domain: Option<String>,
     pub secure: bool,
 }
 
