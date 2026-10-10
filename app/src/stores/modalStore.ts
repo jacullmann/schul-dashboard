@@ -4,6 +4,7 @@ import i18n from '@/i18n';
 import type { Task, ItemType, PrivateTask } from '@/modules/tasks/types';
 import type { StoredFile } from '@/api/files';
 import type { MorphOrigin } from '@/utils/morph';
+import type { SearchMode } from '@/modules/search/types';
 
 type TaskType = Exclude<ItemType, 'all'>;
 
@@ -43,9 +44,6 @@ function useModalState<TPayload = void, TResult = void>() {
 
   return { isOpen, key, payload, open, close, succeed, onSuccess };
 }
-
-export type SearchMode =
-  'default' | 'group' | 'theme' | 'language' | 'personalization';
 
 export const useSearchModal = defineStore('search-modal', () => {
   const isOpen = ref(false);

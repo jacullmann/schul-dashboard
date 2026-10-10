@@ -63,7 +63,7 @@ const createGroupModal = useCreateGroupModal();
 const announcementsModal = useAnnouncementsModal();
 const { groupAnnouncements } = useAnnouncementFeed();
 
-// The search takes over the row on phones (HeaderSearchPalette): its bar
+// The search takes over the row on phones (SearchHeaderOverlay): its bar
 // replaces the group and its cancel button the account button.
 const isSearching = computed(() => isMobile.value && searchModal.isOpen);
 

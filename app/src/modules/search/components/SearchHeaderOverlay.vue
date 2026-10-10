@@ -1,62 +1,49 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { onMounted, useTemplateRef, type InputHTMLAttributes } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useScroll, useWindowSize } from '@vueuse/core';
 import { Search, X } from '@lucide/vue';
-import {
-  commandPaletteDefaults,
-  useCommandPalette,
-  type CommandPaletteProps,
-} from '@/common/composables/useCommandPalette';
 
 /**
- * The command palette on phones. It grows out of AppHeader's search button:
- * the bar slides out to the left carrying the button's icon, and the results
- * fade in over the frosted page. GlobalModalContainer runs its enter and leave
- * as the `header-search` transition.
+ * The search on phones. It grows out of AppHeader's search button: the bar
+ * slides out to the left carrying the button's icon, and the results fade in
+ * over the frosted page. GlobalModalContainer runs its enter and leave as the
+ * `header-search` transition.
  */
-const props = withDefaults(
-  defineProps<CommandPaletteProps>(),
-  commandPaletteDefaults,
-);
-
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: string): void;
-  (e: 'select', index: number): void;
-  (e: 'cancel'): void;
+defineProps<{
+  label: string;
+  placeholder: string;
+  /** Wires the input up as the combobox controlling the results. */
+  inputAttrs: InputHTMLAttributes;
 }>();
 
-const { t } = useI18n();
-const inputRef = ref<HTMLInputElement | null>(null);
+defineEmits<{ cancel: [] }>();
 
-const { handleKeydown, setSelectedIndex } = useCommandPalette(props, {
-  select: (index) => emit('select', index),
-  cancel: () => emit('cancel'),
-});
+const query = defineModel<string>({ required: true });
+
+const { t } = useI18n();
+const input = useTemplateRef('input');
+const results = useTemplateRef('results');
 
 // The on-screen keyboard only shrinks the visual viewport; sized to the
 // layout viewport, the last results would stay out of reach behind it.
 const { height: visibleHeight } = useWindowSize({ type: 'visual' });
 
-const resultsRef = ref<HTMLElement | null>(null);
-const { y: resultsScrollY } = useScroll(resultsRef);
+const { y: resultsScrollY } = useScroll(results);
+
+function focus() {
+  input.value?.focus({ preventScroll: true });
+}
 
 // Focused synchronously: iOS only raises the keyboard for a focus it can tie
 // to the tap that opened the search.
-onMounted(() => inputRef.value?.focus({ preventScroll: true }));
+onMounted(focus);
 
-function onInput(e: Event) {
-  emit('update:modelValue', (e.target as HTMLInputElement).value);
-}
+defineExpose({ focus });
 </script>
 
 <template>
-  <div
-    role="dialog"
-    aria-modal="true"
-    :aria-label="title ?? t('common.sidebar.search')"
-    @keydown="handleKeydown"
-  >
+  <div role="dialog" aria-modal="true" :aria-label="label">
     <BaseBackdrop
       tint="frost"
       opacity="heavy"
@@ -67,14 +54,11 @@ function onInput(e: Event) {
 
     <!-- Reaches up under the bar, so results scroll beneath its fade. -->
     <div
-      ref="resultsRef"
+      ref="results"
       class="search-results fixed inset-x-0 top-0 z-(--z-modal) pt-[calc(var(--header-height)+0.5rem)] pb-[env(safe-area-inset-bottom,0px)] overflow-y-auto overscroll-contain"
       :style="{ maxHeight: `${visibleHeight}px` }"
     >
-      <!-- No item shows as selected: that highlight, and the hints that come
-           with it, are for arrow keys. Enter on the on-screen keyboard still
-           picks the top result. -->
-      <slot :selected-index="-1" :set-selected-index="setSelectedIndex"></slot>
+      <slot></slot>
     </div>
 
     <!-- Laid out like AppHeader's row, so the bar ends where the search
@@ -99,16 +83,16 @@ function onInput(e: Event) {
               <Search :size="20" />
             </span>
             <input
-              :id="`${idPrefix}input`"
-              ref="inputRef"
-              :value="modelValue"
+              ref="input"
+              v-model="query"
+              v-bind="inputAttrs"
               type="text"
+              :aria-label="label"
               enterkeyhint="go"
               :placeholder="placeholder"
               autocomplete="off"
               spellcheck="false"
               class="search-input flex-1 min-w-0 h-full p-0 pr-4 rounded-none bg-transparent border-none outline-none shadow-none text-on-ghost text-base/4 placeholder:text-on-ghost-subtle"
-              @input="onInput"
             />
           </label>
         </div>

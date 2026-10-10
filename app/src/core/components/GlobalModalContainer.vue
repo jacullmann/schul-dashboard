@@ -28,9 +28,10 @@ import { useIsMobileViewport } from '@/common/composables/useViewport';
 
 // Modals are split out of the entry chunk so they never delay first paint.
 // The v-if ones are prefetched on mount so opening them stays instant.
-const loadSearchModal = () => import('@/core/components/SearchModal.vue');
+const loadSearchPalette = () =>
+  import('@/modules/search/components/SearchPalette.vue');
 
-const SearchModal = defineAsyncComponent(loadSearchModal);
+const SearchPalette = defineAsyncComponent(loadSearchPalette);
 const GoogleSignUpModal = defineAsyncComponent(
   () => import('@/modules/auth/components/GoogleSignUpModal.vue'),
 );
@@ -63,7 +64,7 @@ const ReauthModal = defineAsyncComponent(
 );
 
 onMounted(() => {
-  void loadSearchModal().catch(() => {});
+  void loadSearchPalette().catch(() => {});
 });
 
 const { t } = useI18n();
@@ -77,7 +78,7 @@ const performLogout = useLogout();
 const { showSignUpModal, closeSignUpModal } = useOAuth();
 const isMobile = useIsMobileViewport();
 
-// On phones the search grows out of the header (HeaderSearchPalette). Its
+// On phones the search grows out of the header (SearchHeaderOverlay). Its
 // parts animate on their own, so the transition is told the longest one.
 const searchTransition = computed(() =>
   isMobile.value
@@ -155,7 +156,7 @@ async function onAuthSuccess() {
       appear
       @after-leave="searchModal.onHidden()"
     >
-      <SearchModal v-if="searchModal.isOpen" @cancel="searchModal.close()" />
+      <SearchPalette v-if="searchModal.isOpen" @cancel="searchModal.close()" />
     </Transition>
   </Teleport>
 
