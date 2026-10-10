@@ -156,6 +156,15 @@
   font-style: normal;
 }
 
+/* Only WebKit understands the -apple-system-body font keyword, so this
+   targets Safari without user-agent sniffing. */
+@supports (font: -apple-system-body) {
+  :root {
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+    --font-display: -apple-system, BlinkMacSystemFont, 'Satoshi', sans-serif;
+  }
+}
+
 :root {
   --animate-pulse: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 
