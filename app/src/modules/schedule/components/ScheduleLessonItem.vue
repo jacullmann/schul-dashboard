@@ -96,7 +96,9 @@ const showsRoom = computed(
         ? 'cursor-pointer transition-colors duration-150 hover:bg-ghost-hover'
         : '',
       props.isSelected
-        ? props.singleSelect ? 'bg-surface-highlight' : 'bg-action! text-on-action!'
+        ? props.singleSelect
+          ? 'bg-surface-highlight'
+          : 'bg-action! text-on-action!'
         : '',
       hasContextMenu ? 'long-press-target' : '',
     ]"
