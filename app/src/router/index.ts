@@ -209,33 +209,61 @@ const routes: RouteRecordRaw[] = [
           { path: '', redirect: { name: 'super-admin' } },
           {
             path: 'overview',
-            name: 'super-admin',
-            component: () =>
-              import('@/modules/admin/pages/SuperAdminOverview.vue'),
+            meta: { adminTab: 'overview' },
+            children: [
+              {
+                path: '',
+                name: 'super-admin',
+                component: () =>
+                  import('@/modules/admin/pages/SuperAdminOverview.vue'),
+              },
+              {
+                path: 'security',
+                name: 'admin-security-events',
+                component: () =>
+                  import('@/modules/admin/pages/SuperAdminSecurityEvents.vue'),
+              },
+            ],
           },
           {
             path: 'users',
-            name: 'admin-users',
-            component: () =>
-              import('@/modules/admin/pages/SuperAdminUsers.vue'),
+            meta: { adminTab: 'users' },
+            children: [
+              {
+                path: '',
+                name: 'admin-users',
+                component: () =>
+                  import('@/modules/admin/pages/SuperAdminUsers.vue'),
+              },
+              {
+                path: ':userId',
+                name: 'admin-user',
+                component: () =>
+                  import('@/modules/admin/pages/SuperAdminUserDetail.vue'),
+                props: true,
+              },
+            ],
           },
           {
             path: 'reports',
             name: 'admin-reports',
             component: () =>
               import('@/modules/admin/pages/SuperAdminReports.vue'),
+            meta: { adminTab: 'reports' },
           },
           {
             path: 'groups',
             name: 'admin-groups',
             component: () =>
               import('@/modules/admin/pages/SuperAdminGroups.vue'),
+            meta: { adminTab: 'groups' },
           },
           {
             path: 'announcements',
             name: 'admin-announcements',
             component: () =>
               import('@/modules/admin/pages/SuperAdminAnnouncements.vue'),
+            meta: { adminTab: 'announcements' },
           },
         ],
       },

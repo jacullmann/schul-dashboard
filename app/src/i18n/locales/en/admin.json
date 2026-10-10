@@ -127,22 +127,6 @@
         }
       }
     },
-    "security_events": {
-      "title": "Security events",
-      "hint": "The latest 200 entries across all accounts. They are kept for 90 days.",
-      "empty": "No security events yet.",
-      "error": "Security events could not be loaded.",
-      "retry": "Try again",
-      "outcome": {
-        "success": "Success",
-        "failure": "Failure"
-      },
-      "user": "Account",
-      "actor": "Performed by",
-      "group": "Group",
-      "ip": "IP address",
-      "user_agent": "Browser"
-    },
     "errors": {
       "load": "Failed to load statistics."
     },
@@ -182,8 +166,7 @@
       "username": "Username",
       "status": "Status",
       "registered": "Registered",
-      "last_login": "Last login",
-      "actions": "Actions"
+      "last_login": "Last login"
     },
     "status": {
       "admin": "Admin",
@@ -191,17 +174,54 @@
       "active": "Active"
     },
     "actions": {
-      "details": "Details & log",
       "ban": "Ban",
       "unban": "Unban",
       "reset_mfa": "Reset two-factor authentication"
     },
     "details": {
       "title": "User details",
+      "back": "Users",
+      "not_found": "This user does not exist (anymore).",
+      "facts": {
+        "registered": "Registered",
+        "last_login": "Last login",
+        "never": "Never",
+        "mfa": "Two-factor",
+        "mfa_on": "On",
+        "mfa_off": "Not set up",
+        "groups": "Groups"
+      },
+      "security_log": "Security log",
+      "manage": {
+        "title": "Account management",
+        "superadmin_hint": "Superadmins can be neither banned nor deleted.",
+        "ban": {
+          "label": "Ban user",
+          "hint": "Signs the user out on all devices and blocks every further sign-in.",
+          "button": "Ban"
+        },
+        "unban": {
+          "label": "Lift ban",
+          "hint": "The user will be able to sign in again.",
+          "button": "Unban"
+        },
+        "reset_mfa": {
+          "label": "Reset two-factor authentication",
+          "hint": "Only for verified support requests, when both authenticator and recovery codes are lost.",
+          "button": "Reset"
+        },
+        "delete": {
+          "label": "Delete user",
+          "hint": "Permanently deletes the account and all associated data.",
+          "button": "Delete",
+          "owns_group": "Not possible while the user owns a group. Transfer the ownership first."
+        }
+      },
       "groups": "Groups & roles",
       "no_groups": "No group memberships.",
       "joined": "Joined {date}",
-      "activity": "Activity log (latest 200)",
+      "activity": "Activity",
+      "activity_hint": "The latest 200 entries. They are kept for 30 days.",
       "no_activity": "No entries.",
       "role_changed": "Role changed."
     },
@@ -324,6 +344,273 @@
     "errors": {
       "load": "Info couldn't be loaded.",
       "delete": "The info couldn't be deleted."
+    }
+  },
+  "security": {
+    "title": "Security events",
+    "error": "Security events could not be loaded.",
+    "outcome": {
+      "success": "Succeeded",
+      "failure": "Failed"
+    },
+    "summary": {
+      "hint": "The last {days} days.",
+      "view_all": "All events",
+      "signals": {
+        "events": "Events",
+        "failed_sign_ins": "Failed sign-ins",
+        "lockouts": "Lockouts after failed attempts",
+        "stolen_sessions": "Stolen sessions detected"
+      },
+      "top_events": "Most frequent events",
+      "empty": "No events in this period.",
+      "failure_sources": "Failures by IP address",
+      "failure_sources_hint": "Many accounts from one address point to automated attacks.",
+      "no_failures": "No failures in this period.",
+      "failures": "{count} failure | {count} failures",
+      "accounts": "{count} account | {count} accounts",
+      "last_seen": "Last {date}"
+    },
+    "log": {
+      "back": "Overview",
+      "hint": "The latest 200 matching entries. They are kept for 90 days.",
+      "empty": "No security events yet.",
+      "empty_filtered": "No events match these filters.",
+      "filters": {
+        "type": "Event",
+        "all_types": "All events",
+        "outcome": "Outcome",
+        "all_outcomes": "All outcomes",
+        "ip": "IP: {value}",
+        "userId": "Account: {value}",
+        "remove": "Remove filter “{filter}”",
+        "reset": "Reset filters"
+      },
+      "user": "Account",
+      "actor": "Performed by",
+      "deleted_account": "Deleted account",
+      "group": "Group",
+      "ip": "IP address",
+      "filter_ip": "All events from this IP address",
+      "device": "Device"
+    }
+  },
+  "log": {
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "yes": "Yes",
+    "no": "No",
+    "entries": "{count} entry | {count} entries",
+    "fields": {
+      "itemId": "Task",
+      "todoId": "To-do",
+      "subjectId": "Subject",
+      "courseId": "Course",
+      "tenantId": "Group",
+      "groupId": "Group",
+      "groupName": "Group",
+      "status": "Status",
+      "completed": "Completed",
+      "personalized": "Personalized",
+      "notice": "Notice",
+      "courses": "Courses",
+      "userAgent": "Device",
+      "reason": "Reason",
+      "method": "Method",
+      "factor": "Factor",
+      "secondFactor": "Second factor",
+      "via": "Via",
+      "googleEmail": "Google account",
+      "email": "Email",
+      "passkeyId": "Passkey",
+      "name": "Name",
+      "sessionId": "Session",
+      "inviteId": "Invite",
+      "expiresAt": "Expires",
+      "previousRole": "Previous role",
+      "newRole": "New role",
+      "previousOwnerId": "Previous owner",
+      "announcementId": "Announcement",
+      "content": "Content",
+      "banned": "Banned",
+      "changes": "Changes",
+      "permissions": "Permissions",
+      "codeSent": "Code sent",
+      "reportId": "Report",
+      "targetUserId": "Affected account",
+      "messageId": "Message"
+    },
+    "values": {
+      "reason": {
+        "wrong_password": "Wrong password",
+        "unknown_account": "Unknown account",
+        "banned": "Banned",
+        "no_password": "No password set"
+      },
+      "method": {
+        "password": "Password",
+        "passkey": "Passkey",
+        "google": "Google"
+      },
+      "factor": {
+        "authenticator_app": "Authenticator app",
+        "recovery_code": "Recovery code",
+        "passkey": "Passkey"
+      },
+      "secondFactor": {
+        "authenticator_app": "Authenticator app",
+        "recovery_code": "Recovery code",
+        "passkey": "Passkey"
+      },
+      "via": {
+        "settings": "Account settings",
+        "sign_in": "Sign-in"
+      },
+      "previousRole": {
+        "owner": "Owner",
+        "admin": "Admin",
+        "moderator": "Moderator",
+        "user": "Member"
+      },
+      "newRole": {
+        "owner": "Owner",
+        "admin": "Admin",
+        "moderator": "Moderator",
+        "user": "Member"
+      },
+      "status": {
+        "archived": "Archived",
+        "kept": "Kept"
+      },
+      "notice": {
+        "personalizedTasks": "Personalized tasks",
+        "personalizedSchedule": "Personalized schedule"
+      }
+    },
+    "activity": {
+      "page": {
+        "load": "Opened the app"
+      },
+      "profile": {
+        "personalization": {
+          "update": "Changed personalization"
+        },
+        "preferences": {
+          "update": "Changed preferences"
+        },
+        "notice": {
+          "dismiss": "Dismissed a notice"
+        },
+        "setup": {
+          "complete": "Completed course selection"
+        }
+      },
+      "item": {
+        "create": "Created a task",
+        "update": "Edited a task",
+        "delete": "Deleted a task",
+        "check": "Checked off a task",
+        "uncheck": "Unchecked a task",
+        "pin": "Pinned a task",
+        "unpin": "Unpinned a task",
+        "report": "Reported a task",
+        "note": {
+          "update": "Edited a note"
+        },
+        "visibility": {
+          "set": "Archived or kept a task",
+          "remove": "Restored a task"
+        },
+        "attachment": {
+          "add": "Added an attachment",
+          "remove": "Removed an attachment"
+        }
+      },
+      "todo": {
+        "create": "Created a to-do",
+        "update": "Edited a to-do",
+        "toggle": "Checked or reopened a to-do",
+        "delete": "Deleted a to-do"
+      },
+      "message": {
+        "report": "Reported a message"
+      },
+      "mfa": {
+        "setup": {
+          "started": "Started two-factor setup"
+        }
+      },
+      "group": {
+        "leave": "Left a group"
+      },
+      "group_admin": {
+        "rename": "Renamed a group",
+        "subject": {
+          "create": "Added a subject",
+          "update": "Edited a subject",
+          "delete": "Deleted a subject"
+        },
+        "schedule": {
+          "replace": "Replaced the timetable"
+        }
+      }
+    },
+    "security": {
+      "auth": {
+        "sign_in": "Sign-in",
+        "sign_in_locked": "Sign-in locked",
+        "sign_out": "Sign-out",
+        "second_factor": "Second factor",
+        "second_factor_locked": "Second factor locked",
+        "reauth": "Re-authentication",
+        "reauth_locked": "Re-authentication locked",
+        "refresh_token_reused": "Stolen session detected"
+      },
+      "account": {
+        "created": "Account created",
+        "deleted": "Account deleted",
+        "password_changed": "Password changed",
+        "password_set": "Password set",
+        "password_removed": "Password removed",
+        "password_reset_requested": "Password reset requested",
+        "password_reset": "Password reset",
+        "google_linked": "Google linked",
+        "google_unlinked": "Google unlinked",
+        "data_exported": "Data exported"
+      },
+      "mfa": {
+        "enabled": "Two-factor enabled",
+        "disabled": "Two-factor disabled",
+        "recovery_codes_regenerated": "Recovery codes regenerated"
+      },
+      "passkey": {
+        "added": "Passkey added",
+        "removed": "Passkey removed"
+      },
+      "group": {
+        "created": "Group created",
+        "deleted": "Group deleted",
+        "invite_created": "Invite created",
+        "invite_revoked": "Invite revoked",
+        "invite_accepted": "Invite accepted",
+        "member_role_changed": "Role changed",
+        "member_removed": "Member removed",
+        "member_unbanned": "Member unbanned",
+        "ownership_transferred": "Ownership transferred",
+        "permissions_changed": "Permissions changed"
+      },
+      "admin": {
+        "user_banned": "Admin: user banned",
+        "user_unbanned": "Admin: user unbanned",
+        "user_deleted": "Admin: user deleted",
+        "mfa_reset": "Admin: two-factor reset",
+        "group_deleted": "Admin: group deleted",
+        "access_controls_changed": "Admin: access controls changed",
+        "announcement_created": "Admin: announcement created",
+        "announcement_updated": "Admin: announcement updated",
+        "announcement_deleted": "Admin: announcement deleted",
+        "report_deleted": "Admin: report deleted"
+      }
     }
   }
 }

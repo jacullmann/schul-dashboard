@@ -1,13 +1,17 @@
 use chrono::{DateTime, NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::time::Duration;
+use std::{net::IpAddr, time::Duration};
 use uuid::Uuid;
 
-use crate::common::{
-    hetzner::MetricPoint,
-    pagination::{PageNumber, SortOrder},
-    role::MemberRole,
+use crate::{
+    common::{
+        hetzner::MetricPoint,
+        name_generator::generate_user_name,
+        pagination::{PageNumber, SortOrder},
+        role::MemberRole,
+    },
+    security_log::Outcome,
 };
 
 #[derive(Debug, Deserialize)]
@@ -166,6 +170,18 @@ pub struct WeeklyRhythmDto {
     pub active_users: [[i64; HOURS_PER_DAY]; DAYS_PER_WEEK],
 }
 
+/// An account as the admin queries select it, before its name is derived.
+#[derive(Debug)]
+pub struct AdminUserRow {
+    pub id: Uuid,
+    pub email: String,
+    pub mfa_enabled: bool,
+    pub is_superadmin: bool,
+    pub is_banned: bool,
+    pub created_at: DateTime<Utc>,
+    pub last_login_at: Option<DateTime<Utc>>,
+}
+
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AdminUserDto {
@@ -177,6 +193,21 @@ pub struct AdminUserDto {
     pub is_banned: bool,
     pub created_at: DateTime<Utc>,
     pub last_login_at: Option<DateTime<Utc>>,
+}
+
+impl From<AdminUserRow> for AdminUserDto {
+    fn from(row: AdminUserRow) -> Self {
+        Self {
+            username: generate_user_name(&row.id.to_string()),
+            id: row.id,
+            email: row.email,
+            mfa_enabled: row.mfa_enabled,
+            is_superadmin: row.is_superadmin,
+            is_banned: row.is_banned,
+            created_at: row.created_at,
+            last_login_at: row.last_login_at,
+        }
+    }
 }
 
 #[derive(Debug, Serialize)]
@@ -231,6 +262,55 @@ pub struct SecurityEventDto {
     pub user_agent: Option<String>,
     pub metadata: Value,
     pub created_at: DateTime<Utc>,
+}
+
+/// Narrows the security log down; every filter left out matches everything.
+#[derive(Debug, Default, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SecurityEventsQuery {
+    pub event_type: Option<String>,
+    pub outcome: Option<Outcome>,
+    pub ip: Option<IpAddr>,
+    /// Matches the events about this account as well as those it caused.
+    pub user_id: Option<Uuid>,
+}
+
+impl SecurityEventsQuery {
+    pub fn event_type(&self) -> Option<&str> {
+        self.event_type.as_deref().filter(|t| !t.is_empty())
+    }
+}
+
+/// How often each kind of event happened lately, and where failures came from.
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SecurityEventSummaryDto {
+    pub days: i32,
+    /// Most frequent first.
+    pub event_counts: Vec<SecurityEventCountDto>,
+    /// The addresses with the most failures, most first.
+    pub failure_sources: Vec<FailureSourceDto>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SecurityEventCountDto {
+    pub event_type: String,
+    pub outcome: String,
+    pub count: i64,
+}
+
+/// One address many failures came from. Attempts against unknown accounts
+/// name none, so `account_count` counts only the existing accounts targeted:
+/// many of them from one address points to credential stuffing rather than
+/// a forgotten password.
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FailureSourceDto {
+    pub ip_address: String,
+    pub count: i64,
+    pub account_count: i64,
+    pub last_seen_at: DateTime<Utc>,
 }
 
 /// The time windows, ending now, that the server metrics can be shown for. A fixed set keeps
@@ -301,6 +381,21 @@ mod tests {
             assert_eq!(step.subsec_nanos(), 0, "{range:?}");
             assert_eq!(range.span().as_secs() / step.as_secs(), 240, "{range:?}");
         }
+    }
+
+    #[test]
+    fn security_event_filters_skip_an_empty_type_and_reject_unknown_outcomes() {
+        let parse = |raw: serde_json::Value| serde_json::from_value::<SecurityEventsQuery>(raw);
+
+        let query =
+            parse(serde_json::json!({ "eventType": "", "outcome": "failure", "ip": "10.0.0.1" }))
+                .expect("valid filters");
+        assert_eq!(query.event_type(), None);
+        assert_eq!(query.outcome, Some(Outcome::Failure));
+        assert_eq!(query.ip, Some(IpAddr::from([10, 0, 0, 1])));
+
+        assert!(parse(serde_json::json!({ "outcome": "maybe" })).is_err());
+        assert!(parse(serde_json::json!({ "ip": "not-an-ip" })).is_err());
     }
 
     #[test]

@@ -33,12 +33,14 @@ export interface CleanupJob {
   overdueCount: number;
 }
 
+export type SecurityEventOutcome = 'success' | 'failure';
+
 /** An entry of the security log. The ids outlive the accounts and groups
  * they name; the email or group name is there only while those exist. */
 export interface SecurityEvent {
   id: string;
   eventType: string;
-  outcome: 'success' | 'failure';
+  outcome: SecurityEventOutcome;
   userId: string | null;
   userEmail: string | null;
   actorId: string | null;
@@ -49,6 +51,37 @@ export interface SecurityEvent {
   userAgent: string | null;
   metadata: Record<string, unknown>;
   createdAt: string;
+}
+
+/** Narrows the security log down; a filter left out matches everything. */
+export interface SecurityEventFilters {
+  eventType?: string;
+  outcome?: SecurityEventOutcome;
+  ip?: string;
+  /** Events about this account as well as those it caused. */
+  userId?: string;
+}
+
+export interface SecurityEventCount {
+  eventType: string;
+  outcome: SecurityEventOutcome;
+  count: number;
+}
+
+/** An address failures came from. `accountCount` counts only the existing
+ * accounts targeted; attempts against unknown ones name none. */
+export interface FailureSource {
+  ipAddress: string;
+  count: number;
+  accountCount: number;
+  lastSeenAt: string;
+}
+
+/** The security log of the past `days` at a glance, most frequent first. */
+export interface SecurityEventSummary {
+  days: number;
+  eventCounts: SecurityEventCount[];
+  failureSources: FailureSource[];
 }
 
 export interface DailyActivity {

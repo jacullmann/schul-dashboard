@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { Ban, Unlock, Trash2, FileText, ShieldOff } from '@lucide/vue';
+import { useRouter, type RouteLocationRaw } from 'vue-router';
 import {
   useSuperAdminUsers,
   USER_STATUS_FILTERS,
@@ -10,7 +10,6 @@ import { useSuperAdminFormat } from '../composables/useSuperAdminFormat';
 import AdminListToolbar from '../components/AdminListToolbar.vue';
 import AdminPagination from '../components/AdminPagination.vue';
 import AdminSortHeader from '../components/AdminSortHeader.vue';
-import UserDetailsDrawer from '../components/UserDetailsDrawer.vue';
 import type { SuperAdminUser, UserStatusFilter } from '../types';
 
 const {
@@ -25,12 +24,10 @@ const {
   setPage,
   toggleSort,
   reload,
-  toggleBan,
-  resetMfa,
-  deleteUser,
 } = useSuperAdminUsers();
 const { fmtDate } = useSuperAdminFormat();
 const { t } = useI18n();
+const router = useRouter();
 
 const statusOptions = computed(() =>
   USER_STATUS_FILTERS.map((status) => ({
@@ -39,7 +36,22 @@ const statusOptions = computed(() =>
   })),
 );
 
-const selectedUser = ref<SuperAdminUser | null>(null);
+const userRoute = (user: SuperAdminUser): RouteLocationRaw => ({
+  name: 'admin-user',
+  params: { userId: user.id },
+});
+
+/**
+ * The whole row opens the user. The email inside is a real link, so the row
+ * can also be reached by keyboard and opened in a new tab; clicks on it are
+ * left to the link.
+ */
+function openUser(user: SuperAdminUser, event: MouseEvent) {
+  if (event.target instanceof Element && event.target.closest('a')) return;
+  // Selecting an address to copy it is no request to open the user.
+  if (window.getSelection()?.toString()) return;
+  void router.push(userRoute(user));
+}
 </script>
 
 <template>
@@ -106,16 +118,21 @@ const selectedUser = ref<SuperAdminUser | null>(null);
               :order="params.order"
               @sort="toggleSort"
             />
-            <th>{{ t('admin.users.table.actions') }}</th>
           </tr>
         </thead>
         <tbody>
           <tr
             v-for="u in users"
             :key="u.id"
+            class="group cursor-pointer"
             :class="{ 'row-banned': u.isBanned }"
+            @click="openUser(u, $event)"
           >
-            <td>{{ u.email }}</td>
+            <td>
+              <RouterLink :to="userRoute(u)" class="group-hover:underline">{{
+                u.email
+              }}</RouterLink>
+            </td>
             <td class="whitespace-nowrap">{{ u.username }}</td>
             <td class="whitespace-nowrap">
               <span v-if="u.isSuperadmin" class="badge text-indigo-500">{{
@@ -132,57 +149,6 @@ const selectedUser = ref<SuperAdminUser | null>(null);
             <td class="cell-date">
               {{ u.lastLoginAt ? fmtDate(u.lastLoginAt) : '—' }}
             </td>
-            <td class="py-0! px-2! min-w-0!">
-              <div class="flex gap-0.5 justify-end">
-                <BaseTooltip
-                  :content="t('admin.users.actions.details')"
-                  placement="bottom"
-                >
-                  <BaseButton
-                    size="sm"
-                    :icon="FileText"
-                    @click="selectedUser = u"
-                  />
-                </BaseTooltip>
-                <BaseTooltip
-                  v-if="u.mfaEnabled"
-                  :content="t('admin.users.actions.reset_mfa')"
-                  placement="bottom"
-                >
-                  <BaseButton
-                    size="sm"
-                    :icon="ShieldOff"
-                    @click="resetMfa(u)"
-                  />
-                </BaseTooltip>
-                <template v-if="!u.isSuperadmin">
-                  <BaseTooltip
-                    :content="
-                      u.isBanned
-                        ? t('admin.users.actions.unban')
-                        : t('admin.users.actions.ban')
-                    "
-                    placement="bottom"
-                  >
-                    <BaseButton
-                      size="sm"
-                      :icon="u.isBanned ? Unlock : Ban"
-                      @click="toggleBan(u)"
-                    />
-                  </BaseTooltip>
-                  <BaseTooltip
-                    :content="t('common.buttons.delete')"
-                    placement="bottom"
-                  >
-                    <BaseButton
-                      size="sm"
-                      :icon="Trash2"
-                      @click="deleteUser(u)"
-                    />
-                  </BaseTooltip>
-                </template>
-              </div>
-            </td>
           </tr>
         </tbody>
       </table>
@@ -195,8 +161,6 @@ const selectedUser = ref<SuperAdminUser | null>(null);
       @update:page="setPage"
     />
   </template>
-
-  <UserDetailsDrawer :user="selectedUser" @close="selectedUser = null" />
 </template>
 
 <style scoped>

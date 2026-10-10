@@ -127,22 +127,6 @@
         }
       }
     },
-    "security_events": {
-      "title": "Sicherheitsereignisse",
-      "hint": "Die neuesten 200 Einträge über alle Konten. Sie werden 90 Tage aufbewahrt.",
-      "empty": "Noch keine Sicherheitsereignisse.",
-      "error": "Sicherheitsereignisse konnten nicht geladen werden.",
-      "retry": "Erneut versuchen",
-      "outcome": {
-        "success": "Erfolg",
-        "failure": "Fehlschlag"
-      },
-      "user": "Konto",
-      "actor": "Ausgeführt von",
-      "group": "Gruppe",
-      "ip": "IP-Adresse",
-      "user_agent": "Browser"
-    },
     "errors": {
       "load": "Statistiken konnten nicht geladen werden."
     },
@@ -182,8 +166,7 @@
       "username": "Benutzername",
       "status": "Status",
       "registered": "Registriert",
-      "last_login": "Letzte Anmeldung",
-      "actions": "Aktionen"
+      "last_login": "Letzte Anmeldung"
     },
     "status": {
       "admin": "Admin",
@@ -191,17 +174,54 @@
       "active": "Aktiv"
     },
     "actions": {
-      "details": "Details & Protokoll",
       "ban": "Bannen",
       "unban": "Entbannen",
       "reset_mfa": "Zwei-Faktor-Authentifizierung zurücksetzen"
     },
     "details": {
       "title": "Benutzerdetails",
+      "back": "Benutzer",
+      "not_found": "Diesen Benutzer gibt es nicht (mehr).",
+      "facts": {
+        "registered": "Registriert",
+        "last_login": "Letzte Anmeldung",
+        "never": "Noch nie",
+        "mfa": "Zwei-Faktor",
+        "mfa_on": "Aktiv",
+        "mfa_off": "Nicht eingerichtet",
+        "groups": "Gruppen"
+      },
+      "security_log": "Sicherheitsprotokoll",
+      "manage": {
+        "title": "Kontoverwaltung",
+        "superadmin_hint": "Superadmins können weder gebannt noch gelöscht werden.",
+        "ban": {
+          "label": "Benutzer bannen",
+          "hint": "Meldet den Benutzer auf allen Geräten ab und verhindert jede weitere Anmeldung.",
+          "button": "Bannen"
+        },
+        "unban": {
+          "label": "Bann aufheben",
+          "hint": "Der Benutzer kann sich danach wieder anmelden.",
+          "button": "Entbannen"
+        },
+        "reset_mfa": {
+          "label": "Zwei-Faktor-Authentifizierung zurücksetzen",
+          "hint": "Nur für bestätigte Supportanfragen, wenn Authenticator und Wiederherstellungscodes verloren sind.",
+          "button": "Zurücksetzen"
+        },
+        "delete": {
+          "label": "Benutzer löschen",
+          "hint": "Löscht das Konto und alle zugehörigen Daten unwiderruflich.",
+          "button": "Löschen",
+          "owns_group": "Nicht möglich, solange der Benutzer Besitzer einer Gruppe ist. Übertrage zuerst den Besitz."
+        }
+      },
       "groups": "Gruppen & Rollen",
       "no_groups": "Keine Gruppenmitgliedschaften.",
       "joined": "Beigetreten am {date}",
-      "activity": "Aktivitätsprotokoll (letzte 200)",
+      "activity": "Aktivität",
+      "activity_hint": "Die neuesten 200 Einträge. Sie werden 30 Tage aufbewahrt.",
       "no_activity": "Keine Einträge.",
       "role_changed": "Rolle geändert."
     },
@@ -324,6 +344,273 @@
     "errors": {
       "load": "Infos konnten nicht geladen werden.",
       "delete": "Info konnte nicht gelöscht werden."
+    }
+  },
+  "security": {
+    "title": "Sicherheitsereignisse",
+    "error": "Sicherheitsereignisse konnten nicht geladen werden.",
+    "outcome": {
+      "success": "Erfolgreich",
+      "failure": "Fehlgeschlagen"
+    },
+    "summary": {
+      "hint": "Die letzten {days} Tage.",
+      "view_all": "Alle Ereignisse",
+      "signals": {
+        "events": "Ereignisse",
+        "failed_sign_ins": "Fehlgeschlagene Anmeldungen",
+        "lockouts": "Sperren nach Fehlversuchen",
+        "stolen_sessions": "Gestohlene Sitzungen erkannt"
+      },
+      "top_events": "Häufigste Ereignisse",
+      "empty": "Keine Ereignisse in diesem Zeitraum.",
+      "failure_sources": "Fehlschläge nach IP-Adresse",
+      "failure_sources_hint": "Viele Konten von einer Adresse deuten auf automatisierte Angriffe hin.",
+      "no_failures": "Keine Fehlschläge in diesem Zeitraum.",
+      "failures": "{count} Fehlschlag | {count} Fehlschläge",
+      "accounts": "{count} Konto | {count} Konten",
+      "last_seen": "Zuletzt {date}"
+    },
+    "log": {
+      "back": "Übersicht",
+      "hint": "Die neuesten 200 passenden Einträge. Sie werden 90 Tage aufbewahrt.",
+      "empty": "Noch keine Sicherheitsereignisse.",
+      "empty_filtered": "Keine Ereignisse passen zu diesen Filtern.",
+      "filters": {
+        "type": "Ereignis",
+        "all_types": "Alle Ereignisse",
+        "outcome": "Ergebnis",
+        "all_outcomes": "Alle Ergebnisse",
+        "ip": "IP: {value}",
+        "userId": "Konto: {value}",
+        "remove": "Filter „{filter}“ entfernen",
+        "reset": "Filter zurücksetzen"
+      },
+      "user": "Konto",
+      "actor": "Ausgeführt von",
+      "deleted_account": "Gelöschtes Konto",
+      "group": "Gruppe",
+      "ip": "IP-Adresse",
+      "filter_ip": "Alle Ereignisse dieser IP-Adresse",
+      "device": "Gerät"
+    }
+  },
+  "log": {
+    "today": "Heute",
+    "yesterday": "Gestern",
+    "yes": "Ja",
+    "no": "Nein",
+    "entries": "{count} Eintrag | {count} Einträge",
+    "fields": {
+      "itemId": "Aufgabe",
+      "todoId": "To-do",
+      "subjectId": "Fach",
+      "courseId": "Kurs",
+      "tenantId": "Gruppe",
+      "groupId": "Gruppe",
+      "groupName": "Gruppe",
+      "status": "Status",
+      "completed": "Erledigt",
+      "personalized": "Personalisiert",
+      "notice": "Hinweis",
+      "courses": "Kurse",
+      "userAgent": "Gerät",
+      "reason": "Grund",
+      "method": "Methode",
+      "factor": "Faktor",
+      "secondFactor": "Zweiter Faktor",
+      "via": "Über",
+      "googleEmail": "Google-Konto",
+      "email": "E-Mail",
+      "passkeyId": "Passkey",
+      "name": "Name",
+      "sessionId": "Sitzung",
+      "inviteId": "Einladung",
+      "expiresAt": "Läuft ab",
+      "previousRole": "Vorherige Rolle",
+      "newRole": "Neue Rolle",
+      "previousOwnerId": "Vorheriger Besitzer",
+      "announcementId": "Info",
+      "content": "Inhalt",
+      "banned": "Gebannt",
+      "changes": "Änderungen",
+      "permissions": "Berechtigungen",
+      "codeSent": "Code gesendet",
+      "reportId": "Meldung",
+      "targetUserId": "Betroffenes Konto",
+      "messageId": "Nachricht"
+    },
+    "values": {
+      "reason": {
+        "wrong_password": "Falsches Passwort",
+        "unknown_account": "Unbekanntes Konto",
+        "banned": "Gebannt",
+        "no_password": "Kein Passwort festgelegt"
+      },
+      "method": {
+        "password": "Passwort",
+        "passkey": "Passkey",
+        "google": "Google"
+      },
+      "factor": {
+        "authenticator_app": "Authenticator-App",
+        "recovery_code": "Wiederherstellungscode",
+        "passkey": "Passkey"
+      },
+      "secondFactor": {
+        "authenticator_app": "Authenticator-App",
+        "recovery_code": "Wiederherstellungscode",
+        "passkey": "Passkey"
+      },
+      "via": {
+        "settings": "Kontoeinstellungen",
+        "sign_in": "Anmeldung"
+      },
+      "previousRole": {
+        "owner": "Besitzer",
+        "admin": "Admin",
+        "moderator": "Moderator",
+        "user": "Mitglied"
+      },
+      "newRole": {
+        "owner": "Besitzer",
+        "admin": "Admin",
+        "moderator": "Moderator",
+        "user": "Mitglied"
+      },
+      "status": {
+        "archived": "Archiviert",
+        "kept": "Behalten"
+      },
+      "notice": {
+        "personalizedTasks": "Personalisierte Aufgaben",
+        "personalizedSchedule": "Personalisierter Stundenplan"
+      }
+    },
+    "activity": {
+      "page": {
+        "load": "App geöffnet"
+      },
+      "profile": {
+        "personalization": {
+          "update": "Personalisierung geändert"
+        },
+        "preferences": {
+          "update": "Einstellungen geändert"
+        },
+        "notice": {
+          "dismiss": "Hinweis ausgeblendet"
+        },
+        "setup": {
+          "complete": "Kurswahl abgeschlossen"
+        }
+      },
+      "item": {
+        "create": "Aufgabe erstellt",
+        "update": "Aufgabe bearbeitet",
+        "delete": "Aufgabe gelöscht",
+        "check": "Aufgabe abgehakt",
+        "uncheck": "Haken entfernt",
+        "pin": "Aufgabe angeheftet",
+        "unpin": "Aufgabe gelöst",
+        "report": "Aufgabe gemeldet",
+        "note": {
+          "update": "Notiz bearbeitet"
+        },
+        "visibility": {
+          "set": "Aufgabe archiviert oder behalten",
+          "remove": "Archivierung aufgehoben"
+        },
+        "attachment": {
+          "add": "Anhang hinzugefügt",
+          "remove": "Anhang entfernt"
+        }
+      },
+      "todo": {
+        "create": "To-do erstellt",
+        "update": "To-do bearbeitet",
+        "toggle": "To-do abgehakt oder geöffnet",
+        "delete": "To-do gelöscht"
+      },
+      "message": {
+        "report": "Nachricht gemeldet"
+      },
+      "mfa": {
+        "setup": {
+          "started": "Zwei-Faktor-Einrichtung begonnen"
+        }
+      },
+      "group": {
+        "leave": "Gruppe verlassen"
+      },
+      "group_admin": {
+        "rename": "Gruppe umbenannt",
+        "subject": {
+          "create": "Fach angelegt",
+          "update": "Fach bearbeitet",
+          "delete": "Fach gelöscht"
+        },
+        "schedule": {
+          "replace": "Stundenplan ersetzt"
+        }
+      }
+    },
+    "security": {
+      "auth": {
+        "sign_in": "Anmeldung",
+        "sign_in_locked": "Anmeldung gesperrt",
+        "sign_out": "Abmeldung",
+        "second_factor": "Zweiter Faktor",
+        "second_factor_locked": "Zweiter Faktor gesperrt",
+        "reauth": "Erneute Bestätigung",
+        "reauth_locked": "Erneute Bestätigung gesperrt",
+        "refresh_token_reused": "Gestohlene Sitzung erkannt"
+      },
+      "account": {
+        "created": "Konto erstellt",
+        "deleted": "Konto gelöscht",
+        "password_changed": "Passwort geändert",
+        "password_set": "Passwort festgelegt",
+        "password_removed": "Passwort entfernt",
+        "password_reset_requested": "Passwort-Reset angefordert",
+        "password_reset": "Passwort zurückgesetzt",
+        "google_linked": "Google verknüpft",
+        "google_unlinked": "Google-Verknüpfung entfernt",
+        "data_exported": "Daten exportiert"
+      },
+      "mfa": {
+        "enabled": "Zwei-Faktor aktiviert",
+        "disabled": "Zwei-Faktor deaktiviert",
+        "recovery_codes_regenerated": "Wiederherstellungscodes erneuert"
+      },
+      "passkey": {
+        "added": "Passkey hinzugefügt",
+        "removed": "Passkey entfernt"
+      },
+      "group": {
+        "created": "Gruppe erstellt",
+        "deleted": "Gruppe gelöscht",
+        "invite_created": "Einladung erstellt",
+        "invite_revoked": "Einladung widerrufen",
+        "invite_accepted": "Einladung angenommen",
+        "member_role_changed": "Rolle geändert",
+        "member_removed": "Mitglied entfernt",
+        "member_unbanned": "Mitglied entbannt",
+        "ownership_transferred": "Besitz übertragen",
+        "permissions_changed": "Berechtigungen geändert"
+      },
+      "admin": {
+        "user_banned": "Admin: Benutzer gebannt",
+        "user_unbanned": "Admin: Benutzer entbannt",
+        "user_deleted": "Admin: Benutzer gelöscht",
+        "mfa_reset": "Admin: Zwei-Faktor zurückgesetzt",
+        "group_deleted": "Admin: Gruppe gelöscht",
+        "access_controls_changed": "Admin: Zugangssteuerung geändert",
+        "announcement_created": "Admin: Info erstellt",
+        "announcement_updated": "Admin: Info bearbeitet",
+        "announcement_deleted": "Admin: Info gelöscht",
+        "report_deleted": "Admin: Meldung gelöscht"
+      }
     }
   }
 }

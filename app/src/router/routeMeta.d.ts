@@ -1,4 +1,5 @@
 import 'vue-router';
+import type { AdminTab } from '@/modules/admin/types';
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -17,6 +18,8 @@ declare module 'vue-router' {
     fullWidth?: boolean;
     /** The navigation entry shown as active, when not the route's own. */
     navItem?: string;
+    /** The superadmin tab shown as active, inherited by the tab's subpages. */
+    adminTab?: AdminTab;
     /** The page puts the window where it belongs itself on every entry. */
     restoresScroll?: boolean;
   }

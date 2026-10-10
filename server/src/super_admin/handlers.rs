@@ -105,6 +105,14 @@ pub async fn list_users(
     ))
 }
 
+pub async fn get_user(
+    State(s): State<AppState>,
+    _: SuperAdmin,
+    Path(id): Path<Uuid>,
+) -> AppResult<Json<AdminUserDto>> {
+    Ok(Json(SuperAdminService::from_state(&s).get_user(id).await?))
+}
+
 pub async fn get_user_activity(
     State(s): State<AppState>,
     _: SuperAdmin,
@@ -120,10 +128,22 @@ pub async fn get_user_activity(
 pub async fn get_security_events(
     State(s): State<AppState>,
     _: SuperAdmin,
+    Query(q): Query<SecurityEventsQuery>,
 ) -> AppResult<Json<Vec<SecurityEventDto>>> {
     Ok(Json(
         SuperAdminService::from_state(&s)
-            .get_security_events()
+            .get_security_events(&q)
+            .await?,
+    ))
+}
+
+pub async fn get_security_event_summary(
+    State(s): State<AppState>,
+    _: SuperAdmin,
+) -> AppResult<Json<SecurityEventSummaryDto>> {
+    Ok(Json(
+        SuperAdminService::from_state(&s)
+            .get_security_event_summary()
             .await?,
     ))
 }
