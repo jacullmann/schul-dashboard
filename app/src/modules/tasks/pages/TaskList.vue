@@ -204,7 +204,6 @@ onDeactivated(() => {
   <div class="flex flex-1 flex-col p-4">
     <div :class="{ 'animate-enter': !hasEntered }">
       <PageHeader>
-        {{ t('tasks.list.title') }}
         <template #info>
           <InfoModal
             :tooltip="t('tasks.list.infopop.tooltip')"

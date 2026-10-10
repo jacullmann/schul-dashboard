@@ -108,8 +108,6 @@ const GROUPS_LIST_ENTRANCE_ORDER = 2;
         }"
       >
         <PageHeader class="max-md:px-4">
-          {{ t('groups.list.your_groups') }}
-
           <template #action>
             <BaseTooltip
               :content="t('groups.list.tooltip.create_group')"

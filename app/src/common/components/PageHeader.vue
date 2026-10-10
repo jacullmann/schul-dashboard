@@ -2,7 +2,7 @@
 <template>
   <BaseRow justify="between" class="mb-4 flex-nowrap!">
     <BaseRow>
-      <h2>
+      <h2 v-if="$slots.default">
         <slot></slot>
       </h2>
 

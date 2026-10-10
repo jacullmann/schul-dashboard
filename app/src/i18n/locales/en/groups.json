@@ -442,8 +442,7 @@
       "subjects": "Subjects",
       "announcements": "Announcements",
       "subject_info": "Subject info"
-    },
-    "go_back": "Go Back"
+    }
   },
   "delete_modal": {
     "title": "Delete group",

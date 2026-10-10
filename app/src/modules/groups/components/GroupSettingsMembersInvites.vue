@@ -104,9 +104,6 @@ function getInviteUrl(token: string): string {
 <template>
   <div class="flex flex-1 flex-col">
     <div class="flex items-center justify-between gap-4 mb-4">
-      <PageHeader class="m-0!">
-        {{ t('groups.settings.members.invite_links.title') }}
-      </PageHeader>
       <BaseButton
         type="button"
         variant="action"

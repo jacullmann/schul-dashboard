@@ -212,8 +212,6 @@ function confirmRemove() {
     </div>
 
     <PageHeader>
-      {{ t('groups.settings.members.title') }}
-
       <template #info>
         <InfoModal
           :tooltip="t('groups.settings.members.info.tooltip')"

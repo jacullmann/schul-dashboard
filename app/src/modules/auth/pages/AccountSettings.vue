@@ -4,7 +4,6 @@ import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import {
-  ArrowLeft,
   CalendarDays,
   Home,
   Contrast,
@@ -17,6 +16,7 @@ import { useUserStore } from '@/stores/userStore';
 import { useDeleteAccountModal } from '@/stores/modalStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useReturnRoute } from '@/common/composables/useReturnRoute';
+import { useHeaderOverlay } from '@/core/composables/useHeaderOverlay';
 import { type AdminNavItem } from '@/layouts/AdminLayout.vue';
 import AccountSettingsSecurity from '@/modules/auth/components/AccountSettingsSecurity.vue';
 import AccountSettingsAccount from '@/modules/auth/components/AccountSettingsAccount.vue';
@@ -25,6 +25,7 @@ import AccountSettingsGeneral from '@/modules/auth/components/AccountSettingsGen
 import AccountSettingsAppearance from '@/modules/auth/components/AccountSettingsAppearance.vue';
 import AccountSettingsTasks from '@/modules/auth/components/AccountSettingsTasks.vue';
 import AccountSettingsSchedule from '@/modules/auth/components/AccountSettingsSchedule.vue';
+import AccountSettingsProfile from '@/modules/auth/components/AccountSettingsProfile.vue';
 import LegalLinks from '@/modules/auth/components/LegalLinks.vue';
 
 const route = useRoute();
@@ -107,8 +108,10 @@ const activeTabLabel = computed(() => {
 
 const transitionDirection = ref<'forward' | 'backward'>('forward');
 
-const transitionName = computed(() =>
-  transitionDirection.value === 'forward' ? 'slide-forward' : 'slide-backward',
+const paneKey = computed(() =>
+  activeTab.value
+    ? [activeTab.value, route.params.subTab].filter(Boolean).join('-')
+    : 'master',
 );
 
 watch(
@@ -145,172 +148,62 @@ function goBack() {
     activeTab.value = '';
   }
 }
+
+useHeaderOverlay(() =>
+  activeTab.value
+    ? { title: activeTabLabel.value, back: goBack }
+    : { title: t('auth.account_settings.title'), back: leaveSettings },
+);
 </script>
 
 <template>
-  <div class="phone-settings-container">
-    <Transition :name="transitionName">
-      <div v-if="!activeTab" key="master" class="settings-pane master-pane">
-        <header
-          class="px-4 py-2 md:px-6 bg-canvas border-b border-ghost-border shrink-0"
-        >
-          <div class="w-full max-w-200 mx-auto flex items-center gap-2">
-            <BaseButton
-              variant="ghost"
-              on="ghost"
-              :aria-label="t('auth.account_settings.back')"
-              :icon="ArrowLeft"
-              @click="leaveSettings"
-            />
-            <div>
-              <h2>{{ t('auth.account_settings.title') }}</h2>
-              <div
-                v-if="user?.email"
-                class="text-on-ghost-muted font-semibold text-base"
-              >
-                {{ user.email }}
-              </div>
-            </div>
-          </div>
-        </header>
+  <SettingsPaneTransition :pane-key="paneKey" :direction="transitionDirection">
+    <template v-if="!activeTab">
+      <div class="flex-1 py-4 md:p-4">
+        <div class="flex flex-col max-w-200 mx-auto">
+          <AccountSettingsProfile class="px-6 md:px-3.5 pb-6" />
 
-        <div class="flex-1 overflow-y-auto overscroll-contain py-4 md:p-4">
-          <div class="flex flex-col max-w-200 mx-auto">
-            <BaseList
-              v-for="(item, index) in navItems"
-              :key="item.id"
-              :separator="index !== navItems.length - 1"
-              @click="selectTab(item.id)"
-            >
-              <template #icon>
-                <component :is="item.icon" :size="20" :stroke-width="1.8" />
-              </template>
-              <template #label>
-                {{ item.label }}
-              </template>
-            </BaseList>
+          <BaseList
+            v-for="(item, index) in navItems"
+            :key="item.id"
+            :separator="index !== navItems.length - 1"
+            @click="selectTab(item.id)"
+          >
+            <template #icon>
+              <component :is="item.icon" :size="20" :stroke-width="1.8" />
+            </template>
+            <template #label>
+              {{ item.label }}
+            </template>
+          </BaseList>
 
-            <LegalLinks class="mt-8 mb-4" />
-          </div>
+          <LegalLinks class="mt-8 mb-4" />
         </div>
       </div>
+    </template>
 
-      <div
-        v-else
-        :key="
-          activeTab + (route.params.subTab ? '-' + route.params.subTab : '')
-        "
-        class="settings-pane detail-pane"
-      >
-        <header
-          class="flex items-center py-2 px-4 md:px-6 bg-canvas border-b border-ghost-border shrink-0"
-        >
-          <div class="max-w-250 my-0 mx-auto flex items-center w-full gap-2">
-            <BaseButton
-              variant="ghost"
-              on="ghost"
-              :aria-label="t('auth.account_settings.back')"
-              :icon="ArrowLeft"
-              @click="goBack"
-            />
-            <h2>{{ activeTabLabel }}</h2>
-          </div>
-        </header>
+    <template v-else>
+      <div class="flex-1 p-6 pt-4 md:py-8">
+        <div class="w-full max-w-250 mx-auto">
+          <AccountSettingsSecurity v-if="activeTab === 'security'" />
 
-        <div
-          class="flex-1 overflow-y-auto overscroll-contain p-6 pt-4 md:py-8 bg-canvas"
-        >
-          <div class="w-full max-w-250 mx-auto">
-            <AccountSettingsSecurity v-if="activeTab === 'security'" />
+          <AccountSettingsAccount
+            v-else-if="activeTab === 'account'"
+            :email="user?.email ?? ''"
+            @delete-account="deleteAccountModal.open()"
+          />
 
-            <AccountSettingsAccount
-              v-else-if="activeTab === 'account'"
-              :email="user?.email ?? ''"
-              @delete-account="deleteAccountModal.open()"
-            />
+          <AccountSettingsGeneral v-else-if="activeTab === 'general'" />
 
-            <AccountSettingsGeneral v-else-if="activeTab === 'general'" />
+          <AccountSettingsAppearance v-else-if="activeTab === 'appearance'" />
 
-            <AccountSettingsAppearance v-else-if="activeTab === 'appearance'" />
+          <AccountSettingsDashboard v-else-if="activeTab === 'dashboard'" />
 
-            <AccountSettingsDashboard v-else-if="activeTab === 'dashboard'" />
+          <AccountSettingsTasks v-else-if="activeTab === 'tasks'" />
 
-            <AccountSettingsTasks v-else-if="activeTab === 'tasks'" />
-
-            <AccountSettingsSchedule v-else-if="activeTab === 'schedule'" />
-          </div>
+          <AccountSettingsSchedule v-else-if="activeTab === 'schedule'" />
         </div>
       </div>
-    </Transition>
-  </div>
+    </template>
+  </SettingsPaneTransition>
 </template>
-
-<style scoped>
-.phone-settings-container {
-  position: relative;
-  width: 100%;
-  height: calc(100dvh - var(--header-height));
-  overflow: hidden;
-  background: var(--color-canvas);
-  display: flex;
-}
-
-.settings-pane {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  background: var(--color-canvas);
-  overflow: hidden;
-}
-
-.slide-forward-enter-active,
-.slide-forward-leave-active,
-.slide-backward-enter-active,
-.slide-backward-leave-active {
-  transition:
-    transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 0.45s ease;
-}
-
-.slide-forward-enter-from {
-  transform: translateX(100%);
-  z-index: 2;
-}
-.slide-forward-enter-to {
-  transform: translateX(0);
-  z-index: 2;
-}
-.slide-forward-leave-from {
-  transform: translateX(0);
-  opacity: 1;
-  z-index: 1;
-}
-.slide-forward-leave-to {
-  transform: translateX(-15%);
-  opacity: 0.6;
-  z-index: 1;
-}
-
-.slide-backward-enter-from {
-  transform: translateX(-15%);
-  opacity: 0.6;
-  z-index: 1;
-}
-.slide-backward-enter-to {
-  transform: translateX(0);
-  opacity: 1;
-  z-index: 1;
-}
-.slide-backward-leave-from {
-  transform: translateX(0);
-  z-index: 2;
-}
-.slide-backward-leave-to {
-  transform: translateX(100%);
-  z-index: 2;
-}
-</style>

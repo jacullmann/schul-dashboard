@@ -9,10 +9,10 @@ import {
   Key,
   Library,
   Cog,
-  ArrowLeft,
   GraduationCap,
 } from '@lucide/vue';
 import { useGroupPageId } from '@/core/composables/useGroupPageId';
+import { useHeaderOverlay } from '@/core/composables/useHeaderOverlay';
 import { useGroupSettingsAccess } from '@/modules/groups/composables/useGroupSettingsAccess';
 import { useReturnRoute } from '@/common/composables/useReturnRoute';
 import { type AdminNavItem } from '@/layouts/AdminLayout.vue';
@@ -104,8 +104,10 @@ const navItems = computed<AdminNavItem[]>(() => [
 
 const transitionDirection = ref<'forward' | 'backward'>('forward');
 
-const transitionName = computed(() =>
-  transitionDirection.value === 'forward' ? 'slide-forward' : 'slide-backward',
+const paneKey = computed(() =>
+  activeTab.value
+    ? [activeTab.value, route.params.subTab].filter(Boolean).join('-')
+    : 'master',
 );
 
 const activeTabLabel = computed(() => {
@@ -160,188 +162,73 @@ function goBack() {
     activeTab.value = '';
   }
 }
+
+useHeaderOverlay(() =>
+  activeTab.value
+    ? { title: activeTabLabel.value, back: goBack }
+    : { title: t('groups.settings.title'), back: leaveSettings },
+);
 </script>
 
 <template>
-  <div class="phone-settings-container">
-    <Transition :name="transitionName">
-      <div v-if="!activeTab" key="master" class="settings-pane master-pane">
-        <header
-          class="px-4 py-2 md:px-6 bg-canvas border-b border-ghost-border shrink-0"
-        >
-          <div class="w-full max-w-200 mx-auto flex items-center gap-2">
-            <BaseButton
-              variant="ghost"
-              on="ghost"
-              :aria-label="t('groups.settings.go_back')"
-              :icon="ArrowLeft"
-              @click="leaveSettings"
-            />
-            <div>
-              <h2>{{ t('groups.settings.title') }}</h2>
-            </div>
-          </div>
-        </header>
+  <SettingsPaneTransition :pane-key="paneKey" :direction="transitionDirection">
+    <template v-if="!activeTab">
+      <div class="flex-1 py-4 md:p-4">
+        <div class="flex flex-col max-w-200 mx-auto">
+          <GroupSettingsAppearance class="px-6 md:px-3.5 pb-6" />
 
-        <div class="flex-1 overflow-y-auto overscroll-contain py-4 md:p-4">
-          <div class="flex flex-col max-w-200 mx-auto">
-            <GroupSettingsAppearance class="px-6 md:px-3.5 pb-6" />
-
-            <BaseList
-              v-for="(item, index) in navItems"
-              :key="item.id"
-              :separator="index !== navItems.length - 1"
-              @click="selectTab(item.id)"
-            >
-              <template #icon>
-                <component :is="item.icon" :size="20" :stroke-width="1.8" />
-              </template>
-              <template #label>
-                {{ item.label }}
-              </template>
-            </BaseList>
-          </div>
-        </div>
-      </div>
-
-      <div
-        v-else
-        :key="
-          activeTab + (route.params.subTab ? '-' + route.params.subTab : '')
-        "
-        class="settings-pane detail-pane"
-      >
-        <header
-          class="flex items-center py-2 px-4 md:px-6 bg-canvas border-b border-ghost-border shrink-0"
-        >
-          <div
-            class="header-left max-w-250 my-0 mx-auto flex items-center w-full gap-2"
+          <BaseList
+            v-for="(item, index) in navItems"
+            :key="item.id"
+            :separator="index !== navItems.length - 1"
+            @click="selectTab(item.id)"
           >
-            <BaseButton
-              variant="ghost"
-              on="ghost"
-              :aria-label="t('groups.settings.go_back')"
-              :icon="ArrowLeft"
-              @click="goBack"
-            />
-            <h2>{{ activeTabLabel }}</h2>
-          </div>
-        </header>
-
-        <div
-          class="flex flex-1 flex-col overflow-y-auto overscroll-contain p-6 pt-4 md:py-8 bg-canvas"
-        >
-          <div class="flex w-full max-w-250 flex-1 flex-col mx-auto">
-            <GroupSettingsMyCourses v-if="activeTab === 'courses'" />
-
-            <GroupSettingsMembers
-              v-if="activeTab === 'members' && !route.params.subTab"
-            />
-
-            <GroupSettingsMembersBanned
-              v-else-if="
-                activeTab === 'members' && route.params.subTab === 'banned'
-              "
-            />
-
-            <GroupSettingsMembersInvites
-              v-else-if="
-                activeTab === 'members' && route.params.subTab === 'invites'
-              "
-            />
-
-            <GroupSettingsSchedule v-if="activeTab === 'schedule'" />
-
-            <GroupSettingsAnnouncements v-if="activeTab === 'announcements'" />
-
-            <GroupSettingsSubjects v-if="activeTab === 'subjects'" />
-
-            <GroupSettingsPermissions
-              v-if="activeTab === 'permissions'"
-              :can-manage="hasOwnerRights"
-            />
-
-            <GroupSettingsGeneral v-if="activeTab === 'general'" />
-          </div>
+            <template #icon>
+              <component :is="item.icon" :size="20" :stroke-width="1.8" />
+            </template>
+            <template #label>
+              {{ item.label }}
+            </template>
+          </BaseList>
         </div>
       </div>
-    </Transition>
-  </div>
+    </template>
+
+    <template v-else>
+      <div class="flex flex-1 flex-col p-6 pt-4 md:py-8">
+        <div class="flex w-full max-w-250 flex-1 flex-col mx-auto">
+          <GroupSettingsMyCourses v-if="activeTab === 'courses'" />
+
+          <GroupSettingsMembers
+            v-if="activeTab === 'members' && !route.params.subTab"
+          />
+
+          <GroupSettingsMembersBanned
+            v-else-if="
+              activeTab === 'members' && route.params.subTab === 'banned'
+            "
+          />
+
+          <GroupSettingsMembersInvites
+            v-else-if="
+              activeTab === 'members' && route.params.subTab === 'invites'
+            "
+          />
+
+          <GroupSettingsSchedule v-if="activeTab === 'schedule'" />
+
+          <GroupSettingsAnnouncements v-if="activeTab === 'announcements'" />
+
+          <GroupSettingsSubjects v-if="activeTab === 'subjects'" />
+
+          <GroupSettingsPermissions
+            v-if="activeTab === 'permissions'"
+            :can-manage="hasOwnerRights"
+          />
+
+          <GroupSettingsGeneral v-if="activeTab === 'general'" />
+        </div>
+      </div>
+    </template>
+  </SettingsPaneTransition>
 </template>
-
-<style scoped>
-.phone-settings-container {
-  position: relative;
-  width: 100%;
-  height: calc(100dvh - var(--header-height));
-  overflow: hidden;
-  background: var(--color-canvas);
-  display: flex;
-}
-
-.settings-pane {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  background: var(--color-canvas);
-  overflow: hidden;
-}
-
-.slide-forward-enter-active,
-.slide-forward-leave-active {
-  transition:
-    transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 0.45s ease;
-}
-
-.slide-forward-enter-from {
-  transform: translateX(100%);
-  z-index: 2;
-}
-.slide-forward-enter-to {
-  transform: translateX(0);
-  z-index: 2;
-}
-
-.slide-forward-leave-from {
-  transform: translateX(0);
-  opacity: 1;
-  z-index: 1;
-}
-.slide-forward-leave-to {
-  transform: translateX(-15%);
-  opacity: 0.6;
-  z-index: 1;
-}
-
-.slide-backward-enter-active,
-.slide-backward-leave-active {
-  transition:
-    transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 0.45s ease;
-}
-
-.slide-backward-enter-from {
-  transform: translateX(-15%);
-  opacity: 0.6;
-  z-index: 1;
-}
-.slide-backward-enter-to {
-  transform: translateX(0);
-  opacity: 1;
-  z-index: 1;
-}
-
-.slide-backward-leave-from {
-  transform: translateX(0);
-  z-index: 2;
-}
-.slide-backward-leave-to {
-  transform: translateX(100%);
-  z-index: 2;
-}
-</style>

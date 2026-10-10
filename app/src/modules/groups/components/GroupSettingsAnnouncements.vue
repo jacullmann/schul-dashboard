@@ -31,8 +31,6 @@ announcementFormModal.onSuccess(() => void loadAnnouncements());
 <template>
   <div class="flex flex-1 flex-col">
     <PageHeader>
-      {{ t('announcements.list.title') }}
-
       <template #action>
         <BaseTooltip
           v-if="canManageAnnouncements"

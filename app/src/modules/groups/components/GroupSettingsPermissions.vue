@@ -148,8 +148,6 @@ onMounted(() => {
 <template>
   <div>
     <PageHeader>
-      {{ t('groups.settings.permissions.title') }}
-
       <template #info>
         <InfoModal
           :tooltip="t('groups.settings.permissions.info.tooltip')"

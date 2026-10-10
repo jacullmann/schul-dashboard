@@ -21,7 +21,6 @@ const { user } = storeToRefs(userStore);
   <div class="flex flex-1 flex-col p-4">
     <div class="animate-enter">
       <PageHeader>
-        {{ t('tasks.private_tasks.title') }}
         <template #info>
           <InfoModal
             :tooltip="t('tasks.private_tasks.infopop.tooltip')"

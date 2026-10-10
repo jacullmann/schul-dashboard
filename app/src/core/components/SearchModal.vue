@@ -165,8 +165,7 @@ const groupSettingsTabs = computed<SearchResult[]>(() =>
     ] as const
   ).map(({ tab, icon }) => ({
     id: `group-settings-${tab}`,
-    label: t(`groups.settings.nav.${tab}.label`),
-    description: t(`groups.settings.nav.${tab}.description`),
+    label: t(`groups.settings.nav.${tab}`),
     parent: t('common.sidebar.admin'),
     category: 'page',
     icon,

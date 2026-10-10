@@ -442,8 +442,7 @@
       "subjects": "Fächer",
       "announcements": "Ankündigungen",
       "subject_info": "Fachinfo"
-    },
-    "go_back": "Zurück"
+    }
   },
   "delete_modal": {
     "title": "Gruppe löschen",

@@ -6,6 +6,7 @@ import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import {
+  ChevronLeft,
   ChevronDown,
   Plus,
   LogOut,
@@ -25,11 +26,19 @@ import { useAnnouncementFeed } from '@/modules/announcements/composables/useAnno
 import Avatar from '@/modules/auth/components/Avatar.vue';
 import AccountMenu from '@/modules/auth/components/AccountMenu.vue';
 import { useLogout } from '@/core/composables/useLogout';
+import type { HeaderOverlay } from '@/core/composables/useHeaderOverlay';
 import {
   useIsMobileViewport,
   useIsSidebarViewport,
 } from '@/common/composables/useViewport';
 import { useGroupMenuActions } from '@/modules/groups/composables/useGroupMenuActions';
+
+defineProps<{
+  /** Shown in place of the group's name, or of the brand outside a group. */
+  title?: string;
+  /** Replaces the whole row, account menu included. */
+  overlay?: HeaderOverlay;
+}>();
 
 const userStore = useUserStore();
 const { user } = storeToRefs(userStore);
@@ -68,6 +77,10 @@ const searchHandoverTiming = computed(() =>
     ? 'duration-200 ease-out'
     : 'duration-250 delay-200 ease-[cubic-bezier(0.33,1,0.68,1)]',
 );
+const searchHandoverClasses = computed(() => [
+  searchHandoverTiming.value,
+  { 'opacity-0 pointer-events-none': isSearching.value },
+]);
 
 function onPersonalizationChanged(value: boolean) {
   userStore.updateUser({ personalized: value });
@@ -138,30 +151,30 @@ defineExpose({ groupButton: groupButtonRef });
     <BaseScrollFade v-show="isScrolled" class="inset-0 -bottom-4" />
 
     <div class="relative h-full w-full flex items-center gap-2 px-4 max-w-325">
-      <router-link
-        v-if="!(activeGroupId && groupName)"
-        :to="{ name: 'groups' }"
-        class="logo-group min-w-0 transition-opacity"
-        :class="[
-          searchHandoverTiming,
-          { 'opacity-0 pointer-events-none': isSearching },
-        ]"
-      >
-        <span class="logo-text truncate">schul-dashboard</span>
-      </router-link>
       <div
-        v-if="activeGroupId && groupName"
+        v-if="overlay"
+        class="flex items-center gap-2 min-w-0 transition-opacity"
+        :class="searchHandoverClasses"
+      >
+        <BaseButton
+          variant="ghost"
+          on="ghost"
+          :aria-label="t('common.buttons.back')"
+          :icon="ChevronLeft"
+          @click="overlay.back"
+        />
+        <span class="logo-text leading-8 truncate">{{ overlay.title }}</span>
+      </div>
+      <div
+        v-else-if="activeGroupId && groupName"
         ref="groupMenuRef"
         class="relative flex items-center min-w-0 max-w-full transition-opacity"
-        :class="[
-          searchHandoverTiming,
-          { 'opacity-0 pointer-events-none': isSearching },
-        ]"
+        :class="searchHandoverClasses"
       >
         <button
           ref="groupButtonRef"
           v-wave
-          class="relative flex items-center gap-2 cursor-pointer hover:bg-ghost-hover active:bg-ghost-hover transition-hover rounded-full p-1 min-w-0 touch-target after:min-w-12 after:min-h-12"
+          class="relative flex items-center gap-3 cursor-pointer hover:bg-ghost-hover active:bg-ghost-hover transition-hover rounded-full p-1 min-w-0 touch-target after:min-w-12 after:min-h-12"
           @click="toggleGroupMenu"
         >
           <Avatar
@@ -171,9 +184,10 @@ defineExpose({ groupButton: groupButtonRef });
             class="shrink-0"
           />
 
-          <span class="logo-text leading-8 truncate min-w-0">{{
-            groupName
-          }}</span>
+          <span class="logo-text leading-8 truncate min-w-0">
+            {{ title ?? groupName }}
+            <span v-if="title" class="sr-only">{{ groupName }}</span>
+          </span>
           <ChevronDown
             :size="16"
             class="text-on-ghost-muted mr-2 shrink-0 transition-transform duration-200 ease-in-out"
@@ -239,9 +253,28 @@ defineExpose({ groupButton: groupButtonRef });
           </BaseMenuButton>
         </BaseMenu>
       </div>
+      <div
+        v-else-if="title"
+        class="flex leading-8 gap-3 px-1 min-w-0 transition-opacity"
+        :class="searchHandoverClasses"
+      >
+        <router-link :to="{ name: 'groups' }">
+          <AppLogo aria-hidden="true" />
+        </router-link>
+        <span class="logo-text leading-8 truncate">{{ title }}</span>
+      </div>
+      <router-link
+        v-else
+        :to="{ name: 'groups' }"
+        class="flex leading-8 gap-3 px-1 min-w-0 transition-opacity"
+        :class="searchHandoverClasses"
+      >
+        <AppLogo aria-hidden="true" />
+        <span class="logo-text truncate">schul-dashboard</span>
+      </router-link>
 
       <div
-        v-if="user && !hasSidebar"
+        v-if="user && !hasSidebar && !overlay"
         class="ml-auto flex items-center gap-2 shrink-0"
       >
         <!-- Hidden without a fade: the search bar carries its icon away from
@@ -274,21 +307,6 @@ defineExpose({ groupButton: groupButtonRef });
 </template>
 
 <style scoped>
-.logo-group {
-  display: flex;
-  align-items: center;
-  text-decoration: none;
-  gap: 0.6rem;
-  color: var(--color-on-ghost);
-  flex: 0 1 auto;
-  line-height: 1;
-}
-
-.logo-img {
-  width: auto;
-  height: 32px;
-}
-
 .logo-text {
   font-size: var(--text-2xl);
   font-weight: 700;

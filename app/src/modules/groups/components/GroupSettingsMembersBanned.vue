@@ -21,10 +21,6 @@ function bannedOnLabel(bannedAt: string): string {
 
 <template>
   <div class="flex flex-1 flex-col">
-    <PageHeader>
-      {{ t('groups.settings.members.ban_list.title') }}
-    </PageHeader>
-
     <div
       v-if="loading && bannedUsers.length === 0"
       class="flex justify-center p-8"

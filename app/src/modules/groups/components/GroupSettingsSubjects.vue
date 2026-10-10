@@ -392,8 +392,6 @@ onMounted(() => {
     <!-- List View -->
     <div v-if="!subTabId" class="flex flex-1 flex-col">
       <PageHeader>
-        {{ t('groups.settings.subjects.title') }}
-
         <template #action>
           <BaseTooltip
             v-if="canEditSubjects"

@@ -62,6 +62,7 @@ declare module 'vue' {
     PersonalizedViewNotice: typeof import('./src/common/components/PersonalizedViewNotice.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    SettingsPaneTransition: typeof import('./src/common/components/SettingsPaneTransition.vue')['default']
     Tagline: typeof import('./src/common/components/Tagline.vue')['default']
   }
 }

@@ -91,7 +91,10 @@ const routes: RouteRecordRaw[] = [
         path: 'groups',
         name: 'groups',
         component: () => import('@/modules/groups/pages/Groups.vue'),
-        meta: { title: 'navigation.home' },
+        meta: {
+          title: 'navigation.home',
+          headerTitle: 'groups.list.your_groups',
+        },
       },
 
       {
@@ -122,7 +125,7 @@ const routes: RouteRecordRaw[] = [
                 name: 'group-tasks',
                 component: () => import('@/modules/tasks/pages/TaskList.vue'),
                 // Kept alive behind an opened task, it returns to where it was.
-                meta: { restoresScroll: true },
+                meta: { headerTitle: 'tasks.list.title', restoresScroll: true },
                 // Links shared before tasks had a page of their own pointed
                 // into the list.
                 beforeEnter: (to) =>
@@ -151,13 +154,16 @@ const routes: RouteRecordRaw[] = [
             path: 'schedule',
             name: 'group-schedule',
             component: () => import('@/modules/schedule/pages/Schedule.vue'),
-            meta: { title: 'schedule.title' },
+            meta: { title: 'schedule.title', headerTitle: 'schedule.title' },
           },
           {
             path: 'messages',
             name: 'group-messages',
             component: () => import('@/modules/chat/pages/Messages.vue'),
-            meta: { title: 'common.sidebar.messages' },
+            meta: {
+              title: 'common.sidebar.messages',
+              headerTitle: 'common.sidebar.messages',
+            },
           },
           {
             path: 'settings/:tab?/:subTab?',
@@ -182,7 +188,10 @@ const routes: RouteRecordRaw[] = [
         path: 'private',
         name: 'private-todos',
         component: () => import('@/modules/tasks/pages/PrivateTasks.vue'),
-        meta: { title: 'navigation.private_todos' },
+        meta: {
+          title: 'navigation.private_todos',
+          headerTitle: 'tasks.private_tasks.title',
+        },
       },
       {
         path: 'todos',
@@ -196,6 +205,7 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/layouts/DefaultLayout.vue'),
     meta: {
       title: 'navigation.super_admin',
+      headerTitle: 'navigation.super_admin',
       requiresSuperAdmin: true,
       navItem: 'super-admin',
       fullWidth: true,

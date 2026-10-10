@@ -9,6 +9,11 @@ declare module 'vue-router' {
      */
     title?: string | (() => string);
     /**
+     * i18n key of the title AppHeader shows in place of the group's name,
+     * for pages whose own heading would scroll away under it.
+     */
+    headerTitle?: string;
+    /**
      * Routes are private by default, so a route that forgets this stays
      * behind the login. `public` is open to everyone, `guest` only to
      * signed-out visitors (signed-in ones are sent home).

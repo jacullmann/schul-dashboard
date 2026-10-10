@@ -14,7 +14,6 @@ const tm = i18n.tm.bind(i18n);
 
 <template>
   <PageHeader>
-    {{ t('schedule.title') }}
     <template #info>
       <InfoModal
         :tooltip="t('schedule.infopop.tooltip')"

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useAppShortcuts } from '@/core/composables/useAppShortcuts';
+import { provideHeaderOverlay } from '@/core/composables/useHeaderOverlay';
 import AppHeader from '@/core/components/AppHeader.vue';
 import AppSidebar from '@/core/components/AppSidebar.vue';
 import AppTabBar from '@/core/components/AppTabBar.vue';
@@ -9,12 +10,21 @@ import { storeToRefs } from 'pinia';
 import { useIsSidebarViewport } from '@/common/composables/useViewport';
 import { useElementBounding } from '@vueuse/core';
 import { computed, useTemplateRef } from 'vue';
+import { useRoute } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 
+const route = useRoute();
+const { t } = useI18n();
 const userStore = useUserStore();
 const { user } = storeToRefs(userStore);
 const hasSidebar = useIsSidebarViewport();
 
 useAppShortcuts();
+
+const headerTitle = computed(() =>
+  route.meta.headerTitle ? t(route.meta.headerTitle) : undefined,
+);
+const headerOverlay = provideHeaderOverlay();
 
 const header = useTemplateRef('header');
 const topBarSlot = useTemplateRef('topBarSlot');
@@ -42,7 +52,7 @@ const topBarStyle = computed(() => ({
         class="fixed top-0 z-(--z-header) flex flex-col"
         :style="topBarStyle"
       >
-        <AppHeader ref="header" />
+        <AppHeader ref="header" :title="headerTitle" :overlay="headerOverlay" />
         <AnnouncementCard
           v-if="user"
           :collapse-target="header?.groupButton ?? null"
