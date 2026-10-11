@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, nextTick } from 'vue';
-import { Calendar, ChevronLeft, ChevronRight } from '@lucide/vue';
+import { CalendarDays, ChevronLeft, ChevronRight } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/vue';
 import { useSwipePager } from '@/common/composables/useSwipePager';
@@ -62,10 +62,10 @@ const weekStart = computed(() => {
 });
 
 const weekdays = computed(() => {
-  const fmt = new Intl.DateTimeFormat(locale.value, { weekday: 'narrow' });
+  const fmt = new Intl.DateTimeFormat(locale.value, { weekday: 'short' });
   // 2024-01-07 is a Sunday
   return Array.from({ length: 7 }, (_, i) =>
-    fmt.format(new Date(2024, 0, 7 + weekStart.value + i)),
+    fmt.format(new Date(2024, 0, 7 + weekStart.value + i)).slice(0, 2),
   );
 });
 
@@ -222,7 +222,7 @@ const onGridKeydown = (e: KeyboardEvent) => {
       :class="isOpen ? 'border-focus! shadow-focus-ring!' : ''"
       aria-haspopup="dialog"
       :aria-expanded="isOpen"
-      :icon="Calendar"
+      :icon="CalendarDays"
       icon-placement="trailing"
       icon-classes="ml-auto shrink-0 text-on-ghost-muted"
       v-bind="$attrs"
@@ -255,21 +255,17 @@ const onGridKeydown = (e: KeyboardEvent) => {
         <!-- Stop Escape here so it closes only the picker, not a parent modal -->
         <div class="flex flex-col gap-2 p-1" @keydown.esc.stop="close">
           <div v-if="shortcuts.length" class="flex flex-wrap gap-1.5">
-            <button
+            <BaseButton
               v-for="s in shortcuts"
               :key="s.key"
-              v-wave
               type="button"
-              class="rounded-full border px-3 py-1 text-sm/5 font-medium whitespace-nowrap cursor-pointer transition-hover"
-              :class="
-                model === s.key
-                  ? 'border-transparent bg-action text-on-action'
-                  : 'border-ghost-border text-on-ghost-muted hover:bg-ghost-hover hover:text-on-ghost active:bg-ghost-hover active:text-on-ghost'
-              "
+              size="sm"
+              :variant="model === s.key ? 'action' : 'ghost'"
+              surface
               @click="select(s.key)"
             >
               {{ s.label }}
-            </button>
+            </BaseButton>
           </div>
 
           <div class="flex items-center justify-between">

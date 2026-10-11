@@ -97,11 +97,10 @@ defineExpose({
             variant === 'input' ? 'font-normal' : 'font-medium',
             form ? 'max-md:w-full max-md:justify-center md:w-fit' : 'w-fit',
           ],
-      'touch-target after:min-w-12 after:min-h-12',
       size === 'xs'
-        ? 'min-h-6 min-w-6 p-1'
+        ? ['min-h-6 min-w-6 py-1', $slots.default ? 'px-2.5' : 'px-1']
         : size === 'sm'
-          ? 'min-h-8 min-w-8 p-1.5'
+          ? ['min-h-8 min-w-8 py-1.5', $slots.default ? 'px-3' : 'px-1.5']
           : [
               'min-h-10 min-w-10',
               !chip && !loading && icon && $slots.default
@@ -115,7 +114,7 @@ defineExpose({
                     : 'px-5 py-2',
             ],
     ]"
-    class="relative inline-flex items-center justify-center gap-2 rounded-full text-sm/4 cursor-pointer select-none whitespace-nowrap transition-hover disabled:opacity-50 disabled:cursor-not-allowed"
+    class="relative inline-flex items-center justify-center gap-2 rounded-full text-sm/4 cursor-pointer select-none whitespace-nowrap transition-hover disabled:opacity-50 disabled:cursor-not-allowed touch-target after:min-w-12 after:min-h-12"
     :aria-busy="loading"
     :aria-disabled="disabled"
   >
