@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
-import { Download, Trash2 } from '@lucide/vue';
+import { Download } from '@lucide/vue';
 import { useDataExport } from '@/modules/auth/composables/useDataExport';
 
 defineProps<{
@@ -39,21 +39,15 @@ const { exporting, downloadDataExport } = useDataExport();
       </div>
     </section>
 
-    <section
-      class="flex flex-col gap-3 p-4 border border-danger rounded-xl max-w-160"
-    >
-      <h3 class="text-danger">
+    <section class="flex flex-col gap-4 max-w-160">
+      <h3 class="text-danger!">
         {{ t('auth.account_settings.danger_zone.title') }}
       </h3>
-      <p class="text-sm/relaxed text-on-ghost-muted m-0!">
+      <p class="m-0!">
         {{ t('auth.account_settings.danger_zone.description') }}
       </p>
       <div>
-        <BaseButton
-          variant="danger"
-          :icon="Trash2"
-          @click="emit('deleteAccount')"
-        >
+        <BaseButton form variant="danger" @click="emit('deleteAccount')">
           {{ t('auth.delete_account.title') }}
         </BaseButton>
       </div>

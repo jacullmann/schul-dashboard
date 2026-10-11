@@ -4,7 +4,6 @@ import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useGroupGeneralSettings } from '@/modules/groups/composables/useGroupGeneralSettings';
 import { useGroupSettingsAccess } from '@/modules/groups/composables/useGroupSettingsAccess';
-import { Trash2 } from '@lucide/vue';
 import { useConfirmModal } from '@/stores/modalStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import GroupTypeRadioGroup from './GroupTypeRadioGroup.vue';
@@ -123,19 +122,14 @@ async function confirmDeleteGroup() {
     </div>
 
     <div v-if="hasOwnerRights">
-      <h3 class="text-danger">
+      <h3 class="text-danger! mb-2!">
         {{ t('groups.settings.general.delete_group.danger_zone_title') }}
       </h3>
-      <p class="text-base/relaxed text-on-ghost-muted m-0 mb-5">
+      <p class="mt-0!">
         {{ t('groups.settings.general.delete_group.warning_text') }}
       </p>
 
-      <BaseButton
-        form
-        variant="danger"
-        :icon="Trash2"
-        @click="deleteModalOpen = true"
-      >
+      <BaseButton form variant="danger" @click="deleteModalOpen = true">
         {{ t('groups.settings.general.delete_group.button') }}
       </BaseButton>
 
