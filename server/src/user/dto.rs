@@ -44,6 +44,7 @@ fn validate_visibility_status(s: &str) -> Result<(), validator::ValidationError>
 pub enum DismissibleNotice {
     PersonalizedTasks,
     PersonalizedSchedule,
+    PrivateTasks,
 }
 
 impl DismissibleNotice {
@@ -51,6 +52,7 @@ impl DismissibleNotice {
         match self {
             Self::PersonalizedTasks => "personalizedTasks",
             Self::PersonalizedSchedule => "personalizedSchedule",
+            Self::PrivateTasks => "privateTasks",
         }
     }
 }
@@ -135,6 +137,7 @@ mod tests {
         for notice in [
             DismissibleNotice::PersonalizedTasks,
             DismissibleNotice::PersonalizedSchedule,
+            DismissibleNotice::PrivateTasks,
         ] {
             let parsed: DismissibleNotice =
                 serde_json::from_value(serde_json::json!(notice.as_str())).unwrap();

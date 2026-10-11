@@ -484,7 +484,8 @@
       },
       "notice": {
         "personalizedTasks": "Personalized tasks",
-        "personalizedSchedule": "Personalized schedule"
+        "personalizedSchedule": "Personalized schedule",
+        "privateTasks": "Private tasks"
       }
     },
     "activity": {

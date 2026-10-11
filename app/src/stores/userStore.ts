@@ -8,7 +8,8 @@ import type { TaskPreferences } from '@/modules/tasks/types';
 import type { SchedulePreferences } from '@/modules/schedule/types';
 import type { DashboardPreferences } from '@/modules/dashboard/types';
 
-export type DismissibleNotice = 'personalizedTasks' | 'personalizedSchedule';
+export type DismissibleNotice =
+  'personalizedTasks' | 'personalizedSchedule' | 'privateTasks';
 
 /** The settings each page has, every one of them set. */
 export interface PageSettings {

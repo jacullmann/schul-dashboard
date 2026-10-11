@@ -1,5 +1,12 @@
 <script setup lang="ts">
-import { Pencil, Copy, Trash2, ChevronUp, ChevronDown } from '@lucide/vue';
+import {
+  Pencil,
+  Copy,
+  Trash2,
+  ChevronUp,
+  ChevronDown,
+  Lock as LockIcon,
+} from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import type { PrivateTask } from '@/modules/tasks/types';
 import { usePrivateTasks } from '@/modules/tasks/composables/usePrivateTasks';
@@ -22,6 +29,7 @@ import {
   entranceDelay,
   hasSettledEntrance,
 } from '@/modules/tasks/utils/entrance';
+import { useDismissibleNotice } from '@/common/composables/useDismissibleNotice';
 
 const { t } = useI18n();
 
@@ -157,12 +165,14 @@ function handleItemDoubleClick(task: PrivateTask, event: MouseEvent) {
   togglePrivateTaskCompletion(task);
 }
 
-/** After the page header: the login notice, then the list. */
+/** After the page header: the login or privacy notice, then the list. */
 const NOTICE_ENTRANCE_ORDER = 1;
 const LIST_ENTRANCE_ORDER = 2;
 const SKELETON_COUNT = 10;
 
 const showSkeleton = computed(() => loading.value && initialLoad.value);
+
+const privacyNotice = useDismissibleNotice('privateTasks');
 
 const {
   entranceStart: cardEntranceStart,
@@ -193,6 +203,16 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
     >
       <p>{{ t('tasks.private_tasks.requires_account') }}</p>
     </div>
+
+    <BaseNotice
+      :show="!!user && !privacyNotice.isDismissed.value"
+      :icon="LockIcon"
+      class="mt-4 w-full max-w-192 mx-auto"
+      :style="{ '--enter-delay': entranceDelay(NOTICE_ENTRANCE_ORDER) }"
+      @dismiss="privacyNotice.dismiss"
+    >
+      {{ t('tasks.private_tasks.only_visible_to_you') }}
+    </BaseNotice>
 
     <div v-if="user" class="private-task-list relative flex flex-1 flex-col">
       <!-- Taken out of the flow while it fades, so the cards arriving in its

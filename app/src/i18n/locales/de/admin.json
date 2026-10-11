@@ -484,7 +484,8 @@
       },
       "notice": {
         "personalizedTasks": "Personalisierte Aufgaben",
-        "personalizedSchedule": "Personalisierter Stundenplan"
+        "personalizedSchedule": "Personalisierter Stundenplan",
+        "privateTasks": "Private Aufgaben"
       }
     },
     "activity": {

@@ -197,6 +197,7 @@
     },
     "new_task": "New Task",
     "no_tasks": "No private tasks",
+    "only_visible_to_you": "Only visible to you",
     "requires_account": "You must be logged in to use private tasks.",
     "success_create": "Private task created",
     "success_delete": "Private task deleted",

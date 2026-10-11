@@ -38,6 +38,7 @@ declare module 'vue' {
     BaseMenuSelect: typeof import('./src/common/components/BaseMenuSelect.vue')['default']
     BaseModal: typeof import('./src/common/components/BaseModal.vue')['default']
     BaseModalCard: typeof import('./src/common/components/BaseModalCard.vue')['default']
+    BaseNotice: typeof import('./src/common/components/BaseNotice.vue')['default']
     BasePageActions: typeof import('./src/common/components/BasePageActions.vue')['default']
     BaseRow: typeof import('./src/common/components/BaseRow.vue')['default']
     BaseScrollFade: typeof import('./src/common/components/BaseScrollFade.vue')['default']

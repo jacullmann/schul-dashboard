@@ -12,6 +12,7 @@
     "delete": "Delete",
     "duplicate": "Duplicate",
     "edit": "Edit",
+    "hide_notice": "Hide notice",
     "save": "Save",
     "skip": "Skip",
     "saving": "Saving…",
@@ -256,8 +257,7 @@
           "text": "To see the lessons and tasks of every course again, set “Displayed Courses” to “All” in your account menu. Hiding this notice keeps the filter active."
         }
       ]
-    },
-    "dismiss": "Hide notice"
+    }
   },
   "preview": "Preview",
   "image": "Image",
