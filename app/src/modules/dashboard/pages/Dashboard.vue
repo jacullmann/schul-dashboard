@@ -442,7 +442,7 @@ const {
               <template v-if="!loadingSchedule">
                 <div
                   v-if="scheduleChanges.length > 0"
-                  class="flex flex-col max-h-48 overflow-y-auto w-full max-w-192 mx-auto animate-enter"
+                  class="flex flex-col w-full max-w-192 mx-auto animate-enter"
                   :style="{
                     '--enter-delay': entranceDelay(SUBSTITUTIONS_REVEAL_ORDER),
                   }"
