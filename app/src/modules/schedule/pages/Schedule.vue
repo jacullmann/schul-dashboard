@@ -56,7 +56,7 @@ import ScheduleWeekNav from '../components/ScheduleWeekNav.vue';
 
 // Pages run on past Friday into the following weeks, and back before Monday.
 const dayPager = useSchedulePager();
-const { hasPaged, selectedPage, showPage, skipToPage } = dayPager;
+const { hasPaged, selectedPage, goToPage, showPage, skipToPage } = dayPager;
 
 const shownWeek = computed(() =>
   Math.floor(selectedPage.value / SCHOOL_DAYS.length),
@@ -551,7 +551,7 @@ watch(
       :is-personalized="!!isPersonalized"
     >
       <template v-if="isPhone" #action>
-        <BaseButton @click="skipToPage(defaultPage)">
+        <BaseButton @click="goToPage(defaultPage)">
           {{ t('schedule.today') }}
         </BaseButton>
       </template>
