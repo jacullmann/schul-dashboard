@@ -6401,6 +6401,14 @@
           }
         }
       },
+      "AdminTopic": {
+        "type": "string",
+        "description": "A part of the superadmin area.",
+        "enum": [
+          "reports",
+          "users"
+        ]
+      },
       "AdminUserDto": {
         "type": "object",
         "required": [
@@ -7192,6 +7200,24 @@
                 "type": "string",
                 "enum": [
                   "platform"
+                ]
+              }
+            }
+          },
+          {
+            "type": "object",
+            "required": [
+              "topic",
+              "scope"
+            ],
+            "properties": {
+              "topic": {
+                "$ref": "#/components/schemas/AdminTopic"
+              },
+              "scope": {
+                "type": "string",
+                "enum": [
+                  "admin"
                 ]
               }
             }

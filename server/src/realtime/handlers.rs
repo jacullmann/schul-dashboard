@@ -1,6 +1,6 @@
 use super::event::{AccountTopic, Audience, Event, Notice, PlatformTopic};
 use crate::{
-    auth::session_context::{SessionStatus, session_status},
+    auth::session_context::{SessionStatus, is_superadmin, session_status},
     common::extractors::AuthUser,
     error::AppResult,
     state::AppState,
@@ -40,6 +40,7 @@ pub async fn events(
     // Subscribed first, so no change slips in while the groups are loaded.
     let notices = s.realtime.subscribe();
     let groups = memberships(&s.db, user.user_id).await?;
+    let superadmin = is_superadmin(&s.db, user.user_id).await?;
     let lifetime = (user.expires_at - Utc::now()).to_std().unwrap_or_default();
 
     let subscription = Subscription {
@@ -47,6 +48,7 @@ pub async fn events(
         notices,
         user,
         groups,
+        superadmin,
         deadline: Instant::now() + lifetime,
     };
 
@@ -65,6 +67,9 @@ struct Subscription {
     /// The groups whose events reach the user, kept current by the
     /// `Groups` events every change of membership sends them.
     groups: HashSet<Uuid>,
+    /// Read once when the stream opens. A role change takes effect when the
+    /// stream ends with the access token and reconnects.
+    superadmin: bool,
     deadline: Instant,
 }
 
@@ -100,12 +105,12 @@ impl Subscription {
     /// knows about them.
     async fn accept(&mut self, notice: Notice) -> AppResult<Delivery> {
         let event = notice.event();
-        let for_user = match notice.audience() {
-            Audience::Everyone => true,
-            Audience::User(user_id) => user_id == self.user.user_id,
-            Audience::Members(group_id) => self.groups.contains(&group_id),
-        };
-        if !for_user {
+        if !reaches(
+            notice.audience(),
+            self.user.user_id,
+            self.superadmin,
+            &self.groups,
+        ) {
             return Ok(Delivery::Skip);
         }
 
@@ -141,6 +146,16 @@ enum Delivery {
     End,
 }
 
+/// Whether a notice for `audience` is meant for a stream of this user.
+fn reaches(audience: Audience, user_id: Uuid, superadmin: bool, groups: &HashSet<Uuid>) -> bool {
+    match audience {
+        Audience::Everyone => true,
+        Audience::User(recipient) => recipient == user_id,
+        Audience::Members(group_id) => groups.contains(&group_id),
+        Audience::Superadmins => superadmin,
+    }
+}
+
 async fn memberships(db: &PgPool, user_id: Uuid) -> AppResult<HashSet<Uuid>> {
     let groups = sqlx::query_scalar!(
         r#"SELECT tenant_id AS "tenant_id!" FROM user_roles
@@ -151,4 +166,45 @@ async fn memberships(db: &PgPool, user_id: Uuid) -> AppResult<HashSet<Uuid>> {
     .await?;
 
     Ok(groups.into_iter().collect())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn superadmins_receive_only_admin_notices() {
+        let (user_id, groups) = (Uuid::new_v4(), HashSet::new());
+
+        assert!(reaches(Audience::Superadmins, user_id, true, &groups));
+        assert!(!reaches(Audience::Superadmins, user_id, false, &groups));
+    }
+
+    #[test]
+    fn members_receive_the_notices_of_their_groups_only() {
+        let (user_id, group_id) = (Uuid::new_v4(), Uuid::new_v4());
+        let groups = HashSet::from([group_id]);
+
+        assert!(reaches(
+            Audience::Members(group_id),
+            user_id,
+            false,
+            &groups
+        ));
+        assert!(!reaches(
+            Audience::Members(Uuid::new_v4()),
+            user_id,
+            false,
+            &groups
+        ));
+    }
+
+    #[test]
+    fn user_notices_reach_only_their_recipient() {
+        let (user_id, other) = (Uuid::new_v4(), Uuid::new_v4());
+        let groups = HashSet::new();
+
+        assert!(reaches(Audience::User(user_id), user_id, false, &groups));
+        assert!(!reaches(Audience::User(other), user_id, false, &groups));
+    }
 }

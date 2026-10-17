@@ -1,6 +1,7 @@
 import type { InvalidateQueryFilters } from '@tanstack/vue-query';
 import type {
   AccountTopic,
+  AdminTopic,
   Event as LiveEvent,
   GroupTopic,
   PlatformTopic,
@@ -64,6 +65,14 @@ const PLATFORM_INVALIDATIONS: Record<PlatformTopic, InvalidateQueryFilters[]> =
     access: [{ queryKey: adminKeys.accessControls() }],
   };
 
+const ADMIN_INVALIDATIONS: Record<AdminTopic, InvalidateQueryFilters[]> = {
+  reports: [
+    { queryKey: adminKeys.reports() },
+    { queryKey: adminKeys.statsSummary() },
+  ],
+  users: [{ queryKey: adminKeys.users() }, { queryKey: adminKeys.stats() }],
+};
+
 /** The queries that may show what an event says changed. */
 export function invalidationsFor(event: LiveEvent): InvalidateQueryFilters[] {
   switch (event.scope) {
@@ -73,6 +82,8 @@ export function invalidationsFor(event: LiveEvent): InvalidateQueryFilters[] {
       return ACCOUNT_INVALIDATIONS[event.topic];
     case 'platform':
       return PLATFORM_INVALIDATIONS[event.topic];
+    case 'admin':
+      return ADMIN_INVALIDATIONS[event.topic];
     case 'resync':
       return [{}];
   }

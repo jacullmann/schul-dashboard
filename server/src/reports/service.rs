@@ -3,11 +3,12 @@ use crate::{
     common::{client::ClientInfo, text::DisplayText},
     error::{AppError, AppResult},
     items::{attachments, item_type::ItemType},
+    realtime::event::{AdminTopic, Notice, publish},
     security_log::{SecurityEvent, SecurityEventKind},
     state::AppState,
 };
 use serde_json::json;
-use sqlx::{PgPool, types::Json};
+use sqlx::{PgConnection, PgPool, types::Json};
 use uuid::Uuid;
 
 pub const REASON_MAX_CHARS: usize = 5000;
@@ -78,7 +79,10 @@ impl ReportsService {
             creator_email: item.creator_email,
         };
 
-        self.insert(
+        let mut tx = self.db.begin().await?;
+
+        Self::insert(
+            &mut tx,
             ReportType::Task,
             reason,
             reporter_id,
@@ -92,31 +96,11 @@ impl ReportsService {
             reporter_id,
             json!({ "itemId": item.id })
         )
-        .execute(&self.db)
+        .execute(&mut *tx)
         .await?;
 
-        Ok(())
-    }
-
-    async fn insert(
-        &self,
-        report_type: ReportType,
-        reason: Option<&DisplayText>,
-        reporter_id: Uuid,
-        reporter_email: &str,
-        details: ReportedTaskDto,
-    ) -> AppResult<()> {
-        sqlx::query!(
-            r#"INSERT INTO reports (report_type, reason, reporter_id, reporter_email, details)
-               VALUES ($1, $2, $3, $4, $5)"#,
-            report_type.as_str(),
-            reason.map(DisplayText::as_str),
-            reporter_id,
-            reporter_email,
-            Json(details) as _
-        )
-        .execute(&self.db)
-        .await?;
+        publish(&mut *tx, [Notice::admin(AdminTopic::Reports)]).await?;
+        tx.commit().await?;
 
         Ok(())
     }
@@ -172,7 +156,31 @@ impl ReportsService {
             .record(&mut *tx)
             .await?;
 
+        publish(&mut *tx, [Notice::admin(AdminTopic::Reports)]).await?;
         tx.commit().await?;
+
+        Ok(())
+    }
+
+    async fn insert(
+        conn: &mut PgConnection,
+        report_type: ReportType,
+        reason: Option<&DisplayText>,
+        reporter_id: Uuid,
+        reporter_email: &str,
+        details: ReportedTaskDto,
+    ) -> AppResult<()> {
+        sqlx::query!(
+            r#"INSERT INTO reports (report_type, reason, reporter_id, reporter_email, details)
+               VALUES ($1, $2, $3, $4, $5)"#,
+            report_type.as_str(),
+            reason.map(DisplayText::as_str),
+            reporter_id,
+            reporter_email,
+            Json(details) as _
+        )
+        .execute(conn)
+        .await?;
 
         Ok(())
     }

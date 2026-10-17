@@ -13,6 +13,9 @@ const CACHED: QueryKey[] = [
   ['todos'],
   ['taskMarks', 'checks'],
   ['systemAnnouncements'],
+  ['admin', 'reports'],
+  ['admin', 'stats', 'summary'],
+  ['admin', 'users', 'list', { page: 1 }],
   ['groups', GROUP, 'tasks', 'list', { archived: false }],
   ['groups', GROUP, 'schedule', 'lessons'],
   ['groups', GROUP, 'members', 'list'],
@@ -94,6 +97,20 @@ describe('invalidationsFor', () => {
     expect(invalidatedBy({ scope: 'account', topic: 'security' })).toEqual([
       ['account', 'me'],
       ['account', 'passkeys'],
+    ]);
+  });
+
+  it('reloads the reports and their count for superadmins', () => {
+    expect(invalidatedBy({ scope: 'admin', topic: 'reports' })).toEqual([
+      ['admin', 'reports'],
+      ['admin', 'stats', 'summary'],
+    ]);
+  });
+
+  it('reloads the accounts and the statistics for superadmins', () => {
+    expect(invalidatedBy({ scope: 'admin', topic: 'users' })).toEqual([
+      ['admin', 'stats', 'summary'],
+      ['admin', 'users', 'list', { page: 1 }],
     ]);
   });
 

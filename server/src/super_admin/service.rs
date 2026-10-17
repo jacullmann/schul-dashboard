@@ -21,7 +21,7 @@ use crate::{
         service::role_from_db,
     },
     mfa::service::disable_mfa,
-    realtime::event::{AccountTopic, GroupTopic, Notice, publish},
+    realtime::event::{AccountTopic, AdminTopic, GroupTopic, Notice, publish},
     security_log::{SecurityEvent, SecurityEventKind},
     state::AppState,
 };
@@ -685,6 +685,7 @@ impl SuperAdminService {
             .record(&mut *tx)
             .await?;
 
+        publish(&mut *tx, [Notice::admin(AdminTopic::Users)]).await?;
         tx.commit().await?;
 
         Ok(())

@@ -2419,6 +2419,11 @@ export interface components {
             /** Format: int64 */
             readCount: number;
         };
+        /**
+         * @description A part of the superadmin area.
+         * @enum {string}
+         */
+        AdminTopic: "reports" | "users";
         AdminUserDto: {
             /** Format: uuid */
             id: string;
@@ -2686,6 +2691,10 @@ export interface components {
             topic: components["schemas"]["PlatformTopic"];
             /** @enum {string} */
             scope: "platform";
+        } | {
+            topic: components["schemas"]["AdminTopic"];
+            /** @enum {string} */
+            scope: "admin";
         } | {
             /** @enum {string} */
             scope: "resync";
@@ -3711,6 +3720,7 @@ export type AccountTopic = components['schemas']['AccountTopic'];
 export type AddAttachmentDto = components['schemas']['AddAttachmentDto'];
 export type AdminGroupDto = components['schemas']['AdminGroupDto'];
 export type AdminSystemAnnouncementDto = components['schemas']['AdminSystemAnnouncementDto'];
+export type AdminTopic = components['schemas']['AdminTopic'];
 export type AdminUserDto = components['schemas']['AdminUserDto'];
 export type AnnouncementDto = components['schemas']['AnnouncementDto'];
 export type ArchiveCheckedTasks = components['schemas']['ArchiveCheckedTasks'];

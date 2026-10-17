@@ -23,6 +23,9 @@ pub enum Event {
     Platform {
         topic: PlatformTopic,
     },
+    Admin {
+        topic: AdminTopic,
+    },
     /// Events may have been missed, so everything shown has to be reloaded.
     Resync,
 }
@@ -68,6 +71,16 @@ pub enum PlatformTopic {
     Access,
 }
 
+/// A part of the superadmin area.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub enum AdminTopic {
+    /// Reported content waiting for a decision.
+    Reports,
+    /// Accounts: bans, unbans and their recovery.
+    Users,
+}
+
 /// Who an event is for.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "to", content = "id", rename_all = "camelCase")]
@@ -75,6 +88,7 @@ pub enum Audience {
     Members(Uuid),
     User(Uuid),
     Everyone,
+    Superadmins,
 }
 
 /// An event together with its audience. The constructors keep the two
@@ -123,6 +137,14 @@ impl Notice {
         Self {
             audience: Audience::User(user_id),
             event: Event::Platform { topic },
+        }
+    }
+
+    /// A change to the superadmin area, which only superadmins see.
+    pub const fn admin(topic: AdminTopic) -> Self {
+        Self {
+            audience: Audience::Superadmins,
+            event: Event::Admin { topic },
         }
     }
 
@@ -190,6 +212,19 @@ mod tests {
     }
 
     #[test]
+    fn admin_notices_reach_the_superadmins() {
+        let notice = Notice::admin(AdminTopic::Reports);
+
+        assert_eq!(notice.audience(), Audience::Superadmins);
+        assert_eq!(
+            notice.event(),
+            Event::Admin {
+                topic: AdminTopic::Reports
+            }
+        );
+    }
+
+    #[test]
     fn personal_group_notices_reach_only_the_member() {
         let (user_id, group_id) = (Uuid::new_v4(), Uuid::new_v4());
         let notice = Notice::member(user_id, group_id, GroupTopic::TaskMarks);
@@ -209,6 +244,13 @@ mod tests {
         assert_eq!(
             json,
             serde_json::json!({ "scope": "group", "groupId": group_id, "topic": "taskMarks" })
+        );
+        assert_eq!(
+            serde_json::to_value(Event::Admin {
+                topic: AdminTopic::Users
+            })
+            .unwrap(),
+            serde_json::json!({ "scope": "admin", "topic": "users" })
         );
         assert_eq!(
             serde_json::to_value(Event::Resync).unwrap(),
